@@ -42,14 +42,6 @@ function tableMergeSpecial(t1, t2)
     return t1
 end
 
--- handle unba modoption
-if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
-	VFS.Include("gamedata/unbaconfigs/unbacom_post.lua")
-	VFS.Include("gamedata/unbaconfigs/stats.lua")
-	VFS.Include("gamedata/unbaconfigs/buildoptions.lua")
-	UnbaCom_Post("armcom")
-	UnbaCom_Post("corcom")
-end
 
 -- create scavenger units
 if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then

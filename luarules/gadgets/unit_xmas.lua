@@ -241,25 +241,23 @@ if gadgetHandler:IsSyncedCode() then
 		createdDecorations = {}
 	end
 
-	if Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "disabled" then
-		function gadget:FeatureCreated(featureID, allyTeam)
-			if _G.itsXmas then
-				-- replace comwreck with xmas comwreck
-				if isComWreck[Spring.GetFeatureDefID(featureID)] then
-					local px,py,pz = Spring.GetFeaturePosition(featureID)
-					local rx,ry,rz = Spring.GetFeatureRotation(featureID)
-					local dx,dy,dz = Spring.GetFeatureDirection(featureID)
-					Spring.DestroyFeature(featureID)
-					local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px,py,pz)
-					if xmasFeatureID then
-						Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
-						Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
-						local comtype = 'armcom'
-						if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
-							comtype = 'corcom'
-						end
-						Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+	function gadget:FeatureCreated(featureID, allyTeam)
+		if _G.itsXmas then
+			-- replace comwreck with xmas comwreck
+			if isComWreck[Spring.GetFeatureDefID(featureID)] then
+				local px,py,pz = Spring.GetFeaturePosition(featureID)
+				local rx,ry,rz = Spring.GetFeatureRotation(featureID)
+				local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+				Spring.DestroyFeature(featureID)
+				local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px,py,pz)
+				if xmasFeatureID then
+					Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
+					Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+					local comtype = 'armcom'
+					if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
+						comtype = 'corcom'
 					end
+					Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
 				end
 			end
 		end

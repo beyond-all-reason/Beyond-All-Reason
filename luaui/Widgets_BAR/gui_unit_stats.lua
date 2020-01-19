@@ -247,10 +247,6 @@ function widget:Initialize()
 	WG['unitstats'].setAlternativeIcons = function(value)
 		alternativeUnitpics = value
 	end
-	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		VFS.Include("gamedata/unbaconfigs/stats.lua")
-		unba = true
-	end
 	init()
 end
 
@@ -369,17 +365,6 @@ function widget:DrawScreen()
 		seismicRadius = spGetUnitSensorRadius(uID, 'seismic') or 0
 		local uExp = spGetUnitExperience(uID)
 		armoredMultiple = select(2,Spring.GetUnitArmored(uID))
-
-		local unbacom = unba and isCommander[Spring.GetUnitDefID(uID)]
-		local _, xp = Spring.GetUnitExperience(uID)
-		if unbacom then
-			if xp then
-				level = math.floor(xp*10) + 1
-				if xp*10 >= 9.9 then level = 11 end
-			else
-				level = "unknown"
-			end
-		end
 	end
 
 	maxWidth = 0
@@ -442,14 +427,7 @@ function widget:DrawScreen()
 		end
 	end
 
-
-	if unbacom then
-		local buildSpeed = BuildSpeed[level] or uDef.buildSpeed
-		DrawText('Build:', yellow .. buildSpeed)
-		if uID then
-			DrawText('Level:', green .. level)
-		end
-	elseif uDef.buildSpeed > 0 then
+	if uDef.buildSpeed > 0 then
 		DrawText('Build:', yellow .. uDef.buildSpeed)
 	end
 
@@ -499,15 +477,7 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-	if unbacom then
-		if uDef.weapons[level] and uDef.weapons[level + 11] and uDef.weapons[30] then
-			uWeps = {uDef.weapons[level], uDef.weapons[level + 11], uDef.weapons[30]}
-		else
-			uWeps = uDef.weapons
-		end
-	else
-		uWeps = uDef.weapons
-	end
+	uWeps = uDef.weapons
 	local weaponNums = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
@@ -519,10 +489,6 @@ function widget:DrawScreen()
 			wepsCompact[#wepsCompact + 1] = wDefID
 			weaponNums[#wepsCompact] = i
 		end
-	end
-
-	if unbacom then
-		weaponNums = { level, level + 11, 30}
 	end
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
@@ -584,14 +550,6 @@ function widget:DrawScreen()
 				accuracy = spGetUnitWeaponState(uID,weaponNums[i] or -1,"accuracy") or uWep.accuracy
 				moveError = spGetUnitWeaponState(uID,weaponNums[i] or -1,"targetMoveError") or uWep.targetMoveError
 				range = spGetUnitWeaponState(uID,weaponNums[i] or -1,"range") or uWep.range
-			end
-
-			if unbacom then
-				if i == 1 then
-					range = Range[level]
-				elseif i == 2 then
-					range = Range2[level]
-				end
 			end
 
 			local rangeBonus = range ~= 0 and (range/uWep.range-1) or 0

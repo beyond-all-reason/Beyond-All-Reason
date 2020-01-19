@@ -18,8 +18,6 @@ end
 -- june 2015: guishader + rounded corners + hover effect + widget scales with resolution + remembers queue after /luaui reload (Floris)
 
 
-VFS.Include("gamedata/unbaconfigs/buildoptions.lua")
-
 for ct,name in pairs (armlevel1buildoptions) do
 	armlevel1buildoptions[ct] = UnitDefNames[name].id
 end
@@ -458,13 +456,6 @@ end
 function processGuishader()
 	if WG['guishader'] then
 		local sBuilds = UnitDefs[selectedDefID].buildOptions
-		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-			if sDef.name == "armcom" then
-				sBuilds = armlevel1buildoptions
-			elseif sDef.name == "corcom" then
-				sBuilds = corlevel1buildoptions
-			end
-		end
 		local numCols = math.min(#sBuilds, maxCols)
 		local numRows = math.ceil(#sBuilds / numCols)
 		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
@@ -501,13 +492,6 @@ function InitializeFaction(sDefID)
 	sDef = UnitDefs[sDefID]
 	-- Don't run if theres nothing to show
 	local sBuilds = sDef.buildOptions
-	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		if sDef.name == "armcom" then
-			sBuilds = armlevel1buildoptions
-		elseif sDef.name == "corcom" then
-			sBuilds = corlevel1buildoptions
-		end
-	end
 	if not sBuilds or (#sBuilds == 0) then
 		return
 	end
@@ -615,13 +599,6 @@ function widget:GetConfigData()
 		local startUnitName = Spring.GetSideData(mySide)
 		local sDefID = UnitDefNames[startUnitName].id
 		local sBuilds = UnitDefs[sDefID].buildOptions
-		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-			if UnitDefs[sDefID].name == "armcom" then
-				sBuilds = armlevel1buildoptions
-			elseif UnitDefs[sDefID].name == "corcom" then
-				sBuilds = corlevel1buildoptions
-			end
-		end
 		local numCols = math.min(#sBuilds, maxCols)
 		local numRows = math.ceil(#sBuilds / numCols)
 		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
@@ -1154,13 +1131,6 @@ function widget:ViewResize(newX,newY)
 	processGuishader()
 	
 	local sBuilds = UnitDefs[selectedDefID].buildOptions
-	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		if sDef.name == "armcom" then
-			sBuilds = armlevel1buildoptions
-		elseif sDef.name == "corcom" then
-			sBuilds = corlevel1buildoptions
-		end
-	end
 	local numCols = math.min(#sBuilds, maxCols)
 	local numRows = math.ceil(#sBuilds / numCols)
 	local bgheight = ((numRows*iconHeight)+margin)*widgetScale
