@@ -34,29 +34,53 @@ function SpawnBeacon(n)
 end
 
 function UnitGroupSpawn(n)
+	--Spring.Echo(numOfSpawnBeacons)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local UnitSpawnChance = math.random(0,UnitSpawnChance)
 		--local UnitSpawnChance = 1 -- dev purpose
-		if UnitSpawnChance == 0 or canSpawnHere == false then
+		if (UnitSpawnChance == 0 or canSpawnHere == false) and numOfSpawnBeacons > 0 then
 			-- check positions
-			local posx = math.random(300,mapsizeX-300)
-			local posz = math.random(300,mapsizeZ-300)
-			local posy = Spring.GetGroundHeight(posx, posz)
+			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+			SpawnBeacons = {}
+			for i = 1,#scavengerunits do
+				local scav = scavengerunits[i]
+				local scavDef = Spring.GetUnitDefID(scav)
+				if scavSpawnBeacon[scav] then
+					table.insert(SpawnBeacons,scav)
+				end
+			end
+			
+			local pickedBeacon = SpawnBeacons[math.random(1,#SpawnBeacons)]
+			posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+			local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
+			if nearestEnemy == bestTeam then
+				bestTeamGroupMultiplier = 2
+			else
+				bestTeamGroupMultiplier = 1
+			end
+			canSpawnHere = true
+			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
+			SpawnBeacon(n)
+				
+			
+			--local posx = math.random(300,mapsizeX-300)
+			--local posz = math.random(300,mapsizeZ-300)
+			--local posy = Spring.GetGroundHeight(posx, posz)
 			-- minimum size needed for succesful spawn
 			local posradius = 100
-			canSpawnHere = posCheck(posx, posy, posz, posradius)
-			if canSpawnHere then
-				canSpawnHere = posLosCheck(posx, posy, posz,posradius)
-			end
-			if canSpawnHere then
-				canSpawnHere = posOccupied(posx, posy, posz, posradius)
-			end
+			--canSpawnHere = posCheck(posx, posy, posz, posradius)
+			--if canSpawnHere then
+				--canSpawnHere = posLosCheck(posx, posy, posz,posradius)
+			--end
+			--if canSpawnHere then
+				--canSpawnHere = posOccupied(posx, posy, posz, posradius)
+			--end
 			--spawn units
 			if canSpawnHere then
 				
 				UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
-				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
+				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())*bestTeamGroupMultiplier
 				--Spring.Echo("groupsize 1: "..groupsize)
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
 				local spawnTier = math.random(1,100)
@@ -131,6 +155,10 @@ function UnitGroupSpawn(n)
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 					Spring.CreateUnit("scavengerdroppod_scav", posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 				end
+				posx = nil
+				posy = nil
+				posz = nil
+				SpawnBeacons = nil
 			end
 		else
 			UnitSpawnChance = UnitSpawnChance - 1

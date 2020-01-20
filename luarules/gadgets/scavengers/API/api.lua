@@ -24,6 +24,7 @@ Spring.Echo("[Scavengers] API initialized")
 	scavFactory = {}
 	scavCollector = {}
 	scavSpawnBeacon = {}
+	numOfSpawnBeacons = 0
 	TierSpawnChances = {
 		T0 = 100,
 		T1 = 0,
@@ -141,8 +142,8 @@ function teamsCheck()
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID then
 			local i = teamID
-			local _,_,_,_mi = Spring.GetTeamResources(i, "metal")
-			local _,_,_,_ei = Spring.GetTeamResources(i, "energy")
+			local _,_,_,_,mi = Spring.GetTeamResources(i, "metal")
+			local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
 			globalResourceProduction = globalResourceProduction + mi + ei
 			
 			local resourceScore = mi + ei

@@ -61,8 +61,9 @@ function gadget:GameFrame(n)
 		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 	end
-	if n%1800 == 0 then
+	if n%1800 == 0 and n > 100 then
 		UpdateTierChances(n)
+		teamsCheck()
 	end
 	
 	
@@ -142,6 +143,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavStructure[unitID] = nil
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
+		SpawnBeacon(n)
+		if UnitDefs[unitDefID].name == "scavengerbeacon_scav" then 
+			numOfSpawnBeacons = numOfSpawnBeacons - 1
+		end
 	end
 end
 
@@ -152,6 +157,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 		if UnitDefs[unitDefID].name == "scavengerbeacon_scav" then
 			scavSpawnBeacon[unitID] = true
+			numOfSpawnBeacons = numOfSpawnBeacons + 1
 		end
 		-- CMD.CLOAK = 37382
         Spring.GiveOrderToUnit(unitID,37382,{1},{""})
