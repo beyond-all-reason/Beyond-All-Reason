@@ -76,7 +76,7 @@ T2LandUnits = {
 "armjam",
 "armst",
 "armmart",
-"armlattnk",
+"armlatnk",
 "armyork",
 "armcroc",
 "armmerl",
