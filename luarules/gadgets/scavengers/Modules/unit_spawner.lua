@@ -6,15 +6,35 @@ for i = 1,#UnitLists do
 	Spring.Echo("Scav Units Directory: " ..UnitLists[i])
 end
 local UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
+local BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
+
+function SpawnBeacon(n)
+	local BeaconSpawnChance = math.random(0,BeaconSpawnChance)
+	if BeaconSpawnChance == 0 or canSpawnBeaconHere == false then
+		
+		local posx = math.random(300,mapsizeX-300)
+		local posz = math.random(300,mapsizeZ-300)
+		local posy = Spring.GetGroundHeight(posx, posz)
+		local posradius = 100
+		canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
+		if canSpawnBeaconHere then
+			canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
+		end
+		if canSpawnBeaconHere then
+			canSpawnBeaconHere = posOccupied(posx, posy, posz, posradius)
+		end
+		
+		if canSpawnBeaconHere then
+			BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
+			Spring.CreateUnit("scavengerbeacon_scav", posx, posy, posz, math.random(0,3),GaiaTeamID)
+		end
+	else
+		BeaconSpawnChance = BeaconSpawnChance - 1
+	end
+end
 
 function UnitGroupSpawn(n)
 	if n > 9000 then
-		-- this doesnt work
-		-- if teamcount == 0 then
-  --  		teamcount = 1
-  --  		if allyteamcount == 0 then
-  --  		allyteamcount = 1
-   		
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local UnitSpawnChance = math.random(0,UnitSpawnChance)
 		--local UnitSpawnChance = 1 -- dev purpose

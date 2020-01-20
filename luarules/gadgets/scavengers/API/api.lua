@@ -23,6 +23,7 @@ Spring.Echo("[Scavengers] API initialized")
 	scavResurrector = {}
 	scavFactory = {}
 	scavCollector = {}
+	scavSpawnBeacon = {}
 	TierSpawnChances = {
 		T0 = 100,
 		T1 = 0,
@@ -110,4 +111,48 @@ function posLosCheck(posx, posy, posz, posradius)
 		end
 	end
 	return true
+end
+
+function posLosCheckNoRadar(posx, posy, posz, posradius)
+	-- if true then can spawn
+	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if allyTeamID ~= GaiaAllyTeamID then
+			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx - posradius, posy, posz - posradius, allyTeamID) == true then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+function teamsCheck()
+	bestTeamScore = 0
+	bestTeam = 0
+	globalResourceProduction = 0
+	for _,teamID in ipairs(Spring.GetTeamList()) do
+		if teamID ~= GaiaTeamID then
+			local i = teamID
+			local _,_,_,_mi = Spring.GetTeamResources(i, "metal")
+			local _,_,_,_ei = Spring.GetTeamResources(i, "energy")
+			globalResourceProduction = globalResourceProduction + mi + ei
+			
+			local resourceScore = mi + ei
+			local unitScore = Spring.GetTeamUnitCount(i)*5
+			local finalScore = resourceScore + unitScore
+			
+			if finalScore > bestTeamScore then
+				bestTeamScore = finalScore
+				bestTeam = i
+			end
+		end
+	end
 end

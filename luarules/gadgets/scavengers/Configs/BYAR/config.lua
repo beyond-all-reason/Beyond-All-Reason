@@ -35,6 +35,7 @@ unitSpawnerModuleConfig = {
 	aircraftchance 						= 5, -- higher number = lower chance
 	groupsizemultiplier 				= 1,
 	spawnchance							= 60,
+	beaconspawnchance					= 60,
 	spawnchancecostscale				= 1, -- higher = smaller groups (fine tune together with groupsizemultiplier)
 	landmultiplier 						= 0.8,
 	airmultiplier 						= 1.5,
