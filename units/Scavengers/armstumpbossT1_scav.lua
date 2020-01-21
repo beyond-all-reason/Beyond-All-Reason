@@ -154,7 +154,7 @@ return {
 				leadLimit = 64,
 				name = "Huge g2g plasma cannon",
 				noselfdamage = true,
-				proximityPriority = -5,
+				proximityPriority = -10,
 				range = 1100,
 				reloadtime = 15,
 				soundhit = "xplonuk2",

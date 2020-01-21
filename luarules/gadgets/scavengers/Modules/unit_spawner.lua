@@ -55,9 +55,9 @@ function UnitGroupSpawn(n)
 			posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 			local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
 			if nearestEnemy == bestTeam then
-				bestTeamGroupMultiplier = 2
-			else
 				bestTeamGroupMultiplier = 1
+			else
+				bestTeamGroupMultiplier = 0.75
 			end
 			canSpawnHere = true
 			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})

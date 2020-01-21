@@ -2,7 +2,7 @@ return {
 	scavengerdroppodbeacon_scav = {
 		acceleration = 0,
 		activatewhenbuilt = true,
-		autoheal = 1.8,
+		autoheal = 10,
 		bmcode = "0",
 		brakerate = 0,
 		buildcostenergy = 25000,
