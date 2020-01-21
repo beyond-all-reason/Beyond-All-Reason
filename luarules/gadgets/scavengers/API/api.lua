@@ -149,7 +149,7 @@ function teamsCheck()
 			local resourceScore = mi*10 + ei
 			local unitScore = Spring.GetTeamUnitCount(i)*5
 			local finalScore = resourceScore + unitScore
-			Spring.Echo("Final Score for team "..i..": "..finalScore)
+			--Spring.Echo("Final Score for team "..i..": "..finalScore)
 			globalScore = globalScore + finalScore
 			
 			if finalScore > bestTeamScore then
@@ -159,5 +159,5 @@ function teamsCheck()
 		end
 	end
 	globalScore = math.ceil(globalScore/scoreTeamCount)
-	Spring.Echo("[scavengers] Global Score: "..globalScore)
+	--Spring.Echo("[scavengers] Global Score: "..globalScore)
 end
