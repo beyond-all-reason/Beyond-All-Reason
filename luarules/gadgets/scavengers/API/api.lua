@@ -6,7 +6,7 @@ Spring.Echo("[Scavengers] API initialized")
 	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 	mapsizeX = Game.mapSizeX
 	mapsizeZ = Game.mapSizeZ
-	teamcount = #Spring.GetTeamList() - 2
+	teamcount = #Spring.GetTeamList() - 1
 	allyteamcount = #Spring.GetAllyTeamList() - 1
 	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
 	selfdx = {}
@@ -138,17 +138,19 @@ end
 function teamsCheck()
 	bestTeamScore = 0
 	bestTeam = 0
-	globalResourceProduction = 0
+	globalScore = 0
+	scoreTeamCount = 0
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID then
 			local i = teamID
+			scoreTeamCount = scoreTeamCount + 1
 			local _,_,_,_,mi = Spring.GetTeamResources(i, "metal")
 			local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
-			globalResourceProduction = globalResourceProduction + mi + ei
-			
-			local resourceScore = mi + ei
+			local resourceScore = mi*10 + ei
 			local unitScore = Spring.GetTeamUnitCount(i)*5
 			local finalScore = resourceScore + unitScore
+			Spring.Echo("Final Score for team "..i..": "..finalScore)
+			globalScore = globalScore + finalScore
 			
 			if finalScore > bestTeamScore then
 				bestTeamScore = finalScore
@@ -156,4 +158,6 @@ function teamsCheck()
 			end
 		end
 	end
+	globalScore = math.ceil(globalScore/scoreTeamCount)
+	Spring.Echo("[scavengers] Global Score: "..globalScore)
 end

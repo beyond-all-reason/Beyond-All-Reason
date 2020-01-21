@@ -15,7 +15,7 @@ function SpawnBeacon(n)
 		local posx = math.random(300,mapsizeX-300)
 		local posz = math.random(300,mapsizeZ-300)
 		local posy = Spring.GetGroundHeight(posx, posz)
-		local posradius = 100
+		local posradius = 80
 		canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
 		if canSpawnBeaconHere then
 			canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
@@ -26,7 +26,7 @@ function SpawnBeacon(n)
 		
 		if canSpawnBeaconHere then
 			BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-			Spring.CreateUnit("scavengerbeacon_scav", posx, posy, posz, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math.random(0,3),GaiaTeamID)
 		end
 	else
 		BeaconSpawnChance = BeaconSpawnChance - 1
@@ -68,7 +68,7 @@ function UnitGroupSpawn(n)
 			--local posz = math.random(300,mapsizeZ-300)
 			--local posy = Spring.GetGroundHeight(posx, posz)
 			-- minimum size needed for succesful spawn
-			local posradius = 100
+			local posradius = 80
 			--canSpawnHere = posCheck(posx, posy, posz, posradius)
 			--if canSpawnHere then
 				--canSpawnHere = posLosCheck(posx, posy, posz,posradius)

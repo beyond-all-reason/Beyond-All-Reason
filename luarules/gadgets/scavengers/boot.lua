@@ -62,8 +62,8 @@ function gadget:GameFrame(n)
 		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 	end
 	if n%1800 == 0 and n > 100 then
-		UpdateTierChances(n)
 		teamsCheck()
+		UpdateTierChances(n)
 	end
 	
 	
@@ -75,7 +75,7 @@ function gadget:GameFrame(n)
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.Timer0 then
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.T1start then
 			SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -144,7 +144,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
 		SpawnBeacon(n)
-		if UnitDefs[unitDefID].name == "scavengerbeacon_scav" then 
+		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then 
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
 		end
 	end
@@ -155,7 +155,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     	if UnitDefs[unitDefID].name == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 		end
-		if UnitDefs[unitDefID].name == "scavengerbeacon_scav" then
+		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			scavSpawnBeacon[unitID] = true
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 		end
