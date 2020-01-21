@@ -18,7 +18,7 @@ return {
 		cruisealt = 110,
 		description = "Ultimate Flying Fortress",
 		energymake = 50,
-		explodeas = "largeexplosiongeneric",
+		explodeas = "advancedFusionExplosion",
 		footprintx = 5,
 		footprintz = 5,
 		hoverattack = true,

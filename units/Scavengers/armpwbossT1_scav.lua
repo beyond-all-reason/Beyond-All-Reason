@@ -136,6 +136,7 @@ return {
 				intensity = 0.7,
 				name = "Rapid-fire huge g2g plasma guns",
 				noselfdamage = true,
+				proximityPriority = -1.5,
 				range = 1250,
 				reloadtime = 0.5,
 				rgbcolor = "1 0.95 0.4",
