@@ -148,7 +148,8 @@ function UnitGroupSpawn(n)
 				end
 				
 				local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)*unitSpawnerModuleConfig.spawnchancecostscale
-				local groupsize = math.ceil((groupsize/cost)*unitSpawnerModuleConfig.groupsizemultiplier)
+				local groupsizelog = ((math.log(globalScore))/3)*unitSpawnerModuleConfig.groupsizemultiplier
+				local groupsize = math.ceil((groupsize/cost)*groupsizelog)
 				--Spring.Echo("groupsize 2: "..groupsize)
 				
 				for i=1, groupsize do

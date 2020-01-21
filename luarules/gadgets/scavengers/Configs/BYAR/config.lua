@@ -55,18 +55,18 @@ buildingSpawnerModuleConfig = {
 
 unitSpawnerModuleConfig = {
 	aircraftchance 						= 5, -- higher number = lower chance
-	groupsizemultiplier 				= 1,
+	groupsizemultiplier 				= 0.35,
 	spawnchance							= 60,
 	beaconspawnchance					= 60,
-	spawnchancecostscale				= 1, -- higher = smaller groups (fine tune together with groupsizemultiplier)
-	landmultiplier 						= 0.8,
+	spawnchancecostscale				= 1, -- higher = expensive units spawn in smaller groups (fine tune together with groupsizemultiplier)
+	landmultiplier 						= 0.75,
 	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.3,
 }
 
 constructorControllerModuleConfig = {
 	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-	constructortimer 					= 200, -- time in seconds between commander/constructor spawns
+	constructortimer 					= 220, -- time in seconds between commander/constructor spawns
 	useresurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,

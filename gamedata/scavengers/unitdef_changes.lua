@@ -17,14 +17,16 @@ end
 
 customDefs.corcom = {		
 	autoheal = 15,
-	cloakcost = 100,
-	cloakcostmoving = 200,
+	buildoptions = scavUnit,
+	cloakcost = 50,
+	cloakcostmoving = 100,
 	explodeas = "hugeexplosiongeneric",
 	hidedamage = false,
 	idleautoheal = 20,
+	maxdamage = 4500,
 	mincloakdistance = 20,
 	showplayername = false,
-	buildoptions = scavUnit,
+	stealth = true,
 	workertime = 600,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
@@ -37,8 +39,11 @@ customDefs.corcom = {
 	weapondefs = {
 		disintegrator = {
 			commandfire = false,
+			reloadtime = 10,
+			weaponvelocity = 350,
 			damage = {
-				default = 140,
+				default = 2500,
+				commanders = 1500,
 			},
 		},
 	},
@@ -52,14 +57,16 @@ customDefs.corcom = {
 
 customDefs.armcom = {		
 	autoheal = 15,
-	cloakcost = 100,
-	cloakcostmoving = 200,
+	buildoptions = scavUnit,
+	cloakcost = 50,
+	cloakcostmoving = 100,
 	explodeas = "hugeexplosiongeneric",
 	hidedamage = false,
 	idleautoheal = 20,
+	maxdamage = 4500,
 	mincloakdistance = 20,
 	showplayername = false,
-	buildoptions = scavUnit,
+	stealth = true,
 	workertime = 600,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
@@ -72,8 +79,11 @@ customDefs.armcom = {
 	weapondefs = {
 		disintegrator = {
 			commandfire = false,
+			reloadtime = 10,
+			weaponvelocity = 350,
 			damage = {
-				default = 140,
+				default = 2500,
+				commanders = 1500,
 			},
 		},
 	},
