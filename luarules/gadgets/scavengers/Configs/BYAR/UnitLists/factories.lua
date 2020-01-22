@@ -37,6 +37,7 @@ FactoriesExcludedUnits = {
 "armtship",
 "armthovr",
 "armscab",
+"corape",
 "corvalk",
 "corseah",
 "cormuskrat",
