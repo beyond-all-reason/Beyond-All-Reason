@@ -42,7 +42,7 @@ T3AirUnits = {
 "corsb",
 "corvamp",
 "corhurc",
-"corape",
+--"corape", exluded because of interference with corap factory
 "corcrw",
 "corawac",
 
