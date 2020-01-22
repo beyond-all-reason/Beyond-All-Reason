@@ -13,6 +13,16 @@ local convertCapacities = {
     [UnitDefNames.armuwmmm.id] = { c = (650), e = (AC2) }, 
     [UnitDefNames.coruwmmm.id] = { c = (650), e = (AC2) },
 }
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+    local convertCapacitiesScavs = {}
+    for k,v in pairs(convertCapacities) do
+        convertCapacitiesScavs[k..'_scav'] = v
+    end
+    for k,v in pairs(convertCapacitiesScavs) do
+        convertCapacities[k] = v
+    end
+    convertCapacitiesScavs = nil
+end
 
 return convertCapacities
 
