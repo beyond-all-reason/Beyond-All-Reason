@@ -181,16 +181,12 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarBarColor			= {1,1,1,0.08}
 	
 	local fontSizeTitle				= 18		-- is version number
-	local fontSizeDate				= 14
 	local fontSizeLine				= 16
 	local lineSeparator				= 2
 	
 	local fontColorTitle			= {1,1,1,1}
-	local fontColorDate				= {0.66,0.88,0.66,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
-	local fontColorLineBullet		= {0.9,0.6,0.2,1}
-	
-	local textRightOffset = scrollbar and scrollbarMargin+scrollbarWidth+scrollbarWidth or 0
+
 	local maxLines = math.floor((height-5)/fontSizeLine)
 	
 	-- textarea scrollbar
@@ -238,23 +234,11 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			end
 			
 			local line = textLines[lineKey]
-			--if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
-			--	-- date line
-			--	line = "  " .. line
-			--	font:SetTextColor(fontColorDate)
-			--	font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeDate, "n")
-			--elseif string.find(line, '^(%d*%d.?%d+)') then
-			--	-- version line
-			--	local versionStrip = string.match(line, '( %d*%d.?%d+)')
-			--	if versionStrip ~= nil then
-			--		line = " " .. versionStrip
- 			--	else
-			--		line = " " .. line
-			--	end
-			--	font:SetTextColor(fontColorTitle)
-			--	font:Print(line, x-9, y-(lineSeparator+fontSizeTitle)*j, fontSizeTitle, "n")
+			if string.find(line, '^[A-Z][A-Z]') then
+				font:SetTextColor(fontColorTitle)
+				font:Print(line, x-9, y-(lineSeparator+fontSizeTitle)*j, fontSizeTitle, "n")
 				
-			--else
+			else
 				font:SetTextColor(fontColorLine)
 				-- line
 				line, numLines = font:WrapText(line, (width-50)*(loadedFontSize/fontSizeLine))
@@ -263,7 +247,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				end
 				font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
-			--end
+			end
 
 			j = j + 1
 			lineKey = lineKey + 1
@@ -306,7 +290,7 @@ function DrawWindow()
 	font2:End()
 	
 	-- textarea
-	DrawTextarea(x+10, y-10, screenWidth-10, screenHeight-24, 1)
+	DrawTextarea(x+22, y-10, screenWidth-22, screenHeight-24, 1)
 end
 
 
