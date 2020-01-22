@@ -177,7 +177,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function DrawIcon(size, height, self, mult)
-	gl.Color(1,0,0, (self and 0.7 or 0.4) * (mult or 1))
+	gl.Color(1,0,0, 0.66 * (mult or 1))
 	gl.Texture(':n:LuaUI/Images/energy2.png')
 	gl.Translate(0,5+height+(size*0.5),0)
 	gl.Billboard()
