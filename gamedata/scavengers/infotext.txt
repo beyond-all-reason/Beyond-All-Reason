@@ -1,49 +1,55 @@
-1. Scavengers will drop droppod-beacons on locations outside your Line of Sight (LoS) :droppod: 
-2. They remain absent for the first 5 minutes of a game - the Scavengers only watch
-3. After 5 minutes the first small groups of Scavenger have a chance of choosing a droppod-beacon.
-4. They will enter the atmosphere and battlefield from the sky in special droppods
-5. When the first groups of scavenger scouts have scanned the area, the first Scavenger Commander will drop as well, but you will only see the purple droppod-trail, because he will choose a location outside of radar and LoS. 
-6. The Scavenger Commander(s) are stealthy and have cloak, so they will be hard to spot and track. They also spawn a group of rez-bots with them, and they will scavenge the battlefield for resurrectable units from wreckage.
-7. The Scavengers want to gather as much units/wreckage in order to aid in their mission to scavenge as much as possible
-8. Scavengers have to do with damaged goods, but they reverse-engineered it well and added some special features. (see details below)
-9. In the uncontrolled corners of the map, Scav Commanders will start to build up bases and strong defenses to secure their perimeter
-10. As players fight with more and higher tech units, the Scavengers will also learn those tech and will 'level-up' alongside with what happens on the battlefield. So they kind of mirror what is happening, dynamically.
-11. Scavengers hate it when factions have more power over someone else so they have more aggression towards winning teams that are doing well and have a better economy and metal/energy income.
-12. When the battle has heated up so much and the economy and amount of enemy units is so high, it will start to drop boss-units :scavboss: 
-It's up to the players to gain and keep mapcontrol/radar/full sight of the battlefield in order to keep Scavengers away.
-So it's wise to get as much radar coverage as possible to prevent Scav Commanders from dropping down into the battle, and also to hunt down and destroy as much droppod-beacons to prevent further Scavenger units to drop.
+| WATCH OUT | SCAVENGERS ARE ACTIVE IN THIS REGION
 
-The special abilities of the Scavenger Faction
+PHASE 1
+1. Scavengers will DROP BEACONS outside your line of sight
+2. Scavengers remain ABSENT FOR THE FIRST 5 MINUTES of a game
+3. Scavenger groups will do ORBITAL DROPS ON DROPPOD-BEACONS appearing from dark corners of the map.
+4. The Scavenger COMMANDERS will also enter the map soon after and they are TOUGH, STEALTHY AND HAVE CLOAK
+5. Commanders also spawn with a group of REZ-BOTS, and they will SCAVENGE THE BATTLEFIELD for resurrectable units from wreckage.
+
+PHASE 2
+1. Scavenger Commanders will start to BUILD UP BASES and strong defenses to secure their perimeter
+2. Scavengers will also learn from other teams and will 'LEVEL-UP' DYNAMICALLY with what happens on the battlefield.
+3. Scavengers are MORE AGGRESSIVE TOWARDS WINNING TEAMS that have a better economy and metal/energy income.
+4. Scavengers bases and units will BECOME LARGER AND STRONGER in each tech level
+
+PHASE 3
+1. When the overall economy and amount of units surpasses a certain threshold, Scavengers will start to DROP BOSS-UNITS 
+2. It's up you to GAIN AND KEEP MAPCONTROL of the battlefield in order to keep Scavengers away.
+3. It's wise to get as much RADAR COVERAGE as possible to prevent Scav Commanders from dropping down into the battle
+4. Lastly: Don't forget to hunt down and DESTROY AS MUCH DROPPOD-BEACONS to prevent further Scavenger units to drop.
+
+THE SPECIAL ABILITIES
 + 20% more speed
 + 25% more sight- and jamming-range
 + Higher idle/auto heal
-+ Halve the cost in metal/nrg to produce
++ 75% Faster build, reclaim and resurrect
+½ Halve the cost in metal/nrg to produce
+? Rumors tell that around 30% of their armada is cloaked
 - 1/3 less Health
 
-Because of the above, and the reverse-engineering they do, they can also build, reclaim and resurrect faster.
-Also they managed to partly outfit their armada with cloaking devices, so most defenses and some units are cloaked as well.
-
-The Scavenger commander is pretty tough. :scavcom: 
+THE SCAVENGER COMMANDER IS PRETTY TOUGH
 He has 50% more health, is almost always cloaked and has stealth.
-His Disintegrator Gun (D-Gun) could not be engineered as good as the original, and does a lot less damage and only fires once every 10 seconds. Besides this, he will auto-regenerate health a lot faster, so it's wise to hunt them down and kill them.
+His Disintegrator Gun (D-Gun) could not be engineered as good as the original, and does a lot less damage and only fires once every 10 seconds. Despite this flaw, he does auto-regenerate health a lot faster, so it's wise to hunt them down and kill them.
  
-So why did they appear?
-That's unclear up until this moment, but what we do know and have experienced ourselves is that they can be a curse or a blessing.
+SO WHY DID THEY APPEAR?
+That's unclear up until this moment, but what we do know and have experienced ourselves is that they can be:
+A CURSE OR A BLESSING.
 
-- In dire situations, when your strategies don't work out well, or the power of balance seems to shift towards your foes, the chances of Scavengers attacking your enemies, with larger forces, increases. This can buy you some extra time to adjust and rebuild your strength.
+• A BLESSING, when your strategies don't work out well, or the power of balance seems to shift towards your foes, the chances of Scavengers attacking your enemies, with larger forces, increases. This can buy you some extra time to adjust and rebuild your strength.
 
-- However, when you think you are owning your enemies, and steamrolling through the middle, you might forget to defend you flanks, or forget some area behind a mountain or in a crater. That could be very dangerous, because Scavengers will try to hit you hard there.
+• A CURSE, when you think you are owning your enemies, and steamrolling through the middle, you might forget to defend you flanks, or forget some area behind a mountain or in a crater. That could be very dangerous, because Scavengers will try to hit you hard there.
 
-What's all the fuzz and fun about?
-- Scavengers make battles more dynamic and more interesting.
-- They also add more randomness to each battle, including being slighty balancing in (uneven) matches.
-- They build beautiful bases from all kinds of blueprints they have gathered in the past
-- When you think you're done and battle is almost over, then Scavenger Bosses suddenly appear
-- Scavengers, even while being stealthy bastards, will fill up games with more dynamic gameplay and more area's of interest.
-- Scavengers stimulate map control, radar coverage, a little more cautious strategies, open new kinds of strategies.
+WHAT'S ALL THE FUZZ AND FUN ABOUT?
+- Scavengers make battles MORE DYNAMIC AND MORE INTERESTING.
+- They also add more randomness to each battle, including their BALANCING SKILLS in (uneven) matches.
+- They build BEAUTIFUL BASES from all kinds of blueprints they have gathered in the past
+- When you think you're done and battle is almost over, then SCAVENGER BOSSES SUDDENLY APPEAR
+- Scavengers, even while being stealthy bastards, will fill up games with MORE DYNAMIC GAMEPLAY and MORE AREA'S OF INTEREST.
+- Scavengers stimulate map control, radar coverage, a little more cautious strategies and OPEN NEW KINDS OF STRATEGIES.
 
-Tips
-- Watch all corners of the map, especially the 'dark-zones'
-- Try to destroy/clean a remote area near your enemies base - chances are Scavengers will spawn there and they will/can assist you in your fight
-- It's possible to lure a group of enemies to your enemy - make sure to stay close and move your bait-units closer and closer towards the enemy. Scavengers are efficient hunters and almost always attack units that are the closest.
-They have a pretty large supply of metal and energy, coming from off-site bases outside of the battlefield. It's not unlimited and with lots of cloaked units, it IS possible to run them dry on energy. So targeting large powerplant facilities (mid/late-game) is always interesting. This can disrupt their cloak and stealth abilities, or even their firing power!
+TIPS & TRICKS
+- Watch all corners of the map, ESPECIALLY THE 'DARK-ZONES'
+- Try to destroy/clean a remote area near your enemies base - chances are Scavengers will spawn there and THEY WILL/CAN ASSIST YOU IN YOUR FIGHT
+- It's possible to LURE A GROUP OF SCAVENGERS to your enemy - make sure to stay close and move your bait-units closer and closer towards the enemy. Scavengers are efficient hunters and almost always attack units that are the closest.
+- Scavengers have a pretty large supply of metal and energy, coming from off-site bases outside of the battlefield. It's not unlimited and with lots of cloaked units, so it IS possible to RUN THEM DRY ON ENERGY. Targeting large powerplant facilities (mid/late-game) is always interesting. This can disrupt their cloak and stealth abilities, or even their firing power!
