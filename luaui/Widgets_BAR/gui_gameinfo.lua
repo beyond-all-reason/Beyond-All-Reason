@@ -145,7 +145,7 @@ end
 local bgMargin = 6
 
 local screenHeight = 520-bgMargin-bgMargin
-local screenWidth = 400-bgMargin-bgMargin
+local screenWidth = 430-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
@@ -287,9 +287,9 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarBackgroundColor	= {0,0,0,0.24	}
 	local scrollbarBarColor			= {1,1,1,0.08}
 
-	local fontSizeTitle				= 17		-- is version number
-	local fontSizeDate				= 13
-	local fontSizeLine				= 15
+	local fontSizeTitle				= 18		-- is version number
+	local fontSizeDate				= 14
+	local fontSizeLine				= 16
 	local lineSeparator				= 2
 
 	local fontColorTitle			= {1,1,1,1}
