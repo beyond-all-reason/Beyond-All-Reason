@@ -1,6 +1,6 @@
 
 if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
-	return end
+	return
 end
 
 function widget:GetInfo()
