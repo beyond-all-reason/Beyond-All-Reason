@@ -17,15 +17,6 @@ end
 -- august 2013: send queue length to cmd_idle_players (BrainDamage)
 -- june 2015: guishader + rounded corners + hover effect + widget scales with resolution + remembers queue after /luaui reload (Floris)
 
-
-for ct,name in pairs (armlevel1buildoptions) do
-	armlevel1buildoptions[ct] = UnitDefNames[name].id
-end
-
-for ct,name in pairs (corlevel1buildoptions) do
-	corlevel1buildoptions[ct] = UnitDefNames[name].id
-end
-
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
