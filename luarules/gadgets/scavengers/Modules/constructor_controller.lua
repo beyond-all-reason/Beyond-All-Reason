@@ -35,19 +35,33 @@ function CollectorOrders(n, scav)
 end
 
 function SpawnConstructor(n)
-	local posx = math.random(250,mapsizeX-250)
-	local posz = math.random(250,mapsizeZ-250)
-	local posy = Spring.GetGroundHeight(posx, posz)
-	local posradius = 48
-	canSpawnCommanderHere = posCheck(posx, posy, posz, posradius)
-	if canSpawnCommanderHere then
-		canSpawnCommanderHere = posLosCheck(posx, posy, posz,posradius)
-	end
-	if canSpawnCommanderHere then
-		canSpawnCommanderHere = posOccupied(posx, posy, posz, posradius)
-	end
-	if canSpawnCommanderHere then
-		if constructortimer > constructorControllerModuleConfig.constructortimer then
+	if constructortimer > constructorControllerModuleConfig.constructortimer then
+		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+		SpawnBeacons = {}
+		for i = 1,#scavengerunits do
+			local scav = scavengerunits[i]
+			local scavDef = Spring.GetUnitDefID(scav)
+			if scavSpawnBeacon[scav] then
+				table.insert(SpawnBeacons,scav)
+			end
+		end
+		local pickedBeacon = SpawnBeacons[math.random(1,#SpawnBeacons)]
+		posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
+		if nearestEnemy == bestTeam then
+			canSpawnCommanderHere = true
+		else
+			local r = math.random(0,1)
+			if r == 0 then
+				canSpawnCommanderHere = true
+			else
+				canSpawnCommanderHere = false
+			end
+		end
+		if canSpawnCommanderHere then
+			posradius = 48
+			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
+			SpawnBeacon(n)
 			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
 			local r = ConstructorsList[math.random(1,#ConstructorsList)]
 			local r2 = Resurrectors[math.random(1,#Resurrectors)]
@@ -85,7 +99,7 @@ function SpawnConstructor(n)
 			constructortimer = constructortimer +  math.ceil(n/36000)
 		end
 	else
-		constructortimer =	constructortimer +  math.ceil(n/36000)
+		constructortimer = constructortimer +  math.ceil(n/36000)
 	end
 end			
 	

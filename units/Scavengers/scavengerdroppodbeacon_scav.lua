@@ -13,7 +13,7 @@ return {
 		buildtime = 10500,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "56 11 56",
+		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",
 		description = "Scavenger Spawner",
 		energystorage = 1000,
@@ -44,7 +44,7 @@ return {
 		upright = false,
 		waterline = 0,
 		workertime = 1500,
-		--yardmap = "oo oo",
+		yardmap = "yy yy",
 		customparams = {
 			subfolder = "scavengers",
 			isairbase = true,

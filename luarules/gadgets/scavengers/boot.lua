@@ -75,7 +75,7 @@ function gadget:GameFrame(n)
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.T1start then
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > 9000 then
 			SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)

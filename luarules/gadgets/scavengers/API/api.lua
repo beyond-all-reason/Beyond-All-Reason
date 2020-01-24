@@ -16,6 +16,7 @@ Spring.Echo("[Scavengers] API initialized")
 	oldselfdy = {}
 	oldselfdz = {}
 	scavNoSelfD = {}
+	UDC = Spring.GetTeamUnitDefCount
 	UDN = UnitDefNames
 	scavStructure = {}
 	scavConstructor = {}
@@ -128,6 +129,22 @@ function posLosCheckNoRadar(posx, posy, posz, posradius)
 			Spring.IsPosInAirLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
 			Spring.IsPosInAirLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInAirLos(posx - posradius, posy, posz - posradius, allyTeamID) == true then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+function posLosCheckOnlyLOS(posx, posy, posz, posradius)
+	-- if true then can spawn
+	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if allyTeamID ~= GaiaAllyTeamID then
+			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
 				return false
 			end
 		end

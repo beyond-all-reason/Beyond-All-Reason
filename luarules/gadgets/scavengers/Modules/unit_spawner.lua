@@ -10,6 +10,9 @@ local BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 
 function SpawnBeacon(n)
 	local BeaconSpawnChance = math.random(0,BeaconSpawnChance)
+	if numOfSpawnBeacons <= 10 then
+		BeaconSpawnChance = 0
+	end
 	if BeaconSpawnChance == 0 or canSpawnBeaconHere == false then
 		
 		local posx = math.random(300,mapsizeX-300)
@@ -18,7 +21,7 @@ function SpawnBeacon(n)
 		local posradius = 80
 		canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
 		if canSpawnBeaconHere then
-			canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
+			canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
 		end
 		if canSpawnBeaconHere then
 			canSpawnBeaconHere = posOccupied(posx, posy, posz, posradius)
@@ -30,6 +33,9 @@ function SpawnBeacon(n)
 		end
 	else
 		BeaconSpawnChance = BeaconSpawnChance - 1
+		if BeaconSpawnChance < 1 then
+			BeaconSpawnChance = 1
+		end
 	end
 end
 
@@ -37,9 +43,10 @@ function UnitGroupSpawn(n)
 	--Spring.Echo(numOfSpawnBeacons)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local UnitSpawnChance = math.random(0,UnitSpawnChance)
+		local ActualUnitSpawnChance = math.random(0,UnitSpawnChance)
+		--if globalScore > 2000 then
 		--local UnitSpawnChance = 1 -- dev purpose
-		if (UnitSpawnChance == 0 or canSpawnHere == false) and numOfSpawnBeacons > 0 then
+		if (ActualUnitSpawnChance == 0 or canSpawnHere == false) and numOfSpawnBeacons > 0 then
 			-- check positions
 			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 			SpawnBeacons = {}
@@ -62,24 +69,14 @@ function UnitGroupSpawn(n)
 			canSpawnHere = true
 			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
 			SpawnBeacon(n)
-				
-			
-			--local posx = math.random(300,mapsizeX-300)
-			--local posz = math.random(300,mapsizeZ-300)
-			--local posy = Spring.GetGroundHeight(posx, posz)
-			-- minimum size needed for succesful spawn
 			local posradius = 80
-			--canSpawnHere = posCheck(posx, posy, posz, posradius)
-			--if canSpawnHere then
-				--canSpawnHere = posLosCheck(posx, posy, posz,posradius)
-			--end
-			--if canSpawnHere then
-				--canSpawnHere = posOccupied(posx, posy, posz, posradius)
-			--end
-			--spawn units
+			
 			if canSpawnHere then
 				
 				UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
+				if globalScore/40 < #scavengerunits then
+					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
+				end
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())*bestTeamGroupMultiplier
 				--Spring.Echo("groupsize 1: "..groupsize)
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
@@ -163,6 +160,9 @@ function UnitGroupSpawn(n)
 			end
 		else
 			UnitSpawnChance = UnitSpawnChance - 1
+			if UnitSpawnChance < 1 then
+				UnitSpawnChance = 1
+			end
 		end
 	end
 end			
