@@ -144,8 +144,8 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
-			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
-				return false
+			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true then
+			return false
 			end
 		end
 	end
