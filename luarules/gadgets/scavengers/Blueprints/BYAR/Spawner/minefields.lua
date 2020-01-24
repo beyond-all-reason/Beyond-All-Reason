@@ -94,7 +94,7 @@ table.insert(ScavengerBlueprintsT2,mediumminefield)
 
 -- HEAVY MINEFIELD
 
-local function heavyminefield(posx, posy, posz, GaiaTeamID, radiusCheck)
+local function heavyminefield1(posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitpool = {"armmine3", "armmine2", "armmine3", "armmine3",}
 local posradius = 80
 	if radiusCheck then
@@ -114,11 +114,12 @@ local posradius = 80
  
 	end
 end
-table.insert(ScavengerBlueprintsT3,heavyminefield)
+table.insert(ScavengerBlueprintsT3,heavyminefield1)
+table.insert(ScavengerBlueprintsT4,heavyminefield1)
 
 -- GIANT MINEFIELD
 
-local function heavyminefield(posx, posy, posz, GaiaTeamID, radiusCheck)
+local function heavyminefield2(posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitpool = {"armmine3", "armmine2", "armmine2", "armmine3",}
 local posradius = 120
 	if radiusCheck then
@@ -146,4 +147,5 @@ local posradius = 120
  
 	end
 end
-table.insert(ScavengerBlueprintsT3,heavyminefield)
+table.insert(ScavengerBlueprintsT3,heavyminefield2)
+table.insert(ScavengerBlueprintsT4,heavyminefield2)

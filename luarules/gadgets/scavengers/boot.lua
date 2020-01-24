@@ -87,7 +87,7 @@ function gadget:GameFrame(n)
 				
 				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then
-						if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
+						if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
 							ConstructNewBlueprint(n, scav)
 						end
 					end
@@ -104,13 +104,13 @@ function gadget:GameFrame(n)
 						end
 					end
 					
-					if scavAssistant[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
+					if scavAssistant[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
 						AssistantOrders(n, scav)
 					end
 				end
 				
 				if scavconfig.modules.factoryControllerModule then
-					if scavFactory[scav] and #Spring.GetFullBuildQueue(scav, 0) <= 1 then
+					if scavFactory[scav] and #Spring.GetFullBuildQueue(scav, 0) <= 0 then
 						FactoryProduction(n, scav, scavDef)
 					end
 				end
@@ -119,7 +119,7 @@ function gadget:GameFrame(n)
 					SelfDestructionControls(n, scav, scavDef)
 				end
 				if Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					ArmyMoveOrders(n, scav)
+					ArmyMoveOrders(n, scav, scavDef)
 				end
 				
 			end
@@ -222,6 +222,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     	-- CMD.CLOAK = 37382
         Spring.GiveOrderToUnit(unitID,37382,{1},{""})
         -- Fire At Will
-        Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
+		Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
+		Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},{""})
 	end
 end

@@ -12,7 +12,7 @@ function FactoryProduction(n, scav, scavDef)
 	end
 	if not isExcluded[scavDef] then
 		local x,y,z = Spring.GetUnitPosition(scav)
-		Spring.GiveOrderToUnit(scav, -buildUnit, {x, y, z, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -buildUnit, {x, y, z, 0}, {""})
 	end
 	isExcluded[scavDef] = nil
 end

@@ -8,7 +8,7 @@ for i = 1,#BlueprintsList do
 end
 
 function SpawnBlueprint(n)
-	if n > scavconfig.timers.Timer0 then
+	if n > 9000 then
 		-- this doesnt work
 		-- if teamcount == 0 then
   --  		teamcount = 1
@@ -20,65 +20,35 @@ function SpawnBlueprint(n)
 			posx = math.random(200,mapsizeX-200)
 			posz = math.random(200,mapsizeZ-200)
 			posy = Spring.GetGroundHeight(posx, posz)
-			--blueprint = ScavengerBlueprintsT0[math.random(1,#ScavengerBlueprintsT0)]
-			if posy > 0 or not buildingSpawnerModuleConfig.useSeaBlueprints then
-				if n > scavconfig.timers.Timer7 then
-					local r = math.random(0,1)
-					if r == 0 then
+			local spawnTier = math.random(1,100)
+			if posy > 0 then
+				if spawnTier <= TierSpawnChances.T0 then
+						blueprint = ScavengerBlueprintsT0[math.random(1,#ScavengerBlueprintsT0)]
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						blueprint = ScavengerBlueprintsT3[math.random(1,#ScavengerBlueprintsT3)]
-					else
-						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
-					end
-				elseif n > scavconfig.timers.Timer5 then
-					local r = math.random(0,2)
-					if r == 0 then
-						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
-					elseif r == 1 then
-						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
-					else
-						blueprint = ScavengerBlueprintsT0[math.random(1,#ScavengerBlueprintsT0)]
-					end
-				elseif n > scavconfig.timers.Timer3 then
-					local r = math.random(0,1)
-					if r == 0 then
-						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
-					else
-						blueprint = ScavengerBlueprintsT0[math.random(1,#ScavengerBlueprintsT0)]
-					end
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+						blueprint = ScavengerBlueprintsT3[math.random(1,#ScavengerBlueprintsT3)]
 				else
 					blueprint = ScavengerBlueprintsT0[math.random(1,#ScavengerBlueprintsT0)]
 				end
 			elseif posy <= 0 then	
-				if n > scavconfig.timers.Timer7 then
-					local r = math.random(0,3)
-					if r == 0 then
+				if spawnTier <= TierSpawnChances.T0 then
+						blueprint = ScavengerBlueprintsT0Sea[math.random(1,#ScavengerBlueprintsT0Sea)]
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+						blueprint = ScavengerBlueprintsT2Sea[math.random(1,#ScavengerBlueprintsT2Sea)]
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						blueprint = ScavengerBlueprintsT3Sea[math.random(1,#ScavengerBlueprintsT3Sea)]
-					elseif r == 1 then
-						blueprint = ScavengerBlueprintsT2Sea[math.random(1,#ScavengerBlueprintsT2Sea)]
-					elseif r == 2 then
-						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
-					else
-						blueprint = ScavengerBlueprintsT0Sea[math.random(1,#ScavengerBlueprintsT0Sea)]
-					end
-				elseif n > scavconfig.timers.Timer5 then
-					local r = math.random(0,2)
-					if r == 0 then
-						blueprint = ScavengerBlueprintsT2Sea[math.random(1,#ScavengerBlueprintsT2Sea)]
-					elseif r == 1 then
-						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
-					else
-						blueprint = ScavengerBlueprintsT0Sea[math.random(1,#ScavengerBlueprintsT0Sea)]
-					end
-				elseif n > scavconfig.timers.Timer3 then
-					local r = math.random(0,1)
-					if r == 0 then
-						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
-					else
-						blueprint = ScavengerBlueprintsT0Sea[math.random(1,#ScavengerBlueprintsT0Sea)]
-					end
+				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+						blueprint = ScavengerBlueprintsT4Sea[math.random(1,#ScavengerBlueprintsT4Sea)]
 				else
 					blueprint = ScavengerBlueprintsT0Sea[math.random(1,#ScavengerBlueprintsT0Sea)]
-				end	
+				end
 			end
 			posradius = blueprint(posx, posy, posz, GaiaTeamID, true)
 			canBuildHere = posLosCheck(posx, posy, posz, posradius)

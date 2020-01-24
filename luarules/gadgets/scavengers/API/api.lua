@@ -153,6 +153,7 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 end
 
 function teamsCheck()
+	
 	bestTeamScore = 0
 	bestTeam = 0
 	globalScore = 0
@@ -160,18 +161,22 @@ function teamsCheck()
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID then
 			local i = teamID
-			scoreTeamCount = scoreTeamCount + 1
-			local _,_,_,_,mi = Spring.GetTeamResources(i, "metal")
-			local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
-			local resourceScore = mi*10 + ei
-			local unitScore = Spring.GetTeamUnitCount(i)*5
-			local finalScore = resourceScore + unitScore
-			--Spring.Echo("Final Score for team "..i..": "..finalScore)
-			globalScore = globalScore + finalScore
-			
-			if finalScore > bestTeamScore then
-				bestTeamScore = finalScore
-				bestTeam = i
+			local _,_,teamisDead = Spring.GetTeamInfo(i)
+			local unitCount = Spring.GetTeamUnitCount(i)
+			if (not teamisDead) or unitCount > 0 then
+				scoreTeamCount = scoreTeamCount + 1
+				local _,_,_,_,mi = Spring.GetTeamResources(i, "metal")
+				local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
+				local resourceScore = mi*10 + ei
+				local unitScore = unitCount*5
+				local finalScore = resourceScore + unitScore
+				--Spring.Echo("Final Score for team "..i..": "..finalScore)
+				globalScore = globalScore + finalScore
+				
+				if finalScore > bestTeamScore then
+					bestTeamScore = finalScore
+					bestTeam = i
+				end
 			end
 		end
 	end

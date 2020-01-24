@@ -29,10 +29,21 @@ function SelfDestructionControls(n, scav, scavDef)
 	UnitRange[scav] = nil
 end
 				
-function ArmyMoveOrders(n, scav)
+function ArmyMoveOrders(n, scav, scavDef)
+	UnitRange = {}
+	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 10 then
+		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
+	else
+		UnitRange[scav] = 10
+	end
 	local nearest = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	local x,y,z = Spring.GetUnitPosition(nearest)
-	local x = x + math.random(-50,50)
-	local z = z + math.random(-50,50)
-	Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+	local range = UnitRange[scav]
+	local x = x + math.random(-range,range)
+	local z = z + math.random(-range,range)
+	if UnitDefs[scavDef].canFly then
+		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+	else
+		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+	end		
 end

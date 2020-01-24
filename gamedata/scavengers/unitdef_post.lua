@@ -3,6 +3,9 @@
 function scav_Udef_Post(name, uDef)
 
 	-- make barrelshot purple
+	if uDef.builder then
+		uDef.corpse = ""
+	end
 	if uDef.customparams and uDef.customparams.firingceg then
 		if string.find(uDef.customparams.firingceg, 'barrelshot') then
 			uDef.customparams.firingceg = uDef.customparams.firingceg..'-purple'
@@ -82,10 +85,10 @@ function scav_Udef_Post(name, uDef)
 	--	uDef.workertime = math.ceil(uDef.workertime*1.33)
 	--end
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.66)
+		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
 	end
 	if uDef.maxvelocity then
-		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
+		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.5)
 	end
 	if uDef.radardistancejam then
 		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25)
@@ -93,9 +96,9 @@ function scav_Udef_Post(name, uDef)
 	if uDef.sightdistance then
 		uDef.sightdistance = math.ceil(uDef.sightdistance*1.25)
 	end
-	if uDef.idleautoheal then
-		uDef.idleautoheal = math.ceil(uDef.idleautoheal*4)
-	end
+	--if uDef.idleautoheal then
+		--uDef.idleautoheal = math.ceil(uDef.idleautoheal*4)
+	--end
     --if not uDef.cancloak then
  	--	uDef.cancloak = true
  	--	uDef.mincloakdistance = math.max(72, math.ceil(uDef.sightdistance/1.8))
@@ -103,9 +106,21 @@ function scav_Udef_Post(name, uDef)
  	--if not uDef.stealth then
  	--	uDef.stealth = true
  	--end
- 	if not uDef.autoheal then
- 		uDef.autoheal = 5
- 	end
+	uDef.hidedamage = true
+	 if not uDef.maxdamage then
+		uDef.autoheal = math.ceil(uDef.maxdamage/100)
+		uDef.idleautoheal = math.ceil(uDef.maxdamage/100)
+	else 
+		uDef.autoheal = 5
+		uDef.idleautoheal = 5
+	end
+	if uDef.turnrate then
+		uDef.turnrate = uDef.turnrate*3
+	end
+	if uDef.turninplaceanglelimit then
+		uDef.turninplaceanglelimit = 360
+	end
+
 
 
 	return uDef
