@@ -355,7 +355,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 else
-	--SYNCED.itsXmas
+
+	itsXmas = SYNCED.itsXmas
 	local xmasballs = {}
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
@@ -385,6 +386,14 @@ else
 		end
 		if Spring.GetGameFrame() > 1 then
 			gadgetHandler:RemoveGadget(self)
+		end
+	end
+
+	function gadget:GameFrame(n)
+		if Spring.GetGameFrame() % 90 == 1 then
+			if not itsXmas then
+				gadgetHandler:RemoveGadget(self)
+			end
 		end
 	end
 
