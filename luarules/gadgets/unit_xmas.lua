@@ -185,6 +185,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if n % 90 == 1 then
+
+			if not _G.itsXmas then
+				gadgetHandler:RemoveGadget(self)
+			end
+
 			for unitID, frame in pairs(decorationsTerminal) do
 
 				if frame < n then

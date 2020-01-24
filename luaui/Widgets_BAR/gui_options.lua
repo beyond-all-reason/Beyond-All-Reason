@@ -1632,7 +1632,7 @@ function init()
 			 Spring.SetConfigInt("VSync",(value and 1 or 0))
 		 end,
 		},
-		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", steps={0,1,2,4}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", steps={0,1,2,4,8}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
 		 onchange=function(i,value)
 			 Spring.SetConfigInt("MSAALevel",value)
 		 end,
@@ -2692,8 +2692,8 @@ function init()
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
 		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel",0))
-		if fsaa > 4 then
-			fsaa = 4
+		if fsaa > 8 then
+			fsaa = 8
 		end
 		Spring.SetConfigInt("MSAALevel", fsaa)
 		Spring.SetConfigInt("FSAALevel", 0)
@@ -3057,7 +3057,7 @@ function widget:Initialize()
 		Spring.SetConfigInt("GrassDetail",0)
 	end
 	-- limit MSAA
-	if Spring.GetConfigInt("MSAALevel",0) > 4 then
+	if Spring.GetConfigInt("MSAALevel",0) > 8 then
 		Spring.SetConfigInt("MSAALevel",8)
 	end
 
