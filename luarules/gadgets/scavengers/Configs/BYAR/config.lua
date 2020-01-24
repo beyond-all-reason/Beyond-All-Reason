@@ -43,6 +43,9 @@ scavconfig = {
 		T4med								= 14000,
 		T4high								= 16000,
 		T4top								= 20000,
+		-- don't remove those
+		NoRadar								= 2000,
+		NoAirLos							= 6000,
 	},
 }
 

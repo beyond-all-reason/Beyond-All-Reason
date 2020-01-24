@@ -21,7 +21,15 @@ function SpawnBeacon(n)
 		local posradius = 80
 		canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
 		if canSpawnBeaconHere then
-			canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
+			if globalScore then
+				if globalScore > scavconfig.timers.NoAirLos then
+					canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
+				elseif globalScore > scavconfig.timers.NoRadar then
+					canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
+				else
+					canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)
+				end
+			end
 		end
 		if canSpawnBeaconHere then
 			canSpawnBeaconHere = posOccupied(posx, posy, posz, posradius)
