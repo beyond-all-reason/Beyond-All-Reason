@@ -102,7 +102,7 @@ else
             local NewRange = (NewMax - NewMin)
             buildSpeed = (((buildSpeed - OldMin) * NewRange) / OldRange) + NewMin
             --Spring.Echo(uDef.name, uDef.buildSpeed,value)
-            builderWorkTime[uDefID] = {buildSpeed, uDef.buildRange}
+            builderWorkTime[uDefID] = {buildSpeed, uDef.buildDistance}
         end
     end
 
