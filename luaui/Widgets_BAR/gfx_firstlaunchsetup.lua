@@ -31,6 +31,7 @@ end
 
 function widget:Initialize()
     if firstlaunchsetupDone == false then
+        Spring.SetConfigInt("LoadingMT",1)
         if turnVsyncOff and tonumber(Spring.GetConfigInt("Vsync",1) or 1) == 1 then
             Spring.SendCommands("Vsync 0")
             Spring.SetConfigInt("Vsync",0)
