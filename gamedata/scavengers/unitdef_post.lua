@@ -3,6 +3,8 @@
 function scav_Udef_Post(name, uDef)
 
 	-- make barrelshot purple
+	uDef.capturable = false
+	uDef.hidedamage = true
 	if uDef.builder then
 		uDef.corpse = ""
 	end
@@ -106,7 +108,7 @@ function scav_Udef_Post(name, uDef)
  	--if not uDef.stealth then
  	--	uDef.stealth = true
  	--end
-	uDef.hidedamage = true
+	
 	 if not uDef.maxdamage then
 		uDef.autoheal = math.ceil(uDef.maxdamage/100)
 		uDef.idleautoheal = math.ceil(uDef.maxdamage/100)

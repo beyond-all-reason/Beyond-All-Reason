@@ -131,4 +131,3 @@ local function DamBaseEcoBlue1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT0,DamBaseEcoBlue1)
-table.insert(ScavengerConstructorBlueprintsT1,DamBaseEcoBlue1)

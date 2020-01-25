@@ -119,8 +119,7 @@ local r = math.random(0,5)
 		end
 	end
 end
-table.insert(ScavengerConstructorBlueprintsT0,scavlabt1)
-table.insert(ScavengerConstructorBlueprintsT1,scavlabt1)
+table.insert(ScavengerConstructorBlueprintsT2,scavlabt1)
 
 local function scavlabt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitoptions = {}

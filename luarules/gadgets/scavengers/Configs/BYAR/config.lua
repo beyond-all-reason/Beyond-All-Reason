@@ -64,6 +64,12 @@ unitSpawnerModuleConfig = {
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.3,
+
+	t0multiplier						= 1,
+	t1multiplier						= 0.8,
+	t2multiplier						= 0.5,
+	t3multiplier						= 0.2,
+	t4multiplier						= 0.01,
 }
 
 constructorControllerModuleConfig = {

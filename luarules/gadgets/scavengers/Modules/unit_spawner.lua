@@ -72,7 +72,7 @@ function UnitGroupSpawn(n)
 			if nearestEnemy == bestTeam then
 				bestTeamGroupMultiplier = 1
 			else
-				bestTeamGroupMultiplier = 0.75
+				bestTeamGroupMultiplier = 0.5
 			end
 			canSpawnHere = true
 			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
@@ -85,7 +85,7 @@ function UnitGroupSpawn(n)
 				if globalScore/40 < #scavengerunits then
 					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
 				end
-				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())*bestTeamGroupMultiplier
+				local groupsize = globalScore/100
 				--Spring.Echo("groupsize 1: "..groupsize)
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
 				local spawnTier = math.random(1,100)
@@ -93,70 +93,69 @@ function UnitGroupSpawn(n)
 				if aircraftchance == 0 then
 					if spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0AirUnits[math.random(1,#T0AirUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
 						groupunit = T1AirUnits[math.random(1,#T1AirUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t1multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
 						groupunit = T2AirUnits[math.random(1,#T2AirUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						groupunit = T3AirUnits[math.random(1,#T3AirUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4AirUnits[math.random(1,#T4AirUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
 					else
 						groupunit = T0AirUnits[math.random(1,#T0AirUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy > -20 then
 					if spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0LandUnits[math.random(1,#T0LandUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
 						groupunit = T1LandUnits[math.random(1,#T1LandUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t1multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
 						groupunit = T2LandUnits[math.random(1,#T2LandUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						groupunit = T3LandUnits[math.random(1,#T3LandUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4LandUnits[math.random(1,#T4LandUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
 					else
 						groupunit = T0LandUnits[math.random(1,#T0LandUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy <= -20 then
 					if spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0SeaUnits[math.random(1,#T0SeaUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
 						groupunit = T1SeaUnits[math.random(1,#T1SeaUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t1multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
 						groupunit = T2SeaUnits[math.random(1,#T2SeaUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						groupunit = T3SeaUnits[math.random(1,#T3SeaUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4SeaUnits[math.random(1,#T4SeaUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
 					else
 						groupunit = T0SeaUnits[math.random(1,#T0SeaUnits)]
-						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
+						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				end
 				
-				local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)*unitSpawnerModuleConfig.spawnchancecostscale
-				local groupsizelog = ((math.log(globalScore))/3)*unitSpawnerModuleConfig.groupsizemultiplier
-				local groupsize = math.ceil((groupsize/cost)*groupsizelog)
+				--local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)*unitSpawnerModuleConfig.spawnchancecostscale
+				--local groupsizelog = ((math.log(globalScore))/3)*unitSpawnerModuleConfig.groupsizemultiplier
+				local groupsize = math.ceil(groupsize*bestTeamGroupMultiplier*math.floor(teamcount/2))
 				--Spring.Echo("groupsize 2: "..groupsize)
-				
 				for i=1, groupsize do
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 					Spring.CreateUnit("scavengerdroppod_scav", posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
