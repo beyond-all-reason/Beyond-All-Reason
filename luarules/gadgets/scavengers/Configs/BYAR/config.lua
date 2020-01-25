@@ -48,7 +48,7 @@ buildingSpawnerModuleConfig = {
 
 unitSpawnerModuleConfig = {
 	aircraftchance 						= 5, -- higher number = lower chance
-	globalscoreperoneunit 				= 200,
+	globalscoreperoneunit 				= 400,
 	spawnchance							= 60,
 	beaconspawnchance					= 60,
 	landmultiplier 						= 0.75,

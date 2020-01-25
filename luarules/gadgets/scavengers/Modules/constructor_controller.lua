@@ -46,10 +46,11 @@ function SpawnConstructor(n)
 		local pickedBeacon = SpawnBeacons[math.random(1,#SpawnBeacons)]
 		posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 		local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
-		if nearestEnemy == bestTeam then
+		local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
+		if nearestEnemyTeam == bestTeam then
 			canSpawnCommanderHere = true
 		else
-			local r = math.random(0,1)
+			local r = math.random(0,2)
 			if r == 0 then
 				canSpawnCommanderHere = true
 			else

@@ -48,6 +48,8 @@ if scavconfig.modules.unitSpawnerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
 end
 
+VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
+
 function gadget:GameFrame(n)
 	if n == 100 then
 		Spring.Echo("New Scavenger Spawner initialized")
