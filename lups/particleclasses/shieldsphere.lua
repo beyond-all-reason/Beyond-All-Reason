@@ -78,8 +78,12 @@ function ShieldSphereParticle:Draw()
 		self.stunned = Spring.GetUnitIsStunned(self.unit)
 	end
 	if self.stunned or Spring.IsUnitIcon(self.unit) then
-		if self.lightID and WG and WG['lighteffects'] then
-			WG['lighteffects'].removeLight(self.lightID)
+		if self.lightID and ((WG and WG['lighteffects']) or Script.LuaUI("GadgetRemoveLight")) then
+			if WG then
+				WG['lighteffects'].removeLight(self.lightID)
+			else
+				Script.LuaUI.GadgetRemoveLight(self.lightID)
+			end
 			self.lightID = nil
 		end
 		return
@@ -390,7 +394,7 @@ function ShieldSphereParticle:Update(n)
 	end
 
 	if not self.stunned and self.light then
-		if WG and WG['lighteffects'] and WG['lighteffects'].createLight then
+		if (WG and WG['lighteffects'] and WG['lighteffects'].createLight) or Script.LuaUI("GadgetCreateLight") then
 			if not self.unitPos then
 				self.unitPos = {}
 				self.unitPos[1], self.unitPos[2], self.unitPos[3] = Spring.GetUnitPosition(self.unit)
@@ -398,9 +402,17 @@ function ShieldSphereParticle:Update(n)
 			local color = {GetColor(self.colormap2,self.life) }
 			color[4]=color[4]*self.light
 			if not self.lightID then
-				self.lightID = WG['lighteffects'].createLight('shieldsphere',self.unitPos[1]+self.pos[1], self.unitPos[2]+self.pos[2], self.unitPos[3]+self.pos[1], self.size*6, color)
+				if WG then
+					self.lightID = WG['lighteffects'].createLight('shieldsphere',self.unitPos[1]+self.pos[1], self.unitPos[2]+self.pos[2], self.unitPos[3]+self.pos[1], self.size*6, color)
+				else
+					self.lightID = Script.LuaUI.GadgetCreateLight('shieldsphere',self.unitPos[1]+self.pos[1], self.unitPos[2]+self.pos[2], self.unitPos[3]+self.pos[1], self.size*6, color)
+				end
 			else
-				WG['lighteffects'].editLight(self.lightID, {orgMult=color[4],param={r=color[1],g=color[2],b=color[3]}})
+				if WG then
+					WG['lighteffects'].editLight(self.lightID, {orgMult=color[4],param={r=color[1],g=color[2],b=color[3]}})
+				else
+					Script.LuaUI.GadgetEditLight(self.lightID, {orgMult=color[4],param={r=color[1],g=color[2],b=color[3]}})
+				end
 			end
 		else
 			self.lightID = nil
@@ -438,8 +450,12 @@ function ShieldSphereParticle.Create(Options)
 end
 
 function ShieldSphereParticle:Destroy()
-	if self.lightID and WG and WG['lighteffects'] and WG['lighteffects'].removeLight then
-		WG['lighteffects'].removeLight(self.lightID)
+	if self.lightID and ((WG and WG['lighteffects'] and WG['lighteffects'].removeLight) or Script.LuaUI("GadgetRemoveLight")) then
+		if WG then
+			WG['lighteffects'].removeLight(self.lightID)
+		else
+			Script.LuaUI.GadgetRemoveLight(self.lightID)
+		end
 	end
 end
 
