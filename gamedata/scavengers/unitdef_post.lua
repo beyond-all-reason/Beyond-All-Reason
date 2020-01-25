@@ -90,7 +90,7 @@ function scav_Udef_Post(name, uDef)
 		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
 	end
 	if uDef.maxvelocity then
-		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.5)
+		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
 	end
 	if uDef.radardistancejam then
 		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25)
