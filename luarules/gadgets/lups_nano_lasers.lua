@@ -280,7 +280,7 @@ else
                     local x = cmdParam1
                     local z = cmdParam3
                     type   = "restore"
-                    target = {x, spGetGroundHeight(x,z)+5, z, cmd.params[4]}
+                    target = {x, spGetGroundHeight(x,z)+5, z, cmdParam4}
                     inRange = IsGroundPosInRange(unitID, x, z, buildRange)
 
                 elseif cmdID == CMD_CAPTURE then
