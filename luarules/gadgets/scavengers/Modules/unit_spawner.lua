@@ -15,8 +15,8 @@ function SpawnBeacon(n)
 	end
 	if BeaconSpawnChance == 0 or canSpawnBeaconHere == false then
 		
-		local posx = math.random(300,mapsizeX-300)
-		local posz = math.random(300,mapsizeZ-300)
+		local posx = math.random(80,mapsizeX-80)
+		local posz = math.random(80,mapsizeZ-80)
 		local posy = Spring.GetGroundHeight(posx, posz)
 		local posradius = 80
 		canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
@@ -48,12 +48,9 @@ function SpawnBeacon(n)
 end
 
 function UnitGroupSpawn(n)
-	--Spring.Echo(numOfSpawnBeacons)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local ActualUnitSpawnChance = math.random(0,UnitSpawnChance)
-		--if globalScore > 2000 then
-		--local UnitSpawnChance = 1 -- dev purpose
 		if (ActualUnitSpawnChance == 0 or canSpawnHere == false) and numOfSpawnBeacons > 0 then
 			-- check positions
 			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -82,11 +79,10 @@ function UnitGroupSpawn(n)
 			if canSpawnHere then
 				
 				UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
-				if globalScore/40 < #scavengerunits then
+				if (globalScore/unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier < #scavengerunits then
 					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
 				end
-				local groupsize = globalScore/100
-				--Spring.Echo("groupsize 1: "..groupsize)
+				local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
 				local spawnTier = math.random(1,100)
 				
@@ -152,13 +148,12 @@ function UnitGroupSpawn(n)
 					end
 				end
 				
-				--local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)*unitSpawnerModuleConfig.spawnchancecostscale
-				--local groupsizelog = ((math.log(globalScore))/3)*unitSpawnerModuleConfig.groupsizemultiplier
 				local groupsize = math.ceil(groupsize*bestTeamGroupMultiplier*math.floor(teamcount/2))
-				--Spring.Echo("groupsize 2: "..groupsize)
 				for i=1, groupsize do
-					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
-					Spring.CreateUnit("scavengerdroppod_scav", posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+					local posx = posx+math.random(-80,80)
+					local posz = posz+math.random(-80,80)
+					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0,3),GaiaTeamID)
 				end
 				posx = nil
 				posy = nil

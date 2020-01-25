@@ -9,19 +9,7 @@ scavconfig = {
 		unitSpawnerModule 				= true,
 	},
 	timers = {
-		-- (30 = 1 second)
-		-- Timer0							= 9000, -- Start
-		-- Timer1 							= 13500,
-		-- Timer2 							= 27000,
-		-- Timer3 							= 40500,
-		-- Timer4 							= 54000,
-		-- Timer5							= 67500,
-		-- Timer6							= 81000,
-		-- Timer7 							= 94500,
-		-- Timer8 							= 108000,
-		-- Timer9 							= 121000,
-		-- Timer10							= 135000, -- Endgame Units Only
-		
+		-- globalScore values
 		T0start								= 1,
 		T1start								= 400,
 		T1low								= 600,
@@ -47,6 +35,9 @@ scavconfig = {
 		NoRadar								= 2000,
 		NoAirLos							= 6000,
 	},
+	other = {
+		heighttolerance						= 30, -- higher = allow higher height diffrences
+	}
 }
 
 
@@ -57,10 +48,9 @@ buildingSpawnerModuleConfig = {
 
 unitSpawnerModuleConfig = {
 	aircraftchance 						= 5, -- higher number = lower chance
-	groupsizemultiplier 				= 0.35,
+	globalscoreperoneunit 				= 200,
 	spawnchance							= 60,
 	beaconspawnchance					= 60,
-	spawnchancecostscale				= 1, -- higher = expensive units spawn in smaller groups (fine tune together with groupsizemultiplier)
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.3,
@@ -69,12 +59,13 @@ unitSpawnerModuleConfig = {
 	t1multiplier						= 0.8,
 	t2multiplier						= 0.5,
 	t3multiplier						= 0.2,
-	t4multiplier						= 0.01,
+	t4multiplier						= 0.001,
 }
 
 constructorControllerModuleConfig = {
 	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
 	constructortimer 					= 220, -- time in seconds between commander/constructor spawns
+	constructortimerreductionframes		= 36000,
 	useresurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,

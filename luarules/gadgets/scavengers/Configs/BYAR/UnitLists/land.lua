@@ -103,7 +103,6 @@ T3LandUnits = {
 --"armmar", currently doesn't shoot for scavs
 "armvang",
 --"armraz",  currently doesn't shoot for scavs
-"armbanth",
 "corgol",
 "corsumo",
 --"corkrog",
@@ -119,6 +118,7 @@ T3LandUnits = {
 T4LandUnits = {
 "corkrog",
 "corjugg",
+"armbanth",
 --superboss
 "armpwbosst1_scav",
 "armstumpbosst1_scav",
