@@ -5,9 +5,9 @@ function scav_Udef_Post(name, uDef)
 	-- make barrelshot purple
 	uDef.capturable = false
 	uDef.hidedamage = true
-	if uDef.builder then
-		uDef.corpse = ""
-	end
+	--if uDef.builder then
+	--	uDef.corpse = ""
+	--end
 	if uDef.customparams and uDef.customparams.firingceg then
 		if string.find(uDef.customparams.firingceg, 'barrelshot') then
 			uDef.customparams.firingceg = uDef.customparams.firingceg..'-purple'
@@ -61,7 +61,10 @@ function scav_Udef_Post(name, uDef)
 		if uDef.featuredefs.dead then
 			if uDef.featuredefs.dead.description then
 				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
-			end
+			end	
+			if uDef.featuredefs.dead.metal then
+				uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
+			end		
 		end
 	end
 
@@ -69,7 +72,10 @@ function scav_Udef_Post(name, uDef)
 		if uDef.featuredefs.heap then
 			if uDef.featuredefs.heap.description then
 				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
-			end
+			end	
+			if uDef.featuredefs.heap.metal then
+				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
+			end		
 		end
 	end
 	
@@ -86,6 +92,12 @@ function scav_Udef_Post(name, uDef)
 	--if uDef.workertime then
 	--	uDef.workertime = math.ceil(uDef.workertime*1.33)
 	--end
+	if uDef.energymake then
+		uDef.energymake = math.ceil(uDef.energymake*0.66)
+	end
+	if uDef.metalmake then
+		uDef.metalmake = math.ceil(uDef.metalmake*0.66)
+	end
 	if uDef.maxdamage then
 		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
 	end
