@@ -14,7 +14,7 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-OPTIONS = {
+local OPTIONS = {
 	haloSize				= 0.8,
 	haloDistance			= 4.2,
 	skipBuildings			= true,
@@ -45,13 +45,13 @@ local spGetCameraPosition 		= Spring.GetCameraPosition
 local spGetUnitPosition			= Spring.GetUnitPosition
 local spIsGUIHidden				= Spring.IsGUIHidden
 
-local prevOsClock				= os.clock();
+local prevOsClock				= os.clock()
 
 local diag						= math.diag
 
 local unitAllowsHalo = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if not (not OPTIONS.skipBuildings or (OPTIONS.skipBuildings and not (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0))) then
+	if not OPTIONS.skipBuildings or (OPTIONS.skipBuildings and not (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0)) then
 		unitAllowsHalo[unitDefID] = unitDef.name
 
 		local xsize, zsize = unitDef.xsize, unitDef.zsize

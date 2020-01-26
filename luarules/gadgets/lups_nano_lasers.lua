@@ -235,7 +235,7 @@ else
         local inRange
 
         local buildID = spGetUnitIsBuilding(unitID)
-        if buildID then     -- NOTE after unit is resurrected the nanolaser doesnt show up and the (beam) lighting is off position as well
+        if buildID then     -- NOTE after unit is resurrected the nanolaser doesnt show up and the (beam) lighting is off position as well (even a luarules reload during its repairing after a resurrect doesnt even let it show up again)
             target = buildID
             type   = "building"
             inRange = true
