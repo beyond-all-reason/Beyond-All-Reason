@@ -28,6 +28,12 @@
 local options =
 {
 	{
+		key="engineoptions",
+		name="Engine Options",
+		desc="Engine Options",
+		type="section",
+	},
+	{
 		key    = 'maxunits',
 		name   = 'Max units',
 		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
