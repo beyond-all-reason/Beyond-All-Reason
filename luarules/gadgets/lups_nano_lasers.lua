@@ -234,15 +234,24 @@ else
         local isFeature = false
         local inRange
 
+        local cmdID, _, _, cmdParam1, cmdParam2, cmdParam3, cmdParam4, cmdParam5 = spGetUnitCurrentCommand(unitID, 1)
         local buildID = spGetUnitIsBuilding(unitID)
-        if buildID then     -- NOTE after unit is resurrected the nanolaser doesnt show up and the (beam) lighting is off position as well (even a luarules reload during its repairing after a resurrect doesnt even let it show up again)
+
+        -- after unit is resurrected the following cmd is 'build' instead of 'repair', the nanolaser doesnt show up and the (beam) lighting is off position and flickering as well
+        -- while the code below doesnt make showing the laser yet, it does prevent the beam lighting off position glitch
+        if buildID and Spring.GetUnitRulesParam(cmdParam1, "resurrected") then
+            --buildID = false
+            --cmdID = CMD_REPAIR
+            return
+        end
+
+        if buildID then
             target = buildID
             type   = "building"
             inRange = true
         else
             local uDefID = spGetUnitDefID(unitID)
             local buildRange = builderWorkTime[uDefID] and builderWorkTime[uDefID][2] or 0
-            local cmdID, _, _, cmdParam1, cmdParam2, cmdParam3, cmdParam4, cmdParam5 = spGetUnitCurrentCommand(unitID, 1)
             if cmdID then
 
                 if cmdID == CMD_RECLAIM then
