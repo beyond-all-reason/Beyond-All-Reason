@@ -3,6 +3,9 @@ Spring.Echo("[Scavengers] API initialized")
 
 	-- variables
 	GaiaTeamID = Spring.GetGaiaTeamID()
+	if scavengersEnabled then
+		GaiaTeamID = scavengerAITeamID
+	end
 	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 	mapsizeX = Game.mapSizeX
 	mapsizeZ = Game.mapSizeZ

@@ -50,7 +50,34 @@ end
 
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 
+local function DisableUnit(unitID)
+  Spring.MoveCtrl.Enable(unitID)
+  Spring.MoveCtrl.SetNoBlocking(unitID, true)
+  Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+500, 2000, Game.mapSizeZ+500) --don't move too far out or prevent_aicraft_hax will explode it!
+  Spring.SetUnitCloak(unitID, true)
+  Spring.SetUnitHealth(unitID, {paralyze=99999999})
+  Spring.SetUnitNoDraw(unitID, true)
+  Spring.SetUnitStealth(unitID, true)
+  Spring.SetUnitNoSelect(unitID, true)
+  Spring.SetUnitNoMinimap(unitID, true)
+  Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+  Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+end
+
+local function DisableCommander()
+    local teamUnits = Spring.GetTeamUnits(scavengerAITeamID)
+    for _, unitID in ipairs(teamUnits) do
+      DisableUnit(unitID)
+    end
+end
+
 function gadget:GameFrame(n)
+	
+	
+	if n == 15 then
+		DisableCommander()
+	end
+
 	if n == 100 then
 		Spring.Echo("New Scavenger Spawner initialized")
 		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)

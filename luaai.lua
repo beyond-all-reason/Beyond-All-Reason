@@ -25,7 +25,10 @@ for i,lmodeName in pairs(DAIModes) do
 end
 
 local prelist = {
-  
+  {
+    name = 'ScavengersAI',
+    desc = 'Infinite Games'
+  },
   {
     name = 'Chicken: Very Easy',
     desc = 'Trivial Games'
@@ -58,6 +61,7 @@ local prelist = {
     name = 'Chicken: Survival',
     desc = 'Infinite Games'
   },
+
 }
 
 local finalList = DAIlist
