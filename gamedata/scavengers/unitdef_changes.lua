@@ -79,11 +79,11 @@ customDefs.armcom = {
 	featuredefs = {
 		dead = {
 			resurrectable = 0,
-			metal = 750,
+			metal = 1500,
 		},
 		heap = {
 			resurrectable = 0,
-			metal = 375,
+			metal = 750,
 		},
 	},
 	weapondefs = {
