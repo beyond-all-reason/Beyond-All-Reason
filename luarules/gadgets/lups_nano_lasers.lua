@@ -217,7 +217,7 @@ else
 
 
     local function IsFeatureInRange(unitID, featureID, range)
-        range = range + 100 -- fudge factor
+        range = range + 35 -- fudge factor
         local x,y,z = spGetFeaturePosition(featureID)
         local ux,uy,uz = spGetUnitPosition(unitID)
         return ((ux - x)*(ux - x) + (uz - z)*(uz - z)) <= range*range
@@ -235,7 +235,7 @@ else
         local inRange
 
         local buildID = spGetUnitIsBuilding(unitID)
-        if buildID then
+        if buildID then     -- NOTE after unit is resurrected the nanolaser doesnt show up and the (beam) lighting is off position as well
             target = buildID
             type   = "building"
             inRange = true
@@ -263,7 +263,7 @@ else
                             if spValidUnitID(unitID_) then
                                 target = unitID_
                                 type   = "reclaim"
-                                inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange
+                                inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange-35
                             end
                         end
                     end
@@ -273,7 +273,7 @@ else
                     if spValidUnitID(repairID) then
                         target = repairID
                         type   = "repair"
-                        inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange
+                        inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange-35
                     end
 
                 elseif cmdID == CMD_RESTORE then
@@ -289,7 +289,7 @@ else
                         if spValidUnitID(captureID) then
                             target = captureID
                             type   = "capture"
-                            inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange
+                            inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange-35
                         end
                     end
 
@@ -367,22 +367,22 @@ else
                     local strength = ((spGetUnitCurrentBuildPower(unitID)or 1)*buildpower) or 1	-- * 16
                     --Spring.Echo(strength,spGetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID][1])
                     if (strength > 0) then
-                        local type, target, isFeature = getUnitNanoTarget(unitID)
+                        local cmdtype, target, isFeature = getUnitNanoTarget(unitID)
                         
                         if (target) then
                             local endpos
-                            if (type=="restore") then
+                            if type(target) == 'table' then
                                 endpos = target
                                 target = -1
                             end
 
                             --local terraform = false
-                            --if (type=="restore") then
+                            --if (cmdtype=="restore") then
                             --    terraform = true
                             --end
 
                             --[[
-                            if (type=="reclaim") and (strength > 0) then
+                            if (cmdtype=="reclaim") and (strength > 0) then
                                 --// reclaim is done always at full speed
                                 strength = 1
                             end
@@ -407,16 +407,10 @@ else
                                 nanoParams.targetpos    = endpos
                                 nanoParams.count        = strength*30
                                 nanoParams.streamThickness = 2.9 + strength * 0.25
-                                nanoParams.type         = type
-                                nanoParams.inversed     = (type == "reclaim" and true or false)
+                                nanoParams.type         = cmdtype
+                                nanoParams.inversed     = (cmdtype == "reclaim" and true or false)
                                 if Lups then
                                     Lups.AddParticles(lupsParticleType,nanoParams)
-                                    --if (not nanoParticles[unitID]) then nanoParticles[unitID] = {} end
-                                    --if not nanoParticles[unitID][j] then
-                                    --    nanoParticles[unitID][j] = Lups.AddParticles(lupsParticleType,nanoParams)
-                                    --else
-                                    --    nanoParticles[unitID][j] = Lups.AddParticles(lupsParticleType,nanoParams,nanoParticles[unitID][j])
-                                    --end
                                 end
                             end
                         end
