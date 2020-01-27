@@ -1,6 +1,6 @@
 Spring.Echo("[Scavengers] Unit Controller initialized")
 
-VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")	
+VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")
 
 function SelfDestructionControls(n, scav, scavDef)
 	UnitRange = {}
@@ -16,7 +16,7 @@ function SelfDestructionControls(n, scav, scavDef)
 			oldselfdz[scav] = selfdz[scav]
 		end
 		selfdx[scav],selfdy[scav],selfdz[scav] = Spring.GetUnitPosition(scav)
-		if UnitDefs[scavDef].maxWeaponRange + 200 < 2000 then
+		if UnitDefs[scavDef].maxWeaponRange + 200 < 800 then
 			UnitRange[scav] = 2000
 		else
 			UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange + 200
@@ -41,7 +41,7 @@ function ArmyMoveOrders(n, scav, scavDef)
 	local range = UnitRange[scav]
 	local x = x + math.random(-range,range)
 	local z = z + math.random(-range,range)
-	if UnitDefs[scavDef].canFly then
+	if UnitDefs[scavDef].canFly or (UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight) then
 		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 	else
 		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})

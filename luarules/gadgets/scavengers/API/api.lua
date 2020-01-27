@@ -29,6 +29,13 @@ Spring.Echo("[Scavengers] API initialized")
 	scavCollector = {}
 	scavSpawnBeacon = {}
 	numOfSpawnBeacons = 0
+	scavMaxUnits = 2000
+	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
+		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
+	end
+	if GaiaTeamID == Spring.GetGaiaTeamID() then
+		scavMaxUnits = 10000
+	end
 	TierSpawnChances = {
 		T0 = 100,
 		T1 = 0,

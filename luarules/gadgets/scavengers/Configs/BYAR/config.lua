@@ -71,6 +71,10 @@ constructorControllerModuleConfig = {
 	usecollectors						= true,
 }
 
+unitControllerModuleConfig = {
+	minimumrangeforfight				= 650,
+}
+
 
 
 -- Functions which you can configure
