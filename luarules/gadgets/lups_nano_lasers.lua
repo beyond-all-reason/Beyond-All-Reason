@@ -86,6 +86,8 @@ else
     local CMD_RESURRECT = CMD.RESURRECT
     local CMD_CAPTURE   = CMD.CAPTURE
 
+    local resurrectedUnits = {}
+
     -------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------
 
@@ -170,6 +172,15 @@ else
       end
     end
 
+    function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
+        if Spring.GetUnitRulesParam(unitID, "resurrected") ~= nil then
+            resurrectedUnits[unitID] = true
+        end
+    end
+    function gadget:UnitDestroyed(unitID, unitDefID, teamID)
+        resurrectedUnits[unitID] = nil
+    end
+
     --------------------------------------------------------------------------------
     --------------------------------------------------------------------------------
     --
@@ -239,7 +250,7 @@ else
 
         -- after unit is resurrected the following cmd is 'build' instead of 'repair', the nanolaser doesnt show up and the (beam) lighting is off position and flickering as well
         -- while the code below doesnt make showing the laser yet, it does prevent the beam lighting off position glitch
-        if buildID and Spring.GetUnitRulesParam(cmdParam1, "resurrected") then
+        if buildID and cmdParam1 and resurrectedUnits[cmdParam1] then
             --buildID = false
             --cmdID = CMD_REPAIR
             return
@@ -272,7 +283,7 @@ else
                             if spValidUnitID(unitID_) then
                                 target = unitID_
                                 type   = "reclaim"
-                                inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange-35
+                                inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange+35
                             end
                         end
                     end
@@ -282,7 +293,7 @@ else
                     if spValidUnitID(repairID) then
                         target = repairID
                         type   = "repair"
-                        inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange-35
+                        inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange+35
                     end
 
                 elseif cmdID == CMD_RESTORE then
@@ -298,7 +309,7 @@ else
                         if spValidUnitID(captureID) then
                             target = captureID
                             type   = "capture"
-                            inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange-35
+                            inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange+35
                         end
                     end
 
