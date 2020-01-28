@@ -15,6 +15,6 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-VFS.Include("luarules/gadgets/newAI/DamgamAI/boot.lua")
+VFS.Include("luarules/gadgets/newAI/Damgam/boot.lua")
 
 
