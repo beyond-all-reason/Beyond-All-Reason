@@ -24,11 +24,11 @@ for i,lmodeName in pairs(DAIModes) do
 	end
 end
 
-local DamgamAIList = {}
-local DamgamAIVersions = VFS.SubDirs("luarules/gadgets/damgamai/")
-for i,lmodeName in pairs(DamgamAIVersions) do
-	local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/damgamai/") + 1, string.len(lmodeName) - 1)
-	DamgamAIList[#DamgamAIList+1] = { name = "DamgamAI "..smodeName, desc = 'DamgamAI - Experimental, dont use in normal play yet. '..smodeName, version = ""}
+local newAIList = {}
+local newAIVersions = VFS.SubDirs("luarules/gadgets/newAI/")
+for i,lmodeName in pairs(newAIVersions) do
+	local smodeName = string.upper(string.sub(lmodeName, string.len("luarules/gadgets/newAI/") + 1, string.len(lmodeName) - 1))
+	newAIList[#newAIList+1] = { name = "newAI "..smodeName, desc = 'newAI - Experimental, dont use in normal play yet. ', version = ""}
 end
 	
 
@@ -93,7 +93,7 @@ local function union( a, b )
 end
 
 
-finalList = union(DAIlist,DamgamAIList)
+finalList = union(DAIlist,newAIList)
 
 for i,data in pairs(prelist) do
 	finalList[#finalList + 1] = data
