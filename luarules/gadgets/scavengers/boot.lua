@@ -74,7 +74,7 @@ end
 function gadget:GameFrame(n)
 	
 	
-	if n == 15 then
+	if n == 15 and GaiaTeamID ~= Spring.GetGaiaTeamID() then
 		DisableCommander()
 	end
 

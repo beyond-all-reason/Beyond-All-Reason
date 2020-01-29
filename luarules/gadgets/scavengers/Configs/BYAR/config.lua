@@ -2,6 +2,7 @@ Spring.Echo("[Scavengers] Config initialized")
 
 scavconfig = {
 	unitnamesuffix = "_scav",
+	messenger = true, -- BYAR specific thing, don't enable otherwise (or get gui_messages.lua from BYAR)
 	modules = {
 		buildingSpawnerModule 			= true,
 		constructorControllerModule 	= true,
