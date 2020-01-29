@@ -14,7 +14,7 @@ end
 function widget:TextCommand(msg)
 	--Spring.Echo(msg)
 	if string.sub(msg,1, 17) == "scavplaysoundfile" then 
-		Spring.PlaySoundFile(string.sub(msg, 19),0.5,'ui')
+		Spring.PlaySoundFile(string.sub(msg, 19),0.7,'ui')
 	end
 end
 

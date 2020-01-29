@@ -3,8 +3,8 @@
 
 function pregameMessages(n)
 	if n == 1800 then
-		ScavSendMessage("... warning ...")
-		ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
+		ScavSendMessage("WARNING")
+		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 	
 	if n == 1830 then
@@ -12,29 +12,29 @@ function pregameMessages(n)
 		ScavSendVoiceMessage(scavengerSoundPath.."unidentifiedObjectsDetected.wav")
 	end
 	
-	if n == 2100 then
-		ScavSendMessage("... waiting for further data ... ")
-		ScavSendVoiceMessage(scavengerSoundPath.."waitingForIntel.wav")
-	end
+	-- if n == 2100 then
+	-- 	ScavSendMessage("... waiting for further data ... ")
+	-- 	ScavSendVoiceMessage(scavengerSoundPath.."waitingForIntel.wav")
+	-- end
 	
-	if n == 5400 then
+	if n == 3900 then
 		ScavSendMessage("Unidentified objects are now classified as Scavengers")
 		ScavSendVoiceMessage(scavengerSoundPath.."classifiedAsScavengers.wav")
 	end
 	
-	if n == 6300 then
-		ScavSendMessage("... warning ...")
-		ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
-	end
+	-- if n == 6300 then
+	-- 	ScavSendMessage("WARNING")
+	-- 	--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
+	-- end
 	
-	if n == 6330 then
-		ScavSendMessage("Scavenger Droppods detected nearby")
-		ScavSendVoiceMessage(scavengerSoundPath.."droppodsDetectedNearby.wav")
-	end
+	-- if n == 6330 then
+	-- 	ScavSendMessage("Scavenger Droppods detected nearby")
+	-- 	ScavSendVoiceMessage(scavengerSoundPath.."droppodsDetectedNearby.wav")
+	-- end
 	
 	if n == 7200 then
-		ScavSendMessage("... warning ...")
-		ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
+		ScavSendMessage("WARNING")
+		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 	
 	if n == 7230 then
@@ -43,8 +43,8 @@ function pregameMessages(n)
 	end
 	
 	if n == 9000 then
-		ScavSendMessage("... warning ...")
-		ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
+		ScavSendMessage("WARNING")
+		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 	
 	if n == 9030 then
