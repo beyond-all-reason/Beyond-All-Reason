@@ -4,7 +4,7 @@ function widget:GetInfo()
     return {
         name      = "Voice Notifs",
         desc      = "Plays various voice notifications",
-        author    = "Doo",
+        author    = "Doo, Floris",
         date      = "2018",
         license   = "GNU GPL, v2 or later",
         version   = 1,
@@ -17,27 +17,33 @@ local volume = 1
 local isSpec = Spring.GetSpectatingState()
 local playTrackedPlayerNotifs = true
 
+local soundFolder = "LuaUI/Sounds/VoiceNotifs/"
 local Sound = {
 	eCommDestroyed = {
-		"LuaUI/Sounds/VoiceNotifs/eCommDestroyed.wav",
+		'LuaUI/Sounds/VoiceNotifs/eCommDestroyed.wav',
 		1, 		-- min delay
 		1,		-- relative volume
 		1.7,	-- duration (optional, but define for sounds longer than 2 seconds)
 	},
-	aCommLost = {"LuaUI/Sounds/VoiceNotifs/aCommLost.wav", 1, 0.8, 1.75},
-	NukeLaunched = {"LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav", 3, 0.8, 2},
-	IdleBuilder = {"LuaUI/Sounds/VoiceNotifs/IdleBuilder.wav", 30, 0.6, 1.9},
-	UnitLost = {"LuaUI/Sounds/VoiceNotifs/UnitLost.wav", 20, 0.6, 1.2},
-	GameStarted = {"LuaUI/Sounds/VoiceNotifs/GameStarted.wav", 1, 0.6, 1},
-	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 5, 0.6, 1},
-	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1, 0.6, 1.65},
-	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 0.8, 1.75},
-	LowPower = {"LuaUI/Sounds/VoiceNotifs/LowPower.wav", 20, 0.6, 3.2},
-	IntrusionCountermeasure = {"LuaUI/Sounds/VoiceNotifs/StealthyUnitsInRange.wav", 15, 0.6, 4.8},
-	EMPmissilesiloDetected = {"LuaUI/Sounds/VoiceNotifs/EmpSiloDetected.wav", 4, 0.6, 2.1},
-	TacticalNukeSiloDetected = {"LuaUI/Sounds/VoiceNotifs/TacticalNukeDetected.wav", 4, 0.6, 2},
-	NuclearSiloDetected = {"LuaUI/Sounds/VoiceNotifs/NuclearSiloDetected.wav", 4, 0.6, 1.7},
-	NuclearBomberDetected = {"LuaUI/Sounds/VoiceNotifs/NuclearBomberDetected.wav", 45, 0.6, 1.6},
+	aCommLost = {soundFolder..'aCommLost.wav', 1, 0.8, 1.75},
+	NukeLaunched = {soundFolder..'NukeLaunched.wav', 3, 0.8, 2},
+	IdleBuilder = {soundFolder..'IdleBuilder.wav', 30, 0.6, 1.9},
+	UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
+	GameStarted = {soundFolder..'GameStarted.wav', 1, 0.6, 1},
+	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1},
+	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65},
+	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75},
+	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 3.2},
+
+	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 20, 0.6, 3.45},		-- top bar widget calls this
+	--TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 20, 0.6, 3.2},		-- top bar widget calls this
+
+	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 15, 0.6, 4.8},
+	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
+	TacticalNukeSiloDetected = {soundFolder..'TacticalNukeDetected.wav', 4, 0.6, 2},
+	NuclearSiloDetected = {soundFolder..'NuclearSiloDetected.wav', 4, 0.6, 1.7},
+	LrpcDetected = {soundFolder..'LrpcDetected.wav', 25, 0.6, 2.3},
+	NuclearBomberDetected = {soundFolder..'NuclearBomberDetected.wav', 45, 0.6, 1.6},
 }
 local unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
@@ -116,9 +122,14 @@ function widget:Initialize()
     WG['voicenotifs'].getPlayTrackedPlayerNotifs = function()
         return playTrackedPlayerNotifs
     end
-    WG['voicenotifs'].setPlayTrackedPlayerNotifs = function(value)
-        playTrackedPlayerNotifs = value
-    end
+	WG['voicenotifs'].setPlayTrackedPlayerNotifs = function(value)
+		playTrackedPlayerNotifs = value
+	end
+	WG['voicenotifs'].addEvent = function(value)
+		if Sound[value] then
+			Sd(value)
+		end
+	end
 end
 
 function widget:Shutdown()
