@@ -22,17 +22,33 @@ local Sound = {
 		"LuaUI/Sounds/VoiceNotifs/eCommDestroyed.wav",
 		1, 		-- min delay
 		1,		-- relative volume
+		1.7,	-- duration (optional, but define for sounds longer than 2 seconds)
 	},
-	aCommLost = {"LuaUI/Sounds/VoiceNotifs/aCommLost.wav", 1, 0.8},
-	NukeLaunched = {"LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav", 3, 0.8},
-	IdleBuilder = {"LuaUI/Sounds/VoiceNotifs/IdleBuilder.wav", 30, 0.6},
-	UnitLost = {"LuaUI/Sounds/VoiceNotifs/UnitLost.wav", 20, 0.6},
-	GameStarted = {"LuaUI/Sounds/VoiceNotifs/GameStarted.wav", 1, 0.6},
-	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 5, 0.6},
-	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1, 0.6},
-	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 0.8},
+	aCommLost = {"LuaUI/Sounds/VoiceNotifs/aCommLost.wav", 1, 0.8, 1.75},
+	NukeLaunched = {"LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav", 3, 0.8, 2},
+	IdleBuilder = {"LuaUI/Sounds/VoiceNotifs/IdleBuilder.wav", 30, 0.6, 1.9},
+	UnitLost = {"LuaUI/Sounds/VoiceNotifs/UnitLost.wav", 20, 0.6, 1.2},
+	GameStarted = {"LuaUI/Sounds/VoiceNotifs/GameStarted.wav", 1, 0.6, 1},
+	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 5, 0.6, 1},
+	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1, 0.6, 1.65},
+	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 0.8, 1.75},
+	LowPower = {"LuaUI/Sounds/VoiceNotifs/LowPower.wav", 30, 0.6, 3.2},
 }
+-- adding duration
+local silenceDuration = 0.7
+for i,v in pairs(Sound) do
+	if not Sound[i][4] then
+		Sound[i][4] = 2 + silenceDuration
+	else
+		Sound[i][4] = Sound[i][4] + silenceDuration
+	end
+end
 
+local soundQueue = {}
+local nextSoundQueued = 0
+
+local passedTime = 0
+local sec = 0
 
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
@@ -46,6 +62,8 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	myPlayerID = Spring.GetMyPlayerID()
 end
 
 function widget:Initialize()
@@ -85,8 +103,44 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('EventBroadcast')
 end
 
-local passedTime = 0
+
+local lowpowerThreshold = 5		-- if there is X secs a low power situation
+local lowpowerDuration = 0
+function widget:GameFrame(gf)
+	if gf % 30 == 15 then
+		-- low power check
+		local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(myTeamID,'energy')
+		if (currentLevel / storage) < 0.03 and currentLevel < 3000 then
+			lowpowerDuration = lowpowerDuration + 1
+			if lowpowerDuration >= lowpowerThreshold then
+				Sd('LowPower')
+				lowpowerDuration = 0
+			end
+		end
+	end
+end
+
+
+function playNextSound()
+	if #soundQueue > 0 then
+		local event = soundQueue[1]
+		nextSoundQueued = sec + Sound[event][4]
+		Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
+		LastPlay[event] = Spring.GetGameFrame()
+
+		local newQueue = {}
+		for i,v in pairs(soundQueue) do
+			if i ~= 1 then
+				newQueue[#newQueue+1] = v
+			end
+		end
+		soundQueue = newQueue
+	end
+end
+
+
 function widget:Update(dt)
+	sec = sec + dt
 
     myTeamID = Spring.GetMyTeamID()
     myPlayerID = Spring.GetMyPlayerID()
@@ -98,6 +152,11 @@ function widget:Update(dt)
         if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
             lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
         end
+
+		-- process sound soundQueue
+		if sec >= nextSoundQueued then
+			playNextSound()
+		end
     end
 end
 
@@ -115,13 +174,13 @@ function EventBroadcast(msg)
 end
 
 function Sd(event)
-	if soundList[event] and Sound[event] then
-		if not LastPlay[event] then
-			Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
-			LastPlay[event] = Spring.GetGameFrame()
-		elseif LastPlay[event] and (Spring.GetGameFrame() >= (LastPlay[event] + Sound[event][2] * 30)) then
-			Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
-			LastPlay[event] = Spring.GetGameFrame()
+	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
+		if soundList[event] and Sound[event] then
+			if not LastPlay[event] then
+				soundQueue[#soundQueue+1] = event
+			elseif LastPlay[event] and (Spring.GetGameFrame() >= (LastPlay[event] + Sound[event][2] * 30)) then
+				soundQueue[#soundQueue+1] = event
+			end
 		end
 	end
 end
