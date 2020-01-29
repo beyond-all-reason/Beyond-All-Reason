@@ -433,6 +433,7 @@ function widget:Shutdown()
             messageLines[i][6] = nil
         end
     end
+    widgetHandler:DeregisterGlobal('GadgetAddMessage')
 end
 
 function widget:TextCommand(command)

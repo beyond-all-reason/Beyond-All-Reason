@@ -1125,11 +1125,13 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('advplayerlist_screenshot')
 	end
 	WG['advplayerlist_api'] = nil
+	widgetHandler:DeregisterGlobal('getPlayerScoresAdvplayerslist')
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	widgetHandler:DeregisterGlobal('ActivityEvent')
 	widgetHandler:DeregisterGlobal('FpsEvent')
 	widgetHandler:DeregisterGlobal('GpuMemEvent')
 	widgetHandler:DeregisterGlobal('SystemEvent')
+	widgetHandler:DeregisterGlobal('PlayerDataBroadcast')
 	if ShareSlider then
 		gl_DeleteList(ShareSlider)
 	end

@@ -944,6 +944,14 @@ end
 
 function widget:Shutdown()
 	WG['lighteffects'] = nil
+	widgetHandler:DeregisterGlobal('GadgetWeaponExplosion')
+	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
+	widgetHandler:DeregisterGlobal('GadgetCreateLight')
+	widgetHandler:DeregisterGlobal('GadgetEditLight')
+	widgetHandler:DeregisterGlobal('GadgetRemoveLight')
+	widgetHandler:DeregisterGlobal('GadgetCreateBeamLight')
+	widgetHandler:DeregisterGlobal('GadgetEditBeamLight')
+	widgetHandler:DeregisterGlobal('GadgetRemoveBeamLight')
 end
 
 function widget:Initialize()

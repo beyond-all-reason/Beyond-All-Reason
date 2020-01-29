@@ -962,7 +962,9 @@ local function SaveTable(tableinput, tablename, filename)
 	fileobj:close()
 end
 
+local boundCommands = {}
 local function BindCommand(command, func)
+	boundCommands[command] = true
 	widgetHandler:RegisterGlobal(command, func)
 	commandBindings[command] = func
 end
@@ -1189,6 +1191,9 @@ function widget:Shutdown()
 		if stats.max > 0 then
 			EchoStats(name, stats, longestName, longestKV)
 		end
+	end
+	for i,v in pairs(boundCommands) do
+		widgetHandler:DeregisterGlobal(boundCommands[i])
 	end
 end
 

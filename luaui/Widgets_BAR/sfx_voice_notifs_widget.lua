@@ -82,6 +82,7 @@ end
 
 function widget:Shutdown()
 	WG['voicenotifs'] = nil
+	widgetHandler:DeregisterGlobal('EventBroadcast')
 end
 
 local passedTime = 0
