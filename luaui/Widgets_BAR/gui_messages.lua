@@ -22,7 +22,7 @@ end
 
 local showTestMessages = false
 
-local charSize = 17
+local charSize = 18
 local charDelay = 0.015
 local maxLines = 7
 local maxLinesScroll = 10

@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
 return {
 	name    = "Options",
@@ -1539,6 +1538,10 @@ function init()
 		{id='game', name='Game'},
 		{id='dev', name='Dev'},
 	}
+	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+		optionGroups[#optionGroups+1] = {id='scav', name='Scavengers'}
+	end
+
 	if not currentGroupTab or Spring.GetGameFrame() == 0 then
 		currentGroupTab = optionGroups[1].id
 	else
@@ -2034,6 +2037,9 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value) end,
 		},
 
+		{id="scav_voicenotifs", group="scav", basic=true, widget="Scavenger Audio Reciever", name="Scavenger voice notifications", type="bool", value=GetWidgetToggleValue("Scavenger Audio Reciever"), description='Toggle the scavenger announcer voice'},
+
+
 		-- CONTROL
 		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
 		 onload = function() end,
@@ -2485,6 +2491,13 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value) end,
 		},
 
+		{id="scav_messages", group="scav", basic=true, name="Scavenger messages", type="bool", value=tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1, description="",
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("scavmessages",(value and 1 or 0))
+		 end,
+		},
+
+
 		-- GAME
 		{id="autoquit", group="game", basic=true, widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
@@ -2635,6 +2648,11 @@ function init()
 		},
 
 	}
+
+	if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+		options[getOptionByID('scav_voicenotifs')] = nil
+		options[getOptionByID('scav_messages')] = nil
+	end
 
 	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 	--if Platform ~= nil and Platform.gpuVendor == 'Intel' then

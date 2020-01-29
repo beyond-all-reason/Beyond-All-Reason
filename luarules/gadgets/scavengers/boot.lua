@@ -12,7 +12,7 @@ VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/config.lua"
 	
 
 function ScavSendMessage(message)
-	if scavconfig.messenger then
+	if scavconfig.messenger and tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1 then
 		Spring.SendCommands("addmessage "..message)
 	end
 end
