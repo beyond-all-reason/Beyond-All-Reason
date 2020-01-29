@@ -8,6 +8,8 @@ for i = 1,#Blueprints2List do
 end
 local constructortimer = constructorControllerModuleConfig.constructortimerstart
 
+scavvoicenotif = 2
+
 function AssistantOrders(n, scav)
 	local x,y,z = Spring.GetUnitPosition(scav)
 	Spring.GiveOrderToUnit(scav, CMD.PATROL,{x-100,y,z}, {"shift"})
@@ -65,23 +67,29 @@ function SpawnConstructor(n)
 				ScavSendVoiceMessage(scavengerSoundPath.."scavcomdetected.wav")
 				anothercommander = true
 			else
-				local s = math.random(0,4)
-				if s == 0 then
-					ScavSendMessage("An additional Scavenger Commander detected")
-					ScavSendVoiceMessage(scavengerSoundPath.."scavadditionalcomdetected.wav")
-				elseif s == 1 then
-					ScavSendMessage("Another Scavenger Commander detected in the area")
-					ScavSendVoiceMessage(scavengerSoundPath.."scavanotherscavcomdetected.wav")
-				elseif s == 2 then
-					ScavSendMessage("New Scavenger Commander entered this location")
-					ScavSendVoiceMessage(scavengerSoundPath.."scavnewcomentered.wav")
-				elseif s == 3 then
-					ScavSendMessage("An extra Scavenger Commander has been spotted")
-					ScavSendVoiceMessage(scavengerSoundPath.."scavcomspotted.wav")
+				local s = math.random(0,scavvoicenotif)
+					if s == 0 then
+						ScavSendMessage("An additional Scavenger Commander detected")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavadditionalcomdetected.wav")
+					elseif s == 1 then
+						ScavSendMessage("Another Scavenger Commander detected in the area")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavanotherscavcomdetected.wav")
+					elseif s == 2 then
+						ScavSendMessage("New Scavenger Commander entered this location")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavnewcomentered.wav")	
+					elseif s == 3 then
+						ScavSendMessage("An extra Scavenger Commander has been spotted")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavcomspotted.wav")
+					elseif s == 4 then
+						ScavSendMessage("New Scav Commander detected")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavcomnewdetect.wav")
+					else
+						ScavSendMessage("A Scavenger Commander detected")
+					end
+				if scavvoicenotif < 20 then
+				scavvoicenotif = scavvoicenotif + 1	
 				else
-					ScavSendMessage("New Scavenger Commander detected")
-					ScavSendVoiceMessage(scavengerSoundPath.."scavcomnewdetect.wav")
-				end	
+				end				
 			end
 			SpawnBeacon(n)
 			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
