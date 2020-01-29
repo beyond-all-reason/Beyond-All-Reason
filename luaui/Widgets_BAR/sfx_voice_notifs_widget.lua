@@ -34,9 +34,24 @@ local Sound = {
 	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 0.8, 1.75},
 	LowPower = {"LuaUI/Sounds/VoiceNotifs/LowPower.wav", 20, 0.6, 3.2},
 	IntrusionCountermeasure = {"LuaUI/Sounds/VoiceNotifs/StealthyUnitsInRange.wav", 15, 0.6, 4.8},
+	EMPmissilesiloDetected = {"LuaUI/Sounds/VoiceNotifs/EmpSiloDetected.wav", 4, 0.6, 2.1},
+	TacticalNukeSiloDetected = {"LuaUI/Sounds/VoiceNotifs/TacticalNukeDetected.wav", 4, 0.6, 2},
+	NuclearSiloDetected = {"LuaUI/Sounds/VoiceNotifs/NuclearSiloDetected.wav", 4, 0.6, 1.7},
+	NuclearBomberDetected = {"LuaUI/Sounds/VoiceNotifs/NuclearBomberDetected.wav", 45, 0.6, 1.6},
 }
+local unitsOfInterest = {}
+unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
+unitsOfInterest[UnitDefNames['cortron'].id] = 'TacticalNukeSiloDetected'
+unitsOfInterest[UnitDefNames['armsilo'].id] = 'NuclearSiloDetected'
+unitsOfInterest[UnitDefNames['corsilo'].id] = 'NuclearSiloDetected'
+unitsOfInterest[UnitDefNames['corint'].id] = 'LrpcDetected'
+unitsOfInterest[UnitDefNames['armbrtha'].id] = 'LrpcDetected'
+unitsOfInterest[UnitDefNames['corbuzz'].id] = 'LrpcDetected'
+unitsOfInterest[UnitDefNames['armvulc'].id] = 'LrpcDetected'
+unitsOfInterest[UnitDefNames['armliche'].id] = 'NuclearBomberDetected'
+
 -- adding duration
-local silenceDuration = 0.7
+local silenceDuration = 0.6
 for i,v in pairs(Sound) do
 	if not Sound[i][4] then
 		Sound[i][4] = 2 + silenceDuration
@@ -47,6 +62,7 @@ end
 
 local soundQueue = {}
 local nextSoundQueued = 0
+local taggedUnitsOfInterest = {}
 
 local passedTime = 0
 local sec = 0
@@ -54,6 +70,11 @@ local sec = 0
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isSpec = Spring.GetSpectatingState()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+
+local spIsUnitAllied = Spring.IsUnitAllied
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
 
 local LastPlay = {}
 local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
@@ -65,6 +86,7 @@ function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
 end
 
 function widget:Initialize()
@@ -121,6 +143,19 @@ function widget:GameFrame(gf)
 	end
 end
 
+function widget:UnitEnteredLos(unitID, allyTeam)
+	if spIsUnitAllied(unitID) then return end
+
+	local udefID = spGetUnitDefID(unitID)
+	if udefID and unitsOfInterest[udefID] and not taggedUnitsOfInterest[unitID] then
+		taggedUnitsOfInterest[unitID] = true
+		Sd(unitsOfInterest[udefID])
+	end
+end
+
+function widget:UnitDestroyed(unitID)
+	taggedUnitsOfInterest[unitID] = nil
+end
 
 function playNextSound()
 	if #soundQueue > 0 then
