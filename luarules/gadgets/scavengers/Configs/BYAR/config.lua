@@ -81,6 +81,7 @@ unitControllerModuleConfig = {
 -- Functions which you can configure
 function UpdateTierChances(n)
 	-- Must be 100 in total
+	
 	if globalScore > scavconfig.timers.T4top then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0

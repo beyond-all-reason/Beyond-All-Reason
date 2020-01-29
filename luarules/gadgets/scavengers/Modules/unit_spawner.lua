@@ -60,9 +60,11 @@ function UnitGroupSpawn(n)
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						groupunit = T3AirUnits[math.random(1,#T3AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier
+						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4AirUnits[math.random(1,#T4AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
+						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 					else
 						groupunit = T0AirUnits[math.random(1,#T0AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
@@ -80,9 +82,11 @@ function UnitGroupSpawn(n)
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						groupunit = T3LandUnits[math.random(1,#T3LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier
+						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4LandUnits[math.random(1,#T4LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
+						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 					else
 						groupunit = T0LandUnits[math.random(1,#T0LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
@@ -100,9 +104,11 @@ function UnitGroupSpawn(n)
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 						groupunit = T3SeaUnits[math.random(1,#T3SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier
+						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4SeaUnits[math.random(1,#T4SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
+						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 					else
 						groupunit = T0SeaUnits[math.random(1,#T0SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier

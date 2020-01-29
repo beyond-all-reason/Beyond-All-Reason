@@ -9,6 +9,14 @@ VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/config.lua"
 --end
 
 -- Include
+	
+
+function ScavSendMessage(message)
+	if scavconfig.messenger then
+		Spring.SendCommands("addmessage "..message)
+	end
+end
+
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 
@@ -49,6 +57,7 @@ if scavconfig.modules.unitSpawnerModule then
 end
 
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
+VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 
 local function DisableUnit(unitID)
   Spring.MoveCtrl.Enable(unitID)
@@ -71,8 +80,13 @@ local function DisableCommander()
     end
 end
 
+
+
 function gadget:GameFrame(n)
 	
+	if scavconfig.messenger == true and n%30 == 0 then
+		pregameMessages(n)
+	end
 	
 	if n == 15 and GaiaTeamID ~= Spring.GetGaiaTeamID() then
 		DisableCommander()

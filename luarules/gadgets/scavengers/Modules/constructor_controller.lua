@@ -60,6 +60,12 @@ function SpawnConstructor(n)
 		if canSpawnCommanderHere then
 			posradius = 48
 			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
+			if not anothercommander then
+				ScavSendMessage("Scavenger Commander detected in the area")
+				anothercommander = true
+			else
+				ScavSendMessage("Another Scavenger Commander detected in the area")
+			end
 			SpawnBeacon(n)
 			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
 			local r = ConstructorsList[math.random(1,#ConstructorsList)]
