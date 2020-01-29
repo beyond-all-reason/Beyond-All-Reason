@@ -65,13 +65,22 @@ function SpawnConstructor(n)
 				ScavSendVoiceMessage(scavengerSoundPath.."scavcomdetected.wav")
 				anothercommander = true
 			else
-				local s = math.random(0,1)
+				local s = math.random(0,4)
 				if s == 0 then
 					ScavSendMessage("An additional Scavenger Commander detected")
 					ScavSendVoiceMessage(scavengerSoundPath.."scavadditionalcomdetected.wav")
-				else
+				elseif s == 1 then
 					ScavSendMessage("Another Scavenger Commander detected in the area")
 					ScavSendVoiceMessage(scavengerSoundPath.."scavanotherscavcomdetected.wav")
+				elseif s == 2 then
+					ScavSendMessage("New Scavenger Commander entered this location")
+					ScavSendVoiceMessage(scavengerSoundPath.."scavnewcomentered.wav")
+				elseif s == 3 then
+					ScavSendMessage("An extra Scavenger Commander has been spotted")
+					ScavSendVoiceMessage(scavengerSoundPath.."scavcomspotted.wav")
+				else
+					ScavSendMessage("New Scavenger Commander detected")
+					ScavSendVoiceMessage(scavengerSoundPath.."scavcomnewdetect.wav")
 				end	
 			end
 			SpawnBeacon(n)
