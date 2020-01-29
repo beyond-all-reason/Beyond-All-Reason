@@ -23,14 +23,14 @@ local Sound = {
 		1, 		-- min delay
 		1,		-- relative volume
 	},
-	aCommLost = {"LuaUI/Sounds/VoiceNotifs/aCommLost.wav", 1, 1},
-	NukeLaunched = {"LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav", 3, 1},
-	IdleBuilder = {"LuaUI/Sounds/VoiceNotifs/IdleBuilder.wav", 30, 0.8},
-	UnitLost = {"LuaUI/Sounds/VoiceNotifs/UnitLost.wav", 20, 0.8},
-	GameStarted = {"LuaUI/Sounds/VoiceNotifs/GameStarted.wav", 1, 0.8},
-	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 5, 0.8},
-	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1, 1},
-	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 1},
+	aCommLost = {"LuaUI/Sounds/VoiceNotifs/aCommLost.wav", 1, 0.8},
+	NukeLaunched = {"LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav", 3, 0.8},
+	IdleBuilder = {"LuaUI/Sounds/VoiceNotifs/IdleBuilder.wav", 30, 0.6},
+	UnitLost = {"LuaUI/Sounds/VoiceNotifs/UnitLost.wav", 20, 0.6},
+	GameStarted = {"LuaUI/Sounds/VoiceNotifs/GameStarted.wav", 1, 0.6},
+	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 5, 0.6},
+	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1, 0.6},
+	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 0.8},
 }
 
 
