@@ -61,10 +61,12 @@ function UnitGroupSpawn(n)
 						groupunit = T3AirUnits[math.random(1,#T3AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier
 						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavheavyairdetected.wav")
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4AirUnits[math.random(1,#T4AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
-						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
+						ScavSendMessage("Alert! Scavengers dropped a Scavenger Boss")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavbossdetected.wav")
 					else
 						groupunit = T0AirUnits[math.random(1,#T0AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
@@ -83,10 +85,23 @@ function UnitGroupSpawn(n)
 						groupunit = T3LandUnits[math.random(1,#T3LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier
 						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
+							local s = math.random(0,4)
+							if s == 0 then
+								ScavSendVoiceMessage(scavengerSoundPath.."scavtech3.wav")
+							elseif s == 1 then
+								ScavSendVoiceMessage(scavengerSoundPath.."scavtech3b.wav")
+							elseif s == 2 then
+								ScavSendVoiceMessage(scavengerSoundPath.."scavtech3c.wav")
+							elseif s == 3 then
+								ScavSendVoiceMessage(scavengerSoundPath.."scavtech3d.wav")
+							else
+								ScavSendVoiceMessage(scavengerSoundPath.."scavtech3e.wav")
+							end	
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4LandUnits[math.random(1,#T4LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
-						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
+						ScavSendMessage("Alert! Scavengers dropped a Scavenger Boss")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavbossdetected.wav")
 					else
 						groupunit = T0LandUnits[math.random(1,#T0LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
@@ -105,10 +120,12 @@ function UnitGroupSpawn(n)
 						groupunit = T3SeaUnits[math.random(1,#T3SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier
 						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavheavyshipsdetected.wav")
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4SeaUnits[math.random(1,#T4SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
-						ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
+						ScavSendMessage("Alert! Scavengers dropped a Scavenger Boss")
+						ScavSendVoiceMessage(scavengerSoundPath.."scavbossdetected.wav")
 					else
 						groupunit = T0SeaUnits[math.random(1,#T0SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier

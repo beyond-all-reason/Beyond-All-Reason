@@ -13,7 +13,7 @@ function pregameMessages(n)
 	end
 	
 	if n == 2100 then
-		ScavSendMessage("... waiting for further intel ... ")
+		ScavSendMessage("... waiting for further data ... ")
 		ScavSendVoiceMessage(scavengerSoundPath.."waitingForIntel.wav")
 	end
 	

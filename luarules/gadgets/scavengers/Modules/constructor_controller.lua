@@ -62,9 +62,17 @@ function SpawnConstructor(n)
 			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
 			if not anothercommander then
 				ScavSendMessage("Scavenger Commander detected in the area")
+				ScavSendVoiceMessage(scavengerSoundPath.."scavcomdetected.wav")
 				anothercommander = true
 			else
-				ScavSendMessage("Another Scavenger Commander detected in the area")
+				local s = math.random(0,1)
+				if s == 0 then
+					ScavSendMessage("An additional Scavenger Commander detected")
+					ScavSendVoiceMessage(scavengerSoundPath.."scavadditionalcomdetected.wav")
+				else
+					ScavSendMessage("Another Scavenger Commander detected in the area")
+					ScavSendVoiceMessage(scavengerSoundPath.."scavanotherscavcomdetected.wav")
+				end	
 			end
 			SpawnBeacon(n)
 			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer

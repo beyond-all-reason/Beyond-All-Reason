@@ -98,13 +98,9 @@ T2LandUnits = {
 
 T3LandUnits = {
 --bots
-"armbull",
-"armmanni",
 --"armmar", currently doesn't shoot for scavs
 "armvang",
 --"armraz",  currently doesn't shoot for scavs
-"corgol",
-"corsumo",
 --"corkrog",
 "corshiva",
 "corkarg",

@@ -1,2 +1,11 @@
 https://text-to-speech-demo.ng.bluemix.net
 Watson/IBM voice: Allison
+by: Floris
+
+Custom settings by: IceXuick
+
+<speak><voice-transformation type="Custom" pitch_range="-30%" rate="5%" glottal_tension="80%" breathiness="60%"><express-as type="Apology">A Friendly commander has died</express-as></voice-transformation></speak>
+
+<voice-transformation type="Custom" pitch_range="-30%">Scavengers are dropping units in our area! Watch out!</voice-transformation>
+
+<express-as type="Uncertainty"> Scavengers are dropping units in our area! </express-as>
