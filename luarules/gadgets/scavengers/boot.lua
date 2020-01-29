@@ -17,6 +17,12 @@ function ScavSendMessage(message)
 	end
 end
 
+function ScavSendVoiceMessage(filedirectory)
+	if scavconfig.messenger then
+		Spring.SendCommands("scavplaysoundfile "..filedirectory)
+	end
+end
+
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 

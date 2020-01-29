@@ -30,6 +30,7 @@ Spring.Echo("[Scavengers] API initialized")
 	scavSpawnBeacon = {}
 	numOfSpawnBeacons = 0
 	scavMaxUnits = 2000
+	scavengerSoundPath = "sounds/scavengers/voice/"
 	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
 	end
