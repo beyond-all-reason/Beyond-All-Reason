@@ -32,7 +32,8 @@ local Sound = {
 	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 5, 0.6, 1},
 	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1, 0.6, 1.65},
 	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 0.8, 1.75},
-	LowPower = {"LuaUI/Sounds/VoiceNotifs/LowPower.wav", 30, 0.6, 3.2},
+	LowPower = {"LuaUI/Sounds/VoiceNotifs/LowPower.wav", 20, 0.6, 3.2},
+	IntrusionCountermeasure = {"LuaUI/Sounds/VoiceNotifs/StealthyUnitsInRange.wav", 15, 0.6, 4.8},
 }
 -- adding duration
 local silenceDuration = 0.7
@@ -104,13 +105,13 @@ function widget:Shutdown()
 end
 
 
-local lowpowerThreshold = 5		-- if there is X secs a low power situation
+local lowpowerThreshold = 6		-- if there is X secs a low power situation
 local lowpowerDuration = 0
 function widget:GameFrame(gf)
 	if gf % 30 == 15 then
 		-- low power check
 		local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(myTeamID,'energy')
-		if (currentLevel / storage) < 0.03 and currentLevel < 3000 then
+		if (currentLevel / storage) < 0.025 and currentLevel < 3000 then
 			lowpowerDuration = lowpowerDuration + 1
 			if lowpowerDuration >= lowpowerThreshold then
 				Sd('LowPower')
