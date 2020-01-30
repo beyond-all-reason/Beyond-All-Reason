@@ -14,7 +14,6 @@ function widget:GetInfo()
 end
 
 local volume = 1
-local isSpec = Spring.GetSpectatingState()
 local playTrackedPlayerNotifs = true
 
 local soundFolder = "LuaUI/Sounds/VoiceNotifs/"
@@ -33,10 +32,10 @@ local Sound = {
 	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1},
 	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65},
 	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75},
-	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 3.2},
+	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
 
-	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 20, 0.6, 3.45},		-- top bar widget calls this
-	--TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 20, 0.6, 3.2},		-- top bar widget calls this
+	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 3.45},		-- top bar widget calls this
+	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.8},		-- top bar widget calls this
 
 	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 15, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
@@ -80,7 +79,6 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
 
 local LastPlay = {}
 local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
@@ -200,7 +198,7 @@ function widget:Update(dt)
             lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
         end
 
-		-- process sound soundQueue
+		-- process sound queue
 		if sec >= nextSoundQueued then
 			playNextSound()
 		end
@@ -225,7 +223,8 @@ function Sd(event)
 		if soundList[event] and Sound[event] then
 			if not LastPlay[event] then
 				soundQueue[#soundQueue+1] = event
-			elseif LastPlay[event] and (Spring.GetGameFrame() >= (LastPlay[event] + Sound[event][2] * 30)) then
+				LastPlay[event] = Spring.GetGameFrame()
+			elseif LastPlay[event] and Spring.GetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30) then
 				soundQueue[#soundQueue+1] = event
 			end
 		end
