@@ -150,6 +150,7 @@ function UnitGroupSpawn(n)
 				for i=1, groupsize do
 					local posx = posx+math.random(-80,80)
 					local posz = posz+math.random(-80,80)
+					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0,3),GaiaTeamID)
 				end
