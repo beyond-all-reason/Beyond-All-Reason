@@ -15,7 +15,7 @@ T1SeaUnits = {
 "correcl",
 "corpship",
 "corsub",
-"corgarpike",
+"corgarp",
 --hovercraft
 "armsh",
 "armmh",
