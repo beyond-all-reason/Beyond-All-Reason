@@ -140,7 +140,7 @@ return {
 				range = 4950,
 				reloadtime = 16,
 				soundhit = "xplonuk1",
-				soundhitwet = "splsbig",
+				soundhitwet = "splshbig",
 				-- soundhitwetvolume = 0.5,
 				soundstart = "xplonuk3",
 				turret = true,

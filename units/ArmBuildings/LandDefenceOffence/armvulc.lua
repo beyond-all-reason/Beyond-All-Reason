@@ -138,7 +138,7 @@ return {
 				reloadtime = 0.4,
 				rgbcolor = "1, 0.4, 0",
 				soundhit = "rflrpc3",
-				soundhitwet = "splsbig",
+				soundhitwet = "splshbig",
 				-- soundhitwetvolume = 0.5,
 				soundstart = "XPLONUK4",
 				turret = true,
