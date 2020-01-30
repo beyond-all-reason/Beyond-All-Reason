@@ -38,7 +38,7 @@ local Sound = {
 	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
 	AdvRadarLost = {soundFolder..'AdvRadarLost.wav', 8, 0.6, 1.32},
 	MexLost = {soundFolder..'MexLost.wav', 8, 0.6, 1.53},
-	MohoMexLost = {soundFolder..'MohoMexLost.wav', 8, 0.6, 2.3},
+	T2MexLost = {soundFolder..'T2MexLost.wav', 8, 0.6, 2.34},
 
 	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
 	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 1.7},		-- top bar widget calls this
@@ -47,6 +47,8 @@ local Sound = {
 	EnergyStorageFull = {soundFolder..'energystorefull.wav', 40, 0.6, 1.65},	-- top bar widget calls this
 
 	AircraftSpotted = {soundFolder..'AircraftSpotted.wav', 9999999, 0.6, 1.25},	-- top bar widget calls this
+	T2Detected = {soundFolder..'T2UnitDetected.wav', 9999999, 0.6, 1.5},	-- top bar widget calls this
+	T3Detected = {soundFolder..'T3UnitDetected.wav', 9999999, 0.6, 1.94},	-- top bar widget calls this
 
 	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 15, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
@@ -88,6 +90,8 @@ local soundQueue = {}
 local nextSoundQueued = 0
 local taggedUnitsOfInterest = {}
 local aircraftSpotted = false
+local t2detected = false
+local t3detected = false
 
 local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
 for sound, params in pairs(Sound) do
@@ -115,9 +119,19 @@ function widget:PlayerChanged(playerID)
 end
 
 local isAircraft = {}
+local isT2 = {}
+local isT3 = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canFly then
 		isAircraft[unitDefID] = true
+	end
+	if unitDef.customParams and unitDef.customParams.techlevel then
+		if unitDef.customParams.techlevel == '2' then
+			isT2[unitDefID] = true
+		end
+		if unitDef.customParams.techlevel == '3' then
+			isT3[unitDefID] = true
+		end
 	end
 end
 
@@ -188,6 +202,14 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 	if not aircraftSpotted and isAircraft[udefID] then
 		aircraftSpotted = true
 		Sd('AircraftSpotted')
+	end
+	if not t2detected and isT2[udefID] then
+		t2detected = true
+		Sd('T2Detected')
+	end
+	if not t3detected and isT3[udefID] then
+		t3detected = true
+		Sd('T3Detected')
 	end
 
 	if udefID and unitsOfInterest[udefID] and not taggedUnitsOfInterest[unitID] then
@@ -279,10 +301,6 @@ function Sd(event)
 	end
 end
 
-function widget:MouseMove()
-	lastUserInputTime = os.clock()
-end
-
 function widget:MousePress()
 	lastUserInputTime = os.clock()
 end
@@ -302,7 +320,9 @@ function widget:GetConfigData(data)
 		volume = volume,
 		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
-		aircraftSpotted = aircraftSpotted
+		aircraftSpotted = aircraftSpotted,
+		t2detected = t2detected,
+		t3detected = t3detected,
 	}
 end
 
@@ -320,10 +340,18 @@ function widget:SetConfigData(data)
 	if data.playTrackedPlayerNotifs ~= nil then
 		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
 	end
-	if data.LastPlay and Spring.GetGameFrame() > 0 then
-		LastPlay = data.LastPlay
-	end
-	if data.aircraftSpotted and Spring.GetGameFrame() > 0 then
-		aircraftSpotted = data.aircraftSpotted
+	if Spring.GetGameFrame() > 0 then
+		if data.LastPlay then
+			LastPlay = data.LastPlay
+		end
+		if data.aircraftSpotted then
+			aircraftSpotted = data.aircraftSpotted
+		end
+		if data.t2detected then
+			t2detected = data.t2detected
+		end
+		if data.t3detected then
+			t3detected = data.t3detected
+		end
 	end
 end
