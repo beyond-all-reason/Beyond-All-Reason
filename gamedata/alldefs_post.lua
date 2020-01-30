@@ -191,7 +191,7 @@ local function ProcessSoundDefaults(wd)
 	end
 		if (not wd.soundhitwetvolume) then
 			if wd.weapontype == "LaserCannon" or "BeamLaser" then
-				wd.soundhitwetvolume = soundVolume * 0.5
+				wd.soundhitwetvolume = soundVolume * 0.3
 		else
 			wd.soundhitwetvolume = soundVolume
 		end		
