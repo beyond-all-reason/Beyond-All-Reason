@@ -192,7 +192,7 @@ else
 		if unitDef.customParams.iscommander then
 			isCommander[unitDefID] = true
 		end
-		if unitDef.isBuilder then
+		if unitDef.isBuilder and unitDef.canAssist then
 			isBuilder[unitDefID] = true
 		end
 	end
