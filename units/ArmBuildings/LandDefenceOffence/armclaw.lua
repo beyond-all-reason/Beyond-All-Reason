@@ -151,7 +151,7 @@ return {
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "lghthvy1",
 				soundtrigger = true,
 				turret = true,

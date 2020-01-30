@@ -144,7 +144,7 @@ return {
 				smoketrail = false,
 				soundhit = "packohit",
 				soundhitwet = "splshbig",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "packolau",
 				soundtrigger = true,
 				startvelocity = 1,

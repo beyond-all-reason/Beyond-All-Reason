@@ -165,7 +165,7 @@ end
 --------------------------------------------------------------------------------
 
 local function ProcessSoundDefaults(wd)
-	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume)
+	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume) or (not wd.soundhitwetvolume)
 	if not forceSetVolume then
 		return
 	end
@@ -174,6 +174,7 @@ local function ProcessSoundDefaults(wd)
 	if (not defaultDamage) or (defaultDamage <= 50) then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
+		wd.soundhitwetvolume = 5
 		return
 	end
 
@@ -187,6 +188,13 @@ local function ProcessSoundDefaults(wd)
 	end
 	if (not wd.soundhitvolume) then
 		wd.soundhitvolume = soundVolume
+	end
+		if (not wd.soundhitwetvolume) then
+			if wd.weapontype == "LaserCannon" or "BeamLaser" then
+				wd.soundhitwetvolume = soundVolume * 0.5
+		else
+			wd.soundhitwetvolume = soundVolume
+		end		
 	end
 end
 

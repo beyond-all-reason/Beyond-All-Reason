@@ -136,7 +136,7 @@ return {
 				reloadtime = 6.75,
 				soundhit = "bertha6",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "BERTHA1",
 				turret = true,
 				weapontype = "Cannon",

@@ -133,7 +133,7 @@ return {
 				reloadtime = 0.4,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
 				tolerance = 5000,
 				turret = true,

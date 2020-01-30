@@ -101,7 +101,7 @@ return {
 				smoketrail = false,
 				soundhit = "SabotHit",
 				soundhitwet = "splshbig",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "SabotFire",
 				soundtrigger = true,
 				startvelocity = 500,

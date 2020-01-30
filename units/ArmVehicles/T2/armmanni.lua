@@ -157,7 +157,7 @@ return {
 				scrollspeed = 5,
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "annigun1",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,

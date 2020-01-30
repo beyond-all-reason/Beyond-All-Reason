@@ -132,7 +132,7 @@ return {
 				reloadtime = 0.6,
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "lasrfast",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,

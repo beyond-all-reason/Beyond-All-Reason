@@ -149,7 +149,7 @@ return {
 				sizedecay = 0.08,
 				soundhit = "flakhit",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "flakfire",
 				stages = 8,
 				turret = true,

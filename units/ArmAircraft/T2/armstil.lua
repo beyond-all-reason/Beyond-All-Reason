@@ -116,7 +116,7 @@ return {
 				reloadtime = 7,
 				soundhit = "EMGPULS1",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "bombrel",
 				tolerance = 7000,
 				weapontype = "AircraftBomb",

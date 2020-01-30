@@ -99,7 +99,7 @@ return {
 				smoketrail = false,
 				soundhit = "explode",
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "rocklit3",
 				soundtrigger = true,
 				startvelocity = 300,

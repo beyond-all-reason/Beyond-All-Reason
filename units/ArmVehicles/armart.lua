@@ -157,7 +157,7 @@ return {
 				reloadtime = 2.85,
 				soundhit = "TAWF113b",
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "TAWF113a",
 				turret = true,
 				weapontype = "Cannon",

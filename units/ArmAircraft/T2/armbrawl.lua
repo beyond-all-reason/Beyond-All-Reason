@@ -97,7 +97,7 @@ return {
 				rgbcolor = "1 0.95 0.4",
 				size = 2.5,
 				soundhitwet = "splshbig",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "brawlemg",
 				sprayangle = 1024,
 				tolerance = 6000,

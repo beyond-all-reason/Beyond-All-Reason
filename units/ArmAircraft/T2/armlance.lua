@@ -105,6 +105,7 @@ return {
 				range = 650,
 				reloadtime = 8,
 				soundhit = "xplodep2",
+				soundhitwet = "splsmed",
 				soundstart = "bombrel",
 				startvelocity = 0,
 				tolerance = 2000,

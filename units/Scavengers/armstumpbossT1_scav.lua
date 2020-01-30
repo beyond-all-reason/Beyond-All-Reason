@@ -159,7 +159,7 @@ return {
 				reloadtime = 15,
 				soundhit = "xplonuk2",
 				soundhitwet = "splshlrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "krogun1",
 				size = 9,
 				targetMoveError = 0.5,

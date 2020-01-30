@@ -140,7 +140,7 @@ return {
 				size = 5,
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy5",
 				targetborder = 1,
 				turret = true,

@@ -143,7 +143,7 @@ return {
 				size = 8,
 				--soundhit = "lasrhit1",
 				soundhitwet = "splshbig",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "flashemg",
 				sprayangle = 1180,
 				tolerance = 5000,

@@ -140,7 +140,7 @@ return {
 				rgbcolor2 = "0.9 0.9 0.6",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "lasfirerb",
 				soundtrigger = 1,
 				thickness = 2.4,

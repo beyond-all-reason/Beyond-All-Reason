@@ -102,7 +102,7 @@ return {
 				rgbcolor = "0.05 0.05 1",
 				soundhit = "xplosml3",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "Lasrhvy2",
 				thickness = 4,
 				tolerance = 10000,

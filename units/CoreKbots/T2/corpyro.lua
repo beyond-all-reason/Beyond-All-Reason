@@ -124,7 +124,7 @@ return {
 				rgbcolor2 = "0.9 0.84 0.8",
 				sizegrowth = 0.7,
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "Flamhvy1",
 				soundtrigger = false,
 				sprayangle = 100,
