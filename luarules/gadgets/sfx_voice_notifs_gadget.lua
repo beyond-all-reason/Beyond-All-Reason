@@ -189,6 +189,7 @@ else
 	local isCommander = {}
 	local isBuilder = {}
 	local isRadar = {}
+	local isMex = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams.iscommander then
 			isCommander[unitDefID] = true
@@ -198,6 +199,9 @@ else
 		end
 		if unitDef.isBuilding and unitDef.radarRadius > 1900 then
 			isRadar[unitDefID] = true
+		end
+		if unitDef.extractsMetal > 0 then
+			isMex[unitDefID] = unitDef.extractsMetal
 		end
 	end
 
@@ -256,12 +260,20 @@ else
 	-- Unit Lost send to all in team
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
-		if isRadar[unitDefID] and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
-			local event = "RadarLost"
-			BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
-		end
-
 		if not Spring.IsUnitInView(unitID) then
+
+			-- if my unit and killed by enemy
+			if unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
+				if isRadar[unitDefID] then
+					BroadcastEvent("EventBroadcast", "RadarLost", tostring(myPlayerID))
+					return
+				elseif isMex[unitDefID] then
+					local event = isMex[unitDefID] > 0.002 and 'MohoMexLost' or 'MexLost'
+					BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
+					return
+				end
+			end
+
 			if not isCommander[unitDefID] then
 				if attackerID or attackerDefID or attackerTeam then
 					local event = "UnitLost"

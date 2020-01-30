@@ -15,6 +15,8 @@ end
 
 local volume = 1
 local playTrackedPlayerNotifs = true
+local muteWhenIdle = true
+local idleTime = 6		-- after this much sec: mark user as idle
 
 local soundFolder = "LuaUI/Sounds/VoiceNotifs/"
 local Sound = {
@@ -31,8 +33,11 @@ local Sound = {
 	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1},
 	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65},
 	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75},
+
 	UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
 	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
+	MexLost = {soundFolder..'MexLost.wav', 8, 0.6, 1.53},
+	MohoMexLost = {soundFolder..'MohoMexLost.wav', 8, 0.6, 2.3},
 
 	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
 	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 3.45},		-- top bar widget calls this
@@ -68,22 +73,32 @@ for i,v in pairs(Sound) do
 	end
 end
 
+local LastPlay = {}
+-- adding so they wont get immediately triggered after a luaui reload
+LastPlay['TeamWastingMetal'] = Spring.GetGameFrame()
+LastPlay['TeamWastingEnergy'] = Spring.GetGameFrame()
+LastPlay['MetalStorageFull'] = Spring.GetGameFrame()
+LastPlay['EnergyStorageFull'] = Spring.GetGameFrame()
+LastPlay['LowPower'] = Spring.GetGameFrame()
+
+
 local soundQueue = {}
 local nextSoundQueued = 0
 local taggedUnitsOfInterest = {}
 
-local passedTime = 0
-local sec = 0
-
-local spIsUnitAllied = Spring.IsUnitAllied
-local spGetUnitDefID = Spring.GetUnitDefID
-
-local LastPlay = {}
 local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
 for sound, params in pairs(Sound) do
 	soundList[sound] = true
 end
 
+local passedTime = 0
+local sec = 0
+local spIsUnitAllied = Spring.IsUnitAllied
+local spGetUnitDefID = Spring.GetUnitDefID
+
+local isIdle = false
+local lastUserInputTime = os.clock()
+local lastMouseX, lastMouseY = Spring.GetMouseState()
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -173,7 +188,9 @@ function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		nextSoundQueued = sec + Sound[event][4]
-		Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
+		if not muteWhenIdle or not isIdle then
+			Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
+		end
 		LastPlay[event] = Spring.GetGameFrame()
 
 		local newQueue = {}
@@ -204,6 +221,18 @@ function widget:Update(dt)
 		-- process sound queue
 		if sec >= nextSoundQueued then
 			playNextSound()
+		end
+
+		-- check idle status
+		local mouseX, mouseY = Spring.GetMouseState()
+		if mouseX ~= lastMouseX or mouseY ~= lastMouseY then
+			lastUserInputTime = os.clock()
+		end
+		lastMouseX, lastMouseY = mouseX, mouseY
+		if lastUserInputTime < os.clock() - idleTime then
+			isIdle = true
+		else
+			isIdle = false
 		end
     end
 end
@@ -253,4 +282,20 @@ function widget:SetConfigData(data)
     if data.playTrackedPlayerNotifs ~= nil then
         playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
     end
+end
+
+function widget:MouseMove()
+	lastUserInputTime = os.clock()
+end
+
+function widget:MousePress()
+	lastUserInputTime = os.clock()
+end
+
+function widget:MouseWheel()
+	lastUserInputTime = os.clock()
+end
+
+function widget:KeyPress()
+	lastUserInputTime = os.clock()
 end
