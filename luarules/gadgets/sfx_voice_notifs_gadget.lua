@@ -198,7 +198,7 @@ else
 			isBuilder[unitDefID] = true
 		end
 		if unitDef.isBuilding and unitDef.radarRadius > 1900 then
-			isRadar[unitDefID] = true
+			isRadar[unitDefID] = unitDef.radarRadius
 		end
 		if unitDef.extractsMetal > 0 then
 			isMex[unitDefID] = unitDef.extractsMetal
@@ -265,7 +265,8 @@ else
 			-- if my unit and killed by enemy
 			if unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
 				if isRadar[unitDefID] then
-					BroadcastEvent("EventBroadcast", "RadarLost", tostring(myPlayerID))
+					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
+					BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
 					return
 				elseif isMex[unitDefID] then
 					local event = isMex[unitDefID] > 0.002 and 'MohoMexLost' or 'MexLost'

@@ -36,11 +36,12 @@ local Sound = {
 
 	UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
 	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
+	AdvRadarLost = {soundFolder..'AdvRadarLost.wav', 8, 0.6, 1.32},
 	MexLost = {soundFolder..'MexLost.wav', 8, 0.6, 1.53},
 	MohoMexLost = {soundFolder..'MohoMexLost.wav', 8, 0.6, 2.3},
 
 	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
-	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 3.45},		-- top bar widget calls this
+	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 1.7},		-- top bar widget calls this
 	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.8},		-- top bar widget calls this
 	MetalStorageFull = {soundFolder..'metalstorefull.wav', 40, 0.6, 1.62},		-- top bar widget calls this
 	EnergyStorageFull = {soundFolder..'energystorefull.wav', 40, 0.6, 1.65},	-- top bar widget calls this
