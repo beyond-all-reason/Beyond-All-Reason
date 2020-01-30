@@ -45,6 +45,8 @@ local Sound = {
 	MetalStorageFull = {soundFolder..'metalstorefull.wav', 40, 0.6, 1.62},		-- top bar widget calls this
 	EnergyStorageFull = {soundFolder..'energystorefull.wav', 40, 0.6, 1.65},	-- top bar widget calls this
 
+	AircraftSpotted = {soundFolder..'AircraftSpotted.wav', 9999999, 0.6, 1.25},	-- top bar widget calls this
+
 	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 15, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
 	TacticalNukeSiloDetected = {soundFolder..'TacticalNukeDetected.wav', 4, 0.6, 2},
@@ -74,17 +76,17 @@ for i,v in pairs(Sound) do
 end
 
 local LastPlay = {}
--- adding so they wont get immediately triggered after a luaui reload
+-- adding so they wont get immediately triggered after gamestart
 LastPlay['TeamWastingMetal'] = Spring.GetGameFrame()
 LastPlay['TeamWastingEnergy'] = Spring.GetGameFrame()
 LastPlay['MetalStorageFull'] = Spring.GetGameFrame()
 LastPlay['EnergyStorageFull'] = Spring.GetGameFrame()
-LastPlay['LowPower'] = Spring.GetGameFrame()
 
 
 local soundQueue = {}
 local nextSoundQueued = 0
 local taggedUnitsOfInterest = {}
+local aircraftSpotted = false
 
 local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
 for sound, params in pairs(Sound) do
@@ -109,6 +111,13 @@ function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
+end
+
+local isAircraft = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canFly then
+		isAircraft[unitDefID] = true
+	end
 end
 
 function widget:Initialize()
@@ -174,6 +183,12 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 	if spIsUnitAllied(unitID) then return end
 
 	local udefID = spGetUnitDefID(unitID)
+
+	if not aircraftSpotted and isAircraft[udefID] then
+		aircraftSpotted = true
+		Sd('AircraftSpotted')
+	end
+
 	if udefID and unitsOfInterest[udefID] and not taggedUnitsOfInterest[unitID] then
 		taggedUnitsOfInterest[unitID] = true
 		Sd(unitsOfInterest[udefID])
@@ -263,27 +278,6 @@ function Sd(event)
 	end
 end
 
-
-function widget:GetConfigData(data)
-	return {soundList = soundList, volume = volume, playTrackedPlayerNotifs = playTrackedPlayerNotifs}
-end
-
-function widget:SetConfigData(data)
-	if data.soundList ~= nil then
-		for sound, enabled in pairs(data.soundList) do
-			if Sound[sound] then
-				soundList[sound] = enabled
-			end
-		end
-	end
-    if data.volume ~= nil then
-        volume = data.volume
-    end
-    if data.playTrackedPlayerNotifs ~= nil then
-        playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
-    end
-end
-
 function widget:MouseMove()
 	lastUserInputTime = os.clock()
 end
@@ -298,4 +292,37 @@ end
 
 function widget:KeyPress()
 	lastUserInputTime = os.clock()
+end
+
+
+function widget:GetConfigData(data)
+	return {
+		soundList = soundList,
+		volume = volume,
+		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
+		LastPlay = LastPlay,
+		aircraftSpotted = aircraftSpotted
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.soundList ~= nil then
+		for sound, enabled in pairs(data.soundList) do
+			if Sound[sound] then
+				soundList[sound] = enabled
+			end
+		end
+	end
+	if data.volume ~= nil then
+		volume = data.volume
+	end
+	if data.playTrackedPlayerNotifs ~= nil then
+		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
+	end
+	if data.LastPlay and Spring.GetGameFrame() > 0 then
+		LastPlay = data.LastPlay
+	end
+	if data.aircraftSpotted and Spring.GetGameFrame() > 0 then
+		aircraftSpotted = data.aircraftSpotted
+	end
 end
