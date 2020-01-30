@@ -673,13 +673,21 @@ local function updateResbarText(res)
 					local text = ''
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
-						if WG['voicenotifs'] and allyteamOverflowingMetal then
-							WG['voicenotifs'].addEvent('TeamWastingMetal')
+						if WG['voicenotifs'] then
+							if allyteamOverflowingMetal then
+								WG['voicenotifs'].addEvent('TeamWastingMetal')
+							else
+								WG['voicenotifs'].addEvent('MetalStorageFull')
+							end
 						end
 					else
 						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
-						if WG['voicenotifs'] and allyteamOverflowingEnergy then
-							WG['voicenotifs'].addEvent('TeamWastingEnergy')
+						if WG['voicenotifs'] then
+							if allyteamOverflowingEnergy then
+								WG['voicenotifs'].addEvent('TeamWastingEnergy')
+							else
+								WG['voicenotifs'].addEvent('EnergyStorageFull')
+							end
 						end
 					end
 					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale

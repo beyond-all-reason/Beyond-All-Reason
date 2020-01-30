@@ -36,6 +36,8 @@ local Sound = {
 
 	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 3.45},		-- top bar widget calls this
 	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.8},		-- top bar widget calls this
+	MetalStorageFull = {soundFolder..'metalstorefull.wav', 30, 0.6, 1.62},		-- top bar widget calls this
+	EnergyStorageFull = {soundFolder..'energystorefull.wav', 30, 0.6, 1.65},	-- top bar widget calls this
 
 	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 15, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
