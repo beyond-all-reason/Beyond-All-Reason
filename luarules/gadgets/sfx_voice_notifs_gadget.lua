@@ -188,6 +188,7 @@ else
 
 	local isCommander = {}
 	local isBuilder = {}
+	local isRadar = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams.iscommander then
 			isCommander[unitDefID] = true
@@ -195,6 +196,21 @@ else
 		if unitDef.isBuilder and unitDef.canAssist then
 			isBuilder[unitDefID] = true
 		end
+		if unitDef.isBuilding and unitDef.radarRadius > 1900 then
+			isRadar[unitDefID] = true
+		end
+	end
+
+
+	local isSpec = Spring.GetSpectatingState()
+	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	function gadget:PlayerChanged(playerID)
+		isSpec = Spring.GetSpectatingState()
+		myTeamID = Spring.GetMyTeamID()
+		myPlayerID = Spring.GetMyPlayerID()
+		myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:Initialize()
@@ -239,6 +255,12 @@ else
 
 	-- Unit Lost send to all in team
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+
+		if isRadar[unitDefID] and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
+			local event = "RadarLost"
+			BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
+		end
+
 		if not Spring.IsUnitInView(unitID) then
 			if not isCommander[unitDefID] then
 				if attackerID or attackerDefID or attackerTeam then

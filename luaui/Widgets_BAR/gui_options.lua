@@ -1441,13 +1441,6 @@ function applyOptionValue(i, skipRedrawWindow)
 
 	local id = options[i].id
 
-	if options[i].type == 'bool' then
-		if string.sub(id, 1, 19) == 'voicenotifs_' then
-			local sound = string.sub(id, 20)
-			saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, value)
-		end
-	end
-
 	if options[i].widget ~= nil then
 		if options[i].value then
 			if widgetHandler.orderList[options[i].widget] < 0.5 then
@@ -2775,7 +2768,9 @@ function init()
 				if option.id == 'voicenotifs_volume' then
 					for sound, enabled in pairs(soundList) do
 						count = count + 1
-						newOptions[count] = {id="voicenotifs_snd_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
+						newOptions[count] = {id="voicenotifs_snd_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description='',
+							onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, value) end,
+						}
 					end
 				end
 			end

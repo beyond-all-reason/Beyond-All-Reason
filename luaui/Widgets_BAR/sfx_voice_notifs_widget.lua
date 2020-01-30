@@ -27,17 +27,18 @@ local Sound = {
 	aCommLost = {soundFolder..'aCommLost.wav', 1, 0.8, 1.75},
 	NukeLaunched = {soundFolder..'NukeLaunched.wav', 3, 0.8, 2},
 	IdleBuilder = {soundFolder..'IdleBuilder.wav', 30, 0.6, 1.9},
-	UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
 	GameStarted = {soundFolder..'GameStarted.wav', 1, 0.6, 1},
 	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1},
 	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65},
 	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75},
-	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
+	UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
+	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
 
+	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
 	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 3.45},		-- top bar widget calls this
 	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.8},		-- top bar widget calls this
-	MetalStorageFull = {soundFolder..'metalstorefull.wav', 30, 0.6, 1.62},		-- top bar widget calls this
-	EnergyStorageFull = {soundFolder..'energystorefull.wav', 30, 0.6, 1.65},	-- top bar widget calls this
+	MetalStorageFull = {soundFolder..'metalstorefull.wav', 40, 0.6, 1.62},		-- top bar widget calls this
+	EnergyStorageFull = {soundFolder..'energystorefull.wav', 40, 0.6, 1.65},	-- top bar widget calls this
 
 	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 15, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
@@ -74,11 +75,6 @@ local taggedUnitsOfInterest = {}
 local passedTime = 0
 local sec = 0
 
-local myTeamID = Spring.GetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
-local isSpec = Spring.GetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
 
@@ -88,6 +84,11 @@ for sound, params in pairs(Sound) do
 	soundList[sound] = true
 end
 
+
+local isSpec = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
@@ -164,7 +165,7 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 	end
 end
 
-function widget:UnitDestroyed(unitID)
+function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	taggedUnitsOfInterest[unitID] = nil
 end
 
