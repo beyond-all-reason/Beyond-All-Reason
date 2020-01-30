@@ -25,6 +25,7 @@ function UnitGroupSpawn(n)
 			
 			local pickedBeacon = SpawnBeacons[math.random(1,#SpawnBeacons)]
 			posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+			posy = Spring.GetGroundHeight(posx, posz)
 			local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
 			local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
 			if nearestEnemyTeam == bestTeam then
@@ -150,7 +151,6 @@ function UnitGroupSpawn(n)
 				for i=1, groupsize do
 					local posx = posx+math.random(-80,80)
 					local posz = posz+math.random(-80,80)
-					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0,3),GaiaTeamID)
 				end
