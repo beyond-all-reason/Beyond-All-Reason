@@ -27,6 +27,8 @@ local Sound = {
 		1.7,	-- duration (optional, but define for sounds longer than 2 seconds)
 	},
 	aCommLost = {soundFolder..'aCommLost.wav', 1, 0.8, 1.75},
+	ComHeavyDamage = {soundFolder..'ComHeavyDamage.wav', 12, 0.6, 2.1},
+
 	NukeLaunched = {soundFolder..'NukeLaunched.wav', 3, 0.8, 2},
 	IdleBuilder = {soundFolder..'IdleBuilder.wav', 30, 0.6, 1.9},
 	GameStarted = {soundFolder..'GameStarted.wav', 1, 0.6, 1},
@@ -102,6 +104,8 @@ local passedTime = 0
 local sec = 0
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
+local spIsUnitInView = Spring.IsUnitInView
+local spGetUnitHealth = Spring.GetUnitHealth
 
 local isIdle = false
 local lastUserInputTime = os.clock()
@@ -111,11 +115,27 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
-function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+
+
+local isCommander = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.customParams.iscommander then
+		isCommander[udefID] = true
+	end
+end
+
+local commanders = {}
+local commandersDamages = {}
+function updateCommanders()
+	local units = Spring.GetTeamUnits(myTeamID)
+	for i=1,#units do
+		local unitID    = allUnits[i]
+		local unitDefID = spGetUnitDefID(unitID)
+		if isCommander[unitDefID] then
+			local health,maxHealth,paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
+			commanders[unitID] = maxHealth
+		end
+	end
 end
 
 local isAircraft = {}
@@ -133,6 +153,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			isT3[unitDefID] = true
 		end
 	end
+end
+
+function widget:PlayerChanged(playerID)
+	isSpec = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	myPlayerID = Spring.GetMyPlayerID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	updateCommanders()
 end
 
 function widget:Initialize()
@@ -199,6 +227,7 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 
 	local udefID = spGetUnitDefID(unitID)
 
+	-- single detection events below
 	if not aircraftSpotted and isAircraft[udefID] then
 		aircraftSpotted = true
 		Sd('AircraftSpotted')
@@ -212,14 +241,62 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 		Sd('T3Detected')
 	end
 
+	-- notify about units of interest
 	if udefID and unitsOfInterest[udefID] and not taggedUnitsOfInterest[unitID] then
 		taggedUnitsOfInterest[unitID] = true
 		Sd(unitsOfInterest[udefID])
 	end
 end
 
+
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+    if unitTeam == myTeamID and isCommander[unitDefID] then
+        commanders[unitID] = select(2, spGetUnitHealth(unitID))
+    end
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+    if unitTeam == myTeamID and isCommander[unitDefID] then
+        commanders[unitID] = select(2, spGetUnitHealth(unitID))
+    end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam, damage, paralyzer)
+    if unitTeam == myTeamID and isCommander[unitDefID] then
+        commanders[unitID] = select(2, spGetUnitHealth(unitID))
+    end
+end
+
+
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+
+	-- notify when commander gets heavy damage
+	if unitTeam == myTeamID and commanders[unitID] and not spIsUnitInView(unitID) then
+		if not commandersDamages[unitID] then
+			commandersDamages[unitID] = {}
+		end
+		local gf = Spring.GetGameFrame()
+		commandersDamages[unitID][gf] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
+
+		-- count total damage of last few secs
+        local totalDamage = 0
+        local startGameframe = Spring.GetGameFrame() - (5.5 * 30)
+        for gf,damage in pairs(commandersDamages[unitID]) do
+            if gf > startGameframe then
+                totalDamage = totalDamage + damage
+            else
+                commandersDamages[unitID][gf] = nil
+            end
+        end
+        if totalDamage >= commanders[unitID] * 0.12 then
+            Sd('ComHeavyDamage')
+        end
+	end
+end
+
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	taggedUnitsOfInterest[unitID] = nil
+    commanders[unitID] = nil
 end
 
 function playNextSound()
@@ -241,6 +318,9 @@ function playNextSound()
 	end
 end
 
+function checkCommDamage()
+
+end
 
 function widget:Update(dt)
 	sec = sec + dt
@@ -260,6 +340,9 @@ function widget:Update(dt)
 		if sec >= nextSoundQueued then
 			playNextSound()
 		end
+
+		-- check com health
+		checkCommDamage()
 
 		-- check idle status
 		local mouseX, mouseY = Spring.GetMouseState()
@@ -296,6 +379,7 @@ function Sd(event)
 				LastPlay[event] = Spring.GetGameFrame()
 			elseif LastPlay[event] and Spring.GetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30) then
 				soundQueue[#soundQueue+1] = event
+                LastPlay[event] = Spring.GetGameFrame()
 			end
 		end
 	end
