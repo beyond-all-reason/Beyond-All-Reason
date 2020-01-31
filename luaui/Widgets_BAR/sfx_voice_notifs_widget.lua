@@ -129,7 +129,7 @@ local commandersDamages = {}
 function updateCommanders()
 	local units = Spring.GetTeamUnits(myTeamID)
 	for i=1,#units do
-		local unitID    = allUnits[i]
+		local unitID    = units[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		if isCommander[unitDefID] then
 			local health,maxHealth,paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
