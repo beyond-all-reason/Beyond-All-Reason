@@ -393,7 +393,7 @@ function ShieldSphereParticle:Update(n)
 		checkStunned = false
 	end
 
-	if not self.stunned and self.light then
+	if not self.stunned and self.light and not Spring.IsUnitIcon(self.unit) then
 		if (WG and WG['lighteffects'] and WG['lighteffects'].createLight) or Script.LuaUI("GadgetCreateLight") then
 			if not self.unitPos then
 				self.unitPos = {}
