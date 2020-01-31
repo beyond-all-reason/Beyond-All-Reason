@@ -2755,7 +2755,7 @@ function init()
 	if widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
 		if WG['voicenotifs'] ~= nil then
-			soundList =  WG['voicenotifs'].getSoundList()
+			soundList = WG['voicenotifs'].getSoundList()
 		elseif widgetHandler.configData["Voice Notifs"] ~= nil and widgetHandler.configData["Voice Notifs"].soundList ~= nil then
 			soundList = widgetHandler.configData["Voice Notifs"].soundList
 		end

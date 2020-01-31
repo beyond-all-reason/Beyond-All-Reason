@@ -50,7 +50,7 @@ local Sound = {
 	T2Detected = {soundFolder..'T2UnitDetected.wav', 9999999, 0.6, 1.5},	-- top bar widget calls this
 	T3Detected = {soundFolder..'T3UnitDetected.wav', 9999999, 0.6, 1.94},	-- top bar widget calls this
 
-	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 15, 0.6, 4.8},
+	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 30, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
 	TacticalNukeSiloDetected = {soundFolder..'TacticalNukeDetected.wav', 4, 0.6, 2},
 	NuclearSiloDetected = {soundFolder..'NuclearSiloDetected.wav', 4, 0.6, 1.7},
@@ -80,10 +80,10 @@ end
 
 local LastPlay = {}
 -- adding so they wont get immediately triggered after gamestart
-LastPlay['TeamWastingMetal'] = Spring.GetGameFrame()
-LastPlay['TeamWastingEnergy'] = Spring.GetGameFrame()
-LastPlay['MetalStorageFull'] = Spring.GetGameFrame()
-LastPlay['EnergyStorageFull'] = Spring.GetGameFrame()
+LastPlay['TeamWastingMetal'] = Spring.GetGameFrame()+300
+LastPlay['TeamWastingEnergy'] = Spring.GetGameFrame()+300
+LastPlay['MetalStorageFull'] = Spring.GetGameFrame()+300
+LastPlay['EnergyStorageFull'] = Spring.GetGameFrame()+300
 
 
 local soundQueue = {}
@@ -93,9 +93,9 @@ local aircraftSpotted = false
 local t2detected = false
 local t3detected = false
 
-local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
-for sound, params in pairs(Sound) do
-	soundList[sound] = true
+local soundList = {}
+for k, v in pairs(Sound) do
+	soundList[k] = true
 end
 
 local passedTime = 0
