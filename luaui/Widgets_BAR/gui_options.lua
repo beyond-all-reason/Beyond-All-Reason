@@ -1940,7 +1940,18 @@ function init()
 		},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Jet engine thrusters, additional lighting.'},
-		{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes',
+		{id="lupsdistortedshields", group="gfx", name=widgetOptionColor.."   distorted shields", type="bool", value=tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1, description='Make the shields distorted, like water',
+		 onload = function() end,
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("lupsdistortedshields",(value and 1 or 0))
+			 local widgetname = "LupsManager"
+			 if GetWidgetToggleValue(widgetname) then
+				 widgetHandler:DisableWidget(widgetname)
+				 widgetHandler:EnableWidget(widgetname)
+			 end
+		 end,
+		},
+		{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",0) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes',
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SetConfigInt("lupsreflectionrefraction",(value and 1 or 0)) end,
 		},

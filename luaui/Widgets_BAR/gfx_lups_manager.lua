@@ -115,34 +115,7 @@ local cormakrEffect = {
     texture    = 'bitmaps/flare.TGA',
 }
 
-
 local UnitEffects = {
-
-    ["corgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts550)},
-        --{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,42,0}, size=12, precision=22, repeatEffect=true}},
-        --{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
-        --{class='ShieldSphere',options=corgateShieldSphere},
-        --{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
-    },
-    ["corfgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts600)},
-        --{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,42,0}, size=12, precision=22, repeatEffect=true}},
-        --{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
-        --{class='ShieldSphere',options=corgateShieldSphere},
-    },
-    ["armgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,25,5}},shieldBursts550)},
-        --{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,23.5,-5}, size=15, precision=22, repeatEffect=true}},
-        --{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
-        --{class='ShieldSphere',options=armgateShieldSphere},
-    },
-    ["armfgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,25,0}},shieldBursts600)},
-        --{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,25,0}, size=15, precision=22, repeatEffect=true}},
-        --{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
-        --{class='ShieldSphere',options=MergeTable(armgateShieldSphere, {pos={0,25,0}})},
-    },
 
     ["cormakr"] = {
         {class='StaticParticles',options=cormakrEffect},
@@ -326,7 +299,30 @@ local UnitEffects = {
         {class='AirJet',options={color={0.2,0.8,0.2}, width=3.3, length=40, piece="thrusta", onActive=true, light=1}},
         {class='AirJet',options={color={0.2,0.8,0.2}, width=3.3, length=40, piece="thrustb", onActive=true, light=1}},
     },
+
+    -- shields
+    ["corgate"] = {
+        {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts550)},
+    },
+    ["corfgate"] = {
+        {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts600)},
+    },
+    ["armgate"] = {
+        {class='Bursts',options=MergeTable({pos={0,25,5}},shieldBursts550)},
+    },
+    ["armfgate"] = {
+        {class='Bursts',options=MergeTable({pos={0,25,0}},shieldBursts600)},
+    },
 }
+
+local distoredShields = tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1
+if distoredShields then
+    local distortionAmount = 0.007
+    UnitEffects["corgate"][#UnitEffects["corgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
+    UnitEffects["corfgate"][#UnitEffects["corfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
+    UnitEffects["armgate"][#UnitEffects["armgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
+    UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
+end
 
 local scavEffects = {}
 if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
