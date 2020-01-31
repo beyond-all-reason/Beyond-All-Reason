@@ -189,25 +189,25 @@ else
 		},
 		["corgate"] = {
 			{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,42,0}, size=12, precision=22, repeatEffect=true}},
-			{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
 			{class='ShieldSphere',options=corgateShieldSphere},
+			--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 			--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 		},
 		["corfgate"] = {
 			{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,42,0}, size=12, precision=22, repeatEffect=true}},
-			{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
 			{class='ShieldSphere',options=corgateShieldSphere},
+			--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 			--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 		},
 		["armgate"] = {
 			{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,23.5,-5}, size=15, precision=22, repeatEffect=true}},
-			{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
 			{class='ShieldSphere',options=armgateShieldSphere},
+			--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 		},
 		["armfgate"] = {
 			{class='ShieldJitter',options={delay=0,life=math.huge, pos={0,25,0}, size=15, precision=22, repeatEffect=true}},
-			{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
 			{class='ShieldSphere',options=MergeTable(armgateShieldSphere, {pos={0,25,0}})},
+			--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		},
 
 	}
@@ -327,6 +327,8 @@ else
 
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 		if fullview then return end
+
+		if not fullview and CallAsTeam(myTeamID, IsUnitInLos, unitID) then return end
 
 		local unitDefID = spGetUnitDefID(unitID)
 		local effects   = UnitEffects[unitDefID]

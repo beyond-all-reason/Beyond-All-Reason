@@ -275,12 +275,12 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		if not commandersDamages[unitID] then
 			commandersDamages[unitID] = {}
 		end
-		local gf = Spring.GetGameFrame()
-		commandersDamages[unitID][gf] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
+		local gameframe = Spring.GetGameFrame()
+		commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
 
 		-- count total damage of last few secs
         local totalDamage = 0
-        local startGameframe = Spring.GetGameFrame() - (5.5 * 30)
+        local startGameframe = gameframe - (5.5 * 30)
         for gf,damage in pairs(commandersDamages[unitID]) do
             if gf > startGameframe then
                 totalDamage = totalDamage + damage
@@ -297,6 +297,7 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	taggedUnitsOfInterest[unitID] = nil
     commanders[unitID] = nil
+    commandersDamages[unitID] = nil
 end
 
 function playNextSound()
@@ -318,10 +319,6 @@ function playNextSound()
 	end
 end
 
-function checkCommDamage()
-
-end
-
 function widget:Update(dt)
 	sec = sec + dt
 
@@ -340,9 +337,6 @@ function widget:Update(dt)
 		if sec >= nextSoundQueued then
 			playNextSound()
 		end
-
-		-- check com health
-		checkCommDamage()
 
 		-- check idle status
 		local mouseX, mouseY = Spring.GetMouseState()
