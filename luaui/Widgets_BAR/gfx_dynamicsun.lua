@@ -8,8 +8,8 @@ function widget:GetInfo()
     name      = "Dynamic Sun",
     desc      = "Yea, Dynamic Sun",
     author    = "Damgam",
-    date      = "What?",
-    license   = "2020",
+    date      = "2020",
+    license   = "What?",
     layer     = 0,
     enabled   = true  
   }
