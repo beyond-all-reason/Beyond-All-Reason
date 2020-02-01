@@ -146,7 +146,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isAircraft[unitDefID] = true
 	end
 	if unitDef.customParams and unitDef.customParams.techlevel then
-		if unitDef.customParams.techlevel == '2' then
+		if unitDef.customParams.techlevel == '2' and not unitDef.customParams.iscommander then
 			isT2[unitDefID] = true
 		end
 		if unitDef.customParams.techlevel == '3' then
