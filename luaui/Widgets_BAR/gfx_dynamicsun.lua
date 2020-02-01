@@ -14,8 +14,10 @@ function widget:GetInfo()
     enabled   = true  
   }
 end
+defaultMapSunPos = {gl.GetSun("pos")}
 
-MapMaxSunHeight = 1
+
+MapMaxSunHeight = defaultMapSunPos[2]
 MapMaxSunX = 2
 MapMaxSunZ = 2
 MapSunSpeed = 0.0005
@@ -53,7 +55,7 @@ function widget:GameFrame(n)
 			if SunHeightState == "Sunrise" then
 				SunY = oldSunY + (MapSunSpeed * 2.1)
 				if SunY <= daytimeshadow and SunY >= 0 then
-					shadowopacity = SunY
+					shadowopacity = SunY*(1/MapMaxSunHeight)
 				end
 				if SunY > MapMaxSunHeight then
 					SunY = MapMaxSunHeight
@@ -61,7 +63,7 @@ function widget:GameFrame(n)
 			elseif SunHeightState == "Sunset" then
 				SunY = oldSunY - (MapSunSpeed * 2.1)
 				if SunY < daytimeshadow and SunY >= 0 then
-					shadowopacity = SunY
+					shadowopacity = SunY*(1/MapMaxSunHeight)
 				end
 				if SunY < -0.1 then
 					SunY = -0.1
@@ -88,8 +90,9 @@ function widget:GameFrame(n)
 			end
 			Spring.SetSunLighting({groundShadowDensity = 0, modelShadowDensity = 0})
 		end
-		Spring.Echo("Sun Position: X: "..SunX.." Z: "..SunZ.." Y: "..SunY)
+		--Spring.Echo("Sun Position: X: "..SunX.." Z: "..SunZ.." Y: "..SunY)
 		Spring.SetSunDirection(SunX,SunY,SunZ)
+		
 	end
 end
 
