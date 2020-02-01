@@ -1,3 +1,5 @@
+local enabled = (Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0)
+
 function gadget:GetInfo()
   return {
     name      = "Dynamic Weather",
@@ -6,13 +8,9 @@ function gadget:GetInfo()
     date      = "2020",
     license   = "What?",
     layer     = 0,
-    enabled   = true  
+    enabled   = enabled
   }
 end
-
--- if Spring.GetModOptions and tonumber(Spring.GetModOptions().night) or 0 == 0 then
-	-- return
--- end
 
 local defaultMapSunPos = {gl.GetSun("pos")}
 
@@ -40,8 +38,14 @@ local specb = defspecb
 local shadowopacity = maxshadowopacity
 
 if (not gadgetHandler:IsSyncedCode()) then
+
+	-- this prevents widgets from adjusting settings to gain an optical advantage against other players (it will show an error)
+	function gadget:SunChanged()
+		Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
+		Spring.SetSunDirection(SunX,SunY,SunZ)
+	end
+
 	function gadget:GameFrame(n)
-		if Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0 then
 			if n == 1 then
 				Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
 			end
@@ -132,7 +136,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 					elseif SunHeightState == "OHFUCKITSSOBRIGHT" then
 						SunY = MapMaxSunHeight
 					end
-					Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
+					--Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
 				elseif cycle == "Night" then
 					shadowopacity = shadowopacity-(MapSunSpeed*10)
 					if shadowopacity <= 0 then
@@ -157,7 +161,6 @@ if (not gadgetHandler:IsSyncedCode()) then
 				Spring.SetSunDirection(SunX,SunY,SunZ)
 			end
 		end
-	end
 else
 	
 	-- function gadget:GotChatMsg(msg, playerID)
