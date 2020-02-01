@@ -190,6 +190,17 @@ local options={
 		step   = 0.1,
 	},
 	{
+		key    = 'night',
+		name   = 'Day-Night Cycle',
+		desc   = 'Hello darkness my old friend',
+		type   = 'number',
+		section= 'options',
+		def    = 0,
+		min    = 0,
+		max    = 1,
+		step   = 1,
+	},
+	{
 		key    = "newbie_placer",
 		name   = "Newbie Placer",
 		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
