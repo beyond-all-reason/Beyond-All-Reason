@@ -4,7 +4,7 @@ function scav_Udef_Post(name, uDef)
 
 	-- make barrelshot purple
 	uDef.capturable = false
-	uDef.hidedamage = true
+	uDef.hidedamage = false
 	--if uDef.builder then
 	--	uDef.corpse = ""
 	--end
