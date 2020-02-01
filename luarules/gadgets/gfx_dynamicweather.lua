@@ -41,8 +41,13 @@ if (not gadgetHandler:IsSyncedCode()) then
 
 	-- this prevents widgets from adjusting settings to gain an optical advantage against other players (it will show an error)
 	function gadget:SunChanged()
-		Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
-		Spring.SetSunDirection(SunX,SunY,SunZ)
+		if shadowopacity ~= gl.GetSun("shadowDensity") then
+			Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
+		end
+		local newSunX,newSunY,newSunZ = gl.GetSun("pos")
+		if newSunX ~= SunX  or  newSunY ~= SunY  or  newSunZ ~= SunZ then
+			Spring.SetSunDirection(SunX,SunY,SunZ)
+		end
 	end
 
 	function gadget:GameFrame(n)
@@ -136,7 +141,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 					elseif SunHeightState == "OHFUCKITSSOBRIGHT" then
 						SunY = MapMaxSunHeight
 					end
-					--Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
+					Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
 				elseif cycle == "Night" then
 					shadowopacity = shadowopacity-(MapSunSpeed*10)
 					if shadowopacity <= 0 then
