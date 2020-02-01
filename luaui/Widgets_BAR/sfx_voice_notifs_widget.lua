@@ -36,7 +36,7 @@ local Sound = {
 	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65},
 	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75},
 
-	UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
+	--UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
 	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
 	AdvRadarLost = {soundFolder..'AdvRadarLost.wav', 8, 0.6, 1.32},
 	MexLost = {soundFolder..'MexLost.wav', 8, 0.6, 1.53},
@@ -91,9 +91,6 @@ LastPlay['EnergyStorageFull'] = Spring.GetGameFrame()+300
 local soundQueue = {}
 local nextSoundQueued = 0
 local taggedUnitsOfInterest = {}
-local aircraftSpotted = false
-local t2detected = false
-local t3detected = false
 
 local soundList = {}
 for k, v in pairs(Sound) do
@@ -228,16 +225,13 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
-	if not aircraftSpotted and isAircraft[udefID] then
-		aircraftSpotted = true
+	if not LastPlay['AircraftSpotted'] and isAircraft[udefID] then
 		Sd('AircraftSpotted')
 	end
-	if not t2detected and isT2[udefID] then
-		t2detected = true
+	if not LastPlay['T2Detected'] and isT2[udefID] then
 		Sd('T2Detected')
 	end
-	if not t3detected and isT3[udefID] then
-		t3detected = true
+	if not LastPlay['T3Detected'] and isT3[udefID] then
 		Sd('T3Detected')
 	end
 
@@ -398,9 +392,6 @@ function widget:GetConfigData(data)
 		volume = volume,
 		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
-		aircraftSpotted = aircraftSpotted,
-		t2detected = t2detected,
-		t3detected = t3detected,
 	}
 end
 
@@ -421,15 +412,6 @@ function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 then
 		if data.LastPlay then
 			LastPlay = data.LastPlay
-		end
-		if data.aircraftSpotted then
-			aircraftSpotted = data.aircraftSpotted
-		end
-		if data.t2detected then
-			t2detected = data.t2detected
-		end
-		if data.t3detected then
-			t3detected = data.t3detected
 		end
 	end
 end

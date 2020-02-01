@@ -276,15 +276,15 @@ else
 			end
 
 			if not isCommander[unitDefID] then
-				if attackerID or attackerDefID or attackerTeam then
-					local event = "UnitLost"
-					local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))
-					for ct, player in pairs (players) do
-						if tostring(player) then
-							BroadcastEvent("EventBroadcast", event, tostring(player))
-						end
-					end
-				end
+				--if attackerID or attackerDefID or attackerTeam then
+				--	local event = "UnitLost"
+				--	local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))
+				--	for ct, player in pairs (players) do
+				--		if tostring(player) then
+				--			BroadcastEvent("EventBroadcast", event, tostring(player))
+				--		end
+				--	end
+				--end
 			else
 				local event = "aCommLost"
 				local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
