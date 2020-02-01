@@ -30,7 +30,7 @@ T1SeaUnits = {
 T2SeaUnits = {
 "armroy",
 --"armsjam",
-"armls",
+"armmls",
 "armsubk",
 "armaas",
 "armcrus",
@@ -40,7 +40,7 @@ T2SeaUnits = {
 "armcroc",
 "corroy",
 --"corsjam",
-"corls",
+"cormls",
 "corshark",
 "corarch",
 "corcrus",
