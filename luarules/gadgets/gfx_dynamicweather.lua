@@ -12,32 +12,32 @@ function gadget:GetInfo()
   }
 end
 
-local defaultMapSunPos = {gl.GetSun("pos")}
-
-local MapMaxSunHeight = defaultMapSunPos[2]
-local MapMaxSunX = 2
-local MapMaxSunZ = 2
-local MapSunSpeed = 0.0005
-
-local nighttime = 10 -- higher = shorter
-
-local SunX = 0
-local SunZ = math.random(-5000,5000)/10000
-local SunY = 0.9999
-local SunHeightState = ""
-local cycle = "Day"
-local maxshadowopacity = gl.GetSun("shadowDensity")
-local defdiffr,defdiffg,defdiffb = gl.GetSun("diffuse")
-local defspecr,defspecg,defspecb = gl.GetSun("specular")
-local diffr = defdiffr
-local diffg = defdiffg
-local diffb = defdiffb
-local specr = defspecr
-local specg = defspecg
-local specb = defspecb
-local shadowopacity = maxshadowopacity
-
 if (not gadgetHandler:IsSyncedCode()) then
+
+	local defaultMapSunPos = {gl.GetSun("pos")}
+
+	local MapMaxSunHeight = defaultMapSunPos[2]
+	local MapMaxSunX = 2
+	local MapMaxSunZ = 2
+	local MapSunSpeed = 0.0005
+
+	local nighttime = 10 -- higher = shorter
+
+	local SunX = 0
+	local SunZ = math.random(-5000,5000)/10000
+	local SunY = 0.9999
+	local SunHeightState = ""
+	local cycle = "Day"
+	local maxshadowopacity = gl.GetSun("shadowDensity")
+	local defdiffr,defdiffg,defdiffb = gl.GetSun("diffuse")
+	local defspecr,defspecg,defspecb = gl.GetSun("specular")
+	local diffr = defdiffr
+	local diffg = defdiffg
+	local diffb = defdiffb
+	local specr = defspecr
+	local specg = defspecg
+	local specb = defspecb
+	local shadowopacity = maxshadowopacity
 
 	-- this prevents widgets from adjusting settings to gain an optical advantage against other players (it will show an error)
 	function gadget:SunChanged()
@@ -55,9 +55,9 @@ if (not gadgetHandler:IsSyncedCode()) then
 				Spring.SetSunLighting({groundShadowDensity = shadowopacity, modelShadowDensity = shadowopacity, groundDiffuseColor = {diffr,diffg,diffb}, modelDiffuseColor = {diffr,diffg,diffb}, groundSpecularColor = {specr,specg,specb}, modelSpecularColor = {specr,specg,specb}})
 			end
 			if n%5 == 0 then
-				oldSunX = SunX
-				oldSunY = SunY
-				oldSunZ = SunZ
+				local oldSunX = SunX
+				local oldSunY = SunY
+				local oldSunZ = SunZ
 				if cycle == "Day" then
 					if SunX > -MapMaxSunX then 
 						SunX = oldSunX - MapSunSpeed
