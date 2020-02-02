@@ -65,7 +65,7 @@ function SetUnitConf()
 			buildingNeedingUpkeep = true
 		end
 		if neededEnergy > 0 then
-			unitConf[udid] = {7 +(scale/2.5), unitDef.height, neededEnergy, buildingNeedingUpkeep}
+			unitConf[udid] = {7.5 +(scale/2.2), unitDef.height, neededEnergy, buildingNeedingUpkeep}
 		end
 	end
 end
