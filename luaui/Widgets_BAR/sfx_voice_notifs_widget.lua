@@ -53,6 +53,7 @@ local Sound = {
 	T3Detected = {soundFolder..'T3UnitDetected.wav', 9999999, 0.6, 1.94},	-- top bar widget calls this
 	LrpcTargetUnits = {soundFolder..'LrpcTargetUnits.wav', 9999999, 0.6, 3.8},
 
+	MinesDetected = {soundFolder..'MinesDetected.wav', 200, 0.6, 2.6},
 	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 30, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
 	TacticalNukeSiloDetected = {soundFolder..'TacticalNukeDetected.wav', 4, 0.6, 2},
@@ -139,6 +140,7 @@ end
 local isAircraft = {}
 local isT2 = {}
 local isT3 = {}
+local isMine = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canFly then
 		isAircraft[unitDefID] = true
@@ -150,6 +152,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams.techlevel == '3' then
 			isT3[unitDefID] = true
 		end
+	end
+	if unitDef.modCategories.mine then
+		isMine[unitDefID] = true
 	end
 end
 
@@ -226,14 +231,21 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
-	if not LastPlay['AircraftSpotted'] and isAircraft[udefID] then
+	if isAircraft[udefID] then
 		Sd('AircraftSpotted')
 	end
-	if not LastPlay['T2Detected'] and isT2[udefID] then
+	if isT2[udefID] then
 		Sd('T2Detected')
 	end
-	if not LastPlay['T3Detected'] and isT3[udefID] then
+	if isT3[udefID] then
 		Sd('T3Detected')
+	end
+	if isMine[udefID] then
+		local x,_,z = Spring.GetUnitPosition(unitID)
+		local units = Spring.GetUnitsInCylinder(x,z,1700, myTeamID)
+		if #units > 0 then		-- ignore when far away
+			Sd('MinesDetected')
+		end
 	end
 
 	-- notify about units of interest

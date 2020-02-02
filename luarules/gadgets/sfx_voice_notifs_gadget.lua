@@ -265,7 +265,7 @@ else
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if unitTeam == myTeamID and isLrpc[unitID] and attackerTeam and attackerTeam ~= unitTeam then
+		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and attackerTeam ~= unitTeam then
 			BroadcastEvent("EventBroadcast", 'LrpcTargetUnits', tostring(myPlayerID))
 		end
 	end
