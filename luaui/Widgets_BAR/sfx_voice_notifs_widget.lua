@@ -51,6 +51,7 @@ local Sound = {
 	AircraftSpotted = {soundFolder..'AircraftSpotted.wav', 9999999, 0.6, 1.25},	-- top bar widget calls this
 	T2Detected = {soundFolder..'T2UnitDetected.wav', 9999999, 0.6, 1.5},	-- top bar widget calls this
 	T3Detected = {soundFolder..'T3UnitDetected.wav', 9999999, 0.6, 1.94},	-- top bar widget calls this
+	LrpcTargetUnits = {soundFolder..'LrpcTargetUnits.wav', 9999999, 0.6, 3.8},
 
 	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 30, 0.6, 4.8},
 	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},

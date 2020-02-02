@@ -190,6 +190,11 @@ else
 	local isBuilder = {}
 	local isRadar = {}
 	local isMex = {}
+	local isLrpc = {}
+	isLrpc[UnitDefNames['corint'].id] = true
+	isLrpc[UnitDefNames['armbrtha'].id] = true
+	isLrpc[UnitDefNames['corbuzz'].id] = true
+	isLrpc[UnitDefNames['armvulc'].id] = true
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams.iscommander then
 			isCommander[unitDefID] = true
@@ -257,7 +262,15 @@ else
 		end
 	end
 
-	-- Unit Lost send to all in team
+
+	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+
+		if unitTeam == myTeamID and isLrpc[unitID] and attackerTeam and attackerTeam ~= unitTeam then
+			BroadcastEvent("EventBroadcast", 'LrpcTargetUnits', tostring(myPlayerID))
+		end
+	end
+
+
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
 		if not Spring.IsUnitInView(unitID) then
