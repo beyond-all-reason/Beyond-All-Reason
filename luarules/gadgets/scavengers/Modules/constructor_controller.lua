@@ -52,7 +52,7 @@ function SpawnConstructor(n)
 		if nearestEnemyTeam == bestTeam then
 			canSpawnCommanderHere = true
 		else
-			local r = math.random(0,2)
+			local r = math.random(0,4)
 			if r == 0 then
 				canSpawnCommanderHere = true
 			else
