@@ -35,6 +35,7 @@ local Sound = {
 	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1},
 	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65},
 	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75},
+	ChooseStartLoc = {soundFolder..'ChooseStartLoc.wav', 90, 0.8, 2.2},
 
 	--UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
 	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
