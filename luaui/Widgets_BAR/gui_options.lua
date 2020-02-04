@@ -713,6 +713,10 @@ end
 
 local sec = 0
 local lastUpdate = 0
+local minGroundDetail = 5
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	minGroundDetail = 4
+end
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		--if select(7, Spring.GetMouseState()) then	-- when camera panning
@@ -725,13 +729,13 @@ function widget:Update(dt)
 
 	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
 	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
-	-- NOTE: doing this on initialize() wont get applied
+	-- NOTE: doing this on initialize() wont work
 	if not mapmeshdrawerChecked then
 		mapmeshdrawerChecked = true
 		if tonumber(Spring.GetConfigInt("mapmeshdrawer",1) or 1) ~= 2 then
 			Spring.SendCommands("mapmeshdrawer 1")
 		end
-		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < 5 then
+		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
 			Spring.SendCommands("GroundDetail 5")
 		end
 	end
