@@ -713,9 +713,9 @@ end
 
 local sec = 0
 local lastUpdate = 0
-local minGroundDetail = 5
+local minGroundDetail = 4
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	minGroundDetail = 4
+	minGroundDetail = 3
 end
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
