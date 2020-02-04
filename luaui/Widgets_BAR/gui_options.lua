@@ -120,7 +120,7 @@ local presets = {
 		guishader = false,
 		--shadows = false,
 		decals = 0,
-		grounddetail = 70,
+		--grounddetail = 70,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -143,7 +143,7 @@ local presets = {
 		guishader = false,
 		--shadows = true,
 		decals = 0,
-		grounddetail = 100,
+		--grounddetail = 100,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -166,7 +166,7 @@ local presets = {
 		guishader = false,
 		--shadows = true,
 		decals = 1,
-		grounddetail = 140,
+		--grounddetail = 140,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -189,7 +189,7 @@ local presets = {
 		guishader = true,
 		--shadows = true,
 		decals = 2,
-		grounddetail = 180,
+		--grounddetail = 180,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -212,7 +212,7 @@ local presets = {
 		guishader = true,
 		--shadows = true,
 		decals = 3,
-		grounddetail = 200,
+		--grounddetail = 200,
 		darkenmap_darkenfeatures = true,
 		enemyspotter_highlight = true,
 	},
@@ -722,7 +722,22 @@ function widget:Update(dt)
 		--end
 	end
 	sec = sec + dt
+
+	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
+	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
+	-- NOTE: doing this on initialize() wont get applied
+	if not mapmeshdrawerChecked then
+		mapmeshdrawerChecked = true
+		if tonumber(Spring.GetConfigInt("mapmeshdrawer",1) or 1) ~= 2 then
+			Spring.SendCommands("mapmeshdrawer 1")
+		end
+		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < 5 then
+			Spring.SendCommands("GroundDetail 5")
+		end
+	end
+
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
+		sec = 0
 		forceUpdate = nil
 		lastUpdate = sec
 		local changes = true
@@ -1804,13 +1819,13 @@ function init()
 			 Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		 end,
 		},
-		{id="grounddetail", group="gfx", basic=true, name="Ground detail", type="slider", min=75, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is',
-		 onload = function() end,
-		 onchange = function(i, value)
-			 Spring.SetConfigInt("GroundDetail", value)
-			 Spring.SendCommands("GroundDetail "..value)
-		 end,
-		},
+		--{id="grounddetail", group="gfx", basic=true, name="Ground detail", type="slider", min=75, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is',
+		-- onload = function() end,
+		-- onchange = function(i, value)
+		--	 Spring.SetConfigInt("GroundDetail", value)
+		--	 Spring.SendCommands("GroundDetail "..value)
+		-- end,
+		--},
 
 		{id="disticon", group="gfx", basic=true, name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance',
 		 onload = function() end,
@@ -3099,10 +3114,6 @@ function widget:Initialize()
 	--Spring.SetConfigInt("UsePBO",0)
 	--end
 
-	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
-	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
-	Spring.SendCommands("mapmeshdrawer 1")
-
 	-- enable shadows at gamestart
 	if Spring.GetConfigInt("Shadows",0) ~= 1 then
 		Spring.SetConfigInt("Shadows",1)
@@ -3272,7 +3283,7 @@ function widget:GetConfigData(data)
 		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000)},
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
-		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
+		--grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
 		--treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
