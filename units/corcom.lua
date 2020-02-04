@@ -268,7 +268,7 @@ return {
 				commandfire = true,
 				--craterareaofeffect = 20,
 				craterboost = 0,
-				cratermult = 0,--0.6,	-- disabled due to performance tanking hard
+				cratermult = 0.6,
 				edgeeffectiveness = 0.15,
 				energypershot = 500,
 				explosiongenerator = "custom:expldgun",
