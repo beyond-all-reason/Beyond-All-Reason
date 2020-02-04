@@ -3098,7 +3098,7 @@ function widget:Initialize()
 	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
 	--Spring.SetConfigInt("UsePBO",0)
 	--end
-s
+
 	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
 	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
 	Spring.SendCommands("mapmeshdrawer 1")
