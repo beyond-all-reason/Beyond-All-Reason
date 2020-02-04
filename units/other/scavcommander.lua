@@ -287,7 +287,7 @@ return {
 				bouncerebound = 0,
 				cegtag = "dgunprojectile",
 				commandfire = false,
-				--craterareaofeffect = 20,
+				craterareaofeffect = 20,
 				craterboost = 0,
 				cratermult = 0.75,
 				edgeeffectiveness = 0.15,

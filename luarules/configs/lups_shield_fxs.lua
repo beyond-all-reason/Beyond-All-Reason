@@ -2,8 +2,8 @@ local ShieldSphereBase = {
 	layer = -34,
 	life = 10000,
 	radius = 350,
-	colormap1 = {{0.2, 1, 0.2, 0.22}, {1, 0.2, 0.2, 0.22}},
-	colormap2 = {{0.2, 0.9, 1, 0.0}, {1, 0.9, 0.2, 0.0}},
+	colormap1 = {{0.99, 0.99, 0.99, 0.03}, {1, 0.6, 0.5, 0.70}},
+	colormap2 = {{0.95, 0.95, 0.95, 0.01}, {1, 0.7, 0.5, 0.0}},
 	repeatEffect = true,
 	drawBack = 0.7,
 	--

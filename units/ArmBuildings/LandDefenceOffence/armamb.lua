@@ -127,7 +127,7 @@ return {
 				accuracy = 400,
 				areaofeffect = 152,
 				avoidfeature = false,
-				--craterareaofeffect = 152,
+				craterareaofeffect = 152,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,

@@ -163,7 +163,7 @@ return {
 				avoidfeature = false,
 				canattackground = false,
 				cegtag = "missiletrailsmall-starburst",
-				--craterareaofeffect = 96,
+				craterareaofeffect = 96,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,

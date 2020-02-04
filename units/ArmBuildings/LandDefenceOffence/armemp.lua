@@ -121,7 +121,7 @@ return {
 				cegtag = "cruisemissiletrail-emp",
 				collidefriendly = false,
 				commandfire = true,
-				--craterareaofeffect = 312,
+				craterareaofeffect = 312,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 1,

@@ -138,7 +138,7 @@ return {
 			cor_gol = {
 				areaofeffect = 292,
 				avoidfeature = false,
-				--craterareaofeffect = 292,
+				craterareaofeffect = 292,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,

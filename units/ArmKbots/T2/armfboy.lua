@@ -121,7 +121,7 @@ return {
 			arm_fatboy_notalaser = {
 				areaofeffect = 240,
 				avoidfeature = false,
-				--craterareaofeffect = 240,
+				craterareaofeffect = 240,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.85,

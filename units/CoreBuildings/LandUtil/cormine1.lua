@@ -91,6 +91,7 @@ return {
 				name = "Crawlingbomb Dummy Weapon",
 				range = 64,
 				reloadtime = 1,
+				soundhit = "minexpl1",
 				soundhitwet = "",
 				soundhitwetvolume = 0,
 				tolerance = 1000000,

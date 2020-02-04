@@ -122,7 +122,7 @@ return {
 				burstrate = 0.3,
 				cegtag = "missiletrailsmall",
 				collidefriendly = false,
-				--craterareaofeffect = 72,
+				craterareaofeffect = 72,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
