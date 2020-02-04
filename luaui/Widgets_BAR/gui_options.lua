@@ -736,7 +736,7 @@ function widget:Update(dt)
 			Spring.SendCommands("mapmeshdrawer 1")
 		end
 		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
-			Spring.SendCommands("GroundDetail 5")
+			Spring.SendCommands("GroundDetail "..minGroundDetail)
 		end
 	end
 
