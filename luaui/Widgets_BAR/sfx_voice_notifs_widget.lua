@@ -37,7 +37,7 @@ local Sound = {
 	IdleBuilder = {soundFolder..'IdleBuilder.wav', 30, 0.6, 1.9, 'A builder has finished building'},
 	GameStarted = {soundFolder..'GameStarted.wav', 1, 0.6, 1, 'Battle started'},
 	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1, 'Battle paused'},
-	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65, 'A player has disconnected'},
+	PlayerLeft = {soundFolder..'PlayerDisconnected.wav', 1, 0.6, 1.65, 'A player has disconnected'},
 	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75, "You've received new units"},
 	ChooseStartLoc = {soundFolder..'ChooseStartLoc.wav', 90, 0.8, 2.2, "Choose your starting location"},
 
@@ -49,7 +49,7 @@ local Sound = {
 
 	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95, 'Low power'},
 	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 1.7, 'Your team is wasting metal'},		-- top bar widget calls this
-	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.8, 'Your team is wasting energy'},		-- top bar widget calls this
+	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.76, 'Your team is wasting energy'},		-- top bar widget calls this
 	MetalStorageFull = {soundFolder..'metalstorefull.wav', 40, 0.6, 1.62, 'Metal storage is full'},		-- top bar widget calls this
 	EnergyStorageFull = {soundFolder..'energystorefull.wav', 40, 0.6, 1.65, 'Energy storage is full'},	-- top bar widget calls this
 
@@ -64,7 +64,16 @@ local Sound = {
 	TacticalNukeSiloDetected = {soundFolder..'TacticalNukeDetected.wav', 4, 0.6, 2, 'Tactical nuke silo detected'},
 	NuclearSiloDetected = {soundFolder..'NuclearSiloDetected.wav', 4, 0.6, 1.7, 'Nuclear silo detected'},
 	LrpcDetected = {soundFolder..'LrpcDetected.wav', 25, 0.6, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected'},
-	NuclearBomberDetected = {soundFolder..'NuclearBomberDetected.wav', 45, 0.6, 1.6, 'Nuclear bomber detected'},
+	NuclearBomberDetected = {soundFolder..'NuclearBomberDetected.wav', 60, 0.6, 1.6, 'Nuclear bomber detected'},
+	JuggernautDetected = {soundFolder..'JuggernautDetected.wav', 9999999, 0.6, 1.4, 'Juggernaut detected'},
+	KrogothDetected = {soundFolder..'KrogothDetected.wav', 9999999, 0.6, 1.25, 'Krogoth detected'},
+	BanthaDetected = {soundFolder..'BanthaDetected.wav', 9999999, 0.6, 1.25, 'Bantha detected'},
+	FlagshipDetected = {soundFolder..'FlagshipDetected.wav', 9999999, 0.6, 1.4, 'Flagship detected'},
+	CommandoDetected = {soundFolder..'CommandoDetected.wav', 9999999, 0.6, 1.28, 'Commando detected'},
+	TransportDetected = {soundFolder..'TransportDetected.wav', 9999999, 0.6, 1.5, 'Transport located'},
+	AirTrainsportDetected = {soundFolder..'AirTransportDetected.wav', 9999999, 0.6, 1.38, 'Air transport spotted'},
+	SeaTrainsportDetected = {soundFolder..'SeaTransportDetected.wav', 9999999, 0.6, 1.95, 'Sea transport located'},
+
 }
 local unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
@@ -76,6 +85,21 @@ unitsOfInterest[UnitDefNames['armbrtha'].id] = 'LrpcDetected'
 unitsOfInterest[UnitDefNames['corbuzz'].id] = 'LrpcDetected'
 unitsOfInterest[UnitDefNames['armvulc'].id] = 'LrpcDetected'
 unitsOfInterest[UnitDefNames['armliche'].id] = 'NuclearBomberDetected'
+unitsOfInterest[UnitDefNames['corjugg'].id] = 'JuggernautDetected'
+unitsOfInterest[UnitDefNames['corkrog'].id] = 'KrogothDetected'
+unitsOfInterest[UnitDefNames['armbanth'].id] = 'BanthaDetected'
+unitsOfInterest[UnitDefNames['armepoch'].id] = 'FlagshipDetected'
+unitsOfInterest[UnitDefNames['corblackhy'].id] = 'FlagshipDetected'
+unitsOfInterest[UnitDefNames['cormando'].id] = 'CommandoDetected'
+unitsOfInterest[UnitDefNames['armthovr'].id] = 'TransportDetected'
+unitsOfInterest[UnitDefNames['corthovr'].id] = 'TransportDetected'
+unitsOfInterest[UnitDefNames['corintr'].id] = 'TransportDetected'
+unitsOfInterest[UnitDefNames['armatlas'].id] = 'AirTrainsportDetected'
+unitsOfInterest[UnitDefNames['corvalk'].id] = 'AirTrainsportDetected'
+unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTrainsportDetected'
+unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTrainsportDetected'
+unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTrainsportDetected'
+unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTrainsportDetected'
 
 -- adding duration
 local silenceDuration = 0.6

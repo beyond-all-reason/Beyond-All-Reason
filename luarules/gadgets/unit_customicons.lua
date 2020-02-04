@@ -70,7 +70,7 @@ local icons = {
     {"energy5.user", "fusion",1.8},
     {"energy6.user", "energy",2.05},
   
-    {"eye.user", "eye",0.85},
+    {"eye.user", "eyes",0.85},
     {"spy.user", "eye",1.18},
 
     {"hover_t1.user", "hover",1.15},
