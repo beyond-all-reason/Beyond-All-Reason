@@ -17,6 +17,9 @@ local volume = 1
 local playTrackedPlayerNotifs = true
 local muteWhenIdle = true
 local idleTime = 6		-- after this much sec: mark user as idle
+local displayMessages = true
+local spoken = true
+
 
 local soundFolder = "LuaUI/Sounds/VoiceNotifs/"
 local Sound = {
@@ -25,42 +28,43 @@ local Sound = {
 		1, 		-- min delay
 		1,		-- relative volume
 		1.7,	-- duration (optional, but define for sounds longer than 2 seconds)
+		'An enemy commander has died',		-- text passed to the messages widget
 	},
-	aCommLost = {soundFolder..'aCommLost.wav', 1, 0.8, 1.75},
-	ComHeavyDamage = {soundFolder..'ComHeavyDamage.wav', 12, 0.6, 2.1},
+	aCommLost = {soundFolder..'aCommLost.wav', 1, 0.8, 1.75, 'A friendly commander has died'},
+	ComHeavyDamage = {soundFolder..'ComHeavyDamage.wav', 12, 0.6, 2.25, 'Your commander is receiving heavy damage'},
 
-	NukeLaunched = {soundFolder..'NukeLaunched.wav', 3, 0.8, 2},
-	IdleBuilder = {soundFolder..'IdleBuilder.wav', 30, 0.6, 1.9},
-	GameStarted = {soundFolder..'GameStarted.wav', 1, 0.6, 1},
-	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1},
-	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65},
-	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75},
-	ChooseStartLoc = {soundFolder..'ChooseStartLoc.wav', 90, 0.8, 2.2},
+	NukeLaunched = {soundFolder..'NukeLaunched.wav', 3, 0.8, 2, 'Nuclear missile launch detected'},
+	IdleBuilder = {soundFolder..'IdleBuilder.wav', 30, 0.6, 1.9, 'A builder has finished building'},
+	GameStarted = {soundFolder..'GameStarted.wav', 1, 0.6, 1, 'Battle started'},
+	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1, 'Battle paused'},
+	PlayerLeft = {soundFolder..'PlayerLeft.wav', 1, 0.6, 1.65, 'A player has disconnected'},
+	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75, "You've received new units"},
+	ChooseStartLoc = {soundFolder..'ChooseStartLoc.wav', 90, 0.8, 2.2, "Choose your starting location"},
 
-	--UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2},
-	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
-	AdvRadarLost = {soundFolder..'AdvRadarLost.wav', 8, 0.6, 1.32},
-	MexLost = {soundFolder..'MexLost.wav', 8, 0.6, 1.53},
-	--T2MexLost = {soundFolder..'T2MexLost.wav', 8, 0.6, 2.34},
+	--UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2, 'Unit lost'},
+	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1, 'Radar lost'},
+	AdvRadarLost = {soundFolder..'AdvRadarLost.wav', 8, 0.6, 1.32, 'Advanced radar lost'},
+	MexLost = {soundFolder..'MexLost.wav', 8, 0.6, 1.53, 'Metal extractor lost'},
+	--T2MexLost = {soundFolder..'T2MexLost.wav', 8, 0.6, 2.34, 'Tech 2 metal extractor lost'},
 
-	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
-	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 1.7},		-- top bar widget calls this
-	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.8},		-- top bar widget calls this
-	MetalStorageFull = {soundFolder..'metalstorefull.wav', 40, 0.6, 1.62},		-- top bar widget calls this
-	EnergyStorageFull = {soundFolder..'energystorefull.wav', 40, 0.6, 1.65},	-- top bar widget calls this
+	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95, 'Low power'},
+	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 1.7, 'Your team is wasting metal'},		-- top bar widget calls this
+	TeamWastingEnergy = {soundFolder..'teamwasteenergy.wav', 30, 0.6, 1.8, 'Your team is wasting energy'},		-- top bar widget calls this
+	MetalStorageFull = {soundFolder..'metalstorefull.wav', 40, 0.6, 1.62, 'Metal storage is full'},		-- top bar widget calls this
+	EnergyStorageFull = {soundFolder..'energystorefull.wav', 40, 0.6, 1.65, 'Energy storage is full'},	-- top bar widget calls this
 
-	AircraftSpotted = {soundFolder..'AircraftSpotted.wav', 9999999, 0.6, 1.25},	-- top bar widget calls this
-	T2Detected = {soundFolder..'T2UnitDetected.wav', 9999999, 0.6, 1.5},	-- top bar widget calls this
-	T3Detected = {soundFolder..'T3UnitDetected.wav', 9999999, 0.6, 1.94},	-- top bar widget calls this
-	LrpcTargetUnits = {soundFolder..'LrpcTargetUnits.wav', 9999999, 0.6, 3.8},
+	AircraftSpotted = {soundFolder..'AircraftSpotted.wav', 9999999, 0.6, 1.25, 'Aircraft spotted'},	-- top bar widget calls this
+	T2Detected = {soundFolder..'T2UnitDetected.wav', 9999999, 0.6, 1.5, 'Tech 2 unit detected'},	-- top bar widget calls this
+	T3Detected = {soundFolder..'T3UnitDetected.wav', 9999999, 0.6, 1.94, 'Tech 3 unit detected'},	-- top bar widget calls this
+	LrpcTargetUnits = {soundFolder..'LrpcTargetUnits.wav', 9999999, 0.6, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units '},
 
-	MinesDetected = {soundFolder..'MinesDetected.wav', 200, 0.6, 2.6},
-	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 30, 0.6, 4.8},
-	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1},
-	TacticalNukeSiloDetected = {soundFolder..'TacticalNukeDetected.wav', 4, 0.6, 2},
-	NuclearSiloDetected = {soundFolder..'NuclearSiloDetected.wav', 4, 0.6, 1.7},
-	LrpcDetected = {soundFolder..'LrpcDetected.wav', 25, 0.6, 2.3},
-	NuclearBomberDetected = {soundFolder..'NuclearBomberDetected.wav', 45, 0.6, 1.6},
+	MinesDetected = {soundFolder..'MinesDetected.wav', 200, 0.6, 2.6, 'Warning: mines have been detected'},
+	IntrusionCountermeasure = {soundFolder..'StealthyUnitsInRange.wav', 30, 0.6, 4.8, 'Stealthy units detected within the "Intrusion countermeasure" range'},
+	EMPmissilesiloDetected = {soundFolder..'EmpSiloDetected.wav', 4, 0.6, 2.1, 'EMP missile silo detected'},
+	TacticalNukeSiloDetected = {soundFolder..'TacticalNukeDetected.wav', 4, 0.6, 2, 'Tactical nuke silo detected'},
+	NuclearSiloDetected = {soundFolder..'NuclearSiloDetected.wav', 4, 0.6, 1.7, 'Nuclear silo detected'},
+	LrpcDetected = {soundFolder..'LrpcDetected.wav', 25, 0.6, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected'},
+	NuclearBomberDetected = {soundFolder..'NuclearBomberDetected.wav', 45, 0.6, 1.6, 'Nuclear bomber detected'},
 }
 local unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
@@ -191,6 +195,18 @@ function widget:Initialize()
     WG['voicenotifs'].setVolume = function(value)
         volume = value
     end
+	WG['voicenotifs'].getSpoken = function()
+		return spoken
+	end
+	WG['voicenotifs'].setSpoken = function(value)
+		spoken = value
+	end
+	WG['voicenotifs'].getMessages = function()
+		return displayMessages
+	end
+	WG['voicenotifs'].setMessages = function(value)
+		displayMessages = value
+	end
     WG['voicenotifs'].getPlayTrackedPlayerNotifs = function()
         return playTrackedPlayerNotifs
     end
@@ -313,7 +329,12 @@ function playNextSound()
 		local event = soundQueue[1]
 		nextSoundQueued = sec + Sound[event][4]
 		if not muteWhenIdle or not isIdle then
-			Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
+			if spoken then
+				Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
+			end
+			if displayMessages and WG['messages'] and Sound[event][5] then
+				WG['messages'].addMessage(Sound[event][5])
+			end
 		end
 		LastPlay[event] = Spring.GetGameFrame()
 
@@ -404,6 +425,8 @@ function widget:GetConfigData(data)
 	return {
 		soundList = soundList,
 		volume = volume,
+		spoken = spoken,
+		displayMessages = displayMessages,
 		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
 	}
@@ -419,6 +442,12 @@ function widget:SetConfigData(data)
 	end
 	if data.volume ~= nil then
 		volume = data.volume
+	end
+	if data.spoken ~= nil then
+		spoken = data.spoken
+	end
+	if data.displayMessages ~= nil then
+		displayMessages = data.displayMessages
 	end
 	if data.playTrackedPlayerNotifs ~= nil then
 		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs

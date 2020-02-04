@@ -1546,6 +1546,7 @@ function init()
 		{id='gfx', name='Graphics'},
 		{id='ui', name='Interface'},
 		{id='snd', name='Sound'},
+		{id='notif', name='Notifications'},
 		{id='control', name='Control'},
 		{id='game', name='Game'},
 		{id='dev', name='Dev'},
@@ -2050,14 +2051,23 @@ function init()
 		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
 		--		},
 
-		{id="voicenotifs", group="snd", basic=true, widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
-		{id="voicenotifs_playtrackedplayernotifs", group="snd", name=widgetOptionColor.."   tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player',
-		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'}) end,
-		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, value) end,
+		--{id="voicenotifs", group="snd", basic=true, widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+
+		{id="voicenotifs_messages", group="notif", name="Written notifications", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getMessages()), description='Shows various notifications on screen',
+		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_messages", {'displayMessages'}) end,
+		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setMessages', {'displayMessages'}, value) end,
 		},
-		{id="voicenotifs_volume", group="snd", basic=true, name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel',
+		{id="voicenotifs_spoken", group="notif", name="Voice notifications", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getSpoken()), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider',
+		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_spoken", {'spoken'}) end,
+		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSpoken', {'spoken'}, value) end,
+		},
+		{id="voicenotifs_volume", group="notif", basic=true, name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel',
 		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_volume", {'volume'}) end,
 		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value) end,
+		},
+		{id="voicenotifs_playtrackedplayernotifs", basic=true,  group="notif", name=widgetOptionColor.."   tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player',
+		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'}) end,
+		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, value) end,
 		},
 
 		{id="scav_voicenotifs", group="scav", basic=true, widget="Scavenger Audio Reciever", name="Scavenger voice notifications", type="bool", value=GetWidgetToggleValue("Scavenger Audio Reciever"), description='Toggle the scavenger announcer voice'},
@@ -2808,7 +2818,7 @@ function init()
 				if option.id == 'voicenotifs_volume' then
 					for sound, enabled in pairs(soundList) do
 						count = count + 1
-						newOptions[count] = {id="voicenotifs_snd_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description='',
+						newOptions[count] = {id="voicenotifs_snd_"..sound, group="notif", basic=true, name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description='',
 							onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, value) end,
 						}
 					end
