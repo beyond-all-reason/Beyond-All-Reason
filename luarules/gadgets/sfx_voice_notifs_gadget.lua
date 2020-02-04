@@ -282,7 +282,8 @@ else
 					BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
 					return
 				elseif isMex[unitDefID] then
-					local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
+					--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
+					local event = 'MexLost'
 					BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
 					return
 				end

@@ -41,7 +41,7 @@ local Sound = {
 	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1},
 	AdvRadarLost = {soundFolder..'AdvRadarLost.wav', 8, 0.6, 1.32},
 	MexLost = {soundFolder..'MexLost.wav', 8, 0.6, 1.53},
-	T2MexLost = {soundFolder..'T2MexLost.wav', 8, 0.6, 2.34},
+	--T2MexLost = {soundFolder..'T2MexLost.wav', 8, 0.6, 2.34},
 
 	LowPower = {soundFolder..'LowPower.wav', 20, 0.6, 0.95},
 	TeamWastingMetal = {soundFolder..'teamwastemetal.wav', 22, 0.6, 1.7},		-- top bar widget calls this
