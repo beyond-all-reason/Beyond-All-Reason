@@ -59,8 +59,11 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+
 	local armnuke = WeaponDefNames["armsilo_nuclear_missile"].id
 	local cornuke = WeaponDefNames["corsilo_crblmssl"].id
+	local idleBuilderNotificationDelay = 10
+	local idleBuilderAt = {}
 	
 	function gadget:Initialize()
 		Script.SetWatchWeapon(armnuke, true)
@@ -187,7 +190,6 @@ if gadgetHandler:IsSyncedCode() then
 else
 
 	local isCommander = {}
-	local isBuilder = {}
 	local isRadar = {}
 	local isMex = {}
 	local isLrpc = {}
@@ -198,9 +200,6 @@ else
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams.iscommander then
 			isCommander[unitDefID] = true
-		end
-		if unitDef.isBuilder and unitDef.canAssist then
-			isBuilder[unitDefID] = true
 		end
 		if unitDef.isBuilding and unitDef.radarRadius > 1900 then
 			isRadar[unitDefID] = unitDef.radarRadius
@@ -234,31 +233,6 @@ else
 	function BroadcastEvent(_,event, player)
 		if Script.LuaUI("EventBroadcast") and tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or isSpec) then
 			Script.LuaUI.EventBroadcast("SoundEvents "..event.." "..player)
-		end
-	end
-
-	-- Idle Builder send to all in team
-	function gadget:UnitIdle(unitID)
-		if isBuilder[Spring.GetUnitDefID(unitID)] then
-			local broadcast = false
-			if not Spring.IsUnitInView(unitID) then
-				broadcast = true
-			else
-				local cx,cy,cz = Spring.GetCameraPosition(unitID)
-				local ux,uy,uz = Spring.GetUnitPosition(unitID)
-				if math.diag(cx-ux, cy-uy, cz-uz) > 1650 then	-- broadcast sound anyway when its further away from camera
-					broadcast = true
-				end
-			end
-			if broadcast then
-				local event = "IdleBuilder"
-				local players = PlayersInTeamID(Spring.GetUnitTeam(unitID))
-				for ct, player in pairs (players) do
-					if tostring(player) then
-						BroadcastEvent("EventBroadcast", event, tostring(player))
-					end
-				end
-			end
 		end
 	end
 

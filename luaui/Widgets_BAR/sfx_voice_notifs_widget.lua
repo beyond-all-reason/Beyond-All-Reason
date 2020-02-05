@@ -19,6 +19,8 @@ local muteWhenIdle = true
 local idleTime = 6		-- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
+local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
+local lowpowerThreshold = 6		-- if there is X secs a low power situation
 
 
 local soundFolder = "LuaUI/Sounds/VoiceNotifs/"
@@ -119,15 +121,19 @@ LastPlay['MetalStorageFull'] = Spring.GetGameFrame()+300
 LastPlay['EnergyStorageFull'] = Spring.GetGameFrame()+300
 
 
-local soundQueue = {}
-local nextSoundQueued = 0
-local taggedUnitsOfInterest = {}
-
 local soundList = {}
 for k, v in pairs(Sound) do
 	soundList[k] = true
 end
 
+
+local soundQueue = {}
+local nextSoundQueued = 0
+local taggedUnitsOfInterest = {}
+local lowpowerDuration = 0
+local idleBuilder = {}
+local commanders = {}
+local commandersDamages = {}
 local passedTime = 0
 local sec = 0
 local spIsUnitAllied = Spring.IsUnitAllied
@@ -146,14 +152,16 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 
 local isCommander = {}
+local isBuilder = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.customParams.iscommander then
 		isCommander[udefID] = true
 	end
+	if def.isBuilder and def.canAssist then
+		isBuilder[udefID] = true
+	end
 end
 
-local commanders = {}
-local commandersDamages = {}
 function updateCommanders()
 	local units = Spring.GetTeamUnits(myTeamID)
 	for i=1,#units do
@@ -250,8 +258,6 @@ function widget:Shutdown()
 end
 
 
-local lowpowerThreshold = 6		-- if there is X secs a low power situation
-local lowpowerDuration = 0
 function widget:GameFrame(gf)
 	if gf % 30 == 15 then
 		-- low power check
@@ -263,8 +269,31 @@ function widget:GameFrame(gf)
 				lowpowerDuration = 0
 			end
 		end
+
+		-- idle builder check
+		for unitID, frame in pairs(idleBuilder) do
+			if spIsUnitInView(unitID) then
+				idleBuilder[unitID] = nil
+			elseif frame < gf then
+				Sd('IdleBuilder')
+				idleBuilder[unitID] = nil	-- do not repeat
+			end
+		end
 	end
 end
+
+
+function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
+	idleBuilder[unitID] = nil
+end
+
+
+function widget:UnitIdle(unitID)
+	if isBuilder[Spring.GetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
+		idleBuilder[unitID] = Spring.GetGameFrame() + idleBuilderNotificationDelay
+	end
+end
+
 
 function widget:UnitEnteredLos(unitID, allyTeam)
 	if spIsUnitAllied(unitID) then return end
