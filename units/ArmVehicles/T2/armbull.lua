@@ -140,7 +140,7 @@ return {
 			arm_bull = {
 				areaofeffect = 130,
 				avoidfeature = false,
-				craterareaofeffect = 140,
+				--craterareaofeffect = 140,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,

@@ -121,7 +121,7 @@ return {
 			shiva_gun = {
 				areaofeffect = 176,
 				avoidfeature = false,
-				craterareaofeffect = 176,
+				--craterareaofeffect = 176,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,

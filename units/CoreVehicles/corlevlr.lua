@@ -138,7 +138,7 @@ return {
 				areaofeffect = 144,
 				avoidfeature = false,
 				burnblow = true,
-				craterareaofeffect = 144,
+				--craterareaofeffect = 144,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.9,

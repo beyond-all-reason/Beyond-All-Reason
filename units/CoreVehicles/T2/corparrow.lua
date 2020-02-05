@@ -139,7 +139,7 @@ return {
 			core_parrow = {
 				areaofeffect = 160,
 				avoidfeature = false,
-				craterareaofeffect = 160,
+				--craterareaofeffect = 160,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,

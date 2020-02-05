@@ -120,7 +120,7 @@ return {
 				burst = 20,
 				burstrate = 0.12,
 				cegtag = "missiletrailsmall-red",
-				craterareaofeffect = 96,
+				--craterareaofeffect = 96,
 				craterboost = 0,
 				cratermult = 0,
 				dance = 24,

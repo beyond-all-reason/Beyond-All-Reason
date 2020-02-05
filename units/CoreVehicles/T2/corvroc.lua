@@ -123,7 +123,7 @@ return {
 				areaofeffect = 150,
 				avoidfeature = false,
 				cegtag = "missiletrailmedium-starburst",
-				craterareaofeffect = 150,
+				--craterareaofeffect = 150,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.65,

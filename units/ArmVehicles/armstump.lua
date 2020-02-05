@@ -139,7 +139,7 @@ return {
 			arm_lightcannon = {
 				areaofeffect = 48,
 				avoidfeature = false,
-				craterareaofeffect = 48,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
