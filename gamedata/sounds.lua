@@ -62,11 +62,17 @@ for i=1,#files do
    if fileNames == "newboom" then
     t[fileNames].gain = 0.045*0.3
     end
+   if string.sub(fileNames, 1, 7) == "heatray" then
+    t[fileNames].pitchmod = 0
+    end
    if string.sub(fileNames, 1, 4) == "lasr" then
     t[fileNames].pitchmod = 0
     end
-   if string.sub(fileNames, 1, 4) == "xplolrg" then
+   if string.sub(fileNames, 1, 7) == "xplolrg" then
     t[fileNames].pitchmod = 0.3
+    end
+   if string.sub(fileNames, 1, 7) == "xplomed" then
+    t[fileNames].pitchmod = 0.24
     end
 end
 
