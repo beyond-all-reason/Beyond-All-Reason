@@ -39,9 +39,11 @@ local Sound = {
 	IdleBuilder = {soundFolder..'IdleBuilder.wav', 30, 0.6, 1.9, 'A builder has finished building'},
 	GameStarted = {soundFolder..'GameStarted.wav', 1, 0.6, 1, 'Battle started'},
 	GamePause = {soundFolder..'GamePause.wav', 5, 0.6, 1, 'Battle paused'},
-	PlayerLeft = {soundFolder..'PlayerDisconnected.wav', 1, 0.6, 1.65, 'A player has disconnected'},
 	UnitsReceived = {soundFolder..'UnitReceived.wav', 4, 0.8, 1.75, "You've received new units"},
 	ChooseStartLoc = {soundFolder..'ChooseStartLoc.wav', 90, 0.8, 2.2, "Choose your starting location"},
+
+	PlayerLeft = {soundFolder..'PlayerDisconnected.wav', 1, 0.6, 1.65, 'A player has disconnected'},
+	PlayerAdded = {soundFolder..'PlayerAdded.wav', 1, 0.6, 2.36, 'A player has been added to the game'},
 
 	--UnitLost = {soundFolder..'UnitLost.wav', 20, 0.6, 1.2, 'Unit lost'},
 	RadarLost = {soundFolder..'RadarLost.wav', 8, 0.6, 1, 'Radar lost'},
@@ -113,12 +115,13 @@ for i,v in pairs(Sound) do
 	end
 end
 
+local spGetGameFrame = Spring.GetGameFrame
 local LastPlay = {}
 -- adding so they wont get immediately triggered after gamestart
-LastPlay['TeamWastingMetal'] = Spring.GetGameFrame()+300
-LastPlay['TeamWastingEnergy'] = Spring.GetGameFrame()+300
-LastPlay['MetalStorageFull'] = Spring.GetGameFrame()+300
-LastPlay['EnergyStorageFull'] = Spring.GetGameFrame()+300
+LastPlay['TeamWastingMetal'] = spGetGameFrame()+300
+LastPlay['TeamWastingEnergy'] = spGetGameFrame()+300
+LastPlay['MetalStorageFull'] = spGetGameFrame()+300
+LastPlay['EnergyStorageFull'] = spGetGameFrame()+300
 
 
 local soundList = {}
@@ -204,7 +207,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
@@ -289,8 +292,8 @@ end
 
 
 function widget:UnitIdle(unitID)
-	if isBuilder[Spring.GetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
-		idleBuilder[unitID] = Spring.GetGameFrame() + idleBuilderNotificationDelay
+	if isBuilder[spGetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
+		idleBuilder[unitID] = spGetGameFrame() + idleBuilderNotificationDelay
 	end
 end
 
@@ -352,7 +355,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		if not commandersDamages[unitID] then
 			commandersDamages[unitID] = {}
 		end
-		local gameframe = Spring.GetGameFrame()
+		local gameframe = spGetGameFrame()
 		commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
 
 		-- count total damage of last few secs
@@ -389,7 +392,7 @@ function playNextSound()
 				WG['messages'].addMessage(Sound[event][5])
 			end
 		end
-		LastPlay[event] = Spring.GetGameFrame()
+		LastPlay[event] = spGetGameFrame()
 
 		local newQueue = {}
 		for i,v in pairs(soundQueue) do
@@ -452,10 +455,10 @@ function Sd(event)
 		if soundList[event] and Sound[event] then
 			if not LastPlay[event] then
 				soundQueue[#soundQueue+1] = event
-				LastPlay[event] = Spring.GetGameFrame()
-			elseif LastPlay[event] and Spring.GetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30) then
+				LastPlay[event] = spGetGameFrame()
+			elseif LastPlay[event] and spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30) then
 				soundQueue[#soundQueue+1] = event
-                LastPlay[event] = Spring.GetGameFrame()
+                LastPlay[event] = spGetGameFrame()
 			end
 		end
 	end
@@ -505,7 +508,7 @@ function widget:SetConfigData(data)
 	if data.playTrackedPlayerNotifs ~= nil then
 		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
 	end
-	if Spring.GetGameFrame() > 0 then
+	if spGetGameFrame() > 0 then
 		if data.LastPlay then
 			LastPlay = data.LastPlay
 		end

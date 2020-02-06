@@ -59,17 +59,45 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-
 	local armnuke = WeaponDefNames["armsilo_nuclear_missile"].id
 	local cornuke = WeaponDefNames["corsilo_crblmssl"].id
 	local idleBuilderNotificationDelay = 10
 	local idleBuilderAt = {}
-	
+	local gamestarted = (Spring.GetGameFrame() > 0)
+	local gameover = false
+
 	function gadget:Initialize()
 		Script.SetWatchWeapon(armnuke, true)
 		Script.SetWatchWeapon(cornuke, true)
 	end
 
+	function gadgetHandler:TeamDied(teamID)
+
+	end
+
+	function gadgetHandler:TeamChanged(teamID)
+
+	end
+
+	function gadgetHandler:PlayerChanged(playerID)
+
+	end
+
+	function gadgetHandler:PlayerAdded(playerID)
+		if gamestarted and not gameover then
+			local event = "PlayerAdded"
+			local players = AllPlayers()
+			for ct, player in pairs (players) do
+				if tostring(player) then
+					SendToUnsynced("EventBroadcast", event, tostring(player))
+				end
+			end
+		end
+	end
+
+	function gadgetHandler:PlayerRemoved(playerID, reason)
+
+	end
 
 -- UNITS RECEIVED send to all in team
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -152,6 +180,7 @@ if gadgetHandler:IsSyncedCode() then
 
 --Game started send to all
 	function gadget:GameStart()
+		gamestarted = true
 		local event = "GameStarted"
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
@@ -159,6 +188,10 @@ if gadgetHandler:IsSyncedCode() then
 				SendToUnsynced("EventBroadcast", event, tostring(player))
 			end
 		end
+	end
+
+	function gadgetHandler:GameOver(winningAllyTeams)
+		gameover = true
 	end
 	
 --Player left send to all in allyteam
