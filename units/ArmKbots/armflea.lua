@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMFLEA.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyexplosiongenericSelfd",
-		sightdistance = 550,
+		sightdistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.904,

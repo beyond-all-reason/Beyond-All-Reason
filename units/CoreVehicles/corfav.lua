@@ -32,7 +32,7 @@ return {
 		script = "Units/CORFAV.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 535,
+		sightdistance = 600,
 		trackoffset = -3,
 		trackstrength = 3,
 		tracktype = "StdTank",
