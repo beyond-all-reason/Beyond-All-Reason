@@ -138,7 +138,7 @@ return {
 			cor_gol = {
 				areaofeffect = 292,
 				avoidfeature = false,
-				--craterareaofeffect = 292,
+				craterareaofeffect = 292,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
@@ -152,7 +152,7 @@ return {
 				reloadtime = 3,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",

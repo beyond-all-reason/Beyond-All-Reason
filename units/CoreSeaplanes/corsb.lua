@@ -121,7 +121,7 @@ return {
 				size = 8,
 				soundhitdry = "xplomed2",
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "bombrel",
 				sprayangle = 6000,
 				waterbounce = true,

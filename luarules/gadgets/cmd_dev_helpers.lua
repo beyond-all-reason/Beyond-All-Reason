@@ -187,6 +187,10 @@ else
             local Condition  = function (ud) return ud.name:sub(1,3)=="cor" end
             Accept[#Accept+1] = Condition
         end
+        if string.find(line, "scav") then
+            local Condition  = function (ud) return  string.find(ud.name, '_scav') end
+            Accept[#Accept+1] = Condition
+        end
         if string.find(line, "chicken") then
             local Condition = function (ud) return string.find(ud.name, 'chicken') end
             Accept[#Accept+1] = Condition

@@ -133,7 +133,7 @@ return {
 				reloadtime = 1,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "Mavgun2",
 				tolerance = 4000,
 				turret = true,

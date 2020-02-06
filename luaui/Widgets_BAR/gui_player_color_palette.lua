@@ -16,7 +16,7 @@ local offsetstartcolor = true		-- when false it will always use red as start col
 local useSameTeamColors = false
 
 local GaiaTeam = Spring.GetGaiaTeamID()
-local GaiaTeamColor = {0.28,0.28,0.28}
+local GaiaTeamColor = {0.3,0.3,0.3}
 
 local myTeamID = Spring.GetMyTeamID()
 
@@ -149,7 +149,8 @@ local function SetNewTeamColors()
 		end
 		for _, teamID in ipairs(Spring.GetTeamList(allyID)) do
 			if teamID == GaiaTeam then
-				Spring.SetTeamColor(teamID, GaiaTeamColor[1],GaiaTeamColor[2],GaiaTeamColor[3])
+				-- disabled because BAR assigns gaia teamcolor already in barmain.lua
+				--Spring.SetTeamColor(teamID, GaiaTeamColor[1],GaiaTeamColor[2],GaiaTeamColor[3])
 			else
 				if not useSameTeamColors then
 					if randomize then

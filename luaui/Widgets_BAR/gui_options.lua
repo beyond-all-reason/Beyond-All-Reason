@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
 return {
 	name    = "Options",
@@ -121,7 +120,7 @@ local presets = {
 		guishader = false,
 		--shadows = false,
 		decals = 0,
-		grounddetail = 70,
+		--grounddetail = 70,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -144,7 +143,7 @@ local presets = {
 		guishader = false,
 		--shadows = true,
 		decals = 0,
-		grounddetail = 100,
+		--grounddetail = 100,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -167,7 +166,7 @@ local presets = {
 		guishader = false,
 		--shadows = true,
 		decals = 1,
-		grounddetail = 140,
+		--grounddetail = 140,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -190,7 +189,7 @@ local presets = {
 		guishader = true,
 		--shadows = true,
 		decals = 2,
-		grounddetail = 180,
+		--grounddetail = 180,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
@@ -213,7 +212,7 @@ local presets = {
 		guishader = true,
 		--shadows = true,
 		decals = 3,
-		grounddetail = 200,
+		--grounddetail = 200,
 		darkenmap_darkenfeatures = true,
 		enemyspotter_highlight = true,
 	},
@@ -714,6 +713,10 @@ end
 
 local sec = 0
 local lastUpdate = 0
+local minGroundDetail = 4
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	minGroundDetail = 3
+end
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		--if select(7, Spring.GetMouseState()) then	-- when camera panning
@@ -723,7 +726,22 @@ function widget:Update(dt)
 		--end
 	end
 	sec = sec + dt
+
+	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
+	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
+	-- NOTE: doing this on initialize() wont work
+	if not mapmeshdrawerChecked then
+		mapmeshdrawerChecked = true
+		if tonumber(Spring.GetConfigInt("mapmeshdrawer",1) or 1) ~= 2 then
+			Spring.SendCommands("mapmeshdrawer 1")
+		end
+		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
+			Spring.SendCommands("GroundDetail "..minGroundDetail)
+		end
+	end
+
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
+		sec = 0
 		forceUpdate = nil
 		lastUpdate = sec
 		local changes = true
@@ -1442,13 +1460,6 @@ function applyOptionValue(i, skipRedrawWindow)
 
 	local id = options[i].id
 
-	if options[i].type == 'bool' then
-		if string.sub(id, 1, 19) == 'voicenotifs_' then
-			local sound = string.sub(id, 20)
-			saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, value)
-		end
-	end
-
 	if options[i].widget ~= nil then
 		if options[i].value then
 			if widgetHandler.orderList[options[i].widget] < 0.5 then
@@ -1535,10 +1546,15 @@ function init()
 		{id='gfx', name='Graphics'},
 		{id='ui', name='Interface'},
 		{id='snd', name='Sound'},
+		{id='notif', name='Notifications'},
 		{id='control', name='Control'},
 		{id='game', name='Game'},
 		{id='dev', name='Dev'},
 	}
+	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+		optionGroups[#optionGroups+1] = {id='scav', name='Scavengers'}
+	end
+
 	if not currentGroupTab or Spring.GetGameFrame() == 0 then
 		currentGroupTab = optionGroups[1].id
 	else
@@ -1632,7 +1648,7 @@ function init()
 			 Spring.SetConfigInt("VSync",(value and 1 or 0))
 		 end,
 		},
-		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", steps={0,1,2,4}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", steps={0,1,2,4,8}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
 		 onchange=function(i,value)
 			 Spring.SetConfigInt("MSAALevel",value)
 		 end,
@@ -1808,13 +1824,13 @@ function init()
 			 Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		 end,
 		},
-		{id="grounddetail", group="gfx", basic=true, name="Ground detail", type="slider", min=75, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is',
-		 onload = function() end,
-		 onchange = function(i, value)
-			 Spring.SetConfigInt("GroundDetail", value)
-			 Spring.SendCommands("GroundDetail "..value)
-		 end,
-		},
+		--{id="grounddetail", group="gfx", basic=true, name="Ground detail", type="slider", min=75, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is',
+		-- onload = function() end,
+		-- onchange = function(i, value)
+		--	 Spring.SetConfigInt("GroundDetail", value)
+		--	 Spring.SendCommands("GroundDetail "..value)
+		-- end,
+		--},
 
 		{id="disticon", group="gfx", basic=true, name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance',
 		 onload = function() end,
@@ -1943,8 +1959,19 @@ function init()
 		 end,
 		},
 
-		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Jet engine thrusters, fusion energy balls, additional lighting.'},
-		{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes',
+		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Jet engine thrusters, additional lighting.'},
+		{id="lupsdistortedshields", group="gfx", name=widgetOptionColor.."   distorted shields", type="bool", value=tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1, description='Make the shields distorted, like water',
+		 onload = function() end,
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("lupsdistortedshields",(value and 1 or 0))
+			 local widgetname = "LupsManager"
+			 if GetWidgetToggleValue(widgetname) then
+				 widgetHandler:DisableWidget(widgetname)
+				 widgetHandler:EnableWidget(widgetname)
+			 end
+		 end,
+		},
+		{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",0) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes',
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SetConfigInt("lupsreflectionrefraction",(value and 1 or 0)) end,
 		},
@@ -2024,15 +2051,27 @@ function init()
 		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
 		--		},
 
-		{id="voicenotifs", group="snd", basic=true, widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
-		{id="voicenotifs_playtrackedplayernotifs", group="snd", name=widgetOptionColor.."   tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player',
-		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'}) end,
-		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, value) end,
+		--{id="voicenotifs", group="snd", basic=true, widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+
+		{id="voicenotifs_messages", group="notif", name="Written notifications", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getMessages()), description='Shows various notifications on screen',
+		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_messages", {'displayMessages'}) end,
+		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setMessages', {'displayMessages'}, value) end,
 		},
-		{id="voicenotifs_volume", group="snd", basic=true, name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel',
+		{id="voicenotifs_spoken", group="notif", name="Voice notifications", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getSpoken()), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider',
+		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_spoken", {'spoken'}) end,
+		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSpoken', {'spoken'}, value) end,
+		},
+		{id="voicenotifs_volume", group="notif", basic=true, name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel',
 		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_volume", {'volume'}) end,
 		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value) end,
 		},
+		{id="voicenotifs_playtrackedplayernotifs", basic=true,  group="notif", name=widgetOptionColor.."   tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player',
+		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'}) end,
+		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, value) end,
+		},
+
+		{id="scav_voicenotifs", group="scav", basic=true, widget="Scavenger Audio Reciever", name="Scavenger voice notifications", type="bool", value=GetWidgetToggleValue("Scavenger Audio Reciever"), description='Toggle the scavenger announcer voice'},
+
 
 		-- CONTROL
 		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
@@ -2485,6 +2524,13 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value) end,
 		},
 
+		{id="scav_messages", group="scav", basic=true, name="Scavenger messages", type="bool", value=tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1, description="",
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("scavmessages",(value and 1 or 0))
+		 end,
+		},
+
+
 		-- GAME
 		{id="autoquit", group="game", basic=true, widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
@@ -2636,6 +2682,21 @@ function init()
 
 	}
 
+	-- dynamic sun settings applied by gadget: disable user controls
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0 then
+		options[getOptionByID('shadows_opacity')] = nil
+		options[getOptionByID('sun_y')] = nil
+		options[getOptionByID('sun_x')] = nil
+		options[getOptionByID('sun_z')] = nil
+		options[getOptionByID('sun_reset')] = nil
+	end
+
+
+	if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+		options[getOptionByID('scav_voicenotifs')] = nil
+		options[getOptionByID('scav_messages')] = nil
+	end
+
 	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 	--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 	--	options[getOptionByID('shadowslider')] = nil
@@ -2692,8 +2753,8 @@ function init()
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
 		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel",0))
-		if fsaa > 4 then
-			fsaa = 4
+		if fsaa > 8 then
+			fsaa = 8
 		end
 		Spring.SetConfigInt("MSAALevel", fsaa)
 		Spring.SetConfigInt("FSAALevel", 0)
@@ -2744,7 +2805,7 @@ function init()
 	if widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
 		if WG['voicenotifs'] ~= nil then
-			soundList =  WG['voicenotifs'].getSoundList()
+			soundList = WG['voicenotifs'].getSoundList()
 		elseif widgetHandler.configData["Voice Notifs"] ~= nil and widgetHandler.configData["Voice Notifs"].soundList ~= nil then
 			soundList = widgetHandler.configData["Voice Notifs"].soundList
 		end
@@ -2757,7 +2818,9 @@ function init()
 				if option.id == 'voicenotifs_volume' then
 					for sound, enabled in pairs(soundList) do
 						count = count + 1
-						newOptions[count] = {id="voicenotifs_snd_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
+						newOptions[count] = {id="voicenotifs_snd_"..sound, group="notif", basic=true, name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description='',
+							onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, value) end,
+						}
 					end
 				end
 			end
@@ -3057,7 +3120,7 @@ function widget:Initialize()
 		Spring.SetConfigInt("GrassDetail",0)
 	end
 	-- limit MSAA
-	if Spring.GetConfigInt("MSAALevel",0) > 4 then
+	if Spring.GetConfigInt("MSAALevel",0) > 8 then
 		Spring.SetConfigInt("MSAALevel",8)
 	end
 
@@ -3234,7 +3297,7 @@ function widget:GetConfigData(data)
 		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000)},
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
-		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
+		--grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
 		--treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},

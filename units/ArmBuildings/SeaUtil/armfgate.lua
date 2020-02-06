@@ -137,7 +137,7 @@ return {
 				name = "NavalPlasmaRepulsor",
 				range = 600,
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				weapontype = "Shield",
 				damage = {
 					default = 100,

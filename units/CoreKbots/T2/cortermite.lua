@@ -137,7 +137,7 @@ return {
 				rgbcolor2 = "0.8 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "heatray1",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,

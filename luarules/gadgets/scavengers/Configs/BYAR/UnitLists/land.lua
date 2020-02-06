@@ -1,10 +1,11 @@
 T0LandUnits = {
 "armpw",
 "corak",
-"armpw",
-"corak",
 "armsh",
 "corsh",
+--vechicles
+"armfav",
+"corfav",
 }
 
 T1LandUnits = {
@@ -17,15 +18,16 @@ T1LandUnits = {
 "armrectr",
 "corak",
 "cornecro",
+"corthud",
+"corstorm",
+"corcrash",
 --vechicles
-"armfav",
 "armflash",
 "armstump",
 "armart",
 "armsam",
 "armpincer",
 "armjanus",
-"corfav",
 "corgator",
 "cormist",
 "corwolv",
@@ -75,7 +77,7 @@ T2LandUnits = {
 "armjam",
 "armst",
 "armmart",
-"armlattnk",
+"armlatnk",
 "armyork",
 "armcroc",
 "armmerl",
@@ -96,20 +98,24 @@ T2LandUnits = {
 
 T3LandUnits = {
 --bots
-"armbull",
-"armmanni",
-"armmar",
+--"armmar", currently doesn't shoot for scavs
 "armvang",
-"armraz",
-"armbanth",
-"corgol",
-"corsumo",
-"corkrog",
+--"armraz",  currently doesn't shoot for scavs
+--"corkrog",
 "corshiva",
 "corkarg",
 "corcat",
-"corjugg",
+--"corjugg",
 --hovercraft
 "armlun",
 "corsok",
+}
+
+T4LandUnits = {
+"corkrog",
+"corjugg",
+"armbanth",
+--superboss
+"armpwbosst1_scav",
+"armstumpbosst1_scav",
 }

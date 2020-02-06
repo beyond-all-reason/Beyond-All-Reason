@@ -143,7 +143,7 @@ return {
 				smoketrail = false,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				texture1 = "trans",
 				texture2 = "null",

@@ -59,6 +59,7 @@ local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutline
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
 local useThickLeterring		= true
 local heightOffset			= 50
 local fontSize				= 18
@@ -85,6 +86,10 @@ local startboxDListStencil = 0
 local startboxDListColor = 0
 
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
+local myTeamID = Spring.GetMyTeamID()
+
+local placeVoiceNotifTimer = os.clock() + 35
+local amPlaced = false
 
 local gaiaTeamID
 local gaiaAllyTeamID
@@ -143,6 +148,11 @@ local stencilBit2 = 0x10
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+function widget:PlayerChanged(playerID)
+  isSpec = Spring.GetSpectatingState()
+  myTeamID = Spring.GetMyTeamID()
+end
 
 local function DrawMyBox(minX,minY,minZ, maxX,maxY,maxZ)
   gl.BeginEnd(GL.QUADS, function()
@@ -451,6 +461,9 @@ function widget:DrawWorld()
         gl.Color(color[1], color[2], color[3], alpha)
         gl.CallList(coneList)
         gl.PopMatrix()
+        if teamID == myTeamID then
+          amPlaced = true
+        end
       end
     end
   end
@@ -611,6 +624,9 @@ function widget:Update(dt)
       removeLists()
       widget:Initialize()
     end
+  end
+  if not isSpec and not amPlaced and placeVoiceNotifTimer < os.clock() and WG['voicenotifs'] ~= nil then
+    WG['voicenotifs'].addEvent('ChooseStartLoc')
   end
 end
 --------------------------------------------------------------------------------

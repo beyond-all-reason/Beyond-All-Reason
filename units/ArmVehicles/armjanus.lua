@@ -140,7 +140,7 @@ return {
 				soundhit = "xplosml2",
 				soundhitvolume = 8,
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				soundstartvolume = 7,
 				startvelocity = 100,

@@ -104,7 +104,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-medium",
+				[1] = "custom:barrelshot-large",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -151,7 +151,7 @@ return {
 				reloadtime = 1.5,
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "cannon2",
 				turret = true,
 				weapontype = "Cannon",

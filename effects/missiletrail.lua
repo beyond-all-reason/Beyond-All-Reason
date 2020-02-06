@@ -3051,5 +3051,66 @@ definitions["cruisemissiletrail-tacnuke"] = deepcopy(definitions["cruisemissilet
 definitions["cruisemissiletrail-tacnuke"].smokeandfire.properties.colormap = [[0.7 0.6 0.45 0.2   0.44 0.33 0.06 0.2    0.34 0.15 0 0.15    0.09 0.025 0 0.11     0.05 0.01 0 0.09   0.024 0.01 0 0.065   0.014 0.002 0 0.03   0 0 0 0.01]]
 
 
+-- add purple scavenger variants
+local scavengerDefs = {}
+for k,v in pairs(definitions) do
+    scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+end
+
+-- NOTE: this method isnt really working as well for missiletrails since these vary so much from eachother (unlike plasma and unit explosions)
+-- improve/customize by renaming some effects so you can separately adjust them more uniquely
+local purpleEffects = {
+    engine = {
+        properties = {
+            colormap = [[0.75 0.4 1 0.01   0.6 0.2 1 0.01   0.4 0.1 1 0.01   0 0 0 0.01]],
+        },
+    },
+    engineglow = {
+        properties = {
+            colormap = [[0.07 0.022 0.1 0.01   0 0 0 0.01]],
+        },
+    },
+    sparks = {
+        properties = {
+            colormap =  [[0.7 0.5 0.9 0.01   0.6 0.4 0.9 0.007  0.2 0.1 0.25 0.005   0 0 0 0.01]],
+        },
+    },
+    explosion = {
+        properties = {
+            colormap = [[0.36 0.22 0.55 0.06    0.15 0.02 0.3 0.03   0 0 0 0.01]],
+        },
+    },
+    fireglow = {
+        properties = {
+            colormap = [[0.125 0.08 0.17 0.01   0 0 0 0.01]],
+        },
+    },
+    dustparticles = {
+        properties = {
+            colormap = [[0.4 0.4 0.4 0.008    0.75 0.5 1 0.02    0.44 0.25 0.66 0.18    0.33 0.18 0.5 0.15    0.24 0.14 0.33 0.15    0 0 0 0.01]],
+        },
+    },
+}
+for defName, def in pairs(scavengerDefs) do
+    for effect, effectParams in pairs(purpleEffects) do
+        if scavengerDefs[defName][effect] then
+            for param, paramValue in pairs(effectParams) do
+                if scavengerDefs[defName][effect][param] then
+                    if param == 'properties' then
+                        for property,propertyValue in pairs(paramValue) do
+                            if scavengerDefs[defName][effect][param][property] then
+                                scavengerDefs[defName][effect][param][property] = propertyValue
+                            end
+                        end
+                    else
+                        scavengerDefs[defName][effect][param] = paramValue
+                    end
+                end
+            end
+        end
+    end
+end
+
+definitions = tableMerge(definitions, scavengerDefs)
 
 return definitions

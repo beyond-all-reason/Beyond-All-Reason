@@ -70,7 +70,7 @@ local icons = {
     {"energy5.user", "fusion",1.8},
     {"energy6.user", "energy",2.05},
   
-    {"eye.user", "eye",0.85},
+    {"eye.user", "eyes",0.85},
     {"spy.user", "eye",1.18},
 
     {"hover_t1.user", "hover",1.15},
@@ -266,6 +266,8 @@ local icons = {
     {"defence_1_naval.user", "defence", 1.05},
     {"defence_2_naval.user", "defence", 1.4},
 
+    {"boss.user", "skull", 2.5},
+
     {"blank.user", "blank", 1},
     {"unknown.user", "unknown", 2},
 }
@@ -278,37 +280,6 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~
         icons[#icons+1] = v
     end
     scavengerAlternatives = nil
-end
-
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-        if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                tableMerge(t1[k] or {}, t2[k] or {})
-            else
-                t1[k] = v
-            end
-        else
-            t1[k] = v
-        end
-    end
-    return t1
 end
 
 function getIconID(name)   -- does not check if file exists
@@ -440,6 +411,10 @@ function loadUnitIcons()
 
         if name=="meteor" then
             Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
+        elseif string.find(name, 'boss') then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."boss.user")
+        elseif string.find(name, 'droppod') then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."mine3.user")
         elseif string.sub(name, 0, 7) == "critter" then
             Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
         elseif name=="chip" or name=="dice" or name=="xmasball" or name=="xmasball2" or name=="corstone" or name=="armstone" then

@@ -62,11 +62,17 @@ for i=1,#files do
    if fileNames == "newboom" then
     t[fileNames].gain = 0.045*0.3
     end
+   if string.sub(fileNames, 1, 7) == "heatray" then
+    t[fileNames].pitchmod = 0
+    end
    if string.sub(fileNames, 1, 4) == "lasr" then
     t[fileNames].pitchmod = 0
     end
-   if string.sub(fileNames, 1, 4) == "xplolrg" then
+   if string.sub(fileNames, 1, 7) == "xplolrg" then
     t[fileNames].pitchmod = 0.3
+    end
+   if string.sub(fileNames, 1, 7) == "xplomed" then
+    t[fileNames].pitchmod = 0.24
     end
 end
 
@@ -117,6 +123,23 @@ for i=1,#files do
       maxconcurrent = 4,
 	  rolloff = 0.2,
    }
+end
+
+-- SCAVENGER SOUNDS
+local files = VFS.DirList("sounds/scavengers/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.0*0.3,
+		pitchmod = 0.33,
+		gainmod  = 0.1*0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 8,
+		rolloff = 0.2,
+	}
 end
 
 return Sounds

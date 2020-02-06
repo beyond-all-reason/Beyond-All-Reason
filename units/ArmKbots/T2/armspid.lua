@@ -144,7 +144,7 @@ return {
 				rgbcolor = "0.7 0.7 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "hackshot",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,

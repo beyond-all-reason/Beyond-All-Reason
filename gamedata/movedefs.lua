@@ -400,6 +400,34 @@ local moveDatas = {
 		crushStrength = 0,
 		speedModClass = 1, -- 0 = tank, 1 = kbot, 2 = hover, 3 = ship
 	},
+	
+	-- Scavenger Boss units
+	BOSSPEEWEE6 = {
+		crushstrength = 9999,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 50,
+		maxwaterdepth = 9999,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	
+	BOSSSTUMPY10 = {
+		crushstrength = 9999,
+		footprintx = 10,
+		footprintz = 10,
+		maxslope = 26,
+		--slopeMod = 32,
+		maxwaterdepth = 9999,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
 }
 
 --------------------------------------------------------------------------------

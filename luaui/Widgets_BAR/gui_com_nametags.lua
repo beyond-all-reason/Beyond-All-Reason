@@ -79,6 +79,7 @@ local drawScreenUnits = {}
 local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
+local GaiaTeam = Spring.GetGaiaTeamID()
 
 local comDefs = {}
 local comHeight = {}
@@ -336,7 +337,7 @@ end
 
 
 function CheckCom(unitID, unitDefID, unitTeam)
-    if comDefs[unitDefID] then
+    if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
         comms[unitID] = GetCommAttributes(unitID, unitDefID)
     end
 end
@@ -346,7 +347,8 @@ function CheckAllComs()
     for i=1,#allUnits do
         local unitID    = allUnits[i]
         local unitDefID = GetUnitDefID(unitID)
-        if comDefs[unitDefID] then
+        local unitTeam  = GetUnitTeam(unitID)
+        if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
             comms[unitID] = GetCommAttributes(unitID, unitDefID)
         end
     end

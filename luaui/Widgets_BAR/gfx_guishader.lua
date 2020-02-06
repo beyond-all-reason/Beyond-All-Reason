@@ -418,6 +418,8 @@ end
 function widget:Shutdown()
   DeleteShaders()
   WG['guishader'] = nil
+  widgetHandler:DeregisterGlobal('GuishaderInsertRect')
+  widgetHandler:DeregisterGlobal('GuishaderRemoveRect')
 end
 
 

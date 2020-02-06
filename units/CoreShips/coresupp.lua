@@ -137,7 +137,7 @@ return {
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,

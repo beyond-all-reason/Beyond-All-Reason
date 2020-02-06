@@ -86,6 +86,8 @@ else
     local CMD_RESURRECT = CMD.RESURRECT
     local CMD_CAPTURE   = CMD.CAPTURE
 
+    local resurrectedUnits = {}
+
     -------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------
 
@@ -102,7 +104,7 @@ else
             local NewRange = (NewMax - NewMin)
             buildSpeed = (((buildSpeed - OldMin) * NewRange) / OldRange) + NewMin
             --Spring.Echo(uDef.name, uDef.buildSpeed,value)
-            builderWorkTime[uDefID] = {buildSpeed, uDef.buildRange}
+            builderWorkTime[uDefID] = {buildSpeed, uDef.buildDistance}
         end
     end
 
@@ -170,6 +172,15 @@ else
       end
     end
 
+    function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
+        if Spring.GetUnitRulesParam(unitID, "resurrected") ~= nil then
+            resurrectedUnits[unitID] = true
+        end
+    end
+    function gadget:UnitDestroyed(unitID, unitDefID, teamID)
+        resurrectedUnits[unitID] = nil
+    end
+
     --------------------------------------------------------------------------------
     --------------------------------------------------------------------------------
     --
@@ -217,7 +228,7 @@ else
 
 
     local function IsFeatureInRange(unitID, featureID, range)
-        range = range + 100 -- fudge factor
+        range = range + 35 -- fudge factor
         local x,y,z = spGetFeaturePosition(featureID)
         local ux,uy,uz = spGetUnitPosition(unitID)
         return ((ux - x)*(ux - x) + (uz - z)*(uz - z)) <= range*range
@@ -234,7 +245,17 @@ else
         local isFeature = false
         local inRange
 
+        local cmdID, _, _, cmdParam1, cmdParam2, cmdParam3, cmdParam4, cmdParam5 = spGetUnitCurrentCommand(unitID, 1)
         local buildID = spGetUnitIsBuilding(unitID)
+
+        -- after unit is resurrected the following cmd is 'build' instead of 'repair', the nanolaser doesnt show up and the (beam) lighting is off position and flickering as well
+        -- while the code below doesnt make showing the laser yet, it does prevent the beam lighting off position glitch
+        if buildID and cmdParam1 and resurrectedUnits[cmdParam1] then
+            --buildID = false
+            --cmdID = CMD_REPAIR
+            return
+        end
+
         if buildID then
             target = buildID
             type   = "building"
@@ -242,7 +263,6 @@ else
         else
             local uDefID = spGetUnitDefID(unitID)
             local buildRange = builderWorkTime[uDefID] and builderWorkTime[uDefID][2] or 0
-            local cmdID, _, _, cmdParam1, cmdParam2, cmdParam3, cmdParam4, cmdParam5 = spGetUnitCurrentCommand(unitID, 1)
             if cmdID then
 
                 if cmdID == CMD_RECLAIM then
@@ -263,7 +283,7 @@ else
                             if spValidUnitID(unitID_) then
                                 target = unitID_
                                 type   = "reclaim"
-                                inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange
+                                inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange+35
                             end
                         end
                     end
@@ -273,14 +293,14 @@ else
                     if spValidUnitID(repairID) then
                         target = repairID
                         type   = "repair"
-                        inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange
+                        inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange+35
                     end
 
                 elseif cmdID == CMD_RESTORE then
                     local x = cmdParam1
                     local z = cmdParam3
                     type   = "restore"
-                    target = {x, spGetGroundHeight(x,z)+5, z, cmd.params[4]}
+                    target = {x, spGetGroundHeight(x,z)+5, z, cmdParam4}
                     inRange = IsGroundPosInRange(unitID, x, z, buildRange)
 
                 elseif cmdID == CMD_CAPTURE then
@@ -289,7 +309,7 @@ else
                         if spValidUnitID(captureID) then
                             target = captureID
                             type   = "capture"
-                            inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange
+                            inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange+35
                         end
                     end
 
@@ -367,22 +387,22 @@ else
                     local strength = ((spGetUnitCurrentBuildPower(unitID)or 1)*buildpower) or 1	-- * 16
                     --Spring.Echo(strength,spGetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID][1])
                     if (strength > 0) then
-                        local type, target, isFeature = getUnitNanoTarget(unitID)
+                        local cmdtype, target, isFeature = getUnitNanoTarget(unitID)
                         
                         if (target) then
                             local endpos
-                            if (type=="restore") then
+                            if type(target) == 'table' then
                                 endpos = target
                                 target = -1
                             end
 
                             --local terraform = false
-                            --if (type=="restore") then
+                            --if (cmdtype=="restore") then
                             --    terraform = true
                             --end
 
                             --[[
-                            if (type=="reclaim") and (strength > 0) then
+                            if (cmdtype=="reclaim") and (strength > 0) then
                                 --// reclaim is done always at full speed
                                 strength = 1
                             end
@@ -407,16 +427,10 @@ else
                                 nanoParams.targetpos    = endpos
                                 nanoParams.count        = strength*30
                                 nanoParams.streamThickness = 2.9 + strength * 0.25
-                                nanoParams.type         = type
-                                nanoParams.inversed     = (type == "reclaim" and true or false)
+                                nanoParams.type         = cmdtype
+                                nanoParams.inversed     = (cmdtype == "reclaim" and true or false)
                                 if Lups then
                                     Lups.AddParticles(lupsParticleType,nanoParams)
-                                    --if (not nanoParticles[unitID]) then nanoParticles[unitID] = {} end
-                                    --if not nanoParticles[unitID][j] then
-                                    --    nanoParticles[unitID][j] = Lups.AddParticles(lupsParticleType,nanoParams)
-                                    --else
-                                    --    nanoParticles[unitID][j] = Lups.AddParticles(lupsParticleType,nanoParams,nanoParticles[unitID][j])
-                                    --end
                                 end
                             end
                         end

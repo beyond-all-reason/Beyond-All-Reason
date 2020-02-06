@@ -142,7 +142,7 @@ return {
 				smoketrail = false,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "misicbm1",
 				stockpile = true,
 				stockpiletime = 65,

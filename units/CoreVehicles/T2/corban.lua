@@ -162,7 +162,7 @@ return {
 				smoketrail = false,
 				soundhit = "corban_b",
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "corban_a",
 				startvelocity = 240,
 				texture1 = "trans",

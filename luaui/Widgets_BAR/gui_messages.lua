@@ -22,11 +22,11 @@ end
 
 local showTestMessages = false
 
-local charSize = 17
+local charSize = 18
 local charDelay = 0.015
-local maxLines = 7
+local maxLines = 6
 local maxLinesScroll = 10
-local lineTTL = 15
+local lineTTL = 12
 local fadeTime = 0.4
 local fadeDelay = 0.25   -- need to hover this long in order to fadein and respond to CTRL
 local backgroundOpacity = 0.2
@@ -37,9 +37,9 @@ local backgroundOpacity = 0.2
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 34
-local fontfileOutlineSize = 7.5
-local fontfileOutlineStrength = 1.7
+local fontfileSize = 38
+local fontfileOutlineSize = 8
+local fontfileOutlineStrength = 1.6
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local vsx, vsy = gl.GetViewSizes()
@@ -433,6 +433,7 @@ function widget:Shutdown()
             messageLines[i][6] = nil
         end
     end
+    widgetHandler:DeregisterGlobal('GadgetAddMessage')
 end
 
 function widget:TextCommand(command)

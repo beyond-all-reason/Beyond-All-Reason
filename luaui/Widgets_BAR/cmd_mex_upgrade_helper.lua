@@ -3,7 +3,7 @@ function widget:GetInfo()
     name      = "MexUpg Helper", 
     desc      = "", 
     author    = "author: BigHead", 
-    date      = "September 13, 2007", 
+    date      = "September 13, 2007",
     license   = "GNU GPL, v2 or later", 
     layer     = -100, 
     enabled   = true -- loaded by default? 
@@ -23,8 +23,6 @@ local GetSelectedUnits = Spring.GetSelectedUnits
 local TraceScreenRay = Spring.TraceScreenRay 
 local GetActiveCommand = Spring.GetActiveCommand
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-
-local unba = (Spring.GetModOptions().unba or "disabled") == "enabled"
 
 local isCommander = {}
 local unitHumanName = {}
@@ -117,11 +115,6 @@ function widget:IsAbove(x,y)
   end
 
   rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo}
-
-  if unba and isCommander[builderID] then
-    rightClickUpgradeParams = nil
-    return false
-  end
 
   return true
 end

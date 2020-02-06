@@ -140,7 +140,7 @@ return {
 				rgbcolor = "0 0 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "beamershot",
 				soundtrigger = 1,
 				targetmoveerror = 0.05,

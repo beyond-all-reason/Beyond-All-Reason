@@ -11,6 +11,9 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+-- set default gaia teamcolor
+Spring.SetTeamColor(Spring.GetGaiaTeamID(), 0.3, 0.3, 0.3)
+
 Spring.SendCommands({"ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt"})
 
 VFS.Include(LUAUI_DIRNAME .. 'utils.lua', utilFile)

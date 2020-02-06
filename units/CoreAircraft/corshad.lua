@@ -110,7 +110,7 @@ return {
 				reloadtime = 6,
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "bombrel",
 				sprayangle = 300,
 				weapontype = "AircraftBomb",

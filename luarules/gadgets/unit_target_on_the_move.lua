@@ -786,13 +786,17 @@ end
 
 function gadget:DrawWorld()
 	local spectator = spGetSpectatingState()
-	glPushAttrib(GL.LINE_BITS)
-	glLineStipple("any") -- use spring's default line stipple pattern, moving
-	glDepthTest(false)
-	glLineWidth(lineWidth)
+	local init = false
 	for unitID, unitData in pairs(targetList) do
 		if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
 			if spectator or spGetUnitAllyTeam(unitID) == myAllyTeam then
+				if not init then
+					init = true
+					glPushAttrib(GL.LINE_BITS)
+					glLineStipple("any") -- use spring's default line stipple pattern, moving
+					glDepthTest(false)
+					glLineWidth(lineWidth)
+				end
 				glColor(queueColour)
 				glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData, spectator, myTeam, myAllyTeam)
 				if unitData.targetIndex then
@@ -802,9 +806,11 @@ function gadget:DrawWorld()
 			end
 		end
 	end
-	glColor(1,1,1,1)
-	glLineStipple(false)
-	glPopAttrib()
+	if init then
+		glColor(1,1,1,1)
+		glLineStipple(false)
+		glPopAttrib()
+	end
 	drawTarget = {}
 end
 

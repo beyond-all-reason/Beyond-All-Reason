@@ -60,6 +60,17 @@ local convertedUnits = {
 	--[UnitDefNames.corjugg.id] = true,
 	[UnitDefNames.armvang.id] = true,
 }
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	local scavengerUnits = {}
+	for k,v in pairs(convertedUnits) do
+		scavengerUnits[k..'_scav'] = v
+	end
+	for k,v in pairs(scavengerUnits) do
+		convertedUnits[k] = v
+	end
+	scavengerUnits = nil
+end
+
 local unitWeapons = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.scriptName == "scripts/BASICTANKSCRIPT.LUA" then
@@ -92,6 +103,16 @@ local popups = {	-- exclude auto target range boost for popup units
 	[UnitDefNames.corllt.id] = true,
 	[UnitDefNames.armllt.id] = true,
 }
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	local scavengerPopups = {}
+	for k,v in pairs(popups) do
+		scavengerPopups[k..'_scav'] = v
+	end
+	for k,v in pairs(scavengerPopups) do
+		popups[k] = v
+	end
+	scavengerPopups = nil
+end
 
 function gadget:UnitCreated(unitID,unitDefID)
 	if convertedUnits[unitDefID] and unitWeapons[unitDefID] then

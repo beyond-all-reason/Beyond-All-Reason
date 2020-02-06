@@ -9,32 +9,47 @@ T1SeaUnits = {
 "armrecl",
 "armpship",
 "armsub",
+"armpincer",
 "corpt",
 "coresupp",
 "correcl",
 "corpship",
 "corsub",
+"corgarp",
+--hovercraft
+"armsh",
+"armmh",
+"armah",
+"armanac",
+"corsh",
+"cormh",
+"corah",
+"corsnap",
 }
 
 T2SeaUnits = {
 "armroy",
-"armsjam",
-"armls",
+--"armsjam",
+"armmls",
 "armsubk",
 "armaas",
 "armcrus",
-"armcarry",
+--"armcarry",
 "armserp",
 "armmship",
+"armcroc",
 "corroy",
-"corsjam",
-"corls",
+--"corsjam",
+"cormls",
 "corshark",
 "corarch",
 "corcrus",
-"corcarry",
+--"corcarry",
 "corssub",
 "cormship",
+"corseal",
+--hovercraft
+"corhal",
 }
 
 T3SeaUnits = {
@@ -42,4 +57,12 @@ T3SeaUnits = {
 "armepoch",
 "corbats",
 "corblackhy",
+--hovercraft
+"armlun",
+"corsok",
+}
+
+T4SeaUnits = {
+"corcrwbosst2",
+"corcrwbosst2",
 }

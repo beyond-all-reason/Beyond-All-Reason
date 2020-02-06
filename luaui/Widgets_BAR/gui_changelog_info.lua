@@ -2,7 +2,7 @@
 function widget:GetInfo()
 return {
 	name    = "Changelog Info",
-	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
+	desc    = "",
 	author  = "Floris",
 	date    = "August 2015",
 	layer   = -99990,
@@ -221,8 +221,8 @@ end
 
 
 function DrawTextarea(x,y,width,height,scrollbar)
-	local scrollbarOffsetTop 		= 18	-- note: wont add the offset to the bottom, only to top
-	local scrollbarOffsetBottom 	= 12	-- note: wont add the offset to the top, only to bottom
+	local scrollbarOffsetTop 		= 0	-- note: wont add the offset to the bottom, only to top
+	local scrollbarOffsetBottom 	= 0	-- note: wont add the offset to the top, only to bottom
 	local scrollbarMargin    		= 10
 	local scrollbarWidth     		= 8
 	local scrollbarPosWidth  		= 4
@@ -230,9 +230,9 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarBackgroundColor	= {0,0,0,0.24}
 	local scrollbarBarColor			= {1,1,1,0.08}
 	
-	local fontSizeTitle				= 17		-- is version number
-	local fontSizeDate				= 13
-	local fontSizeLine				= 15
+	local fontSizeTitle				= 18		-- is version number
+	local fontSizeDate				= 14
+	local fontSizeLine				= 16
 	local lineSeparator				= 2
 	
 	local fontColorTitle			= {1,1,1,1}

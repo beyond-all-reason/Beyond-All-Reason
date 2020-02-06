@@ -137,7 +137,7 @@ return {
 				reloadtime = 1.625,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
-				soundhitwetvolume = 0.5,
+				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
 				targetmoveerror = 0.2,
 				tolerance = 8000,

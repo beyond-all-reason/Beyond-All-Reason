@@ -411,13 +411,13 @@ function assignClosestBuilder(mexID, mex, teamID)
 end 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) 
-  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and not isCommander[unitDefID] then
+  if not isCommander[unitDefID] then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end 
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam) 
-  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and  not isCommander[unitDefID] then
+  if not isCommander[unitDefID] then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end 

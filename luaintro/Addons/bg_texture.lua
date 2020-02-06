@@ -66,5 +66,7 @@ function addon.DrawLoadScreen()
 end
 
 function addon.Shutdown()
-	gl.DeleteTexture(backgroundTexture)
+	if backgroundTexture then
+		gl.DeleteTexture(backgroundTexture)
+	end
 end

@@ -185,6 +185,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if n % 90 == 1 then
+
+			if not _G.itsXmas then
+				SendToUnsynced('RemoveGadget') -- Remove unsynced side too
+				gadgetHandler:RemoveGadget(self)
+			end
+
 			for unitID, frame in pairs(decorationsTerminal) do
 
 				if frame < n then
@@ -241,25 +247,23 @@ if gadgetHandler:IsSyncedCode() then
 		createdDecorations = {}
 	end
 
-	if Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "disabled" then
-		function gadget:FeatureCreated(featureID, allyTeam)
-			if _G.itsXmas then
-				-- replace comwreck with xmas comwreck
-				if isComWreck[Spring.GetFeatureDefID(featureID)] then
-					local px,py,pz = Spring.GetFeaturePosition(featureID)
-					local rx,ry,rz = Spring.GetFeatureRotation(featureID)
-					local dx,dy,dz = Spring.GetFeatureDirection(featureID)
-					Spring.DestroyFeature(featureID)
-					local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px,py,pz)
-					if xmasFeatureID then
-						Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
-						Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
-						local comtype = 'armcom'
-						if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
-							comtype = 'corcom'
-						end
-						Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+	function gadget:FeatureCreated(featureID, allyTeam)
+		if _G.itsXmas then
+			-- replace comwreck with xmas comwreck
+			if isComWreck[Spring.GetFeatureDefID(featureID)] then
+				local px,py,pz = Spring.GetFeaturePosition(featureID)
+				local rx,ry,rz = Spring.GetFeatureRotation(featureID)
+				local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+				Spring.DestroyFeature(featureID)
+				local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px,py,pz)
+				if xmasFeatureID then
+					Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
+					Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+					local comtype = 'armcom'
+					if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
+						comtype = 'corcom'
 					end
+					Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
 				end
 			end
 		end
@@ -347,12 +351,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if not _G.itsXmas then
+			SendToUnsynced('RemoveGadget') -- Remove unsynced side too
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
 
 else
-	--SYNCED.itsXmas
+
+	--local itsXmas = SYNCED.itsXmas
 	local xmasballs = {}
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
@@ -381,6 +387,12 @@ else
 			gadget:UnitCreated(unitID, udID, team)
 		end
 		if Spring.GetGameFrame() > 1 then
+			gadgetHandler:RemoveGadget(self)
+		end
+	end
+
+	function gadget:RecvFromSynced(arg1, ...)
+		if arg1 == 'RemoveGadget' then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end

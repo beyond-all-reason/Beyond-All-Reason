@@ -23,8 +23,11 @@ T2AirUnits = {
 "armkam",
 "armawac",
 "armbrawl",
+"armsaber",
 "corsb",
 "corawac",
+"corsfig",
+"corcut",
 
 }
 
@@ -39,10 +42,13 @@ T3AirUnits = {
 "corsb",
 "corvamp",
 "corhurc",
-"corvamp",
-"corape",
-"corape",
+--"corape", exluded because of interference with corap factory
 "corcrw",
 "corawac",
 
+}
+
+T4AirUnits = {
+"corcrwbosst2_scav",
+"corcrwbosst2_scav",
 }

@@ -65,7 +65,7 @@ function SetUnitConf()
 			buildingNeedingUpkeep = true
 		end
 		if neededEnergy > 0 then
-			unitConf[udid] = {7 +(scale/2.5), unitDef.height, neededEnergy, buildingNeedingUpkeep}
+			unitConf[udid] = {7.5 +(scale/2.2), unitDef.height, neededEnergy, buildingNeedingUpkeep}
 		end
 	end
 end
@@ -177,7 +177,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function DrawIcon(size, height, self, mult)
-	gl.Color(1,0,0, (self and 0.7 or 0.4) * (mult or 1))
+	gl.Color(1,0,0, 0.66 * (mult or 1))
 	gl.Texture(':n:LuaUI/Images/energy2.png')
 	gl.Translate(0,5+height+(size*0.5),0)
 	gl.Billboard()

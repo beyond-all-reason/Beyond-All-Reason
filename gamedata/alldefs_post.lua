@@ -165,7 +165,7 @@ end
 --------------------------------------------------------------------------------
 
 local function ProcessSoundDefaults(wd)
-	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume)
+	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume) or (not wd.soundhitwetvolume)
 	if not forceSetVolume then
 		return
 	end
@@ -174,6 +174,7 @@ local function ProcessSoundDefaults(wd)
 	if (not defaultDamage) or (defaultDamage <= 50) then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
+		wd.soundhitwetvolume = 5
 		return
 	end
 
@@ -188,6 +189,13 @@ local function ProcessSoundDefaults(wd)
 	if (not wd.soundhitvolume) then
 		wd.soundhitvolume = soundVolume
 	end
+		if (not wd.soundhitwetvolume) then
+			if wd.weapontype == "LaserCannon" or "BeamLaser" then
+				wd.soundhitwetvolume = soundVolume * 0.3
+		else
+			wd.soundhitwetvolume = soundVolume
+		end		
+	end
 end
 
 
@@ -197,7 +205,7 @@ function WeaponDef_Post(name, wDef)
 	--Use targetborderoverride in weapondef customparams to override this global setting
 	--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
 	if wDef.customparams and wDef.customparams.targetborderoverride == nil then
-		wDef.targetborder = 0.75 --Aim for just inside the hitsphere
+		wDef.targetborder = 1 --Aim for just inside the hitsphere
 	elseif wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
 		wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
 	end

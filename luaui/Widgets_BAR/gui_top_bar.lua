@@ -354,7 +354,9 @@ local function updateButtons()
 	local totalWidth = area[3] - area[1]
 
 	local text = '    '
-    if (WG['teamstats'] ~= nil) then text = text..'Stats   ' end
+
+	if (WG['scavengerinfo'] ~= nil) then text = text..'Scavengers   ' end
+	if (WG['teamstats'] ~= nil) then text = text..'Stats   ' end
     if (WG['commands'] ~= nil) then text = text..'Cmd   ' end
     if (WG['keybinds'] ~= nil) then text = text..'Keys   ' end
     if (WG['changelog'] ~= nil) then text = text..'Changes   ' end
@@ -406,6 +408,12 @@ local function updateButtons()
 			local width = 0
             local buttons = 0
 
+			if (WG['scavengerinfo'] ~= nil) then
+				buttons = buttons + 1
+				if buttons > 1 then offset = offset+width end
+				width = font2:GetTextWidth('  Scavengers ') * fontsize
+				buttonsArea['buttons']['scavengers'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+			end
             if (WG['teamstats'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
@@ -425,7 +433,7 @@ local function updateButtons()
                 buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['changelog'] ~= nil) then
-                button = buttons + 1
+                buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
                 width = font2:GetTextWidth('  Changes ') * fontsize
                 buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
@@ -665,8 +673,22 @@ local function updateResbarText(res)
 					local text = ''
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
+						if WG['voicenotifs'] then
+							if allyteamOverflowingMetal then
+								WG['voicenotifs'].addEvent('TeamWastingMetal')
+							else
+								WG['voicenotifs'].addEvent('MetalStorageFull')
+							end
+						end
 					else
 						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
+						if WG['voicenotifs'] then
+							if allyteamOverflowingEnergy then
+								WG['voicenotifs'].addEvent('TeamWastingEnergy')
+							else
+								WG['voicenotifs'].addEvent('EnergyStorageFull')
+							end
+						end
 					end
 					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale
 
@@ -1456,6 +1478,9 @@ local function hideWindows()
 	if (WG['options'] ~= nil) then
 		WG['options'].toggle(false)
 	end
+	if (WG['scavengerinfo'] ~= nil) then
+		WG['scavengerinfo'].toggle(false)
+	end
 	if (WG['changelog'] ~= nil) then
 		WG['changelog'].toggle(false)
 	end
@@ -1512,6 +1537,14 @@ local function applyButtonAction(button)
 		hideWindows()
 		if (WG['options'] ~= nil and isvisible ~= true) then
 			WG['options'].toggle()
+		end
+	elseif button == 'scavengers' then
+		if (WG['scavengerinfo'] ~= nil) then
+			isvisible = WG['scavengerinfo'].isvisible()
+		end
+		hideWindows()
+		if (WG['scavengerinfo'] ~= nil and isvisible ~= true) then
+			WG['scavengerinfo'].toggle()
 		end
 	elseif button == 'changelog' then
 		if (WG['changelog'] ~= nil) then
