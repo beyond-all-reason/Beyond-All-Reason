@@ -29,7 +29,7 @@ local Sound = {
 		'LuaUI/Sounds/VoiceNotifs/eCommDestroyed.wav',
 		1, 		-- min delay
 		1,		-- relative volume
-		1.7,	-- duration (optional, but define for sounds longer than 2 seconds)
+		1.7,	-- duration
 		'An enemy commander has died',		-- text passed to the messages widget
 	},
 	aCommLost = {soundFolder..'aCommLost.wav', 1, 0.8, 1.75, 'A friendly commander has died'},
@@ -112,6 +112,9 @@ for i,v in pairs(Sound) do
 		Sound[i][4] = 2 + silenceDuration
 	else
 		Sound[i][4] = Sound[i][4] + silenceDuration
+	end
+	if not Sound[i][5] then
+		Sound[i][5] = ''
 	end
 end
 
@@ -222,7 +225,11 @@ function widget:Initialize()
 		end
 	end
 	WG['voicenotifs'].getSoundList = function()
-		return soundList
+		local soundListDesc = {}
+		for i, v in pairs(soundList) do
+			soundListDesc[i] = {v, Sound[i][5]}
+		end
+		return soundListDesc
 	end
     WG['voicenotifs'].getVolume = function()
         return volume
