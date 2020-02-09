@@ -129,7 +129,7 @@ function scav_Udef_Post(name, uDef)
 		uDef.idleautoheal = 5
 	end
 	if uDef.turnrate then
-		uDef.turnrate = uDef.turnrate*3
+		uDef.turnrate = uDef.turnrate*2.5
 	end
 	if uDef.turninplaceanglelimit then
 		uDef.turninplaceanglelimit = 360
