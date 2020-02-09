@@ -27,7 +27,7 @@ customDefs.corcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	stealth = true,
-	workertime = 600,				-- can get multiplied in unitdef_post 
+	workertime = 900,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -72,7 +72,7 @@ customDefs.armcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	stealth = true,
-	workertime = 600,				-- can get multiplied in unitdef_post 
+	workertime = 900,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
