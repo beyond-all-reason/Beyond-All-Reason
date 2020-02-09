@@ -20,7 +20,7 @@ local DAIModes = VFS.SubDirs("luarules/gadgets/ai/byar/")
 for i,lmodeName in pairs(DAIModes) do
 	local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/ai/byar/") + 1, string.len(lmodeName) - 1)
 	if checkAImode(smodeName) == true then
-		DAIlist[#DAIlist+1] = { name = "DAI "..smodeName, desc = 'Shard by AF for Spring (Lua), '..smodeName, version = "" }
+		DAIlist[#DAIlist+1] = { name = "DAI "..smodeName, desc = 'Shard by AF for Spring (Lua), '..smodeName}
 	end
 end
 	
@@ -28,48 +28,39 @@ end
 local prelist = {
   {
     name = 'ScavengersAI',
-    desc = 'Infinite Games',
-	version = ""
+    desc = 'Infinite Games'
   },
   {
     name = 'Chicken: Very Easy',
-    desc = 'Trivial Games',
-	version = ""
+    desc = 'Trivial Games'
   },
   {
     name = 'Chicken: Easy',
-    desc = 'Normal Games',
-	version = ""
+    desc = 'Normal Games'
   },
   {
     name = 'Chicken: Normal',
-    desc = 'Average Games',
-	version = ""
+    desc = 'Average Games'
   },
   {
     name = 'Chicken: Hard',
-    desc = 'Large Games',
-	version = ""
+    desc = 'Large Games'
   },
   {
     name = 'Chicken: Very Hard',
-    desc = 'Hardcore Games',
-	version = ""
+    desc = 'Hardcore Games'
   },
   {
     name = 'Chicken: Epic!',
-    desc = 'Extreme Survival Games',
-	version = ""
+    desc = 'Extreme Survival Games'
   },
   {
     name = 'Chicken: Custom',
-    desc = 'Settings in ModOptions',
-	version = ""
+    desc = 'Settings in ModOptions'
   },
   {
     name = 'Chicken: Survival',
-    desc = 'Infinite Games',
-	version = ""
+    desc = 'Infinite Games'
   },
 
 }
