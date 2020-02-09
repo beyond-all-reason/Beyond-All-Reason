@@ -2816,10 +2816,10 @@ function init()
 				count = count + 1
 				newOptions[count] = option
 				if option.id == 'voicenotifs_playtrackedplayernotifs' then
-					for sound, v in pairs(soundList) do
+					for k, v in pairs(soundList) do
 						count = count + 1
-						newOptions[count] = {id="voicenotifs_snd_"..sound, group="notif", basic=true, name=widgetOptionColor.."   "..sound, type="bool", value=v[1], description=v[2],
-							onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, v[1]) end,
+						newOptions[count] = {id="voicenotifs_snd_"..v[1], group="notif", basic=true, name=widgetOptionColor.."   "..v[1], type="bool", value=v[2], description=v[3],
+							onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..v[1], {'soundList'}, value) end,
 						}
 					end
 				end

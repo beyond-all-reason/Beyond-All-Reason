@@ -150,14 +150,14 @@ if gadgetHandler:IsSyncedCode() then
 	--			end
 	--		end
 	--	else
-	--		local event = "aCommLost"
+	--		local event = "FriendlyCommanderDied"
 	--		local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 	--		for ct, player in pairs (players) do
 	--			if tostring(player) then
 	--				SendToUnsynced("EventBroadcast", event, tostring(player))
 	--			end
 	--		end
-	--		local event = "eCommDestroyed"
+	--		local event = "EnemyCommanderDied"
 	--		local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 	--		for ct, player in pairs (players) do
 	--			if tostring(player) then
@@ -307,14 +307,14 @@ else
 				--	end
 				--end
 			else
-				local event = "aCommLost"
+				local event = "FriendlyCommanderDied"
 				local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						BroadcastEvent("EventBroadcast", event, tostring(player))
 					end
 				end
-				local event = "eCommDestroyed"
+				local event = "EnemyCommanderDied"
 				local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
