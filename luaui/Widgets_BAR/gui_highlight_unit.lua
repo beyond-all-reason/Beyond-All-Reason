@@ -351,6 +351,9 @@ function widget:DrawWorld()
   if (WG['topbar'] and WG['topbar'].showingQuit()) then
     return
   end
+  if select(7, spGetMouseState()) then	-- when camera panning
+    return
+  end
   if Spring.IsGUIHidden() then return end
 
   if drawFeatureHighlight and (type == 'feature') then
