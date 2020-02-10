@@ -23,6 +23,8 @@ local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
 local lowpowerThreshold = 6		-- if there is X secs a low power situation
 
 
+local spGetGameFrame = Spring.GetGameFrame
+local LastPlay = {}
 local soundFolder = "Sounds/voice/"
 local Sound = {}
 local SoundOrder = {}
@@ -59,6 +61,15 @@ addSound('WholeTeamWastingEnergy', 'unused/energystorefull.wav', 30, 0.6, 1.9, '
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 0.6, 1.65, 'Energy storage is full')
 addSound('LowPower', 'LowPower.wav', 20, 0.6, 0.95, 'Low power')
 
+-- added this so they wont get immediately triggered after gamestart
+LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
+LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
+LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
+LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+300
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+300
+
+
 addSound('NukeLaunched', 'NukeLaunched.wav', 3, 0.8, 2, 'Nuclear missile launch detected')
 addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 0.6, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
 
@@ -88,6 +99,7 @@ addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 0.6, 1.38,
 addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 0.6, 1.95, 'Sea transport located')
 
 
+
 local unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
 unitsOfInterest[UnitDefNames['cortron'].id] = 'TacticalNukeSiloDetected'
@@ -113,15 +125,6 @@ unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTransportDetected'
 unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTransportDetected'
-
-
-local spGetGameFrame = Spring.GetGameFrame
-local LastPlay = {}
--- adding so they wont get immediately triggered after gamestart
-LastPlay['TeamWastingMetal'] = spGetGameFrame()+300
-LastPlay['TeamWastingEnergy'] = spGetGameFrame()+300
-LastPlay['MetalStorageFull'] = spGetGameFrame()+300
-LastPlay['EnergyStorageFull'] = spGetGameFrame()+300
 
 
 local soundList = {}

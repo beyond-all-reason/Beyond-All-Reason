@@ -380,12 +380,13 @@ function RemoveParticles(particlesID)
 		end
 		fx:Destroy()
 	    if fx.lightID then
-	      if WG and WG['lighteffects'] then
-	        WG['lighteffects'].removeLight(fx.lightID)
+	      if (WG and WG['lighteffects']) or Script.LuaUI("GadgetRemoveLight") then
+			if WG then
+			  WG['lighteffects'].removeLight(fx.lightID)
+			else
+			  Script.LuaUI.GadgetRemoveLight(fx.lightID)
+			end
 	      end
-	      --if Script.LuaUI("GadgetRemoveLight") then
-	      --  Script.LuaUI.GadgetRemoveLight(fx.lightID)
-	      --end
 	    end
 		particles[particlesID] = nil
 		particlesCount = particlesCount-1;
