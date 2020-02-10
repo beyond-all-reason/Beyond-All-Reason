@@ -23,12 +23,12 @@ local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
 local lowpowerThreshold = 6		-- if there is X secs a low power situation
 
 
-local soundFolder = "LuaUI/Sounds/VoiceNotifs/"
+local soundFolder = "Sounds/voice/"
 local Sound = {}
 local SoundOrder = {}
 
 function addSound(name, file, minDelay, volume, duration, message)
-	Sound[name] = {soundFolder..file, minDelay, volume, duration, message}
+	Sound[name] = {file, minDelay, volume, duration, message}
 	SoundOrder[#SoundOrder+1] = name
 end
 
@@ -246,6 +246,9 @@ function widget:Initialize()
 	WG['voicenotifs'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
+	WG['voicenotifs'].addSound = function(name, file, minDelay, volume, duration, message)
+		addSound(name, file, minDelay, volume, duration, message)
+	end
 	WG['voicenotifs'].addEvent = function(value)
 		if Sound[value] then
 			Sd(value)
@@ -383,8 +386,8 @@ function playNextSound()
 		local event = soundQueue[1]
 		nextSoundQueued = sec + Sound[event][4]
 		if not muteWhenIdle or not isIdle then
-			if spoken then
-				Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
+			if spoken and Sound[event][1] ~= '' then
+				Spring.PlaySoundFile(soundFolder..Sound[event][1], volume * Sound[event][3], 'ui')
 			end
 			if displayMessages and WG['messages'] and Sound[event][5] then
 				WG['messages'].addMessage(Sound[event][5])
