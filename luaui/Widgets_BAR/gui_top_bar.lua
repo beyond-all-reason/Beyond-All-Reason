@@ -80,6 +80,8 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
+local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
+
 local sformat = string.format
 
 local minWind = Game.windMin
@@ -675,18 +677,26 @@ local function updateResbarText(res)
 						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
 						if WG['voicenotifs'] then
 							if allyteamOverflowingMetal then
-								WG['voicenotifs'].addEvent('TeamWastingMetal')
+								if numTeamsInAllyTeam > 1 then
+									WG['voicenotifs'].addEvent('WholeTeamWastingMetal')
+								else
+									WG['voicenotifs'].addEvent('YouAreWastingMetal')
+								end
 							else
-								WG['voicenotifs'].addEvent('MetalStorageFull')
+								WG['voicenotifs'].addEvent('YouAreOverflowingMetal')
 							end
 						end
 					else
 						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
 						if WG['voicenotifs'] then
 							if allyteamOverflowingEnergy then
-								WG['voicenotifs'].addEvent('TeamWastingEnergy')
+								if numTeamsInAllyTeam > 1 then
+									WG['voicenotifs'].addEvent('WholeTeamWastingEnergy')
+								else
+									WG['voicenotifs'].addEvent('YouAreWastingEnergy')
+								end
 							else
-								WG['voicenotifs'].addEvent('EnergyStorageFull')
+								WG['voicenotifs'].addEvent('YouAreOverflowingEnergy')
 							end
 						end
 					end
@@ -1706,6 +1716,7 @@ end
 function widget:PlayerChanged()
 	spec = spGetSpectatingState()
 	checkStatus()
+	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 	if displayComCounter then
 		countComs(true)
 	end

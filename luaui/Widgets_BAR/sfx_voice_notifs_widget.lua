@@ -49,17 +49,22 @@ addSound('RadarLost', 'RadarLost.wav', 8, 0.6, 1, 'Radar lost')
 addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 0.6, 1.32, 'Advanced radar lost')
 addSound('MexLost', 'MexLost.wav', 8, 0.6, 1.53, 'Metal extractor lost')
 
+addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 0.6, 1.63, 'Your are overflowing metal')
+addSound('YouAreOverflowingEnergy', 'unused/energystorefull.wav', 40, 0.6, 1.7, 'Your are overflowing energy')
+addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 0.6, 1.5, 'Your are wasting metal')
+addSound('YouAreWastingEnergy', 'unused/energystorefull.wav', 35, 0.6, 1.57, 'Your are wasting energy')
+addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 0.6, 1.82, 'The whole team is wasting metal')
+addSound('WholeTeamWastingEnergy', 'unused/energystorefull.wav', 30, 0.6, 1.9, 'The whole team is wasting energy')
+--addSound('MetalStorageFull', 'metalstorefull.wav', 40, 0.6, 1.62, 'Metal storage is full')
+--addSound('EnergyStorageFull', 'energystorefull.wav', 40, 0.6, 1.65, 'Energy storage is full')
 addSound('LowPower', 'LowPower.wav', 20, 0.6, 0.95, 'Low power')
-addSound('TeamWastingMetal', 'teamwastemetal.wav', 22, 0.6, 1.7, 'Your team is wasting metal')
-addSound('TeamWastingEnergy', 'teamwasteenergy.wav', 30, 0.6, 1.76, 'Your team is wasting energy')
-addSound('MetalStorageFull', 'metalstorefull.wav', 40, 0.6, 1.62, 'Metal storage is full')
-addSound('EnergyStorageFull', 'energystorefull.wav', 40, 0.6, 1.65, 'Energy storage is full')
 
 addSound('NukeLaunched', 'NukeLaunched.wav', 3, 0.8, 2, 'Nuclear missile launch detected')
 addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 0.6, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
 
 addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 0.6, 1.16, 'Vulcan is ready')
-addSound('BuzzsawISReady', 'BuzzsawISReady.wav', 30, 0.6, 1.31, 'Buzzsaw is ready')
+addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 0.6, 1.31, 'Buzzsaw is ready')
+addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 0.6, 1.78, 'Tech 3 unit is ready')
 
 addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 0.6, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
 addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 0.6, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
@@ -81,7 +86,6 @@ addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 0.6, 1.28, 'Comman
 addSound('TransportDetected', 'TransportDetected.wav', 9999999, 0.6, 1.5, 'Transport located')
 addSound('AirTrainsportDetected', 'AirTransportDetected.wav', 9999999, 0.6, 1.38, 'Air transport spotted')
 addSound('SeaTrainsportDetected', 'SeaTransportDetected.wav', 9999999, 0.6, 1.95, 'Sea transport located')
-
 
 
 local unitsOfInterest = {}
@@ -135,6 +139,8 @@ local commanders = {}
 local commandersDamages = {}
 local passedTime = 0
 local sec = 0
+local lastUnitCommand = Spring.GetGameFrame()
+
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitInView = Spring.IsUnitInView
@@ -297,6 +303,11 @@ function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 end
 
 
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, playerID, fromSynced, fromLua)
+	lastUnitCommand = spGetGameFrame()
+end
+
+
 function widget:UnitIdle(unitID)
 	if isBuilder[spGetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
 		idleBuilder[unitID] = spGetGameFrame() + idleBuilderNotificationDelay
@@ -311,6 +322,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 		if unitDefID == buzzsawDefID then
 			Sd('BuzzsawIsReady')
+		end
+		if isT3[unitDefID] then
+			Sd('Tech3UnitReady')
 		end
 	end
 end
@@ -447,7 +461,8 @@ function widget:Update(dt)
 			lastUserInputTime = os.clock()
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
-		if lastUserInputTime < os.clock() - idleTime then
+		-- set user idle when no mouse movement or no commands have been given
+		if lastUserInputTime < os.clock() - idleTime  or  spGetGameFrame() - lastUnitCommand > (idleTime*40) then
 			isIdle = true
 		else
 			isIdle = false

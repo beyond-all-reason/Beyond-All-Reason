@@ -1546,9 +1546,9 @@ function init()
 		{id='gfx', name='Graphics'},
 		{id='ui', name='Interface'},
 		{id='snd', name='Sound'},
-		{id='notif', name='Notifications'},
 		{id='control', name='Control'},
 		{id='game', name='Game'},
+		{id='notif', name='Notifications'},
 		{id='dev', name='Dev'},
 	}
 	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
