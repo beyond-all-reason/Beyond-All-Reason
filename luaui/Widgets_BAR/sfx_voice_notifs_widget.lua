@@ -52,14 +52,16 @@ addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 0.6, 1.32, 'Advanced radar lost'
 addSound('MexLost', 'MexLost.wav', 8, 0.6, 1.53, 'Metal extractor lost')
 
 addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 0.6, 1.63, 'Your are overflowing metal')
-addSound('YouAreOverflowingEnergy', 'unused/energystorefull.wav', 40, 0.6, 1.7, 'Your are overflowing energy')
+addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 40, 0.6, 1.7, 'Your are overflowing energy')
 addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 0.6, 1.5, 'Your are wasting metal')
-addSound('YouAreWastingEnergy', 'unused/energystorefull.wav', 35, 0.6, 1.57, 'Your are wasting energy')
+addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 0.6, 1.3, 'Your are wasting energy')
 addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 0.6, 1.82, 'The whole team is wasting metal')
-addSound('WholeTeamWastingEnergy', 'unused/energystorefull.wav', 30, 0.6, 1.9, 'The whole team is wasting energy')
+addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 30, 0.6, 2.14, 'Your whole team is wasting energy')
 --addSound('MetalStorageFull', 'metalstorefull.wav', 40, 0.6, 1.62, 'Metal storage is full')
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 0.6, 1.65, 'Energy storage is full')
 addSound('LowPower', 'LowPower.wav', 20, 0.6, 0.95, 'Low power')
+addSound('WindNotGood', 'WindNotGood.wav', 9999999, 0.6, 3.76, 'On this map, wind is not good for energy production')
+
 
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
@@ -144,6 +146,8 @@ local passedTime = 0
 local sec = 0
 local lastUnitCommand = Spring.GetGameFrame()
 
+local windNotGood = ((Game.windMin + Game.windMax) / 2) < 5.5
+
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitInView = Spring.IsUnitInView
@@ -163,12 +167,16 @@ local buzzsawDefID = UnitDefNames['corbuzz'].id
 
 local isCommander = {}
 local isBuilder = {}
+local isWind = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.customParams.iscommander then
 		isCommander[udefID] = true
 	end
 	if def.isBuilder and def.canAssist then
 		isBuilder[udefID] = true
+	end
+	if def.windgenerator and def.windgenerator > 0 then
+		isWind[udefID] = true
 	end
 end
 
@@ -375,8 +383,14 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, damage, paralyzer)
-    if unitTeam == myTeamID and isCommander[unitDefID] then
-        commanders[unitID] = select(2, spGetUnitHealth(unitID))
+    if unitTeam == myTeamID then
+		if isCommander[unitDefID] then
+			commanders[unitID] = select(2, spGetUnitHealth(unitID))
+
+		end
+		if windNotGood and isWind[unitDefID] then
+			Sd('WindNotGood')
+		end
     end
 end
 
