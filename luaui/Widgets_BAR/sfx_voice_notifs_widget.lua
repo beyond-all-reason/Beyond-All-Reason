@@ -175,7 +175,7 @@ for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder and def.canAssist then
 		isBuilder[udefID] = true
 	end
-	if def.windgenerator and def.windgenerator > 0 then
+	if def.windGenerator  and def.windGenerator  > 0 then
 		isWind[udefID] = true
 	end
 end
