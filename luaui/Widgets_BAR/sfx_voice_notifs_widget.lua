@@ -84,8 +84,8 @@ addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 0.6, 1.25, 'Bantha det
 addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 0.6, 1.4, 'Flagship detected')
 addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 0.6, 1.28, 'Commando detected')
 addSound('TransportDetected', 'TransportDetected.wav', 9999999, 0.6, 1.5, 'Transport located')
-addSound('AirTrainsportDetected', 'AirTransportDetected.wav', 9999999, 0.6, 1.38, 'Air transport spotted')
-addSound('SeaTrainsportDetected', 'SeaTransportDetected.wav', 9999999, 0.6, 1.95, 'Sea transport located')
+addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 0.6, 1.38, 'Air transport spotted')
+addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 0.6, 1.95, 'Sea transport located')
 
 
 local unitsOfInterest = {}
@@ -107,12 +107,12 @@ unitsOfInterest[UnitDefNames['cormando'].id] = 'CommandoDetected'
 unitsOfInterest[UnitDefNames['armthovr'].id] = 'TransportDetected'
 unitsOfInterest[UnitDefNames['corthovr'].id] = 'TransportDetected'
 unitsOfInterest[UnitDefNames['corintr'].id] = 'TransportDetected'
-unitsOfInterest[UnitDefNames['armatlas'].id] = 'AirTrainsportDetected'
-unitsOfInterest[UnitDefNames['corvalk'].id] = 'AirTrainsportDetected'
-unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTrainsportDetected'
-unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTrainsportDetected'
-unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTrainsportDetected'
-unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTrainsportDetected'
+unitsOfInterest[UnitDefNames['armatlas'].id] = 'AirTransportDetected'
+unitsOfInterest[UnitDefNames['corvalk'].id] = 'AirTransportDetected'
+unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTransportDetected'
+unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTransportDetected'
+unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTransportDetected'
+unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTransportDetected'
 
 
 local spGetGameFrame = Spring.GetGameFrame
@@ -319,11 +319,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeamID then
 		if unitDefID == vulcanDefID then
 			Sd('VulcanIsReady')
-		end
-		if unitDefID == buzzsawDefID then
+		elseif unitDefID == buzzsawDefID then
 			Sd('BuzzsawIsReady')
-		end
-		if isT3[unitDefID] then
+		elseif isT3[unitDefID] then
 			Sd('Tech3UnitReady')
 		end
 	end
