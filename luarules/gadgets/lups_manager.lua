@@ -256,8 +256,6 @@ else
 	local IsUnitInLos         = Spring.IsUnitInLos
 
 	local particleIDs = {}
-	local initialized = false --// if LUPS isn't started yet, we try it once a gameframe later
-	local tryloading  = 1     --// try to activate lups if it isn't found
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -407,14 +405,12 @@ else
 
 	function gadget:Shutdown()
 
-		if initialized then
-			for _,unitFxIDs in pairs(particleIDs) do
-				for _,fxID in ipairs(unitFxIDs) do
-					Lups.RemoveParticles(fxID)
-				end
+		for _,unitFxIDs in pairs(particleIDs) do
+			for _,fxID in ipairs(unitFxIDs) do
+				Lups.RemoveParticles(fxID)
 			end
-			particleIDs = {}
 		end
+		particleIDs = {}
 
 		Spring.SendLuaRulesMsg("lups shutdown","allies")
 	end
