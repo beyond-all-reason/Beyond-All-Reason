@@ -272,7 +272,7 @@ else
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and attackerTeam ~= unitTeam then
+		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			BroadcastEvent("EventBroadcast", 'LrpcTargetUnits', tostring(myPlayerID))
 		end
 	end
@@ -282,7 +282,7 @@ else
 
 		if not Spring.IsUnitInView(unitID) then
 
-			-- if my unit and killed by enemy
+			-- if own and not killed by yourself
 			if unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
 				if isRadar[unitDefID] then
 					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'

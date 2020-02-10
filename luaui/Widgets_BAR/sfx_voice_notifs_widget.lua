@@ -58,6 +58,9 @@ addSound('EnergyStorageFull', 'energystorefull.wav', 40, 0.6, 1.65, 'Energy stor
 addSound('NukeLaunched', 'NukeLaunched.wav', 3, 0.8, 2, 'Nuclear missile launch detected')
 addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 0.6, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
 
+addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 0.6, 1.16, 'Vulcan is ready')
+addSound('BuzzsawISReady', 'BuzzsawISReady.wav', 30, 0.6, 1.31, 'Buzzsaw is ready')
+
 addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 0.6, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
 addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 0.6, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
 
@@ -146,6 +149,8 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
+local vulcanDefID = UnitDefNames['armvulc'].id
+local buzzsawDefID = UnitDefNames['corbuzz'].id
 
 local isCommander = {}
 local isBuilder = {}
@@ -295,6 +300,18 @@ end
 function widget:UnitIdle(unitID)
 	if isBuilder[spGetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
 		idleBuilder[unitID] = spGetGameFrame() + idleBuilderNotificationDelay
+	end
+end
+
+
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	if unitTeam == myTeamID then
+		if unitDefID == vulcanDefID then
+			Sd('VulcanIsReady')
+		end
+		if unitDefID == buzzsawDefID then
+			Sd('BuzzsawIsReady')
+		end
 	end
 end
 
