@@ -144,7 +144,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				energypershot = 1000,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:laserhit-large-blue",
 				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,
@@ -170,6 +170,8 @@ return {
 				weaponvelocity = 1500,
 				customparams = {
 					light_radius_mult = "1.2",
+					expl_light_life_mult = 1.3,
+					expl_light_radius_mult = 1.15,
 				},
 				damage = {
 					commanders = 1000,

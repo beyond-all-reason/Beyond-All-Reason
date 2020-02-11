@@ -183,7 +183,7 @@ return {
 				noselfdamage = true,
 				range = 350,
 				reloadtime = 0.7,
-				soundhit = "XploMed2",
+				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				-- soundhitwetvolume = 0.5,
 				soundstart = "KroGun1",
