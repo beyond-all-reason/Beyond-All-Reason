@@ -113,7 +113,6 @@ addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 0.6, 1.95,
 -- tutorial explanations (unlisted)
 addSound('tutorial1', 'tutorial1.wav', 9999999, 0.6, 24.4, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy. When you select your Commander, you choose the Metal Extractor, and build it on a metal spot indicated by the rotating circles on your map. Build energy generators like Wind mills or Solar Collectors to increase your energy income.", true)
 addSound('tutorial2', 'tutorial2.wav', 9999999, 0.6, 27.4, "Well done, now you have metal and energy income. Its time to produce mobile units to scout, defend or attack. Choose your preferred factory and start production. While being constructed, you can already choose the units it needs to produce. Dont forget to build constructor units as well, because they can help you expand your base and improve your map control. They can also build more advanced units.", true)
-local tutorial2played = false
 
 
 local unitsOfInterest = {}
@@ -176,13 +175,9 @@ local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myRank = select(9,Spring.GetPlayerInfo(myPlayerID))
 
-local tutorialMode = false
-local tutorialRuns = 0
-local tutorialCompletions = 0
-if not isSpec and myRank == 0 and tutorialCompletions < 2 then
-	tutorialMode = true
-	tutorialRuns = tutorialRuns + 1
-end
+local tutorialMode = (myRank == 0)
+local tutorialPlayed = {}		-- store the number of times a tutorial event has played across games
+local tutorialPlayedThisGame = {}	-- log that a tutorial event has played this game
 
 local vulcanDefID = UnitDefNames['armvulc'].id
 local buzzsawDefID = UnitDefNames['corbuzz'].id
@@ -266,12 +261,28 @@ function widget:Initialize()
 		end
 		return soundInfo
 	end
-    WG['voicenotifs'].getVolume = function()
-        return volume
-    end
-    WG['voicenotifs'].setVolume = function(value)
-        volume = value
-    end
+	WG['voicenotifs'].getTutorial = function()
+		return tutorialMode
+	end
+	WG['voicenotifs'].setTutorial = function(value)
+		tutorialMode = value
+		if tutorialMode then
+			local count = 0
+			for i,v in pairs(tutorialPlayed) do
+				count = count + 1
+			end
+			if count > 0 then
+				tutorialPlayed = {}
+				Spring.Echo('Tutorial notifications enabled. (and reset the already played messages memory)')
+			end
+		end
+	end
+	WG['voicenotifs'].getVolume = function()
+		return volume
+	end
+	WG['voicenotifs'].setVolume = function(value)
+		volume = value
+	end
 	WG['voicenotifs'].getSpoken = function()
 		return spoken
 	end
@@ -307,24 +318,27 @@ end
 
 
 function widget:GameFrame(gf)
-	if gf == 30 and tutorialMode then
+	if gf == 30 and tutorialMode and not isSpec then
 		lastUserInputTime = os.clock()
 		isIdle = false
-		QueueNotification('tutorial1')
+		local event = 'tutorial1'
+		QueueNotification(event)
+		tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
 	end
 	if gf % 30 == 15 then
 		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(myTeamID,'energy')
 
 		-- tutorial
-		if tutorialMode and not tutorial2played then
+		if tutorialMode and not isSpec and not tutorialPlayedThisGame['tutorial2'] then
 			if income >= 50 then
 				local mcurrentLevel, mstorage, mpull, mincome, mexpense, mshare, msent, mreceived = spGetTeamResources(myTeamID,'metal')
 				if mincome >= 4 then
 					lastUserInputTime = os.clock()
 					isIdle = false
-					QueueNotification('tutorial2')
-					tutorial2played = true
-					tutorialCompletions = true
+					local event = 'tutorial2'
+					QueueNotification(event)
+					tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
+					tutorialPlayedThisGame[event] = true
 				end
 			end
 		end
@@ -576,8 +590,8 @@ function widget:GetConfigData(data)
 		displayMessages = displayMessages,
 		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
-		tutorialRuns = tutorialRuns,
-		tutorialCompletions = tutorialCompletions,
+		tutorialPlayed = tutorialPlayed,
+		tutorialPlayedThisGame = tutorialPlayedThisGame,
 	}
 end
 
@@ -592,12 +606,6 @@ function widget:SetConfigData(data)
 	if data.volume ~= nil then
 		volume = data.volume
 	end
-	if data.tutorialRuns ~= nil then
-		tutorialRuns = data.tutorialRuns
-	end
-	if data.tutorialCompletions ~= nil then
-		tutorialCompletions = data.tutorialCompletions
-	end
 	if data.spoken ~= nil then
 		spoken = data.spoken
 	end
@@ -607,9 +615,15 @@ function widget:SetConfigData(data)
 	if data.playTrackedPlayerNotifs ~= nil then
 		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
 	end
+	if data.tutorialPlayed ~= nil then
+		tutorialPlayed = data.tutorialPlayed
+	end
 	if spGetGameFrame() > 0 then
 		if data.LastPlay then
 			LastPlay = data.LastPlay
+		end
+		if data.tutorialPlayedThisGame ~= nil then
+			tutorialPlayedThisGame = data.tutorialPlayedThisGame
 		end
 	end
 end
