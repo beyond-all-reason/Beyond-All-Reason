@@ -220,6 +220,51 @@ local presets = {
 local customPresets = {}
 
 
+local startScript = [[[game]
+{
+	[allyteam1]
+	{
+		numallies=0;
+	}
+	[team1]
+	{
+		teamleader=0;
+		allyteam=1;
+	}
+	[ai0]
+	{
+		shortname=Null AI;
+		name=AI: Null AI;
+		team=1;
+		host=0;
+	}
+	[modoptions]
+	{
+		maxspeed=20;
+	}
+	[allyteam0]
+	{
+		numallies=0;
+	}
+	[team0]
+	{
+		teamleader=0;
+		allyteam=0;
+	}
+	[player0]
+	{
+		team=0;
+		name=]]..select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID()))..[[;
+	}
+	mapname=]]..Game.mapName..[[;
+	myplayername=]]..select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID()))..[[;
+	ishost=1;
+	gametype=]]..Game.gameName..' '..Game.gameVersion..[[;
+	nohelperais=0;
+}
+]]
+
+
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*centerPosX) - (screenWidth/2)
@@ -1574,12 +1619,12 @@ function init()
 	options = {
 		-- PRESET
 		{id="preset", group="gfx", basic=true, name="Load graphics preset", type="select", options=presetNames, value=0, description='Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
-		  onload = function() end,
-		  onchange = function(i, value)
-			  Spring.Echo('Loading preset:   '..options[i].options[value])
-			  options[i].value = 0
-			  loadPreset(presetNames[value])
-		  end,
+		 onload = function() end,
+		 onchange = function(i, value)
+			 Spring.Echo('Loading preset:   '..options[i].options[value])
+			 options[i].value = 0
+			 loadPreset(presetNames[value])
+		 end,
 		},
 		--GFX
 		{id="resolution", group="gfx", basic=true, name="Resolution", type="select", options=supportedResolutions, value=0, description='WARNING: sometimes freezes game engine in windowed mode',
@@ -2116,13 +2161,13 @@ function init()
 
 		{id="camera", group="control", basic=true, name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2)),
 		 onchange = function(i, value)
-			Spring.SetConfigInt("CamMode",(value-1))
-			if value == 1 then Spring.SendCommands('viewfps')
-			elseif value == 2 then Spring.SendCommands('viewta')
-			elseif value == 3 then Spring.SendCommands('viewspring')
-			elseif value == 4 then Spring.SendCommands('viewrot')
-			elseif value == 5 then Spring.SendCommands('viewfree')
-			end
+			 Spring.SetConfigInt("CamMode",(value-1))
+			 if value == 1 then Spring.SendCommands('viewfps')
+			 elseif value == 2 then Spring.SendCommands('viewta')
+			 elseif value == 3 then Spring.SendCommands('viewspring')
+			 elseif value == 4 then Spring.SendCommands('viewrot')
+			 elseif value == 5 then Spring.SendCommands('viewfree')
+			 end
 		 end,
 		},
 		{id="camerashake", group="control", basic=true, widget="CameraShake", name=widgetOptionColor.."   shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
@@ -2325,10 +2370,10 @@ function init()
 		 end,
 		},
 
-        {id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
-         onload = function() end,
-         onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
-        },
+		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
+		 onload = function() end,
+		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
+		},
 		{id="buildmenuprices", group="ui", name=widgetOptionColor.."   prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)',
 		 onload = function() end,
 		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, value) end,
@@ -2337,17 +2382,17 @@ function init()
 		 onload = function() end,
 		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, value) end,
 		},
-        {id="buildmenualternativeicons", group="ui", name=widgetOptionColor.."   alternative icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigAlternativeIcons()), description='Switch to a different unit icon set',
-         onload = function() end,
-         onchange = function(i, value)
-             saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
-             saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-             saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-             saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-             saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-         end,
-        },
-        --{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
+		{id="buildmenualternativeicons", group="ui", name=widgetOptionColor.."   alternative icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigAlternativeIcons()), description='Switch to a different unit icon set',
+		 onload = function() end,
+		 onchange = function(i, value)
+			 saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+		 end,
+		},
+		--{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
 		-- onload = function() end,
 		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
 		--},
@@ -2359,10 +2404,10 @@ function init()
 		},
 
 		{id="displaydps", group="ui", basic=true, name="Display DPS", type="bool", value=tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1, description='Display the \'Damage Per Second\' done where target are hit',
-		  onload = function()  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("DisplayDPS",(value and 1 or 0))
-		  end,
+		 onload = function()  end,
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("DisplayDPS",(value and 1 or 0))
+		 end,
 		},
 
 		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
@@ -2601,7 +2646,12 @@ function init()
 
 		-- DEV
 		{id="autocheat", group="dev", widget="Auto cheat", name="Auto enable cheats for $VERSION", type="bool", value=GetWidgetToggleValue("Auto cheat"), description="does: /cheat, /globallos, /godmode"},
-
+		{id="restart", group="dev", name="Restart", type="bool", value=false, description="Restarts the game",
+		 onchange=function(i, value)
+			 options[getOptionByID('restart')].value = false
+			 Spring.Restart("", startScript)
+		 end,
+		},
 		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", value)
@@ -2642,21 +2692,21 @@ function init()
 			 Spring.SetConfigFloat("envAmbient", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
-		end,
+		 end,
 		},
 		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitSunMult", 1.5), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitSunMult", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
-		end,
+		 end,
 		},
 		{id="unitExposureMult", group="dev", name="Units exposure mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitExposureMult", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
-		end,
+		 end,
 		},
 		{id="tonemapDefaults", group="dev", name=widgetOptionColor.."   restore defaults", type="bool", value=GetWidgetToggleValue("Unit Reclaimer"), description="",
 		 onchange=function(i, value)
@@ -2683,6 +2733,10 @@ function init()
 		},
 
 	}
+
+	if not string.find(string.upper(Game.gameVersion), "$VERSION") then
+		options[getOptionByID('restart')] = nil
+	end
 
 	-- dynamic sun settings applied by gadget: disable user controls
 	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0 then
@@ -2794,7 +2848,7 @@ function init()
 
 	if #supportedResolutions < 2 then
 		options[getOptionByID('resolution')] = nil
-		else
+	else
 		for id,res in pairs(options[getOptionByID('resolution')].options) do
 			if res == vsx..' x '..vsy then
 				options[getOptionByID('resolution')].value = id
@@ -2821,7 +2875,7 @@ function init()
 					for k, v in pairs(soundList) do
 						count = count + 1
 						newOptions[count] = {id="voicenotifs_snd_"..v[1], group="notif", basic=true, name=widgetOptionColor.."   "..v[1], type="bool", value=v[2], description=v[3],
-							onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..v[1], {'soundList'}, value) end,
+											 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..v[1], {'soundList'}, value) end,
 						}
 					end
 				end
@@ -3005,8 +3059,8 @@ function init()
 	for oid,option in pairs(options) do
 		insert = true
 		if option.type == 'slider' and not option.steps then
-		if option.value < option.min then option.value = option.min end
-		if option.value > option.max then option.value = option.max end
+			if option.value < option.min then option.value = option.min end
+			if option.value > option.max then option.value = option.max end
 		end
 		if option.widget ~= nil and widgetHandler.knownWidgets[option.widget] == nil then
 			insert = false
