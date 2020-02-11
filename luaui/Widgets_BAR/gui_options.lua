@@ -2600,6 +2600,8 @@ function init()
 		{id="profiler", group="dev", widget="Widget Profiler", name="Widget profiler", type="bool", value=GetWidgetToggleValue("Widget Profiler"), description=""},
 
 		-- DEV
+		{id="autocheat", group="dev", widget="Auto cheat", name="Auto enable cheats for $VERSION", type="bool", value=GetWidgetToggleValue("Auto cheat"), description="does: /cheat, /globallos, /godmode"},
+
 		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", value)
