@@ -346,6 +346,35 @@ return {
     },
   },
 
+  ["burnblackbig"] = {
+    flame = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      properties = {
+        airdrag            = 0.98,
+        colormap           = [[0.91 0.9 0.9 0.3  0.72 0.7 0.7 0.2   0.12 0.11 0.1 0.11   0 0 0 0.08   0 0 0 0.05   0 0 0 0.03   0 0 0 0.01]],
+        directional        = true,
+        emitrot            = 65,
+        emitrotspread      = 65,
+        emitvector         = [[0.3, 1, 0.3]],
+        gravity            = [[0, 0.05, 0]],
+        numparticles       = 3,
+        particlelife       = 40,
+        particlelifespread = 36,
+        particlesize       = 10,
+        particlesizespread = 12,
+        particlespeed      = 0.45,
+        particlespeedspread = 0.4,
+        pos                = [[-3 r6, -3 r6, -3 r6]],
+        sizegrowth         = 0.7,
+        sizemod            = 0.98,
+        texture            = [[fire]],
+      },
+    },
+  },
+
   ["burngreen"] = {
     groundflash = {
       circlealpha        = 0.1,
