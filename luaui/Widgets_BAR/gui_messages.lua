@@ -203,9 +203,34 @@ function addMessage(text)
             currentTypewriterLine = currentTypewriterLine + 1
         end
 
+        -- convert /n into lines
         local textLines = lines(text)
-        for i, line in ipairs(textLines) do
 
+        -- word wrap text into lines
+        local wordwrappedText = {}
+        for i, line in ipairs(textLines) do
+            local words = {}
+            local linebuffer = ''
+            for w in line:gmatch("%S+") do
+                words[#words+1] = w
+            end
+            for wi, word in ipairs(words) do
+                if font:GetTextWidth(linebuffer..' '..word)*charSize*widgetScale > lineMaxWidth then
+                    wordwrappedText[#wordwrappedText+1] = linebuffer
+                    linebuffer = ''
+                end
+                if linebuffer == '' then
+                    linebuffer = word
+                else
+                    linebuffer = linebuffer..' '..word
+                end
+            end
+            if linebuffer ~= '' then
+                wordwrappedText[#wordwrappedText+1] = linebuffer
+            end
+        end
+
+        for i, line in ipairs(wordwrappedText) do
             lineMaxWidth = math.max(lineMaxWidth, font:GetTextWidth(line)*charSize*widgetScale)
             messageLines[#messageLines+1] = {
                 startTime,

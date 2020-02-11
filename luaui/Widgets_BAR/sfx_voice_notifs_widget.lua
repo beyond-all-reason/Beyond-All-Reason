@@ -24,33 +24,41 @@ local lowpowerThreshold = 6		-- if there is X secs a low power situation
 
 
 local spGetGameFrame = Spring.GetGameFrame
+local spGetTeamResources = Spring.GetTeamResources
+
 local LastPlay = {}
 local soundFolder = "Sounds/voice/"
 local Sound = {}
 local SoundOrder = {}
 
-function addSound(name, file, minDelay, volume, duration, message)
+function addSound(name, file, minDelay, volume, duration, message, unlisted)
 	Sound[name] = {file, minDelay, volume, duration, message}
-	SoundOrder[#SoundOrder+1] = name
+	if not unlisted then
+		SoundOrder[#SoundOrder+1] = name
+	end
 end
 
-addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1, 1.7, 'An enemy commander has died')
-addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 0.8, 1.75, 'A friendly commander has died')
+-- commanders
+addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 0.6, 1.7, 'An enemy commander has died')
+addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 0.6, 1.75, 'A friendly commander has died')
 addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 0.6, 2.25, 'Your commander is receiving heavy damage')
 
+-- game status
+addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 0.6, 2.2, "Choose your starting location")
 addSound('GameStarted', 'GameStarted.wav', 1, 0.6, 1, 'Battle started')
 addSound('GamePause', 'GamePause.wav', 5, 0.6, 1, 'Battle paused')
-addSound('IdleBuilder', 'IdleBuilder.wav', 30, 0.6, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', 'UnitReceived.wav', 4, 0.8, 1.75, "You've received new units")
-addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 0.8, 2.2, "Choose your starting location")
-
 addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 0.6, 1.65, 'A player has disconnected')
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 0.6, 2.36, 'A player has been added to the game')
+
+-- battle
+addSound('IdleBuilder', 'IdleBuilder.wav', 30, 0.6, 1.9, 'A builder has finished building')
+addSound('UnitsReceived', 'UnitReceived.wav', 4, 0.8, 1.75, "You've received new units")
 
 addSound('RadarLost', 'RadarLost.wav', 8, 0.6, 1, 'Radar lost')
 addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 0.6, 1.32, 'Advanced radar lost')
 addSound('MexLost', 'MexLost.wav', 8, 0.6, 1.53, 'Metal extractor lost')
 
+-- resources
 addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 0.6, 1.63, 'Your are overflowing metal')
 addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 40, 0.6, 1.7, 'Your are overflowing energy')
 addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 0.6, 1.5, 'Your are wasting metal')
@@ -62,7 +70,6 @@ addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 30, 0.6, 2.14, 
 addSound('LowPower', 'LowPower.wav', 20, 0.6, 0.95, 'Low power')
 addSound('WindNotGood', 'WindNotGood.wav', 9999999, 0.6, 3.76, 'On this map, wind is not good for energy production')
 
-
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
 LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
@@ -71,14 +78,16 @@ LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
 LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+300
 LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+300
 
-
+-- alerts
 addSound('NukeLaunched', 'NukeLaunched.wav', 3, 0.8, 2, 'Nuclear missile launch detected')
 addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 0.6, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
 
+-- unit ready
 addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 0.6, 1.16, 'Vulcan is ready')
 addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 0.6, 1.31, 'Buzzsaw is ready')
 addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 0.6, 1.78, 'Tech 3 unit is ready')
 
+-- detections
 addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 0.6, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
 addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 0.6, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
 
@@ -86,6 +95,7 @@ addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 0.6, 1.25, 'Aircraft
 addSound('MinesDetected', 'MinesDetected.wav', 200, 0.6, 2.6, 'Warning: mines have been detected')
 addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 0.6, 4.8, 'Stealthy units detected within the "Intrusion countermeasure" range')
 
+-- unit detections
 addSound('LrpcDetected', 'LrpcDetected.wav', 25, 0.6, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected')
 addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 0.6, 2.1, 'EMP missile silo detected')
 addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 0.6, 2, 'Tactical nuke silo detected')
@@ -100,6 +110,10 @@ addSound('TransportDetected', 'TransportDetected.wav', 9999999, 0.6, 1.5, 'Trans
 addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 0.6, 1.38, 'Air transport spotted')
 addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 0.6, 1.95, 'Sea transport located')
 
+-- tutorial explanations (unlisted)
+addSound('tutorial1', 'tutorial1.wav', 9999999, 0.6, 24.4, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy. When you select your Commander, you choose the Metal Extractor, and build it on a metal spot indicated by the rotating circles on your map. Build energy generators like Wind mills or Solar Collectors to increase your energy income.", true)
+addSound('tutorial2', 'tutorial2.wav', 9999999, 0.6, 27.4, "Well done, now you have metal and energy income. Its time to produce mobile units to scout, defend or attack. Choose your preferred factory and start production. While being constructed, you can already choose the units it needs to produce. Dont forget to build constructor units as well, because they can help you expand your base and improve your map control. They can also build more advanced units.", true)
+local tutorial2played = false
 
 
 local unitsOfInterest = {}
@@ -134,7 +148,6 @@ for k, v in pairs(Sound) do
 	soundList[k] = true
 end
 
-
 local soundQueue = {}
 local nextSoundQueued = 0
 local taggedUnitsOfInterest = {}
@@ -161,6 +174,15 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myRank = select(9,Spring.GetPlayerInfo(myPlayerID))
+
+local tutorialMode = false
+local tutorialRuns = 0
+local tutorialCompletions = 0
+if not isSpec and myRank == 0 and tutorialCompletions < 2 then
+	tutorialMode = true
+	tutorialRuns = tutorialRuns + 1
+end
 
 local vulcanDefID = UnitDefNames['armvulc'].id
 local buzzsawDefID = UnitDefNames['corbuzz'].id
@@ -285,9 +307,29 @@ end
 
 
 function widget:GameFrame(gf)
+	if gf == 30 and tutorialMode then
+		lastUserInputTime = os.clock()
+		isIdle = false
+		Sd('tutorial1')
+	end
 	if gf % 30 == 15 then
+		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(myTeamID,'energy')
+
+		-- tutorial
+		if tutorialMode and not tutorial2played then
+			if income >= 50 then
+				local mcurrentLevel, mstorage, mpull, mincome, mexpense, mshare, msent, mreceived = spGetTeamResources(myTeamID,'metal')
+				if mincome >= 4 then
+					lastUserInputTime = os.clock()
+					isIdle = false
+					Sd('tutorial2')
+					tutorial2played = true
+					tutorialCompletions = true
+				end
+			end
+		end
+
 		-- low power check
-		local currentLevel, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(myTeamID,'energy')
 		if (currentLevel / storage) < 0.025 and currentLevel < 3000 then
 			lowpowerDuration = lowpowerDuration + 1
 			if lowpowerDuration >= lowpowerThreshold then
@@ -485,6 +527,7 @@ function widget:Update(dt)
     end
 end
 
+-- function that gadgets can call
 function EventBroadcast(msg)
 	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
         if string.find(msg, "SoundEvents") then
@@ -533,6 +576,8 @@ function widget:GetConfigData(data)
 		displayMessages = displayMessages,
 		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
+		tutorialRuns = tutorialRuns,
+		tutorialCompletions = tutorialCompletions,
 	}
 end
 
@@ -546,6 +591,12 @@ function widget:SetConfigData(data)
 	end
 	if data.volume ~= nil then
 		volume = data.volume
+	end
+	if data.tutorialRuns ~= nil then
+		tutorialRuns = data.tutorialRuns
+	end
+	if data.tutorialCompletions ~= nil then
+		tutorialCompletions = data.tutorialCompletions
 	end
 	if data.spoken ~= nil then
 		spoken = data.spoken
