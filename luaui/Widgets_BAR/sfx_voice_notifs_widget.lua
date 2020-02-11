@@ -45,12 +45,12 @@ addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 0.6, 2.25, 'Your commander 
 
 -- game status
 addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 0.6, 2.2, "Choose your starting location")
-addSound('GameStarted', 'GameStarted.wav', 1, 0.6, 1, 'Battle started')
+addSound('GameStarted', 'GameStarted.wav', 1, 0.6, 2, 'Battle started')
 addSound('GamePause', 'GamePause.wav', 5, 0.6, 1, 'Battle paused')
 addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 0.6, 1.65, 'A player has disconnected')
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 0.6, 2.36, 'A player has been added to the game')
 
--- battle
+-- awareness
 addSound('IdleBuilder', 'IdleBuilder.wav', 30, 0.6, 1.9, 'A builder has finished building')
 addSound('UnitsReceived', 'UnitReceived.wav', 4, 0.8, 1.75, "You've received new units")
 
@@ -295,7 +295,7 @@ function widget:Initialize()
 	end
 	WG['voicenotifs'].addEvent = function(value)
 		if Sound[value] then
-			Sd(value)
+			QueueNotification(value)
 		end
 	end
 end
@@ -310,7 +310,7 @@ function widget:GameFrame(gf)
 	if gf == 30 and tutorialMode then
 		lastUserInputTime = os.clock()
 		isIdle = false
-		Sd('tutorial1')
+		QueueNotification('tutorial1')
 	end
 	if gf % 30 == 15 then
 		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(myTeamID,'energy')
@@ -322,7 +322,7 @@ function widget:GameFrame(gf)
 				if mincome >= 4 then
 					lastUserInputTime = os.clock()
 					isIdle = false
-					Sd('tutorial2')
+					QueueNotification('tutorial2')
 					tutorial2played = true
 					tutorialCompletions = true
 				end
@@ -333,7 +333,7 @@ function widget:GameFrame(gf)
 		if (currentLevel / storage) < 0.025 and currentLevel < 3000 then
 			lowpowerDuration = lowpowerDuration + 1
 			if lowpowerDuration >= lowpowerThreshold then
-				Sd('LowPower')
+				QueueNotification('LowPower')
 				lowpowerDuration = 0
 			end
 		end
@@ -343,7 +343,7 @@ function widget:GameFrame(gf)
 			if spIsUnitInView(unitID) then
 				idleBuilder[unitID] = nil
 			elseif frame < gf then
-				Sd('IdleBuilder')
+				QueueNotification('IdleBuilder')
 				idleBuilder[unitID] = nil	-- do not repeat
 			end
 		end
@@ -371,11 +371,11 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeamID then
 		if unitDefID == vulcanDefID then
-			Sd('VulcanIsReady')
+			QueueNotification('VulcanIsReady')
 		elseif unitDefID == buzzsawDefID then
-			Sd('BuzzsawIsReady')
+			QueueNotification('BuzzsawIsReady')
 		elseif isT3[unitDefID] then
-			Sd('Tech3UnitReady')
+			QueueNotification('Tech3UnitReady')
 		end
 	end
 end
@@ -388,26 +388,26 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 
 	-- single detection events below
 	if isAircraft[udefID] then
-		Sd('AircraftSpotted')
+		QueueNotification('AircraftSpotted')
 	end
 	if isT2[udefID] then
-		Sd('T2Detected')
+		QueueNotification('T2Detected')
 	end
 	if isT3[udefID] then
-		Sd('T3Detected')
+		QueueNotification('T3Detected')
 	end
 	if isMine[udefID] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		local units = Spring.GetUnitsInCylinder(x,z,1700, myTeamID)
 		if #units > 0 then		-- ignore when far away
-			Sd('MinesDetected')
+			QueueNotification('MinesDetected')
 		end
 	end
 
 	-- notify about units of interest
 	if udefID and unitsOfInterest[udefID] and not taggedUnitsOfInterest[unitID] then
 		taggedUnitsOfInterest[unitID] = true
-		Sd(unitsOfInterest[udefID])
+		QueueNotification(unitsOfInterest[udefID])
 	end
 end
 
@@ -431,7 +431,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, damage, paralyzer)
 
 		end
 		if windNotGood and isWind[unitDefID] then
-			Sd('WindNotGood')
+			QueueNotification('WindNotGood')
 		end
     end
 end
@@ -458,7 +458,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
             end
         end
         if totalDamage >= commanders[unitID] * 0.12 then
-            Sd('ComHeavyDamage')
+            QueueNotification('ComHeavyDamage')
         end
 	end
 end
@@ -535,13 +535,13 @@ function EventBroadcast(msg)
             event = string.sub(msg, 1, string.find(msg, " ")-1)
             player = string.sub(msg, string.find(msg, " ")+1, string.len(msg))
             if (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-                Sd(event)
+                QueueNotification(event)
             end
         end
 	end
 end
 
-function Sd(event)
+function QueueNotification(event)
 	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
 		if soundList[event] and Sound[event] then
 			if not LastPlay[event] then

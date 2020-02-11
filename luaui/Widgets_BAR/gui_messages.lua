@@ -23,13 +23,13 @@ end
 local showTestMessages = false
 
 local charSize = 18
-local charDelay = 0.017
-local maxLines = 5
+local charDelay = 0.022
+local maxLines = 6
 local maxLinesScroll = 9
-local lineTTL = 12
+local lineTTL = 14
 local fadeTime = 0.4
 local fadeDelay = 0.25   -- need to hover this long in order to fadein and respond to CTRL
-local backgroundOpacity = 0.2
+local backgroundOpacity = 0.18
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

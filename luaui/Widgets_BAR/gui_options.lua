@@ -219,51 +219,57 @@ local presets = {
 }
 local customPresets = {}
 
+local startScript = VFS.LoadFile("_script.txt")
+if not startScript then
+	local modoptions = ''
+	for key, value in pairs(Spring.GetModOptions()) do
+		modoptions = modoptions .. key..'='..value..';';
+	end
 
-local startScript = [[[game]
-{
-	[allyteam1]
+	startScript = [[[game]
 	{
-		numallies=0;
+		[allyteam1]
+		{
+			numallies=0;
+		}
+		[team1]
+		{
+			teamleader=0;
+			allyteam=1;
+		}
+		[ai0]
+		{
+			shortname=Null AI;
+			name=AI: Null AI;
+			team=1;
+			host=0;
+		}
+		[modoptions]
+		{
+			]]..modoptions..[[
+		}
+		[allyteam0]
+		{
+			numallies=0;
+		}
+		[team0]
+		{
+			teamleader=0;
+			allyteam=0;
+		}
+		[player0]
+		{
+			team=0;
+			name=]]..select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID()))..[[;
+		}
+		mapname=]]..Game.mapName..[[;
+		myplayername=]]..select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID()))..[[;
+		ishost=1;
+		gametype=]]..Game.gameName..' '..Game.gameVersion..[[;
+		nohelperais=0;
 	}
-	[team1]
-	{
-		teamleader=0;
-		allyteam=1;
-	}
-	[ai0]
-	{
-		shortname=Null AI;
-		name=AI: Null AI;
-		team=1;
-		host=0;
-	}
-	[modoptions]
-	{
-		maxspeed=20;
-	}
-	[allyteam0]
-	{
-		numallies=0;
-	}
-	[team0]
-	{
-		teamleader=0;
-		allyteam=0;
-	}
-	[player0]
-	{
-		team=0;
-		name=]]..select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID()))..[[;
-	}
-	mapname=]]..Game.mapName..[[;
-	myplayername=]]..select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID()))..[[;
-	ishost=1;
-	gametype=]]..Game.gameName..' '..Game.gameVersion..[[;
-	nohelperais=0;
-}
-]]
-
+	]]
+end
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
@@ -1596,9 +1602,6 @@ function init()
 		{id='notif', name='Notifications'},
 		{id='dev', name='Dev'},
 	}
-	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
-		optionGroups[#optionGroups+1] = {id='scav', name='Scavengers'}
-	end
 
 	if not currentGroupTab or Spring.GetGameFrame() == 0 then
 		currentGroupTab = optionGroups[1].id
@@ -2098,6 +2101,14 @@ function init()
 
 		--{id="voicenotifs", group="snd", basic=true, widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
 
+
+		{id="scav_messages", group="notif", basic=true, name="Scavenger written notifications", type="bool", value=tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1, description="",
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("scavmessages",(value and 1 or 0))
+		 end,
+		},
+		{id="scav_voicenotifs", group="notif", basic=true, widget="Scavenger Audio Reciever", name="Scavenger voice notifications", type="bool", value=GetWidgetToggleValue("Scavenger Audio Reciever"), description='Toggle the scavenger announcer voice'},
+
 		{id="voicenotifs_messages", group="notif", name="Written notifications", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getMessages()), description='Shows various notifications on screen',
 		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_messages", {'displayMessages'}) end,
 		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setMessages', {'displayMessages'}, value) end,
@@ -2114,9 +2125,6 @@ function init()
 		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'}) end,
 		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, value) end,
 		},
-
-		{id="scav_voicenotifs", group="scav", basic=true, widget="Scavenger Audio Reciever", name="Scavenger voice notifications", type="bool", value=GetWidgetToggleValue("Scavenger Audio Reciever"), description='Toggle the scavenger announcer voice'},
-
 
 		-- CONTROL
 		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
@@ -2567,12 +2575,6 @@ function init()
 		{id="playertv_countdown", group="ui", name="Player TV countdown", type="slider", min=8, max=60, step=1, value=(WG['playertv']~=nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description="Countdown time before it switches player",
 		 onload = function() loadWidgetData("Player-TV", "playertv_countdown", {'playerChangeDelay'}) end,
 		 onchange = function(i, value) saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value) end,
-		},
-
-		{id="scav_messages", group="scav", basic=true, name="Scavenger messages", type="bool", value=tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1, description="",
-		 onchange = function(i, value)
-			 Spring.SetConfigInt("scavmessages",(value and 1 or 0))
-		 end,
 		},
 
 

@@ -1,5 +1,6 @@
 ﻿10.24 -> 1.00
 
+ • Ground scout vehicles/kbot: 10% more LoS
  • Enabled ground deformation
 
 
