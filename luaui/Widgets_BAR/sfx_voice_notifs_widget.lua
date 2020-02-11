@@ -13,7 +13,9 @@ function widget:GetInfo()
     }
 end
 
-local volume = 1
+--------------------------------------------------------------------------------
+
+local globalVolume = 0.7
 local playTrackedPlayerNotifs = true
 local muteWhenIdle = true
 local idleTime = 6		-- after this much sec: mark user as idle
@@ -21,7 +23,9 @@ local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
 local lowpowerThreshold = 6		-- if there is X secs a low power situation
+local tutorialPlayLimit = 2		-- display the same tutorial message only this many times in total (max is always 1 play per game)
 
+--------------------------------------------------------------------------------
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetTeamResources = Spring.GetTeamResources
@@ -39,36 +43,36 @@ function addSound(name, file, minDelay, volume, duration, message, unlisted)
 end
 
 -- commanders
-addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 0.6, 1.7, 'An enemy commander has died')
-addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 0.6, 1.75, 'A friendly commander has died')
-addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 0.6, 2.25, 'Your commander is receiving heavy damage')
+addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.0, 1.7, 'An enemy commander has died')
+addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.0, 1.75, 'A friendly commander has died')
+addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 1.0, 2.25, 'Your commander is receiving heavy damage')
 
 -- game status
-addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 0.6, 2.2, "Choose your starting location")
-addSound('GameStarted', 'GameStarted.wav', 1, 0.6, 2, 'Battle started')
-addSound('GamePause', 'GamePause.wav', 5, 0.6, 1, 'Battle paused')
-addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 0.6, 1.65, 'A player has disconnected')
-addSound('PlayerAdded', 'PlayerAdded.wav', 1, 0.6, 2.36, 'A player has been added to the game')
+addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 1.0, 2.2, "Choose your starting location")
+addSound('GameStarted', 'GameStarted.wav', 1, 1.0, 2, 'Battle started')
+addSound('GamePause', 'GamePause.wav', 5, 1.0, 1, 'Battle paused')
+addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.0, 1.65, 'A player has disconnected')
+addSound('PlayerAdded', 'PlayerAdded.wav', 1, 1.0, 2.36, 'A player has been added to the game')
 
 -- awareness
-addSound('IdleBuilder', 'IdleBuilder.wav', 30, 0.6, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', 'UnitReceived.wav', 4, 0.8, 1.75, "You've received new units")
+addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.0, 1.9, 'A builder has finished building')
+addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.0, 1.75, "You've received new units")
 
-addSound('RadarLost', 'RadarLost.wav', 8, 0.6, 1, 'Radar lost')
-addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 0.6, 1.32, 'Advanced radar lost')
-addSound('MexLost', 'MexLost.wav', 8, 0.6, 1.53, 'Metal extractor lost')
+addSound('RadarLost', 'RadarLost.wav', 8, 1.0, 1, 'Radar lost')
+addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.0, 1.32, 'Advanced radar lost')
+addSound('MexLost', 'MexLost.wav', 8, 1.0, 1.53, 'Metal extractor lost')
 
 -- resources
-addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 0.6, 1.63, 'Your are overflowing metal')
-addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 40, 0.6, 1.7, 'Your are overflowing energy')
-addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 0.6, 1.5, 'Your are wasting metal')
-addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 0.6, 1.3, 'Your are wasting energy')
-addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 0.6, 1.82, 'The whole team is wasting metal')
-addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 30, 0.6, 2.14, 'Your whole team is wasting energy')
---addSound('MetalStorageFull', 'metalstorefull.wav', 40, 0.6, 1.62, 'Metal storage is full')
---addSound('EnergyStorageFull', 'energystorefull.wav', 40, 0.6, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 20, 0.6, 0.95, 'Low power')
-addSound('WindNotGood', 'WindNotGood.wav', 9999999, 0.6, 3.76, 'On this map, wind is not good for energy production')
+addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.0, 1.63, 'Your are overflowing metal')
+addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 40, 1.0, 1.7, 'Your are overflowing energy')
+addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.0, 1.5, 'Your are wasting metal')
+addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.0, 1.3, 'Your are wasting energy')
+addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.0, 1.82, 'The whole team is wasting metal')
+addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 30, 1.0, 2.14, 'Your whole team is wasting energy')
+--addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.0, 1.62, 'Metal storage is full')
+--addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.0, 1.65, 'Energy storage is full')
+addSound('LowPower', 'LowPower.wav', 20, 1.0, 0.95, 'Low power')
+addSound('WindNotGood', 'WindNotGood.wav', 9999999, 1.0, 3.76, 'On this map, wind is not good for energy production')
 
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
@@ -79,40 +83,40 @@ LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+300
 LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+300
 
 -- alerts
-addSound('NukeLaunched', 'NukeLaunched.wav', 3, 0.8, 2, 'Nuclear missile launch detected')
-addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 0.6, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
+addSound('NukeLaunched', 'NukeLaunched.wav', 3, 1.0, 2, 'Nuclear missile launch detected')
+addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 1.0, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
 
 -- unit ready
-addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 0.6, 1.16, 'Vulcan is ready')
-addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 0.6, 1.31, 'Buzzsaw is ready')
-addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 0.6, 1.78, 'Tech 3 unit is ready')
+addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 1.0, 1.16, 'Vulcan is ready')
+addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 1.0, 1.31, 'Buzzsaw is ready')
+addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.0, 1.78, 'Tech 3 unit is ready')
 
 -- detections
-addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 0.6, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
-addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 0.6, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
+addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 1.0, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
+addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 1.0, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
 
-addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 0.6, 1.25, 'Aircraft spotted')	-- top bar widget calls this
-addSound('MinesDetected', 'MinesDetected.wav', 200, 0.6, 2.6, 'Warning: mines have been detected')
-addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 0.6, 4.8, 'Stealthy units detected within the "Intrusion countermeasure" range')
+addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 1.0, 1.25, 'Aircraft spotted')	-- top bar widget calls this
+addSound('MinesDetected', 'MinesDetected.wav', 200, 1.0, 2.6, 'Warning: mines have been detected')
+addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 1.0, 4.8, 'Stealthy units detected within the "Intrusion countermeasure" range')
 
 -- unit detections
-addSound('LrpcDetected', 'LrpcDetected.wav', 25, 0.6, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected')
-addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 0.6, 2.1, 'EMP missile silo detected')
-addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 0.6, 2, 'Tactical nuke silo detected')
-addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 0.6, 1.7, 'Nuclear silo detected')
-addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 0.6, 1.6, 'Nuclear bomber detected')
-addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 0.6, 1.4, 'Juggernaut detected')
-addSound('KrogothDetected', 'KrogothDetected.wav', 9999999, 0.6, 1.25, 'Krogoth detected')
-addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 0.6, 1.25, 'Bantha detected')
-addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 0.6, 1.4, 'Flagship detected')
-addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 0.6, 1.28, 'Commando detected')
-addSound('TransportDetected', 'TransportDetected.wav', 9999999, 0.6, 1.5, 'Transport located')
-addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 0.6, 1.38, 'Air transport spotted')
-addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 0.6, 1.95, 'Sea transport located')
+addSound('LrpcDetected', 'LrpcDetected.wav', 25, 1.0, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected')
+addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 1.0, 2.1, 'EMP missile silo detected')
+addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 1.0, 2, 'Tactical nuke silo detected')
+addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.0, 1.7, 'Nuclear silo detected')
+addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.0, 1.6, 'Nuclear bomber detected')
+addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.0, 1.4, 'Juggernaut detected')
+addSound('KrogothDetected', 'KrogothDetected.wav', 9999999, 1.0, 1.25, 'Krogoth detected')
+addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.0, 1.25, 'Bantha detected')
+addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.0, 1.4, 'Flagship detected')
+addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.0, 1.28, 'Commando detected')
+addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.0, 1.5, 'Transport located')
+addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.0, 1.38, 'Air transport spotted')
+addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.0, 1.95, 'Sea transport located')
 
 -- tutorial explanations (unlisted)
-addSound('tutorial1', 'tutorial1.wav', 9999999, 0.6, 24.4, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy. When you select your Commander, you choose the Metal Extractor, and build it on a metal spot indicated by the rotating circles on your map. Build energy generators like Wind mills or Solar Collectors to increase your energy income.", true)
-addSound('tutorial2', 'tutorial2.wav', 9999999, 0.6, 27.4, "Well done, now you have metal and energy income. Its time to produce mobile units to scout, defend or attack. Choose your preferred factory and start production. While being constructed, you can already choose the units it needs to produce. Dont forget to build constructor units as well, because they can help you expand your base and improve your map control. They can also build more advanced units.", true)
+addSound('tutorial1', 'tutorial1.wav', 9999999, 1.0, 24.4, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy. When you select your Commander, you choose the Metal Extractor, and build it on a metal spot indicated by the rotating circles on your map. Build energy generators like Wind mills or Solar Collectors to increase your energy income.", true)
+addSound('tutorial2', 'tutorial2.wav', 9999999, 1.0, 27.4, "Well done, now you have metal and energy income. Its time to produce mobile units to scout, defend or attack. Choose your preferred factory and start production. While being constructed, you can already choose the units it needs to produce. Dont forget to build constructor units as well, because they can help you expand your base and improve your map control. They can also build more advanced units.", true)
 
 
 local unitsOfInterest = {}
@@ -273,15 +277,15 @@ function widget:Initialize()
 			end
 			if count > 0 then
 				tutorialPlayed = {}
-				Spring.Echo('Tutorial notifications enabled. (and reset the already played messages memory)')
+				Spring.Echo('Tutorial notifications enabled. (and resetted the already played messages memory)')
 			end
 		end
 	end
 	WG['voicenotifs'].getVolume = function()
-		return volume
+		return globalVolume
 	end
 	WG['voicenotifs'].setVolume = function(value)
-		volume = value
+		globalVolume = value
 	end
 	WG['voicenotifs'].getSpoken = function()
 		return spoken
@@ -316,29 +320,33 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('EventBroadcast')
 end
 
-
 function widget:GameFrame(gf)
 	if gf == 30 and tutorialMode and not isSpec then
-		lastUserInputTime = os.clock()
-		isIdle = false
 		local event = 'tutorial1'
-		QueueNotification(event)
-		tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
+		if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
+			lastUserInputTime = os.clock()
+			isIdle = false
+			QueueNotification(event)
+			tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
+			tutorialPlayedThisGame[event] = true
+		end
 	end
 	if gf % 30 == 15 then
 		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(myTeamID,'energy')
 
 		-- tutorial
-		if tutorialMode and not isSpec and not tutorialPlayedThisGame['tutorial2'] then
-			if income >= 50 then
-				local mcurrentLevel, mstorage, mpull, mincome, mexpense, mshare, msent, mreceived = spGetTeamResources(myTeamID,'metal')
-				if mincome >= 4 then
-					lastUserInputTime = os.clock()
-					isIdle = false
-					local event = 'tutorial2'
-					QueueNotification(event)
-					tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
-					tutorialPlayedThisGame[event] = true
+		if tutorialMode and not isSpec then
+			local event = 'tutorial2'
+			if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
+				if income >= 50 then
+					local mcurrentLevel, mstorage, mpull, mincome, mexpense, mshare, msent, mreceived = spGetTeamResources(myTeamID,'metal')
+					if mincome >= 4 then
+						lastUserInputTime = os.clock()
+						isIdle = false
+						QueueNotification(event)
+						tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
+						tutorialPlayedThisGame[event] = true
+					end
 				end
 			end
 		end
@@ -489,7 +497,7 @@ function playNextSound()
 		nextSoundQueued = sec + Sound[event][4]
 		if not muteWhenIdle or not isIdle then
 			if spoken and Sound[event][1] ~= '' then
-				Spring.PlaySoundFile(soundFolder..Sound[event][1], volume * Sound[event][3], 'ui')
+				Spring.PlaySoundFile(soundFolder..Sound[event][1], globalVolume * Sound[event][3], 'ui')
 			end
 			if displayMessages and WG['messages'] and Sound[event][5] then
 				WG['messages'].addMessage(Sound[event][5])
@@ -585,7 +593,7 @@ end
 function widget:GetConfigData(data)
 	return {
 		soundList = soundList,
-		volume = volume,
+		globalVolume = globalVolume,
 		spoken = spoken,
 		displayMessages = displayMessages,
 		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
@@ -603,8 +611,8 @@ function widget:SetConfigData(data)
 			end
 		end
 	end
-	if data.volume ~= nil then
-		volume = data.volume
+	if data.globalVolume ~= nil then
+		globalVolume = data.globalVolume
 	end
 	if data.spoken ~= nil then
 		spoken = data.spoken
