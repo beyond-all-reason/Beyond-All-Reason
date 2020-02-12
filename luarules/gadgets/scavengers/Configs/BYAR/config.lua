@@ -32,9 +32,7 @@ scavconfig = {
 		T4med								= 14000,
 		T4high								= 16000,
 		T4top								= 20000,
-		-- don't remove those
-		NoRadar								= 2000,
-		NoAirLos							= 6000,
+		BossFight							= 50000,
 	},
 	other = {
 		heighttolerance						= 30, -- higher = allow higher height diffrences
@@ -49,24 +47,25 @@ buildingSpawnerModuleConfig = {
 
 unitSpawnerModuleConfig = {
 	aircraftchance 						= 5, -- higher number = lower chance
-	globalscoreperoneunit 				= 400,
-	spawnchance							= 60,
-	beaconspawnchance					= 60,
+	globalscoreperoneunit 				= 800,
+	spawnchance							= 30,
+	beaconspawnchance					= 30,
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 1.5,
-	seamultiplier 						= 0.3,
+	seamultiplier 						= 0.2,
 
 	t0multiplier						= 1,
 	t1multiplier						= 0.8,
 	t2multiplier						= 0.5,
 	t3multiplier						= 0.2,
-	t4multiplier						= 0.001,
+	t4multiplier						= 0.01,
 }
 
 constructorControllerModuleConfig = {
 	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
 	constructortimer 					= 220, -- time in seconds between commander/constructor spawns
 	constructortimerreductionframes		= 36000,
+	minimumconstructors					= 3,
 	useresurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,
@@ -79,6 +78,10 @@ unitControllerModuleConfig = {
 
 
 -- Functions which you can configure
+function CountScavConstructors()
+	return UDC(GaiaTeamID, UDN.corcom_scav.id) + UDC(GaiaTeamID, UDN.armcom_scav.id)
+end
+
 function UpdateTierChances(n)
 	-- Must be 100 in total
 	

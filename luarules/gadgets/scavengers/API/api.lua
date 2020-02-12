@@ -1,4 +1,3 @@
-
 Spring.Echo("[Scavengers] API initialized")
 
 	-- variables

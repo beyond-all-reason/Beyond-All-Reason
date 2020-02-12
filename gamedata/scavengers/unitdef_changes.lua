@@ -105,6 +105,18 @@ customDefs.armcom = {
 	--	},
 }
 
+customDefs.corbw = {
+	weapondefs = {
+		bladewing_lyzer = {
+			paralyzer = false,
+			damage = {
+				default = 10,
+			},
+		},
+	},
+}
+
+
 -- Cloaked Radar
 
 customDefs.armrad = {
