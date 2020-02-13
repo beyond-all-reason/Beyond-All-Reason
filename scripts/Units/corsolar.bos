@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12;
+piece  base, d1,d2,d3,d4;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3;
 
@@ -34,63 +34,29 @@ CloseYard()
 
 activatescr()
 {
-	turn d2 to y-axis <30> speed <30>;
-	turn d3 to y-axis <60> speed <30>;
-	turn d5 to y-axis <30> speed <30>;
-	turn d6 to y-axis <60> speed <30>;
-	turn d8 to y-axis <30> speed <30>;
-	turn d9 to y-axis <60> speed <30>;
-	turn d11 to y-axis <30> speed <30>;
-	turn d12 to y-axis <60> speed <30>;
-	wait-for-turn d3 around y-axis;
-	turn d1 to z-axis <-90> speed <30>;
-	turn d4 to x-axis <-90> speed <30>;
-	turn d7 to z-axis <90> speed <30>;
-	turn d10 to x-axis <90> speed <30>;
-	wait-for-turn d4 around y-axis;
-	hide d1;
-	hide d2;
-	hide d3;
-	hide d4;
-	hide d5;
-	hide d6;
-	hide d7;
-	hide d8;
-	hide d9;
-	hide d10;
-	hide d11;
-	hide d12;
+	turn d1 to x-axis <90> speed <30>;
+	turn d3 to x-axis <-90> speed <30>;
+	turn d1 to y-axis <180> speed <60>;
+	turn d3 to y-axis <180> speed <60>;
+	
+	turn d2 to z-axis <-90> speed <30>;
+	turn d4 to z-axis <90> speed <30>;
+	turn d2 to y-axis <180> speed <60>;
+	turn d4 to y-axis <180> speed <60>;
 }
 
 deactivatescr()
 {
-	show d1;
-	show d2;
-	show d3;
-	show d4;
-	show d5;
-	show d6;
-	show d7;
-	show d8;
-	show d9;
-	show d10;
-	show d11;
-	show d12;
-	turn d1 to z-axis <0> speed <30>;
-	turn d4 to x-axis <0> speed <30>;
-	turn d7 to z-axis <0> speed <30>;
-	turn d10 to x-axis <0> speed <30>;
-	wait-for-turn d4 around y-axis;
-	turn d2 to y-axis <0> speed <30>;
-	turn d3 to y-axis <0> speed <30>;
-	turn d5 to y-axis <0> speed <30>;
-	turn d6 to y-axis <0> speed <30>;
-	turn d8 to y-axis <0> speed <30>;
-	turn d9 to y-axis <0> speed <30>;
-	turn d11 to y-axis <0> speed <30>;
-	turn d12 to y-axis <0> speed <30>;
-	wait-for-turn d3 around y-axis;
 
+	turn d1 to x-axis <0> speed <30>;
+	turn d3 to x-axis <0> speed <30>;
+	turn d1 to y-axis <0> speed <60>;
+	turn d3 to y-axis <0> speed <60>;
+	
+	turn d2 to z-axis <0> speed <30>;
+	turn d4 to z-axis <0> speed <30>;
+	turn d2 to y-axis <0> speed <60>;
+	turn d4 to y-axis <0> speed <60>;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -199,69 +165,37 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode d10 type BITMAPONLY | NOHEATCLOUD;
-		explode d11 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d12 type BITMAPONLY | NOHEATCLOUD;
 		explode d1 type BITMAPONLY | NOHEATCLOUD;
 		explode d2 type BITMAPONLY | NOHEATCLOUD;
 		explode d3 type BITMAPONLY | NOHEATCLOUD;
-		explode d7 type BITMAPONLY | NOHEATCLOUD;
-		explode d9 type BITMAPONLY | NOHEATCLOUD;
-		explode d8 type BITMAPONLY | NOHEATCLOUD;
 		explode d4 type BITMAPONLY | NOHEATCLOUD;
-		explode d6 type BITMAPONLY | NOHEATCLOUD;
-		explode d5 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode d10 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d11 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d12 type FALL | NOHEATCLOUD;
 		explode d1 type FALL | NOHEATCLOUD;
 		explode d2 type FALL | NOHEATCLOUD;
 		explode d3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d7 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d9 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d8 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode d4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode d10 type SMOKE | FALL | NOHEATCLOUD;
-		explode d11 type SMOKE | FALL | NOHEATCLOUD;
-		explode d12 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode d1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode d2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode d3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d7 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d9 type SMOKE | FALL | NOHEATCLOUD;
-		explode d8 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode d4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d6 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode d5 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode d10 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d11 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode d12 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode d1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode d2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode d3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode d7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d9 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d8 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode d4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode d6 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode d5 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
