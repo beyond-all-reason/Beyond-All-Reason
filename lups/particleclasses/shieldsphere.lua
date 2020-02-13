@@ -77,15 +77,15 @@ function ShieldSphereParticle:Draw()
 	if checkStunned then
 		self.stunned = Spring.GetUnitIsStunned(self.unit)
 	end
-	if self.stunned or Spring.IsUnitIcon(self.unit) then
-		if self.lightID and ((WG and WG['lighteffects']) or Script.LuaUI("GadgetRemoveLight")) then
+	if self.lightID and self.stunned or Spring.IsUnitIcon(self.unit) then
+		if (WG and WG['lighteffects']) or Script.LuaUI("GadgetRemoveLight") then
 			if WG then
 				WG['lighteffects'].removeLight(self.lightID)
 			else
 				Script.LuaUI.GadgetRemoveLight(self.lightID)
 			end
-			self.lightID = nil
 		end
+		self.lightID = nil
 		return
 	end
 	local color = self.color1
@@ -456,6 +456,7 @@ function ShieldSphereParticle:Destroy()
 		else
 			Script.LuaUI.GadgetRemoveLight(self.lightID)
 		end
+		self.lightID = nil
 	end
 end
 

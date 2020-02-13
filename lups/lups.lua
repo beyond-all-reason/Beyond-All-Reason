@@ -386,6 +386,7 @@ function RemoveParticles(particlesID)
 			else
 			  Script.LuaUI.GadgetRemoveLight(fx.lightID)
 			end
+			fx.lightID = nil
 	      end
 	    end
 		particles[particlesID] = nil
