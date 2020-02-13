@@ -2,8 +2,8 @@
 --------------------------------------------------------------------------------
 function widget:GetInfo()
     return {
-        name      = "Voice Notifs",
-        desc      = "Plays various voice notifications",
+        name      = "Notifications",
+        desc      = "Does various voice/text notifications",
         author    = "Doo, Floris",
         date      = "2018",
         license   = "GNU GPL, v2 or later",
@@ -16,7 +16,7 @@ end
 --------------------------------------------------------------------------------
 
 local globalVolume = 0.7
-local playTrackedPlayerNotifs = true
+local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
 local idleTime = 6		-- after this much sec: mark user as idle
 local displayMessages = true
@@ -174,12 +174,14 @@ local lastUserInputTime = os.clock()
 local lastMouseX, lastMouseY = Spring.GetMouseState()
 
 local isSpec = Spring.GetSpectatingState()
+local isReplay = Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myRank = select(9,Spring.GetPlayerInfo(myPlayerID))
 
 local tutorialMode = (myRank == 0)
+local doTutorialMode = tutorialMode
 local tutorialPlayed = {}		-- store the number of times a tutorial event has played across games
 local tutorialPlayedThisGame = {}	-- log that a tutorial event has played this game
 
@@ -239,36 +241,37 @@ function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
+	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
 
 
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
+	if isReplay or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
 
-	WG['voicenotifs'] = {}
+	WG['notifications'] = {}
 	for sound, params in pairs(Sound) do
-		WG['voicenotifs']['getSound'..sound] = function()
+		WG['notifications']['getSound'..sound] = function()
 			return (SoundDisabled[sound] and false or true)
 		end
-		WG['voicenotifs']['setSound'..sound] = function(value)
+		WG['notifications']['setSound'..sound] = function(value)
 			soundList[sound] = value
 		end
 	end
-	WG['voicenotifs'].getSoundList = function()
+	WG['notifications'].getSoundList = function()
 		local soundInfo = {}
 		for i, v in pairs(SoundOrder) do
 			soundInfo[i] = {v, soundList[v], Sound[v][5]}
 		end
 		return soundInfo
 	end
-	WG['voicenotifs'].getTutorial = function()
+	WG['notifications'].getTutorial = function()
 		return tutorialMode
 	end
-	WG['voicenotifs'].setTutorial = function(value)
+	WG['notifications'].setTutorial = function(value)
 		tutorialMode = value
 		if tutorialMode then
 			local count = 0
@@ -280,35 +283,36 @@ function widget:Initialize()
 				Spring.Echo('Tutorial notifications enabled. (and resetted the already played messages memory)')
 			end
 		end
+		widget:PlayerChanged()
 	end
-	WG['voicenotifs'].getVolume = function()
+	WG['notifications'].getVolume = function()
 		return globalVolume
 	end
-	WG['voicenotifs'].setVolume = function(value)
+	WG['notifications'].setVolume = function(value)
 		globalVolume = value
 	end
-	WG['voicenotifs'].getSpoken = function()
+	WG['notifications'].getSpoken = function()
 		return spoken
 	end
-	WG['voicenotifs'].setSpoken = function(value)
+	WG['notifications'].setSpoken = function(value)
 		spoken = value
 	end
-	WG['voicenotifs'].getMessages = function()
+	WG['notifications'].getMessages = function()
 		return displayMessages
 	end
-	WG['voicenotifs'].setMessages = function(value)
+	WG['notifications'].setMessages = function(value)
 		displayMessages = value
 	end
-    WG['voicenotifs'].getPlayTrackedPlayerNotifs = function()
+    WG['notifications'].getPlayTrackedPlayerNotifs = function()
         return playTrackedPlayerNotifs
     end
-	WG['voicenotifs'].setPlayTrackedPlayerNotifs = function(value)
+	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	WG['voicenotifs'].addSound = function(name, file, minDelay, volume, duration, message)
+	WG['notifications'].addSound = function(name, file, minDelay, volume, duration, message)
 		addSound(name, file, minDelay, volume, duration, message)
 	end
-	WG['voicenotifs'].addEvent = function(value)
+	WG['notifications'].addEvent = function(value)
 		if Sound[value] then
 			QueueNotification(value)
 		end
@@ -316,12 +320,12 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['voicenotifs'] = nil
+	WG['notifications'] = nil
 	widgetHandler:DeregisterGlobal('EventBroadcast')
 end
 
 function widget:GameFrame(gf)
-	if gf == 30 and tutorialMode and not isSpec then
+	if gf == 30 and doTutorialMode then
 		local event = 'tutorial1'
 		if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
 			lastUserInputTime = os.clock()
@@ -335,7 +339,7 @@ function widget:GameFrame(gf)
 		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(myTeamID,'energy')
 
 		-- tutorial
-		if tutorialMode and not isSpec then
+		if doTutorialMode then
 			local event = 'tutorial2'
 			if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
 				if income >= 50 then
@@ -546,6 +550,9 @@ function widget:Update(dt)
 		else
 			isIdle = false
 		end
+		if WG['topbar'] and WG['topbar'].showingRejoining and WG['topbar'].showingRejoining() then
+			isIdle = true
+		end
     end
 end
 
@@ -598,6 +605,7 @@ function widget:GetConfigData(data)
 		displayMessages = displayMessages,
 		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
+		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
 		tutorialPlayedThisGame = tutorialPlayedThisGame,
 	}
@@ -625,6 +633,9 @@ function widget:SetConfigData(data)
 	end
 	if data.tutorialPlayed ~= nil then
 		tutorialPlayed = data.tutorialPlayed
+	end
+	if data.tutorialMode ~= nil then
+		tutorialMode = data.tutorialMode
 	end
 	if spGetGameFrame() > 0 then
 		if data.LastPlay then

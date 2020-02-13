@@ -2099,9 +2099,6 @@ function init()
 		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
 		--		},
 
-		--{id="voicenotifs", group="snd", basic=true, widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
-
-
 		{id="scav_messages", group="notif", basic=true, name="Scavenger written notifications", type="bool", value=tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1, description="",
 		 onchange = function(i, value)
 			 Spring.SetConfigInt("scavmessages",(value and 1 or 0))
@@ -2109,25 +2106,25 @@ function init()
 		},
 		{id="scav_voicenotifs", group="notif", basic=true, widget="Scavenger Audio Reciever", name="Scavenger voice notifications", type="bool", value=GetWidgetToggleValue("Scavenger Audio Reciever"), description='Toggle the scavenger announcer voice'},
 
-		{id="voicenotifs_tutorial", group="notif", name="Tutorial mode", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getTutorial()), description='Additional messages that guide you how to play\n\nIt remembers what has been played already\n(Re)enabling this will reset this',
-		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_tutorial", {'tutorialMode'}) end,
-		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setTutorial', {'tutorialMode'}, value) end,
+		{id="notifications_tutorial", group="notif", name="Tutorial mode", basic=true, type="bool", value=(WG['notifications']~=nil and WG['notifications'].getTutorial()), description='Additional messages that guide you how to play\n\nIt remembers what has been played already\n(Re)enabling this will reset this',
+		 onload = function() loadWidgetData("Notifications", "notifications_tutorial", {'tutorialMode'}) end,
+		 onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setTutorial', {'tutorialMode'}, value) end,
 		},
-		{id="voicenotifs_messages", group="notif", name="Written notifications", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getMessages()), description='Displays notifications on screen',
-		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_messages", {'displayMessages'}) end,
-		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setMessages', {'displayMessages'}, value) end,
+		{id="notifications_messages", group="notif", name="Written notifications", basic=true, type="bool", value=(WG['notifications']~=nil and WG['notifications'].getMessages()), description='Displays notifications on screen',
+		 onload = function() loadWidgetData("Notifications", "notifications_messages", {'displayMessages'}) end,
+		 onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setMessages', {'displayMessages'}, value) end,
 		},
-		{id="voicenotifs_spoken", group="notif", name="Voice notifications", basic=true, type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getSpoken()), description='Plays voice notifications',
-		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_spoken", {'spoken'}) end,
-		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSpoken', {'spoken'}, value) end,
+		{id="notifications_spoken", group="notif", name="Voice notifications", basic=true, type="bool", value=(WG['notifications']~=nil and WG['notifications'].getSpoken()), description='Plays voice notifications',
+		 onload = function() loadWidgetData("Notifications", "notifications_spoken", {'spoken'}) end,
+		 onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setSpoken', {'spoken'}, value) end,
 		},
-		{id="voicenotifs_volume", group="notif", basic=true, name="volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: it also uses interface volume channel (Sound tab)',
-		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_volume", {'volume'}) end,
-		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value) end,
+		{id="notifications_volume", group="notif", basic=true, name="volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: it also uses interface volume channel (Sound tab)',
+		 onload = function() loadWidgetData("Notifications", "notifications_volume", {'volume'}) end,
+		 onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setVolume', {'volume'}, value) end,
 		},
-		{id="voicenotifs_playtrackedplayernotifs", basic=true,  group="notif", name="tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player',
-		 onload = function() loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'}) end,
-		 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, value) end,
+		{id="notifications_playtrackedplayernotifs", basic=true,  group="notif", name="tracked cam/player notifs",type="bool", value=(WG['notifications']~=nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description='Displays notifications from the perspective of the currently camera tracked player',
+		 onload = function() loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", {'playTrackedPlayerNotifs'}) end,
+		 onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, value) end,
 		},
 
 		-- CONTROL
@@ -2864,12 +2861,12 @@ function init()
 	end
 
 	-- add sound notification widget sound toggle options
-	if widgetHandler.knownWidgets["Voice Notifs"] then
+	if widgetHandler.knownWidgets["Notifications"] then
 		local soundList
-		if WG['voicenotifs'] ~= nil then
-			soundList = WG['voicenotifs'].getSoundList()
-		elseif widgetHandler.configData["Voice Notifs"] ~= nil and widgetHandler.configData["Voice Notifs"].soundList ~= nil then
-			soundList = widgetHandler.configData["Voice Notifs"].soundList
+		if WG['notifications'] ~= nil then
+			soundList = WG['notifications'].getSoundList()
+		elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].soundList ~= nil then
+			soundList = widgetHandler.configData["Notifications"].soundList
 		end
 		if type(soundList) == 'table' then
 			local newOptions = {}
@@ -2877,11 +2874,11 @@ function init()
 			for i, option in pairs(options) do
 				count = count + 1
 				newOptions[count] = option
-				if option.id == 'voicenotifs_playtrackedplayernotifs' then
+				if option.id == 'notifications_playtrackedplayernotifs' then
 					for k, v in pairs(soundList) do
 						count = count + 1
-						newOptions[count] = {id="voicenotifs_snd_"..v[1], group="notif", basic=true, name=widgetOptionColor.."   "..v[1], type="bool", value=v[2], description=v[3],
-											 onchange = function(i, value) saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..v[1], {'soundList'}, value) end,
+						newOptions[count] = {id="notifications_notif_"..v[1], group="notif", basic=true, name=widgetOptionColor.."   "..v[1], type="bool", value=v[2], description=v[3],
+											 onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setSound'..v[1], {'soundList'}, value) end,
 						}
 					end
 				end
@@ -2889,9 +2886,9 @@ function init()
 			options = newOptions
 		end
 	else
-		options[getOptionByID('voicenotifs')] = nil
-		options[getOptionByID('voicenotifs_volume')] = nil
-		options[getOptionByID('voicenotifs_playtrackedplayernotifs')] = nil
+		options[getOptionByID('notifications')] = nil
+		options[getOptionByID('notifications_volume')] = nil
+		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
 	end
 
 	if not widgetHandler.knownWidgets["Player-TV"] then
