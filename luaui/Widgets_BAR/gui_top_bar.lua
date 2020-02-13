@@ -675,28 +675,28 @@ local function updateResbarText(res)
 					local text = ''
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
-						if WG['voicenotifs'] then
+						if WG['notifications'] then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
-									WG['voicenotifs'].addEvent('WholeTeamWastingMetal')
+									WG['notifications'].addEvent('WholeTeamWastingMetal')
 								else
-									WG['voicenotifs'].addEvent('YouAreWastingMetal')
+									WG['notifications'].addEvent('YouAreWastingMetal')
 								end
 							else
-								WG['voicenotifs'].addEvent('YouAreOverflowingMetal')
+								WG['notifications'].addEvent('YouAreOverflowingMetal')
 							end
 						end
 					else
 						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
-						if WG['voicenotifs'] then
+						if WG['notifications'] then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 1 then
-									WG['voicenotifs'].addEvent('WholeTeamWastingEnergy')
+									WG['notifications'].addEvent('WholeTeamWastingEnergy')
 								else
-									WG['voicenotifs'].addEvent('YouAreWastingEnergy')
+									WG['notifications'].addEvent('YouAreWastingEnergy')
 								end
 							else
-								WG['voicenotifs'].addEvent('YouAreOverflowingEnergy')
+								WG['notifications'].addEvent('YouAreOverflowingEnergy')
 							end
 						end
 					end

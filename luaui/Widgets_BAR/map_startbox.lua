@@ -625,8 +625,8 @@ function widget:Update(dt)
       widget:Initialize()
     end
   end
-  if not isSpec and not amPlaced and placeVoiceNotifTimer < os.clock() and WG['voicenotifs'] ~= nil then
-    WG['voicenotifs'].addEvent('ChooseStartLoc')
+  if not isSpec and not amPlaced and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
+    WG['notifications'].addEvent('ChooseStartLoc')
   end
 end
 --------------------------------------------------------------------------------
