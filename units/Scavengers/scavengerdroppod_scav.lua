@@ -78,7 +78,7 @@ return {
 				reloadtime = 5,
 				rgbcolor = "0.85 0 1",
 				smoketrail = 1,
-				soundhit = "scavengers/scavspawn",
+				soundhit = "voice/scavengers/scavspawn",
 				startvelocity = 1,
 				targetborder = 0.75,
 				turret = 1,
