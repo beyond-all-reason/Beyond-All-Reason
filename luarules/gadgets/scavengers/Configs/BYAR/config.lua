@@ -54,10 +54,10 @@ unitSpawnerModuleConfig = {
 	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.2,
 
-	t0multiplier						= 1,
-	t1multiplier						= 0.8,
-	t2multiplier						= 0.5,
-	t3multiplier						= 0.2,
+	t0multiplier						= 2,
+	t1multiplier						= 1.5,
+	t2multiplier						= 0.3,
+	t3multiplier						= 0.05,
 	t4multiplier						= 0.01,
 }
 

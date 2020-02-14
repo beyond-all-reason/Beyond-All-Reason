@@ -58,7 +58,6 @@ T2LandUnits = {
 "armaak",
 "armsnipe",
 "armmav",
-"armfboy",
 "cornecro",
 "corroach",
 "corspy",
@@ -68,8 +67,6 @@ T2LandUnits = {
 "coramph",
 "corsktl",
 "corcan",
-"corsumo",
-"corhrk",
 "coraak",
 "cortermite",
 "cormando",
@@ -82,7 +79,6 @@ T2LandUnits = {
 "armcroc",
 "armmerl",
 "armbull",
-"armmanni",
 "cormart",
 "corsent",
 "corseal",
@@ -90,13 +86,18 @@ T2LandUnits = {
 "corvroc",
 "corban",
 "corparrow",
-"corgol",
-"cortrem",
 --hovercraft
 "corhal",
 }
 
 T3LandUnits = {
+-- Heavy T2s
+"corgol",
+"corsumo",
+"armfboy",
+"armmanni",
+"cortrem",
+"corhrk",
 --bots
 --"armmar", currently doesn't shoot for scavs
 "armvang",

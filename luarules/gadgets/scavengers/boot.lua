@@ -86,7 +86,10 @@ end
 
 
 function gadget:GameFrame(n)
-
+	if n == 1 then
+		Spring.Echo("New Scavenger Spawner initialized")
+	end
+	
 	if scavconfig.messenger == true and n%30 == 0 then
 		pregameMessages(n)
 	end
@@ -95,17 +98,16 @@ function gadget:GameFrame(n)
 		DisableCommander()
 	end
 
-	if n == 100 then
-		Spring.Echo("New Scavenger Spawner initialized")
-		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
-		Spring.SetTeamResource(GaiaTeamID, "es", 100000)
+	if n == 100 and globalScore then
+		Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
+		Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
 		Spring.SetGlobalLos(GaiaAllyTeamID, false)
 	end
-	if n%300 == 0 then
-		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
-		Spring.SetTeamResource(GaiaTeamID, "es", 100000)
-		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
-		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
+	if n%30 == 0 and globalScore then
+		Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
+		Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
+		Spring.AddTeamResource(GaiaTeamID, "m", math.ceil((globalScore*teamcount)/200))
+		Spring.AddTeamResource(GaiaTeamID, "e", math.ceil((globalScore*teamcount)/20))
 	end
 	if n%1800 == 0 and n > 100 then
 		teamsCheck()

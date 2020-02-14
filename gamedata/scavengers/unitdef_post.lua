@@ -89,9 +89,9 @@ function scav_Udef_Post(name, uDef)
 	if uDef.buildcostmetal then
 		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
 	end
-	--if uDef.workertime then
-	--	uDef.workertime = math.ceil(uDef.workertime*1.33)
-	--end
+	if uDef.workertime then
+		uDef.workertime = math.ceil(uDef.workertime*10)
+	end
 	if uDef.energymake then
 		uDef.energymake = math.ceil(uDef.energymake*0.66)
 	end

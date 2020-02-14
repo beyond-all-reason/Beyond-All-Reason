@@ -1,13 +1,27 @@
 Spring.Echo("[Scavengers] API initialized")
 
 	-- variables
-	GaiaTeamID = Spring.GetGaiaTeamID()
-	if scavengersEnabled then
-		GaiaTeamID = scavengerAITeamID
-	end
-	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 	mapsizeX = Game.mapSizeX
 	mapsizeZ = Game.mapSizeZ
+	GaiaTeamID = Spring.GetGaiaTeamID()
+	ScavengerStartboxXMin = mapsizeX + 1
+	ScavengerStartboxZMin = mapsizeZ + 1
+	ScavengerStartboxXMax = mapsizeX + 1
+	ScavengerStartboxZMax = mapsizeZ + 1
+	ScavengerStartboxExists = false
+	if scavengersEnabled then
+		GaiaTeamID = scavengerAITeamID
+		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaTeamID)
+		if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
+			ScavengerStartboxExists = true
+		else
+			ScavengerStartboxExists = false
+		end
+	else
+		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+		ScavengerStartboxExists = false
+	end
 	teamcount = #Spring.GetTeamList() - 1
 	allyteamcount = #Spring.GetAllyTeamList() - 1
 	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1

@@ -36,7 +36,7 @@ function UnitGroupSpawn(n)
 			canSpawnHere = true
 			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
 			SpawnBeacon(n)
-			local posradius = 80
+			local posradius = 160
 			
 			if canSpawnHere then
 				
@@ -149,8 +149,8 @@ function UnitGroupSpawn(n)
 				
 				local groupsize = math.ceil(groupsize*bestTeamGroupMultiplier*math.floor(teamcount/2))
 				for i=1, groupsize do
-					local posx = posx+math.random(-80,80)
-					local posz = posz+math.random(-80,80)
+					local posx = posx+math.random(-160,160)
+					local posz = posz+math.random(-160,160)
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0,3),GaiaTeamID)
 				end
