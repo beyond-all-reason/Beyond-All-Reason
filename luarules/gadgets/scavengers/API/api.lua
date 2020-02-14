@@ -14,9 +14,9 @@ Spring.Echo("[Scavengers] API initialized")
 		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaTeamID)
 		if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
-			ScavengerStartboxExists = true
-		else
 			ScavengerStartboxExists = false
+		else
+			ScavengerStartboxExists = true
 		end
 	else
 		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
