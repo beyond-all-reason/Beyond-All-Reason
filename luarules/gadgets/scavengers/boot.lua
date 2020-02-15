@@ -106,8 +106,8 @@ function gadget:GameFrame(n)
 	if n%30 == 0 and globalScore then
 		Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
 		Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
-		Spring.AddTeamResource(GaiaTeamID, "m", math.ceil((globalScore*teamcount)/200))
-		Spring.AddTeamResource(GaiaTeamID, "e", math.ceil((globalScore*teamcount)/20))
+		Spring.SetTeamResource(GaiaTeamID, "m", 1000000)
+		Spring.SetTeamResource(GaiaTeamID, "e", 1000000)
 	end
 	if n%1800 == 0 and n > 100 then
 		teamsCheck()
