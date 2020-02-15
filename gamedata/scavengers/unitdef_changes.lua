@@ -26,7 +26,7 @@ customDefs.corcom = {
 	maxdamage = 4500,
 	mincloakdistance = 20,
 	showplayername = false,
-	stealth = true,
+	stealth = false,
 	workertime = 900,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
@@ -44,11 +44,11 @@ customDefs.corcom = {
 	weapondefs = {
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 10,
+			reloadtime = 1,
 			weaponvelocity = 350,
 			damage = {
-				default = 2500,
-				commanders = 1500,
+				default = 250,
+				commanders = 1,
 			},
 		},
 	},
@@ -71,7 +71,7 @@ customDefs.armcom = {
 	maxdamage = 4500,
 	mincloakdistance = 20,
 	showplayername = false,
-	stealth = true,
+	stealth = false,
 	workertime = 900,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
@@ -89,11 +89,11 @@ customDefs.armcom = {
 	weapondefs = {
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 10,
+			reloadtime = 1,
 			weaponvelocity = 350,
 			damage = {
-				default = 2500,
-				commanders = 1500,
+				default = 250,
+				commanders = 1,
 			},
 		},
 	},
@@ -109,8 +109,9 @@ customDefs.corbw = {
 	weapondefs = {
 		bladewing_lyzer = {
 			paralyzer = false,
+			reloadtime = 0.1,
 			damage = {
-				default = 10,
+				default = 1,
 			},
 		},
 	},
