@@ -29,9 +29,9 @@ function byar_hacky_include_shim( path )
 		subdir = Game.gameShortName	
 		local curEnv = nil
 		if subf then
-		 subdir = subdir.."/"..subf -- "BYAR/low/behaviourfactory.lua"
-		 curEnv = getfenv()
-	     curEnv.subf = subf
+			subdir = subdir.."/"..subf -- "BYAR/low/behaviourfactory.lua"
+			curEnv = getfenv()
+			curEnv.subf = subf
 		end
 		local gameFile = path .. "/" ..  subdir .. "/" .. file .. ".lua"
 		local baseFile = path .. "/" .. file .. ".lua"
