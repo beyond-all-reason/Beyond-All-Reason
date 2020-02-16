@@ -1,30 +1,52 @@
 -- initial setup of things
 
-function shard_include( file , subf)
-	if type(file) ~= 'string' then
-		return nil
-	end
-	subdir = Game.gameShortName	
-	local curEnv = nil
-	if subf then
-	 subdir = subdir.."/"..subf -- "BYAR/low/behaviourfactory.lua"
-	 curEnv = getfenv()
-     curEnv.subf = subf
-	end
-	local gameFile = "luarules/gadgets/ai/" ..  subdir .. "/" .. file .. ".lua"
-	local baseFile = "luarules/gadgets/ai/" .. file .. ".lua"
-	local preloadFile = "luarules/gadgets/ai/preload/" .. file .. ".lua"
-	if VFS.FileExists(gameFile) then
-		-- Spring.Echo("got gameFile", gameFile)
-		return VFS.Include(gameFile, curEnv)
-	elseif VFS.FileExists(baseFile) then
-		-- Spring.Echo("got baseFile", baseFile)
-		return VFS.Include(baseFile)
-	elseif VFS.FileExists(preloadFile) then
-		-- Spring.Echo("got preloadFile", preloadFile)
-		return VFS.Include(preloadFile)
+function shard_generate_include_func( preloadPath, path1, path2, path3 )
+    return function( file)
+        if type(file) ~= 'string' then
+            return nil
+        end
+        local file1 = path1 .. "/" .. file .. ".lua"
+        local file2 = path2 .. "/" .. file .. ".lua"
+        local file3 = path3 .. "/" .. file .. ".lua"
+        local preloadFile = preloadPath .. "/" .. file .. ".lua"
+        if VFS.FileExists(file1) then
+            return VFS.Include(file1, curEnv)
+        elseif VFS.FileExists(file2) then
+            return VFS.Include(file2)
+        elseif VFS.FileExists(file3) then
+            return VFS.Include(file3)
+        elseif VFS.FileExists(preloadFile) then
+            return VFS.Include(preloadFile)
+        end
+    end
+end
+
+function byar_hacky_include_shim( path )
+	return function(file, subf)
+		if type(file) ~= 'string' then
+			return nil
+		end
+		subdir = Game.gameShortName	
+		local curEnv = nil
+		if subf then
+		 subdir = subdir.."/"..subf -- "BYAR/low/behaviourfactory.lua"
+		 curEnv = getfenv()
+	     curEnv.subf = subf
+		end
+		local gameFile = path .. "/" ..  subdir .. "/" .. file .. ".lua"
+		local baseFile = path .. "/" .. file .. ".lua"
+		local preloadFile = path .. "/preload/" .. file .. ".lua"
+		if VFS.FileExists(gameFile) then
+			return VFS.Include(gameFile, curEnv)
+		elseif VFS.FileExists(baseFile) then
+			return VFS.Include(baseFile)
+		elseif VFS.FileExists(preloadFile) then
+			return VFS.Include(preloadFile)
+		end
 	end
 end
+--shard_include = shard_generate_include_func( "luarules/gadgets/ai/preload", subdir, "luarules/gadgets/ai" )
+shard_include = byar_hacky_include_shim("luarules/gadgets/ai/preload")
 
 shard_include "preload/spring_lua/shard"
 os = shard_include "preload/spring_lua/fakeos"
