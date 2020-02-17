@@ -115,8 +115,15 @@ addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.0, 1.38,
 addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.0, 1.95, 'Sea transport located')
 
 -- tutorial explanations (unlisted)
-addSound('tutorial1', 'tutorial1.wav', 9999999, 1.0, 24.4, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy. When you select your Commander, you choose the Metal Extractor, and build it on a metal spot indicated by the rotating circles on your map. Build energy generators like Wind mills or Solar Collectors to increase your energy income.", true)
-addSound('tutorial2', 'tutorial2.wav', 9999999, 1.0, 27.4, "Well done, now you have metal and energy income. Its time to produce mobile units to scout, defend or attack. Choose your preferred factory and start production. While being constructed, you can already choose the units it needs to produce. Dont forget to build constructor units as well, because they can help you expand your base and improve your map control. They can also build more advanced units.", true)
+local td = 'tutorial/'
+addSound('t_welcome', td..'welcome.wav', 9999999, 1.0, 9.19, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy.", true)
+addSound('t_makefactory', td..'makefactory.wav', 9999999, 1.0, 8.87, "Well done!  Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.", true)
+addSound('t_factoryair', td..'factoryair.wav', 9999999, 1.0, 8.2, "You can now produce aircraft. They are specifically a good support class and give great speed, radar and line of sight.", true)
+addSound('t_factoryairsea', td..'factoryairsea.wav', 9999999, 1.0, 7.39, "You can now produce seaplanes. These are slightly stronger than t1 aircraft and are able to land under water.", true)
+addSound('t_factorybots', td..'factorybots.wav', 9999999, 1.0, 8.54, "You can produce mobile bot units now. Bots are fast and light and can climb steeper hills than vehicles. They are cheaper than vehicles, but are also weaker.", true)
+addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 1.0, 6.91, "You can now make hovercraft. They are good for ambushing, but their armor will not endure in heavy battle.", true)
+addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 1.0, 11.92, "You can produce vehicles and tanks. Vehicles are wel armored and have heavier weapons than bots or aircraft. They are slower and more expensive and cannot traverse steep pathways.", true)
+addSound('t_factoryships', td..'factoryships.wav', 9999999, 1.0, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
 
 
 local unitsOfInterest = {}
@@ -188,10 +195,35 @@ local tutorialPlayedThisGame = {}	-- log that a tutorial event has played this g
 local vulcanDefID = UnitDefNames['armvulc'].id
 local buzzsawDefID = UnitDefNames['corbuzz'].id
 
+local isFactoryAir = {[UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true}
+local isFactoryAirSea = {[UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true}
+local isFactoryVeh = {[UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].id] = true}
+local isFactoryKbot = {[UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true}
+local isFactoryHover = {[UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true}
+local isFactoryShip = {[UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true}
+
 local isCommander = {}
 local isBuilder = {}
 local isWind = {}
+local isAircraft = {}
+local isT2 = {}
+local isT3 = {}
+local isMine = {}
 for udefID,def in ipairs(UnitDefs) do
+	if def.canFly then
+		isAircraft[udefID] = true
+	end
+	if def.customParams and def.customParams.techlevel then
+		if def.customParams.techlevel == '2' and not def.customParams.iscommander then
+			isT2[udefID] = true
+		end
+		if def.customParams.techlevel == '3' then
+			isT3[udefID] = true
+		end
+	end
+	if def.modCategories.mine then
+		isMine[udefID] = true
+	end
 	if def.customParams.iscommander then
 		isCommander[udefID] = true
 	end
@@ -212,27 +244,6 @@ function updateCommanders()
 			local health,maxHealth,paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
 			commanders[unitID] = maxHealth
 		end
-	end
-end
-
-local isAircraft = {}
-local isT2 = {}
-local isT3 = {}
-local isMine = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.canFly then
-		isAircraft[unitDefID] = true
-	end
-	if unitDef.customParams and unitDef.customParams.techlevel then
-		if unitDef.customParams.techlevel == '2' and not unitDef.customParams.iscommander then
-			isT2[unitDefID] = true
-		end
-		if unitDef.customParams.techlevel == '3' then
-			isT3[unitDefID] = true
-		end
-	end
-	if unitDef.modCategories.mine then
-		isMine[unitDefID] = true
 	end
 end
 
@@ -274,14 +285,18 @@ function widget:Initialize()
 	WG['notifications'].setTutorial = function(value)
 		tutorialMode = value
 		if tutorialMode then
-			local count = 0
-			for i,v in pairs(tutorialPlayed) do
-				count = count + 1
-			end
-			if count > 0 then
-				tutorialPlayed = {}
-				Spring.Echo('Tutorial notifications enabled. (and resetted the already played messages memory)')
-			end
+			--local count = 0
+			--for i,v in pairs(tutorialPlayed) do
+			--	count = count + 1
+			--end
+			--if count > 0 then
+				for i,v in pairs(LastPlay) do
+					if string.sub(i, 1, 2) == 't_' then
+						LastPlay[i] = nil
+					end
+				end
+				Spring.Echo('Tutorial notifications enabled. (and wiped the already played messages memory)')
+			--end
 		end
 		widget:PlayerChanged()
 	end
@@ -326,30 +341,19 @@ end
 
 function widget:GameFrame(gf)
 	if gf == 30 and doTutorialMode then
-		local event = 'tutorial1'
-		if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
-			lastUserInputTime = os.clock()
-			isIdle = false
-			QueueNotification(event)
-			tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
-			tutorialPlayedThisGame[event] = true
-		end
+		QueueTutorialNotification('t_welcome')
 	end
 	if gf % 30 == 15 then
 		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(myTeamID,'energy')
 
 		-- tutorial
 		if doTutorialMode then
-			local event = 'tutorial2'
+			local event = 't_nowproduce'
 			if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
 				if income >= 50 then
 					local mcurrentLevel, mstorage, mpull, mincome, mexpense, mshare, msent, mreceived = spGetTeamResources(myTeamID,'metal')
 					if mincome >= 4 then
-						lastUserInputTime = os.clock()
-						isIdle = false
-						QueueNotification(event)
-						tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
-						tutorialPlayedThisGame[event] = true
+						QueueTutorialNotification(event)
 					end
 				end
 			end
@@ -402,6 +406,21 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			QueueNotification('BuzzsawIsReady')
 		elseif isT3[unitDefID] then
 			QueueNotification('Tech3UnitReady')
+
+		elseif tutorialMode then
+			if isFactoryAir[unitDefID] then
+				QueueTutorialNotification('t_factoryair')
+			elseif isFactoryAirSea[unitDefID] then
+				QueueTutorialNotification('t_factoryairsea')
+			elseif isFactoryKbot[unitDefID] then
+				QueueTutorialNotification('t_factorybots')
+			elseif isFactoryHover[unitDefID] then
+				QueueTutorialNotification('t_factoryhovercraft')
+			elseif isFactoryVeh[unitDefID] then
+				QueueTutorialNotification('t_factoryvehicles')
+			elseif isFactoryShip[unitDefID] then
+				QueueTutorialNotification('t_factoryships')
+			end
 		end
 	end
 end
@@ -508,7 +527,7 @@ function playNextSound()
 			end
 		end
 		LastPlay[event] = spGetGameFrame()
-
+		-- drop current played notification from the table
 		local newQueue = {}
 		for i,v in pairs(soundQueue) do
 			if i ~= 1 then
@@ -567,6 +586,19 @@ function EventBroadcast(msg)
                 QueueNotification(event)
             end
         end
+	end
+end
+
+
+function QueueTutorialNotification(event)
+	if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
+		-- play regardless if user is idle
+		lastUserInputTime = os.clock()
+		isIdle = false
+		QueueNotification(event)
+		-- log number of plays
+		tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
+		tutorialPlayedThisGame[event] = true
 	end
 end
 
