@@ -125,6 +125,7 @@ addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 1.0, 6.91,
 addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 1.0, 11.92, "You can produce vehicles and tanks. Vehicles are wel armored and have heavier weapons than bots or aircraft. They are slower and more expensive and cannot traverse steep pathways.", true)
 addSound('t_factoryships', td..'factoryships.wav', 9999999, 1.0, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
 addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 1.0, 9.4, "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.", true)
+addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 1.0, 6.1, "It is more efficient to assist the existing factory than to make multiple factories of the same kind.", true)
 
 
 local unitsOfInterest = {}
@@ -202,6 +203,12 @@ local isFactoryVeh = {[UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].
 local isFactoryKbot = {[UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true}
 local isFactoryHover = {[UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true}
 local isFactoryShip = {[UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true}
+local numFactoryAir = 0
+local numFactoryAirSea = 0
+local numFactoryVeh = 0
+local numFactoryKbot = 0
+local numFactoryHover = 0
+local numFactoryShip = 0
 
 local isCommander = {}
 local isBuilder = {}
@@ -467,10 +474,48 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, damage, paralyzer)
     if unitTeam == myTeamID then
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
-
 		end
 		if windNotGood and isWind[unitDefID] then
 			QueueNotification('WindNotGood')
+		end
+
+		if tutorialMode then
+			if isFactoryAir[unitDefID] then
+				numFactoryAir = numFactoryAir + 1
+				if numFactoryAir > 1 then
+					QueueNotification('t_duplicatefactory')
+				end
+			end
+			if isFactoryAirSea[unitDefID] then
+				numFactoryAirSea = numFactoryAirSea + 1
+				if numFactoryAirSea > 1 then
+					QueueNotification('t_duplicatefactory')
+				end
+			end
+			if isFactoryVeh[unitDefID] then
+				numFactoryVeh = numFactoryVeh + 1
+				if numFactoryVeh > 1 then
+					QueueNotification('t_duplicatefactory')
+				end
+			end
+			if isFactoryKbot[unitDefID] then
+				numFactoryKbot = numFactoryKbot + 1
+				if numFactoryKbot > 1 then
+					QueueNotification('t_duplicatefactory')
+				end
+			end
+			if isFactoryHover[unitDefID] then
+				numFactoryHover = numFactoryHover + 1
+				if numFactoryHover > 1 then
+					QueueNotification('t_duplicatefactory')
+				end
+			end
+			if isFactoryShip[unitDefID] then
+				numFactoryShip = numFactoryShip + 1
+				if isFactoryShip > 1 then
+					QueueNotification('t_duplicatefactory')
+				end
+			end
 		end
     end
 end
@@ -504,8 +549,28 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	taggedUnitsOfInterest[unitID] = nil
-    commanders[unitID] = nil
     commandersDamages[unitID] = nil
+
+	if tutorialMode then
+		if isFactoryAir[unitDefID] then
+			numFactoryAir = numFactoryAir - 1
+		end
+		if isFactoryAirSea[unitDefID] then
+			numFactoryAirSea = numFactoryAirSea - 1
+		end
+		if isFactoryVeh[unitDefID] then
+			numFactoryVeh = numFactoryVeh - 1
+		end
+		if isFactoryKbot[unitDefID] then
+			numFactoryKbot = numFactoryKbot - 1
+		end
+		if isFactoryHover[unitDefID] then
+			numFactoryHover = numFactoryHover - 1
+		end
+		if isFactoryShip[unitDefID] then
+			numFactoryShip = numFactoryShip - 1
+		end
+	end
 end
 
 function playNextSound()
