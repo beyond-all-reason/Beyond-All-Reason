@@ -124,6 +124,7 @@ addSound('t_factorybots', td..'factorybots.wav', 9999999, 1.0, 8.54, "You can pr
 addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 1.0, 6.91, "You can now make hovercraft. They are good for ambushing, but their armor will not endure in heavy battle.", true)
 addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 1.0, 11.92, "You can produce vehicles and tanks. Vehicles are wel armored and have heavier weapons than bots or aircraft. They are slower and more expensive and cannot traverse steep pathways.", true)
 addSound('t_factoryships', td..'factoryships.wav', 9999999, 1.0, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
+addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 1.0, 9.4, "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.", true)
 
 
 local unitsOfInterest = {}
@@ -285,18 +286,13 @@ function widget:Initialize()
 	WG['notifications'].setTutorial = function(value)
 		tutorialMode = value
 		if tutorialMode then
-			--local count = 0
-			--for i,v in pairs(tutorialPlayed) do
-			--	count = count + 1
+			tutorialPlayed = {}
+			--for i,v in pairs(LastPlay) do
+			--	if string.sub(i, 1, 2) == 't_' then
+			--		LastPlay[i] = nil
+			--	end
 			--end
-			--if count > 0 then
-				for i,v in pairs(LastPlay) do
-					if string.sub(i, 1, 2) == 't_' then
-						LastPlay[i] = nil
-					end
-				end
-				Spring.Echo('Tutorial notifications enabled. (and wiped the already played messages memory)')
-			--end
+			Spring.Echo('Tutorial notifications enabled. (and wiped the already played messages memory)')
 		end
 		widget:PlayerChanged()
 	end
@@ -344,23 +340,21 @@ function widget:GameFrame(gf)
 		QueueTutorialNotification('t_welcome')
 	end
 	if gf % 30 == 15 then
-		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(myTeamID,'energy')
+		local e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID,'energy')
+		local m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID,'metal')
 
 		-- tutorial
 		if doTutorialMode then
-			local event = 't_nowproduce'
-			if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
-				if income >= 50 then
-					local mcurrentLevel, mstorage, mpull, mincome, mexpense, mshare, msent, mreceived = spGetTeamResources(myTeamID,'metal')
-					if mincome >= 4 then
-						QueueTutorialNotification(event)
-					end
-				end
+			if e_income >= 50 and m_income >= 4 then
+				QueueTutorialNotification('t_nowproduce')
+			end
+			if e_income >= 500 and m_income >= 10 then
+				QueueTutorialNotification('t_readyfortech2')
 			end
 		end
 
 		-- low power check
-		if (currentLevel / storage) < 0.025 and currentLevel < 3000 then
+		if (e_currentLevel / e_storage) < 0.025 and e_currentLevel < 3000 then
 			lowpowerDuration = lowpowerDuration + 1
 			if lowpowerDuration >= lowpowerThreshold then
 				QueueNotification('LowPower')
