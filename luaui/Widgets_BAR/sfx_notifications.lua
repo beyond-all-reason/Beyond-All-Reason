@@ -408,7 +408,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		elseif isT3[unitDefID] then
 			QueueNotification('Tech3UnitReady')
 
-		elseif tutorialMode then
+		elseif doTutorialMode then
 			if isFactoryAir[unitDefID] then
 				QueueTutorialNotification('t_factoryair')
 			elseif isFactoryAirSea[unitDefID] then
@@ -650,7 +650,7 @@ end
 
 
 function QueueTutorialNotification(event)
-	if not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit then
+	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
 		-- play regardless if user is idle
 		lastUserInputTime = os.clock()
 		isIdle = false
