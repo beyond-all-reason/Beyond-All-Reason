@@ -126,6 +126,7 @@ addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 1.0, 11.92, "Y
 addSound('t_factoryships', td..'factoryships.wav', 9999999, 1.0, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
 addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 1.0, 9.4, "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.", true)
 addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 1.0, 6.1, "It is more efficient to assist the existing factory than to make multiple factories of the same kind.", true)
+addSound('t_paralyzer', td..'paralyzer.wav', 9999999, 1.0, 9.66, "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.", true)
 
 
 local unitsOfInterest = {}
@@ -470,7 +471,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
     end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam, damage, paralyzer)
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
     if unitTeam == myTeamID then
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
@@ -523,27 +524,34 @@ end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 
-	-- notify when commander gets heavy damage
-	if unitTeam == myTeamID and commanders[unitID] and not spIsUnitInView(unitID) then
-		if not commandersDamages[unitID] then
-			commandersDamages[unitID] = {}
-		end
-		local gameframe = spGetGameFrame()
-		commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
+	if unitTeam == myTeamID then
 
-		-- count total damage of last few secs
-        local totalDamage = 0
-        local startGameframe = gameframe - (5.5 * 30)
-        for gf,damage in pairs(commandersDamages[unitID]) do
-            if gf > startGameframe then
-                totalDamage = totalDamage + damage
-            else
-                commandersDamages[unitID][gf] = nil
-            end
-        end
-        if totalDamage >= commanders[unitID] * 0.12 then
-            QueueNotification('ComHeavyDamage')
-        end
+		if paralyzer then
+			QueueTutorialNotification('t_paralyzer')
+		end
+
+		-- notify when commander gets heavy damage
+		if commanders[unitID] and not spIsUnitInView(unitID) then
+			if not commandersDamages[unitID] then
+				commandersDamages[unitID] = {}
+			end
+			local gameframe = spGetGameFrame()
+			commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
+
+			-- count total damage of last few secs
+			local totalDamage = 0
+			local startGameframe = gameframe - (5.5 * 30)
+			for gf,damage in pairs(commandersDamages[unitID]) do
+				if gf > startGameframe then
+					totalDamage = totalDamage + damage
+				else
+					commandersDamages[unitID][gf] = nil
+				end
+			end
+			if totalDamage >= commanders[unitID] * 0.12 then
+				QueueNotification('ComHeavyDamage')
+			end
+		end
 	end
 end
 
