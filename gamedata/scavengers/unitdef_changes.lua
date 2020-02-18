@@ -44,11 +44,11 @@ customDefs.corcom = {
 	weapondefs = {
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1,
+			reloadtime = 10,
 			weaponvelocity = 350,
 			damage = {
-				default = 250,
-				commanders = 1,
+				default = 2250,
+				commanders = 225,
 			},
 		},
 	},
@@ -89,11 +89,11 @@ customDefs.armcom = {
 	weapondefs = {
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1,
+			reloadtime = 10,
 			weaponvelocity = 350,
 			damage = {
-				default = 250,
-				commanders = 1,
+				default = 2250,
+				commanders = 225,
 			},
 		},
 	},
