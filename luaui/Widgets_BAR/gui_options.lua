@@ -764,9 +764,9 @@ end
 
 local sec = 0
 local lastUpdate = 0
-local minGroundDetail = 4
+local minGroundDetail = 3
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	minGroundDetail = 3
+	minGroundDetail = 2
 end
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
@@ -783,11 +783,14 @@ function widget:Update(dt)
 	-- NOTE: doing this on initialize() wont work
 	if not mapmeshdrawerChecked then
 		mapmeshdrawerChecked = true
-		if tonumber(Spring.GetConfigInt("mapmeshdrawer",1) or 1) ~= 2 then
+		if tonumber(Spring.GetConfigInt("mapmeshdrawer",1) or 1) ~= 1 then
 			Spring.SendCommands("mapmeshdrawer 1")
 		end
 		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
 			Spring.SendCommands("GroundDetail "..minGroundDetail)
+		end
+		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) > 3 then
+			Spring.SendCommands("GroundDetail 3")
 		end
 	end
 
