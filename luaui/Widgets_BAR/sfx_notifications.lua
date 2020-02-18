@@ -117,12 +117,14 @@ addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.0, 1.95,
 -- tutorial explanations (unlisted)
 local td = 'tutorial/'
 addSound('t_welcome', td..'welcome.wav', 9999999, 1.0, 9.19, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy.", true)
+addSound('t_buildmex', td..'buildmex.wav', 9999999, 1.0, 6.31, "Choose the metal extractor and build it on a metal spot, indicated by the rotating circles on the map.", true)
+addSound('t_buildenergy', td..'buildenergy.wav', 9999999, 1.0, 6.47, "You will need to produce energy to efficiently construct units. Build windmills or solar panels. ", true)
 addSound('t_makefactory', td..'makefactory.wav', 9999999, 1.0, 8.87, "Well done!  Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.", true)
 addSound('t_factoryair', td..'factoryair.wav', 9999999, 1.0, 8.2, "You can now produce aircraft. They are specifically a good support class and give great speed, radar and line of sight.", true)
 addSound('t_factoryairsea', td..'factoryairsea.wav', 9999999, 1.0, 7.39, "You can now produce seaplanes. These are slightly stronger than t1 aircraft and are able to land under water.", true)
 addSound('t_factorybots', td..'factorybots.wav', 9999999, 1.0, 8.54, "You can produce mobile bot units now. Bots are fast and light and can climb steeper hills than vehicles. They are cheaper than vehicles, but are also weaker.", true)
 addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 1.0, 6.91, "You can now make hovercraft. They are good for ambushing, but their armor will not endure in heavy battle.", true)
-addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 1.0, 11.92, "You can produce vehicles and tanks. Vehicles are wel armored and have heavier weapons than bots or aircraft. They are slower and more expensive and cannot traverse steep pathways.", true)
+addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 1.0, 11.92, "You can produce vehicles and tanks. Vehicles are wel armored and have heavier weapons. They are slower and more expensive and cannot traverse steep pathways.", true)
 addSound('t_factoryships', td..'factoryships.wav', 9999999, 1.0, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
 addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 1.0, 9.4, "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.", true)
 addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 1.0, 6.1, "It is more efficient to assist the existing factory than to make multiple factories of the same kind.", true)
@@ -163,6 +165,8 @@ end
 
 local soundQueue = {}
 local nextSoundQueued = 0
+local hasBuildMex = false
+local hasBuildEnergy = false
 local taggedUnitsOfInterest = {}
 local lowpowerDuration = 0
 local idleBuilder = {}
@@ -213,6 +217,8 @@ local numFactoryShip = 0
 
 local isCommander = {}
 local isBuilder = {}
+local isMex = {}
+local isEnergyProducer = {}
 local isWind = {}
 local isAircraft = {}
 local isT2 = {}
@@ -241,6 +247,12 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 	if def.windGenerator  and def.windGenerator  > 0 then
 		isWind[udefID] = true
+	end
+	if def.extractsMetal > 0 then
+		isMex[udefID] = true
+	end
+	if def.energyMake > 10 then
+		isEnergyProducer[udefID] = def.energyMake
 	end
 end
 
@@ -344,6 +356,8 @@ function widget:Shutdown()
 end
 
 function widget:GameFrame(gf)
+	if not displayMessages and not spoken then return end
+
 	if gf == 30 and doTutorialMode then
 		QueueTutorialNotification('t_welcome')
 	end
@@ -353,6 +367,12 @@ function widget:GameFrame(gf)
 
 		-- tutorial
 		if doTutorialMode then
+			if gf > 300 and not hasBuildMex then
+				QueueTutorialNotification('t_buildmex')
+			end
+			if not hasBuildEnergy and hasBuildMex then
+				QueueTutorialNotification('t_buildenergy')
+			end
 			if e_income >= 50 and m_income >= 4 then
 				QueueTutorialNotification('t_nowproduce')
 			end
@@ -401,7 +421,19 @@ end
 
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	if not displayMessages and not spoken then return end
+
 	if unitTeam == myTeamID then
+
+		if not isCommander[unitDefID] then
+			if isMex[unitDefID] then
+				hasBuildMex = true
+			end
+			if isEnergyProducer[unitDefID] then
+				hasBuildEnergy = true
+			end
+		end
+
 		if unitDefID == vulcanDefID then
 			QueueNotification('VulcanIsReady')
 		elseif unitDefID == buzzsawDefID then
@@ -429,6 +461,8 @@ end
 
 
 function widget:UnitEnteredLos(unitID, allyTeam)
+	if not displayMessages and not spoken then return end
+
 	if spIsUnitAllied(unitID) then return end
 
 	local udefID = spGetUnitDefID(unitID)
@@ -472,6 +506,8 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	if not displayMessages and not spoken then return end
+
     if unitTeam == myTeamID then
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
@@ -523,6 +559,7 @@ end
 
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if not displayMessages and not spoken then return end
 
 	if unitTeam == myTeamID then
 
@@ -584,8 +621,9 @@ end
 function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
+		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
 		nextSoundQueued = sec + Sound[event][4]
-		if not muteWhenIdle or not isIdle then
+		if not muteWhenIdle or not isIdle or isTutorialNotification then
 			if spoken and Sound[event][1] ~= '' then
 				Spring.PlaySoundFile(soundFolder..Sound[event][1], globalVolume * Sound[event][3], 'ui')
 			end
@@ -594,6 +632,13 @@ function playNextSound()
 			end
 		end
 		LastPlay[event] = spGetGameFrame()
+
+		-- for tutorial event: log number of plays
+		if isTutorialNotification then
+			tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
+			tutorialPlayedThisGame[event] = true
+		end
+
 		-- drop current played notification from the table
 		local newQueue = {}
 		for i,v in pairs(soundQueue) do
@@ -606,11 +651,9 @@ function playNextSound()
 end
 
 function widget:Update(dt)
-	sec = sec + dt
+	if not displayMessages and not spoken then return end
 
-    myTeamID = Spring.GetMyTeamID()
-    myPlayerID = Spring.GetMyPlayerID()
-    isSpec = Spring.GetSpectatingState()
+	sec = sec + dt
 
     passedTime = passedTime + dt
     if passedTime > 0.2 then
@@ -659,25 +702,26 @@ end
 
 function QueueTutorialNotification(event)
 	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
-		-- play regardless if user is idle
-		lastUserInputTime = os.clock()
-		isIdle = false
 		QueueNotification(event)
-		-- log number of plays
-		tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
-		tutorialPlayedThisGame[event] = true
 	end
+end
+
+function isInQueue(event)
+	for i,v in pairs(soundQueue) do
+		if v == event  then
+			return true
+		end
+	end
+	return false
 end
 
 function QueueNotification(event)
 	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
 		if soundList[event] and Sound[event] then
-			if not LastPlay[event] then
-				soundQueue[#soundQueue+1] = event
-				LastPlay[event] = spGetGameFrame()
-			elseif LastPlay[event] and spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30) then
-				soundQueue[#soundQueue+1] = event
-                LastPlay[event] = spGetGameFrame()
+			if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30)) then
+				if not isInQueue(event) then
+					soundQueue[#soundQueue+1] = event
+				end
 			end
 		end
 	end
@@ -737,6 +781,8 @@ function widget:SetConfigData(data)
 		tutorialMode = data.tutorialMode
 	end
 	if spGetGameFrame() > 0 then
+		--hasBuildMex = true
+		--hasBuildEnergy = true
 		if data.LastPlay then
 			LastPlay = data.LastPlay
 		end
