@@ -2659,6 +2659,8 @@ function init()
 			 Spring.Restart("", startScript)
 		 end,
 		},
+		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to echo current polygons as a startbox, use S once per allyteam\ncopy it from infolog to the config, dont forget to change TEAM to an actual number"},
+
 		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", value)
