@@ -113,11 +113,22 @@ local camDistance, glScale
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+function deleteDlists()
+    for playerID, dlists in pairs(allycursorDrawList) do
+        for _, dlist in pairs(dlists) do
+            gl.DeleteList(dlist)
+        end
+    end
+    allycursorDrawList = {}
+end
+
 function widget:ViewResize(n_vsx,n_vsy)
     vsx,vsy = Spring.GetViewGeometry()
     widgetScale = (0.5 + (vsx*vsy / 5700000))
     local fontScale = widgetScale/2
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+    deleteDlists()
 end
 
 function widget:TextCommand(command)
@@ -261,15 +272,6 @@ function widget:Initialize()
     end
 end
 
-function deleteDlists()
-    for playerID, dlists in pairs(allycursorDrawList) do
-        for opacityMultiplier, dlist in pairs(dlists) do
-            gl.DeleteList(allycursorDrawList[playerID][opacityMultiplier])
-        end
-    end
-    allycursorDrawList = {}
-end
-
 function widget:Shutdown()
     widgetHandler:DeregisterGlobal('MouseCursorEvent')
     deleteDlists()
@@ -403,15 +405,22 @@ function widget:PlayerChanged(playerID)
         color = {r, g, b, 0.75}
     end
     teamColors[playerID] = color
-    allycursorDrawList[playerID] = nil
+    if allycursorDrawList[playerID] ~= nil then
+        for _, dlist in pairs(allycursorDrawList[playerID]) do
+            gl.DeleteList(dlist)
+        end
+        allycursorDrawList[playerID] = nil
+    end
 
     if isSpec and not specList[playerID] then
         updateSpecList()
     end
 end
+
 function widget:PlayerAdded(playerID)
     widget:PlayerChanged(playerID)
 end
+
 function widget:PlayerRemoved(playerID, reason)
     specList[playerID] = nil
 end
@@ -581,7 +590,7 @@ function widget:DrawWorldPreUnit()
     end
 
     gl.PolygonOffset(false)
-    gl.Texture(false)
+    --gl.Texture(false)
     gl.DepthTest(false)
 end
 

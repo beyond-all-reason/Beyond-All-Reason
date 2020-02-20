@@ -781,8 +781,6 @@ function widget:SetConfigData(data)
 		tutorialMode = data.tutorialMode
 	end
 	if spGetGameFrame() > 0 then
-		--hasBuildMex = true
-		--hasBuildEnergy = true
 		if data.LastPlay then
 			LastPlay = data.LastPlay
 		end

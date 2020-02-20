@@ -21,11 +21,11 @@ local drawWorldAlpha = 0.08		-- darken world so bloom doesnt blown-white out the
 local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
 
 local presets = {
-	{
-		blursize = 22,	-- gaussian blur iteration blur size
-		blurPasses = 1,	-- how many iterations of Gaussian blur should be applied to the glow sources?
-		quality = 4,	-- resolution divider
-	},
+	--{
+	--	blursize = 22,	-- gaussian blur iteration blur size
+	--	blurPasses = 1,	-- how many iterations of Gaussian blur should be applied to the glow sources?
+	--	quality = 4,	-- resolution divider
+	--},
 	{
 		blursize = 17,
 		blurPasses = 2,
