@@ -7,7 +7,7 @@ function gadget:GetInfo() return {
 	date     = "2015-05-19",
 	license  = "PD",
 	layer    = -math.huge + 10,
-	enabled  = true,
+	enabled  = false,
 } end
 
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
