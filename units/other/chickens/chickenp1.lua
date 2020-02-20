@@ -65,6 +65,7 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+
 			},
 		},
 		weapondefs = {
@@ -91,7 +92,7 @@ return {
 					default = 0.001,
 				},
 			},
-			flamer = {
+			flamethrower = {
 				areaofeffect = 64,
 				avoidfeature = 0,
 				avoidfriendly = 0,
@@ -116,16 +117,17 @@ return {
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.83 0.77",
 				sizegrowth = 0.7,
-				soundstart = "chickens/Flamhvy1",
-				soundtrigger = 0,
+				soundhitwet = "sizzle",
+				soundstart = "Flamhvy1",
+				soundtrigger = false,
 				sprayangle = 100,
 				targetborder = 0.75,
 				targetmoveerror = 0.001,
 				tolerance = 2500,
-				turret = "true",
+				turret = true,
 				weapontimer = 1,
 				weapontype = "Flame",
-				weaponvelocity = 300,
+				weaponvelocity = 265,
 				customparams = {
 					expl_light_color = "1 0.33 0.04",
 					expl_light_life_mult = 1.1,
@@ -144,10 +146,10 @@ return {
 				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
-				badtargetcategory = "VTOL",
-				def = "FLAMER",
-				maindir = "0 0 1",
-				maxangledif = 180,
+				onlytargetcategory = "SURFACE",
+				def = "FLAMETHROWER",
+				--maindir = "0 0 1",
+				--maxangledif = 180,
 			},
 		},
 	},

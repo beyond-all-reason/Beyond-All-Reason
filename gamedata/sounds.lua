@@ -104,11 +104,11 @@ for i=1,#files do
    t[fileNames] = {
       file     = fileName;
 	  gain = 1.2*0.3,
-      pitchmod = 0.03,
+      pitchmod = 0.09,
       gainmod  = 0.2*0.3,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
-	  rolloff = 0.2,
+	  rolloff = 1.5,
    }
 end
 
