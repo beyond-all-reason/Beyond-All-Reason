@@ -783,7 +783,8 @@ function widget:Update(dt)
 	-- NOTE: doing this on initialize() wont work
 	if not mapmeshdrawerChecked then
 		mapmeshdrawerChecked = true
-		if tonumber(Spring.GetConfigInt("mapmeshdrawer",0) or 0) ~= 1 then
+		if tonumber(Spring.GetConfigInt("roam",0) or 1) ~= 0 then
+			Spring.SetConfigInt("roam", 0)
 			Spring.SendCommands("mapmeshdrawer 1")
 		end
 		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
