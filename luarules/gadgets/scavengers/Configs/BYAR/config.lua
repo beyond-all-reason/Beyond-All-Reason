@@ -36,7 +36,7 @@ if scavengersAIEnabled then
 			T4med								= 14000,
 			T4high								= 16000,
 			T4top								= 20000,
-			BossFight							= 50000,
+			BossFight							= 30000,
 		},
 		other = {
 			heighttolerance						= 30, -- higher = allow higher height diffrences
