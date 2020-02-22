@@ -12,15 +12,17 @@ function widget:GetInfo() return {
 LMB to draw (either clicks or drag)
 RMB to accept a polygon
 D to remove last polygon
-S to echo current polygons as a startbox
+S to export and add team boxes to file startboxes_mapname.txt
 
-use S once per allyteam
-copy it from infolog to the config
-dont forget to change TEAM to an actual number
+how to apply the export, see: http://zero-k.info/mediawiki/index.php?title=Startbox_API
 ]]
 
 local polygon = { }
 local final_polygons = { }
+local exportedTeam = 0
+local exported = ''
+local exportPrefix = "return {\n"
+local exportSuffix = "}\n"
 
 function widget:MousePress(mx, my, button)
 	widgetHandler:UpdateCallIn("MapDrawCmd")
@@ -74,19 +76,32 @@ include("keysym.h.lua")
 
 function widget:KeyPress(key)
 	if (key == KEYSYMS.S) then
-		str = "\n\tboxes = {\n" -- not as separate echoes because timestamp keeps getting in the way
+		str = "\t["..exportedTeam.."] = {\n"
+		str = str .. "\t\tnameLong = \"\",\n"
+		str = str .. "\t\tnameShort = \"\",\n"
+		str = str .. "\t\tstartpoints = {},\n"
+		str = str .. "\t\tboxes = {\n" -- not as separate echoes because timestamp keeps getting in the way
 		for j = 1, #final_polygons do
-			str = str .. "\t\t{\n"
+			str = str .. "\t\t\t{\n"
 			local polygon = final_polygons[j]
 			for i = 1, #polygon do
 				local pos = polygon[i]
-				str = str .. "\t\t\t{" .. math.floor(pos[1]) .. ", " .. math.floor(pos[3]) .. "},\n"
+				str = str .. "\t\t\t\t{" .. math.floor(pos[1]) .. ", " .. math.floor(pos[3]) .. "},\n"
 			end
-			str = str .. "\t\t},\n"
+			str = str .. "\t\t\t},\n"
 		end
+		str = str .. "\t\t},\n"
 		str = str .. "\t},\n"
-		Spring.Echo(str)
+
+		exported = exported .. str
+		local filename = 'startboxes_'..Game.mapName..'.txt'
+		local file = assert(io.open(filename, 'w'), 'Unable to save '..filename)
+		file:write(exportPrefix..exported..exportSuffix)
+		file:close()
+		Spring.Echo((exportedTeam == 0 and 'saved' or 'added')..' team '..exportedTeam..' startboxes to '..filename)
+
 		final_polygons = {}
+		exportedTeam = exportedTeam + 1
 	end
 	if (key == KEYSYMS.D) and (#final_polygons > 0) then
 		final_polygons[#final_polygons] = nil

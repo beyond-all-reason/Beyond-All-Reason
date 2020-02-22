@@ -1696,7 +1696,7 @@ function init()
 		},
 		{id="vsync", group="gfx", basic=true, name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description='',
 		 onchange=function(i,value)
-			 Spring.SendCommands("Vsync "..(value and 1 or 0))
+			 --Spring.SendCommands("Vsync "..(value and 1 or 0))
 			 Spring.SetConfigInt("VSync",(value and 1 or 0))
 		 end,
 		},
@@ -2659,7 +2659,7 @@ function init()
 			 Spring.Restart("", startScript)
 		 end,
 		},
-		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to echo current polygons as a startbox, use S once per allyteam\ncopy it from infolog to the config, dont forget to change TEAM to an actual number"},
+		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)"},
 
 		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
 		 onchange=function(i, value)
@@ -3154,63 +3154,63 @@ function widget:Initialize()
 	Spring.SetConfigFloat("CamTimeFactor", 1)
 
 	if Spring.GetGameFrame() == 0 then
-	-- set minimum particle amount
-	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
-		Spring.SetConfigInt("MaxParticles",10000)
-	end
+		-- set minimum particle amount
+		if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
+			Spring.SetConfigInt("MaxParticles",10000)
+		end
 
-	-- enable lua shaders
-	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) and not tonumber(Spring.GetConfigInt("ShaderVersionErrorDetected",1) or 0) then
-		Spring.SetConfigInt("ForceShaders", 1)
-	end
+		-- enable lua shaders
+		if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) and not tonumber(Spring.GetConfigInt("ShaderVersionErrorDetected",1) or 0) then
+			Spring.SetConfigInt("ForceShaders", 1)
+		end
 
-	-- enable map/model shading
-	if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
-		Spring.SetConfigInt("AdvMapShading",1)
-	end
-	if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
-		Spring.SetConfigInt("AdvModelShading",1)
-	end
-	-- enable normal mapping
-	if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
-		Spring.SetConfigInt("NormalMapping",1)
-		Spring.SendCommands("luarules normalmapping 1")
-	end
-	-- disable clouds
-	if Spring.GetConfigInt("AdvSky",0) ~= 0 then
-		Spring.SetConfigInt("AdvSky",0)
-	end
-	-- disable grass
-	if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
-		Spring.SetConfigInt("GrassDetail",0)
-	end
-	-- limit MSAA
-	if Spring.GetConfigInt("MSAALevel",0) > 8 then
-		Spring.SetConfigInt("MSAALevel",8)
-	end
+		-- enable map/model shading
+		if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
+			Spring.SetConfigInt("AdvMapShading",1)
+		end
+		if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
+			Spring.SetConfigInt("AdvModelShading",1)
+		end
+		-- enable normal mapping
+		if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
+			Spring.SetConfigInt("NormalMapping",1)
+			Spring.SendCommands("luarules normalmapping 1")
+		end
+		-- disable clouds
+		if Spring.GetConfigInt("AdvSky",0) ~= 0 then
+			Spring.SetConfigInt("AdvSky",0)
+		end
+		-- disable grass
+		if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
+			Spring.SetConfigInt("GrassDetail",0)
+		end
+		-- limit MSAA
+		if Spring.GetConfigInt("MSAALevel",0) > 6 then
+			Spring.SetConfigInt("MSAALevel",6)
+		end
 
-	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
-	--Spring.SetConfigInt("UsePBO",0)
-	--end
+		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
+		--Spring.SetConfigInt("UsePBO",0)
+		--end
 
-	-- enable shadows at gamestart
-	if Spring.GetConfigInt("Shadows",0) ~= 1 then
-		Spring.SetConfigInt("Shadows",1)
-		Spring.SendCommands("Shadows 1")
-	end
-	-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
-	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-		Spring.SendCommands("Shadows 1 1000")
-	end
+		-- enable shadows at gamestart
+		if Spring.GetConfigInt("Shadows",0) ~= 1 then
+			Spring.SetConfigInt("Shadows",1)
+			Spring.SendCommands("Shadows 1")
+		end
+		-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
+		--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+		--	Spring.SendCommands("Shadows 1 1000")
+		--end
 
-	-- set custom user map sun position
-	if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
-		Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
-		Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
-	end
+		-- set custom user map sun position
+		if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
+			Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
+			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+		end
 
-	-- disable fog
-	Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
+		-- disable fog
+		Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
 	end
 
 	Spring.SendCommands("minimap unitsize "..(Spring.GetConfigFloat("MinimapIconScale", 3.5)))		-- spring wont remember what you set with '/minimap iconssize #'
