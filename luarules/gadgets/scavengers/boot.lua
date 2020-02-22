@@ -108,12 +108,17 @@ function gadget:GameFrame(n)
 		Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
 		Spring.SetTeamResource(GaiaTeamID, "m", 1000000)
 		Spring.SetTeamResource(GaiaTeamID, "e", 1000000)
+		if BossWaveStarted == true then
+			BossWaveTimer(n)
+		end
 	end
 	if n%1800 == 0 and n > 100 then
 		teamsCheck()
 		UpdateTierChances(n)
+		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
+			BossWaveStarted = true
+		end
 	end
-
 
 	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then
 		SpawnBlueprint(n)
@@ -191,6 +196,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavStructure[unitID] = nil
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
+		UnitSuffixLenght[unitID] = nil
 		SpawnBeacon(n)
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
@@ -200,10 +206,16 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam == GaiaTeamID then
-		if UnitDefs[unitDefID].name == "scavengerdroppod_scav" then
+		local UnitName = UnitDefs[unitDefID].name
+		if string.find(UnitName, "_scav") then
+			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+		else
+			UnitSuffixLenght[unitID] = 0
+		end
+		if UnitName == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 		end
-		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		if UnitName == "scavengerdroppodbeacon_scav" then
 			scavSpawnBeacon[unitID] = true
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 		end
@@ -213,7 +225,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
 		scavStructure[unitID] = UnitDefs[unitDefID].isBuilding
 		for i = 1,#NoSelfdList do
-			if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, NoSelfdList[i]) then
+			if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == NoSelfdList[i] then--string.find(UnitName, NoSelfdList[i]) then
 				scavStructure[unitID] = true
 			end
 		end
@@ -221,7 +233,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if scavconfig.modules.constructorControllerModule then
 			if constructorControllerModuleConfig.useconstructors then
 				for i = 1,#ConstructorsList do
-					if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, ConstructorsList[i]) then
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == ConstructorsList[i] then
 						scavConstructor[unitID] = true
 					end
 				end
@@ -229,12 +241,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
 			if constructorControllerModuleConfig.useresurrectors then
 				for i = 1,#Resurrectors do
-					if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, Resurrectors[i]) then
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Resurrectors[i] then
 						scavResurrector[unitID] = true
 					end
 				end
 				for i = 1,#ResurrectorsSea do
-					if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, ResurrectorsSea[i]) then
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == ResurrectorsSea[i] then
 						scavResurrector[unitID] = true
 					end
 				end
@@ -242,14 +254,14 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
 			if constructorControllerModuleConfig.usecollectors then
 				for i = 1,#Collectors do
-					if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, Collectors[i]) then
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Collectors[i] then
 						scavCollector[unitID] = true
 					end
 				end
 			end
 
 			for i = 1,#AssistUnits do
-				if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, AssistUnits[i]) then
+				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == AssistUnits[i] then
 					scavAssistant[unitID] = true
 				end
 			end
@@ -257,7 +269,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
 		if scavconfig.modules.factoryControllerModule then
 			for i = 1,#Factories do
-				if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, Factories[i]) then
+				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Factories[i] then
 					scavFactory[unitID] = true
 				end
 			end

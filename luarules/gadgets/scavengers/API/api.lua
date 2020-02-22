@@ -9,7 +9,7 @@ Spring.Echo("[Scavengers] API initialized")
 	ScavengerStartboxXMax = mapsizeX + 1
 	ScavengerStartboxZMax = mapsizeZ + 1
 	ScavengerStartboxExists = false
-	if scavengersEnabled then
+	if scavengersAIEnabled then
 		GaiaTeamID = scavengerAITeamID
 		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaAllyTeamID)
@@ -25,6 +25,7 @@ Spring.Echo("[Scavengers] API initialized")
 	teamcount = #Spring.GetTeamList() - 1
 	allyteamcount = #Spring.GetAllyTeamList() - 1
 	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
+	BossWaveStarted = false
 	selfdx = {}
 	selfdy = {}
 	selfdz = {}
@@ -41,9 +42,11 @@ Spring.Echo("[Scavengers] API initialized")
 	scavFactory = {}
 	scavCollector = {}
 	scavSpawnBeacon = {}
+	UnitSuffixLenght = {}
 	numOfSpawnBeacons = 0
 	scavMaxUnits = 2000
 	scavengerSoundPath = "Sounds/voice/scavengers/"
+	
 	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
 	end

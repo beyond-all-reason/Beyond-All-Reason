@@ -36,7 +36,7 @@ else
 		for i = 1,#teams do
 			local luaAI = Spring.GetTeamLuaAI(teams[i])
 			if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-				scavengersEnabled = true
+				scavengersAIEnabled = true
 				scavengerAITeamID = i - 1
 				break
 			end

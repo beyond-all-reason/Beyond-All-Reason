@@ -42,13 +42,13 @@ T3AirUnits = {
 "corsb",
 "corvamp",
 "corhurc",
---"corape", exluded because of interference with corap factory
+"corape", --exluded because of interference with corap factory
 "corcrw",
 "corawac",
 
 }
 
 T4AirUnits = {
-"corcrwbosst2_scav",
-"corcrwbosst2_scav",
+"corcrwbosst2",
+"corcrwbosst2",
 }

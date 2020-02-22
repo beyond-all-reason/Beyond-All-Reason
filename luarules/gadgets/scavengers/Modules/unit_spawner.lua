@@ -7,6 +7,24 @@ for i = 1,#UnitLists do
 end
 local UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
 
+function BossWaveTimer(n)
+	if not BossWaveTimeLeft then
+		BossWaveTimeLeft = unitSpawnerModuleConfig.BossWaveTimeLeft
+	end
+	if BossWaveTimeLeft > 0 then
+		BossWaveTimeLeft = BossWaveTimeLeft - 1
+		BossFightMessages(BossWaveTimeLeft)
+	elseif BossWaveTimeLeft <= 0 then
+		local units = Spring.GetTeamUnits(GaiaTeamID)
+		for i = 1,#units do
+			local r = math.random(1,10)
+			if r == 1 then
+				Spring.DestroyUnit(units[i],false,false)
+			end
+		end 
+	end
+end
+
 function UnitGroupSpawn(n)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
@@ -46,10 +64,14 @@ function UnitGroupSpawn(n)
 				end
 				local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
+				local bossaircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance*5)
 				local spawnTier = math.random(1,100)
 				
-				if aircraftchance == 0 then
-					if spawnTier <= TierSpawnChances.T0 then
+				if (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
+					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft and BossWaveTimeLeft > 0 then
+						groupunit = T4AirUnits[math.random(1,#T4AirUnits)]
+						groupsize = 0.000001
+					elseif spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0AirUnits[math.random(1,#T0AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -77,7 +99,10 @@ function UnitGroupSpawn(n)
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy > -20 then
-					if spawnTier <= TierSpawnChances.T0 then
+					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft and BossWaveTimeLeft > 0 then
+						groupunit = T4LandUnits[math.random(1,#T4LandUnits)]
+						groupsize = 0.000001
+					elseif spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0LandUnits[math.random(1,#T0LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -118,7 +143,10 @@ function UnitGroupSpawn(n)
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy <= -20 then
-					if spawnTier <= TierSpawnChances.T0 then
+					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft and BossWaveTimeLeft > 0 then
+						groupunit = T4SeaUnits[math.random(1,#T4SeaUnits)]
+						groupsize = 0.000001
+					elseif spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0SeaUnits[math.random(1,#T0SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
