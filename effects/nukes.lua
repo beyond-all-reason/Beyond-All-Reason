@@ -17,6 +17,7 @@ local definitions = {
                 sizegrowth         = 45,
                 speed              = [[0, 1 0, 0]],
                 texture            = [[flare]],
+                alwaysvisible      = true,
             },
         },
         groundflash_large = {
@@ -31,6 +32,7 @@ local definitions = {
                 ttl                = 130,
                 sizegrowth         = -1,
                 texture            = [[groundflash]],
+                alwaysvisible      = true,
             },
         },
         -- groundflash_largequick = {
@@ -59,6 +61,7 @@ local definitions = {
                 sizegrowth         = 0,
                 ttl                = 145,
                 texture            = [[groundflash]],
+                alwaysvisible      = true,
             },
         },
         kickedupwater = {
@@ -85,6 +88,7 @@ local definitions = {
                 sizegrowth         = 0.5,
                 sizemod            = 1.0,
                 texture            = [[wake]],
+                alwaysvisible      = true,
             },
         },
         explosion_flames = {
@@ -114,6 +118,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[muzzleside]],
                 useairlos          = false,
+                alwaysvisible      = true,
             },
         },
         explosion = {
@@ -143,6 +148,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[flashside2]],
                 useairlos          = false,
+                alwaysvisible      = true,
             },
         },
         sparks = {
@@ -172,6 +178,7 @@ local definitions = {
         sizemod            = 0.98,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        alwaysvisible      = true,
       },
     },
     fireglow = {
@@ -200,6 +207,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[glow2]],
         useairlos          = false,
+        alwaysvisible      = true,
       },
     },
     shockwave = {
@@ -213,6 +221,7 @@ local definitions = {
                 ttl             = 30,
                 expansionSpeed  = 18,
                 color           = [[1.0, 0.85, 0.45]],
+                alwaysvisible      = true,
             },
     },
     shockwave_slow = {
@@ -239,6 +248,7 @@ local definitions = {
                 ttl             = 50,
                 expansionSpeed  = 4.8,
                 color           = [[0.7, 0.60, 0.32]],
+                alwaysvisible      = true,
             },
     },
 
@@ -266,6 +276,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[randomdots]],
                 useairlos          = false,
+                alwaysvisible      = true,
             },
         },
         dirt2 = {
@@ -292,6 +303,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[bigexplosmoke]],
                 useairlos          = false,
+                alwaysvisible      = true,
             },
         },
         dirt3 = {
@@ -318,6 +330,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[randomdots]],
                 useairlos          = false,
+                alwaysvisible      = true,
             },
         },
         clouddust = {
@@ -344,6 +357,7 @@ local definitions = {
                 sizegrowth         = 0.15,
                 sizemod            = 1.0,
                 texture            = [[bigexplosmoke]],
+                alwaysvisible      = true,
             },
         },
         dustparticles = {
@@ -372,6 +386,7 @@ local definitions = {
                 sizegrowth         = 2.2,
                 sizemod            = 1.0,
                 texture            = [[randomdots]],
+                alwaysvisible      = true,
       },
     },
     grounddust = {
@@ -399,6 +414,7 @@ local definitions = {
         sizegrowth         = 0.2,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        alwaysvisible      = true,
       },
     },
 
@@ -509,6 +525,7 @@ local definitions = {
                     sizemod            = 1,
                     texture            = [[dirt]],
                     useairlos          = true,
+                    alwaysvisible      = true,
                 },
             },
         },
