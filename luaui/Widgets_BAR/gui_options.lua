@@ -2658,7 +2658,7 @@ function init()
 		 end,
 		},
 		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)"},
-		{id="limitidlefps", group="dev", widget="Limit idle FPS", name="Limit FPS when idle", type="bool", value=GetWidgetToggleValue("Limit idle FPS"), description="Reduces fps when idle (by setting vsync to a high number)\n\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode"},
+		{id="limitidlefps", group="dev", widget="Limit idle FPS", name="Limit FPS when idle/offscreen", type="bool", value=GetWidgetToggleValue("Limit idle FPS"), description="Reduces fps when idle (by setting vsync to a high number)\n\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode"},
 
 		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
 		 onchange=function(i, value)
@@ -3187,9 +3187,9 @@ function widget:Initialize()
 		if Spring.GetConfigInt("MSAALevel",0) > 6 then
 			Spring.SetConfigInt("MSAALevel",6)
 		end
-		if Spring.GetConfigInt("UsePBO",0) == 0 then
-			Spring.SetConfigInt("UsePBO",1)
-		end
+		--if Spring.GetConfigInt("UsePBO",0) == 0 then
+		--	Spring.SetConfigInt("UsePBO",1)
+		--end
 		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
 		--Spring.SetConfigInt("UsePBO",0)
 		--end
