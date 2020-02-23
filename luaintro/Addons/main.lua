@@ -218,25 +218,27 @@ local quotes = {
 
 
 -- Since math.random is not random and always the same, we save a counter to a file and use that.
-filename = "LuaUI/Config/randomseed.data"
-k = os.time() % 1500
-if VFS.FileExists(filename) then
-	k = tonumber(VFS.LoadFile(filename))
-	if not k then k = 0 end
-end
-k = k + 1
-local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
-if file then
-	file:write(k)
-	file:close()
-	file = nil
-end
+if showTips then
+	local filename = "LuaUI/Config/randomseed.txt"
+	local k = os.time() % 1500
+	if VFS.FileExists(filename) then
+		k = tonumber(VFS.LoadFile(filename))
+		if not k then k = 0 end
+	end
+	k = k + 1
+	local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+	if file then
+		file:write(k)
+		file:close()
+		file = nil
+	end
 
-local random_tip_or_desc = unit_descs[((k/2) % #unit_descs) + 1]
-if k%2 == 1 then
-	random_tip_or_desc = tips[((math.ceil(k/2)) % #tips) + 1]
---elseif k%3 == 2 then
---	random_tip_or_desc = quotes[((math.ceil(k/3)) % #quotes) + 1]
+	local random_tip_or_desc = unit_descs[((k/2) % #unit_descs) + 1]
+	if k%2 == 1 then
+		random_tip_or_desc = tips[((math.ceil(k/2)) % #tips) + 1]
+	--elseif k%3 == 2 then
+	--	random_tip_or_desc = quotes[((math.ceil(k/3)) % #quotes) + 1]
+	end
 end
 
 local defaultFont = 'Poppins-Regular.otf'
