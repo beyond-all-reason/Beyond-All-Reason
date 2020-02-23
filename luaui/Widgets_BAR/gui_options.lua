@@ -1558,6 +1558,8 @@ end
 function init()
 
 	local supportedResolutions = {}
+	local soundDevices = {'default'}
+	local soundDevicesByName = {[''] = 1}
 	local infolog = VFS.LoadFile("infolog.txt")
 	if infolog then
 		local fileLines = lines(infolog)
@@ -1579,7 +1581,7 @@ function init()
 			end
 			if string.find(line, '	display=') and not supportedResolutions[1] then
 				if addResolutions then
-					break
+					--break
 				end
 				addResolutions = true
 				local width = string.sub(string.match(line, 'w=([0-9]*)'), 1)
@@ -1587,7 +1589,12 @@ function init()
 				desktop = width..' x '..height
 				supportedResolutions[#supportedResolutions+1] = desktop
 			end
-
+			if string.find(line, '     %[') then
+				addResolutions = nil
+				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%-%(%)]*)'), 1)
+				soundDevices[#soundDevices+1] = device
+				soundDevicesByName[device] = #soundDevices
+			end
 			-- scan for shader version error
 			if string.find(line, 'error: GLSL 1.50 is not supported') then
 				Spring.SetConfigInt("LuaShaders", 0)
@@ -2062,6 +2069,15 @@ function init()
 		{id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
 
 		-- SND
+		{id="snddevice", group="snd", name="Sound device", type="select", restart=true, options=soundDevices, value=soundDevicesByName[Spring.GetConfigString("snd_device")], description='Select a sound device\ndefault means your default OS playback device\n\nNOTE: Changes require a restart',
+		 onchange = function(i, value)
+			if options[i].options[options[i].value] == 'default' then
+				Spring.SetConfigString("snd_device", '')
+			else
+			 	Spring.SetConfigString("snd_device", options[i].options[options[i].value])
+		 	end
+		 end,
+		},
 		{id="sndvolmaster", group="snd", basic=true, name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100),
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SetConfigInt("snd_volmaster", value) end,
@@ -2082,7 +2098,7 @@ function init()
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SetConfigInt("snd_volunitreply", value) end,
 		},
-		{id="sndvolmusic", group="snd", basic=true, name=widgetOptionColor.."   music", type="slider", min=0, max=50, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20),
+		{id="sndvolmusic", group="snd", basic=true, name=widgetOptionColor.."   music", type="slider", min=0, max=50, step=1, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20),
 		 onload = function() end,
 		 onchange = function(i, value)
 			 if WG['music'] and WG['music'].SetMusicVolume then
@@ -2092,10 +2108,10 @@ function init()
 			 end
 		 end,
 		},
-		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=1, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",1) or.1),
-		--		 onload = function() end,
-		--		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
-		--		},
+		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1),
+			onload = function() end,
+			onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
+		},
 		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons',
 		--		 onload = function() end,
 		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
