@@ -1590,8 +1590,7 @@ function init()
 
 			-- scan for shader version error
 			if string.find(line, 'error: GLSL 1.50 is not supported') then
-				Spring.SetConfigInt("ShaderVersionErrorDetected", 1)
-				Spring.SetConfigInt("ForceShaders", 0)
+				Spring.SetConfigInt("LuaShaders", 0)
 			end
 		end
 	end
@@ -1696,7 +1695,6 @@ function init()
 		},
 		{id="vsync", group="gfx", basic=true, name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description='',
 		 onchange=function(i,value)
-			 --Spring.SendCommands("Vsync "..(value and 1 or 0))
 			 Spring.SetConfigInt("VSync",(value and 1 or 0))
 		 end,
 		},
@@ -3160,8 +3158,8 @@ function widget:Initialize()
 		end
 
 		-- enable lua shaders
-		if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) and not tonumber(Spring.GetConfigInt("ShaderVersionErrorDetected",1) or 0) then
-			Spring.SetConfigInt("ForceShaders", 1)
+		if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
+			Spring.SetConfigInt("LuaShaders", 1)
 		end
 
 		-- enable map/model shading
@@ -3188,7 +3186,9 @@ function widget:Initialize()
 		if Spring.GetConfigInt("MSAALevel",0) > 6 then
 			Spring.SetConfigInt("MSAALevel",6)
 		end
-
+		if Spring.GetConfigInt("UsePBO",0) == 0 then
+			Spring.SetConfigInt("UsePBO",1)
+		end
 		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
 		--Spring.SetConfigInt("UsePBO",0)
 		--end

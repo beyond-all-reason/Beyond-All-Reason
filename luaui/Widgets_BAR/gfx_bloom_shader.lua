@@ -249,7 +249,7 @@ function widget:Initialize()
   	basicAlpha = value
   	reset()
   	if initialized == false then
-  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'LuaShaders = 1\' in springsettings.cfg)')
   	end
   end
   WG['bloom'].getBlursize = function()
@@ -259,7 +259,7 @@ function widget:Initialize()
   	globalBlursizeMult = value
   	reset()
   	if initialized == false then
-  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'LuaShaders = 1\' in springsettings.cfg)')
   	end
   end
   WG['bloom'].getPreset = function()
