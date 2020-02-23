@@ -11,8 +11,11 @@ function widget:GetInfo()
 	}
 end
 
-local idleTime = 6
-local vsyncValueActive = 1		--Spring.GetConfigInt("VSync",1)
+local idleTime = 10
+local vsyncValueActive = Spring.GetConfigInt("VSync",1)
+if vsyncValueActive > 1 then
+	vsyncValueActive = 1
+end
 local vsyncValueIdle = 6
 
 local isIdle = false
@@ -41,7 +44,7 @@ function widget:Update()
 	if not chobbyInterface then
 		local prevIsIdle = isIdle
 
-		local mouseX, mouseY, lmb, mmb, rmb  = Spring.GetMouseState()
+		local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
 		if mouseX ~= lastMouseX or mouseY ~= lastMouseY or lmb or mmb or rmb  then
 			lastMouseX, lastMouseY = mouseX, mouseY
 			lastUserInputTime = os.clock()
@@ -52,7 +55,12 @@ function widget:Update()
 			prevCamX, prevCamY, prevCamZ = camX, camY, camZ
 			lastUserInputTime = os.clock()
 		end
-
+		if cameraPanMode then	-- when camera panning
+			lastUserInputTime = os.clock()
+		end
+		if mouseOffScreen then
+			lastUserInputTime = os.clock() - idleTime-1
+		end
 		if lastUserInputTime < os.clock() - idleTime then
 			isIdle = true
 		else
