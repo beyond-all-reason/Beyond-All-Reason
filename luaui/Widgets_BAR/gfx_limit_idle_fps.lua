@@ -21,6 +21,11 @@ local lastMouseX, lastMouseY = Spring.GetMouseState()
 local prevCamX, prevCamY, prevCamZ = Spring.GetCameraPosition()
 local chobbyInterface = false
 
+
+function widget:Shutdown()
+	Spring.SetConfigInt("VSync", vsyncValueActive)
+end
+
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
@@ -36,8 +41,8 @@ function widget:Update()
 	if not chobbyInterface then
 		local prevIsIdle = isIdle
 
-		local mouseX, mouseY = Spring.GetMouseState()
-		if mouseX ~= lastMouseX or mouseY ~= lastMouseY then
+		local mouseX, mouseY, lmb, mmb, rmb  = Spring.GetMouseState()
+		if mouseX ~= lastMouseX or mouseY ~= lastMouseY or lmb or mmb or rmb  then
 			lastMouseX, lastMouseY = mouseX, mouseY
 			lastUserInputTime = os.clock()
 		end
