@@ -281,15 +281,15 @@ else
 		bossFightEnabled					= false,
 		BossWaveTimeLeft					= 900,
 		aircraftchance 						= 5, -- higher number = lower chance
-		globalscoreperoneunit 				= 800,
-		spawnchance							= 30,
-		beaconspawnchance					= 30,
+		globalscoreperoneunit 				= 400,
+		spawnchance							= 120,
+		beaconspawnchance					= 120,
 		landmultiplier 						= 0.75,
 		airmultiplier 						= 1.5,
 		seamultiplier 						= 0.2,
 
-		t0multiplier						= 2,
-		t1multiplier						= 1.5,
+		t0multiplier						= 1.5,
+		t1multiplier						= 1.0,
 		t2multiplier						= 0.3,
 		t3multiplier						= 0.05,
 		t4multiplier						= 0.01,
@@ -299,7 +299,7 @@ else
 		constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
 		constructortimer 					= 220, -- time in seconds between commander/constructor spawns
 		constructortimerreductionframes		= 36000,
-		minimumconstructors					= 3,
+		minimumconstructors					= 1,
 		useresurrectors						= true,
 		useconstructors						= true,
 		usecollectors						= true,
