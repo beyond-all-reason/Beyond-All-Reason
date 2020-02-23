@@ -195,11 +195,11 @@ function teamsCheck()
 				scoreTeamCount = scoreTeamCount + 1
 				local _,_,_,_,mi = Spring.GetTeamResources(i, "metal")
 				local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
-				local resourceScore = mi*10 + ei
-				local unitScore = unitCount*5
-				local finalScore = resourceScore + unitScore
+				local resourceScore = mi + ei
+				local unitScore = unitCount
+				local finalScore = resourceScore + unitScore + Spring.GetGameSeconds()
 				--Spring.Echo("Final Score for team "..i..": "..finalScore)
-				globalScore = globalScore + finalScore
+				globalScore = globalScore + finalScore 
 				
 				if finalScore > bestTeamScore then
 					bestTeamScore = finalScore
