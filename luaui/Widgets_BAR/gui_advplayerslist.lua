@@ -625,25 +625,26 @@ function SetMaxPlayerNameWidth()
 	local maxWidth = 14*font2:GetTextWidth(absentName) + 8 -- 8 is minimal width
 	local name = ''
 	local spec = false
+	local isAI = false
 	local version = ''
 	local teamID = 0
 	local nextWidth = 0
 	for _,wplayer in ipairs(t) do
 		name,_,spec,teamID = Spring_GetPlayerInfo(wplayer)
-		if select(4,Spring_GetTeamInfo(teamID,false)) then -- is AI?
+		isAI = select(4,Spring_GetTeamInfo(teamID,false))
+		if isAI then -- is AI?
+			spec = false
 			_,_,_,_,name, version = Spring_GetAIInfo(teamID)
 			if type(version) == "string" then
 				name = "AI:" .. name .. "-" .. version
 			else
 				name = "AI:" .. name
 			end
-			if Spring.GetGameRulesParam(teamID, 'ainame') then
-				name = Spring.GetGameRulesParam(teamID, 'ainame') .. ' (AI)'
+			if Spring.GetGameRulesParam('ainame_'..teamID) then
+				name = Spring.GetGameRulesParam('ainame_'..teamID)..' (AI)'
 			end
 		end
-		local charSize
-		if spec then charSize = 11 else charSize = 14 end
-		nextWidth = charSize*font2:GetTextWidth(name)+8
+		nextWidth = (spec and 11 or 14) * font2:GetTextWidth(name)+11
 		if nextWidth > maxWidth then
 			maxWidth = nextWidth
 		end

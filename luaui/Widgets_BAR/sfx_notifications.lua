@@ -789,3 +789,8 @@ function widget:SetConfigData(data)
 		end
 	end
 end
+
+-- maybe draw events on minimap
+--function widget:DrawInMiniMap(sx, sy)
+--
+--end

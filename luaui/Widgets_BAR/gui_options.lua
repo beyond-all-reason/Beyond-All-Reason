@@ -2108,7 +2108,7 @@ function init()
 			 end
 		 end,
 		},
-		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1),
+		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=1, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
 			onload = function() end,
 			onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
 		},
