@@ -24,9 +24,9 @@ function SpawnBeacon(n)
 					else
 						if ScavengerStartboxExists and ScavengerStartboxXMin < posx and ScavengerStartboxXMax > posx and ScavengerStartboxZMin < posz and ScavengerStartboxZMax > posz then
 							canSpawnBeaconHere = true
-						elseif globalScore > scavconfig.timers.T3start then
-							canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
-						elseif globalScore > scavconfig.timers.T2start then
+						-- elseif globalScore > scavconfig.timers.OnlyLos then
+							-- canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
+						elseif globalScore > scavconfig.timers.NoRadar then
 							canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
 						else
 							canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)

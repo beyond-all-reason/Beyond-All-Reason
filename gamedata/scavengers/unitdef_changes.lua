@@ -111,7 +111,7 @@ customDefs.corbw = {
 			paralyzer = false,
 			reloadtime = 0.1,
 			damage = {
-				default = 1,
+				default = 2,
 			},
 		},
 	},

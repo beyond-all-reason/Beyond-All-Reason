@@ -68,10 +68,11 @@ function UnitGroupSpawn(n)
 				end
 				local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
+				local aircraftchanceonsea = math.random(0,unitSpawnerModuleConfig.chanceforaircraftonsea)
 				local bossaircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance*5)
 				local spawnTier = math.random(1,100)
 				
-				if (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
+				if (posy <= -20 and aircraftchanceonsea ~= 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft and BossWaveTimeLeft > 0 then
 						groupunit = T4AirUnits[math.random(1,#T4AirUnits)]
 						groupsize = 0.000001
