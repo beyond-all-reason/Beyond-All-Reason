@@ -376,7 +376,7 @@ function widget:GameFrame(gf)
 			if e_income >= 50 and m_income >= 4 then
 				QueueTutorialNotification('t_nowproduce')
 			end
-			if e_income >= 500 and m_income >= 10 then
+			if e_income >= 600 and m_income >= 12 then
 				QueueTutorialNotification('t_readyfortech2')
 			end
 		end
