@@ -16,7 +16,7 @@ local vsyncValueActive = Spring.GetConfigInt("VSync",1)
 if vsyncValueActive > 1 then
 	vsyncValueActive = 1
 end
-local vsyncValueIdle = 6
+local vsyncValueIdle = 4    -- sometimes somehow vsync 6 results in higher fps than 4
 
 local isIdle = false
 local lastUserInputTime = os.clock()
