@@ -482,7 +482,6 @@ function widget:SetConfigData(data)
 	if data.STRENGTH_MULT then STRENGTH_MULT = data.STRENGTH_MULT or STRENGTH_MULT end
 	if data.whiteColored ~= nil then
 		whiteColored = data.whiteColored
-		Spring.Echo(whiteColored)
 		if whiteColored then
 			OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
 		else
