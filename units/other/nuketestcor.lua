@@ -1,5 +1,5 @@
 return {
-	nuketest = {
+	nuketestcor = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
@@ -25,7 +25,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 5300,
+		maxdamage = 5560,
 		maxvelocity = 0,
 		name = "New Nuke Spawner",
 		noautofire = false,
@@ -33,7 +33,7 @@ return {
 		radardistance = 900,
 		script = "scavs/droppod.cob",
 		seismicsignature = 4,
-		selfdestructas = "custom:newnuke",
+		selfdestructas = "custom:newnuke-cor",
 		side = "ARM",
 		sightdistance = 450,
 		smoothanim = true,
@@ -58,15 +58,15 @@ return {
 		weapondefs = {
 			weapon = {
 				alwaysVisible = true,
-				areaofeffect = 1280,
+				areaofeffect = 1920,
 				avoidfriendly = false,
 				cegtag = "NUKETRAIL",
 				collidefriendly = 0,
 				craterboost = 2.4,
-				craterareaofeffect = 1280,
+				craterareaofeffect = 1920,
 				cratermult = 1.2,
 				edgeeffectiveness = 0.45,
-				explosiongenerator = "custom:newnuke",
+				explosiongenerator = "custom:newnukecor",
 				firestarter = 100,
 				flighttime = 100,
 				impulseboost = 0.5,
@@ -100,7 +100,7 @@ return {
 				},
 				damage = {
 					commanders = 2500,
-					default = 9500,
+					default = 11500,
 				},
 			},
 		},
