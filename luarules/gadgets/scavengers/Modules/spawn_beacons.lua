@@ -6,6 +6,9 @@ function SpawnBeacon(n)
 		if numOfSpawnBeacons <= 10 then
 			BeaconSpawnChance = 0
 		end
+		if BossWaveTimeLeft and BossWaveTimeLeft < 1 then
+			BeaconSpawnChance = 1 -- can't spawn
+		end
 		if BeaconSpawnChance == 0 or canSpawnBeaconHere == false then
 			
 			local posx = math.random(80,mapsizeX-80)
