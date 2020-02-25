@@ -101,7 +101,7 @@ function widget:Update(dt)
 					end
 				end
 			end
-			spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, {})
+			spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, 0)
 			
 			waitedUnits = nil
 		end
@@ -132,7 +132,7 @@ function widget:Update(dt)
 					end
 				end
 			end
-			spGiveOrderToUnitArray(waitedUnits, CMD_WAIT, {}, {})
+			spGiveOrderToUnitArray(waitedUnits, CMD_WAIT, {}, 0)
 		end
 	end
 end
