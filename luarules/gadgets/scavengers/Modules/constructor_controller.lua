@@ -35,7 +35,7 @@ function CollectorOrders(n, scav)
 end
 
 function SpawnConstructor(n)
-	if constructortimer > constructorControllerModuleConfig.constructortimer and numOfSpawnBeacons > 0 then
+	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 4 then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		SpawnBeacons = {}
 		for i = 1,#scavengerunits do
