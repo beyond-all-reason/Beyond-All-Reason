@@ -40,7 +40,7 @@ end
 
 function gadget:Initialize()
     for wDID,_ in pairs(subMissileWeapons) do
-        Script.SetWatchWeapon(wDID, true)
+        Script.SetWatchProjectile(wDID, true)
     end
 end
 

@@ -67,8 +67,8 @@ if gadgetHandler:IsSyncedCode() then
 	local gameover = false
 
 	function gadget:Initialize()
-		Script.SetWatchWeapon(armnuke, true)
-		Script.SetWatchWeapon(cornuke, true)
+		Script.SetWatchProjectile(armnuke, true)
+		Script.SetWatchProjectile(cornuke, true)
 	end
 
 	function gadgetHandler:TeamDied(teamID)

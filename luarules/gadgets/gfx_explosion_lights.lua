@@ -21,24 +21,24 @@ if (gadgetHandler:IsSyncedCode()) then
     function gadget:Initialize()
         for wdid, wd in pairs(WeaponDefs) do
             if wd.type == "Flame" then
-                Script.SetWatchWeapon(wdid, true)     -- watch weapon so explosion gets called for flame weapons
+                Script.SetWatchExplosion(wdid, true)     -- watch weapon so explosion gets called for flame weapons
             end
             if wd.type == "Cannon" then
                 cannonWeapons[wdid] = true
-                Script.SetWatchWeapon(wdid, true)    -- might be getting too expensive
+                Script.SetWatchExplosion(wdid, true)    -- might be getting too expensive
             end
             if wd.type == "BeamLaser" then
-                Script.SetWatchWeapon(wdid, true)    -- might be getting too expensive
+                Script.SetWatchExplosion(wdid, true)    -- might be getting too expensive
             end
         end
     end
     function gadget:Shutdown()
         for wdid, wd in pairs(WeaponDefs) do
             if wd.type == "Flame" then
-                Script.SetWatchWeapon(wdid, false)     -- watch weapon so explosion gets called for flame weapons
+                Script.SetWatchExplosion(wdid, false)     -- watch weapon so explosion gets called for flame weapons
             end
             if wd.type == "Cannon" then
-                Script.SetWatchWeapon(wdid, false)    -- might be getting too expensive
+                Script.SetWatchExplosion(wdid, false)    -- might be getting too expensive
             end
         end
     end

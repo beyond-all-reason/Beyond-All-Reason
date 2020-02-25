@@ -41,7 +41,7 @@ if (gadgetHandler:IsSyncedCode()) then
       end
 	  if wd.description == "Implosion Bomb" then
 	    hasShockwave[wd.id] = {special = 1}
-	    Script.SetWatchWeapon(wd.id,true)
+	    Script.SetWatchExplosion(wd.id,true)
 	    wantedList[#wantedList + 1] = wd.id
 	  elseif normalShockwave then
 	    hasShockwave[wd.id] = {
@@ -49,11 +49,11 @@ if (gadgetHandler:IsSyncedCode()) then
 	      speed = speed,
 	      growth = wd.damageAreaOfEffect/11*speed
 	    }
-	    Script.SetWatchWeapon(wd.id,true)
+	    Script.SetWatchExplosion(wd.id,true)
 	    wantedList[#wantedList + 1] = wd.id
       elseif (wd.type == "DGun") then
 	    hasShockwave[wd.id] = {DGun = true}
-        Script.SetWatchWeapon(wd.id,true)
+        Script.SetWatchExplosion(wd.id,true)
         wantedList[#wantedList + 1] = wd.id
       end
     end

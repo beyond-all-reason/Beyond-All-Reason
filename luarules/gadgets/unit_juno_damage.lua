@@ -99,8 +99,8 @@ local centers = {} --table of where juno missiles hit etc
 local counter = 1 --index each explosion of juno missile with this counter
 
 function gadget:Initialize()
-	Script.SetWatchWeapon(WeaponDefNames.armjuno_juno_pulse.id, true)
-	Script.SetWatchWeapon(WeaponDefNames.corjuno_juno_pulse.id, true)
+	Script.SetWatchExplosion(WeaponDefNames.armjuno_juno_pulse.id, true)
+	Script.SetWatchExplosion(WeaponDefNames.corjuno_juno_pulse.id, true)
 end
 
 

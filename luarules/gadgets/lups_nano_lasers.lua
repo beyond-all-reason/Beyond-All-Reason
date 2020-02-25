@@ -240,7 +240,7 @@ else
     end
 
     function getUnitNanoTarget(unitID)
-        local type = ""
+        local targetType = ""
         local target
         local isFeature = false
         local inRange
@@ -258,7 +258,7 @@ else
 
         if buildID then
             target = buildID
-            type   = "building"
+            targetType   = "building"
             inRange = true
         else
             local uDefID = spGetUnitDefID(unitID)
@@ -276,13 +276,13 @@ else
                             if spValidFeatureID(featureID) then
                                 target    = featureID
                                 isFeature = true
-                                type      = "reclaim"
+                                targetType      = "reclaim"
                                 inRange	= IsFeatureInRange(unitID, featureID, buildRange)
                             end
                         else
                             if spValidUnitID(unitID_) then
                                 target = unitID_
-                                type   = "reclaim"
+                                targetType   = "reclaim"
                                 inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange+35
                             end
                         end
@@ -292,14 +292,14 @@ else
                     local repairID = cmdParam1
                     if spValidUnitID(repairID) then
                         target = repairID
-                        type   = "repair"
+                        targetType   = "repair"
                         inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange+35
                     end
 
                 elseif cmdID == CMD_RESTORE then
                     local x = cmdParam1
                     local z = cmdParam3
-                    type   = "restore"
+                    targetType   = "restore"
                     target = {x, spGetGroundHeight(x,z)+5, z, cmdParam4}
                     inRange = IsGroundPosInRange(unitID, x, z, buildRange)
 
@@ -308,7 +308,7 @@ else
                         local captureID = cmdParam1
                         if spValidUnitID(captureID) then
                             target = captureID
-                            type   = "capture"
+                            targetType   = "capture"
                             inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange+35
                         end
                     end
@@ -318,7 +318,7 @@ else
                     if spValidFeatureID(rezzID) then
                         target    = rezzID
                         isFeature = true
-                        type      = "resurrect"
+                        targetType      = "resurrect"
                         inRange	= IsFeatureInRange(unitID, rezzID, buildRange)
                     end
 
@@ -327,7 +327,7 @@ else
         end
 
         if inRange then
-            return type, target, isFeature
+            return targetType, target, isFeature
         else
             return
         end
@@ -387,7 +387,7 @@ else
                     local strength = ((spGetUnitCurrentBuildPower(unitID)or 1)*buildpower) or 1	-- * 16
                     --Spring.Echo(strength,spGetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID][1])
                     if (strength > 0) then
-                        local cmdtype, target, isFeature = getUnitNanoTarget(unitID)
+                        local targetType, target, isFeature = getUnitNanoTarget(unitID)
                         
                         if (target) then
                             local endpos
@@ -397,12 +397,12 @@ else
                             end
 
                             --local terraform = false
-                            --if (cmdtype=="restore") then
+                            --if (targetType=="restore") then
                             --    terraform = true
                             --end
 
                             --[[
-                            if (cmdtype=="reclaim") and (strength > 0) then
+                            if (targetType=="reclaim") and (strength > 0) then
                                 --// reclaim is done always at full speed
                                 strength = 1
                             end
@@ -427,8 +427,8 @@ else
                                 nanoParams.targetpos    = endpos
                                 nanoParams.count        = strength*30
                                 nanoParams.streamThickness = 2.9 + strength * 0.25
-                                nanoParams.type         = cmdtype
-                                nanoParams.inversed     = (cmdtype == "reclaim" and true or false)
+                                nanoParams.type         = targetType
+                                nanoParams.inversed     = (targetType == "reclaim" and true or false)
                                 if Lups then
                                     Lups.AddParticles(lupsParticleType,nanoParams)
                                 end

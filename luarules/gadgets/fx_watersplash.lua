@@ -69,7 +69,7 @@ end
 function gadget:Initialize()
 	for _,wDef in pairs(WeaponDefs) do
 		if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
-			Script.SetWatchWeapon(wDef.id, true)
+			Script.SetWatchExplosion(wDef.id, true)
 		end
 	end
 end

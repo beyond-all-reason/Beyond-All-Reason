@@ -32,18 +32,18 @@ cegtospawn = {
 }
 
 function gadget:Initialize()
-	Script.SetWatchWeapon(-1, true)
+	Script.SetWatchExplosion(-1, true)
 end
 
 function gadget:ProjectileDestroyed(proID) -- Catch debris explosions, get position, pick random ceg, spawn it at position.
 	local weapon, piece = Spring.GetProjectileType(proID)
 	if piece == true then
-	-- Spring.Echo("explosion")
-	local px, py, pz = Spring.GetProjectilePosition(proID)
-	local i = math.random(1,#cegtospawn)
-	if cegtospawn[i] and px and py and pz then
-	Spring.SpawnCEG(cegtospawn[i], px, py, pz, 0, 1, 0, 50, 0)
-	end
+        -- Spring.Echo("explosion")
+        local px, py, pz = Spring.GetProjectilePosition(proID)
+        local i = math.random(1,#cegtospawn)
+        if cegtospawn[i] and px and py and pz then
+            Spring.SpawnCEG(cegtospawn[i], px, py, pz, 0, 1, 0, 50, 0)
+        end
 	end
 end
 

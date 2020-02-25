@@ -22,7 +22,7 @@ if (gadgetHandler:IsSyncedCode()) then
   for i=1,#WeaponDefs do
     local wd = WeaponDefs[i]
     if (wd.description:find("Napalm") or (wd.customParams and (wd.customParams.lups_napalm_fx or wd.customParams.lups_heat_fx))) then
-      Script.SetWatchWeapon(wd.id,true)
+      Script.SetWatchExplosion(wd.id,true)
       napalmWeapons[wd.id] = true
       wantedList[#wantedList + 1] = wd.id
     end
