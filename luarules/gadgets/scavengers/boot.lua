@@ -221,9 +221,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 		end
 		-- CMD.CLOAK = 37382
-		Spring.GiveOrderToUnit(unitID,37382,{1},{""})
+		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
-		Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
+		Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
 		scavStructure[unitID] = UnitDefs[unitDefID].isBuilding
 		for i = 1,#NoSelfdList do
 			if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == NoSelfdList[i] then--string.find(UnitName, NoSelfdList[i]) then
@@ -281,7 +281,7 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam == GaiaTeamID then
 		-- CMD.CLOAK = 37382
-		Spring.GiveOrderToUnit(unitID,37382,{1},{""})
+		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
 		Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
 		Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},{""})

@@ -115,7 +115,7 @@ function DoStockPile( unitID )
 				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
 				count = count + 5
 			else
-				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "" })
+				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, 0)
 				count = count + 1
 			end
 		end

@@ -205,7 +205,7 @@ function gadget:GameFrame(n)
 				end
 			end
 		end
-      GiveOrderToUnit(unitID, CMD_INSERT, {-1,-builder.targetUpgrade,CMD_OPT_INTERNAL,builder.targetX, y, builder.targetZ, 0}, {shift = true, internal = true, alt = true});    
+      GiveOrderToUnit(unitID, CMD_INSERT, {-1,-builder.targetUpgrade,CMD_OPT_INTERNAL,builder.targetX, y, builder.targetZ, 0}, {"shift", "alt"})
       builder.orderTaken = true 
     end
   end 
@@ -264,7 +264,7 @@ function upgradeClosestMex(unitID, teamID, mexesInRange)
 end 
 
 function orderBuilder(unitID, mexID) 
-  --GiveOrderToUnit(unitID, CMD_UPGRADEMEX, {mexID}, {""}); 
+  --GiveOrderToUnit(unitID, CMD_UPGRADEMEX, {mexID}, 0)
   --addCommands[unitID] = {cmd = CMD_UPGRADEMEX, params = {mexID}, options = {""}} 
   addCommands[unitID] = {cmd = CMD_INSERT, params = {1, CMD_UPGRADEMEX, CMD_OPT_INTERNAL, mexID}, options = {"alt"}}      
   

@@ -23,7 +23,7 @@ function ResurrectorOrders(n, scav)
 	local mapcenterZ = mapsizeZ/2
 	local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
 	local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-	Spring.GiveOrderToUnit(scav, CMD.RESURRECT,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, {})
+	Spring.GiveOrderToUnit(scav, CMD.RESURRECT,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, 0)
 end
 
 function CollectorOrders(n, scav)
@@ -31,11 +31,11 @@ function CollectorOrders(n, scav)
 	local mapcenterZ = mapsizeZ/2
 	local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
 	local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-	Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, {})
+	Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, 0)
 end
 
 function SpawnConstructor(n)
-	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 4 then
+	if constructortimer > constructorControllerModuleConfig.constructortimer and numOfSpawnBeacons > 0 then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		SpawnBeacons = {}
 		for i = 1,#scavengerunits do
@@ -171,7 +171,7 @@ function ConstructNewBlueprint(n, scav)
 		local mapcenterZ = mapsizeZ/2
 		local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
 		local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, {})
+		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, 0)
 	end
 							
 	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true)
