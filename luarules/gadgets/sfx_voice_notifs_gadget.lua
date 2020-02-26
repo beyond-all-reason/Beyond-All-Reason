@@ -231,7 +231,7 @@ else
 	isLrpc[UnitDefNames['corbuzz'].id] = true
 	isLrpc[UnitDefNames['armvulc'].id] = true
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.customParams.iscommander then
+		if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
 			isCommander[unitDefID] = true
 		end
 		if unitDef.isBuilding and unitDef.radarRadius > 1900 then
