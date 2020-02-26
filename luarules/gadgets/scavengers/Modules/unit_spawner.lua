@@ -62,7 +62,12 @@ function UnitGroupSpawn(n)
 			
 			if canSpawnHere then
 				
-				UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
+				if BossWaveTimeLeft then
+					UnitSpawnChance = math.ceil(unitSpawnerModuleConfig.spawnchance / (teamcount/2))
+				else
+					UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
+				end
+				
 				if (globalScore/unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier < #scavengerunits then
 					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
 				end

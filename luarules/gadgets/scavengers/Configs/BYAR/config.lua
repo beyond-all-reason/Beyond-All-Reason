@@ -66,8 +66,8 @@ if scavengersAIEnabled then
 		t0multiplier						= 2,
 		t1multiplier						= 1.5,
 		t2multiplier						= 0.3,
-		t3multiplier						= 0.05,
-		t4multiplier						= 0.01,
+		t3multiplier						= 0.1,
+		t4multiplier						= 0.1,
 	}
 
 	constructorControllerModuleConfig = {
@@ -96,98 +96,98 @@ if scavengersAIEnabled then
 		-- Must be 100 in total
 		
 		if globalScore > scavconfig.timers.T4top then
-			TierSpawnChances.T0 = 10
-			TierSpawnChances.T1 = 10
-			TierSpawnChances.T2 = 20
-			TierSpawnChances.T3 = 20
-			TierSpawnChances.T4 = 40
-		elseif globalScore > scavconfig.timers.T4high then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 20
-			TierSpawnChances.T3 = 20
-			TierSpawnChances.T4 = 20
-		elseif globalScore > scavconfig.timers.T4med then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 20
-			TierSpawnChances.T3 = 25
-			TierSpawnChances.T4 = 15
-		elseif globalScore > scavconfig.timers.T4low then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 20
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 0
+			TierSpawnChances.T2 = 10
 			TierSpawnChances.T3 = 30
+			TierSpawnChances.T4 = 60
+		elseif globalScore > scavconfig.timers.T4high then
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 0
+			TierSpawnChances.T2 = 20
+			TierSpawnChances.T3 = 50
+			TierSpawnChances.T4 = 30
+		elseif globalScore > scavconfig.timers.T4med then
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 0
+			TierSpawnChances.T2 = 30
+			TierSpawnChances.T3 = 50
+			TierSpawnChances.T4 = 20
+		elseif globalScore > scavconfig.timers.T4low then
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 0
+			TierSpawnChances.T2 = 40
+			TierSpawnChances.T3 = 50
 			TierSpawnChances.T4 = 10
 		elseif globalScore > scavconfig.timers.T4start then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 20
-			TierSpawnChances.T3 = 35
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 0
+			TierSpawnChances.T2 = 40
+			TierSpawnChances.T3 = 55
 			TierSpawnChances.T4 = 5
 		elseif globalScore > scavconfig.timers.T3top then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 20
-			TierSpawnChances.T3 = 40
+			TierSpawnChances.T3 = 70
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3high then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 30
-			TierSpawnChances.T3 = 30
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 50
+			TierSpawnChances.T3 = 40
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3med then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 40
-			TierSpawnChances.T3 = 20
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 60
+			TierSpawnChances.T3 = 30
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3low then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 45
-			TierSpawnChances.T3 = 15
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 65
+			TierSpawnChances.T3 = 25
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3start then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 50
+			TierSpawnChances.T0 = 0
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 70
 			TierSpawnChances.T3 = 10
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2top then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 20
-			TierSpawnChances.T2 = 60
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 80
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2high then
-			TierSpawnChances.T0 = 20
+			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 30
-			TierSpawnChances.T2 = 50
+			TierSpawnChances.T2 = 60
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2med then
-			TierSpawnChances.T0 = 20
+			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 40
-			TierSpawnChances.T2 = 40
+			TierSpawnChances.T2 = 50
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2low then
-			TierSpawnChances.T0 = 20
+			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 60
-			TierSpawnChances.T2 = 20
+			TierSpawnChances.T2 = 30
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2start then
-			TierSpawnChances.T0 = 20
+			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 70
-			TierSpawnChances.T2 = 10
+			TierSpawnChances.T2 = 20
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T1top then
-			TierSpawnChances.T0 = 20
-			TierSpawnChances.T1 = 80
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 00
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
@@ -331,114 +331,114 @@ else
 		if globalScore > scavconfig.timers.T4top then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 15
-			TierSpawnChances.T3 = 60
-			TierSpawnChances.T4 = 25
+			TierSpawnChances.T2 = 10
+			TierSpawnChances.T3 = 30
+			TierSpawnChances.T4 = 60
 		elseif globalScore > scavconfig.timers.T4high then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
 			TierSpawnChances.T2 = 20
-			TierSpawnChances.T3 = 60
-			TierSpawnChances.T4 = 20
+			TierSpawnChances.T3 = 50
+			TierSpawnChances.T4 = 30
 		elseif globalScore > scavconfig.timers.T4med then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 20
-			TierSpawnChances.T3 = 65
-			TierSpawnChances.T4 = 15
+			TierSpawnChances.T2 = 30
+			TierSpawnChances.T3 = 50
+			TierSpawnChances.T4 = 20
 		elseif globalScore > scavconfig.timers.T4low then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 25
-			TierSpawnChances.T3 = 65
+			TierSpawnChances.T2 = 40
+			TierSpawnChances.T3 = 50
 			TierSpawnChances.T4 = 10
 		elseif globalScore > scavconfig.timers.T4start then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 30
-			TierSpawnChances.T3 = 65
+			TierSpawnChances.T2 = 40
+			TierSpawnChances.T3 = 55
 			TierSpawnChances.T4 = 5
 		elseif globalScore > scavconfig.timers.T3top then
 			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 30
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 20
 			TierSpawnChances.T3 = 70
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3high then
 			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 40
-			TierSpawnChances.T3 = 60
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 50
+			TierSpawnChances.T3 = 40
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3med then
 			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 50
-			TierSpawnChances.T3 = 50
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 60
+			TierSpawnChances.T3 = 30
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3low then
 			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 75
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 65
 			TierSpawnChances.T3 = 25
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T3start then
 			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 90
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 70
 			TierSpawnChances.T3 = 10
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2top then
-			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 0
-			TierSpawnChances.T2 = 100
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 10
+			TierSpawnChances.T2 = 80
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2high then
-			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 25
-			TierSpawnChances.T2 = 75
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 30
+			TierSpawnChances.T2 = 60
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2med then
-			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 50
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 40
 			TierSpawnChances.T2 = 50
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2low then
-			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 75
-			TierSpawnChances.T2 = 25
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 60
+			TierSpawnChances.T2 = 30
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2start then
-			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 90
-			TierSpawnChances.T2 = 10
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 70
+			TierSpawnChances.T2 = 20
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T1top then
-			TierSpawnChances.T0 = 0
-			TierSpawnChances.T1 = 100
+			TierSpawnChances.T0 = 10
+			TierSpawnChances.T1 = 00
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T1high then
-			TierSpawnChances.T0 = 25
-			TierSpawnChances.T1 = 75
+			TierSpawnChances.T0 = 40
+			TierSpawnChances.T1 = 60
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T1med then
-			TierSpawnChances.T0 = 50
-			TierSpawnChances.T1 = 50
+			TierSpawnChances.T0 = 60
+			TierSpawnChances.T1 = 40
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T1low then
-			TierSpawnChances.T0 = 75
-			TierSpawnChances.T1 = 25
+			TierSpawnChances.T0 = 80
+			TierSpawnChances.T1 = 20
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
@@ -454,6 +454,5 @@ else
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
-		end
 	end
 end
