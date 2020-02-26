@@ -470,8 +470,6 @@ local blue = "\255"..string.char(51)..string.char(51)..string.char(151)
 local green = "\255"..string.char(51)..string.char(151)..string.char(51)
 local white = "\255"..string.char(251)..string.char(251)..string.char(251)
 local yellow = "\255"..string.char(251)..string.char(251)..string.char(11)
-local quitColour  
-local graphColour
 
 local playerListByTeam = {} --does not contain specs
 local myPlayerID = Spring.GetMyPlayerID()
@@ -869,24 +867,24 @@ function gadget:DrawScreen()
 		--draw buttons, wastefully, but it doesn't matter now game is over
 		local x1,y1 = Spring.GetMouseState()
 		local x,y = correctMouseForScaling(x1,y1)
-		
+
+		local quitColour
+		local graphColour
+
 		if (x > bx+w-quitX-5) and (x < bx+w-quitX+17*font2:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+17+5) then
 			quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		if showGraphsButton and (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+17+5) then
-			graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
-		else
-			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
-		end
 		font2:Begin()
-		if chobbyLoaded then
-			font2:Print(quitColour .. 'Leave', bx+w-quitX, by+50, 20, "o")
-		else
-			font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 20, "o")
-		end
+		font2:Print(quitColour .. (chobbyLoaded and 'Leave' or 'Quit'), bx+w-quitX, by+50, 20, "o")
 		if showGraphsButton then
+
+			if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+17+5) then
+				graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
+			else
+				graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
+			end
 			font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 20, "o")
 		end
 		font2:End()

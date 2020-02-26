@@ -26,7 +26,7 @@ for udefID,def in ipairs(UnitDefs) do
   if def.name == 'corstone' then
     corstoneUdefID = udefID
   end
-  if def.customParams.iscommander then
+  if def.customParams.iscommander and not string.find(def.name,'_scav') then
     commanders[udefID] = def.name
   end
 end
