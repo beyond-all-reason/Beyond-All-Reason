@@ -454,5 +454,6 @@ else
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+		end
 	end
 end
