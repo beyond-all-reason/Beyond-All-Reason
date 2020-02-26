@@ -187,7 +187,7 @@ function teamsCheck()
 	globalScore = 0
 	scoreTeamCount = 0
 	for _,teamID in ipairs(Spring.GetTeamList()) do
-		if teamID ~= GaiaTeamID then
+		if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
 			local i = teamID
 			local _,_,teamisDead = Spring.GetTeamInfo(i)
 			local unitCount = Spring.GetTeamUnitCount(i)
