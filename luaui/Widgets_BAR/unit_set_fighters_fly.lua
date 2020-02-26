@@ -17,42 +17,42 @@ end
 
 
 --------------------------------------------------------------------------------
+
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetMyTeamId = Spring.GetMyTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local cmdFly = 145
+local myTeamID = Spring.GetMyTeamID()
+
+local isFighter = {}
+for udid, ud in pairs(UnitDefs) do
+    if ud.isFighterAirUnit and not string.find(ud.name, 'liche') then       -- liche is classified as one somehow
+        isFighter[udid] = true
+    end
+end
+
 --------------------------------------------------------------------------------
 
-
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
-    if(teamID == spGetMyTeamId()) then
-        switchToFlyMode(unitID, unitDefID)
-    end
-end
-
-function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-    if(newTeam == spGetMyTeamId()) then
-        switchToFlyMode(unitID, unitDefID)
-    end
-end
-
-
-function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-    if(unitTeam == spGetMyTeamId()) then
-        switchToFlyMode(unitID, unitDefID)
-    end
-end
-
-function switchToFlyMode(unitID, unitDefID)
-    if (unitDefID == UnitDefNames["armfig"].id  or unitDefID == UnitDefNames["armsfig"].id or unitDefID == UnitDefNames["armhawk"].id or
-        unitDefID == UnitDefNames["corveng"].id or unitDefID == UnitDefNames["corsfig"].id or unitDefID == UnitDefNames["corvamp"].id) then
+    if isFighter[unitDefID] and teamID == myTeamID then
         spGiveOrderToUnit(unitID, cmdFly, { 0 }, 0)
     end
 end
 
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+    if isFighter[unitDefID] and newTeam == myTeamID then
+        spGiveOrderToUnit(unitID, cmdFly, { 0 }, 0)
+    end
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+    if isFighter[unitDefID] and unitTeam == myTeamID then
+        spGiveOrderToUnit(unitID, cmdFly, { 0 }, 0)
+    end
+end
 
 function widget:PlayerChanged(playerID)
+    myTeamID = Spring.GetMyTeamID()
     if Spring.GetSpectatingState() then
         widgetHandler:RemoveWidget(self)
     end
@@ -62,9 +62,10 @@ function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         widget:PlayerChanged()
     end
-    local teamId = select(4,Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false))
-    for _, unitID in ipairs(spGetTeamUnits(teamId)) do  -- init existing labs
-        switchToFlyMode(unitID, spGetUnitDefID(unitID))
+    for _, unitID in ipairs(spGetTeamUnits(myTeamID)) do  -- init existing labs
+        if isFighter[spGetUnitDefID(unitID)] then
+            spGiveOrderToUnit(unitID, cmdFly, { 0 }, 0)
+        end
     end
 end
 
