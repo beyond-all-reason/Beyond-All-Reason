@@ -268,6 +268,8 @@ else
 			T4high								= 16000,
 			T4top								= 20000,
 			BossFight							= 50000,
+			-- don't delete
+			NoRadar								= 1500,
 		},
 		other = {
 			heighttolerance						= 30, -- higher = allow higher height diffrences
@@ -290,6 +292,7 @@ else
 		landmultiplier 						= 0.75,
 		airmultiplier 						= 1.5,
 		seamultiplier 						= 0.2,
+		chanceforaircraftonsea				= 2, -- higher number = lower chance
 
 		t0multiplier						= 1.5,
 		t1multiplier						= 1.0,
