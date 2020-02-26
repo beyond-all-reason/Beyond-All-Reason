@@ -78,6 +78,7 @@ if scavengersAIEnabled then
 		useresurrectors						= true,
 		useconstructors						= true,
 		usecollectors						= true,
+			seacollectors					= false,
 	}
 
 	unitControllerModuleConfig = {
@@ -309,6 +310,7 @@ else
 		useresurrectors						= true,
 		useconstructors						= true,
 		usecollectors						= true,
+			seacollectors					= false,
 	}
 
 	unitControllerModuleConfig = {
