@@ -338,7 +338,7 @@ else
     local prevUpdateGameFrame = 0
     function gadget:Update()
 
-        if (spGetGameFrame()<1) then
+        if spGetGameFrame() < 1 then
             return
         end
 
@@ -354,7 +354,7 @@ else
         --gadgetHandler:RemoveCallIn("Update")
         if not initialized then
             Lups = GG['Lups']
-            if (Lups) then
+            if Lups then
                 maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 10) or 10)
                 currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
                 init()

@@ -126,11 +126,12 @@ end
 --]]
 
 function gadget:UnitCloaked(unitID,unitDefID,teamID)
-	local allyTeamID = Spring.GetUnitAllyTeam(unitID)
+	if not initialized and then return end
 
+	local allyTeamID = Spring.GetUnitAllyTeam(unitID)
 	local LocalAllyTeamID
 	local _, specFullView = Spring.GetSpectatingState()
-	if (specFullView) then
+	if specFullView then
 		LocalAllyTeamID = allyTeamID
 	else
 		LocalAllyTeamID = Spring.GetLocalAllyTeamID()
@@ -142,7 +143,7 @@ function gadget:UnitCloaked(unitID,unitDefID,teamID)
 		end
 	end
 	particleIDs[unitID] = {}
-	if (LocalAllyTeamID==allyTeamID) then
+	if LocalAllyTeamID==allyTeamID then
 		if Lups then
 			for i=1,#CloakEffect do
 				local fx = CloakEffect[i]
@@ -169,23 +170,25 @@ function gadget:UnitCloaked(unitID,unitDefID,teamID)
 end
 
 function gadget:UnitDecloaked(unitID,unitDefID,teamID)
+	if not Lups then return end
+
 	local allyTeamID = Spring.GetUnitAllyTeam(unitID)
 
 	local LocalAllyTeamID
 	local _, specFullView = Spring.GetSpectatingState()
-	if (specFullView) then
+	if specFullView then
 		LocalAllyTeamID = allyTeamID
 	else
 		LocalAllyTeamID = Spring.GetLocalAllyTeamID()
 	end
 
-	if (particleIDs[unitID]) then
+	if particleIDs[unitID] then
 		for i=1,#particleIDs[unitID] do
 			Lups.RemoveParticles(particleIDs[unitID][i])
 		end
 	end
 	particleIDs[unitID] = {}
-	if (LocalAllyTeamID==allyTeamID) then
+	if LocalAllyTeamID==allyTeamID then
 		for i=1,#DecloakEffect do
 			local fx = DecloakEffect[i]
 			fx.options.unit			= unitID
@@ -207,7 +210,7 @@ function gadget:UnitDecloaked(unitID,unitDefID,teamID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, teamID, oldTeamID)
-	if (Spring.GetUnitIsCloaked(unitID)) then
+	if Spring.GetUnitIsCloaked(unitID) then
 		gadget:UnitCloaked(unitID,unitDefID,teamID)
 	end
 end
@@ -218,7 +221,7 @@ end
 --
 
 function gadget:UnitDestroyed(unitID,unitDefID)
-	if (particleIDs[unitID]) then
+	if initialized and particleIDs[unitID] then
 		local effects = particleIDs[unitID]
 		for i=1,#effects do
 			Lups.RemoveParticles(effects[i])
@@ -286,10 +289,10 @@ end
 
 function gadget:Shutdown()
 
-	if (initialized) then
+	if initialized then
 		for _,unitFxIDs in pairs(particleIDs) do
 			for i=1,#unitFxIDs do
-		Lups.RemoveParticles(unitFxIDs[i])
+				Lups.RemoveParticles(unitFxIDs[i])
 			end		
 		end
 		particleIDs = {}
