@@ -161,7 +161,7 @@ function ConstructNewBlueprint(n, scav)
 			elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 					blueprint = ScavengerConstructorBlueprintsT3Sea[math.random(1,#ScavengerConstructorBlueprintsT3Sea)]
 			elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-					blueprint = ScavengerConstructorBlueprintsT4Sea[math.random(1,#ScavengerConstructorBlueprintsT4Sea)]
+					blueprint = ScavengerConstructorBlueprintsT3Sea[math.random(1,#ScavengerConstructorBlueprintsT3Sea)]
 			else
 				blueprint = ScavengerConstructorBlueprintsT0Sea[math.random(1,#ScavengerConstructorBlueprintsT0Sea)]
 			end
