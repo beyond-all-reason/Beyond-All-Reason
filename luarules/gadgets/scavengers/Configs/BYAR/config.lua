@@ -76,9 +76,9 @@ if scavengersAIEnabled then
 		constructortimerreductionframes		= 36000,
 		minimumconstructors					= 3,
 		useresurrectors						= true,
+			searesurrectors					= false,
 		useconstructors						= true,
 		usecollectors						= true,
-			seacollectors					= false,
 	}
 
 	unitControllerModuleConfig = {
@@ -308,9 +308,10 @@ else
 		constructortimerreductionframes		= 36000,
 		minimumconstructors					= 1,
 		useresurrectors						= true,
+			searesurrectors					= false,
 		useconstructors						= true,
 		usecollectors						= true,
-			seacollectors					= false,
+			
 	}
 
 	unitControllerModuleConfig = {

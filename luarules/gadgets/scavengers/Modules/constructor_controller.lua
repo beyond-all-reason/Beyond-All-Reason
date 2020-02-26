@@ -115,7 +115,7 @@ function SpawnConstructor(n)
 				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math.random(0,3),GaiaTeamID)
 				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math.random(0,3),GaiaTeamID)
 				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math.random(0,3),GaiaTeamID)
-			elseif constructorControllerModuleConfig.seacollectors == true then
+			elseif constructorControllerModuleConfig.searesurrectors == true then
 				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math.random(0,3),GaiaTeamID)
 				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math.random(0,3),GaiaTeamID)
 				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math.random(0,3),GaiaTeamID)
