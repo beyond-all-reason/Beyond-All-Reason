@@ -11,6 +11,7 @@ function gadget:GetInfo()
 end
 
 local localtestDebug = false		-- when true: ends game after 30 secs
+local showGraphsButton = false
 
 if (gadgetHandler:IsSyncedCode()) then 
 
@@ -816,7 +817,7 @@ function gadget:MousePress(x,y,button)
 				Spring.SendCommands("quitforce")
 			end
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+20*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if showGraphsButton and (x > bx+w-graphsX-5) and (x < bx+w-graphsX+20*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
 			if Script.LuaUI("GuishaderRemoveRect") then
 				Script.LuaUI.GuishaderRemoveRect('awards')
@@ -874,7 +875,7 @@ function gadget:DrawScreen()
 		else
 			quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+17+5) then
+		if showGraphsButton and (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+17+5) then
 			graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
@@ -885,7 +886,9 @@ function gadget:DrawScreen()
 		else
 			font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 20, "o")
 		end
-		font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 20, "o")
+		if showGraphsButton then
+			font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 20, "o")
+		end
 		font2:End()
 
 		if bettingScores ~= nil and bettingScores[1] ~= '' then
