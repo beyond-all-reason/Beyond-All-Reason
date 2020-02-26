@@ -177,7 +177,7 @@ end
 local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
     if not Spring.IsGUIHidden() and not chobbyInterface then
         for playerID,cursor in pairs(cursors) do
-            if teamColors[playerID] and not cursor[8] then
+            if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
                 local params = {param={} }
                 params.px, params.py, params.pz = cursor[1],cursor[2],cursor[3]
                 params.param.r, params.param.g, params.param.b = teamColors[playerID][1],teamColors[playerID][2],teamColors[playerID][3]
@@ -586,7 +586,9 @@ function widget:DrawWorldPreUnit()
     gl.PolygonOffset(-7,-10)
 
     for playerID,cursor in pairs(cursors) do
-        DrawCursor(playerID,cursor[1],cursor[2],cursor[3],cursor[4],cursor[5],cursor[6],cursor[7])
+        if notIdle[playerID] then
+            DrawCursor(playerID,cursor[1],cursor[2],cursor[3],cursor[4],cursor[5],cursor[6],cursor[7])
+        end
     end
 
     gl.PolygonOffset(false)
