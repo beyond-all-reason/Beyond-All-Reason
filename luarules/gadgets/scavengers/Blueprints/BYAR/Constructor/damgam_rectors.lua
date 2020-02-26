@@ -92,72 +92,72 @@ table.insert(ScavengerConstructorBlueprintsT3,DamCorNecrosBig)
 
 -- Sea Stuff
 
-local function DamArmRecluseSmall(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 32
-	if radiusCheck then
-		return posradius
-	else
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT0Sea,DamArmRecluseSmall)
-table.insert(ScavengerConstructorBlueprintsT1Sea,DamArmRecluseSmall)
-table.insert(ScavengerConstructorBlueprintsT2Sea,DamArmRecluseSmall)
-table.insert(ScavengerConstructorBlueprintsT3Sea,DamArmRecluseSmall)
+-- local function DamArmRecluseSmall(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+    -- local posradius = 32
+	-- if radiusCheck then
+		-- return posradius
+	-- else
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+	-- end
+-- end
+-- table.insert(ScavengerConstructorBlueprintsT0Sea,DamArmRecluseSmall)
+-- table.insert(ScavengerConstructorBlueprintsT1Sea,DamArmRecluseSmall)
+-- table.insert(ScavengerConstructorBlueprintsT2Sea,DamArmRecluseSmall)
+-- table.insert(ScavengerConstructorBlueprintsT3Sea,DamArmRecluseSmall)
 
-local function DamArmRecluseBig(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 64
-    if radiusCheck then
-        return posradius
-    else
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(64), posy, posz+(64), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-64), posy, posz+(64), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(64), posy, posz+(-64), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-64), posy, posz+(-64), math.random(0,3)}, {"shift"})
-    end
-end
-table.insert(ScavengerConstructorBlueprintsT1Sea,DamArmRecluseBig)
-table.insert(ScavengerConstructorBlueprintsT2Sea,DamArmRecluseBig)
-table.insert(ScavengerConstructorBlueprintsT3Sea,DamArmRecluseBig)
+-- local function DamArmRecluseBig(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+    -- local posradius = 64
+    -- if radiusCheck then
+        -- return posradius
+    -- else
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(64), posy, posz+(64), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-64), posy, posz+(64), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(64), posy, posz+(-64), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.armrecl_scav.id), {posx+(-64), posy, posz+(-64), math.random(0,3)}, {"shift"})
+    -- end
+-- end
+-- table.insert(ScavengerConstructorBlueprintsT1Sea,DamArmRecluseBig)
+-- table.insert(ScavengerConstructorBlueprintsT2Sea,DamArmRecluseBig)
+-- table.insert(ScavengerConstructorBlueprintsT3Sea,DamArmRecluseBig)
 
-local function DamCorReclusesSmall(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 32
-	if radiusCheck then
-		return posradius
-	else
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT0Sea,DamCorReclusesSmall)
-table.insert(ScavengerConstructorBlueprintsT1Sea,DamCorReclusesSmall)
-table.insert(ScavengerConstructorBlueprintsT2Sea,DamCorReclusesSmall)
-table.insert(ScavengerConstructorBlueprintsT3Sea,DamCorReclusesSmall)
+-- local function DamCorReclusesSmall(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+    -- local posradius = 32
+	-- if radiusCheck then
+		-- return posradius
+	-- else
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+	-- end
+-- end
+-- table.insert(ScavengerConstructorBlueprintsT0Sea,DamCorReclusesSmall)
+-- table.insert(ScavengerConstructorBlueprintsT1Sea,DamCorReclusesSmall)
+-- table.insert(ScavengerConstructorBlueprintsT2Sea,DamCorReclusesSmall)
+-- table.insert(ScavengerConstructorBlueprintsT3Sea,DamCorReclusesSmall)
 
-local function DamCorReclusesBig(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 64
-    if radiusCheck then
-        return posradius
-    else
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(64), posy, posz+(64), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-64), posy, posz+(64), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(64), posy, posz+(-64), math.random(0,3)}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-64), posy, posz+(-64), math.random(0,3)}, {"shift"})
-    end
-end
-table.insert(ScavengerConstructorBlueprintsT1Sea,DamCorReclusesBig)
-table.insert(ScavengerConstructorBlueprintsT2Sea,DamCorReclusesBig)
-table.insert(ScavengerConstructorBlueprintsT3Sea,DamCorReclusesBig)
+-- local function DamCorReclusesBig(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+    -- local posradius = 64
+    -- if radiusCheck then
+        -- return posradius
+    -- else
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-32), posy, posz+(-32), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(64), posy, posz+(64), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-64), posy, posz+(64), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(64), posy, posz+(-64), math.random(0,3)}, {"shift"})
+        -- Spring.GiveOrderToUnit(scav, -(UDN.correcl_scav.id), {posx+(-64), posy, posz+(-64), math.random(0,3)}, {"shift"})
+    -- end
+-- end
+-- table.insert(ScavengerConstructorBlueprintsT1Sea,DamCorReclusesBig)
+-- table.insert(ScavengerConstructorBlueprintsT2Sea,DamCorReclusesBig)
+-- table.insert(ScavengerConstructorBlueprintsT3Sea,DamCorReclusesBig)
