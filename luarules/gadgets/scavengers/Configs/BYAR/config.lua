@@ -187,7 +187,7 @@ if scavengersAIEnabled then
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T1top then
 			TierSpawnChances.T0 = 10
-			TierSpawnChances.T1 = 00
+			TierSpawnChances.T1 = 90
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
@@ -420,7 +420,7 @@ else
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T1top then
 			TierSpawnChances.T0 = 10
-			TierSpawnChances.T1 = 00
+			TierSpawnChances.T1 = 90
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
