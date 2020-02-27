@@ -12,13 +12,24 @@ end
 
 if (not gadgetHandler:IsSyncedCode()) then return end
 -- Exhaustive list of all units that will take damages from krog's footsteps (must be completed)
-local StompedUnits = {
-    [UnitDefNames["corfav"].id] = true,
-    [UnitDefNames["armfav"].id] = true,
-    [UnitDefNames["corak"].id] = true,
-    [UnitDefNames["armpw"].id] = true,
-    [UnitDefNames["armflea"].id] = true,
-}
+local StompedUnits = {}
+for udid, ud in pairs(UnitDefs) do
+	if string.find(ud.name, 'armfav') then       -- using string.find to _scav units are included aswell
+		StompedUnits[udid] = true
+	end
+	if string.find(ud.name, 'corfav') then
+		StompedUnits[udid] = true
+	end
+	if string.find(ud.name, 'corak') then
+		StompedUnits[udid] = true
+	end
+	if string.find(ud.name, 'armpw') then
+		StompedUnits[udid] = true
+	end
+	if string.find(ud.name, 'armflea') then
+		StompedUnits[udid] = true
+	end
+end
 
 local krogkickWeapon = {}
 local kargkickWeapon = {}
