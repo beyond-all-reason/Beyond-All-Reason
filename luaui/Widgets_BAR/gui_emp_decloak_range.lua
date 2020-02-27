@@ -1,7 +1,7 @@
 function widget:GetInfo()
     return {
         name      = "EMP + decloak range",
-        desc      = "When spy or gremlin is selected, it displays its decloack range (orange) and emp range (blue)",
+        desc      = "When spy or gremlin is selected, it displays its decloak range (orange) and emp range (blue)",
         author    = "[teh]decay",
         date      = "14 feb 2015",
         license   = "The BSD License",
@@ -15,9 +15,9 @@ end
 
 --Changelog
 -- v2 [teh]decay Don't draw circles when GUI is hidden
--- v3 [teh]decay Added gremlin decloack range + set them on hold fire and hold pos
+-- v3 [teh]decay Added gremlin decloak range + set them on hold fire and hold pos
 -- v4 Floris Added fade on camera distance changed to thicker and more transparant line style + options + onlyDrawRangeWhenSelected
--- v5 Floris: Renamed to EMP + decloack range and disabled autocloack
+-- v5 Floris: Renamed to EMP + decloak range and disabled autocloak
 
 
 --------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ local showLineGlow 				= true		-- a ticker but faint 2nd line will be drawn unde
 local opacityMultiplier			= 1.3
 local fadeMultiplier			= 1.2		-- lower value: fades out sooner
 local circleDivs				= 64		-- detail of range circle
-local autoCloackSpy				= false
+local autoCloakSpy				= false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -42,9 +42,6 @@ local glDrawGroundCircle	= gl.DrawGroundCircle
 local GetUnitDefID			= Spring.GetUnitDefID
 local lower                 = string.lower
 local spGetAllUnits			= Spring.GetAllUnits
-local spGetSpectatingState	= Spring.GetSpectatingState
-local spGetMyPlayerID		= Spring.GetMyPlayerID
-local spGetPlayerInfo		= Spring.GetPlayerInfo
 local spGiveOrderToUnit		= Spring.GiveOrderToUnit
 local spIsGUIHidden			= Spring.IsGUIHidden
 local spGetCameraPosition 	= Spring.GetCameraPosition
@@ -58,29 +55,30 @@ local cmdFireState			= CMD.FIRE_STATE
 
 local diag					= math.diag
 
-local weapNamTab			= WeaponDefNames
-local weapTab				= WeaponDefs
-local udefTab				= UnitDefs
-
-local selfdTag = "selfDExplosion"
-local aoeTag = "damageAreaOfEffect"
-
-local coreSpy = UnitDefNames["corspy"]
-local armSpy = UnitDefNames["armspy"]
-local armGremlin = UnitDefNames["armst"]
-
-local coreSpyId = coreSpy.id
-local armSpyId = armSpy.id
-local armGremlinId = armGremlin.id
+local spec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
 
 local units = {}
-
-local spectatorMode = false
 local notInSpecfullmode = false
-
 local cmdCloak = 37382
 
-function cloackSpy(unitID)
+local isSpy = {}
+local isGremlin = {}
+for udid, ud in pairs(UnitDefs) do
+    if string.find(ud.name, 'spy') then
+        local selfdBlastId = WeaponDefNames[lower(ud['selfDExplosion'])].id
+        isSpy[udid] = {
+            ud.decloakDistance,
+            WeaponDefs[selfdBlastId]['damageAreaOfEffect']
+        }
+    end
+    if string.find(ud.name, 'armst') then
+        isGremlin[udid] = ud.decloakDistance
+    end
+end
+
+function cloakSpy(unitID)
     spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
 end
 
@@ -90,29 +88,14 @@ function processGremlin(unitID)
     spGiveOrderToUnit(unitID, cmdFireState, { 0 }, 0) -- hold fire
 end
 
-function isSpy(unitDefID)
-    if unitDefID == coreSpyId or armSpyId == unitDefID then
-        return true
-    end
-    return false
-end
-
-function isGremlin(unitDefID)
-    if unitDefID == armGremlinId then
-        return true
-    end
-    return false
-end
-
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-    if isSpy(unitDefID) then
+    if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-		if autoCloackSpy then
-			cloackSpy(unitID)
+		if autoCloakSpy then
+			cloakSpy(unitID)
 		end
     end
-
-    if isGremlin(unitDefID) then
+    if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
         processGremlin(unitID)
     end
@@ -125,54 +108,44 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
-    if not spectatorMode then
+    if not fullview then
         local unitDefID = GetUnitDefID(unitID)
-        if isSpy(unitDefID) then
+        if isSpy[unitDefID] then
 			addSpy(unitID, unitDefID)
         end
-
-        if isGremlin(unitDefID) then
+        if isGremlin[unitDefID] then
 			addGremlin(unitID, unitDefID)
         end
     end
 end
 
-
 function addSpy(unitID, unitDefID)
-	
-	local udef = udefTab[unitDefID]
-	local selfdBlastId = weapNamTab[lower(udef[selfdTag])].id
-	local selfdBlastRadius = weapTab[selfdBlastId][aoeTag]
-	units[unitID] = {udef["decloakDistance"],selfdBlastRadius}
+	units[unitID] = { isSpy[unitDefID][1], isSpy[unitDefID][2] }  -- decloakdistance, selfdblastradius
 end
 
 function addGremlin(unitID, unitDefID)
-	
-	local udef = udefTab[unitDefID]
-	units[unitID] = {udef["decloakDistance"],0}
+	units[unitID] = {isGremlin[unitDefID], 0}   -- decloakdistance, 0
 end
 
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
 		
-    if isSpy(unitDefID) then
+    if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-        cloackSpy(unitID)
+        cloakSpy(unitID)
     end
-
-    if isGremlin(unitDefID) then
+    if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
         processGremlin(unitID)
     end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-    if isSpy(unitDefID) then
+    if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-        cloackSpy(unitID)
+        cloakSpy(unitID)
     end
-
-    if isGremlin(unitDefID) then
+    if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
         processGremlin(unitID)
     end
@@ -180,19 +153,18 @@ end
 
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-    if isSpy(unitDefID) then
+    if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-        cloackSpy(unitID)
+        cloakSpy(unitID)
     end
-
-    if isGremlin(unitDefID) then
+    if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
         processGremlin(unitID)
     end
 end
 
 function widget:UnitLeftLos(unitID, unitDefID, unitTeam)
-    if not spectatorMode then
+    if not fullview then
         if units[unitID] then
             units[unitID] = nil
         end
@@ -207,16 +179,6 @@ end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
-    local _, specFullView, _ = spGetSpectatingState()
-
-    if not specFullView then
-        notInSpecfullmode = true
-    else
-        if notInSpecfullmode then
-            detectSpectatorView()
-        end
-        notInSpecfullmode = false
-    end
 
     if spIsGUIHidden() then return end
 
@@ -269,35 +231,32 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:PlayerChanged(playerID)
-    detectSpectatorView()
-    return true
+    local prevTeamID = myTeamID
+    local prevFullview = fullview
+    myTeamID = Spring.GetMyTeamID()
+    myPlayerID = Spring.GetMyPlayerID()
+    spec, fullview = Spring.GetSpectatingState()
+    if playerID == myPlayerID and (fullview ~= prevFullview or myTeamID ~= prevTeamID) then
+        resetUnits()
+    end
 end
 
 function widget:Initialize()
-    detectSpectatorView()
-    return true
+    resetUnits()
 end
 
-function detectSpectatorView()
-    if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) then
-        spectatorMode = true
-    end
-
+function resetUnits()
     units = {}
-
     local visibleUnits = spGetAllUnits()
     if visibleUnits ~= nil then
         for i=1,#visibleUnits do
             local unitID = visibleUnits[i]
             local unitDefID = GetUnitDefID(unitID)
-            if unitDefID ~= nil then
-                if isSpy(unitDefID) then
-					addSpy(unitID, unitDefID)
-                end
-
-                if isGremlin(unitDefID) then
-					addGremlin(unitID, unitDefID)
-                end
+            if isSpy[unitDefID] then
+                addSpy(unitID, unitDefID)
+            end
+            if isGremlin[unitDefID] then
+                addGremlin(unitID, unitDefID)
             end
         end
     end

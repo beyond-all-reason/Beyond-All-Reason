@@ -25,41 +25,14 @@ function widget:GetInfo()
 	}
 end
 
-local opts={
-stop_builders=true -- Whever to stop builders or not. Set to true if you dont use factory guard widget.
---,FactoryGuard_workaround=true
-}
+local stop_builders = true -- Whever to stop builders or not. Set to true if you dont use factory guard widget.
 
 local OrderUnit = Spring.GiveOrderToUnit
-local GetMyTeamID = Spring.GetMyTeamID
 local GetCommandQueue = Spring.GetCommandQueue
 local GetUnitBuildFacing = Spring.GetUnitBuildFacing
 local GetUnitPosition = Spring.GetUnitPosition
+local myTeamID = Spring.GetMyTeamID()
 
---[[
-local function WeaponCanTargetAir(weapon)
-	local wd = WeaponDefs[ weapon.weaponDef ]
-	for name,param in wd:pairs() do
-		Spring.Echo("wd:",name,param)
-	end
-	categories=wd.onlyTargetCategories
-	if categories then
-		for name,value in pairs(categories) do
-			Spring.Echo("wdtc:",name,value)
-		end
-	end
-end
-
-local function UnitCanTargetAir(unitDefID)
-	local ud=UnitDefs[unitDefID]
-	for i=1,table.getn(ud.weapons) do
-		if WeaponCanTargetAir(ud.weapons[i]) then
-			return true
-		end
-	end
-	return false
-end
-]]--
 local function UnitHasPatrolOrder(unitID)
 	local queue=GetCommandQueue(unitID,20)
 	for i=1,#queue do
@@ -81,14 +54,14 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.isBuilder then
 		isBuilder[udid] = true
 	end
-	if ud.canFly and (ud.weaponCount==0 or (not (ud.isFighterAirUnit or ud.isFighter)) or (ud.humanName=="Liche") or ud.noAutoFire) then
+	if ud.canFly and (ud.weaponCount==0 or not ud.isFighterAirUnit or string.find(ud.name,"liche") or ud.noAutoFire) then      -- liche is classified as one somehow
 		checkMustStop[udid] = true
 	end
 end
 
 local function MustStop(unitID, unitDefID)
 	if checkMustStop[unitDefID] and UnitHasPatrolOrder(unitID) then --isFighter kept for 94 compat only, remove after
-		if not opts.stop_builders and isBuilder[unitDefID] then
+		if not stop_builders and isBuilder[unitDefID] then
 			return false
 		end
 		return true
@@ -97,7 +70,7 @@ local function MustStop(unitID, unitDefID)
 end
 
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	if unitTeam ~= GetMyTeamID() then
+	if unitTeam ~= myTeamID then
 		return
 	elseif (userOrders) then
 		return
@@ -105,7 +78,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	if not isFactory[factDefID] then
 		return
 	end
-	--- liche: workaround for BAR (liche is fighter)
 	if MustStop(unitID, unitDefID) then
 		Spring.GiveOrderToUnit(unitID,CMD.STOP,{},0)
 	end
@@ -123,6 +95,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
+	myTeamID = Spring.GetMyTeamID()
     maybeRemoveSelf()
 end
 
