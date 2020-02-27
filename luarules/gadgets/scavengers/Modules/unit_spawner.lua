@@ -63,7 +63,7 @@ function UnitGroupSpawn(n)
 				bestTeamGroupMultiplier = 0.75
 			end
 			canSpawnHere = true
-			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
+			Spring.DestroyUnit(pickedBeacon,false,false)
 			SpawnBeacon(n)
 			local posradius = 160
 			
