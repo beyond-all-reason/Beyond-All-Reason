@@ -11,13 +11,20 @@ function BossWaveTimer(n)
 	if not BossWaveTimeLeft then
 		BossWaveTimeLeft = unitSpawnerModuleConfig.BossWaveTimeLeft
 	end
+	if not FinalSelfDChance then
+		FinalSelfDChance = 60
+	end
 	if BossWaveTimeLeft > 0 then
 		BossWaveTimeLeft = BossWaveTimeLeft - 1
 		BossFightMessages(BossWaveTimeLeft)
 	elseif BossWaveTimeLeft <= 0 then
 		local units = Spring.GetTeamUnits(GaiaTeamID)
 		for i = 1,#units do
-			local r = math.random(1,10)
+			local r = math.random(1,FinalSelfDChance)
+			FinalSelfDChance = FinalSelfDChance - 1
+			if FinalSelfDChance < 2 then
+				FinalSelfDChance = 2
+			end
 			if r == 1 then
 				Spring.DestroyUnit(units[i],false,false)
 			end
