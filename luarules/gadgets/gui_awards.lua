@@ -11,7 +11,7 @@ function gadget:GetInfo()
 end
 
 local localtestDebug = false		-- when true: ends game after 30 secs
-local showGraphsButton = false
+local showGraphsButton = true	-- when chobby is loaded this will be false
 
 if (gadgetHandler:IsSyncedCode()) then 
 
@@ -509,6 +509,7 @@ end
 local chobbyLoaded = false
 if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
 	chobbyLoaded = true
+	showGraphsButton = false
 end
 
 function gadget:Initialize()

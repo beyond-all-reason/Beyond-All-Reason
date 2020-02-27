@@ -60,7 +60,6 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local units = {}
-local notInSpecfullmode = false
 local cmdCloak = 37382
 
 local isSpy = {}
