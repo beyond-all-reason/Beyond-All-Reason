@@ -34,6 +34,7 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 550,
 		stealth = true,
+		strafeToAttack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.749,

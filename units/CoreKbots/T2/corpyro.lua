@@ -33,6 +33,7 @@ return {
 		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
 		sightdistance = 318,
+		strafeToAttack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.815,
