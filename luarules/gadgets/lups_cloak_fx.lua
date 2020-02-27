@@ -126,7 +126,7 @@ end
 --]]
 
 function gadget:UnitCloaked(unitID,unitDefID,teamID)
-	if not initialized and then return end
+	if not initialized then return end
 
 	local allyTeamID = Spring.GetUnitAllyTeam(unitID)
 	local LocalAllyTeamID
