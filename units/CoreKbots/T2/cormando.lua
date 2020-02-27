@@ -40,7 +40,7 @@ return {
 		seismicsignature = 4,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 600,
-		strafeToAttack = true,
+		-- strafeToAttack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.65,
