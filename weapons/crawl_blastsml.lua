@@ -20,4 +20,26 @@ return {
 			default = 1800,
 		},
 	},
+	
+	crawl_blastsmlscavboss = {
+		areaofeffect = 1920,
+		craterareaofeffect = 1920,
+		craterboost = 2.4,
+		cratermult = 1.2,
+		edgeeffectiveness = 0.34999999403954,
+		explosiongenerator = "custom:newnukecor",
+		impulseboost = 0,
+		impulsefactor = 0,
+		name = "WimpyCrawlingBomb",
+		range = 400,
+		reloadtime = 3.5999999046326,
+		soundhit = "xplomed4",
+		soundstart = "largegun",
+		turret = 1,
+		weaponvelocity = 250,
+		damage = {
+			commanders = 900,
+			default = 999999,
+		},
+	},
 }
