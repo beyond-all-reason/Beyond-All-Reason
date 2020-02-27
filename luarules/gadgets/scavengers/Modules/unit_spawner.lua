@@ -19,9 +19,9 @@ function BossWaveTimer(n)
 		BossFightMessages(BossWaveTimeLeft)
 	elseif BossWaveTimeLeft <= 0 then
 		local units = Spring.GetTeamUnits(GaiaTeamID)
+		FinalSelfDChance = FinalSelfDChance - 1
 		for i = 1,#units do
 			local r = math.random(1,FinalSelfDChance)
-			FinalSelfDChance = FinalSelfDChance - 1
 			if FinalSelfDChance < 2 then
 				FinalSelfDChance = 2
 			end
