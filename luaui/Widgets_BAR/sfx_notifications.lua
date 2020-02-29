@@ -23,7 +23,7 @@ local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
 local lowpowerThreshold = 6		-- if there is X secs a low power situation
-local tutorialPlayLimit = 2		-- display the same tutorial message only this many times in total (max is always 1 play per game)
+local tutorialPlayLimit = 3		-- display the same tutorial message only this many times in total (max is always 1 play per game)
 
 --------------------------------------------------------------------------------
 

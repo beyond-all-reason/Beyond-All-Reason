@@ -9,6 +9,11 @@ function gadget:GetInfo()
 	}
 end
 
+
+function gadget:GameOver()
+	gadgetHandler:RemoveGadget(self)
+end
+
 if (not gadgetHandler:IsSyncedCode()) then
 
 	local isSpec = Spring.GetSpectatingState()
@@ -43,7 +48,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 			addedNotifications = true
 			local unlisted = true	-- prevent these notifications showing in the game settings notifications tab
 
-			-- ID,   file.wav,   timeout time,   exact duration of the .wav,   written message,   unlisted?
+			-- ID,   file.wav,   timeout time,   exact duration of the .wav,   written message,   is unlisted?
 			Script.LuaUI.AddNotification('scav_scavcomdetected', 'scavengers/scavcomdetected.wav', 20, 1.87, "Scavenger commander detected.", unlisted)
 			Script.LuaUI.AddNotification('scav_unidentifiedObjectsDetected', 'scavengers/unidentifiedObjectsDetected.wav', 999999, 3.7, "Unidentified objects have been detected in the vicinity...", unlisted)
 			Script.LuaUI.AddNotification('scav_classifiedAsScavengers', 'scavengers/classifiedAsScavengers.wav', 999999, 3.87, "Unidentified objects are now classified as Scavengers.", unlisted)
@@ -54,7 +59,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 			Script.LuaUI.AddNotification('scav_scavcomnewdetect', 'scavengers/scavcomnewdetect.wav', 20, 1.89, "New Scav Commander detected.", unlisted)
 			Script.LuaUI.AddNotification('scav_droppodsDetectedInArea', 'scavengers/droppodsDetectedInArea.wav', 20, 1.43, "Scavenger Droppods detected in the area.", unlisted)
 			Script.LuaUI.AddNotification('scav_scavfinalattack', 'scavengers/scavfinalattack.wav', 20, 4.8, "Scavengers are unleashing all they have. Their final assault has started.", unlisted)
-			Script.LuaUI.AddNotification('scav_droppingUnits', 'scavengers/droppingUnits.wav', 20, 1.43, "Scavengers are dropping units in our area.", unlisted)
+			Script.LuaUI.AddNotification('scav_droppingUnits', 'scavengers/droppingUnits.wav', 20, 3.31, "Scavengers are dropping units in our area.", unlisted)
 
 			Script.LuaUI.AddNotification('scav_scavfinalvictory', 'scavengers/scavfinalvictory.wav', 20, 10.5, "Good work commander. You survived all scavenger attacks. You are victorius! Celebrate and then try and annihilate them on the next map.", unlisted)
 			Script.LuaUI.AddNotification('scav_scavfinal12remain', 'scavengers/scavfinal12remain.wav', 20, 3.93, "12.5 minutes remaining. Still a long fight ahead.", unlisted)
@@ -99,9 +104,13 @@ if (not gadgetHandler:IsSyncedCode()) then
 		gadgetHandler:RemoveSyncAction("SendNotification")
 	end
 
+	function gadget:GameOver()
+		gadgetHandler:RemoveGadget(self)
+	end
+
 else
 
-	scavengersEnabled = false
+	local scavengersEnabled = false
 	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
 		local teams = Spring.GetTeamList()
 
@@ -114,6 +123,10 @@ else
 			end
 		end
 		VFS.Include('luarules/gadgets/scavengers/boot.lua')
+
+		function gadget:GameOver()
+			gadgetHandler:RemoveGadget(self)
+		end
 	end
 
 end
