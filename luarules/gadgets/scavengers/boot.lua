@@ -14,6 +14,12 @@ function ScavSendMessage(message)
 	end
 end
 
+function ScavSendNotification(name)
+	if scavconfig.messenger then
+		SendToUnsynced("SendNotification", name)
+	end
+end
+
 function ScavSendVoiceMessage(filedirectory)
 	if scavconfig.messenger then
 		Spring.SendCommands("scavplaysoundfile "..filedirectory)
@@ -90,7 +96,7 @@ function gadget:GameFrame(n)
 		Spring.Echo("New Scavenger Spawner initialized")
 		Spring.SetTeamColor(GaiaTeamID, 0.3, 0.3, 0.3)
 	end
-	
+
 	if scavconfig.messenger == true and n%30 == 0 then
 		pregameMessages(n)
 	end

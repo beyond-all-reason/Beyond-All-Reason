@@ -8,8 +8,9 @@ function pregameMessages(n)
 	end
 	
 	if n == 1830 then
-		ScavSendMessage("Unidentified objects have been detected in the vicinity...")
-		ScavSendVoiceMessage(scavengerSoundPath.."unidentifiedObjectsDetected.wav")
+		--ScavSendMessage("Unidentified objects have been detected in the vicinity...")
+		--ScavSendVoiceMessage(scavengerSoundPath.."unidentifiedObjectsDetected.wav")
+		ScavSendNotification("scav_unidentifiedObjectsDetected")
 	end
 	
 	-- if n == 2100 then
@@ -18,8 +19,9 @@ function pregameMessages(n)
 	-- end
 	
 	if n == 3900 then
-		ScavSendMessage("Unidentified objects are now classified as Scavengers")
-		ScavSendVoiceMessage(scavengerSoundPath.."classifiedAsScavengers.wav")
+		--ScavSendMessage("Unidentified objects are now classified as Scavengers")
+		--ScavSendVoiceMessage(scavengerSoundPath.."classifiedAsScavengers.wav")
+		ScavSendNotification("scav_classifiedAsScavengers")
 	end
 	
 	-- if n == 6300 then

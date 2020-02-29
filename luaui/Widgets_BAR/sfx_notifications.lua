@@ -31,11 +31,14 @@ local tutorialPlayLimit = 2		-- display the same tutorial message only this many
 local LastPlay = {}
 local soundFolder = "Sounds/voice/"
 local Sound = {}
+local soundList = {}
 local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 
+
 function addSound(name, file, minDelay, duration, message, unlisted)
 	Sound[name] = {file, minDelay, duration, message}
+	soundList[name] = true
 	if not unlisted then
 		SoundOrder[#SoundOrder+1] = name
 	end
@@ -156,11 +159,6 @@ unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTransportDetected'
 unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTransportDetected'
 
-
-local soundList = {}
-for k, v in pairs(Sound) do
-	soundList[k] = true
-end
 
 local soundQueue = {}
 local nextSoundQueued = 0
@@ -344,8 +342,8 @@ function widget:Initialize()
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	WG['notifications'].addSound = function(name, file, minDelay, duration, message)
-		addSound(name, file, minDelay, duration, message)
+	WG['notifications'].addSound = function(name, file, minDelay, duration, message, unlisted)
+		addSound(name, file, minDelay, duration, message, unlisted)
 	end
 	WG['notifications'].addEvent = function(value)
 		if Sound[value] then
@@ -697,8 +695,8 @@ function EventBroadcast(msg)
 	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
         if string.find(msg, "SoundEvents") then
             msg = string.sub(msg, 13)
-            event = string.sub(msg, 1, string.find(msg, " ")-1)
-            player = string.sub(msg, string.find(msg, " ")+1, string.len(msg))
+            local event = string.sub(msg, 1, string.find(msg, " ")-1)
+            local player = string.sub(msg, string.find(msg, " ")+1, string.len(msg))
             if (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
                 QueueNotification(event)
             end
