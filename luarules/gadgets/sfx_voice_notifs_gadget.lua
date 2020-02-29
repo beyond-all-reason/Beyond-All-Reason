@@ -256,11 +256,6 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("EventBroadcast", BroadcastEvent)
-		isSpec = Spring.GetSpectatingState()
-	end
-
-	function gadget:Update()
-		isSpec = Spring.GetSpectatingState()
 	end
 
 	function BroadcastEvent(_,event, player)
@@ -269,9 +264,7 @@ else
 		end
 	end
 
-
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			BroadcastEvent("EventBroadcast", 'LrpcTargetUnits', tostring(myPlayerID))
 		end

@@ -63,33 +63,25 @@ function SpawnConstructor(n)
 			posradius = 48
 			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
 			if not anothercommander then
-				--ScavSendMessage("Scavenger Commander detected in the area")
-				--ScavSendVoiceMessage(scavengerSoundPath.."scavcomdetected.wav")
 				ScavSendNotification("scav_scavcomdetected")
 				anothercommander = true
 			else
 				local s = math.random(0,scavvoicenotif)
 					if s == 0 then
-						ScavSendMessage("An additional Scavenger Commander detected")
-						ScavSendVoiceMessage(scavengerSoundPath.."scavadditionalcomdetected.wav")
+						ScavSendNotification("scav_scavadditionalcomdetected")
 					elseif s == 1 then
-						ScavSendMessage("Another Scavenger Commander detected in the area")
-						ScavSendVoiceMessage(scavengerSoundPath.."scavanotherscavcomdetected.wav")
+						ScavSendNotification("scav_scavanotherscavcomdetected")
 					elseif s == 2 then
-						ScavSendMessage("New Scavenger Commander entered this location")
-						ScavSendVoiceMessage(scavengerSoundPath.."scavnewcomentered.wav")	
+						ScavSendNotification("scav_scavnewcomentered")
 					elseif s == 3 then
-						ScavSendMessage("An extra Scavenger Commander has been spotted")
-						ScavSendVoiceMessage(scavengerSoundPath.."scavcomspotted.wav")
+						ScavSendNotification("scav_scavcomspotted")
 					elseif s == 4 then
-						ScavSendMessage("New Scav Commander detected")
-						ScavSendVoiceMessage(scavengerSoundPath.."scavcomnewdetect.wav")
+						ScavSendNotification("scav_scavcomnewdetect")
 					else
 						ScavSendMessage("A Scavenger Commander detected")
 					end
 				if scavvoicenotif < 20 then
-				scavvoicenotif = scavvoicenotif + 1	
-				else
+					scavvoicenotif = scavvoicenotif + 1
 				end				
 			end
 			SpawnBeacon(n)

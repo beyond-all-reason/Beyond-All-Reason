@@ -8,8 +8,6 @@ function pregameMessages(n)
 	end
 	
 	if n == 1830 then
-		--ScavSendMessage("Unidentified objects have been detected in the vicinity...")
-		--ScavSendVoiceMessage(scavengerSoundPath.."unidentifiedObjectsDetected.wav")
 		ScavSendNotification("scav_unidentifiedObjectsDetected")
 	end
 	
@@ -19,8 +17,6 @@ function pregameMessages(n)
 	-- end
 	
 	if n == 3900 then
-		--ScavSendMessage("Unidentified objects are now classified as Scavengers")
-		--ScavSendVoiceMessage(scavengerSoundPath.."classifiedAsScavengers.wav")
 		ScavSendNotification("scav_classifiedAsScavengers")
 	end
 	
@@ -40,8 +36,7 @@ function pregameMessages(n)
 	end
 	
 	if n == 7230 then
-		ScavSendMessage("Scavenger Droppods detected in the area")
-		ScavSendVoiceMessage(scavengerSoundPath.."droppodsDetectedInArea.wav")
+		ScavSendNotification("scav_droppodsDetectedInArea")
 	end
 	
 	if n == 9000 then
@@ -50,81 +45,68 @@ function pregameMessages(n)
 	end
 	
 	if n == 9030 then
-		ScavSendMessage("Scavengers are dropping units in the area")
-		ScavSendVoiceMessage(scavengerSoundPath.."droppingUnits.wav")
+		ScavSendNotification("scav_droppingUnits")
 	end
 	
 end
 
 function BossFightMessages(BossWaveTimeLeft)
 	if not BossWaveFirstMessage then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinalattack.wav")
-		ScavSendMessage("placeholder-scav-final-attack")
+		ScavSendNotification("scav_scavfinalattack")
 		BossWaveFirstMessage = true
 	end
 
 	if BossWaveTimeLeft == 750 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal12remain.wav")
-		ScavSendMessage("placeholder-scav-12min")
+		ScavSendNotification("scav_scavfinal12remain")
 	end
 
 	if BossWaveTimeLeft == 600 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal10remain.wav")
-		ScavSendMessage("placeholder-scav-10min")
+		ScavSendNotification("scav_scavfinal10remain")
 	end
 
 	if BossWaveTimeLeft == 540 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal09remain.wav")
-		ScavSendMessage("placeholder-scav-9min")
+		ScavSendNotification("scav_scavfinal09remain")
 	end
 
 	if BossWaveTimeLeft == 480 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal08remain.wav")
-		ScavSendMessage("placeholder-scav-8min")
+		ScavSendNotification("scav_scavfinal08remain")
 	end
 
 	if BossWaveTimeLeft == 420 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal07remain.wav")
-		ScavSendMessage("placeholder-scav-7min")
+		ScavSendNotification("scav_scavfinal07remain")
 	end
 
 	if BossWaveTimeLeft == 360 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal06remain.wav")
-		ScavSendMessage("placeholder-scav-6min")
+		ScavSendNotification("scav_scavfinal06remain")
 	end
 
 	if BossWaveTimeLeft == 300 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal05remain.wav")
-		ScavSendMessage("placeholder-scav-5min")
+		ScavSendNotification("scav_scavfinal05remain")
 	end
 
 	if BossWaveTimeLeft == 240 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal04remain.wav")
-		ScavSendMessage("placeholder-scav-4min")
+		ScavSendNotification("scav_scavfinal04remain")
 	end
 
 	if BossWaveTimeLeft == 180 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal03remain.wav")
-		ScavSendMessage("placeholder-scav-3min")
+		ScavSendNotification("scav_scavfinal03remain")
 	end
 
 	if BossWaveTimeLeft == 120 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal02remain.wav")
-		ScavSendMessage("placeholder-scav-2min")
+		ScavSendNotification("scav_scavfinal02remain")
 	end
 
 	if BossWaveTimeLeft == 60 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinal01remain.wav")
-		ScavSendMessage("placeholder-scav-1min")
+		ScavSendNotification("scav_scavfinal01remain")
 	end
 
 	if BossWaveTimeLeft == 10 then
+		-- since ScavSendNotification would put this in a queue, we cant use that method for this message
 		ScavSendVoiceMessage(scavengerSoundPath.."scavfinalcountdown.wav")
 		ScavSendMessage("placeholder-scav-finalcountdown")
 	end
 
 	if BossWaveTimeLeft == 0 then
-		ScavSendVoiceMessage(scavengerSoundPath.."scavfinalvictory.wav")
-		ScavSendMessage("placeholder-scav-victory")
+		ScavSendNotification("scav_scavfinalvictory")
 	end
 end
