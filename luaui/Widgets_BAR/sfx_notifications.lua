@@ -27,52 +27,51 @@ local tutorialPlayLimit = 2		-- display the same tutorial message only this many
 
 --------------------------------------------------------------------------------
 
-local spGetGameFrame = Spring.GetGameFrame
-local spGetTeamResources = Spring.GetTeamResources
 
 local LastPlay = {}
 local soundFolder = "Sounds/voice/"
 local Sound = {}
 local SoundOrder = {}
+local spGetGameFrame = Spring.GetGameFrame
 
-function addSound(name, file, minDelay, volume, duration, message, unlisted)
-	Sound[name] = {file, minDelay, volume, duration, message}
+function addSound(name, file, minDelay, duration, message, unlisted)
+	Sound[name] = {file, minDelay, duration, message}
 	if not unlisted then
 		SoundOrder[#SoundOrder+1] = name
 	end
 end
 
 -- commanders
-addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.0, 1.7, 'An enemy commander has died')
-addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.0, 1.75, 'A friendly commander has died')
-addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 1.0, 2.25, 'Your commander is receiving heavy damage')
+addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.7, 'An enemy commander has died')
+addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.75, 'A friendly commander has died')
+addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 2.25, 'Your commander is receiving heavy damage')
 
 -- game status
-addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 1.0, 2.2, "Choose your starting location")
-addSound('GameStarted', 'GameStarted.wav', 1, 1.0, 2, 'Battle started')
-addSound('GamePause', 'GamePause.wav', 5, 1.0, 1, 'Battle paused')
-addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.0, 1.65, 'A player has disconnected')
-addSound('PlayerAdded', 'PlayerAdded.wav', 1, 1.0, 2.36, 'A player has been added to the game')
+addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, "Choose your starting location")
+addSound('GameStarted', 'GameStarted.wav', 1, 2, 'Battle started')
+addSound('GamePause', 'GamePause.wav', 5, 1, 'Battle paused')
+addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'A player has disconnected')
+addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'A player has been added to the game')
 
 -- awareness
-addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.0, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.0, 1.75, "You've received new units")
+addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
+addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, "You've received new units")
 
-addSound('RadarLost', 'RadarLost.wav', 8, 1.0, 1, 'Radar lost')
-addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.0, 1.32, 'Advanced radar lost')
-addSound('MexLost', 'MexLost.wav', 8, 1.0, 1.53, 'Metal extractor lost')
+addSound('RadarLost', 'RadarLost.wav', 8, 1, 'Radar lost')
+addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, 'Advanced radar lost')
+addSound('MexLost', 'MexLost.wav', 8, 1.53, 'Metal extractor lost')
 
 -- resources
-addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.0, 1.63, 'Your are overflowing metal')
-addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 40, 1.0, 1.7, 'Your are overflowing energy')
-addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.0, 1.5, 'Your are wasting metal')
-addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.0, 1.3, 'Your are wasting energy')
-addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.0, 1.82, 'The whole team is wasting metal')
-addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 30, 1.0, 2.14, 'Your whole team is wasting energy')
---addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.0, 1.62, 'Metal storage is full')
---addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.0, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 20, 1.0, 0.95, 'Low power')
-addSound('WindNotGood', 'WindNotGood.wav', 9999999, 1.0, 3.76, 'On this map, wind is not good for energy production')
+addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.63, 'Your are overflowing metal')
+addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 40, 1.7, 'Your are overflowing energy')
+addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
+addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
+addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.82, 'The whole team is wasting metal')
+addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 30, 2.14, 'Your whole team is wasting energy')
+--addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
+--addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
+addSound('LowPower', 'LowPower.wav', 20, 0.95, 'Low power')
+addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, 'On this map, wind is not good for energy production')
 
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
@@ -83,52 +82,52 @@ LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+300
 LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+300
 
 -- alerts
-addSound('NukeLaunched', 'NukeLaunched.wav', 3, 1.0, 2, 'Nuclear missile launch detected')
-addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 1.0, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
+addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, 'Nuclear missile launch detected')
+addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
 
 -- unit ready
-addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 1.0, 1.16, 'Vulcan is ready')
-addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 1.0, 1.31, 'Buzzsaw is ready')
-addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.0, 1.78, 'Tech 3 unit is ready')
+addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 1.16, 'Vulcan is ready')
+addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 1.31, 'Buzzsaw is ready')
+addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.78, 'Tech 3 unit is ready')
 
 -- detections
-addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 1.0, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
-addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 1.0, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
+addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
+addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
 
-addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 1.0, 1.25, 'Aircraft spotted')	-- top bar widget calls this
-addSound('MinesDetected', 'MinesDetected.wav', 200, 1.0, 2.6, 'Warning: mines have been detected')
-addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 1.0, 4.8, 'Stealthy units detected within the "Intrusion countermeasure" range')
+addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 1.25, 'Aircraft spotted')	-- top bar widget calls this
+addSound('MinesDetected', 'MinesDetected.wav', 200, 2.6, 'Warning: mines have been detected')
+addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 4.8, 'Stealthy units detected within the "Intrusion countermeasure" range')
 
 -- unit detections
-addSound('LrpcDetected', 'LrpcDetected.wav', 25, 1.0, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected')
-addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 1.0, 2.1, 'EMP missile silo detected')
-addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 1.0, 2, 'Tactical nuke silo detected')
-addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.0, 1.7, 'Nuclear silo detected')
-addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.0, 1.6, 'Nuclear bomber detected')
-addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.0, 1.4, 'Juggernaut detected')
-addSound('KrogothDetected', 'KrogothDetected.wav', 9999999, 1.0, 1.25, 'Krogoth detected')
-addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.0, 1.25, 'Bantha detected')
-addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.0, 1.4, 'Flagship detected')
-addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.0, 1.28, 'Commando detected')
-addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.0, 1.5, 'Transport located')
-addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.0, 1.38, 'Air transport spotted')
-addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.0, 1.95, 'Sea transport located')
+addSound('LrpcDetected', 'LrpcDetected.wav', 25, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected')
+addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 2.1, 'EMP missile silo detected')
+addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 2, 'Tactical nuke silo detected')
+addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.7, 'Nuclear silo detected')
+addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.6, 'Nuclear bomber detected')
+addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.4, 'Juggernaut detected')
+addSound('KrogothDetected', 'KrogothDetected.wav', 9999999, 1.25, 'Krogoth detected')
+addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.25, 'Bantha detected')
+addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.4, 'Flagship detected')
+addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.28, 'Commando detected')
+addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.5, 'Transport located')
+addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.38, 'Air transport spotted')
+addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.95, 'Sea transport located')
 
 -- tutorial explanations (unlisted)
 local td = 'tutorial/'
-addSound('t_welcome', td..'welcome.wav', 9999999, 1.0, 9.19, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy.", true)
-addSound('t_buildmex', td..'buildmex.wav', 9999999, 1.0, 6.31, "Choose the metal extractor and build it on a metal spot, indicated by the rotating circles on the map.", true)
-addSound('t_buildenergy', td..'buildenergy.wav', 9999999, 1.0, 6.47, "You will need to produce energy to efficiently construct units. Build windmills or solar panels. ", true)
-addSound('t_makefactory', td..'makefactory.wav', 9999999, 1.0, 8.87, "Well done!  Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.", true)
-addSound('t_factoryair', td..'factoryair.wav', 9999999, 1.0, 8.2, "You can now produce aircraft. They are specifically a good support class and give great speed, radar and line of sight.", true)
-addSound('t_factoryairsea', td..'factoryairsea.wav', 9999999, 1.0, 7.39, "You can now produce seaplanes. These are slightly stronger than t1 aircraft and are able to land under water.", true)
-addSound('t_factorybots', td..'factorybots.wav', 9999999, 1.0, 8.54, "You can produce mobile bot units now. Bots are fast and light and can climb steeper hills than vehicles. They are cheaper than vehicles, but are also weaker.", true)
-addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 1.0, 6.91, "You can now make hovercraft. They are good for ambushing, but their armor will not endure in heavy battle.", true)
-addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 1.0, 11.92, "You can produce vehicles and tanks. Vehicles are wel armored and have heavier weapons. They are slower and more expensive and cannot traverse steep pathways.", true)
-addSound('t_factoryships', td..'factoryships.wav', 9999999, 1.0, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
-addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 1.0, 9.4, "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.", true)
-addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 1.0, 6.1, "It is more efficient to assist the existing factory than to make multiple factories of the same kind.", true)
-addSound('t_paralyzer', td..'paralyzer.wav', 9999999, 1.0, 9.66, "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.", true)
+addSound('t_welcome', td..'welcome.wav', 9999999, 9.19, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy.", true)
+addSound('t_buildmex', td..'buildmex.wav', 9999999, 6.31, "Choose the metal extractor and build it on a metal spot, indicated by the rotating circles on the map.", true)
+addSound('t_buildenergy', td..'buildenergy.wav', 9999999, 6.47, "You will need to produce energy to efficiently construct units. Build windmills or solar panels. ", true)
+addSound('t_makefactory', td..'makefactory.wav', 9999999, 8.87, "Well done!  Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.", true)
+addSound('t_factoryair', td..'factoryair.wav', 9999999, 8.2, "You can now produce aircraft. They are specifically a good support class and give great speed, radar and line of sight.", true)
+addSound('t_factoryairsea', td..'factoryairsea.wav', 9999999, 7.39, "You can now produce seaplanes. These are slightly stronger than t1 aircraft and are able to land under water.", true)
+addSound('t_factorybots', td..'factorybots.wav', 9999999, 8.54, "You can produce mobile bot units now. Bots are fast and light and can climb steeper hills than vehicles. They are cheaper than vehicles, but are also weaker.", true)
+addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 6.91, "You can now make hovercraft. They are good for ambushing, but their armor will not endure in heavy battle.", true)
+addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 11.92, "You can produce vehicles and tanks. Vehicles are wel armored and have heavier weapons. They are slower and more expensive and cannot traverse steep pathways.", true)
+addSound('t_factoryships', td..'factoryships.wav', 9999999, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
+addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 9.4, "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.", true)
+addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 6.1, "It is more efficient to assist the existing factory than to make multiple factories of the same kind.", true)
+addSound('t_paralyzer', td..'paralyzer.wav', 9999999, 9.66, "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.", true)
 
 
 local unitsOfInterest = {}
@@ -193,6 +192,10 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myRank = select(9,Spring.GetPlayerInfo(myPlayerID))
+
+local spGetTeamResources = Spring.GetTeamResources
+local e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID,'energy')
+local m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID,'metal')
 
 local tutorialMode = (myRank == 0)
 local doTutorialMode = tutorialMode
@@ -283,6 +286,7 @@ function widget:Initialize()
 		widget:PlayerChanged()
 	end
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
+	widgetHandler:RegisterGlobal('AddNotification', addSound)
 
 	WG['notifications'] = {}
 	for sound, params in pairs(Sound) do
@@ -340,8 +344,8 @@ function widget:Initialize()
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	WG['notifications'].addSound = function(name, file, minDelay, volume, duration, message)
-		addSound(name, file, minDelay, volume, duration, message)
+	WG['notifications'].addSound = function(name, file, minDelay, duration, message)
+		addSound(name, file, minDelay, duration, message)
 	end
 	WG['notifications'].addEvent = function(value)
 		if Sound[value] then
@@ -353,6 +357,7 @@ end
 function widget:Shutdown()
 	WG['notifications'] = nil
 	widgetHandler:DeregisterGlobal('EventBroadcast')
+	widgetHandler:DeregisterGlobal('AddNotification')
 end
 
 function widget:GameFrame(gf)
@@ -362,8 +367,8 @@ function widget:GameFrame(gf)
 		QueueTutorialNotification('t_welcome')
 	end
 	if gf % 30 == 15 then
-		local e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID,'energy')
-		local m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID,'metal')
+		e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID,'energy')
+		m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID,'metal')
 
 		-- tutorial
 		if doTutorialMode then
@@ -517,40 +522,42 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 
 		if tutorialMode then
-			if isFactoryAir[unitDefID] then
-				numFactoryAir = numFactoryAir + 1
-				if numFactoryAir > 1 then
-					QueueNotification('t_duplicatefactory')
+			if e_income < 2000 and m_income < 50 then
+				if isFactoryAir[unitDefID] then
+					numFactoryAir = numFactoryAir + 1
+					if numFactoryAir > 1 then
+						QueueNotification('t_duplicatefactory')
+					end
 				end
-			end
-			if isFactoryAirSea[unitDefID] then
-				numFactoryAirSea = numFactoryAirSea + 1
-				if numFactoryAirSea > 1 then
-					QueueNotification('t_duplicatefactory')
+				if isFactoryAirSea[unitDefID] then
+					numFactoryAirSea = numFactoryAirSea + 1
+					if numFactoryAirSea > 1 then
+						QueueNotification('t_duplicatefactory')
+					end
 				end
-			end
-			if isFactoryVeh[unitDefID] then
-				numFactoryVeh = numFactoryVeh + 1
-				if numFactoryVeh > 1 then
-					QueueNotification('t_duplicatefactory')
+				if isFactoryVeh[unitDefID] then
+					numFactoryVeh = numFactoryVeh + 1
+					if numFactoryVeh > 1 then
+						QueueNotification('t_duplicatefactory')
+					end
 				end
-			end
-			if isFactoryKbot[unitDefID] then
-				numFactoryKbot = numFactoryKbot + 1
-				if numFactoryKbot > 1 then
-					QueueNotification('t_duplicatefactory')
+				if isFactoryKbot[unitDefID] then
+					numFactoryKbot = numFactoryKbot + 1
+					if numFactoryKbot > 1 then
+						QueueNotification('t_duplicatefactory')
+					end
 				end
-			end
-			if isFactoryHover[unitDefID] then
-				numFactoryHover = numFactoryHover + 1
-				if numFactoryHover > 1 then
-					QueueNotification('t_duplicatefactory')
+				if isFactoryHover[unitDefID] then
+					numFactoryHover = numFactoryHover + 1
+					if numFactoryHover > 1 then
+						QueueNotification('t_duplicatefactory')
+					end
 				end
-			end
-			if isFactoryShip[unitDefID] then
-				numFactoryShip = numFactoryShip + 1
-				if isFactoryShip > 1 then
-					QueueNotification('t_duplicatefactory')
+				if isFactoryShip[unitDefID] then
+					numFactoryShip = numFactoryShip + 1
+					if numFactoryShip > 1 then
+						QueueNotification('t_duplicatefactory')
+					end
 				end
 			end
 		end
@@ -622,13 +629,13 @@ function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
-		nextSoundQueued = sec + Sound[event][4]
+		nextSoundQueued = sec + Sound[event][3]
 		if not muteWhenIdle or not isIdle or isTutorialNotification then
 			if spoken and Sound[event][1] ~= '' then
-				Spring.PlaySoundFile(soundFolder..Sound[event][1], globalVolume * Sound[event][3], 'ui')
+				Spring.PlaySoundFile(soundFolder..Sound[event][1], globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and Sound[event][5] then
-				WG['messages'].addMessage(Sound[event][5])
+			if displayMessages and WG['messages'] and Sound[event][4] then
+				WG['messages'].addMessage(Sound[event][4])
 			end
 		end
 		LastPlay[event] = spGetGameFrame()
