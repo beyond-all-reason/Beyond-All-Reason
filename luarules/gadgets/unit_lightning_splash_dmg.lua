@@ -21,15 +21,30 @@ if (gadgetHandler:IsSyncedCode()) then
 -- Config
 ----------------------------------------------------------------
 
-local sparkWeapons = {
-    [WeaponDefNames.armzeus_lightning.id] = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5, maxunits=2},
-    [WeaponDefNames.armclaw_dclaw.id] = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.325, maxunits=2},
+local sparkWeapons = {}
+local weapons = {
+    lightning = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5, maxunits=2},
+    dclaw = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.325, maxunits=2},
 }
+for wdid, wd in pairs(WeaponDefNames) do
+    for name, v in pairs(weapons) do
+        if string.find(wd.name, name) then
+            sparkWeapons[wdid] = v
+        end
+    end
+end
 
 local immuneToSplash = {
-    [UnitDefNames["armzeus"].id] = true,
-    [UnitDefNames["armclaw"].id] = true,
+    [UnitDefNames.armzeus.id] = true,
+    [UnitDefNames.armclaw.id] = true,
 }
+for udid, ud in pairs(UnitDefs) do
+    for id, v in pairs(immuneToSplash) do
+        if string.find(ud.name, UnitDefs[id].name) then
+            immuneToSplash[udid] = v
+        end
+    end
+end
 
 local mRandom = math.random
 ----------------------------------------------------------------
