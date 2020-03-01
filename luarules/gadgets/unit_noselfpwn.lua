@@ -13,32 +13,36 @@ function gadget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return false  --  silent removal
 end
 
 local GetUnitHealth = Spring.GetUnitHealth
 local SetUnitHealth = Spring.SetUnitHealth
 
-local PWN_UNITS = {}
-PWN_UNITS[UnitDefNames["corpyro"].id] = true
-PWN_UNITS[UnitDefNames["cormaw"].id] = true
-PWN_UNITS[UnitDefNames["corthud"].id] = true
-PWN_UNITS[UnitDefNames["armham"].id] = true
-PWN_UNITS[UnitDefNames["armfav"].id] = true
-PWN_UNITS[UnitDefNames["corfav"].id] = true
-PWN_UNITS[UnitDefNames["corak"].id] = true
-PWN_UNITS[UnitDefNames["corpt"].id] = true
-PWN_UNITS[UnitDefNames["armpt"].id] = true
-PWN_UNITS[UnitDefNames["armdecade"].id] = true
-PWN_UNITS[UnitDefNames["coresupp"].id] = true
+local PWN_UNITS = {
+  [UnitDefNames.corpyro.id] = true,
+  [UnitDefNames.cormaw.id] = true,
+  [UnitDefNames.corthud.id] = true,
+  [UnitDefNames.armham.id] = true,
+  [UnitDefNames.armfav.id] = true,
+  [UnitDefNames.corfav.id] = true,
+  [UnitDefNames.corak.id] = true,
+  [UnitDefNames.corpt.id] = true,
+  [UnitDefNames.armpt.id] = true,
+  [UnitDefNames.armdecade.id] = true,
+  [UnitDefNames.coresupp.id] = true,
+}
+for udid, ud in pairs(UnitDefs) do
+  for id, v in pairs(PWN_UNITS) do
+    if string.find(ud.name, UnitDefs[id].name) then
+      PWN_UNITS[id] = v
+    end
+  end
+end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
-                            weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-  if ((unitID == attackerID) and PWN_UNITS[unitDefID]) then
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+  if unitID == attackerID and PWN_UNITS[unitDefID] then
     return 0, 0
   else
     return damage,1

@@ -11,43 +11,36 @@ function gadget:GetInfo()
 	}
 end
 
-----------------------------------------------------------------
--- Synced only
-----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-----------------------------------------------------------------
--- Vars
-----------------------------------------------------------------
-local stealthyTransports = {
-	[UnitDefNames.armdfly.id] = true,
-}
-local stealthyUnits = {}
-
 local spGetUnitDefID = Spring.GetUnitDefID
 local spSetUnitStealth = Spring.SetUnitStealth
 
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
-function gadget:Initialize()
-	for uDefID, uDef in pairs(UnitDefs) do
-		if uDef.stealth then
-			stealthyUnits[uDefID] = true
+local stealthyUnits = {}
+local stealthyTransports = {
+	[UnitDefNames.armdfly.id] = true,
+}
+for udid, ud in pairs(UnitDefs) do
+	for id, v in pairs(stealthyTransports) do
+		if string.find(ud.name, UnitDefs[id].name) then
+			stealthyTransports[udid] = v
 		end
+	end
+	if ud.stealth then
+		stealthyUnits[udid] = true
 	end
 end
 
 function gadget:UnitLoaded(uID, uDefID, uTeam, transID, transTeam)
-	if stealthyTransports[spGetUnitDefID(transID)] and not stealthyUnits[uDefID] then
+	if not stealthyUnits[uDefID] and stealthyTransports[spGetUnitDefID(transID)] then
 		spSetUnitStealth(uID, true)
 	end
 end
 
 function gadget:UnitUnloaded(uID, uDefID, tID, transID)
-	if stealthyTransports[spGetUnitDefID(transID)] and not stealthyUnits[uDefID] then
+	if not stealthyUnits[uDefID] and stealthyTransports[spGetUnitDefID(transID)] then
 		spSetUnitStealth(uID, false)
 	end
 end

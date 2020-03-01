@@ -12,16 +12,9 @@ function gadget:GetInfo()
     }
 end
 
-----------------------------------------------------------------
--- Synced only
-----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
     return false
 end
-
-----------------------------------------------------------------
--- Var
-----------------------------------------------------------------
 
 local maxTime = 20 -- in seconds
 
@@ -32,6 +25,14 @@ local excluded = {
     [UnitDefNames.corcarry.id] = true,
     [UnitDefNames.armcarry.id] = true,
 }
+for udid, ud in pairs(UnitDefs) do
+    for id, v in pairs(excluded) do
+        if string.find(ud.name, UnitDefs[id].name) then
+            excluded[udid] = v
+        end
+    end
+end
+
 
 local isBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -59,7 +60,6 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
             damage = math.min(damage, math.max(0,max_para_damage-ph) )            
             --Spring.Echo(h,mh, ph, max_para_damage, max_para_time, damage)
         end
-        
         return damage, 1
     end
     return damage, 1

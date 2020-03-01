@@ -14,11 +14,17 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 
 	local toUpdateList = {}
-	
-	function gadget:UnitCreated(unitID)
-		local unitName = UnitDefs[Spring.GetUnitDefID(unitID)].name
+
+	local isUwMex = {}
+	for udid, ud in pairs(UnitDefs) do
+		if string.find(ud.name, 'armuwmex') or string.find(ud.name, 'coruwmex') then       -- liche is classified as one somehow
+			isUwMex[udid] = true
+		end
+	end
+
+	function gadget:UnitCreated(unitID, unitDefID)
 		local x,y,z = Spring.GetUnitPosition(unitID)
-		if (unitName == "armuwmex" or unitName == "coruwmex") then
+		if isUwMex[unitDefID] then
 			local GroundHeight = Spring.GetGroundHeight(x,z)
 			Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
 			Spring.SetUnitRadiusAndHeight (unitID, 8, 0 )

@@ -2,7 +2,7 @@
 local definitions = {
   ["reclaimshards1"] = {
     groundflash = {
-      flashalpha         = 0.03,
+      flashalpha         = 0.015,
       flashsize          = 40,
       ttl                = 9,
       color = {

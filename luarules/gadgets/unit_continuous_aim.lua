@@ -60,15 +60,13 @@ local convertedUnits = {
 	--[UnitDefNames.corjugg.id] = true,
 	[UnitDefNames.armvang.id] = true,
 }
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
-	local scavengerUnits = {}
-	for k,v in pairs(convertedUnits) do
-		scavengerUnits[k..'_scav'] = v
+
+for udid, ud in pairs(UnitDefs) do
+	for id, v in pairs(convertedUnits) do
+		if string.find(ud.name, UnitDefs[id].name) then
+			convertedUnits[udid] = v
+		end
 	end
-	for k,v in pairs(scavengerUnits) do
-		convertedUnits[k] = v
-	end
-	scavengerUnits = nil
 end
 
 local unitWeapons = {}

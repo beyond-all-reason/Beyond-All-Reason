@@ -33,21 +33,27 @@ local unitWantCloakCommandDesc = {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return false  --  silent removal
 end
 
 local alliedTrueTable = {allied = true}
 
-local Spring = Spring
+local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spAreTeamsAllied = Spring.AreTeamsAllied
-
+local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
+local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
 local spSetUnitCloak = Spring.SetUnitCloak
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spUseUnitResource = Spring.UseUnitResource
+local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 
 local recloakUnit = {}
 local recloakFrame = {}
@@ -67,10 +73,9 @@ local CLOAK_MOVE_THRESHOLD = math.sqrt(0.2)
 local currentFrame = 0
 
 local cloakUnitDefID = {}
-for i = 1, #UnitDefs do
-	local ud = UnitDefs[i]
-	if ud.canCloak and not ud.customParams.dynamic_comm then
-		cloakUnitDefID[i] = true
+for udid, ud in pairs(UnitDefs) do
+	if ud.canCloak then
+		cloakUnitDefID[udid] = ud.startCloaked and '1' or '0'
 	end
 end
 
@@ -81,7 +86,7 @@ function PokeDecloakUnit(unitID, duration)
 	if recloakUnit[unitID] then
 		recloakUnit[unitID] = duration or DEFAULT_DECLOAK_TIME
 	else
-		spSetUnitRulesParam(unitID, "cannotcloak", 1, alliedTrueTable)
+		spSetUnitRulesParam(unitID, 'cannotcloak', 1, alliedTrueTable)
 		spSetUnitCloak(unitID, 0)
 		recloakUnit[unitID] = duration or DEFAULT_DECLOAK_TIME
 	end
@@ -90,8 +95,7 @@ end
 
 GG.PokeDecloakUnit = PokeDecloakUnit
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
-                            weaponID, attackerID, attackerDefID, attackerTeam)
+--function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,  weaponID, attackerID, attackerDefID, attackerTeam)
 	-- if damage > 0 and
 		-- not (attackerTeam and
 		-- weaponID and
@@ -100,7 +104,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
 		-- spAreTeamsAllied(unitTeam, attackerTeam)) then
 		-- PokeDecloakUnit(unitID)
 	-- end
-end
+--end
 
 
 function gadget:GameFrame(n)
@@ -108,10 +112,10 @@ function gadget:GameFrame(n)
 	if n%UPDATE_FREQUENCY == 2 then
 		for unitID, frames in pairs(recloakUnit) do
 			if frames <= UPDATE_FREQUENCY then
-				if not ((spGetUnitRulesParam(unitID,"on_fire") == 1) or (spGetUnitRulesParam(unitID,"disarmed") == 1)) then
-					local wantCloakState = spGetUnitRulesParam(unitID, "wantcloak")
-					local areaCloaked = spGetUnitRulesParam(unitID, "areacloaked")
-					spSetUnitRulesParam(unitID, "cannotcloak", 0, alliedTrueTable)
+				if not ((spGetUnitRulesParam(unitID,'on_fire') == 1) or (spGetUnitRulesParam(unitID,'disarmed') == 1)) then
+					local wantCloakState = spGetUnitRulesParam(unitID, 'wantcloak')
+					local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
+					spSetUnitRulesParam(unitID, 'cannotcloak', 0, alliedTrueTable)
 					if wantCloakState == 1 or areaCloaked == 1 then
 						spSetUnitCloak(unitID, 1)
 					end
@@ -139,24 +143,24 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 		recloakFrame[unitID] = nil
 	end
 	
-	local stunnedOrInbuild = Spring.GetUnitIsStunned(unitID)
+	local stunnedOrInbuild = spGetUnitIsStunned(unitID)
 	if stunnedOrInbuild then
 		return false
 	end
 	
-	local unitDefID = unitID and Spring.GetUnitDefID(unitID)
+	local unitDefID = unitID and spGetUnitDefID(unitID)
 	local ud = unitDefID and UnitDefs[unitDefID]
 	if not ud then
 		return false
 	end
 	
-	local areaCloaked = (Spring.GetUnitRulesParam(unitID, "areacloaked") == 1) and ((Spring.GetUnitRulesParam(unitID, "cloak_shield") or 0) == 0)
+	local areaCloaked = (spGetUnitRulesParam(unitID, 'areacloaked') == 1) and ((spGetUnitRulesParam(unitID, 'cloak_shield') or 0) == 0)
 	if not areaCloaked then
-		local speed = select(4, Spring.GetUnitVelocity(unitID))
+		local speed = select(4, spGetUnitVelocity(unitID))
 		local moving = speed and speed > CLOAK_MOVE_THRESHOLD
 		local cost = moving and ud.cloakCostMoving or ud.cloakCost
 		
-		if not Spring.UseUnitResource(unitID, "e", cost/2) then -- SlowUpdate happens twice a second.
+		if not spUseUnitResource(unitID, "e", cost/2) then -- SlowUpdate happens twice a second.
 			return false
 		end
 	end
@@ -176,25 +180,25 @@ local function SetWantedCloaked(unitID, state)
 		return 
 	end
 	
-	local wantCloakState = spGetUnitRulesParam(unitID, "wantcloak")
-	local cmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_WANT_CLOAK)
+	local wantCloakState = spGetUnitRulesParam(unitID, 'wantcloak')
+	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_WANT_CLOAK)
 	if (cmdDescID) then
-		Spring.EditUnitCmdDesc(unitID, cmdDescID, { params = {state, 'Decloaked', 'Cloaked'}})
+		spEditUnitCmdDesc(unitID, cmdDescID, { params = {state, 'Decloaked', 'Cloaked'}})
 	end
 	
 	if state == 1 and wantCloakState ~= 1 then
-		local cannotCloak = spGetUnitRulesParam(unitID, "cannotcloak")
-		local areaCloaked = spGetUnitRulesParam(unitID, "areacloaked")
+		local cannotCloak = spGetUnitRulesParam(unitID, 'cannotcloak')
+		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
 		if cannotCloak ~= 1 and areaCloaked ~= 1 then
 			spSetUnitCloak(unitID, 1)
 		end
-		spSetUnitRulesParam(unitID, "wantcloak", 1, alliedTrueTable)
+		spSetUnitRulesParam(unitID, 'wantcloak', 1, alliedTrueTable)
 	elseif state == 0 and wantCloakState == 1 then
-		local areaCloaked = spGetUnitRulesParam(unitID, "areacloaked")
+		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
 		if areaCloaked ~= 1 then
 			spSetUnitCloak(unitID, 0)
 		end
-		spSetUnitRulesParam(unitID, "wantcloak", 0, alliedTrueTable)
+		spSetUnitRulesParam(unitID, 'wantcloak', 0, alliedTrueTable)
 	end
 end
 
@@ -225,12 +229,12 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if cloakUnitDefID[unitDefID] then
-		local cloakDescID = Spring.FindUnitCmdDesc(unitID, CMD_CLOAK)
+		local cloakDescID = spFindUnitCmdDesc(unitID, CMD_CLOAK)
 		if cloakDescID then
-			Spring.InsertUnitCmdDesc(unitID, unitWantCloakCommandDesc)
-			Spring.RemoveUnitCmdDesc(unitID, cloakDescID)
-			spSetUnitRulesParam(unitID, "wantcloak", 0, alliedTrueTable)
-			if UnitDefs[unitDefID].customParams.initcloaked or UnitDefs[unitDefID].startCloaked then
+			spInsertUnitCmdDesc(unitID, unitWantCloakCommandDesc)
+			spRemoveUnitCmdDesc(unitID, cloakDescID)
+			spSetUnitRulesParam(unitID, 'wantcloak', 0, alliedTrueTable)
+			if cloakUnitDefID[unitDefID] == '1' then
 				SetWantedCloaked(unitID, 1)
 			end
 			return
@@ -244,6 +248,3 @@ function gadget:Initialize()
 		gadget:UnitCreated(unitID, unitDefID)
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

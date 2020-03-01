@@ -10,10 +10,7 @@ function gadget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return
 end
 
@@ -22,8 +19,11 @@ local SetUnitNeutral = Spring.SetUnitNeutral
 local GetUnitStates = Spring.GetUnitStates
 local neutralUnits = {}
 local armourTurrets = {}
-armourTurrets[UnitDefNames["cormaw"].id] = true
-armourTurrets[UnitDefNames["armclaw"].id] = true
+for udid,ud in ipairs(UnitDefs) do
+  if string.find(ud.name, "cormaw") or string.find(ud.name, "armclaw")  then
+    armourTurrets[udid] = true
+  end
+end
 local UPDATE = 30
 local timeCounter = 15
 
@@ -52,7 +52,7 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
   if armourTurrets[unitDefID] then
-    if (GetUnitCOBValue(unitID, 20) == 1) then
+    if GetUnitCOBValue(unitID, 20) == 1 then
       SetUnitNeutral(unitID, true)
       neutralUnits[unitID] = true
     else
@@ -61,5 +61,3 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
   end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

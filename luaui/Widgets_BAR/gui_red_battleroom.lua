@@ -586,6 +586,11 @@ local function processLine(line,g,cfg,newlinecolor)
 		ignoreThisMessage = true
 	end
 
+	-- filter vsync changes
+	if sfind(line,"VSync::SetInterval") then
+		ignoreThisMessage = true
+	end
+
 	-- filter spectating team change
 	if sfind(line," now spectating team ") then
 		ignoreThisMessage = true

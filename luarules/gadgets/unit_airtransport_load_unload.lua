@@ -13,12 +13,13 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local AirTransports = {
-	[UnitDefNames["armatlas"].id] = 20,	-- 10 elmos
-	[UnitDefNames["armdfly"].id] = 30,	-- 15 elmos
-	[UnitDefNames["corvalk"].id] = 20,
-	[UnitDefNames["corseah"].id] = 30,
-}
+
+local isAirTransport = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.canFly and def.isTransport then
+		isAirTransport[udefID] = true
+	end
+end
 
 
 if (gadgetHandler:IsSyncedCode()) then
@@ -35,12 +36,12 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
-		if AirTransports[transporterUnitDefID] then
+		if isAirTransport[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
-			if gadget:Distance(pos1, pos2) <= AirTransports[transporterUnitDefID] then
+			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
 				Spring.SetUnitVelocity(transporterID, 0,0,0)
 				return true
 			else
@@ -52,12 +53,12 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 	
 	function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
-		if AirTransports[transporterUnitDefID] then
+		if isAirTransport[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
-			if gadget:Distance(pos1, pos2) <= AirTransports[transporterUnitDefID] then
+			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
 				Spring.SetUnitVelocity(transporterID, 0,0,0)
 				return true
 			else

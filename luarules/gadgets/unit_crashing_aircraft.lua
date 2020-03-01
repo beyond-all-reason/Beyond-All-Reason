@@ -41,21 +41,19 @@ function gadget:Initialize()
 		if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "chicken" then
 			crashable[UnitDef.id] = true
 		end
-		if UnitDef.name == 'corcrw' or UnitDef.name == 'armliche' then
+		if string.find(UnitDef.name, 'corcrw') or string.find(UnitDef.name, 'armliche') then
 			alwaysCrash[UnitDef.id] = true
 		end
 	end
-	crashable[UnitDefNames['armpeep'].id] = nil
-	crashable[UnitDefNames['corfink'].id] = nil
 
-	crashable[UnitDefNames['corbw'].id] = nil
-
-	crashable[UnitDefNames['armfig'].id] = nil
-	crashable[UnitDefNames['armsfig'].id] = nil
-	crashable[UnitDefNames['armhawk'].id] = nil
-	crashable[UnitDefNames['corveng'].id] = nil
-	crashable[UnitDefNames['corsfig'].id] = nil
-	crashable[UnitDefNames['corvamp'].id] = nil
+	local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
+	for udid, ud in pairs(UnitDefs) do
+		for _, unitname in pairs(nonCrashable) do
+			if string.find(ud.name, unitname) then
+				crashable[udid] = nil
+			end
+		end
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)

@@ -52,12 +52,24 @@ local tokillUnits = {
     [UnitDefNames.armfav.id] = true,
     [UnitDefNames.armflea.id] = true,
 }
-
 local todenyUnits = {
-    [UnitDefNames.corfav.id] = true, 
-    [UnitDefNames.armfav.id] = true,
-    [UnitDefNames.armflea.id] = true,
+	[UnitDefNames.corfav.id] = true,
+	[UnitDefNames.armfav.id] = true,
+	[UnitDefNames.armflea.id] = true,
 }
+for udid, ud in pairs(UnitDefs) do
+	for id, v in pairs(tokillUnits) do
+		if string.find(ud.name, UnitDefs[id].name) then
+			tokillUnits[udid] = v
+		end
+	end
+	for id, v in pairs(todenyUnits) do
+		if string.find(ud.name, UnitDefs[id].name) then
+			todenyUnits[udid] = v
+		end
+	end
+end
+
 
 --config -- see also in unsynced
 local radius = 450 --outer radius of area denial ring

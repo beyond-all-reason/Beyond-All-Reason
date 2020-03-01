@@ -11,21 +11,19 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local fighters = {
-		UnitDefNames['armfig'].id,
-		UnitDefNames['armsfig'].id,
-		UnitDefNames['armhawk'].id,
-		UnitDefNames['corveng'].id,
-		UnitDefNames['corsfig'].id,
-		UnitDefNames['corvamp'].id
-	}
+	local isFighter = {}
+	for udid, ud in pairs(UnitDefs) do
+		if ud.isFighterAirUnit and not string.find(ud.name, 'liche') then       -- liche is classified as one somehow
+			isFighter[udid] = true
+		end
+	end
 	local radiusMult = 0.25
 	local heightMult = 1
 	local collisionFighters = {}
 
 	function gadget:Initialize()
 		local count = 0
-		for i, unitDefID in ipairs(fighters) do
+		for unitDefID,_ in ipairs(isFighter) do
 			if UnitDefs[unitDefID].collide == true then
 				local unitDimentions = Spring.GetUnitDefDimensions(unitDefID)
 				collisionFighters[unitDefID] = {unitDimentions['radius'] * radiusMult, unitDimentions['height'] * heightMult }

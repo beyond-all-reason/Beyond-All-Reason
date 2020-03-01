@@ -13,7 +13,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return
 end
 
@@ -22,15 +22,24 @@ local FindUnitCmdDesc = Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local SetUnitNeutral = Spring.SetUnitNeutral
+local CMD_AUTOREPAIRLEVEL = CMD.AUTOREPAIRLEVEL
+local CMD_IDLEMODE = CMD.IDLEMODE
 
-local AIRPLANT = {
-  [UnitDefNames["corap"].id] = true,
-  [UnitDefNames["coraap"].id] = true,
-  [UnitDefNames["corplat"].id] = true,
-  [UnitDefNames["armap"].id] = true,
-  [UnitDefNames["armaap"].id] = true,
-  [UnitDefNames["armplat"].id] = true
+local isAirplant = {
+  [UnitDefNames.corap.id] = true,
+  [UnitDefNames.coraap.id] = true,
+  [UnitDefNames.corplat.id] = true,
+  [UnitDefNames.armap.id] = true,
+  [UnitDefNames.armaap.id] = true,
+  [UnitDefNames.armplat.id] = true
 }
+for udid, ud in pairs(UnitDefs) do
+  for id, v in pairs(isAirplant) do
+    if string.find(ud.name, UnitDefs[id].name) then
+      isAirplant[udid] = v
+    end
+  end
+end
 
 local plantList = {}
 local buildingUnits = {}
@@ -54,13 +63,13 @@ local airCmd = {
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-  if AIRPLANT[unitDefID] then
+  if isAirplant[unitDefID] then
     InsertUnitCmdDesc(unitID, 500, landCmd)
     InsertUnitCmdDesc(unitID, 500, airCmd)
     plantList[unitID] = {landAt=1, repairAt=1}
   elseif plantList[builderID] then
-    GiveOrderToUnit(unitID, CMD.AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
-    GiveOrderToUnit(unitID, CMD.IDLEMODE, { plantList[builderID].landAt }, 0)
+    GiveOrderToUnit(unitID, CMD_AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
+    GiveOrderToUnit(unitID, CMD_IDLEMODE, { plantList[builderID].landAt }, 0)
     SetUnitNeutral(unitID, true)
     buildingUnits[unitID] = true
   end
@@ -78,7 +87,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-  if AIRPLANT[unitDefID] then
+  if isAirplant[unitDefID] then
     if (cmdID == 34569) then 
       local cmdDescID = FindUnitCmdDesc(unitID, 34569)
       landCmd.params[1] = cmdParams[1]

@@ -17,28 +17,23 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 	local unitTurnRadius = {}
-	local isBomb = {}
 	local isBomber = {}
 	local Bombers = {}
-	local fighters = {
-		[UnitDefNames["armsfig"].id] = true,
-		[UnitDefNames["corsfig"].id] = true,
-		[UnitDefNames["armfig"].id] = true,
-		[UnitDefNames["corveng"].id] = true,
-		[UnitDefNames["armhawk"].id] = true,
-		[UnitDefNames["corvamp"].id] = true,
-	}
+	local isFighter = {}
+	local isBomb = {}
 	for id, wDef in pairs(WeaponDefs) do
 		if wDef.type == "AircraftBomb" then
 			isBomb[id] = true
 		end
 	end
-
-	for id, uDef in pairs(UnitDefs) do
-		if (uDef["weapons"] and uDef["weapons"][1] and isBomb[uDef["weapons"][1].weaponDef] == true) or (uDef.name == "armlance" or uDef.name == "cortitan") then
-			isBomber[id] = true
+	for udid, ud in pairs(UnitDefs) do
+		if ud.isFighterAirUnit and not string.find(ud.name, 'liche') then       -- liche is classified as one somehow
+			isFighter[udid] = true
 		end
-		unitTurnRadius[id] = uDef.turnRadius
+		if (ud["weapons"] and ud["weapons"][1] and isBomb[ud["weapons"][1].weaponDef] == true) or (string.find(ud.name, 'armlance') or string.find(ud.name, 'cortitan')) then
+			isBomber[udid] = true
+		end
+		unitTurnRadius[udid] = ud.turnRadius
 	end
 
 	function gadget:Initialize()
@@ -51,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
 		if isBomber[Spring.GetUnitDefID(unitID)] then
 			Bombers[unitID] = true
 		end
-		if fighters[unitDefID] then
+		if isFighter[unitDefID] then
 			local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
 			if curMoveCtrl then
 				Spring.MoveCtrl.Disable(unitID)

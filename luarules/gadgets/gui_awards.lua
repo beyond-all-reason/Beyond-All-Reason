@@ -15,7 +15,7 @@ local showGraphsButton = true	-- when chobby is loaded this will be false
 
 if (gadgetHandler:IsSyncedCode()) then 
 
-local SpAreTeamsAllied = Spring.AreTeamsAllied
+local spAreTeamsAllied = Spring.AreTeamsAllied
 
 local teamInfo = {}
 local coopInfo = {}
@@ -23,34 +23,41 @@ local present = {}
 
 local playerListByTeam = {}
 
-local econUnitDefIDs = { --better to hardcode these since its complicated to pick them out with UnitDef properties
+local isEcon = { --better to hardcode these since its complicated to pick them out with UnitDef properties
 	--land t1
-	UnitDefNames.armsolar.id,
-	UnitDefNames.corsolar.id,
-	UnitDefNames.armadvsol.id,
-	UnitDefNames.coradvsol.id,
-	UnitDefNames.armwin.id,
-	UnitDefNames.corwin.id,
-	UnitDefNames.armmakr.id,
-	UnitDefNames.cormakr.id,
+	[UnitDefNames.armsolar.id] = true,
+	[UnitDefNames.corsolar.id] = true,
+	[UnitDefNames.armadvsol.id] = true,
+	[UnitDefNames.coradvsol.id] = true,
+	[UnitDefNames.armwin.id] = true,
+	[UnitDefNames.corwin.id] = true,
+	[UnitDefNames.armmakr.id] = true,
+	[UnitDefNames.cormakr.id] = true,
 	--sea t1
-	UnitDefNames.armtide.id,
-	UnitDefNames.cortide.id,
-	UnitDefNames.armfmkr.id,
-	UnitDefNames.corfmkr.id,
+	[UnitDefNames.armtide.id] = true,
+	[UnitDefNames.cortide.id] = true,
+	[UnitDefNames.armfmkr.id] = true,
+	[UnitDefNames.corfmkr.id] = true,
 	--land t2
-	UnitDefNames.armmmkr.id,
-	UnitDefNames.cormmkr.id,
-	UnitDefNames.corfus.id,
-	UnitDefNames.armfus.id,
-	UnitDefNames.armafus.id,
-	UnitDefNames.corafus.id,
+	[UnitDefNames.armmmkr.id] = true,
+	[UnitDefNames.cormmkr.id] = true,
+	[UnitDefNames.corfus.id] = true,
+	[UnitDefNames.armfus.id] = true,
+	[UnitDefNames.armafus.id] = true,
+	[UnitDefNames.corafus.id] = true,
 	--sea t2
-	UnitDefNames.armuwfus.id,
-	UnitDefNames.coruwfus.id,
-	UnitDefNames.armuwmmm.id,
-	UnitDefNames.coruwmmm.id,
+	[UnitDefNames.armuwfus.id] = true,
+	[UnitDefNames.coruwfus.id] = true,
+	[UnitDefNames.armuwmmm.id] = true,
+	[UnitDefNames.coruwmmm.id] = true,
 }
+for udid, ud in pairs(UnitDefs) do
+	for id, v in pairs(isEcon) do
+		if string.find(ud.name, UnitDefs[id].name) then
+			isEcon[udid] = v
+		end
+	end
+end
 
 local unitNumWeapons = {}
 local unitCombinedCost = {}
@@ -114,16 +121,6 @@ function gadget:GameStart()
 	end    
 end
 
-function isEcon(unitDefID) 
-	--return true if unitDefID is an eco producer, false otherwise
-	for _,id in pairs(econUnitDefIDs) do
-		if unitDefID == id then
-			return true
-		end
-	end
-	return false
-end
-
 -----------------------------------
 -- track kill damages (measure by cost of killed unit)
 -----------------------------------
@@ -134,7 +131,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if attackerTeamID == gaiaTeamID then return end
 	if not present[attackerTeamID] then return end
 	if (not unitDefID) or (not teamID) then return end
-	if SpAreTeamsAllied(teamID, attackerTeamID) then 
+	if spAreTeamsAllied(teamID, attackerTeamID) then
 		if teamID~=attackerTeamID then
 			local curTime = Spring.GetGameSeconds()
 			--keep track of teamkilling 
@@ -156,7 +153,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	teamInfo[attackerTeamID].allDmg = teamInfo[attackerTeamID].allDmg + cost
 	if unitNumWeapons[unitDefID] then
 		teamInfo[attackerTeamID].fightDmg = teamInfo[attackerTeamID].fightDmg + cost
-	elseif isEcon(unitDefID) then
+	elseif isEcon[unitDefID] then
 		teamInfo[attackerTeamID].ecoDmg = teamInfo[attackerTeamID].ecoDmg + cost
 	else
 		teamInfo[attackerTeamID].otherDmg = teamInfo[attackerTeamID].otherDmg + cost --currently not using this but recording it for interest

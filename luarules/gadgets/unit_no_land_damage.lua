@@ -13,24 +13,23 @@ function gadget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return false  --  silent removal
 end
 
 local GetUnitBasePosition = Spring.GetUnitBasePosition
 
-local NO_LAND_DAMAGE = {
-  [WeaponDefNames['armlance_armair_torpedo'].id] = true,
-  [WeaponDefNames['cortitan_armair_torpedo'].id] = true,
-  [WeaponDefNames['armseap_armseap_weapon1'].id] = true,
-  [WeaponDefNames['corseap_armseap_weapon1'].id] = true,
-}
+local weapons = {'armair_torpedo', 'armseap_weapon'}
+local NO_LAND_DAMAGE = {}
+for wdid, wd in pairs(WeaponDefNames) do
+  for _, wname in pairs(weapons) do
+    if string.find(wd.name, wname) then
+      NO_LAND_DAMAGE[wdid] = true
+    end
+  end
+end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
-                            weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   if NO_LAND_DAMAGE[weaponID] then
     if select(2,GetUnitBasePosition(unitID)) > 0 then 
       return (damage * 0.2),1

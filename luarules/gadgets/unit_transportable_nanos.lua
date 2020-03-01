@@ -13,10 +13,7 @@ function gadget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
@@ -42,33 +39,44 @@ local CMD_REMOVE = CMD.REMOVE
 --also do for AREA LOAD!
 --------------------------------------------------------------------------------
 local AirTrans = {
-  [UnitDefNames["corvalk"].id] = true,
-  [UnitDefNames["corseah"].id] = true,
-  [UnitDefNames["armatlas"].id] = true,
-  [UnitDefNames["armdfly"].id] = true,
+  [UnitDefNames.corvalk.id] = true,
+  [UnitDefNames.corseah.id] = true,
+  [UnitDefNames.armatlas.id] = true,
+  [UnitDefNames.armdfly.id] = true,
 }
 local Nanos = {
-	[UnitDefNames["cornanotc"].id] = true,
-	[UnitDefNames["armnanotc"].id] = true,
+	[UnitDefNames.cornanotc.id] = true,
+	[UnitDefNames.armnanotc.id] = true,
 }
+for udid, ud in pairs(UnitDefs) do
+    for id, v in pairs(AirTrans) do
+        if string.find(ud.name, UnitDefs[id].name) then
+            AirTrans[udid] = v
+        end
+    end
+    for id, v in pairs(Nanos) do
+        if string.find(ud.name, UnitDefs[id].name) then
+            Nanos[udid] = v
+        end
+    end
+end
 
 local watchList = {}
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
- -- if fromSynced then return true end
-	if (cmdID == CMD_LOAD_UNITS) then
+	if cmdID == CMD_LOAD_UNITS then
 		--Spring.Echo('Load','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',to_string(cmdOptions), 'cmdTag',cmdTag, 'fromSynced',fromSynced)
 		if #cmdParams==1 then -- if unit is target
-			if (ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])]) then
+			if ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])] then
 				return false
 			end
 		end
 		--if Spring.ValidUnit(cmdParams[1]) then
 		--end
 	end
-	if (cmdID == CMD_UNLOAD_UNITS) then
+	if cmdID == CMD_UNLOAD_UNITS then
 		--Spring.Echo('Unload','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',cmdOptions, 'cmdTag',cmdTag, 'fromSynced',fromSynced)
-		if (GetUnitIsTransporting(unitID)) then
+		if GetUnitIsTransporting(unitID) then
 			local intrans=GetUnitIsTransporting(unitID)
 			if #intrans>=1 then
 				--for i=1,#intrans do
@@ -81,7 +89,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			end
 		end
 	end
-  return true
+    return true
 end
 
 function to_string(data, indent)
@@ -123,6 +131,3 @@ function to_string(data, indent)
 
     return str
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

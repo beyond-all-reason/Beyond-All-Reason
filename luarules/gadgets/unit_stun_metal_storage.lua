@@ -13,60 +13,56 @@ function gadget:GetInfo()
   }
 end
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
 local storageDefs = {
-  --Arm 
-  [ UnitDefNames['armmstor'].id ] = true,
-  [ UnitDefNames['armuwms'].id ] = true,
-  [ UnitDefNames['armuwadvms'].id ] = true,
-
-  ---Core 
-  [ UnitDefNames['cormstor'].id ] = true,
-  [ UnitDefNames['coruwms'].id ] = true,
-  [ UnitDefNames['coruwadvms'].id ] = true,
- }
+  --Arm
+  [ UnitDefNames.armmstor.id ] = true,
+  [ UnitDefNames.armuwms.id ] = true,
+  [ UnitDefNames.armuwadvms.id ] = true,
+  --Core
+  [ UnitDefNames.cormstor.id ] = true,
+  [ UnitDefNames.coruwms.id ] = true,
+  [ UnitDefNames.coruwadvms.id ] = true,
+}
+for udid, ud in pairs(UnitDefs) do
+    for id, v in pairs(storageDefs) do
+        if string.find(ud.name, UnitDefs[id].name) then
+            storageDefs[udid] = v
+        end
+    end
+end
 
 local storageunits = {}
 local stunnedstorage = {}
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
--- Speed-ups
 
 local uDefs = UnitDefs
+local spGetUnitIsStunned    = Spring.GetUnitIsStunned
 local GetUnitDefID         = Spring.GetUnitDefID
 local SpGetAllUnits        = Spring.GetAllUnits
 
 local ipairs = ipairs
 local pairs = pairs
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
 
 function gadget:GameFrame(n)
-    if (((n+18) % 30) < 0.1) then
+    if ((n+18) % 30) < 0.1 then
         for unitID, _ in pairs(storageunits) do
-	        local uDefID = GetUnitDefID(unitID) ; if not uDefID then break end
+	        local uDefID = GetUnitDefID(unitID)
+            if not uDefID then
+                break
+            end
 	        local uDef = uDefs[uDefID]
 	        local storage = storageunits[unitID].storage
-	        local _,stunned = Spring.GetUnitIsStunned(unitID)
 
-	        if stunned and (storageunits[unitID].isEMPed == false) then
+	        if spGetUnitIsStunned(unitID) and storageunits[unitID].isEMPed == false then
 		        local currentLevel,totalstorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID),"metal")
 		        local newstoragetotal = totalstorage - storage
 		        --Spring.Echo("current storage level " .. currentLevel .. "   total storage " .. totalstorage .. "   new storage level " ..newstoragetotal)
   		        Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", newstoragetotal)
-		        if currentLevel > (newstoragetotal) then
+		        if currentLevel > newstoragetotal then
 				    local x,y,z = Spring.GetUnitPosition(unitID)
 				    local height = storageunits[unitID].height * 0.70
 				    Spring.SpawnCEG("METAL_STORAGE_LEAK",x,y+height,z,0,0,0)
@@ -76,9 +72,8 @@ function gadget:GameFrame(n)
 	        end
         end
         for unitID,_ in pairs(stunnedstorage) do
-	        local _,stunned = Spring.GetUnitIsStunned(unitID)
 	        local team = Spring.GetUnitTeam(unitID)
-	        if not stunned and team ~= nil then
+	        if team ~= nil and not spGetUnitIsStunned(unitID) then
 				local storage = storageunits[unitID].storage
 	            local _,totalstorage = Spring.GetTeamResources(team,"metal")
 	            Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", totalstorage+storage)
@@ -88,13 +83,17 @@ function gadget:GameFrame(n)
 	    end
     end
 end
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
 
 local function SetupUnit(unitID,unitDefID)
     local ud = UnitDefs[unitDefID]
-    if (ud == nil)or(ud.height == nil) then return nil end
-    storageunits[unitID] = {isEMPed = false, height = ud.height, storage = ud.metalStorage}
+    if (ud == nil)or(ud.height == nil) then
+        return nil
+    end
+    storageunits[unitID] = {
+        isEMPed = false,
+        height = ud.height,
+        storage = ud.metalStorage
+    }
 end
 
 --testing only
@@ -110,13 +109,13 @@ end
 --]]
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-    if (storageDefs[unitDefID]) then
+    if storageDefs[unitDefID] then
         SetupUnit(unitID,unitDefID)
     end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if (storageunits[unitID]) and storageunits[unitID].isEMPed == true then
+	if storageunits[unitID] and storageunits[unitID].isEMPed == true then
 		local storage = storageunits[unitID].storage
 		local _,totalstorage = Spring.GetTeamResources(oldTeam,"metal")
 		Spring.SetTeamResource(oldTeam, "ms", totalstorage + storage)
@@ -127,7 +126,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam) --we use UnitPreDamaged so as we get in before unit_transportfix has its effect
-    if (storageDefs[unitDefID]) then
+    if storageDefs[unitDefID] then
         local hp = Spring.GetUnitHealth(unitID)
         if damage > hp and not paralyzer then  --unit's can have 0 health
             if storageunits[unitID] and storageunits[unitID].isEMPed == true then

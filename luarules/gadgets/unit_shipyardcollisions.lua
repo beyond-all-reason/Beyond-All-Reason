@@ -10,11 +10,9 @@ function gadget:GetInfo()
   }
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if gadgetHandler:IsSyncedCode() then
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
 
 local math_sqrt = math.sqrt
 
@@ -24,7 +22,7 @@ local defIDIsBoat = {}
 local boat = {}
 
 for id, uDef in pairs(UnitDefs) do
-	if uDef.name == "armsy" or uDef.name == "armasy" or uDef.name == "corsy" or uDef.name == "corasy" then
+	if string.find(uDef.name, 'armsy') or string.find(uDef.name, 'armasy') or string.find(uDef.name, 'corsy') or string.find(uDef.name, 'corasy') then
 		defIDIsShipyard[id] = true
 		Script.SetWatchUnit(id, true)
 	elseif uDef.moveDef and uDef.moveDef.name and string.find(uDef.moveDef.name, "boat") then
@@ -34,7 +32,7 @@ for id, uDef in pairs(UnitDefs) do
 end
 
 function Norm3D(x, y , z)
-	length = math_sqrt(x*x + y*y + z*z)
+	local length = math_sqrt(x*x + y*y + z*z)
 	local x2, y2, z2 = x/length, y/length, z/length
 	return x2, y2, z2
 end
@@ -46,21 +44,21 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if defIDIsShipyard[Spring.GetUnitDefID(unitID)] then
+	if defIDIsShipyard[unitDefID] then
 		local uix, uiy, uiz = Spring.GetUnitPosition(unitID)
 		shipyard[unitID] = {uix, uiy, uiz}
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID)
-	if defIDIsBoat[Spring.GetUnitDefID(unitID)] then
+	if defIDIsBoat[unitDefID] then
 		boat[unitID] = Spring.GetGameFrame() + 30*15 --(15 seconds)
 	end
 end
 
 function gadget:GameFrame(f)
 	for unitID, frame in pairs(boat) do
-		if Spring.GetGameFrame() >= frame then
+		if f >= frame then
 			boat[unitID] = nil
 		end
 	end
@@ -73,7 +71,8 @@ end
 
 function gadget:UnitUnitCollision(colliderID, collideeID)
 	if not (boat[colliderID] or boat[collideeID]) then
-		if shipyard[collideeID] or shipyard[colliderID] then	
+		if shipyard[collideeID] or shipyard[colliderID] then
+			local shipyardID, unitID
 			if shipyard[colliderID] then
 				shipyardID = colliderID
 				unitID = collideeID
@@ -90,4 +89,3 @@ function gadget:UnitUnitCollision(colliderID, collideeID)
 		end
 	end
 end
-end	

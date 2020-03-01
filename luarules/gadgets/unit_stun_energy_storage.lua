@@ -13,40 +13,38 @@ function gadget:GetInfo()
   }
 end
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
 local storageDefs = {
   --Arm 
-  [ UnitDefNames['armestor'].id ] = true,
-  [ UnitDefNames['armuwadves'].id ] = true,
-  [ UnitDefNames['armuwes'].id ] = true,
+  [ UnitDefNames.armestor.id ] = true,
+  [ UnitDefNames.armuwadves.id ] = true,
+  [ UnitDefNames.armuwes.id ] = true,
   --Core 
-  [ UnitDefNames['corestor'].id ] = true,
-  [ UnitDefNames['coruwadves'].id ] = true,
-  [ UnitDefNames['coruwes'].id ] = true,
- }
+  [ UnitDefNames.corestor.id ] = true,
+  [ UnitDefNames.coruwadves.id ] = true,
+  [ UnitDefNames.coruwes.id ] = true,
+}
+for udid, ud in pairs(UnitDefs) do
+    for id, v in pairs(storageDefs) do
+        if string.find(ud.name, UnitDefs[id].name) then
+            storageDefs[udid] = v
+        end
+    end
+end
 
 local storageunits = {}
 
 local pairs = pairs
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
+local spGetUnitIsStunned = Spring.GetUnitIsStunned
 
 
 function gadget:GameFrame(n)
-  if (((n+18) % 30) < 0.1) then
+  if ((n+18) % 30) < 0.1 then
     for unitID, _ in pairs(storageunits) do
- 
-	   if Spring.GetUnitIsStunned(unitID) then
+	   if spGetUnitIsStunned(unitID) then
 	     --Spring.Echo(unitID .. " is stunned  " ..storageunits[unitID].storagecap,penality,storageunits[unitID].height)
 	     local team = Spring.GetUnitTeam(unitID)
 	     if team ~= nil then
@@ -60,12 +58,15 @@ function gadget:GameFrame(n)
     end
   end
 end
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
 
 local function SetupUnit(unitID,unitDefID)
-  if (UnitDefs[unitDefID] == nil)or(UnitDefs[unitDefID].height == nil) then return nil end
-   storageunits[unitID] = {height = UnitDefs[unitDefID].height,storagecap = UnitDefs[unitDefID].energyStorage}
+  if UnitDefs[unitDefID] == nil or UnitDefs[unitDefID].height == nil then
+      return nil
+  end
+  storageunits[unitID] = {
+      height = UnitDefs[unitDefID].height,
+      storagecap = UnitDefs[unitDefID].energyStorage
+  }
 end
 
 --[[
@@ -98,6 +99,3 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------

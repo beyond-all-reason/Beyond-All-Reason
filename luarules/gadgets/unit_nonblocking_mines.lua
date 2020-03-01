@@ -11,60 +11,49 @@ function gadget:GetInfo()
 	}
 end
 
-----------------------------------------------------------------
--- Synced only
-----------------------------------------------------------------
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-----------------------------------------------------------------
--- Var
-----------------------------------------------------------------
-local minedefs ={ 
-	[UnitDefNames["armfmine3"].id] = true,
-	[UnitDefNames["corfmine3"].id] = true,
-	[UnitDefNames["armmine1"].id] = true,
-	[UnitDefNames["armmine2"].id] = true,
-	[UnitDefNames["armmine3"].id] = true,
-	[UnitDefNames["cormine1"].id] = true,
-	[UnitDefNames["cormine2"].id] = true,
-	[UnitDefNames["cormine3"].id] = true,
-	[UnitDefNames["cormine4"].id] = true,
-}
-local mines={}
-local nummines=0
-----------------------------------------------------------------
--- Speedups
-----------------------------------------------------------------
+
+--local nummines = 0
+local mines = {}
+local isMine = {}
+for udid, ud in pairs(UnitDefs) do
+	if ud.customParams and ud.customParams.detonaterange then
+		isMine[udid] = true
+	end
+end
+
 local spSetUnitBlocking = Spring.SetUnitBlocking
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetMyTeamID = Spring.GetMyTeamID
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
+
 function gadget:UnitCreated(uID, uDefID, uTeam)
-    if minedefs[uDefID] then
-		--nummines=nummines+1
+    if isMine[uDefID] then
+		--nummines = nummines+1
 		--Spring.Echo('its a mine!',#mines,nummines)
 		local x,_,z= Spring.GetUnitPosition(uID)
-		mines[uID]={x,y,z}
+		mines[uID] = {x,y,z}
         spSetUnitBlocking(uID,false,false,false)
     end
 end
+
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
-    if minedefs[uDefID] and mines[uID] then
-		--nummines=nummines-1
+    if isMine[uDefID] and mines[uID] then
+		--nummines = nummines-1
 		mines[uID] = nil
         spSetUnitBlocking(uID,false,false,false)
     end
 end
+
 function gadget:AllowUnitCreation(unitDefID, builderID,builderTeam, x, y, z) 
 	if x and y and z then
-		local footprintx= UnitDefs[unitDefID]['xsize'] * 4+8 --add 8 for the mines size too
-		local footprintz= UnitDefs[unitDefID]['zsize'] * 4+8  --size is 2x footprint in engine
+		local footprintx = UnitDefs[unitDefID]['xsize'] * 4+8 --add 8 for the mines size too
+		local footprintz = UnitDefs[unitDefID]['zsize'] * 4+8  --size is 2x footprint in engine
 		for mine, pos in pairs(mines) do
 			if math.abs(x-pos[1])<footprintx and math.abs(z-pos[3])<footprintz then
-				-- if builderTeam ~=spGetMyTeamID() then --no getmyteamid in synced code :(
+				-- if builderTeam ~= spGetMyTeamID() then --no getmyteamid in synced code :(
 					-- local udef = UnitDefs[builderID]
 					-- Spring.Echo( udef.humanName  .. ": Can't build on top of mines!" )
 				-- end
