@@ -23,7 +23,7 @@ local present = {}
 
 local playerListByTeam = {}
 
-local isEcon_ = {
+local isEcon = {
 	--land t1
 	[UnitDefNames.armsolar.id] = true,
 	[UnitDefNames.corsolar.id] = true,
@@ -51,7 +51,6 @@ local isEcon_ = {
 	[UnitDefNames.armuwmmm.id] = true,
 	[UnitDefNames.coruwmmm.id] = true,
 }
-local isEcon = {}
 for udid, ud in pairs(UnitDefs) do
 	for id, v in pairs(isEcon) do
 		if string.find(ud.name, UnitDefs[id].name) then
@@ -59,7 +58,6 @@ for udid, ud in pairs(UnitDefs) do
 		end
 	end
 end
-isEcon_ = nil
 
 local unitNumWeapons = {}
 local unitCombinedCost = {}
