@@ -46,7 +46,7 @@ function byar_hacky_include_shim( path )
 end
 end
 --shard_include = shard_generate_include_func( "luarules/gadgets/ai/preload", subdir, "luarules/gadgets/ai" )
-shard_include = byar_hacky_include_shim("luarules/gadgets/ai/preload")
+shard_include = byar_hacky_include_shim("luarules/gadgets/ai")
 
 shard_include "preload/spring_lua/shard"
 os = shard_include "preload/spring_lua/fakeos"
