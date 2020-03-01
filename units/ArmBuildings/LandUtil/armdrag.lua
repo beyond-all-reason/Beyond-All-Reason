@@ -42,6 +42,7 @@ return {
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
+			objectify = true,
 			subfolder = "armbuildings/landutil",
 		},
 		featuredefs = {

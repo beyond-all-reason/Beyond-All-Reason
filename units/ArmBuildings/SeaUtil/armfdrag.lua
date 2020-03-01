@@ -36,6 +36,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
+			objectify = true,
 			subfolder = "armbuildings/seautil",
 		},
 		sfxtypes = {

@@ -1,6 +1,6 @@
 function gadget:GetInfo()
   return {
-    name      = "DragonsDisguise",
+    name      = "Dragons Disguise",
     desc      = "Sets Dragons claw & dragons maw to Neutral when closed",
     author    = "TheFatController",
     date      = "25 Nov 2008",

@@ -36,6 +36,7 @@ return {
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,
+			objectify = true,
 			subfolder = "corebuildings/seautil",
 		},
 		sfxtypes = {
