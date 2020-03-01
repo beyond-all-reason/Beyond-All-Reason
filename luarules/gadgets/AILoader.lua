@@ -79,7 +79,7 @@ local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 
 local function prepareTheAI(thisAI)
-	if not thisAI.modules then thisAI:Init() end
+	--if not thisAI.modules then thisAI:Init() end
 	ai = thisAI
 	game = thisAI.game
 	map = thisAI.map
@@ -118,7 +118,8 @@ function gadget:Initialize()
 				end
 				thisAI.id = id
 				thisAI.allyId = allyId
-				-- thisAI:Init()
+				thisAI:Prepare()
+				thisAI:Init()
 				AIs[#AIs+1] = thisAI
 				Shard.AIsByTeamID[id] = thisAI
 			else
@@ -167,7 +168,7 @@ function gadget:GameStart()
 		thisAI.side = side
 		local x,y,z = spGetTeamStartPosition(thisAI.id)
 		thisAI.startPos = {x,y,z}
-		if not thisAI.modules then thisAI:Init() end
+		--if not thisAI.modules then thisAI:Init() end
 	end
 end
 

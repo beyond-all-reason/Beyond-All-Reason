@@ -30,7 +30,7 @@ function ShardAI:Init()
 end
 
 function ShardAI:Prepare()
-	if not self.modules then self:Init() end
+-- 	if not self.modules then self:Init() end
 	ai = self
 	game = self.game
 	map = self.map
