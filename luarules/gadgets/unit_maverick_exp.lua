@@ -52,7 +52,7 @@ function GG.requestMaverickExpUpdate(unitID)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if not isMaverick[GetUnitDefID(unitID)] then
+	if not isMaverick[attackerDefID] then
 		return
 	end
 	--schedule an update of range next frame when exp has been updated

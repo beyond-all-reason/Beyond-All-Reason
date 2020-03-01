@@ -315,7 +315,7 @@ function updatePosition(force)
 		parentPos = WG['unittotals'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 	elseif WG['music'] ~= nil then
 		parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-	else
+	elseif WG['advplayerlist_api'] ~= nil then
 		parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 	end
 	if parentPos[5] ~= nil then
@@ -449,7 +449,7 @@ function widget:GameFrame(n)
 	if isSpec and toggled and n % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then
 			SelectTrackingPlayer()
-		elseif rejoining and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
+		elseif rejoining and WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
 			WG['advplayerlist_api'].SetLockPlayerID()
 		end
 		prevGameframeClock = os.clock()
@@ -478,7 +478,9 @@ function widget:MousePress(mx, my, mb)
 			currentTrackedPlayer = nil
 			if toggled or lockPlayerID then
 				toggled = false
-				WG['advplayerlist_api'].SetLockPlayerID()
+				if WG['advplayerlist_api'] then
+					WG['advplayerlist_api'].SetLockPlayerID()
+				end
 				lockPlayerID = nil
 				prevLockPlayerID = nil
 				createList()
@@ -615,7 +617,7 @@ function widget:Shutdown()
 	end
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
-	if toggled then
+	if toggled and WG['advplayerlist_api'] then
 		WG['advplayerlist_api'].SetLockPlayerID()
 	end
 end
