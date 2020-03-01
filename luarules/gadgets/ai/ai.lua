@@ -29,6 +29,13 @@ function ShardAI:Init()
 	end
 end
 
+function ShardAI:Prepare()
+	if not self.modules then self:Init() end
+	ai = self
+	game = self.game
+	map = self.map
+end
+
 function ShardAI:Update()
 	if self.gameend == true then
 		return

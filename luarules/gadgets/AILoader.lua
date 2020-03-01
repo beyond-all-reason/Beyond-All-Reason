@@ -178,8 +178,10 @@ function gadget:GameFrame(n)
 	for _,thisAI in ipairs(AIs) do
 
 		-- update sets of unit ids : own, friendlies, enemies
-		-- run AI game frame update handlers
-		prepareTheAI(thisAI)
+		--1 run AI game frame update handlers
+		
+		--prepareTheAI(thisAI)
+		thisAI:Prepare()
 		thisAI:Update()
 	end
 end
@@ -200,7 +202,8 @@ function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
 		end
 		
 		if Spring.GetUnitTeam(unitId) == thisAI.id then
-			prepareTheAI(thisAI)
+			--prepareTheAI(thisAI)
+			thisAI:Prepare()
 			thisAI:UnitCreated(unit)
 		end
 		-- thisAI:UnitCreated(unitId, unitDefId, teamId, builderId)
@@ -232,7 +235,8 @@ function gadget:UnitDamaged(unitId, unitDefId, unitTeamId, damage, paralyzer, we
 		local attackerUnit = Shard:shardify_unit(attackerId)
 		local damageObj = Shard:shardify_damage(damage, weaponDefId, paralyzer)
 		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+			thisAI:Prepare()
+			--prepareTheAI(thisAI)
 			thisAI:UnitDamaged(unit, attackerUnit, damageObj)
 			-- thisAI:UnitDamaged(unitId, unitDefId, unitTeamId, attackerId, attackerDefId, attackerTeamId)
 		end
@@ -244,7 +248,8 @@ function gadget:UnitIdle(unitId, unitDefId, teamId)
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
 		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+			--prepareTheAI(thisAI)
+			thisAI:Prepare()
 			thisAI:UnitIdle(unit)
 			-- thisAI:UnitIdle(unitId, unitDefId, teamId)
 		end
@@ -258,7 +263,8 @@ function gadget:UnitFinished(unitId, unitDefId, teamId)
 	if unit then
 		for _,thisAI in ipairs(AIs) do
 			-- thisAI:UnitFinished(unitId, unitDefId, teamId)
-			prepareTheAI(thisAI)
+			--prepareTheAI(thisAI)
+			thisAI:Prepare()
 			thisAI:UnitBuilt(unit)
 		end
 	end
@@ -268,7 +274,8 @@ function gadget:UnitTaken(unitId, unitDefId, teamId, newTeamId)
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
 		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+			--prepareTheAI(thisAI)
+			thisAI:Prepare()
 			-- thisAI:UnitTaken(unitId, unitDefId, teamId, newTeamId)
 			thisAI:UnitDead(unit)
 		end
@@ -279,7 +286,8 @@ function gadget:UnitGiven(unitId, unitDefId, teamId, oldTeamId)
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
 		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+			--prepareTheAI(thisAI)
+			thisAI:Prepare()
 			-- thisAI:UnitCreated(unitId, unitDefId, teamId, oldTeamId)
 			thisAI:UnitCreated(unit)
 		end
