@@ -141,7 +141,7 @@ function UnitGroupSpawn(n)
 								elseif s == 3 then
 									ScavSendNotification("scav_scavtech3d")
 								else
-									ScavSendNotification("scav_scavtech32")
+									ScavSendNotification("scav_scavtech3e")
 								end	
 							else
 								ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
