@@ -215,7 +215,8 @@ function gadget:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDef
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
 		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+			--prepareTheAI(thisAI)
+			thisAI:Prepare()
 			thisAI:UnitDead(unit)
 			thisAI.ownUnitIds[unitId] = nil
 			thisAI.friendlyUnitIds[unitId] = nil
