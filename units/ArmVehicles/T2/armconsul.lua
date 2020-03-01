@@ -40,7 +40,7 @@ return {
 		terraformspeed = 750,
 		trackoffset = 10,
 		trackstrength = 5,
-		tracktype = "armst_tracks",
+		tracktype = "armgremlin_tracks",
 		trackwidth = 35,
 		turninplace = true,
 		turninplaceanglelimit = 90,

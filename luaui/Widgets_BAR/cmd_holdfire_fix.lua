@@ -38,7 +38,7 @@ function widget:Initialize()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if (cmdID == CMD_FIRE_STATE) and (cmdParams[1] == 0) then
+	if cmdID == CMD_FIRE_STATE and cmdParams[1] == 0 then
 		spGiveOrder(CMD_INSERT, {0, CMD_STOP, 0}, {"alt"})
 	end
 end

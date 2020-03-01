@@ -467,7 +467,7 @@ function loadUnitIcons()
             -- cloak
         elseif (name=="armeyes" or name=="coreyes") then
             Spring.SetUnitDefIcon(udid, iconPrefix.."eye.user")
-        elseif (name=="armspy" or name=="corspy" or name=="armst") then
+        elseif (name=="armspy" or name=="corspy" or name=="armgremlin") then
             Spring.SetUnitDefIcon(udid, iconPrefix.."spy.user")
         elseif (name=="armpeep" or name=="corfink") then
             Spring.SetUnitDefIcon(udid, iconPrefix.."air_t1_scout.user")

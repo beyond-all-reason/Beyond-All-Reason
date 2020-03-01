@@ -1,10 +1,10 @@
 return {
-	armst = {
+	armgremlin = {
 		acceleration = 0.0697,
 		brakerate = 0.13939,
 		buildcostenergy = 3700,
 		buildcostmetal = 230,
-		buildpic = "ARMST.PNG",
+		buildpic = "ARMGREMLIN.PNG",
 		buildtime = 6704,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -31,14 +31,14 @@ return {
 		movementclass = "TANK2",
 		name = "Gremlin",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMST.s3o",
-		script = "Units/ARMST.cob",
+		objectname = "Units/ARMGREMLIN.s3o",
+		script = "Units/ARMGREMLIN.cob",
 		seismicsignature = 4,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 494,
 		stealth = true,
 		trackstrength = 6,
-		tracktype = "armst_tracks",
+		tracktype = "armgremlin_tracks",
 		trackwidth = 29,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -80,7 +80,7 @@ return {
 				height = 15,
 				hitdensity = 100,
 				metal = 138,
-				object = "Units/armst_dead.s3o",
+				object = "Units/armgremlin_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -138,7 +138,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armst_gauss = {
+			armgremlin_gauss = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -171,7 +171,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMST_GAUSS",
+				def = "ARMGREMLIN_GAUSS",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -12,15 +12,11 @@ function gadget:GetInfo()
     }
 end
 
-----------------------------------------------------------------
--- Synced
-----------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
+    return false
+end
 
-----------------------------------------------------------------
--- Config
-----------------------------------------------------------------
-
+local mRandom = math.random
 local sparkWeapons = {}
 local weapons = {
     lightning = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5, maxunits=2},
@@ -46,10 +42,6 @@ for udid, ud in pairs(UnitDefs) do
     end
 end
 
-local mRandom = math.random
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
     if sparkWeapons[weaponID] then
       local x,y,z = Spring.GetUnitPosition(unitID)
@@ -69,11 +61,4 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
         end
       end    
     end
-end
-
-else
-----------------------------------------------------------------
--- Unsynced
-----------------------------------------------------------------
-
 end

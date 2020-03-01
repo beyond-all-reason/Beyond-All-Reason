@@ -48,7 +48,7 @@ return {
 			[3] = "armcroc",
 			[4] = "armlatnk",
 			[5] = "armbull",
-			[6] = "armst",
+			[6] = "armgremlin",
 			[7] = "armmart",
 			[8] = "armmerl",
 			[9] = "armmanni",
