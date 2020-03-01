@@ -13,7 +13,7 @@ end
 local localtestDebug = false		-- when true: ends game after 30 secs
 local showGraphsButton = true	-- when chobby is loaded this will be false
 
-if (gadgetHandler:IsSyncedCode()) then 
+if gadgetHandler:IsSyncedCode() then
 
 local spAreTeamsAllied = Spring.AreTeamsAllied
 
@@ -23,7 +23,7 @@ local present = {}
 
 local playerListByTeam = {}
 
-local isEcon = { --better to hardcode these since its complicated to pick them out with UnitDef properties
+local isEcon_ = {
 	--land t1
 	[UnitDefNames.armsolar.id] = true,
 	[UnitDefNames.corsolar.id] = true,
@@ -51,6 +51,7 @@ local isEcon = { --better to hardcode these since its complicated to pick them o
 	[UnitDefNames.armuwmmm.id] = true,
 	[UnitDefNames.coruwmmm.id] = true,
 }
+local isEcon = {}
 for udid, ud in pairs(UnitDefs) do
 	for id, v in pairs(isEcon) do
 		if string.find(ud.name, UnitDefs[id].name) then
@@ -58,6 +59,7 @@ for udid, ud in pairs(UnitDefs) do
 		end
 	end
 end
+isEcon_ = nil
 
 local unitNumWeapons = {}
 local unitCombinedCost = {}
@@ -130,9 +132,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if not attackerTeamID then return end
 	if attackerTeamID == gaiaTeamID then return end
 	if not present[attackerTeamID] then return end
-	if (not unitDefID) or (not teamID) then return end
+	if not unitDefID or not teamID then return end
 	if spAreTeamsAllied(teamID, attackerTeamID) then
-		if teamID~=attackerTeamID then
+		if teamID ~= attackerTeamID then
 			local curTime = Spring.GetGameSeconds()
 			--keep track of teamkilling 
 			teamInfo[attackerTeamID].teamDmg = teamInfo[attackerTeamID].teamDmg + unitCombinedCost[unitDefID]
@@ -222,8 +224,8 @@ function CalculateEfficiency(teamID)
     local cur_max = Spring.GetTeamStatsHistory(teamID)
     local stats = Spring.GetTeamStatsHistory(teamID, cur_max, cur_max)
 	local teamEco = stats[1].energyProduced + 60 * stats[1].metalProduced -- do count excessed & reclaimed res
-    local pEco = (teamEco / totalEco) -- [0,1]
-    local pDmg = (teamInfo[teamID].allDmg / totalDmg) -- [0,infty), due to m/e excessed, but typically [0,1]
+    local pEco = teamEco / totalEco -- [0,1]
+    local pDmg = teamInfo[teamID].allDmg / totalDmg -- [0,infty), due to m/e excessed, but typically [0,1]
     local effScore = nTeams * (pDmg - pEco) 
     
     --Spring.Echo("eff: scores " .. effScore, pDmg, pEco, " for " .. FindPlayerName(teamID))
@@ -534,8 +536,6 @@ function gadget:Initialize()
 		end
 		playerListByTeam[teamID] = list
 	end
-	
-	
 end
 
 function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
