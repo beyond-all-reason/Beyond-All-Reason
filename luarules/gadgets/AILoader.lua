@@ -123,7 +123,7 @@ end
 function gadget:SetupDAI(id, aiInfo)
 	local teamList = spGetTeamList()
 	local mode = string.sub(aiInfo, 5)
-	if DAIlist[mode] != true then
+	if DAIlist[mode] ~= true then
 		Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
 		return nil
 	end
