@@ -33,11 +33,14 @@ function spawnStartBoxProtection(n)
         spawnPosZ = math_random(ScavengerStartboxZMin,ScavengerStartboxZMax)
     end
     canSpawnDefence = true
-    if spawnPosX == mapsizeX or spawnPosX == 0 or spawnPosZ == mapsizeZ or spawnPosZ == 0 then
+    if spawnPosX > mapsizeX or spawnPosX == 0 or spawnPosZ == mapsizeZ or spawnPosZ == 0 then
         canSpawnDefence = false
     end
     spawnPosX = spawnPosX + math_random(-spread*2,spread*2)
     spawnPosZ = spawnPosZ + math_random(-spread*2,spread*2)
+	if spawnPosX > mapsizeX - 64 or spawnPosX < 64 or spawnPosZ > mapsizeZ - 64 or spawnPosZ < 64 then
+        canSpawnDefence = false
+    end
     if canSpawnDefence then
         local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
         local spawnTier = math_random(1,100)
