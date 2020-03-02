@@ -137,7 +137,7 @@ else
                        {0.75, 0.5, 0.5, 0.01},
                        {0, 0, 0, 0.01} },
       count        = 1,
-      life         = weaponRange / 480,
+      life         = weaponRange / 360,
       lifeSpread   = 6,
       delaySpread  = 3,
 
@@ -156,7 +156,7 @@ else
 
       speed        = 8,
       speedSpread  = 1.5,
-      speedExp     = 1.5,
+      speedExp     = -1.5,
 
       size         = 7,
       sizeGrowth   = 1.5,
@@ -191,6 +191,7 @@ else
 
       speed        = 8,
       speedSpread  = 1.5,
+      speedExp     = -1.5,
 
       size         = 9,
       sizeGrowth   = 1.5,

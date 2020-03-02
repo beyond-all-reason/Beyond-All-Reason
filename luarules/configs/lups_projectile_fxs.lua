@@ -100,7 +100,7 @@ local fx = {
       rotSpread    = 360,
       rotExp       = 9,
 
-      --speed        = 10,
+      speed        = 10,
       --speedSpread  = 0,
 
       size         = 2,
