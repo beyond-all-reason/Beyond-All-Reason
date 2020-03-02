@@ -18,27 +18,50 @@ NoSelfdList = {
 
 StartboxDefenceStructuresT0 = {
     "corllt",
+    "corhllt",
     "armllt",
 }
 
 StartboxDefenceStructuresT1 = {
-    "corllt",
-    "armllt",
+    "cormaw",
+    "corhllt",
+    "armclaw",
+    "armbeamer",
+    "armpacko",
 }
 
 StartboxDefenceStructuresT2 = {
-    "corllt",
-    "armllt",
+    "corhllt",
+    "corhlt",
+    "armhlt",
+    "corvipe",
+    "armpb",
+    "armflak",
+    "armguard",
+    "corpun",
 }
 
 StartboxDefenceStructuresT3 = {
-    "corllt",
-    "armllt",
+    "corvipe",
+    "armpb",
+    "cortoast",
+    "armamb",
+    "armpb",
+    "corflak",
+    "armanni",
+    "cordoom",
 }
 
 StartboxDefenceStructuresT4 = {
-    "corllt",
-    "armllt",
+    "corflak",
+    "armanni",
+    "cordoom",
+    "armanni",
+    "cordoom",
+    "corflak",
+    "armanni",
+    "cordoom",
+    "armmine3",
 }
 
 
