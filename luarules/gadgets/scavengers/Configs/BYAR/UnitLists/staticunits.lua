@@ -66,26 +66,43 @@ StartboxDefenceStructuresT4 = {
 
 
 StartboxDefenceStructuresT0Sea = {
-    "corllt",
-    "armllt",
+    "cortl",
+    "armtl",
+    "cortl",
+    "armtl",
+    "corfdrag",
 }
 
 StartboxDefenceStructuresT1Sea = {
-    "corllt",
-    "armllt",
+    "cortl",
+    "armtl",
+    "armfrt",
+    "corfrt",
 }
 
 StartboxDefenceStructuresT2Sea = {
-    "corllt",
-    "armllt",
+    "cortl",
+    "armtl",
+    "armfrt",
+    "corfrt",
+    "coratl",
+    "armatl",
+    "corfhlt",
+    "armfhlt",
 }
 
 StartboxDefenceStructuresT3Sea = {
-    "corllt",
-    "armllt",
+    "coratl",
+    "armatl",
+    "corfhlt",
+    "armfhlt",
+    "corfflak",
+    "armfflak",
 }
 
 StartboxDefenceStructuresT4Sea = {
-    "corllt",
-    "armllt",
+    "coratl",
+    "armatl",
+    "corfflak",
+    "armfflak",
 }
