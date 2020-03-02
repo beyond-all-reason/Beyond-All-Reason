@@ -40,3 +40,29 @@ StartboxDefenceStructuresT4 = {
     "corllt",
     "armllt",
 }
+
+
+StartboxDefenceStructuresT0Sea = {
+    "corllt",
+    "armllt",
+}
+
+StartboxDefenceStructuresT1Sea = {
+    "corllt",
+    "armllt",
+}
+
+StartboxDefenceStructuresT2Sea = {
+    "corllt",
+    "armllt",
+}
+
+StartboxDefenceStructuresT3Sea = {
+    "corllt",
+    "armllt",
+}
+
+StartboxDefenceStructuresT4Sea = {
+    "corllt",
+    "armllt",
+}

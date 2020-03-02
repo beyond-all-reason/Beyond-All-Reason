@@ -39,20 +39,36 @@ function spawnStartBoxProtection(n)
     spawnPosZ = spawnPosZ + math_random(-80,80)
     if canSpawnDefence then
         local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-
         local spawnTier = math_random(1,100)
-        if spawnTier <= TierSpawnChances.T0 then
-            pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
-        elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-            pickedTurret = StartboxDefenceStructuresT1[math_random(1,#StartboxDefenceStructuresT1)]
-        elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-            pickedTurret = StartboxDefenceStructuresT2[math_random(1,#StartboxDefenceStructuresT2)]
-        elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-            pickedTurret = StartboxDefenceStructuresT3[math_random(1,#StartboxDefenceStructuresT3)]
-        elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-            pickedTurret = StartboxDefenceStructuresT4[math_random(1,#StartboxDefenceStructuresT4)]
-        else
-            pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+        
+        if spawnPosY > 0 then
+            if spawnTier <= TierSpawnChances.T0 then
+                pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+                pickedTurret = StartboxDefenceStructuresT1[math_random(1,#StartboxDefenceStructuresT1)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+                pickedTurret = StartboxDefenceStructuresT2[math_random(1,#StartboxDefenceStructuresT2)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+                pickedTurret = StartboxDefenceStructuresT3[math_random(1,#StartboxDefenceStructuresT3)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+                pickedTurret = StartboxDefenceStructuresT4[math_random(1,#StartboxDefenceStructuresT4)]
+            else
+                pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+            end
+        elseif spawnPosY <= 0 then
+            if spawnTier <= TierSpawnChances.T0 then
+                pickedTurret = StartboxDefenceStructuresT0Sea[math_random(1,#StartboxDefenceStructuresT0Sea)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+                pickedTurret = StartboxDefenceStructuresT1Sea[math_random(1,#StartboxDefenceStructuresT1Sea)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+                pickedTurret = StartboxDefenceStructuresT2Sea[math_random(1,#StartboxDefenceStructuresT2Sea)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+                pickedTurret = StartboxDefenceStructuresT3Sea[math_random(1,#StartboxDefenceStructuresT3Sea)]
+            elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+                pickedTurret = StartboxDefenceStructuresT4Sea[math_random(1,#StartboxDefenceStructuresT4Sea)]
+            else
+                pickedTurret = StartboxDefenceStructuresT0Sea[math_random(1,#StartboxDefenceStructuresT0Sea)]
+            end
         end
 
         canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, 80)
