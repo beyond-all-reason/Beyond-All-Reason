@@ -78,73 +78,35 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 
-local function prepareTheAI(thisAI)
-	ai = thisAI
-	game = thisAI.game
-	map = thisAI.map
-end
-
 --SYNCED CODE
 if (gadgetHandler:IsSyncedCode()) then
 
 function gadget:Initialize()
 	GG.AiHelpers.Start()
-	local numberOfmFAITeams = 0
 	local teamList = spGetTeamList()
-	spEcho( "k9: ailoader gadget go!")
+	spEcho( "Looking for AIs")
 
 	for i=1,#teamList do
 		local id = teamList[i]
 		local _,_,_,isAI,side,allyId = spGetTeamInfo(id,false)
-
-		--spEcho("Player " .. teamList[i] .. " is " .. side .. " AI=" .. tostring(isAI))
-
-		---- adding AI
-		spEcho( "K9: Is AI?")
 		if (isAI) then
-			spEcho( "K9: IT IS AI")
+			spEcho( "Found an AI")
 			local aiInfo = spGetTeamLuaAI(id)
 			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,3) == "DAI") then
-				numberOfmFAITeams = numberOfmFAITeams + 1
-				spEcho("Moomin Player " .. teamList[i] .. " is " .. aiInfo)
-				-- add AI object
-				local mode = string.sub(aiInfo, 5)
-				if DAIlist[mode] == true then
-					thisAI = ShardAI(mode)
-				else
-					Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
-					break
+				thisAI = self:SetupDAI(id, aiInfo)
+				if ( thisAI ~= nil ) then
+					Shard.AIsByTeamID[id] = thisAI
+					AIs[#AIs+1] = thisAI
+					spEcho("Player " .. teamList[i] .. " is a " .. aiInfo)
 				end
-				thisAI.id = id
-				thisAI.allyId = allyId
-				AIs[#AIs+1] = thisAI
-				Shard.AIsByTeamID[id] = thisAI
+				-- add AI object
+				--
 			else
 				spEcho("Player " .. teamList[i] .. " is another type of lua AI!")
 			end
 		else
 			spEcho( "K9: IS NOT AI!?")
 		end
-	end
-
-	-- add allied teams for each AI
-	for _,thisAI in ipairs(AIs) do
-		alliedTeamIds = {}
-		enemyTeamIds = {}
-		for i=1,#teamList do
-			if (spAreTeamsAllied(thisAI.id,teamList[i])) then
-				alliedTeamIds[teamList[i]] = true
-			else
-				enemyTeamIds[teamList[i]] = true
-			end
-		end
-		-- spEcho("AI "..thisAI.id.." : allies="..#alliedTeamIds.." enemies="..#enemyTeamIds)
-		thisAI.alliedTeamIds = alliedTeamIds
-		thisAI.enemyTeamIds = enemyTeamIds
-		thisAI.ownUnitIds = thisAI.ownUnitIds or {}
-		thisAI.friendlyUnitIds = thisAI.friendlyUnitIds or {}
-		thisAI.alliedUnitIds = thisAI.alliedUnitIds or {}
-		thisAI.enemyUnitIds = thisAI.enemyUnitIds or {}
 	end
 
 	-- catch up to started game
@@ -156,6 +118,36 @@ function gadget:Initialize()
 			self:UnitFinished(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
 		end
 	end
+end
+
+function gadget:SetupDAI(id, aiInfo)
+	local teamList = spGetTeamList()
+	local mode = string.sub(aiInfo, 5)
+	if DAIlist[mode] != true then
+		Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
+		return nil
+	end
+	thisAI = ShardAI(mode)
+	thisAI.id = id
+	thisAI.allyId = allyId
+	
+	alliedTeamIds = {}
+	enemyTeamIds = {}
+	for i=1,#teamList do
+		if (spAreTeamsAllied(thisAI.id,teamList[i])) then
+			alliedTeamIds[teamList[i]] = true
+		else
+			enemyTeamIds[teamList[i]] = true
+		end
+	end
+
+	thisAI.alliedTeamIds = alliedTeamIds
+	thisAI.enemyTeamIds = enemyTeamIds
+	thisAI.ownUnitIds = thisAI.ownUnitIds or {}
+	thisAI.friendlyUnitIds = thisAI.friendlyUnitIds or {}
+	thisAI.alliedUnitIds = thisAI.alliedUnitIds or {}
+	thisAI.enemyUnitIds = thisAI.enemyUnitIds or {}
+	return thisAI
 end
 
 function gadget:GameStart()
