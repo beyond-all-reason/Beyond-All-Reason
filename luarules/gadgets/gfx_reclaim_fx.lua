@@ -10,7 +10,7 @@
       }
     end
      
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return
 end
 
@@ -29,7 +29,7 @@ end
 
 local featureList = {}
 for featureDefID, fdef in pairs(FeatureDefs) do
-   if (fdef.model ~= nil) then
+   if fdef.model and fdef.model.minx then
 	   featureList[featureDefID] = {minx=fdef.model.minx, maxx=fdef.model.maxx, miny=fdef.model.miny, maxy=fdef.model.maxy, minz=fdef.model.minz, maxz=fdef.model.maxz}
    end
 end
@@ -74,33 +74,35 @@ local damagedFeatures = {}
 function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if damage > 4 and (damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15) and select(1,Spring.GetFeatureHealth(featureID)) > 0 then		-- not sure if "select(1,Spring.GetFeatureHealth(featureID)) > 0" is needed because if featuredestroyed, featuredamaged wont be called probably
 		local fx,fy,fz = Spring.GetFeaturePosition(featureID)
-		if (fx ~= nil) then
-			local x,y,z = fx,fy,fz
-			local _, mm, _, me, _ = Spring.GetFeatureResources(featureID)
+		if fx ~= nil then
 			local fdef = featureList[featureDefID]
-			if me ~= nil and me > 0 then
-				local numFx = math.floor(me/250)
-				local posMultiplier = 0.5
-				Spring.SpawnCEG("energyshards1", x, y, z)
-				for i=1, numFx, 1 do
-					x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
-					z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
-					y = fy + (random() * fdef.maxy*posMultiplier)
-					Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+			if fdef then
+				local x,y,z = fx,fy,fz
+				local _, mm, _, me, _ = Spring.GetFeatureResources(featureID)
+				if me ~= nil and me > 0 then
+					local numFx = math.floor(me/250)
+					local posMultiplier = 0.5
+					Spring.SpawnCEG("energyshards1", x, y, z)
+					for i=1, numFx, 1 do
+						x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+						z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+						y = fy + (random() * fdef.maxy*posMultiplier)
+						Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+					end
+					--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 				end
-				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
-			end
-			if mm ~= nil and mm > 0 then
-				local numFx = math.floor(mm/90)
-				local posMultiplier = 0.5
-				Spring.SpawnCEG("metalshards1", x, y, z)
-				for i=1, numFx, 1 do
-					x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
-					z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
-					y = fy + (random() * fdef.maxy*posMultiplier)
-					Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+				if mm ~= nil and mm > 0 then
+					local numFx = math.floor(mm/90)
+					local posMultiplier = 0.5
+					Spring.SpawnCEG("metalshards1", x, y, z)
+					for i=1, numFx, 1 do
+						x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+						z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+						y = fy + (random() * fdef.maxy*posMultiplier)
+						Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+					end
+					--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 				end
-				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 			end
 		end
 		damagedFeatures[featureID] = Spring.GetGameFrame()
@@ -112,39 +114,36 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 		damagedFeatures[featureID] = nil
 	end
 	local fx,fy,fz = Spring.GetFeaturePosition(featureID)
-	if (fx ~= nil) then
-		local x,y,z = fx,fy,fz
-		--local featureDefID = Spring.GetFeatureDefID(featureID)
-		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+	if fx ~= nil then
 		local fdef = featureList[Spring.GetFeatureDefID(featureID)]
-
-		if me ~= nil and me > 0 then
-			local numFx = math.floor(me/250)
-			local posMultiplier = 0.5
-			Spring.SpawnCEG("energyshards1", x, y, z)
-			for i=1, numFx, 1 do
-				x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
-				z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
-				y = fy + (random(fdef.miny, fdef.maxy)*posMultiplier)
-				Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+		if fdef then
+			local x,y,z = fx,fy,fz
+			local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+			if me ~= nil and me > 0 then
+				local numFx = math.floor(me/250)
+				local posMultiplier = 0.5
+				Spring.SpawnCEG("energyshards1", x, y, z)
+				for i=1, numFx, 1 do
+					x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+					z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+					y = fy + (random(fdef.miny, fdef.maxy)*posMultiplier)
+					Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+				end
+				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 			end
-			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
-		end
-		if mm ~= nil and mm > 0 then
-			local numFx = math.floor(mm/90)
-			local posMultiplier = 0.5
-			Spring.SpawnCEG("metalshards1", x, y, z)
-			for i=1, numFx, 1 do
-				x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
-				z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
-				y = fy + (random(fdef.miny, fdef.maxy)*posMultiplier)
-				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+			if mm ~= nil and mm > 0 then
+				local numFx = math.floor(mm/90)
+				local posMultiplier = 0.5
+				Spring.SpawnCEG("metalshards1", x, y, z)
+				for i=1, numFx, 1 do
+					x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+					z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+					y = fy + (random(fdef.miny, fdef.maxy)*posMultiplier)
+					Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+				end
+				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 			end
-			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
-		end
-		
-		if (rm ~= nil) then
-			if mm==0 and re == 0 then
+			if rm ~= nil and mm==0 and re==0 then
 				Spring.SpawnCEG("sparklegreen", fx, fy, fz)
 				Spring.PlaySoundFile("reclaimate", 1, fx, fy, fz, 'sfx')
 			end
