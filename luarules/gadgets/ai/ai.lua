@@ -26,6 +26,8 @@ function ShardAI:Init()
 			newmodule:SetAI(self)
 			newmodule:Init()
 		end
+	else
+		self.game:SendToConsole("No modules found :s")
 	end
 end
 
