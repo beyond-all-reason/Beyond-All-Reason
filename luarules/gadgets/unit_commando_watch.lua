@@ -16,13 +16,12 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
-local COMMANDO = UnitDefNames["cormando"].id
 local MINE2 = UnitDefNames["cormine4"].id
 local MINE_BLAST = {}
 MINE_BLAST[WeaponDefNames["mine_light"].id] = true
@@ -30,18 +29,27 @@ MINE_BLAST[WeaponDefNames["mine_medium"].id] = true
 MINE_BLAST[WeaponDefNames["mine_heavy"].id] = true 
 local mines = {}
 local orderQueue = {}
-local COMMANDO_MINELAYER = WeaponDefNames['cormando_commando_minelayer'].id
 
 local isBuilding = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-    if unitDef.isBuilding then
-        isBuilding[unitDefID] = true
+local isCommando = {}
+for udid, ud in pairs(UnitDefs) do
+    if string.find(ud.name, 'cormando') then
+        isCommando[udid] = true
+    end
+    if ud.isBuilding then
+        isBuilding[udid] = true
+    end
+end
+local isCommandoMinelayerWeapon = {}
+for wdid, wd in pairs(WeaponDefs) do
+    if string.find(wd.name, 'commando_minelayer') then
+        isCommandoMinelayerWeapon[wdid] = true
     end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-  if (unitDefID == COMMANDO) then  
-    if (weaponID < 0) then
+  if isCommando[unitDefID] then
+    if weaponID < 0 then
       local x,y,z = Spring.GetUnitPosition(unitID)
       if (x < 0) or (z < 0) or (x > MAPSIZEX) or (z > MAPSIZEZ) then
         Spring.DestroyUnit(unitID)
@@ -55,7 +63,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
     end
   elseif mines[unitID] and (attackerID == mines[unitID]) then
     return 0,0
-  elseif (weaponID == COMMANDO_MINELAYER) and (orderQueue[attackerID]==nil) and (attackerTeam) and (unitTeam) and (not Spring.AreTeamsAllied(attackerTeam,unitTeam)) and isBuilding[unitDefID] then
+  elseif isCommandoMinelayerWeapon[weaponID] and orderQueue[attackerID]==nil and attackerTeam and unitTeam and not Spring.AreTeamsAllied(attackerTeam,unitTeam) and isBuilding[unitDefID] then
 	if select(2,Spring.GetUnitStates(attackerID),false,true) ~= 2 then return damage,1 end     --(2=movestate)
 
 	local vx,_,vz = Spring.GetUnitVelocity(unitID)
@@ -64,12 +72,12 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
     local active = false
     for i=1,#cQueue do
       local order = cQueue[i]
-      if (order.id == CMD.MOVE) or (order.id < 0) then 
+      if order.id == CMD.MOVE or order.id < 0 then
         active = true
         break
       end
     end
-    if ((e > 1000) or (i > 1000)) and (not active) and (math.sqrt((vx*vx)+(vz*vz)) < 1.5) then
+    if ((e > 1000) or (i > 1000)) and not active and math.sqrt((vx*vx)+(vz*vz)) < 1.5 then
 	  local x,_,z = Spring.GetUnitBasePosition(attackerID)
 	  local ex,ey,ez = Spring.GetUnitBasePosition(unitID)
 	  local r = Spring.GetUnitRadius(unitID)
@@ -79,7 +87,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	    angle = (angle + angleMod)
 	    tx = ex + (math.sin(angle) * i)
 	    tz = ez + (math.cos(angle) * i)
-	    if (Spring.TestBuildOrder(MINE2,tx,ey,tz,1) == 2) then
+	    if Spring.TestBuildOrder(MINE2,tx,ey,tz,1) == 2 then
 	  	  orderQueue[attackerID] = {tx,ey,tz}
 	  	  break
 	    end
@@ -98,7 +106,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-  if builderID and (unitDefID == MINE2) and (Spring.GetUnitDefID(builderID) == COMMANDO) then
+  if builderID and unitDefID == MINE2 and isCommando[Spring.GetUnitDefID(builderID)] then
     mines[unitID] = builderID
   end
 end
@@ -113,13 +121,13 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-  if (COMMANDO == unitDefID) then
+  if isCommando[unitDefID] then
     Spring.SetUnitStealth(transportID, true)
   end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-  if (COMMANDO == unitDefID) then
+  if isCommando[unitDefID] then
     Spring.SetUnitStealth(transportID, false)
   end
 end

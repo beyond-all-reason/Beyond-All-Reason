@@ -184,8 +184,7 @@ else
             Accept[#Accept+1] = Condition
         end
         if string.find(line, "core") then
-            local Condition  = function (ud) return
-            sub(1,3)=="cor" and not string.find(ud.name, '_scav') end
+            local Condition  = function (ud) return ud.name:sub(1,3)=="cor" and not string.find(ud.name, '_scav') end
             Accept[#Accept+1] = Condition
         end
         if string.find(line, "scav") then

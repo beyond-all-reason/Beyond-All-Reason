@@ -27,9 +27,14 @@ function gadget:GetInfo()
   }
 end
 
-if (not gadgetHandler:IsSyncedCode()) then return end
+if not gadgetHandler:IsSyncedCode() then return end
 
-local COMMANDO = UnitDefNames["cormando"].id
+local isCommando = {}
+for udid, ud in pairs(UnitDefs) do
+	if string.find(ud.name, 'cormando') then
+		isCommando[udid] = true
+	end
+end
 
 local toKill = {} -- [frame][unitID]
 local fromtrans = {}
@@ -41,11 +46,15 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	--Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
 	
-	if (unitDefID ~= COMMANDO) then	
+	if not isCommando[unitDefID] then
 		currentFrame = Spring.GetGameFrame()
-		if (not toKill[currentFrame+1]) then toKill[currentFrame+1] = {} end
+		if not toKill[currentFrame+1] then
+			toKill[currentFrame+1] = {}
+		end
 		toKill[currentFrame+1][unitID] = true
-		if (not fromtrans[currentFrame+1]) then fromtrans[currentFrame+1] = {} end
+		if not fromtrans[currentFrame+1] then
+			fromtrans[currentFrame+1] = {}
+		end
 		fromtrans[currentFrame+1][unitID] = transportID
 		--Spring.Echo("added killing request for " .. unitID .. " on frame " .. currentFrame+1 .. " from transport " .. transportID )
 	else
@@ -55,20 +64,21 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 end
 
 function gadget:GameFrame (currentFrame) 
-	if (toKill[currentFrame]) then --kill units as requested from above
+	if toKill[currentFrame] then --kill units as requested from above
 		for uID,_ in pairs (toKill[currentFrame]) do
 			local tID = fromtrans[currentFrame][uID]
 			--Spring.Echo ("delayed killing check called for unit " .. uID .. " and trans " .. tID .. ". ")
 			--check that trans is dead/crashing and unit is still alive 
-			if ((not Spring.GetUnitIsDead(uID)) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState=="crashing")))	then	
-				--Spring.Echo("killing unit " .. uID)
-				if UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion and WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id and WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id] then
-					local tabledamages = WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id]
+			if not Spring.GetUnitIsDead(uID) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState=="crashing"))	then	
+				--Spring.Echo("killing unit " .. uID)=
+				local deathExplosion = UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion
+				if deathExplosion and WeaponDefNames[deathExplosion].id and WeaponDefs[WeaponDefNames[deathExplosion].id] then
+					local tabledamages = WeaponDefs[WeaponDefNames[deathExplosion].id]
 					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
-					local tabledamages = WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id].damages
+					tabledamages = WeaponDefs[WeaponDefNames[deathExplosion].id].damages
 					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
 				end
-				Spring.DestroyUnit (uID, true, false)
+				Spring.DestroyUnit(uID, true, false)
 			end
 		end
 		toKill[currentFrame] = nil

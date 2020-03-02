@@ -15,6 +15,7 @@ end
 
 --------------------------------------------------------------------------------
 
+local silentTime = 0.7	-- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
@@ -627,7 +628,7 @@ function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
-		nextSoundQueued = sec + Sound[event][3]
+		nextSoundQueued = sec + Sound[event][3] + silentTime
 		if not muteWhenIdle or not isIdle or isTutorialNotification then
 			if spoken and Sound[event][1] ~= '' then
 				Spring.PlaySoundFile(soundFolder..Sound[event][1], globalVolume, 'ui')

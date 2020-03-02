@@ -10,31 +10,32 @@ function gadget:GetInfo()
   }
 end
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return
 end
 
-local COMMANDO = UnitDefNames["cormando"].id
-
 local fC = 0
 local fallingUnits = {}
-
 local unitMass = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	unitMass[unitDefID] = unitDef.mass
+local isCommando = {}
+for udid, ud in pairs(UnitDefs) do
+	if string.find(ud.name, 'cormando') then
+		isCommando[udid] = true
+	end
+	unitMass[udid] = ud.mass
 end
 
 function gadget:GameFrame(n)
   if fC > 0 then
     for k,t in ipairs(fallingUnits) do
 		local unitAlive = (Spring.ValidUnitID (t[1]) and (not Spring.GetUnitIsDead (t[1]))) --+++
-		if (unitAlive) then						--++
+		if unitAlive then						--++
 			x,y,z = Spring.GetUnitBasePosition(t[1])		--maybe check if units were off map		
 			h = Spring.GetGroundHeight(x,z)
 		--else
 			--Spring.Echo ("unit was not alive anymore. There would have been error spam")
 		end
-		if (not unitAlive or h > y-10)  then			--+++
+		if not unitAlive or h > y-10 then			--+++
 		  Spring.AddUnitDamage(t[1], t[2])
 		  table.remove(fallingUnits,k)
 		  fC = fC - 1
@@ -44,7 +45,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, _, transID)
-	if unitDefID ~= COMMANDO then
+	if not isCommando[unitDefID] then
 		local x,y,z = Spring.GetUnitBasePosition(unitID)
 		local h = math.max(0,Spring.GetGroundHeight(x,z))
 		local damage = 0
