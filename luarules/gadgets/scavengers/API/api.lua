@@ -1,5 +1,5 @@
 Spring.Echo("[Scavengers] API initialized")
-
+	math_random = math.random
 	-- variables
 	mapsizeX = Game.mapSizeX
 	mapsizeZ = Game.mapSizeZ

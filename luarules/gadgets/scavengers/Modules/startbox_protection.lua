@@ -10,10 +10,10 @@ function spawnStartBoxProtection(n)
     --GaiaAllyTeamID
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
-    local r = math.random(0,3)
-    local r2 = math.random(0,10)
-    local spawnPosX = math.random(ScavengerStartboxXMin,ScavengerStartboxXMax)
-    local spawnPosZ = math.random(ScavengerStartboxZMin,ScavengerStartboxZMax)
+    local r = math_random(0,3)
+    local r2 = math_random(0,10)
+    local spawnPosX = math_random(ScavengerStartboxXMin,ScavengerStartboxXMax)
+    local spawnPosZ = math_random(ScavengerStartboxZMin,ScavengerStartboxZMax)
     if r == 0 then -- south edge
         spawnPosZ = ScavengerStartboxZMax
         spawnDirection = 0
@@ -28,29 +28,31 @@ function spawnStartBoxProtection(n)
         spawnDirection = 3
     end
     if r2 == 0 then
-        spawnPosX = math.random(ScavengerStartboxXMin,ScavengerStartboxXMax)
-        spawnPosZ = math.random(ScavengerStartboxZMin,ScavengerStartboxZMax)
+        spawnPosX = math_random(ScavengerStartboxXMin,ScavengerStartboxXMax)
+        spawnPosZ = math_random(ScavengerStartboxZMin,ScavengerStartboxZMax)
     end
     canSpawnDefence = true
     if spawnPosX == mapsizeX or spawnPosX == 0 or spawnPosZ == mapsizeZ or spawnPosZ == 0 then
         canSpawnDefence = false
     end
+    spawnPosX = spawnPosX + math_random(-80,80)
+    spawnPosZ = spawnPosZ + math_random(-80,80)
     if canSpawnDefence then
         local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
 
-        local spawnTier = math.random(1,100)
+        local spawnTier = math_random(1,100)
         if spawnTier <= TierSpawnChances.T0 then
-            pickedTurret = StartboxDefenceStructuresT0[math.random(1,#StartboxDefenceStructuresT0)]
+            pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
         elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-            pickedTurret = StartboxDefenceStructuresT1[math.random(1,#StartboxDefenceStructuresT1)]
+            pickedTurret = StartboxDefenceStructuresT1[math_random(1,#StartboxDefenceStructuresT1)]
         elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-            pickedTurret = StartboxDefenceStructuresT2[math.random(1,#StartboxDefenceStructuresT2)]
+            pickedTurret = StartboxDefenceStructuresT2[math_random(1,#StartboxDefenceStructuresT2)]
         elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-            pickedTurret = StartboxDefenceStructuresT3[math.random(1,#StartboxDefenceStructuresT3)]
+            pickedTurret = StartboxDefenceStructuresT3[math_random(1,#StartboxDefenceStructuresT3)]
         elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-            pickedTurret = StartboxDefenceStructuresT4[math.random(1,#StartboxDefenceStructuresT4)]
+            pickedTurret = StartboxDefenceStructuresT4[math_random(1,#StartboxDefenceStructuresT4)]
         else
-            pickedTurret = StartboxDefenceStructuresT0[math.random(1,#StartboxDefenceStructuresT0)]
+            pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
         end
 
         canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, 80)

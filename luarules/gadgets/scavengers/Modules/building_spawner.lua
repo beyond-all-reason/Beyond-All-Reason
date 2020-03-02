@@ -10,39 +10,39 @@ end
 function SpawnBlueprint(n)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,buildingSpawnerModuleConfig.spawnchance)
+		local spawnchance = math_random(0,buildingSpawnerModuleConfig.spawnchance)
 		if spawnchance == 0 or canBuildHere == false then
-			posx = math.random(200,mapsizeX-200)
-			posz = math.random(200,mapsizeZ-200)
+			posx = math_random(200,mapsizeX-200)
+			posz = math_random(200,mapsizeZ-200)
 			posy = Spring.GetGroundHeight(posx, posz)
-			local spawnTier = math.random(1,100)
+			local spawnTier = math_random(1,100)
 			if posy > 0 then
 				if spawnTier <= TierSpawnChances.T0 then
-						blueprint = ScavengerBlueprintsT0[math.random(1,#ScavengerBlueprintsT0)]
+						blueprint = ScavengerBlueprintsT0[math_random(1,#ScavengerBlueprintsT0)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
+						blueprint = ScavengerBlueprintsT1[math_random(1,#ScavengerBlueprintsT1)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
+						blueprint = ScavengerBlueprintsT2[math_random(1,#ScavengerBlueprintsT2)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						blueprint = ScavengerBlueprintsT3[math.random(1,#ScavengerBlueprintsT3)]
+						blueprint = ScavengerBlueprintsT3[math_random(1,#ScavengerBlueprintsT3)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						blueprint = ScavengerBlueprintsT3[math.random(1,#ScavengerBlueprintsT3)]
+						blueprint = ScavengerBlueprintsT3[math_random(1,#ScavengerBlueprintsT3)]
 				else
-					blueprint = ScavengerBlueprintsT0[math.random(1,#ScavengerBlueprintsT0)]
+					blueprint = ScavengerBlueprintsT0[math_random(1,#ScavengerBlueprintsT0)]
 				end
 			elseif posy <= 0 then	
 				if spawnTier <= TierSpawnChances.T0 then
-						blueprint = ScavengerBlueprintsT0Sea[math.random(1,#ScavengerBlueprintsT0Sea)]
+						blueprint = ScavengerBlueprintsT0Sea[math_random(1,#ScavengerBlueprintsT0Sea)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
+						blueprint = ScavengerBlueprintsT1Sea[math_random(1,#ScavengerBlueprintsT1Sea)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						blueprint = ScavengerBlueprintsT2Sea[math.random(1,#ScavengerBlueprintsT2Sea)]
+						blueprint = ScavengerBlueprintsT2Sea[math_random(1,#ScavengerBlueprintsT2Sea)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						blueprint = ScavengerBlueprintsT3Sea[math.random(1,#ScavengerBlueprintsT3Sea)]
+						blueprint = ScavengerBlueprintsT3Sea[math_random(1,#ScavengerBlueprintsT3Sea)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						blueprint = ScavengerBlueprintsT4Sea[math.random(1,#ScavengerBlueprintsT4Sea)]
+						blueprint = ScavengerBlueprintsT4Sea[math_random(1,#ScavengerBlueprintsT4Sea)]
 				else
-					blueprint = ScavengerBlueprintsT0Sea[math.random(1,#ScavengerBlueprintsT0Sea)]
+					blueprint = ScavengerBlueprintsT0Sea[math_random(1,#ScavengerBlueprintsT0Sea)]
 				end
 			end
 			posradius = blueprint(posx, posy, posz, GaiaTeamID, true)
@@ -57,14 +57,14 @@ function SpawnBlueprint(n)
 			if canBuildHere then
 				-- let's do this shit
 				blueprint(posx, posy, posz, GaiaTeamID, false)
-				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz+posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz+posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz-posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz-posradius, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+posradius, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-posradius, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz+posradius, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz+posradius, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz-posradius, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz-posradius, math_random(0,3),GaiaTeamID)
 			end
 		end
 	end

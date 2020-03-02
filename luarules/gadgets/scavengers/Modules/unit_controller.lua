@@ -39,8 +39,8 @@ function ArmyMoveOrders(n, scav, scavDef)
 	local nearest = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	local x,y,z = Spring.GetUnitPosition(nearest)
 	local range = UnitRange[scav]
-	local x = x + math.random(-range,range)
-	local z = z + math.random(-range,range)
+	local x = x + math_random(-range,range)
+	local z = z + math_random(-range,range)
 	if UnitDefs[scavDef].canFly or (UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight) then
 		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 	else

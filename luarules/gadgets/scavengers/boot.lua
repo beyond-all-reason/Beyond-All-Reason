@@ -151,7 +151,7 @@ function gadget:GameFrame(n)
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
 				local scavDef = Spring.GetUnitDefID(scav)
-				local collectorRNG = math.random(0,5)
+				local collectorRNG = math_random(0,5)
 
 				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then

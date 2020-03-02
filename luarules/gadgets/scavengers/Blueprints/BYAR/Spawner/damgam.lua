@@ -14,11 +14,11 @@
 	-- if radiusCheck then
 		-- return posradius
 	-- else
-		-- Spring.CreateUnit("corrad", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx-100, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx, posy, posz-100, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx, posy, posz+100, math.random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corrad", posx, posy, posz, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx-100, posy, posz, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx+100, posy, posz, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx, posy, posz-100, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx, posy, posz+100, math_random(0,3),GaiaTeamID) 
 	-- end
 -- end
 -- table.insert(ScavengerBlueprintsT1,a)
@@ -33,7 +33,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corrad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corrad"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 
 	end
 end
@@ -45,7 +45,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armrad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("armrad"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT0,radararm)
@@ -56,7 +56,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corarad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corarad"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 
 	end
 end
@@ -68,7 +68,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armarad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("armarad"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 
 	end
 end
@@ -83,7 +83,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corsonar"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corsonar"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 
 	end
 end
@@ -95,7 +95,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armsonar"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("armsonar"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT0Sea,sonararm)
@@ -106,7 +106,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corason"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corason"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 
 	end
 end
@@ -118,7 +118,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armason"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("armason"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 
 	end
 end
@@ -132,7 +132,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armtl"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID, false, false)
+		Spring.CreateUnit("armtl"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, false, false)
 
 	end
 end
@@ -144,7 +144,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("coratl"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID, false, false)
+		Spring.CreateUnit("coratl"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, false, false)
 
 	end
 end

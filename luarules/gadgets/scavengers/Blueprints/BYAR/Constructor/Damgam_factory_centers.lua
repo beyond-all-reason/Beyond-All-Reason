@@ -12,7 +12,7 @@ local function DamgamT1Spammer(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	if radiusCheck then
 		return posradius
 	else
-		local r = math.random(0,5)
+		local r = math_random(0,5)
 		if r == 0 then
 			Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(-24), posy, posz+(-24), 2}, {"shift"})
 			Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(-24), posy, posz+(24), 2}, {"shift"})

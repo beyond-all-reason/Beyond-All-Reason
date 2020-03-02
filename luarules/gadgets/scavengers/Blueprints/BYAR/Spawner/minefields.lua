@@ -14,11 +14,11 @@
 	-- if radiusCheck then
 		-- return posradius
 	-- else
-		-- Spring.CreateUnit("corrad", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx-100, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx, posy, posz-100, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx, posy, posz+100, math.random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corrad", posx, posy, posz, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx-100, posy, posz, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx+100, posy, posz, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx, posy, posz-100, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corllt", posx, posy, posz+100, math_random(0,3),GaiaTeamID) 
 	-- end
 -- end
 -- table.insert(ScavengerBlueprintsT1,a)
@@ -34,10 +34,10 @@ local posradius = 100
 		return posradius
 	else
 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-35, posy, posz-35, "north",GaiaTeamID, false, false)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+35, posy, posz-35, "north",GaiaTeamID, false, false)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-35, posy, posz+35, "north",GaiaTeamID, false, false)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+35, posy, posz+35, "north",GaiaTeamID, false, false)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-35, posy, posz-35, "north",GaiaTeamID, false, false)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+35, posy, posz-35, "north",GaiaTeamID, false, false)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-35, posy, posz+35, "north",GaiaTeamID, false, false)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+35, posy, posz+35, "north",GaiaTeamID, false, false)
 
  
 	end
@@ -53,16 +53,16 @@ local posradius = 100
 		return posradius
 	else
 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+25, "north",GaiaTeamID)
  
 	end
 end
@@ -77,16 +77,16 @@ local posradius = 100
 		return posradius
 	else
 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+25, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+25, "north",GaiaTeamID)
  
 	end
 end
@@ -101,16 +101,16 @@ local posradius = 80
 		return posradius
 	else
 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-30, posy, posz-60, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-60, posy, posz-30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+60, posy, posz-30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+30, posy, posz-60, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-30, posy, posz+60, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-60, posy, posz+30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+60, posy, posz+30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+30, posy, posz+60, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-30, posy, posz-60, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-60, posy, posz-30, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-30, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+60, posy, posz-30, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+30, posy, posz-60, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-30, posy, posz+60, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-60, posy, posz+30, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+30, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+60, posy, posz+30, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+30, posy, posz+60, "north",GaiaTeamID)
  
 	end
 end
@@ -126,24 +126,24 @@ local posradius = 120
 		return posradius
 	else
 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-150, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-150, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+150, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+150, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+200, posy, posz, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+200, posy, posz, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-150, posy, posz+50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-150, posy, posz-50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+150, posy, posz+50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+150, posy, posz-50, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+200, posy, posz, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+200, posy, posz, "north",GaiaTeamID)
  
 	end
 end
