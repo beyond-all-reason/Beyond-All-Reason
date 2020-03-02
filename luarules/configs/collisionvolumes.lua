@@ -77,91 +77,113 @@ local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
 
-unitCollisionVolume["armamb"] = {
+unitCollisionVolume['armamb'] = {
 	on={49,45,49,-0.5,0,0,0,1,0},
 	off={49,26,49,-0.5,0,0,0,1,0},
 }
-unitCollisionVolume["armanni"] = {
+unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
 	off={54,56,54,0,-15,0,2,1,0},
 }
-unitCollisionVolume["armlab"] = {
+unitCollisionVolume['armlab'] = {
 	on={95,28,95,0,2,0,2,1,0},
 	off={95,22,95,0,-1,0,1,1,1},
 }
-unitCollisionVolume["armpb"] = {
+unitCollisionVolume['armpb'] = {
 	on={39,88,39,0,0,-5,0,1,0},
 	off={39,55,39,0,-17,0,0,1,0},
 }
-unitCollisionVolume["armplat"] = {
+unitCollisionVolume['armplat'] = {
 	on={105,66,105,0,33,0,2,1,0},
 	off={105,44,105,0,0,0,2,1,0},
 }
-unitCollisionVolume["armsolar"] = {
+unitCollisionVolume['armsolar'] = {
 	on={73,76,73,0,-18,1,0,1,0},
 	off={50,76,50,0,-18,1,0,1,0},
 }
-unitCollisionVolume["armvp"] = {
+unitCollisionVolume['armvp'] = {
 	on={120,34,92,0,0,0,2,1,0},
 	off={90,34,92,0,0,0,2,1,0},
 }
-unitCollisionVolume["cordoom"] = {
+unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,12,0,1,1,1},
 	off={45,87,45,0,0,0,2,1,0},
 }
-unitCollisionVolume["corplat"] = {
+unitCollisionVolume['corplat'] = {
 	on={112,60,112,0,28,0,1,1,1},
 	off={112,35,112,0,0,0,1,1,1},
 }
-unitCollisionVolume["cormaw"] = {
+unitCollisionVolume['cormaw'] = {
 	on={35,57,35,0,-5,-3,0,1,0},
 	off={35,31,35,0,-5,-3,0,1,0},
 }
-unitCollisionVolume["shiva"] = {
+unitCollisionVolume['shiva'] = {
 	on={54,50,50,0,2,-1,0,1,0},
 	off={54,30,66,0,12,-7,0,1,0},
 }
-pieceCollisionVolume["armrad"] = {
-	["1"]={22,58,22,0,30,0,1,1},
-	["3"]={60,13,13,11,0,0,1,0},
-}
-pieceCollisionVolume["armveil"] = {
-	["1"]={25,58,25,0,30,0,1,1},
-	["3"]={76,16,16,6,0,0,1,0},
-}
-pieceCollisionVolume["armbrtha"] = {
-	["1"]={32,84,32,0,-20,0,1,1},
-	["3"]={24,0,75,0,0,20,1,2},
-	["4"]={8,8,42,0,1,70,1,2},
-}
-pieceCollisionVolume["corint"] = {
-	["1"]={72,84,72,0,28,0,1,1},
-	["3"]={13,13,48,0,1,55,1,2},
-}
-pieceCollisionVolume["armvulc"] = {
-	["2"]={98,140,98,0,5,0,1,1},
-	["5"]={55,55,174,0,0,0,1,2},
-}
+for name, v in pairs(unitCollisionVolume) do
+	for udid, ud in pairs(UnitDefs) do
+		if string.find(ud.name, name) then
+			unitCollisionVolume[ud.name] = v
+		end
+	end
+end
 
-dynamicPieceCollisionVolume["cortoast"] = {
+pieceCollisionVolume['armrad'] = {
+	['1']={22,58,22,0,30,0,1,1},
+	['3']={60,13,13,11,0,0,1,0},
+}
+pieceCollisionVolume['armveil'] = {
+	['1']={25,58,25,0,30,0,1,1},
+	['3']={76,16,16,6,0,0,1,0},
+}
+pieceCollisionVolume['armbrtha'] = {
+	['1']={32,84,32,0,-20,0,1,1},
+	['3']={24,0,75,0,0,20,1,2},
+	['4']={8,8,42,0,1,70,1,2},
+}
+pieceCollisionVolume['corint'] = {
+	['1']={72,84,72,0,28,0,1,1},
+	['3']={13,13,48,0,1,55,1,2},
+}
+pieceCollisionVolume['armvulc'] = {
+	['2']={98,140,98,0,5,0,1,1},
+	['5']={55,55,174,0,0,0,1,2},
+}
+for name, v in pairs(pieceCollisionVolume) do
+	for udid, ud in pairs(UnitDefs) do
+		if string.find(ud.name, name) then
+			pieceCollisionVolume[ud.name] = v
+		end
+	end
+end
+
+dynamicPieceCollisionVolume['cortoast'] = {
 	on = {
-		["1"]={55,30,55,0,3,-2,0,0},
-		["5"]={11,11,47,0,0,3,1,2},
+		['1']={55,30,55,0,3,-2,0,0},
+		['5']={11,11,47,0,0,3,1,2},
 	},
 	off = {
-		["1"]={50,10,50,0,3,0,2,0},
+		['1']={50,10,50,0,3,0,2,0},
 	}
 }
-dynamicPieceCollisionVolume["corvipe"] = {
+dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
-		["0"]={40,12,30,0,0,0,2,0},
-		["5"]={25,46,25,0,25,0,1,1},
-		["offsets"]={0,23,0},
+		['0']={40,12,30,0,0,0,2,0},
+		['5']={25,46,25,0,25,0,1,1},
+		['offsets']={0,23,0},
 	},
 	off = {
-		["0"]={39,39,39,0,-2,0,0,1},
-		["offsets"]={0, 2, 0}, --["offsets"]={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
+		['0']={39,39,39,0,-2,0,0,1},
+		['offsets']={0, 2, 0}, --['offsets']={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
 	}
 }
+for name, v in pairs(dynamicPieceCollisionVolume) do
+	for udid, ud in pairs(UnitDefs) do
+		if string.find(ud.name, name) then
+			dynamicPieceCollisionVolume[ud.name] = v
+		end
+	end
+end
 
 return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume

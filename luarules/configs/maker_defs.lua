@@ -13,15 +13,12 @@ local convertCapacities = {
     ['armuwmmm'] = { c = (650), e = (AC2) }, 
     ['coruwmmm'] = { c = (650), e = (AC2) },
 }
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
-    local convertCapacitiesScavs = {}
-    for k,v in pairs(convertCapacities) do
-        convertCapacitiesScavs[k..'_scav'] = v
+for name, v in pairs(convertCapacities) do
+    for udid, ud in pairs(UnitDefs) do
+        if string.find(ud.name, name) then
+            convertCapacities[ud.name] = v
+        end
     end
-    for k,v in pairs(convertCapacitiesScavs) do
-        convertCapacities[k] = v
-    end
-    convertCapacitiesScavs = nil
 end
 
 local convertCapacitiesProcessed = {}

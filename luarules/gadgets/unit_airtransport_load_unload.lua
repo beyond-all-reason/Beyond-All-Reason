@@ -15,7 +15,7 @@ end
 local isAirTransport = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
-		if def.customParams and def.customParams.techlevel == '2' then
+		if def.customParams and def.customParams.techlevel then
 			isAirTransport[udefID] = 30		-- 15 elmos
 		else
 			isAirTransport[udefID] = 20		-- 10 elmos
