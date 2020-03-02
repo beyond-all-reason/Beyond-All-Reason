@@ -15,9 +15,9 @@ return {
 		description = "Holy #### it's huge Peewee!",
 		energymake = 0.3,
 		energyuse = 0.3,
-		explodeas = "advancedFusionExplosion",
-		footprintx = 14,
-		footprintz = 14,
+		explodeas = "bantha",
+		footprintx = 6,
+		footprintz = 6,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 100000,
@@ -91,7 +91,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -133,7 +133,7 @@ return {
 				firestarter = 100,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				intensity = 0.7,
+				intensity = 1.4,
 				name = "Rapid-fire huge g2g plasma guns",
 				noselfdamage = true,
 				proximityPriority = -1.5,

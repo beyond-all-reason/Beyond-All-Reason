@@ -96,13 +96,13 @@ StartboxDefenceStructuresT3Sea = {
     "armatl",
     "corfhlt",
     "armfhlt",
-    "corfflak",
-    "armfflak",
+    --"corfflak",
+    --"armfflak",
 }
 
 StartboxDefenceStructuresT4Sea = {
     "coratl",
     "armatl",
-    "corfflak",
-    "armfflak",
+    --"corfflak",
+    --"armfflak",
 }

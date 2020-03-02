@@ -15,7 +15,7 @@ return {
 		description = "Huge Assault Tank",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "advancedFusionExplosion",
+		explodeas = "bantha",
 		footprintx = 7,
 		footprintz = 7,
 		icontype = "scavboss",
