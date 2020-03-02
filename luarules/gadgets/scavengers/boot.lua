@@ -65,6 +65,10 @@ if scavconfig.modules.unitSpawnerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
 end
 
+if scavconfig.modules.startBoxProtection then
+	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
+end
+
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 
@@ -99,6 +103,10 @@ function gadget:GameFrame(n)
 
 	if scavconfig.messenger == true and n%30 == 0 then
 		pregameMessages(n)
+	end
+
+	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true and n%30 == 0 then
+		spawnStartBoxProtection(n)
 	end
 
 	if n == 15 and GaiaTeamID ~= Spring.GetGaiaTeamID() then

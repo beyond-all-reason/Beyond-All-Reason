@@ -12,6 +12,7 @@ if scavengersAIEnabled then
 			constructorControllerModule 	= true,
 			factoryControllerModule 		= true,
 			unitSpawnerModule 				= true,
+			startBoxProtection				= true,
 		},
 		timers = {
 			-- globalScore values
@@ -240,10 +241,11 @@ else
 		unitnamesuffix = "_scav",
 		messenger = true, -- BYAR specific thing, don't enable otherwise (or get gui_messages.lua from BYAR)
 		modules = {
-			buildingSpawnerModule 			= true,
+			buildingSpawnerModule 			= false,
 			constructorControllerModule 	= true,
 			factoryControllerModule 		= true,
 			unitSpawnerModule 				= true,
+			startBoxProtection				= false,
 		},
 		timers = {
 			-- globalScore values
