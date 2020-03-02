@@ -66,9 +66,9 @@ if scavengersAIEnabled then
 
 		t0multiplier						= 2,
 		t1multiplier						= 1.5,
-		t2multiplier						= 0.3,
-		t3multiplier						= 0.1,
-		t4multiplier						= 0.1,
+		t2multiplier						= 1.0,
+		t3multiplier						= 0.2,
+		t4multiplier						= 0.05,
 	}
 
 	constructorControllerModuleConfig = {
