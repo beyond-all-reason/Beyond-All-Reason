@@ -86,6 +86,10 @@ if scavengersAIEnabled then
 		minimumrangeforfight				= 650,
 	}
 
+	spawnProtectionConfig = {
+		spread				= 128,
+	}
+
 
 
 	-- Functions which you can configure
@@ -320,6 +324,9 @@ else
 		minimumrangeforfight				= 650,
 	}
 
+	spawnProtectionConfig = {
+		spread				= 128,
+	}
 
 
 	-- Functions which you can configure

@@ -11,7 +11,8 @@ function spawnStartBoxProtection(n)
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
     local r = math_random(0,3)
-    local r2 = math_random(0,10)
+    local r2 = math_random(0,20)
+    local spread = spawnProtectionConfig.spread
     local spawnPosX = math_random(ScavengerStartboxXMin,ScavengerStartboxXMax)
     local spawnPosZ = math_random(ScavengerStartboxZMin,ScavengerStartboxZMax)
     if r == 0 then -- south edge
@@ -35,8 +36,8 @@ function spawnStartBoxProtection(n)
     if spawnPosX == mapsizeX or spawnPosX == 0 or spawnPosZ == mapsizeZ or spawnPosZ == 0 then
         canSpawnDefence = false
     end
-    spawnPosX = spawnPosX + math_random(-80,80)
-    spawnPosZ = spawnPosZ + math_random(-80,80)
+    spawnPosX = spawnPosX + math_random(-spread*2,spread*2)
+    spawnPosZ = spawnPosZ + math_random(-spread*2,spread*2)
     if canSpawnDefence then
         local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
         local spawnTier = math_random(1,100)
@@ -70,10 +71,10 @@ function spawnStartBoxProtection(n)
                 pickedTurret = StartboxDefenceStructuresT0Sea[math_random(1,#StartboxDefenceStructuresT0Sea)]
             end
         end
-
-        canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, 80)
+        
+        canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
         if canSpawnDefence then
-            canSpawnDefence = posOccupied(spawnPosX, spawnPosY, spawnPosZ, 80)
+            canSpawnDefence = posOccupied(spawnPosX, spawnPosY, spawnPosZ, spread)
         end
         
         if canSpawnDefence then
