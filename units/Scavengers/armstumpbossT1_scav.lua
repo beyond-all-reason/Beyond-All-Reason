@@ -33,7 +33,7 @@ return {
 		objectname = "Units/scavboss/armstumpbossT1.s3o",
 		script = "Units/scavboss/armstumpbossT1.cob",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructas = "banthaSelfd",
 		sightdistance = 600,
 		trackoffset = 3,
 		trackstrength = 64,

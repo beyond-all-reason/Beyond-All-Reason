@@ -34,7 +34,7 @@ return {
 		objectname = "Units/scavboss/corcrwbossT2.s3o",
 		script = "Units/scavboss/corcrwbossT2.cob",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGenericSelfd",
+		selfdestructas = "krogExplosionSelfd",
 		sightdistance = 675,
 		turninplaceanglelimit = 360,
 		turnrate = 200,

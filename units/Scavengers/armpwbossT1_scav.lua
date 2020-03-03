@@ -31,7 +31,7 @@ return {
 		objectname = "Units/scavboss/armpwbossT1.s3o",
 		script = "Units/scavboss/armpwbossT1.cob",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructas = "banthaSelfd",
 		sightdistance = 1500,
 		turninplace = true,
 		turninplaceanglelimit = 360,
