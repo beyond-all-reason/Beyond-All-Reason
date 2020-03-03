@@ -83,6 +83,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 			Script.LuaUI.AddNotification('scav_scavtech3e', 'scavengers/scavtech3e.wav', 20, 3.18, "", unlisted)
 			Script.LuaUI.AddNotification('scav_scavheavyshipsdetected', 'scavengers/scavheavyshipsdetected.wav', 20, 3.28, "Alert. Heavy ships detected in the area.", unlisted)
 			--Script.LuaUI.AddNotification('scav_', 'scavengers/.wav', 20, 3, "", unlisted)
+			
 		end
 	end
 

@@ -132,6 +132,8 @@ function gadget:GameFrame(n)
 		UpdateTierChances(n)
 		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
 			BossWaveStarted = true
+		else
+			ScavSendMessage("Scavengers Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
 		end
 	end
 
