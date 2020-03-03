@@ -85,7 +85,7 @@ function UnitGroupSpawn(n)
 				local spawnTier = math_random(1,100)
 				
 				if (posy <= -20 and aircraftchanceonsea ~= 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft and BossWaveTimeLeft > 0 then
+					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
@@ -113,7 +113,7 @@ function UnitGroupSpawn(n)
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy > -20 then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft and BossWaveTimeLeft > 0 then
+					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
@@ -156,7 +156,7 @@ function UnitGroupSpawn(n)
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy <= -20 then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft and BossWaveTimeLeft > 0 then
+					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
