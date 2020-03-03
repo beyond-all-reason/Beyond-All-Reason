@@ -35,7 +35,7 @@ end
 local function Distance(x1,z1, x2,z2)
 	local vectx = x2 - x1
 	local vectz = z2 - z1
-	local dis = math.sqrt(vectx^2+vectz^2)
+	local dis = math.sqrt((vectx*vectx) + (vectz*vectz))
 	return dis
 end
 

@@ -273,7 +273,7 @@ end
 -- provides a neighbor function for a grid with each node having four neighbors
 -- assumes distFunc is the default of distance squared
 function GraphAStar:SetQuadGridSize(gridSize)
-	local nodeDist = 0.1 + (gridSize ^ 2)
+	local nodeDist = 0.1 + (gridSize * gridSize)
 	self.isNeighborNode = function ( node, neighbor ) 
 		if dist_between(node, neighbor, self.distFunc, self.distCache) < nodeDist then
 			return true
@@ -288,7 +288,7 @@ end
 -- provides a neighbor function for a grid with each node having eight neighbors
 -- assumes distFunc is the default of distance squared
 function GraphAStar:SetOctoGridSize(gridSize)
-	local nodeDist = 0.1 + (2 * (gridSize^2))
+	local nodeDist = 0.1 + (2 * (gridSize*gridSize))
 	self.isNeighborNode = function ( node, neighbor ) 
 		if dist_between(node, neighbor, self.distFunc, self.distCache) < nodeDist then
 			return true
