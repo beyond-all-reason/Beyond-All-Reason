@@ -1,14 +1,14 @@
-   function gadget:GetInfo()
-      return {
-        name      = "Reclaim effect",
-        desc      = "Nice unit reclaim effect",
-        author    = "Floris",
-        date      = "December 2016",
-        license   = "PD",
-        layer     = 0,
-        enabled   = true,
-      }
-    end
+function gadget:GetInfo()
+  return {
+	name      = "Reclaim effect",
+	desc      = "Nice unit reclaim effect",
+	author    = "Floris",
+	date      = "December 2016",
+	license   = "PD",
+	layer     = 0,
+	enabled   = true,
+  }
+end
      
 if not gadgetHandler:IsSyncedCode() then
   return

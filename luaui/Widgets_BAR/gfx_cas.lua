@@ -20,7 +20,7 @@ end
 
 local GL_RGBA8 = 0x8058
 
-local SHARPNESS = 0.6
+local SHARPNESS = 0.66
 
 -----------------------------------------------------------------
 -- Lua Shortcuts

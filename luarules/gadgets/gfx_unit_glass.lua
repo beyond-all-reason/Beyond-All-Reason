@@ -19,7 +19,7 @@ local spGetUnitPieceList = Spring.GetUnitPieceList
 local spGetUnitTeam = Spring.GetUnitTeam
 local spSetUnitPieceVisible = Spring.SetUnitPieceVisible
 
-if (gadgetHandler:IsSyncedCode()) then -- Synced
+if gadgetHandler:IsSyncedCode() then -- Synced
 
 local glassUnitDefs = {}
 
@@ -310,13 +310,13 @@ local function RenderGlassUnits()
 			glassShader:SetUniformFloatAlways("sunPos", glGetSun("pos"))
 
 			glassShader:SetUniformFloatArrayAlways("pbrParams", {
-				Spring.GetConfigFloat("tonemapA", 0.0),
-				Spring.GetConfigFloat("tonemapB", 1.0),
-				Spring.GetConfigFloat("tonemapC", 0.0),
-				Spring.GetConfigFloat("tonemapD", 0.0),
-				Spring.GetConfigFloat("tonemapE", 1.0),
-				Spring.GetConfigFloat("envAmbient", 0.5),
-				Spring.GetConfigFloat("unitSunMult", 1.5),
+				Spring.GetConfigFloat("tonemapA", 4.8),
+				Spring.GetConfigFloat("tonemapB", 0.8),
+				Spring.GetConfigFloat("tonemapC", 3.35),
+				Spring.GetConfigFloat("tonemapD", 1.0),
+				Spring.GetConfigFloat("tonemapE", 1.15),
+				Spring.GetConfigFloat("envAmbient", 0.3),
+				Spring.GetConfigFloat("unitSunMult", 1.35),
 				Spring.GetConfigFloat("unitExposureMult", 1.0),
 			})
 

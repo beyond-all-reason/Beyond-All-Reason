@@ -98,6 +98,7 @@ local optionHover = {}
 local optionSelect = {}
 
 local showOnceMore = false		-- used because of GUI shader delay
+local resettedTonemapDefault = false
 
 local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
@@ -1712,7 +1713,7 @@ function init()
 		},
 
 		--{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.2, max=0.9, step=0.01, type="slider", value=0.6, description='How much sharpening should be applied to the image',
+		{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.2, max=0.9, step=0.01, type="slider", value=0.66, description='How much sharpening should be applied to the image',
 		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
@@ -2071,11 +2072,11 @@ function init()
 		-- SND
 		{id="snddevice", group="snd", name="Sound device", type="select", restart=true, options=soundDevices, value=soundDevicesByName[Spring.GetConfigString("snd_device")], description='Select a sound device\ndefault means your default OS playback device\n\nNOTE: Changes require a restart',
 		 onchange = function(i, value)
-			if options[i].options[options[i].value] == 'default' then
-				Spring.SetConfigString("snd_device", '')
-			else
-			 	Spring.SetConfigString("snd_device", options[i].options[options[i].value])
-		 	end
+			 if options[i].options[options[i].value] == 'default' then
+				 Spring.SetConfigString("snd_device", '')
+			 else
+				 Spring.SetConfigString("snd_device", options[i].options[options[i].value])
+			 end
 		 end,
 		},
 		{id="sndvolmaster", group="snd", basic=true, name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100),
@@ -2109,8 +2110,8 @@ function init()
 		 end,
 		},
 		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=1, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
-			onload = function() end,
-			onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
+		 onload = function() end,
+		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
 		},
 		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons',
 		--		 onload = function() end,
@@ -2676,35 +2677,35 @@ function init()
 		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)"},
 		{id="limitidlefps", group="dev", widget="Limit idle FPS", name="Limit FPS when idle/offscreen", type="bool", value=GetWidgetToggleValue("Limit idle FPS"), description="Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode"},
 
-		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
+		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=7, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapB", 1.0), description="",
+		{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=2, step=0.01, value=Spring.GetConfigFloat("tonemapB", 1.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapB", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapC", 0.0), description="",
+		{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapC", 0.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapC", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.0), description="",
+		{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=3, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapD", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.0), description="",
+		{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=3, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapE", value)
 			 Spring.SendCommands("luarules updatesun")
@@ -2718,14 +2719,14 @@ function init()
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitSunMult", 1.5), description="",
+		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0.4, max=2.5, step=0.05, value=Spring.GetConfigFloat("unitSunMult", 1.5), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitSunMult", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="unitExposureMult", group="dev", name="Units exposure mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
+		{id="unitExposureMult", group="dev", name="Units exposure mult", type="slider", min=0.5, max=1.5, step=0.01, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitExposureMult", value)
 			 Spring.SendCommands("luarules updatesun")
@@ -2734,13 +2735,13 @@ function init()
 		},
 		{id="tonemapDefaults", group="dev", name=widgetOptionColor.."   restore defaults", type="bool", value=GetWidgetToggleValue("Unit Reclaimer"), description="",
 		 onchange=function(i, value)
-			 Spring.SetConfigFloat("tonemapA", 0.0)
-			 Spring.SetConfigFloat("tonemapB", 1.0)
-			 Spring.SetConfigFloat("tonemapC", 0.0)
-			 Spring.SetConfigFloat("tonemapD", 0.0)
-			 Spring.SetConfigFloat("tonemapE", 1.0)
-			 Spring.SetConfigFloat("envAmbient", 0.5)
-			 Spring.SetConfigFloat("unitSunMult", 1.5)
+			 Spring.SetConfigFloat("tonemapA", 4.8)
+			 Spring.SetConfigFloat("tonemapB", 0.8)
+			 Spring.SetConfigFloat("tonemapC", 3.35)
+			 Spring.SetConfigFloat("tonemapD", 1.0)
+			 Spring.SetConfigFloat("tonemapE", 1.15)
+			 Spring.SetConfigFloat("envAmbient", 0.3)
+			 Spring.SetConfigFloat("unitSunMult", 1.35)
 			 Spring.SetConfigFloat("unitExposureMult", 1.0)
 			 options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
 			 options[getOptionByID('tonemapB')].value = Spring.GetConfigFloat("tonemapB")
@@ -2757,6 +2758,14 @@ function init()
 		},
 
 	}
+
+	-- reset tonemap defaults (only once)
+	if not resettedTonemapDefault then
+		local optionID = getOptionByID('tonemapDefaults')
+		options[optionID].value = true
+		applyOptionValue(optionID)
+		resettedTonemapDefault = true
+	end
 
 	if not string.find(string.upper(Game.gameVersion), "$VERSION") then
 		options[getOptionByID('restart')] = nil
@@ -3367,6 +3376,7 @@ end
 
 function widget:GetConfigData(data)
 	savedTable = {}
+	savedTable.resettedTonemapDefault = resettedTonemapDefault
 	savedTable.customPresets = customPresets
 	savedTable.cameraTransitionTime = cameraTransitionTime
 	savedTable.cameraPanTransitionTime = cameraPanTransitionTime
@@ -3399,6 +3409,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.resettedTonemapDefault ~= nil then
+		resettedTonemapDefault = data.resettedTonemapDefault
+	end
 	if data.customPresets ~= nil then
 		customPresets = data.customPresets
 	end

@@ -20,18 +20,18 @@ local globalBlursizeMult = 1.1
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
 
 local presets = {
+	--{
+	--	blursize = 1.66,
+	--	blurPasses = 1,
+	--	quality = 4,	-- high value creates flickering, but lower is more expensive
+	--},
+	--{
+	--	blursize = 1.25,
+	--	blurPasses = 2,
+	--	quality = 4,
+	--},
 	{
-		blursize = 1.66,
-		blurPasses = 1,
-		quality = 4,	-- high value creates flickering, but lower is more expensive
-	},
-	{
-		blursize = 1.25,
-		blurPasses = 2,
-		quality = 4,
-	},
-	{
-		blursize = 0.7,
+		blursize = 1.1,
 		blurPasses = 3,
 		quality = 3,
 	},
@@ -161,8 +161,8 @@ function reset()
 
 	--if not initialized then return end
 	usedBasicAlpha = basicAlpha
-	drawWorldAlpha = 0.035 + (usedBasicAlpha/11)
-	drawWorldPreUnitAlpha = 0.2 - (illumThreshold*0.4) + (usedBasicAlpha/6)
+	drawWorldAlpha = 0.029 + (usedBasicAlpha/13)
+	drawWorldPreUnitAlpha = 0.19 - (illumThreshold*0.4) + (usedBasicAlpha/6)
 
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
