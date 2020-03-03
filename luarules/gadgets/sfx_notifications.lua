@@ -2,7 +2,7 @@
 --------------------------------------------------------------------------------
 function gadget:GetInfo()
     return {
-        name      = "Voice Notifs",
+        name      = "Notifications",
         desc      = "Plays various voice notifications",
         author    = "Doo, Floris",
         date      = "2018",
@@ -226,19 +226,21 @@ else
 	local isRadar = {}
 	local isMex = {}
 	local isLrpc = {}
-	isLrpc[UnitDefNames['corint'].id] = true
-	isLrpc[UnitDefNames['armbrtha'].id] = true
-	isLrpc[UnitDefNames['corbuzz'].id] = true
-	isLrpc[UnitDefNames['armvulc'].id] = true
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
-			isCommander[unitDefID] = true
-		end
-		if unitDef.isBuilding and unitDef.radarRadius > 1900 then
-			isRadar[unitDefID] = unitDef.radarRadius
-		end
-		if unitDef.extractsMetal > 0 then
-			isMex[unitDefID] = unitDef.extractsMetal
+		-- not critter/chicken/object
+		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'chicken') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+			if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
+				isCommander[unitDefID] = true
+			end
+			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') then
+				isLrpc[unitDefID] = true
+			end
+			if unitDef.isBuilding and unitDef.radarRadius > 1900 then
+				isRadar[unitDefID] = unitDef.radarRadius
+			end
+			if unitDef.extractsMetal > 0 then
+				isMex[unitDefID] = unitDef.extractsMetal
+			end
 		end
 	end
 

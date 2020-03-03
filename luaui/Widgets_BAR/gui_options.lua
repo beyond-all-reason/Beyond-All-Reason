@@ -1821,7 +1821,7 @@ function init()
 		},
 
 		{id="outline", group="gfx", basic=true, widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
-		{id="outline_width", group="gfx", basic=true, name=widgetOptionColor.."   width", min=1, max=4, step=1, type="slider", value=1, description='Set the width of the outline',
+		{id="outline_width", group="gfx", basic=true, name=widgetOptionColor.."   width", min=1, max=3, step=1, type="slider", value=1, description='Set the width of the outline\n\nOutline size stays the same regardless of viewing distance',
 		 onload=function() loadWidgetData("Outline", "outline_width", {'DILATE_HALF_KERNEL_SIZE'}) end,
 		 onchange=function(i,value) saveOptionValue('Outline', 'outline', 'setWidth', {'DILATE_HALF_KERNEL_SIZE'}, value) end
 		},
@@ -2677,49 +2677,49 @@ function init()
 		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)"},
 		{id="limitidlefps", group="dev", widget="Limit idle FPS", name="Limit FPS when idle/offscreen", type="bool", value=GetWidgetToggleValue("Limit idle FPS"), description="Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode"},
 
-		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=7, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
+		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=7, step=0.01, value=Spring.GetConfigFloat("tonemapA", 4.8), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=2, step=0.01, value=Spring.GetConfigFloat("tonemapB", 1.0), description="",
+		{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=2, step=0.01, value=Spring.GetConfigFloat("tonemapB", 0.8), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapB", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapC", 0.0), description="",
+		{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapC", 3.35), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapC", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=3, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.0), description="",
+		{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=3, step=0.01, value=Spring.GetConfigFloat("tonemapD", 1.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapD", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=3, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.0), description="",
+		{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=3, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.15), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapE", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="envAmbient", group="dev", name="Unit env ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.5), description="",
+		{id="envAmbient", group="dev", name="Unit env ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.3), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("envAmbient", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0.4, max=2.5, step=0.05, value=Spring.GetConfigFloat("unitSunMult", 1.5), description="",
+		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0.4, max=2.5, step=0.05, value=Spring.GetConfigFloat("unitSunMult", 1.35), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitSunMult", value)
 			 Spring.SendCommands("luarules updatesun")
