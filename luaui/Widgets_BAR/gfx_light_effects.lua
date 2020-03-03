@@ -162,7 +162,7 @@ function loadWeaponDefs()
 			if WeaponDefs[i].type == 'Flame' then
 				params.type = 'flame'
 				params.radius = params.radius * 0.66
-				params.orgMult = params.orgMult * 0.66
+				params.orgMult = params.orgMult * 0.90
 			end
 			params.wtype = WeaponDefs[i].type
 			if params.wtype == 'Cannon' then
@@ -271,7 +271,7 @@ local function GetLightsFromUnitDefs()
 			weaponData.radius2 = weaponData.radius*0.6
 		elseif (weaponDef.type == 'Flame') then
 			weaponData.radius = 70 * weaponDef.size
-			lightMultiplier = 0.05
+			lightMultiplier = 0.07
 			recalcRGB = true
 			--skip = true
 		elseif (weaponDef.type == 'LightningCannon') then
