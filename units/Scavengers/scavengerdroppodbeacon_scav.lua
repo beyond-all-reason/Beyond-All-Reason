@@ -12,6 +12,7 @@ return {
 		--buildpic = "chickens/roost.PNG",
 		buildtime = 10500,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		canmove = false,
 		capturable = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
