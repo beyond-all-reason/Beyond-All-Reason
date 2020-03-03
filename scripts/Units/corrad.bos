@@ -18,10 +18,20 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, dish;
+piece  base, dish, blinka;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
+Lights()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from blinka;
+		sleep 1150;
+	}
+	sleep 50;
+	start-script Lights();
+}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 /*     3:*/{
@@ -103,6 +113,7 @@ Create()
 /*    b7:*/	dont-cache dish;
 /*    b9:*/	call-script InitState();
 /*    bc:*/	start-script SmokeUnit();
+start-script Lights();
 /*    c1:*/	return (0);
 /*    c2:*/}
 

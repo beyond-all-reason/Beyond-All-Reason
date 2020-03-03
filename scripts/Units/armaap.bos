@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad,nano3, nano4, nano2, nano1, dish, blinka, blinkb;
+piece  base, pad, nano3, nano4, nano2, nano1, dish, blinka, blinkb;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
@@ -27,6 +27,7 @@ Standby()
 	sleep 50;
 	start-script Standby();
 }
+
 activatescr()
 {
 
@@ -167,7 +168,7 @@ QueryNanoPiece(piecenum)
 	{
 		piecenum = nano3;
 	}
-	if( spray ==3 )
+	if( spray == 3 )
 	{
 		piecenum = nano4;
 
