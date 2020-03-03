@@ -82,7 +82,9 @@ function posCheck(posx, posy, posz, posradius)
 	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
 	local deathwater = Game.waterDamage
 	local heighttollerance = scavconfig.other.heighttolerance
-	if deathwater > 0 and posy <= 0 then
+	if (not deathwater or deathwater == 0) and posy <= 0 then
+		return true
+	elseif deathwater > 0 and posy <= 0 then
 		return false
 	elseif testpos1 < posy - heighttollerance or testpos1 > posy + heighttollerance then
 		return false
