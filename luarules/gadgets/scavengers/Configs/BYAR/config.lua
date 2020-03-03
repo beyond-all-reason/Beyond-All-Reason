@@ -57,7 +57,7 @@ if scavengersAIEnabled then
 		bossFightEnabled					= true,
 		BossWaveTimeLeft					= 900,
 		aircraftchance 						= 20, -- higher number = lower chance
-		globalscoreperoneunit 				= 300,
+		globalscoreperoneunit 				= 450,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
 		landmultiplier 						= 0.75,

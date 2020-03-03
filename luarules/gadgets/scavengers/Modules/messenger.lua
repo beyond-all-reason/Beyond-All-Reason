@@ -3,7 +3,7 @@
 
 function pregameMessages(n)
 	if n == 1800 then
-		ScavSendMessage("WARNING")
+		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 	
@@ -31,7 +31,7 @@ function pregameMessages(n)
 	-- end
 	
 	if n == 7200 then
-		ScavSendMessage("WARNING")
+		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 	
@@ -40,7 +40,7 @@ function pregameMessages(n)
 	end
 	
 	if n == 9000 then
-		ScavSendMessage("WARNING")
+		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 	

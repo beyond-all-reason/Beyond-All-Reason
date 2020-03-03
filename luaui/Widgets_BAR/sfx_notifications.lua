@@ -227,34 +227,37 @@ local isT2 = {}
 local isT3 = {}
 local isMine = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.canFly then
-		isAircraft[udefID] = true
-	end
-	if def.customParams and def.customParams.techlevel then
-		if def.customParams.techlevel == '2' and not def.customParams.iscommander then
-			isT2[udefID] = true
+	-- not critter/chicken/object
+	if not string.find(def.name, 'critter') and not string.find(def.name, 'chicken') and (not def.modCategories or not def.modCategories.object) then
+		if def.canFly then
+			isAircraft[udefID] = true
 		end
-		if def.customParams.techlevel == '3' then
-			isT3[udefID] = true
+		if def.customParams and def.customParams.techlevel then
+			if def.customParams.techlevel == '2' and not def.customParams.iscommander then
+				isT2[udefID] = true
+			end
+			if def.customParams.techlevel == '3' then
+				isT3[udefID] = true
+			end
 		end
-	end
-	if def.modCategories.mine then
-		isMine[udefID] = true
-	end
-	if def.customParams.iscommander then
-		isCommander[udefID] = true
-	end
-	if def.isBuilder and def.canAssist then
-		isBuilder[udefID] = true
-	end
-	if def.windGenerator  and def.windGenerator  > 0 then
-		isWind[udefID] = true
-	end
-	if def.extractsMetal > 0 then
-		isMex[udefID] = true
-	end
-	if def.energyMake > 10 then
-		isEnergyProducer[udefID] = def.energyMake
+		if def.modCategories.mine then
+			isMine[udefID] = true
+		end
+		if def.customParams.iscommander then
+			isCommander[udefID] = true
+		end
+		if def.isBuilder and def.canAssist then
+			isBuilder[udefID] = true
+		end
+		if def.windGenerator  and def.windGenerator  > 0 then
+			isWind[udefID] = true
+		end
+		if def.extractsMetal > 0 then
+			isMex[udefID] = true
+		end
+		if def.energyMake > 10 then
+			isEnergyProducer[udefID] = def.energyMake
+		end
 	end
 end
 
