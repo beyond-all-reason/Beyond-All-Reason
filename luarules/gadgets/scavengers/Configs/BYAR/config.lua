@@ -275,9 +275,9 @@ else
 			T4med								= 21000,
 			T4high								= 24000,
 			T4top								= 28000,
-			BossFight							= 33000,
+			BossFight							= 28001,
 			-- don't delete
-			NoRadar								= 7500,
+			NoRadar								= 1200,
 		},
 		other = {
 			heighttolerance						= 30, -- higher = allow higher height diffrences
@@ -295,7 +295,7 @@ else
 		bossFightEnabled					= false,
 		BossWaveTimeLeft					= 900,
 		aircraftchance 						= 5, -- higher number = lower chance
-		globalscoreperoneunit 				= 400,
+		globalscoreperoneunit 				= 800,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
 		landmultiplier 						= 0.75,
