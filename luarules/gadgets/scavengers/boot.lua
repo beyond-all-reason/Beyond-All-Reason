@@ -133,7 +133,7 @@ function gadget:GameFrame(n)
 		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
 			BossWaveStarted = true
 		else
-			ScavSendMessage("Scavengers Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
+			ScavSendMessage("Scavengers Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%, Score: "..globalScore)
 		end
 	end
 
@@ -200,7 +200,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if unitTeam == GaiaTeamID then
 		killedscavengers = killedscavengers + 1
-		if scavStructure[unitID] and not UnitDefs[unitDefID].name == "scavengerdroppod_scav" then
+		if scavStructure[unitID] and not UnitDefs[unitDefID].name == "scavengerdroppod_scav" and not UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav"  then
 			killedscavengers = killedscavengers + 4
 		end
 		if scavConstructor[unitID] then
@@ -208,7 +208,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
-			killedscavengers = killedscavengers + 45
+			killedscavengers = killedscavengers - 1
 		end
 		if UnitDefs[unitDefID].name == "scavengerdroppod_scav" then
 			killedscavengers = killedscavengers - 1
