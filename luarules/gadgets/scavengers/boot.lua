@@ -197,6 +197,20 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if unitTeam == GaiaTeamID then
+		killedscavengers = killedscavengers + 1
+		if scavStructure[unitID] then
+			killedscavengers = killedscavengers + 4
+		end
+		if scavConstructor[unitID] then
+			killedscavengers = killedscavengers + 99
+		end
+		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+			numOfSpawnBeacons = numOfSpawnBeacons - 1
+			killedscavengers = killedscavengers + 49
+		end
+		if UnitDefs[unitDefID].name == "scavengerdroppod_scav" then
+			killedscavengers = killedscavengers - 1
+		end
 		selfdx[unitID] = nil
 		selfdy[unitID] = nil
 		selfdz[unitID] = nil
@@ -212,10 +226,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
 		UnitSuffixLenght[unitID] = nil
-		SpawnBeacon(n)
-		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
-			numOfSpawnBeacons = numOfSpawnBeacons - 1
-		end
 	end
 end
 

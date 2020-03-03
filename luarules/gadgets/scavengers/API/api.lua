@@ -46,6 +46,7 @@ Spring.Echo("[Scavengers] API initialized")
 	numOfSpawnBeacons = 0
 	scavMaxUnits = 2000
 	scavengerSoundPath = "Sounds/voice/scavengers/"
+	killedscavengers = 0
 	
 	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
@@ -82,7 +83,7 @@ function posCheck(posx, posy, posz, posradius)
 	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
 	local deathwater = Game.waterDamage
 	local heighttollerance = scavconfig.other.heighttolerance
-	if (not deathwater or deathwater == 0) and posy <= 0 then
+	if scavconfig.other.noheightchecksforwater and (not deathwater or deathwater == 0) and posy <= 0 then
 		return true
 	elseif deathwater > 0 and posy <= 0 then
 		return false
@@ -199,10 +200,9 @@ function teamsCheck()
 				local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
 				local resourceScore = mi + ei
 				local unitScore = unitCount
-				local finalScore = resourceScore + unitScore + Spring.GetGameSeconds()
+				local finalScore = resourceScore + unitScore
 				--Spring.Echo("Final Score for team "..i..": "..finalScore)
-				globalScore = globalScore + finalScore 
-				
+				globalScore = globalScore + finalScore
 				if finalScore > bestTeamScore then
 					bestTeamScore = finalScore
 					bestTeam = i
@@ -210,6 +210,6 @@ function teamsCheck()
 			end
 		end
 	end
-	globalScore = math.ceil(globalScore/scoreTeamCount)
+	globalScore = math.ceil((globalScore/scoreTeamCount) + killedscavengers + Spring.GetGameSeconds())
 	--Spring.Echo("[scavengers] Global Score: "..globalScore)
 end
