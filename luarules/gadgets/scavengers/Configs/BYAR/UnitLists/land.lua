@@ -72,7 +72,7 @@ T2LandUnits = {
 "cormando",
 --vechicles
 "armjam",
-"armst",
+"armgremlin",
 "armmart",
 "armlatnk",
 "armyork",
