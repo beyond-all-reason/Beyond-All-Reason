@@ -16,7 +16,7 @@ end
 function AttackHandler:Update()
 -- stagger targetting if multiple shards are in the game
 	local f = self.game:Frame() + self.game:GetTeamID() 
-	if math.fmod(f,15) == 0 then
+	if f % 15 == 0 then
 		self:DoTargetting()
 	end
 end
@@ -67,10 +67,10 @@ function AttackHandler:DoTargetting()
 
 				if e ~= nil then
 					pos = e:GetPosition()
-					px = pos.x - math.fmod(pos.x,400)
-					pz = pos.z - math.fmod(pos.z,400)
-					px = px/400
-					pz = pz/400
+					--px = (pos.x - math.fmod(pos.x,400)) / 400
+					--pz = (pos.z - math.fmod(pos.z,400)) / 400
+					px = (pos.x - (pos.x % 400)) / 400
+					pz = (pos.z - (pos.z % 400)) / 400
 					if cells[px] == nil then
 						cells[px] = {}
 					end

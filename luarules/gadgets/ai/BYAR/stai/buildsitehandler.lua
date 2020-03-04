@@ -26,7 +26,7 @@ function BuildSiteHandler:Init()
 	local mapSize = self.map:MapDimensions()
 	self.ai.maxElmosX = mapSize.x * 8
 	self.ai.maxElmosZ = mapSize.z * 8
-	self.ai.maxElmosDiag = math.sqrt((self.ai.maxElmosX*self.ai.maxElmosX) + (self.ai.maxElmosZ*self.ai.maxElmosZ))
+	self.ai.maxElmosDiag = math.sqrt(self.ai.maxElmosX^2 + self.ai.maxElmosZ^2)
 	self.ai.lvl1Mexes = 1 -- this way mexupgrading doesn't revert to taskqueuing before it has a chance to find mexes to upgrade
 	self.resurrectionRepair = {}
 	self.dontBuildRects = {}

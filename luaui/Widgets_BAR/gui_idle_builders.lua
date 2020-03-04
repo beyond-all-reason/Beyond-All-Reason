@@ -135,7 +135,6 @@ local GetCameraPosition = Spring.GetCameraPosition
 local GetCameraDirection = Spring.GetCameraDirection
 local SetCameraTarget = Spring.SetCameraTarget
 
-local fmod = math.fmod
 local math_sin = math.sin
 local math_pi = math.pi
 
@@ -493,7 +492,7 @@ function widget:Update(dt)
 			Clicks[unitDefID] = 1
 		end
 		if type(unitID) == 'table' then
-			unitID = unitID[fmod(Clicks[unitDefID]+1, getn(unitID))+1]
+			unitID = unitID[(Clicks[unitDefID]+1) % getn(unitID)+1]
 		end
 		mouseOnUnitID = unitID
 	end
@@ -693,7 +692,7 @@ function widget:MouseRelease(x, y, button)
 		else
 			Clicks[unitDefID] = 1
 		end
-		unitID = unitID[fmod(Clicks[unitDefID], getn(unitID))+1]
+		unitID = unitID[(Clicks[unitDefID]) % getn(unitID)+1]
 	end
 
 	local alt, ctrl, meta, shift = GetModKeyState()
