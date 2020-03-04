@@ -162,6 +162,7 @@ return {
 					fighters = 174,
 					subs = 20,
 					vtol = 174,
+					shields = 87,
 				},
 			},
 		},
