@@ -783,18 +783,29 @@ function widget:Update(dt)
 	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
 	-- NOTE: doing this on initialize() wont work
 	if not mapmeshdrawerChecked then
+		local OS = ''
+		if Platform.osFamily then
+			OS = Platform.osFamily .. (Platform.osVersion and ' '..Platform.osVersion or '')
+		end
+		if string.find(string.lower(OS), 'mac') then		-- MAC OS aka Masterbel crashes With ROAM 0
+			Spring.SetConfigInt("ROAM", 1)
+			Spring.SendCommands("mapmeshdrawer 2")
+		else
+			if tonumber(Spring.GetConfigInt("ROAM",1) or 1) ~= 0 then
+				Spring.SetConfigInt("ROAM", 0)
+			end
+			Spring.SendCommands("mapmeshdrawer 1")
+			-- ground detail
+			if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
+				Spring.SendCommands("GroundDetail "..minGroundDetail)
+			end
+			if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) > 3 then
+				Spring.SendCommands("GroundDetail 3")
+			end
+		end
 		mapmeshdrawerChecked = true
-		if tonumber(Spring.GetConfigInt("ROAM",1) or 1) ~= 0 then
-			Spring.SetConfigInt("ROAM", 0)
-		end
-		Spring.SendCommands("mapmeshdrawer 1")
-		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
-			Spring.SendCommands("GroundDetail "..minGroundDetail)
-		end
-		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) > 3 then
-			Spring.SendCommands("GroundDetail 3")
-		end
 	end
+
 
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
 		sec = 0
