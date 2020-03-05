@@ -83,12 +83,14 @@ end
 function GetTechLevelRate(ai, unit, name)
 	local rate
 	if unit:Name() == "armalab" or unit:Name() == "armavp" or unit:Name() == "armaap" or unit:Name() == "coralab" or unit:Name() == "coravp" or unit:Name() == "coraap" then
-		rate = math.max(0.2,math.min(1, 3 - income(ai, "energy")/1500))
+		rate = 3 - income(ai, "energy") / 1500
+		if rate > 1 then rate = 1 elseif rate < 0.2 then rate = 0.2 end
 		if name == "armaca" or name == "armack" or name == "armacv" or name == "coraca" or name == "coracv" or name == "corack" then
 			rate = 1	
 		end
 	elseif unit:Name() == "armlab" or unit:Name() == "armvp" or unit:Name() == "armap" or unit:Name() == "corlab" or unit:Name() == "corvp" or unit:Name() == "corap" then
-		rate = math.max(0.001,math.min(1, 1 - income(ai, "energy")/1500))
+		rate = 1 - income(ai, "energy") / 1500
+		if rate > 1 then rate = 1 elseif rate < 0.001 then rate = 0.001 end
 		if name == "armca" or name == "armck" or name == "armcv" or name == "corca" or name == "corcv" or name == "corck" then
 			rate = 1	
 		end

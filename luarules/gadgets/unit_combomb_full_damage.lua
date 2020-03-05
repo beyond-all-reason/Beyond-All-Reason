@@ -15,7 +15,7 @@ function gadget:GetInfo()
 end
 
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
@@ -25,17 +25,22 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 
 	--Spring.Echo("UnitPreDamaged called with unitID " .. unitID .. " and attackerID ", attackerID)
 
-	if (weaponDefID == COM_BLAST) and attackerID ~= nil and Spring.ValidUnitID(attackerID) then -- we control the damage inflicted on units by the COM_BLAST. Very rarely an invalid attackerID is returned with weaponID=COM_BLAST, I have no idea why/how.
+	if weaponDefID == COM_BLAST and attackerID ~= nil and Spring.ValidUnitID(attackerID) then -- we control the damage inflicted on units by the COM_BLAST. Very rarely an invalid attackerID is returned with weaponID=COM_BLAST, I have no idea why/how.
 		--Spring.Echo("weapon is comblast from unloaded com " .. attackerID)
 		local x,y,z = Spring.GetUnitBasePosition(attackerID)
 		local h = Spring.GetGroundHeight(x,z)
 		--Spring.Echo(x .. " " .. y .. " " .. z .. " " .. h)
-		if ((y-h) > 10) then
-			local _,hp = Spring.GetUnitHealth(unitID)
-			local newdamage = math.min(damage,math.max(hp*0.6,400)) 
+		if y-h > 10 then
+			local newdamage = select(2, Spring.GetUnitHealth(unitID)) * 0.6
+			if newdamage < 400 then
+				newdamage = 400
+			end
+			if newdamage > damage then
+				newdamage = damage
+			end
 			--Spring.Echo("new damage is " .. newdamage .. ", old damage is " .. damage .. ", hp is " .. hp)
 			return newdamage,0
-		end		
+		end
 	end
 	return damage,1
 end

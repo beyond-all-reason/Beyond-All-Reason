@@ -20,11 +20,13 @@ end
 
 local GetTeamInfo = Spring.GetTeamInfo
 local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitHealth = Spring.GetUnitHealth
 local GetGroundHeight = Spring.GetGroundHeight
 local MoveCtrl = Spring.MoveCtrl
 local GetGameFrame = Spring.GetGameFrame
 local DestroyUnit = Spring.DestroyUnit
 local UnitTeam = Spring.GetUnitTeam
+local math_random = math.random
 
 local immuneDgunList = {}
 local ctrlCom = {}
@@ -73,11 +75,17 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0, 0
 	end
 	
-	local hp,_ = Spring.GetUnitHealth(unitID) 
+	local hp,_ = GetUnitHealth(unitID)
 	hp = hp or 0
-	local combombDamage = math.min(hp*0.33, math.max(0,hp-200-math.random(1,10))) -- lose hp*0.4 damage but don't let health get <200
-	combombDamage = math.min(damage,combombDamage) 
-	
+	local combombDamage = hp-200-math_random(1,10)
+	if combombDamage < 0 then
+		combombDamage = 0
+	elseif combombDamage > hp*0.33 then
+		combombDamage = hp*0.33
+	end
+	if combombDamage > damage then
+		combombDamage = damage
+	end
 	if isDGUN[weaponID] then
 		if immuneDgunList[unitID] then
 			-- immune

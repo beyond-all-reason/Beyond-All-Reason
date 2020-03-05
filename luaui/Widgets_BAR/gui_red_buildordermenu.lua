@@ -813,7 +813,7 @@ local function UpdateGrid(g,cmds,ordertype)
 						text.caption = shotcutCaption.."\n\n\n\n"
 					else
 						-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
-						local str = tostring(math.max(metalCost, energyCost))
+						local str = tostring((metalCost > energyCost and metalCost or energyCost))
 						local addedSpaces = "                "			-- too bad 1 space isnt as wide as 1 number in the used font
 						local infoNewline = ''
 						if largePrice then

@@ -500,8 +500,11 @@ function GetColorByDps( dps, isEnemy, typeStr )
 	
 	printDebug("GetColor typeStr : " .. typeStr  .. "Team: " .. team )
 	--printDebug( colorConfig[team][typeStr]["min"] )
-	local ldps = max( dps, currentModConfig["dps"][typeStr]["min"] )
-	ldps = min( ldps, currentModConfig["dps"][typeStr]["max"])
+	local ldps = currentModConfig["dps"][typeStr]["min"]
+	if dps > ldps then ldps = dps end
+	if currentModConfig["dps"][typeStr]["max"] < ldps then
+		ldps = currentModConfig["dps"][typeStr]["max"]
+	end
 
 	ldps = ldps - currentModConfig["dps"][typeStr]["min"]
 	local factor = ldps / ( currentModConfig["dps"][typeStr]["max"] - currentModConfig["dps"][typeStr]["min"] )
@@ -545,8 +548,8 @@ function widget:Update()
 	end
 
 	local cy = select(2,Spring.GetCameraPosition())
-	darkOpacity = math.max(0.1, 0.5 - (cy-gy-3000) * (1/10000))
-
+	darkOpacity = 0.5 - (cy-gy-3000) * (1/10000)
+	if darkOpacity < 0.1 then darkOpacity = 0.1 end
 
 	local timef = spGetGameSeconds()
 	local time = floor(timef)
@@ -724,7 +727,8 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 
 			yDiff = abs( posy - newY )
 			posy = newY
-			posy = max( posy, 0.0 )  --hack
+			--posy = max( posy, 0.0 )  --hack
+			if posy < 0 then posy = 0 end
 			
 			heightDiff = ( posy - yGround ) 																--maybe y has to be Ground(x,z)
 			adjRadius = rangeFunc( range, heightDiff * weaponDef.heightMod, weaponDef.projectilespeed, rangeFactor, weaponDef.myGravity, weaponDef.heightBoostFactor )
@@ -734,7 +738,8 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 		posx = x + ( sinR * adjRadius )
 		posz = z + ( cosR * adjRadius )
 		posy = spGetGroundHeight( posx, posz ) + 5.0
-		posy = max( posy, 0.0 )   --hack
+		--posy = max( posy, 0.0 )   --hack
+		if posy < 0 then posy = 0 end
 		rangeLineStripCount = rangeLineStripCount + 1
 		rangeLineStrip[rangeLineStripCount] = { posx, posy, posz }
 	end

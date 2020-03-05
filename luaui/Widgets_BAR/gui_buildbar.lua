@@ -741,7 +741,7 @@ end
 
 function widget:DrawInMiniMap(sx,sy)
   
-   if (openedMenu>-1) then
+   if openedMenu >- 1 then
      gl.PushMatrix()
        local pt = math.min(sx,sy)
 

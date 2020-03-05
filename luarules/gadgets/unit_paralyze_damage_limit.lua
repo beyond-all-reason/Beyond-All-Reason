@@ -25,19 +25,15 @@ local excluded = {
     [UnitDefNames.corcarry.id] = true,
     [UnitDefNames.armcarry.id] = true,
 }
+local isBuilding = {}
 for udid, ud in pairs(UnitDefs) do
     for id, v in pairs(excluded) do
         if string.find(ud.name, UnitDefs[id].name) then
             excluded[udid] = v
         end
-    end
-end
-
-
-local isBuilding = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-    if unitDef.isBuilding then
-        isBuilding[unitDefID] = true
+        if ud.isBuilding then
+            isBuilding[udid] = true
+        end
     end
 end
 
@@ -46,16 +42,14 @@ for weaponDefID, def in pairs(WeaponDefs) do
     weaponParalyzeDamageTime[weaponDefID] = def.damages and def.damages.paralyzeDamageTime or maxTime
 end
 
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
+local spGetUnitHealth = Spring.GetUnitHealth
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
     if paralyzer then
         -- restrict the max paralysis time of mobile units to 15 sec
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
             local max_para_time = weaponParalyzeDamageTime[weaponID]
-            local h,mh,ph = Spring.GetUnitHealth(uID)
+            local h,mh,ph = spGetUnitHealth(uID)
             local max_para_damage = mh + ((max_para_time<maxTime) and mh or mh*maxTime/max_para_time)
             damage = math.min(damage, math.max(0,max_para_damage-ph) )            
             --Spring.Echo(h,mh, ph, max_para_damage, max_para_time, damage)

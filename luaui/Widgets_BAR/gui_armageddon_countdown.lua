@@ -57,7 +57,7 @@ end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
-    local timeLeft = math.max(0, armageddonTime - Spring.GetGameSeconds())
+    local timeLeft = armageddonTime - Spring.GetGameSeconds()
     if timeLeft <= 300 and gameStarted then
         local vsx, vsy = gl.GetViewSizes()
         font:Begin()

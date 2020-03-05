@@ -424,7 +424,13 @@ function GetRedColourStrings(tTime, sLoad, name, redStr, deltaTime)
 	local timeColourString = ColourString(r,g,b)
 	
 	-- space
-	new_r = math.max(0,math.min(1,(sLoad-minSpace)/(maxSpace-minSpace)))
+	new_r = (sLoad-minSpace) / (maxSpace-minSpace)
+	if new_r > 1 then
+		new_r = 1
+	elseif new_r < 0 then
+		new_r = 0
+	end
+
 	redStr[name..'_space'] = redStr[name..'_space'] or 0
 	redStr[name..'_space'] = u*redStr[name..'_space'] + (1-u)*new_r
 	g = 1-redStr[name.."_space"]*((255-64)/255)

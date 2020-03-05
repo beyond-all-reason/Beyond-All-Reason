@@ -24,7 +24,7 @@ end
 function AttackHandler:UnitDead(engineunit)
 	if engineunit:Team() == self.game:GetTeamID() then
 		self.counter = self.counter - 0.2
-		self.counter = math.max(self.counter,8)
+		self.counter = (self.counter > 8 and self.counter or 8)
 		-- try and clean up dead recruits where possible
 		for i,v in ipairs(self.recruits) do
 			if v.engineID == engineunit:ID() then
@@ -113,7 +113,7 @@ function AttackHandler:DoTargetting()
 				end
 				
 				self.counter = self.counter + 0.2
-				self.counter = math.min(self.counter,20)
+				self.counter = (self.counter < 20 and self.counter or 20)
 				
 				-- remove all our recruits!
 				self.recruits = {}

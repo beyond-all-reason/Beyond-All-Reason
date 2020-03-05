@@ -87,7 +87,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
     if not info[unitDefID] then return end
     if Spring.AreTeamsAllied(unitTeam,attackerTeam) then return end
     local h,_,_ = Spring.GetUnitHealth(unitID)
-    damage = math.max(h,damage)
+    if h > damage then damage = h end
     
     info[attackerDefID].dmg_dealt = info[attackerDefID].dmg_dealt + damage 
     info[unitDefID].dmg_rec = info[unitDefID].dmg_rec + damage    

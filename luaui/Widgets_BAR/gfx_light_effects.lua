@@ -26,6 +26,10 @@ local spGetPieceProjectileParams  = Spring.GetPieceProjectileParams
 local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 
 local math_random = math.random
+local math_diag = math.diag
+local math_min = math.min
+local math_max = math.max
+local math_floor = math.floor
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -398,7 +402,7 @@ end
 
 local function GetCameraHeight()
 	local camX, camY, camZ = Spring.GetCameraPosition()
-	return camY - math.max(Spring.GetGroundHeight(camX, camZ), 0)
+	return camY - math_max(Spring.GetGroundHeight(camX, camZ), 0)
 end
 
 local function ProjectileLevelOfDetailCheck(param, proID, fps, height)
@@ -438,7 +442,7 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 			if (not lightParams.maxTTL) or lightParams.maxTTL < timeToLive then
 				lightParams.maxTTL = timeToLive
 			end
-			mult = mult * (1 - math.min(1, (timeToLive - (lightParams.maxTTL - lightParams.beamMultFrames))/lightParams.beamMultFrames))
+			mult = mult * (1 - math_min(1, (timeToLive - (lightParams.maxTTL - lightParams.beamMultFrames))/lightParams.beamMultFrames))
 		end
 		deltax, deltay, deltaz = mult*deltax, mult*deltay, mult*deltaz
 	end
@@ -468,7 +472,7 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 
 	if lightParams.fadeTime then
 		timeToLive = timeToLive or Spring.GetProjectileTimeToLive(pID)
-		light.colMult = math.max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
+		light.colMult = math_max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
 	else
 		light.colMult = 1
 	end
@@ -488,7 +492,7 @@ local function GetProjectileLight(lightParams, pID, x, y, z)
 
 	if lightParams.fadeTime and lightParams.fadeOffset then
 		local timeToLive = Spring.GetProjectileTimeToLive(pID)
-		light.colMult = math.max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
+		light.colMult = math_max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
 	else
 		light.colMult = 1
 	end
@@ -506,7 +510,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	end
 
 	local fps = Spring.GetFPS()
-	local cameraHeight = math.floor(GetCameraHeight()*0.01)*100
+	local cameraHeight = math_floor(GetCameraHeight()*0.01)*100
 	--Spring.Echo("cameraHeight", cameraHeight, "fps", fps)
 	local projectilePresent = {}
 	local projectileDrawParams = projectileFade and {}
@@ -542,7 +546,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						--projectileDrawParams[#projectileDrawParams + 1] = drawParams
 					end
 				else -- point type
-					if not (lightParams.groundHeightLimit and lightParams.groundHeightLimit < (y - math.max(Spring.GetGroundHeight(y, y), 0))) then
+					if not (lightParams.groundHeightLimit and lightParams.groundHeightLimit < (y - math_max(Spring.GetGroundHeight(y, y), 0))) then
 						local drawParams = GetProjectileLight(lightParams, pID, x, y, z)
 						if lightParams.radius2 ~= nil then
 							local dirX,dirY,dirZ = Spring.GetProjectileDirection(pID)
@@ -561,7 +565,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 							local weaponDefID = Spring.GetProjectileDefID(pID)
 							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and Spring.IsSphereInView(x,y,z,100) then
 								if weaponConf[weaponDefID].wtype == 'DGun' then
-									local distance = math.diag(x-cx, y-cy, z-cz)
+									local distance = math_diag(x-cx, y-cy, z-cz)
 									local strengthMult = 1 / (distance*0.001)
 
 									WG['Lups'].AddParticles('JitterParticles2', {
@@ -626,7 +630,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 
 	-- add custom beam lights
 	local progress = 1
-	--Spring.Echo(#customBeamLights..'  '..math.random())
+	--Spring.Echo(#customBeamLights..'  '..math_random())
 	for i, params in pairs(customBeamLights) do
 		if not params.life then
 			params.colMult = params.orgMult
@@ -833,7 +837,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
 			local cx, cy, cz = Spring.GetCameraPosition()
-			local distance = math.diag(px-cx, py-cy, pz-cz)
+			local distance = math_diag(px-cx, py-cy, pz-cz)
 			local strengthMult = 1 / (distance*0.001)
 
 			if weaponConf[weaponID].type == 'paralyzer' then

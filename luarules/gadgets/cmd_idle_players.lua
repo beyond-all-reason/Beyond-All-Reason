@@ -124,7 +124,9 @@ if ( not gadgetHandler:IsSyncedCode()) then
                         end
                     end
                 end
-                queueTime = max(queueTime, thisQueueTime)
+                if queueTime < thisQueueTime then
+                    queueTime = thisQueueTime
+                end
             end
             lastActionTime = min(max(lastActionTime, timer+queueTime),gameStartTime+maxInitialQueueSlack) --treat this queue as though is was an initial queue
             checkQueueTime = nil 

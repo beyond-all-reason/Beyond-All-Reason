@@ -18,8 +18,6 @@ end
 -- would be good if they were omitted from area attacks but this is not currently possible
 -- specified as non-repairable in unitdef
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local isObject = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -29,8 +27,6 @@ for udefID,def in ipairs(UnitDefs) do
 end
 
 if gadgetHandler:IsSyncedCode() then
-
-    local max = math.max
 
     function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
         if isObject[unitDefID] and Spring.ValidUnitID(unitID) then
@@ -45,7 +41,7 @@ if gadgetHandler:IsSyncedCode() then
         if isObject[unitDefID] and not paralyzer then
             local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
             if buildProgress and maxHealth and buildProgress < 0.99 then
-                return max(0,(damage/100)*maxHealth), nil
+                return (damage/100)*maxHealth, nil
             end
         end
         return damage, nil

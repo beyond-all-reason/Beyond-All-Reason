@@ -260,7 +260,7 @@ local LOGMUL = AOE_MAX / BIASLOG
 local function CalcAoE(dmg, capacity)
 	local ratio = dmg / capacity
 	local aoe = (BIASLOG + math.log(ratio)/LOG10) * LOGMUL
-	return math.max(0, aoe)
+	return (aoe > 0 and aoe or 0)
 end
 
 local AOE_SAME_SPOT = AOE_MAX / 3

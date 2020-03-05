@@ -1015,7 +1015,7 @@ do
   function DrawUnitInfos(unitID,unitDefID)
     if ignoreUnits[unitDefID] ~= nil then return end
 
-    if (not customInfo[unitDefID]) then
+    if not customInfo[unitDefID] then
 	  local ud = UnitDefs[unitDefID]
       customInfo[unitDefID] = {
         height        = ud.height+barHeightOffset,
@@ -1034,8 +1034,8 @@ do
     fullText = true
     dx, dy, dz = ux-cx, uy-cy, uz-cz
     dist = dx*dx + dy*dy + dz*dz
-    if (dist > infoDistance) then
-      if (dist > maxUnitDistance) then
+    if dist > infoDistance then
+      if dist > maxUnitDistance then
         return
       end
       fullText = false
@@ -1044,30 +1044,30 @@ do
     --// GET UNIT INFORMATION
     health,maxHealth,paralyzeDamage,capture,build = GetUnitHealth(unitID)
     --if (not health)    then health=-1   elseif(health<1)    then health=1    end
-    if (not maxHealth)or(maxHealth<1) then maxHealth=1 end
-    if (not build)     then build=1   end
+    if not maxHealth or maxHealth < 1 then maxHealth = 1 end
+    if not build then build = 1   end
 
-    emp = (paralyzeDamage or 0)/maxHealth
-    hp  = (health or 0)/maxHealth
+    emp = (paralyzeDamage or 0) / maxHealth
+    hp  = (health or 0) / maxHealth
 
     --// BARS //-----------------------------------------------------------------------------
       --// Shield
-      if (ci.maxShield>0) then
+      if ci.maxShield > 0 then
         local UnitDefID = Spring.GetUnitDefID(unitID)
         local shieldOn,shieldPower = GetUnitShieldState(unitID)
-        if (shieldOn)and(build==1)and(shieldPower<ci.maxShield) then
+        if shieldOn and build == 1 and shieldPower < ci.maxShield then
           shieldPower = shieldPower / ci.maxShield
-          AddBar("shield",shieldPower,"shield",(fullText and floor(shieldPower*100)..'%') or '')
+          AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower*100)..'%') or '')
         end
       end
 
       --// HEALTH
-      if (health) and ((drawFullHealthBars)or(hp<unitHpThreshold)) and ((build==1)or(build-hp>=0.01)) then
+      if health and (drawFullHealthBars or hp<unitHpThreshold) and (build == 1 or build-hp >= 0.01) then
         hp100 = hp*100; hp100 = hp100 - hp100%1; --//same as floor(hp*100), but 10% faster
-        if (hp100<0) then hp100=0 elseif (hp100>100) then hp100=100 end
-        if (drawFullHealthBars)or(hp100<100) and not (hp<0) then
+        if hp100<0 then hp100=0 elseif hp100>100 then hp100=100 end
+        if drawFullHealthBars or hp100<100 and not (hp<0) then
           local infotext = ''
-          if (fullText and (hp100 and hp100 <= drawBarPercentage and hp100 > 0) or dist < minPercentageDistance) then
+          if fullText and (hp100 and hp100 <= drawBarPercentage and hp100 > 0) or dist < minPercentageDistance then
             infotext = hp100..'%'
           end
           if alwaysDrawBarPercentageForComs then
@@ -1075,27 +1075,27 @@ do
 				infotext = hp100..'%'
 			  end
           end
-          AddBar("health",hp,nil,infotext or '',bfcolormap[hp100])
+          AddBar("health", hp, nil, infotext or '', bfcolormap[hp100])
         end
       end
 
       --// BUILD
-      if (build<1) then
+      if build < 1 then
         local infotext = ''
-        if (fullText and (drawBarPercentage > 0 or dist < minPercentageDistance)) then
-          infotext = floor(build*100)..'%'
+        if fullText and (drawBarPercentage > 0 or dist < minPercentageDistance) then
+          infotext = floor(build * 100)..'%'
         end
-        AddBar("building",build,"build",infotext or '')
+        AddBar("building", build, "build", infotext or '')
       end
 
       --// STOCKPILE
-      if (ci.canStockpile) then
+      if ci.canStockpile then
         local stockpileBuild
-        numStockpiled,numStockpileQued,stockpileBuild = GetUnitStockpile(unitID)
-        if (numStockpiled) then
+        numStockpiled, numStockpileQued, stockpileBuild = GetUnitStockpile(unitID)
+        if numStockpiled then
           stockpileBuild = stockpileBuild or 0
-          if (stockpileBuild>0) then
-            AddBar("stockpile",stockpileBuild,"stock",(fullText and floor(stockpileBuild*100)..'%') or '')
+          if stockpileBuild > 0 then
+            AddBar("stockpile", stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100)..'%') or '')
           end
         end
       else
@@ -1103,50 +1103,50 @@ do
       end
 
       --// PARALYZE
-      if (emp>0.01)and(hp>0.01)and(emp<1e8) then
+      if emp > 0.01 and hp > 0.01 and emp < 1e8 then
         local stunned = GetUnitIsStunned(unitID)
         local infotext = ''
-        if (stunned) then
-          paraUnits[#paraUnits+1]=unitID
-          if (fullText) then
-            infotext = floor((paralyzeDamage-maxHealth)/(maxHealth*empDecline)) .. 's'
+        if stunned then
+          paraUnits[#paraUnits+1] = unitID
+          if fullText then
+            infotext = floor((paralyzeDamage-maxHealth) / (maxHealth*empDecline)) .. 's'
           end
           emp = 1
         else
-          if (emp>1) then emp=1 end
-          if (fullText and drawBarPercentage > 0) then
-            infotext = floor(emp*100)..'%'
+          if emp > 1 then emp = 1 end
+          if fullText and drawBarPercentage > 0 then
+            infotext = floor(emp * 100)..'%'
           end
         end
         local empcolor_index = (stunned and ((blink and "emp_b") or "emp_p")) or ("emp")
-        AddBar("paralyze",emp,empcolor_index,infotext)
+        AddBar("paralyze", emp, empcolor_index, infotext)
       end
 
       --// CAPTURE
-      if ((capture or -1)>0) then
+      if (capture or -1) > 0 then
         local infotext = ''
-        if (fullText and drawBarPercentage > 0) then
+        if fullText and drawBarPercentage > 0 then
             infotext = floor(capture*100)..'%'
         end
-        AddBar("capture",capture,"capture",infotext or '')
+        AddBar("capture", capture, "capture", infotext or '')
       end
 
       --// RELOAD
-      if (ci.reloadTime>=minReloadTime) then
-        _,reloaded,reloadFrame = GetUnitWeaponState(unitID,ci.primaryWeapon)
-        if (reloaded==false) then
-          reload = 1 - ((reloadFrame-gameFrame)/30) / ci.reloadTime;
-          reload = math.max(reload,0)
+      if ci.reloadTime >= minReloadTime then
+        _, reloaded, reloadFrame = GetUnitWeaponState(unitID, ci.primaryWeapon)
+        if reloaded == false then
+          reload = 1 - ((reloadFrame-gameFrame) / 30) / ci.reloadTime
+          if reload < 0 then reload = 0 end
           
           local infotext = ''
-          if (fullText and drawBarPercentage > 0) then
+          if fullText and drawBarPercentage > 0 then
             infotext = reload..'%'
           end
-          AddBar("reload",reload,"reload",infoText or '')
+          AddBar("reload", reload, "reload", infoText or '')
         end
       end
 
-    if (barsN>0)or(numStockpiled) then
+    if barsN > 0 or numStockpiled then
       glPushMatrix()
       glTranslate(ux, uy+ci.height, uz )
       glBillboard()
@@ -1155,13 +1155,13 @@ do
       DrawBars(fullText)
 
       --// STOCKPILE ICON
-      if (numStockpiled) then
-        if (barShader) then
+      if numStockpiled then
+        if barShader then
           glMyText(1)
-          DrawStockpile(numStockpiled,numStockpileQued)
+          DrawStockpile(numStockpiled, numStockpileQued)
           glMyText(0)
         else
-          DrawStockpile(numStockpiled,numStockpileQued)
+          DrawStockpile(numStockpiled, numStockpileQued)
         end
       end
 

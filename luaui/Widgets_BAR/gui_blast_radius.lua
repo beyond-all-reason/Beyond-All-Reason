@@ -73,12 +73,8 @@ local glTranslate           = gl.Translate
 local glBillboard           = gl.Billboard
 local glText                = gl.Text
 
-local max					= math.max
-local min					= math.min
 local sqrt					= math.sqrt
-local abs					= math.abs
 local lower                 = string.lower
-local floor                 = math.floor
 
 
 -----------------------------------------------------------------------------------
@@ -123,37 +119,37 @@ end
 function ChangeBlastColor()
 	--cycle red/yellow
 	local time = spGetGameSeconds()
-	local timediff = ( time - lastColorChangeTime )
+	local timediff = (time - lastColorChangeTime)
 		
-	local addValueSelf = timediff/ selfdCycleTime 	
-	local addValueExp = timediff/ expCycleTime 	
+	local addValueSelf = timediff / selfdCycleTime
+	local addValueExp = timediff / expCycleTime
 
-	if ( blastColor[2] >= 1.0 ) then
+	if blastColor[2] >= 1.0 then
 		selfdCycleDir = false
-	elseif ( blastColor[2] <= 0.0 ) then
+	elseif blastColor[2] <= 0.0 then
 		selfdCycleDir = true
 	end
 	
-	if ( expBlastColor[2] >= 1.0 ) then
+	if expBlastColor[2] >= 1.0 then
 		expCycleDir = false
-	elseif ( expBlastColor[2] <= 0.0 ) then
+	elseif expBlastColor[2] <= 0.0 then
 		expCycleDir = true
 	end
 
-	if ( selfdCycleDir == false ) then
+	if not selfdCycleDir then
 		blastColor[2] = blastColor[2] - addValueSelf
-		blastColor[2] = max( 0.0, blastColor[2] )
+		if blastColor[2] < 0 then blastColor[2] = 0 end
 	else
 		blastColor[2] = blastColor[2] + addValueSelf
-		blastColor[2] = min( 1.0, blastColor[2] )
+		if blastColor[2] > 1 then blastColor[2] = 1 end
 	end
 	
-	if ( expCycleDir == false) then
+	if not expCycleDir then
 		expBlastColor[2] = expBlastColor[2] - addValueExp
-		expBlastColor[2] = max( 0.0, expBlastColor[2] )
+		if expBlastColor[2] < 0 then expBlastColor[2] = 0 end
 	else
 		expBlastColor[2] = expBlastColor[2] + addValueExp
-		expBlastColor[2] = min( 1.0, expBlastColor[2] )
+		if expBlastColor[2] > 1 then expBlastColor[2] = 1 end
 	end
 					
 	lastColorChangeTime = time
@@ -163,21 +159,21 @@ function DrawBuildMenuBlastRange()
 	--check if valid command
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
 	
-	if (not cmd_id) then return end
+	if not cmd_id then return end
 	--printDebug("Cmds: idx: " .. idx .. " cmd_id: " .. cmd_id .. " cmd_type: " .. cmd_type .. " cmd_name: " .. cmd_name )
 	
 	--check if META is pressed
 	--local keyPressed = spGetKeyState(KEYSYMS.X )
 	local alt,ctrl,meta,shift = spGetModKeyState()
 		
-	if ( not meta ) then --and keyPressed) then
+	if not meta then --and keyPressed) then
 		return
 	end
 	
 	--check if build command
 	local cmdDesc = spGetActiveCmdDesc( idx )
 	
-	if ( cmdDesc["type"] ~= 20 ) then
+	if cmdDesc["type"] ~= 20 then
 		--quit here if not a build command
 		return
 	end
@@ -185,7 +181,7 @@ function DrawBuildMenuBlastRange()
 	local unitDefID = -cmd_id
 		
 	local udef = udefTab[unitDefID]
-	if ( weapNamTab[lower(udef[explodeTag])] == nil ) then
+	if weapNamTab[lower(udef[explodeTag])] == nil then
 		return
 	end
 	

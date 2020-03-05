@@ -176,7 +176,7 @@ function drawTooltip(name, x, y)
 	
 	-- get text dimentions
 	for i, line in ipairs(lines) do
-		maxWidth = math.max(maxWidth, (font:GetTextWidth(line)*fontSize), maxWidth)
+		maxWidth = math.max(maxWidth, (font:GetTextWidth(line)*fontSize))
 		maxHeight = maxHeight + lineHeight
 	end
 	-- adjust position when needed

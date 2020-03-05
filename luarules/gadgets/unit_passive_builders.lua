@@ -217,9 +217,11 @@ function GetUpdateInterval(teamID)
         else
             resMaxInterval = 6
         end
-        maxInterval = max(maxInterval, resMaxInterval)
+        if resMaxInterval > maxInterval then
+            maxInterval = resMaxInterval
+        end
     end
-    maxInterval = min(6, maxInterval)
+    if maxInterval > 6 then maxInterval = 6 end
     --Spring.Echo("interval: "..maxInterval)
     return maxInterval
 end

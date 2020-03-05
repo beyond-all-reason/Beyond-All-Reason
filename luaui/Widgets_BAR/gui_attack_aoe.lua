@@ -450,10 +450,12 @@ local function GetBallisticImpactPoint(v, fx, fy, fz, bx, by, bz)
     pz = pz + vz_f
     vy_f = vy_f - g_f
     
-    local gwh = max(GetGroundHeight(px, pz), 0)
-    
-    if (py < gwh) then
-      local interpolate = min((py - gwh) / vy_f, 1)
+    local gwh = GetGroundHeight(px, pz)
+    if gwh < 0 then gwh = 0 end
+
+    if py < gwh then
+      local interpolate = (py - gwh) / vy_f
+      if interpolate > 1 then interpolate = 1 end
       local x = px - interpolate * vx_f
       local z = pz - interpolate * vz_f
       return {x, max(GetGroundHeight(x, z), 0), z}
@@ -593,15 +595,16 @@ local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, s
   
   local vertices = {}
   local currScatter = scatter * v * sqrt(2*fy/g)
-  local alphaMult = min(v * salvoDelay / aoe, 1)
+  local alphaMult = v * salvoDelay / aoe
+  if alphaMult > 1 then alphaMult = 1 end
   
   for i=1,salvoSize do
     local delay = salvoDelay * (i - (salvoSize + 1) / 2)
     local dist = v * delay
     local px_c = dist * bx + tx
     local pz_c = dist * bz + tz
-    local py_c = max(GetGroundHeight(px_c, pz_c), 0)
-    
+    local py_c = GetGroundHeight(px_c, pz_c)
+    if py_c < 0 then py_c = 0 end
     DrawAoE(px_c, py_c, pz_c, aoe, ee, alphaMult, -delay)
     glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * alphaMult)
     glLineWidth(0.5 + scatterLineWidthMult / mouseDistance)
@@ -691,8 +694,9 @@ function widget:DrawWorld()
   if (not fx) then return end
   if (not info.mobile) then fy = fy + GetUnitRadius(aoeUnitID) end
 
-  if (not info.waterWeapon) then ty = max(0, ty) end
-
+  if not info.waterWeapon and ty < 0 then
+    ty = 0 end
+  end
   local weaponType = info.type
 
   if (weaponType == "ballistic") then

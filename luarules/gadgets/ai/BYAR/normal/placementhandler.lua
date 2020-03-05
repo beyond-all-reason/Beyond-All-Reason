@@ -281,7 +281,7 @@ function PlacementHandler:GenerateSpiral( width, height)
 	local y = 0
 	local dx = 0
 	local dy = -1
-	local t = math.max(width,height)
+	local t = (width > height and width or height)
 	local maxI = t*t;
 	local result = {}
 	for i=0, maxI do

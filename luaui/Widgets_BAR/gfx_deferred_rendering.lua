@@ -51,6 +51,8 @@ local spGetCameraPosition    = Spring.GetCameraPosition
 local spWorldToScreenCoords  = Spring.WorldToScreenCoords
 
 local math_sqrt = math.sqrt
+local math_min = math.min
+local math_max = math.max
 
 local glowImg			= "LuaUI/Images/glow2.dds"
 local beamGlowImg = ":n:LuaUI/Images/barglow-center.png"
@@ -435,14 +437,14 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			glUniform(lightposlocPoint, light.px, light.py, light.pz, param.radius) --in world space
 			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, 1) 
 			glTexRect(
-				math.max(-1 , (sx-0.5)*2-ratio*screenratio), 
-				math.max(-1 , (sy-0.5)*2-ratio), 
-				math.min( 1 , (sx-0.5)*2+ratio*screenratio), 
-				math.min( 1 , (sy-0.5)*2+ratio), 
-				math.max( 0 , sx - 0.5*ratio*screenratio), 
-				math.max( 0 , sy - 0.5*ratio), 
-				math.min( 1 , sx + 0.5*ratio*screenratio),
-				math.min( 1 , sy + 0.5*ratio)
+				math_max(-1 , (sx-0.5)*2-ratio*screenratio),
+				math_max(-1 , (sy-0.5)*2-ratio),
+				math_min( 1 , (sx-0.5)*2+ratio*screenratio),
+				math_min( 1 , (sy-0.5)*2+ratio),
+				math_max( 0 , sx - 0.5*ratio*screenratio),
+				math_max( 0 , sy - 0.5*ratio),
+				math_min( 1 , sx + 0.5*ratio*screenratio),
+				math_min( 1 , sy + 0.5*ratio)
 			) -- screen size goes from -1, -1 to 1, 1; uvs go from 0, 0 to 1, 1
 		end 
 		if lighttype == 1 then -- beam
@@ -464,14 +466,14 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			glUniform(lightcolorlocBeam, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, 1) 
 			--TODO: use gl.Shape instead, to avoid overdraw
 			glTexRect(
-				math.max(-1 , (sx-0.5)*2-ratio*screenratio), 
-				math.max(-1 , (sy-0.5)*2-ratio), 
-				math.min( 1 , (sx-0.5)*2+ratio*screenratio), 
-				math.min( 1 , (sy-0.5)*2+ratio), 
-				math.max( 0 , sx - 0.5*ratio*screenratio), 
-				math.max( 0 , sy - 0.5*ratio), 
-				math.min( 1 , sx + 0.5*ratio*screenratio),
-				math.min( 1 , sy + 0.5*ratio)
+				math_max(-1 , (sx-0.5)*2-ratio*screenratio),
+				math_max(-1 , (sy-0.5)*2-ratio),
+				math_min( 1 , (sx-0.5)*2+ratio*screenratio),
+				math_min( 1 , (sy-0.5)*2+ratio),
+				math_max( 0 , sx - 0.5*ratio*screenratio),
+				math_max( 0 , sy - 0.5*ratio),
+				math_min( 1 , sx + 0.5*ratio*screenratio),
+				math_min( 1 , sy + 0.5*ratio)
 			) -- screen size goes from -1, -1 to 1, 1; uvs go from 0, 0 to 1, 1
 		end
 	end
@@ -521,7 +523,7 @@ function widget:DrawWorld()
 		if param.gib == nil and param.type == "Cannon" then
 			size = param.glowradius * 0.44
 			gl.PushMatrix()
-				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
+				local colorMultiplier = 1 / math_max(param.r, param.g, param.b)
 				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.015 + (size/4000))
 				gl.Translate(light.px, light.py, light.pz)
 				gl.Billboard(true)

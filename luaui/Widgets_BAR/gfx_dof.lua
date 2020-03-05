@@ -28,7 +28,10 @@ local autofocusFocalLength = 0.03		-- Autofocus Focal Length
 local spGetCameraPosition   = Spring.GetCameraPosition
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
-local diag = math.diag
+
+local math_max = math.max
+local math_log = math.log
+local math_sqrt = math.sqrt
 
 local glCopyToTexture = gl.CopyToTexture
 local glCreateShader = gl.CreateShader
@@ -352,8 +355,8 @@ end
 local function FilterCalculation()
 	local cpx, cpy, cpz = spGetCameraPosition()
 	local gmin, gmax = Spring.GetGroundExtremes()
-	local effectiveHeight = cpy - math.max(0, gmin)
-	cpy = 3.5 * math.sqrt(effectiveHeight) * math.log(effectiveHeight)
+	local effectiveHeight = cpy - math_max(0, gmin)
+	cpy = 3.5 * math_sqrt(effectiveHeight) * math_log(effectiveHeight)
 	glUniform(eyePosLoc, cpx, cpy, cpz)
 	glUniformInt(passLoc, shaderPasses.filterSize)
 	glTexture(0, screenTex)

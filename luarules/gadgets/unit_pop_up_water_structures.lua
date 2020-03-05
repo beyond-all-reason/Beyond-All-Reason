@@ -26,6 +26,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local PTL_COLLISION = WeaponDefNames.ptl_collision.id
+	local math_random = math.random
+	local math_max = math.max
 
 	local popUps = {}
 
@@ -33,13 +35,11 @@ if gadgetHandler:IsSyncedCode() then
 		return ((heading + 8192) / 16384) % 4
 	end
 
-
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	  if POP_UP_UNIT[unitDefID] then
 		popUps[unitID] = { velocity = 0.05, waterLine = POP_UP_UNIT[unitDefID].waterLine , process = false}
 	  end
 	end
-
 
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	  if POP_UP_UNIT[unitDefID] and unitID and Spring.ValidUnitID(unitID) then
@@ -76,14 +76,14 @@ if gadgetHandler:IsSyncedCode() then
 					popUps[unitID].process = false
 					local collisions = Spring.GetUnitsInSphere(x,0,z,35)
 					for i=1,#collisions do
-						local colUnitID    = collisions[i]
-						if (colUnitID ~= newUnitID) and (colUnitID ~= unitID) then
+						local colUnitID = collisions[i]
+						if colUnitID ~= newUnitID and colUnitID ~= unitID then
 							Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
 						end
 					end
 					collisions = Spring.GetFeaturesInSphere(x,0,z,35)
 					for i=1,#collisions do
-						local colFeatureID    = collisions[i]
+						local colFeatureID = collisions[i]
 						Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
 						if Spring.ValidFeatureID(colFeatureID) then
 							Spring.DestroyFeature(colFeatureID)
@@ -92,8 +92,8 @@ if gadgetHandler:IsSyncedCode() then
 			  end
 			else
 				Spring.MoveCtrl.SetRelativeVelocity(unitID,0,defs.velocity,0)
-				popUps[unitID].velocity = math.max(defs.velocity * 1.05, 1.75)
-				if math.random() > 0.8 then
+				popUps[unitID].velocity = math_max(defs.velocity * 1.05, 1.75)
+				if math_random() > 0.8 then
 					Spring.SpawnCEG("small_water_bubbles",x,y,z,0,1,0)
 				end
 			end

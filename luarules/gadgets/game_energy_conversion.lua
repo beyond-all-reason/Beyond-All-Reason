@@ -70,8 +70,6 @@ local paralysisRelRate = 75 -- unit HP / paralysisRelRate = paralysis dmg drop r
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
-local min = math.min
-local max = math.max
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spSetTeamRulesParam = Spring.SetTeamRulesParam
@@ -118,7 +116,8 @@ local function UpdateMetalMakers(teamID, energyUse)
 		for unitID, defs in pairs(teamMMList[teamID][eSteps[j]]) do
 			if (defs.built) then
 				if (not defs.emped and energyUse > 0) then
-					amount = max(0,min(energyUse, defs.capacity))
+					amount = (energyUse < defs.capacity and energyUse or defs.capacity)	-- alternative math.min method
+					if amount < 0 then amount = 0 end
 					energyUse = (energyUse - defs.capacity)
 					updateUnitConversion(unitID, amount, eSteps[j])
 					
@@ -285,7 +284,7 @@ function gadget:GameFrame(n)
 	-- process a team in each gameframe so that all teams are process exactly once in every 15 gameframes
 	-- in case of more than 15 teams ingame, two or more teams are processed in one gameframe
 
-	if (n % resourceRefreshRate == (splitMMPointer-1)) then
+	if n % resourceRefreshRate == (splitMMPointer-1) then
 		for i = 0, (math.ceil(#teamList / resourceRefreshRate) -1) do
 			local tID
 			local tpos = (splitMMPointer + (i * resourceRefreshRate))
@@ -297,9 +296,10 @@ function gadget:GameFrame(n)
 				local eConvert, mConvert, eConverted, mConverted, teamUsages = 0, 0, 0, 0, 0
 
 				for j = 1, #eSteps do
-					if(teamCapacities[tID][eSteps[j]] > 1) then
-						if (convertAmount > 1) then
-							local convertStep = min(teamCapacities[tID][eSteps[j]] * resourceFraction, convertAmount)
+					if teamCapacities[tID][eSteps[j]] > 1 then
+						if convertAmount > 1 then
+							local convertStep = teamCapacities[tID][eSteps[j]] * resourceFraction
+							if convertStep > convertAmount then convertStep = convertAmount end
 							eConverted = convertStep + eConverted
 							mConverted = convertStep * eSteps[j] + mConverted
 							teamUsages = teamUsages + convertStep

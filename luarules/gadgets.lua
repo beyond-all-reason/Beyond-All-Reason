@@ -1260,11 +1260,12 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 	for _, g in ipairs(self.AllowWeaponTargetList) do
 		local targetAllowed, targetPriority = g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 
-		if (not targetAllowed) then
+		if not targetAllowed then
 			allowed = false; break
 		end
-
-		priority = math.max(priority, targetPriority)
+        if targetPriority > priority then
+          priority = targetPriority
+        end
 	end
 
 	return allowed, priority

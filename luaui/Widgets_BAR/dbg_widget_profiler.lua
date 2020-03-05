@@ -319,7 +319,12 @@ function GetRedColourStrings(v) --tLoad is %
 	v.timeColourString = ColourString(r,g,b)
 	
 	-- space
-	new_r = math.max(0,math.min(1,(sLoad-minSpace)/(maxSpace-minSpace)))
+	new_r = (sLoad-minSpace) / (maxSpace-minSpace)
+	if new_r > 1 then
+		new_r = 1
+	elseif new_r < 0 then
+		new_r = 0
+	end
 	redStrength[name..'_space'] = redStrength[name..'_space'] or 0
 	redStrength[name..'_space'] = u*redStrength[name..'_space'] + (1-u)*new_r
 	g = 1-redStrength[name.."_space"]*((255-64)/255)

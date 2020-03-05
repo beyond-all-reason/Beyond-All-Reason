@@ -46,7 +46,7 @@ local function DrawRectRound(px,py,sx,sy,cs)
 		csy = (sy-py)/2
 		if csy < 0 then csy = 0 end
 	end
-	cs = math.min(csx, csy)
+	cs = (csx < csy and csx or csy)
 
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
