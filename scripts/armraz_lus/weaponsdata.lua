@@ -24,6 +24,7 @@ function DrawWeapon(id)
 	Turn(ruparm, 1, ang(0), ang(200.000000))
 	WaitForTurn(luparm, 1)
 	WaitForTurn(ruparm, 1)
+
 	WeaponDrawn(id)
 end
 
@@ -43,15 +44,17 @@ function WeaponShot(weaponID)
 	EmitSfx(flare, SFX.CEG)
 	Move(cannon, 2, 1.5)
 	Turn(uparm, 1, ang(2.5))
-	Turn(torso, 2, ang((-1)^(weapons[weaponID].counter)*(2.5)))
 	Move(cannon, 2, 0, 3)
 	Turn(uparm, 1, ang(0), ang(30))
-	Turn(torso, 2, ang(0), ang(30))
-
+	Turn(torso, 2, ang(0), ang(30))	
+	Spin(lbarrel, z_axis, 20)
+	Spin(rbarrel, z_axis, 20)
 	weapons[weaponID].counter = weapons[weaponID].counter + 1
 	if weapons[weaponID].counter > 2 then
 		weapons[weaponID].counter = 1
 	end
+	StopSpin(rbarrel, z_axis, 0.25)
+	StopSpin(lbarrel, z_axis, 0.25)
 end
 
 function GetAimFromPiece(weaponID)
