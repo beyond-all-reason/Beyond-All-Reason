@@ -129,8 +129,9 @@ function widget:Initialize()
 		return metalViewOnly
 	end
 
-	currentClock = os.clock()
+	local currentClock = os.clock()
 	local mSpots = WG.metalSpots
+	local metalSpotsCount = #metalSpots
 	for i = 1, #mSpots do
 		local spot = mSpots[i]
 		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
@@ -145,7 +146,8 @@ function widget:Initialize()
 					break
 				end
 			end
-			metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value, scale, occupied, currentClock}
+			metalSpotsCount = metalSpotsCount + 1
+			metalSpots[metalSpotsCount] = {spot.x, spGetGroundHeight(spot.x,spot.z), spot.z, value, scale, occupied, currentClock}
 			if not valueList[value] then
 				valueList[value] = gl.CreateList(function()
 					font:Begin()

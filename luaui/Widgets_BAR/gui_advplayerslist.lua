@@ -696,14 +696,16 @@ end
 function toPixels(str)
 	local chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()_+-=[]{};:,./<>?~|`'\"\\"
 	local pixels = {}
+	local pixelsCount = 0
 	for i=1, string.len(str) do
 		if i%3 == 1 then
-			pixels[#pixels+1] = {}
+			pixelsCount = pixelsCount + 1
+			pixels[pixelsCount] = {}
 		end
 		local char = string.sub(str,i,i)
 		for ci=1, string.len(chars) do
 			if char == string.sub(chars,ci,ci) then
-				pixels[#pixels][#pixels[#pixels]+1] = (ci-1)/string.len(chars)
+				pixels[pixelsCount][#pixels[pixelsCount]+1] = (ci-1)/string.len(chars)
 				break
 			end
 		end

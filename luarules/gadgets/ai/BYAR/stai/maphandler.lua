@@ -1003,12 +1003,14 @@ function MapHandler:SimplifyMetalSpots(metalSpots, number)
 	local gridSize = math.ceil( math.max(maxX, maxZ) / divisor )
 	local halfGrid = math.ceil( gridSize / 2 )
 	local spots = {}
+	local spotsCount = 0
 	for x = 0, maxX-gridSize, gridSize do
 		for z = 0, maxZ-gridSize, gridSize do
 			for i = 1, #metalSpots do
 				local spot = metalSpots[i]
 				if spot.x > x and spot.x < x + gridSize and spot.z > z and spot.z < z + gridSize then
-					spots[#spots+1] = spot
+					spotsCount = spotsCount + 1
+					spots[spotsCount] = spot
 					table.remove(metalSpots, i)
 					break
 				end
@@ -1308,16 +1310,18 @@ function MapHandler:GetPathGraph(mtype, targetNodeSize)
 		for cz = 1, mobilityGridMaxZ, cellsPerNodeSide do
 			local cellsComplete = true
 			local goodCells = {}
+			local goodCellsCount = 0
 			for ccx = cx, cx+cellsPerNodeSide-1 do
 				for ccz = cz, cz+cellsPerNodeSide-1 do
 					if myTopology[ccx] and myTopology[ccx][ccz] then
-						goodCells[#goodCells+1] = {ccx, ccz}
+						goodCellsCount = goodCellsCount + 1
+						goodCells[goodCellsCount] = {ccx, ccz}
 					else
 						cellsComplete = false
 					end
 				end
 			end
-			if #goodCells > 0 then
+			if goodCellsCount > 0 then
 				local z = ((cz * mobilityGridSize) - mobilityGridSizeHalf) + nodeSizeHalf
 				local position = api.Position()
 				position.x = x
@@ -1325,7 +1329,7 @@ function MapHandler:GetPathGraph(mtype, targetNodeSize)
 				position.y = 0
 				if not cellsComplete then
 					local bestDist, bestX, bestZ
-					for i = 1, #goodCells do
+					for i = 1, goodCellsCount do
 						local good = goodCells[i]
 						local gx = (good[1] * mobilityGridSize) - mobilityGridSizeHalf
 						local gz = (good[2] * mobilityGridSize) - mobilityGridSizeHalf

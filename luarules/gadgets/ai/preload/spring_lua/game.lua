@@ -57,8 +57,10 @@ local game = {}
 		local ev = self.ai.enemyUnitIds
 		if not ev then return {} end
 		local e = {}
+		local eCount = 0
 		for uID, _ in pairs(ev) do
-			e[#e+1] = Shard:shardify_unit(uID)
+			eCount = eCount + 1
+			e[eCount] = Shard:shardify_unit(uID)
 		end
 		return e
 	end
@@ -67,8 +69,10 @@ local game = {}
 		local uv = self.ai.ownUnitIds
 		if not uv then return {} end
 		local u = {}
+		local uCount = 0
 		for uID, _ in pairs(uv) do
-			u[#u+1] = Shard:shardify_unit(uID)
+			uCount = uCount + 1
+			u[uCount] = Shard:shardify_unit(uID)
 		end
 		return u
 	end
@@ -77,8 +81,10 @@ local game = {}
 		local fv = self.ai.friendlyUnitIds
 		if not fv then return {} end
 		local f = {}
+		local fCount = 0
 		for uID, _ in pairs(fv) do
-			f[#f+1] = Shard:shardify_unit(uID)
+			fCount = fCount + 1
+			f[fCount] = Shard:shardify_unit(uID)
 		end
 		return f
 	end

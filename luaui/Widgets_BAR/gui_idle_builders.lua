@@ -531,14 +531,16 @@ function widget:Update(dt)
 		oldNoOfIcons = noOfIcons
 		noOfIcons = 0
 		drawTable = {}
-
+		local drawTableCount = 0
 		for unitDefID, units in pairs(IdleList) do
 			if CONDENSE then
-				drawTable[#drawTable+1] = {unitDefID, units}
+				drawTableCount = drawTableCount + 1
+				drawTable[drawTableCount] = {unitDefID, units}
 				noOfIcons = noOfIcons + 1
 			else
 				for _, unitID in pairs(units) do
-					drawTable[#drawTable+1] = {unitDefID, unitID}
+					drawTableCount = drawTableCount + 1
+					drawTable[drawTableCount] = {unitDefID, unitID}
 				end
 				noOfIcons = noOfIcons + table.getn(units)
 			end

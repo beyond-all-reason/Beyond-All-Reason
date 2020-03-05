@@ -100,9 +100,11 @@ function BomberHandler:DoTargetting()
 				self.graph = self.graph or self.ai.maphandler:GetPathGraph('air', 512)
 				local pathfinder = self.graph:PathfinderPosPos(midPos, targetUnit:GetPosition(), nil, validFunc)
 				local bombers = {}
+				local bombersCount = 0
 				for i = 1, #recruits do
 					local recruit = recruits[i]
-					bombers[#bombers+1] = recruit
+					bombersCount = bombersCount + 1
+					bombers[bombersCount] = recruit
 				end
 				local plan = { target = targetUnit, start = midPos, bombers = bombers, pathfinder = pathfinder }
 				self.plans[#self.plans+1] = plan

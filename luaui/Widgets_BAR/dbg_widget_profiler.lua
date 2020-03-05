@@ -153,10 +153,12 @@ local function StartHook()
 	local wh = widgetHandler
 
 	local CallInsList = {}
+	local CallInsListCount = 0
 	for name,e in pairs(wh) do
 		local i = name:find("List")
 		if (i)and(type(e)=="table") then
-			CallInsList[#CallInsList+1] = name:sub(1,i-1)
+			CallInsListCount = CallInsListCount + 1
+			CallInsList[CallInsListCount] = name:sub(1,i-1)
 		end
 	end
 
@@ -220,10 +222,12 @@ local function StopHook()
 	local wh = widgetHandler
 
 	local CallInsList = {}
+	local CallInsListCount = 0
 	for name,e in pairs(wh) do
 		local i = name:find("List")
 		if (i)and(type(e)=="table") then
-			CallInsList[#CallInsList+1] = name:sub(1,i-1)
+			CallInsListCount = CallInsListCount + 1
+			CallInsList[CallInsListCount] = name:sub(1,i-1)
 		end
 	end
 
@@ -439,18 +443,22 @@ function widget:DrawScreen()
 
 	-- add to category and set colour
 	local userList = {}
+	local userListCount = 0
 	local gameList = {}
+	local gameListCount = 0
 	userList.allOverTime = 0
 	gameList.allOverTime = 0
 	userList.allOverSpace = 0
 	gameList.allOverSpace = 0
 	for i=1,#sortedList do
 		if userWidgets[sortedList[i].plainname] then
-			userList[#userList+1] = sortedList[i]
+			userListCount = userListCount + 1
+			userList[userListCount] = sortedList[i]
 			userList.allOverTime = userList.allOverTime + sortedList[i].tLoad
 			userList.allOverSpace = userList.allOverSpace + sortedList[i].sLoad
 		else
-			gameList[#gameList+1] = sortedList[i]
+			gameListCount = gameListCount + 1
+			gameList[gameListCount] = sortedList[i]
 			gameList.allOverTime = gameList.allOverTime + sortedList[i].tLoad
 			gameList.allOverSpace = gameList.allOverSpace + sortedList[i].sLoad
 		end

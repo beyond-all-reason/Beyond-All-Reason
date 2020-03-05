@@ -386,13 +386,14 @@ local function DrawLabels(shapes)
 	-- glBeginText()
 	myFont:Begin()
 	local labels = {}
+	local labelsCount = 0
 	for i = 1, #shapes do
 		local shape = shapes[i]
 		if shape.label and spIsSphereInView(shape.x, shape.y, shape.z, 50) then
 			-- colorByTable(shape.color)
 			local sx, sy = spWorldToScreenCoords(shape.x, shape.y, shape.z)
 			local halfWidth = shape.halfLabelWidth
-			for l = 1, #labels do
+			for l = 1, labelsCount do
 				local label = labels[l]
 				if mAbs(label.sx - sx) < halfWidth + label.halfWidth then
 					local dy = mAbs(label.sy - sy)
@@ -406,7 +407,8 @@ local function DrawLabels(shapes)
 			myFont:SetTextColor(c[1], c[2], c[3], 1)
 			myFont:SetOutlineColor(shape.textOutlineColor)
 			myFont:Print(shape.label, sx, sy, 12, "cdo")
-			labels[#labels+1] = {sx=sx, sy=sy, halfWidth=halfWidth}
+			labelsCount = labelsCount + 1
+			labels[labelsCount] = {sx=sx, sy=sy, halfWidth=halfWidth}
 		end
 	end
 	myFont:End()

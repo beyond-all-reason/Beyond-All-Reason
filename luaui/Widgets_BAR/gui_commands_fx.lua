@@ -44,6 +44,8 @@ local cos = math.cos
 local atan = math.atan 
 local random = math.random
 
+local os_clock = os.clock
+
 local glPushMatrix = gl.PushMatrix
 local glUnitShape = gl.UnitShape
 local glRotate = gl.Rotate
@@ -234,6 +236,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spLoadCmdColorsConfig	= Spring.LoadCmdColorsConfig
 local spGetFPS = Spring.GetFPS
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGetGameFrame = Spring.GetGameFrame
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -353,8 +356,8 @@ local function DrawLineEnd(x1,y1,z1, x2,y2,z2, width)
 	
 	-- for 2nd rounding
 	local distanceDivider = distance / (width/2.25)
-	x1_2 = x2 - ((x1 - x2) / distanceDivider)
-	z1_2 = z2 - ((z1 - z2) / distanceDivider)
+	local x1_2 = x2 - ((x1 - x2) / distanceDivider)
+	local z1_2 = z2 - ((z1 - z2) / distanceDivider)
 	
 	-- for first rounding
 	distanceDivider = distance / (width/4.13)
@@ -390,12 +393,12 @@ end
 local function DrawLineEndTex(x1,y1,z1, x2,y2,z2, width, texLength, texOffset)
 	y1 = y2
 	
-	local distance			= diag(x2-x1, y2-y1, z2-z1)
+	local distance = diag(x2-x1, y2-y1, z2-z1)
 	
 	-- for 2nd rounding
 	local distanceDivider = distance / (width/2.25)
-	x1_2 = x2 - ((x1 - x2) / distanceDivider)
-	z1_2 = z2 - ((z1 - z2) / distanceDivider)
+	local x1_2 = x2 - ((x1 - x2) / distanceDivider)
+	local z1_2 = z2 - ((z1 - z2) / distanceDivider)
 	
 	-- for first rounding
 	local distanceDivider2 = distance / (width/4.13)
@@ -436,7 +439,6 @@ local function DrawLineEndTex(x1,y1,z1, x2,y2,z2, width, texLength, texOffset)
 end
 
 local function DrawLine(x1,y1,z1, x2,y2,z2, width) -- long thin rectangle
-	
     local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2
     local xOffset = sin(pi-theta) * width / 2
@@ -449,8 +451,7 @@ local function DrawLine(x1,y1,z1, x2,y2,z2, width) -- long thin rectangle
 end
 
 local function DrawLineTex(x1,y1,z1, x2,y2,z2, width, texLength, texOffset) -- long thin rectangle
-
-	local distance			= diag(x2-x1, y2-y1, z2-z1)
+	local distance = diag(x2-x1, y2-y1, z2-z1)
 	
     local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2
@@ -492,7 +493,7 @@ function addUnitCommand(unitID, unitDefID, cmdID)
 	-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
 	if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
 		unprocessedCommandsNum = unprocessedCommandsNum + 1
-		unprocessedCommands[unprocessedCommandsNum] = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=unitDefID} -- command queue is not updated until next gameframe
+		unprocessedCommands[unprocessedCommandsNum] = {ID=cmdID,time=os_clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=unitDefID} -- command queue is not updated until next gameframe
 	end
 end
 
@@ -538,6 +539,7 @@ end
 function getCommandsQueue(unitID)
 	local q = spGetCommandQueue(unitID, 35) or {} --limit to prevent mem leak, hax etc
 	local our_q = {}
+	local our_qCount = 0
 	local cmd
 	for i=1, #q do
 	  if CONFIG[q[i].id] or q[i].id < 0 then
@@ -548,7 +550,8 @@ function getCommandsQueue(unitID)
 				  q[i].params[4] = 0 --sometimes the facing param is missing (wtf)
 			  end
 		  end
-		  our_q[#our_q+1] = q[i]
+		  our_qCount = our_qCount + 1
+		  our_q[our_qCount] = q[i]
 	  end
 	end
 	return our_q
@@ -606,7 +609,7 @@ function widget:Update(dt)
 						commands[i].z = z
 					end
 				end
-				commands[i].time = os.clock()
+				commands[i].time = os_clock()
 			end
 		end
 		unprocessedCommands = {}
@@ -615,8 +618,8 @@ function widget:Update(dt)
 
 		if sec2 > lastUpdate2 + 0.3 then
 			lastUpdate2 = sec2
-			if prevGameframe ~= Spring.GetGameFrame() then
-				prevGameframe = Spring.GetGameFrame()
+			if prevGameframe ~= spGetGameFrame() then
+				prevGameframe = spGetGameFrame()
 				-- update queue (in case unit has reached the nearest queue coordinate)
 				local qsize
 				for i=1, #monitorCommands do
@@ -655,7 +658,7 @@ end
 
 local prevTexOffset			= 0
 local texOffset				= 0
-local prevOsClock = os.clock()
+local prevOsClock = os_clock()
 
 
 function widget:DrawWorldPreUnit()
@@ -664,13 +667,13 @@ function widget:DrawWorldPreUnit()
 
 	if spIsGUIHidden() then return end
 
-	osClock = os.clock()
+	osClock = os_clock()
 	if drawLineTexture then
 		texOffset = prevTexOffset - ((osClock - prevOsClock)*lineTextureSpeed)
 		texOffset = texOffset - math.floor(texOffset)
 		prevTexOffset = texOffset
 	end
-	prevOsClock = os.clock()
+	prevOsClock = os_clock()
 
 	gl.DepthTest(false)
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)

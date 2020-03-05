@@ -37,7 +37,7 @@ local drawNamesCursorSize			= 8.5
 
 local dlistAmount					= 5		-- number of dlists generated for each player (# available opacity levels)
 
-local sendPacketEvery				= 0.6
+local sendPacketEvery				= 0.5
 local numMousePos					= 2 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
@@ -83,6 +83,7 @@ local glCreateList			= gl.CreateList
 local glDeleteList			= gl.DeleteList
 local glCallList			= gl.CallList
 
+local abs					= math.abs
 local floor					= math.floor
 local min					= math.min
 local diag					= math.diag
@@ -98,7 +99,7 @@ local prevMouseX,prevMouseY = 0
 local allycursorDrawList	= {}
 local myPlayerID            = Spring.GetMyPlayerID()
 
-local allyCursor      			    = ":n:LuaUI/Images/allycursor.dds"
+local allyCursor = ":n:LuaUI/Images/allycursor.dds"
 local cursors = {}
 local teamColors = {}
 local specList = {}
@@ -496,9 +497,9 @@ local function DrawCursor(playerID,wx,wy,wz,camX,camY,camZ,opacity)
 	end
 
 	if opacity >= 1 then
-		opacityMultiplier = math.floor(opacityMultiplier * dlistAmount)/dlistAmount
+		opacityMultiplier = floor(opacityMultiplier * dlistAmount)/dlistAmount
 	else	-- if (spec and) fading out due to idling
-		opacityMultiplier = math.floor(opacityMultiplier * (opacity * dlistAmount))/dlistAmount
+		opacityMultiplier = floor(opacityMultiplier * (opacity * dlistAmount))/dlistAmount
 	end
 	
 	if opacityMultiplier > 0.11 then
@@ -564,7 +565,7 @@ function widget:Update(dt)
             end
         else
             --mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
-            if wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
+            if wx and wz and wz_old and wz_old and(abs(wx_old-wx)>=1 or abs(wz_old-wz)>=1) then --abs is needed because of floating point used in interpolation
                 notIdle[playerID] = true
                 wx_old = nil
                 wz_old = nil

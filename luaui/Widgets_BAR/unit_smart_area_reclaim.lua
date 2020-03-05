@@ -78,7 +78,7 @@ local function tsp(rList, tList, dx, dz)
 	dx = dx or 0
 	dz = dz or 0
 	tList = tList or {}
-	
+
 	if (rList == nil) then return end
 
 	local closestDist
@@ -108,31 +108,36 @@ end
 local function stationary(rList)
 	local sList = {}
 	local sKeys = {}
-	
+	local sKeysCount = 0
 	local lastKey, lastItem
-	
+	local lastItemCount = 0
 	for i=1, #rList do
 		local item = rList[i]
 		local dx, dz = item[1], item[2]
 		
 		local theta = atan2(dx, dz)
-		if (lastKey ~= theta) then
-			sKeys[#sKeys+1] = theta
+		if lastKey ~= theta then
+			sKeysCount = sKeysCount + 1
+			sKeys[sKeysCount] = theta
 			lastItem = {item}
+			lastItemCount = 1
 			sList[theta] = lastItem
 		else
-			lastItem[#lastItem+1] = item
+			lastItemCount = lastItemCount + 1
+			lastItem[lastItem] = item
 			sList[theta] = lastItem
 		end
 	end
 	
 	local oList = {}
+	local oListCount = 0
 	sort(sKeys)
 	for i=1, #sKeys do
 		local theta = sKeys[i]
 		local values = sList[theta]
 		for j=1, #values do
-			oList[#oList+1] = values[j]
+			oListCount = oListCount + 1
+			oList[oListCount] = values[j]
 		end
 	end
 	return oList
@@ -163,6 +168,7 @@ function widget:CommandNotify(id, params, options)
 		local mobileb, stationaryb = false, false
 		
 		local rUnits = {}
+		local rUnitsCount = 0
 		local sUnits = GetSelectedUnits()
 		for i=1,#sUnits do
 			local uid = sUnits[i]
@@ -188,17 +194,21 @@ function widget:CommandNotify(id, params, options)
 						end
 					end
 				end
-				
-				rUnits[#rUnits+1] = {uid=uid, ux=ux, uz=uz}
+				rUnitsCount = rUnitsCount + 1
+				rUnits[rUnitsCount] = {uid=uid, ux=ux, uz=uz}
 			end
 		end
 		
 		if (#rUnits > 0) then
 			local len = #params
 			local retw = {}
+			local retwCount = 0
 			local rmtw = {}
+			local rmtwCount = 0
 			local retg = {}
+			local retgCount = 0
 			local rmtg = {}
+			local rmtgCount = 0
 			
 			if (len == 4) then
 				local x, y, z, r = params[1], params[2], params[3], params[4]
@@ -225,15 +235,19 @@ function widget:CommandNotify(id, params, options)
 						local mr, _, er, _, _ = GetFeatureResources(uid)
 							if uy < 0 then
 								if (mr > 0) then
-									rmtw[#rmtw+1] = uid
+									rmtwCount = rmtwCount + 1
+									rmtw[rmtwCount] = uid
 								elseif (er > 0) then
-									retw[#retw+1] = uid
+									retwCount = retwCount + 1
+									retw[retwCount] = uid
 								end
 							elseif uy > 0 then
 								if (mr > 0) then
-									rmtg[#rmtg+1] = uid
+									rmtgCount = rmtgCount + 1
+									rmtg[rmtgCount] = uid
 								elseif (er > 0) then
-									retg[#retg+1] = uid
+									retgCount = retgCount + 1
+									retg[retgCount] = uid
 								end
 							end
 						end
@@ -243,21 +257,22 @@ function widget:CommandNotify(id, params, options)
 					-- if (mr > 0)and(er > 0) then return end
 					
 					local mList, sList = {}, {}
+					local mListCount, sListCount = 0, 0
 					local source = {}
 					
-					if (#rmtg > 0)and(mr > 0) and wy > 0 then
+					if (rmtgCount > 0) and (mr > 0) and wy > 0 then
 						source = rmtg
-					elseif (#retg > 0)and(er > 0) and wy > 0 then
+					elseif (retgCount > 0) and (er > 0) and wy > 0 then
 						source = retg
-					elseif (#rmtw > 0)and(mr > 0) and wy < 0 then
+					elseif (rmtwCount > 0) and (mr > 0) and wy < 0 then
 						source = rmtw
-					elseif (#retw > 0)and(er > 0) and wy < 0 then
+					elseif (retwCount > 0) and (er > 0) and wy < 0 then
 						source = retw
 					end
 					
 					for i=1,#source do
 						local fid = source[i]
-						if (fid ~= nil) then
+						if fid ~= nil then
 							local fx, _, fz = GetFeaturePosition(fid)
 							for ui=1,#rUnits do
 								local unit = rUnits[ui]
@@ -265,11 +280,13 @@ function widget:CommandNotify(id, params, options)
 								local dx, dz = ux-fx, uz-fz
 								local dist = dx + dz
 								local item = {dx, dz, uid, fid}
-								if (mobiles[uid] ~= nil) then
-									mList[#mList+1] = item
-								elseif (stationaries[uid] ~= nil) then
-									if (sqrt((dx*dx)+(dz*dz)) <= stationaries[uid].buildDistance) then
-										sList[#sList+1] = item
+								if mobiles[uid] ~= nil then
+									mListCount = mListCount + 1
+									mList[mListCount] = item
+								elseif stationaries[uid] ~= nil then
+									if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid].buildDistance then
+										sListCount = sListCount + 1
+										sList[sListCount] = item
 									end
 								end
 							end
@@ -277,13 +294,13 @@ function widget:CommandNotify(id, params, options)
 					end
 					
 					local issued = false
-					if (mobileb == true) then
+					if mobileb then
 						mList = tsp(mList)
 						issue(mList, options.shift)
 						issued = true
 					end
 					
-					if (stationaryb == true) then
+					if stationaryb then
 						sList = stationary(sList)
 						issue(sList, options.shift)
 						issued = true

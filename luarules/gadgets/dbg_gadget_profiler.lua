@@ -182,10 +182,12 @@ local function StartHook(a,b,c,d)
 	local gh = gadgetHandler
 
 	local CallInsList = {}
+	local CallInsListCount = 0
 	for name,e in pairs(gh) do
 		local i = name:find("List")
 		if (i)and(type(e)=="table") then
-			CallInsList[#CallInsList+1] = name:sub(1,i-1)
+			CallInsListCount = CallInsListCount + 1
+			CallInsList[CallInsListCount] = name:sub(1,i-1)
 		end
 	end
 
@@ -238,10 +240,12 @@ function KillHook()
 	local gh = gadgetHandler
 	
 	local CallInsList = {}
+	local CallInsListCount = 0
 	for name,e in pairs(gh) do
 		local i = name:find("List")
 		if (i)and(type(e)=="table") then
-			CallInsList[#CallInsList+1] = name:sub(1,i-1)
+			CallInsListCount = CallInsListCount + 1
+			CallInsList[CallInsListCount] = name:sub(1,i-1)
 		end
 	end
 

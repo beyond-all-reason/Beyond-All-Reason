@@ -69,11 +69,14 @@ end
 -- accepts an array of polygons (where a polygon is an array of {x, z} vertices), and returns an array of counterclockwise triangles
 function math.triangulate(polies)
 	local triangles = {}
+	local trianglesCount = 0
+	local poliesCount = #polies
 	for j = 1, #polies do
 		local polygon = polies[j]
 
 		-- find out clockwisdom
-		polygon[#polygon+1] = polygon[1]
+		poliesCount = poliesCount + 1
+		polygon[poliesCount] = polygon[1]
 		local clockwise = 0
 		for i = 2, #polygon do
 			clockwise = clockwise + (polygon[i-1][1] * polygon[i][2]) - (polygon[i-1][2] * polygon[i][1])
@@ -130,7 +133,8 @@ function math.triangulate(polies)
 			end
 
 			-- cut off ear
-			triangles[#triangles+1] = triangle
+			trianglesCount = trianglesCount + 1
+			triangles[trianglesCount] = triangle
 			table.remove(polygon, c1)
 		end
 	end

@@ -209,15 +209,20 @@ function addMessage(text)
 
         -- word wrap text into lines
         local wordwrappedText = {}
+        local wordwrappedTextCount = 0
         for i, line in ipairs(textLines) do
             local words = {}
+            local wordsCount = 0
             local linebuffer = ''
             for w in line:gmatch("%S+") do
-                words[#words+1] = w
+                wordsCount = wordsCount + 1
+                words[wordsCount] = w
             end
             for wi, word in ipairs(words) do
                 if font:GetTextWidth(linebuffer..' '..word)*charSize*widgetScale > lineMaxWidth then
-                    wordwrappedText[#wordwrappedText+1] = linebuffer
+                    wordwrappedTextCount
+                    wordwrappedTextCount = wordwrappedTextCount + 1
+                    wordwrappedText[wordwrappedTextCount] = linebuffer
                     linebuffer = ''
                 end
                 if linebuffer == '' then
@@ -227,13 +232,15 @@ function addMessage(text)
                 end
             end
             if linebuffer ~= '' then
-                wordwrappedText[#wordwrappedText+1] = linebuffer
+                wordwrappedTextCount = wordwrappedTextCount + 1
+                wordwrappedText[wordwrappedTextCount] = linebuffer
             end
         end
-
+        local messageLinesCount = #messageLines
         for i, line in ipairs(wordwrappedText) do
             lineMaxWidth = math.max(lineMaxWidth, font:GetTextWidth(line)*charSize*widgetScale)
-            messageLines[#messageLines+1] = {
+            messageLinesCount = messageLinesCount + 1
+            messageLines[messageLinesCount] = {
                 startTime,
                 line,
                 string.len(line),
@@ -245,8 +252,8 @@ function addMessage(text)
             startTime = startTime + (string.len(line)*charDelay)
         end
 
-        if currentTypewriterLine > #messageLines then
-            currentTypewriterLine = #messageLines
+        if currentTypewriterLine > messageLinesCount then
+            currentTypewriterLine = messageLinesCount
         end
         if not scrolling then
             currentLine = currentTypewriterLine

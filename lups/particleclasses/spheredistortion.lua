@@ -60,6 +60,17 @@ function SphereDistortion:EndDrawDistortion()
 end
 
 
+local function DrawQuad(x,y,z)
+  gl.TexCoord(-1,1)
+  gl.Vertex(x,y,z)
+  gl.TexCoord(1,1)
+  gl.Vertex(x,y,z)
+  gl.TexCoord(1,-1)
+  gl.Vertex(x,y,z)
+  gl.TexCoord(-1,-1)
+  gl.Vertex(x,y,z)
+end
+
 function SphereDistortion:DrawDistortion()
   local pos   = self.pos
   local x,y,z = pos[1],pos[2],pos[3]
@@ -68,16 +79,7 @@ function SphereDistortion:DrawDistortion()
   glUniform(strengthLoc, self.strength )
   glUniform(centerLoc,   cx,cy )
 
-  gl.BeginEnd(GL.QUADS,function()
-     gl.TexCoord(-1,1)
-    gl.Vertex(x,y,z)
-     gl.TexCoord(1,1)
-    gl.Vertex(x,y,z)
-     gl.TexCoord(1,-1)
-    gl.Vertex(x,y,z)
-     gl.TexCoord(-1,-1)
-    gl.Vertex(x,y,z)
-  end)
+  gl.BeginEnd(GL.QUADS,DrawQuad,x,y,z)
 end
 
 -----------------------------------------------------------------------------------------------------------------

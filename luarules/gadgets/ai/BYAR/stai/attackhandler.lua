@@ -197,13 +197,17 @@ function AttackHandler:SquadFormation(squad)
 	end
 	local backDist = maxMemberSize * 3
 	local backs = {}
+	local backsCount = 0
 	local forwards = {}
+	local forwardsCount = 0
 	for i = 1, #members do
 		local member = members[i]
 		if member.sturdy then
-			forwards[#forwards+1] = member
+			forwardsCount = forwardsCount + 1
+			forwards[forwardsCount] = member
 		else
-			backs[#backs+1] = member
+			backsCount = backsCount + 1
+			backs[backsCount] = member
 			member.formationBack = backDist
 		end
 	end

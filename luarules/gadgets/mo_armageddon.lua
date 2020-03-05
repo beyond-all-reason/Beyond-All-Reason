@@ -128,12 +128,16 @@ function gadget:GameFrame(n)
 		hadArmageddon = true
         local allUnits = Spring.GetAllUnits()
         local unitID,unitDefID
+        local toKillUnitsCount = #toKillUnits
+        local toKillFrameCount = #toKillFrame
 		for i = 1, #allUnits do
 			unitID = allUnits[i]
 			unitDefID = spGetUnitDefID(unitID)
 			if isImmobile(unitDefID) then
-				toKillUnits[#toKillUnits+1] = unitID
-				toKillFrame[#toKillFrame+1] = armageddonFrame + math.floor(armageddonDuration * 30 * math.random())
+                toKillUnitsCount = toKillUnitsCount + 1
+                toKillFrameCount = toKillFrameCount + 1
+				toKillUnits[toKillUnitsCount] = unitID
+				toKillFrame[toKillFrameCount] = armageddonFrame + math.floor(armageddonDuration * 30 * math.random())
 			end
         end
     elseif n >= armageddonFrame and n <= armageddonFrame + armageddonDuration * 30 + 1 then

@@ -650,9 +650,11 @@ function playNextSound()
 
 		-- drop current played notification from the table
 		local newQueue = {}
+		local newQueuecount = 0
 		for i,v in pairs(soundQueue) do
 			if i ~= 1 then
-				newQueue[#newQueue+1] = v
+				newQueuecount = newQueuecount + 1
+				newQueue[newQueuecount] = v
 			end
 		end
 		soundQueue = newQueue

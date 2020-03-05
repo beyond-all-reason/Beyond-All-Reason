@@ -525,8 +525,9 @@ end
 
 function AssignTransports(transportID, unitID) 
   local best = {}
+  local bestCount = 0
 --  Echo ("assigning " .. transportID .. " " ..unitID)
-  if (transportID~=0) then
+  if transportID ~= 0 then
      local transpeed = unitSpeed[GetUnitDefID(transportID)]
      for id, val in pairs(waitingUnits) do 
        if CanTransport(transportID, id) then
@@ -536,17 +537,18 @@ function AssignTransports(transportID, unitID)
          local ttime = (td + ud) / transpeed + CONST_TRANSPORT_PICKUPTIME
          local utime = (ud) / unitSpeed[val[2]]
          local benefit = utime-ttime
-         if (val[1]==ST_PRIORITY) then 
+         if val[1] == ST_PRIORITY then
            benefit = benefit + CONST_PRIORITY_BENEFIT
          end
   --       Echo ("   "..transportID .. " " .. id .. "  " .. benefit)
 
-         if (benefit > CONST_BENEFIT_LIMIT) then
-           best[#best+1] = {benefit, transportID, id}
+         if benefit > CONST_BENEFIT_LIMIT then
+           bestCount = bestCount + 1
+           best[bestCount] = {benefit, transportID, id}
          end
        end 
      end
-  elseif (unitID ~=0) then
+  elseif unitID ~=0 then
     local uspeed = unitSpeed[GetUnitDefID(unitID)]
     local state = waitingUnits[unitID][1]
     local ud = GetPathLength(unitID)
@@ -563,8 +565,9 @@ function AssignTransports(transportID, unitID)
 
 --         Echo ("   "..id.. " " .. unitID .. "  " .. benefit)
 
-        if (benefit > CONST_BENEFIT_LIMIT) then
-           best[#best+1] = {benefit, id, unitID}
+        if benefit > CONST_BENEFIT_LIMIT then
+          bestCount = bestCount + 1
+          best[bestCount] = {benefit, id, unitID}
         end
       end
     end
@@ -572,9 +575,8 @@ function AssignTransports(transportID, unitID)
 
   table.sort(best, function(a,b) return a[1]>b[1] end)
   local i = 1
-  local it = #best
   local used = {}
-  while i <= it do
+  while i <= bestCount do
     local tid = best[i][2]
     local uid = best[i][3]
     i = i +1

@@ -287,11 +287,13 @@ local function adjustCritters(newAliveCritters)
 	end
 	
 	local removeKeys = {}
+	local removeKeysCount = 0
 	for unitID, critter in pairs(critterUnits) do
 		if add and not critter.alive  or  not add and critter.alive then
 			if add then 
 				if critter.x ~= nil and critter.y ~= nil and critter.z ~= nil then	-- had nil error once so yeah...
-					removeKeys[#removeKeys+1] = unitID
+					removeKeysCount = removeKeysCount + 1
+					removeKeys[removeKeysCount] = unitID
 					local newUnitID = CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
 					setGaiaUnitSpecifics(newUnitID)
 					critterDifference = critterDifference - 1

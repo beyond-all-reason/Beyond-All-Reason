@@ -64,8 +64,10 @@ function map:GetMapFeatures()
 	local fv = Spring.GetAllFeatures()
 	if not fv then return {} end
 	local f = {}
+	local fCount = 0
 	for i=1,#fv do
-		f[#f+1] = Shard:shardify_feature(fv[i])
+		fCount = fCount + 1
+		f[fCount] = Shard:shardify_feature(fv[i])
 	end
 	return f
 end
@@ -74,8 +76,10 @@ function map:GetMapFeaturesAt(position,radius)
 	local fv = Spring.GetFeaturesInSphere(position.x, position.y, position.z, radius)
 	if not fv then return {} end
 	local f = {}
+	local fCount = 0
 	for i=1,#fv do
-		f[#f+1] = Shard:shardify_feature(fv[i])
+		fCount = fCount + 1
+		f[fCount] = Shard:shardify_feature(fv[i])
 	end
 	return f
 end
@@ -90,12 +94,11 @@ end
 
 function map:GetMetalSpots() -- returns a table of spot positions
 	local fv = self.spots
-	local count = self:SpotCount()
 	local f = {}
-	local i = 0
-	while i  < count do
-		table.insert( f, fv[i] )
-		i = i + 1
+	local fCount = 0
+	for i=1,#fv do
+		fCount = fCount + 1
+		f[fCount] = fv[i]
 	end
 	return f
 end
@@ -110,12 +113,11 @@ end
 
 function map:GetGeoSpots() -- returns a table of spot positions
 	local fv = self.geos
-	local count = self:GeoCount()
 	local f = {}
-	local i = 0
-	while i  < count do
-		table.insert( f, fv[i] )
-		i = i + 1
+	local fCount = 0
+	for i=1,#fv do
+		fCount = fCount + 1
+		f[fCount] = fv[i]
 	end
 	return f
 end

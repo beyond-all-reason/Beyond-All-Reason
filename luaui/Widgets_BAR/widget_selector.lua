@@ -304,12 +304,14 @@ local function UpdateList()
   local myName = widget:GetInfo().name
   maxWidth = 0
   widgetsList = {}
+  local fullWidgetsListCount = #fullWidgetsList
   for name,data in pairs(widgetHandler.knownWidgets) do
-    if (name ~= myName) then
-      fullWidgetsList[#fullWidgetsList+1] = { name, data }
+    if name ~= myName then
+      fullWidgetsListCount = fullWidgetsListCount + 1
+      fullWidgetsList[fullWidgetsListCount] = { name, data }
       -- look for the maxWidth
       local width = fontSize * font:GetTextWidth(name)
-      if (width > maxWidth) then
+      if width > maxWidth then
         maxWidth = width
       end
     end
@@ -317,8 +319,7 @@ local function UpdateList()
   
   maxWidth = (maxWidth / fontSize)
 
-  local myCount = #fullWidgetsList
-  if (widgetHandler.knownCount ~= (myCount + 1)) then
+  if widgetHandler.knownCount ~= (fullWidgetsListCount + 1) then
     error('knownCount mismatch')
   end
 

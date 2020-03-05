@@ -335,7 +335,8 @@ end
 
 local function clipLine(line,fontsize,maxwidth)
 	local clipped = {}
-		
+	local clippedCount = 0
+
 	local firstclip = line:len()
 	local firstpass = true
 	while (1) do --loops over lines
@@ -348,12 +349,12 @@ local function clipLine(line,fontsize,maxwidth)
 				
 				-- set colour of new clipped line
 				if firstpass == nil then
-					newlinecolour = lineColour(clipped[#clipped])
+					newlinecolour = lineColour(clipped[clippedCount])
 				end
 				
 				local newline = newlinecolour .. ssub(test,1,i)
-				
-				clipped[#clipped+1] = newline
+				clippedCount = clippedCount + 1
+				clipped[clippedCount] = newline
 				line = ssub(line,i+1)
 	
 				if (firstpass) then
@@ -378,10 +379,11 @@ local function clipLine(line,fontsize,maxwidth)
 	
 	-- put remainder of line into final clipped line
 	local newlinecolour = ""
-	if #clipped > 0 then 
-		newlinecolour = lineColour(clipped[#clipped])
+	if clippedCount > 0 then
+		newlinecolour = lineColour(clipped[clippedCount])
 	end
-	clipped[#clipped+1] = newlinecolour .. line
+	clippedCount = clippedCount + 1
+	clipped[clippedCount] = newlinecolour .. line
 	
 	return clipped,firstclip
 end
@@ -392,7 +394,7 @@ local function clipHistory(g,oneline)
 	
 	local fontsize = g.lines.fontsize
 	
-	if (oneline) then
+	if oneline then
 		local line = history[#history]
 		local lines,firstclip = clipLine(line[1],fontsize,maxsize)	
 		line[1] = ssub(line[1],1,firstclip)
@@ -403,15 +405,17 @@ local function clipHistory(g,oneline)
 		end
 	else
 		local clippedhistory = {}
+		local clippedhistoryCount = 0
 		for i=1,#history do
 			local line = history[i]
 			local lines,firstclip = clipLine(line[1],fontsize,maxsize)
 			lines[1] = ssub(line[1],1,firstclip)
 			for i=1,#lines do
+				clippedhistoryCount = clippedhistoryCount + 1
 				if (i>1) then
-					clippedhistory[#clippedhistory+1] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
+					clippedhistory[clippedhistoryCount] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
 				else
-					clippedhistory[#clippedhistory+1] = {lines[i],line[2],line[3],line[4],line[5]}
+					clippedhistory[clippedhistoryCount] = {lines[i],line[2],line[3],line[4],line[5]}
 				end
 			end
 		end
@@ -681,28 +685,28 @@ local function processLine(line,g,cfg,newlinecolor)
 		line = textcolor..line
 	end
 	
-	if (g.vars.consolehistory == nil) then
+	if g.vars.consolehistory == nil then
 		g.vars.consolehistory = {}
 	end
-	local history = g.vars.consolehistory	
+	local history = g.vars.consolehistory
+	local historyCount = #history
 
-
-	if (not bypassThisMessage == true) then		--mute--
-		if (g.vars.browsinghistory) then
-		if (g.vars.historyoffset == nil) then
+	if not bypassThisMessage == true then		--mute--
+		if g.vars.browsinghistory then
+		if g.vars.historyoffset == nil then
 			g.vars.historyoffset = 0
 		end
 		g.vars.historyoffset = g.vars.historyoffset + 1
 	end
-		local lineID = #history+1	
-		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
+		historyCount = historyCount + 1
+		history[historyCount] = {line,clock(),historyCount,textcolor,linetype}
         
-        if ( playSound ) and (not bypassThisMessage == true) and not Spring.IsGUIHidden() then
+        if playSound and not bypassThisMessage == true and not Spring.IsGUIHidden() then
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end
 	onelinedone = true
-	return history[#history]
+	return history[historyCount]
 end
 
 local function updateconsole(g,cfg)

@@ -14,14 +14,10 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 local blockingBuildProgress = 0.05
 
-------------
-
 local newNanoFrames = {} -- array table, i -> unitID
 local newNanoFrameNeutralState = {} -- hash table, unitID -> original neutral state
-
 local nanoFrameIdxToRemove = {}
 
-------------
 
 local function AddNanoFrame(unitID)
 	newNanoFrames[#newNanoFrames+1] = unitID
@@ -48,17 +44,14 @@ local function RemoveNanoFrame(i)
 		Spring.SetUnitNeutral(unitID, neutral)
 		
 		--Spring.Echo("unset", unitID)
-	end	
-
+	end
 	table.remove(newNanoFrames, i)
 	newNanoFrameNeutralState[unitID] = nil
 end
 
-------------
-
 local function GetNanoFrameIdx(unitID)
 	local i = 1
-	while (newNanoFrames[i] ~= unitID and i<=#newNanoFrames) do
+	while newNanoFrames[i] ~= unitID and i<=#newNanoFrames do
 		i = i + 1
 	end
 	if i>#newNanoFrames then return end
@@ -86,8 +79,6 @@ local function CheckUnit(unitID)
 	return false
 end
 
-------------
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
 	if health/maxHealth < blockingBuildProgress then	-- sadly buildProgress is always 0 even when cheated in
@@ -100,7 +91,7 @@ end
 
 function gadget:GameFrame(n)
 	local i = 1
-	while (i<=#newNanoFrames) do
+	while i <= #newNanoFrames do
 		local unitID = newNanoFrames[i]
 		if CheckUnit(unitID) then 
 			RemoveNanoFrame(i)
@@ -116,8 +107,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 		nanoFrameIdxToRemove[#nanoFrameIdxToRemove+1] = GetNanoFrameIdx(unitID)
 	end	
 end
-
-------------
 
 function gadget:Initialize()
 	-- handle luarules reload

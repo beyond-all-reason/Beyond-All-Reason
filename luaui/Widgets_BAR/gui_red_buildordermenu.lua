@@ -47,7 +47,7 @@ local drawBigTooltip = false
 local drawRadaricon = true
 local largePrice = true
 local shortcutsInfo = false
-local largeUnitIcons = true
+local largeUnitIcons = false
 
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
@@ -66,19 +66,19 @@ local widgetScale = (1 + (vsx*vsy / 7500000))
 WG.hoverID = nil
 
 local normalUnitIconSize = {
-	isx = 44.5,isy = 44.5, --icon size
-	ix = 5,iy = 7, --icons x/y
-}
-local largeUnitIconSize = {
 	isx = 52,isy = 52, --icon size
 	ix = 5,iy = 6, --icons x/y
 }
+local largeUnitIconSize = {
+	isx = 62.5,isy = 62.5, --icon size
+	ix = 5,iy = 5, --icons x/y
+}
 local normalOrderIconSize = {
-	isx = 44.5,isy = 32, --icon size
+	isx = 52,isy = 32, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local largeOrderIconSize = {
-	isx = 52,isy = 32, --icon size
+	isx = 62.5,isy = 32, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local Config = {
@@ -1268,7 +1268,7 @@ function widget:SetConfigData(data) --load config
 			shortcutsInfo = data.shortcutsInfo
 		end
 		if (data.largeUnitIcons ~= nil) then
-			largeUnitIcons = data.largeUnitIcons
+			--largeUnitIcons = data.largeUnitIcons
 		end
 		if (data.playSounds ~= nil) then
 			playSounds = data.playSounds

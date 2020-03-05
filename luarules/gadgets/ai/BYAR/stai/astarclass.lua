@@ -108,6 +108,7 @@ end
 
 local function neighbor_nodes ( theNode, nodes, isNeighborNode, isValidNode )
 	local neighbors = {}
+	local neighborsCount = 0
 	local numInvalidNodes = 0
 	local gotNeighCache = false
 	if theNode.neighbors then
@@ -123,7 +124,8 @@ local function neighbor_nodes ( theNode, nodes, isNeighborNode, isValidNode )
 				theNode.neighbors[#theNode.neighbors+1] = node
 			end
 			if isValidNode(node) then
-				neighbors[#neighbors+1] = node
+				neighborsCount = neighborsCount + 1
+				neighbors[neighborsCount] = node
 			else
 				numInvalidNodes = numInvalidNodes + 1
 			end

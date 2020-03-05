@@ -10,28 +10,12 @@ function widget:GetInfo()
    }
 end
 
-
 --TODO
 -- better icon because bloom makes the letters unreadable
 
 
---------------------------------------------------------------------------------
--- Config
---------------------------------------------------------------------------------
+-- See config inside widget:DrawWorld()
 
-OPTIONS = {
-	selectedFadeTime		= 0.75,
-	timeoutTime				= 6.5,
-	timeoutFadeTime			= 3,
-}
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local givenUnits = {}
-local drawList
-local unitScale = {}
-local unitHeight = {}
 
 local glDrawListAtUnit			= gl.DrawListAtUnit
 local spIsGUIHidden				= Spring.IsGUIHidden
@@ -40,7 +24,14 @@ local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetCameraDirection		= Spring.GetCameraDirection
 
-local myTeamID                = Spring.GetLocalTeamID()
+local drawList
+local givenUnits = {}
+local unitScale = {}
+local unitHeight = {}
+local sec = 0
+local prevCam = {spGetCameraDirection()}
+local myTeamID = Spring.GetLocalTeamID()
+
 
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
@@ -66,8 +57,6 @@ function AddGivenUnit(unitID)
 	givenUnits[unitID].lastInViewClock	= os.clock()
 	givenUnits[unitID].unitHeight		= unitHeight[unitDefID]
 	givenUnits[unitID].unitScale		= unitScale[unitDefID]
-	--givenUnits[unitID].lastInViewClock	= Spring.GetGameSeconds() + OPTIONS.timeoutTime
-	--givenUnits[unitID].endSecs			= Spring.GetGameSeconds() + OPTIONS.timeoutTime
 end
 
 --------------------------------------------------------------------------------
@@ -101,8 +90,6 @@ function widget:Shutdown()
 end
 
 
-local sec = 0
-local prevCam = {spGetCameraDirection()}
 function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.25 then
@@ -115,11 +102,11 @@ function widget:Update(dt)
 					for i=1,#unit do
 						local unitID = unit[i]
 						if givenUnits[unitID] then
-							local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (OPTIONS.timeoutTime - OPTIONS.timeoutFadeTime))) / OPTIONS.timeoutFadeTime)
+							local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (cfg_timeoutTime - cfg_timeoutFadeTime))) / cfg_timeoutFadeTime)
 							if currentAlpha > 1 then
 								currentAlpha = 1
 							end
-							givenUnits[unitID].selected = os.clock() -  (OPTIONS.selectedFadeTime * (1 - currentAlpha))
+							givenUnits[unitID].selected = os.clock() -  (cfg_selectedFadeTime * (1 - currentAlpha))
 							--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
 						else
 							-- uncomment line below for testing
@@ -157,12 +144,17 @@ function widget:DrawWorld()
 	gl.DepthTest(true)
 	gl.Texture('LuaUI/Images/new.dds')
 
+	-- config
+	local selectedFadeTime = 0.75
+	local timeoutFadeTime = 3
+	local timeoutTime = 6.5
+
 	local alpha
 	for unitID, unit in pairs(givenUnits) do
 		if unit.selected then
-			alpha = 1 - ((osClock - unit.selected) / OPTIONS.selectedFadeTime)
+			alpha = 1 - ((osClock - unit.selected) / selectedFadeTime)
 		else
-			alpha = 1 - ((osClock - (unit.osClock + (OPTIONS.timeoutTime - OPTIONS.timeoutFadeTime))) / OPTIONS.timeoutFadeTime)
+			alpha = 1 - ((osClock - (unit.osClock + (timeoutTime - timeoutFadeTime))) / timeoutFadeTime)
 		end
 		if spIsUnitInView(unitID) then
 			

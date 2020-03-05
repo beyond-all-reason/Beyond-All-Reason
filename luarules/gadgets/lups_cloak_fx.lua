@@ -150,8 +150,9 @@ function gadget:UnitCloaked(unitID,unitDefID,teamID)
 				fx.options.unit			= unitID
 				fx.options.unitDefID = unitDefID
 				fx.options.team			= teamID
-			fx.options.allyTeam	= allyTeamID
-			tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
+				fx.options.allyTeam	= allyTeamID
+				particleIDs[unitID][i] = Lups.AddParticles(fx.class,fx.options)
+				--tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
 			end
 		end
 	else
@@ -162,7 +163,8 @@ function gadget:UnitCloaked(unitID,unitDefID,teamID)
 				fx.options.unitDefID = unitDefID
 				fx.options.team			= teamID
 				fx.options.allyTeam	= allyTeamID
-				tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
+				particleIDs[unitID][i] = Lups.AddParticles(fx.class,fx.options)
+				--tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
 			end
 		end
 	end
@@ -194,8 +196,9 @@ function gadget:UnitDecloaked(unitID,unitDefID,teamID)
 			fx.options.unit			= unitID
 			fx.options.unitDefID = unitDefID
 			fx.options.team			= teamID
-		fx.options.allyTeam	= allyTeamID
-		tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
+			fx.options.allyTeam	= allyTeamID
+			particleIDs[unitID][i] = Lups.AddParticles(fx.class,fx.options)
+			--tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
 		end
 	else
 		for i=1,#EnemyDecloakEffect do
@@ -203,8 +206,9 @@ function gadget:UnitDecloaked(unitID,unitDefID,teamID)
 			fx.options.unit			= unitID
 			fx.options.unitDefID = unitDefID
 			fx.options.team			= teamID
-		fx.options.allyTeam	= allyTeamID
-		tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
+			fx.options.allyTeam	= allyTeamID
+			particleIDs[unitID][i] = Lups.AddParticles(fx.class,fx.options)
+			--tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
 		end
 	end
 end

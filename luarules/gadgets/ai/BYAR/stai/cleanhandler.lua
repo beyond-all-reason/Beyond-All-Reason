@@ -106,10 +106,12 @@ end
 
 function CleanHandler:GetCleanables(clnrbhvr)
 	local filtered = {}
+	local filteredCount = 0
 	for i = #self.cleanables, 1, -1 do
 		local cleanable = self:FilterCleanable(self.cleanables[i], clnrbhvr)
 		if cleanable then
-			filtered[#filtered+1] = cleanable
+			filteredCount = filteredCount + filteredCount
+			filtered[filteredCount] = cleanable
 		end
 	end
 	return filtered
@@ -118,13 +120,15 @@ end
 function CleanHandler:CleanablesWithinRadius(position, radius, clnrbhvr)
 	if not position or not position.x then return end
 	local within = {}
+	local withinCount = 0
 	for i = #self.cleanables, 1, -1 do
 		local cleanable = self.cleanables[i]
 		local p = cleanable:GetPosition()
 		if p then
 			local dist = Distance(position, p)
 			if dist < radius then
-				within[#within+1] = cleanable
+				withinCount = withinCount + 1
+				within[withinCount] = cleanable
 			end
 		else
 			self:RemoveCleanable(cleanable)

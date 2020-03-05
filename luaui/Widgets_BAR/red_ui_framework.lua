@@ -724,13 +724,15 @@ function widget:Update()
 	if (fc > 200) then
 		fc = 0
 		local temp = {}
+		local tempCount = 0
 		for i=1,#WidgetList do
 			local name = WidgetList[i]:GetInfo().name
 			local order = widgetHandler.orderList[name]
 		    local enabled = order and (order > 0)
 			
 			if (enabled) then
-				temp[#temp+1] = WidgetList[i]
+				tempCount = tempCount + 1
+				temp[tempCount] = WidgetList[i]
 			else
 				table.remove(Main[1],i)
 			end
@@ -773,13 +775,15 @@ function widget:Update()
 			--
 			
 			local dellst = {}
+			local dellstCount = 0
 			local objlst = wl[j]
-			
-			for i=1,#objlst do
+			local objlstCount = #objlst
+			for i=1,objlstCount do
 				local o = objlst[i]
 				o.tempactive = nil
 				if (o.scheduledfordeletion) then
-					dellst[#dellst+1] = i
+					dellstCount = dellstCount + 1
+					dellst[dellstCount] = i
 				else
 					if (o.active ~= false) then
 						o.notfirstprocessing = true
@@ -807,7 +811,7 @@ function widget:Update()
 				
 				--process mouseevents backwards, so topmost drawn objects get to mouseevents first
 				if not WG['topbar'] or not WG['topbar'].showingQuit() then
-					local ro = objlst[#objlst-i+1]
+					local ro = objlst[objlstCount-i+1]
 					if (not ro.scheduledfordeletion) then
 						if (ro.active ~= false) then
 							if (ro.onupdate) then
@@ -819,8 +823,8 @@ function widget:Update()
 				end
 			end
 			
-			for i=1,#dellst do
-				table.remove(objlst,dellst[i])
+			for i=1,dellstCount do
+				objlst[dellst[i]] = nil
 			end
 		end
 	end

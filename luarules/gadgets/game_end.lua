@@ -162,10 +162,10 @@ local function CheckSingleAllyVictoryEnd()
 	for allyTeamID in pairs(allyTeamInfos) do
 		if IsCandidateWinner(allyTeamID) then
 			winnerCount = winnerCount + 1
-			candidateWinners[#candidateWinners+1] = allyTeamID
+			candidateWinners[winnerCount] = allyTeamID
 		end
 	end
-	if #candidateWinners > 1 then
+	if winnerCount > 1 then
 		return false
 	end
 	return candidateWinners
@@ -208,11 +208,12 @@ local function CheckSharedAllyVictoryEnd()
 	
 	-- all the allyteams alive are bidirectionally allied against eachother, they are all winners
 	local winnersCorrectFormat = {}
+	local winnersCorrectFormatCount = 0
 	for winner in pairs(candidateWinners) do
-		winnersCorrectFormat[#winnersCorrectFormat+1] = winner
+		winnersCorrectFormatCount = winnersCorrectFormatCount + 1
+		winnersCorrectFormat[winnersCorrectFormatCount] = winner
 	end
-	return winnersCorrectFormat
-
+	return winnersCorrectFormatCount
 end
 
 

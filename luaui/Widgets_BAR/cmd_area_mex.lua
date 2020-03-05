@@ -24,7 +24,7 @@ end
 
 local maxMetalData = 40000 --2500000
 local pathToSave = "LuaUI/Widgets_BAR/MetalMaps/" -- where to store mexmaps (MaDDoX: edited for BA 9.5x)
------------------
+
 --command notification and mex placement
 
 local CMD_AREA_MEX       = 10100
@@ -54,7 +54,6 @@ local mexes = {}
 local sqrt = math.sqrt
 local tasort = table.sort
 local taremove = table.remove
-
 
 local mexBuilder = {}
 
@@ -182,11 +181,10 @@ local function GetClosestMexPosition(spot, x, z, uDefID, facing)
 end
 
 function widget:CommandNotify(id, params, options)
-	if (id == CMD_AREA_MEX) then
-	mexes = WG.metalSpots
-
+	if id == CMD_AREA_MEX then
+		mexes = WG.metalSpots
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
-		if (not cr) or (cr < Game.extractorRadius) then
+		if not cr or cr < Game.extractorRadius then
 			cr = Game.extractorRadius
 		end
 		local cr = cr
@@ -197,6 +195,7 @@ function widget:CommandNotify(id, params, options)
 		local zmax = cz+cr
 		
 		local commands = {}
+		local commandsCount = 0
 		local orderedCommands = {}
 		local dis = {}
 		
@@ -207,7 +206,7 @@ function widget:CommandNotify(id, params, options)
 		local aveX = 0
 		local aveZ = 0
 
-		local units=spGetSelectedUnits()
+		local units = spGetSelectedUnits()
 		local maxbatchextracts = 0
 		local batchMexBuilder = {}
 		local lastprocessedbestbuilder = nil
@@ -246,7 +245,7 @@ function widget:CommandNotify(id, params, options)
 		end
 		
 	
-		if (us == 0) then
+		if us == 0 then
 			return
 		else
 			aveX = ux/us
@@ -265,15 +264,14 @@ function widget:CommandNotify(id, params, options)
 			mex.z = mexes[k].z
 			if (Distance(cx,cz,mex.x,mex.z) < cr*cr) then -- circle area, slower
 				if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
-					commands[#commands+1] = {x = mex.x, z = mex.z, d = Distance(aveX,aveZ,mex.x,mex.z)}
+					commandsCount = commandsCount + 1
+					commands[commandsCount] = {x = mex.x, z = mex.z, d = Distance(aveX,aveZ,mex.x,mex.z)}
 				end
-			
 			end
 		end
 	
-		local noCommands = #commands
+		local noCommands = commandsCount
 		while noCommands > 0 do
-	  
 			tasort(commands, function(a,b) return a.d < b.d end)
 			orderedCommands[#orderedCommands+1] = commands[1]
 			aveX = commands[1].x
@@ -308,8 +306,8 @@ function widget:CommandNotify(id, params, options)
 						local def = unitWaterDepth[-mexBuilder[id].building[j]]
 
 						local buildable = 0
-						newx, newz = command.x, command.z
-						if not (buildable ~= 0) then -- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
+						local newx, newz = command.x, command.z
+						if not buildable ~= 0 then -- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
 							local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx-2*Game.extractorRadius, newz-2*Game.extractorRadius, -mexBuilder[id].building[j], "s")
 							if bestPos then
 								newx, newz = bestPos[1], bestPos[3]
@@ -352,7 +350,7 @@ function widget:CommandNotify(id, params, options)
 							-- end
 						-- end
 						if buildable ~= 0 then
-							spGiveOrderToUnit(id, mexBuilder[id].building[j], {newx,spGetGroundHeight(newx,newz),newz} , {"shift"})
+							spGiveOrderToUnit(id, mexBuilder[id].building[j], {newx,spGetGroundHeight(newx,newz),newz}, {"shift"})
 							break
 						elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
 							local hsize = unitXsize[-mexBuilder[id].building[j]]*4
@@ -367,7 +365,7 @@ function widget:CommandNotify(id, params, options)
 									end
 								end
 							end
-							spGiveOrderToUnit(id, CMD.INSERT, {-1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x,spGetGroundHeight(command.x,command.z),command.z} , {shift = true, internal = true, alt = true})
+							spGiveOrderToUnit(id, CMD.INSERT, {-1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x,spGetGroundHeight(command.x,command.z),command.z} , {shift=true, internal=true, alt=true})
 							break
 						end
 					end
@@ -386,19 +384,21 @@ end
 
 function widget:CommandsChanged()
 	local units = spGetSelectedUnits()
-	for i=1,#units do
-		if mexBuilder[units[i]] then
-			local customCommands = widgetHandler.customCommands
-
-			table.insert(customCommands, {
-				id      = CMD_AREA_MEX,
-				type    = CMDTYPE.ICON_AREA,
-				tooltip = 'Define an area to make mexes in',
-				name    = 'Mex',
-				cursor  = 'Repair',
-				action  = 'areamex',
-			})
-			return
+	local unitCount = #units
+	if unitCount > 0 then
+		local customCommands = widgetHandler.customCommands
+		for i=1,unitCount do
+			if mexBuilder[units[i]] then
+				customCommands[#customCommands+1] = {
+					id      = CMD_AREA_MEX,
+					type    = CMDTYPE.ICON_AREA,
+					tooltip = 'Define an area to make mexes in',
+					name    = 'Mex',
+					cursor  = 'Repair',
+					action  = 'areamex',
+				}
+				return
+			end
 		end
 	end
 end

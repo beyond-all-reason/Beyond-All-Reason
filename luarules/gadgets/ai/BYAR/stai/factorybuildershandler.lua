@@ -133,6 +133,7 @@ end
 	
 function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 	local factories = {}
+	local factoriesCount = 0
 	self:EchoDebug('measure conditions to build factories')
 	if self.ai.factoryUnderConstruction then
 		self:EchoDebug('other factory under construction')
@@ -159,8 +160,9 @@ function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 			self:EchoDebug(factoryName .. ' conditions met')
 			local canBuild = builder:CanBuild(game:GetTypeByName(factoryName))
 			if canBuild then
-				factories[#factories+1] = factoryName
-				self:EchoDebug(#factories .. ' ' .. factoryName .. ' can be built by builder ' .. builder:Name())
+				factoriesCount = factoriesCount + 1
+				factories[factoriesCount] = factoryName
+				self:EchoDebug(factoriesCount .. ' ' .. factoryName .. ' can be built by builder ' .. builder:Name())
 				canDoFactory = true
 			elseif not canDoFactory then
 				self:EchoDebug('best factory with conditions met ' .. factoryName .. ' cant be built by builder ' .. builder:Name())

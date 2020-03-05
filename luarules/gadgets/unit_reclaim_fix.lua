@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function gadget:GetInfo()
   return {
     name      = "Reclaim Fix",
@@ -13,10 +10,7 @@ function gadget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
   return
 end
 
@@ -24,7 +18,6 @@ local SetFeatureReclaim = Spring.SetFeatureReclaim
 local GetFeaturePosition = Spring.GetFeaturePosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GetFeatureResources = Spring.GetFeatureResources
-
 
 local unitList = {}
 for unitDefID, defs in pairs(UnitDefs) do
@@ -36,17 +29,16 @@ end
 local featureList = {}
 for featureDefID, fdefs in pairs(FeatureDefs) do
     local maxResource = math.max(fdefs.metal, fdefs.energy)
-    if (maxResource > 0) then
+    if maxResource > 0 then
         featureList[featureDefID] = {}
         for unitDefID, reclaimSpeed in pairs(unitList) do
-            local oldformula = ((reclaimSpeed*0.70 + 10*0.30)*1.5  / fdefs.reclaimTime)
-            local newformula = (reclaimSpeed  / fdefs.reclaimTime)
-            featureList[featureDefID][unitDefID] = ((((maxResource * oldformula) * 1) - (maxResource * newformula)) / maxResource)
+            local oldformula = (reclaimSpeed*0.70 + 10*0.30) * 1.5  / fdefs.reclaimTime
+            local newformula = reclaimSpeed / fdefs.reclaimTime
+            featureList[featureDefID][unitDefID] = (((maxResource * oldformula) * 1) - (maxResource * newformula)) / maxResource
         end
     end
 end
 unitList = nil
-
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
     if step > 0 or featureList[featureDefID] == nil then
@@ -56,7 +48,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
     if featureList[featureDefID][unitDefID] == nil then
         return true
     end
-    local newpercent = select(5,GetFeatureResources(featureID)) - featureList[featureDefID][unitDefID]
+    local newpercent = select(5, GetFeatureResources(featureID)) - featureList[featureDefID][unitDefID]
     SetFeatureReclaim(featureID, newpercent)
     return true
 end
@@ -102,7 +94,6 @@ function gadget:GameFrame()
 	--flush featuresCreatedThisFrame
 	if featuresCreatedThisFrame then
 		for i=1,#featuresCreatedThisFrame do
-			--Spring.Echo("removed",i,featuresCreatedThisFrame[i])
 			featuresCreatedThisFrame[i] = nil
 		end
 	end

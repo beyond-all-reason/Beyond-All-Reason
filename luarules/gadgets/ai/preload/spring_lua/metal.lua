@@ -55,15 +55,17 @@ local function FloodBufferMetal(x, z, id)
 	local firstokay = false
 	repeat
 		local newBuff = {}
+		local newBuffCount = 0
 		for i = 1, #buffer do
 			local buff = buffer[i]
 			local bx, bz = buff.x, buff.z
 			if Flood1Metal(bx, bz, id) then
 				firstokay = true
-				newBuff[#newBuff+1] = {x=bx+1, z=bz}
-				newBuff[#newBuff+1] = {x=bx-1, z=bz}
-				newBuff[#newBuff+1] = {x=bx, z=bz+1}
-				newBuff[#newBuff+1] = {x=bx, z=bz-1}
+				newBuff[newBuffCount+1] = {x=bx+1, z=bz}
+				newBuff[newBuffCount+2] = {x=bx-1, z=bz}
+				newBuff[newBuffCount+3] = {x=bx, z=bz+1}
+				newBuff[newBuffCount+4] = {x=bx, z=bz-1}
+				newBuffCount = newBuffCount + 4
 			end
 		end
 		buffer = newBuff
@@ -163,17 +165,19 @@ local function FloodBufferHexBlob(x, z, id)
 	local firstokay = false
 	repeat
 		local newBuff = {}
+		local newBuffCount = 0
 		for i = 1, #buffer do
 			local buff = buffer[i]
 			local bx, bz = buff.x, buff.z
 			if Flood1HexBlob(bx, bz, id) then
 				firstokay = true
-				newBuff[#newBuff+1] = { x = bx + extractorRadiusMetal, z = bz }
-				newBuff[#newBuff+1] = { x = bx + halfExtractorRadiusMetal, z = bz - halfHexHeight }
-				newBuff[#newBuff+1] = { x = bx - halfExtractorRadiusMetal, z = bz - halfHexHeight }
-				newBuff[#newBuff+1] = { x = bx - extractorRadiusMetal, z = bz }
-				newBuff[#newBuff+1] = { x = bx - halfExtractorRadiusMetal, z = bz + halfHexHeight }
-				newBuff[#newBuff+1] = { x = bx + halfExtractorRadiusMetal, z = bz + halfHexHeight }
+				newBuff[newBuffCount+1] = { x = bx + extractorRadiusMetal, z = bz }
+				newBuff[newBuffCount+2] = { x = bx + halfExtractorRadiusMetal, z = bz - halfHexHeight }
+				newBuff[newBuffCount+3] = { x = bx - halfExtractorRadiusMetal, z = bz - halfHexHeight }
+				newBuff[newBuffCount+4] = { x = bx - extractorRadiusMetal, z = bz }
+				newBuff[newBuffCount+5] = { x = bx - halfExtractorRadiusMetal, z = bz + halfHexHeight }
+				newBuff[newBuffCount+6] = { x = bx + halfExtractorRadiusMetal, z = bz + halfHexHeight }
+				newBuffCount = newBuffCount + 6
 			end
 		end
 		buffer = newBuff
@@ -198,6 +202,7 @@ local function GetSpots()
 	Spring.Echo(#blobs, "blobs")
 	-- isInBlob = {}
 	local spots = {}
+	local spotsCount = 0
 	for id = 1, #blobs do
 		local blob = blobs[id]
 		local x, z = 0, 0
@@ -214,7 +219,8 @@ local function GetSpots()
 		if blobArea < maxSpotArea then
 			local sx = x * elmosPerMetal
 			local sz = z * elmosPerMetal
-			spots[#spots+1] = {x=sx, z=sz, y=spGetGroundHeight(sx,sz)}
+			spotsCount = spotsCount + 1
+			spots[spotsCount] = {x=sx, z=sz, y=spGetGroundHeight(sx,sz)}
 		else
 			x = mCeil(x)
 			z = mCeil(z)
@@ -223,7 +229,8 @@ local function GetSpots()
 			Spring.Echo(#blobSpots, "spots in blob", id)
 			for i = 1, #blobSpots do
 				local spot = blobSpots[i]
-				spots[#spots+1] = spot
+				spotsCount = spotsCount + 1
+				spots[spotsCount] = spot
 			end
 			spotsInBlob[id] = nil
 		end

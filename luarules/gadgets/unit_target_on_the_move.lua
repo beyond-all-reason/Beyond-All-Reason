@@ -76,6 +76,7 @@ local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 local spGetUnitWeaponTestRange	= Spring.GetUnitWeaponTestRange
 local spGetUnitWeaponHaveFreeLineOfFire	= Spring.GetUnitWeaponHaveFreeLineOfFire
 local spGetUnitWeaponTarget		= Spring.GetUnitWeaponTarget
+local spGetGroundHeight			= Spring.GetGroundHeight
 
 local tremove					= table.remove
 
@@ -402,15 +403,20 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 				if targets then
 					local orders = {}
 					local optionKeys = {}
+					local optionKeysCount = 0
 					local optionKeysWithShift = {}
+					local optionKeysWithShiftCount = 0
 					--re-insert back the command options
 					for optionName,optionValue in pairs(cmdOptions) do
 						if optionValue then
-							optionKeys[#optionKeys+1] = optionName
-							optionKeysWithShift[#optionKeysWithShift+1] = optionName
+							optionKeysCount = optionKeysCount + 1
+							optionKeys[optionKeysCount] = optionName
+							optionKeysWithShiftCount = optionKeysWithShiftCount + 1
+							optionKeysWithShift[optionKeysWithShiftCount] = optionName
 						end
 						if  optionName == "shift" then --add a version with shift to swap between
-							optionKeysWithShift[#optionKeys+1] = optionName
+							optionKeysWithShiftCount = optionKeysWithShiftCount + 1
+							optionKeysWithShift[optionKeysWithShiftCount] = optionName
 						end
 					end
 					for i=1,#targets do
@@ -436,7 +442,7 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 					local target = cmdParams
 					--coordinate
 					local validTarget = false
-					if target[2] > Spring.GetGroundHeight(target[1], target[3]) then target[2] = Spring.GetGroundHeight(target[1], target[3]) end -- clip to ground level
+					if target[2] > spGetGroundHeight(target[1], target[3]) then target[2] = spGetGroundHeight(target[1], target[3]) end -- clip to ground level
 					--only accept valid targets
 					for weaponID in ipairs(weaponList) do
 						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])

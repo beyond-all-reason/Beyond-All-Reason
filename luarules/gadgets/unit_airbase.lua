@@ -10,7 +10,6 @@ function gadget:GetInfo()
    }
 end
 
----------------------------------------------------------------------------------
 local CMD_LAND_AT_AIRBASE = 35430
 local CMD_LAND_AT_SPECIFIC_AIRBASE = 35431
 
@@ -27,10 +26,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
    end
 end
 
---------------------------------------------------------------------------------
--- Synced
-if (gadgetHandler:IsSyncedCode()) then
---------------------------------------------------------------------------------
+
+if gadgetHandler:IsSyncedCode() then
 
 local airbases = {} -- airbaseID = { int pieceNum = unitID reservedFor }
 local planes = {}
@@ -46,6 +43,16 @@ local previousHealFrame = 0
 local tractorSpeed = 2
 local rotTractorSpeed = 0.05
 local math_sqrt = math.sqrt
+local math_pi = math.pi
+local math_sin = math.sin
+local math_cos = math.cos
+local math_huge = math.huge
+local math_random = math.random
+
+local CMD_INSERT = CMD.INSERT
+local CMD_REMOVE = CMD.REMOVE
+local CMD_MOVE = CMD.MOVE
+local CMD_WAIT = CMD.WAIT
 
 local isAirUnit = {}
 local unitTimeToBuild = {}
@@ -99,7 +106,7 @@ end
 
 function FindAirBase(unitID)
    -- find the nearest airbase with a free pad
-   local minDist = math.huge
+   local minDist = math_huge
    local closestAirbaseID
    local closestPieceNum
    for airbaseID, _ in pairs(airbases) do
@@ -232,13 +239,13 @@ function FlyAway(unitID, airbaseID)
     local q = Spring.GetCommandQueue(unitID,0)
    if q==0 then
       local px,_,pz = Spring.GetUnitPosition(airbaseID)
-      local theta = math.random()*2*math.pi
+      local theta = math_random()*2*math_pi
       local r = 2.5 * Spring.GetUnitRadius(airbaseID) 
-      local tx,tz = px+r*math.sin(theta), pz+r*math.cos(theta)
+      local tx,tz = px+r*math_sin(theta), pz+r*math_cos(theta)
       local ty = Spring.GetGroundHeight(tx,tz)
       --local uDID = Spring.GetUnitDefID(unitID)
       --local cruiseAlt = UnitDefs[uDID].wantedHeight
-      Spring.GiveOrderToUnit(unitID, CMD.MOVE, {tx,ty,tz}, 0)
+      Spring.GiveOrderToUnit(unitID, CMD_MOVE, {tx,ty,tz}, 0)
    end
 end
 
@@ -248,20 +255,21 @@ function HealUnit(unitID, airbaseID, resourceFrames, h, mh)
    local unitDefID = Spring.GetUnitDefID(unitID)
    local buildSpeed = UnitDefs[airbaseDefID].buildSpeed
    local healthGain = unitTimeToBuild[unitDefID] / resourceFrames
-   local newHealth = math.min(h+healthGain, mh)
+   local newHealth = h+healthGain
+   if mh < newHealth then newHealth = mh end
    Spring.SetUnitHealth(unitID, newHealth)
 end
 
 function RemoveOrderFromQueue(unitID, cmdID)
    if not Spring.ValidUnitID(unitID) then return end
-   Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {cmdID}, {"alt"})
+   Spring.GiveOrderToUnit(unitID, CMD_REMOVE, {cmdID}, {"alt"})
 end
 
 
 function GiveWaitWaitOrder(unitID)
     -- hack
-   Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)
-   Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)
+   Spring.GiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
+   Spring.GiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
 end
 
 ---------------------------------------
@@ -350,10 +358,6 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmd
    return false
 end
 
----------------------------------------
--- main
-local CMD_INSERT = CMD.INSERT
-local CMD_REMOVE = CMD.REMOVE
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
    return true
@@ -401,7 +405,7 @@ function gadget:GameFrame(n)
    -- main loop --
    -- in all cases, planes/pads may die at any time, and UnitDestroyed will take care of the book-keeping
    toRemove = {}
-
+   toRemoveCount = 0
    -- very occasionally, check all units to see if any planes (outside of our records) that need repair
    -- add them to pending landers, if so
    if n%72==0 then
@@ -414,7 +418,10 @@ function gadget:GameFrame(n)
       for unitID, _ in pairs(pendingLanders) do
          --Spring.Echo("pending", unitID)
          local h,mh = Spring.GetUnitHealth(unitID)
-         if h==mh then toRemove[#toRemove+1] = unitID end
+         if h==mh then
+            toRemoveCount = toRemoveCount + 1
+            toRemove[toRemoveCount] = unitID
+         end
 
          local airbaseID, pieceNum = FindAirBase(unitID)
          if airbaseID then 
@@ -424,7 +431,7 @@ function gadget:GameFrame(n)
             pendingLanders[unitID] = nil
             Spring.SetUnitLoadingTransport(unitID, airbaseID)
             RemoveOrderFromQueue(unitID, CMD_LAND_AT_AIRBASE) 
-            Spring.GiveOrderToUnit(unitID, CMD.INSERT, {0, CMD_LAND_AT_SPECIFIC_AIRBASE, 0, airbaseID}, {"alt"}) --fixme: it fails without "alt", but idk why 
+            Spring.GiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_LAND_AT_SPECIFIC_AIRBASE, 0, airbaseID}, {"alt"}) --fixme: it fails without "alt", but idk why
          end
       end
    end
@@ -435,7 +442,10 @@ function gadget:GameFrame(n)
       for unitID, t in pairs(landingPlanes) do
          --Spring.Echo("landing", unitID)
          local h,mh = Spring.GetUnitHealth(unitID)
-         if h==mh then toRemove[#toRemove+1] = unitID end
+         if h==mh then
+            toRemoveCount = toRemoveCount + 1
+            toRemove[toRemoveCount] = unitID
+         end
          
          local airbaseID, padPieceNum = t[1], t[2]
          local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
@@ -610,5 +620,4 @@ function gadget:DefaultCommand()
 end
 
 
---------------------------------------------------------------------------------
 end

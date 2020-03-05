@@ -17,13 +17,18 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
-local spGetProjectilePosition     = Spring.GetProjectilePosition
-local spGetProjectileType         = Spring.GetProjectileType
-local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetPieceProjectileParams  = Spring.GetPieceProjectileParams
-local spGetProjectileVelocity     = Spring.GetProjectileVelocity
+local spGetProjectilesInRectangle	= Spring.GetProjectilesInRectangle
+local spGetVisibleProjectiles		= Spring.GetVisibleProjectiles
+local spGetProjectilePosition		= Spring.GetProjectilePosition
+local spGetProjectileType			= Spring.GetProjectileType
+local spGetProjectileDefID			= Spring.GetProjectileDefID
+local spGetProjectileVelocity		= Spring.GetProjectileVelocity
+local spGetProjectileDirection		= Spring.GetProjectileDirection
+local spGetProjectileTimeToLive		= Spring.GetProjectileTimeToLive
+local spGetPieceProjectileParams	= Spring.GetPieceProjectileParams
+local spGetGroundHeight				= Spring.GetGroundHeight
+local spIsSphereInView				= Spring.IsSphereInView
+local spGetGameFrame				= Spring.GetGameFrame
 
 local math_random = math.random
 local math_diag = math.diag
@@ -386,7 +391,7 @@ end
 local function InterpolateBeam(x, y, z, dx, dy, dz)
 	local finalDx, finalDy, finalDz = 0, 0, 0
 	for i = 1, 10 do
-		local h = Spring.GetGroundHeight(x + dx + finalDx, z + dz + finalDz)
+		local h = spGetGroundHeight(x + dx + finalDx, z + dz + finalDz)
 		local mult
 		dx, dy, dz = dx*0.5, dy*0.5, dz*0.5
 		if h < y + dy + finalDy then
@@ -402,7 +407,7 @@ end
 
 local function GetCameraHeight()
 	local camX, camY, camZ = Spring.GetCameraPosition()
-	return camY - math_max(Spring.GetGroundHeight(camX, camZ), 0)
+	return camY - math_max(spGetGroundHeight(camX, camZ), 0)
 end
 
 local function ProjectileLevelOfDetailCheck(param, proID, fps, height)
@@ -438,7 +443,7 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 	if lightParams.beamMult then
 		local mult = lightParams.beamMult
 		if lightParams.beamMultFrames then
-			timeToLive = timeToLive or Spring.GetProjectileTimeToLive(pID)
+			timeToLive = timeToLive or spGetProjectileTimeToLive(pID)
 			if (not lightParams.maxTTL) or lightParams.maxTTL < timeToLive then
 				lightParams.maxTTL = timeToLive
 			end
@@ -471,7 +476,7 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 	}
 
 	if lightParams.fadeTime then
-		timeToLive = timeToLive or Spring.GetProjectileTimeToLive(pID)
+		timeToLive = timeToLive or spGetProjectileTimeToLive(pID)
 		light.colMult = math_max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
 	else
 		light.colMult = 1
@@ -487,11 +492,11 @@ local function GetProjectileLight(lightParams, pID, x, y, z)
 		param = (doOverride and overrideParam) or lightParams
 	}
 	-- Use the following to check heatray fadeout parameters.
-	--local timeToLive = Spring.GetProjectileTimeToLive(pID)
+	--local timeToLive = spGetProjectileTimeToLive(pID)
 	--Spring.MarkerAddPoint(x,y,z,timeToLive)
 
 	if lightParams.fadeTime and lightParams.fadeOffset then
-		local timeToLive = Spring.GetProjectileTimeToLive(pID)
+		local timeToLive = spGetProjectileTimeToLive(pID)
 		light.colMult = math_max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
 	else
 		light.colMult = 1
@@ -546,10 +551,10 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						--projectileDrawParams[#projectileDrawParams + 1] = drawParams
 					end
 				else -- point type
-					if not (lightParams.groundHeightLimit and lightParams.groundHeightLimit < (y - math_max(Spring.GetGroundHeight(y, y), 0))) then
+					if not (lightParams.groundHeightLimit and lightParams.groundHeightLimit < (y - math_max(spGetGroundHeight(y, y), 0))) then
 						local drawParams = GetProjectileLight(lightParams, pID, x, y, z)
 						if lightParams.radius2 ~= nil then
-							local dirX,dirY,dirZ = Spring.GetProjectileDirection(pID)
+							local dirX,dirY,dirZ = spGetProjectileDirection(pID)
 							if dirX == 0 and dirZ == 0 then
 								drawParams.param.radius = lightParams.radius1
 							else
@@ -562,8 +567,8 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 							projectileDrawParams[#projectileDrawParams + 1] = drawParams
 						end
 						if enableHeatDistortion and WG['Lups'] then
-							local weaponDefID = Spring.GetProjectileDefID(pID)
-							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and Spring.IsSphereInView(x,y,z,100) then
+							local weaponDefID = spGetProjectileDefID(pID)
+							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and spIsSphereInView(x,y,z,100) then
 								if weaponConf[weaponDefID].wtype == 'DGun' then
 									local distance = math_diag(x-cx, y-cy, z-cz)
 									local strengthMult = 1 / (distance*0.001)
@@ -588,7 +593,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		end
 	end
 
-	local frame = Spring.GetGameFrame()
+	local frame = spGetGameFrame()
 	if projectileFade then
 		if previousProjectileDrawParams then
 			for i = 1, #previousProjectileDrawParams do
@@ -703,7 +708,7 @@ function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
 	local params = {
 		nofade = true,
 		beam = true,
-		frame = Spring.GetGameFrame(),
+		frame = spGetGameFrame(),
 		px = x, py = y, pz = z,
 		dx = x2, dy = y2, dz = z2,
 		orgMult = rgba[4],--*globalLightMult,
@@ -749,7 +754,7 @@ function RemoveBeamLight(lightID, life)
 		else
 			customBeamLights[lightID].nofade = nil
 			customBeamLights[lightID].life = life
-			customBeamLights[lightID].frame = Spring.GetGameFrame()
+			customBeamLights[lightID].frame = spGetGameFrame()
 		end
 	elseif lightID == -1 then	-- gadget does this when doing /luarules reload
 		customBeamLights = {}
@@ -767,7 +772,7 @@ function CreateLight(name, x, y, z, radius, rgba)
 	local params = {
 		orgMult = rgba[4],
 		nofade = true,
-		frame = Spring.GetGameFrame(),
+		frame = spGetGameFrame(),
 		px = x,
 		py = y,
 		pz = z,
@@ -800,7 +805,7 @@ function RemoveLight(lightID, life)
 		else
 			explosionLights[lightID].nofade = nil
 			explosionLights[lightID].life = life
-			explosionLights[lightID].frame = Spring.GetGameFrame()
+			explosionLights[lightID].frame = spGetGameFrame()
 		end
 	end
 end
@@ -815,7 +820,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
-			frame = Spring.GetGameFrame(),
+			frame = spGetGameFrame(),
 			px = px,
 			py = py + weaponConf[weaponID].yoffset,
 			pz = pz,
@@ -832,7 +837,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
-		if py > 0 and enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and Spring.IsSphereInView(px,py,pz,100) then
+		if py > 0 and enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and spIsSphereInView(px,py,pz,100) then
 
 			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
@@ -926,7 +931,7 @@ function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 		local params = {
 			life = (2.5+(weaponConf[weaponID].life/4))*globalLifeMult,
 			orgMult = 0.44 + (weaponConf[weaponID].orgMult*0.4),
-			frame = Spring.GetGameFrame(),
+			frame = spGetGameFrame(),
 			px = px,
 			py = py,
 			pz = pz,
