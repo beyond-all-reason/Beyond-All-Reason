@@ -105,24 +105,7 @@ local shieldBursts600 = {
     count      = 4,
 }
 
-local cormakrEffect = {
-    life       = math.huge,
-    pos        = {0,24,0},
-    size       = 26,
-    sizeSpread = 7,
-    colormap   = { {0.8, 0.8, 0.5, 0.01} },
-    onActive   = true,
-    texture    = 'bitmaps/flare.TGA',
-}
-
 local UnitEffects = {
-
-    ["cormakr"] = {
-        {class='StaticParticles',options=cormakrEffect},
-    },
-    ["corfmkr"] = {
-        {class='StaticParticles',options=cormakrEffect},
-    },
 
     --T1 ARM AIR
     ["armatlas"] = {
