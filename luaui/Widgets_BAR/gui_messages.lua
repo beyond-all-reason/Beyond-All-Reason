@@ -220,7 +220,6 @@ function addMessage(text)
             end
             for wi, word in ipairs(words) do
                 if font:GetTextWidth(linebuffer..' '..word)*charSize*widgetScale > lineMaxWidth then
-                    wordwrappedTextCount
                     wordwrappedTextCount = wordwrappedTextCount + 1
                     wordwrappedText[wordwrappedTextCount] = linebuffer
                     linebuffer = ''
