@@ -38,8 +38,8 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font",
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 38
-local fontfileOutlineSize = 8
-local fontfileOutlineStrength = 1.6
+local fontfileOutlineSize = 7
+local fontfileOutlineStrength = 1.55
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local vsx, vsy = gl.GetViewSizes()

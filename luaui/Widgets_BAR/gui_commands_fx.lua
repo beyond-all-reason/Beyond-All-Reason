@@ -69,7 +69,7 @@ local filterAIteams				= true
 
 local drawBuildQueue			= true
 local drawLineTexture			= true
-local drawUnitHighlight 		= true
+local drawUnitHighlight 		= false
 local drawUnitHighlightSkipFPS	= 13  -- (0 to disable) skip drawing when framerate gets below this value
 
 local opacity      				= 1
