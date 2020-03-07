@@ -26,6 +26,7 @@ changelog:
 	 
 -- CONFIGURATION
 local debug = false --generates debug message
+local enabledAsSpec = false
 
 local modConfig = {}
 -- BAR
@@ -158,8 +159,7 @@ local rangeCircleList --glList for drawing range circles
 local _,oldcamy,_ = Spring.GetCameraPosition() --for tracking if we should change the alpha/linewidth based on camheight
 
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyTeamID = Spring.GetMyTeamID
-local spec = spGetSpectatingState()
+local spec, fullview = spGetSpectatingState()
 
 local defences = {}	
 local currentModConfig = {}
@@ -226,7 +226,6 @@ local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spTraceScreenRay      = Spring.TraceScreenRay
 local spGetCameraPosition   = Spring.GetCameraPosition
-local spGetMyTeamID			= Spring.GetMyTeamID
 local spGetGroundHeight 	= Spring.GetGroundHeight
 local spIsGUIHidden 		= Spring.IsGUIHidden
 local spGetLocalTeamID	 	= Spring.GetLocalTeamID
@@ -538,13 +537,12 @@ function CheckSpecState()
 end
 
 function widget:PlayerChanged()
-	spec = spGetSpectatingState()
+	spec, fullview = spGetSpectatingState()
 end
 
 function widget:Update()
-
-	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
-
+	if fullview and not enabledAsSpec then
+		return
 	end
 
 	local cy = select(2,Spring.GetCameraPosition())
@@ -866,6 +864,9 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
+	if fullview and not enabledAsSpec then
+		return
+	end
 	if chobbyInterface then return end
 	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		if rangeCircleList then

@@ -1717,7 +1717,7 @@ function init()
 			 Spring.SetConfigInt("VSync",(value and 1 or 0))
 		 end,
 		},
-		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", min=0, max=6, step=1, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", min=0, max=8, step=1, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
 		 onchange=function(i,value)
 			 Spring.SetConfigInt("MSAALevel",value)
 		 end,
@@ -3225,8 +3225,8 @@ function widget:Initialize()
 			Spring.SetConfigInt("GrassDetail",0)
 		end
 		-- limit MSAA
-		if Spring.GetConfigInt("MSAALevel",0) > 6 then
-			Spring.SetConfigInt("MSAALevel",6)
+		if Spring.GetConfigInt("MSAALevel",0) > 8 then
+			Spring.SetConfigInt("MSAALevel",8)
 		end
 		--if Spring.GetConfigInt("UsePBO",0) == 0 then
 		--	Spring.SetConfigInt("UsePBO",1)
