@@ -120,7 +120,7 @@ function spawnPlayerReinforcements(n)
 
 
                 else
-                    local r = math_random(0,1*ReinforcementsCountPerTeam[teamID])
+                    local r = math_random(0,30*ReinforcementsCountPerTeam[teamID])
                     --Spring.Echo(r)
                     if r == 0 then
                         TryingToSpawnReinforcements[teamID] = true
