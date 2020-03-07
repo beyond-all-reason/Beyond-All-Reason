@@ -113,7 +113,7 @@ function gadget:GameFrame(n)
 		spawnStartBoxProtection(n)
 	end
 
-	if scavconfig.modules.reinforcementsModule then
+	if n%30 == 0 and scavconfig.modules.reinforcementsModule then
 		spawnPlayerReinforcements(n)
 	end
 

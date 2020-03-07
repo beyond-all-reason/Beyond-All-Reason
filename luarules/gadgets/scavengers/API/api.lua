@@ -150,12 +150,8 @@ function posLosCheck(posx, posy, posz, posradius)
 	return true
 end
 
-function posFriendlyCheckOnlyLos(posx, posy, posz, posradius,allyTeamID)
-	if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true then
-		return true
-	else
-		return false
-	end
+function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
+	return Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true
 end
 
 function posLosCheckNoRadar(posx, posy, posz, posradius)

@@ -252,6 +252,7 @@ else
 			factoryControllerModule 		= true,
 			unitSpawnerModule 				= true,
 			startBoxProtection				= false,
+			reinforcementsModule			= true,
 		},
 		timers = {
 			-- globalScore values
