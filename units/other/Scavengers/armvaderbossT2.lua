@@ -1,5 +1,5 @@
 return {
-	armvaderbosst2_scav = {
+	armvaderbosst2 = {
 		acceleration = 0.1518,
 		activatewhenbuilt = true,
 		brakerate = 0.5589,

@@ -2792,10 +2792,10 @@ function init()
 	end
 
 
-	if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
-		options[getOptionByID('scav_voicenotifs')] = nil
-		options[getOptionByID('scav_messages')] = nil
-	end
+	-- if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+		-- options[getOptionByID('scav_voicenotifs')] = nil
+		-- options[getOptionByID('scav_messages')] = nil
+	-- end
 
 	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 	--if Platform ~= nil and Platform.gpuVendor == 'Intel' then

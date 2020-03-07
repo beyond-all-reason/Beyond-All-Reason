@@ -13,6 +13,7 @@ if scavengersAIEnabled then
 			factoryControllerModule 		= true,
 			unitSpawnerModule 				= true,
 			startBoxProtection				= true,
+			reinforcementsModule			= true,
 		},
 		timers = {
 			-- globalScore values

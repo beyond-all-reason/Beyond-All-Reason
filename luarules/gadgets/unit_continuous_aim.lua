@@ -101,7 +101,7 @@ local popups = {	-- exclude auto target range boost for popup units
 	[UnitDefNames.corllt.id] = true,
 	[UnitDefNames.armllt.id] = true,
 }
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
 	local scavengerPopups = {}
 	for k,v in pairs(popups) do
 		scavengerPopups[k..'_scav'] = v

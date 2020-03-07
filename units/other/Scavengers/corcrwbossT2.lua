@@ -1,5 +1,5 @@
 return {
-	corcrwbossT2_scav = {
+	corcrwbossT2 = {
 		acceleration = 0.10,
 		activatewhenbuilt = true,
 		blocking = false,

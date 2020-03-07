@@ -271,7 +271,7 @@ local icons = {
     {"blank.user", "blank", 1},
     {"unknown.user", "unknown", 2},
 }
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
     local scavengerAlternatives = {}
     for i, icon in ipairs(icons) do
         scavengerAlternatives[#scavengerAlternatives+1] = {'scav_'..icon[1], 'inverted/'..icon[2], icon[3]}

@@ -1,7 +1,7 @@
 -- Spawntrail for Scavenger Droppods
 
 return {
-  ["scaspawn-trail"] = {
+  ["scaspawn-greentrail"] = {
     usedefaultexplosions = false,
     engine = {
             air                = true,
@@ -12,7 +12,7 @@ return {
             water              = true,
             properties = {
                 alwaysVisible      = true,
-                colormap           = [[1 0.7 0.4 0.01   1.0 0.6 0.2 0.01   1.0 0.4 0.1 0.01   0 0 0 0.01]],
+                colormap           = [[0.00 1.00 0.00 0.01   0.00 1.00 0.00 0.01   0.00 1.00 0.00 0.01   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[none]],
@@ -33,7 +33,7 @@ return {
       properties = {
         alwaysVisible      = true,
         airdrag            = 1,
-        colormap           = [[0.85 0.05 1.0 0.01   0 0 0 0.01]],
+        colormap           = [[0.00 1.00 0.00 0.01   0 0 0 0.01]],
         directional        = false,
         emitrot            = 0,
         emitrotspread      = 0,
@@ -63,7 +63,7 @@ return {
       properties = {
         alwaysVisible      = true,
         airdrag            = 0.87,
-        colormap           = [[0.75 0.08 1.0 0.1   0.45 0.04 0.6 0.1   0.0 0.0 0.0 0.01]],
+        colormap           = [[0.00 1.00 0.00 0.1   0.00 1.00 0.00 0.1   0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 80,
         emitrotspread      = 5,
@@ -91,7 +91,7 @@ return {
       properties = {
         alwaysVisible      = true,
         airdrag            = 0.87,
-        colormap           = [[0.8 0.1 1.0 0.15   0.55 0.06 0.7 0.1   0.028 0.005 0.04 0.15   0.0 0.0 0.0 0.01]],
+        colormap           = [[0.00 1.00 0.00 0.15   0.00 1.00 0.00 0.1   0.00 1.00 0.00 0.15   0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 80,
         emitrotspread      = 5,
@@ -120,7 +120,7 @@ return {
         water              = true,
         properties = {
             alwaysVisible      = true,
-            colormap           = [[0 0 0 0.01  0.035 0.025 0.015 0.10  0.035 0.025 0.015 0.08  0.035 0.025 0.015 0.05  0.035 0.025 0.015 0.04  0.035 0.025 0.015 0.02  0 0 0 0.01]],
+            colormap           = [[0 0 0 0.01  0.00 1.00 0.00 0.10  0.00 1.00 0.00 0.08  0.00 1.00 0.00 0.05  0.00 1.00 0.00 0.04  0.00 1.00 0.00 0.02  0 0 0 0.01]],
             dir                = [[dir]],
             frontoffset        = 0,
             fronttexture       = [[trans]],
@@ -139,7 +139,7 @@ return {
           water              = true,
           properties = {
               airdrag            = 0.92,
-              colormap           = [[0.006 0.006 0.006 0.05   0.05 0.04 0.033 0.66   0.04 0.038 0.034 0.56   0.04 0.036 0.032 0.44   0.025 0.025 0.025 0.28   0.014 0.014 0.014 0.13    0.006 0.006 0.006 0.05   0 0 0 0.01]],
+              colormap           = [[0.00 1.00 0.00 0.05   0.00 1.00 0.00 0.66   0.00 1.00 0.00 0.56   0.00 1.00 0.00 0.44   0.00 1.00 0.00 0.28   0.00 1.00 0.00 0.13    0.00 1.00 0.00 0.05   0 0 0 0.01]],
               directional        = true,
               emitrot            = -180,
               emitrotspread      = 7,
@@ -168,7 +168,7 @@ return {
           water              = true,
           properties = {
               airdrag            = 0.77,
-              colormap           = [[0.85 0.66 0.4 0.8   1 0.74 0.48 0.9    0.75 0.45 0.25 0.5   0 0 0 0.01]],
+              colormap           = [[0.00 1.00 0.00 0.8   0.00 1.00 0.00 0.9    0.00 1.00 0.00 0.5   0 0 0 0.01]],
               directional        = true,
               emitrot            = 80,
               emitrotspread      = 15,
@@ -196,7 +196,7 @@ return {
       properties = {
         alpha              = 0.6,
         alphadecay         = 0.08,
-        color              = [[1.0, 0.5, 0.2]],
+        color              = [[0.00 1.00 0.00]],
         dir                = [[-10 r20,-10 r20,-10 r20]],
         length             = 2,
         width              = 9,

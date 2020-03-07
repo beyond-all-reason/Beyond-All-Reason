@@ -1,5 +1,5 @@
 return {
-	scavengerdroppod_scav = {
+	scavengerdroppodfriendly = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
@@ -64,7 +64,7 @@ return {
 				alwaysVisible = true,
 				areaofeffect = 500,
 				avoidfriendly = 0,
-				cegtag = "scaspawn-trail",
+				cegtag = "scaspawn-greentrail",
 				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -79,7 +79,7 @@ return {
 				name = "Droppod",
 				range = 29999,
 				reloadtime = 5,
-				rgbcolor = "0.85 0 1",
+				rgbcolor = "0 1 0",
 				smoketrail = 1,
 				soundhit = "voice/scavengers/scavspawn",
 				startvelocity = 1,

@@ -44,7 +44,7 @@ end
 
 
 -- create scavenger units
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
     VFS.Include("gamedata/scavengers/unitdef_changes.lua")
     local scavengerUnitDefs = {}
 

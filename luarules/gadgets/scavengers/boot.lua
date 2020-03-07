@@ -69,6 +69,10 @@ if scavconfig.modules.startBoxProtection then
 	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
 end
 
+if scavconfig.modules.reinforcementsModule then
+	VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
+end
+
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 
@@ -107,6 +111,10 @@ function gadget:GameFrame(n)
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true and n%30 == 0 then
 		spawnStartBoxProtection(n)
+	end
+
+	if scavconfig.modules.reinforcementsModule then
+		spawnPlayerReinforcements(n)
 	end
 
 	if n == 15 and GaiaTeamID ~= Spring.GetGaiaTeamID() then
@@ -232,8 +240,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	local UnitName = UnitDefs[unitDefID].name
+	if UnitName == "scavengerdroppodfriendly" then
+		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
+	end
 	if unitTeam == GaiaTeamID then
-		local UnitName = UnitDefs[unitDefID].name
+		
 		if string.find(UnitName, "_scav") then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else

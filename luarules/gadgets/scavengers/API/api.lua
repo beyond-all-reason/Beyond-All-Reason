@@ -9,7 +9,11 @@ Spring.Echo("[Scavengers] API initialized")
 	ScavengerStartboxXMax = mapsizeX + 1
 	ScavengerStartboxZMax = mapsizeZ + 1
 	ScavengerStartboxExists = false
+	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
 	if scavengersAIEnabled then
+		if spawnmultiplier == 0 then
+			spawnmultiplier = 0.5
+		end
 		GaiaTeamID = scavengerAITeamID
 		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaAllyTeamID)
@@ -24,7 +28,7 @@ Spring.Echo("[Scavengers] API initialized")
 	end
 	teamcount = #Spring.GetTeamList() - 1
 	allyteamcount = #Spring.GetAllyTeamList() - 1
-	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
+	
 	BossWaveStarted = false
 	selfdx = {}
 	selfdy = {}
@@ -144,6 +148,14 @@ function posLosCheck(posx, posy, posz, posradius)
 		end
 	end
 	return true
+end
+
+function posFriendlyCheckOnlyLos(posx, posy, posz, posradius,allyTeamID)
+	if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true then
+		return true
+	else
+		return false
+	end
 end
 
 function posLosCheckNoRadar(posx, posy, posz, posradius)

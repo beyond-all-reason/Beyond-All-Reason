@@ -34,6 +34,7 @@ return {
 		radardistance = 900,
 		script = "scavs/beaconbyar.cob",
 		seismicsignature = 4,
+		selfdestructcountdown = 1,
 		--selfdestructas = "ROOST_DEATH",
 		side = "ARM",
 		sightdistance = 450,

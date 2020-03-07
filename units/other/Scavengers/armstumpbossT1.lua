@@ -1,5 +1,5 @@
 return {
-	armstumpbosst1_scav = {
+	armstumpbosst1 = {
 		acceleration = 0.0138,
 		brakerate = 0.08759,
 		buildcostenergy = 2000000,

@@ -112,7 +112,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 else
 
 	local scavengersEnabled = false
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
 		local teams = Spring.GetTeamList()
 
 		for i = 1,#teams do
@@ -123,7 +123,11 @@ else
 				break
 			end
 		end
-		VFS.Include('luarules/gadgets/scavengers/boot.lua')
+		if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+			VFS.Include('luarules/gadgets/scavengers/boot.lua')
+		else
+			gadgetHandler:RemoveGadget(self)
+		end
 
 		function gadget:GameOver()
 			gadgetHandler:RemoveGadget(self)
