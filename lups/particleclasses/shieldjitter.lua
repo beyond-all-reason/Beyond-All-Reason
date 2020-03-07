@@ -41,7 +41,7 @@ ShieldJitter.Default = {
   --precision  = 26, --// bias the used polies for a sphere
 
   strength   = 0.005,
-  strengthMin= 0.005,
+  strengthMin= nil,
   texture    = 'bitmaps/GPL/Lups/grass5.png',
   --texture    = 'bitmaps/GPL/Lups/perlin_noise.jpg',
 
@@ -91,6 +91,8 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function ShieldJitter.Initialize()
+	ShieldJitter.Default.strengthMin = ShieldJitter.Default.strengthMin or ShieldJitter.Default.strength
+
 	warpShader = gl.CreateShader({
 		vertex = [[
 			#version 150 compatibility
