@@ -27,14 +27,14 @@ end
 
 local function MergeTable(table1,table2)
   local result = {}
-  for i,v in pairs(table2) do 
+  for i,v in pairs(table2) do
     if (type(v)=='table') then
       result[i] = MergeTable(v,{})
     else
       result[i] = v
     end
   end
-  for i,v in pairs(table1) do 
+  for i,v in pairs(table1) do
     if (result[i]==nil) then
       if (type(v)=='table') then
         if (type(result[i])~='table') then result[i] = {} end
@@ -301,10 +301,11 @@ local UnitEffects = {
 local distoredShields = tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1
 if distoredShields then
     local distortionAmount = 0.007
-    UnitEffects["corgate"][#UnitEffects["corgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
-    UnitEffects["corfgate"][#UnitEffects["corfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
-    UnitEffects["armgate"][#UnitEffects["armgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
-    UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
+	local minDistortionMult = 0.2
+    UnitEffects["corgate"][#UnitEffects["corgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+    UnitEffects["corfgate"][#UnitEffects["corfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+    UnitEffects["armgate"][#UnitEffects["armgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+    UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
 end
 
 local scavEffects = {}
@@ -397,15 +398,15 @@ local function ClearFx(unitID, fxIDtoDel)
   if (particleIDs[unitID]) then
 	local newTable = {}
 	for _,fxID in ipairs(particleIDs[unitID]) do
-		if fxID == fxIDtoDel then 
+		if fxID == fxIDtoDel then
 			Lups.RemoveParticles(fxID)
-		else 
+		else
 			newTable[#newTable+1] = fxID
 		end
     end
-	if #newTable == 0 then 
+	if #newTable == 0 then
 		particleIDs[unitID] = nil
-	else 
+	else
 		particleIDs[unitID] = newTable
 	end
   end
@@ -449,7 +450,7 @@ end
 local function UnitEnteredLos(_,unitID)
   local spec, fullSpec = spGetSpectatingState()
   if (spec and fullSpec) then return end
-    
+
   local unitDefID = spGetUnitDefID(unitID)
   local effects   = UnitEffects[unitDefID]
   if (effects) then
@@ -467,7 +468,7 @@ local function UnitEnteredLos(_,unitID)
 	  end
 	end
   end
-  
+
 end
 
 

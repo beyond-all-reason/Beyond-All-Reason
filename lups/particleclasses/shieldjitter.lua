@@ -6,7 +6,7 @@ local ShieldJitter = {}
 ShieldJitter.__index = ShieldJitter
 
 local warpShader
-local timerUniform,strengthUniform
+local timerUniform, strengthUniform
 local sphereList
 local checkStunned = true
 
@@ -41,6 +41,7 @@ ShieldJitter.Default = {
   --precision  = 26, --// bias the used polies for a sphere
 
   strength   = 0.005,
+  strengthMin= 0.005,
   texture    = 'bitmaps/GPL/Lups/grass5.png',
   --texture    = 'bitmaps/GPL/Lups/perlin_noise.jpg',
 
@@ -66,88 +67,95 @@ function ShieldJitter:EndDrawDistortion()
 end
 
 function ShieldJitter:DrawDistortion()
-  if checkStunned then
-    self.stunned = Spring.GetUnitIsStunned(self.unit)
-  end
-  if self.stunned then
-    return
-  end
-  local pos  = self.pos
-  local size = self.size
-  gl.Uniform(strengthUniform,  self.strength )
+	if checkStunned then
+		self.stunned = Spring.GetUnitIsStunned(self.unit)
+	end
+	if self.stunned then
+		return
+	end
 
-  gl.Texture(0,self.texture)
-  gl.PushMatrix()
-  gl.Translate(pos[1],pos[2],pos[3])
-  gl.Scale(size,size,size)
-  gl.CallList(sphereList)
-  gl.PopMatrix()
+	local pos  = self.pos
+	local size = self.size
+
+	gl.Uniform(strengthUniform, self.strength, self.strengthMin)
+
+	gl.Texture(0, self.texture)
+	gl.PushMatrix()
+	gl.Translate(pos[1], pos[2], pos[3])
+	gl.Scale(size, size, size)
+	gl.CallList(sphereList)
+	gl.PopMatrix()
 end
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
 function ShieldJitter.Initialize()
-  warpShader = gl.CreateShader({
-    vertex = [[
-	  #version 150 compatibility
-      uniform float timer;
-      uniform float strength;
+	warpShader = gl.CreateShader({
+		vertex = [[
+			#version 150 compatibility
+			uniform float timer;
+			uniform vec2 strength;
 
-      varying float scale;
-      varying vec2 texCoord;
+			varying float scale;
+			varying vec2 texCoord;
 
-	void main()
-	{
-          gl_Position    = ftransform();
-          texCoord       = gl_MultiTexCoord0.st + timer;
+			void main()
+			{
+				vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+				texCoord       = gl_MultiTexCoord0.st + timer;
 
-          vec3 normal  = normalize(gl_NormalMatrix * gl_Normal);
-          vec3 nvertex = normalize(vec3(gl_ModelViewMatrix * gl_Vertex));
-          scale = strength*abs(dot( normal,nvertex ));
-	}
-    ]],
-    fragment = [[
-	  #version 150 compatibility
-      uniform sampler2D noiseMap;
+				vec3 normal  = normalize(gl_NormalMatrix * gl_Normal);
+				vec3 nvertex = normalize(viewPos.xyz);
 
-      varying float scale;
-      varying vec2 texCoord;
+				float normCamDist = smoothstep(50.0, 5000.0, length(viewPos.xyz));
+				float strengthCamDist = mix(strength.y, strength.x, normCamDist);
 
-      void main(void)
-      {
-          vec2 noiseVec;
-          noiseVec = texture2D(noiseMap, texCoord).yz - 0.5;
-          noiseVec *= scale;
+				scale = strengthCamDist * abs(dot( normal, nvertex ));
 
-          gl_FragColor = vec4(noiseVec,0.0,gl_FragCoord.z);
-      }
+				gl_Position = gl_ProjectionMatrix * viewPos;
+			}
+		]],
+		fragment = [[
+			#version 150 compatibility
+			uniform sampler2D noiseMap;
 
-    ]],
-    uniformInt = {
-      noiseMap = 0,
-    },
-    uniformFloat = {
-      timer = 0,
-      strength = 0.015,
-    }
-  })
+			varying float scale;
+			varying vec2 texCoord;
 
-  if (warpShader == nil) then
-    print(PRIO_MAJOR,"LUPS->ShieldJitter: shader error: "..gl.GetShaderLog())
-    return false
-  end
+			void main(void)
+			{
+			  vec2 noiseVec;
+			  noiseVec = texture2D(noiseMap, texCoord).yz - 0.5;
+			  noiseVec *= scale;
 
-  timerUniform    = gl.GetUniformLocation(warpShader, 'timer')
-  strengthUniform = gl.GetUniformLocation(warpShader, 'strength')
+			  gl_FragColor = vec4(noiseVec,0.0,gl_FragCoord.z);
+			}
+		]],
+		uniformInt = {
+			noiseMap = 0,
+		},
+		uniformFloat = {
+			timer = 0,
+			strength = {ShieldJitter.Default.strength, ShieldJitter.Default.strengthMin},
+		}
+	})
 
-  sphereList = gl.CreateList(DrawSphere,0,0,0,1,22)
+	if (warpShader == nil) then
+		print(PRIO_MAJOR,"LUPS->ShieldJitter: shader error: "..gl.GetShaderLog())
+		return false
+	end
+
+	timerUniform    = gl.GetUniformLocation(warpShader, 'timer')
+	strengthUniform = gl.GetUniformLocation(warpShader, 'strength')
+
+	sphereList = gl.CreateList(DrawSphere,0,0,0,1,22)
 end
 
 function ShieldJitter.Finalize()
-  gl.DeleteShader(warpShader)
-  gl.DeleteList(sphereList)
-  gl.DeleteTexture(tex)
+	gl.DeleteShader(warpShader)
+	gl.DeleteList(sphereList)
+	gl.DeleteTexture(tex)
 end
 
 function ShieldJitter.ViewResize(viewSizeX, viewSizeY)
