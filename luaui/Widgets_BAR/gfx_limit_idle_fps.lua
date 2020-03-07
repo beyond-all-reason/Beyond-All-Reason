@@ -2,7 +2,7 @@
 function widget:GetInfo()
 	return {
 		name = "Limit idle FPS",
-		desc = "Reduces FPS when being idle (by setting vsync to a high number)" ,
+		desc = "Reduces FPS when being offscreen or idle (by setting vsync to a high number)" ,
 		author = "Floris",
 		date = "february 2020",
 		license = "",
@@ -41,6 +41,12 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:Update()
+	-- detect change by user
+	local curVsync = Spring.GetConfigInt("VSync",1)
+	if curVsync ~= vsyncValueIdle and curVsync ~= vsyncValueActive then
+		vsyncValueActive = curVsync
+	end
+
 	if not chobbyInterface then
 		local prevIsIdle = isIdle
 

@@ -2327,7 +2327,7 @@ function init()
 			 saveOptionValue('Metalspots', 'metalspots', 'setShowValue', {'showValue'}, options[getOptionByID('metalspots_values')].value)
 		 end,
 		},
-		{id="metalspots_metalviewonly", group="ui", name=widgetOptionColor.."   limit to F4 view", type="bool", value=false, description='Limit display to only during pre-gamestart or when in metalmap view (f4)',
+		{id="metalspots_metalviewonly", group="ui", name=widgetOptionColor.."   limit to F4 (metalmap) view", type="bool", value=false, description='Limit display to only during pre-gamestart or when in metalmap view (f4)',
 		 onload=function() loadWidgetData("Metalspots", "metalspots_metalviewonly", {'metalViewOnly'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', {'showValue'}, options[getOptionByID('metalspots_metalviewonly')].value)
