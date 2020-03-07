@@ -371,7 +371,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local dps
 	local weaponDef
 
-	if unitRadius[unitDefID] < 100 then
+	if unitRadius[unitDefID] and unitRadius[unitDefID] < 100 then
 		if ( not unitNumWeapons[unitDefID] ) then
 			--not interesting, has no weapons and no radar coverage, lame
 			return

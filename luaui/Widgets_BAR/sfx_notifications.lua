@@ -224,7 +224,7 @@ local isEnergyProducer = {}
 local isWind = {}
 local isAircraft = {}
 local isT2 = {}
-local isT3 = {}
+local isT3mobile = {}
 local isMine = {}
 for udefID,def in ipairs(UnitDefs) do
 	-- not critter/chicken/object
@@ -236,8 +236,8 @@ for udefID,def in ipairs(UnitDefs) do
 			if def.customParams.techlevel == '2' and not def.customParams.iscommander then
 				isT2[udefID] = true
 			end
-			if def.customParams.techlevel == '3' then
-				isT3[udefID] = true
+			if def.customParams.techlevel == '3' and not def.isBuilding then
+				isT3mobile[udefID] = true
 			end
 		end
 		if def.modCategories.mine then
@@ -445,7 +445,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			QueueNotification('VulcanIsReady')
 		elseif unitDefID == buzzsawDefID then
 			QueueNotification('BuzzsawIsReady')
-		elseif isT3[unitDefID] then
+		elseif isT3mobile[unitDefID] then
 			QueueNotification('Tech3UnitReady')
 
 		elseif doTutorialMode then
@@ -481,7 +481,7 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 	if isT2[udefID] then
 		QueueNotification('T2Detected')
 	end
-	if isT3[udefID] then
+	if isT3mobile[udefID] then
 		QueueNotification('T3Detected')
 	end
 	if isMine[udefID] then
