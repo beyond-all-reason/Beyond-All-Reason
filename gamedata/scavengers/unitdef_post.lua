@@ -1,7 +1,19 @@
 -- this file gets included in alldefs_post.lua
 
 function scav_Udef_Post(name, uDef)
+	if not uDef.customparams then
+		uDef.customparams = {}
+	end
+
+	-- add unit category
 	uDef.category = uDef.category..' SCAVENGER'
+
+	-- add model vertex displacement
+	local vertexDisplacement = 0.35 + ((uDef.footprintx + uDef.footprintz) / 2.5)
+	if vertexDisplacement > 3.5 then
+		vertexDisplacement = 3.5
+	end
+	uDef.customparams.scavvertdisp = vertexDisplacement
 
 	-- make barrelshot purple
 	uDef.capturable = false
@@ -9,7 +21,7 @@ function scav_Udef_Post(name, uDef)
 	--if uDef.builder then
 	--	uDef.corpse = ""
 	--end
-	if uDef.customparams and uDef.customparams.firingceg then
+	if uDef.customparams.firingceg then
 		if string.find(uDef.customparams.firingceg, 'barrelshot') then
 			uDef.customparams.firingceg = uDef.customparams.firingceg..'-purple'
 		end

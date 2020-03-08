@@ -136,7 +136,7 @@ local function FillMaterials(unitMaterials, materials, matTemplate, matParentNam
 	local udef = UnitDefs[udID]
 	local udefCM = udef.customParams
 	local lm = tonumber(udefCM.lumamult) or 1
-	local scvd = tonumber(udefCM.scavVertDisp) or 0
+	local scvd = tonumber(udefCM.scavvertdisp) or 0
 
 	local params = {
 		lm = lm,
