@@ -137,7 +137,7 @@ local fs =
 		float mixNoise = smoothstep(noiseBounds.x, noiseBounds.y, fbm(noiseSeed));
 
 		gl_FragData[0] = vec4( mix(unitTex1Color.rgba, wreckTex1Color.rgba, mixNoise));
-		gl_FragData[1] = vec4( mix(unitTex2Color.rgba, wreckTex2Color.rgba, mixNoise));
+		gl_FragData[1] = vec4( mix(unitTex2Color.rgb, wreckTex2Color.rgb, mixNoise), max(unitTex2Color.a, wreckTex2Color.a));
 		gl_FragData[2] = vec4( SNORM2NORM(normalize(mix(unitTexNormal.xyz, wreckTexNormal.xyz, mixNoise))), max(unitTexNormal.a, wreckTexNormal.a));
 	}
 ]]

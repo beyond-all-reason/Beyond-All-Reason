@@ -49,7 +49,7 @@ local scavDisplacementPlugun = {
 	]],
 	VERTEX_PRE_TRANSFORM = [[
 		#ifdef SCAVENGER_VERTEX_DISPLACEMENT
-			modelPos.xyz += Perlin3D(0.5 * modelPos.xyz) * SCAVENGER_VERTEX_DISPLACEMENT * normalize(mix(normalize(modelPos.xyz), modelNormal, 0.25));
+			modelPos.xyz += Perlin3D(0.1 * modelPos.xyz) * SCAVENGER_VERTEX_DISPLACEMENT * normalize(mix(normalize(modelPos.xyz), modelNormal, 0.3));
 		#endif
 	]],
 }
