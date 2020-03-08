@@ -1,5 +1,5 @@
 return {
-	corcrwboss_scav = {
+	corcrwboss = {
 		acceleration = 0.10,
 		activatewhenbuilt = true,
 		blocking = false,
@@ -31,8 +31,8 @@ return {
 		maxwaterdepth = 0,
 		name = "Krow Boss",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/corcrwboss_scav.s3o",
-		script = "Units/scavboss/corcrwboss_scav.cob",
+		objectname = "Units/scavboss/corcrwboss.s3o",
+		script = "Units/scavboss/corcrwboss.cob",
 		seismicsignature = 0,
 		selfdestructas = "krogExplosionSelfd",
 		sightdistance = 675,

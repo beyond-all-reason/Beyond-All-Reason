@@ -1,5 +1,5 @@
 return {
-	armvaderboss_scav = {
+	armvaderboss = {
 		acceleration = 0.1518,
 		activatewhenbuilt = true,
 		brakerate = 0.5589,
@@ -30,9 +30,9 @@ return {
 		movementclass = "BOSSPEEWEE4",
 		name = "Giant Invader",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armvaderboss_scav.s3o",
+		objectname = "Units/scavboss/armvaderboss.s3o",
 		pushresistant = true,
-		script = "Units/scavboss/armvaderboss_scav.cob",
+		script = "Units/scavboss/armvaderboss.cob",
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
 		selfdestructcountdown = 0,

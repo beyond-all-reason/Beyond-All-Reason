@@ -293,6 +293,10 @@ local armorDefs = {
 		"corerad",
 		"coruwadves",
 		"coruwadvms",
+
+		"armpwboss",
+		"armstumpboss",
+		"armvaderboss",
 	},
 	bombers = {
 		"chickenf1",
@@ -367,7 +371,7 @@ local armorDefs = {
 		"corape",
 		"corcrw",
 		"corcut",
-		"corcrwboss_scav",
+		"corcrwboss",
 	},
 	shields = {
 		"armgate",

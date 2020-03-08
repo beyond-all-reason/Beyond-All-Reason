@@ -117,7 +117,7 @@ T4LandUnits = {
 "corjugg",
 "armbanth",
 --superboss
-"armpwboss_scav",
-"armstumpboss_scav",
-"armvaderboss_scav",
+"armpwboss",
+"armstumpboss",
+"armvaderboss",
 }

@@ -63,6 +63,6 @@ T3SeaUnits = {
 }
 
 T4SeaUnits = {
-"corcrwboss_scav",
-"corcrwboss_scav",
+"corcrwboss",
+"corcrwboss",
 }
