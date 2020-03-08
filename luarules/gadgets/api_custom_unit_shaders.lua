@@ -280,7 +280,7 @@ local function GetObjectMaterial(rendering, objectDefID)
   for texid, tex in pairs(mat.texunits or {}) do
     local tex_ = tex
     for varname, value in pairs(matInfo) do
-      tex_ = tex_:gsub("%%"..tostring(varname),value)
+      tex_ = tex_:gsub("@"..tostring(varname), value)
     end
     texUnits[texid] = {tex=tex_, enable=false}
   end

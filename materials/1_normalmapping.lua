@@ -85,11 +85,13 @@ local matTemplate = {
 	predl  = nil,
 	postdl = nil,
 	texunits  = {
-		[0] = "%TEX1",
-		[1] = "%TEX2",
+		[0] = "@TEX1",
+		[1] = "@TEX2",
+		--[0] = "@UNITDEFID:0",
+		--[1] = "@UNITDEFID:1",
 		[2] = "$shadow",
 		[3] = "$reflection",
-		[4] = "%NORMALTEX",
+		[4] = "@NORMALTEX",
 		[5] = "$info",
 		[6] = GG.GetBrdfTexture(),
 		[7] = GG.GetEnvTexture(),
@@ -120,9 +122,9 @@ for i = 1, #UnitDefs do
 		end
 
 		unitMaterials[udef.name] = {matName,
-			TEX1 = GG.GetScavTexture(i, 0) or "%%UNITDEFID:0",
-			TEX2 = GG.GetScavTexture(i, 1) or "%%UNITDEFID:1",
-			NORMALTEX = GG.GetScavTexture(i, 2) or udefCM.normaltex
+			TEX1 = GG.GetScavTexture(i, 0) or string.format("%%%%%d:0", i),
+			TEX2 = GG.GetScavTexture(i, 1) or string.format("%%%%%d:1", i),
+			NORMALTEX = GG.GetScavTexture(i, 2) or udefCM.normaltex,
 		}
 	end
 end
