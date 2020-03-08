@@ -15,8 +15,8 @@ function spawnPlayerReinforcements(n)
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
     for _,teamID in ipairs(Spring.GetTeamList()) do
-        
-        if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
+        local LuaAI = Spring.GetTeamLuaAI(teamID)
+        if (not LuaAI) and teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
             
             local _,_,isDead,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
             
