@@ -36,7 +36,7 @@ return {
 		selfdestructas = "advgeo",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
-		yardmap = "ooooo ooooo ooooo ooooo ooooo oGGGo oGGGo ooooo",
+		yardmap = "oooooo oooooo oGGGoo oGGGoo oooooo oooooo",
 		customparams = {
 			cvbuildable = true,
 			model_author = "Cremuss",
@@ -45,7 +45,6 @@ return {
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",
 			techlevel = 2,
-			yardmap = "oooooo oooooo oGGGoo oGGGoo oooooo oooooo",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

@@ -47,7 +47,7 @@ return {
 		upright = false,
 		waterline = 0,
 		workertime = 1500,
-		yardmap = "yy yy",
+		yardmap = "",
 		customparams = {
 			subfolder = "scavengers",
 			isairbase = true,
