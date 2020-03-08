@@ -70,7 +70,7 @@ vertex = [[
 		modelUV.xy = gl_MultiTexCoord0.xy;
 		#ifdef use_treadoffset_core
 			// core 93,1732 /351,1647
-			const vec4 treadBoundaries = vec4( 0.04541015625,0.17138671875, 0.154296875,0.19580078125);
+			const vec4 treadBoundaries = vec4( 0.04541015625,0.17138671875, 0.80419921875, 0.845703125);
 			if (all(bvec4(
 					modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
 					modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
