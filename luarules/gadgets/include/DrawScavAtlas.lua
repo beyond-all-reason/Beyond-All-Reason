@@ -112,6 +112,15 @@ local fs =
 		#endif
 	}
 
+	// RNM - Already unpacked
+	// https://www.shadertoy.com/view/4t2SzR
+	vec3 NormalBlendUnpackedRNM(vec3 n1, vec3 n2) {
+		n1 += vec3(0.0, 0.0, 1.0);
+		n2 *= vec3(-1.0, -1.0, 1.0);
+
+		return n1 * dot(n1, n2) / n1.z - n2;
+	}
+
 	void main() {
 		vec4 unitTex1Color = textureLod(unitTex1, uv, 0.0);
 		vec4 unitTex2Color = textureLod(unitTex2, uv, 0.0);
@@ -129,7 +138,7 @@ local fs =
 
 		gl_FragData[0] = vec4( mix(unitTex1Color.rgba, wreckTex1Color.rgba, mixNoise));
 		gl_FragData[1] = vec4( mix(unitTex2Color.rgba, wreckTex2Color.rgba, mixNoise));
-		gl_FragData[2] = vec4( SNORM2NORM(normalize(mix(unitTexNormal.xyz, wreckTexNormal.xyz, mixNoise))), unitTexNormal.a);
+		gl_FragData[2] = vec4( SNORM2NORM(normalize(mix(unitTexNormal.xyz, wreckTexNormal.xyz, mixNoise))), max(unitTexNormal.a, wreckTexNormal.a));
 	}
 ]]
 
