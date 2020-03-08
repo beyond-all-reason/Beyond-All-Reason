@@ -29,25 +29,8 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 	return false
 end
 
-local function SunChanged(curShaderObj)
-	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
-
-	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
-		Spring.GetConfigFloat("tonemapA", 4.8),
-		Spring.GetConfigFloat("tonemapB", 0.8),
-		Spring.GetConfigFloat("tonemapC", 3.35),
-		Spring.GetConfigFloat("tonemapD", 1.0),
-		Spring.GetConfigFloat("tonemapE", 1.15),
-		Spring.GetConfigFloat("envAmbient", 0.3),
-		Spring.GetConfigFloat("unitSunMult", 1.35),
-		Spring.GetConfigFloat("unitExposureMult", 1.0),
-	})
-end
-
+local default_aux = VFS.Include("materials/Shaders/default_aux.lua")
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local matTemplate = {
@@ -105,66 +88,12 @@ local matTemplate = {
 
 		"#define MAT_IDX 2",
 	},
-	shaderPlugins = {
-		VERTEX_GLOBAL_NAMESPACE = [[
-			#ifdef SCAVENGER_VERTEX_DISPLACEMENT
-				float Perlin3D( vec3 P ) {
-					//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
-
-					// establish our grid cell and unit position
-					vec3 Pi = floor(P);
-					vec3 Pf = P - Pi;
-					vec3 Pf_min1 = Pf - 1.0;
-
-					// clamp the domain
-					Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
-					vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
-
-					// calculate the hash
-					vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
-					Pt *= Pt;
-					Pt = Pt.xzxz * Pt.yyww;
-					const vec3 SOMELARGEFLOATS = vec3( 635.298681, 682.357502, 668.926525 );
-					const vec3 ZINC = vec3( 48.500388, 65.294118, 63.934599 );
-					vec3 lowz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi.zzz * ZINC ) );
-					vec3 highz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi_inc1.zzz * ZINC ) );
-					vec4 hashx0 = fract( Pt * lowz_mod.xxxx );
-					vec4 hashx1 = fract( Pt * highz_mod.xxxx );
-					vec4 hashy0 = fract( Pt * lowz_mod.yyyy );
-					vec4 hashy1 = fract( Pt * highz_mod.yyyy );
-					vec4 hashz0 = fract( Pt * lowz_mod.zzzz );
-					vec4 hashz1 = fract( Pt * highz_mod.zzzz );
-
-					// calculate the gradients
-					vec4 grad_x0 = hashx0 - 0.49999;
-					vec4 grad_y0 = hashy0 - 0.49999;
-					vec4 grad_z0 = hashz0 - 0.49999;
-					vec4 grad_x1 = hashx1 - 0.49999;
-					vec4 grad_y1 = hashy1 - 0.49999;
-					vec4 grad_z1 = hashz1 - 0.49999;
-					vec4 grad_results_0 = inversesqrt( grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x0 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y0 + Pf.zzzz * grad_z0 );
-					vec4 grad_results_1 = inversesqrt( grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x1 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y1 + Pf_min1.zzzz * grad_z1 );
-
-					// Classic Perlin Interpolation
-					vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
-					vec4 res0 = mix( grad_results_0, grad_results_1, blend.z );
-					vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
-					float final = dot( res0, blend2.zxzx * blend2.wwyy );
-					return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
-				}
-			#endif
-		]],
-		VERTEX_PRE_TRANSFORM = [[
-			#ifdef SCAVENGER_VERTEX_DISPLACEMENT
-				modelPos.xyz += Perlin3D(0.5 * modelPos.xyz) * SCAVENGER_VERTEX_DISPLACEMENT * normalize(mix(normalize(modelPos.xyz), modelNormal, 0.5));
-			#endif
-		]],
-	},
+	shaderPlugins = default_aux.scavDisplacementPlugun,
 	shader    = default_lua,
 	deferred  = default_lua,
 	usecamera = false,
 	force = true,
-	culling   = GL.BACK,
+	culling = GL.BACK,
 	predl  = nil,
 	postdl = nil,
 	texunits  = {
@@ -178,7 +107,7 @@ local matTemplate = {
 		[7] = GG.GetEnvTexture(),
 	},
 	DrawUnit = DrawUnit,
-	SunChanged = SunChanged,
+	SunChanged = default_aux.SunChanged,
 }
 
 --------------------------------------------------------------------------------
@@ -201,37 +130,7 @@ for i = 1, #UnitDefs do
 	local udefCM = udef.customParams
 
 	if (udefCM.arm_tank and udefCM.normaltex and VFS.FileExists(udefCM.normaltex)) then
-		local lm = tonumber(udefCM.lumamult) or 1
-		local scvd = tonumber(udefCM.scavVertDisp) or 0
-
-		local params = {
-			lm = lm,
-			scvd = scvd,
-		}
-
-		local matName = PackTableIntoString(params, "normalMappedS3O_arm_tank")
-
-		if not materials[matName] then
-			materials[matName] = Spring.Utilities.CopyTable(matTemplate, true)
-
-			if lm ~= 1 then
-				local lmLM = string.format("#define LUMAMULT %f", lm)
-				table.insert(materials[matName].shaderDefinitions, lmLM)
-				table.insert(materials[matName].deferredDefinitions, lmLM)
-			end
-
-			if scvd ~= 0 then
-				local lmLM = string.format("#define SCAVENGER_VERTEX_DISPLACEMENT %f", scvd)
-				table.insert(materials[matName].shaderDefinitions, lmLM)
-				table.insert(materials[matName].deferredDefinitions, lmLM)
-			end
-		end
-
-		unitMaterials[udef.name] = {matName,
-			TEX1 = GG.GetScavTexture(i, 0) or string.format("%%%%%d:0", i),
-			TEX2 = GG.GetScavTexture(i, 1) or string.format("%%%%%d:1", i),
-			NORMALTEX = udefCM.normaltex
-		}
+		default_aux.FillMaterials(unitMaterials, materials, matTemplate, "normalMappedS3O_arm_tank", i)
 	end
 end
 
