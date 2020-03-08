@@ -1,5 +1,5 @@
 return {
-	armstumpbosst1 = {
+	armstumpboss_scav = {
 		acceleration = 0.0138,
 		brakerate = 0.08759,
 		buildcostenergy = 2000000,
@@ -30,8 +30,8 @@ return {
 		movementclass = "BOSSSTUMPY7",
 		name = "Big Stumpy",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armstumpbossT1.s3o",
-		script = "Units/scavboss/armstumpbossT1.cob",
+		objectname = "Units/scavboss/armstumpboss_scav.s3o",
+		script = "Units/scavboss/armstumpboss_scav.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 600,

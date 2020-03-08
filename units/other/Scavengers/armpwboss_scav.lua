@@ -1,5 +1,5 @@
 return {
-	armpwbosst1 = {
+	armpwboss_scav = {
 		acceleration = 0.414,
 		brakerate = 0.69,
 		buildcostenergy = 4500000,
@@ -28,8 +28,8 @@ return {
 		movementclass = "BOSSPEEWEE4",
 		name = "Huge Peewee",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armpwbossT1.s3o",
-		script = "Units/scavboss/armpwbossT1.cob",
+		objectname = "Units/scavboss/armpwboss_scav.s3o",
+		script = "Units/scavboss/armpwboss_scav.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 1500,

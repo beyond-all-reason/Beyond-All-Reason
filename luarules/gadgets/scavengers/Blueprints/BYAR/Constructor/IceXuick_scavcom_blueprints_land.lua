@@ -1066,7 +1066,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavnrgplants)
 -- 		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+192, posy, posz-192, 0}, {"shift"})
 -- 		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx-192, posy, posz+192, 0}, {"shift"})
 -- 		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+192, posy, posz+192, 0}, {"shift"})
--- 		Spring.GiveOrderToUnit(scav, -(UDN.armpwbosst1_scav.id), {posx, posy, posz, 0}, {"shift"})
+-- 		Spring.GiveOrderToUnit(scav, -(UDN.armpwboss_scav_scav.id), {posx, posy, posz, 0}, {"shift"})
 -- 	end
 -- end
 -- table.insert(ScavengerConstructorBlueprintsT3,scavpwbosst1)

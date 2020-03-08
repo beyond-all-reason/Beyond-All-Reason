@@ -49,6 +49,6 @@ T3AirUnits = {
 }
 
 T4AirUnits = {
-"corcrwbosst2",
-"corcrwbosst2",
+"corcrwboss_scav",
+"corcrwboss_scav",
 }
