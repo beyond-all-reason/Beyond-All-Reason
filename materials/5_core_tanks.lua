@@ -22,7 +22,7 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 		offset = -offset
 	end
 
-	luaShaderObj:SetUniformAlways("etcLoc", 0.0, 0.0, -offset)
+	luaShaderObj:SetUniformAlways("etcLoc", 0.0, 0.0, offset)
 
 	--end
 	--// engine should still draw it (we just set the uniforms for the shader)
