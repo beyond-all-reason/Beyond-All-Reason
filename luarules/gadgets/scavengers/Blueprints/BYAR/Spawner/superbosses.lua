@@ -34,7 +34,7 @@ local posradius = 200
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armpwboss_scav"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+		Spring.CreateUnit("armpwboss"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,armpwboss_scav)

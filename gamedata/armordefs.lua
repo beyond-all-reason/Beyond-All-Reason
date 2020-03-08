@@ -367,7 +367,7 @@ local armorDefs = {
 		"corape",
 		"corcrw",
 		"corcut",
-		"corcrwboss_scav_scav",
+		"corcrwboss_scav",
 	},
 	shields = {
 		"armgate",
