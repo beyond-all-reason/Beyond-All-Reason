@@ -82,6 +82,17 @@ local glTranslate = gl.Translate
 local glScale = gl.Scale
 
 
+local scavengersAIEnabled = false
+local teams = Spring.GetTeamList()
+for i = 1,#teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengersAIEnabled = true
+		break
+	end
+end
+
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 WG.uiScale = widgetScale
@@ -2791,11 +2802,10 @@ function init()
 		options[getOptionByID('sun_reset')] = nil
 	end
 
-
-	-- if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
-		-- options[getOptionByID('scav_voicenotifs')] = nil
-		-- options[getOptionByID('scav_messages')] = nil
-	-- end
+	if not scavengersAIEnabled and (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+		options[getOptionByID('scav_voicenotifs')] = nil
+		options[getOptionByID('scav_messages')] = nil
+	end
 
 	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 	--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
