@@ -164,7 +164,7 @@ local function FillMaterials(unitMaterials, materials, matTemplate, matParentNam
 		end
 	end
 
-	unitMaterials[udef.name] = {matName,
+	unitMaterials[udef.id] = {matName,
 		TEX1 = GG.GetScavTexture(udID, 0) or string.format("%%%%%d:0", udID),
 		TEX2 = GG.GetScavTexture(udID, 1) or string.format("%%%%%d:1", udID),
 		NORMALTEX = udefCM.normaltex

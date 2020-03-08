@@ -125,15 +125,15 @@ for id, featureDef in pairs(FeatureDefs) do
 
 	--Spring.Echo("Parsed feature",featureDef.name)
 	if featureDef.customParams and featureDef.customParams.normaltex then
-		featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = featureDef.customParams.normaltex}
+		featureMaterials[id] = {"feature_tree_normalmap", NORMALTEX = featureDef.customParams.normaltex}
 		--Spring.Echo("Parsed feature",featureDef.name,"and added normal map",featureDef.customParams.normaltex)
 	else
 		for _,stub in ipairs (featureNameStubs) do
 			if featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.name and featureDef.name:find(stub) and featureDef.name:find(stub) == 1 then --also starts with
 				if featureDef.name:find('btree') == 1 then --beherith's old trees suffer if they get shitty normals
-					featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/blank_normal.dds"}
+					featureMaterials[id] = {"feature_tree_normalmap", NORMALTEX = "unittextures/blank_normal.dds"}
 				else
-					featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/default_tree_normal.dds"}
+					featureMaterials[id] = {"feature_tree_normalmap", NORMALTEX = "unittextures/default_tree_normal.dds"}
 				end
 			end
 		end

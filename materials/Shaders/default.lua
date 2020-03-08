@@ -1084,6 +1084,7 @@ fragment = [[
 			//outColor = ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
+			//outColor = vec3(1.0);
 		#endif
 
 		#if (deferred_mode == 0)
