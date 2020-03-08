@@ -42,7 +42,6 @@ return {
 		turninplacespeedlimit = 1.6104,
 		turnrate = 365,
 		customparams = {
-			arm_tank = "1",
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",

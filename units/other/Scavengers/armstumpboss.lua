@@ -44,7 +44,6 @@ return {
 		turninplacespeedlimit = 1.0,
 		turnrate = 150,
 		customparams = {
-			arm_tank = "1",
 			basename = "base",
 			cannon1name = "cannon1",
 			description_long = "It's an insanely huge variant of the Stumpy-Class assault tank, which has been modded and supersized to an enormous giant. Heavy Air Support is needed to effectively destroy these monsters",

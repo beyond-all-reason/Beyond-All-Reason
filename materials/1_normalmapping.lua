@@ -96,7 +96,7 @@ for i = 1, #UnitDefs do
 	local udef = UnitDefs[i]
 	local udefCM = udef.customParams
 
-	if udefCM.arm_tank == nil and udefCM.core_tank == nil and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
+	if udef.modCategories['tank'] == nil and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
 		default_aux.FillMaterials(unitMaterials, materials, matTemplate, "normalMappedS3O", i)
 	end
 end
