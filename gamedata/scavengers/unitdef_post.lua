@@ -1,6 +1,7 @@
 -- this file gets included in alldefs_post.lua
 
 function scav_Udef_Post(name, uDef)
+	uDef.category = uDef.category..' SCAVENGER'
 
 	-- make barrelshot purple
 	uDef.capturable = false

@@ -50,7 +50,7 @@ end
 
      for name,uDef in pairs(UnitDefs) do
          local faction = string.sub(name, 1, 3)
-         if (faction == 'arm' or faction == 'cor') and not string.find(name, '_scav')then
+         if (faction == 'arm' or faction == 'cor') and not string.find(name, '_scav') then
              if customDefs[name] ~= nil then
                  scavengerUnitDefs[name..'_scav'] = tableMergeSpecial(deepcopy(uDef), deepcopy(customDefs[name]))
              else
