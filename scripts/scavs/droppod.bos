@@ -11,6 +11,7 @@ Create()
 	hide launcher;
 	hide emit;
 	hide base;
+	hide arm;
 	dont-shade base;
 	dont-cache base;
 	set ARMORED to 0;
