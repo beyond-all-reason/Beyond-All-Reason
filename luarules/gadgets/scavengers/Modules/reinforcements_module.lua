@@ -15,16 +15,17 @@ function spawnPlayerReinforcements(n)
     --posOccupied(posx, posy, posz, posradius)
     for _,teamID in ipairs(Spring.GetTeamList()) do
         local LuaAI = Spring.GetTeamLuaAI(teamID)
-        local _,_,isDead,isAI,_,allyTeamID = Spring.GetTeamInfo(teamID)
+        local _,teamLeader,isDead,isAI,_,allyTeamID = Spring.GetTeamInfo(teamID)
+        
         if (not LuaAI) and teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-            
+            local playerName = Spring.GetPlayerInfo(teamLeader)
             if not ReinforcementsCountPerTeam[teamID] or ReinforcementsCountPerTeam[teamID] == 0 then
-                ReinforcementsCountPerTeam[teamID] = 1
+                ReinforcementsCountPerTeam[teamID] = 0
             end
 
             if not isDead then
                 if TryingToSpawnReinforcements[teamID] == true then
-                    if GameShortName == "BYAR" and ReinforcementsCountPerTeam[teamID] == 1 then
+                    if GameShortName == "BYAR" and ReinforcementsCountPerTeam[teamID] == 0 then
                         local spGetTeamUnits = Spring.GetTeamUnits(teamID)
                         for i = 1,#spGetTeamUnits do
                             local unitID = spGetTeamUnits[i]
@@ -48,9 +49,11 @@ function spawnPlayerReinforcements(n)
                             if ReinforcementsFaction[teamID] == "arm" then
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
                                 Spring.CreateUnit("corcom", posx, posy, posz, math_random(0,3),teamID)
+                                ScavSendMessage(playerName .."'s additional commander arrived.")
                             elseif ReinforcementsFaction[teamID] == "core" then
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
                                 Spring.CreateUnit("armcom", posx, posy, posz, math_random(0,3),teamID)
+                                ScavSendMessage(playerName .."'s additional commander arrived.")
                             end
                             TryingToSpawnReinforcements[teamID] = false
                             ReinforcementsCountPerTeam[teamID] = ReinforcementsCountPerTeam[teamID] + 1
@@ -109,10 +112,16 @@ function spawnPlayerReinforcements(n)
                                     groupsize = 1
                                 end
                             end
+                            if groupsize == 1 then
+                                ScavSendMessage(playerName .."'s reinforcements detected. Unit: ".. UDN[groupunit].humanName .. ".")
+                            else
+                                ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. groupsize .." ".. UDN[groupunit].humanName .."s.")
+                            end
                             for i = 1,groupsize do
                                 local posx = posx+(math_random(-posradius,posradius))
                                 local posz = posz+(math_random(-posradius,posradius))
                                 local posy = Spring.GetGroundHeight(posx, posz)
+                                
                                 Spring.CreateUnit(groupunit, posx, posy, posz, math_random(0,3),teamID)
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
                             end
@@ -122,7 +131,7 @@ function spawnPlayerReinforcements(n)
                     end
                 else
                     local r = math_random(0,300)
-                    if r == 0 then
+                    if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
                         TryingToSpawnReinforcements[teamID] = true
                     else
                         TryingToSpawnReinforcements[teamID] = false
