@@ -26,6 +26,40 @@ function ScavSendVoiceMessage(filedirectory)
 	end
 end
 
+function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
+	local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team}
+	local QueueFrame = frame
+	if #QueuedSpawnsFrames > 0 then
+		for i = 1, #QueuedSpawnsFrames do
+			local CurrentQueueFrame = QueuedSpawnsFrames[i]
+			if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
+				table.insert(QueuedSpawns, i, QueueSpawnCommand)
+				table.insert(QueuedSpawnsFrames, i, QueueFrame)
+				break
+			end
+		end
+	else
+		table.insert(QueuedSpawns, QueueSpawnCommand)
+		table.insert(QueuedSpawnsFrames, QueueFrame)
+	end
+end
+
+function SpawnFromQueue(n)
+	local QueuedSpawnsForNow = #QueuedSpawns
+	if QueuedSpawnsForNow > 0 then
+		for i = 1,QueuedSpawnsForNow do
+			if n == QueuedSpawnsFrames[1] then
+				local createSpawnCommand = QueuedSpawns[1]
+				Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
+				table.remove(QueuedSpawns, 1)
+				table.remove(QueuedSpawnsFrames, 1)
+			else
+				break
+			end
+		end
+	end
+end
+
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 
@@ -100,6 +134,10 @@ end
 
 
 function gadget:GameFrame(n)
+	if n > 1 then
+		SpawnFromQueue(n)
+	end
+
 	if n == 1 then
 		Spring.Echo("New Scavenger Spawner initialized")
 		Spring.SetTeamColor(GaiaTeamID, 0.3, 0.15, 0.3)

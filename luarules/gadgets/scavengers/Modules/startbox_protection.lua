@@ -81,7 +81,7 @@ function spawnStartBoxProtection(n)
         end
         
         if canSpawnDefence then
-            Spring.CreateUnit(pickedTurret..scavconfig.unitnamesuffix, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID)
+            QueueSpawn(pickedTurret..scavconfig.unitnamesuffix, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID,n+90+math.random(0,30))
             Spring.CreateUnit("scavengerdroppod_scav", spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID)
         end
     end

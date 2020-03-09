@@ -189,7 +189,7 @@ function UnitGroupSpawn(n)
 				for i=1, groupsize do
 					local posx = posx+math_random(-160,160)
 					local posz = posz+math_random(-160,160)
-					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+					QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+math.random(0,30))
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 				end
 				posx = nil

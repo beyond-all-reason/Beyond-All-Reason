@@ -51,6 +51,8 @@ Spring.Echo("[Scavengers] API initialized")
 	scavMaxUnits = 2000
 	scavengerSoundPath = "Sounds/voice/scavengers/"
 	killedscavengers = 0
+	QueuedSpawns = {}
+	QueuedSpawnsFrames = {}
 	
 	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)

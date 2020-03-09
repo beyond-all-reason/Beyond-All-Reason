@@ -51,11 +51,11 @@ function spawnPlayerReinforcements(n)
                         if canSpawnBeaconHereLos and canSpawnBeaconHereOcc and canSpawnBeaconHerePos then
                             if ReinforcementsFaction[teamID] == "arm" then
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
-                                Spring.CreateUnit("corcom", posx, posy, posz, math_random(0,3),teamID)
+                                QueueSpawn("corcom", posx, posy, posz, math_random(0,3),teamID,n+180+math.random(0,30))
                                 ScavSendMessage(playerName .."'s additional commander arrived.")
                             elseif ReinforcementsFaction[teamID] == "core" then
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
-                                Spring.CreateUnit("armcom", posx, posy, posz, math_random(0,3),teamID)
+                                QueueSpawn("armcom", posx, posy, posz, math_random(0,3),teamID,n+180+math.random(0,30))
                                 ScavSendMessage(playerName .."'s additional commander arrived.")
                             end
                             TryingToSpawnReinforcements[teamID] = false
@@ -125,7 +125,7 @@ function spawnPlayerReinforcements(n)
                                 local posz = posz+(math_random(-posradius,posradius))
                                 local posy = Spring.GetGroundHeight(posx, posz)
                                 
-                                Spring.CreateUnit(groupunit, posx, posy, posz, math_random(0,3),teamID)
+                                QueueSpawn(groupunit, posx, posy, posz, math_random(0,3),teamID, n+180+math.random(0,30))
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
                             end
                             TryingToSpawnReinforcements[teamID] = false
