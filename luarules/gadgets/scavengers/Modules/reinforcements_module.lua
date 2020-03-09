@@ -139,7 +139,7 @@ function spawnPlayerReinforcements(n)
                     local r = math_random(0,ReinforcementsChancePerTeam[teamID])
                     if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
                         TryingToSpawnReinforcements[teamID] = true
-                        ReinforcementsChancePerTeam[teamID] = 10
+                        ReinforcementsChancePerTeam[teamID] = 300
                     else
                         TryingToSpawnReinforcements[teamID] = false
                         ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
