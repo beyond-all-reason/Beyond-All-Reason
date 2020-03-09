@@ -75,13 +75,13 @@ function spawnPlayerReinforcements(n)
                             if aircraftchance == 0 then
                                 if spawnTier <= 50 then
                                     groupunit = T1AirUnits[math_random(1,#T1AirUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]*2)*unitSpawnerModuleConfig.airmultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.airmultiplier)
                                 elseif spawnTier <= 95 then
                                     groupunit = T2AirUnits[math_random(1,#T2AirUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.airmultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/2)*unitSpawnerModuleConfig.airmultiplier)
                                 elseif spawnTier <= 99 then
                                     groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/4)*unitSpawnerModuleConfig.airmultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/8)*unitSpawnerModuleConfig.airmultiplier)
                                 elseif spawnTier <= 100 then
                                     groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
                                     groupsize = 1
@@ -89,13 +89,13 @@ function spawnPlayerReinforcements(n)
                             elseif posy > -20 then
                                 if spawnTier <= 50 then
                                     groupunit = T1LandUnits[math_random(1,#T1LandUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]*4)*unitSpawnerModuleConfig.landmultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]*2)*unitSpawnerModuleConfig.landmultiplier)
                                 elseif spawnTier <= 95 then
                                     groupunit = T2LandUnits[math_random(1,#T2LandUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]*2)*unitSpawnerModuleConfig.landmultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.landmultiplier)
                                 elseif spawnTier <= 99 then
                                     groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/4)*unitSpawnerModuleConfig.landmultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/8)*unitSpawnerModuleConfig.landmultiplier)
                                 elseif spawnTier <= 100 then
                                     groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
                                     groupsize = 1
@@ -103,13 +103,13 @@ function spawnPlayerReinforcements(n)
                             elseif posy <= -20 then
                                 if spawnTier <= 50 then
                                     groupunit = T1SeaUnits[math_random(1,#T1SeaUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]*2)*unitSpawnerModuleConfig.seamultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.seamultiplier)
                                 elseif spawnTier <= 95 then
                                     groupunit = T2SeaUnits[math_random(1,#T2SeaUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.seamultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/2)*unitSpawnerModuleConfig.seamultiplier)
                                 elseif spawnTier <= 99 then
                                     groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/4)*unitSpawnerModuleConfig.seamultiplier)
+                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/8)*unitSpawnerModuleConfig.seamultiplier)
                                 elseif spawnTier <= 100 then
                                     groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
                                     groupsize = 1
