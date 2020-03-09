@@ -15,7 +15,11 @@ T1AirUnits = {
 "corbw",
 "corveng",
 "corhunt",
-
+--constructors
+"armca",
+"armcsa",
+"corca",
+"corcsa",
 }
 
 T2AirUnits = {
@@ -28,7 +32,9 @@ T2AirUnits = {
 "corawac",
 "corsfig",
 "corcut",
-
+--constructors
+"armaca",
+"coraca",
 }
 
 T3AirUnits = {

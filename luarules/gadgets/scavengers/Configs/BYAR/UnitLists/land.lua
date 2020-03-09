@@ -42,6 +42,15 @@ T1LandUnits = {
 "cormh",
 "corah",
 "corsnap",
+--constructors
+"armck",
+"armcv",
+"armbeaver",
+"armch",
+"corck",
+"corcv",
+"cormuskrat",
+
 }
 
 T2LandUnits = {
@@ -88,6 +97,14 @@ T2LandUnits = {
 "corparrow",
 --hovercraft
 "corhal",
+--constructors
+"armack",
+"armdecom",
+"armacv",
+"armconsul",
+"corack",
+"cordecom",
+"coracv",
 }
 
 T3LandUnits = {

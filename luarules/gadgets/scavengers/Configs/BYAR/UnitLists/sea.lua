@@ -25,6 +25,12 @@ T1SeaUnits = {
 "cormh",
 "corah",
 "corsnap",
+--constructors
+"armbeaver",
+"armch",
+"armcs",
+"cormuskrat",
+"corcs",
 }
 
 T2SeaUnits = {
@@ -50,6 +56,12 @@ T2SeaUnits = {
 "corseal",
 --hovercraft
 "corhal",
+--constructors
+"armbeaver",
+"armch",
+"armcs",
+"cormuskrat",
+"corcs",
 }
 
 T3SeaUnits = {
