@@ -1,3 +1,8 @@
+local enabled = false
+if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+	enabled = true
+end
+
 function gadget:GetInfo()
   return {
     name      = "loader for Scavenger mod",
@@ -5,16 +10,29 @@ function gadget:GetInfo()
     author    = "Damgam",
     date      = "2019",
     layer     = -100,
-    enabled   = true,
+    enabled   = enabled,
 	}
 end
 
+
+
+--local scavengersEnabled = false
+--if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+local teams = Spring.GetTeamList()
+for i = 1,#teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengersAIEnabled = true
+		scavengerAITeamID = i - 1
+		break
+	end
+end
 
 function gadget:GameOver()
 	gadgetHandler:RemoveGadget(self)
 end
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 
 	local isSpec = Spring.GetSpectatingState()
 	local myTeamID = Spring.GetMyTeamID()
@@ -105,32 +123,9 @@ if (not gadgetHandler:IsSyncedCode()) then
 		gadgetHandler:RemoveSyncAction("SendNotification")
 	end
 
-	function gadget:GameOver()
-		gadgetHandler:RemoveGadget(self)
-	end
 
 else
 
-	--local scavengersEnabled = false
-	--if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
-	local teams = Spring.GetTeamList()
-	for i = 1,#teams do
-		local luaAI = Spring.GetTeamLuaAI(teams[i])
-		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-			scavengersAIEnabled = true
-			scavengerAITeamID = i - 1
-			break
-		end
-	end
-	if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
-		VFS.Include('luarules/gadgets/scavengers/boot.lua')
-	else
-		gadgetHandler:RemoveGadget(self)
-	end
-
-	function gadget:GameOver()
-		gadgetHandler:RemoveGadget(self)
-	end
-	--end
+	VFS.Include('luarules/gadgets/scavengers/boot.lua')
 
 end
