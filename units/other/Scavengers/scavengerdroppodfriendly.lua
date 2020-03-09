@@ -92,9 +92,9 @@ return {
 				wobble = 50,
 				customparams = {
 					expl_light_color = "0.1 0.95 0.1",
-					expl_light_life_mult = 2.4,
-					expl_light_mult = 1.4,
-					expl_light_radius_mult = 1.6,
+					expl_light_life_mult = 1.8,
+					expl_light_mult = 1.2,
+					expl_light_radius_mult = 1.2,
 				},
 				damage = {
 					chicken = 1,
