@@ -1,7 +1,7 @@
 local ReinforcementsCountPerTeam = {}
 local TryingToSpawnReinforcements = {}
 local ReinforcementsFaction = {}
-
+local ReinforcementsChancePerTeam = {}
 function spawnPlayerReinforcements(n)
     --mapsizeX
     --mapsizeZ
@@ -19,8 +19,11 @@ function spawnPlayerReinforcements(n)
         
         if (not LuaAI) and teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() and (not isAI) then
             local playerName = Spring.GetPlayerInfo(teamLeader)
-            if not ReinforcementsCountPerTeam[teamID] or ReinforcementsCountPerTeam[teamID] == 0 then
+            if not ReinforcementsCountPerTeam[teamID] then
                 ReinforcementsCountPerTeam[teamID] = 0
+            end
+            if not ReinforcementsChancePerTeam[teamID] then
+                ReinforcementsChancePerTeam[teamID] = 300
             end
 
             if not isDead then
@@ -130,11 +133,13 @@ function spawnPlayerReinforcements(n)
                         end
                     end
                 else
-                    local r = math_random(0,300)
+                    local r = math_random(0,ReinforcementsChancePerTeam[teamID])
                     if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
                         TryingToSpawnReinforcements[teamID] = true
+                        ReinforcementsChancePerTeam[teamID] = 300
                     else
                         TryingToSpawnReinforcements[teamID] = false
+                        ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
                     end
 
                 end
