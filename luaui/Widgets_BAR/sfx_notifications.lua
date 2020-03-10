@@ -58,7 +58,7 @@ addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'A player has disconne
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'A player has been added to the game')
 
 -- awareness
-addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
+--addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
 addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, "You've received new units")
 
 addSound('RadarLost', 'RadarLost.wav', 8, 1, 'Radar lost')
@@ -402,7 +402,7 @@ function widget:GameFrame(gf)
 			if spIsUnitInView(unitID) then
 				idleBuilder[unitID] = nil
 			elseif frame < gf then
-				QueueNotification('IdleBuilder')
+				--QueueNotification('IdleBuilder')
 				idleBuilder[unitID] = nil	-- do not repeat
 			end
 		end
