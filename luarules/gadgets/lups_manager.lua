@@ -213,7 +213,7 @@ else
 	}
 
 	local scavEffects = {}
-	if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	if UnitDefNames['armcom_scav'] then
 		for k,effect in pairs(UnitEffects) do
 			scavEffects[k..'_scav'] = effect
 			if scavEffects[k..'_scav'].options then

@@ -101,7 +101,7 @@ local popups = {	-- exclude auto target range boost for popup units
 	[UnitDefNames.corllt.id] = true,
 	[UnitDefNames.armllt.id] = true,
 }
-if 2+2 == 4 then --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+if UnitDefNames['armcom_scav'] then
 	local scavengerPopups = {}
 	for k,v in pairs(popups) do
 		scavengerPopups[k..'_scav'] = v

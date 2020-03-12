@@ -123,6 +123,8 @@ if not gadgetHandler:IsSyncedCode() then
 
 else
 
-	VFS.Include('luarules/gadgets/scavengers/boot.lua')
+	if enabled then
+		VFS.Include('luarules/gadgets/scavengers/boot.lua')
+	end
 
 end
