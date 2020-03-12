@@ -376,8 +376,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			scavSpawnBeacon[unitID] = true
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 			Spring.SetUnitNeutral(unitID, true)
-			Spring.SetUnitMaxHealth(unitID, 999999)
-			Spring.SetUnitHealth(unitID, 999999)
+			Spring.SetUnitMaxHealth(unitID, 10000)
+			Spring.SetUnitHealth(unitID, 10000)
 		end
 		-- CMD.CLOAK = 37382
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
