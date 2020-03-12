@@ -137,6 +137,7 @@ function CaptureBeacons(n)
 	CapturingUnits = {}
 	CapturingUnitsTeam = {}
 	captureraiTeam = {}
+	
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
 		local scavDef = Spring.GetUnitDefID(scav)
@@ -148,19 +149,27 @@ function CaptureBeacons(n)
 			for j = 1,#unitsAround do
 				local unitID = unitsAround[j]
 				local unitTeamID = spGetUnitTeam(unitID)
-				if not captureraiTeam[teamID] and select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-					captureraiTeam[teamID] = true
+				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
+				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
+				
+				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+					captureraiTeam[unitTeamID] = false
+				else
+					captureraiTeam[unitTeamID] = true
 				end
+
 				if not CapturingUnitsTeam[unitTeamID] then
 					CapturingUnitsTeam[unitTeamID] = 0
 				end
+
 				if unitTeamID == GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
 					CapturingUnits[scav] = CapturingUnits[scav] - 5
-				elseif (not captureraiTeam[teamID]) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
+				elseif (not captureraiTeam[unitTeamID]) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
 					CapturingUnits[scav] = CapturingUnits[scav] + 1
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 				end
-				if (not captureraiTeam[teamID]) and CapturingUnits[scav] > 1 and CapturingUnitsTeam[unitTeamID] > 5 then
+
+				if (not captureraiTeam[unitTeamID]) and CapturingUnits[scav] > 1 and CapturingUnitsTeam[unitTeamID] > 5 then
 					Spring.TransferUnit(scav, unitTeamID, true)
 					break
 				end
