@@ -1742,7 +1742,7 @@ function init()
 		 end,
 		},
 
-		{id="shadowslider", group="gfx", basic=true, name="Shadows", type="slider", steps={1024,2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail',
+		{id="shadowslider", group="gfx", basic=true, name="Shadows", type="slider", steps={2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail',
 		 onchange=function(i,value)
 			 local enabled = (value < 1000) and 0 or 1
 			 Spring.SendCommands("shadows "..enabled.." "..value)
@@ -1859,7 +1859,7 @@ function init()
 		},
 
 		{id="bloomdeferred", group="gfx", basic=true, widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)'},
-		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description='',
+		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.5, max=1.25, step=0.05, value=1, description='',
 		 onchange=function(i,value) saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', {'glowAmplifier'}, value) end,
 		 onload=function() loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", {'glowAmplifier'}) end,
 		},
@@ -3246,10 +3246,10 @@ function widget:Initialize()
 		--end
 
 		-- enable shadows at gamestart
-		if Spring.GetConfigInt("Shadows",0) ~= 1 then
-			Spring.SetConfigInt("Shadows",1)
-			Spring.SendCommands("Shadows 1")
-		end
+		--if Spring.GetConfigInt("Shadows",0) ~= 1 then
+		--	Spring.SetConfigInt("Shadows",1)
+		--	Spring.SendCommands("Shadows 1")
+		--end
 		-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
 		--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 		--	Spring.SendCommands("Shadows 1 1000")

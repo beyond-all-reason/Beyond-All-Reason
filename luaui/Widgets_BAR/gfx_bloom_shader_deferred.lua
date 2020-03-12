@@ -15,9 +15,9 @@ end
 local dbgDraw = 0                -- draw only the bloom-mask? [0 | 1]
 local globalBlursizeMult = 1
 
-local glowAmplifier = 0.75            -- intensity multiplier when filtering a glow source fragment [1, n]
+local glowAmplifier = 0.9            -- intensity multiplier when filtering a glow source fragment [1, n]
 local blurAmplifier = 1        -- intensity multiplier when applying a blur pass [1, n] (should be set close to 1)
-local drawWorldAlpha = 0.08		-- darken world so bloom doesnt blown-white out the brightest areas too much
+local drawWorldAlpha = 0.06		-- darken world so bloom doesnt blown-white out the brightest areas too much
 local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
 
 local presets = {
@@ -26,13 +26,13 @@ local presets = {
 	--	blurPasses = 1,	-- how many iterations of Gaussian blur should be applied to the glow sources?
 	--	quality = 4,	-- resolution divider
 	--},
+	--{
+	--	blursize = 19,
+	--	blurPasses = 2,
+	--	quality = 2,
+	--},
 	{
-		blursize = 17,
-		blurPasses = 2,
-		quality = 2,
-	},
-	{
-		blursize = 13,
+		blursize = 16,
 		blurPasses = 3,
 		quality = 2,
 	},
