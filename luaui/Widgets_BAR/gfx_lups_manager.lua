@@ -223,22 +223,22 @@ local UnitEffects = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=22, piece="thrust", onActive=true, xzVelocity=1.2}},
     },
     ["corcrw"] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=12.5, length=22, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.85}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=12.5, length=22, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.85}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.85}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.85}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=18, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=18, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.4}},
     },
     ["corcrwboss"] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=25, length=44, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.75}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=25, length=44, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.75}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=20, length=40, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.75}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=20, length=44, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.75}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=18, length=36, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.33}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=18, length=36, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.33}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=16, length=32, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.33}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=16, length=32, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.33}},
     },
     ["corseah"] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.75}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.75}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.75}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.75}},
     },
     ["cortitan"] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=40, piece="thrustb", onActive=true, light=1}},
@@ -310,20 +310,22 @@ end
 
 if UnitDefNames['armcom_scav'] then
     local scavEffects = {}
-    for k,effect in pairs(UnitEffects) do
-        scavEffects[k..'_scav'] = effect
-        if scavEffects[k..'_scav'].options then
-            if scavEffects[k..'_scav'].options.color then
-                scavEffects[k..'_scav'].options.color = {0.92, 0.32, 1.0}
-            end
-            if scavEffects[k..'_scav'].options.colormap then
-                scavEffects[k..'_scav'].options.colormap = { {0.92, 0.32, 1.0} }
-            end
-            if scavEffects[k..'_scav'].options.colormap1 then
-                scavEffects[k..'_scav'].options.colormap1 = { {0.92, 0.32, 1.0} }
-            end
-            if scavEffects[k..'_scav'].options.colormap2 then
-                scavEffects[k..'_scav'].options.colormap2 = { {0.92, 0.32, 1.0} }
+    for k,effects in pairs(UnitEffects) do
+        scavEffects[k..'_scav'] = effects
+        for i,effect in pairs(effects) do
+            if scavEffects[k..'_scav'][i].options then
+                if scavEffects[k..'_scav'][i].options.color then
+                    scavEffects[k..'_scav'][i].options.color = {0.6, 0.12, 0.7}
+                end
+                if scavEffects[k..'_scav'][i].options.colormap then
+                    scavEffects[k..'_scav'][i].options.colormap = { {0.6, 0.12, 0.7} }
+                end
+                if scavEffects[k..'_scav'][i].options.colormap1 then
+                    scavEffects[k..'_scav'][i].options.colormap1 = { {0.6, 0.12, 0.7} }
+                end
+                if scavEffects[k..'_scav'][i].options.colormap2 then
+                    scavEffects[k..'_scav'][i].options.colormap2 = { {0.6, 0.12, 0.7} }
+                end
             end
         end
     end
