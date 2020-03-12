@@ -191,7 +191,7 @@ function gadget:GameFrame(n)
 
 	if n == 1 then
 		Spring.Echo("New Scavenger Spawner initialized")
-		Spring.SetTeamColor(GaiaTeamID, 0.3, 0.15, 0.3)
+		Spring.SetTeamColor(GaiaTeamID, 0.38, 0.14, 0.38)
 	end
 
 	if scavconfig.messenger == true and n%30 == 0 then

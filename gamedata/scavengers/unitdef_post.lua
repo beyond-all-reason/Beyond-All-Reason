@@ -9,9 +9,9 @@ function scav_Udef_Post(name, uDef)
 	uDef.category = uDef.category..' SCAVENGER'
 
 	-- add model vertex displacement
-	local vertexDisplacement = 3.3 + ((uDef.footprintx + uDef.footprintz) / 8)
-	if vertexDisplacement > 7 then
-		vertexDisplacement = 7
+	local vertexDisplacement = 4.5 + ((uDef.footprintx + uDef.footprintz) / 10)
+	if vertexDisplacement > 9 then
+		vertexDisplacement = 9
 	end
 	uDef.customparams.scavvertdisp = vertexDisplacement
 

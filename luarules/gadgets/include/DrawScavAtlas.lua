@@ -12,7 +12,7 @@ local vs =
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 	void main() {
-		const float noiseFreq = 1.0;
+		const float noiseFreq = 1.2;
 		noiseSeed = (gl_Vertex.xyz) * noiseFreq;
 		uv = gl_MultiTexCoord0.xy;
 
@@ -132,7 +132,7 @@ local fs =
 		vec4 wreckTexNormal = textureLod(wreckTexN, uv, 0.0);
 		wreckTexNormal.xyz = normalize(NORM2SNORM(wreckTexNormal.xyz));
 
-		const vec2 noiseBounds = vec2(0.2, 0.75);
+		const vec2 noiseBounds = vec2(0.33, 0.8);
 
 		float mixNoise = smoothstep(noiseBounds.x, noiseBounds.y, fbm(noiseSeed));
 
