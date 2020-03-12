@@ -18,22 +18,14 @@ function SpawnBeacon(n)
 			canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
 			if canSpawnBeaconHere then
 				if globalScore then
-					if (n < 18000) and ScavengerStartboxExists then
-						if ScavengerStartboxXMin < posx and ScavengerStartboxXMax > posx and ScavengerStartboxZMin < posz and ScavengerStartboxZMax > posz then
-							canSpawnBeaconHere = true
-						else
-							canSpawnBeaconHere = false
-						end
+					if ScavengerStartboxExists and ScavengerStartboxXMin < posx and ScavengerStartboxXMax > posx and ScavengerStartboxZMin < posz and ScavengerStartboxZMax > posz then
+						canSpawnBeaconHere = true
+					-- elseif globalScore > scavconfig.timers.OnlyLos then
+						-- canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
+					elseif globalScore > scavconfig.timers.NoRadar then
+						canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
 					else
-						if ScavengerStartboxExists and ScavengerStartboxXMin < posx and ScavengerStartboxXMax > posx and ScavengerStartboxZMin < posz and ScavengerStartboxZMax > posz then
-							canSpawnBeaconHere = true
-						-- elseif globalScore > scavconfig.timers.OnlyLos then
-							-- canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
-						elseif globalScore > scavconfig.timers.NoRadar then
-							canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
-						else
-							canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)
-						end
+						canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)
 					end
 				end
 			end

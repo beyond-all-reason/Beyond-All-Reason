@@ -40,7 +40,7 @@ if scavengersAIEnabled then
 			T4top								= 28000,
 			BossFight							= 33000,
 			-- don't delete
-			NoRadar								= 7500,
+			NoRadar								= 1200,
 		},
 		other = {
 			heighttolerance						= 30, -- higher = allow higher height diffrences
@@ -69,16 +69,16 @@ if scavengersAIEnabled then
 
 		t0multiplier						= 2,
 		t1multiplier						= 1.5,
-		t2multiplier						= 1.0,
-		t3multiplier						= 0.2,
-		t4multiplier						= 0.05,
+		t2multiplier						= 0.8,
+		t3multiplier						= 0.1,
+		t4multiplier						= 0.03,
 	}
 
 	constructorControllerModuleConfig = {
 		constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
 		constructortimer 					= 220, -- time in seconds between commander/constructor spawns
 		constructortimerreductionframes		= 36000,
-		minimumconstructors					= 3,
+		minimumconstructors					= 5,
 		useresurrectors						= true,
 			searesurrectors					= false,
 		useconstructors						= true,

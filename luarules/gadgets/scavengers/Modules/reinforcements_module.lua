@@ -88,6 +88,7 @@ function spawnPlayerReinforcements(n)
                       --      TryingToSpawnReinforcements[teamID] = false
                      --       ReinforcementsCountPerTeam[teamID] = ReinforcementsCountPerTeam[teamID] + 1
                         --else
+                            local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
                             local posradius = 160
                             local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
                             local posy = Spring.GetGroundHeight(posx, posz)
@@ -96,44 +97,44 @@ function spawnPlayerReinforcements(n)
                             if aircraftchance == 0 then
                                 if spawnTier <= 50 then
                                     groupunit = T1AirUnits[math_random(1,#T1AirUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.airmultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t1multiplier
                                 elseif spawnTier <= 95 then
                                     groupunit = T2AirUnits[math_random(1,#T2AirUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/2)*unitSpawnerModuleConfig.airmultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
                                 elseif spawnTier <= 99 then
                                     groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/8)*unitSpawnerModuleConfig.airmultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier
                                 elseif spawnTier <= 100 then
                                     groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
-                                    groupsize = 1
+                                    groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
                                 end
                             elseif posy > -20 then
                                 if spawnTier <= 50 then
                                     groupunit = T1LandUnits[math_random(1,#T1LandUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]*2)*unitSpawnerModuleConfig.landmultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t1multiplier
                                 elseif spawnTier <= 95 then
                                     groupunit = T2LandUnits[math_random(1,#T2LandUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.landmultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
                                 elseif spawnTier <= 99 then
                                     groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/8)*unitSpawnerModuleConfig.landmultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier
                                 elseif spawnTier <= 100 then
                                     groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
-                                    groupsize = 1
+                                    groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
                                 end
                             elseif posy <= -20 then
                                 if spawnTier <= 50 then
                                     groupunit = T1SeaUnits[math_random(1,#T1SeaUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID])*unitSpawnerModuleConfig.seamultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t1multiplier
                                 elseif spawnTier <= 95 then
                                     groupunit = T2SeaUnits[math_random(1,#T2SeaUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/2)*unitSpawnerModuleConfig.seamultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
                                 elseif spawnTier <= 99 then
                                     groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
-                                    groupsize = math.floor((ReinforcementsCountPerTeam[teamID]/8)*unitSpawnerModuleConfig.seamultiplier)
+                                    groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier
                                 elseif spawnTier <= 100 then
                                     groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
-                                    groupsize = 1
+                                    groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
                                 end
                             end
                             if groupsize == 1 then
@@ -141,6 +142,7 @@ function spawnPlayerReinforcements(n)
                             else
                                 ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. groupsize .." ".. UDN[groupunit].humanName .."s.")
                             end
+                            groupsize = math.floor(groupsize)
                             for i = 1,groupsize do
                                 local posx = posx+(math_random(-posradius,posradius))
                                 local posz = posz+(math_random(-posradius,posradius))
