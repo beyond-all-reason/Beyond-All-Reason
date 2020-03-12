@@ -136,6 +136,7 @@ function CaptureBeacons(n)
 	local spGetUnitTeam = Spring.GetUnitTeam
 	CapturingUnits = {}
 	CapturingUnitsTeam = {}
+	captureraiTeam = {}
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
 		local scavDef = Spring.GetUnitDefID(scav)
