@@ -57,7 +57,7 @@ function spawnPlayerReinforcements(n)
                     else
                         pickedBeacon = nil
                         TryingToSpawnReinforcements[teamID] = false
-                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*5)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
                     end
                     PlayerSpawnBeacons = nil
                     if pickedBeacon then
@@ -160,7 +160,7 @@ function spawnPlayerReinforcements(n)
                     local r = math_random(0,ReinforcementsChancePerTeam[teamID])
                     if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
                         TryingToSpawnReinforcements[teamID] = true
-                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*5)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
                     else
                         TryingToSpawnReinforcements[teamID] = false
                         ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
