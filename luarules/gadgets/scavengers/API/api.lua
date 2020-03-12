@@ -48,6 +48,7 @@ Spring.Echo("[Scavengers] API initialized")
 	scavSpawnBeacon = {}
 	UnitSuffixLenght = {}
 	numOfSpawnBeacons = 0
+	numOfSpawnBeaconsTeams = {}
 	scavMaxUnits = 2000
 	scavengerSoundPath = "Sounds/voice/scavengers/"
 	killedscavengers = 0
@@ -201,6 +202,9 @@ function teamsCheck()
 	scoreTeamCount = 0
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
+			if not numOfSpawnBeaconsTeams[teamID] then
+				numOfSpawnBeaconsTeams[teamID] = 0
+			end
 			local i = teamID
 			local _,_,teamisDead = Spring.GetTeamInfo(i)
 			local unitCount = Spring.GetTeamUnitCount(i)

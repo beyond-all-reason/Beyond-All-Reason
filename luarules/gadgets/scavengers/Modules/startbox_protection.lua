@@ -10,6 +10,8 @@ function spawnStartBoxProtection(n)
     --GaiaAllyTeamID
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
+    local mapsizeX = mapsizeX - 64
+    local mapsizeZ = mapsizeZ - 64
     local r = math_random(0,3)
     local r2 = math_random(0,20)
     local spread = spawnProtectionConfig.spread
@@ -33,7 +35,7 @@ function spawnStartBoxProtection(n)
         spawnPosZ = math_random(ScavengerStartboxZMin,ScavengerStartboxZMax)
     end
     canSpawnDefence = true
-    if spawnPosX > mapsizeX or spawnPosX == 0 or spawnPosZ == mapsizeZ or spawnPosZ == 0 then
+    if spawnPosX > mapsizeX or spawnPosX < 64 or spawnPosZ == mapsizeZ or spawnPosZ < 64 then
         canSpawnDefence = false
     end
     spawnPosX = spawnPosX + math_random(-spread*2,spread*2)

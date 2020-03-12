@@ -16,6 +16,7 @@ end
 
 local aiTeams = {}
 local aiCount = 0
+local UnitName = UnitDefs[unitDefID].name
 for _,teamID in ipairs(Spring.GetTeamList()) do
 	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 		aiCount = aiCount + 1
@@ -27,7 +28,7 @@ if aiCount == 0 then
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	if aiTeams[oldTeam] then
+	if (aiTeams[oldTeam] and not string.find(UnitName, "_scav")) or aiTeams[newTeam] then
 		return false
 	else
 		return true

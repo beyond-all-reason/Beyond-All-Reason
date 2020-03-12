@@ -97,8 +97,8 @@ return {
 					expl_light_radius_mult = 1.2,
 				},
 				damage = {
-					chicken = 1,
-					default = 1,
+					chicken = 0,
+					default = 0,
 				},
 			},
 		},

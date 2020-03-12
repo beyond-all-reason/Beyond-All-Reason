@@ -36,9 +36,9 @@ function UnitGroupSpawn(n)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if BossWaveTimeLeft then
-			ActualUnitSpawnChance = math_random(0,UnitSpawnChance*3)
+			ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/numOfSpawnBeacons)*3)
 		else
-			ActualUnitSpawnChance = math_random(0,UnitSpawnChance)
+			ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance/numOfSpawnBeacons))
 		end
 		if (ActualUnitSpawnChance == 0 or canSpawnHere == false) and numOfSpawnBeacons > 0 then
 			-- check positions
@@ -63,7 +63,7 @@ function UnitGroupSpawn(n)
 				bestTeamGroupMultiplier = 0.75
 			end
 			canSpawnHere = true
-			Spring.DestroyUnit(pickedBeacon,false,false)
+			--Spring.DestroyUnit(pickedBeacon,false,false)
 			SpawnBeacon(n)
 			local posradius = 160
 			

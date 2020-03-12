@@ -2,6 +2,7 @@ local ReinforcementsCountPerTeam = {}
 local TryingToSpawnReinforcements = {}
 local ReinforcementsFaction = {}
 local ReinforcementsChancePerTeam = {}
+local numOfSpawnBeaconsTeamsForSpawn = {}
 function spawnPlayerReinforcements(n)
     --mapsizeX
     --mapsizeZ
@@ -16,39 +17,65 @@ function spawnPlayerReinforcements(n)
     for _,teamID in ipairs(Spring.GetTeamList()) do
         local LuaAI = Spring.GetTeamLuaAI(teamID)
         local _,teamLeader,isDead,isAI,_,allyTeamID = Spring.GetTeamInfo(teamID)
-        
+
         if (not LuaAI) and teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() and (not isAI) then
             local playerName = Spring.GetPlayerInfo(teamLeader)
+            if not numOfSpawnBeaconsTeams[teamID] then
+                numOfSpawnBeaconsTeams[teamID] = 0
+            end
+            if not numOfSpawnBeaconsTeamsForSpawn[teamID] or numOfSpawnBeaconsTeamsForSpawn[teamID] == 0 then
+                numOfSpawnBeaconsTeamsForSpawn[teamID] = 2
+            else
+                numOfSpawnBeaconsTeamsForSpawn[teamID] = numOfSpawnBeaconsTeams[teamID] + 2
+            end
+
+
             if not ReinforcementsCountPerTeam[teamID] then
                 ReinforcementsCountPerTeam[teamID] = 0
             end
             if not ReinforcementsChancePerTeam[teamID] then
-                ReinforcementsChancePerTeam[teamID] = 300
+                ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID]) 
             end
 
             if not isDead then
                 if TryingToSpawnReinforcements[teamID] == true then
-                    if GameShortName == "BYAR" and ReinforcementsCountPerTeam[teamID] == 0 then
-                        local spGetTeamUnits = Spring.GetTeamUnits(teamID)
-                        for i = 1,#spGetTeamUnits do
-                            local unitID = spGetTeamUnits[i]
-                            local unitDefID = Spring.GetUnitDefID(unitID)
-                            local UnitName = UnitDefs[unitDefID].name
-                            if UnitName == "armcom" then
-                                ReinforcementsFaction[teamID] = "arm"
-                            elseif UnitName == "corcom" then
-                                ReinforcementsFaction[teamID] = "core"
-                            end
+                    local playerunits = Spring.GetTeamUnits(teamID)
+                    PlayerSpawnBeacons = {}
+                    for i = 1,#playerunits do
+                        local playerbeacon = playerunits[i]
+                        local playerbeaconDef = Spring.GetUnitDefID(playerbeacon)
+                        local UnitName = UnitDefs[playerbeaconDef].name
+                        if UnitName == "scavengerdroppodbeacon_scav" then
+                            table.insert(PlayerSpawnBeacons,playerbeacon)
                         end
-                        local posradius = 200
-                        local posx = math_random(0,mapsizeX)
-                        local posz = math_random(0,mapsizeZ)
-                        local posy = Spring.GetGroundHeight(posx, posz)
-                        
-                        local canSpawnBeaconHereLos = posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
-                        local canSpawnBeaconHereOcc = posOccupied(posx, posy, posz, posradius)
-                        local canSpawnBeaconHerePos = posCheck(posx, posy, posz, posradius)
-                        if canSpawnBeaconHereLos and canSpawnBeaconHereOcc and canSpawnBeaconHerePos then
+                    end
+                    --numOfSpawnBeaconsTeams[teamID] = 10
+                    if numOfSpawnBeaconsTeams[teamID] == 1 then
+                        pickedBeacon = PlayerSpawnBeacons[1]
+                    elseif numOfSpawnBeaconsTeams[teamID] > 1 then
+                        pickedBeacon = PlayerSpawnBeacons[math_random(1,#PlayerSpawnBeacons)]
+                    else
+                        pickedBeacon = nil
+                        TryingToSpawnReinforcements[teamID] = false
+                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*5)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+                    end
+                    PlayerSpawnBeacons = nil
+                    if pickedBeacon then
+                        if GameShortName == "BYAR" and ReinforcementsCountPerTeam[teamID] == 0 then
+                            local spGetTeamUnits = Spring.GetTeamUnits(teamID)
+                            for i = 1,#spGetTeamUnits do
+                                local unitID = spGetTeamUnits[i]
+                                local unitDefID = Spring.GetUnitDefID(unitID)
+                                local UnitName = UnitDefs[unitDefID].name
+                                if UnitName == "armcom" then
+                                    ReinforcementsFaction[teamID] = "arm"
+                                elseif UnitName == "corcom" then
+                                    ReinforcementsFaction[teamID] = "core"
+                                end
+                            end
+                            local posradius = 160
+                            local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+			                local posy = Spring.GetGroundHeight(posx, posz)
                             if ReinforcementsFaction[teamID] == "arm" then
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
                                 QueueSpawn("corcom", posx, posy, posz, math_random(0,3),teamID,n+120)
@@ -60,18 +87,12 @@ function spawnPlayerReinforcements(n)
                             end
                             TryingToSpawnReinforcements[teamID] = false
                             ReinforcementsCountPerTeam[teamID] = ReinforcementsCountPerTeam[teamID] + 1
-                        end
-                    else
-                        local posradius = 200
-                        local posx = math_random(0,mapsizeX)
-                        local posz = math_random(0,mapsizeZ)
-                        local posy = Spring.GetGroundHeight(posx, posz)
-                        local spawnTier = math_random(1,100)
-                        local aircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance)
-                        local canSpawnBeaconHereLos = posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
-                        local canSpawnBeaconHereOcc = posOccupied(posx, posy, posz, posradius)
-                        local canSpawnBeaconHerePos = posCheck(posx, posy, posz, posradius)
-                        if canSpawnBeaconHereLos and canSpawnBeaconHereOcc and canSpawnBeaconHerePos then
+                        else
+                            local posradius = 160
+                            local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+                            local posy = Spring.GetGroundHeight(posx, posz)
+                            local spawnTier = math_random(1,100)
+                            local aircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance)
                             if aircraftchance == 0 then
                                 if spawnTier <= 50 then
                                     groupunit = T1AirUnits[math_random(1,#T1AirUnits)]
@@ -125,9 +146,9 @@ function spawnPlayerReinforcements(n)
                                 local posz = posz+(math_random(-posradius,posradius))
                                 local posy = Spring.GetGroundHeight(posx, posz)
                                 if i then
-                                    QueueSpawn(groupunit, posx, posy, posz, math_random(0,3),teamID, n+100+i)
+                                    QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100+i)
                                 else
-                                    QueueSpawn(groupunit, posx, posy, posz, math_random(0,3),teamID, n+100)
+                                    QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100)
                                 end
                                 Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),teamID)
                             end
@@ -139,7 +160,7 @@ function spawnPlayerReinforcements(n)
                     local r = math_random(0,ReinforcementsChancePerTeam[teamID])
                     if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
                         TryingToSpawnReinforcements[teamID] = true
-                        ReinforcementsChancePerTeam[teamID] = 300
+                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*5)/numOfSpawnBeaconsTeamsForSpawn[teamID])
                     else
                         TryingToSpawnReinforcements[teamID] = false
                         ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
@@ -150,7 +171,7 @@ function spawnPlayerReinforcements(n)
             end
         
         end
-    
+        pickedBeacon = nil
     end
 
 end

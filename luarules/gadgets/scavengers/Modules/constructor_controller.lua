@@ -61,7 +61,7 @@ function SpawnConstructor(n)
 		end
 		if canSpawnCommanderHere then
 			posradius = 48
-			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
+			--Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
 			if not anothercommander then
 				ScavSendNotification("scav_scavcomdetected")
 				anothercommander = true
