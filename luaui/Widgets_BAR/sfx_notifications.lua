@@ -753,6 +753,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		Sound = Sound,
 		soundList = soundList,
 		globalVolume = globalVolume,
 		spoken = spoken,
@@ -766,6 +767,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.Sound and Spring.GetGameFrame() > 0 then
+		Sound = data.Sound
+	end
 	if data.soundList ~= nil then
 		for sound, enabled in pairs(data.soundList) do
 			if Sound[sound] then

@@ -308,8 +308,8 @@ if distoredShields then
     UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
 end
 
-local scavEffects = {}
 if UnitDefNames['armcom_scav'] then
+    local scavEffects = {}
     for k,effect in pairs(UnitEffects) do
         scavEffects[k..'_scav'] = effect
         if scavEffects[k..'_scav'].options then
