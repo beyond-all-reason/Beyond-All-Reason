@@ -4,6 +4,7 @@ return {
 		activatewhenbuilt = true,
 		autoheal = 10,
 		bmcode = "0",
+		blocking = false,
 		brakerate = 0,
 		buildcostenergy = 25000,
 		buildcostmetal = 400,
