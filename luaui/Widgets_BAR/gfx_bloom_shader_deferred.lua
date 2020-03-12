@@ -498,6 +498,7 @@ end
 
 function widget:SetConfigData(data)
 	if data.version and data.version == version then
+		data.version = version
 		if data.glowAmplifier ~= nil then
 			glowAmplifier = data.glowAmplifier
 		end
