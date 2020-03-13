@@ -162,7 +162,7 @@ function CaptureBeacons(n)
 					CapturingUnitsTeam[unitTeamID] = 0
 				end
 
-				if unitTeamID == GaiaTeamID and unitTeamID == Spring.GetGaiaTeamID() then
+				if unitTeamID == GaiaTeamID then
 					CapturingUnits[scav] = CapturingUnits[scav] - 5
 				elseif (not captureraiTeam[unitTeamID]) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
 					CapturingUnits[scav] = CapturingUnits[scav] + 1
