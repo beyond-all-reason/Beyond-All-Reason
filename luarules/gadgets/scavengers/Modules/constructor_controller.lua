@@ -122,10 +122,15 @@ function SpawnConstructor(n)
 	end
 end			
 	
+ConstructorNumberOfRetries = {}
 function ConstructNewBlueprint(n, scav)
+	if not ConstructorNumberOfRetries[scav] then
+		ConstructorNumberOfRetries[scav] = 0
+	end
+	ConstructorNumberOfRetries[scav] = ConstructorNumberOfRetries[scav] + 1
 	local x,y,z = Spring.GetUnitPosition(scav)
-	local posx = math_random(x-1000,x+1000)
-	local posz = math_random(z-1000,z+1000)
+	local posx = math_random(x-(50*ConstructorNumberOfRetries[scav]),x+(50*ConstructorNumberOfRetries[scav]))
+	local posz = math_random(z-(50*ConstructorNumberOfRetries[scav]),z+(50*ConstructorNumberOfRetries[scav]))
 	local posy = Spring.GetGroundHeight(posx, posz)
 	local spawnTier = math_random(1,100)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
@@ -172,27 +177,36 @@ function ConstructNewBlueprint(n, scav)
 	if canConstructHere then
 		canConstructHere = posCheck(posx, posy, posz, posradius)
 	end
+	
 	if canConstructHere then
 		-- let's do this shit
+		Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx,posy,posz}, {"shift"})
 		blueprint(scav, posx, posy, posz, GaiaTeamID, false)
-		local x = math_random(x-1000,x+1000)
-		local z = math_random(z-1000,z+1000)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-		local x = math_random(x-100,x+100)
-		local z = math_random(z-100,z+100)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		ConstructorNumberOfRetries[scav] = 0
 	else
-		local x,y,z = Spring.GetUnitPosition(scav)
-		local x = math_random(x-500,x+500)
-		local z = math_random(z-500,z+500)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-		local x,y,z = Spring.GetUnitPosition(scav)
-		local x = math_random(x-100,x+100)
-		local z = math_random(z-100,z+100)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		return
 	end
+	-- if canConstructHere then
+		-- -- let's do this shit
+		-- blueprint(scav, posx, posy, posz, GaiaTeamID, false)
+		-- local x = math_random(x-1000,x+1000)
+		-- local z = math_random(z-1000,z+1000)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		-- local x = math_random(x-100,x+100)
+		-- local z = math_random(z-100,z+100)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+	-- else
+		-- local x,y,z = Spring.GetUnitPosition(scav)
+		-- local x = math_random(x-500,x+500)
+		-- local z = math_random(z-500,z+500)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		-- local x,y,z = Spring.GetUnitPosition(scav)
+		-- local x = math_random(x-100,x+100)
+		-- local z = math_random(z-100,z+100)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+	-- end
 end

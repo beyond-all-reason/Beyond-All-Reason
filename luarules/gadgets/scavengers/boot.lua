@@ -326,6 +326,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
 		UnitSuffixLenght[unitID] = nil
+		ConstructorNumberOfRetries[unitID] = nil
 	else
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] - 1
@@ -358,6 +359,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
 		UnitSuffixLenght[unitID] = nil
+		ConstructorNumberOfRetries[unitID] = nil
 	else
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1

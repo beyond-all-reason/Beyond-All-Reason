@@ -90,7 +90,7 @@ if scavengersAIEnabled then
 	}
 
 	spawnProtectionConfig = {
-		spread				= 96,
+		spread				= 192,
 	}
 
 
@@ -102,7 +102,6 @@ if scavengersAIEnabled then
 
 	function UpdateTierChances(n)
 		-- Must be 100 in total
-		
 		if globalScore > scavconfig.timers.T4top then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0

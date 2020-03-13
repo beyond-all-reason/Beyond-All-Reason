@@ -119,11 +119,9 @@ T3LandUnits = {
 --"armmar", currently doesn't shoot for scavs
 "armvang",
 --"armraz",  currently doesn't shoot for scavs
---"corkrog",
 "corshiva",
 "corkarg",
 "corcat",
---"corjugg",
 --hovercraft
 "armlun",
 "corsok",
