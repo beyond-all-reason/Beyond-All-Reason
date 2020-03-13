@@ -224,6 +224,9 @@ function teamsCheck()
 			end
 		end
 	end
+	if not killedscavengers then
+		killedscavengers = 0
+	end
 	globalScore = math.ceil((globalScore/scoreTeamCount) + killedscavengers + Spring.GetGameSeconds())
 	--Spring.Echo("[scavengers] Global Score: "..globalScore)
 end

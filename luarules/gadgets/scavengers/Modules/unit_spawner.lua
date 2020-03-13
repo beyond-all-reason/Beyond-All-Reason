@@ -74,7 +74,9 @@ function UnitGroupSpawn(n)
 				else
 					UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
 				end
-				
+				if not globalScore then
+					teamsCheck()
+				end
 				if (globalScore/unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier < #scavengerunits then
 					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
 				end
