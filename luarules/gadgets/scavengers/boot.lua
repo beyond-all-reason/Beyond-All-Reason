@@ -186,7 +186,7 @@ function CaptureBeacons(n)
 		end
 	end
 	CapturingUnits = nil
-	CapturingUnitsTeam[unitTeamID] = nil
+	CapturingUnitsTeam = nil
 end
 
 function gadget:GameFrame(n)
