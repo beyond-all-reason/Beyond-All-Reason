@@ -140,7 +140,7 @@ function CaptureBeacons(n)
 		local scav = scavengerunits[i]
 		local scavDef = Spring.GetUnitDefID(scav)
 		if scavSpawnBeacon[scav] then
-			Spring.Echo("i'm spawnbeacon")
+			--Spring.Echo("i'm spawnbeacon")
 			local posx,posy,posz = Spring.GetUnitPosition(scav)
 			local unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
 			CapturingUnits = {}
@@ -148,19 +148,19 @@ function CaptureBeacons(n)
 			CapturingUnits[scav] = 0
 			
 			for j = 1,#unitsAround do
-				Spring.Echo("unitsAround")
+				-- Spring.Echo("unitsAround")
 				local unitID = unitsAround[j]
 				local unitTeamID = spGetUnitTeam(unitID)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
 				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
 				
-				-- if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-					-- captureraiTeam = false
-					-- Spring.Echo(unitTeamID.. " is AI")
-				-- else
+				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 					captureraiTeam = false
-					-- Spring.Echo(unitTeamID.. " isn't AI")
-				-- end
+					--Spring.Echo(unitTeamID.. " is AI")
+				else
+					captureraiTeam = true
+					--Spring.Echo(unitTeamID.. " isn't AI")
+				end
 
 				if not CapturingUnitsTeam[unitTeamID] then
 					CapturingUnitsTeam[unitTeamID] = 0
@@ -168,16 +168,16 @@ function CaptureBeacons(n)
 				
 				if unitTeamID == GaiaTeamID then
 					CapturingUnits[scav] = CapturingUnits[scav] - 5
-					Spring.Echo("Scav unit")
+					--Spring.Echo("Scav unit")
 				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
 					CapturingUnits[scav] = CapturingUnits[scav] + 1
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
-					Spring.Echo(unitTeamID.. " team unit is trying to capture")
+					--Spring.Echo(unitTeamID.. " team unit is trying to capture")
 				end
-				Spring.Echo(CapturingUnits[scav].. " CapturingUnits[scav]")
-				Spring.Echo(CapturingUnitsTeam[unitTeamID].. " CapturingUnitsTeam[unitTeamID]")
+				--Spring.Echo(CapturingUnits[scav].. " CapturingUnits[scav]")
+				--Spring.Echo(CapturingUnitsTeam[unitTeamID].. " CapturingUnitsTeam[unitTeamID]")
 				if captureraiTeam == false and CapturingUnits[scav]+5 > 5 and CapturingUnitsTeam[unitTeamID] > 5 then
-					Spring.Echo("i'm trying to capture")
+					--Spring.Echo("i'm trying to capture")
 					Spring.TransferUnit(scav, unitTeamID, true)
 					captureraiTeam = nil
 					break
