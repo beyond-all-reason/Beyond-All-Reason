@@ -135,43 +135,58 @@ function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
 	CapturingUnits = {}
-	captureraiTeam = {}
+	CapturingUnitsTeam = {}
+	Spring.Echo("it works")
 	
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
 		local scavDef = Spring.GetUnitDefID(scav)
 		if scavSpawnBeacon[scav] then
+			Spring.Echo("i'm spawnbeacon")
 			local posx,posy,posz = Spring.GetUnitPosition(scav)
 			local unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
 			CapturingUnits[scav] = 0
 			
 			for j = 1,#unitsAround do
+				Spring.Echo("unitsAround")
 				local unitID = unitsAround[j]
 				local unitTeamID = spGetUnitTeam(unitID)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
 				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
 				
 				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-					captureraiTeam[unitTeamID] = false
+					captureraiTeam = false
+					Spring.Echo(unitTeamID.. " is AI")
 				else
-					captureraiTeam[unitTeamID] = true
+					captureraiTeam = true
+					Spring.Echo(unitTeamID.. " isn't AI")
 				end
 
+				if not CapturingUnitsTeam[unitTeamID] then
+					CapturingUnitsTeam[unitTeamID] = 0
+				end
+				
 				if unitTeamID == GaiaTeamID then
 					CapturingUnits[scav] = CapturingUnits[scav] - 5
-				elseif (not captureraiTeam[unitTeamID]) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
+					Spring.Echo("Scav unit")
+				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
 					CapturingUnits[scav] = CapturingUnits[scav] + 1
+					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
+					Spring.Echo(unitTeamID.. " team unit is trying to capture")
 				end
 
-				if (not captureraiTeam[unitTeamID]) and CapturingUnits[scav]+5 > 5 then
+				if captureraiTeam == false and CapturingUnits[scav]+5 > 5 and CapturingUnitsTeam[unitTeamID] > 5 then
+					Spring.Echo("i'm trying to capture")
 					Spring.TransferUnit(scav, unitTeamID, true)
+					captureraiTeam = nil
 					break
 				end
+				captureraiTeam = nil
 			end
 		end
 	end
 	CapturingUnits = nil
-	captureraiTeam = nil
+	CapturingUnitsTeam[unitTeamID] = nil
 end
 
 function gadget:GameFrame(n)
