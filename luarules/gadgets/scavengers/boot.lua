@@ -134,8 +134,6 @@ end
 function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
-	CapturingUnits = {}
-	CapturingUnitsTeam = {}
 	Spring.Echo("it works")
 	
 	for i = 1,#scavengerunits do
@@ -145,6 +143,8 @@ function CaptureBeacons(n)
 			Spring.Echo("i'm spawnbeacon")
 			local posx,posy,posz = Spring.GetUnitPosition(scav)
 			local unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
+			CapturingUnits = {}
+			CapturingUnitsTeam = {}
 			CapturingUnits[scav] = 0
 			
 			for j = 1,#unitsAround do
@@ -174,7 +174,8 @@ function CaptureBeacons(n)
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 					Spring.Echo(unitTeamID.. " team unit is trying to capture")
 				end
-
+				Spring.Echo(CapturingUnits[scav].. " CapturingUnits[scav]")
+				Spring.Echo(CapturingUnitsTeam[unitTeamID].. " CapturingUnitsTeam[unitTeamID]")
 				if captureraiTeam == false and CapturingUnits[scav]+5 > 5 and CapturingUnitsTeam[unitTeamID] > 5 then
 					Spring.Echo("i'm trying to capture")
 					Spring.TransferUnit(scav, unitTeamID, true)
