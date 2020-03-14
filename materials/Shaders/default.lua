@@ -69,21 +69,28 @@ vertex = [[
 
 		modelUV.xy = gl_MultiTexCoord0.xy;
 		#ifdef use_treadoffset_core
-			// core 93,1732 /351,1647
-			const vec4 treadBoundaries = vec4( 0.04541015625,0.17138671875, 0.80419921875, 0.845703125);
+		{
+			const float atlasSize = 2048.0;
+			// note, invert we invert Y axis
+			const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
 			if (all(bvec4(
 					modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
 					modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
 				modelUV.x += etcLoc.z;
 			}
+		}
 		#endif
 		#ifdef use_treadoffset_arm
-			const vec4 treadBoundaries = vec4(0.6279296875, 0.74951171875, 0.5702890625, 0.6220703125);
+		{
+			const float atlasSize = 4096.0;
+			// note, invert we invert Y axis
+			const vec4 treadBoundaries = vec4(2572.0, 3070.0, atlasSize - 1761.0, atlasSize - 1548.0) / atlasSize;
 			if (all(bvec4(
 					modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
 					modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
 				modelUV.x += etcLoc.z;
 			}
+		}
 		#endif
 
 		#ifdef use_vertex_ao
