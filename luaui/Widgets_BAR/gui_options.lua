@@ -1868,7 +1868,7 @@ function init()
 		--},
 
 		{id="bloom", group="gfx", basic=true, widget="Bloom Shader", name="Bloom (global)", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow\n\n(might result in more laggy experience)'},
-		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.15, max=0.5, step=0.05, value=0.2, description='',
+		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.1, max=0.4, step=0.05, value=0.2, description='',
 		 onchange=function(i,value) saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', {'basicAlpha'}, value) end,
 		 onload=function() loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'}) end,
 		},
