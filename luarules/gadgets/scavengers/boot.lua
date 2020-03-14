@@ -135,7 +135,6 @@ function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
 	CapturingUnits = {}
-	CapturingUnitsTeam = {}
 	captureraiTeam = {}
 	
 	for i = 1,#scavengerunits do
@@ -158,18 +157,13 @@ function CaptureBeacons(n)
 					captureraiTeam[unitTeamID] = true
 				end
 
-				if not CapturingUnitsTeam[unitTeamID] then
-					CapturingUnitsTeam[unitTeamID] = 0
-				end
-
 				if unitTeamID == GaiaTeamID then
 					CapturingUnits[scav] = CapturingUnits[scav] - 5
 				elseif (not captureraiTeam[unitTeamID]) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
 					CapturingUnits[scav] = CapturingUnits[scav] + 1
-					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 				end
 
-				if (not captureraiTeam[unitTeamID]) and CapturingUnits[scav] > 1 and CapturingUnitsTeam[unitTeamID] > 5 then
+				if (not captureraiTeam[unitTeamID]) and CapturingUnits[scav]+5 > 5 then
 					Spring.TransferUnit(scav, unitTeamID, true)
 					break
 				end
@@ -177,7 +171,6 @@ function CaptureBeacons(n)
 		end
 	end
 	CapturingUnits = nil
-	CapturingUnitsTeam = nil
 	captureraiTeam = nil
 end
 
