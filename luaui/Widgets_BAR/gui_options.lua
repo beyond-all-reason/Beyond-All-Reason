@@ -796,7 +796,7 @@ function widget:Update(dt)
 		if string.find(string.lower(OS), 'mac') then		-- MAC OS aka Masterbel crashes With ROAM 0
 			Spring.SetConfigInt("ROAM", 1)
 			Spring.SendCommands("mapmeshdrawer 2")
-		else
+		elseif tonumber(Spring.GetConfigInt("skipforceroam",0) or 0) ~= 1 then		-- added this option because maybe some people crash because of roam 0?
 			if tonumber(Spring.GetConfigInt("ROAM",1) or 1) ~= 0 then
 				Spring.SetConfigInt("ROAM", 0)
 			end
