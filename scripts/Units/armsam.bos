@@ -111,8 +111,8 @@ SweetSpot(piecenum)
 }
 StartMoving()
 {
-	spin lwheel around x-axis speed <90> accelerate <10>;
-	spin rwheel around x-axis speed <90> accelerate <10>;
+	spin lwheel around x-axis speed <150> accelerate <15>;
+	spin rwheel around x-axis speed <150> accelerate <15>;
 
 }
 StopMoving()
