@@ -114,7 +114,7 @@ for id, featureDef in pairs(FeatureDefs) do
 				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_wreck_color_normal.dds"}
 				--Spring.Echo('Featuredef info for', featureDef.name, to_string(featureDef.model))
 			elseif featureDef.model.textures.tex1:find("Core_color_wreck") then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_color_wreck_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_normal.dds"}
 			else
 				--Spring.Echo("3_feature_wrecks: featureDef.name has _dead but doesnt have the correct tex1 defined!",featureDef.name, featureDef.model.textures.tex1,featureDef.model.textures.tex2)
 			end
