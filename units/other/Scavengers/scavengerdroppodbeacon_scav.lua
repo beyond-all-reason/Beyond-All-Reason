@@ -78,7 +78,7 @@ return {
 				metalpershot = 0,
 				model = "scavs/scavbeacondroppodbyar.s3o",
 				name = "Droppod",
-				range = 29999,
+				range = 256,
 				reloadtime = 5,
 				rgbcolor = "1 0 0",
 				smoketrail = 1,

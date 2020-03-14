@@ -89,7 +89,10 @@ modConfig["BYAR"]["unitList"] = {
 	cortron = { weapons = { 1 } },
 	corfmd = { weapons = { 3 } },
 	corint = { weapons = { 1 } },
-	corbuzz = { weapons = { 1 } }
+	corbuzz = { weapons = { 1 } },
+	
+	--SCAVENGERS
+	scavengerdroppodbeacon_scav = { weapons = { 1 } }
 }
 
 --implement this if you want dps-depending ring-colors
