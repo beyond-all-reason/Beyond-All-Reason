@@ -1,7 +1,7 @@
 local BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 
 function SpawnBeacon(n)
-	if n and n > 7200 then
+	if n and n > 30 then
 		local BeaconSpawnChance = math_random(0,BeaconSpawnChance)
 		if numOfSpawnBeacons <= unitSpawnerModuleConfig.minimumspawnbeacons then
 			BeaconSpawnChance = 0

@@ -154,13 +154,13 @@ function CaptureBeacons(n)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
 				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
 				
-				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+				-- if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+					-- captureraiTeam = false
+					-- Spring.Echo(unitTeamID.. " is AI")
+				-- else
 					captureraiTeam = false
-					Spring.Echo(unitTeamID.. " is AI")
-				else
-					captureraiTeam = true
-					Spring.Echo(unitTeamID.. " isn't AI")
-				end
+					-- Spring.Echo(unitTeamID.. " isn't AI")
+				-- end
 
 				if not CapturingUnitsTeam[unitTeamID] then
 					CapturingUnitsTeam[unitTeamID] = 0
@@ -183,10 +183,10 @@ function CaptureBeacons(n)
 				end
 				captureraiTeam = nil
 			end
+			CapturingUnits = nil
+			CapturingUnitsTeam = nil
 		end
 	end
-	CapturingUnits = nil
-	CapturingUnitsTeam = nil
 end
 
 function gadget:GameFrame(n)
