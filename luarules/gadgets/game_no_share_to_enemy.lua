@@ -40,7 +40,7 @@ function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-  if AreTeamsAllied(newTeam, oldTeam) or capture or IsCheatingEnabled() then
+  if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or capture or IsCheatingEnabled() then
     return true
   end
   SendMessageToTeam(oldTeam, "Unit sharing to enemies has been disabled.")
