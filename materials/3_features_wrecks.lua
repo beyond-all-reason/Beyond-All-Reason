@@ -111,7 +111,7 @@ for id, featureDef in pairs(FeatureDefs) do
 			elseif featureDef.name == "freefusion_free_fusion_dead" then
 				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/mission_command_tower_wreck_1_normal.dds"}
 			elseif featureDef.model.textures.tex1:find("Arm_wreck") then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_wreck_color_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_normal.dds"}
 				--Spring.Echo('Featuredef info for', featureDef.name, to_string(featureDef.model))
 			elseif featureDef.model.textures.tex1:find("Core_color_wreck") then
 				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_normal.dds"}
