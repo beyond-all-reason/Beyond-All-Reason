@@ -134,13 +134,11 @@ end
 function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
-	--Spring.Echo("it works")
 	
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
 		local scavDef = Spring.GetUnitDefID(scav)
 		if scavSpawnBeacon[scav] then
-			--Spring.Echo("i'm spawnbeacon")
 			local posx,posy,posz = Spring.GetUnitPosition(scav)
 			local unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
 			CapturingUnits = {}
@@ -148,7 +146,6 @@ function CaptureBeacons(n)
 			CapturingUnits[scav] = 0
 			
 			for j = 1,#unitsAround do
-				-- Spring.Echo("unitsAround")
 				local unitID = unitsAround[j]
 				local unitTeamID = spGetUnitTeam(unitID)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
@@ -156,10 +153,8 @@ function CaptureBeacons(n)
 				
 				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 					captureraiTeam = false
-					--Spring.Echo(unitTeamID.. " is AI")
 				else
 					captureraiTeam = true
-					--Spring.Echo(unitTeamID.. " isn't AI")
 				end
 
 				if not CapturingUnitsTeam[unitTeamID] then
@@ -167,17 +162,12 @@ function CaptureBeacons(n)
 				end
 				
 				if unitTeamID == GaiaTeamID then
-					CapturingUnits[scav] = CapturingUnits[scav] - 5
-					--Spring.Echo("Scav unit")
+					CapturingUnits[scav] = CapturingUnits[scav] - 10
 				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
 					CapturingUnits[scav] = CapturingUnits[scav] + 1
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
-					--Spring.Echo(unitTeamID.. " team unit is trying to capture")
 				end
-				--Spring.Echo(CapturingUnits[scav].. " CapturingUnits[scav]")
-				--Spring.Echo(CapturingUnitsTeam[unitTeamID].. " CapturingUnitsTeam[unitTeamID]")
-				if captureraiTeam == false and CapturingUnits[scav]+5 > 5 and CapturingUnitsTeam[unitTeamID] > 5 then
-					--Spring.Echo("i'm trying to capture")
+				if captureraiTeam == false and CapturingUnits[scav]+10 > 9 and CapturingUnitsTeam[unitTeamID] > 9 then
 					Spring.TransferUnit(scav, unitTeamID, true)
 					captureraiTeam = nil
 					break

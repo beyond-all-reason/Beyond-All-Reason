@@ -299,7 +299,7 @@ else
 		aircraftchance 						= 5, -- higher number = lower chance
 		globalscoreperoneunit 				= 800,
 		spawnchance							= 120,
-		beaconspawnchance					= 120,
+		beaconspawnchance					= 360,
 		minimumspawnbeacons					= 2,
 		landmultiplier 						= 0.75,
 		airmultiplier 						= 1.5,
