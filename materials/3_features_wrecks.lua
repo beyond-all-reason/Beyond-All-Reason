@@ -109,12 +109,12 @@ for id, featureDef in pairs(FeatureDefs) do
 			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then
 				--ignore these two edge cases.
 			elseif featureDef.name == "freefusion_free_fusion_dead" then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/mission_command_tower_wreck_1_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/mission_command_tower_wreck_1_normal.dds"} 
 			elseif featureDef.model.textures.tex1:find("Arm_wreck") then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_wreck_color_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_wreck_color_normal.dds"}    ----------------- Arm_wreck_color_normal.dds    Arm_normal.dds 
 				--Spring.Echo('Featuredef info for', featureDef.name, to_string(featureDef.model))
 			elseif featureDef.model.textures.tex1:find("Core_color_wreck") then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_color_wreck_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_color_wreck_normal.dds"}   -------- Core_color_wreck_normal.dds   Core_normal.dds
 			else
 				--Spring.Echo("3_feature_wrecks: featureDef.name has _dead but doesnt have the correct tex1 defined!",featureDef.name, featureDef.model.textures.tex1,featureDef.model.textures.tex2)
 			end
