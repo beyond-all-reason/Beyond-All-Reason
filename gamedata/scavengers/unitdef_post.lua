@@ -16,7 +16,7 @@ function scav_Udef_Post(name, uDef)
 	uDef.customparams.scavvertdisp = vertexDisplacement
 
 	-- make barrelshot purple
-	uDef.capturable = false
+	uDef.capturable = true
 	uDef.hidedamage = false
 	--if uDef.builder then
 	--	uDef.corpse = ""
