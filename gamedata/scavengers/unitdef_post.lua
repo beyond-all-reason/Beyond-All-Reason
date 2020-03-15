@@ -16,6 +16,106 @@ function scav_Udef_Post(name, uDef)
 	uDef.customparams.scavvertdisp = vertexDisplacement
 
 	-- make barrelshot purple
+	if uDef.customparams.firingceg then
+		if string.find(uDef.customparams.firingceg, 'barrelshot') then
+			uDef.customparams.firingceg = uDef.customparams.firingceg..'-purple'
+		end
+	end
+	if uDef.sfxtypes then
+		-- make barrelshot purple
+		if uDef.sfxtypes.explosiongenerators then
+			for k,v in pairs(uDef.sfxtypes.explosiongenerators) do
+				if string.find(v, 'barrelshot') then
+					uDef.sfxtypes.explosiongenerators[k] = v..'-purple'
+				end
+			end
+		end
+		-- make deathcegs purple
+		if uDef.sfxtypes.pieceexplosiongenerators then
+			for k,v in pairs(uDef.sfxtypes.pieceexplosiongenerators) do
+				if string.find(v, 'deathceg') then
+					uDef.sfxtypes.pieceexplosiongenerators[k] = v..'-purple'
+				end
+			end
+		end
+	end
+	-- make unit explosion purple
+	if uDef.explodeas then
+		if string.find(string.lower(uDef.explodeas), 'explosiongeneric') or string.find(string.lower(uDef.explodeas), 'buildingexplosiongeneric') then
+			uDef.explodeas = uDef.explodeas..'-purple'
+		end
+	end
+	if uDef.selfdestructas then
+		if string.find(string.lower(uDef.selfdestructas), 'explosiongeneric') or string.find(string.lower(uDef.selfdestructas), 'buildingexplosiongeneric') then
+			uDef.selfdestructas = uDef.selfdestructas..'-purple'
+		end
+	end
+
+	if uDef.buildoptions then
+        for k, v in pairs(uDef.buildoptions) do
+            if UnitDefs[v..'_scav'] then
+                uDef.buildoptions[k] = v..'_scav'
+            end
+        end
+    end
+	
+	if uDef.featuredefs then
+		if uDef.featuredefs.dead then
+			if uDef.featuredefs.dead.description then
+				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
+			end	
+			if uDef.featuredefs.dead.metal then
+				uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
+			end		
+		end
+	end
+
+	if uDef.featuredefs then
+		if uDef.featuredefs.heap then
+			if uDef.featuredefs.heap.description then
+				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
+			end	
+			if uDef.featuredefs.heap.metal then
+				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
+			end		
+		end
+	end
+	
+	if uDef.name then
+		uDef.name = "Scavenger "..uDef.name
+	end
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	--[[
+	if not uDef.customparams then
+		uDef.customparams = {}
+	end
+
+	-- add unit category
+	uDef.category = uDef.category..' SCAVENGER'
+
+	-- add model vertex displacement
+	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
+	if vertexDisplacement > 10 then
+		vertexDisplacement = 10
+	end
+	uDef.customparams.scavvertdisp = vertexDisplacement
+
+	-- make barrelshot purple
 	uDef.capturable = true
 	uDef.hidedamage = false
 	--if uDef.builder then
@@ -149,7 +249,8 @@ function scav_Udef_Post(name, uDef)
 	end
 
 
-
+	]]--
+	
 	return uDef
 	
 end
