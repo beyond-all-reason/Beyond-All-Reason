@@ -134,7 +134,7 @@ end
 function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
-	Spring.Echo("it works")
+	--Spring.Echo("it works")
 	
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
