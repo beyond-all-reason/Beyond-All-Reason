@@ -332,8 +332,10 @@ customDefs.coruwadves = {
 	},	
 }
 
--- Bladewing do damage instead of paralyzer
 
+----CUSTOM UNITS---
+
+-- Bladewing do damage instead of paralyzer
 customDefs.corbw = {
 	weapondefs = {
 		bladewing_lyzer = {
@@ -345,6 +347,19 @@ customDefs.corbw = {
 		},
 	},
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- Cloaked Radar
