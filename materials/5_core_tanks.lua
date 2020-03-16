@@ -2,6 +2,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local GetGameFrame=Spring.GetGameFrame
+local GetFrameTimeOffset=Spring.GetFrameTimeOffset
 local GetUnitHealth=Spring.GetUnitHealth
 
 local GADGET_DIR = "LuaRules/Configs/"
@@ -15,14 +16,14 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 
 	local usx, usy, usz, speed = Spring.GetUnitVelocity(unitID)
 	if speed > 0.01 then speed = 1 end
-	local offset = (((GetGameFrame()) % 14) * (2.0 / 4096.0)) * speed
+	local offset = (((GetGameFrame()+GetFrameTimeOffset()) % 10) * (8.0 / 2048.0)) * speed
 	-- check if moving backwards
 	local udx, udy, udz = Spring.GetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
 		offset = -offset
 	end
 
-	luaShaderObj:SetUniformAlways("etcLoc", 0.0, 0.0, offset)
+	luaShaderObj:SetUniformAlways("etcLoc", 0.0, 0.0, -offset)
 
 	--end
 	--// engine should still draw it (we just set the uniforms for the shader)

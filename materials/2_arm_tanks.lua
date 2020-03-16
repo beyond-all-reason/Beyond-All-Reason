@@ -2,6 +2,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local GetGameFrame=Spring.GetGameFrame
+local GetFrameTimeOffset=Spring.GetFrameTimeOffset
 local GetUnitHealth=Spring.GetUnitHealth
 
 local GADGET_DIR = "LuaRules/Configs/"
@@ -15,7 +16,7 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 
 	local usx, usy, usz, speed = Spring.GetUnitVelocity(unitID)
 	if speed > 0.01 then speed = 1 end
-	local offset = (((GetGameFrame()) % 9) * (2.0 / 4096.0)) * speed
+	local offset = (((GetGameFrame()+GetFrameTimeOffset()) % 12) * (4.0 / 4096.0)) * speed
 	-- check if moving backwards
 	local udx, udy, udz = Spring.GetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
