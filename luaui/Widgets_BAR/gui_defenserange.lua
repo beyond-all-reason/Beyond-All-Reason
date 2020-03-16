@@ -163,6 +163,7 @@ local _,oldcamy,_ = Spring.GetCameraPosition() --for tracking if we should chang
 
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
+local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local defences = {}	
 local currentModConfig = {}
@@ -295,19 +296,21 @@ function widget:Shutdown()
 	end
 end
 
-function widget:Initialize()
-	state["myPlayerID"] = spGetLocalTeamID()
-
-	DetectMod()
-
-	--Recheck units on widget reload
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+function init()
 	local units = Spring.GetAllUnits()
 	for i=1,#units do
 		local unitID = units[i]
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 		UnitDetected(unitID, unitAllyTeam == myAllyTeam)
 	end
+end
+
+function widget:Initialize()
+	state["myPlayerID"] = spGetLocalTeamID()
+
+	DetectMod()
+
+	init()
 
 	WG['defrange'] = {}
 	WG['defrange'].getAllyAir = function()
@@ -346,6 +349,14 @@ function widget:Initialize()
 	WG['defrange'].setEnemyNuke = function(value)
 		buttonConfig["enabled"].enemy.nuke = value
 	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	UnitDetected( unitID, true )
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	UnitDetected( unitID, true )
 end
 
 function widget:UnitCreated( unitID,  unitDefID,  unitTeam)	
@@ -540,6 +551,10 @@ function CheckSpecState()
 end
 
 function widget:PlayerChanged()
+	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		init()
+	end
+	myAllyTeam = Spring.GetMyAllyTeamID()
 	spec, fullview = spGetSpectatingState()
 end
 
