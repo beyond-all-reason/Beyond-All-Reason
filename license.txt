@@ -3,7 +3,7 @@ The Spring Engine (which this game runs on) requires that all the code the games
 
 The Models:
 Some models are released under the CC-BY-NC-SA 4.0 license. 
-These are all the models made by: FireStorm, Beherith, Mr Bob, Kaiser, Cremuss, Flakka and Ptaq
+These are all the models made by: FireStorm, Beherith, Mr Bob, Kaiser, Cremuss, Flaka and Ptaq
 (you can lookup who made each unit in the units/ folders having customparam: 'author')
 
 The Artwork: (unitpics, cursors, loadpics, textures, sounds, ect...)
