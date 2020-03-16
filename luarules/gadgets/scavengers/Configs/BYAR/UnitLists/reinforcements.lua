@@ -116,9 +116,7 @@ T3ReinforcementLandUnits = {
 "cortrem",
 "corhrk",
 --bots
---"armmar", currently doesn't shoot for scavs
 "armvang",
---"armraz",  currently doesn't shoot for scavs
 "corshiva",
 "corkarg",
 "corcat",
@@ -180,7 +178,7 @@ T3ReinforcementAirUnits = {
 
 T4ReinforcementAirUnits = {
 "corcrwboss",
-"corcrwboss"
+"corcrwboss",
 }
 
 T1ReinforcementSeaUnits = {
