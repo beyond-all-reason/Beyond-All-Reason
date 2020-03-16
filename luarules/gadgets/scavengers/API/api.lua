@@ -217,6 +217,7 @@ function teamsCheck()
 				local finalScore = resourceScore + unitScore
 				--Spring.Echo("Final Score for team "..i..": "..finalScore)
 				globalScore = globalScore + finalScore
+				
 				if finalScore > bestTeamScore then
 					bestTeamScore = finalScore
 					bestTeam = i

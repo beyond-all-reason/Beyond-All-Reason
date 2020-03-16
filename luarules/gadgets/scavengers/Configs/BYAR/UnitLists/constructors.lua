@@ -18,14 +18,6 @@ AssistUnits = {
 Resurrectors = {
 "armrectr",
 "cornecro",
-}
-
-ResurrectorsSea = {
-"armrecl",
-"correcl",
-}
-
-Collectors = {
 "armck",
 "armack",
 "armdecom",
@@ -35,9 +27,6 @@ Collectors = {
 "armca",
 "armcsa",
 "armaca",
-"armcs",
-"armacsub",
-"armch",
 "corck",
 "corack",
 "cordecom",
@@ -47,7 +36,53 @@ Collectors = {
 "corca",
 "corcsa",
 "coraca",
+}
+
+ResurrectorsSea = {
+"armrecl",
+"correcl",
+"armcs",
+"armacsub",
+"armch",
+"armca",
+"armcsa",
+"armaca",
 "corcs",
 "coracsub",
 "corch",
+"corca",
+"corcsa",
+"coraca",
 }
+
+Collectors = {
+"aaaaaaaa",
+"bbbbbbbb",
+}
+
+-- Collectors = {
+-- "armck",
+-- "armack",
+-- "armdecom",
+-- "armcv",
+-- "armbeaver",
+-- "armacv",
+-- "armca",
+-- "armcsa",
+-- "armaca",
+-- "armcs",
+-- "armacsub",
+-- "armch",
+-- "corck",
+-- "corack",
+-- "cordecom",
+-- "corcv",
+-- "cormuskrat",
+-- "coracv",
+-- "corca",
+-- "corcsa",
+-- "coraca",
+-- "corcs",
+-- "coracsub",
+-- "corch",
+-- }

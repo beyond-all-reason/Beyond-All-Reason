@@ -79,6 +79,11 @@ function scav_Udef_Post(name, uDef)
 		uDef.name = "Scavenger "..uDef.name
 	end
 	
+	if uDef.builder then
+		uDef.canresurrect = true
+	end
+		
+	
 	
 	
 	

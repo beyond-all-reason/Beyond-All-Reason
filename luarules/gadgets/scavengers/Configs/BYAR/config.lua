@@ -400,7 +400,7 @@ else
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 70
-			TierSpawnChances.T3 = 10
+			TierSpawnChances.T3 = 20
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2top then
 			TierSpawnChances.T0 = 10
