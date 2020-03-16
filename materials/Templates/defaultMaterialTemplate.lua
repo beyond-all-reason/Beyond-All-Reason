@@ -72,7 +72,6 @@ vertex = [[
 		vec4 shadowVertexPos;
 
 		// auxilary varyings
-		vec4 addColor;
 		float aoTerm;
 		float selfIllumMod;
 		float fogFactor;
@@ -283,7 +282,6 @@ fragment = [[
 		vec4 shadowVertexPos;
 
 		// auxilary varyings
-		vec4 addColor;
 		float aoTerm;
 		float selfIllumMod;
 		float fogFactor;
@@ -534,6 +532,59 @@ fragment = [[
 		vec4 texColor1 = texture(texture1, myUV);
 		vec4 texColor2 = texture(texture2, myUV);
 
+		// PBR Params
+		#ifdef EMISSIVENESS
+			float emissiveness = EMISSIVENESS;
+		#else
+			float emissiveness = texColor2.r;
+		#endif
+
+		emissiveness = clamp(emissiveness, 0.0, 1.0);
+		emissiveness *= selfIllumMod;
+
+		#ifdef METALNESS
+			float metalness = METALNESS;
+		#else
+			float metalness = texColor2.g;
+		#endif
+
+		//metalness = SNORM2NORM( sin(simFrame * 0.05) );
+		//metalness = 1.0;
+
+		metalness = clamp(metalness, 0.0, 1.0);
+
+		#ifdef ROUGHNESS
+			float roughness = ROUGHNESS;
+		#else
+			float roughness = texColor2.b;
+		#endif
+
+		//roughness = SNORM2NORM( sin(simFrame * 0.025) );
+		//roughness = 0.0;
+
+		// this is great to remove specular aliasing on the edges.
+		#ifdef ROUGHNESS_AA
+			roughness = mix(roughness, AdjustRoughnessByNormalMap(roughness, nvTS), ROUGHNESS_AA);
+		#endif
+
+		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
+
+		float roughness2 = roughness * roughness;
+		float roughness4 = roughness2 * roughness2;
+		
+		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
+			vec3 seedVec = modelPos.xyz * 8.0;
+			float rndValue = Perlin3D(seedVec.xyz);
+		#endif
+		#if defined(ROUGHNESS_PERTURB_NORMAL)
+			float normalPerturbScale = mix(0.0, ROUGHNESS_PERTURB_NORMAL, roughness);
+			vec3 rndNormal = normalize(vec3(
+				normalPerturbScale * vec2(rndValue),
+				1.0
+			));
+			nvTS = NormalBlendUnpackedRNM(nvTS, rndNormal);
+		#endif		
+
 		// L - worldLightDir
 		/// Sun light is considered infinitely far, so it stays same no matter worldVertexPos.xyz
 		vec3 L = normalize(sunDir); //from fragment to light, world space
@@ -547,37 +598,62 @@ fragment = [[
 		// R - reflection of worldCameraDir against worldFragNormal
 		vec3 Rv = -reflect(V, N);
 
-		// N.L
+		// dot products
 		float NdotLu = dot(N, L);
-		float NdotL = max(NdotLu, 1e-3);
+		float NdotL = clamp(NdotLu, 0.0, 1.0);
+		float NdotH = clamp(dot(H, N), 0.0, 1.0);
+		float NdotV = clamp(dot(N, V), EPS, 1.0);
+		float VdotH = clamp(dot(V, H), 0.0, 1.0);
 
-		// N.H
-		float HdotN = max(dot(N, H), 1e-3);
+
+		#ifdef LUMAMULT
+		{
+			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
+			yCbCr.x = clamp(yCbCr.x * LUMAMULT, 0.0, 1.0);
+			texColor1.rgb = YCBCR2RGB * yCbCr;
+		}
+		#endif
+
+		vec3 albedoColor = SRGBtoLINEAR(mix(diffuseColIn.rgb, teamColor.rgb, diffuseColIn.a));
+
+		#if defined(ROUGHNESS_PERTURB_COLOR)
+			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
+			albedoColor *= (1.0 + colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
+		#endif
+
 
 		// shadows
-		float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
-		float gShadow = 1.0; // shadow mapping
-		if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
-			gShadow = GetShadowPCFRandom(NdotL);
+		float shadowMult;
+		{
+			float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
+			float gShadow = 1.0; // shadow mapping
+			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
+				gShadow = GetShadowPCFRandom(NdotL);
+			}
+			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity);
 		}
-		float shadow = min(nShadow, gShadow);
-		float shadowMult = mix(1.0, shadow, shadowDensity);
 
-		// light
-		vec3 lightAmbient = aoTerm * sunAmbient;
-		vec3 lightDiffuse = NdotL * sunDiffuse;
 
-		// sunSpecularParams = (exponent, multiplier, bias)
-		vec3 lightSpecular = sunSpecular * pow(HdotN, sunSpecularParams.x);
-		lightSpecular *= sunSpecularParams.z + texColor2.g * sunSpecularParams.y;
+/////
+        ///
+        // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
+        // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
+        vec3 F0 = vec3(DEFAULT_F0);
+		vec3 F90;
+		{
+			F0 = mix(F0, albedoColor, metalness);
 
-		// apply shadows
-		vec3 lightAD = lightAmbient + lightDiffuse * shadowMult;
-		lightSpecular *= shadowMult;
+			float reflectance = max(F0.r, max(F0.g, F0.b));
 
-		// environment reflection
-		vec3 lightADR = texture(reflectTex,  Rv).rgb;
-		lightADR = mix(lightAD, lightADR, texColor2.g);
+			// Anything less than 2% is physically impossible and is instead considered to be shadowing. Compare to "Real-Time-Rendering" 4th editon on page 325.
+			F90 = vec3(clamp(reflectance * 50.0, 0.0, 1.0));
+		}
+
+		vec2 envBRDF = textureLod(brdfLUT, vec2(NdotV, roughness), 0.0).rg;
+
+		vec3 energyCompensation = 1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0);
+/////
+
 
 		// emissive color
 		vec3 emissiveMult = texColor2.rrr;
@@ -593,15 +669,9 @@ fragment = [[
 			finalColor = mix(gl_Fog.color.rgb, finalColor, fogFactor);
 		}
 
-		#define wreckMetal floatOptions[1]
-		if (BITMASK_FIELD(bitOptions, OPTION_METAL_HIGHLIGHT) && wreckMetal > 0.0) {
-			//finalColor = mix(finalColor, addColor.aaa, addColor.rgb);
-			finalColor += addColor.a * addColor.rgb - lightSpecular;
-		}
-		#undef wreckMetal
 
 		#if 0
-			finalColor = vec3( GetNormalFromDiffuse(myUV));
+			finalColor = vec3( GetNormalFromDiffuse(myUV) );
 		#endif
 
 		#if (RENDERING_MODE == 0)
