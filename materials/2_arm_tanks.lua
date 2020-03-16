@@ -89,7 +89,7 @@ local matTemplate = {
 
 		"#define MAT_IDX 2",
 	},
-	shaderPlugins = default_aux.scavDisplacementPlugun,
+	shaderPlugins = default_aux.scavDisplacementPlugin,
 	shader    = default_lua,
 	deferred  = default_lua,
 	usecamera = false,

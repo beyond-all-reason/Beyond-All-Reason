@@ -1,4 +1,4 @@
-local scavDisplacementPlugun = {
+local scavDisplacementPlugin = {
 	VERTEX_GLOBAL_NAMESPACE = [[
 		#ifdef SCAVENGER_VERTEX_DISPLACEMENT
 			float Perlin3D( vec3 P ) {
@@ -49,8 +49,10 @@ local scavDisplacementPlugun = {
 	]],
 	VERTEX_PRE_TRANSFORM = [[
 		#ifdef SCAVENGER_VERTEX_DISPLACEMENT
+		{
 			//modelPos.xyz += Perlin3D(0.1 * modelPos.xyz) * SCAVENGER_VERTEX_DISPLACEMENT * normalize(mix(normalize(modelPos.xyz), modelNormal, 0.2));	// this causes gaps
 			modelPos.xyz += Perlin3D(0.1 * modelPos.xyz) * SCAVENGER_VERTEX_DISPLACEMENT * normalize(modelPos.xyz);
+		}
 		#endif
 	]],
 }
@@ -171,7 +173,7 @@ end
 
 
 return {
-	scavDisplacementPlugun = scavDisplacementPlugun,
+	scavDisplacementPlugin = scavDisplacementPlugin,
 	treeDisplacementPlugun = treeDisplacementPlugun,
 	SunChanged = SunChanged,
 	FillMaterials = FillMaterials,
