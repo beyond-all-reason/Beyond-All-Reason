@@ -65,14 +65,18 @@ function scav_Udef_Post(name, uDef)
 		if uDef.featuredefs.dead then
 			if uDef.featuredefs.dead.description then
 				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
+			end
+			if uDef.featuredefs.dead.metal then
 				uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
-			end	
+			end
 		end
 		if uDef.featuredefs.heap then
 			if uDef.featuredefs.heap.description then
 				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
-				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
 			end	
+			if uDef.featuredefs.heap.metal then
+				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
+			end
 		end
 	end
 	
