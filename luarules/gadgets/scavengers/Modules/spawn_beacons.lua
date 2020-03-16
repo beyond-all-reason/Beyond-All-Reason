@@ -55,8 +55,8 @@ function SpawnBeacon(n)
 				if not beaconspawnretrycount then
 					beaconspawnretrycount = 0
 				end
-				local posx = math_random(math.ceil((mapsizeX/2)-(100*beaconspawnretrycount)),math.floor((mapsizeX/2)+(100*beaconspawnretrycount)))
-				local posz = math_random(math.ceil((mapsizeZ/2)-(100*beaconspawnretrycount)),math.floor((mapsizeZ/2)+(100*beaconspawnretrycount)))
+				local posx = math_random(math.ceil((mapsizeX/2)-(50*beaconspawnretrycount)),math.floor((mapsizeX/2)+(50*beaconspawnretrycount)))
+				local posz = math_random(math.ceil((mapsizeZ/2)-(50*beaconspawnretrycount)),math.floor((mapsizeZ/2)+(50*beaconspawnretrycount)))
 				local posy = Spring.GetGroundHeight(posx, posz)
 				local posradius = 80
 				beaconspawnretrycount = beaconspawnretrycount + 1
@@ -73,7 +73,7 @@ function SpawnBeacon(n)
 					end
 				end
 				if canSpawnBeaconHere then
-					local posradius = 512
+					local posradius = 384
 					canSpawnBeaconHere = posOccupied(posx, posy, posz, posradius)
 				end
 				
