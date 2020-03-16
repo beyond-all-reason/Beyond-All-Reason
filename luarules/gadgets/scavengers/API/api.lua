@@ -199,6 +199,7 @@ function teamsCheck()
 	bestTeamScore = 0
 	bestTeam = 0
 	globalScore = 0
+	nonFinalGlobalScore = 0
 	scoreTeamCount = 0
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
@@ -210,13 +211,17 @@ function teamsCheck()
 			local unitCount = Spring.GetTeamUnitCount(i)
 			if (not teamisDead) or unitCount > 0 then
 				scoreTeamCount = scoreTeamCount + 1
-				local _,_,_,_,mi = Spring.GetTeamResources(i, "metal")
-				local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
+				local _,_,_,mi = Spring.GetTeamResources(i, "metal")
+				local _,_,_,ei = Spring.GetTeamResources(i, "energy")
 				local resourceScore = mi + ei
 				local unitScore = unitCount
 				local finalScore = resourceScore + unitScore
-				--Spring.Echo("Final Score for team "..i..": "..finalScore)
-				globalScore = globalScore + finalScore
+				Spring.Echo("unitScore "..i..": "..unitScore)
+				Spring.Echo("resourceScore "..i..": "..resourceScore)
+				Spring.Echo("nonFinalGlobalScore "..i..": "..nonFinalGlobalScore)
+				Spring.Echo("Final Score for team "..i..": "..finalScore)
+				
+				nonFinalGlobalScore = nonFinalGlobalScore + finalScore
 				
 				if finalScore > bestTeamScore then
 					bestTeamScore = finalScore
@@ -228,6 +233,8 @@ function teamsCheck()
 	if not killedscavengers then
 		killedscavengers = 0
 	end
-	globalScore = math.ceil((globalScore/scoreTeamCount) + killedscavengers + Spring.GetGameSeconds())
+	globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + Spring.GetGameSeconds())
+	nonFinalGlobalScore = nil
+	scoreTeamCount = nil
 	--Spring.Echo("[scavengers] Global Score: "..globalScore)
 end
