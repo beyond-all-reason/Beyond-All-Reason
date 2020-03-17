@@ -61,8 +61,9 @@ function UnitGroupSpawn(n)
 			end
 			
 			local pickedBeacon = SpawnBeacons[math_random(1,#SpawnBeacons)]
-			posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
-			posy = Spring.GetGroundHeight(posx, posz)
+			local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+			local posy = Spring.GetGroundHeight(posx, posz)
+			local posradius = 256
 			local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
 			local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
 			if nearestEnemyTeam == bestTeam then
@@ -71,9 +72,12 @@ function UnitGroupSpawn(n)
 				bestTeamGroupMultiplier = 0.75
 			end
 			canSpawnHere = true
+			if canSpawnHere then
+				canSpawnHere = posLosCheckNoRadar(posx, posy, posz, posradius)
+			end
 			--Spring.DestroyUnit(pickedBeacon,false,false)
 			SpawnBeacon(n)
-			local posradius = 160
+			
 			
 			if canSpawnHere then
 				

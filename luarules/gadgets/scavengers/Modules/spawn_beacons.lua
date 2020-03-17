@@ -1,4 +1,9 @@
 local BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
+local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/'..GameShortName..'/UnitLists/','*.lua')
+for i = 1,#UnitLists do
+	VFS.Include(UnitLists[i])
+	Spring.Echo("Scav Units Directory: " ..UnitLists[i])
+end
 
 function SpawnBeacon(n)
 	if n and n > 7200 then
@@ -36,6 +41,31 @@ function SpawnBeacon(n)
 				if canSpawnBeaconHere then
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90)
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90)
+					
+					
+					
+					
+					-- for i = 1,4 do
+						-- local posx = posx+math_random(-256,256)
+						-- local posz = posz+math_random(-256,256)
+						-- local posy = Spring.GetGroundHeight(posx, posz)
+						-- local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+						-- Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+						-- QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+i)
+					-- end
 				end
 			else
 				BeaconSpawnChance = BeaconSpawnChance - 1
@@ -55,8 +85,8 @@ function SpawnBeacon(n)
 				if not beaconspawnretrycount then
 					beaconspawnretrycount = 0
 				end
-				local posx = math_random(math.ceil((mapsizeX/2)-(100*beaconspawnretrycount)),math.floor((mapsizeX/2)+(100*beaconspawnretrycount)))
-				local posz = math_random(math.ceil((mapsizeZ/2)-(100*beaconspawnretrycount)),math.floor((mapsizeZ/2)+(100*beaconspawnretrycount)))
+				local posx = math_random(math.ceil((mapsizeX/2)-(50*beaconspawnretrycount)),math.floor((mapsizeX/2)+(50*beaconspawnretrycount)))
+				local posz = math_random(math.ceil((mapsizeZ/2)-(50*beaconspawnretrycount)),math.floor((mapsizeZ/2)+(50*beaconspawnretrycount)))
 				local posy = Spring.GetGroundHeight(posx, posz)
 				local posradius = 80
 				beaconspawnretrycount = beaconspawnretrycount + 1
@@ -73,7 +103,7 @@ function SpawnBeacon(n)
 					end
 				end
 				if canSpawnBeaconHere then
-					local posradius = 512
+					local posradius = 384
 					canSpawnBeaconHere = posOccupied(posx, posy, posz, posradius)
 				end
 				
@@ -81,6 +111,19 @@ function SpawnBeacon(n)
 					beaconspawnretrycount = 0
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90)
+					local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
+					QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90)
 				end
 			else
 				BeaconSpawnChance = BeaconSpawnChance - 1

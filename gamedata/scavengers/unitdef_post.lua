@@ -65,18 +65,68 @@ function scav_Udef_Post(name, uDef)
 		if uDef.featuredefs.dead then
 			if uDef.featuredefs.dead.description then
 				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
-			end	
+			end
+			if uDef.featuredefs.dead.metal then
+				uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
+			end
 		end
 		if uDef.featuredefs.heap then
 			if uDef.featuredefs.heap.description then
 				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
 			end	
+			if uDef.featuredefs.heap.metal then
+				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
+			end
 		end
 	end
 	
 	-- add Scavenger name prefix to units
 	if uDef.name then
 		uDef.name = "Scavenger "..uDef.name
+	end
+	
+	if uDef.buildcostenergy then
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.5)
+	end
+	
+	if uDef.buildcostmetal then
+		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
+	end
+
+	if uDef.energymake then
+		uDef.energymake = math.ceil(uDef.energymake*0.5)
+	end
+	
+	if uDef.metalmake then
+		uDef.metalmake = math.ceil(uDef.metalmake*0.5)
+	end
+	
+	if uDef.maxdamage then
+		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
+	end
+	
+	if uDef.maxvelocity then
+		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
+	end
+	
+	if uDef.radardistancejam then
+		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25)
+	end
+	
+	if not uDef.maxdamage then
+		uDef.autoheal = math.ceil(uDef.maxdamage/60)
+		uDef.idleautoheal = math.ceil(uDef.maxdamage/60)
+	else 
+		uDef.autoheal = 5
+		uDef.idleautoheal = 5
+	end
+	
+	if uDef.turnrate then
+		uDef.turnrate = uDef.turnrate*2.5
+	end
+	
+	if uDef.turninplaceanglelimit then
+		uDef.turninplaceanglelimit = 360
 	end
 	
 	
