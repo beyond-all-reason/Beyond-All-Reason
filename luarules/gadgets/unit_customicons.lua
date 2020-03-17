@@ -60,7 +60,8 @@ local icons = {
     {"sub_t3.user", "sub",2},
     {"sub_t1_worker.user", "sub_worker",1.33},
     {"sub_t2_worker.user", "sub_worker",1.66},
-  
+
+    {"beacon.user", "beacon",1.66},
   
     {"wind.user", "wind",1},
     {"energy1.user", "solar",1.5},
@@ -413,6 +414,8 @@ function loadUnitIcons()
             Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
         elseif string.find(name, 'boss') then
             Spring.SetUnitDefIcon(udid, iconPrefix.."boss.user")
+        elseif string.find(name, 'beacon') then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."beacon.user")
         elseif string.find(name, 'droppod') then
             Spring.SetUnitDefIcon(udid, iconPrefix.."mine3.user")
         elseif string.sub(name, 0, 7) == "critter" then
