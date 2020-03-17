@@ -255,3 +255,22 @@ local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.i
 end
 table.insert(ScavengerConstructorBlueprintsT2,DamRandomTurretfieldT2)
 table.insert(ScavengerConstructorBlueprintsT3,DamRandomTurretfieldT2)
+
+local function DamRandomNanoTower(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 16
+local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id,}
+	if radiusCheck then
+		return posradius
+	else
+		local r = math_random(0,1)
+		if r == 0 then
+			Spring.GiveOrderToUnit(scav, -UDN.cornanotc_scav.id, {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
+		else
+			Spring.GiveOrderToUnit(scav, -UDN.armnanotc_scav.id, {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
+		end
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT0,DamRandomNanoTower)
+table.insert(ScavengerConstructorBlueprintsT1,DamRandomNanoTower)
+table.insert(ScavengerConstructorBlueprintsT2,DamRandomNanoTower)
+table.insert(ScavengerConstructorBlueprintsT3,DamRandomNanoTower)

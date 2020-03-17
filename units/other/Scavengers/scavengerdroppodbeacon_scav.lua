@@ -18,7 +18,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",
-		description = "Scavenger Spawner",
+		description = "Spawner",
 		energystorage = 1000,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 0,

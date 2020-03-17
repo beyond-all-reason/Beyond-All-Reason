@@ -333,6 +333,24 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
+function SpawnDefencesAfterCapture(unitID, teamID)
+	local posx,posy,posz = Spring.GetUnitPosition(unitID)
+	local posy = Spring.GetGroundHeight(posx, posz)
+	local n = Spring.GetGameFrame()
+	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz-128, math_random(0,3),teamID)
+	QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
+	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz+128, math_random(0,3),teamID)
+	QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
+	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz+128, math_random(0,3),teamID)
+	QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
+	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz-128, math_random(0,3),teamID)
+	QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
+end
+
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 	if unitOldTeam == GaiaTeamID then
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
@@ -340,8 +358,9 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
 			killedscavengers = killedscavengers + 50
 			Spring.SetUnitNeutral(unitID, false)
-			Spring.SetUnitHealth(unitID, 1000)
-			Spring.SetUnitMaxHealth(unitID, 1000)
+			Spring.SetUnitHealth(unitID, 10000)
+			Spring.SetUnitMaxHealth(unitID, 10000)
+			SpawnDefencesAfterCapture(unitID, unitNewTeam)
 		end
 		selfdx[unitID] = nil
 		selfdy[unitID] = nil
@@ -386,8 +405,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			scavSpawnBeacon[unitID] = true
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 			Spring.SetUnitNeutral(unitID, true)
-			Spring.SetUnitMaxHealth(unitID, 10000)
-			Spring.SetUnitHealth(unitID, 10000)
+			Spring.SetUnitMaxHealth(unitID, 100000)
+			Spring.SetUnitHealth(unitID, 100000)
 		end
 		-- CMD.CLOAK = 37382
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
