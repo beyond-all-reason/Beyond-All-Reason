@@ -216,10 +216,10 @@ function teamsCheck()
 				local resourceScore = mi + ei
 				local unitScore = unitCount
 				local finalScore = resourceScore + unitScore
-				Spring.Echo("unitScore "..i..": "..unitScore)
-				Spring.Echo("resourceScore "..i..": "..resourceScore)
-				Spring.Echo("nonFinalGlobalScore "..i..": "..nonFinalGlobalScore)
-				Spring.Echo("Final Score for team "..i..": "..finalScore)
+				-- Spring.Echo("unitScore "..i..": "..unitScore)
+				-- Spring.Echo("resourceScore "..i..": "..resourceScore)
+				-- Spring.Echo("nonFinalGlobalScore "..i..": "..nonFinalGlobalScore)
+				-- Spring.Echo("Final Score for team "..i..": "..finalScore)
 				
 				nonFinalGlobalScore = nonFinalGlobalScore + finalScore
 				
