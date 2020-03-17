@@ -72,9 +72,6 @@ function UnitGroupSpawn(n)
 				bestTeamGroupMultiplier = 0.75
 			end
 			canSpawnHere = true
-			if canSpawnHere then
-				canSpawnHere = posLosCheckNoRadar(posx, posy, posz, posradius)
-			end
 			--Spring.DestroyUnit(pickedBeacon,false,false)
 			SpawnBeacon(n)
 			
