@@ -48,18 +48,18 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 -- Globals
 ------------------------------------------------------------------------------------
-local fontSize = 15
+local fontSize = 16.5
 local useSelection = true
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.7 + (vsx*vsy / 7000000))
-local fontfileSize = 36
+local fontfileSize = 44
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local customFontSize = 15
+local customFontSize = 16.5
 
 local bgcornerSize = fontSize*0.45
 local bgpadding = fontSize*0.9

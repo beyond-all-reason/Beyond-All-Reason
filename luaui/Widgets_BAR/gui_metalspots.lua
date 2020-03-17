@@ -46,9 +46,9 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.6 + (vsx*vsy / 5700000))
-local fontfileSize = 100
-local fontfileOutlineSize = 30
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 90
+local fontfileOutlineSize = 25
 local fontfileOutlineStrength = 1.15
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 

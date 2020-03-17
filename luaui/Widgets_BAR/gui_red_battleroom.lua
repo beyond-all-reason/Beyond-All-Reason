@@ -54,7 +54,7 @@ local Config = {
 		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
 		
-		fontsize = 11*widgetScale,
+		fontsize = 11.5*widgetScale,
 		minlines = 3, --minimal number of lines to display
 		maxlines = 3,
 		maxlinesScrollmode = 3,
