@@ -1729,12 +1729,12 @@ function init()
 		},
 
 		--{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		--{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.2, max=0.9, step=0.01, type="slider", value=0.66, description='How much sharpening should be applied to the image',
-		-- onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
-		-- onchange=function(i, value)
-		--	 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
-		-- end,
-		--},
+		{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.25, max=0.85, step=0.01, type="slider", value=0.7, description='How much sharpening should be applied to the image',
+		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
+		 end,
+		},
 
 		{id="shadowslider", group="gfx", basic=true, name="Shadows", type="slider", steps={2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail',
 		 onchange=function(i,value)
