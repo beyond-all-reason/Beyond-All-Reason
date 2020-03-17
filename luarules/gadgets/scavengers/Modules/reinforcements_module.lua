@@ -163,7 +163,7 @@ function spawnPlayerReinforcements(n)
                                 local posz = posz+(math_random(-posradius,posradius))
                                 local posy = Spring.GetGroundHeight(posx, posz)
                                 if i then
-                                    if i > 1 and i > groupsize/2 then
+                                    if i < 2 or i < groupsize/2 then
                                         QueueSpawn(groupunit1..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100+i)
                                     else
                                         QueueSpawn(groupunit2..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100+i)
