@@ -26,11 +26,6 @@ T1SeaUnits = {
 "corah",
 "corsnap",
 --constructors
-"armbeaver",
-"armch",
-"armcs",
-"cormuskrat",
-"corcs",
 }
 
 T2SeaUnits = {

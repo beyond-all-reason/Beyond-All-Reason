@@ -12,10 +12,6 @@ T1AirUnits = {
 "corbw",
 "corveng",
 --constructors
-"armca",
-"armcsa",
-"corca",
-"corcsa",
 }
 
 T2AirUnits = {
@@ -28,6 +24,10 @@ T2AirUnits = {
 "corsfig",
 "corcut",
 --constructors
+"armca",
+"armcsa",
+"corca",
+"corcsa",
 "armaca",
 "coraca",
 }
