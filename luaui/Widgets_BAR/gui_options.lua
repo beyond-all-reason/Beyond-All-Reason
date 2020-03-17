@@ -1572,7 +1572,7 @@ function loadAllWidgetData()
 	end
 end
 
-local engine64 = false
+local engine64 = true
 function init()
 
 	local supportedResolutions = {}
@@ -1618,8 +1618,8 @@ function init()
 				Spring.SetConfigInt("LuaShaders", 0)
 			end
 			-- scan for shader version error
-			if string.find(line, '_win64') or  string.find(line, '_linux64')  then
-				engine64 = true
+			if string.find(line, '_win32') or  string.find(line, '_linux32')  then
+				engine64 = false
 			end
 		end
 	end
