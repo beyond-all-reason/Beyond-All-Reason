@@ -166,7 +166,7 @@ function spawnPlayerReinforcements(n)
                                     if i > 1 and i > groupsize/2 then
                                         QueueSpawn(groupunit1..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100+i)
                                     else
-                                        QueueSpawn(groupunit1..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100+i)
+                                        QueueSpawn(groupunit2..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100+i)
                                     end
                                 else
                                     QueueSpawn(groupunit1..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),teamID, n+100)
