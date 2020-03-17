@@ -2,26 +2,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function SunChanged(curShaderObj)
-	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
-
-	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
-
-	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
-		Spring.GetConfigFloat("tonemapA", 4.8),
-		Spring.GetConfigFloat("tonemapB", 0.8),
-		Spring.GetConfigFloat("tonemapC", 3.35),
-		Spring.GetConfigFloat("tonemapD", 1.0),
-		Spring.GetConfigFloat("tonemapE", 1.15),
-		Spring.GetConfigFloat("envAmbient", 0.3),
-		Spring.GetConfigFloat("unitSunMult", 1.35),
-		Spring.GetConfigFloat("unitExposureMult", 1.0),
-	})
-end
-
-
+local default_aux = VFS.Include("materials/Shaders/default_aux.lua")
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local materials = {
@@ -69,7 +50,7 @@ local materials = {
 		feature = true,
 		usecamera = false,
 		force = true,
-		culling   = GL.BACK,
+		culling = GL.BACK,
 		texunits  = {
 			[0] = '%%FEATUREDEFID:0',
 			[1] = '%%FEATUREDEFID:1',
@@ -81,7 +62,7 @@ local materials = {
 			[7] = GG.GetEnvTexture(),
 		},
 		--DrawFeature = DrawFeature,
-		SunChanged = SunChanged,
+		SunChanged = default_aux.SunChanged,
 	},
 }
 
@@ -128,12 +109,12 @@ for id, featureDef in pairs(FeatureDefs) do
 			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then
 				--ignore these two edge cases.
 			elseif featureDef.name == "freefusion_free_fusion_dead" then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/mission_command_tower_wreck_1_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/mission_command_tower_wreck_1_normal.dds"} 
 			elseif featureDef.model.textures.tex1:find("Arm_wreck") then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_wreck_color_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_wreck_color_normal.dds"}    ----------------- Arm_wreck_color_normal.dds    Arm_normal.dds 
 				--Spring.Echo('Featuredef info for', featureDef.name, to_string(featureDef.model))
 			elseif featureDef.model.textures.tex1:find("Core_color_wreck") then
-				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_color_wreck_normal.dds"}
+				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_color_wreck_normal.dds"}   -------- Core_color_wreck_normal.dds   Core_normal.dds
 			else
 				--Spring.Echo("3_feature_wrecks: featureDef.name has _dead but doesnt have the correct tex1 defined!",featureDef.name, featureDef.model.textures.tex1,featureDef.model.textures.tex2)
 			end

@@ -11,13 +11,15 @@ function widget:GetInfo()
 end
 
 
+local version = 1.0
+
 -- config params
 local dbgDraw = 0                -- draw only the bloom-mask? [0 | 1]
 local globalBlursizeMult = 1
 
-local glowAmplifier = 0.75            -- intensity multiplier when filtering a glow source fragment [1, n]
+local glowAmplifier = 1            -- intensity multiplier when filtering a glow source fragment [1, n]
 local blurAmplifier = 1        -- intensity multiplier when applying a blur pass [1, n] (should be set close to 1)
-local drawWorldAlpha = 0.08		-- darken world so bloom doesnt blown-white out the brightest areas too much
+local drawWorldAlpha = 0		-- darken world so bloom doesnt blown-white out the brightest areas too much
 local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
 
 local presets = {
@@ -26,13 +28,13 @@ local presets = {
 	--	blurPasses = 1,	-- how many iterations of Gaussian blur should be applied to the glow sources?
 	--	quality = 4,	-- resolution divider
 	--},
+	--{
+	--	blursize = 19,
+	--	blurPasses = 2,
+	--	quality = 2,
+	--},
 	{
-		blursize = 17,
-		blurPasses = 2,
-		quality = 2,
-	},
-	{
-		blursize = 13,
+		blursize = 16,
 		blurPasses = 3,
 		quality = 2,
 	},
@@ -117,7 +119,7 @@ local function SetIllumThreshold()
 	illumThreshold = illumThreshold*(0.8 * ambientIntensity) + (0.5 * diffuseIntensity) + (0.1 * specularIntensity)
 	illumThreshold = math.min(illumThreshold, 0.8)
 
-	illumThreshold = (0.5 + illumThreshold) / 2
+	illumThreshold = (0.4 + illumThreshold) / 2
 end
 
 local function RemoveMe(msg)
@@ -470,16 +472,16 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if drawWorldAlpha <= 0 then return end
 	-- darken world so bloom doesnt blown-white out the brightest areas too much
-
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.PushPopMatrix(function()
-		gl.Color(0, 0, 0, drawWorldAlpha * glowAmplifier)
-		gl.Translate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
-		gl.Billboard()
-		gl.Rect(-vsx, -vsy, vsx, vsy)
-	end)
+	if drawWorldAlpha > 0 then
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.PushPopMatrix(function()
+			gl.Color(0, 0, 0, drawWorldAlpha * glowAmplifier)
+			gl.Translate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
+			gl.Billboard()
+			gl.Rect(-vsx, -vsy, vsx, vsy)
+		end)
+	end
 
 	Bloom()
 end
@@ -487,6 +489,7 @@ end
 
 function widget:GetConfigData(data)
 	savedTable = {}
+	savedTable.version = version
 	savedTable.glowAmplifier = glowAmplifier
 	savedTable.qualityPreset = qualityPreset
 	savedTable.globalBlursizeMult = globalBlursizeMult
@@ -494,18 +497,21 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.glowAmplifier ~= nil then
-		glowAmplifier = data.glowAmplifier
-	end
-	if data.globalBlursizeMult ~= nil then
-		globalBlursizeMult = data.globalBlursizeMult
-	end
-	if data.qualityPreset ~= nil then
-		if presets[data.qualityPreset] ~= nil then
-			qualityPreset = data.qualityPreset
-			blursize = presets[qualityPreset].blursize
-			blurPasses = presets[qualityPreset].blurPasses
-			quality = presets[qualityPreset].quality
+	if data.version and data.version == version then
+		data.version = version
+		if data.glowAmplifier ~= nil then
+			glowAmplifier = data.glowAmplifier
+		end
+		if data.globalBlursizeMult ~= nil then
+			globalBlursizeMult = data.globalBlursizeMult
+		end
+		if data.qualityPreset ~= nil then
+			if presets[data.qualityPreset] ~= nil then
+				qualityPreset = data.qualityPreset
+				blursize = presets[qualityPreset].blursize
+				blurPasses = presets[qualityPreset].blurPasses
+				quality = presets[qualityPreset].quality
+			end
 		end
 	end
 end

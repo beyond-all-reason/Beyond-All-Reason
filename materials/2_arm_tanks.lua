@@ -2,6 +2,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local GetGameFrame=Spring.GetGameFrame
+local GetFrameTimeOffset=Spring.GetFrameTimeOffset
 local GetUnitHealth=Spring.GetUnitHealth
 
 local GADGET_DIR = "LuaRules/Configs/"
@@ -15,7 +16,7 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 
 	local usx, usy, usz, speed = Spring.GetUnitVelocity(unitID)
 	if speed > 0.01 then speed = 1 end
-	local offset = (((GetGameFrame()) % 9) * (2.0 / 4096.0)) * speed
+	local offset = (((GetGameFrame()+GetFrameTimeOffset()) % 12) * (4.0 / 4096.0)) * speed
 	-- check if moving backwards
 	local udx, udy, udz = Spring.GetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
@@ -29,25 +30,8 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 	return false
 end
 
-local function SunChanged(curShaderObj)
-	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
-
-	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
-		Spring.GetConfigFloat("tonemapA", 4.8),
-		Spring.GetConfigFloat("tonemapB", 0.8),
-		Spring.GetConfigFloat("tonemapC", 3.35),
-		Spring.GetConfigFloat("tonemapD", 1.0),
-		Spring.GetConfigFloat("tonemapE", 1.15),
-		Spring.GetConfigFloat("envAmbient", 0.3),
-		Spring.GetConfigFloat("unitSunMult", 1.35),
-		Spring.GetConfigFloat("unitExposureMult", 1.0),
-	})
-end
-
+local default_aux = VFS.Include("materials/Shaders/default_aux.lua")
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local matTemplate = {
@@ -105,17 +89,17 @@ local matTemplate = {
 
 		"#define MAT_IDX 2",
 	},
-
+	shaderPlugins = default_aux.scavDisplacementPlugin,
 	shader    = default_lua,
 	deferred  = default_lua,
 	usecamera = false,
 	force = true,
-	culling   = GL.BACK,
+	culling = GL.BACK,
 	predl  = nil,
 	postdl = nil,
 	texunits  = {
-		[0] = "%%UNITDEFID:0",
-		[1] = "%%UNITDEFID:1",
+		[0] = "%TEX1",
+		[1] = "%TEX2",
 		[2] = "$shadow",
 		[3] = "$reflection",
 		[4] = "%NORMALTEX",
@@ -124,7 +108,7 @@ local matTemplate = {
 		[7] = GG.GetEnvTexture(),
 	},
 	DrawUnit = DrawUnit,
-	SunChanged = SunChanged,
+	SunChanged = default_aux.SunChanged,
 }
 
 --------------------------------------------------------------------------------
@@ -134,23 +118,20 @@ local matTemplate = {
 local materials = {}
 local unitMaterials = {}
 
+local function PackTableIntoString(tbl, str0)
+	local str = str0 or ""
+	for k, v in pairs(tbl) do
+		str = string.format("%s|%s=%s|", str, tostring(k), tostring(v))
+	end
+	return str
+end
+
 for i = 1, #UnitDefs do
 	local udef = UnitDefs[i]
 	local udefCM = udef.customParams
 
-	if (udefCM.arm_tank and udefCM.normaltex and VFS.FileExists(udefCM.normaltex)) then
-		local lm = tonumber(udefCM.lumamult) or 1
-		local matName = string.format("%s(lumamult=%f)", "normalMappedS3O_arm_tank", lm)
-		if not materials[matName] then
-			materials[matName] = Spring.Utilities.CopyTable(matTemplate, true)
-			if lm ~= 1 then
-				local lmLM = string.format("#define LUMAMULT %f", lm)
-				table.insert(materials[matName].shaderDefinitions, lmLM)
-				table.insert(materials[matName].deferredDefinitions, lmLM)
-			end
-		end
-
-		unitMaterials[udef.name] = {matName, NORMALTEX = udefCM.normaltex}
+	if (string.sub(udef.name, 1, 3) == 'arm' and udef.modCategories['tank'] and udefCM.normaltex and VFS.FileExists(udefCM.normaltex)) then
+		default_aux.FillMaterials(unitMaterials, materials, matTemplate, "normalMappedS3O_arm_tank", i)
 	end
 end
 

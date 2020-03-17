@@ -58,7 +58,7 @@ addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'A player has disconne
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'A player has been added to the game')
 
 -- awareness
-addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
+--addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
 addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, "You've received new units")
 
 addSound('RadarLost', 'RadarLost.wav', 8, 1, 'Radar lost')
@@ -224,7 +224,7 @@ local isEnergyProducer = {}
 local isWind = {}
 local isAircraft = {}
 local isT2 = {}
-local isT3 = {}
+local isT3mobile = {}
 local isMine = {}
 for udefID,def in ipairs(UnitDefs) do
 	-- not critter/chicken/object
@@ -236,8 +236,8 @@ for udefID,def in ipairs(UnitDefs) do
 			if def.customParams.techlevel == '2' and not def.customParams.iscommander then
 				isT2[udefID] = true
 			end
-			if def.customParams.techlevel == '3' then
-				isT3[udefID] = true
+			if def.customParams.techlevel == '3' and not def.isBuilding then
+				isT3mobile[udefID] = true
 			end
 		end
 		if def.modCategories.mine then
@@ -402,7 +402,7 @@ function widget:GameFrame(gf)
 			if spIsUnitInView(unitID) then
 				idleBuilder[unitID] = nil
 			elseif frame < gf then
-				QueueNotification('IdleBuilder')
+				--QueueNotification('IdleBuilder')
 				idleBuilder[unitID] = nil	-- do not repeat
 			end
 		end
@@ -445,7 +445,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			QueueNotification('VulcanIsReady')
 		elseif unitDefID == buzzsawDefID then
 			QueueNotification('BuzzsawIsReady')
-		elseif isT3[unitDefID] then
+		elseif isT3mobile[unitDefID] then
 			QueueNotification('Tech3UnitReady')
 
 		elseif doTutorialMode then
@@ -481,7 +481,7 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 	if isT2[udefID] then
 		QueueNotification('T2Detected')
 	end
-	if isT3[udefID] then
+	if isT3mobile[udefID] then
 		QueueNotification('T3Detected')
 	end
 	if isMine[udefID] then
@@ -753,6 +753,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		Sound = Sound,
 		soundList = soundList,
 		globalVolume = globalVolume,
 		spoken = spoken,
@@ -766,6 +767,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.Sound and Spring.GetGameFrame() > 0 then
+		Sound = data.Sound
+	end
 	if data.soundList ~= nil then
 		for sound, enabled in pairs(data.soundList) do
 			if Sound[sound] then

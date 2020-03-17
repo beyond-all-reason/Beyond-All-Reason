@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, base, turret, exhaust,lwheel,rwheel;
+piece  flare1, flare2, base, turret, lwheel,rwheel;
 
 static-var  restore_delay, gun_1;
 
@@ -81,14 +81,12 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-		emit-sfx 1024 + 0 from exhaust;
 		show flare1;
 		sleep 150;
 		hide flare1;
 	}
 	if( gun_1 == 1 )
 	{
-		emit-sfx 1024 + 0 from exhaust;
 		show flare2;
 		sleep 150;
 		hide flare2;
@@ -113,8 +111,8 @@ SweetSpot(piecenum)
 }
 StartMoving()
 {
-	spin lwheel around x-axis speed <90> accelerate <10>;
-	spin rwheel around x-axis speed <90> accelerate <10>;
+	spin lwheel around x-axis speed <150> accelerate <15>;
+	spin rwheel around x-axis speed <150> accelerate <15>;
 
 }
 StopMoving()
@@ -131,7 +129,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		explode exhaust type BITMAPONLY | NOHEATCLOUD;
 		explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		explode rwheel type BITMAPONLY | NOHEATCLOUD;
 		explode lwheel type BITMAPONLY | NOHEATCLOUD;
@@ -143,7 +140,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode flare1 type FALL | NOHEATCLOUD;
-		explode exhaust type FALL | NOHEATCLOUD;
 		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lwheel type FALL | NOHEATCLOUD;
@@ -155,7 +151,6 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode exhaust type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -165,7 +160,6 @@ Killed(severity, corpsetype)
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode exhaust type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;

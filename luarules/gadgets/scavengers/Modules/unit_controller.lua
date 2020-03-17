@@ -16,14 +16,14 @@ function SelfDestructionControls(n, scav, scavDef)
 			oldselfdz[scav] = selfdz[scav]
 		end
 		selfdx[scav],selfdy[scav],selfdz[scav] = Spring.GetUnitPosition(scav)
-		if UnitDefs[scavDef].maxWeaponRange + 200 < 800 then
-			UnitRange[scav] = 2000
+		if UnitDefs[scavDef].maxWeaponRange < 800 then
+			UnitRange[scav] = 800
 		else
-			UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange + 200
+			UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
 		end
 		local nearestselfd = Spring.GetUnitNearestEnemy(scav, UnitDefs[scavDef].maxWeaponRange + 200, false)
 		if not nearestselfd and (oldselfdx[scav] and oldselfdy[scav] and oldselfdz[scav]) and (oldselfdx[scav] > selfdx[scav]-10 and oldselfdx[scav] < selfdx[scav]+10) and (oldselfdy[scav] > selfdy[scav]-10 and oldselfdy[scav] < selfdy[scav]+10) and (oldselfdz[scav] > selfdz[scav]-10 and oldselfdz[scav] < selfdz[scav]+10) then
-			Spring.DestroyUnit(scav, true, false)
+			Spring.DestroyUnit(scav, false, true)
 		end
 	end
 	UnitRange[scav] = nil

@@ -27,14 +27,14 @@ end
 
 local function MergeTable(table1,table2)
   local result = {}
-  for i,v in pairs(table2) do 
+  for i,v in pairs(table2) do
     if (type(v)=='table') then
       result[i] = MergeTable(v,{})
     else
       result[i] = v
     end
   end
-  for i,v in pairs(table1) do 
+  for i,v in pairs(table1) do
     if (result[i]==nil) then
       if (type(v)=='table') then
         if (type(result[i])~='table') then result[i] = {} end
@@ -105,24 +105,7 @@ local shieldBursts600 = {
     count      = 4,
 }
 
-local cormakrEffect = {
-    life       = math.huge,
-    pos        = {0,24,0},
-    size       = 26,
-    sizeSpread = 7,
-    colormap   = { {0.8, 0.8, 0.5, 0.01} },
-    onActive   = true,
-    texture    = 'bitmaps/flare.TGA',
-}
-
 local UnitEffects = {
-
-    ["cormakr"] = {
-        {class='StaticParticles',options=cormakrEffect},
-    },
-    ["corfmkr"] = {
-        {class='StaticParticles',options=cormakrEffect},
-    },
 
     --T1 ARM AIR
     ["armatlas"] = {
@@ -240,22 +223,22 @@ local UnitEffects = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=22, piece="thrust", onActive=true, xzVelocity=1.2}},
     },
     ["corcrw"] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=22, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=22, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=22, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=18, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=18, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.4}},
     },
-    ["corcrwbosst2_scav"] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=30, length=50, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=30, length=50, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=23, length=46, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=23, length=50, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=1}},
+    ["corcrwboss"] = {
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=18, length=36, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.33}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=18, length=36, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.33}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=16, length=32, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.33}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=16, length=32, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.33}},
     },
     ["corseah"] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.75}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=25, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.75}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.75}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.75}},
     },
     ["cortitan"] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=40, piece="thrustb", onActive=true, light=1}},
@@ -318,28 +301,47 @@ local UnitEffects = {
 local distoredShields = tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1
 if distoredShields then
     local distortionAmount = 0.007
-    UnitEffects["corgate"][#UnitEffects["corgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
-    UnitEffects["corfgate"][#UnitEffects["corfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
-    UnitEffects["armgate"][#UnitEffects["armgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
-    UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, repeatEffect=true}}
+	local minDistortionMult = 0.2
+    UnitEffects["corgate"][#UnitEffects["corgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+    UnitEffects["corfgate"][#UnitEffects["corfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+    UnitEffects["armgate"][#UnitEffects["armgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+    UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
 end
 
-local scavEffects = {}
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
-    for k,effect in pairs(UnitEffects) do
-        scavEffects[k..'_scav'] = effect
-        if scavEffects[k..'_scav'].options then
-            if scavEffects[k..'_scav'].options.color then
-                scavEffects[k..'_scav'].options.color = {0.92, 0.32, 1.0}
+if UnitDefNames['armcom_scav'] then
+
+    function deepcopy(orig)
+        local orig_type = type(orig)
+        local copy
+        if orig_type == 'table' then
+            copy = {}
+            for orig_key, orig_value in next, orig, nil do
+                copy[deepcopy(orig_key)] = deepcopy(orig_value)
             end
-            if scavEffects[k..'_scav'].options.colormap then
-                scavEffects[k..'_scav'].options.colormap = { {0.92, 0.32, 1.0} }
-            end
-            if scavEffects[k..'_scav'].options.colormap1 then
-                scavEffects[k..'_scav'].options.colormap1 = { {0.92, 0.32, 1.0} }
-            end
-            if scavEffects[k..'_scav'].options.colormap2 then
-                scavEffects[k..'_scav'].options.colormap2 = { {0.92, 0.32, 1.0} }
+            setmetatable(copy, deepcopy(getmetatable(orig)))
+        else -- number, string, boolean, etc
+            copy = orig
+        end
+        return copy
+    end
+
+    local scavEffects = {}
+    for k,effects in pairs(UnitEffects) do
+        scavEffects[k..'_scav'] = deepcopy(effects)
+        for i,effect in pairs(effects) do
+            if scavEffects[k..'_scav'][i].options then
+                if scavEffects[k..'_scav'][i].options.color then
+                    scavEffects[k..'_scav'][i].options.color = {0.6, 0.12, 0.7}
+                end
+                if scavEffects[k..'_scav'][i].options.colormap then
+                    scavEffects[k..'_scav'][i].options.colormap = { {0.6, 0.12, 0.7} }
+                end
+                if scavEffects[k..'_scav'][i].options.colormap1 then
+                    scavEffects[k..'_scav'][i].options.colormap1 = { {0.6, 0.12, 0.7} }
+                end
+                if scavEffects[k..'_scav'][i].options.colormap2 then
+                    scavEffects[k..'_scav'][i].options.colormap2 = { {0.6, 0.12, 0.7} }
+                end
             end
         end
     end
@@ -414,15 +416,15 @@ local function ClearFx(unitID, fxIDtoDel)
   if (particleIDs[unitID]) then
 	local newTable = {}
 	for _,fxID in ipairs(particleIDs[unitID]) do
-		if fxID == fxIDtoDel then 
+		if fxID == fxIDtoDel then
 			Lups.RemoveParticles(fxID)
-		else 
+		else
 			newTable[#newTable+1] = fxID
 		end
     end
-	if #newTable == 0 then 
+	if #newTable == 0 then
 		particleIDs[unitID] = nil
-	else 
+	else
 		particleIDs[unitID] = newTable
 	end
   end
@@ -466,7 +468,7 @@ end
 local function UnitEnteredLos(_,unitID)
   local spec, fullSpec = spGetSpectatingState()
   if (spec and fullSpec) then return end
-    
+
   local unitDefID = spGetUnitDefID(unitID)
   local effects   = UnitEffects[unitDefID]
   if (effects) then
@@ -484,7 +486,7 @@ local function UnitEnteredLos(_,unitID)
 	  end
 	end
   end
-  
+
 end
 
 

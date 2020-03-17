@@ -42,7 +42,6 @@ return {
 		turninplacespeedlimit = 1.873,
 		turnrate = 371,
 		customparams = {
-			core_tank = "1",
 			basename = "base",
 			cannon1name = "barrel",
 			description_long = "The Raider a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Raiders can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Slashers or artillery for a great frontline push or use large packs for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",

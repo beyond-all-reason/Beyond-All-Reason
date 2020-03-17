@@ -36,9 +36,17 @@ function UnitGroupSpawn(n)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if BossWaveTimeLeft then
-			ActualUnitSpawnChance = math_random(0,UnitSpawnChance*3)
+			if numOfSpawnBeacons or numOfSpawnBeacons == 0 then
+				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance)*3)
+			else
+				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5))*3)
+			end
 		else
-			ActualUnitSpawnChance = math_random(0,UnitSpawnChance)
+			if numOfSpawnBeacons or numOfSpawnBeacons == 0 then
+				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance))
+			else
+				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5)))
+			end
 		end
 		if (ActualUnitSpawnChance == 0 or canSpawnHere == false) and numOfSpawnBeacons > 0 then
 			-- check positions
@@ -53,8 +61,9 @@ function UnitGroupSpawn(n)
 			end
 			
 			local pickedBeacon = SpawnBeacons[math_random(1,#SpawnBeacons)]
-			posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
-			posy = Spring.GetGroundHeight(posx, posz)
+			local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+			local posy = Spring.GetGroundHeight(posx, posz)
+			local posradius = 256
 			local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
 			local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
 			if nearestEnemyTeam == bestTeam then
@@ -63,9 +72,12 @@ function UnitGroupSpawn(n)
 				bestTeamGroupMultiplier = 0.75
 			end
 			canSpawnHere = true
-			Spring.DestroyUnit(pickedBeacon,false,false)
+			if canSpawnHere then
+				canSpawnHere = posLosCheckNoRadar(posx, posy, posz, posradius)
+			end
+			--Spring.DestroyUnit(pickedBeacon,false,false)
 			SpawnBeacon(n)
-			local posradius = 160
+			
 			
 			if canSpawnHere then
 				
@@ -74,7 +86,9 @@ function UnitGroupSpawn(n)
 				else
 					UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
 				end
-				
+				if not globalScore then
+					teamsCheck()
+				end
 				if (globalScore/unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier < #scavengerunits then
 					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
 				end
@@ -86,7 +100,11 @@ function UnitGroupSpawn(n)
 				
 				if (posy <= -20 and aircraftchanceonsea ~= 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
+						if spawnTier < 50 then
+							groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
+						else
+							groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
+						end
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0AirUnits[math_random(1,#T0AirUnits)]
@@ -114,7 +132,11 @@ function UnitGroupSpawn(n)
 					end
 				elseif posy > -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
+						if spawnTier < 50 then
+							groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
+						else
+							groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
+						end
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0LandUnits[math_random(1,#T0LandUnits)]
@@ -157,7 +179,11 @@ function UnitGroupSpawn(n)
 					end
 				elseif posy <= -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
+						if spawnTier < 50 then
+							groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
+						else
+							groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
+						end
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
 						groupunit = T0SeaUnits[math_random(1,#T0SeaUnits)]
@@ -189,7 +215,11 @@ function UnitGroupSpawn(n)
 				for i=1, groupsize do
 					local posx = posx+math_random(-160,160)
 					local posz = posz+math_random(-160,160)
-					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+					if i then
+						QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+i)
+					else
+						QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+					end
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 				end
 				posx = nil

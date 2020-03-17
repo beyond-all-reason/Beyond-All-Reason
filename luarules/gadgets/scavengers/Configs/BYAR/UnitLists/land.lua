@@ -42,6 +42,7 @@ T1LandUnits = {
 "cormh",
 "corah",
 "corsnap",
+--constructors
 }
 
 T2LandUnits = {
@@ -88,6 +89,21 @@ T2LandUnits = {
 "corparrow",
 --hovercraft
 "corhal",
+--constructors
+"armck",
+"armcv",
+"armbeaver",
+"armch",
+"corck",
+"corcv",
+"cormuskrat",
+"armack",
+"armdecom",
+"armacv",
+"armconsul",
+"corack",
+"cordecom",
+"coracv",
 }
 
 T3LandUnits = {
@@ -102,11 +118,9 @@ T3LandUnits = {
 --"armmar", currently doesn't shoot for scavs
 "armvang",
 --"armraz",  currently doesn't shoot for scavs
---"corkrog",
 "corshiva",
 "corkarg",
 "corcat",
---"corjugg",
 --hovercraft
 "armlun",
 "corsok",
@@ -117,7 +131,7 @@ T4LandUnits = {
 "corjugg",
 "armbanth",
 --superboss
-"armpwbosst1",
-"armstumpbosst1",
-"armvaderbossT2",
+"armpwboss",
+"armstumpboss",
+"armvaderboss",
 }

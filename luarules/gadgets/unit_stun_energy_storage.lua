@@ -39,20 +39,23 @@ local storageunits = {}
 
 local pairs = pairs
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
-
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitPosition = Spring.GetUnitPosition
+local spUseTeamResource = Spring.UseTeamResource
+local spSpawnCEG = Spring.SpawnCEG
 
 function gadget:GameFrame(n)
   if ((n+18) % 30) < 0.1 then
     for unitID, _ in pairs(storageunits) do
 	   if spGetUnitIsStunned(unitID) then
 	     --Spring.Echo(unitID .. " is stunned  " ..storageunits[unitID].storagecap,penality,storageunits[unitID].height)
-	     local team = Spring.GetUnitTeam(unitID)
+	     local team = spGetUnitTeam(unitID)
 	     if team ~= nil then
 			local penality = storageunits[unitID].storagecap * 0.01 -- work's out 60e per second for t1 storage and 400e per second for t2 storage
-			local x,y,z = Spring.GetUnitPosition(unitID)
+			local x,y,z = spGetUnitPosition(unitID)
 			local height = storageunits[unitID].height * 0.40
-			Spring.SpawnCEG("ENERGY_STORAGE_LEAK",x,y+height,z,0,0,0)
-			Spring.UseTeamResource(team, "energy", penality)
+			spSpawnCEG("ENERGY_STORAGE_LEAK",x,y+height,z,0,0,0)
+			spUseTeamResource(team, "energy", penality)
 		 end
 	   end
     end

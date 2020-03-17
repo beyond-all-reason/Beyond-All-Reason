@@ -1,17 +1,26 @@
+local scavengersAIEnabled = false
+local teams = Spring.GetTeamList()
+for i = 1,#teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengersAIEnabled = true
+		break
+	end
+end
 
-if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+if not scavengersAIEnabled and not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
 	return
 end
 
 function widget:GetInfo()
-return {
-	name    = "Scavenger Info",
-	desc    = "",
-	author  = "Floris",
-	date    = "Jan 2020",
-	layer   = -99990,
-	enabled = true,
-}
+	return {
+		name    = "Scavenger Info",
+		desc    = "",
+		author  = "Floris",
+		date    = "Jan 2020",
+		layer   = -99990,
+		enabled = true,
+	}
 end
 
 local show = true	-- gets disabled when it has been loaded before

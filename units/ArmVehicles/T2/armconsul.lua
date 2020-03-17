@@ -73,7 +73,6 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armmex",
-			arm_tank = "1",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",

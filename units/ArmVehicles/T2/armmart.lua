@@ -8,9 +8,9 @@ return {
 		buildtime = 5530,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -8 -6",
-		collisionvolumescales = "36 36 42",
-		collisionvolumetype = "CylZ",
+		collisionvolumeoffsets = "0 0 -2",
+		collisionvolumescales = "36 20 38",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Mobile Artillery",
 		energymake = 0.4,
@@ -43,7 +43,6 @@ return {
 		turninplacespeedlimit = 1.1946,
 		turnrate = 300,
 		customparams = {
-			arm_tank = "1",
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "barrel",
@@ -171,7 +170,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "NOTLAND",
 				def = "ARM_ARTILLERY",
 				maindir = "0 0 1",
 				maxangledif = 180,

@@ -149,6 +149,8 @@ for name, def in pairs(unitDefs) do
 end
 
 
+local isTestversion = (Game and Game.gameVersion and string.find(Game.gameVersion, '$VERSION'))
+
 for name, def in pairs(unitDefs) do
   local badOptions = {}
   local buildOptions = def.buildOptions or def.buildoptions
@@ -156,8 +158,10 @@ for name, def in pairs(unitDefs) do
     for i, option in ipairs(buildOptions) do
       if (unitDefs[option] == nil) then
         table.insert(badOptions, i)
-        Spring.Log(section, LOG.ERROR, 'removed the "' .. option ..'" entry'
-                    .. ' from the "' .. name .. '" build menu')
+        if isTestversion then
+          Spring.Log(section, LOG.ERROR, 'removed the "' .. option ..'" entry'
+                  .. ' from the "' .. name .. '" build menu')
+        end
       end
     end
     if (#badOptions > 0) then

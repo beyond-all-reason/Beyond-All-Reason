@@ -695,7 +695,7 @@ function widget:DrawWorld()
   if (not info.mobile) then fy = fy + GetUnitRadius(aoeUnitID) end
 
   if not info.waterWeapon and ty < 0 then
-    ty = 0 end
+    ty = 0
   end
   local weaponType = info.type
 

@@ -45,7 +45,6 @@ return {
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",
-			core_tank = "1",
 			driftratio = "0.25",
 			firingceg = "barrelshot-medium",
 			flare1name = "flare1",

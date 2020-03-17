@@ -13,6 +13,7 @@ if scavengersAIEnabled then
 			factoryControllerModule 		= true,
 			unitSpawnerModule 				= true,
 			startBoxProtection				= true,
+			reinforcementsModule			= true,
 		},
 		timers = {
 			-- globalScore values
@@ -39,7 +40,7 @@ if scavengersAIEnabled then
 			T4top								= 28000,
 			BossFight							= 33000,
 			-- don't delete
-			NoRadar								= 7500,
+			NoRadar								= 1200,
 		},
 		other = {
 			heighttolerance						= 30, -- higher = allow higher height diffrences
@@ -57,9 +58,10 @@ if scavengersAIEnabled then
 		bossFightEnabled					= true,
 		BossWaveTimeLeft					= 900,
 		aircraftchance 						= 20, -- higher number = lower chance
-		globalscoreperoneunit 				= 450,
+		globalscoreperoneunit 				= 900,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
+		minimumspawnbeacons					= 2,
 		landmultiplier 						= 0.75,
 		airmultiplier 						= 2,
 		seamultiplier 						= 0.2,
@@ -67,16 +69,16 @@ if scavengersAIEnabled then
 
 		t0multiplier						= 2,
 		t1multiplier						= 1.5,
-		t2multiplier						= 1.0,
-		t3multiplier						= 0.2,
-		t4multiplier						= 0.05,
+		t2multiplier						= 0.8,
+		t3multiplier						= 0.1,
+		t4multiplier						= 0.03,
 	}
 
 	constructorControllerModuleConfig = {
 		constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
 		constructortimer 					= 220, -- time in seconds between commander/constructor spawns
 		constructortimerreductionframes		= 36000,
-		minimumconstructors					= 3,
+		minimumconstructors					= 5,
 		useresurrectors						= true,
 			searesurrectors					= false,
 		useconstructors						= true,
@@ -88,7 +90,7 @@ if scavengersAIEnabled then
 	}
 
 	spawnProtectionConfig = {
-		spread				= 96,
+		spread				= 192,
 	}
 
 
@@ -100,7 +102,6 @@ if scavengersAIEnabled then
 
 	function UpdateTierChances(n)
 		-- Must be 100 in total
-		
 		if globalScore > scavconfig.timers.T4top then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
@@ -251,6 +252,7 @@ else
 			factoryControllerModule 		= true,
 			unitSpawnerModule 				= true,
 			startBoxProtection				= false,
+			reinforcementsModule			= true,
 		},
 		timers = {
 			-- globalScore values
@@ -297,7 +299,8 @@ else
 		aircraftchance 						= 5, -- higher number = lower chance
 		globalscoreperoneunit 				= 800,
 		spawnchance							= 120,
-		beaconspawnchance					= 120,
+		beaconspawnchance					= 360,
+		minimumspawnbeacons					= 2,
 		landmultiplier 						= 0.75,
 		airmultiplier 						= 1.5,
 		seamultiplier 						= 0.2,
@@ -397,7 +400,7 @@ else
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 70
-			TierSpawnChances.T3 = 10
+			TierSpawnChances.T3 = 20
 			TierSpawnChances.T4 = 0
 		elseif globalScore > scavconfig.timers.T2top then
 			TierSpawnChances.T0 = 10

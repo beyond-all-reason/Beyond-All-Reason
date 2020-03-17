@@ -82,6 +82,17 @@ local glTranslate = gl.Translate
 local glScale = gl.Scale
 
 
+local scavengersAIEnabled = false
+local teams = Spring.GetTeamList()
+for i = 1,#teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengersAIEnabled = true
+		break
+	end
+end
+
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 WG.uiScale = widgetScale
@@ -105,7 +116,6 @@ local presets = {
 	lowest = {
 		bloom = false,
 		bloomdeferred = false,
-		--cas = false,
 		ssao = false,
 		water = 1,
 		mapedgeextension = false,
@@ -119,7 +129,6 @@ local presets = {
 		treeradius = 0,
 		--treewind = false,
 		guishader = false,
-		--shadows = false,
 		decals = 0,
 		--grounddetail = 70,
 		darkenmap_darkenfeatures = false,
@@ -128,7 +137,6 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
-		--cas = true,
 		ssao = false,
 		water = 2,
 		mapedgeextension = false,
@@ -142,7 +150,6 @@ local presets = {
 		treeradius = 200,
 		--treewind = false,
 		guishader = false,
-		--shadows = true,
 		decals = 0,
 		--grounddetail = 100,
 		darkenmap_darkenfeatures = false,
@@ -151,7 +158,6 @@ local presets = {
 	medium = {
 		bloom = true,
 		bloomdeferred = true,
-		--cas = true,
 		ssao = false,
 		water = 4,
 		mapedgeextension = true,
@@ -165,7 +171,6 @@ local presets = {
 		treeradius = 400,
 		--treewind = false,
 		guishader = false,
-		--shadows = true,
 		decals = 1,
 		--grounddetail = 140,
 		darkenmap_darkenfeatures = false,
@@ -174,7 +179,6 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomdeferred = true,
-		--cas = true,
 		ssao = true,
 		water = 3,
 		mapedgeextension = true,
@@ -188,7 +192,6 @@ local presets = {
 		treeradius = 800,
 		--treewind = true,
 		guishader = true,
-		--shadows = true,
 		decals = 2,
 		--grounddetail = 180,
 		darkenmap_darkenfeatures = false,
@@ -197,7 +200,6 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomdeferred = true,
-		--cas = true,
 		ssao = true,
 		water = 5,
 		mapedgeextension = true,
@@ -211,7 +213,6 @@ local presets = {
 		treeradius = 800,
 		--treewind = true,
 		guishader = true,
-		--shadows = true,
 		decals = 3,
 		--grounddetail = 200,
 		darkenmap_darkenfeatures = true,
@@ -790,7 +791,7 @@ function widget:Update(dt)
 		if string.find(string.lower(OS), 'mac') then		-- MAC OS aka Masterbel crashes With ROAM 0
 			Spring.SetConfigInt("ROAM", 1)
 			Spring.SendCommands("mapmeshdrawer 2")
-		else
+		elseif tonumber(Spring.GetConfigInt("skipforceroam",0) or 0) ~= 1 then		-- added this option because maybe some people crash because of roam 0?
 			if tonumber(Spring.GetConfigInt("ROAM",1) or 1) ~= 0 then
 				Spring.SetConfigInt("ROAM", 0)
 			end
@@ -1566,7 +1567,7 @@ function loadAllWidgetData()
 	end
 end
 
-
+local engine64 = true
 function init()
 
 	local supportedResolutions = {}
@@ -1610,6 +1611,10 @@ function init()
 			-- scan for shader version error
 			if string.find(line, 'error: GLSL 1.50 is not supported') then
 				Spring.SetConfigInt("LuaShaders", 0)
+			end
+			-- scan for shader version error
+			if string.find(line, '_win32') or  string.find(line, '_linux32')  then
+				engine64 = false
 			end
 		end
 	end
@@ -1717,21 +1722,21 @@ function init()
 			 Spring.SetConfigInt("VSync",(value and 1 or 0))
 		 end,
 		},
-		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", min=0, max=6, step=1, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", min=0, max=8, step=1, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
 		 onchange=function(i,value)
 			 Spring.SetConfigInt("MSAALevel",value)
 		 end,
 		},
 
 		--{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.2, max=0.9, step=0.01, type="slider", value=0.66, description='How much sharpening should be applied to the image',
-		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
-		 onchange=function(i, value)
-			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
-		 end,
-		},
+		--{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.2, max=0.9, step=0.01, type="slider", value=0.66, description='How much sharpening should be applied to the image',
+		-- onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
+		-- onchange=function(i, value)
+		--	 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
+		-- end,
+		--},
 
-		{id="shadowslider", group="gfx", basic=true, name="Shadows", type="slider", steps={1024,2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail',
+		{id="shadowslider", group="gfx", basic=true, name="Shadows", type="slider", steps={2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail',
 		 onchange=function(i,value)
 			 local enabled = (value < 1000) and 0 or 1
 			 Spring.SendCommands("shadows "..enabled.." "..value)
@@ -1848,7 +1853,7 @@ function init()
 		},
 
 		{id="bloomdeferred", group="gfx", basic=true, widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)'},
-		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description='',
+		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.5, max=2, step=0.05, value=1, description='',
 		 onchange=function(i,value) saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', {'glowAmplifier'}, value) end,
 		 onload=function() loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", {'glowAmplifier'}) end,
 		},
@@ -1862,7 +1867,7 @@ function init()
 		--},
 
 		{id="bloom", group="gfx", basic=true, widget="Bloom Shader", name="Bloom (global)", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow\n\n(might result in more laggy experience)'},
-		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.15, max=0.5, step=0.05, value=0.25, description='',
+		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.1, max=0.4, step=0.05, value=0.2, description='',
 		 onchange=function(i,value) saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', {'basicAlpha'}, value) end,
 		 onload=function() loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'}) end,
 		},
@@ -2120,7 +2125,7 @@ function init()
 			 end
 		 end,
 		},
-		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=1, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
+		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
 		},
@@ -2327,7 +2332,7 @@ function init()
 			 saveOptionValue('Metalspots', 'metalspots', 'setShowValue', {'showValue'}, options[getOptionByID('metalspots_values')].value)
 		 end,
 		},
-		{id="metalspots_metalviewonly", group="ui", name=widgetOptionColor.."   limit to F4 view", type="bool", value=false, description='Limit display to only during pre-gamestart or when in metalmap view (f4)',
+		{id="metalspots_metalviewonly", group="ui", name=widgetOptionColor.."   limit to F4 (metalmap) view", type="bool", value=false, description='Limit display to only during pre-gamestart or when in metalmap view (f4)',
 		 onload=function() loadWidgetData("Metalspots", "metalspots_metalviewonly", {'metalViewOnly'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', {'showValue'}, options[getOptionByID('metalspots_metalviewonly')].value)
@@ -2435,24 +2440,6 @@ function init()
 		-- onload = function() end,
 		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
 		--},
-		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
-		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
-		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
-		 onload = function() end,
-		 onchange = function(i,value) if value then Spring.StopSoundStream() end end
-		},
-
-		{id="displaydps", group="ui", basic=true, name="Display DPS", type="bool", value=tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1, description='Display the \'Damage Per Second\' done where target are hit',
-		 onload = function()  end,
-		 onchange = function(i, value)
-			 Spring.SetConfigInt("DisplayDPS",(value and 1 or 0))
-		 end,
-		},
-
-		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
-
-		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
-		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
 		{id="commandsfx", group="ui", basic=true, widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
 		{id="commandsfxfilterai", group="ui", name=widgetOptionColor.."   filter AI teams", type="bool", value=true, description='Hide commands for AI teams',
@@ -2484,8 +2471,23 @@ function init()
 		--		 onchange = function(i, value) saveOptionValue('EnemySpotter', 'enemyspotter', 'setHighlight', {'useXrayHighlight'}, value) end,
 		--		},
 
-		{id="highlightselunits", group="ui", basic=true, widget="Highlight Selected Units", name="Highlight selected units", type="bool", value=GetWidgetToggleValue("Highlight Selected Units"), description='Highlights unit models when selected'},
-		{id="highlightselunits_opacity", group="ui", basic=true, name=widgetOptionColor.."   opacity", min=0.05, max=0.3, step=0.01, type="slider", value=0.1, description='Set the opacity of the highlight on selected units',
+
+		{id="fancyselectedunits", group="ui", basic=true, widget="Fancy Selected Units", name="Selection Unit Platters", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description='Draws a platter under selected units\n\n\NOTE: this widget can be heavy when having lots of units selected'},
+		--{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
+		-- onload = function() loadWidgetData("Fancy Selected Units", "fancyselectedunits_opacity", {'spotterOpacity'}) end,
+		-- onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setOpacity', {'spotterOpacity'}, value) end,
+		--},
+		{id="fancyselectedunits_baseopacity", group="ui", name=widgetOptionColor.."   opacity", min=0, max=0.5, step=0.01, type="slider", value=0.15, description='Set the opacity of the highlight on selected units',
+		 onload = function() loadWidgetData("Fancy Selected Units", "fancyselectedunits_baseopacity", {'baseOpacity'}) end,
+		 onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setBaseOpacity', {'baseOpacity'}, value) end,
+		},
+		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor amount", min=0, max=1, step=0.01, type="slider", value=0.55, description='Set the amount of teamcolor used for the base platter',
+		 onload = function() loadWidgetData("Fancy Selected Units", "fancyselectedunits_teamcoloropacity", {'teamcolorOpacity'}) end,
+		 onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setTeamcolorOpacity', {'teamcolorOpacity'}, value) end,
+		},
+
+		{id="highlightselunits", group="ui", basic=true, widget="Highlight Selected Units", name="Selection Unit Highlight", type="bool", value=GetWidgetToggleValue("Highlight Selected Units"), description='Highlights unit models when selected'},
+		{id="highlightselunits_opacity", group="ui", basic=true, name=widgetOptionColor.."   opacity", min=0.05, max=0.5, step=0.01, type="slider", value=0.1, description='Set the opacity of the highlight on selected units',
 		 onload = function() loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", {'highlightAlpha'}) end,
 		 onchange = function(i, value) saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setOpacity', {'highlightAlpha'}, value) end,
 		},
@@ -2500,20 +2502,24 @@ function init()
 		 end,
 		},
 
-		{id="fancyselectedunits", group="ui", basic=true, widget="Fancy Selected Units", name="Fancy selected units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description='Draws a platter under selected units\n\n\NOTE: this widget can be heavy when having lots of units selected'},
-		--{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
-		-- onload = function() loadWidgetData("Fancy Selected Units", "fancyselectedunits_opacity", {'spotterOpacity'}) end,
-		-- onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setOpacity', {'spotterOpacity'}, value) end,
-		--},
-		{id="fancyselectedunits_baseopacity", group="ui", name=widgetOptionColor.."   base opacity", min=0, max=0.5, step=0.01, type="slider", value=0.15, description='Set the opacity of the highlight on selected units',
-		 onload = function() loadWidgetData("Fancy Selected Units", "fancyselectedunits_baseopacity", {'baseOpacity'}) end,
-		 onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setBaseOpacity', {'baseOpacity'}, value) end,
-		},
-		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor amount", min=0, max=1, step=0.01, type="slider", value=0.55, description='Set the amount of teamcolor used for the base platter',
-		 onload = function() loadWidgetData("Fancy Selected Units", "fancyselectedunits_teamcoloropacity", {'teamcolorOpacity'}) end,
-		 onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setTeamcolorOpacity', {'teamcolorOpacity'}, value) end,
+		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
+		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
+
+		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
+		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
+		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
+		 onload = function() end,
+		 onchange = function(i,value) if value then Spring.StopSoundStream() end end
 		},
 
+		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
+
+		{id="displaydps", group="ui", basic=true, name="Display DPS", type="bool", value=tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1, description='Display the \'Damage Per Second\' done where target are hit',
+		 onload = function()  end,
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("DisplayDPS",(value and 1 or 0))
+		 end,
+		},
 		{id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
 		{id="defrange", group="ui", widget="Defense Range", name="Defense ranges", type="bool", value=GetWidgetToggleValue("Defense Range"), description='Displays range of defenses (enemy and ally)'},
@@ -2769,6 +2775,10 @@ function init()
 		},
 
 	}
+	-- air absorption does nothing on 32 bit engine version
+	if not engine64 then
+		options[getOptionByID('sndairabsorption')] = nil
+	end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -2791,8 +2801,7 @@ function init()
 		options[getOptionByID('sun_reset')] = nil
 	end
 
-
-	if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+	if not scavengersAIEnabled and (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
 		options[getOptionByID('scav_voicenotifs')] = nil
 		options[getOptionByID('scav_messages')] = nil
 	end
@@ -3225,8 +3234,8 @@ function widget:Initialize()
 			Spring.SetConfigInt("GrassDetail",0)
 		end
 		-- limit MSAA
-		if Spring.GetConfigInt("MSAALevel",0) > 6 then
-			Spring.SetConfigInt("MSAALevel",6)
+		if Spring.GetConfigInt("MSAALevel",0) > 8 then
+			Spring.SetConfigInt("MSAALevel",8)
 		end
 		--if Spring.GetConfigInt("UsePBO",0) == 0 then
 		--	Spring.SetConfigInt("UsePBO",1)
@@ -3236,10 +3245,10 @@ function widget:Initialize()
 		--end
 
 		-- enable shadows at gamestart
-		if Spring.GetConfigInt("Shadows",0) ~= 1 then
-			Spring.SetConfigInt("Shadows",1)
-			Spring.SendCommands("Shadows 1")
-		end
+		--if Spring.GetConfigInt("Shadows",0) ~= 1 then
+		--	Spring.SetConfigInt("Shadows",1)
+		--	Spring.SendCommands("Shadows 1")
+		--end
 		-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
 		--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 		--	Spring.SendCommands("Shadows 1 1000")

@@ -61,7 +61,7 @@ function SpawnConstructor(n)
 		end
 		if canSpawnCommanderHere then
 			posradius = 48
-			Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
+			--Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
 			if not anothercommander then
 				ScavSendNotification("scav_scavcomdetected")
 				anothercommander = true
@@ -98,21 +98,21 @@ function SpawnConstructor(n)
 			Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz+posradius, math_random(0,3),GaiaTeamID)
 			Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz-posradius, math_random(0,3),GaiaTeamID)
 			Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz-posradius, math_random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+90)
 			if posy > 0 then
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz+32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz-32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math_random(0,3),GaiaTeamID,n+90+1)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz, math_random(0,3),GaiaTeamID,n+90+2)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+3)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+5)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+6)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+7)
+				QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+8)
 			elseif constructorControllerModuleConfig.searesurrectors == true then
-				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID)
+				QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+1)
+				QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+2)
+				QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+3)
+				QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
 			end
 		else
 			constructortimer = constructortimer +  math.ceil(n/constructorControllerModuleConfig.constructortimerreductionframes)
@@ -122,10 +122,15 @@ function SpawnConstructor(n)
 	end
 end			
 	
+ConstructorNumberOfRetries = {}
 function ConstructNewBlueprint(n, scav)
+	if not ConstructorNumberOfRetries[scav] then
+		ConstructorNumberOfRetries[scav] = 0
+	end
+	ConstructorNumberOfRetries[scav] = ConstructorNumberOfRetries[scav] + 1
 	local x,y,z = Spring.GetUnitPosition(scav)
-	local posx = math_random(x-1000,x+1000)
-	local posz = math_random(z-1000,z+1000)
+	local posx = math_random(x-(50*ConstructorNumberOfRetries[scav]),x+(50*ConstructorNumberOfRetries[scav]))
+	local posz = math_random(z-(50*ConstructorNumberOfRetries[scav]),z+(50*ConstructorNumberOfRetries[scav]))
 	local posy = Spring.GetGroundHeight(posx, posz)
 	local spawnTier = math_random(1,100)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
@@ -172,27 +177,36 @@ function ConstructNewBlueprint(n, scav)
 	if canConstructHere then
 		canConstructHere = posCheck(posx, posy, posz, posradius)
 	end
+	
 	if canConstructHere then
 		-- let's do this shit
+		Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx,posy,posz}, {"shift"})
 		blueprint(scav, posx, posy, posz, GaiaTeamID, false)
-		local x = math_random(x-1000,x+1000)
-		local z = math_random(z-1000,z+1000)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-		local x = math_random(x-100,x+100)
-		local z = math_random(z-100,z+100)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		ConstructorNumberOfRetries[scav] = 0
 	else
-		local x,y,z = Spring.GetUnitPosition(scav)
-		local x = math_random(x-500,x+500)
-		local z = math_random(z-500,z+500)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-		local x,y,z = Spring.GetUnitPosition(scav)
-		local x = math_random(x-100,x+100)
-		local z = math_random(z-100,z+100)
-		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		return
 	end
+	-- if canConstructHere then
+		-- -- let's do this shit
+		-- blueprint(scav, posx, posy, posz, GaiaTeamID, false)
+		-- local x = math_random(x-1000,x+1000)
+		-- local z = math_random(z-1000,z+1000)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		-- local x = math_random(x-100,x+100)
+		-- local z = math_random(z-100,z+100)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+	-- else
+		-- local x,y,z = Spring.GetUnitPosition(scav)
+		-- local x = math_random(x-500,x+500)
+		-- local z = math_random(z-500,z+500)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+		-- local x,y,z = Spring.GetUnitPosition(scav)
+		-- local x = math_random(x-100,x+100)
+		-- local z = math_random(z-100,z+100)
+		-- local y = Spring.GetGroundHeight(x,z)
+		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+	-- end
 end

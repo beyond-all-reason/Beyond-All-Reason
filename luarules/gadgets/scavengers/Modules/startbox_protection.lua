@@ -11,7 +11,7 @@ function spawnStartBoxProtection(n)
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
     local r = math_random(0,3)
-    local r2 = math_random(0,20)
+    local r2 = math_random(0,40)
     local spread = spawnProtectionConfig.spread
     local spawnPosX = math_random(ScavengerStartboxXMin,ScavengerStartboxXMax)
     local spawnPosZ = math_random(ScavengerStartboxZMin,ScavengerStartboxZMax)
@@ -33,12 +33,12 @@ function spawnStartBoxProtection(n)
         spawnPosZ = math_random(ScavengerStartboxZMin,ScavengerStartboxZMax)
     end
     canSpawnDefence = true
-    if spawnPosX > mapsizeX or spawnPosX == 0 or spawnPosZ == mapsizeZ or spawnPosZ == 0 then
+    if spawnPosX > mapsizeX - 128 or spawnPosX < 128 or spawnPosZ > mapsizeZ - 128 or spawnPosZ < 128 then
         canSpawnDefence = false
     end
     spawnPosX = spawnPosX + math_random(-spread*2,spread*2)
     spawnPosZ = spawnPosZ + math_random(-spread*2,spread*2)
-	if spawnPosX > mapsizeX - 64 or spawnPosX < 64 or spawnPosZ > mapsizeZ - 64 or spawnPosZ < 64 then
+	if spawnPosX > mapsizeX - 128 or spawnPosX < 128 or spawnPosZ > mapsizeZ - 128 or spawnPosZ < 128 then
         canSpawnDefence = false
     end
     if canSpawnDefence then
@@ -81,7 +81,7 @@ function spawnStartBoxProtection(n)
         end
         
         if canSpawnDefence then
-            Spring.CreateUnit(pickedTurret..scavconfig.unitnamesuffix, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID)
+            QueueSpawn(pickedTurret..scavconfig.unitnamesuffix, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID,n+90)
             Spring.CreateUnit("scavengerdroppod_scav", spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID)
         end
     end

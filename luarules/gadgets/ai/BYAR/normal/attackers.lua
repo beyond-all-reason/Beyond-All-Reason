@@ -191,7 +191,7 @@ raiderlist = {
 	"corcrus",	--	Executioner		/	Cruiser
 }	
 
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+if UnitDefNames['armcom_scav'] then
 	local A = #skirmisherlist
 	for i = 1,A do
 	  local Scavattacker = skirmisherlist[i].."_scav"

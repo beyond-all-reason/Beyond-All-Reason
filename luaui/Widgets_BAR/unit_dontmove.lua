@@ -83,6 +83,7 @@ local unitArray_ = {
   "armfav",
   "corfav",
   "armspy",
+  "armgremlin",
   
   "armpt",
   "corpt",

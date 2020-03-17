@@ -27,7 +27,8 @@ if aiCount == 0 then
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	if aiTeams[oldTeam] then
+    local UnitName = UnitDefs[unitDefID].name
+	if (aiTeams[oldTeam] and not string.find(UnitName, "_scav")) or aiTeams[newTeam] then
 		return false
 	else
 		return true

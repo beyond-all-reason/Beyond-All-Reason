@@ -26,6 +26,7 @@ changelog:
 	 
 -- CONFIGURATION
 local debug = false --generates debug message
+local enabledAsSpec = false
 
 local modConfig = {}
 -- BAR
@@ -88,7 +89,10 @@ modConfig["BYAR"]["unitList"] = {
 	cortron = { weapons = { 1 } },
 	corfmd = { weapons = { 3 } },
 	corint = { weapons = { 1 } },
-	corbuzz = { weapons = { 1 } }
+	corbuzz = { weapons = { 1 } },
+	
+	--SCAVENGERS
+	scavengerdroppodbeacon_scav = { weapons = { 1 } }
 }
 
 --implement this if you want dps-depending ring-colors
@@ -158,8 +162,8 @@ local rangeCircleList --glList for drawing range circles
 local _,oldcamy,_ = Spring.GetCameraPosition() --for tracking if we should change the alpha/linewidth based on camheight
 
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyTeamID = Spring.GetMyTeamID
-local spec = spGetSpectatingState()
+local spec, fullview = spGetSpectatingState()
+local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local defences = {}	
 local currentModConfig = {}
@@ -226,7 +230,6 @@ local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spTraceScreenRay      = Spring.TraceScreenRay
 local spGetCameraPosition   = Spring.GetCameraPosition
-local spGetMyTeamID			= Spring.GetMyTeamID
 local spGetGroundHeight 	= Spring.GetGroundHeight
 local spIsGUIHidden 		= Spring.IsGUIHidden
 local spGetLocalTeamID	 	= Spring.GetLocalTeamID
@@ -293,19 +296,21 @@ function widget:Shutdown()
 	end
 end
 
-function widget:Initialize()
-	state["myPlayerID"] = spGetLocalTeamID()
-
-	DetectMod()
-
-	--Recheck units on widget reload
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+function init()
 	local units = Spring.GetAllUnits()
 	for i=1,#units do
 		local unitID = units[i]
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 		UnitDetected(unitID, unitAllyTeam == myAllyTeam)
 	end
+end
+
+function widget:Initialize()
+	state["myPlayerID"] = spGetLocalTeamID()
+
+	DetectMod()
+
+	init()
 
 	WG['defrange'] = {}
 	WG['defrange'].getAllyAir = function()
@@ -346,6 +351,14 @@ function widget:Initialize()
 	end
 end
 
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	UnitDetected( unitID, true )
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	UnitDetected( unitID, true )
+end
+
 function widget:UnitCreated( unitID,  unitDefID,  unitTeam)	
 	UnitDetected( unitID, true )
 end
@@ -371,7 +384,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local dps
 	local weaponDef
 
-	if unitRadius[unitDefID] < 100 then
+	if unitRadius[unitDefID] and unitRadius[unitDefID] < 100 then
 		if ( not unitNumWeapons[unitDefID] ) then
 			--not interesting, has no weapons and no radar coverage, lame
 			return
@@ -538,13 +551,16 @@ function CheckSpecState()
 end
 
 function widget:PlayerChanged()
-	spec = spGetSpectatingState()
+	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		init()
+	end
+	myAllyTeam = Spring.GetMyAllyTeamID()
+	spec, fullview = spGetSpectatingState()
 end
 
 function widget:Update()
-
-	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
-
+	if fullview and not enabledAsSpec then
+		return
 	end
 
 	local cy = select(2,Spring.GetCameraPosition())
@@ -590,17 +606,17 @@ function widget:Update()
 		updateTimes["remove"] = time
 		--do update stuff:
 		
-		if ( CheckSpecState() == false ) then
-			--return false
-		end
+		--if not spec then
+		--	return false
+		--end
 	
 		--remove dead units
 		for k, def in pairs(defences) do
 			local x, y, z = def["pos"][1], def["pos"][2], def["pos"][3]
 			local a, b, c = spGetPositionLosState(x, y, z)
 			local losState = b
-			if (losState) then	
-				if spGetUnitDefID(def["unitId"]) then
+			if losState then
+				if not spGetUnitDefID(def["unitId"]) then
 					printDebug("Unit killed.")
 					defences[k] = nil
 					UpdateCircleList()
@@ -613,7 +629,7 @@ end
 function DetectMod()
 	state["curModID"] = upper(Game.gameShortName or "")
 	
-	if ( modConfig[state["curModID"]] == nil ) then
+	if modConfig[state["curModID"]] == nil then
 		spEcho("<DefenseRange> Unsupported Game, shutting down...")
 		widgetHandler:RemoveWidget(self)
 		return
@@ -622,7 +638,7 @@ function DetectMod()
 	currentModConfig = modConfig[state["curModID"]]
 	
 	--load mod specific color config if existent
-	if ( currentModConfig["color"] ~= nil ) then
+	if currentModConfig["color"] ~= nil then
 		colorConfig = currentModConfig["color"]
 		printDebug("Game-specfic color configuration loaded")
 	end
@@ -633,10 +649,10 @@ end
 
 function GetRange2DWeapon( range, yDiff)
 	local root1 = range * range - yDiff * yDiff
-	if ( root1 < 0 ) then
+	if root1 < 0 then
 		return 0
 	else
-		return sqrt( root1 )
+		return sqrt(root1)
 	end
 end
 
@@ -646,20 +662,20 @@ function GetRange2DCannon( range, yDiff, projectileSpeed, rangeFactor, myGravity
 	local speed2d = projectileSpeed*factor
 	local speed2dSq = speed2d*speed2d
 	local curGravity = Game.gravity 
-	if ( myGravity ~= nil and myGravity ~= 0 ) then
+	if myGravity ~= nil and myGravity ~= 0 then
 		gravity = myGravity   -- i have never seen a stationary weapon using myGravity tag, so its untested :D
 	end
 	local gravity = - ( curGravity / 900 ) -- -0.13333333
 		
 	--printDebug("rangeFactor: " .. rangeFactor)
 	--printDebug("ProjSpeed: " .. projectileSpeed)
-	if ( heightBoostFactor < 0.0 ) then
+	if heightBoostFactor < 0.0 then
 		heightBoostFactor = (2.0 - rangeFactor) / sqrt(rangeFactor)
 	end
 	
-	if ( yDiff < -smoothHeight ) then
+	if yDiff < -smoothHeight then
 		yDiff = yDiff * heightBoostFactor
-	elseif ( yDiff < 0.0 ) then
+	elseif yDiff < 0.0 then
 		yDiff = yDiff * ( 1.0 + ( heightBoostFactor - 1.0 ) * ( -yDiff)/smoothHeight )
 	end
 	
@@ -681,7 +697,7 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 				
 	local rangeFunc = GetRange2DWeapon
 	local rangeFactor = 1.0 --used by range2dCannon
-	if ( weaponDef.type == "Cannon" ) then
+	if weaponDef.type == "Cannon" then
 		rangeFunc = GetRange2DCannon
 		rangeFactor = range / GetRange2DCannon( range, 0.0, weaponDef.projectilespeed, rangeFactor, nil, weaponDef.heightBoostFactor )
 		if ( rangeFactor > 1.0 or rangeFactor <= 0.0 ) then
@@ -710,11 +726,11 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 		local yDiff = 0.0
 					
 		for j = 0, 49 do
-			if ( abs( adjRadius - rad ) + yDiff <= 0.01 * rad ) then
+			if abs( adjRadius - rad ) + yDiff <= 0.01 * rad then
 				break
 			end
 						
-			if ( adjRadius > rad ) then
+			if adjRadius > rad then
 				rad = rad + adjustment
 			else
 				rad = rad - adjustment
@@ -748,30 +764,30 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 end
 
 function CheckDrawTodo( def, weaponIdx )
-	if ( def.weapons[weaponIdx]["type"] == 1 or def.weapons[weaponIdx]["type"] == 4 ) then
-		if ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["ground"] ) then
+	if def.weapons[weaponIdx]["type"] == 1 or def.weapons[weaponIdx]["type"] == 4 then
+		if def["allyState"] == true and buttonConfig["enabled"]["enemy"]["ground"] then
 			return true
-		elseif ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["ground"] ) then
+		elseif def["allyState"] == false and buttonConfig["enabled"]["ally"]["ground"] then
 			return true
 		else
 			return false
 		end	
 	end
 			
-	if ( def.weapons[weaponIdx]["type"] == 2 or def.weapons[weaponIdx]["type"] == 4 ) then
-		if ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["air"] ) then
+	if def.weapons[weaponIdx]["type"] == 2 or def.weapons[weaponIdx]["type"] == 4 then
+		if def["allyState"] == true and buttonConfig["enabled"]["enemy"]["air"] then
 			return true
-		elseif ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] ) then
+		elseif def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] then
 			return true
 		else
 			return false
 		end
 	end
 			
-	if ( def.weapons[weaponIdx]["type"] == 3 ) then
-		if ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["nuke"] ) then
+	if def.weapons[weaponIdx]["type"] == 3 then
+		if def["allyState"] == true and buttonConfig["enabled"]["enemy"]["nuke"] then
 			return true
-		elseif ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["nuke"] ) then
+		elseif def["allyState"] == false and buttonConfig["enabled"]["ally"]["nuke"] then
 			return true
 		end	
 	end
@@ -790,32 +806,31 @@ end
 
 function DrawRanges()
 	glDepthTest(true)
-
+	glTranslate(0,6,0)	-- else it gets rendered below map sometimes
 	local color
 	local range
 	for test, def in pairs(defences) do
 		--Spring.Echo('defrange drawrranges test',test, #def["weapons"])
 		for i, weapon in pairs(def["weapons"]) do
 			local execDraw = false
-			if (false) then --3.9 % cpu, 45 fps
-				if ( spIsSphereInView( def["pos"][1], def["pos"][2], def["pos"][3], weapon["range"] ) ) then
-					execDraw = CheckDrawTodo( def, i )			
-				end
-			else--faster: 3.0% cpu, 46fps
+			--f false then --3.9 % cpu, 45 fps
+			--	if spIsSphereInView( def["pos"][1], def["pos"][2], def["pos"][3], weapon["range"] ) then
+			--		execDraw = CheckDrawTodo( def, i )
+			--	end
+			--lse--faster: 3.0% cpu, 46fps
 			
-				if (  CheckDrawTodo( def, i )) then 
+				if CheckDrawTodo( def, i ) then
 					execDraw =spIsSphereInView( def["pos"][1], def["pos"][2], def["pos"][3], weapon["range"] )
 				end
-			end
-			if ( execDraw ) then
+			--end
+			if execDraw then
 				color = weapon["color1"]
 				range = weapon["range"]
-				if ( weapon["type"] == 4 ) then
-					if (
-						( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["air"] ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] ) ) 
+				if weapon["type"] == 4 then
+					if ( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["air"] ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] ) )
 						and
 						( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["ground"] == false ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["ground"] == false ) )
-						) then
+					then
 						-- check if unit is combo unit, get secondary color if so
 						--if air only is selected
 						color = weapon["color2"]
@@ -828,12 +843,12 @@ function DrawRanges()
 				
 				--printDebug( "Drawing defence: range: " .. range .. " Color: " .. color[1] .. "/" .. color[2] .. "/" .. color[3] .. " a:" .. lineConfig["alphaValue"] )				
 						
-				if ( ( weapon["type"] == 4 )
-						and 
-						( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["air"] ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] ) )
-						and
-						( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["ground"] ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["ground"] ) )
-				) then
+				if ( weapon["type"] == 4 )
+					and
+					( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["air"] ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] ) )
+					and
+					( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["ground"] ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["ground"] ) )
+				then
 					--air and ground: draw 2nd circle
 					glColor( weapon["color2"][1], weapon["color2"][2], weapon["color2"][3], lineConfig["alphaValue"])
 					glBeginEnd(GL_LINE_LOOP, BuildVertexList, weapon["rangeLinesEx"] )
@@ -842,6 +857,7 @@ function DrawRanges()
 		end
 	end
 
+	glTranslate(0,-6,0)
 	glDepthTest(false)
 end
 
@@ -866,6 +882,9 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
+	if fullview and not enabledAsSpec then
+		return
+	end
 	if chobbyInterface then return end
 	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		if rangeCircleList then
@@ -877,18 +896,18 @@ function widget:DrawWorld()
 end
 
 
-function printDebug( value )
-	if ( debug ) then
-		if ( type( value ) == "boolean" ) then
-			if ( value == true ) then spEcho( "true" )
+function printDebug(value)
+	if debug then
+		if type(value) == "boolean" then
+			if value == true then spEcho( "true" )
 				else spEcho("false") end
-		elseif ( type(value ) == "table" ) then
+		elseif type(value) == "table" then
 			spEcho("Dumping table:")
 			for key,val in pairs(value) do 
 				spEcho(key,val) 
 			end
 		else
-			spEcho( value )
+			spEcho(value)
 		end
 	end
 end
@@ -903,8 +922,8 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if (data ~= nil) then
-		if ( data["enabled"] ~= nil ) then
+	if(data ~= nil) then
+		if data["enabled"] ~= nil then
 			buttonConfig["enabled"] = data["enabled"]
 			printDebug("enabled config found...")
 		end

@@ -20,6 +20,11 @@ StartboxDefenceStructuresT0 = {
     "corllt",
     "corhllt",
     "armllt",
+	"cormaw",
+    "corhllt",
+    "armclaw",
+    "armbeamer",
+    "armpacko",
 }
 
 StartboxDefenceStructuresT1 = {
@@ -70,6 +75,8 @@ StartboxDefenceStructuresT0Sea = {
     "armtl",
     "cortl",
     "armtl",
+	"armfrt",
+    "corfrt",
     "corfdrag",
 }
 

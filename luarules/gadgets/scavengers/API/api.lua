@@ -9,7 +9,11 @@ Spring.Echo("[Scavengers] API initialized")
 	ScavengerStartboxXMax = mapsizeX + 1
 	ScavengerStartboxZMax = mapsizeZ + 1
 	ScavengerStartboxExists = false
+	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
 	if scavengersAIEnabled then
+		if spawnmultiplier == 0 then
+			spawnmultiplier = 0.5
+		end
 		GaiaTeamID = scavengerAITeamID
 		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaAllyTeamID)
@@ -24,7 +28,7 @@ Spring.Echo("[Scavengers] API initialized")
 	end
 	teamcount = #Spring.GetTeamList() - 1
 	allyteamcount = #Spring.GetAllyTeamList() - 1
-	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
+	
 	BossWaveStarted = false
 	selfdx = {}
 	selfdy = {}
@@ -44,9 +48,12 @@ Spring.Echo("[Scavengers] API initialized")
 	scavSpawnBeacon = {}
 	UnitSuffixLenght = {}
 	numOfSpawnBeacons = 0
+	numOfSpawnBeaconsTeams = {}
 	scavMaxUnits = 2000
 	scavengerSoundPath = "Sounds/voice/scavengers/"
 	killedscavengers = 0
+	QueuedSpawns = {}
+	QueuedSpawnsFrames = {}
 	
 	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
@@ -146,6 +153,10 @@ function posLosCheck(posx, posy, posz, posradius)
 	return true
 end
 
+function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
+	return Spring.IsPosInLos(posx, posy, posz, allyTeamID)
+end
+
 function posLosCheckNoRadar(posx, posy, posz, posradius)
 	-- if true then can spawn
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
@@ -188,21 +199,30 @@ function teamsCheck()
 	bestTeamScore = 0
 	bestTeam = 0
 	globalScore = 0
+	nonFinalGlobalScore = 0
 	scoreTeamCount = 0
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
+			if not numOfSpawnBeaconsTeams[teamID] then
+				numOfSpawnBeaconsTeams[teamID] = 0
+			end
 			local i = teamID
 			local _,_,teamisDead = Spring.GetTeamInfo(i)
 			local unitCount = Spring.GetTeamUnitCount(i)
 			if (not teamisDead) or unitCount > 0 then
 				scoreTeamCount = scoreTeamCount + 1
-				local _,_,_,_,mi = Spring.GetTeamResources(i, "metal")
-				local _,_,_,_,ei = Spring.GetTeamResources(i, "energy")
+				local _,_,_,mi = Spring.GetTeamResources(i, "metal")
+				local _,_,_,ei = Spring.GetTeamResources(i, "energy")
 				local resourceScore = mi + ei
 				local unitScore = unitCount
 				local finalScore = resourceScore + unitScore
-				--Spring.Echo("Final Score for team "..i..": "..finalScore)
-				globalScore = globalScore + finalScore
+				-- Spring.Echo("unitScore "..i..": "..unitScore)
+				-- Spring.Echo("resourceScore "..i..": "..resourceScore)
+				-- Spring.Echo("nonFinalGlobalScore "..i..": "..nonFinalGlobalScore)
+				-- Spring.Echo("Final Score for team "..i..": "..finalScore)
+				
+				nonFinalGlobalScore = nonFinalGlobalScore + finalScore
+				
 				if finalScore > bestTeamScore then
 					bestTeamScore = finalScore
 					bestTeam = i
@@ -210,6 +230,11 @@ function teamsCheck()
 			end
 		end
 	end
-	globalScore = math.ceil((globalScore/scoreTeamCount) + killedscavengers + Spring.GetGameSeconds())
+	if not killedscavengers then
+		killedscavengers = 0
+	end
+	globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + Spring.GetGameSeconds())
+	nonFinalGlobalScore = nil
+	scoreTeamCount = nil
 	--Spring.Echo("[scavengers] Global Score: "..globalScore)
 end

@@ -9,25 +9,6 @@ local function DrawFeature(featureID, featureDefID, material, drawMode, luaShade
   return false
 end
 
-local function SunChanged(curShaderObj)
-	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
-
-	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
-
-	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
-		Spring.GetConfigFloat("tonemapA", 4.8),
-		Spring.GetConfigFloat("tonemapB", 0.8),
-		Spring.GetConfigFloat("tonemapC", 3.35),
-		Spring.GetConfigFloat("tonemapD", 1.0),
-		Spring.GetConfigFloat("tonemapE", 1.15),
-		Spring.GetConfigFloat("envAmbient", 0.3),
-		Spring.GetConfigFloat("unitSunMult", 1.35),
-		Spring.GetConfigFloat("unitExposureMult", 1.0),
-	})
-end
-
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local function DrawGenesis(curShaderObj)
 	local inLosMode = ((spGetMapDrawMode() or "") == "los" and 1.0) or 0.0
@@ -35,6 +16,7 @@ local function DrawGenesis(curShaderObj)
 end
 
 
+local default_aux = VFS.Include("materials/Shaders/default_aux.lua")
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local materials = {
@@ -85,60 +67,11 @@ local materials = {
 
 			"#define MAT_IDX 129",
 		},
-		shaderPlugins = {
-			VERTEX_GLOBAL_NAMESPACE = [[
-				vec2 getWind(int period) {
-					vec2 wind;
-					wind.x = sin(period * 5.0);
-					wind.y = cos(period * 5.0);
-					return wind * 12.0f;
-				}
-			]],
-			VERTEX_PRE_TRANSFORM = [[
-				// adapted from 0ad's model_common.vs
-
-				vec2 curWind = getWind(simFrame / 750);
-				vec2 nextWind = getWind(simFrame / 750 + 1);
-				float tweenFactor = smoothstep(0.0f, 1.0f, max(simFrame % 750 - 600, 0) / 150.0f);
-				vec2 wind = mix(curWind, nextWind, tweenFactor);
-
-
-
-
-				// fractional part of model position, clamped to >.4
-				vec4 fractModelPos = gl_ModelViewMatrix[3];
-				fractModelPos = fract(fractModelPos);
-				fractModelPos = clamp(fractModelPos, 0.4, 1.0);
-
-				// crude measure of wind intensity
-				float abswind = abs(wind.x) + abs(wind.y);
-
-				vec4 cosVec;
-				float simTime = 0.02 * simFrame;
-				// these determine the speed of the wind's "cosine" waves.
-				cosVec.w = 0.0;
-				cosVec.x = simTime * fractModelPos[0] + fractModelPos.x;
-				cosVec.y = simTime * fractModelPos[2] / 3.0 + fractModelPos.x;
-				cosVec.z = simTime * 1.0 + fractModelPos.z;
-
-				// calculate "cosines" in parallel, using a smoothed triangle wave
-				vec4 tri = abs(fract(cosVec + 0.5) * 2.0 - 1.0);
-				cosVec = tri * tri *(3.0 - 2.0 * tri);
-
-				float limit = clamp((fractModelPos.x * fractModelPos.z * fractModelPos.y) / 3000.0, 0.0, 0.2);
-
-				float diff = cosVec.x * limit;
-				float diff2 = cosVec.y * clamp(fractModelPos.y / 30.0, 0.05, 0.2);
-
-				fractModelPos.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
-
-				fractModelPos.xz += diff + diff2 * wind;
-			]]
-		},
+		shaderPlugins = default_aux.treeDisplacementPlugun,
 		feature = true, --// This is used to define that this is a feature shader
 		usecamera = false,
 		force = true,
-		culling   = GL.BACK,
+		culling = GL.BACK,
 		texunits  = {
 			[0] = '%%FEATUREDEFID:0',
 			[1] = '%%FEATUREDEFID:1',
@@ -151,7 +84,7 @@ local materials = {
 		},
 		--DrawFeature = DrawFeature,
 		DrawGenesis = DrawGenesis,
-		SunChanged = SunChanged,
+		SunChanged = default_aux.SunChanged,
 	}
 }
 
