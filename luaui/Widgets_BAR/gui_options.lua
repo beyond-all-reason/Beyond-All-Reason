@@ -1572,7 +1572,7 @@ function loadAllWidgetData()
 	end
 end
 
-
+local engine64 = false
 function init()
 
 	local supportedResolutions = {}
@@ -1616,6 +1616,10 @@ function init()
 			-- scan for shader version error
 			if string.find(line, 'error: GLSL 1.50 is not supported') then
 				Spring.SetConfigInt("LuaShaders", 0)
+			end
+			-- scan for shader version error
+			if string.find(line, '_win64') or  string.find(line, '_linux64')  then
+				engine64 = true
 			end
 		end
 	end
@@ -2126,7 +2130,7 @@ function init()
 			 end
 		 end,
 		},
-		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=1, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
+		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
 		},
@@ -2776,6 +2780,10 @@ function init()
 		},
 
 	}
+	-- air absorption does nothing on 32 bit engine version
+	if not engine64 then
+		options[getOptionByID('sndairabsorption')] = nil
+	end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
