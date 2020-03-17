@@ -87,6 +87,18 @@ function SpawnBeacon(n)
 				end
 				local posx = math_random(math.ceil((mapsizeX/2)-(50*beaconspawnretrycount)),math.floor((mapsizeX/2)+(50*beaconspawnretrycount)))
 				local posz = math_random(math.ceil((mapsizeZ/2)-(50*beaconspawnretrycount)),math.floor((mapsizeZ/2)+(50*beaconspawnretrycount)))
+				if posx < 256 then
+					posx = 256
+				end
+				if posx > mapsizeX-256 then
+					posx = mapsizeX-256
+				end
+				if posz < 256 then
+					posz = 256
+				end
+				if posz > mapsizeZ-256 then
+					posz = mapsizeZ-256
+				end
 				local posy = Spring.GetGroundHeight(posx, posz)
 				local posradius = 80
 				beaconspawnretrycount = beaconspawnretrycount + 1
@@ -125,6 +137,8 @@ function SpawnBeacon(n)
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
 					QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90)
 				end
+				posx = nil
+				posz = nil
 			else
 				BeaconSpawnChance = BeaconSpawnChance - 1
 				if BeaconSpawnChance < 1 then
