@@ -47,7 +47,7 @@ local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local posX = 0.304
-local posY = 0.048
+local posY = 0.051
 
 local Config = {
 	console = {

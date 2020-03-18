@@ -55,7 +55,7 @@ local showBackgroundOpacity = 0.19
 local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
 local posX = 0.304
-local posY = 0.104
+local posY = 0.108
 
 local Config = {
 	console = {
