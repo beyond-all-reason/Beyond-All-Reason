@@ -40,11 +40,11 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.3   0 0 0 0.01]],
+        colormap           = [[1 0.9 0.75 0.5   0 0 0 0.01]],
         size               = 85,
-        sizegrowth         = 0,
-        ttl                = 5,
-        texture            = [[groundflash]],
+        sizegrowth         = -5,
+        ttl                = 15,
+        texture            = [[groundflashwhite]],
       },
     },
     --kickedupwater = {
@@ -480,7 +480,7 @@ local sizes = {
       properties = {
         colormap           = [[1 0.9 0.75 0.33   0 0 0 0.01]],
         size               = 55,
-        ttl                = 5,
+        ttl                = 10,
       },
     },
 	explosion = {
@@ -620,9 +620,10 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.36   0 0 0 0.01]],
+        colormap           = [[1 0.9 0.75 0.6   0 0 0 0.01]],
         size               = 166,
-        ttl                = 6,
+        sizegrowth         = -5.5,
+        ttl                = 18,
       },
     },
 	explosion = {
@@ -758,9 +759,10 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.38   0 0 0 0.01]],
+        colormap           = [[1 0.9 0.75 0.7   1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 200,
-        ttl                = 7,
+        sizegrowth         = -3.0,
+        ttl                = 32,
       },
     },
 	explosion = {
@@ -896,9 +898,10 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.4   0 0 0 0.01]],
+        colormap           = [[1 0.9 0.75 0.7    1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 250,
-        ttl                = 7.5,
+        sizegrowth         = -1.5,
+        ttl                = 48,
       },
     },
     explosion = {
@@ -1034,9 +1037,10 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.43   0 0 0 0.01]],
+        colormap           = [[1 0.9 0.75 0.75   1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 330,
-        ttl                = 8,
+        sizegrowth         = -1.5,
+        ttl                = 48,
       },
     },
     explosion = {

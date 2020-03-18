@@ -6,6 +6,7 @@ local resources = {
          },
          groundfx = {
             groundflash = 'default/groundflash.tga',
+            groundflashwhite = 'default/groundflashwhite.tga',
             groundring  = 'default/groundring.tga',
             seismic     = 'default/circles.tga',
          },
