@@ -93,8 +93,8 @@ function SpawnBeacon(n)
 				if not beaconspawnretrycount then
 					beaconspawnretrycount = 0
 				end
-				local posx = math_random(math.ceil((mapsizeX/2)-((mapsizeX/120)*beaconspawnretrycount)),math.floor((mapsizeX/2)+((mapsizeX/120)*beaconspawnretrycount)))
-				local posz = math_random(math.ceil((mapsizeZ/2)-((mapsizeZ/120)*beaconspawnretrycount)),math.floor((mapsizeZ/2)+((mapsizeZ/120)*beaconspawnretrycount)))
+				local posx = math_random(math.ceil((mapsizeX/2)-(((mapsizeX/2)/120)*beaconspawnretrycount)),math.floor((mapsizeX/2)+(((mapsizeX/2)/120)*beaconspawnretrycount)))
+				local posz = math_random(math.ceil((mapsizeZ/2)-(((mapsizeZ/2)/120)*beaconspawnretrycount)),math.floor((mapsizeZ/2)+(((mapsizeZ/2)/120)*beaconspawnretrycount)))
 				if posx < 256 then
 					posx = 256
 				end
