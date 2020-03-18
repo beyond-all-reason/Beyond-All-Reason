@@ -183,9 +183,9 @@ end
 function SetBeaconsResourceProduction(n)
 	if globalScore then
 		local units = Spring.GetAllUnits()
-		local minutes = math.floor(Spring.GetGameSeconds()/60)
+		local minutes = math.floor(Spring.GetGameSeconds()/120)
 		local beaconmetalproduction = minutes
-		local beaconenergyproduction = beaconmetalproduction*100
+		local beaconenergyproduction = beaconmetalproduction*25
 		for i = 1,#units do
 			local unitID = units[i]
 			local unitDefID = Spring.GetUnitDefID(unitID)
