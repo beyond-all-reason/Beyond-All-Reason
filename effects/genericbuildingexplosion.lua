@@ -40,9 +40,9 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.5   0 0 0 0.01]],
+        colormap           = [[1 0.9 0.75 0.5   1 0.9 0.75 0.2   0 0 0 0.01]],
         size               = 85,
-        sizegrowth         = -5,
+        sizegrowth         = -4.0,
         ttl                = 15,
         texture            = [[groundflashwhite]],
       },
@@ -620,9 +620,9 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.6   0 0 0 0.01]],
+        colormap           = [[1 0.9 0.75 0.6   1 0.9 0.75 0.23   0 0 0 0.01]],
         size               = 166,
-        sizegrowth         = -5.5,
+        sizegrowth         = -3.5,
         ttl                = 18,
       },
     },
@@ -761,7 +761,7 @@ local sizes = {
       properties = {
         colormap           = [[1 0.9 0.75 0.7   1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 200,
-        sizegrowth         = -3.0,
+        sizegrowth         = -2.5,
         ttl                = 32,
       },
     },

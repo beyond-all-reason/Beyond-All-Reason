@@ -445,9 +445,9 @@ local definitions = {
       ground             = true,
       water              = false,
       properties = {
-        colormap           = [[1 0.95 0.93 0.6   0 0 0 0.01]],
+        colormap           = [[1 0.95 0.93 0.6   1 0.95 0.93 0.23   0 0 0 0.01]],
         size               = 86,
-        sizegrowth         = -5.0,
+        sizegrowth         = -4.0,
         ttl                = 24,
         texture            = [[groundflashwhite]],
       },
@@ -849,9 +849,9 @@ local definitions = {
       ground             = true,
       water              = false,
       properties = {
-        colormap           = [[1 0.95 0.93 0.65   0 0 0 0.01]],
+        colormap           = [[1 0.95 0.93 0.65   1 0.95 0.93 0.25   0 0 0 0.01]],
         size               = 115,
-        sizegrowth         = -6.0,
+        sizegrowth         = -4.5,
         ttl                = 32,
         texture            = [[groundflashwhite]],
       },
