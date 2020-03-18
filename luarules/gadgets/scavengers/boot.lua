@@ -365,23 +365,62 @@ function SpawnDefencesAfterCapture(unitID, teamID)
 	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 		grouptier = BeaconDefenceStructuresT3
 	end
+	if spawnTier <= TierSpawnChances.T0 then
+		grouptiersea = StartboxDefenceStructuresT0Sea
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		grouptiersea = StartboxDefenceStructuresT1Sea
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		grouptiersea = StartboxDefenceStructuresT2Sea
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		grouptiersea = StartboxDefenceStructuresT3Sea
+	end
 	
 	local posx,posy,posz = Spring.GetUnitPosition(unitID)
 	local posy = Spring.GetGroundHeight(posx, posz)
 	local n = Spring.GetGameFrame()
+	
 	local r = grouptier[math_random(1,#grouptier)]
+	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz-128, math_random(0,3),teamID)
-	QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
+	local posy = Spring.GetGroundHeight(posx-128, posz-128)
+	if posy > 0 then
+		QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
+	else
+		QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
+	end
+	
 	local r = grouptier[math_random(1,#grouptier)]
+	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz+128, math_random(0,3),teamID)
-	QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
+	local posy = Spring.GetGroundHeight(posx+128, posz+128)
+	if posy > 0 then
+		QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
+	else
+		QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
+	end
+	
 	local r = grouptier[math_random(1,#grouptier)]
+	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz+128, math_random(0,3),teamID)
-	QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
+	local posy = Spring.GetGroundHeight(posx-128, posz+128)
+	if posy > 0 then
+		QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
+	else
+		QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
+	end
+	
 	local r = grouptier[math_random(1,#grouptier)]
+	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz-128, math_random(0,3),teamID)
-	QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
+	local posy = Spring.GetGroundHeight(posx+128, posz-128)
+	if posy > 0 then
+		QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
+	else
+		QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
+	end
+	
 	grouptier = nil
+	grouptiersea = nil
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
