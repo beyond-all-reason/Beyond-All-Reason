@@ -1,5 +1,10 @@
 -- this file gets included in alldefs_post.lua
 
+local scavUnit = {}
+for name,uDef in pairs(UnitDefs) do
+    scavUnit[#scavUnit+1] = name..'_scav'
+end
+
 function scav_Udef_Post(name, uDef)
 	if not uDef.customparams then
 		uDef.customparams = {}
@@ -66,17 +71,17 @@ function scav_Udef_Post(name, uDef)
 			if uDef.featuredefs.dead.description then
 				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
 			end
-			if uDef.featuredefs.dead.metal then
-				uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
-			end
+			-- if uDef.featuredefs.dead.metal then
+				-- uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
+			-- end
 		end
 		if uDef.featuredefs.heap then
 			if uDef.featuredefs.heap.description then
 				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
 			end	
-			if uDef.featuredefs.heap.metal then
-				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
-			end
+			-- if uDef.featuredefs.heap.metal then
+				-- uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
+			-- end
 		end
 	end
 	
@@ -129,7 +134,18 @@ function scav_Udef_Post(name, uDef)
 		uDef.turninplaceanglelimit = 360
 	end
 	
-	
+	-- don't let players get scav constructors
+	if uDef.buildoptions then
+		uDef.capturable = false
+		if uDef.featuredefs then
+			if uDef.featuredefs.dead then
+				uDef.featuredefs.dead.resurrectable = 0
+			end
+			if uDef.featuredefs.heap then
+				uDef.featuredefs.heap.resurrectable = 0
+			end
+		end
+	end
 	
 	
 	

@@ -180,6 +180,24 @@ function CaptureBeacons(n)
 	end
 end
 
+function SetBeaconsResourceProduction(n)
+	if globalScore then
+		local units = Spring.GetAllUnits()
+		local minutes = math.floor(Spring.GetGameSeconds()/60)
+		local beaconmetalproduction = minutes
+		local beaconenergyproduction = beaconmetalproduction*100
+		for i = 1,#units do
+			local unitID = units[i]
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local name = UnitDefs[unitDefID].name
+			if name ==	"scavengerdroppodbeacon_scav" then
+				Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
+				Spring.AddUnitResource(unitID, "e", beaconenergyproduction)
+			end
+		end
+	end
+end
+
 function gadget:GameFrame(n)
 
 
@@ -229,7 +247,9 @@ function gadget:GameFrame(n)
 		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
 			BossWaveStarted = true
 		else
-			ScavSendMessage("Scavengers Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%, Score: "..globalScore)
+			if scavengersAIEnabled and scavengersAIEnabled == true then
+				ScavSendMessage("Scavengers Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%, Score: "..globalScore)
+			end
 		end
 	end
 
@@ -241,6 +261,7 @@ function gadget:GameFrame(n)
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 			CaptureBeacons(n)
+			SetBeaconsResourceProduction(n)
 		end
 		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > 9000 then
 			SpawnConstructor(n)
@@ -334,21 +355,33 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function SpawnDefencesAfterCapture(unitID, teamID)
+	local spawnTier = math_random(1,100)
+	if spawnTier <= TierSpawnChances.T0 then
+		grouptier = BeaconDefenceStructuresT0
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		grouptier = BeaconDefenceStructuresT1
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		grouptier = BeaconDefenceStructuresT2
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		grouptier = BeaconDefenceStructuresT3
+	end
+	
 	local posx,posy,posz = Spring.GetUnitPosition(unitID)
 	local posy = Spring.GetGroundHeight(posx, posz)
 	local n = Spring.GetGameFrame()
-	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	local r = grouptier[math_random(1,#grouptier)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz-128, math_random(0,3),teamID)
 	QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
-	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	local r = grouptier[math_random(1,#grouptier)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz+128, math_random(0,3),teamID)
 	QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
-	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	local r = grouptier[math_random(1,#grouptier)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz+128, math_random(0,3),teamID)
 	QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
-	local r = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+	local r = grouptier[math_random(1,#grouptier)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz-128, math_random(0,3),teamID)
 	QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
+	grouptier = nil
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)

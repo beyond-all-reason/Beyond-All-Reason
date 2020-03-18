@@ -24,10 +24,11 @@ customDefs.corcom = {
 	hidedamage = true,
 	idleautoheal = 20,
 	maxdamage = 4500,
+	maxvelocity = 2,
 	mincloakdistance = 20,
 	showplayername = false,
 	stealth = false,
-	workertime = 900,				-- can get multiplied in unitdef_post 
+	workertime = 1000,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},

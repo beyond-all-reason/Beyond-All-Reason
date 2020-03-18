@@ -46,13 +46,13 @@ T1ReinforcementLandUnits = {
 "corsnap",
 "corsnap",
 --constructors
-"armck",
-"armcv",
-"armbeaver",
-"armch",
-"corck",
-"corcv",
-"cormuskrat",
+-- "armck",
+-- "armcv",
+-- "armbeaver",
+-- "armch",
+-- "corck",
+-- "corcv",
+-- "cormuskrat",
 }
 
 T2ReinforcementLandUnits = {
@@ -98,13 +98,13 @@ T2ReinforcementLandUnits = {
 --hovercraft
 "corhal",
 --constructors
-"armack",
-"armdecom",
-"armacv",
-"armconsul",
-"corack",
-"cordecom",
-"coracv",
+-- "armack",
+-- "armdecom",
+-- "armacv",
+-- "armconsul",
+-- "corack",
+-- "cordecom",
+-- "coracv",
 }
 
 T3ReinforcementLandUnits = {
@@ -142,10 +142,10 @@ T1ReinforcementAirUnits = {
 "corbw",
 "corveng",
 --constructors
-"armca",
-"armcsa",
-"corca",
-"corcsa",
+-- "armca",
+-- "armcsa",
+-- "corca",
+-- "corcsa",
 }
 
 T2ReinforcementAirUnits = {
@@ -158,8 +158,8 @@ T2ReinforcementAirUnits = {
 "corsfig",
 "corcut",
 --constructors
-"armaca",
-"coraca",
+-- "armaca",
+-- "coraca",
 }
 
 T3ReinforcementAirUnits = {
@@ -204,11 +204,11 @@ T1ReinforcementSeaUnits = {
 "corah",
 "corsnap",
 --constructors
-"armbeaver",
-"armch",
-"armcs",
-"cormuskrat",
-"corcs",
+-- "armbeaver",
+-- "armch",
+-- "armcs",
+-- "cormuskrat",
+-- "corcs",
 }
 
 T2ReinforcementSeaUnits = {
@@ -235,11 +235,11 @@ T2ReinforcementSeaUnits = {
 --hovercraft
 "corhal",
 --constructors
-"armbeaver",
-"armch",
-"armcs",
-"cormuskrat",
-"corcs",
+-- "armbeaver",
+-- "armch",
+-- "armcs",
+-- "cormuskrat",
+-- "corcs",
 }
 
 T3ReinforcementSeaUnits = {
