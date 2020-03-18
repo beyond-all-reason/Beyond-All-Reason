@@ -118,7 +118,7 @@ function scav_Udef_Post(name, uDef)
 		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25)
 	end
 	
-	if not uDef.maxdamage then
+	if uDef.maxdamage then
 		uDef.autoheal = math.ceil(uDef.maxdamage/60)
 		uDef.idleautoheal = math.ceil(uDef.maxdamage/60)
 	else 
