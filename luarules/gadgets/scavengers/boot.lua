@@ -185,7 +185,7 @@ function CaptureBeacons(n)
 					end
 				end
 				
-				if unitTeamID == scavDef then
+				if unitDefID == scavDef then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.005
 				elseif unitTeamID == GaiaTeamID and (not unitTeamID == scavDef) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.05
