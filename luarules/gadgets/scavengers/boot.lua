@@ -29,6 +29,12 @@ end
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 
+local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/'..GameShortName..'/UnitLists/','*.lua')
+for i = 1,#UnitLists do
+	VFS.Include(UnitLists[i])
+	Spring.Echo("Scav Units Directory: " ..UnitLists[i])
+end
+
 if scavconfig.modules.buildingSpawnerModule then
 	ScavengerBlueprintsT0 = {}
 	ScavengerBlueprintsT1 = {}
@@ -131,6 +137,7 @@ function SpawnFromQueue(n)
 	end
 end
 
+local CaptureProgressForBeacons = {}
 function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
@@ -139,6 +146,10 @@ function CaptureBeacons(n)
 		local scav = scavengerunits[i]
 		local scavDef = Spring.GetUnitDefID(scav)
 		if scavSpawnBeacon[scav] then
+			if not CaptureProgressForBeacons[scav] then
+				CaptureProgressForBeacons[scav] = 0
+				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
+			end
 			local posx,posy,posz = Spring.GetUnitPosition(scav)
 			local unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
 			CapturingUnits = {}
@@ -148,6 +159,10 @@ function CaptureBeacons(n)
 			for j = 1,#unitsAround do
 				local unitID = unitsAround[j]
 				local unitTeamID = spGetUnitTeam(unitID)
+				if not CapturingUnitsTeam[unitTeamID] then
+					CapturingUnitsTeam[unitTeamID] = 0
+				end
+				local unitDefID = Spring.GetUnitDefID(unitID)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
 				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
 				
@@ -161,18 +176,37 @@ function CaptureBeacons(n)
 					CapturingUnitsTeam[unitTeamID] = 0
 				end
 				
-				if unitTeamID == GaiaTeamID then
-					CapturingUnits[scav] = CapturingUnits[scav] - 10
-				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() then
-					CapturingUnits[scav] = CapturingUnits[scav] + 1
+				for k = 1,#BeaconCaptureExcludedUnits do
+					if UnitDefs[unitDefID].name == BeaconCaptureExcludedUnits[k] then
+						IsUnitExcluded = true
+						break
+					else
+						IsUnitExcluded = false
+					end
+				end
+				
+				if unitTeamID == scavDef then
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.005
+				elseif unitTeamID == GaiaTeamID and (not unitTeamID == scavDef) then
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.05
+				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false then
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + 0.01
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 				end
-				if captureraiTeam == false and CapturingUnits[scav]+10 > 9 and CapturingUnitsTeam[unitTeamID] > 9 then
+				if CaptureProgressForBeacons[scav] < 0 then
+					CaptureProgressForBeacons[scav] = 0
+				end
+				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
+				
+				if captureraiTeam == false and CaptureProgressForBeacons[scav] >= 1 then
+					CaptureProgressForBeacons[scav] = 0
+					Spring.SetUnitHealth(scav, {capture = 0})
 					Spring.TransferUnit(scav, unitTeamID, true)
 					captureraiTeam = nil
 					break
 				end
 				captureraiTeam = nil
+				IsUnitExcluded = nil
 			end
 			CapturingUnits = nil
 			CapturingUnitsTeam = nil
@@ -347,6 +381,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavSpawnBeacon[unitID] = nil
 		UnitSuffixLenght[unitID] = nil
 		ConstructorNumberOfRetries[unitID] = nil
+		CaptureProgressForBeacons[unitID] = nil
 	else
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] - 1
@@ -450,6 +485,9 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 		scavSpawnBeacon[unitID] = nil
 		UnitSuffixLenght[unitID] = nil
 		ConstructorNumberOfRetries[unitID] = nil
+		CaptureProgressForBeacons[unitID] = nil
+		Spring.SetUnitHealth(unitID, {capture = 0})
+		
 	else
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1

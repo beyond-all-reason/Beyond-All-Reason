@@ -103,7 +103,35 @@ function BossFightMessages(BossWaveTimeLeft)
 	if BossWaveTimeLeft == 10 then
 		-- since ScavSendNotification would put this in a queue, we cant use that method for this message
 		ScavSendVoiceMessage(scavengerSoundPath.."scavfinalcountdown.wav")
-		ScavSendMessage("placeholder-scav-finalcountdown")
+		ScavSendMessage("10")
+	end
+	
+	if BossWaveTimeLeft == 9 then
+		ScavSendMessage("9")
+	end
+	if BossWaveTimeLeft == 8 then
+		ScavSendMessage("8")
+	end
+	if BossWaveTimeLeft == 7 then
+		ScavSendMessage("7")
+	end
+	if BossWaveTimeLeft == 6 then
+		ScavSendMessage("6")
+	end
+	if BossWaveTimeLeft == 5 then
+		ScavSendMessage("5")
+	end
+	if BossWaveTimeLeft == 4 then
+		ScavSendMessage("4")
+	end
+	if BossWaveTimeLeft == 3 then
+		ScavSendMessage("3")
+	end
+	if BossWaveTimeLeft == 2 then
+		ScavSendMessage("2")
+	end
+	if BossWaveTimeLeft == 1 then
+		ScavSendMessage("1")
 	end
 
 	if BossWaveTimeLeft == 0 then

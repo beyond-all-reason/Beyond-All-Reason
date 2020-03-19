@@ -16,6 +16,15 @@ NoSelfdList = {
 --"cornecro",
 }
 
+BeaconCaptureExcludedUnits = {
+	"armdrag",
+	"armfdrag",
+	"cordrag",
+	"corfdrag",
+	"armfort",
+	"corfort",
+}
+
 BeaconDefenceStructuresT0 = {
 	"corllt",
 	"armllt",

@@ -1,10 +1,5 @@
 Spring.Echo("[Scavengers] Unit Spawner initialized")
 
-UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/'..GameShortName..'/UnitLists/','*.lua')
-for i = 1,#UnitLists do
-	VFS.Include(UnitLists[i])
-	Spring.Echo("Scav Units Directory: " ..UnitLists[i])
-end
 local UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
 
 function BossWaveTimer(n)
