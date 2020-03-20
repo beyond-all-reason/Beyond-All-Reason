@@ -2743,7 +2743,7 @@ function init()
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="unitExposureMult", group="dev", name="Units exposure mult", type="slider", min=0.5, max=1.5, step=0.01, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
+		{id="unitExposureMult", group="dev", name="Units exposure mult", type="slider", min=0.5, max=2, step=0.01, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitExposureMult", value)
 			 Spring.SendCommands("luarules updatesun")
