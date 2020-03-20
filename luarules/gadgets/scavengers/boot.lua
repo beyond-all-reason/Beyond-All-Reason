@@ -186,11 +186,11 @@ function CaptureBeacons(n)
 				end
 				
 				if unitDefID == scavDef then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.005
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
 				elseif unitTeamID == GaiaTeamID and (not unitTeamID == scavDef) then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.05
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
 				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + 0.01
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + 0.001
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 				end
 				if CaptureProgressForBeacons[scav] < 0 then
@@ -217,15 +217,15 @@ end
 function SetBeaconsResourceProduction(n)
 	if globalScore then
 		local units = Spring.GetAllUnits()
-		local minutes = math.floor(Spring.GetGameSeconds()/120)
+		local minutes = math.ceil(Spring.GetGameSeconds()/300)
 		local beaconmetalproduction = minutes
-		local beaconenergyproduction = beaconmetalproduction*25
+		local beaconenergyproduction = beaconmetalproduction*20
 		for i = 1,#units do
 			local unitID = units[i]
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local name = UnitDefs[unitDefID].name
 			if name ==	"scavengerdroppodbeacon_scav" then
-				Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
+				--Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
 				Spring.AddUnitResource(unitID, "e", beaconenergyproduction)
 			end
 		end
