@@ -43,7 +43,7 @@ local definitions = {
         colormap           = [[1 0.9 0.75 0.5   1 0.9 0.75 0.2   0 0 0 0.01]],
         size               = 85,
         sizegrowth         = -4.0,
-        ttl                = 15,
+        ttl                = 14,
         texture            = [[groundflashwhite]],
       },
     },
@@ -762,7 +762,7 @@ local sizes = {
         colormap           = [[1 0.9 0.75 0.7   1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 200,
         sizegrowth         = -2.5,
-        ttl                = 32,
+        ttl                = 26,
       },
     },
 	explosion = {
@@ -901,7 +901,7 @@ local sizes = {
         colormap           = [[1 0.9 0.75 0.7    1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 250,
         sizegrowth         = -1.5,
-        ttl                = 48,
+        ttl                = 34,
       },
     },
     explosion = {
@@ -1040,7 +1040,7 @@ local sizes = {
         colormap           = [[1 0.9 0.75 0.75   1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 330,
         sizegrowth         = -1.5,
-        ttl                = 48,
+        ttl                = 36,
       },
     },
     explosion = {
