@@ -34,7 +34,7 @@ local selecthoverclick = 'LuaUI/Sounds/hover.wav'
 local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
@@ -42,7 +42,7 @@ local fontfileOutlineSize = 9
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfileScale2 = fontfileScale * 1.2
-local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
@@ -54,8 +54,8 @@ local bgMargin = 6
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
-local customScale = 1.1
-local centerPosX = 0.51	-- note: dont go too far from 0.5
+local customScale = 1.16
+local centerPosX = 0.5	-- note: dont go too far from 0.5
 local centerPosY = 0.49		-- note: dont go too far from 0.5
 local screenX = (vsx*centerPosX) - (screenWidth/2)
 local screenY = (vsy*centerPosY) + (screenHeight/2)
@@ -2291,7 +2291,7 @@ function init()
 		{id="font", group="ui", name="Font", type="select", options={}, value=1, description='Regular read friendly font used for text',
 		 onload = function() end,
 		 onchange = function(i, value)
-			 if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].optionsFont[value]) then
+			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
 				 Spring.SetConfigString("ui_font", options[i].optionsFont[value])
 				 Spring.SendCommands("luarules reloadluaui")
 			 end
@@ -2300,7 +2300,7 @@ function init()
 		{id="font2", group="ui", name="Font 2", type="select", options={}, value=1, description='Stylistic font mainly used for names/buttons/titles',
 		 onload = function() end,
 		 onchange = function(i, value)
-			 if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].optionsFont[value]) then
+			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
 				 Spring.SetConfigString("ui_font2", options[i].optionsFont[value])
 				 Spring.SendCommands("luarules reloadluaui")
 			 end
@@ -2829,7 +2829,7 @@ function init()
 					fontsFull[#fontsFull+1] = string.sub(file, 13)
 					fontsn[name:lower()] = true
 					local fontScale = (0.5 + (vsx*vsy / 5700000))
-					fontOption[#fonts] = gl.LoadFont(LUAUI_DIRNAME .. "fonts/"..fontsFull[#fontsFull], 20*fontScale, 5*fontScale, 1.5)
+					fontOption[#fonts] = gl.LoadFont("fonts/"..fontsFull[#fontsFull], 20*fontScale, 5*fontScale, 1.5)
 				end
 			end
 		end
@@ -3196,6 +3196,11 @@ end
 function widget:Initialize()
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
+
+	--Spring.SetConfigString("FontFile", "fonts/Poppins-Regular.otf")
+	Spring.SetConfigInt("FontSize", 20)
+	Spring.SetConfigInt("FontOutlineWidth", 3)
+	Spring.SetConfigInt("FontOutlineWeight", 7)
 
 	if Spring.GetGameFrame() == 0 then
 		-- set minimum particle amount

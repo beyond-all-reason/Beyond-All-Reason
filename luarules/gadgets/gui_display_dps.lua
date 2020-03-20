@@ -29,7 +29,7 @@ if gadgetHandler:IsSyncedCode() then return end
 
 local enabled = (tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1)
 
-local fontfile = "luaui/fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (1 + (vsx*vsy / 5700000))
 local fontfileSize = 25

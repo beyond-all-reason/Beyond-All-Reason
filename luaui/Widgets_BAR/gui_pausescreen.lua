@@ -42,9 +42,9 @@ local osClock               = os.clock
 local fontfile = LUAUI_DIRNAME .. "fonts/unlisted/MicrogrammaDBold.ttf"
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.4
+local fontfileSize = 35
+local fontfileOutlineSize = 7
+local fontfileOutlineStrength = 1.37
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local sizeMultiplier        = 1
@@ -55,7 +55,7 @@ local boxWidth              = 200
 local boxHeight             = 35
 local slideTime             = 0.4
 local fadeToTextAlpha       = 0.4
-local fontSizeHeadline      = 24
+local fontSizeHeadline      = 30
 local autoFadeTime          = 1
 
 local blurScreen            = false 	-- makes use of guishader api widget

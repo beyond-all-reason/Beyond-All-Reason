@@ -242,18 +242,18 @@ if showTips then
 end
 
 local defaultFont = 'Poppins-Regular.otf'
-local fontfile = 'luaui/fonts/'..Spring.GetConfigString("bar_font", defaultFont)
+local fontfile = 'fonts/'..Spring.GetConfigString("bar_font", defaultFont)
 if not VFS.FileExists(fontfile) then
 	Spring.SetConfigString('ui_font', defaultFont)
-	fontfile = 'luaui/fonts/'..defaultFont
+	fontfile = 'fonts/'..defaultFont
 end
 local defaultFont2 = 'Exo2-SemiBold.otf'
-local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("bar_font2", defaultFont2)
+local fontfile2 = 'fonts/'..Spring.GetConfigString("bar_font2", defaultFont2)
 if not VFS.FileExists(fontfile2) then
 	Spring.SetConfigString('ui_font2', defaultFont2)
-	fontfile2 = 'luaui/fonts/'..defaultFont2
+	fontfile2 = 'fonts/'..defaultFont2
 end
-local fontfile3 = 'luaui/fonts/Xolonium.otf'
+local fontfile3 = 'fonts/Xolonium.otf'
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontScale = (0.5 + (vsx*vsy / 5700000))/2

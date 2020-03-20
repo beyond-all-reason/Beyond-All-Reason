@@ -993,8 +993,8 @@ function widget:Initialize()
 	BindCommand("ShardStartTimer", StartTimer)
 	BindCommand("ShardStopTimer", StopTimer)
 	BindCommand("ShardSaveTable", SaveTable)
-	myFont = glLoadFont('luaui/fonts/Xolonium.otf', 16, 4, 5) or glLoadFont('fonts/Xolonium.otf', 16, 4, 5)
-	myMonoFont = glLoadFont('luaui/fonts/Mesmerize-Bold.ttf', 16, 4, 5) or myFont
+	myFont = glLoadFont('fonts/Xolonium.otf', 16, 4, 5) or glLoadFont('fonts/Xolonium.otf', 16, 4, 5)
+	myMonoFont = glLoadFont('fonts/Mesmerize-Bold.ttf', 16, 4, 5) or myFont
 	-- myFont:SetAutoOutlineColor(true)
 end
 
