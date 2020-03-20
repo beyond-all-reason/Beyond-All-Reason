@@ -2292,7 +2292,7 @@ function init()
 		 onload = function() end,
 		 onchange = function(i, value)
 			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
-				 Spring.SetConfigString("ui_font", options[i].optionsFont[value])
+				 Spring.SetConfigString("bar_font", options[i].optionsFont[value])
 				 Spring.SendCommands("luarules reloadluaui")
 			 end
 		 end,
@@ -2301,7 +2301,7 @@ function init()
 		 onload = function() end,
 		 onchange = function(i, value)
 			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
-				 Spring.SetConfigString("ui_font2", options[i].optionsFont[value])
+				 Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
 				 Spring.SendCommands("luarules reloadluaui")
 			 end
 		 end,
@@ -2817,16 +2817,17 @@ function init()
 		local fonts = {}
 		local fontsFull = {}
 		local fontsn = {}
-		local files = VFS.DirList(LUAUI_DIRNAME..'fonts', '*')
+		local files = VFS.DirList('fonts', '*')
 		fontOption = {}
 		for k, file in ipairs(files) do
-			local name = string.sub(file, 13)
+			local name = string.sub(file, 7)
+			Spring.Echo(name)
 			local ext = string.sub(name, string.len(name) - 2)
 			if ext == 'otf' or ext == 'ttf' then
 				name = string.sub(name, 1, string.len(name) - 4)
 				if not fontsn[name:lower()] then
 					fonts[#fonts+1] = name
-					fontsFull[#fontsFull+1] = string.sub(file, 13)
+					fontsFull[#fontsFull+1] = string.sub(file, 7)
 					fontsn[name:lower()] = true
 					local fontScale = (0.5 + (vsx*vsy / 5700000))
 					fontOption[#fonts] = gl.LoadFont("fonts/"..fontsFull[#fontsFull], 20*fontScale, 5*fontScale, 1.5)

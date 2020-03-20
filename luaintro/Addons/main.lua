@@ -244,13 +244,13 @@ end
 local defaultFont = 'Poppins-Regular.otf'
 local fontfile = 'fonts/'..Spring.GetConfigString("bar_font", defaultFont)
 if not VFS.FileExists(fontfile) then
-	Spring.SetConfigString('ui_font', defaultFont)
+	Spring.SetConfigString('bar_font', defaultFont)
 	fontfile = 'fonts/'..defaultFont
 end
 local defaultFont2 = 'Exo2-SemiBold.otf'
 local fontfile2 = 'fonts/'..Spring.GetConfigString("bar_font2", defaultFont2)
 if not VFS.FileExists(fontfile2) then
-	Spring.SetConfigString('ui_font2', defaultFont2)
+	Spring.SetConfigString('bar_font2', defaultFont2)
 	fontfile2 = 'fonts/'..defaultFont2
 end
 local fontfile3 = 'fonts/Xolonium.otf'
