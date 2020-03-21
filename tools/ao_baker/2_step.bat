@@ -1,1 +1,0 @@
-python fuse_obj_ao_s3o.py -f -i objects3d_input -o objects3d_output --scriptdir=../../scripts/Units

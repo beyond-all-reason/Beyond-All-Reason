@@ -245,7 +245,7 @@ function WeaponDef_Post(name, wDef)
 			wDef.thickness = wDef.thickness * 1.25
 		end
 		if wDef.laserflaresize then
-			--wDef.laserflaresize = wDef.laserflaresize * 1.1		-- note: thickness affects this too
+			wDef.laserflaresize = wDef.laserflaresize * 1.1		-- note: thickness affects this too
 		end
 		wDef.texture1 = "largebeam"		-- The projectile texture
 		--wDef.texture2 = ""		-- The end-of-beam texture for #LaserCannon, #BeamLaser
