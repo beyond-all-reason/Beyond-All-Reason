@@ -32,9 +32,9 @@ local spGetPlayerInfo		= Spring.GetPlayerInfo
 
 local coreCommandoID = UnitDefNames["cormando"].id
 
-local passiveLabs = false;
-local passiveNanos = true;
-local passiveCons = false;
+local passiveLabs = true
+local passiveNanos = true
+local passiveCons = false
 
 
 local function getIsBuilder(ud)
