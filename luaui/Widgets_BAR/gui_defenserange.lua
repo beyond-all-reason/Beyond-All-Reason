@@ -398,69 +398,69 @@ function UnitDetected( unitID, allyTeam, teamId )
 
 	printDebug( unitName[unitDefID] )
 	local foundWeapons = {}
-	
-	for i=1, unitNumWeapons[unitDefID] do
-		if ( currentModConfig["unitList"][unitName[unitDefID]] == nil or currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i] == nil ) then
-			printDebug("Weapon skipped! Name: "..  unitName[unitDefID] .. " weaponidx: " .. i )
-		else
-			--get definition from weapon table
-			weaponDef = weapTab[ unitWeapons[unitDefID][i] ]
-
-			range = weaponDef.range --get normal weapon range
-			--printDebug("Weapon #" .. i .. " Range: " .. range .. " Type: " .. weaponDef.type )
-
-			type = currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i]
-			
-			local dam = weaponDef.damages
-			local dps
-			local damage
-			
-			--check if dps-depending colors should be used
-			if ( currentModConfig["armorTags"] ~= nil ) then
-				printDebug("DPS colors!")
-				if ( type == 1 or type == 4 ) then	 -- show combo units with ground-dps-colors
-					tag = currentModConfig["armorTags"] ["ground"]
-				elseif ( type == 2 ) then
-					tag = currentModConfig["armorTags"] ["air"]
-				elseif ( type == 3 ) then -- antinuke
-					range = weaponDef.coverageRange
-					dps = nil
-					tag = nil
-				end			
-						
-				if ( tag ~= nil ) then
-					--printDebug("Salvo: " .. weaponDef.salvoSize 	)
-					damage = dam[Game.armorTypes[tag]]
-					dps = damage * weaponDef.salvoSize / weaponDef.reload		
-					--printDebug("DPS: " .. dps 	)
-				end
-						
-				color1, color2 = GetColorsByTypeAndDps( dps, type, ( allyTeam == false ) )		
+	if unitNumWeapons[unitDefID] then
+		for i=1, unitNumWeapons[unitDefID] do
+			if ( currentModConfig["unitList"][unitName[unitDefID]] == nil or currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i] == nil ) then
+				printDebug("Weapon skipped! Name: "..  unitName[unitDefID] .. " weaponidx: " .. i )
 			else
-				printDebug("Default colors!")
-				local team = "ally"
-				if ( allyTeam ) then
-					team = "enemy"
+				--get definition from weapon table
+				weaponDef = weapTab[ unitWeapons[unitDefID][i] ]
+
+				range = weaponDef.range --get normal weapon range
+				--printDebug("Weapon #" .. i .. " Range: " .. range .. " Type: " .. weaponDef.type )
+
+				type = currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i]
+
+				local dam = weaponDef.damages
+				local dps
+				local damage
+
+				--check if dps-depending colors should be used
+				if ( currentModConfig["armorTags"] ~= nil ) then
+					printDebug("DPS colors!")
+					if ( type == 1 or type == 4 ) then	 -- show combo units with ground-dps-colors
+						tag = currentModConfig["armorTags"] ["ground"]
+					elseif ( type == 2 ) then
+						tag = currentModConfig["armorTags"] ["air"]
+					elseif ( type == 3 ) then -- antinuke
+						range = weaponDef.coverageRange
+						dps = nil
+						tag = nil
+					end
+
+					if ( tag ~= nil ) then
+						--printDebug("Salvo: " .. weaponDef.salvoSize 	)
+						damage = dam[Game.armorTypes[tag]]
+						dps = damage * weaponDef.salvoSize / weaponDef.reload
+						--printDebug("DPS: " .. dps 	)
+					end
+
+					color1, color2 = GetColorsByTypeAndDps( dps, type, ( allyTeam == false ) )
+				else
+					printDebug("Default colors!")
+					local team = "ally"
+					if ( allyTeam ) then
+						team = "enemy"
+					end
+
+					if ( type == 1 or type == 4 ) then	 -- show combo units with ground-dps-colors
+						color1 = colorConfig[team]["ground"]["min"]
+						color2 = colorConfig[team]["air"]["min"]
+					elseif ( type == 2 ) then
+						color1 = colorConfig[team]["air"]["min"]
+					elseif ( type == 3 ) then -- antinuke
+						color1 = colorConfig[team]["nuke"]
+					end
 				end
-				
-				if ( type == 1 or type == 4 ) then	 -- show combo units with ground-dps-colors
-					color1 = colorConfig[team]["ground"]["min"]
-					color2 = colorConfig[team]["air"]["min"]
-				elseif ( type == 2 ) then
-					color1 = colorConfig[team]["air"]["min"]
-				elseif ( type == 3 ) then -- antinuke
-					color1 = colorConfig[team]["nuke"]
-				end			
+
+				--add weapon to list
+				local rangeLines = CalcBallisticCircle(x,y,z,range, weaponDef )
+				local rangeLinesEx = CalcBallisticCircle(x,y,z,range + 3, weaponDef ) --calc a little bigger circle to display for combo-weapons (air and ground) to display both circles together (without overlapping)
+				foundWeapons[i] = { type = type, range = range, rangeLines = rangeLines, rangeLinesEx = rangeLinesEx, color1 = color1, color2 = color2 }
+				printDebug("Detected Weapon - Type: " .. type .. " Range: " .. range )
 			end
-			
-			--add weapon to list
-			local rangeLines = CalcBallisticCircle(x,y,z,range, weaponDef )
-			local rangeLinesEx = CalcBallisticCircle(x,y,z,range + 3, weaponDef ) --calc a little bigger circle to display for combo-weapons (air and ground) to display both circles together (without overlapping)
-			foundWeapons[i] = { type = type, range = range, rangeLines = rangeLines, rangeLinesEx = rangeLinesEx, color1 = color1, color2 = color2 }
-			printDebug("Detected Weapon - Type: " .. type .. " Range: " .. range )
 		end
 	end
-
 	printDebug("Adding UnitID " .. unitID .. " WeaponCount: " .. #foundWeapons ) --.. "W1: " .. foundWeapons[1]["type"])
 	defences[unitID] = { allyState = ( allyTeam == false ), pos = {x, y, z}, unitId = unitID }
 	defences[unitID]["weapons"] = foundWeapons
