@@ -239,13 +239,13 @@ function WeaponDef_Post(name, wDef)
 			wDef.beamdecay = 0.7
 		end
 		if wDef.corethickness then
-			wDef.corethickness = wDef.corethickness * 1.12
+			wDef.corethickness = wDef.corethickness * 1.21
 		end
 		if wDef.thickness then
-			wDef.thickness = wDef.thickness * 1.25
+			wDef.thickness = wDef.thickness * 1.27
 		end
 		if wDef.laserflaresize then
-			wDef.laserflaresize = wDef.laserflaresize * 1.1		-- note: thickness affects this too
+			wDef.laserflaresize = wDef.laserflaresize * 1.15		-- note: thickness affects this too
 		end
 		wDef.texture1 = "largebeam"		-- The projectile texture
 		--wDef.texture2 = ""		-- The end-of-beam texture for #LaserCannon, #BeamLaser
