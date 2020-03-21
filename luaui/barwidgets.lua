@@ -1159,7 +1159,7 @@ function widgetHandler:ConfigureLayout(command)
         return true  -- there can only be one
       end
     end
-    local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME) -- load BAs widget_selector.lua, instead of the default selector.lua
+    local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME) -- load the game's included widget_selector.lua, instead of the default selector.lua
     self:InsertWidget(sw)
     self:RaiseWidget(sw)
     return true

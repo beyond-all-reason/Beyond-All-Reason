@@ -509,39 +509,31 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 4 --gamemessage
 			playSound = true
 			text = ssub(line,3)
-			if sfind(text, "Invalid command" )or sfind(line, "not a valid") or sfind(text, "you cannot") or sfind(text, "You are not allowed") or (sfind(text, "Invalid") and sfind(text, "you are not allowed to vote for command")) or sfind(text, "Unable to") or sfind(text, "Could not find") or sfind(text, "Ringing") or sfind(text, " is no one to ring") then
+			if sfind(text, "Invalid command" )
+			or sfind(line, "not a valid")
+			or sfind(text, "you cannot")
+			or sfind(text, "You are not allowed")
+			or (sfind(text, "Invalid") and sfind(text, "you are not allowed to vote for command"))
+			or sfind(text, "Unable to")
+			or sfind(text, "Could not find")
+			or sfind(text, "Ringing")
+			or sfind(text, " is no one to ring") then
 				ignoreThisMessage = true
 				playSound = false
 				if waitbotanswer then
-				playSound = true
-				ignoreThisMessage = false
-				waitbotanswer = nil
-				if sfind(text, myname) then
-				ignoreThisMessage = false
-				playSound = true
+					playSound = true
+					ignoreThisMessage = false
+					waitbotanswer = nil
+					if sfind(text, myname) then
+						ignoreThisMessage = false
+						playSound = true
+					end
 				end
-				end
 			end
-			if sfind(text, "BAAlphatest1") then
-				playSound = true
-			text = ssub(text, sfind(text, "BAAlphatest1") + 15)
-			end
-			if sfind(text, "Ticot") then
-				playSound = true
-			text = ssub(text, sfind(text, "Ticot") + 8)
-			end
-			if sfind(text, "Pirateur") then
-				playSound = true
-			text = ssub(text, sfind(text, "Pirateur") + 11)
-			end
-			if sfind(text, "OverKillHost1") then
-				playSound = true
-			text = ssub(text, sfind(text, "OverKillHost1") + 15)
-			end
-			if sfind(text, "Pirine") then
-			playSound = true
-			text = ssub(text, sfind(text, "Pirine") + 9)
-			end
+			--if sfind(text, "BAAlphatest1") then
+			--	playSound = true
+			--	text = ssub(text, sfind(text, "BAAlphatest1") + 15)
+			--end
 			
 			--PROCESSS VOTES HERE--
 			if sfind(text, "called a vote for command") then
@@ -563,10 +555,10 @@ local function processLine(line,g,cfg,newlinecolor)
 			-- Will have to insert a basic autohosts list here, for now it's just available on tests hosts so let's not bother too much.
 			
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
-					ignoreThisMessage = true
-			if ssub(text,1,1) == "!" then
 				ignoreThisMessage = true
-		end
+				if ssub(text,1,1) == "!" then
+					ignoreThisMessage = true
+				end
                 local i = sfind(ssub(line,4,slen(line)), ">")
 				if (i) then
 					name = ssub(line,4,i+2)

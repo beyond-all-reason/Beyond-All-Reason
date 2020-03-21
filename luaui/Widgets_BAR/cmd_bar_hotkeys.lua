@@ -27,7 +27,7 @@ local unbinds={
     "bind . nextmenu",
     
     "bind any+i gameinfo",
-    "bind i gameinfo",		-- BA changed windspeeds so this shows incorrect info
+    "bind i gameinfo",
 }
 
 -- table of stuff that we bind on load

@@ -1,4 +1,4 @@
-local versionNumber = "v2.5 - Doo Edit, BA specific"
+local versionNumber = "v2.6 - Doo Edit, BAR specific"
 
 function widget:GetInfo()
   return {
@@ -23,7 +23,7 @@ end
 
 
 local maxMetalData = 40000 --2500000
-local pathToSave = "LuaUI/Widgets_BAR/MetalMaps/" -- where to store mexmaps (MaDDoX: edited for BA 9.5x)
+local pathToSave = "LuaUI/Widgets_BAR/MetalMaps/" -- where to store mexmaps
 
 --command notification and mex placement
 

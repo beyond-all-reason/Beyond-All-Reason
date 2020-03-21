@@ -1,4 +1,4 @@
--- BA does not use explosions_post, see alldefs_post.lua 
+-- we do not use explosions_post, see alldefs_post.lua
 -- basically, DONT TOUCH this! 
 
 

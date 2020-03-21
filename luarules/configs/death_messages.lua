@@ -905,7 +905,6 @@ teamDeathMessages = {
 	"XX went down down down and the flames went higher",
 	"XX was generally looked upon as a cancerous growth attached to Spring",
 	"XX has been a poorly maintained pile of junk for many, many years",
-    "XX has played AA/BA for years, much longer than you",
     "XX has excellent AI support",
 	"XX went to the great gig in the sky",
 	"All lies and jest, still, XX hears what it wants to hear and disregards the rest",

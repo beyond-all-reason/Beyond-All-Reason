@@ -90,7 +90,7 @@ local tips = {
 	"Select all units of the same type by pressing CTRL+Z.",
 	"Press CTRL+C to quickly select and center the camera on your Commander.",
 	"Think ahead and include anti-air and support units in your army.",
-	"Mastering hotkeys is the key to proficiency in BA.\nUse Z,X,C to quickly cycle between most frequently built structures.",
+	"Mastering hotkeys is the key to proficiency.\nUse Z,X,C to quickly cycle between most frequently built structures.",
 	"To share resources with teammates:\n - Double-click tank icon next to the player's name to share units\n - Click-drag metal/energy bar next to player's name to send resources.\n - Press H to share an exact amount.",
 	"It is efficient to support your lab with constructors increasing its build-power.\nRight click on the factory with a constructor selected to guard (assist) with construction",
 	"Remember to separate your highly explosive buildings (like metal makers) from the rest of your base.",

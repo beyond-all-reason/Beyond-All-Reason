@@ -1,7 +1,7 @@
 --related thread: http://springrts.com/phpbb/viewtopic.php?f=13&t=26732&start=22
 function widget:GetInfo()
   return {
-    name      = "Map External VR Grid", --WARNING: This version is customized for BA
+    name      = "Map External VR Grid",
     desc      = "VR grid around map",
     author    = "knorke, tweaked by KR",
     date      = "Sep 2011",
