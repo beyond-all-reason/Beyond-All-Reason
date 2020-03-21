@@ -41,9 +41,9 @@ local definitions = {
       water              = true,
       properties = {
         colormap           = [[1 0.9 0.75 0.5   1 0.9 0.75 0.2   0 0 0 0.01]],
-        size               = 85,
+        size               = 75,
         sizegrowth         = -4.0,
-        ttl                = 14,
+        ttl                = 13,
         texture            = [[groundflashwhite]],
       },
     },
@@ -479,7 +479,7 @@ local sizes = {
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.33   0 0 0 0.01]],
-        size               = 55,
+        size               = 50,
         ttl                = 10,
       },
     },
@@ -621,9 +621,9 @@ local sizes = {
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.6   1 0.9 0.75 0.23   0 0 0 0.01]],
-        size               = 166,
+        size               = 150,
         sizegrowth         = -3.5,
-        ttl                = 18,
+        ttl                = 16,
       },
     },
 	explosion = {
@@ -760,9 +760,9 @@ local sizes = {
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.7   1 0.9 0.75 0.25   0 0 0 0.01]],
-        size               = 200,
+        size               = 180,
         sizegrowth         = -2.5,
-        ttl                = 26,
+        ttl                = 20,
       },
     },
 	explosion = {
@@ -899,9 +899,9 @@ local sizes = {
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.7    1 0.9 0.75 0.25   0 0 0 0.01]],
-        size               = 250,
+        size               = 220,
         sizegrowth         = -1.5,
-        ttl                = 34,
+        ttl                = 25,
       },
     },
     explosion = {
@@ -1038,9 +1038,9 @@ local sizes = {
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.75   1 0.9 0.75 0.25   0 0 0 0.01]],
-        size               = 330,
+        size               = 280,
         sizegrowth         = -1.5,
-        ttl                = 36,
+        ttl                = 27,
       },
     },
     explosion = {
