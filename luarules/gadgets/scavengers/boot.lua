@@ -189,7 +189,7 @@ function CaptureBeacons(n)
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
 				elseif unitTeamID == GaiaTeamID and (not unitTeamID == scavDef) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
-				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false then
+				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + 0.001
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 				end

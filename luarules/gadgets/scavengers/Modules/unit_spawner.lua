@@ -55,7 +55,20 @@ function UnitGroupSpawn(n)
 				end
 			end
 			
-			local pickedBeacon = SpawnBeacons[math_random(1,#SpawnBeacons)]
+			for b = 1,10 do
+				local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
+				local _,_,_,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
+				if pickedBeaconCaptureProgress == 0 then
+					pickedBeacon = pickedBeaconTest
+					break
+				else
+					pickedBeacon = 1234567890
+				end
+			end
+			if pickedBeacon == 1234567890 then
+				return
+			end
+				
 			local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local posradius = 256
@@ -69,7 +82,7 @@ function UnitGroupSpawn(n)
 			canSpawnHere = true
 			--Spring.DestroyUnit(pickedBeacon,false,false)
 			SpawnBeacon(n)
-			
+			pickedBeacon = nil
 			
 			if canSpawnHere then
 				
