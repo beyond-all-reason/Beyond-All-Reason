@@ -18,6 +18,7 @@ local resources = {
             smoketrail			= 'default/smoketrail.tga',
             wake				= 'default/wake.tga',
             flare				= 'default/flare.tga',
+            flare2				= 'default/flare2.tga',
             explo				= 'default/explo.tga',
             explo2				= 'default/explo2.tga',
 	        sakexplo2 			= 'default/sakexplo2.tga',

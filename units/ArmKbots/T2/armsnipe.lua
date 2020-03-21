@@ -135,7 +135,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 500,
 				explosiongenerator = "custom:genericshellexplosion-sniper",
-				falloffrate = 0.5,
 				firestarter = 100,
 				impulseboost = 0.234,
 				impulsefactor = 0.234,
