@@ -141,7 +141,7 @@ return {
 				soundstart = "misicbm1",
 				stockpile = true,
 				stockpiletime = 75,
-				--texture1 = "trans",
+				texture1 = "flare2",
 				--texture2 = "null",
 				--texture3 = "null",
 				tolerance = 4000,
