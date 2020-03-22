@@ -154,7 +154,32 @@ function CaptureBeacons(n)
 			local unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
 			CapturingUnits = {}
 			CapturingUnitsTeam = {}
+			CapturingUnitsTeamTest = {}
+			local TeamsCapturing = 0
 			CapturingUnits[scav] = 0
+			
+			for j = 1,#unitsAround do
+				local unitID = unitsAround[j]
+				local unitTeamID = spGetUnitTeam(unitID)
+				local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
+				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
+				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+					captureraiTeam = false
+				else
+					captureraiTeam = true
+				end
+				if not CapturingUnitsTeamTest[unitAllyTeam] then
+					CapturingUnitsTeamTest[unitAllyTeam] = true
+					if unitTeamID ~= GaiaTeamID and captureraiTeam == false then
+						TeamsCapturing = TeamsCapturing + 1
+						if TeamsCapturing > 1 then
+							break
+						end
+					end
+				end
+				captureraiTeam = nil
+			end
 			
 			for j = 1,#unitsAround do
 				local unitID = unitsAround[j]
@@ -196,9 +221,12 @@ function CaptureBeacons(n)
 				if CaptureProgressForBeacons[scav] < 0 then
 					CaptureProgressForBeacons[scav] = 0
 				end
+				if CaptureProgressForBeacons[scav] > 1 then
+					CaptureProgressForBeacons[scav] = 1
+				end
 				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
 				
-				if captureraiTeam == false and CaptureProgressForBeacons[scav] >= 1 then
+				if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForBeacons[scav] >= 1 then
 					CaptureProgressForBeacons[scav] = 0
 					Spring.SetUnitHealth(scav, {capture = 0})
 					Spring.TransferUnit(scav, unitTeamID, true)
