@@ -580,7 +580,7 @@ local teamsizeVersusText = ""
 local hideShareIcons = false
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 if mySpecStatus or numTeamsInAllyTeam <= 1 then
-	--hideShareIcons = true
+	hideShareIcons = true
 end
 
 
