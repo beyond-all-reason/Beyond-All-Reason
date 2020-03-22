@@ -325,37 +325,39 @@ local function RenderGlassUnits()
 
 		for unitID, _ in pairs(glassUnits) do
 			local unitDefID = udIDs[unitID]
+			if CallAsTeam(myTeamID, Spring.IsUnitInView, unitID) then	-- (maybe check this less frequently, update more frequent on camera move for example)
 
-			glUnitShapeTextures(unitDefID, true)
-			glTexture(2, normalMaps[unitDefID])
+				glUnitShapeTextures(unitDefID, true)
+				glTexture(2, normalMaps[unitDefID])
 
-			local tc = teamColors[unitID]
-			glassShader:SetUniformFloat("teamColor", tc[1], tc[2], tc[3], tc[4])
+				local tc = teamColors[unitID]
+				glassShader:SetUniformFloat("teamColor", tc[1], tc[2], tc[3], tc[4])
 
-			--/// Render only backfaces
-			glCulling(GL_FRONT)
+				--/// Render only backfaces
+				glCulling(GL_FRONT)
 
-			for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
-				glPushPopMatrix( function()
-					glUnitMultMatrix(unitID)
-					glUnitPieceMultMatrix(unitID, pieceID)
-					glUnitPiece(unitID, pieceID)
-				end)
+				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
+					glPushPopMatrix( function()
+						glUnitMultMatrix(unitID)
+						glUnitPieceMultMatrix(unitID, pieceID)
+						glUnitPiece(unitID, pieceID)
+					end)
+				end
+
+				--/// Render only frontfaces
+				glCulling(GL_BACK)
+
+				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
+					glPushPopMatrix( function()
+						glUnitMultMatrix(unitID)
+						glUnitPieceMultMatrix(unitID, pieceID)
+						glUnitPiece(unitID, pieceID)
+					end)
+				end
+
+				glUnitShapeTextures(unitDefID, false)
+				glTexture(2, false)
 			end
-
-			--/// Render only frontfaces
-			glCulling(GL_BACK)
-
-			for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
-				glPushPopMatrix( function()
-					glUnitMultMatrix(unitID)
-					glUnitPieceMultMatrix(unitID, pieceID)
-					glUnitPiece(unitID, pieceID)
-				end)
-			end
-
-			glUnitShapeTextures(unitDefID, false)
-			glTexture(2, false)
 		end
 
 		glTexture(3, false)
