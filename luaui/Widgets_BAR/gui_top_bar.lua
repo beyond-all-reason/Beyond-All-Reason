@@ -1397,7 +1397,7 @@ function widget:DrawScreen()
                 glColor(1,1,1,0.5+(0.36*fadeProgress))
                 RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
                 glColor(0,0,0,0.035+(0.035*fadeProgress))
-                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding)
+                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding*0.8)
 
                 local fontSize = height/6
                 font:Begin()

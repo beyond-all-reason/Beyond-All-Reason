@@ -47,14 +47,14 @@ local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local posX = 0.304
-local posY = 0.051
+local posY = 0.052	- (0.01 * ((vsx/vsy) - 1.78))
 
 local Config = {
 	console = {
 		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
 		
-		fontsize = 11.5*widgetScale,
+		fontsize = (11.5 - (2.5 * ((vsx/vsy) - 1.78))) * widgetScale,
 		minlines = 3, --minimal number of lines to display
 		maxlines = 3,
 		maxlinesScrollmode = 3,

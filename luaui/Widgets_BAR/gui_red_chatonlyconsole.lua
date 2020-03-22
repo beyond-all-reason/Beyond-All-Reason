@@ -46,7 +46,7 @@ local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
-local fontsize = 14
+local fontsize = 14 - (4 * ((vsx/vsy) - 1.78))
 local fontsizeMultiplier = 1
 
 local showBackground = true
@@ -55,7 +55,7 @@ local showBackgroundOpacity = 0.19
 local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
 local posX = 0.304
-local posY = 0.108
+local posY = 0.110	-- + (0.02 * ((vsx/vsy) - 1.78))
 
 local Config = {
 	console = {
