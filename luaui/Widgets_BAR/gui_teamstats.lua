@@ -344,8 +344,9 @@ function calcAbsSizes()
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx,vsy = viewSizeX, viewSizeY
+	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
@@ -358,8 +359,7 @@ end
 
 function widget:Initialize()
 	guiData.mainPanel.visible = false
-	local vsx,vsy = widgetHandler:GetViewSizes()
-	widget:ViewResize(vsx,vsy)
+	widget:ViewResize()
 	local _,_, paused = Spring.GetGameSpeed()
 	if paused then
 		widget:GameFrame(GetGameFrame(),true)

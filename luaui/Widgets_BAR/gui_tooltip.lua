@@ -32,13 +32,16 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 -- Config
 ------------------------------------------------------------------------------------
 
+local vsx,vsy = Spring.GetViewGeometry()
+
 local defaultDelay = 0.4
-local usedFontSize = 17
+local cfgFontSize = 17
+
+local usedFontSize = cfgFontSize - (3 * ((vsx/vsy) - 1.78))
 local xOffset = 35
-local yOffset = -35-usedFontSize
+local yOffset = -xOffset-usedFontSize
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.75 + (vsx*vsy / 7000000))
 local fontfileSize = 40
 local fontfileOutlineSize = 8
@@ -136,7 +139,8 @@ end
 
 function widget:ViewResize(x,y)
 	vsx,vsy = Spring.GetViewGeometry()
-
+	usedFontSize = cfgFontSize - (3 * ((vsx/vsy) - 1.78))
+	yOffset = -xOffset-usedFontSize
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale

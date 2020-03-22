@@ -4,7 +4,7 @@ return {
 	desc    = "",
 	author  = "Floris",
 	date    = "September 2016",
-	layer   = 20000,
+	layer   = -99990,
 	enabled = true,
 	handler = true,
 }
@@ -16,6 +16,8 @@ end
 ]]--
 
 local advSettings = false
+
+local initialized = false
 
 local maxNanoParticles = 4000
 
@@ -298,6 +300,7 @@ function widget:ViewResize()
   screenX = (vsx*centerPosX) - (screenWidth/2)
   screenY = (vsy*centerPosY) + (screenHeight/2)
   widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+  widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
   WG.uiScale = widgetScale
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
@@ -792,6 +795,7 @@ if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 	minGroundDetail = 2
 end
 function widget:Update(dt)
+	if not initialized then return end
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		--if select(7, Spring.GetMouseState()) then	-- when camera panning
 		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
@@ -889,262 +893,269 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawScreen()
-  if chobbyInterface then return end
-  if spIsGUIHidden() then return end
+	-- doing it here so other widgets having higher layer number value are also loaded
+	if not initialized then
+		init()
+		initialized = true
+	else
 
-  -- draw the window
-  if not windowList then
-    --windowList = gl.CreateList(DrawWindow)
-  end
+	  if chobbyInterface then return end
+	  if spIsGUIHidden() then return end
 
-  -- update new slider value
-  if sliderValueChanged then
-  	gl.DeleteList(windowList)
-  	windowList = gl.CreateList(DrawWindow)
-  	sliderValueChanged = nil
-  end
-
-  if selectOptionsList then
-  	if WG['guishader'] then
-  		WG['guishader'].RemoveScreenRect('options_select')
-  		WG['guishader'].removeRenderDlist(selectOptionsList)
-  	end
-  	glDeleteList(selectOptionsList)
-  	selectOptionsList = nil
-  end
-
-  if (show or showOnceMore) and windowList then
-
-	  if getOptionByID('tweakui') and widgetHandler.tweakMode ~= nil then
-		  options[getOptionByID('tweakui')].value = widgetHandler.tweakMode
+	  -- draw the window
+	  if not windowList then
+		--windowList = gl.CreateList(DrawWindow)
 	  end
 
-	  --on window
-	  local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-	  local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-	  local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-	  local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-	  local x,y,ml = Spring.GetMouseState()
-	  local cx, cy = correctMouseForScaling(x,y)
-	  if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-		  Spring.SetMouseCursor('cursornormal')
+	  -- update new slider value
+	  if sliderValueChanged then
+		gl.DeleteList(windowList)
+		windowList = gl.CreateList(DrawWindow)
+		sliderValueChanged = nil
 	  end
-	  if groupRect ~= nil then
-		  for id,group in pairs(optionGroups) do
-			  if advSettings or group.id ~= 'dev' then
-				  if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-					  Spring.SetMouseCursor('cursornormal')
-					  break
+
+	  if selectOptionsList then
+		if WG['guishader'] then
+			WG['guishader'].RemoveScreenRect('options_select')
+			WG['guishader'].removeRenderDlist(selectOptionsList)
+		end
+		glDeleteList(selectOptionsList)
+		selectOptionsList = nil
+	  end
+
+	  if (show or showOnceMore) and windowList then
+
+		  if getOptionByID('tweakui') and widgetHandler.tweakMode ~= nil then
+			  options[getOptionByID('tweakui')].value = widgetHandler.tweakMode
+		  end
+
+		  --on window
+		  local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		  local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		  local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		  local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		  local x,y,ml = Spring.GetMouseState()
+		  local cx, cy = correctMouseForScaling(x,y)
+		  if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			  Spring.SetMouseCursor('cursornormal')
+		  end
+		  if groupRect ~= nil then
+			  for id,group in pairs(optionGroups) do
+				  if advSettings or group.id ~= 'dev' then
+					  if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						  Spring.SetMouseCursor('cursornormal')
+						  break
+					  end
 				  end
 			  end
 		  end
-	  end
-	  if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-		  Spring.SetMouseCursor('cursornormal')
-	  end
+		  if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			  Spring.SetMouseCursor('cursornormal')
+		  end
 
-		-- draw the options panel
-	  	  glPushMatrix()
-			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
-			glScale(widgetScale, widgetScale, 1)
-			glCallList(windowList)
-			if WG['guishader'] then
-				local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-				local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-				local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-				local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-				if backgroundGuishader ~= nil then
-					glDeleteList(backgroundGuishader)
-				end
-				backgroundGuishader = glCreateList( function()
-					-- background
-					RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
-					-- title
-					rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
-					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
-					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
-					rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
-					RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
-					-- tabs
-					for id,group in pairs(optionGroups) do
-						if advSettings or group.id ~= 'dev' then
-							if groupRect[id] then
-								rectX1 = (groupRect[id][1] * widgetScale) - ((vsx * (widgetScale-1))/2)
-								rectY1 = (groupRect[id][2] * widgetScale) - ((vsy * (widgetScale-1))/2)
-								rectX2 = (groupRect[id][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
-								rectY2 = (groupRect[id][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
-								RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
-							end
-						end
+			-- draw the options panel
+			  glPushMatrix()
+				glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
+				glScale(widgetScale, widgetScale, 1)
+				glCallList(windowList)
+				if WG['guishader'] then
+					local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+					local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+					local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+					local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+					if backgroundGuishader ~= nil then
+						glDeleteList(backgroundGuishader)
 					end
-				end)
-				WG['guishader'].InsertDlist(backgroundGuishader, 'options')
-			end
-			showOnceMore = false
-
-			-- draw button hover
-			local usedScreenX = (vsx*centerPosX) - ((screenWidth/2)*widgetScale)
-			local usedScreenY = (vsy*centerPosY) + ((screenHeight/2)*widgetScale)
-
-			-- mouseover (highlight and tooltip)
-
-		  	local description = ''
-			--local x,y,ml = Spring.GetMouseState()
-			--local cx, cy = correctMouseForScaling(x,y)
-			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-				local groupMargin = bgMargin/1.7
-				gl.Color(1,1,1,0.1)
-				RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0)
-			end
-			if groupRect ~= nil then
-				for id,group in pairs(optionGroups) do
-					if advSettings or group.id ~= 'dev' then
-						if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-							mouseoverGroupTab(id)
-						end
-					end
-				end
-			end
-			if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-				if ml then
-					glColor(1,0.91,0.66,0.36)
-				else
-					glColor(1,1,1,0.14)
-				end
-				RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/12)
-			end
-			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-				if ml then
-					glColor(1,0.91,0.66,0.36)
-				else
-					glColor(1,1,1,0.14)
-				end
-				RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/12)
-			end
-
-			if not showSelectOptions then
-				for i, o in pairs(optionHover) do
-					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
-						glColor(1,1,1,0.055)
-						RectRound(o[1]-4, o[2], o[3]+4, o[4], 2)
-						font:Begin()
-						if options[i].description ~= nil then
-							description = options[i].description
-							font:Print('\255\235\190\122'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
-						end
-						font:SetTextColor(0.46,0.4,0.3,0.45)
-						font:Print('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
-						font:End()
-					end
-				end
-				for i, o in pairs(optionButtons) do
-					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						gl.Color(0,0,0,0.08)
-						RectRound(o[1], o[2], o[3], o[4], 1)
-						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
-							local value = options[i].value
-							if options[i].steps then
-								value = NearestValue(options[i].steps, value)
-							else
-								local decimalValue, floatValue = math.modf(options[i].step)
-								if floatValue ~= 0 then
-									value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+					backgroundGuishader = glCreateList( function()
+						-- background
+						RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+						-- title
+						rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+						rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+						rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+						rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+						RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+						-- tabs
+						for id,group in pairs(optionGroups) do
+							if advSettings or group.id ~= 'dev' then
+								if groupRect[id] then
+									rectX1 = (groupRect[id][1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+									rectY1 = (groupRect[id][2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+									rectX2 = (groupRect[id][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+									rectY2 = (groupRect[id][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+									RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
 								end
 							end
-							WG['tooltip'].ShowTooltip('options_showvalue', value)
 						end
-					end
+					end)
+					WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 				end
-			end
+				showOnceMore = false
 
-			-- draw select options
-			if showSelectOptions ~= nil then
+				-- draw button hover
+				local usedScreenX = (vsx*centerPosX) - ((screenWidth/2)*widgetScale)
+				local usedScreenY = (vsy*centerPosY) + ((screenHeight/2)*widgetScale)
 
-				-- highlight all that are affected by presets
-				if options[showSelectOptions].id == 'preset' then
-					glColor(1,1,1,0.07)
-					for optionID, _ in pairs(presets['lowest']) do
-						optionKey = getOptionByID(optionID)
-						if optionHover[optionKey] ~= nil then
-							RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 1)
-						end
-					end
+				-- mouseover (highlight and tooltip)
+
+				local description = ''
+				--local x,y,ml = Spring.GetMouseState()
+				--local cx, cy = correctMouseForScaling(x,y)
+				if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+					local groupMargin = bgMargin/1.7
+					gl.Color(1,1,1,0.1)
+					RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0)
 				end
-
-				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
-				local oPadding = 4
-				y = optionButtons[showSelectOptions][4] -oPadding
-				local yPos = y
-				--Spring.Echo(oHeight)
-				optionSelect = {}
-				for i, option in pairs(options[showSelectOptions].options) do
-					yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
-				end
-
-				selectOptionsList = glCreateList(function()
-					if WG['guishader'] then
-						glPushMatrix()
-						glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
-						glScale(widgetScale, widgetScale, 1)
-                        glColor(0.25,0.25,0.25,0.7)
-                    else
-                        glColor(0.25,0.25,0.25,0.85)
-                    end
-					RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
-					glColor(1,1,1,0.07)
-					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
-					for i, option in pairs(options[showSelectOptions].options) do
-						yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
-						if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
-							glColor(1,1,1,0.18)
-							RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 2)
-							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
+				if groupRect ~= nil then
+					for id,group in pairs(optionGroups) do
+						if advSettings or group.id ~= 'dev' then
+							if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+								mouseoverGroupTab(id)
 							end
-							prevSelectHover = i
 						end
-						optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
+					end
+				end
+				if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
+					if ml then
+						glColor(1,0.91,0.66,0.36)
+					else
+						glColor(1,1,1,0.14)
+					end
+					RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/12)
+				end
+				if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
+					if ml then
+						glColor(1,0.91,0.66,0.36)
+					else
+						glColor(1,1,1,0.14)
+					end
+					RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/12)
+				end
 
-						if options[showSelectOptions].optionsFont and fontOption then
-							fontOption[i]:Begin()
-							fontOption[i]:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
-							fontOption[i]:End()
-						else
+				if not showSelectOptions then
+					for i, o in pairs(optionHover) do
+						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
+							glColor(1,1,1,0.055)
+							RectRound(o[1]-4, o[2], o[3]+4, o[4], 2)
 							font:Begin()
-							font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+							if options[i].description ~= nil then
+								description = options[i].description
+								font:Print('\255\235\190\122'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
+							end
+							font:SetTextColor(0.46,0.4,0.3,0.45)
+							font:Print('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
 							font:End()
 						end
 					end
-					if WG['guishader'] then
-						glPopMatrix()
+					for i, o in pairs(optionButtons) do
+						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							gl.Color(0,0,0,0.08)
+							RectRound(o[1], o[2], o[3], o[4], 1)
+							if WG['tooltip'] ~= nil and options[i].type == 'slider' then
+								local value = options[i].value
+								if options[i].steps then
+									value = NearestValue(options[i].steps, value)
+								else
+									local decimalValue, floatValue = math.modf(options[i].step)
+									if floatValue ~= 0 then
+										value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+									end
+								end
+								WG['tooltip'].ShowTooltip('options_showvalue', value)
+							end
+						end
 					end
-				end)
-				if WG['guishader'] then
-					local interfaceScreenCenterPosX = (screenX+(screenWidth/2))/vsx
-					local interfaceScreenCenterPosY = (screenY-(screenHeight/2))/vsy
-
-					-- translate coordinates to actual screen coords (because we applied glscale/gltranlate above)
-					local x1 = (vsx*0.5) - (((vsx/2) - optionButtons[showSelectOptions][1]) * widgetScale)
-					local x2 = (vsx*0.5) - (((vsx/2) - optionButtons[showSelectOptions][3]) * widgetScale)
-					local y1 = (vsy*0.5) - (((vsy/2) - (yPos-oHeight-oPadding)) * widgetScale)
-					local y2 = (vsy*0.5) - (((vsy/2) - optionButtons[showSelectOptions][4]) * widgetScale)
-					WG['guishader'].InsertScreenRect(x1, y1, x2, y2, 'options_select')
-					WG['guishader'].insertRenderDlist(selectOptionsList)
-				else
-					glCallList(selectOptionsList)
 				end
-			elseif prevSelectHover ~= nil then
-				prevSelectHover = nil
+
+				-- draw select options
+				if showSelectOptions ~= nil then
+
+					-- highlight all that are affected by presets
+					if options[showSelectOptions].id == 'preset' then
+						glColor(1,1,1,0.07)
+						for optionID, _ in pairs(presets['lowest']) do
+							optionKey = getOptionByID(optionID)
+							if optionHover[optionKey] ~= nil then
+								RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 1)
+							end
+						end
+					end
+
+					local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
+					local oPadding = 4
+					y = optionButtons[showSelectOptions][4] -oPadding
+					local yPos = y
+					--Spring.Echo(oHeight)
+					optionSelect = {}
+					for i, option in pairs(options[showSelectOptions].options) do
+						yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
+					end
+
+					selectOptionsList = glCreateList(function()
+						if WG['guishader'] then
+							glPushMatrix()
+							glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
+							glScale(widgetScale, widgetScale, 1)
+							glColor(0.25,0.25,0.25,0.7)
+						else
+							glColor(0.25,0.25,0.25,0.85)
+						end
+						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
+						glColor(1,1,1,0.07)
+						RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
+						for i, option in pairs(options[showSelectOptions].options) do
+							yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
+							if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
+								glColor(1,1,1,0.18)
+								RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 2)
+								if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
+									Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
+								end
+								prevSelectHover = i
+							end
+							optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
+
+							if options[showSelectOptions].optionsFont and fontOption then
+								fontOption[i]:Begin()
+								fontOption[i]:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+								fontOption[i]:End()
+							else
+								font:Begin()
+								font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+								font:End()
+							end
+						end
+						if WG['guishader'] then
+							glPopMatrix()
+						end
+					end)
+					if WG['guishader'] then
+						local interfaceScreenCenterPosX = (screenX+(screenWidth/2))/vsx
+						local interfaceScreenCenterPosY = (screenY-(screenHeight/2))/vsy
+
+						-- translate coordinates to actual screen coords (because we applied glscale/gltranlate above)
+						local x1 = (vsx*0.5) - (((vsx/2) - optionButtons[showSelectOptions][1]) * widgetScale)
+						local x2 = (vsx*0.5) - (((vsx/2) - optionButtons[showSelectOptions][3]) * widgetScale)
+						local y1 = (vsy*0.5) - (((vsy/2) - (yPos-oHeight-oPadding)) * widgetScale)
+						local y2 = (vsy*0.5) - (((vsy/2) - optionButtons[showSelectOptions][4]) * widgetScale)
+						WG['guishader'].InsertScreenRect(x1, y1, x2, y2, 'options_select')
+						WG['guishader'].insertRenderDlist(selectOptionsList)
+					else
+						glCallList(selectOptionsList)
+					end
+				elseif prevSelectHover ~= nil then
+					prevSelectHover = nil
+				end
+			glPopMatrix()
+		else
+			if WG['guishader'] then
+				WG['guishader'].DeleteDlist('options')
 			end
-	  	glPopMatrix()
-	else
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('options')
 		end
-	end
-	if checkedWidgetDataChanges == nil then
-		checkedWidgetDataChanges = true
-		loadAllWidgetData()
+		if checkedWidgetDataChanges == nil then
+			checkedWidgetDataChanges = true
+			loadAllWidgetData()
+		end
 	end
 end
 
@@ -3247,6 +3258,8 @@ end
 
 function widget:Initialize()
 
+	widget:ViewResize()
+
 	Spring.SetConfigFloat("CamTimeFactor", 1)
 
 	Spring.SetConfigString("InputTextGeo", "0.26 0.73 0.3 0.42")	-- input chat position posX, posY, ?, ?
@@ -3347,7 +3360,7 @@ function widget:Initialize()
 		table.insert(presetNames, preset)
 	end
 
-	init()
+	--init()
 end
 
 function widget:Shutdown()
