@@ -25,7 +25,7 @@ return {
 		leavetracks = false,
 		maxdamage = 460,
 		maxslope = 16,
-		maxvelocity = 1.05,
+		maxvelocity = 1.1,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Jammer",

@@ -26,7 +26,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1240,
 		maxslope = 16,
-		maxvelocity = 1.68,
+		maxvelocity = 1.8,
 		maxwaterdepth = 18,
 		metalmake = 0.1,
 		metalstorage = 50,

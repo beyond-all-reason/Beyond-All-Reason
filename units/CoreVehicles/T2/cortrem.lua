@@ -26,7 +26,7 @@ return {
 		maxdamage = 2700,
 		maxreversevelocity = 0.762,
 		maxslope = 14,
-		maxvelocity = 1.27,
+		maxvelocity = 1.35,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
 		name = "Tremor",

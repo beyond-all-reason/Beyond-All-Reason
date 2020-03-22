@@ -33,7 +33,7 @@ return {
 		mass = 1500,
 		maxdamage = 155,
 		maxslope = 16,
-		maxvelocity = 2.15,
+		maxvelocity = 2.3,
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
 		name = "Spoiler",

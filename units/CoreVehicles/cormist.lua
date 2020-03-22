@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 777,
 		maxslope = 16,
-		maxvelocity = 1.31,
+		maxvelocity = 1.4,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Slasher",

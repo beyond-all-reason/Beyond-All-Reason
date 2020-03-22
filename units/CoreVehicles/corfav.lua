@@ -23,7 +23,7 @@ return {
 		leavetracks = false,
 		maxdamage = 95,
 		maxslope = 26,
-		maxvelocity = 4.28,
+		maxvelocity = 4.6,
 		maxwaterdepth = 12,
 		movementclass = "TANK1",
 		name = "Weasel",

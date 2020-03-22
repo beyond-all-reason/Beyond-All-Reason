@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 735,
 		maxslope = 16,
-		maxvelocity = 1.4,
+		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Samson",

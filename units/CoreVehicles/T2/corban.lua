@@ -25,7 +25,7 @@ return {
 		maxdamage = 2250,
 		maxreversevelocity = 0.996,
 		maxslope = 20,
-		maxvelocity = 1.66,
+		maxvelocity = 1.8,
 		maxwaterdepth = 20,
 		metalstorage = 4,
 		movementclass = "HTANK4",

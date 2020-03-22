@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1250,
 		maxslope = 16,
-		maxvelocity = 1.05,
+		maxvelocity = 1.1,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Diplomat",

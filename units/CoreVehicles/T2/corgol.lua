@@ -24,7 +24,7 @@ return {
 		mass = 5001,
 		maxdamage = 7000,
 		maxslope = 12,
-		maxvelocity = 1.27,
+		maxvelocity = 1.4,
 		maxwaterdepth = 12,
 		movementclass = "HTANK4",
 		name = "Goliath",

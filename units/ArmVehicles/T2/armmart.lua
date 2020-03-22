@@ -24,7 +24,7 @@ return {
 		maxdamage = 600,
 		maxreversevelocity = 0.948,
 		maxslope = 12,
-		maxvelocity = 1.58,
+		maxvelocity = 1.7,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Luger",

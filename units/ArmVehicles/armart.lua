@@ -25,7 +25,7 @@ return {
 		maxdamage = 556,
 		maxreversevelocity = 0.912,
 		maxslope = 15,
-		maxvelocity = 1.52,
+		maxvelocity = 1.8,
 		maxwaterdepth = 8,
 		movementclass = "TANK3",
 		name = "Shellshocker",

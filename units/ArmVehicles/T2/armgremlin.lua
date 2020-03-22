@@ -25,7 +25,7 @@ return {
 		leavetracks = false,
 		maxdamage = 950,
 		maxslope = 12,
-		maxvelocity = 2.18,
+		maxvelocity = 2.35,
 		maxwaterdepth = 0,
 		mincloakdistance = 65,
 		movementclass = "TANK2",

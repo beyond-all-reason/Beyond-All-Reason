@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 4200,
 		maxslope = 12,
-		maxvelocity = 2.13,
+		maxvelocity = 2.17,
 		maxwaterdepth = 15,
 		movementclass = "HTANK3",
 		name = "Bulldog",
