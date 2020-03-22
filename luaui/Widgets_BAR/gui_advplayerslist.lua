@@ -43,6 +43,7 @@ end
 -- v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
 -- v21   (Floris): toggles LoS and /specfullview when camera tracking a player
 -- v22   (Floris): added auto collapse function
+-- v23   (Floris): hiding share buttons when you are alone
 
 --------------------------------------------------------------------------------
 -- Config
@@ -252,7 +253,7 @@ local tipText
 --------------------------------------------------------------------------------
 
 -- local player info
-local myAllyTeamID
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myTeamID
 local mySpecStatus,fullView,_ = Spring.GetSpectatingState()
 
@@ -576,6 +577,13 @@ local specsLabelOffset = 0
 local teamsizeVersusText = ""
 
 
+local hideShareIcons = false
+local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
+if mySpecStatus or numTeamsInAllyTeam <= 1 then
+	--hideShareIcons = true
+end
+
+
 ---------------------------------------------------------------------------------------------------
 --  Geometry
 ---------------------------------------------------------------------------------------------------
@@ -588,7 +596,7 @@ function SetModulesPositionX()
 	pos = 1
 	for _,module in ipairs(modules) do
 		module.posX = pos
-		if module.active == true then
+		if module.active == true and (module.name ~= 'share' or not hideShareIcons) then
 			if mySpecStatus == true then
 				if module.spec == true then
 					pos = pos + module.width
@@ -598,24 +606,24 @@ function SetModulesPositionX()
 					pos = pos + module.width
 				end
 			end
+
+			widgetWidth = pos + 1
+			if widgetWidth < 20 then
+				widgetWidth = 20
+			end
+			if widgetWidth + widgetPosX > vsx then
+				widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
+			end
+			if widgetRight - widgetWidth < 0 then
+				widgetRight = widgetWidth
+			end
+			if expandLeft == true then
+				widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
+			else
+				widgetRight = widgetPosX + widgetWidth
+			end
 		end
 
-		widgetWidth = pos + 1
-		if widgetWidth < 20 then
-			widgetWidth = 20
-		end
-
-		if widgetWidth + widgetPosX > vsx then
-		    widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
-		end
-		if widgetRight - widgetWidth < 0 then
-			widgetRight = widgetWidth
-		end
-		if expandLeft == true then
-		    widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
-		else
-			widgetRight = widgetPosX + widgetWidth
-		end
 	end
 end
 
@@ -994,6 +1002,15 @@ end
 
 function RecvPlayerScores(newPlayerScores)
 	playerScores = newPlayerScores or {}
+end
+
+
+function widget:PlayerChanged(playerID)
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	mySpecStatus, fullView = Spring.GetSpectatingState()
+	if mySpecStatus then
+		hideShareIcons = true
+	end
 end
 
 function widget:Initialize()
@@ -2243,7 +2260,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 							if tipY == true then TakeTip(mouseX) end
 						end
 					end
-					if m_share.active == true and dead ~= true then
+					if m_share.active == true and dead ~= true and not hideShareIcons then
 						DrawShareButtons(posY, needm, neede)
 						if tipY == true then ShareTip(mouseX, playerID) end
 					end
@@ -3211,7 +3228,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 								end
 							end
 						end
-						if m_share.active == true and clickedPlayer.dead ~= true then
+						if m_share.active == true and clickedPlayer.dead ~= true and not hideShareIcons then
 							if IsOnRect(x, y, m_share.posX + widgetPosX +1, posY, m_share.posX + widgetPosX +17,posY+16) then       -- share units button
 								if release ~= nil then                                                                                --
 									if release >= now then                                                                            --

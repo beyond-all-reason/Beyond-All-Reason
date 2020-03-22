@@ -20,9 +20,11 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local vsx,vsy = Spring.GetViewGeometry()
+
 local showTestMessages = false
 
-local charSize = 19.5
+local charSize = 19.5 - (3.5 * ((vsx/vsy) - 1.78))
 local charDelay = 0.022
 local maxLines = 6
 local maxLinesScroll = 9
@@ -35,7 +37,6 @@ local backgroundOpacity = 0.18
 --------------------------------------------------------------------------------
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 38
 local fontfileOutlineSize = 7
