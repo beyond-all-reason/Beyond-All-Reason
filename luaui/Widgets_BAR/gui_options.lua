@@ -894,6 +894,10 @@ function widget:DrawScreen()
 
   if (show or showOnceMore) and windowList then
 
+	  if getOptionByID('tweakui') and widgetHandler.tweakMode ~= nil then
+		  options[getOptionByID('tweakui')].value = widgetHandler.tweakMode
+	  end
+
 	  --on window
 	  local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 	  local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -1250,6 +1254,14 @@ function widget:MouseMove(x, y)
 			end
 		end
 	end
+end
+
+function widget:TweakMousePress(x,y,button)
+	--return mouseEvent(x, y, button, false)
+end
+
+function widget:TweakMouseRelease(x,y,button)
+	--return mouseEvent(x, y, button, true)
 end
 
 function widget:MousePress(x, y, button)
@@ -2275,6 +2287,15 @@ function init()
 		},
 
 		-- INTERFACE
+		{id="tweakui", group="ui", name="Toggle tweak UI mode", type="bool", value=false, description='Some UI elements have legacy/additional settings availible\n\n(ESC to cancel)',
+		 onchange = function(i, value)
+			 if widgetHandler.tweakMode then
+				 -- cancel with ESC
+			 else
+			 	Spring.SendCommands("luaui tweakgui")
+			 end
+		 end,
+		},
 		{id="teamcolors", group="ui", basic=true, widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", basic=true, name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
 		 onload = function() end,
@@ -2821,7 +2842,6 @@ function init()
 		fontOption = {}
 		for k, file in ipairs(files) do
 			local name = string.sub(file, 7)
-			Spring.Echo(name)
 			local ext = string.sub(name, string.len(name) - 2)
 			if ext == 'otf' or ext == 'ttf' then
 				name = string.sub(name, 1, string.len(name) - 4)
