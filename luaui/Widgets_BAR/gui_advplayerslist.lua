@@ -7,7 +7,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
+local widgetVersion = 23
 
 function widget:GetInfo()
 	return {
@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "22.0",
+		version   = widgetVersion,
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -47,7 +47,6 @@ end
 --------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
-local version = 1.00
 
 local customScale			= 1.1
 local customScaleStep		= 0.035
@@ -3621,6 +3620,7 @@ function widget:GetConfigData(data)      -- save
 
 		local settings = {
 			--view
+			widgetVersion      = widgetVersion,
 			customScale        = customScale,
 			vsx                = vsx,
 			vsy                = vsy,
@@ -3654,7 +3654,7 @@ end
 
 function widget:SetConfigData(data)      -- load
 	
-	if data.version ~= nil and version == data.version then
+	if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
 		if data.customScale ~= nil then
 			customScale = data.customScale
 		end
