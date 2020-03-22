@@ -273,6 +273,26 @@ if not startScript then
 	]]
 end
 
+
+local function setEngineFont()
+	local relativesize = 0.75
+	--"fonts/FreeSansBold.otf"
+	Spring.SetConfigInt("SmallFontSize", fontfileSize*fontfileScale * relativesize)
+	Spring.SetConfigInt("SmallFontOutlineWidth", fontfileOutlineSize*fontfileScale * relativesize)
+	Spring.SetConfigInt("SmallFontOutlineWeight", fontfileOutlineStrength * 1.5)
+
+	Spring.SetConfigInt("FontSize", fontfileSize*fontfileScale * relativesize)
+	Spring.SetConfigInt("FontOutlineWidth", fontfileOutlineSize*fontfileScale * relativesize)
+	Spring.SetConfigInt("FontOutlineWeight", fontfileOutlineStrength * 1.5)
+
+	Spring.SendCommands("font "..Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"))
+
+	-- set spring engine default font cause it cant thee game archive fonts on launch
+	Spring.SetConfigString("SmallFontFile", "FreeSansBold.otf")
+	Spring.SetConfigString("FontFile", "FreeSansBold.otf")
+end
+
+setEngineFont()
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*centerPosX) - (screenWidth/2)
@@ -285,6 +305,7 @@ function widget:ViewResize()
 		fontfileScale2 = fontfileScale * 1.2
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+		setEngineFont()
 	end
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
@@ -2794,6 +2815,16 @@ function init()
 			 options[getOptionByID('tonemapDefaults')].value = false
 		 end,
 		},
+		{id="debugcolvol", group="dev", name="Draw Collision Volumes", type="bool", value=false, description="",
+		 onchange=function(i, value)
+			 Spring.SendCommands("DebugColVol "..(value and '1' or '0'))
+		 end,
+		},
+		--{id="debugdrawai", group="dev", name="Debug draw AI", type="bool", value=false, description="",	-- seems only for engine AI
+		--  onchange=function(i, value)
+		--	  Spring.SendCommands("DebugDrawAI "..(value and '1' or '0'))
+		--  end,
+		--},
 
 	}
 	-- air absorption does nothing on 32 bit engine version
@@ -3218,10 +3249,7 @@ function widget:Initialize()
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
 
-	--Spring.SetConfigString("FontFile", "fonts/Poppins-Regular.otf")
-	Spring.SetConfigInt("FontSize", 20)
-	Spring.SetConfigInt("FontOutlineWidth", 3)
-	Spring.SetConfigInt("FontOutlineWeight", 7)
+	Spring.SetConfigString("InputTextGeo", "0.26 0.73 0.3 0.42")	-- input chat position posX, posY, ?, ?
 
 	if Spring.GetGameFrame() == 0 then
 		-- set minimum particle amount
