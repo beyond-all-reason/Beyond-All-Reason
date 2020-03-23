@@ -94,8 +94,8 @@ return {
 				customparams = {
 					expl_light_color = "1 0 0",
 					expl_light_life_mult = 1.2,
-					expl_light_mult = 1.2,
-					expl_light_radius_mult = 1.2,
+					expl_light_mult = 1.0,
+					expl_light_radius_mult = 1.0,
 				},
 				damage = {
 					chicken = 0,
