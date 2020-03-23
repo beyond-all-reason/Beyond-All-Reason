@@ -119,6 +119,7 @@ local presets = {
 		bloom = false,
 		bloomdeferred = false,
 		ssao = false,
+		ssao_quality = 1,
 		water = 1,
 		mapedgeextension = false,
 		lighteffects = false,
@@ -139,7 +140,8 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
-		ssao = false,
+		ssao = true,
+		ssao_quality = 1,
 		water = 2,
 		mapedgeextension = false,
 		lighteffects = true,
@@ -160,7 +162,8 @@ local presets = {
 	medium = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = false,
+		ssao = true,
+		ssao_quality = 2,
 		water = 4,
 		mapedgeextension = true,
 		lighteffects = true,
@@ -183,6 +186,7 @@ local presets = {
 		bloomdeferred = true,
 		ssao = true,
 		water = 3,
+		ssao_quality = 3,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups = true,
@@ -203,6 +207,7 @@ local presets = {
 		bloom = true,
 		bloomdeferred = true,
 		ssao = true,
+		ssao_quality = 3,
 		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
@@ -1873,14 +1878,22 @@ function init()
 		},
 
 		{id="ssao", group="gfx", basic=true, widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
+
+		{id="ssao_quality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low', 'medium', 'high'}, value=1, description='',
+		 onchange = function(i, value)
+			 saveOptionValue('SSAO', 'ssao', 'setPreset', {'preset'}, value)
+			 --if options[i].options[options[i].value] == 'default' then
+		 end,
+		 onload=function() loadWidgetData("SSAO", "ssao_quality", {'preset'}) end,
+		},
 		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=4, max=15, step=1, value=8, description='',
 		 onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setStrength', {'strength'}, value) end,
 		 onload=function() loadWidgetData("SSAO", "ssao_strength", {'strength'}) end,
 		},
-		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=6, step=1, value=5, description='',
-		 onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setRadius', {'radius'}, value) end,
-		 onload=function() loadWidgetData("SSAO", "ssao_radius", {'radius'}) end,
-		},
+		--{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=6, step=1, value=5, description='',
+		-- onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setRadius', {'radius'}, value) end,
+		-- onload=function() loadWidgetData("SSAO", "ssao_radius", {'radius'}) end,
+		--},
 
 		{id="outline", group="gfx", basic=true, widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
 		{id="outline_width", group="gfx", basic=true, name=widgetOptionColor.."   width", min=1, max=3, step=1, type="slider", value=1, description='Set the width of the outline\n\nOutline size stays the same regardless of viewing distance',
