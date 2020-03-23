@@ -95,7 +95,7 @@ function scav_Udef_Post(name, uDef)
 	end
 	
 	if uDef.buildcostenergy then
-		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*(math.random(25,100)/100)
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*(math.random(25,100)/100))
 	end
 	
 	if uDef.buildcostmetal then
