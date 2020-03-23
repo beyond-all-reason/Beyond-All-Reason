@@ -48,10 +48,7 @@ local drawRadaricon = true
 local largePrice = true
 local shortcutsInfo = false
 local largeUnitIcons = false
-local vsx,vsy = Spring.GetViewGeometry()
-if (vsx/vsy) - 1.78 > 0.5 then
-	largeUnitIcons = true
-end
+
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
@@ -186,9 +183,6 @@ end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = gl.GetViewSizes()
-	if (vsx/vsy) - 1.78 > 0.5 then
-		largeUnitIcons = true
-	end
 	widgetScale = (1 + (vsx*vsy / 7500000))
 	Config.buildmenu.padding = 3*widgetScale
 	Config.ordermenu.padding = 3*widgetScale
