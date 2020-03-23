@@ -349,8 +349,33 @@ customDefs.corbw = {
 	},
 }
 
+customDefs.corstorm = {
+weapondefs = {
+		core_kbot_rocket = {
+			startvelocity = 64,
+			weaponacceleration = 480,
+			weaponvelocity = 380,
+			damage = {
+				default = 105,
+					subs = 5,
+			},
+		},
+	},
+}
 
-
+customDefs.armrock = {
+weapondefs = {
+		arm_kbot_rocket = {
+			startvelocity = 64,
+			weaponacceleration = 480,
+			weaponvelocity = 380,
+			damage = {
+				default = 105,
+					subs = 5,
+			},
+		},
+	},
+}
 
 
 
