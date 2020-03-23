@@ -247,7 +247,7 @@ return {
 				soundstart = "annigun1",
 				soundtrigger = 1,
 				targetmoveerror = 0.2,
-				thickness = 5,
+				thickness = 4.7,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
