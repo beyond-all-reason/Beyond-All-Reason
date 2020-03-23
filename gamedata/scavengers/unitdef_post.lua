@@ -5,6 +5,10 @@ for name,uDef in pairs(UnitDefs) do
     scavUnit[#scavUnit+1] = name..'_scav'
 end
 
+local rana = math.random(3,1000)
+local ranb = math.random(2,a)
+local ranc = math.random(1,b)
+
 function scav_Udef_Post(name, uDef)
 	if not uDef.customparams then
 		uDef.customparams = {}
@@ -91,43 +95,43 @@ function scav_Udef_Post(name, uDef)
 	end
 	
 	if uDef.buildcostenergy then
-		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.5)
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*(math.random(25,100)/100)
 	end
 	
 	if uDef.buildcostmetal then
-		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
+		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*(math.random(25,100)/100))
 	end
 
 	if uDef.energymake then
-		uDef.energymake = math.ceil(uDef.energymake*0.5)
+		uDef.energymake = math.ceil(uDef.energymake*(math.random(25,100)/100))
 	end
 	
 	if uDef.metalmake then
-		uDef.metalmake = math.ceil(uDef.metalmake*0.5)
+		uDef.metalmake = math.ceil(uDef.metalmake*(math.random(25,100)/100))
 	end
 	
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
+		uDef.maxdamage = math.ceil(uDef.maxdamage*(math.random(25,100)/100))
 	end
 	
 	if uDef.maxvelocity then
-		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
+		uDef.maxvelocity = math.ceil(uDef.maxvelocity*(math.random(80,150)/100))
 	end
 	
 	if uDef.radardistancejam then
-		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25)
+		uDef.radardistancejam = math.ceil(uDef.radardistancejam*(math.random(80,150)/100))
 	end
 	
 	if uDef.maxdamage then
-		uDef.autoheal = math.ceil(uDef.maxdamage/60)
-		uDef.idleautoheal = math.ceil(uDef.maxdamage/60)
+		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
+		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
 	else 
 		uDef.autoheal = 5
 		uDef.idleautoheal = 5
 	end
 	
 	if uDef.turnrate then
-		uDef.turnrate = uDef.turnrate*2.5
+		uDef.turnrate = uDef.turnrate*(math.random(100,500)/100)
 	end
 	
 	if uDef.turninplaceanglelimit then
