@@ -201,6 +201,7 @@ function teamsCheck()
 	globalScore = 0
 	nonFinalGlobalScore = 0
 	scoreTeamCount = 0
+	scorePerTeam = {}
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
 			if not numOfSpawnBeaconsTeams[teamID] then
@@ -222,7 +223,7 @@ function teamsCheck()
 				-- Spring.Echo("Final Score for team "..i..": "..finalScore)
 				
 				nonFinalGlobalScore = nonFinalGlobalScore + finalScore
-				
+				scorePerTeam = finalScore[teamID]
 				if finalScore > bestTeamScore then
 					bestTeamScore = finalScore
 					bestTeam = i
