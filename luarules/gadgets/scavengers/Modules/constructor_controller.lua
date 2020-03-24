@@ -45,7 +45,19 @@ function SpawnConstructor(n)
 				table.insert(SpawnBeacons,scav)
 			end
 		end
-		local pickedBeacon = SpawnBeacons[math_random(1,#SpawnBeacons)]
+		for b = 1,10 do
+			local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
+			local _,_,_,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
+			if pickedBeaconCaptureProgress == 0 then
+				pickedBeacon = pickedBeaconTest
+				break
+			else
+				pickedBeacon = 1234567890
+			end
+		end
+		if pickedBeacon == 1234567890 then
+			return
+		end
 		posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 		local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
 		local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
