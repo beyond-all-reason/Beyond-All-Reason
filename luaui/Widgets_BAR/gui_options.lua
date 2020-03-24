@@ -1872,9 +1872,7 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, value) end,
 		},
 
-		--{id="ssao", group="gfx", basic=true, widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
-
-		{id="ssao", group="gfx", name="SSAO", type="select", options={'off', 'low', 'medium', 'high'}, value=1, description='',
+		{id="ssao", group="gfx", basic=true, name="SSAO", type="select", options={'disabled', 'low', 'medium', 'high'}, value=1, description='',
 		 onchange = function(i, value)
 			 if value == 1 then
 				 widgetHandler:DisableWidget("SSAO")
