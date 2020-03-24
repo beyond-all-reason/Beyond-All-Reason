@@ -118,8 +118,7 @@ local presets = {
 	lowest = {
 		bloom = false,
 		bloomdeferred = false,
-		ssao = false,
-		ssao_quality = 1,
+		ssao = 1,
 		water = 1,
 		mapedgeextension = false,
 		lighteffects = false,
@@ -140,8 +139,7 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
-		ssao = true,
-		ssao_quality = 1,
+		ssao = 2,
 		water = 2,
 		mapedgeextension = false,
 		lighteffects = true,
@@ -162,8 +160,7 @@ local presets = {
 	medium = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = true,
-		ssao_quality = 2,
+		ssao = 3,
 		water = 4,
 		mapedgeextension = true,
 		lighteffects = true,
@@ -184,9 +181,8 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = true,
+		ssao = 4,
 		water = 3,
-		ssao_quality = 3,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups = true,
@@ -206,8 +202,7 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = true,
-		ssao_quality = 3,
+		ssao = 4,
 		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
@@ -1877,14 +1872,27 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, value) end,
 		},
 
-		{id="ssao", group="gfx", basic=true, widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
+		--{id="ssao", group="gfx", basic=true, widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
 
-		{id="ssao_quality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low', 'medium', 'high'}, value=1, description='',
+		{id="ssao", group="gfx", name="SSAO", type="select", options={'off', 'low', 'medium', 'high'}, value=1, description='',
 		 onchange = function(i, value)
-			 saveOptionValue('SSAO', 'ssao', 'setPreset', {'preset'}, value)
-			 --if options[i].options[options[i].value] == 'default' then
+			 if value == 1 then
+				 widgetHandler:DisableWidget("SSAO")
+			 else
+				 if not GetWidgetToggleValue("SSAO") then
+				 	widgetHandler:EnableWidget("SSAO")
+				 end
+				 saveOptionValue('SSAO', 'ssao', 'setPreset', {'preset'}, value-1)
+			 end
 		 end,
-		 onload=function() loadWidgetData("SSAO", "ssao_quality", {'preset'}) end,
+		 onload=function()
+			 if not GetWidgetToggleValue("SSAO") then
+				 options[getOptionByID('ssao')].value = 1
+			 else
+				 loadWidgetData("SSAO", "ssao", {'preset'})
+				 options[getOptionByID('ssao')].value = options[getOptionByID('ssao')].value + 1
+			 end
+		 end,
 		},
 		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=4, max=15, step=1, value=8, description='',
 		 onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setStrength', {'strength'}, value) end,
