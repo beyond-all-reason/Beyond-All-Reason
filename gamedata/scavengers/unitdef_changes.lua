@@ -349,8 +349,9 @@ customDefs.corbw = {
 	},
 }
 
+-- add description please
 customDefs.corstorm = {
-weapondefs = {
+	weapondefs = {
 		core_kbot_rocket = {
 			startvelocity = 64,
 			weaponacceleration = 480,
@@ -363,8 +364,9 @@ weapondefs = {
 	},
 }
 
+-- add description please
 customDefs.armrock = {
-weapondefs = {
+	weapondefs = {
 		arm_kbot_rocket = {
 			startvelocity = 64,
 			weaponacceleration = 480,
@@ -377,7 +379,26 @@ weapondefs = {
 	},
 }
 
-
+-- Rapid Fire AK + Cloak
+customDefs.corak = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+	maxvelocity = 3,
+	weapondefs = {
+		gator_laser = {
+			beamtime = 0.15,
+			beamttl = 0,
+			reloadtime = 0.2,
+			damage = {
+				bombers = 1.6,
+				default = 20,
+				fighters = 1.6,
+				subs = 0.4,
+				vtol = 1.6,
+			},
+		},
+	},
+}
 
 
 
@@ -567,11 +588,6 @@ customDefs.corvrad = {
 
 
 -- Cloaked Combat Units
-
-customDefs.corak = {
-	cloakcost = 3,
-	mincloakdistance = 72,
-}
 
 customDefs.corcrash = {
 	cloakcost = 3,
