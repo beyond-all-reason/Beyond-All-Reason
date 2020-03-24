@@ -25,7 +25,7 @@
 	teleport    = piece 'teleport'
 
 -- State variables
-	isMoving, isAiming, isBuilding, counter = false, false, false, 0
+	isMoving, isAiming, isAimingDgun, isBuilding, counter = false, false, false, false, 0
 
 -- used to restore build aiming
 	buildY, buildX	= 0, 0
@@ -130,23 +130,25 @@ end
 -- augmentation needed to lus.
 -----------------------------------------------------------------------
 local function RestoreAfterDelayLeft()
-	Sleep(2000)
+	Sleep(300)
 	
 	Turn(base, y_axis, 0, math.rad(305))
 	Turn(l_forearm, x_axis, math.rad(-38), math.rad(95))
 	Turn(l_arm, x_axis, 0, math.rad(95))
 
 	isAiming = false
+	isAimingDgun = false
 end
 
 local function RestoreAfterDelayRight()
-	Sleep(2000)
+	Sleep(1500)
 	
 	Turn(base, y_axis, 0, math.rad(305))
 	Turn(r_forearm, x_axis, math.rad(-38), math.rad(95))
 	Turn(r_arm, x_axis, 0, math.rad(95))
 	
 	isAiming = false
+	isAimingDgun = false
 end
 
 function script.AimWeapon(weaponID, heading, pitch)
@@ -173,6 +175,7 @@ function script.AimWeapon(weaponID, heading, pitch)
 		
 	if weaponID == 3 then
 		FixArms(true, false)
+		isAimingDgun = true
 		
 		Turn(base, y_axis, heading, math.rad(300))
 		Turn(l_forearm, x_axis, math.rad(-85), math.rad(390))
@@ -188,7 +191,7 @@ function script.AimWeapon(weaponID, heading, pitch)
 		firedWeapon		= false		
 		-- Spring.Echo("AimWeapon end")
 		return true
-	else
+	elseif not isAimingDgun then
 		FixArms(false, true)
 		
 		Turn(base, y_axis, heading, math.rad(300))
@@ -211,6 +214,10 @@ end
 function script.FireWeapon(weaponID) 	
 	Sleep(500)
 	firedWeapon		= true
+	isAiming = false
+	if weaponID == 3 then
+		isAimingDgun = false
+	end
 end
 
 function script.StartBuilding(heading, pitch)
