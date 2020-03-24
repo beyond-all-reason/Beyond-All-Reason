@@ -38,7 +38,7 @@ return {
 		selfdestructcountdown = 1,
 		--selfdestructas = "ROOST_DEATH",
 		side = "ARM",
-		sightdistance = 450,
+		sightdistance = 510,
 		smoothanim = true,
 		tedclass = "ENERGY",
 		turninplace = true,

@@ -353,6 +353,7 @@ customDefs.corbw = {
 customDefs.corstorm = {
 	weapondefs = {
 		core_kbot_rocket = {
+			soundstart = "rocklit1scav",
 			startvelocity = 64,
 			weaponacceleration = 480,
 			weaponvelocity = 380,
@@ -368,6 +369,7 @@ customDefs.corstorm = {
 customDefs.armrock = {
 	weapondefs = {
 		arm_kbot_rocket = {
+			soundstart = "rocklit1scav",
 			startvelocity = 64,
 			weaponacceleration = 480,
 			weaponvelocity = 380,
@@ -389,6 +391,7 @@ customDefs.corak = {
 			beamtime = 0.15,
 			beamttl = 0,
 			reloadtime = 0.2,
+			soundstart = "lasrlit3scav",
 			damage = {
 				bombers = 1.6,
 				default = 20,
@@ -668,11 +671,56 @@ customDefs.corsktl = {
 customDefs.corllt = {
 	cloakcost = 6,
 	mincloakdistance = 144,
+	weapondefs = {
+		core_lightlaser = {
+			beamtime = 0.08,
+			energypershot = 10,
+			reloadtime = 0.36,
+			soundstart = "lasrfir3scav",
+			damage = {
+				bombers = 3.75,
+				default = 105,
+				fighters = 3.75,
+				subs = 1.5,
+				vtol = 3.75,
+			},
+		},
+	},
 }
 
 customDefs.corhllt = {
  	cloakcost = 9,
  	mincloakdistance = 144,
+ 	weapondefs = {
+		hllt_bottom = {
+			beamtime = 0.07,
+			energypershot = 7.5,
+			reloadtime = 0.24,
+			soundstart = "lasrfir3scav",
+			damage = {
+				bombers = 2.5,
+				default = 70,
+				fighters = 2.5,
+				subs = 1,
+				vtol = 2.5,
+			},
+		},
+		hllt_top = {
+			beamtime = 0.28,
+			energypershot = 30,
+			reloadtime = 1.92,
+			soundstart = "lasrfir4scav",
+			thickness = 3,
+			damage = {
+				bombers = 20,
+				commanders = 400,
+				default = 300,
+				fighters = 20,
+				subs = 12,
+				vtol = 20,
+			},
+		},
+	},
  }
 
 customDefs.corhlt = {
@@ -688,6 +736,22 @@ customDefs.armhlt = {
 customDefs.armllt = {
 	cloakcost = 6,
 	mincloakdistance = 144,
+	weapondefs = {
+		arm_lightlaser = {
+			beamtime = 0.08,
+			energypershot = 10,
+			reloadtime = 0.36,
+			soundstart = "lasrfir3scav",
+			damage = {
+				bombers = 3.75,
+				default = 105,
+				fighters = 3.75,
+				subs = 1.5,
+				vtol = 3.75,
+			},
+		},
+
+	},
 }
 
 customDefs.armnanotc = {
