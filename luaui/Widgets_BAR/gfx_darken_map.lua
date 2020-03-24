@@ -88,7 +88,7 @@ function widget:DrawWorldPreUnit()
         gl.Color(0,0,0,darknessvalue)
         gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
         gl.Billboard()
-        gl.Rect(-500, -500, 500, 500)
+        gl.Rect(-5000, -5000, 5000, 5000)
         gl.PopMatrix()
     end
 end
