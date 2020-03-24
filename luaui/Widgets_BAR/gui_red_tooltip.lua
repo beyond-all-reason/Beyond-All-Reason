@@ -20,11 +20,12 @@ local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-
+local normalSx = 271
+local largeSx = 323
 local Config = {
 	tooltip = {
 		px = -0.5,py = CanvasY-93.5, --default start position
-		sx = 271,sy = 93.5, --background size
+		sx = normalSx,sy = 93.5, --background size
 		
 		fontsize = 11,
 		
@@ -225,6 +226,9 @@ local function createtooltip(r)
 		
 		onupdate=function(self)
 			if (self.px < (Screen.vsx/2)) then --left side of screen
+				if WG['red_buildmenu'] then
+					r.sx = WG['red_buildmenu'].getConfigLargeUnitIcons() and largeSx or normalSx
+				end
 				if ((self.sx-r.margin*2) <= text.getwidth()) then
 					self.sx = (text.getwidth()+r.margin*2) -1
 				else
