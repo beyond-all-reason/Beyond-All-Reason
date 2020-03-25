@@ -110,8 +110,14 @@ local UnitEffects = {
     --T1 ARM AIR
     ["armatlas"] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustl", onActive=true, light=1}},
- 	    {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustr", onActive=true, light=1}},
-	    {class='AirJet',options={color={0.7,0.4,0.1}, width=4, length=15, piece="thrustm", onActive=true, xzVelocity=1.5, light=1}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustr", onActive=true, light=1}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=4, length=15, piece="thrustm", onActive=true, xzVelocity=1.5, light=1}},
+    },
+    ["armfepoch"] = {
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=13, length=27, piece="thrustl1", onActive=true, light=0.62}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=13, length=27, piece="thrustr1", onActive=true, light=0.62}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=17, length=38, piece="thrustl2", onActive=true, light=0.62}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=17, length=38, piece="thrustr2", onActive=true, light=0.62}},
     },
     ["armkam"] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrusta", onActive=true, xzVelocity=1.5, light=1, emitVector = {0,1,0}}},

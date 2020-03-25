@@ -372,6 +372,7 @@ local armorDefs = {
 		"corcrw",
 		"corcut",
 		"corcrwboss",
+		"armfepoch",
 	},
 	shields = {
 		"armgate",
