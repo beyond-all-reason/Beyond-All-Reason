@@ -119,6 +119,12 @@ local UnitEffects = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=17, length=38, piece="thrustl2", onActive=true, light=0.62}},
         {class='AirJet',options={color={0.7,0.4,0.1}, width=17, length=38, piece="thrustr2", onActive=true, light=0.62}},
     },
+    ["corfblackhy"] = {
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=13, length=27, piece="thrustl1", onActive=true, light=0.62}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=13, length=27, piece="thrustr1", onActive=true, light=0.62}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=17, length=38, piece="thrustl2", onActive=true, light=0.62}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=17, length=38, piece="thrustr2", onActive=true, light=0.62}},
+    },
     ["armkam"] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrusta", onActive=true, xzVelocity=1.5, light=1, emitVector = {0,1,0}}},
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrustb", onActive=true, xzVelocity=1.5, light=1, emitVector = {0,1,0}}},
