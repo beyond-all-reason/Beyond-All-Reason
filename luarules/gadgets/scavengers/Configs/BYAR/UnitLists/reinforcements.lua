@@ -134,7 +134,7 @@ T4ReinforcementLandUnits = {
 "armstumpboss",
 "armvaderboss",
 "armfepoch",
-"corfblacky",
+"corfblackhy",
 }
 
 T1ReinforcementAirUnits = {
@@ -183,8 +183,8 @@ T4ReinforcementAirUnits = {
 "corcrwboss",
 "armfepoch",
 "armfepoch",
-"corfblacky",
-"corfblacky",
+"corfblackhy",
+"corfblackhy",
 }
 
 T1ReinforcementSeaUnits = {
