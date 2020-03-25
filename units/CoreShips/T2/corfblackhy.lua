@@ -49,6 +49,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 129,
 		--waterline = 0,
+		upright = true,
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
