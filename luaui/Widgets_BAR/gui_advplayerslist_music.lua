@@ -46,8 +46,28 @@ local buttons = {}
 local previousTrack = ''
 local curTrack	= "no name"
 
-local peaceTracks = VFS.DirList('sounds/music/peace', '*.ogg')
-local warTracks = VFS.DirList('sounds/music/war', '*.ogg')
+local musicDir = 'sounds/music/'
+local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
+local warTracks = VFS.DirList(musicDir..'war', '*.ogg')
+
+local tracksConfig = {}
+for i,v in pairs(peaceTracks) do
+	if tracksConfig[v] == nil then
+		tracksConfig[v] = {true, 'peace'}
+	end
+	if v[1] == false then
+		peaceTracks[i] = nil
+	end
+end
+for i,v in pairs(warTracks) do
+	if tracksConfig[v] == nil then
+		tracksConfig[v] = {true, 'war'}
+	end
+	if v[1] == false then
+		warTracks[i] = nil
+	end
+end
+
 
 local tracks = peaceTracks
 
@@ -138,17 +158,57 @@ function updateMusicVolume()	-- handles fadings
 	Spring.SetConfigInt("snd_volmusic", (math.random()*0.1) + (maxMusicVolume * fadeMult))	-- added random value so its unique and forces engine to update (else it wont actually do)
 end
 
+function applyTracksConfig()
+	local isPeace = (tracks == peaceTracks)
+	peaceTracks = {}
+	warTracks = {}
+	for track, params in pairs(tracksConfig) do
+		if params[1] then
+			if params[2] == 'peace' then
+				peaceTracks[#peaceTracks+1] = track
+			else
+				warTracks[#warTracks+1] = track
+			end
+		end
+	end
+	tracks = (isPeace and peaceTracks or warTracks)
+end
+
+function toggleTrack(track, value)
+	local isPeace = (tracks == peaceTracks)
+	local isPeaceTrack = tracksConfig[track][2] == 'peace'
+	tracksConfig[track][1] = value
+	if value then
+		if isPeaceTrack then
+			if not getKeyByValue(peaceTracks, track) then
+				peaceTracks[#peaceTracks+1] = track
+			end
+		else
+			if not getKeyByValue(warTracks, track) then
+				warTracks[#warTracks+1] = track
+			end
+		end
+	else
+		if isPeaceTrack then
+			peaceTracks[getKeyByValue(peaceTracks, track)] = nil
+		else
+			warTracks[getKeyByValue(warTracks, track)] = nil
+		end
+	end
+	applyTracksConfig()
+end
+
 function widget:Initialize()
 	updateMusicVolume()
-	
-	if #tracks == 0 then 
+
+	if #tracks == 0 then
 		Spring.Echo("[Music Player] No music was found, Shutting Down")
 		widgetHandler:RemoveWidget()
 		return
 	end
 	
 	updatePosition()
-	
+
 	WG['music'] = {}
 	WG['music'].GetPosition = function()
 		if shutdown then
@@ -162,6 +222,33 @@ function widget:Initialize()
 	end
 	WG['music'].SetMusicVolume = function(value)
 		maxMusicVolume = value
+	end
+	WG['music'].GetMusicList = function(value)
+		return tracksConfig
+	end
+	for track, params in pairs(tracksConfig) do
+		-- get track
+		WG['music']['getTrack'..track] = function()
+			return params[1]
+		end
+		-- set track
+		WG['music']['setTrack'..track] = function(value)
+			toggleTrack(track, value)
+		end
+	end
+	WG['music'].getMusicList = function()
+		local musicList = {}
+		for track, params in pairs(tracksConfig) do
+			if params[2] == 'peace' then
+				musicList[#musicList+1] = {track, params[1], params[2]}
+			end
+		end
+		for track, params in pairs(tracksConfig) do
+			if params[2] == 'war' then
+				musicList[#musicList+1] = {track, params[1], params[2]}
+			end
+		end
+		return musicList
 	end
 end
 
@@ -316,7 +403,7 @@ local function createList()
 		local text = ''
 		for i=charactersInPath, #trackname do
 			local c = string.sub(trackname, i,i)
-				local width = font:GetTextWidth(text..c)*textsize
+			local width = font:GetTextWidth(text..c)*textsize
 			if width > maxTextWidth then
 				break
 			else
@@ -483,6 +570,16 @@ function widget:UnitDamaged(_, _, _, damage)
 	end
 end
 
+
+function getKeyByValue(t, id)
+	for k, v in pairs(t) do
+		if v == id then
+			return k
+		end
+	end
+	return false
+end
+
 function widget:GameFrame(n)
     if n%5 == 4 then
 		updateMusicVolume()
@@ -563,16 +660,18 @@ function PlayNewTrack()
 		end
 	end
 	local newTrack = previousTrack
-	repeat
-		newTrack = tracks[math.random(1, #tracks)]
-	until newTrack ~= previousTrack
+	if #tracks > 1 then
+		repeat
+			newTrack = tracks[math.random(1, #tracks)]
+		until newTrack ~= previousTrack
+	end
 	previousTrack = newTrack
 	curTrack = newTrack
 	Spring.PlaySoundStream(newTrack)
     Spring.SetSoundStreamVolume(0)
 	playedTime, totalTime = Spring.GetSoundStreamTime()
 	targetTime = totalTime
-	if playing == false then
+	if not playing then
 		Spring.PauseSoundStream()
 	end	
 	createList()
@@ -611,7 +710,7 @@ function widget:Update(dt)
 		return
 	end
 
-	if (not firstTime) then
+	if not firstTime then
 		PlayNewTrack()
 		firstTime = true -- pop this cherry
 	end
@@ -620,7 +719,7 @@ function widget:Update(dt)
 		PlayNewTrack()
 	end
 
-	if (pauseWhenPaused and Spring.GetGameSeconds()>=0) then
+	if pauseWhenPaused and Spring.GetGameSeconds() >= 0 then
     local _, _, paused = Spring.GetGameSpeed()
 		if (paused ~= wasPaused) then
 			Spring.PauseSoundStream()
@@ -630,7 +729,7 @@ function widget:Update(dt)
 end
 
 function updatePosition(force)
-	if (WG['advplayerlist_api'] ~= nil) then
+	if WG['advplayerlist_api'] ~= nil then
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 
@@ -652,7 +751,7 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
+	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -670,7 +769,7 @@ function widget:DrawScreen()
 	if chobbyInterface then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()
-	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if WG['topbar'] and WG['topbar'].showingQuit() then
 		mouseover = false
 	else
 		if isInBox(mx, my, {left, bottom, right, top}) then
@@ -736,6 +835,7 @@ function widget:GetConfigData(data)
   savedTable.curTrack = curTrack
   savedTable.playing = playing
   savedTable.maxMusicVolume = maxMusicVolume
+  savedTable.tracksConfig = tracksConfig
   return savedTable
 end
 
@@ -745,6 +845,16 @@ function widget:SetConfigData(data)
 	end
 	if data.maxMusicVolume ~= nil then
 		maxMusicVolume = data.maxMusicVolume
+	end
+	if data.tracksConfig ~= nil then
+		tracksConfig = data.tracksConfig
+		-- cleanup old removed tracks
+		for track,params in pairs(tracksConfig) do
+			if not peaceTracks[getKeyByValue(peaceTracks, track)] and not warTracks[getKeyByValue(warTracks, track)] then
+				tracksConfig[track] = nil
+			end
+		end
+		applyTracksConfig()
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.curTrack ~= nil then

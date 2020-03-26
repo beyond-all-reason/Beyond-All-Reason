@@ -2180,7 +2180,15 @@ function init()
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SetConfigInt("snd_volunitreply", value) end,
 		},
-		{id="sndvolmusic", group="snd", basic=true, name=widgetOptionColor.."   music", type="slider", min=0, max=50, step=1, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20),
+		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
+		 onload = function() end,
+		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
+		},
+		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons',
+		--		 onload = function() end,
+		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
+		--		},
+		{id="sndvolmusic", group="snd", basic=true, name="Music volume", type="slider", min=0, max=50, step=1, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20),
 		 onload = function() end,
 		 onchange = function(i, value)
 			 if WG['music'] and WG['music'].SetMusicVolume then
@@ -2190,14 +2198,6 @@ function init()
 			 end
 		 end,
 		},
-		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
-		 onload = function() end,
-		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
-		},
-		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons',
-		--		 onload = function() end,
-		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
-		--		},
 
 		{id="scav_messages", group="notif", basic=true, name="Scavenger written notifications", type="bool", value=tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1, description="",
 		 onchange = function(i, value)
@@ -3011,7 +3011,7 @@ function init()
 					for k, v in pairs(soundList) do
 						count = count + 1
 						newOptions[count] = {id="notifications_notif_"..v[1], group="notif", basic=true, name=widgetOptionColor.."   "..v[1], type="bool", value=v[2], description=v[3],
-											 onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setSound'..v[1], {'soundList'}, value) end,
+							onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setSound'..v[1], {'soundList'}, value) end,
 						}
 					end
 				end
@@ -3022,6 +3022,35 @@ function init()
 		options[getOptionByID('notifications')] = nil
 		options[getOptionByID('notifications_volume')] = nil
 		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
+	end
+
+	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
+		local tracksConfig
+		if WG['music'] ~= nil then
+			tracksConfig = WG['music'].getMusicList()
+		elseif widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
+			tracksConfig = widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig
+		end
+		if type(tracksConfig) == 'table' then
+			local newOptions = {}
+			local count = 0
+			for i, option in pairs(options) do
+				count = count + 1
+				newOptions[count] = option
+				if option.id == 'sndvolmusic' then
+					for k, v in pairs(tracksConfig) do
+						count = count + 1
+						local trackName = string.gsub(v[1], "sounds/music/peace/", "")
+						trackName = string.gsub(trackName, "sounds/music/war/", "")
+						trackName = string.gsub(trackName, ".ogg", "")
+						newOptions[count] = {id="music_track"..v[1], group="snd", basic=true, name=widgetOptionColor.."   "..trackName, type="bool", value=v[2], description=v[3]..'     '..trackName,
+							onchange = function(i, value) saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack'..v[1], {'tracksConfig'}, value) end,
+						}
+					end
+				end
+			end
+			options = newOptions
+		end
 	end
 
 	if not widgetHandler.knownWidgets["Player-TV"] then
