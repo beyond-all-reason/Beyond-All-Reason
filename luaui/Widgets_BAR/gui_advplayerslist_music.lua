@@ -223,7 +223,7 @@ function widget:Initialize()
 	WG['music'].SetMusicVolume = function(value)
 		maxMusicVolume = value
 	end
-	WG['music'].GetMusicList = function(value)
+	WG['music'].getTracksConfig = function(value)
 		return tracksConfig
 	end
 	for track, params in pairs(tracksConfig) do
@@ -235,27 +235,6 @@ function widget:Initialize()
 		WG['music']['setTrack'..track] = function(value)
 			toggleTrack(track, value)
 		end
-	end
-	WG['music'].getMusicList = function()
-
-		local tracksConfigSorted = {}
-		for n in pairs(tracksConfig) do table.insert(tracksConfigSorted, n) end
-		table.sort(tracksConfigSorted)
-
-		local musicList = {}
-		for i, track in ipairs(tracksConfigSorted) do
-			local params = tracksConfig[track]
-			if params[2] == 'peace' then
-				musicList[#musicList+1] = {track, params[1], params[2]}
-			end
-		end
-		for i, track in ipairs(tracksConfigSorted) do
-			local params = tracksConfig[track]
-			if params[2] == 'war' then
-				musicList[#musicList+1] = {track, params[1], params[2]}
-			end
-		end
-		return musicList
 	end
 end
 

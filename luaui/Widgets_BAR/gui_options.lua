@@ -1667,9 +1667,9 @@ function init()
 	optionGroups = {
 		{id='gfx', name='Graphics'},
 		{id='ui', name='Interface'},
-		{id='control', name='Control'},
 		{id='game', name='Game'},
-		{id='snd', name='Sound'},
+		{id='control', name='Control'},
+		{id='snd', name='Audio'},
 		{id='notif', name='Notifications'},
 		{id='dev', name='Dev'},
 	}
@@ -3025,30 +3025,30 @@ function init()
 	end
 
 	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
-		local musicList = {}
+		local tracksConfig = {}
 		if WG['music'] ~= nil then
-			musicList = WG['music'].getMusicList()
+			tracksConfig = WG['music'].getTracksConfig()
 		elseif widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
-			local tracksConfig = widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig
+			tracksConfig = widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig
+		end
+		local tracksConfigSorted = {}
+		for n in pairs(tracksConfig) do table.insert(tracksConfigSorted, n) end
+		table.sort(tracksConfigSorted)
 
-			local tracksConfigSorted = {}
-			for n in pairs(tracksConfig) do table.insert(tracksConfigSorted, n) end
-			table.sort(tracksConfigSorted)
-
-			local musicList = {}
-			for i, track in ipairs(tracksConfigSorted) do
-				local params = tracksConfig[track]
-				if params[2] == 'peace' then
-					musicList[#musicList+1] = {track, params[1], params[2]}
-				end
-			end
-			for i, track in ipairs(tracksConfigSorted) do
-				local params = tracksConfig[track]
-				if params[2] == 'war' then
-					musicList[#musicList+1] = {track, params[1], params[2]}
-				end
+		local musicList = {}
+		for i, track in ipairs(tracksConfigSorted) do
+			local params = tracksConfig[track]
+			if params[2] == 'peace' then
+				musicList[#musicList+1] = {track, params[1], params[2]}
 			end
 		end
+		for i, track in ipairs(tracksConfigSorted) do
+			local params = tracksConfig[track]
+			if params[2] == 'war' then
+				musicList[#musicList+1] = {track, params[1], params[2]}
+			end
+		end
+
 		local newOptions = {}
 		local count = 0
 		for i, option in pairs(options) do
@@ -3060,7 +3060,7 @@ function init()
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
-					newOptions[count] = {id="music_track"..v[1], group="snd", basic=true, name=widgetOptionColor.."   "..trackName, type="bool", value=v[2], description=v[3]..'     '..trackName,
+					newOptions[count] = {id="music_track"..v[1], group="snd", basic=true, name=widgetOptionColor.."   "..trackName, type="bool", value=v[2], description=v[3]..'\n\n'..trackName,
 						onchange = function(i, value) saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack'..v[1], {'tracksConfig'}, value) end,
 					}
 				end
