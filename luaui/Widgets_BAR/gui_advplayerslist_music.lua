@@ -237,13 +237,20 @@ function widget:Initialize()
 		end
 	end
 	WG['music'].getMusicList = function()
+
+		local tracksConfigSorted = {}
+		for n in pairs(tracksConfig) do table.insert(tracksConfigSorted, n) end
+		table.sort(tracksConfigSorted)
+
 		local musicList = {}
-		for track, params in pairs(tracksConfig) do
+		for i, track in ipairs(tracksConfigSorted) do
+			local params = tracksConfig[track]
 			if params[2] == 'peace' then
 				musicList[#musicList+1] = {track, params[1], params[2]}
 			end
 		end
-		for track, params in pairs(tracksConfig) do
+		for i, track in ipairs(tracksConfigSorted) do
+			local params = tracksConfig[track]
 			if params[2] == 'war' then
 				musicList[#musicList+1] = {track, params[1], params[2]}
 			end
