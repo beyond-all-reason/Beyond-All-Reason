@@ -1,0 +1,40 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, dbl, dtr, dbr, dtl, emit, blinka, blinkb, blinkc, blinkd;
+
+Lights()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from blinka;
+		sleep 90;
+		emit-sfx 1024 + 0 from blinkb;
+		sleep 90;
+		emit-sfx 1024 + 0 from blinkc;
+		sleep 90;
+		emit-sfx 1024 + 0 from blinkd;
+		sleep 3000;
+	}
+	sleep 2000;
+	start-script Lights();
+}
+
+Beacon()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from emit;
+		sleep 5000;
+	}
+	sleep 2000;
+	start-script Beacon();
+}
+
+Create()
+{
+	start-script Lights();
+	start-script Beacon();
+}
