@@ -41,8 +41,8 @@ local sendPacketEvery				= 0.5
 local numMousePos					= 2 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
-local showPlayerName       			= false
-local showCursorDot                 = false
+local showPlayerName       			= true
+local showCursorDot                 = true
 local drawNamesScaling				= true
 local drawNamesFade					= true
 
