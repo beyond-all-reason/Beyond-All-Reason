@@ -790,10 +790,10 @@ end
 
 local sec = 0
 local lastUpdate = 0
-local minGroundDetail = 3
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	minGroundDetail = 2
-end
+--local minGroundDetail = 3
+--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+--	minGroundDetail = 2
+--end
 function widget:Update(dt)
 	if not initialized then return end
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
@@ -805,32 +805,37 @@ function widget:Update(dt)
 	end
 	sec = sec + dt
 
+
+	Spring.SendCommands("mapmeshdrawer 2")
+	if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < 100 then
+		Spring.SendCommands("GroundDetail "..100)
+	end
 	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
 	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
 	-- NOTE: doing this on initialize() wont work
-	if not mapmeshdrawerChecked then
-		local OS = ''
-		if Platform.osFamily then
-			OS = Platform.osFamily .. (Platform.osVersion and ' '..Platform.osVersion or '')
-		end
-		if string.find(string.lower(OS), 'mac') then		-- MAC OS aka Masterbel crashes With ROAM 0
-			Spring.SetConfigInt("ROAM", 1)
-			Spring.SendCommands("mapmeshdrawer 2")
-		elseif tonumber(Spring.GetConfigInt("skipforceroam",0) or 0) ~= 1 then		-- added this option because maybe some people crash because of roam 0?
-			if tonumber(Spring.GetConfigInt("ROAM",1) or 1) ~= 0 then
-				Spring.SetConfigInt("ROAM", 0)
-			end
-			Spring.SendCommands("mapmeshdrawer 1")
-			-- ground detail
-			if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
-				Spring.SendCommands("GroundDetail "..minGroundDetail)
-			end
-			if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) > 3 then
-				Spring.SendCommands("GroundDetail 3")
-			end
-		end
-		mapmeshdrawerChecked = true
-	end
+	--if not mapmeshdrawerChecked then
+	--	local OS = ''
+	--	if Platform.osFamily then
+	--		OS = Platform.osFamily .. (Platform.osVersion and ' '..Platform.osVersion or '')
+	--	end
+	--	if string.find(string.lower(OS), 'mac') then		-- MAC OS aka Masterbel crashes With ROAM 0
+	--		Spring.SetConfigInt("ROAM", 1)
+	--		Spring.SendCommands("mapmeshdrawer 2")
+	--	elseif tonumber(Spring.GetConfigInt("skipforceroam",0) or 0) ~= 1 then		-- added this option because maybe some people crash because of roam 0?
+	--		if tonumber(Spring.GetConfigInt("ROAM",1) or 1) ~= 0 then
+	--			Spring.SetConfigInt("ROAM", 0)
+	--		end
+	--		Spring.SendCommands("mapmeshdrawer 1")
+	--		-- ground detail
+	--		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
+	--			Spring.SendCommands("GroundDetail "..minGroundDetail)
+	--		end
+	--		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) > 3 then
+	--			Spring.SendCommands("GroundDetail 3")
+	--		end
+	--	end
+	--	mapmeshdrawerChecked = true
+	--end
 
 
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
@@ -1963,13 +1968,13 @@ function init()
 			 Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		 end,
 		},
-		--{id="grounddetail", group="gfx", basic=true, name="Ground detail", type="slider", min=75, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is',
-		-- onload = function() end,
-		-- onchange = function(i, value)
-		--	 Spring.SetConfigInt("GroundDetail", value)
-		--	 Spring.SendCommands("GroundDetail "..value)
-		-- end,
-		--},
+		{id="grounddetail", group="gfx", basic=true, name="Ground detail", type="slider", min=100, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",100) or 100), description='Set how detailed the map mesh/model is',
+		 onload = function() end,
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("GroundDetail", value)
+			 Spring.SendCommands("GroundDetail "..value)
+		 end,
+		},
 
 		{id="disticon", group="gfx", basic=true, name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance',
 		 onload = function() end,
