@@ -71,8 +71,6 @@ end
 
 local tracks = peaceTracks
 
-local charactersInPath = 25
-
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local firstTime = false
@@ -386,8 +384,10 @@ local function createList()
 		-- track name
 		glColor(0.45,0.45,0.45,1)
 		trackname = string.gsub(curTrack, ".ogg", "")
+		trackname = string.gsub(trackname, musicDir.."peace/", "")
+		trackname = string.gsub(trackname, musicDir.."war/", "")
 		local text = ''
-		for i=charactersInPath, #trackname do
+		for i=1, #trackname do
 			local c = string.sub(trackname, i,i)
 			local width = font:GetTextWidth(text..c)*textsize
 			if width > maxTextWidth then
@@ -833,9 +833,8 @@ function widget:SetConfigData(data)
 		maxMusicVolume = data.maxMusicVolume
 	end
 	if data.tracksConfig ~= nil then
-		tracksConfig = data.tracksConfig
 		-- cleanup old removed tracks
-		for track,params in pairs(tracksConfig) do
+		for track,params in pairs(data.tracksConfig) do
 			if not peaceTracks[getKeyByValue(peaceTracks, track)] and not warTracks[getKeyByValue(warTracks, track)] then
 				tracksConfig[track] = nil
 			end

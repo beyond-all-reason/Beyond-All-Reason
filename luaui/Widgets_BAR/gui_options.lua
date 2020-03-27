@@ -1872,7 +1872,7 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, value) end,
 		},
 
-		{id="ssao", group="gfx", basic=true, name="SSAO", type="select", options={'disabled', 'low', 'medium', 'high'}, value=1, description='',
+		{id="ssao", group="gfx", basic=true, name="SSAO", type="select", options={'disabled', 'low', 'medium', 'high'}, value=1, description='SSAO quality level\nlow quality looks more grainy (when closeup and moving the camera orunits)',
 		 onchange = function(i, value)
 			 if value == 1 then
 				 widgetHandler:DisableWidget("SSAO")
