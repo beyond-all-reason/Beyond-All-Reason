@@ -3026,29 +3026,30 @@ function init()
 
 	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
 		local tracksConfig = {}
-		if WG['music'] ~= nil then
+		if WG['music'] ~= nil and WG['music'].getTracksConfig ~= nil then
 			tracksConfig = WG['music'].getTracksConfig()
 		elseif widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
 			tracksConfig = widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig
 		end
-		local tracksConfigSorted = {}
-		for n in pairs(tracksConfig) do table.insert(tracksConfigSorted, n) end
-		table.sort(tracksConfigSorted)
-
 		local musicList = {}
-		for i, track in ipairs(tracksConfigSorted) do
-			local params = tracksConfig[track]
-			if params[2] == 'peace' then
-				musicList[#musicList+1] = {track, params[1], params[2]}
-			end
-		end
-		for i, track in ipairs(tracksConfigSorted) do
-			local params = tracksConfig[track]
-			if params[2] == 'war' then
-				musicList[#musicList+1] = {track, params[1], params[2]}
-			end
-		end
+		if type(tracksConfig) == 'table' then
+			local tracksConfigSorted = {}
+			for n in pairs(tracksConfig) do table.insert(tracksConfigSorted, n) end
+			table.sort(tracksConfigSorted)
 
+			for i, track in ipairs(tracksConfigSorted) do
+				local params = tracksConfig[track]
+				if params[2] == 'peace' then
+					musicList[#musicList+1] = {track, params[1], params[2]}
+				end
+			end
+			for i, track in ipairs(tracksConfigSorted) do
+				local params = tracksConfig[track]
+				if params[2] == 'war' then
+					musicList[#musicList+1] = {track, params[1], params[2]}
+				end
+			end
+		end
 		local newOptions = {}
 		local count = 0
 		for i, option in pairs(options) do
@@ -3061,7 +3062,7 @@ function init()
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
 					newOptions[count] = {id="music_track"..v[1], group="snd", basic=true, name=widgetOptionColor.."   "..trackName, type="bool", value=v[2], description=v[3]..'\n\n'..trackName,
-						onchange = function(i, value) saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack'..v[1], {'tracksConfig'}, value) end,
+										 onchange = function(i, value) saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack'..v[1], {'tracksConfig'}, value) end,
 					}
 				end
 			end
