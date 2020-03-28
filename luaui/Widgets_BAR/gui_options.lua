@@ -805,7 +805,7 @@ function widget:Update(dt)
 	end
 	sec = sec + dt
 
-
+	Spring.SetConfigInt("ROAM", 1)
 	Spring.SendCommands("mapmeshdrawer 2")
 	if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < 100 then
 		Spring.SendCommands("GroundDetail "..100)

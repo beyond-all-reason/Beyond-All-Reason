@@ -19,11 +19,11 @@ function widget:GetInfo()
     date      = "Apr 24, 2009",
     license   = "GNU GPL, v2 or later",
     layer     = -8,
-    enabled   = false
+    enabled   = true
   }
 end
 
-local useTeamcolor = false
+local useTeamcolor = true
 local highlightAlpha = 0.1
 local useHighlightShader = true
 local maxShaderUnits = 150
