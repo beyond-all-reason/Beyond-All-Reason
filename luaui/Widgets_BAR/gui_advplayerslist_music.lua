@@ -215,6 +215,9 @@ function widget:Initialize()
 		updatePosition(force)
 		return {top,left,bottom,right,widgetScale}
 	end
+	WG['music'].playTrack = function(track)
+		PlayNewTrack(track)
+	end
 	WG['music'].GetMusicVolume = function()
 		return maxMusicVolume
 	end
@@ -609,8 +612,10 @@ function widget:GameFrame(n)
    end
 end
 
+
 local averageSkipTime = 16
-function PlayNewTrack()
+function PlayNewTrack(track)
+
 	fadeOut = false
 	if prevStreamStartTime then
 		local timeDiff = os.clock()-prevStreamStartTime
@@ -645,11 +650,17 @@ function PlayNewTrack()
 			--Spring.Echo("Current tracklist is : War Tracks")
 		end
 	end
-	local newTrack = previousTrack
-	if #tracks > 1 then
-		repeat
-			newTrack = tracks[math.random(1, #tracks)]
-		until newTrack ~= previousTrack
+
+	local newTrack
+	if track then
+		newTrack = track
+	else
+		newTrack = previousTrack
+		if #tracks > 1 then
+			repeat
+				newTrack = tracks[math.random(1, #tracks)]
+			until newTrack ~= previousTrack
+		end
 	end
 	previousTrack = newTrack
 	curTrack = newTrack

@@ -1453,6 +1453,7 @@ function mouseEvent(x, y, button, release)
 						end
 
 						for i, o in pairs(optionButtons) do
+
 							if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 								options[i].value = not options[i].value
 								applyOptionValue(i)
@@ -1466,6 +1467,9 @@ function mouseEvent(x, y, button, release)
 							elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 
 							elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+
+							elseif options[i].onclick ~= nil and IsOnRect(cx, cy, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
+								options[i].onclick(i)
 							end
 						end
 					end
@@ -3017,6 +3021,11 @@ function init()
 						count = count + 1
 						newOptions[count] = {id="notifications_notif_"..v[1], group="notif", basic=true, name=widgetOptionColor.."   "..v[1], type="bool", value=v[2], description=v[3],
 							onchange = function(i, value) saveOptionValue('Notifications', 'notifications', 'setSound'..v[1], {'soundList'}, value) end,
+							--onclick = function()
+							--	if WG['notifications'] ~= nil and WG['notifications'].playNotif then
+							--		WG['notifications'].playNotif(v[1])
+							--	end
+							--end,
 						}
 					end
 				end
@@ -3067,7 +3076,12 @@ function init()
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
 					newOptions[count] = {id="music_track"..v[1], group="snd", basic=true, name=widgetOptionColor.."   "..trackName, type="bool", value=v[2], description=v[3]..'\n\n'..trackName,
-										 onchange = function(i, value) saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack'..v[1], {'tracksConfig'}, value) end,
+						onchange = function(i, value) saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack'..v[1], {'tracksConfig'}, value) end,
+						onclick = function()
+							if WG['music'] ~= nil and WG['music'].playTrack then
+								WG['music'].playTrack(v[1])
+							end
+						end,
 					}
 				end
 			end
