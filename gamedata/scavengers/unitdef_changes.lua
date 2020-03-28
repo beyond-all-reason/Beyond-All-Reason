@@ -140,7 +140,7 @@ customDefs.armestor = {
 	--buildcostenergy = 3000,
 	featuredefs = {
 		dead = {
-			category = "loot",
+			category = "corpses",
 			collisionvolumescales = "26 26 26",
 			description = "3000 Energy Lootbox",
 			damage = 3000,
@@ -154,7 +154,7 @@ customDefs.armestor = {
 			},
 		},
 		heap = {
-			category = "loot",
+			category = "corpses",
 			collisionvolumescales = "26 26 26",
 			description = "750 Metal Lootbox Damaged",
 			damage = 1500,
@@ -349,7 +349,7 @@ customDefs.corbw = {
 	},
 }
 
--- add description please
+-- Faster rockets with Accel - Lower DMG - higher pitched sound
 customDefs.corstorm = {
 	weapondefs = {
 		core_kbot_rocket = {
@@ -365,7 +365,7 @@ customDefs.corstorm = {
 	},
 }
 
--- add description please
+-- Faster rockets with Accel - Lower DMG - higher pitched sound
 customDefs.armrock = {
 	weapondefs = {
 		arm_kbot_rocket = {
@@ -388,7 +388,7 @@ customDefs.corak = {
 	maxvelocity = 3,
 	weapondefs = {
 		gator_laser = {
-			beamtime = 0.15,
+			beamtime = 0.13,
 			beamttl = 0,
 			reloadtime = 0.2,
 			soundstart = "lasrlit3scav",
@@ -402,15 +402,6 @@ customDefs.corak = {
 		},
 	},
 }
-
-
-
-
-
-
-
-
-
 
 -- Cloaked Radar
 
@@ -668,6 +659,7 @@ customDefs.corsktl = {
 
 -- Cloaked Defenses
 
+-- Faster LLT - unique sound - shorter beamtime
 customDefs.corllt = {
 	cloakcost = 6,
 	mincloakdistance = 144,
@@ -688,6 +680,7 @@ customDefs.corllt = {
 	},
 }
 
+-- Custom HLLT - low laser = faster - high laser is slower - unique sounds
 customDefs.corhllt = {
  	cloakcost = 9,
  	mincloakdistance = 144,
@@ -733,6 +726,7 @@ customDefs.armhlt = {
 	mincloakdistance = 288,
 }
 
+-- Faster LLT - unique sound - shorter beamtime
 customDefs.armllt = {
 	cloakcost = 6,
 	mincloakdistance = 144,
@@ -754,14 +748,17 @@ customDefs.armllt = {
 	},
 }
 
+--Custom Nanoturrets - 25% more range
 customDefs.armnanotc = {
 	cloakcost = 6,
 	mincloakdistance = 72,
+	builddistance = 500,
 }
 
 customDefs.cornanotc = {
 	cloakcost = 6,
 	mincloakdistance = 72,
+	builddistance = 500,
 }
 
 customDefs.corsilo = {

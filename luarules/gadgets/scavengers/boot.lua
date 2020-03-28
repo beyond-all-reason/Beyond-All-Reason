@@ -546,6 +546,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			Spring.SetUnitMaxHealth(unitID, 100000)
 			Spring.SetUnitHealth(unitID, 100000)
 		end
+		-- if UnitName == "lootboxgold" then //perhaps add this later when lootboxes are fully implemented
+		-- 	Spring.SetUnitNeutral(unitID, true)
+		-- end
+
 		-- CMD.CLOAK = 37382
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will

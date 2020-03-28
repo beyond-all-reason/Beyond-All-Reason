@@ -3,6 +3,7 @@ NoSelfdList = {
 "armclaw",
 "corfmd",
 "coramd",
+"lootboxgold",
 
 
 -- These operate through other modules
