@@ -1040,7 +1040,11 @@ function widget:DrawScreen()
 				if not showSelectOptions then
 					for i, o in pairs(optionHover) do
 						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
-							glColor(1,1,1,0.055)
+							if options[i].onclick ~= nil then
+								glColor(0.5,1,0.2,0.1)
+							else
+								glColor(1,1,1,0.055)
+							end
 							RectRound(o[1]-4, o[2], o[3]+4, o[4], 2)
 							font:Begin()
 							if options[i].description ~= nil then
