@@ -235,10 +235,10 @@ local UnitEffects = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=22, piece="thrust", onActive=true, xzVelocity=1.2}},
     },
     ["corcrw"] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.4}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=20, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.4}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=18, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.4}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=9, length=18, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=11, length=28, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=11, length=28, piece="thrustrla", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfra", emitVector= {0,1,0}, onActive=true, light=0.4}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=10, length=25, piece="thrustfla", emitVector= {0,1,0}, onActive=true, light=0.4}},
     },
     ["corcrwboss"] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=18, length=36, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=0.33}},

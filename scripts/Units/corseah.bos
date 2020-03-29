@@ -8,7 +8,6 @@ piece  base, link, thrustrr, thrustrl, thrustfr, thrustfl,
 
 static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
-
 pickupscr()
 {
 	sleep 11;
@@ -90,6 +89,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide thrustrra;
+	hide thrustrla;
+	hide thrustfra;
+	hide thrustfla;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
@@ -145,11 +148,23 @@ StopMoving()
 	Static_Var_1 = 0;
 }
 
+MoveRate0()
+{
+	turn thrustrr to x-axis <0.000000> speed <80.000000>;
+	turn thrustrl to x-axis <0.000000> speed <80.000000>;
+	turn thrustfr to x-axis <0.000000> speed <80.000000>;
+	turn thrustfl to x-axis <0.000000> speed <80.000000>;
+}
+
 MoveRate1()
 {
 	signal 8;
 	set-signal-mask 8;
 	Static_Var_1 = 1;
+	turn thrustrr to x-axis <10.000000> speed <60.000000>;
+	turn thrustrl to x-axis <10.000000> speed <60.000000>;
+	turn thrustfr to x-axis <10.000000> speed <60.000000>;
+	turn thrustfl to x-axis <10.000000> speed <60.000000>;
 }
 
 MoveRate2()
@@ -157,6 +172,10 @@ MoveRate2()
 	signal 8;
 	set-signal-mask 8;
 	Static_Var_1 = 2;
+	turn thrustrr to x-axis <20.000000> speed <45.000000>;
+	turn thrustrl to x-axis <20.000000> speed <45.000000>;
+	turn thrustfr to x-axis <20.000000> speed <45.000000>;
+	turn thrustfl to x-axis <20.000000> speed <45.000000>;
 }
 
 MoveRate3()
@@ -164,6 +183,10 @@ MoveRate3()
 	signal 8;
 	set-signal-mask 8;
 	Static_Var_1 = 3;
+	turn thrustrr to x-axis <0.000000> speed <70.000000>;
+	turn thrustrl to x-axis <0.000000> speed <70.000000>;
+	turn thrustfr to x-axis <0.000000> speed <70.000000>;
+	turn thrustfl to x-axis <0.000000> speed <70.000000>;
 }
 
 Killed(severity, corpsetype)
