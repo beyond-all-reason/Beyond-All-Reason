@@ -45,6 +45,7 @@ local buttons = {}
 
 local previousTrack = ''
 local curTrack	= "no name"
+local manualPlay = false	-- gets enabled when user loads a track
 
 local musicDir = 'sounds/music/'
 local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
@@ -518,13 +519,12 @@ function mouseEvent(x, y, button, release)
 		draggingSlider = nil
 	end
 	if button == 1 and not release and isInBox(x, y, {left, bottom, right, top}) then
-		if button == 1 and buttons['playpause'] ~= nil and isInBox(x, y, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
+		if buttons['playpause'] ~= nil and isInBox(x, y, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
 			playing = not playing
 			Spring.PauseSoundStream()
 			createList()
 			return true
-		end
-		if button == 1 and buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
+		elseif buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
 			PlayNewTrack()
 			return true
 		end
@@ -597,15 +597,17 @@ function widget:GameFrame(n)
 			elseif warMeter >= 0 then
 				warMeter = warMeter - 3
 			end
-			if interruptMusic == 1 and not fadeOut then
-				if tracks == peaceTracks and warMeter >= 200 then
-					fadeOut = true
-					targetTime = playedTime + fadeOutTime
-					if targetTime > totalTime then targetTime = totalTime end
-				elseif tracks == warTracks and warMeter <= 0 then
-					fadeOut = true
-					targetTime = playedTime + fadeOutTime
-					if targetTime > totalTime then targetTime = totalTime end
+			if not manualPlay then
+				if interruptMusic == 1 and not fadeOut then
+					if tracks == peaceTracks and warMeter >= 200 then
+						fadeOut = true
+						targetTime = playedTime + fadeOutTime
+						if targetTime > totalTime then targetTime = totalTime end
+					elseif tracks == warTracks and warMeter <= 0 then
+						fadeOut = true
+						targetTime = playedTime + fadeOutTime
+						if targetTime > totalTime then targetTime = totalTime end
+					end
 				end
 			end
 		end
@@ -615,7 +617,6 @@ end
 
 local averageSkipTime = 16
 function PlayNewTrack(track)
-
 	fadeOut = false
 	if prevStreamStartTime then
 		local timeDiff = os.clock()-prevStreamStartTime
@@ -652,9 +653,14 @@ function PlayNewTrack(track)
 	end
 
 	local newTrack
-	if track then
+	if track then	-- user initiates manual play of a track
+		manualPlay = true
 		newTrack = track
+		if not playing then
+			playing = true
+		end
 	else
+		manualPlay = false
 		newTrack = previousTrack
 		if #tracks > 1 then
 			repeat
