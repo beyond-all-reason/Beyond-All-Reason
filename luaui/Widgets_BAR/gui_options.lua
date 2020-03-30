@@ -2769,6 +2769,7 @@ function init()
 		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 
 		{id="profiler", group="dev", widget="Widget Profiler", name="Widget profiler", type="bool", value=GetWidgetToggleValue("Widget Profiler"), description=""},
+		{id="framegrapher", group="dev", widget="Frame Grapher", name="Frame grapher", type="bool", value=GetWidgetToggleValue("Frame Grapher"), description=""},
 
 		-- DEV
 		{id="autocheat", group="dev", widget="Auto cheat", name="Auto enable cheats for $VERSION", type="bool", value=GetWidgetToggleValue("Auto cheat"), description="does: /cheat, /globallos, /godmode"},
