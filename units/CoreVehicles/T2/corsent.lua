@@ -43,7 +43,7 @@ return {
 		turninplacespeedlimit = 1.6335,
 		turnrate = 591.79999,
 		customparams = {
-			model_author = "Mr Bob",
+			model_author = "Mr Bob, remodelled by PtaQ",
 			normaltex = "unittextures/Core_normal.dds",
 			prioritytarget = "air",
 			subfolder = "corevehicles/t2",
