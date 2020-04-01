@@ -190,6 +190,17 @@ local options={
 		step   = 0.1,
 	},
 	{
+		key    = 'minions',
+		name   = 'Enable Minions',
+		desc   = 'placeholder-description',
+		type   = 'number',
+		section= 'options',
+		def    = 0,
+		min    = 0,
+		max    = 1,
+		step   = 1,
+	},
+	{
 		key    = 'night',
 		name   = 'Day-Night Cycle',
 		desc   = 'Hello darkness my old friend',
