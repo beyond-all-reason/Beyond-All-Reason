@@ -46,6 +46,7 @@ RockUnit(anglex, anglez)
 	wait-for-turn base around x-axis;
 	turn base to z-axis <0.000000> speed <20.000000>;
 	turn base to x-axis <0.000000> speed <20.000000>;
+	return (0);
 }
 
 
@@ -57,6 +58,7 @@ HitByWeapon(anglex, anglez)
 	wait-for-turn base around x-axis;
 	turn base to z-axis <0.000000> speed <20.000000>;
 	turn base to x-axis <0.000000> speed <20.000000>;
+	return (0);
 }
 
 Create()
@@ -64,11 +66,13 @@ Create()
 	hide flare;
 	restore_delay = 3000;
 	start-script SmokeUnit();
+	return (0);
 }
 
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
+	return (0);
 }
 
 RestoreAfterDelay()
@@ -76,6 +80,7 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed <50.005495>;
 	turn sleeve to x-axis <0.000000> speed <50.005495>;
+	return (0);
 }
 
 AimPrimary(heading, pitch)
@@ -84,33 +89,36 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <35.005495>;
 	turn sleeve to x-axis <0.000000> - pitch speed <35.005495>;
-	//wait-for-turn turret around y-axis;
-	//wait-for-turn sleeve around x-axis;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-6.000000] speed [1250.000000];
-	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [7.500000];
+ 	emit-sfx 1024 + 0 from flare;
+ 	move barrel to z-axis [-3.000000] speed [1250.000000];
+ 	wait-for-move barrel along z-axis;
+ 	move barrel to z-axis [0.000000] speed [7.500000];	
 }
 
 AimFromPrimary(piecenum)
 {
 	piecenum = turret;
+	return (0);
 }
 
 QueryPrimary(piecenum)
 {
 	piecenum = flare;
+	return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
+	return (0);
 }
 
 Killed(severity, corpsetype)
