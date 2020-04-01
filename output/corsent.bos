@@ -151,46 +151,61 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode guns type BITMAPONLY | NOHEATCLOUD;
-		explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		explode barrel1 type BITMAPONLY | NOHEATCLOUD;
-		explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
+		explode base type BITMAPONLY;
+		explode lftrack type FALL;
+		explode rftrack type FALL;
+		explode lbtrack type FALL;
+		explode rbtrack type FALL;
+		explode turret type BITMAPONLY;
+		explode guns type BITMAPONLY;
+		explode barrel1 type BITMAPONLY;
+		explode flare1 type BITMAPONLY;
+		explode barrel2 type FIRE | SMOKE | FALL;
+		explode flare2 type BITMAPONLY;
+		return(0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode guns type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		explode base type FALL | BITMAPONLY;
+		explode lftrack type FALL;
+		explode rftrack type FIRE | FALL;
+		explode lbtrack type FIRE | SMOKE | FALL;
+		explode rbtrack type SMOKE | FALL;
+		explode turret type FIRE | SMOKE | FALL;
+		explode guns type FIRE | SMOKE | FALL;
+		explode barrel1 type FIRE | SMOKE | FALL;
+		explode flare1 type FIRE | SMOKE | FALL;
+		explode barrel2 type FIRE | SMOKE | FALL;
+		explode flare2 type FIRE | SMOKE | FALL;
+		return(0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode turret type SHATTER | NOHEATCLOUD;
-		explode guns type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel2 type SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type SMOKE | FALL | NOHEATCLOUD;
-		explode barrel1 type SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		explode base type FIRE | SMOKE | FALL;
+		explode lftrack type EXPLODE_ON_HIT | SHATTER;
+		explode rftrack type ;
+		explode lbtrack type SHATTER;
+		explode rbtrack type SHATTER;
+		explode turret type SHATTER;
+		explode guns type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrel1 type SMOKE | FALL;
+		explode flare1 type SMOKE | FALL;
+		explode barrel2 type SMOKE | FALL;
+		explode flare2 type SMOKE | FALL;
+		return(0);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode turret type SHATTER | NOHEATCLOUD;
-		explode guns type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode barrel2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode barrel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	return corpsetype;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lftrack type EXPLODE_ON_HIT;
+		explode rftrack type EXPLODE_ON_HIT | SMOKE | BITMAPONLY;
+		explode lbtrack type SHATTER;
+		explode rbtrack type SHATTER | SMOKE;
+		explode turret type SHATTER;
+		explode guns type EXPLODE_ON_HIT | FIRE | FALL;
+		explode barrel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrel2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | FALL;
 }
