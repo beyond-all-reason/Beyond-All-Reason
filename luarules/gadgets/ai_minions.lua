@@ -61,33 +61,38 @@ if gadgetHandler:IsSyncedCode() then
 function gadget:GameFrame(n)
 	if n%30 == 0 then
 		minionTimer = minionTimer + 1
-		if minionTimer > minionCooldown then
-			local choosenMinion = minions[math.random(1,#minions)]
-			local allUnits = Spring.GetAllUnits()
-			for i = 1,#allUnits do
-				local unitID = allUnits[i]
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				local unitName = UnitDefs[unitDefID].name
-				if unitName == "corcom" or unitName == "armcom" then
+		local choosenMinion = minions[math.random(1,#minions)]
+		local allUnits = Spring.GetAllUnits()
+		for i = 1,#allUnits do
+			local unitID = allUnits[i]
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitName = UnitDefs[unitDefID].name
+			if unitName == "corcom" or unitName == "armcom" then
+				if minionTimer > minionCooldown then
 					local comPosX,comPosY,comPosZ = Spring.GetUnitPosition(unitID)
 					local comTeam = Spring.GetUnitTeam(unitID)
-					local r = math.random(0,3)
-					if r == 0 then
-						Spring.CreateUnit(choosenMinion,comPosX+32,comPosY,comPosZ,math.random(0,3),comTeam)
-					elseif r == 1 then
-						Spring.CreateUnit(choosenMinion,comPosX-32,comPosY,comPosZ,math.random(0,3),comTeam)
-					elseif r == 2 then
-						Spring.CreateUnit(choosenMinion,comPosX,comPosY,comPosZ+32,math.random(0,3),comTeam)
+					local AIname = Spring.GetTeamLuaAI(comTeam)
+					if AIname and (string.find(AIname, "ScavengersAI") or string.find(AIname, "Chicken")) then
+						
 					else
-						Spring.CreateUnit(choosenMinion,comPosX,comPosY,comPosZ-32,math.random(0,3),comTeam)
+						local r = math.random(0,3)
+						if r == 0 then
+							Spring.CreateUnit(choosenMinion,comPosX+32,comPosY,comPosZ,math.random(0,3),comTeam)
+						elseif r == 1 then
+							Spring.CreateUnit(choosenMinion,comPosX-32,comPosY,comPosZ,math.random(0,3),comTeam)
+						elseif r == 2 then
+							Spring.CreateUnit(choosenMinion,comPosX,comPosY,comPosZ+32,math.random(0,3),comTeam)
+						else
+							Spring.CreateUnit(choosenMinion,comPosX,comPosY,comPosZ-32,math.random(0,3),comTeam)
+						end
 					end
 				end
-				if aliveMinions[unitID] and aliveMinions[unitID] == true then
-					local minionEnemy = Spring.GetUnitNearestEnemy(unitID,999999,false)
-					if minionEnemy then
-						local eX,eY,eZ = Spring.GetUnitPosition(minionEnemy)
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{eX+math.random(-100,100),eY,eZ+math.random(-100,100)}, { "alt", "ctrl"})
-					end
+			end
+			if aliveMinions[unitID] and aliveMinions[unitID] == true then
+				local minionEnemy = Spring.GetUnitNearestEnemy(unitID,999999,false)
+				if minionEnemy then
+					local eX,eY,eZ = Spring.GetUnitPosition(minionEnemy)
+					Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{eX+math.random(-100,100),eY,eZ+math.random(-100,100)}, { "alt", "ctrl"})
 				end
 			end
 		end
