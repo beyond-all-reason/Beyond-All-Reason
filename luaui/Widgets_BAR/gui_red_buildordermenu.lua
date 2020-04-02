@@ -186,9 +186,9 @@ end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = gl.GetViewSizes()
-	if (vsx/vsy) - 1.78 > 0.5 then
-		largeUnitIcons = true
-	end
+	--if (vsx/vsy) - 1.78 > 0.5 then
+	--	largeUnitIcons = true
+	--end
 	widgetScale = (1 + (vsx*vsy / 7500000))
 	Config.buildmenu.padding = 3*widgetScale
 	Config.ordermenu.padding = 3*widgetScale
@@ -1274,7 +1274,7 @@ function widget:SetConfigData(data) --load config
 			shortcutsInfo = data.shortcutsInfo
 		end
 		if (data.largeUnitIcons ~= nil) then
-			--largeUnitIcons = data.largeUnitIcons
+			largeUnitIcons = data.largeUnitIcons
 		end
 		if (data.playSounds ~= nil) then
 			playSounds = data.playSounds
@@ -1528,3 +1528,4 @@ function widget:KeyPress(key, mods, isRepeat)
 		return false
 	end
 end
+

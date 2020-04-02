@@ -2536,10 +2536,10 @@ function init()
 			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 		 end,
 		},
-		--{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
-		--},
+		{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
+		},
 
 		{id="commandsfx", group="ui", basic=true, widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
 		{id="commandsfxfilterai", group="ui", name=widgetOptionColor.."   filter AI teams", type="bool", value=true, description='Hide commands for AI teams',
