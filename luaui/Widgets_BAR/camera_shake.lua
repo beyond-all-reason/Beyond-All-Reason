@@ -30,7 +30,7 @@ end
 
 local spSetCameraOffset      = Spring.SetCameraOffset
 local spSetShockFrontFactors = Spring.SetShockFrontFactors
-
+local math_random = math.random
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ local spSetShockFrontFactors = Spring.SetShockFrontFactors
 local exps = 0
 local shake = 0
 
-local powerScale = 100
+local powerScale = 130
 
 local decayFactor = 5
 
@@ -62,6 +62,7 @@ function widget:Initialize()
   end
   WG['camerashake'].setStrength = function(value)
     powerScale = value
+    minPower = (0.02 / powerScale)
   end
 end
 
@@ -83,7 +84,7 @@ end
 
 
 local function birand(val)
-  return val * (1.0 - (0.002 * math.random(1000)))
+  return val * (1.0 - (0.002 * math_random(1000)))
 end
 
 
@@ -117,6 +118,7 @@ end
 function widget:SetConfigData(data)
   if data.powerScale ~= nil then
     powerScale = data.powerScale
+    minPower = (0.02 / powerScale)
   end
 end
 
