@@ -1,4 +1,6 @@
-if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().minions) or 0) ~= 0) then
+local devmode = 0
+
+if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().minions) or 0) ~= 0) or devmode ~= 0 then
 	enableMinions = true
 else
 	enableMinions = false
@@ -16,25 +18,29 @@ function gadget:GetInfo()
 	}
 end
 
-local minions = {
+
+
+local minionsBasicT1 = {
 "minionak",
+"minionpeewee",
+}
+
+local minionsAdvancedT1 = {
 "minionak",
-"minionak",
-"minionak",
-"minionak",
-"minionak",
-"minionak",
-"minionak",
-"minionak",
-"minionak",
+"minionpeewee",
+"minionhammer",
+"minionrocko",
+"minionwarrior",
 "minionstorm",
 "minionthud",
 }
 
+local minions = minionsBasicT1
 local minionTimer = 0
 local minionCooldown = 30
 local minionMax = 5
 local spawnedMinions = 0
+local minionSpawnWave = 0
 local aliveMinions = {}
 
 if gadgetHandler:IsSyncedCode() then
@@ -63,63 +69,53 @@ function gadget:GameFrame(n)
 						Spring.CreateUnit(choosenMinion,comPosX,comPosY,comPosZ-32,math.random(0,3),comTeam)
 					end
 				end
-				for x = 1,#minions do
-					if unitName == minions[x] then
-						local minionEnemy = Spring.GetUnitNearestEnemy(unitID,999999,false)
-						if minionEnemy then
-							local eX,eY,eZ = Spring.GetUnitPosition(minionEnemy)
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{eX+math.random(-100,100),eY,eZ+math.random(-100,100)}, { "alt", "ctrl"})
-						end
+				if aliveMinions[unitID] and aliveMinions[unitID] == true then
+					local minionEnemy = Spring.GetUnitNearestEnemy(unitID,999999,false)
+					if minionEnemy then
+						local eX,eY,eZ = Spring.GetUnitPosition(minionEnemy)
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{eX+math.random(-100,100),eY,eZ+math.random(-100,100)}, { "alt", "ctrl"})
 					end
 				end
 			end
 		end
 		if minionTimer > minionCooldown + minionMax-1 then
 			minionTimer = 0
+			minionSpawnWave = minionSpawnWave + 1
+			if minionSpawnWave%5 == 0 then
+				minions = minionsAdvancedT1
+			else
+				minions = minionsBasicT1
+			end
 		end
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local unitName = UnitDefs[unitDefID].name
-	for i = 1,#minions do
-		if unitName == minions[i] then
-			aliveMinions[unitID] = true
-			Spring.SetUnitNoSelect(unitID, true)
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 2 }, 0)
-			Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 2 }, 0)
-			local minionEnemy = Spring.GetUnitNearestEnemy(unitID,999999,false)
-			if minionEnemy then
-			local eX,eY,eZ = Spring.GetUnitPosition(minionEnemy)
-				Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{eX+math.random(-100,100),eY,eZ+math.random(-100,100)}, { "alt", "ctrl"})
-			end
-			
-			break
+	if string.find(unitName, "minion") then
+		aliveMinions[unitID] = true
+		Spring.SetUnitNoSelect(unitID, true)
+		Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 2 }, 0)
+		Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 2 }, 0)
+		local minionEnemy = Spring.GetUnitNearestEnemy(unitID,999999,false)
+		if minionEnemy then
+		local eX,eY,eZ = Spring.GetUnitPosition(minionEnemy)
+			Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{eX+math.random(-100,100),eY,eZ+math.random(-100,100)}, { "alt", "ctrl"})
 		end
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	local unitName = UnitDefs[unitDefID].name
-	for i = 1,#minions do
-		if unitName == minions[i] then
-			aliveMinions[unitID] = nil
-			
-			
-			break
-		end
+	if string.find(unitName, "minion") then
+		aliveMinions[unitID] = nil
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
-	for i = 1,#minions do
-		if unitName == minions[i] then
-			aliveMinions[unitID] = nil
-			
-			
-			break
-		end
+	if string.find(unitName, "minion") then
+		aliveMinions[unitID] = nil
 	end
 end
 
