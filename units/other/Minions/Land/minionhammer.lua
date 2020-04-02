@@ -23,7 +23,7 @@ return {
 		mass = 300,
 		maxdamage = 810,
 		maxslope = 17,
-		maxvelocity = 2,
+		maxvelocity = 1,
 		maxwaterdepth = 25,
 		movementclass = "KBOT3",
 		name = "Hammer",

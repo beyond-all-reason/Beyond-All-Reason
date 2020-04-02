@@ -26,13 +26,26 @@ local minionsBasicT1 = {
 }
 
 local minionsAdvancedT1 = {
-"minionak",
-"minionpeewee",
 "minionhammer",
 "minionrocko",
 "minionwarrior",
 "minionstorm",
 "minionthud",
+}
+
+local minionsBasicT2 = {
+"minionak",
+"minionpeewee",
+"minionpyro",
+}
+
+local minionsAdvancedT2 = {
+"minionhammer",
+"minionrocko",
+"minionwarrior",
+"minionstorm",
+"minionthud",
+"minioncan",
 }
 
 local minions = minionsBasicT1
@@ -81,10 +94,18 @@ function gadget:GameFrame(n)
 		if minionTimer > minionCooldown + minionMax-1 then
 			minionTimer = 0
 			minionSpawnWave = minionSpawnWave + 1
-			if minionSpawnWave%5 == 0 then
-				minions = minionsAdvancedT1
+			if n < 18000 then
+				if minionSpawnWave%5 == 0 then
+					minions = minionsAdvancedT1
+				else
+					minions = minionsBasicT1
+				end
 			else
-				minions = minionsBasicT1
+				if minionSpawnWave%5 == 0 then
+					minions = minionsAdvancedT2
+				else
+					minions = minionsBasicT2
+				end
 			end
 		end
 	end
