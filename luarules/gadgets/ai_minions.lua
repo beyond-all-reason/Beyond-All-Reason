@@ -1,4 +1,4 @@
-local devmode = 1
+local devmode = 0
 
 if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().minions) or 0) ~= 0) or devmode ~= 0 then
 	enableMinions = true
