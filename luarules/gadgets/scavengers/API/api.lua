@@ -54,6 +54,8 @@ Spring.Echo("[Scavengers] API initialized")
 	killedscavengers = 0
 	QueuedSpawns = {}
 	QueuedSpawnsFrames = {}
+	ConstructorNumberOfRetries = {}
+	CaptureProgressForBeacons = {}
 	
 	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
