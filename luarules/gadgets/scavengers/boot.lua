@@ -304,8 +304,8 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
 			killedscavengers = killedscavengers + 50
-			Spring.SetUnitNeutral(unitID, false)
 			if scavconfig.modules.reinforcementsModule == true then
+				Spring.SetUnitNeutral(unitID, false)
 				Spring.SetUnitHealth(unitID, 10000)
 				Spring.SetUnitMaxHealth(unitID, 10000)
 			end
@@ -356,8 +356,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if UnitName == "scavengerdroppodbeacon_scav" then
 			scavSpawnBeacon[unitID] = true
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
-			Spring.SetUnitNeutral(unitID, true)
 			if scavconfig.modules.reinforcementsModule == true then
+				Spring.SetUnitNeutral(unitID, true)
 				Spring.SetUnitHealth(unitID, 100000)
 				Spring.SetUnitMaxHealth(unitID, 100000)
 			end
