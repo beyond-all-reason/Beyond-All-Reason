@@ -424,9 +424,11 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	else
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1
-			Spring.SetUnitNeutral(unitID, false)
-			Spring.SetUnitMaxHealth(unitID, 10000)
-			Spring.SetUnitHealth(unitID, 10000)
+			if scavconfig.modules.reinforcementsModule == true then
+				Spring.SetUnitNeutral(unitID, false)
+				Spring.SetUnitMaxHealth(unitID, 10000)
+				Spring.SetUnitHealth(unitID, 10000)
+			end
 		end
 	end
 end
