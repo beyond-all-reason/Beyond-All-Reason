@@ -1,4 +1,4 @@
-function widget:GetInfo()
+ function widget:GetInfo()
 return {
 	name    = "Options",
 	desc    = "",
@@ -2883,6 +2883,110 @@ function init()
 		--	  Spring.SendCommands("DebugDrawAI "..(value and '1' or '0'))
 		--  end,
 		--},
+		{id="map_splattexmults_a", group="dev", name="Map splatTexMult alpha", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 options[i].value = a
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 Spring.SetMapRenderingParams({splatTexMults = {r,g,b,value}})
+		 end,
+		},
+		{id="map_splattexmults_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 Spring.SetMapRenderingParams({splatTexMults = {value,g,b,a}})
+		 end,
+		},
+		{id="map_splattexmults_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 Spring.SetMapRenderingParams({splatTexMults = {r,value,b,a}})
+		 end,
+		},
+		{id="map_splattexmults_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
+			 Spring.SetMapRenderingParams({splatTexMults = {r,g,value,a}})
+		 end,
+		},
+		{id="map_splattexacales_a", group="dev", name="Map splatTexScales alpha", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 options[i].value = a
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 Spring.SetMapRenderingParams({splatTexScales = {r,g,b,value}})
+		 end,
+		},
+		{id="map_splattexacales_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 Spring.SetMapRenderingParams({splatTexScales = {value,g,b,a}})
+		 end,
+		},
+		{id="map_splattexacales_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 Spring.SetMapRenderingParams({splatTexScales = {r,value,b,a}})
+		 end,
+		},
+		{id="map_splattexacales_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		 onload = function(i)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
+			 Spring.SetMapRenderingParams({splatTexScales = {r,g,value,a}})
+		 end,
+		},
+		{id="map_voidwater", group="dev", name="Map VoidWater", type="bool", value=false, description="",
+		 onload = function(i)
+			 options[i].value = gl.GetMapRendering("voidWater")
+		 end,
+		 onchange=function(i, value)
+			 Spring.SetMapRenderingParams({voidWater = value})
+		 end,
+		},
+		{id="map_voidground", group="dev", name="Map VoidGround", type="bool", value=false, description="",
+		 onload = function(i)
+			 options[i].value = gl.GetMapRendering("voidGround")
+		 end,
+		 onchange=function(i, value)
+			 Spring.SetMapRenderingParams({voidGround = value})
+		 end,
+		},
+		{id="map_splatdetailnormaldiffusealpha", group="dev", name="Map splatDetailNormalDiffuseAlpha", type="bool", value=false, description="",
+		 onload = function(i)
+			 options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
+		 end,
+		 onchange=function(i, value)
+			 Spring.SetMapRenderingParams({splatDetailNormalDiffuseAlpha = value})
+		 end,
+		},
 
 	}
 	-- air absorption does nothing on 32 bit engine version
