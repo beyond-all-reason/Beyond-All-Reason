@@ -613,7 +613,7 @@ end
 
 
 local function UpdateGrid(g,cmds,ordertype)
-
+  Spring.Echo("UpdateGrid")
 	if #cmds==0 then
 		-- deactivate
 		g.background.active = false

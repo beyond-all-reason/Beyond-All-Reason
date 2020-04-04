@@ -16,7 +16,7 @@ end
 
 local drawForIcon           = true      -- note that commander icon still gets drawn on top of the name
 local nameScaling			= true
-local useThickLeterring		= true
+local useThickLeterring		= false  -- Sorry, the performance cost of this is quite high :( doubles the cost of a draw call
 local heightOffset			= 50
 local fontSize				= 15		-- not real fontsize, it will be scaled
 local scaleFontAmount		= 120
@@ -297,14 +297,40 @@ function widget:RecvLuaMsg(msg, playerID)
     end
 end
 
+--PROFILING CODE---
+local avgTimeUS = 0
+local profileCount = 0
+local profileName = ""
+local profileTimer = Spring.GetTimer()
+local profilePeriod = 200.0
+function startTimer()
+    profileTimer = Spring.GetTimer()
+    profileCount = profileCount + 1
+end
+
+function profileDT()
+  local dt_us = Spring.DiffTimers(Spring.GetTimer(),profileTimer)*1000000
+  avgTimeUS = ((profilePeriod-1.0) * avgTimeUS + dt_us)/profilePeriod
+  if profileCount >100 then
+    Spring.Echo(profileName .. " " .. avgTimeUS .. " us")
+    profileCount = 0
+  end
+  return avgTimeUS
+end
+  
+function fastDrawName()
+  gl.Text("MyComander",0,0,16,"o")
+end
+--END PROFILING CODE---
+
 function widget:DrawWorld()
   if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
   if not CheckedForSpec and Spring.GetGameFrame() > 1 then
 	  if spec then
-		CheckedForSpec = true
-		CheckAllComs()
+      CheckedForSpec = true
+      CheckAllComs()
 	  end
   end
   
@@ -315,19 +341,18 @@ function widget:DrawWorld()
   local camX, camY, camZ = GetCameraPosition()
 
   for unitID, attributes in pairs(comms) do
+    if IsUnitInView(unitID) then
+      local x,y,z = GetUnitPosition(unitID)
+      camDistance = diag(camX-x, camY-y, camZ-z) 
 
-	if IsUnitInView(unitID) then
-		local x,y,z = GetUnitPosition(unitID)
-		camDistance = diag(camX-x, camY-y, camZ-z) 
-
-	    if drawForIcon and IsUnitIcon(unitID) then
-            attributes[5] = camDistance
-            drawScreenUnits[unitID] = attributes
-        else
-            usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
-		    glDrawFuncAtUnit(unitID, false, DrawName, attributes)
-        end
-	end
+      if drawForIcon and IsUnitIcon(unitID) then
+        attributes[5] = camDistance
+        drawScreenUnits[unitID] = attributes
+      else
+        usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
+        glDrawFuncAtUnit(unitID, false, DrawName, attributes)
+      end
+    end
   end
   
   glAlphaTest(false)
