@@ -103,7 +103,14 @@ local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local defaultMapSunPos = {gl.GetSun("pos")}
-
+local defaultSunLighting = {
+	groundAmbientColor = {gl.GetSun("ambient")},
+	unitAmbientColor = {gl.GetSun("ambient", "unit")},
+	groundDiffuseColor = {gl.GetSun("diffuse")},
+	unitDiffuseColor = {gl.GetSun("diffuse", "unit")},
+	groundSpecularColor = {gl.GetSun("specular")},
+	unitSpecularColor = {gl.GetSun("specular", "unit")},
+}
 local options = {}
 local optionGroups = {}
 local optionButtons = {}
@@ -2884,6 +2891,32 @@ function init()
 		--  end,
 		--},
 
+		{id="map_voidwater", group="dev", name="Map VoidWater", type="bool", value=false, description="",
+		 onload = function(i)
+			 options[i].value = gl.GetMapRendering("voidWater")
+		 end,
+		 onchange=function(i, value)
+			 Spring.SetMapRenderingParams({voidWater = value})
+		 end,
+		},
+		{id="map_voidground", group="dev", name="Map VoidGround", type="bool", value=false, description="",
+		 onload = function(i)
+			 options[i].value = gl.GetMapRendering("voidGround")
+		 end,
+		 onchange=function(i, value)
+			 Spring.SetMapRenderingParams({voidGround = value})
+		 end,
+		},
+
+		{id="map_splatdetailnormaldiffusealpha", group="dev", name="Map splatDetailNormalDiffuseAlpha", type="bool", value=false, description="",
+		 onload = function(i)
+			 options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
+		 end,
+		 onchange=function(i, value)
+			 Spring.SetMapRenderingParams({splatDetailNormalDiffuseAlpha = value})
+		 end,
+		},
+
 		{id="map_splattexmults_a", group="dev", name="Map splatTexMult"..widgetOptionColor.."  alpha", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
@@ -2966,31 +2999,6 @@ function init()
 		 end,
 		},
 
-		{id="map_voidwater", group="dev", name="Map VoidWater", type="bool", value=false, description="",
-		 onload = function(i)
-			 options[i].value = gl.GetMapRendering("voidWater")
-		 end,
-		 onchange=function(i, value)
-			 Spring.SetMapRenderingParams({voidWater = value})
-		 end,
-		},
-		{id="map_voidground", group="dev", name="Map VoidGround", type="bool", value=false, description="",
-		 onload = function(i)
-			 options[i].value = gl.GetMapRendering("voidGround")
-		 end,
-		 onchange=function(i, value)
-			 Spring.SetMapRenderingParams({voidGround = value})
-		 end,
-		},
-
-		{id="map_splatdetailnormaldiffusealpha", group="dev", name="Map splatDetailNormalDiffuseAlpha", type="bool", value=false, description="",
-		 onload = function(i)
-			 options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
-		 end,
-		 onchange=function(i, value)
-			 Spring.SetMapRenderingParams({splatDetailNormalDiffuseAlpha = value})
-		 end,
-		},
 		{id="suncolor_r", group="dev", name="Sun"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b = gl.GetAtmosphere("sunColor")
@@ -3262,6 +3270,18 @@ function init()
 			 local r,g,b = gl.GetSun("specular", "unit")
 			 Spring.SetSunLighting({unitSpecularColor = {r,g,value}})
 			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+		{id="sun_reset", group="dev", name="Reset ground/unit coloring", type="bool", value=false, description='resets ground/unit ambient/diffuse/specular colors',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 options[getOptionByID('sun_reset')].value = false
+			 -- just so that map/model lighting gets updated
+			 Spring.SetSunLighting(defaultSunLighting)
+			 --customMapSunPos[Game.mapName] = nil
+			 Spring.Echo('resetted ground/unit coloring')
+			 init()
 		 end,
 		},
 	}
@@ -3670,6 +3690,9 @@ function init()
 		end
 	end
 	options = processedOptions
+
+	if windowList then gl.DeleteList(windowList) end
+	windowList = gl.CreateList(DrawWindow)
 end
 
 
@@ -3955,7 +3978,8 @@ function widget:GetConfigData(data)
 	savedTable.show = show
 	savedTable.advSettings = advSettings
 	savedTable.defaultMapSunPos = defaultMapSunPos
-	savedTable.mapName = Game.mapName
+	savedTable.defaultSunLighting = defaultSunLighting
+	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
@@ -4009,8 +4033,13 @@ function widget:SetConfigData(data)
 			Spring.SetConfigFloat(v[1],v[2])
 		end
 	end
-	if data.defaultMapSunPos ~= nil and data.mapName == Game.mapName then
-		defaultMapSunPos = data.defaultMapSunPos
+	if data.mapChecksum and data.mapChecksum == Game.mapChecksum then
+		if data.defaultMapSunPos ~= nil then
+			defaultMapSunPos = data.defaultMapSunPos
+		end
+		if data.defaultSunLighting ~= nil then
+			defaultSunLighting = data.defaultSunLighting
+		end
 	end
 	if data.customMapSunPos then
 		customMapSunPos = data.customMapSunPos
