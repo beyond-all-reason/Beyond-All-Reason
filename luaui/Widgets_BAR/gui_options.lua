@@ -2801,7 +2801,7 @@ function init()
 		},
 		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)"},
 
-		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=7, step=0.01, value=Spring.GetConfigFloat("tonemapA", 4.8), description="",
+		{id="tonemapA", group="dev", name="Unit tonemapping"..widgetOptionColor.." var 1", type="slider", min=0, max=7, step=0.01, value=Spring.GetConfigFloat("tonemapA", 4.8), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", value)
 			 Spring.SendCommands("luarules updatesun")
@@ -2836,21 +2836,21 @@ function init()
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="envAmbient", group="dev", name="Unit env ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.3), description="",
+		{id="envAmbient", group="dev", name=widgetOptionColor.."   ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.3), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("envAmbient", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0.4, max=2.5, step=0.05, value=Spring.GetConfigFloat("unitSunMult", 1.35), description="",
+		{id="unitSunMult", group="dev", name=widgetOptionColor.."   sun mult", type="slider", min=0.4, max=2.5, step=0.05, value=Spring.GetConfigFloat("unitSunMult", 1.35), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitSunMult", value)
 			 Spring.SendCommands("luarules updatesun")
 			 Spring.SendCommands("luarules GlassUpdateSun")
 		 end,
 		},
-		{id="unitExposureMult", group="dev", name="Units exposure mult", type="slider", min=0.5, max=2, step=0.01, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
+		{id="unitExposureMult", group="dev", name=widgetOptionColor.."   exposure mult", type="slider", min=0.5, max=2, step=0.01, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitExposureMult", value)
 			 Spring.SendCommands("luarules updatesun")

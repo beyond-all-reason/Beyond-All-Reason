@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local idleTime = 10
+local idleTime = 60
 local vsyncValueActive = Spring.GetConfigInt("VSync",1)
 if vsyncValueActive > 1 then
 	vsyncValueActive = 1
