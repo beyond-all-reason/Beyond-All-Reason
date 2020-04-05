@@ -3273,10 +3273,10 @@ function init()
 		 end,
 		},
 
-		{id="sun_reset", group="dev", name="Reset ground/unit coloring", type="bool", value=false, description='resets ground/unit ambient/diffuse/specular colors',
+		{id="sunlighting_reset", group="dev", name="Reset ground/unit coloring", type="bool", value=false, description='resets ground/unit ambient/diffuse/specular colors',
 		 onload = function(i) end,
 		 onchange = function(i, value)
-			 options[getOptionByID('sun_reset')].value = false
+			 options[getOptionByID('sunlighting_reset')].value = false
 			 -- just so that map/model lighting gets updated
 			 Spring.SetSunLighting(defaultSunLighting)
 			 --customMapSunPos[Game.mapName] = nil
