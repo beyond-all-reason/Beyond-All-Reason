@@ -2883,7 +2883,8 @@ function init()
 		--	  Spring.SendCommands("DebugDrawAI "..(value and '1' or '0'))
 		--  end,
 		--},
-		{id="map_splattexmults_a", group="dev", name="Map splatTexMult alpha", type="slider", min=0, max=1, step=0.01, value=0, description="",
+
+		{id="map_splattexmults_a", group="dev", name="Map splatTexMult"..widgetOptionColor.."  alpha", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
 			 options[i].value = a
@@ -2893,7 +2894,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexMults = {r,g,b,value}})
 		 end,
 		},
-		{id="map_splattexmults_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		{id="map_splattexmults_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
 			 options[i].value = r
@@ -2903,7 +2904,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexMults = {value,g,b,a}})
 		 end,
 		},
-		{id="map_splattexmults_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		{id="map_splattexmults_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
 			 options[i].value = g
@@ -2913,7 +2914,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexMults = {r,value,b,a}})
 		 end,
 		},
-		{id="map_splattexmults_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		{id="map_splattexmults_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
 			 options[i].value = b
@@ -2923,7 +2924,8 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexMults = {r,g,value,a}})
 		 end,
 		},
-		{id="map_splattexacales_a", group="dev", name="Map splatTexScales alpha", type="slider", min=0, max=1, step=0.01, value=0, description="",
+
+		{id="map_splattexacales_a", group="dev", name="Map splatTexScales"..widgetOptionColor.."  alpha", type="slider", min=0, max=0.005, step=0.0001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = a
@@ -2933,7 +2935,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexScales = {r,g,b,value}})
 		 end,
 		},
-		{id="map_splattexacales_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		{id="map_splattexacales_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=0.01, step=0.0001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = r
@@ -2943,7 +2945,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexScales = {value,g,b,a}})
 		 end,
 		},
-		{id="map_splattexacales_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		{id="map_splattexacales_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=0.1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = g
@@ -2953,7 +2955,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexScales = {r,value,b,a}})
 		 end,
 		},
-		{id="map_splattexacales_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.01, value=0, description="",
+		{id="map_splattexacales_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=0.01, step=0.0001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = b
@@ -2963,6 +2965,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexScales = {r,g,value,a}})
 		 end,
 		},
+
 		{id="map_voidwater", group="dev", name="Map VoidWater", type="bool", value=false, description="",
 		 onload = function(i)
 			 options[i].value = gl.GetMapRendering("voidWater")
@@ -2979,6 +2982,7 @@ function init()
 			 Spring.SetMapRenderingParams({voidGround = value})
 		 end,
 		},
+
 		{id="map_splatdetailnormaldiffusealpha", group="dev", name="Map splatDetailNormalDiffuseAlpha", type="bool", value=false, description="",
 		 onload = function(i)
 			 options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
@@ -2987,7 +2991,279 @@ function init()
 			 Spring.SetMapRenderingParams({splatDetailNormalDiffuseAlpha = value})
 		 end,
 		},
+		{id="suncolor_r", group="dev", name="Sun"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 Spring.SetAtmosphere({sunColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="suncolor_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 Spring.SetAtmosphere({sunColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="suncolor_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 Spring.SetAtmosphere({sunColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
 
+		{id="skycolor_r", group="dev", name="Sky "..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 Spring.SetAtmosphere({skyColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="skycolor_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 Spring.SetAtmosphere({skyColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="skycolor_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 Spring.SetAtmosphere({skyColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+		{id="color_groundambient_r", group="dev", name="Ground ambient"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("ambient")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("ambient")
+			 Spring.SetSunLighting({groundAmbientColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_groundambient_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("ambient")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("ambient")
+			 Spring.SetSunLighting({groundAmbientColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		 },
+		 {id="color_groundambient_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		  onload = function(i)
+			  local r,g,b = gl.GetSun("ambient")
+			  options[i].value = b
+		  end,
+		  onchange=function(i, value)
+			  local r,g,b = gl.GetSun("ambient")
+			  Spring.SetSunLighting({groundAmbientColor = {r,g,value}})
+			  Spring.SendCommands("luarules updatesun")
+		  end,
+		},
+
+		{id="color_grounddiffuse_r", group="dev", name="Ground diffuse"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("diffuse")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("diffuse")
+			 Spring.SetSunLighting({groundDiffuseColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_grounddiffuse_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("diffuse")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("diffuse")
+			 Spring.SetSunLighting({groundDiffuseColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_grounddiffuse_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("diffuse")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("diffuse")
+			 Spring.SetSunLighting({groundDiffuseColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+		{id="color_groundspecular_r", group="dev", name="Ground specular"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("specular")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("specular")
+			 Spring.SetSunLighting({groundSpecularColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_groundspecular_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("specular")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("specular")
+			 Spring.SetSunLighting({groundSpecularColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_groundspecular_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("specular")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("specular")
+			 Spring.SetSunLighting({groundSpecularColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+
+
+		{id="color_unitambient_r", group="dev", name="Unit ambient"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("ambient", "unit")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("ambient", "unit")
+			 Spring.SetSunLighting({unitAmbientColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_unitambient_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("ambient", "unit")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("ambient", "unit")
+			 Spring.SetSunLighting({unitAmbientColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_unitambient_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("ambient", "unit")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("ambient", "unit")
+			 Spring.SetSunLighting({unitAmbientColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+		{id="color_unitdiffuse_r", group="dev", name="Unit diffuse"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("diffuse", "unit")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("diffuse", "unit")
+			 Spring.SetSunLighting({unitDiffuseColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_unitdiffuse_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("diffuse", "unit")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("diffuse", "unit")
+			 Spring.SetSunLighting({unitDiffuseColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_unitdiffuse_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("diffuse", "unit")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("diffuse", "unit")
+			 Spring.SetSunLighting({unitDiffuseColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+		{id="color_unitspecular_r", group="dev", name="Unit specular"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("specular", "unit")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("specular", "unit")
+			 Spring.SetSunLighting({unitSpecularColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_unitspecular_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("specular", "unit")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("specular", "unit")
+			 Spring.SetSunLighting({unitSpecularColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="color_unitspecular_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetSun("specular", "unit")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetSun("specular", "unit")
+			 Spring.SetSunLighting({unitSpecularColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
 	}
 	-- air absorption does nothing on 32 bit engine version
 	if not engine64 then
