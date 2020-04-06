@@ -73,7 +73,7 @@ local definitions = {
         pos                = [[-3 r6, -3 r25, -3 r6]],
         sizegrowth         = 0.6,
         sizemod            = 0.99,
-        texture            = [[fire]],
+        texture            = [[treefire]],
         useairlos          = true,
         alwaysVisible      = true,
       },
