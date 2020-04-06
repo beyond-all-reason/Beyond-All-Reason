@@ -2917,7 +2917,7 @@ function init()
 		 end,
 		},
 
-		{id="map_splattexmults_a", group="dev", name="Map splatTexMult"..widgetOptionColor.."  alpha", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		{id="map_splattexmults_a", group="dev", name="Map splatTexMult"..widgetOptionColor.."  alpha", type="slider", min=0, max=1.5, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexMults")
 			 options[i].value = a
@@ -2958,7 +2958,7 @@ function init()
 		 end,
 		},
 
-		{id="map_splattexacales_a", group="dev", name="Map splatTexScales"..widgetOptionColor.."  alpha", type="slider", min=0, max=0.05, step=0.001, value=0, description="",
+		{id="map_splattexacales_a", group="dev", name="Map splatTexScales"..widgetOptionColor.."  alpha", type="slider", min=0, max=0.02, step=0.0001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = a
@@ -2968,7 +2968,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexScales = {r,g,b,value}})
 		 end,
 		},
-		{id="map_splattexacales_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=0.05, step=0.001, value=0, description="",
+		{id="map_splattexacales_r", group="dev", name=widgetOptionColor.."   red", type="slider", min=0, max=0.02, step=0.0001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = r
@@ -2978,7 +2978,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexScales = {value,g,b,a}})
 		 end,
 		},
-		{id="map_splattexacales_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=0.05, step=0.001, value=0, description="",
+		{id="map_splattexacales_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=0.02, step=0.0001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = g
@@ -2988,7 +2988,7 @@ function init()
 			 Spring.SetMapRenderingParams({splatTexScales = {r,value,b,a}})
 		 end,
 		},
-		{id="map_splattexacales_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=0.05, step=0.001, value=0, description="",
+		{id="map_splattexacales_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=0.02, step=0.0001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b,a = gl.GetMapRendering("splatTexScales")
 			 options[i].value = b
