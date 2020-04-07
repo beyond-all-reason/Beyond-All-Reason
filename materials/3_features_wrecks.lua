@@ -13,13 +13,13 @@ local materials = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
 
-			"#define SHADOW_SOFTNESS SHADOW_SOFT",
+			"#define SHADOW_SOFTNESS SHADOW_HARD",
 
 			"#define SUNMULT 1.0",
 			--"#define EXPOSURE 1.0",
 
 			--"#define METALNESS 0.0",
-			"#define ROUGHNESS 0.6",
+			"#define ROUGHNESS 0.6", 
 
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
@@ -31,7 +31,7 @@ local materials = {
 			"#define use_normalmapping",
 			"#define deferred_mode 1",
 
-			"#define SHADOW_SOFTNESS SHADOW_SOFT",
+			"#define SHADOW_SOFTNESS SHADOW_HARD",
 
 			"#define SUNMULT 1.0",
 			--"#define EXPOSURE 1.0",
