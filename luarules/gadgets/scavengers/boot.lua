@@ -79,6 +79,14 @@ if scavconfig.modules.reinforcementsModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
 end
 
+if scavconfig.modules.stockpilers == true then
+	VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
+end
+
+if scavconfig.modules.nukes == true then
+	VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
+end
+
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 
@@ -201,7 +209,7 @@ function gadget:GameFrame(n)
 	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then
 		SpawnBlueprint(n)
 	end
-	if n%30 == 0 and scavconfig.modules.unitSpawnerModule then
+	if n%30 == 0 then
 		if scavconfig.modules.unitSpawnerModule then
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
@@ -216,6 +224,18 @@ function gadget:GameFrame(n)
 				local scavDef = Spring.GetUnitDefID(scav)
 				local collectorRNG = math_random(0,5)
 
+				if n%300 == 0 and scavconfig.modules.stockpilers == true then
+					if scavStockpiler[scav] == true then
+						ScavStockpile(n, scav)
+					end
+				end
+			
+				if scavconfig.modules.nukes == true then
+					if scavNuke[scav] == true then
+						SendRandomNukeOrder(n, scav)
+					end
+				end
+				
 				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then
 						if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
@@ -288,6 +308,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavStructure[unitID] = nil
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
+		scavStockpiler[unitID] = nil
+		scavNuke[unitID] = nil
 		UnitSuffixLenght[unitID] = nil
 		ConstructorNumberOfRetries[unitID] = nil
 		CaptureProgressForBeacons[unitID] = nil
@@ -325,6 +347,8 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 		scavStructure[unitID] = nil
 		scavFactory[unitID] = nil
 		scavSpawnBeacon[unitID] = nil
+		scavStockpiler[unitID] = nil
+		scavNuke[unitID] = nil
 		UnitSuffixLenght[unitID] = nil
 		ConstructorNumberOfRetries[unitID] = nil
 		CaptureProgressForBeacons[unitID] = nil
@@ -345,7 +369,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 	if unitTeam == GaiaTeamID then
 		
-		if string.find(UnitName, "_scav") then
+		if string.find(UnitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else
 			UnitSuffixLenght[unitID] = 0
@@ -377,6 +401,22 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 
+		if scavconfig.modules.stockpilers == true then
+			for i = 1,#StockpilingUnitNames do
+				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == StockpilingUnitNames[i] then
+					scavStockpiler[unitID] = true
+				end
+			end
+		end
+	
+		if scavconfig.modules.nukes == true then
+			for i = 1,#NukingUnitNames do
+				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == NukingUnitNames[i] then
+					scavNuke[unitID] = true
+				end
+			end
+		end
+		
 		if scavconfig.modules.constructorControllerModule then
 			if constructorControllerModuleConfig.useconstructors then
 				for i = 1,#ConstructorsList do

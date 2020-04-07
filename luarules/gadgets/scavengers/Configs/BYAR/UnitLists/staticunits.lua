@@ -17,6 +17,28 @@ NoSelfdList = {
 --"cornecro",
 }
 
+StockpilingUnitNames = {
+	"corsilo",
+	"armsilo",
+	"cortron",
+	"armemp",
+	"armamd",
+	"corfmd",
+	"corscreamer",
+	"armmercury",
+	"corjuno",
+	"armjuno",
+}
+
+NukingUnitNames = {
+	"corsilo",
+	"armsilo",
+	"cortron",
+	"armemp",
+	"corjuno",
+	"armjuno",
+}
+
 BeaconCaptureExcludedUnits = {
 	"armdrag",
 	"armfdrag",
@@ -141,7 +163,9 @@ StartboxDefenceStructuresT2 = {
     "armflak",
 	"corflak",
     "armguard",
-    "corpun",
+	"corpun",
+	"armamd",
+	"corfmd",
 }
 
 StartboxDefenceStructuresT3 = {
@@ -153,7 +177,11 @@ StartboxDefenceStructuresT3 = {
 	"armflak",
     "corflak",
     "armanni",
-    "cordoom",
+	"cordoom",
+	"armamd",
+	"corfmd",
+	"cortron",
+	"armemp",
 }
 
 StartboxDefenceStructuresT4 = {
@@ -166,7 +194,13 @@ StartboxDefenceStructuresT4 = {
     "corflak",
     "armanni",
     "cordoom",
-    "armmine3",
+	"armmine3",
+	"armamd",
+	"corfmd",
+	"cortron",
+	"armemp",
+	"corsilo",
+	"armsilo",
 }
 
 

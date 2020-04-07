@@ -14,6 +14,8 @@ if scavengersAIEnabled then
 			unitSpawnerModule 				= true,
 			startBoxProtection				= true,
 			reinforcementsModule			= false,
+			stockpilers						= true,
+			nukes							= true,
 		},
 		timers = {
 			-- globalScore values
@@ -253,6 +255,8 @@ else
 			unitSpawnerModule 				= true,
 			startBoxProtection				= false,
 			reinforcementsModule			= false,
+			stockpilers						= true,
+			nukes							= true,
 		},
 		timers = {
 			-- globalScore values
