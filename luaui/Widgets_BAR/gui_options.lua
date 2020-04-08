@@ -1814,7 +1814,7 @@ function init()
 			 Spring.SetSunLighting({groundShadowDensity = value, modelShadowDensity = value})
 		 end,
 		},
-		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.05, max=0.9999, step=0.0001, value=select(2,gl.GetSun("pos")), description='',
+		{id="sun_y", group="gfx", name="Sun"..widgetOptionColor.."  height", type="slider", min=0.05, max=0.9999, step=0.0001, value=select(2,gl.GetSun("pos")), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value)
 			 local sunX,sunY,sunZ = gl.GetSun("pos")
@@ -2382,6 +2382,18 @@ function init()
 			 end
 		 end,
 		},
+
+		{id="buildmenualternativeicons", group="ui", name="Alternative unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigAlternativeIcons()), description='Switch to a different unit icon set',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+		 end,
+		},
+
 		{id="teamcolors", group="ui", basic=true, widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", basic=true, name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
 		 onload = function(i) end,
@@ -2502,7 +2514,7 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', {'drawForIcon'}, value) end,
 		},
 
-		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description='',
+		{id="consolemaxlines", group="ui", name="Console"..widgetOptionColor.."  max lines", type="slider", min=3, max=9, step=1, value=6, description='',
 		 onload = function(i)
 			 loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", {'Config','console','maxlines'})
 		 end,
@@ -2520,8 +2532,7 @@ function init()
 			 saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		 end,
 		},
-
-		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
+		{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
 		},
@@ -2532,16 +2543,6 @@ function init()
 		{id="buildmenuradaricons", group="ui", name=widgetOptionColor.."   radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, value) end,
-		},
-		{id="buildmenualternativeicons", group="ui", name=widgetOptionColor.."   alternative icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigAlternativeIcons()), description='Switch to a different unit icon set',
-		 onload = function(i) end,
-		 onchange = function(i, value)
-			 saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-		 end,
 		},
 		{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
 		 onload = function(i) end,
@@ -2612,7 +2613,7 @@ function init()
 		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
-		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
+		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist"..widgetOptionColor.."  mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
 		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
 		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
 		 onload = function(i) end,
@@ -2801,7 +2802,7 @@ function init()
 		},
 		{id="startboxeditor", group="dev", widget="Startbox Editor", name="Startbox editor", type="bool", value=GetWidgetToggleValue("Startbox Editor"), description="LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)"},
 
-		{id="tonemapA", group="dev", name="Unit tonemapping"..widgetOptionColor.." var 1", type="slider", min=0, max=7, step=0.01, value=Spring.GetConfigFloat("tonemapA", 4.8), description="",
+		{id="tonemapA", group="dev", name="Unit tonemapping"..widgetOptionColor.."  var 1", type="slider", min=0, max=7, step=0.01, value=Spring.GetConfigFloat("tonemapA", 4.8), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", value)
 			 Spring.SendCommands("luarules updatesun")
