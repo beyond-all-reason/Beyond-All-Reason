@@ -65,7 +65,7 @@ function script.FireWeapon1()
 end
 
 function script.QueryWeapon1()
-	return flare;
+	return aimpoint;
 end
 
 function script.AimFromWeapon1()
