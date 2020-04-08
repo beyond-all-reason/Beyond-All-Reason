@@ -35,7 +35,7 @@ return {
 		script = "Units/scavboss/armvaderboss.cob",
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
-		selfdestructcountdown = 0,
+		selfdestructcountdown = 10,
 		sightdistance = 273,
 		turninplace = true,
 		turninplaceanglelimit = 90,

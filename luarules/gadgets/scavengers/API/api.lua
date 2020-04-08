@@ -46,6 +46,8 @@ Spring.Echo("[Scavengers] API initialized")
 	scavFactory = {}
 	scavCollector = {}
 	scavSpawnBeacon = {}
+	scavStockpiler = {}
+	scavNuke = {}
 	UnitSuffixLenght = {}
 	numOfSpawnBeacons = 0
 	numOfSpawnBeaconsTeams = {}

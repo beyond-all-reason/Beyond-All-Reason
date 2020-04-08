@@ -111,7 +111,7 @@ end
 
 function widget:GetConfigData(data)
   savedTable = {}
-  savedTable.powerScale = basicAlpha
+  savedTable.powerScale = powerScale
   return savedTable
 end
 

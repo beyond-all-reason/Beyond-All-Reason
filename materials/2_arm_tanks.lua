@@ -42,7 +42,7 @@ local matTemplate = {
 		"#define use_vertex_ao",
 		"#define use_treadoffset_arm",
 
-		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
+		"#define SHADOW_SOFTNESS SHADOW_SOFT",
 
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
