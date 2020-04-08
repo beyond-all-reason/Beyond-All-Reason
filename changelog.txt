@@ -1,5 +1,6 @@
 ﻿10.24 -> 1.00
 
+ • T1 Metal Extractors cost 3 Energy to operate, and also have slightly reduced buildprice
  • Ground scout vehicles/kbot: 10% more LoS
  • Enabled ground deformation
 

@@ -526,9 +526,11 @@ function DrawWindow()
 	RectRound(x,y-screenHeight,x+screenWidth,y,5.5)
 
 	-- title
-	local title = "Basic settings"
+	local color = '\255\255\255\255'
+	local color2 = '\255\125\125\125'
+	local title = ""..color.."Basic"..color2.."  /  Advanced"
 	if advSettings then
-		title = "Advanced settings"
+		title = ""..color2.."Basic  /  "..color.."Advanced"
 	end
 	local titleFontSize = 18
 	titleRect = {x-bgMargin, y+bgMargin, x+(font2:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37 }
