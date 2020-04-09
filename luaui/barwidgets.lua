@@ -1441,7 +1441,7 @@ function widgetHandler:TextInput(utf8, ...)
     return true
   end
 
-  for _,w in r_ipairs(self.TextInputList) do
+  for _,w in ripairs(self.TextInputList) do
     if (w:TextInput(utf8, ...)) then
       return true
     end
