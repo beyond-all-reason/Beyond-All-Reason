@@ -187,7 +187,6 @@ local callInLists = {
   'KeyPress',
   'KeyRelease',
   'TextInput',
-  'TextEditing',
   'MousePress',
   'MouseWheel',
   'JoyAxis',
