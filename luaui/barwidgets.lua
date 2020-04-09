@@ -186,6 +186,8 @@ local callInLists = {
   'DrawScreen',
   'KeyPress',
   'KeyRelease',
+  'TextInput',
+  'TextEditing',
   'MousePress',
   'MouseWheel',
   'JoyAxis',
@@ -1433,6 +1435,19 @@ function widgetHandler:KeyRelease(key, mods, label, unicode)
   return false
 end
 
+
+function widgetHandler:TextInput(utf8, ...)
+  if (self.tweakMode) then
+    return true
+  end
+
+  for _,w in r_ipairs(self.TextInputList) do
+    if (w:TextInput(utf8, ...)) then
+      return true
+    end
+  end
+  return false
+end
 
 --------------------------------------------------------------------------------
 --

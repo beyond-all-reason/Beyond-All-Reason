@@ -21,7 +21,7 @@ local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --These can be modified if needed
-local blastCircleDivs = 64
+local blastCircleDivs = 96
 local blastLineWidth = 1.0
 local blastAlphaValue = 0.5
 local updateInt = 1 --seconds for the ::update loop

@@ -14,7 +14,8 @@
 -- set default gaia teamcolor
 Spring.SetTeamColor(Spring.GetGaiaTeamID(), 0.3, 0.3, 0.3)
 
-Spring.SendCommands({"ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt"})
+local spSendCommands = Spring.SendCommands
+spSendCommands("ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt")
 
 VFS.Include(LUAUI_DIRNAME .. 'utils.lua', utilFile)
 
@@ -26,25 +27,8 @@ include("debug.lua")
 include("layout.lua")   -- contains a simple LayoutButtons()
 VFS.Include(LUAUI_DIRNAME .. 'barwidgets.lua', nil, VFS.ZIP)
 
---------------------------------------------------------------------------------
---
--- print the header
---
 
-if (RestartCount == nil) then
-  RestartCount = 0
-else 
-  RestartCount = RestartCount + 1
-end
-
-do
-  local restartStr = ""
-  if (RestartCount > 0) then
-    restartStr = "  (" .. RestartCount .. " Restarts)"
-  end
-  Spring.SendCommands({"echo " .. LUAUI_VERSION .. restartStr})
-end
-
+local gl = Spring.Draw  --  easier to use
 
 --------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -53,7 +37,7 @@ end
 --
 
 function Say(msg)
-  Spring.SendCommands({'say ' .. msg})
+  spSendCommands('say ' .. msg)
 end
 
 
@@ -111,6 +95,10 @@ end
 
 function KeyRelease(key, mods, label, unicode)
   return widgetHandler:KeyRelease(key, mods, label, unicode)
+end
+
+function TextInput(utf8, ...)
+  return widgetHandler:TextInput(utf8, ...)
 end
 
 function MouseMove(x, y, dx, dy, button)
