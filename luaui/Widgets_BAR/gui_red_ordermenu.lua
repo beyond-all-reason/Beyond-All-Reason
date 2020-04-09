@@ -294,9 +294,8 @@ local function CreateGrid(r)
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
 			SetTooltip(self.tooltip)
-			if r.menuname == "ordermenu" then
-				mouseoverhighlight.texturecolor={1,1,1,0.02}
-			end
+
+			mouseoverhighlight.texturecolor={1,1,1,0.02}
 		end,
 
 		onupdate=function(self)
@@ -913,7 +912,11 @@ function widget:Update(dt)
 	if (SelectedUnitsCount == 0) then
 		onNewCommands() --flush
 	end
+	if mouseClicked == -1 then
+		updateGrids()
+	end
 end
+
 
 function widget:SelectionChanged(sel)
 	selectionChanged = true
