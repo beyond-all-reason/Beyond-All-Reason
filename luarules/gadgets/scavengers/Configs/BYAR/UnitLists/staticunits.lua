@@ -181,7 +181,6 @@ StartboxDefenceStructuresT3 = {
 	"cordoom",
 	"armamd",
 	"corfmd",
-	"cortron",
 	"armemp",
 }
 
@@ -198,10 +197,7 @@ StartboxDefenceStructuresT4 = {
 	"armmine3",
 	"armamd",
 	"corfmd",
-	"cortron",
 	"armemp",
-	"corsilo",
-	"armsilo",
 }
 
 
