@@ -138,7 +138,7 @@ return {
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 3.33,
-				soundhit = "xplomed2",
+				soundhit = "tawf113a",
 				soundhitwet = "splsmed",
 				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy3",

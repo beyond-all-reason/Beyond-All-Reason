@@ -141,7 +141,7 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				-- soundhitwetvolume = 0.5,
-				soundstart = "beamershot",
+				soundstart = "beamershot2",
 				soundtrigger = 1,
 				targetmoveerror = 0.05,
 				thickness = 2.4,

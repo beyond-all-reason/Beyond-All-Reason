@@ -10,7 +10,7 @@ return {
 		name = "LightMine",
 		range = 480,
 		reloadtime = 3.5999999046326,
-		soundhit = "xplosml1",
+		soundhit = "mine1",
 		soundstart = "largegun",
 		weaponvelocity = 250,
 		damage = {

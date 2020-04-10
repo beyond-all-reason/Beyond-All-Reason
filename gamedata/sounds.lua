@@ -62,6 +62,10 @@ for i=1,#files do
    if fileNames == "newboom" then
     t[fileNames].gain = 0.045*0.3
     end
+    if fileNames == "beamershot2" then
+    t[fileNames].gain = 0.5*0.3
+    t[fileNames].pitchmod = 0.04
+    end
    if fileNames == "lasfirerc" then
     t[fileNames].pitchmod = 0.06
     end
