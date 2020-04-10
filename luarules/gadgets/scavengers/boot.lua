@@ -145,6 +145,16 @@ function SpawnFromQueue(n)
 	end
 end
 
+function PutSpectatorsInScavTeam(n)
+	local players = Spring.GetPlayerList()
+	for i = 1,#players do
+		local player = players[i]
+		local name, active, spectator = Spring.GetPlayerInfo(player)
+		if spectator == true then
+			Spring.AssignPlayerToTeam(player, GaiaTeamID)
+		end
+	end
+end
 
 
 
@@ -152,6 +162,9 @@ end
 function gadget:GameFrame(n)
 
 
+	if n%30 == 0 then
+		PutSpectatorsInScavTeam(n)
+	end
 	
 	if n > 1 then
 		SpawnFromQueue(n)
