@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Floris",
     date      = "April 2020",
     license   = "GNU GPL, v2 or later",
-    layer     = -11,
+    layer     = 0,
     enabled   = true
   }
 end
@@ -51,10 +51,6 @@ local activeRect = {}
 local cellRects = {}
 local cellMarginPx = 0
 local cmds = {}
-local widthPx = width * vsx
-local heightPx = height * vsx
-
-local guishaderEnabled = WG['guishader'] or false
 
 local hiddencmds = {
   [76] = true, --load units clone
@@ -149,12 +145,13 @@ function widget:ViewResize()
       width = 0.23
       height = 0.16
   end
+  width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
+
   vsx,vsy = Spring.GetViewGeometry()
-  widthPx = width * vsx
-  heightPx = height * vsx
   backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
   activeRect = {0 + (bgMargin*vsy), ((posY-height)+bgMargin)*vsy, (width*vsx)-(bgMargin*vsy), (posY-bgMargin)*vsy}
   createCellGrid()
+  widget:Shutdown()
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if fontfileScale ~= newFontfileScale then
@@ -172,19 +169,16 @@ end
 function widget:Initialize()
   widget:ViewResize()
   widget:SelectionChanged()
-
 end
 
 function widget:Shutdown()
   if WG['guishader'] then
     WG['guishader'].DeleteDlist('ordermenu')
   end
-  gl.DeleteList(dlistOrders)
+  dlistOrders = gl.DeleteList(dlistOrders)
 end
 
 local uiOpacitySec = 0
-local sec = 0
-local guishaderCheckInterval = 1
 function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.5 then
@@ -193,20 +187,6 @@ function widget:Update(dt)
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
     end
   end
-
-  sec = sec + dt
-  if sec > 1 / guishaderCheckInterval then
-    sec = 0
-    if WG['guishader'] ~= guishaderEnabled then
-      guishaderEnabled = WG['guishader']
-      if guishaderEnabled then
-
-      else
-
-      end
-    end
-  end
-
 end
 
 
@@ -294,14 +274,14 @@ function drawOrders()
     numCells = #cellRects
   end
 
-  local cellInnerWidth = (widthPx/colls)-cellMarginPx-cellMarginPx-padding-padding
-  local cellInnerHeight = (heightPx/rows)-cellMarginPx-cellMarginPx-padding-padding
+  local cellInnerWidth = (width*vsx/colls)-cellMarginPx-cellMarginPx-padding-padding
+  local cellInnerHeight = (height*vsy/rows)-cellMarginPx-cellMarginPx-padding-padding
   font2:Begin()
   for cell=1, numCells do
     local cmd = cmds[cell]
 
     -- order button background
-    if guishaderEnabled then
+    if WG['guishader'] then
       glColor(0.6,0.6,0.6,0.5)
     else
       glColor(0.5,0.5,0.5,0.75)
@@ -338,7 +318,7 @@ function drawOrders()
       local statecount = #cmd.params-1 --number of states for the cmd
       local curstate = cmd.params[1]+1
       local stateWidth = cellInnerWidth / statecount
-      local stateHeight = cellInnerHeight * 0.08
+      local stateHeight = cellInnerHeight * 0.165
       local stateMargin = stateWidth*0.07
       local glowSize = stateHeight * 3
       local r,g,b,a = 0,0,0,0
