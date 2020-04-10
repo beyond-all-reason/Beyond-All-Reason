@@ -51,6 +51,7 @@ local activeRect = {}
 local cellRects = {}
 local cellMarginPx = 0
 local cmds = {}
+local lastUpdate = os.clock()-1
 
 local hiddencmds = {
   [76] = true, --load units clone
@@ -84,36 +85,35 @@ local glRect = gl.Rect
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local function GetCommands()
-  local statecmds = {}
-  local othercmds = {}
-  local statecmdscount = 0
-  local othercmdscount = 0
+
+local function RefreshCommands()
+  local stateCmds = {}
+  local otherCmds = {}
+  local stateCmdsCount = 0
+  local otherCmdsCount = 0
   for index,cmd in pairs(spGetActiveCmdDescs()) do
     if type(cmd) == "table" then
-      if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 then
-        if (((cmd.type == 20) --build building
-          or (string_sub(cmd.action,1,10) == "buildunit_"))) and (cmd.disabled ~= true) then
+      if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 and not cmd.disabled then
+        if cmd.type == 20 --build building
+          or (string_sub(cmd.action,1,10) == 'buildunit_') then
 
-
-        elseif (cmd.type == 5) and (cmd.disabled ~= true) then
-          statecmdscount = statecmdscount + 1
-          statecmds[statecmdscount] = cmd
-        elseif (cmd.disabled ~= true) then
-          othercmdscount = othercmdscount + 1
-          othercmds[othercmdscount] = cmd
+        elseif cmd.type == 5 then
+          stateCmdsCount = stateCmdsCount + 1
+          stateCmds[stateCmdsCount] = cmd
+        else
+          otherCmdsCount = otherCmdsCount + 1
+          otherCmds[otherCmdsCount] = cmd
         end
       end
     end
   end
-  local tempcmds = {}
-  for i=1,statecmdscount do
-    tempcmds[i] = statecmds[i]
+  cmds = {}
+  for i=1,stateCmdsCount do
+    cmds[i] = stateCmds[i]
+    for i=1,otherCmdsCount do
+      cmds[i+stateCmdsCount] = otherCmds[i]
+    end
   end
-  for i=1,othercmdscount do
-    tempcmds[i+statecmdscount] = othercmds[i]
-  end
-  return tempcmds
 end
 
 function createCellGrid()
@@ -363,6 +363,7 @@ function drawOrders()
   end
   font2:End()
 end
+
 local clickCountDown = 2
 function widget:DrawScreen()
   clickCountDown = clickCountDown - 1
@@ -374,6 +375,7 @@ function widget:DrawScreen()
   if activeCmd ~= prevActiveCmd then
     doUpdate = true
   end
+
   local x,y,b = Spring.GetMouseState()
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     Spring.SetMouseCursor('cursornormal')
@@ -394,9 +396,26 @@ function widget:DrawScreen()
       end
     end
   end
+
+  -- scan for state changes (they are delayed cause need to go to the server and confirmed back)
+  if not doUpdate and os_clock() - lastUpdate > 0.15 then
+    local i = 0
+    for index,cmd in pairs(spGetActiveCmdDescs()) do
+      if type(cmd) == "table" and cmd.type == 5 and not hiddencmds[cmd.id] then
+        i = i + 1
+        if cmds[i] and cmds[i].params[1] ~= cmd.params[1] then
+          doUpdate = true
+          break
+        end
+      end
+    end
+  end
+
   -- make all cmd's fit in the grid
   if doUpdate then
-    cmds = GetCommands()
+    lastUpdate = os_clock()
+    RefreshCommands()
+
     local cmdCount = #cmds
     if cmdCount <= 16 then
       colls = 4
