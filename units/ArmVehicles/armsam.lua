@@ -147,7 +147,7 @@ return {
 				soundhit = "rockhit2",
 				soundhitwet = "splshsml",
 				-- soundhitwetvolume = 0.5,
-				soundstart = "rockhvy2",
+				soundstart = "rockhvy2x",
 				soundtrigger = true,
 				startvelocity = 420,
 				texture1 = "trans",
