@@ -46,11 +46,11 @@ for i=1,#files do
    t[fileNames] = {
       file     = fileName;
       gain = 1.2*0.3,
-      pitchmod = 0.18,
+      pitchmod = 0.17,
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
-      maxconcurrent = 16,
-      rolloff = 1.5,
+      maxconcurrent = 8,
+      rolloff = 0.5,
    }
    
    if fileNames == "disigun1" then
@@ -75,7 +75,10 @@ for i=1,#files do
     t[fileNames].pitchmod = 0.3
     end
    if string.sub(fileNames, 1, 7) == "xplomed" then
-    t[fileNames].pitchmod = 0.24
+    t[fileNames].pitchmod = 0.25
+    end
+    if string.sub(fileNames, 1, 7) == "xplosml" then
+    t[fileNames].pitchmod = 0.22
     end
 end
 
