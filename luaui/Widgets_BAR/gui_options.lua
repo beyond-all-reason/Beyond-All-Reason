@@ -3002,74 +3002,28 @@ function init()
 		},
 
 
-		{id="suncolor_r", group="dev", name="Sun"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		{id="GroundShadowDensity", group="dev", name="GroundShadowDensity"..widgetOptionColor.."  ", type="slider", min=0, max=1.5, step=0.001, value=0, description="",
 		 onload = function(i)
-			 local r,g,b = gl.GetAtmosphere("sunColor")
-			 options[i].value = r
+			 local groundshadowDensity = gl.GetSun("shadowDensity","ground")
+			 options[i].value = groundshadowDensity
 		 end,
 		 onchange=function(i, value)
-			 local r,g,b = gl.GetAtmosphere("sunColor")
-			 Spring.SetAtmosphere({sunColor = {value,g,b}})
+			 Spring.SetSunLighting({groundShadowDensity = value})
 			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-		{id="suncolor_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+    
+    {id="UnitShadowDensity", group="dev", name="UnitShadowDensity"..widgetOptionColor.."  ", type="slider", min=0, max=1.5, step=0.001, value=0, description="",
 		 onload = function(i)
-			 local r,g,b = gl.GetAtmosphere("sunColor")
-			 options[i].value = g
+			 local groundshadowDensity = gl.GetSun("shadowDensity","unit")
+			 options[i].value = groundshadowDensity
 		 end,
 		 onchange=function(i, value)
-			 local r,g,b = gl.GetAtmosphere("sunColor")
-			 Spring.SetAtmosphere({sunColor = {r,value,b}})
+			 Spring.SetSunLighting({modelShadowDensity = value})
 			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-		{id="suncolor_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
-		 onload = function(i)
-			 local r,g,b = gl.GetAtmosphere("sunColor")
-			 options[i].value = b
-		 end,
-		 onchange=function(i, value)
-			 local r,g,b = gl.GetAtmosphere("sunColor")
-			 Spring.SetAtmosphere({sunColor = {r,g,value}})
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-
-		{id="skycolor_r", group="dev", name="Sky "..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
-		 onload = function(i)
-			 local r,g,b = gl.GetAtmosphere("skyColor")
-			 options[i].value = r
-		 end,
-		 onchange=function(i, value)
-			 local r,g,b = gl.GetAtmosphere("skyColor")
-			 Spring.SetAtmosphere({skyColor = {value,g,b}})
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-		{id="skycolor_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
-		 onload = function(i)
-			 local r,g,b = gl.GetAtmosphere("skyColor")
-			 options[i].value = g
-		 end,
-		 onchange=function(i, value)
-			 local r,g,b = gl.GetAtmosphere("skyColor")
-			 Spring.SetAtmosphere({skyColor = {r,value,b}})
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-		{id="skycolor_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
-		 onload = function(i)
-			 local r,g,b = gl.GetAtmosphere("skyColor")
-			 options[i].value = b
-		 end,
-		 onchange=function(i, value)
-			 local r,g,b = gl.GetAtmosphere("skyColor")
-			 Spring.SetAtmosphere({skyColor = {r,g,value}})
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-
+    
 		{id="color_groundambient_r", group="dev", name="Ground ambient"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b = gl.GetSun("ambient")
@@ -3272,6 +3226,74 @@ function init()
 		 onchange=function(i, value)
 			 local r,g,b = gl.GetSun("specular", "unit")
 			 Spring.SetSunLighting({unitSpecularColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+		{id="suncolor_r", group="dev", name="Sun"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 Spring.SetAtmosphere({sunColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="suncolor_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 Spring.SetAtmosphere({sunColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="suncolor_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("sunColor")
+			 Spring.SetAtmosphere({sunColor = {r,g,value}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+
+		{id="skycolor_r", group="dev", name="Sky "..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 options[i].value = r
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 Spring.SetAtmosphere({skyColor = {value,g,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="skycolor_g", group="dev", name=widgetOptionColor.."   green", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 options[i].value = g
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 Spring.SetAtmosphere({skyColor = {r,value,b}})
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="skycolor_b", group="dev", name=widgetOptionColor.."   blue", type="slider", min=0, max=1, step=0.001, value=0, description="",
+		 onload = function(i)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 options[i].value = b
+		 end,
+		 onchange=function(i, value)
+			 local r,g,b = gl.GetAtmosphere("skyColor")
+			 Spring.SetAtmosphere({skyColor = {r,g,value}})
 			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
