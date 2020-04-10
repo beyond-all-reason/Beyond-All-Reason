@@ -2,13 +2,13 @@
 function widget:GetInfo()
 	return {
 	version   = "9.1",
-	name      = "Red Order Menu",
+	name      = "Red Order Menu (old)",
 	desc      = "Requires Red UI Framework",
 	author    = "Regret, modified by CommonPlayer",
 	date      = "29 may 2015", --modified by CommonPlayer, Oct 2016
 	license   = "GNU GPL, v2 or later",
 	layer     = -9,
-	enabled   = true, --enabled by default
+	enabled   = false, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
@@ -45,11 +45,11 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 
 local normalOrderIconSize = {
-	isx = 52,isy = 32, --icon size
+	isx = 57.8,isy = 26.7, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local largeOrderIconSize = {
-	isx = 62.5,isy = 32, --icon size
+	isx = 62.5,isy = 32.7, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local Config = {
@@ -798,40 +798,34 @@ function widget:Shutdown()
 
 end
 
+
+local hiddencmds = {
+	[76] = true, --load units clone
+	[65] = true, --selfd
+	[9] = true, --gatherwait
+	[8] = true, --squadwait
+	[7] = true, --deathwait
+	[6] = true, --timewait
+	[39812] = true, --raw move
+	[34922] = true, -- set unit target
+	--[34923] = true, -- set target
+}
 local function GetCommands()
-	local hiddencmds = {
-		[76] = true, --load units clone
-		[65] = true, --selfd
-		[9] = true, --gatherwait
-		[8] = true, --squadwait
-		[7] = true, --deathwait
-		[6] = true, --timewait
-		[39812] = true, --raw move
-		[34922] = true, -- set unit target
-		--[34923] = true, -- set target
-	}
 	local statecmds = {}
 	local othercmds = {}
 	local statecmdscount = 0
 	local othercmdscount = 0
 	for index,cmd in pairs(sGetActiveCmdDescs()) do
-		if (type(cmd) == "table") then
-			if (
-			(not hiddencmds[cmd.id]) and
-			(cmd.action ~= nil) and
-			--(not cmd.disabled) and
-			(cmd.type ~= 21) and
-			(cmd.type ~= 18) and
-			(cmd.type ~= 17)
-			) then
+		if type(cmd) == "table" then
+			if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 then
 				if (((cmd.type == 20) --build building
-				or (ssub(cmd.action,1,10) == "buildunit_"))) and (cmd["disabled"] ~= true) then
+						or (ssub(cmd.action,1,10) == "buildunit_"))) and (cmd.disabled ~= true) then
 
 
-				elseif (cmd.type == 5) and (cmd["disabled"] ~= true) then
+				elseif (cmd.type == 5) and (cmd.disabled ~= true) then
 					statecmdscount = statecmdscount + 1
 					statecmds[statecmdscount] = cmd
-				elseif (cmd["disabled"] ~= true) then
+				elseif (cmd.disabled ~= true) then
 					othercmdscount = othercmdscount + 1
 					othercmds[othercmdscount] = cmd
 				end
@@ -845,10 +839,7 @@ local function GetCommands()
 	for i=1,othercmdscount do
 		tempcmds[i+statecmdscount] = othercmds[i]
 	end
-	othercmdscount = othercmdscount + statecmdscount
-	othercmds = tempcmds
-	
-	return othercmds
+	return tempcmds
 end
 
 

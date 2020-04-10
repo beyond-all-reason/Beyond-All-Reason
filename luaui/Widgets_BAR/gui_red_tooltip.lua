@@ -20,12 +20,12 @@ local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local normalSx = 271
+local normalSx = 299
 local largeSx = 323
 local Config = {
 	tooltip = {
-		px = -0.5,py = CanvasY-93.5, --default start position
-		sx = normalSx,sy = 93.5, --background size
+		px = -0.5,py = CanvasY-90, --default start position
+		sx = normalSx,sy = 90, --background size
 		
 		fontsize = 11,
 		

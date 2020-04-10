@@ -1993,7 +1993,7 @@ function init()
 		 end,
 		},
 
-		{id="disticon", group="gfx", basic=true, name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance',
+		{id="disticon", group="gfx", basic=true, name="Strategic icon distance", type="slider", min=100, max=700, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance',
 		 onload = function(i) end,
 		 onchange = function(i, value)
 			 if Spring.GetConfigInt("distdraw",1) < 10000 then

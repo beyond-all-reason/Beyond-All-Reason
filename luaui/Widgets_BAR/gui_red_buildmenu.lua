@@ -65,18 +65,24 @@ local widgetScale = (1 + (vsx*vsy / 7500000))
 
 WG.hoverID = nil
 
+--local normalUnitIconSize = {
+--	isx = 55,isy = 55, --icon size
+--	ix = 5,iy = 6, --icons x/y
+--}
 local normalUnitIconSize = {
-	isx = 52,isy = 52, --icon size
-	ix = 5,iy = 6, --icons x/y
+	isx = 48.1,isy = 48.1, --icon size
+	ix = 6,iy = 7, --icons x/y
+	py = CanvasY - 440
 }
 local largeUnitIconSize = {
 	isx = 62.5,isy = 62.5, --icon size
 	ix = 5,iy = 5, --icons x/y
+	py = CanvasY - 416
 }
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
-		px = 0,py = CanvasY - 419, --default start position
+		px = 0,py = CanvasY - 440, --default start position
 		
 		isx = 45,isy = 40, --icon size
 		ix = 5,iy = 8, --icons x/y
@@ -952,8 +958,8 @@ function widget:GetConfigData() --save config
 end
 function widget:SetConfigData(data) --load config
 	if (data.Config ~= nil) then
-		Config.buildmenu.px = data.Config.buildmenu.px
-		Config.buildmenu.py = data.Config.buildmenu.py
+		--Config.buildmenu.px = data.Config.buildmenu.px
+		--Config.buildmenu.py = data.Config.buildmenu.py
 		if (data.drawPrice ~= nil) then
 			drawPrice = data.drawPrice
 		end
