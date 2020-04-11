@@ -109,6 +109,13 @@ vertex = [[
 				vec3 T = gl_MultiTexCoord5.xyz;
 				vec3 B = gl_MultiTexCoord6.xyz;
 
+				#if 1
+					if (dot(T, T) < 0.1 || dot(B, B) < 0.1) {
+						T = vec3(1.0, 0.0, 0.0);
+						B = vec3(0.0, 0.0, 1.0);
+					}
+				#endif
+
 				// tangent --> world space transformation (for vectors)
 				worldTangent = modelNormalMatrix * T;
 				worldBitangent = modelNormalMatrix * B;
@@ -1309,7 +1316,7 @@ local defaultMaterialTemplate = {
 	shader   = shaderTemplate, -- `shader` is replaced with standardShader later in api_cus
 	deferred = shaderTemplate, -- `deferred` is replaced with deferredShader later in api_cus
 	shadow   = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
-	
+
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
 	},
@@ -1371,7 +1378,7 @@ local defaultMaterialTemplate = {
 		[4] = "%NORMALTEX",
 		[5] = "$info",
 		[6] = GG.GetBrdfTexture(),
-		[7] = GG.GetEnvTexture(),		
+		[7] = GG.GetEnvTexture(),
 	},
 
 	predl = nil, -- `predl` is replaced with `prelist` later in api_cus
@@ -1449,7 +1456,7 @@ local function ProcessOptions(materialDef, optName, optValues)
 			local optValue = unpack(optValues or {})
 			local optOriginalValue = materialDef.originalOptions[id][optName]
 
-			Spring.Echo(optName, type(optValue), "optValue", optValue, "optOriginalValue", optOriginalValue)
+			--Spring.Echo(optName, type(optValue), "optValue", optValue, "optOriginalValue", optOriginalValue)
 			if optOriginalValue then
 				if optValue ~= nil then
 					if type(optValue) == "boolean" then
