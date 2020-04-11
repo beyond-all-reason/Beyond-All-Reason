@@ -15,7 +15,7 @@ end
 if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION'))) then
 
 	local authorizedPlayers  = {
-
+		'Floris',
 	}
 
 

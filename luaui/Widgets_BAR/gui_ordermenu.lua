@@ -116,9 +116,9 @@ local function RefreshCommands()
   cmds = {}
   for i=1,stateCmdsCount do
     cmds[i] = stateCmds[i]
-    for i=1,otherCmdsCount do
-      cmds[i+stateCmdsCount] = otherCmds[i]
-    end
+  end
+  for i=1,otherCmdsCount do
+    cmds[i+stateCmdsCount] = otherCmds[i]
   end
 
   setupCellGrid()
@@ -387,7 +387,7 @@ function drawOrders()
             r,g,b,a = 0.1,1,0.1,(i == desiredState and 0.26 or 0.8)
           end
         else
-          r,g,b,a = 0,0,0,0.33  -- default off state
+          r,g,b,a = 0,0,0,0.3  -- default off state
         end
         glColor(r,g,b,a)
         local x1 = cellRects[cell][1] + cellMarginPx + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin)
