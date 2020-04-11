@@ -64,8 +64,13 @@ function script.FireWeapon1()
 	UnitScript.EmitSfx(exhaust, 1024)
 end
 
-function script.QueryWeapon1()
-	return aimpoint;
+function script.QueryWeapon1() 
+	--just out of curiosity, why is queryweapon called every sec even if unit is doing nothing?
+	if is_open then
+		return flare;
+	else
+		return aimpoint
+	end
 end
 
 function script.AimFromWeapon1()
