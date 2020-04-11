@@ -250,7 +250,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
   gl.Vertex(sx-cs, sy-cs, 0)
   gl.Vertex(sx, sy-cs, 0)
 
-  local offset = 0.1		-- texture offset, because else gaps could show
+  local offset = 0.15		-- texture offset, because else gaps could show
 
   -- bottom left
   if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
@@ -317,8 +317,8 @@ function drawOrders()
     numCells = #cellRects
   end
 
-  local cellInnerWidth = (width*vsx/colls)-cellMarginPx-cellMarginPx-padding-padding
-  local cellInnerHeight = (height*vsy/rows)-cellMarginPx-cellMarginPx-padding-padding
+  local cellInnerWidth = (cellRects[1][3]-cellMarginPx) - (cellRects[1][1]+cellMarginPx)--(width*vsx/colls)-cellMarginPx-cellMarginPx-padding-padding
+  local cellInnerHeight = (cellRects[1][4]-cellMarginPx) - (cellRects[1][2]+cellMarginPx)--(height*vsy/rows)-cellMarginPx-cellMarginPx-padding-padding
   font2:Begin()
   for cell=1, numCells do
     local cmd = cmds[cell]
@@ -371,7 +371,7 @@ function drawOrders()
       local stateWidth = cellInnerWidth / statecount
       local stateHeight = cellInnerHeight * 0.165
       local stateMargin = stateWidth*0.07
-      local glowSize = stateHeight * 3
+      local glowSize = stateHeight * 5.5
       local r,g,b,a = 0,0,0,0
       for i=1, statecount do
         if i == curstate or i == desiredState then
@@ -436,9 +436,9 @@ function widget:DrawScreen()
           if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
             local cmd = cmds[cell]
             WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
-
+            cellHovered = cell
+            -- draw highlight under the button
             if not disableInput then
-              -- draw highlight under the button
               local padding = (bgBorder*vsy) * 0.5
               glColor(1,1,1,1)
               RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
@@ -489,7 +489,7 @@ function widget:DrawScreen()
     -- draw highlight on top of button
     if cellHovered and not disableInput then
       local padding = (bgBorder*vsy) * 0.5
-      glColor(1,1,1,0.12)
+      glColor(1,1,1,0.08)
       RectRound(cellRects[cellHovered][1]+cellMarginPx, cellRects[cellHovered][2]+cellMarginPx, cellRects[cellHovered][3]-cellMarginPx, (cellRects[cellHovered][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
     end
 
