@@ -70,8 +70,8 @@ local shadows
 
 local bug3734wa = false
 
-local sunChanged = false
-local optionsChanged = true --just in case
+local sunChanged = false --always on on load/reload
+local optionsChanged = false --just in case
 
 local registeredOptions = {}
 
@@ -508,7 +508,7 @@ local function _LoadMaterialConfigFiles(path)
 			end
 		end
 	end
-	
+
 	return unitMaterialDefs, featureMaterialDefs
 end
 
@@ -647,6 +647,7 @@ local function _CleanupEverything(rendering)
 	rendering.materialDefs        = {}
 	rendering.loadedTextures      = {}
 
+	gadgetHandler:RemoveChatAction("updatesun")
 	gadgetHandler:RemoveChatAction("cusreload")
 	gadgetHandler:RemoveChatAction("reloadcus")
 end
@@ -838,6 +839,10 @@ local function ReloadCUS(optName, _, _, playerID)
 	gadget:Initialize()
 end
 
+local function UpdateSun(optName, _, _, playerID)
+	sunChanged = true
+end
+
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 
@@ -855,6 +860,9 @@ function gadget:Initialize()
 
 	shadows = Spring.HaveShadows()
 
+	sunChanged = true --always on on load/reload
+	optionsChanged = true --just in case
+
 	bug3734wa = Spring.GetConfigInt("bug3734wa", 0) > 0
 
 	local normalmapping = Spring.GetConfigInt("NormalMapping", 1) > 0
@@ -869,7 +877,7 @@ function gadget:Initialize()
 
 	for _, rendering in ipairs(allRendering) do
 		for matName, matTable in pairs(rendering.materialDefs) do
-			
+
 			if matTable.GetAllOptions then
 				local allOptions = matTable.GetAllOptions()
 				for opt, _ in pairs(allOptions) do
@@ -887,6 +895,7 @@ function gadget:Initialize()
 	end
 
 	BindMaterials()
+	gadgetHandler:AddChatAction("updatesun", UpdateSun)
 	gadgetHandler:AddChatAction("cusreload", ReloadCUS)
 	gadgetHandler:AddChatAction("reloadcus", ReloadCUS)
 end

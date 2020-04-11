@@ -5,12 +5,45 @@ local unitsNewNormalMap = Spring.Utilities.MergeWithDefault(matTemplate, {
 		[0] = "%TEX1",
 		[1] = "%TEX2",
 	},
+	shaderDefinitions = {
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
+
+		--"#define GAMMA 2.2",
+		"#define TONEMAP(c) CustomTM(c)",
+	},
+	deferredDefinitions = {
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
+
+		--"#define GAMMA 2.2",
+		"#define TONEMAP(c) CustomTM(c)",
+	},
 	shaderOptions = {
 		normalmapping = true,
 		flashlights = true,
+		vertex_ao = true,
 	},
 	deferredOptions = {
 		normalmapping = true,
+		flashlights = true,
+		vertex_ao = true,
 		materialIndex = 1,
 	},
 })

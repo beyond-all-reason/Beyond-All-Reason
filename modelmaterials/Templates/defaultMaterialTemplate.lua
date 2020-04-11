@@ -13,12 +13,12 @@ vertex = [[
 	// Options in use
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
-	#define OPTION_VERTEX_AO 2
-	#define OPTION_FLASHLIGHTS 3
+	#define OPTION_NORMALMAP_FLIP 2
+	#define OPTION_VERTEX_AO 3
+	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_NORMALMAP_FLIP 6
-	#define OPTION_POM 9
-	#define OPTION_AUTONORMAL 10
+	#define OPTION_POM 10
+	#define OPTION_AUTONORMAL 11
 
 	%%GLOBAL_OPTIONS%%
 
@@ -40,6 +40,11 @@ vertex = [[
 	uniform mat4 shadowMatrix;
 
 	/***********************************************************************/
+	// Misc. uniforms
+	uniform float shadowDensity;
+
+
+	/***********************************************************************/
 	// Uniforms
 	uniform vec3 cameraPos; // world space camera position
 	uniform vec3 cameraDir; // forward vector of camera
@@ -50,6 +55,7 @@ vertex = [[
 
 	uniform float floatOptions[2];
 	uniform int bitOptions;
+
 
 
 	/***********************************************************************/
@@ -71,7 +77,6 @@ vertex = [[
 		// auxilary varyings
 		float aoTerm;
 		float selfIllumMod;
-		float fogFactor;
 	};
 
 	/***********************************************************************/
@@ -127,7 +132,7 @@ vertex = [[
 			}
 
 			if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
-				aoTerm = clamp(1.0 * fract(modelUV.x * 16384.0), 0.1, 1.0);
+				aoTerm = clamp(1.0 * fract(modelUV.x * 16384.0), shadowDensity, 1.0);
 			} else {
 				aoTerm = 1.0;
 			}
@@ -178,12 +183,12 @@ fragment = [[
 	// Options in use
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
-	#define OPTION_VERTEX_AO 2
-	#define OPTION_FLASHLIGHTS 3
+	#define OPTION_NORMALMAP_FLIP 2
+	#define OPTION_VERTEX_AO 3
+	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_NORMALMAP_FLIP 6
-	#define OPTION_POM 9
-	#define OPTION_AUTONORMAL 10
+	#define OPTION_POM 10
+	#define OPTION_AUTONORMAL 11
 
 	%%GLOBAL_OPTIONS%%
 
@@ -315,7 +320,6 @@ fragment = [[
 		// auxilary varyings
 		float aoTerm;
 		float selfIllumMod;
-		float fogFactor;
 	};
 
 	/***********************************************************************/
@@ -1264,11 +1268,11 @@ fragment = [[
 			outColor *= EXPOSURE;
 		#endif
 
-		outColor = TONEMAP(outColor);
+		outColor = CustomTM(outColor);
 
 		// debug hook
-		#if 1
-			outColor = dirContrib + ambientContrib;
+		#if 0
+			//outColor = dirContrib + ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif
@@ -1335,7 +1339,6 @@ local defaultMaterialTemplate = {
 		threads 		= false,
 		vertex_ao 		= false,
 		flashlights 	= false,
-		unitsfog 		= false,
 		normalmap_flip 	= false,
 		metal_highlight = false,
 		treewind 		= false,
@@ -1355,7 +1358,6 @@ local defaultMaterialTemplate = {
 		threads 		= false,
 		vertex_ao 		= false,
 		flashlights 	= false,
-		unitsfog 		= false,
 		normalmap_flip 	= false,
 		metal_highlight = false,
 		treewind 		= false,
@@ -1399,29 +1401,23 @@ local shaderPlugins = {
 --[[
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
-	#define OPTION_MOVING_THREADS 2
+	#define OPTION_NORMALMAP_FLIP 2
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
-	#define OPTION_UNITSFOG 5
-	#define OPTION_NORMALMAP_FLIP 6
-	#define OPTION_METAL_HIGHLIGHT 7
-	#define OPTION_TREEWIND 8
-	#define OPTION_POM 9
+
+	#define OPTION_POM 10
+	#define OPTION_AUTONORMAL 11
 ]]--
 
 -- bit = (index - 1)
 local knownBitOptions = {
 	["shadowmapping"] = 0,
 	["normalmapping"] = 1,
-	["threads"] = 2,
+	["normalmap_flip"] = 2,
 	["vertex_ao"] = 3,
 	["flashlights"] = 4,
-	["unitsfog"] = 5,
-	["normalmap_flip"] = 6,
-	["metal_highlight"] = 7,
-	["treewind"] = 8,
-	["pom"] = 9,
-	["autonormal"] = 10,
+	--["pom"] = 10,
+	--["autonormal"] = 11,
 }
 
 local knownIntOptions = {
@@ -1550,6 +1546,17 @@ local function SunChanged(luaShader)
 	luaShader:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
 	luaShader:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
 	luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
+
+	luaShader:SetUniformFloatArrayAlways("pbrParams", {
+        Spring.GetConfigFloat("tonemapA", 4.8),
+        Spring.GetConfigFloat("tonemapB", 0.8),
+        Spring.GetConfigFloat("tonemapC", 3.35),
+        Spring.GetConfigFloat("tonemapD", 1.0),
+        Spring.GetConfigFloat("tonemapE", 1.15),
+        Spring.GetConfigFloat("envAmbient", 0.3),
+        Spring.GetConfigFloat("unitSunMult", 1.35),
+        Spring.GetConfigFloat("unitExposureMult", 1.0),
+	})
 end
 
 defaultMaterialTemplate.ProcessOptions = ProcessOptions
