@@ -29,7 +29,7 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
-local fontfileOutlineSize = 9
+local fontfileOutlineSize = 8
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -330,7 +330,7 @@ function drawOrders()
       glColor(0.5,0.5,0.5,0.75)
     end
     RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
-    glColor(0.1,0.1,0.1,0.66)
+    glColor(0.09,0.09,0.09,0.66)
     if activeCmd and activeCmd == cmd.name then
       glColor(1,1,1,0.66)
     end
@@ -394,7 +394,7 @@ function drawOrders()
         local y1 = cellRects[cell][2] + cellMarginPx + padding
         local x2 = cellRects[cell][1] + cellMarginPx - padding + (stateWidth*i) - (i==statecount and 0 or stateMargin)
         local y2 = cellRects[cell][2] + cellMarginPx + stateHeight
-        if rows < 5 then  -- fancy fitting rectrounds
+        if rows < 6 then  -- fancy fitting rectrounds
           RectRound(x1, y1, x2, y2, padding,
                   (i==1 and 0 or 2), (i==statecount and 0 or 2), (i==statecount and 2 or 0), (i==1 and 2 or 0))
         else
@@ -536,15 +536,22 @@ function widget:MousePress(x, y, button)
 
                 -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
                 if cmd.type == 5 then
-                  clickedCellDesiredState = cmd.params[1]+1
-                  if clickedCellDesiredState >= #cmd.params-1 then
-                    clickedCellDesiredState = 0
+                  if button == 1 then
+                    clickedCellDesiredState = cmd.params[1]+1
+                    if clickedCellDesiredState >= #cmd.params-1 then
+                      clickedCellDesiredState = 0
+                    end
+                  else
+                    clickedCellDesiredState = cmd.params[1]-1
+                    if clickedCellDesiredState < 0 then
+                      clickedCellDesiredState = #cmd.params-1
+                    end
                   end
                   doUpdate = true
                 end
 
                 Spring.PlaySoundFile(sound_button, 0.6, 'ui')
-                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
+                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),button,true,false,Spring.GetModKeyState())
               end
               break
             end
