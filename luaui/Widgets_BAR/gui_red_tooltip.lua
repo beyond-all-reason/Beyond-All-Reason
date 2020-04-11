@@ -6,7 +6,7 @@ function widget:GetInfo()
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = -100,
-	enabled   = true, --enabled by default
+	enabled   = false, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
@@ -277,6 +277,8 @@ local function createtooltip(r)
 end
 
 function widget:Initialize()
+  Spring.Echo("gui_red_tooltip.lua (Red Tooltip) is known to leak memory. Disabling itself")
+  widgetHandler:RemoveWidget(self)
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 
