@@ -89,6 +89,8 @@ local glCulling = gl.Culling
 local glBlending = gl.Blending
 
 local glPushPopMatrix = gl.PushPopMatrix
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
 local glUnitMultMatrix = gl.UnitMultMatrix
 local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
 local glUnitPiece = gl.UnitPiece
@@ -299,6 +301,17 @@ end
 
 
 local function RenderGlassUnits()
+	local glassUnit = nil
+	for unitID, _ in pairs(glassUnits) do
+		glassUnit = unitID
+		break
+	end
+
+	if not glassUnit then
+		return
+	end
+
+
 	glDepthTest(true)
 
 	glassShader:ActivateWith( function()
@@ -331,33 +344,34 @@ local function RenderGlassUnits()
 				glUnitShapeTextures(unitDefID, true)
 				glTexture(2, normalMaps[unitDefID])
 
-				local tc = teamColors[unitID]
-				glassShader:SetUniformFloat("teamColor", tc[1], tc[2], tc[3], tc[4])
+				--local tc = teamColors[unitID]
+				--glassShader:SetUniformFloatAlways("teamColor", tc[1], tc[2], tc[3], tc[4])
 
 				--/// Render only backfaces
 				glCulling(GL_FRONT)
 
 				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
-					glPushPopMatrix( function()
+					glPushMatrix()
 						glUnitMultMatrix(unitID)
 						glUnitPieceMultMatrix(unitID, pieceID)
 						glUnitPiece(unitID, pieceID)
-					end)
+					glPopMatrix()
 				end
 
 				--/// Render only frontfaces
 				glCulling(GL_BACK)
 
 				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
-					glPushPopMatrix( function()
+					glPushMatrix()
 						glUnitMultMatrix(unitID)
 						glUnitPieceMultMatrix(unitID, pieceID)
 						glUnitPiece(unitID, pieceID)
-					end)
+					glPopMatrix()
 				end
 
 				glUnitShapeTextures(unitDefID, false)
 				glTexture(2, false)
+
 			end
 		end
 
@@ -366,6 +380,7 @@ local function RenderGlassUnits()
 
 	glDepthTest(false)
 	glCulling(false)
+
 end
 
 
