@@ -225,7 +225,10 @@ function widget:Update(dt)
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
     end
 
-    disableInput = isSpec or not Spring.IsGodModeEnabled()
+    disableInput = isSpec
+    if Spring.IsGodModeEnabled() then
+      disableInput = false
+    end
   end
 end
 

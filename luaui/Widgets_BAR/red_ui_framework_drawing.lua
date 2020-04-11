@@ -27,7 +27,6 @@ local sIsGUIHidden = Spring.IsGUIHidden
 
 local F = {} --function table
 local Todo = {} --function queue
-local dList = {}
 local StartList
 
 local glText = gl.Text
@@ -357,25 +356,7 @@ function widget:DrawScreen()
 	local t
 	for i=1,#Todo do
 		t = Todo[i]
-		id = ''
-		if t[1] == 5 then	-- text
-			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]
-			if type(t[7]) == 'table' then
-				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
-			end
-		end
-
-		if id ~= '' then
-			if dList[id] == nil then
-				dList[id] = glCreateList(function()
-					F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
-				end)
-			end
-			glCallList(dList[id])
-		else
-			F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
-		end
-
+		F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
 		Todo[i] = nil
 	end
 
@@ -418,7 +399,6 @@ function widget:DrawScreen()
 end
 
 local sec = 0
-local flushDistsTime = 20
 function widget:Update(dt)
 	if chobbyInterface then return end
 	if (sIsGUIHidden()) then
@@ -426,24 +406,10 @@ function widget:Update(dt)
 			Todo[i] = nil
 		end
 	end
-
-	sec=sec+dt
-	if (sec>flushDistsTime) then
-		sec = 0
-		removeDLists()
-	end
-end
-
-function removeDLists()
-	for t, l in pairs(dList) do
-		glDeleteList(dList[l])
-	end
-	dList = {}
 end
 
 function widget:Shutdown()
 	glDeleteList(StartList)
-	removeDLists()
 	
 	if WG['guishader'] then
 	
