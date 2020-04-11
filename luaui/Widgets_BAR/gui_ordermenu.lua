@@ -16,8 +16,6 @@ end
 
 local playSounds = true
 local posY = 0.7635
-local rows = 4
-local colls = 4
 local width = 0.23
 local height = 0.16
 local cellMargin = 0.055
@@ -52,6 +50,8 @@ local cellRects = {}
 local cellMarginPx = 0
 local cmds = {}
 local lastUpdate = os.clock()-1
+local rows = 0
+local colls = 0
 
 local hiddencmds = {
   [76] = true, --load units clone
@@ -114,24 +114,53 @@ local function RefreshCommands()
       cmds[i+stateCmdsCount] = otherCmds[i]
     end
   end
+
+  setupCellGrid()
 end
 
-function createCellGrid()
-  cellRects = {}
-  local i = 0
-  local cellWidth = (activeRect[3] - activeRect[1]) / colls
-  local cellHeight = (activeRect[4] - activeRect[2]) / rows
-  cellMarginPx = cellHeight * cellMargin
-  local addHeight = 0
-  for row=1, rows do
-    for col=1, colls do
-      i = i + 1
-      cellRects[i] = {
-        activeRect[1]+(cellWidth*(col-1)),
-        activeRect[4]-(cellHeight*row),
-        activeRect[1]+(cellWidth*col),
-        activeRect[4]-(cellHeight*(row-1))
-      }
+function setupCellGrid()
+  local oldColls = colls
+  local oldRows = rows
+  local cmdCount = #cmds
+  if cmdCount <= 16 then
+    colls = 4
+    rows = 4
+  elseif cmdCount <= 20 then
+    colls = 5
+    rows = 4
+  elseif cmdCount <= 25 then
+    colls = 5
+    rows = 5
+  elseif cmdCount <= 30 then
+    colls = 5
+    rows = 6
+  elseif cmdCount <= 36 then
+    colls = 6
+    rows = 6
+  elseif cmdCount <= 42 then
+    colls = 6
+    rows = 7
+  else
+    colls = 7
+    rows = 7
+  end
+
+  if oldColls ~= colls or oldRows ~= rows then
+    cellRects = {}
+    local i = 0
+    local cellWidth = (activeRect[3] - activeRect[1]) / colls
+    local cellHeight = (activeRect[4] - activeRect[2]) / rows
+    cellMarginPx = cellHeight * cellMargin
+    for row=1, rows do
+      for col=1, colls do
+        i = i + 1
+        cellRects[i] = {
+          activeRect[1]+(cellWidth*(col-1)),
+          activeRect[4]-(cellHeight*row),
+          activeRect[1]+(cellWidth*col),
+          activeRect[4]-(cellHeight*(row-1))
+        }
+      end
     end
   end
 end
@@ -150,7 +179,7 @@ function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
   activeRect = {0 + (bgMargin*vsy), ((posY-height)+bgMargin)*vsy, (width*vsx)-(bgMargin*vsy), (posY-bgMargin)*vsy}
-  createCellGrid()
+
   widget:Shutdown()
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -377,15 +406,17 @@ function widget:DrawScreen()
   end
 
   local x,y,b = Spring.GetMouseState()
+  local cellHovered
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     Spring.SetMouseCursor('cursornormal')
     for cell=1, #cellRects do
       if cmds[cell] then
         if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+          cellHovered = cell
           local cmd = cmds[cell]
           WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
 
-          -- draw highlight
+          -- draw highlight under the button
           local padding = (bgBorder*vsy) * 0.5
           glColor(1,1,1,1)
           RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
@@ -415,31 +446,6 @@ function widget:DrawScreen()
   if doUpdate then
     lastUpdate = os_clock()
     RefreshCommands()
-
-    local cmdCount = #cmds
-    if cmdCount <= 16 then
-      colls = 4
-      rows = 4
-    elseif cmdCount <= 20 then
-      colls = 5
-      rows = 4
-    elseif cmdCount <= 25 then
-      colls = 5
-      rows = 5
-    elseif cmdCount <= 30 then
-      colls = 5
-      rows = 6
-    elseif cmdCount <= 36 then
-      colls = 6
-      rows = 6
-    elseif cmdCount <= 42 then
-      colls = 6
-      rows = 7
-    else
-      colls = 7
-      rows = 7
-    end
-    createCellGrid()
   end
 
   if #cmds == 0 then
@@ -457,15 +463,23 @@ function widget:DrawScreen()
     end
     gl.CallList(dlistOrders)
 
+    -- draw highlight on top of button
+    if cellHovered then
+      local padding = (bgBorder*vsy) * 0.5
+      glColor(1,1,1,0.12)
+      RectRound(cellRects[cellHovered][1]+cellMarginPx, cellRects[cellHovered][2]+cellMarginPx, cellRects[cellHovered][3]-cellMarginPx, (cellRects[cellHovered][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
+    end
+
+    -- clicked cell effect
     if clickedCell and cmds[clickedCell] then
       local cell = clickedCell
       local padding = (bgBorder*vsy) * 0.5
-      local alpha = 0.15 - ((os_clock()-clickedCellTime) / 0.66)
+      local alpha = 0.33 - ((os_clock()-clickedCellTime) / 0.4)
       if alpha > 0 then
         if activeCmd and activeCmd == cmds[cell].name then
-          glColor(0.3,0.3,0.3,alpha)
+          glColor(0,0,0,alpha)
         else
-          glColor(0.8,0.8,0.8,alpha)
+          glColor(1,1,1,alpha)
         end
         RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
       else
