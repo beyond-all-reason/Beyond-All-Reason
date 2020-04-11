@@ -18,6 +18,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPieceList = Spring.GetUnitPieceList
 local spGetUnitTeam = Spring.GetUnitTeam
 local spSetUnitPieceVisible = Spring.SetUnitPieceVisible
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 if gadgetHandler:IsSyncedCode() then -- Synced
 
@@ -40,7 +41,7 @@ local function FillGlassUnitDefs(unitID, unitDefID)
 				if not glassUnitDefs[unitDefID] then
 					glassUnitDefs[unitDefID] = {}
 				end
-				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
+				--Spring.Echo(UnitDefs[unitDefID].name,unitID, unitDefID, pieceID, pieceName)
 				table.insert(glassUnitDefs[unitDefID], pieceID)
 			end
 		end
@@ -382,6 +383,10 @@ local function UpdateGlassUnit(unitID)
 		return
 	end
 
+	if spGetUnitIsCloaked(unitID) then --cloaked unit
+		return
+	end
+
 	if not glassUnitDefs[unitDefID] then -- unknown unitdef
 		pieceList = spGetUnitPieceList(unitID)
 		for pieceID, pieceName in ipairs(pieceList) do
@@ -420,6 +425,7 @@ function UpdateAllGlassUnits()
 	end
 end
 
+----------------------------------------------------------------------
 
 local function GlassUnitDestroyed(unitID)
 	udIDs[unitID] = nil
@@ -442,6 +448,20 @@ function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 		GlassUnitDestroyed(unitID)
 	end
 end
+
+function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
+	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) then
+		GlassUnitDestroyed(unitID)
+	end
+end
+
+function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
+	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
+		UpdateGlassUnit(unitID)
+	end
+end
+
+----------------------------------------------------------------------
 
 function gadget:GameFrame(gf)
 	if gf % 7 == 1 then
