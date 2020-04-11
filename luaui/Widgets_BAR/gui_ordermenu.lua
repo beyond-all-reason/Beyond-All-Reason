@@ -146,6 +146,9 @@ function setupCellGrid()
   end
 
   if oldColls ~= colls or oldRows ~= rows then
+    clickedCell = nil
+    clickedCellTime = nil
+    clickedCellDesiredState = nil
     cellRects = {}
     local i = 0
     local cellWidth = (activeRect[3] - activeRect[1]) / colls
@@ -346,23 +349,31 @@ function drawOrders()
     if cmd.type == 5 then  -- state cmds (fire at will, etc)
       local statecount = #cmd.params-1 --number of states for the cmd
       local curstate = cmd.params[1]+1
+      local desiredState = nil
+      if clickedCellDesiredState and cell == clickedCell then
+        desiredState = clickedCellDesiredState + 1
+      end
+      if curstate == desiredState then
+        clickedCellDesiredState = nil
+        desiredState = nil
+      end
       local stateWidth = cellInnerWidth / statecount
       local stateHeight = cellInnerHeight * 0.165
       local stateMargin = stateWidth*0.07
       local glowSize = stateHeight * 3
       local r,g,b,a = 0,0,0,0
       for i=1, statecount do
-        if i == curstate then
+        if i == curstate or i == desiredState then
           if i == 1 then
-            r,g,b,a = 1,0.1,0.1,0.66
+            r,g,b,a = 1,0.1,0.1,(i == desiredState and 0.33 or 0.8)
           elseif i == 2 then
             if statecount == 2 then
-              r,g,b,a = 0.1,1,0.1,0.66
+              r,g,b,a = 0.1,1,0.1,(i == desiredState and 0.22 or 0.8)
             else
-              r,g,b,a = 1,1,0.1,0.66
+              r,g,b,a = 1,1,0.1,(i == desiredState and 0.22 or 0.8)
             end
           else
-            r,g,b,a = 0.1,1,0.1,0.66
+            r,g,b,a = 0.1,1,0.1,(i == desiredState and 0.26 or 0.8)
           end
         else
           r,g,b,a = 0,0,0,0.33  -- default off state
@@ -471,7 +482,7 @@ function widget:DrawScreen()
     end
 
     -- clicked cell effect
-    if clickedCell and cmds[clickedCell] then
+    if clickedCellTime and cmds[clickedCell] then
       local cell = clickedCell
       local padding = (bgBorder*vsy) * 0.5
       local alpha = 0.33 - ((os_clock()-clickedCellTime) / 0.4)
@@ -483,7 +494,6 @@ function widget:DrawScreen()
         end
         RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
       else
-        clickedCell = nil
         clickedCellTime = nil
       end
     end
@@ -507,11 +517,21 @@ function widget:MousePress(x, y, button)
         if cmd then
           if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
             if playSounds then
-              Spring.PlaySoundFile(sound_button, 0.6, 'ui')
-              Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
+              clickCountDown = 2
               clickedCell = cell
               clickedCellTime = os_clock()
-              clickCountDown = 2
+
+              -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
+              if cmd.type == 5 then
+                clickedCellDesiredState = cmd.params[1]+1
+                if clickedCellDesiredState >= #cmd.params-1 then
+                  clickedCellDesiredState = 0
+                end
+                doUpdate = true
+              end
+
+              Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+              Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
             end
             break
           end
