@@ -49,7 +49,7 @@ end
 -- File path Constants
 -----------------------------------------------------------------
 
-local MATERIALS_DIR = "Materials/"
+local MATERIALS_DIR = "ModelMaterials/"
 local LUASHADER_DIR = "LuaRules/Gadgets/Include/"
 local DEFAULT_VERSION = "#version 150 compatibility"
 

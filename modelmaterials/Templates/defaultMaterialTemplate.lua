@@ -216,11 +216,11 @@ fragment = [[
 
 	/***********************************************************************/
 	// Sampler uniforms
-	uniform sampler2D texture1;
-	uniform sampler2D texture2;
-	uniform sampler2D normalTex;
-	uniform samplerCube reflectTex;
-	uniform sampler2DShadow shadowTex;
+	uniform sampler2D texture1;			//0
+	uniform sampler2D texture2;			//1
+	uniform sampler2DShadow shadowTex;	//2
+	uniform samplerCube reflectTex;		//3
+	uniform sampler2D normalTex;		//4
 
 	/***********************************************************************/
 	// Sunlight uniforms
@@ -248,13 +248,13 @@ fragment = [[
 	#ifdef USE_LOSMAP
 		uniform vec2 mapSize;
 		uniform float inLosMode;
-		uniform sampler2D losMapTex;
+		uniform sampler2D losMapTex;	//5
 	#endif
 
 	/***********************************************************************/
 	// PBR uniforms
-	uniform sampler2D envLUT;
-	uniform sampler2D brdfLUT;
+	uniform sampler2D brdfLUT;			//6
+	uniform sampler2D envLUT;			//7
 
 	uniform float pbrParams[8];
 
@@ -1087,7 +1087,7 @@ fragment = [[
 		}
 		#endif
 
-		vec3 albedoColor = SRGBtoLINEAR(mix(diffuseColIn.rgb, teamColor.rgb, diffuseColIn.a));
+		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
 
 		#if defined(ROUGHNESS_PERTURB_COLOR)
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
@@ -1260,8 +1260,8 @@ fragment = [[
 		outColor = TONEMAP(outColor);
 
 		// debug hook
-		#if 0
-			//outColor = ambientContrib;
+		#if 1
+			outColor = dirContrib + ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif
@@ -1285,11 +1285,14 @@ fragment = [[
 #endif
 ]],
 	uniformInt = {
-		texture1 	= 0,
-		texture2 	= 1,
-		shadowTex	= 2,
-		reflectTex	= 4,
-		normalTex	= 5,
+		texture1 	 = 0,
+		texture2 	 = 1,
+		shadowTex    = 2,
+		reflectTex   = 3,
+		normalTex    = 4,
+		losMapTex    = 5,
+		brdfLUT      = 6,
+		envLUT       = 7,
 	},
 	uniformFloat = {
 		sunAmbient		= {gl.GetSun("ambient" ,"unit")},
@@ -1306,7 +1309,7 @@ local defaultMaterialTemplate = {
 	shader   = shaderTemplate, -- `shader` is replaced with standardShader later in api_cus
 	deferred = shaderTemplate, -- `deferred` is replaced with deferredShader later in api_cus
 	shadow   = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
-
+	
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
 	},
@@ -1336,7 +1339,6 @@ local defaultMaterialTemplate = {
 		materialIndex	= 0,
 
 		autoNormalParams = {1.0, 0.00200}, -- Sampling distance, autonormal value
-		sunSpecularParams = {18.0, 4.0, 0.0}, -- Exponent, multiplier, bias
 		pomParams = {0.002, 1.0, 24.0, -2.0}, -- scale, minLayers, maxLayers, lodBias
 	},
 
@@ -1355,8 +1357,6 @@ local defaultMaterialTemplate = {
 
 		shadowsQuality	= 0,
 		materialIndex	= 0,
-
-		sunSpecularParams = {18.0, 4.0, 0.0}, -- Exponent, multiplier, bias
 	},
 
 	shadowOptions = {
@@ -1367,7 +1367,11 @@ local defaultMaterialTemplate = {
 
 	texUnits = {
 		[2] = "$shadow",
-		[4] = "$reflection",
+		[3] = "$reflection",
+		[4] = "%NORMALTEX",
+		[5] = "$info",
+		[6] = GG.GetBrdfTexture(),
+		[7] = GG.GetEnvTexture(),		
 	},
 
 	predl = nil, -- `predl` is replaced with `prelist` later in api_cus
@@ -1421,7 +1425,6 @@ local knownIntOptions = {
 local knownFloatOptions = {
 	["autoNormalParams"] = 2,
 	["pomParams"] = 4,
-	["sunSpecularParams"] = 3,
 }
 
 local allOptions = nil
@@ -1446,7 +1449,7 @@ local function ProcessOptions(materialDef, optName, optValues)
 			local optValue = unpack(optValues or {})
 			local optOriginalValue = materialDef.originalOptions[id][optName]
 
-			--Spring.Echo(optName, type(optValue), "optValue", optValue, "optOriginalValue", optOriginalValue)
+			Spring.Echo(optName, type(optValue), "optValue", optValue, "optOriginalValue", optOriginalValue)
 			if optOriginalValue then
 				if optValue ~= nil then
 					if type(optValue) == "boolean" then

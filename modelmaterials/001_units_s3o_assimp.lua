@@ -4,7 +4,6 @@ local unitsNewNormalMap = Spring.Utilities.MergeWithDefault(matTemplate, {
 	texUnits  = {
 		[0] = "%TEX1",
 		[1] = "%TEX2",
-		[5] = "%NORMALTEX",
 	},
 	shaderOptions = {
 		normalmapping = true,
@@ -33,7 +32,7 @@ local unitsNewNoNormalMap = Spring.Utilities.MergeWithDefault(matTemplate, {
 })
 local unitsNewNoNormalMapFL = Spring.Utilities.MergeWithDefault(unitsNewNoNormalMap, {
 	shaderOptions = {
-		flashlights = false, --TODO change to true and sort out which units misbehave manually
+		flashlights = true, --TODO change to true and sort out which units misbehave manually
 	},
 })
 
@@ -202,26 +201,6 @@ for id = 1, #UnitDefs do
 
 		unitMaterials[id] = GetUnitMaterial(tex1, tex2, normalTex, flashlights)
 	end
-end
-
-local skinDefs = include("LuaRules/Configs/dynamic_comm_skins.lua")
-
-for name, data in pairs(skinDefs) do
-	local udefParent = UnitDefNames["dyn" .. data.chassis .. "0"]
-
-	local flashlights = true
-	if (udefParent.customParams.cus_noflashlight) then
-		flashlights = false
-	end
-
-	local tex1 = data.altskin
-	local tex2 = data.altskin2
-	if not tex2 then
-		tex2 = "%%" .. udefParent.id .. ":1"
-	end
-
-	local normalTex = GetNormalTex(udefParent)
-	unitMaterials[name] = GetUnitMaterial(tex1, tex2, normalTex, flashlights)
 end
 
 --------------------------------------------------------------------------------
