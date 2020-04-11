@@ -52,6 +52,7 @@ local cmds = {}
 local lastUpdate = os.clock()-1
 local rows = 0
 local colls = 0
+local disableInput = false
 
 local hiddencmds = {
   [76] = true, --load units clone
@@ -82,9 +83,14 @@ local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glRect = gl.Rect
 
+local isSpec = Spring.GetSpectatingState()
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+function widget:PlayerChanged(playerID)
+  isSpec = Spring.GetSpectatingState()
+end
 
 local function RefreshCommands()
   local stateCmds = {}
@@ -218,6 +224,8 @@ function widget:Update(dt)
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
     end
+
+    disableInput = isSpec or not Spring.IsGodModeEnabled()
   end
 end
 
@@ -420,22 +428,23 @@ function widget:DrawScreen()
   local cellHovered
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     Spring.SetMouseCursor('cursornormal')
-    for cell=1, #cellRects do
-      if cmds[cell] then
-        if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
-          cellHovered = cell
-          local cmd = cmds[cell]
-          WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
+      for cell=1, #cellRects do
+        if cmds[cell] then
+          if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+            local cmd = cmds[cell]
+            WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
 
-          -- draw highlight under the button
-          local padding = (bgBorder*vsy) * 0.5
-          glColor(1,1,1,1)
-          RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
+            if not disableInput then
+              -- draw highlight under the button
+              local padding = (bgBorder*vsy) * 0.5
+              glColor(1,1,1,1)
+              RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
+              break
+            end
+          end
+        else
           break
         end
-      else
-        break
-      end
     end
   end
 
@@ -475,7 +484,7 @@ function widget:DrawScreen()
     gl.CallList(dlistOrders)
 
     -- draw highlight on top of button
-    if cellHovered then
+    if cellHovered and not disableInput then
       local padding = (bgBorder*vsy) * 0.5
       glColor(1,1,1,0.12)
       RectRound(cellRects[cellHovered][1]+cellMarginPx, cellRects[cellHovered][2]+cellMarginPx, cellRects[cellHovered][3]-cellMarginPx, (cellRects[cellHovered][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
@@ -512,31 +521,33 @@ end
 function widget:MousePress(x, y, button)
   if #cmds > 0 then
     if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-      for cell=1, #cellRects do
-        local cmd = cmds[cell]
-        if cmd then
-          if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
-            if playSounds then
-              clickCountDown = 2
-              clickedCell = cell
-              clickedCellTime = os_clock()
+      if not disableInput then
+        for cell=1, #cellRects do
+          local cmd = cmds[cell]
+          if cmd then
+            if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+              if playSounds then
+                clickCountDown = 2
+                clickedCell = cell
+                clickedCellTime = os_clock()
 
-              -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
-              if cmd.type == 5 then
-                clickedCellDesiredState = cmd.params[1]+1
-                if clickedCellDesiredState >= #cmd.params-1 then
-                  clickedCellDesiredState = 0
+                -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
+                if cmd.type == 5 then
+                  clickedCellDesiredState = cmd.params[1]+1
+                  if clickedCellDesiredState >= #cmd.params-1 then
+                    clickedCellDesiredState = 0
+                  end
+                  doUpdate = true
                 end
-                doUpdate = true
-              end
 
-              Spring.PlaySoundFile(sound_button, 0.6, 'ui')
-              Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
+                Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
+              end
+              break
             end
+          else
             break
           end
-        else
-          break
         end
       end
       return true
