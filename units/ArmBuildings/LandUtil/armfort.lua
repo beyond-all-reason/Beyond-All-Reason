@@ -53,6 +53,7 @@ return {
 				animtrans = 0,
 				blocking = true,
 				category = "heaps",
+				crushresistance = 0,
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3000,
