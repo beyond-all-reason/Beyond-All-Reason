@@ -602,7 +602,7 @@ local function ObjectFinished(rendering, objectID, objectDefID)
 			end
 
 			if ObjectCreated then
-				ObjectCreated(objectID, mat, 3)
+				ObjectCreated(objectID, objectDefID, mat)
 			end
 		end
 	end
@@ -657,7 +657,7 @@ local function ObjectDestroyed(rendering, objectID, objectDefID)
 	if mat then
 		local _ObjectDestroyed = mat[rendering.ObjectDestroyed]
 		if _ObjectDestroyed then
-			_ObjectDestroyed(objectID)
+			_ObjectDestroyed(objectID, objectDefID)
 		end
 		rendering.drawList[objectID] = nil
 	end
@@ -730,7 +730,7 @@ end
 -----------------------------------------------------------------
 
 -- To be called once per CHECK_FREQ
-local function GameFrameSlow(gf)
+local function _GameFrameSlow(gf)
 	for _, rendering in ipairs(allRendering) do
 		for _, mat in pairs(rendering.materialDefs) do
 			local gameFrameSlowFunc = mat.GameFrameSlow
@@ -740,6 +740,23 @@ local function GameFrameSlow(gf)
 				end
 				if mat.deferredShaderObj then
 					gameFrameSlowFunc(gf, mat, true)
+				end
+			end
+		end
+	end
+end
+
+-- To be called every synced gameframe
+local function _GameFrame(gf)
+	for _, rendering in ipairs(allRendering) do
+		for _, mat in pairs(rendering.materialDefs) do
+			local gameFrameFunc = mat.GameFrame
+			if gameFrameFunc then
+				if mat.standardShaderObj then
+					gameFrameFunc(gf, mat, false)
+				end
+				if mat.deferredShaderObj then
+					gameFrameFunc(gf, mat, true)
 				end
 			end
 		end
@@ -763,8 +780,9 @@ function gadget:GameFrame(gf)
 			_ProcessOptions("shadowmapping", nil, shadows, Spring.GetMyPlayerID())
 		end
 	elseif gfMod == 15 then --TODO change 15 to something less busy
-		GameFrameSlow(gf)
+		_GameFrameSlow(gf)
 	end
+	_GameFrame(gf)
 end
 
 -----------------------------------------------------------------

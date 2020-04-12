@@ -1,4 +1,6 @@
 local matTemplate = VFS.Include("ModelMaterials/Templates/defaultMaterialTemplate.lua")
+
+--[[
 local sentError = false
 
 local metalWreckTreshold = 1
@@ -79,6 +81,7 @@ local function GameFrameSlow(gf, mat, isDeferred)
 		end
 	end
 end
+]]--
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -164,9 +167,9 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		--"#define GAMMA 2.2",
 		--"#define TONEMAP(c) SteveMTM1(c)",
 	},
-	Initialize	= Initialize,
-	Finalize	= Finalize,
-	GameFrameSlow = GameFrameSlow,
+	--Initialize	= Initialize,
+	--Finalize	= Finalize,
+	--GameFrameSlow = GameFrameSlow,
 })
 
 local materials = {
@@ -276,7 +279,7 @@ local function GetTreeInfo(fdef)
 	for _, treeInfo in ipairs(featureNameTrees) do
 		local idx = fdef.name:find(treeInfo.str)
 		if idx and ((treeInfo.prefix and idx == 1) or (not treeInfo.prefix)) then
-					Spring.Echo(fdef.name)
+				--Spring.Echo(fdef.name)
 
 			local isException = false
 			for _, exc in ipairs(featureNameTreeExceptions) do

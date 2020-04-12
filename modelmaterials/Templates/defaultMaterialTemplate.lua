@@ -17,6 +17,9 @@ vertex = [[
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
+	#define OPTION_THREADS_ARM 5
+	#define OPTION_THREADS_CORE 6
+
 	#define OPTION_TREEWIND 10
 
 	#define OPTION_POM 20
@@ -55,7 +58,7 @@ vertex = [[
 	uniform int simFrame;
 	uniform int drawFrame;
 
-	uniform float floatOptions[2];
+	uniform float floatOptions[4];
 	uniform int bitOptions;
 
 
@@ -148,6 +151,28 @@ vertex = [[
 
 			%%VERTEX_UV_TRANSFORM%%
 
+			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_ARM)) {
+				const float atlasSize   = 4096.0;
+				// note, invert we invert Y axis
+				const vec4 treadBoundaries = vec4(2572.0, 3070.0, atlasSize - 1761.0, atlasSize - 1548.0) / atlasSize;
+				if (all(bvec4(
+						modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
+						modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
+					modelUV.x += floatOptions[3];
+				}
+			}
+
+			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_CORE)) {
+				const float atlasSize = 2048.0;
+				// note, invert we invert Y axis
+				const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
+				if (all(bvec4(
+						modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
+						modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
+					modelUV.x += floatOptions[3];
+				}
+			}
+
 			worldVertexPos = modelMatrix * modelVertexPos;
 			/***********************************************************************/
 			// Main vectors for lighting
@@ -239,6 +264,9 @@ fragment = [[
 	#define OPTION_NORMALMAP_FLIP 2
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
+
+	#define OPTION_THREADS_ARM 5
+	#define OPTION_THREADS_CORE 6
 
 	#define OPTION_TREEWIND 10
 
@@ -1331,6 +1359,7 @@ fragment = [[
 			//outColor = dirContrib + ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
+			outColor = vec3(1.0);
 		#endif
 
 		#if (RENDERING_MODE == 0)
@@ -1392,11 +1421,14 @@ local defaultMaterialTemplate = {
 	shaderOptions = {
 		shadowmapping 	= true,
 		normalmapping 	= false,
-		threads 		= false,
+
 		vertex_ao 		= false,
 		flashlights 	= false,
 		normalmap_flip 	= false,
-		metal_highlight = false,
+
+		threads_arm 	= false,
+		threads_core 	= false,
+
 		treewind 		= false,
 		pom 			= false,
 		autonormal 		= false,
@@ -1411,11 +1443,14 @@ local defaultMaterialTemplate = {
 	deferredOptions = {
 		shadowmapping 	= true,
 		normalmapping 	= false,
-		threads 		= false,
+
 		vertex_ao 		= false,
 		flashlights 	= false,
 		normalmap_flip 	= false,
-		metal_highlight = false,
+
+		threads_arm 	= false,
+		threads_core 	= false,
+
 		treewind 		= false,
 		pom 			= false,
 		autonormal 		= false,
@@ -1461,6 +1496,9 @@ local shaderPlugins = {
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
+	#define OPTION_THREADS_ARM 5
+	#define OPTION_THREADS_CORE 6
+
 	#define OPTION_TREEWIND 10
 
 	#define OPTION_POM 20
@@ -1474,6 +1512,10 @@ local knownBitOptions = {
 	["normalmap_flip"] = 2,
 	["vertex_ao"] = 3,
 	["flashlights"] = 4,
+
+	["threads_arm"] = 5,
+	["threads_core"] = 6,
+
 	["treewind"] = 10,
 	["pom"] = 20,
 	["autonormal"] = 21,
