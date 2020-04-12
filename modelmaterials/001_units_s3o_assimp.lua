@@ -115,7 +115,7 @@ local function GameFrameCoreTanks(gf, mat, isDeferred)
 	if isDeferred then
 		return
 	end
-
+	
 	for unitID, _ in pairs(coreTanks) do
 		-----
 		local usx, usy, usz, speed = spGetUnitVelocity(unitID)
@@ -196,7 +196,7 @@ for id = 1, #UnitDefs do
 			local facName = string.sub(udef.name, 1, 3)
 			if facName == "arm" then
 				unitMaterials[id] = {"unitsNormalMapArmTanks", TEX1 = tex1, TEX2 = tex2, NORMALTEX = normalTex}
-			elseif facName == "core" then
+			elseif facName == "cor" then
 				unitMaterials[id] = {"unitsNormalMapCoreTanks", TEX1 = tex1, TEX2 = tex2, NORMALTEX = normalTex}
 			end
 		else
