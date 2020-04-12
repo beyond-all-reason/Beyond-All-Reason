@@ -15,10 +15,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local cannotParalyze = {}
+local stunnedUnits = {}
+
+local hasSetStunned = {}
 for udid, ud in pairs(UnitDefs) do
     if ud.customParams and ud.customParams.paralyzemultiplier == 0 then
-        cannotParalyze[udid] = true
+        hasSetStunned[udid] = false
     end
 end
 
@@ -26,29 +28,41 @@ local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spCallCOBScript = Spring.CallCOBScript
 local spGetCOBScriptID = Spring.GetCOBScriptID
 
-local isUnitStunned = {}
-
 function gadget:GameFrame(n)
-    if n % 30 == 2 then
-        for i, unitID in pairs(Spring.GetAllUnits()) do
-            if isUnitStunned[unitID] ~= nil and isUnitStunned[unitID] ~= select(2, spGetUnitIsStunned(unitID)) then
-                isUnitStunned[unitID] = select(2, spGetUnitIsStunned(unitID))
-                spCallCOBScript(unitID, 'SetStunned', 0, select(2, spGetUnitIsStunned(unitID)))
-                --Spring.Echo('SetStunned  '..unitID..'  '..(spGetUnitIsStunned(unitID) and 1 or 0))
+    -- check if stunned units have become deparalyzed
+    if n % 10 == 3 then
+        for unitID, _ in pairs(stunnedUnits) do
+            if not select(2, spGetUnitIsStunned(unitID)) then
+                stunnedUnits[unitID] = nil
+                spCallCOBScript(unitID, 'SetStunned', 0, false)
             end
         end
     end
 end
 
+function gadget:Initialize()
+    for i, unitID in pairs(Spring.GetAllUnits()) do
+        gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+    end
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if spGetCOBScriptID(unitID, 'SetStunned') then
-        isUnitStunned[unitID] = false
+    if hasSetStunned[unitDefID] == nil then
+        hasSetStunned[unitDefID] = spGetCOBScriptID(unitID, 'SetStunned') and true or false
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if isUnitStunned[unitDefID] then
-        isUnitStunned[unitID] = nil
+	if stunnedUnits[unitDefID] then
+        stunnedUnits[unitID] = nil
 	end
 end
 
+function gadget:UnitDamaged(unitID,unitDefID,unitTeam,damage,paralyzer,weaponDefID,projectileID,attackerID,attackerDefID,attackerTeam)
+    if paralyzer and hasSetStunned[unitDefID] ~= nil then
+        if select(2, spGetUnitIsStunned(unitID)) then
+            stunnedUnits[unitID] = true
+            spCallCOBScript(unitID, 'SetStunned', 0, true)
+        end
+    end
+end

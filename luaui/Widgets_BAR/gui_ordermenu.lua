@@ -348,7 +348,7 @@ function drawOrders()
     local fontHeight = font:GetTextHeight(text)*fontSize
     local fontHeightOffset = fontHeight*0.34
     if cmd.type == 5 then  -- state cmds (fire at will, etc)
-      fontHeightOffset = fontHeight*0.2
+      fontHeightOffset = fontHeight*0.22
     end
     local textColor = "\255\225\225\225"
     if activeCmd and activeCmd == cmd.name then
@@ -369,7 +369,7 @@ function drawOrders()
         desiredState = nil
       end
       local stateWidth = cellInnerWidth / statecount
-      local stateHeight = cellInnerHeight * 0.165
+      local stateHeight = cellInnerHeight * 0.145
       local stateMargin = stateWidth*0.07
       local glowSize = stateHeight * 5.5
       local r,g,b,a = 0,0,0,0
