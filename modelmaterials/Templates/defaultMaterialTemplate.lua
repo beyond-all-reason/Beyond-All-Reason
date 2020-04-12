@@ -17,8 +17,10 @@ vertex = [[
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_POM 10
-	#define OPTION_AUTONORMAL 11
+	#define OPTION_TREEWIND 10
+
+	#define OPTION_POM 20
+	#define OPTION_AUTONORMAL 21
 
 	%%GLOBAL_OPTIONS%%
 
@@ -61,6 +63,7 @@ vertex = [[
 	/***********************************************************************/
 	// Varyings
 	out Data {
+		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
 		vec3 worldBitangent;
@@ -82,6 +85,49 @@ vertex = [[
 	/***********************************************************************/
 	// Auxilary functions
 
+	vec2 GetWind(int period) {
+		vec2 wind;
+		wind.x = sin(period * 5.0);
+		wind.y = cos(period * 5.0);
+		return wind * 10.0f;
+	}
+
+	void DoWindVertexMove(inout vec4 mVP) {
+		vec2 curWind = GetWind(simFrame / 750);
+		vec2 nextWind = GetWind(simFrame / 750 + 1);
+		float tweenFactor = smoothstep(0.0f, 1.0f, max(simFrame % 750 - 600, 0) / 150.0f);
+		vec2 wind = mix(curWind, nextWind, tweenFactor);
+
+		// fractional part of model position, clamped to >.4
+		vec4 modelPos = gl_ModelViewMatrix[3];
+		modelPos = fract(modelPos);
+		modelPos = clamp(modelPos, 0.4, 1.0);
+
+		// crude measure of wind intensity
+		float abswind = abs(wind.x) + abs(wind.y);
+
+		vec4 cosVec;
+		float simTime = 0.02 * simFrame;
+		// these determine the speed of the wind"s "cosine" waves.
+		cosVec.w = 0.0;
+		cosVec.x = simTime * modelPos[0] + mVP.x;
+		cosVec.y = simTime * modelPos[2] / 3.0 + modelPos.x;
+		cosVec.z = simTime * 1.0 + mVP.z;
+
+		// calculate "cosines" in parallel, using a smoothed triangle wave
+		vec4 tri = abs(fract(cosVec + 0.5) * 2.0 - 1.0);
+		cosVec = tri * tri *(3.0 - 2.0 * tri);
+
+		float limit = clamp((mVP.x * mVP.z * mVP.y) / 3000.0, 0.0, 0.2);
+
+		float diff = cosVec.x * limit;
+		float diff2 = cosVec.y * clamp(mVP.y / 30.0, 0.05, 0.2);
+
+		mVP.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
+
+		mVP.xz += diff + diff2 * wind;
+	}
+
 
 	/***********************************************************************/
 	// Vertex shader main()
@@ -92,13 +138,17 @@ vertex = [[
 
 		%%VERTEX_PRE_TRANSFORM%%
 
+		if (BITMASK_FIELD(bitOptions, OPTION_TREEWIND)) {
+			DoWindVertexMove(modelVertexPos);
+		}
+
 		modelUV = gl_MultiTexCoord0.xy;
 
 		#if (RENDERING_MODE != 2) //non-shadow pass
 
 			%%VERTEX_UV_TRANSFORM%%
 
-			vec4 worldVertexPos = modelMatrix * modelVertexPos;
+			worldVertexPos = modelMatrix * modelVertexPos;
 			/***********************************************************************/
 			// Main vectors for lighting
 			// V
@@ -132,7 +182,8 @@ vertex = [[
 			}
 
 			if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
-				aoTerm = clamp(1.0 * fract(modelUV.x * 16384.0), shadowDensity, 1.0);
+				//aoTerm = clamp(1.0 * fract(modelUV.x * 16384.0), shadowDensity, 1.0);
+				aoTerm = clamp(1.0 * fract(modelUV.x * 16384.0), 0.1, 1.0);
 			} else {
 				aoTerm = 1.0;
 			}
@@ -149,6 +200,7 @@ vertex = [[
 			%%VERTEX_POST_TRANSFORM%%
 
 		#else //shadow pass
+
 			vec4 lightVertexPos = gl_ModelViewMatrix * modelVertexPos;
 			vec3 lightVertexNormal = normalize(gl_NormalMatrix * modelVertexNormal);
 
@@ -163,6 +215,7 @@ vertex = [[
 			lightVertexPos.z += bias;
 
 			gl_Position = gl_ProjectionMatrix * lightVertexPos; //TODO figure out gl_ProjectionMatrix replacement ?
+			//gl_Position = shadowMatrix * gl_ModelViewMatrix *  modelVertexPos;
 		#endif
 	}
 ]],
@@ -172,10 +225,10 @@ fragment = [[
 
 	#if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
 		#if (SUPPORT_DEPTH_LAYOUT == 1)
-			//#extension GL_ARB_conservative_depth : enable
-			//#extension GL_EXT_conservative_depth : enable
+			#extension GL_ARB_conservative_depth : require
+			//#extension GL_EXT_conservative_depth : require
 			// preserve early-z performance if possible
-			//layout(depth_unchanged) out float gl_FragDepth;
+			layout(depth_unchanged) out float gl_FragDepth;
 		#endif
 	#endif
 
@@ -187,8 +240,10 @@ fragment = [[
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_POM 10
-	#define OPTION_AUTONORMAL 11
+	#define OPTION_TREEWIND 10
+
+	#define OPTION_POM 20
+	#define OPTION_AUTONORMAL 21
 
 	%%GLOBAL_OPTIONS%%
 
@@ -303,6 +358,7 @@ fragment = [[
 	/***********************************************************************/
 	// Varyings
 	in Data {
+		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
 		vec3 worldBitangent;
@@ -1252,7 +1308,7 @@ fragment = [[
 		outColor += emissiveness * albedoColor;
 
 		#ifdef USE_LOSMAP
-			vec2 losMapUV = worldPos.xz;
+			vec2 losMapUV = worldVertexPos.xz;
 			//losMapUV /= exp2(ceil(log2((mapSize)))); // $infomap is next power of two of mapSize
 			losMapUV /= vec2(NPOT( ivec2(mapSize) ));
 			float losValue = 0.5 + texture(losMapTex, losMapUV).r;
@@ -1377,7 +1433,7 @@ local defaultMaterialTemplate = {
 	texUnits = {
 		[2] = "$shadow",
 		[3] = "$reflection",
-		[4] = "%NORMALTEX",
+		--[4] = "%NORMALTEX",
 		[5] = "$info",
 		[6] = GG.GetBrdfTexture(),
 		[7] = GG.GetEnvTexture(),
@@ -1405,8 +1461,10 @@ local shaderPlugins = {
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
-	#define OPTION_POM 10
-	#define OPTION_AUTONORMAL 11
+	#define OPTION_TREEWIND 10
+
+	#define OPTION_POM 20
+	#define OPTION_AUTONORMAL 21
 ]]--
 
 -- bit = (index - 1)
@@ -1416,8 +1474,9 @@ local knownBitOptions = {
 	["normalmap_flip"] = 2,
 	["vertex_ao"] = 3,
 	["flashlights"] = 4,
-	--["pom"] = 10,
-	--["autonormal"] = 11,
+	["treewind"] = 10,
+	["pom"] = 20,
+	["autonormal"] = 21,
 }
 
 local knownIntOptions = {

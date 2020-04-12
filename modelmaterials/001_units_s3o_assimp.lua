@@ -4,6 +4,7 @@ local unitsNewNormalMap = Spring.Utilities.MergeWithDefault(matTemplate, {
 	texUnits  = {
 		[0] = "%TEX1",
 		[1] = "%TEX2",
+		[4] = "%NORMALTEX",
 	},
 	shaderDefinitions = {
 		"#define SUNMULT pbrParams[6]",

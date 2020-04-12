@@ -60,7 +60,7 @@ local function GameFrameSlow(gf, mat, isDeferred)
 			if not metalInfo[fID] or abs(metalInfo[fID] - metalHere) > 1.0 then
 				metalInfo[fID] = metalHere
 				mhArray[1] = ((metalHere >= metalWreckTreshold) and metalHere) or 0.0
-				
+
 				if not (frSetMaterialUniform and frSetMaterialUniform[isDeferred]) then
 					if not sentError then
 						sentError = true
@@ -89,6 +89,38 @@ local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		[1] = "%%FEATUREDEFID:1",
 	},
 	feature = true,
+	shaderDefinitions = {
+		"#define USE_LOSMAP",
+
+		"#define SUNMULT 1.5",
+		--"#define EXPOSURE 1.0",
+
+		"#define METALNESS 0.1",
+		"#define ROUGHNESS 0.8",
+		"#define EMISSIVENESS 0.0",
+
+		--"#define USE_ENVIRONMENT_DIFFUSE",
+		--"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		--"#define TONEMAP(c) ACESFilmicTM(c)",
+	},
+	deferredDefinitions = {
+		"#define USE_LOSMAP",
+
+		"#define SUNMULT 1.5",
+		--"#define EXPOSURE 1.0",
+
+		"#define METALNESS 0.1",
+		"#define ROUGHNESS 0.8",
+		"#define EMISSIVENESS 0.0",
+
+		--"#define USE_ENVIRONMENT_DIFFUSE",
+		--"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		--"#define TONEMAP(c) SteveMTM1(c)",
+	},
 	shaderOptions = {
 		treewind = true,
 	},
@@ -106,12 +138,31 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		[1] = "%%FEATUREDEFID:1",
 	},
 	feature = true,
-	shaderOptions = {
-		autonormal = true,
-		metal_highlight	= true,
+	shaderDefinitions = {
+		"#define SUNMULT 1.0",
+		--"#define EXPOSURE 1.0",
+
+		"#define METALNESS 0.2",
+		"#define ROUGHNESS 0.6",
+
+		--"#define USE_ENVIRONMENT_DIFFUSE",
+		--"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		--"#define TONEMAP(c) SteveMTM1(c)",
 	},
-	deferredOptions = {
-		--metal_highlight	= true,
+	deferredDefinitions = {
+		"#define SUNMULT 1.0",
+		--"#define EXPOSURE 1.0",
+
+		"#define METALNESS 0.2",
+		"#define ROUGHNESS 0.6",
+
+		--"#define USE_ENVIRONMENT_DIFFUSE",
+		--"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		--"#define TONEMAP(c) SteveMTM1(c)",
 	},
 	Initialize	= Initialize,
 	Finalize	= Finalize,
@@ -119,53 +170,42 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 })
 
 local materials = {
-	featuresTreeMetalFakeNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresTreeFakeNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
 		texUnits  = {
-			[5] = "%NORMALTEX",
+			[4] = "%NORMALTEX",
 		},
 		shaderOptions = {
 			normalmapping = true,
-			metal_highlight	= true,
 		},
 		deferredOptions = {
 			normalmapping = true,
-			--metal_highlight	= true,
 			materialIndex = 128,
 		},
-		Initialize	= Initialize,
-		Finalize	= Finalize,
-		GameFrameSlow = GameFrameSlow,
 	}),
 
-	featuresTreeMetalNoNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresTreeAutoNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
 		shaderOptions = {
 			autonormal = true,
 			autoNormalParams = {0.5, 0.01},
-			metal_highlight	= true,
 		},
 		deferredOptions = {
-			--metal_highlight	= true,
 			materialIndex = 129,
 		},
-		Initialize	= Initialize,
-		Finalize	= Finalize,
-		GameFrameSlow = GameFrameSlow,
 	}),
 
-	featuresTreeNoMetalFakeNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresMetalDeadOrHeap = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
 		texUnits  = {
-			[5] = "%NORMALTEX",
+			[4] = "%NORMALTEX",
 		},
 		shaderOptions = {
 			normalmapping = true,
 		},
 		deferredOptions = {
-			normalmapping = true,
 			materialIndex = 130,
 		},
 	}),
 
-	featuresTreeNoMetalNoNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresMetalNoWreck = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
 		shaderOptions = {
 			autonormal = true,
 			autoNormalParams = {0.5, 0.01},
@@ -175,29 +215,12 @@ local materials = {
 		},
 	}),
 
-	featuresMetalWreck = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
-		shaderOptions = {
-			autoNormalParams = {1.0, 0.005},
-		},
-		deferredOptions = {
-			materialIndex = 132,
-		},
-	}),
-
-	featuresMetalNoWreck = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
-		shaderOptions = {
-			autoNormalParams = {0.75, 0.03},
-		},
-		deferredOptions = {
-			materialIndex = 133,
-		},
-	}),
-
 }
 
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
 local featureNameTrees = {
 	-- all of the 0ad, beherith and artturi features start with these.
 	{str = "ad0_", prefix = true, fakeNormal = true},
@@ -217,7 +240,7 @@ local featureNameTrees = {
 	{str = "birch", prefix = true, fakeNormal = true},
 	{str = "maple", prefix = true, fakeNormal = true},
 	{str = "oak", prefix = true, fakeNormal = true},
-	{str = "fern", prefix = true, fakeNormal = true}, --doesn't look good on DownPour_v1, but let it be for now
+	{str = "fern", prefix = true, fakeNormal = true},
 	{str = "grass", prefix = true, fakeNormal = true},
 	{str = "weed", prefix = true, fakeNormal = true},
 	{str = "plant", prefix = true, fakeNormal = true},
@@ -234,10 +257,13 @@ local featureNameTrees = {
 
 
 local featureNameTreeExceptions = {
+	"fern1",  --doesn't look good on DownPour_v1
+	"fern6",
+	"fern8",
 	"street",
 }
 
-local FAKE_NORMALTEX = "UnitTextures/default_tree_normals.dds"
+local FAKE_NORMALTEX = "UnitTextures/default_tree_normal.dds"
 FAKE_NORMALTEX = VFS.FileExists(FAKE_NORMALTEX) and FAKE_NORMALTEX or nil
 local function GetTreeInfo(fdef)
 	if not fdef or not fdef.name then
@@ -250,6 +276,7 @@ local function GetTreeInfo(fdef)
 	for _, treeInfo in ipairs(featureNameTrees) do
 		local idx = fdef.name:find(treeInfo.str)
 		if idx and ((treeInfo.prefix and idx == 1) or (not treeInfo.prefix)) then
+					Spring.Echo(fdef.name)
 
 			local isException = false
 			for _, exc in ipairs(featureNameTreeExceptions) do
@@ -279,33 +306,41 @@ local featureMaterials = {}
 
 --metallic features & trees
 for id = 1, #FeatureDefs do
-	local fdef = FeatureDefs[id]
-	if not cusFeaturesMaterials[id] and fdef.modeltype ~= "3do" then
-		local isTree, fakeNormal = GetTreeInfo(fdef)
-		local metallic = fdef.metal >= 1
+	local featureDef = FeatureDefs[id]
+	if not cusFeaturesMaterials[id] and featureDef.modeltype ~= "3do" then
+		local isTree, fakeNormal = GetTreeInfo(featureDef)
+		local metallic = featureDef.metal >= 1
 
 		if isTree then
 			if fakeNormal then
-				if metallic then
-					featureMaterials[id] = {"featuresTreeMetalFakeNormal", NORMALTEX = FAKE_NORMALTEX}
-				else
-					featureMaterials[id] = {"featuresTreeNoMetalFakeNormal", NORMALTEX = FAKE_NORMALTEX}
-				end
+				featureMaterials[id] = {"featuresTreeFakeNormal", NORMALTEX = FAKE_NORMALTEX}
 			else
-				if metallic then
-					featureMaterials[id] = {"featuresTreeMetalNoNormal"}
-				else
-					featureMaterials[id] = {"featuresTreeNoMetalNoNormal"}
-				end
+				featureMaterials[id] = {"featuresTreeAutoNormal", NORMALTEX = FAKE_NORMALTEX}
 			end
+
 		elseif metallic then
-			local fromUnit = fdef.customParams and (fdef.customParams.fromunit ~= nil)
+			local fromUnit = featureDef.name:find("_dead") or featureDef.name:find("_heap")
 			if fromUnit then
-				featureMaterials[id] = {"featuresMetalWreck"}
+				Spring.PreloadFeatureDefModel(id)
+
+				--Spring.Echo("featureDef.name", featureDef.name)
+				--Spring.Echo("featureDef.model.textures", featureDef.model.textures)
+				local wreckNormalTex = featureDef.model.textures.tex1  and
+					((featureDef.model.textures.tex1:find("Arm_wreck") and "unittextures/Arm_wreck_color_normal.dds") or
+					(featureDef.model.textures.tex1:find("Core_color_wreck") and "unittextures/Core_color_wreck_normal.dds"))
+
+				if not wreckNormalTex then
+					Spring.Echo("Failed to find normal map for unit wreck: ", featureDef.name)
+				end
+
+				featureMaterials[id] = {"featuresMetalDeadOrHeap", NORMALTEX = wreckNormalTex}
+
 			else
+				--Spring.Echo("featuresMetalNoWreck ", featureDef.name)
 				featureMaterials[id] = {"featuresMetalNoWreck"}
 			end
 		end
+		-- 133_feature_other will handle the rest of features
 	end
 end
 
