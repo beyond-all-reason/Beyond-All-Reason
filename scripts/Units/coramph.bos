@@ -667,12 +667,14 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	turn head to y-axis <0.000000> speed <90.000000>;
-	
+
 	wait-for-turn head around y-axis;
 	wpn1_lasthead = 1000000;
 	wpn3_lasthead = 1000000;
@@ -680,6 +682,19 @@ RestoreAfterDelay()
 	turn lancher to y-axis <0> speed <200.000000>;
 	wait-for-turn lancher around y-axis;
 	bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimSecondary(heading, pitch)

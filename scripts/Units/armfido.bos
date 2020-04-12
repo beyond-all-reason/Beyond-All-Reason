@@ -295,10 +295,12 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	turn loturret to y-axis <0.000000> speed <90.000000>;
 	turn sleeve to x-axis <0.000000> speed <50.000000>;
@@ -306,6 +308,19 @@ RestoreAfterDelay()
 	wait-for-turn sleeve around x-axis;
 	wpn1_lasthead = 1000000;
 	wpn2_lasthead = 1000000;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 Reload()

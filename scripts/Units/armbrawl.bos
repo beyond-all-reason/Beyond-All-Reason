@@ -130,10 +130,25 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn pivot to x-axis <90> speed <180>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep 500;
-	turn pivot to x-axis <90> speed <180>;
+	start-script ExecuteRestoreAfterDelay();
 }
 Create()
 {

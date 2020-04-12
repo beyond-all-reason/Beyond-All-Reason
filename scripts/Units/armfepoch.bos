@@ -184,13 +184,28 @@ RestoreAfterDelay2()
 	turn sleeve5 to x-axis <0.000000> speed <30.000000>;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	turn tur1 to y-axis <0.000000> speed <10.000000>;
 	turn sleeve1 to x-axis <0.000000> speed <10.000000>;
 	turn tur3 to y-axis <0.000000> speed <10.000000>;
 	turn sleeve3 to x-axis <0.000000> speed <10.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 RestoreAfterDelay3()

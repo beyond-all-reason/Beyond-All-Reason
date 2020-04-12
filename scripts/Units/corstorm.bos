@@ -261,13 +261,28 @@ QueryPrimary(piecenum)
 	piecenum = rfirept + gun_1;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.000000> speed <90.021978>;
+	turn launcher to x-axis <0.000000> speed <45.010989>;
+	wpn1_lasthead = 1000000;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep 5000;
-	turn turret to y-axis <0.000000> speed <90.021978>;
-	turn launcher to x-axis <0.000000> speed <45.010989>;
-	wpn1_lasthead = 1000000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

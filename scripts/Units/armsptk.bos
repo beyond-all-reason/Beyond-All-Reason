@@ -392,9 +392,12 @@ SweetSpot(piecenum)
 }
 
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <150.000000>;
 	turn turret to x-axis <0.000000> speed <150.000000>;
@@ -402,6 +405,18 @@ RestoreAfterDelay()
 	wait-for-turn turret around x-axis;
 	open=FALSE;
 	firing=FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

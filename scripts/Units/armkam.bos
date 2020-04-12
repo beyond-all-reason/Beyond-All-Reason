@@ -14,14 +14,26 @@ Create()
 	gun_1=0;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn lturret to x-axis <0.000000> speed <50.000000>;
+	turn rturret to x-axis <0.000000> speed <50.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep 500;
-	turn lturret to x-axis <0.000000> speed <50.000000>;
-	turn rturret to x-axis <0.000000> speed <50.000000>;
-	
-
-	
+	start-script ExecuteRestoreAfterDelay();
 }
 
 HitByWeapon(anglex, anglez)

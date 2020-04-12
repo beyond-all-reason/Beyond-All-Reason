@@ -127,9 +127,12 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 	}
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep 3000;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	move dbl to x-axis [0] speed [8];
 	move dbl to z-axis [0] speed [8];
@@ -139,7 +142,18 @@ RestoreAfterDelay()
 	move dtl to z-axis [0] speed [8];
 	move dtr to x-axis [0] speed [8];
 	move dtr to z-axis [0] speed [8];
-	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 3000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 

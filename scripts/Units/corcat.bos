@@ -467,17 +467,32 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep 3000;
+    if (Stunned) {
+        return (1);
+    }
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn rturret to x-axis <0.000000> speed <45.000000>;
 	turn lturret to x-axis <0.000000> speed <45.000000>;
-	
+
 	wait-for-turn torso around y-axis;
 	wait-for-turn lturret around x-axis;
 	wait-for-turn rturret around x-axis;
 	bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 3000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromWeapon1(piecenum)

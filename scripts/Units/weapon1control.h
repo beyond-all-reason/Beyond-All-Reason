@@ -21,14 +21,29 @@ AimWeapon1(heading, pitch)
 	return (aim1);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	[...]
-	sleep sleeptime;
+    if (Stunned) {
+        return (1);
+    }
 	start-script RestoreWeapon1();
 	[...] -- other animations;
 	call-script Weapon1Restored();
 	[...] -- tell script wpn has been restored if needed for walkscripts
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	[...]
+	sleep sleeptime;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 - Weapon1Control moves the aim pieces depending on turretSpeeds, sets pitch = 1 when pitch reached and head = 1 when head reached

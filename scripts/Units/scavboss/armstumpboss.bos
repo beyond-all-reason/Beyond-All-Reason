@@ -74,6 +74,20 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 2;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep restore_delay;

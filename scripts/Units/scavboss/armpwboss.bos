@@ -443,6 +443,20 @@ DrawWeapon1()
 	start-script Weapon1Drawn();
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;

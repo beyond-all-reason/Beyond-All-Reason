@@ -509,10 +509,12 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	turn torso to y-axis <0.000000> speed <150.000000>;
 	turn rloarm to x-axis <0.000000> speed <45.000000>;
 	turn ruparm to x-axis <0.000000> speed <45.000000>;
@@ -521,6 +523,19 @@ RestoreAfterDelay()
 	wait-for-turn ruparm around x-axis;
 	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)

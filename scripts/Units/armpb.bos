@@ -64,13 +64,28 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	signal SIG_RESTORE;
 	set-signal-mask SIG_RESTORE;
 	sleep restore_delay;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script ExecuteRestoreAfterDelay();
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)

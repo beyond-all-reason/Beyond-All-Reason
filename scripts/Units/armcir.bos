@@ -46,10 +46,25 @@ Create()
 	spin spindle around z-axis speed <15>;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+    firstaim = 1;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep 1000;
-    firstaim = 1;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

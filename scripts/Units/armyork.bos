@@ -83,16 +83,30 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = 5000;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <600.000000>;
 	turn sleeve1 to x-axis <0.000000> speed <600.000000>;
 	turn sleeve2 to x-axis <0.000000> speed <600.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve1 around x-axis;
-	return (1);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimTertiary(heading, pitch)

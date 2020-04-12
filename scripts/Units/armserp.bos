@@ -91,13 +91,28 @@ SweetSpot(piecenum)
 	piecenum = base;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	move rturret to x-axis [0] speed [10];
+	move lturret to x-axis [0] speed [10];
+
+	wait-for-move rturret along x-axis;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep 5000;
-	move rturret to x-axis [0] speed [10];
-	move lturret to x-axis [0] speed [10];
-	
-	wait-for-move rturret along x-axis;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

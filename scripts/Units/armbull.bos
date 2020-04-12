@@ -126,13 +126,28 @@ StopMoving()
 	stop-spin rwheel around x-axis;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <50.000000>;
 	turn rsleeve to x-axis <0.000000> speed <25.000000>;
 	turn lsleeve to x-axis <0.000000> speed <25.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

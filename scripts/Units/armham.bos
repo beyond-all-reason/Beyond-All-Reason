@@ -544,23 +544,38 @@ SweetSpot(piecenum)
 	piecenum = pelvis;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+    set-signal-mask 0;
+    turn torso to y-axis <0.000000> speed <90.000000>;
+    turn larm to x-axis <0.000000> speed <45.000000>;
+    turn rarm to x-axis <0.000000> speed <45.000000>;
+    wpn1_lasthead = 1000000;
+    start-script RequestState(1);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	while (restore == FALSE) // attempt to block restore when switching from 1 to 2 or 2 to 1.
 	{
-	sleep 50;
+	    sleep 50;
 	}
 	sleep 50;
-		if (restore == TRUE)
+	if (restore == TRUE)
 	{
-	sleep restore_delay;
-	set-signal-mask 0;
-	turn torso to y-axis <0.000000> speed <90.000000>;
-	turn larm to x-axis <0.000000> speed <45.000000>;
-	turn rarm to x-axis <0.000000> speed <45.000000>;
-	wpn1_lasthead = 1000000;
-	start-script RequestState(1);
+        sleep restore_delay;
+	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 

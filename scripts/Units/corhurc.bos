@@ -108,11 +108,6 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-RestoreAfterDelay()
-{
-	sleep Static_Var_1;
-}
-
 QueryPrimary(piecenum)
 {
 	piecenum = bombs;

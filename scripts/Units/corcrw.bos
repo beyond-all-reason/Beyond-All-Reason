@@ -91,19 +91,34 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 2;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	turn base to y-axis <0.000000> speed <250.000000>;
 	turn base to x-axis <0.000000> speed <250.000000>;
 	turn turretf to z-axis <0> speed <250>;
 	turn sleevef to x-axis <0> speed <250>;
-	
+
 	turn turretl to x-axis <0> speed <250>;
 	turn sleevel to y-axis <0> speed <250>;
-	
+
 	turn turretr to x-axis <0> speed <250>;
 	turn sleever to y-axis <0> speed <250>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 StartMoving()

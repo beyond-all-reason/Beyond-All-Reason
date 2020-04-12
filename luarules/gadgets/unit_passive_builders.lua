@@ -166,17 +166,19 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     -- track which cons are set to passive
     if cmdID == CMD_PASSIVE and canPassive[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PASSIVE)
-        local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-        cmdDesc.params[1] = cmdParams[1]
-        spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-        spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
-        passiveCons[teamID] = passiveCons[teamID] or {}
-        if cmdParams[1] == 1 then --
-            passiveCons[teamID][unitID] = true
-        else
-            spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
-            currentBuildSpeed[unitID] = realBuildSpeed[unitID]
-            passiveCons[teamID][unitID] = nil        
+        if cmdIdx then
+            local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+            cmdDesc.params[1] = cmdParams[1]
+            spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+            spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
+            passiveCons[teamID] = passiveCons[teamID] or {}
+            if cmdParams[1] == 1 then --
+                passiveCons[teamID][unitID] = true
+            else
+                spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
+                currentBuildSpeed[unitID] = realBuildSpeed[unitID]
+                passiveCons[teamID][unitID] = nil
+            end
         end
         return false -- Allowing command causes command queue to be lost if command is unshifted
     end

@@ -474,16 +474,31 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	turn torso to y-axis <0.000000> speed <90.021978>;
 	turn lmisspod to x-axis <0.000000> speed <90.010989>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn lmisspod around x-axis;
 	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)

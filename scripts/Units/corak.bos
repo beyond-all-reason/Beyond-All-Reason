@@ -522,13 +522,28 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	start-script RestoreWeapon1();
+	call-script Weapon1Restored();
+	bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep 2750;
-	start-script RestoreWeapon1();
-	call-script Weapon1Restored();
-	bAiming = FALSE;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)

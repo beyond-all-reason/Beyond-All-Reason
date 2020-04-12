@@ -111,16 +111,30 @@ Create()
 	return (0);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep 8000;
+    if (Stunned) {
+        return (1);
+    }
 	turn turret to y-axis <0.00000> speed <75.00000>;
 	turn support to x-axis <0.00000> speed <50.00000>;
 	cache support;
 	cache cannon;
 	cache turret;
 	bAiming = FALSE;
-	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 8000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 QueryPrimary(piecenum)

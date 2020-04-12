@@ -136,10 +136,6 @@ SweetSpot(piecenum)
 	piecenum = base;
 }
 
-RestoreAfterDelay()
-{
-	sleep Static_Var_2;
-}
 
 QueryPrimary(piecenum)
 {
@@ -157,7 +153,6 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 

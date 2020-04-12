@@ -118,9 +118,12 @@ StopMoving()
 	return (0);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep Static_Var_2;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	move dbl to x-axis [0] speed [8];
 	move dbl to z-axis [0] speed [8];
@@ -130,7 +133,18 @@ RestoreAfterDelay()
 	move dtl to z-axis [0] speed [8];
 	move dtr to x-axis [0] speed [8];
 	move dtr to z-axis [0] speed [8];
-	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep Static_Var_2;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

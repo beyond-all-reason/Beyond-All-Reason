@@ -428,10 +428,12 @@ StopMoving()
 	return (0);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	turn lfvent to y-axis <0> speed <90>;
 	turn rfvent to y-axis <0> speed <90>;
 	turn lbvent to y-axis <0> speed <90>;
@@ -440,7 +442,19 @@ RestoreAfterDelay()
 	turn launcher to x-axis <0.000000> speed <45.010989>;
 	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
-	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

@@ -140,13 +140,27 @@ SetMaxReloadTime(Func_Var_1)
 	return (0);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	bAiming = FALSE;
 	turn turret to y-axis <0.00000> speed <80.00000>;
 	turn barrelcon to x-axis <0.00000> speed <50.00000>;
-	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 RestoreSecondary()

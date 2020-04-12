@@ -517,21 +517,36 @@ QueryPrimary(piecenum)
 	}
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+        turn torso to y-axis <0.000000> speed <90>;
+        turn gun to x-axis <0.000000> speed <45>;
+        wpn1_lasthead = 1000000;
+        bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	while (restore == FALSE)
 	{
-	sleep 50;
+	    sleep 50;
 	}
 	sleep 50;
-		if (restore == TRUE)
+	if (restore == TRUE)
 	{
-	sleep 2750;
-	turn torso to y-axis <0.000000> speed <90>;
-	turn gun to x-axis <0.000000> speed <45>;
-	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+        sleep 2750;
+	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 

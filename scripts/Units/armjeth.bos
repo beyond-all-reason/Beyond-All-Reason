@@ -306,13 +306,28 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+	turn torso to y-axis <0.000000> speed <90.000000>;
+	wpn3_lasthead = 1000000;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM_3;
 	sleep restore_delay;
-	set-signal-mask 0;
-	turn torso to y-axis <0.000000> speed <90.000000>;
-	wpn3_lasthead = 1000000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)

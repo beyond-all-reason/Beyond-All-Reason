@@ -337,11 +337,25 @@ StopMoving()
 	return (0);
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	Static_Var_2 = 0;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep Static_Var_4;
-	Static_Var_2 = 0;
-	return (0);
+	start-script ExecuteRestoreAfterDelay();
 }
 
 SweetSpot(piecenum)

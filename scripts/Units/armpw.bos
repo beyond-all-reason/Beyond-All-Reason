@@ -443,22 +443,36 @@ DrawWeapon1()
 	start-script Weapon1Drawn();
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
-	
+    if (Stunned) {
+        return (1);
+    }
 	start-script RestoreWeapon1();
-	
+
 	turn torso to y-axis <0> speed <300.00>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn lloarm to x-axis <90> speed <300.000000>;
 	turn rloarm to x-axis <90> speed <300.000000>;
-	
+
 	call-script Weapon1Restored();
-	
+
 	bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)

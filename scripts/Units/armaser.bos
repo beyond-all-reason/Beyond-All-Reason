@@ -313,12 +313,6 @@ StopMoving()
 	return (0);
 }
 
-RestoreAfterDelay()
-{
-	sleep Static_Var_4;
-	return (0);
-}
-
 SweetSpot(piecenum)
 {
 	piecenum = base;

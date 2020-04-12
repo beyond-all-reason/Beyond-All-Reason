@@ -127,15 +127,30 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 2;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	turn turret1 to y-axis <0.000000> speed <180.000000>;
 	turn sleeve1 to x-axis <0.000000> speed <90.000000>;
-	
+
 	turn turret2 to y-axis <0.000000> speed <180.000000>;
 	turn sleeve2 to x-axis <0.000000> speed <90.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 waveSplash()

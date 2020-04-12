@@ -103,15 +103,29 @@ SetMaxReloadTime(Func_Var_1)
 	return (0);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	turn lturret to y-axis <0.000000> speed <150.000000>;
 	turn mturret to y-axis <0.000000> speed <150.000000>;
 	turn mbarrel to x-axis <0.000000> speed <150.000000>;
 	bAiming = FALSE;
-	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

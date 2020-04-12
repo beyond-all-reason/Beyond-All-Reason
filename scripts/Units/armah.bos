@@ -147,15 +147,28 @@ Create()
 }
 
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.000000> speed <190.000000>;
+	turn sleeve to x-axis <0.000000> speed <150.000000>;
+	turn doorr to y-axis <0> speed <130>;
+	turn doorl to y-axis <0> speed <130>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep 5000;
-	turn turret to y-axis <0.000000> speed <190.000000>;
-	turn sleeve to x-axis <0.000000> speed <150.000000>;
-	
-	turn doorr to y-axis <0> speed <130>;
-	turn doorl to y-axis <0> speed <130>;
-	return (0);
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)

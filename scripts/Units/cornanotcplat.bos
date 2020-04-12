@@ -140,11 +140,26 @@ Create()
 	Static_Var_2 = 5000;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn aim to y-axis <0.000000> speed <100.000000>;
+	wait-for-turn aim around y-axis;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep Static_Var_2;
-	turn aim to y-axis <0.000000> speed <100.000000>;
-	wait-for-turn aim around y-axis;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 Activate()

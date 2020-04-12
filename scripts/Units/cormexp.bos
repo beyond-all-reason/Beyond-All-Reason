@@ -167,12 +167,27 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep 10000;
+    if (Stunned) {
+        return (1);
+    }
 	set-signal-mask 0;
 	bAiming = FALSE;
 	start-script RequestState(0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 10000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 SetMaxReloadTime(Func_Var_1)

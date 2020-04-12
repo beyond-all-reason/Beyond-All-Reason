@@ -174,15 +174,29 @@ Create()
 	spin fan around z-axis speed <300>;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep Static_Var_4;
+    if (Stunned) {
+        return (1);
+    }
 	turn turret to y-axis <0.000000> speed <250.000000>;
 	wait-for-turn turret around y-axis;
 	turn sleeve to x-axis <0.000000> speed <150.000000>;
 	wait-for-turn sleeve around x-axis;
 	Static_Var_8 = 0;
-	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep Static_Var_4;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon2(heading, pitch)

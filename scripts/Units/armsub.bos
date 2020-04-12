@@ -65,13 +65,28 @@ SweetSpot(piecenum)
 }
 
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	move doorr to x-axis [0] speed [10];
+	move doorl to x-axis [0] speed [10];
+
+	wait-for-move doorr along x-axis;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	move doorr to x-axis [0] speed [10];
-	move doorl to x-axis [0] speed [10];
-	
-	wait-for-move doorr along x-axis;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)

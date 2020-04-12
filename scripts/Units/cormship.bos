@@ -154,21 +154,35 @@ abaim()
 	signal SIG_AIM_3;
 }
 
-RestoreAfterDelay()
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
 {
-	sleep restore_delay;
+    if (Stunned) {
+        return (1);
+    }
 	Static_Var_4 = 0;
 	start-script RequestState(1);
 	turn turret to y-axis <0.000000> speed <70.000000>;
 	turn sleeve to x-axis <0.000000> speed <30.000000>;
 
 	turn launcher to x-axis <0> speed <90>;
-	wait-for-turn launcher around x-axis;	
+	wait-for-turn launcher around x-axis;
 
 	turn doorr to z-axis <0> speed <180>;
 	turn doorl to z-axis <0> speed <180>;
 	wait-for-turn doorr around z-axis;
-
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 Activate()

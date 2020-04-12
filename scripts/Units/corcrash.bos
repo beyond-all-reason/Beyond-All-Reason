@@ -243,13 +243,27 @@ QueryTertiary(piecenum)
 	piecenum = rflare + gun_3;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn torso to y-axis <0.000000> speed <90.000000>;
+	wpn3_lasthead = 1000000;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM_3;
 	sleep restore_delay;
-	turn torso to y-axis <0.000000> speed <90.000000>;
-	wpn3_lasthead = 1000000;
-	return (0);
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimTertiary(heading, pitch)

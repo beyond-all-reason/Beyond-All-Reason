@@ -78,17 +78,32 @@ Create()
 	return (0);
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.000000> speed <90.021978>;
+	turn launcher to x-axis <0.000000> speed <50.010989>;
+
+	turn doorl to y-axis <0> speed <270>;
+
+	turn doorr to y-axis <0> speed <270>;
+
+	wait-for-turn doorl around y-axis;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	turn turret to y-axis <0.000000> speed <90.021978>;
-	turn launcher to x-axis <0.000000> speed <50.010989>;
-	
-	turn doorl to y-axis <0> speed <270>;
-	
-	turn doorr to y-axis <0> speed <270>;
-	
-	wait-for-turn doorl around y-axis;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)

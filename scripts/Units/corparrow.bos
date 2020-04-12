@@ -119,11 +119,26 @@ StopMoving()
 	bMoving = FALSE;
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.000000> speed <45.000000>;
+	turn turret to x-axis <0.000000> speed <23.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	turn turret to y-axis <0.000000> speed <45.000000>;
-	turn turret to x-axis <0.000000> speed <23.000000>;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
