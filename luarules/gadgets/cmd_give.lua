@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= false
+		enabled	= true
 	}
 end
 
@@ -16,6 +16,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 
 	local authorizedPlayers  = {
 		'Floris',
+		'[teh]Flow',
 	}
 
 
