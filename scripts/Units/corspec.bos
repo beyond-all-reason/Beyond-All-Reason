@@ -348,8 +348,11 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
+	if (Stunned) {
+	    turn dish to x-axis <0.000000> speed <-100.000000>;
+	} else {
 	    start-script ExecuteRestoreAfterDelay();
+	    spin dish around x-axis speed <100.021978>;
 	}
 }
 RestoreAfterDelay()

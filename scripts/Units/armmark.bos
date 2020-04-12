@@ -218,6 +218,23 @@ Deactivate()
 	return (0);
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    stop-spin lshoulder around x-axis decelerate <10>;
+	    stop-spin rshoulder around x-axis decelerate <10>;
+        wait-for-turn rdish around z-axis;
+        wait-for-turn ldish around z-axis;
+        wait-for-turn rdish around x-axis;
+        wait-for-turn ldish around x-axis;
+	} else {
+        spin lshoulder around x-axis speed <90>;
+        spin rshoulder around x-axis speed <-90>;
+	}
+}
+
 StartMoving()
 {
 	bMoving = TRUE;

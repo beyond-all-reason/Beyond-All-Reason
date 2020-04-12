@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  lwing, rwing, base, thrust;
+piece  lwing, rwing, base, thrustm;
 
 static-var  gun_3, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
@@ -156,7 +156,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwing type BITMAPONLY | NOHEATCLOUD;
-		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode thrustm type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -165,7 +165,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -174,13 +174,13 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rwing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

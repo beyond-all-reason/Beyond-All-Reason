@@ -67,6 +67,17 @@ Deactivate()
 	return (0);
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    start-script Deactivate();
+	} else {
+	    start-script Activate();
+	}
+}
+
 HitByWeapon(anglex, anglez)
 {
 	turn base to z-axis anglez speed <105.000000>;

@@ -10,6 +10,17 @@ static-var  bMoving, Static_Var_3, Static_Var_4, Static_Var_5, keepspinning;
 // Signal definitions
 #define SIG_ACTIVATE			2
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    keepspinning = 0;
+	} else {
+	    keepspinning = 1;
+	}
+}
+
 spinarms()
 {
 	while (TRUE){

@@ -75,6 +75,17 @@ Deactivate()
 	return (0);
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    stop-spin dish around y-axis decelerate <10>;
+	} else {
+	    turn dish to y-axis <0.000000> speed <100.000000>;
+	}
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;

@@ -280,6 +280,21 @@ Deactivate()
 	return (0);
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    stop-spin belt around y-axis decelerate <10>;
+	    stop-spin dish1 around x-axis decelerate <10>;
+	    stop-spin dish2 around x-axis decelerate <10>;
+	} else {
+        spin belt around y-axis speed <20.021978> accelerate <5>;
+        spin dish1 around x-axis speed <100.021978> accelerate <50>;
+        spin dish2 around x-axis speed <-100.021978> accelerate <50>;
+	}
+}
+
 StartMoving()
 {
 	bMoving = TRUE;
