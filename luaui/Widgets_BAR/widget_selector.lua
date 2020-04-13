@@ -319,9 +319,9 @@ local function UpdateList()
   
   maxWidth = (maxWidth / fontSize)
 
-  if widgetHandler.knownCount ~= (fullWidgetsListCount + 2) then
-    error('knownCount mismatch')
-  end
+  --if widgetHandler.knownCount ~= (fullWidgetsListCount + 1) then
+  --  error('knownCount mismatch')
+  --end
 
   table.sort(fullWidgetsList, SortWidgetListFunc)
 
