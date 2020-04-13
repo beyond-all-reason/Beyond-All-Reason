@@ -142,9 +142,6 @@ return {
 				stockpile = true,
 				stockpiletime = 120,
 				targetable = 1,
-				-- texture1 = "null",
-				-- texture2 = "null",
-				-- texture3 = "null",
 				tolerance = 4000,
 				turnrate = 32768,
 				weaponacceleration = 100,
@@ -154,8 +151,6 @@ return {
 				customparams = {
 					expl_light_color = "1 0.85 0.55",
 					expl_light_life_mult = 2.4,
-					-- expl_light_mult = 1.1,
-					-- expl_light_radius_mult = 0.9,
 					light_color = "1 0.6 0.2",
 					light_mult = 7,
 					light_radius_mult = 1.8,

@@ -91,9 +91,9 @@ return {
 			},
 		},
 		sfxtypes = {
-            explosiongenerators = {
-                [1] = "custom:barrelshot-lightning",
-            },
+			explosiongenerators = {
+				[1] = "custom:barrelshot-lightning",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -145,7 +145,6 @@ return {
 				smoketrail = false,
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 650,
 				texture1 = "trans",
@@ -174,7 +173,7 @@ return {
 				avoidfeature = false,
 				beamttl = 1,
 				burst = 10,
-				burstrate = 0.03,
+				burstrate = 0.03333,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -194,11 +193,10 @@ return {
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				turret = true,
 				thickness = 1.5,
+				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {

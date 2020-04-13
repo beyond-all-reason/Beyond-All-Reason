@@ -65,7 +65,6 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
-
 			},
 		},
 		weapondefs = {
@@ -97,7 +96,7 @@ return {
 				avoidfeature = 0,
 				avoidfriendly = 0,
 				burst = 12,
-				burstrate = 0.01,
+				burstrate = 0.03333,
 				colormap = "1 0.95 0.82 0.03   0.7 0.4 0.25 0.027   0.44 0.25 0.15 0.024   0.033 0.018 0.011 0.02   0.0 0.0 0.0 0.01",
 				craterboost = 0,
 				cratermult = 0,
@@ -146,10 +145,8 @@ return {
 				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
-				onlytargetcategory = "SURFACE",
 				def = "FLAMETHROWER",
-				--maindir = "0 0 1",
-				--maxangledif = 180,
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

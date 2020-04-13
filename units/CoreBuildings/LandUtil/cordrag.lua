@@ -39,10 +39,10 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
+			objectify = true,
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
-			objectify = true,
 			subfolder = "corebuildings/landutil",
 		},
 		featuredefs = {
@@ -51,9 +51,9 @@ return {
 				animtrans = 0,
 				blocking = false,
 				category = "heaps",
-				crushresistance = 0,
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
+				crushresistance = 0,
 				damage = 500,
 				description = "Rubble",
 				footprintx = 2,

@@ -86,7 +86,6 @@ return {
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "Lasrhvy2",
 				soundtrigger = 1,
 				targetborder = 0.75,

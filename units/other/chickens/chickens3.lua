@@ -79,7 +79,7 @@ return {
 				name = "Spike",
 				noselfdamage = true,
 				range = 350,
-				reloadtime = 1.95,
+				reloadtime = 1.93333,
 				soundstart = "chickens/talonattack",
 				startvelocity = 200,
 				submissile = 1,

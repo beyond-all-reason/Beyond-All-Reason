@@ -142,8 +142,6 @@ return {
 				stockpile = true,
 				stockpiletime = 75,
 				texture1 = "flare2",
-				--texture2 = "null",
-				--texture3 = "null",
 				tolerance = 4000,
 				turnrate = 32768,
 				weaponacceleration = 180,

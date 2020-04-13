@@ -121,7 +121,6 @@ return {
 			shiva_gun = {
 				areaofeffect = 176,
 				avoidfeature = false,
-				--craterareaofeffect = 176,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
@@ -135,7 +134,6 @@ return {
 				reloadtime = 3,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
@@ -170,7 +168,6 @@ return {
 				smoketrail = false,
 				soundhit = "xplomed4",
 				soundhitwet = "splssml",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				texture1 = "trans",
 				texture2 = "null",

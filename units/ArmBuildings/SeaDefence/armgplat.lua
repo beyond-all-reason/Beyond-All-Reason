@@ -120,7 +120,6 @@ return {
 				sizedecay = 0.1,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
 				stages = 20,
 				targetmoveerror = 0.1,

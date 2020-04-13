@@ -46,8 +46,8 @@ return {
 		workertime = 1500,
 		yardmap = "oo oo",
 		customparams = {
-			subfolder = "other/chickens",
 			isairbase = true,
+			subfolder = "other/chickens",
 		},
 		featuredefs = {},
 		sfxtypes = {

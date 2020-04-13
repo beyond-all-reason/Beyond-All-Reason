@@ -141,7 +141,6 @@ return {
 				reloadtime = 16,
 				soundhit = "xplonuk1",
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "xplonuk3",
 				turret = true,
 				weapontype = "Cannon",

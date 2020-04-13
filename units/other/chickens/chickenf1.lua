@@ -86,7 +86,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burst = 8,
-				burstrate = 0.24,
+				burstrate = 0.23333,
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,

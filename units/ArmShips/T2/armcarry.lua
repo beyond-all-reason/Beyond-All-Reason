@@ -55,11 +55,11 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			isairbase = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
 			techlevel = 2,
-			isairbase = true,
 		},
 		featuredefs = {
 			dead = {
@@ -156,7 +156,6 @@ return {
 				smoketrail = false,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				stockpile = true,
 				stockpiletime = 90,

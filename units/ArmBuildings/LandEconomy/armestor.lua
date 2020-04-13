@@ -54,7 +54,6 @@ return {
 				damage = 1020,
 				description = "Energy Storage Wreckage",
 				energy = 0,
-				--featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,

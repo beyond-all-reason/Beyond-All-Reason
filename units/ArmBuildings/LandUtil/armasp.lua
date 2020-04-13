@@ -43,13 +43,13 @@ return {
 		workertime = 1000,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			isairbase = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",
 			techlevel = 2,
-			isairbase = true,
 		},
 		featuredefs = {
 			dead = {

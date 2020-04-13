@@ -76,7 +76,7 @@ return {
 				areaofeffect = 96,
 				avoidfeature = 0,
 				burst = 3,
-				burstrate = 0.01,
+				burstrate = 0.03333,
 				camerashake = 0,
 				craterboost = 0,
 				cratermult = 0,

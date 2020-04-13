@@ -86,7 +86,7 @@ local function round_to_frames(name, wd, key)
 		Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
 	end
 
-	return sanitized_value + 1E-5
+	return sanitized_value-- + 1E-5
 end
 
 local function processWeapons(unitDefName, unitDef)

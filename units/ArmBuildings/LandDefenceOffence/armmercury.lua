@@ -140,7 +140,6 @@ return {
 				smoketrail = false,
 				soundhit = "impact",
 				soundhitwet = "splslrg",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "launch",
 				sprayangle = 10000,
 				startvelocity = 300,

@@ -43,13 +43,13 @@ return {
 		workertime = 1000,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			isairbase = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landutil",
 			techlevel = 2,
-			isairbase = true,
 		},
 		featuredefs = {
 			dead = {

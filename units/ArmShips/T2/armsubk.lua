@@ -132,7 +132,7 @@ return {
 				name = "Rapid armor-piercing torpedoes",
 				noselfdamage = true,
 				range = 750,
-				reloadtime = 4.65,
+				reloadtime = 4.63333,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 120,

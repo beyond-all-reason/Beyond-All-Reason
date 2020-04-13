@@ -34,9 +34,9 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			objectify = true,
 			removestop = true,
 			removewait = true,
-			objectify = true,
 			subfolder = "armbuildings/seautil",
 		},
 		sfxtypes = {

@@ -127,7 +127,7 @@ return {
 				name = "Spike",
 				noselfdamage = true,
 				range = 470,
-				reloadtime = 3.25,
+				reloadtime = 3.23333,
 				smoketrail = true,
 				startvelocity = 600,
 				texture1 = "",

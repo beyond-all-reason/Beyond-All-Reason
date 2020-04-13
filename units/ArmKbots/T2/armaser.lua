@@ -132,7 +132,6 @@ return {
 				range = 800,
 				reloadtime = 0.5,
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				startvelocity = 450,
 				tolerance = 9000,
 				turnrate = 33000,

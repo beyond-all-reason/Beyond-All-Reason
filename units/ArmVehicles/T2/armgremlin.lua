@@ -154,7 +154,6 @@ return {
 				reloadtime = 3,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
 				turret = true,
 				weapontype = "Cannon",

@@ -90,7 +90,6 @@ return {
 				range = 1,
 				reloadtime = 0.1,
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {
@@ -114,7 +113,6 @@ return {
 				range = 80,
 				reloadtime = 0.1,
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				tolerance = 100000,
 				waterweapon = true,
 				weapontype = "Melee",

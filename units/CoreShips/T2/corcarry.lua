@@ -54,11 +54,11 @@ return {
 		waterline = 8,
 		workertime = 1000,
 		customparams = {
+			isairbase = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships/t2",
 			techlevel = 2,
-			isairbase = true,
 		},
 		featuredefs = {
 			dead = {
@@ -157,7 +157,6 @@ return {
 				smoketrail = false,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				stockpile = true,
 				stockpiletime = 90,

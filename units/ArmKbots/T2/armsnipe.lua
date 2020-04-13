@@ -155,9 +155,7 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
-				customparams = {
-					--light_skip = true,
-				},
+				customparams = {},
 				damage = {
 					commanders = 1025,
 					default = 2500,
@@ -188,7 +186,6 @@ return {
 				soundhit = "xplolrg2",
 				soundhitvolume = 4,
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "sniper2",
 				soundstartvolume = 4,
 				thickness = 0.5,

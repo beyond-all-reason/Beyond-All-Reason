@@ -8,12 +8,10 @@ return {
 		buildcostenergy = 25000,
 		buildcostmetal = 400,
 		builddistance = 90,
-		--builder = true,
-		--buildpic = "chickens/roost.PNG",
 		buildtime = 10500,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		canmove = false,
 		capturable = false,
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",
@@ -34,8 +32,8 @@ return {
 		radardistance = 900,
 		script = "scavs/droppod.cob",
 		seismicsignature = 4,
-		selfdestructcountdown = 0,
 		selfdestructas = "",
+		selfdestructcountdown = 0,
 		side = "ARM",
 		sightdistance = 450,
 		smoothanim = true,
@@ -49,9 +47,9 @@ return {
 		workertime = 1500,
 		yardmap = "",
 		customparams = {
-			subfolder = "scavengers",
 			isairbase = true,
 			normaltex = "unittextures/Core_normal.dds",
+			subfolder = "other/lootboxes",
 		},
 		featuredefs = {},
 		sfxtypes = {
@@ -61,7 +59,7 @@ return {
 		},
 		weapondefs = {
 			weapon = {
-				alwaysVisible = true,
+				alwaysvisible = true,
 				areaofeffect = 500,
 				avoidfriendly = 0,
 				cegtag = "lootbox-trail",

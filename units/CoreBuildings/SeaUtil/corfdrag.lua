@@ -34,9 +34,9 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
+			objectify = true,
 			removestop = true,
 			removewait = true,
-			objectify = true,
 			subfolder = "corebuildings/seautil",
 		},
 		sfxtypes = {

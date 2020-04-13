@@ -40,7 +40,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Core_normal.dds",
-			subfolder = "corekbots/t2",
+			subfolder = "other/minions/land/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -138,7 +138,6 @@ return {
 				rgbcolor = "0 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "lasrhvy3",
 				soundtrigger = 1,
 				targetmoveerror = 0.2,

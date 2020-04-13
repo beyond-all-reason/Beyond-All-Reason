@@ -97,7 +97,7 @@ return {
 				name = "TorpedoLauncher",
 				noselfdamage = true,
 				range = 500,
-				reloadtime = 1.75,
+				reloadtime = 1.73333,
 				soundhit = "xplodep2",
 				soundstart = "bombrel",
 				startvelocity = 100,

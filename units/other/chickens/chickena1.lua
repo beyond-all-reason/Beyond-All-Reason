@@ -126,7 +126,7 @@ return {
 				name = "Claws",
 				noselfdamage = true,
 				range = 200,
-				reloadtime = 0.53,
+				reloadtime = 0.5,
 				soundstart = "chickens/smallchickenattack",
 				targetborder = 1,
 				tolerance = 5000,

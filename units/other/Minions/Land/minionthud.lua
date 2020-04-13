@@ -48,7 +48,7 @@ return {
 			description_long = "Thud is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has a shorter range than rocket Kbots, but if you manage to reach them, it can easily eliminate them. It has slightly higher HP than rocket Kbots, hence it can be used in big numbers to destroy T1 defensive structures. Combine with resurrection Kbots (Necros), for healing and resurrecting fallen units, to quickly push the frontline. Effective for defending mountain tops, as their range is longer when shooting downhill. Watch out for Heavy Laser Turrets.",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/Core_normal.dds",
-			subfolder = "corekbots",
+			subfolder = "other/minions/land",
 		},
 		featuredefs = {
 			dead = {
@@ -139,10 +139,9 @@ return {
 				noselfdamage = true,
 				predictboost = 0.4,
 				range = 380,
-				reloadtime = 1.75,
+				reloadtime = 1.73333,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",

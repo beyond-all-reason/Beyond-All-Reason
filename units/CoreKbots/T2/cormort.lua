@@ -38,7 +38,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
-			model_author = "FireStorm, Flaka", 
+			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corekbots/t2",
 			techlevel = 2,
@@ -135,7 +135,6 @@ return {
 				reloadtime = 1.6,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",

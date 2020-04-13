@@ -139,7 +139,6 @@ return {
 				rgbcolor = "1 0.95 0.4",
 				size = 2.15,
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "fastemg",
 				turret = true,
 				weapontimer = 0.6,

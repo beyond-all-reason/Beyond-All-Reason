@@ -138,7 +138,6 @@ return {
 				smoketrail = false,
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 190,
 				texture1 = "trans",

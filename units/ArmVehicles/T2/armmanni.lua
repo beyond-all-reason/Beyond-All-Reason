@@ -156,7 +156,6 @@ return {
 				scrollspeed = 5,
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "annigun1",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,
@@ -168,9 +167,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				customparams = {
-					light_radius_mult = "1.2",
 					expl_light_life_mult = 1.3,
 					expl_light_radius_mult = 1.15,
+					light_radius_mult = "1.2",
 				},
 				damage = {
 					commanders = 1000,

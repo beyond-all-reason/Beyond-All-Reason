@@ -1,6 +1,6 @@
 return {
 	corcrwboss = {
-		acceleration = 0.10,
+		acceleration = 0.1,
 		activatewhenbuilt = true,
 		blocking = false,
 		brakerate = 0.275,
@@ -42,7 +42,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
-			subfolder = "coreaircraft/t2",
+			subfolder = "other/scavengers",
 			techlevel = 2,
 		},
 		sfxtypes = {
@@ -106,7 +106,6 @@ return {
 				rgbcolor = "0 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "lasrhvy2",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,
@@ -126,7 +125,7 @@ return {
 			krowbosslaser2 = {
 				areaofeffect = 32,
 				avoidfeature = false,
-				beamtime = 0.50,
+				beamtime = 0.5,
 				beamttl = 2.5,
 				corethickness = 0.2,
 				craterareaofeffect = 0,
@@ -147,7 +146,6 @@ return {
 				rgbcolor = "0 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				-- soundhitwetvolume = 0.5,
 				soundstart = "lasrhvy3",
 				soundtrigger = 1,
 				targetmoveerror = 0.15,

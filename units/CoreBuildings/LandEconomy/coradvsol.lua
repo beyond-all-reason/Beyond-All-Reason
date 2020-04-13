@@ -44,8 +44,8 @@ return {
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,
+			solar = true,
 			subfolder = "corebuildings/landeconomy",
-        	solar = true,
 		},
 		featuredefs = {
 			dead = {
