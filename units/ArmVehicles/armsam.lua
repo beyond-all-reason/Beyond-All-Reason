@@ -145,7 +145,7 @@ return {
 				reloadtime = 3.33333,
 				smoketrail = false,
 				soundhit = "rockhit2",
-				soundhitwet = "splshsml",
+				soundhitwet = "splssml",
 				soundstart = "rockhvy2x",
 				soundtrigger = true,
 				startvelocity = 420,

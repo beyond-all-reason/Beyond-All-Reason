@@ -143,7 +143,7 @@ return {
 				reloadtime = 2.5,
 				smoketrail = false,
 				soundhit = "rockhit2",
-				soundhitwet = "splshsml",
+				soundhitwet = "splssml",
 				soundstart = "rockhvy2",
 				startvelocity = 420,
 				texture1 = "trans",
