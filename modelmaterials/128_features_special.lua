@@ -175,7 +175,7 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 local materials = {
 	featuresTreeFakeNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
 		texUnits  = {
-			[4] = "%NORMALTEX",
+			[2] = "%NORMALTEX",
 		},
 		shaderOptions = {
 			normalmapping = true,
@@ -198,7 +198,7 @@ local materials = {
 
 	featuresMetalDeadOrHeap = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
 		texUnits  = {
-			[4] = "%NORMALTEX",
+			[2] = "%NORMALTEX",
 		},
 		shaderOptions = {
 			normalmapping = true,

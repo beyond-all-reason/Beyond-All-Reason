@@ -70,6 +70,7 @@ vertex = [[
 	/***********************************************************************/
 	// Varyings
 	out Data {
+		vec4 modelVertexPos;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -92,89 +93,53 @@ vertex = [[
 	/***********************************************************************/
 	// Misc functions
 
-	float Perlin4D( vec4 P ) {
-		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin4D.glsl
+	float Perlin3D( vec3 P ) {
+		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
 		// establish our grid cell and unit position
-		vec4 Pi = floor(P);
-		vec4 Pf = P - Pi;
-		vec4 Pf_min1 = Pf - 1.0;
+		vec3 Pi = floor(P);
+		vec3 Pf = P - Pi;
+		vec3 Pf_min1 = Pf - 1.0;
 
 		// clamp the domain
-		Pi = Pi - floor(Pi * ( 1.0 / 69.0 )) * 69.0;
-		vec4 Pi_inc1 = step( Pi, vec4( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+		Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+		vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
 
-		// calculate the hash.
-		const vec4 OFFSET = vec4( 16.841230, 18.774548, 16.873274, 13.664607 );
-		const vec4 SCALE = vec4( 0.102007, 0.114473, 0.139651, 0.084550 );
-		Pi = ( Pi * SCALE ) + OFFSET;
-		Pi_inc1 = ( Pi_inc1 * SCALE ) + OFFSET;
-		Pi *= Pi;
-		Pi_inc1 *= Pi_inc1;
-		vec4 x0y0_x1y0_x0y1_x1y1 = vec4( Pi.x, Pi_inc1.x, Pi.x, Pi_inc1.x ) * vec4( Pi.yy, Pi_inc1.yy );
-		vec4 z0w0_z1w0_z0w1_z1w1 = vec4( Pi.z, Pi_inc1.z, Pi.z, Pi_inc1.z ) * vec4( Pi.ww, Pi_inc1.ww );
-		const vec4 SOMELARGEFLOATS = vec4( 56974.746094, 47165.636719, 55049.667969, 49901.273438 );
-		vec4 hashval = x0y0_x1y0_x0y1_x1y1 * z0w0_z1w0_z0w1_z1w1.xxxx;
-		vec4 lowz_loww_hash_0 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.x ) );
-		vec4 lowz_loww_hash_1 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.y ) );
-		vec4 lowz_loww_hash_2 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.z ) );
-		vec4 lowz_loww_hash_3 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.w ) );
-		hashval = x0y0_x1y0_x0y1_x1y1 * z0w0_z1w0_z0w1_z1w1.yyyy;
-		vec4 highz_loww_hash_0 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.x ) );
-		vec4 highz_loww_hash_1 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.y ) );
-		vec4 highz_loww_hash_2 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.z ) );
-		vec4 highz_loww_hash_3 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.w ) );
-		hashval = x0y0_x1y0_x0y1_x1y1 * z0w0_z1w0_z0w1_z1w1.zzzz;
-		vec4 lowz_highw_hash_0 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.x ) );
-		vec4 lowz_highw_hash_1 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.y ) );
-		vec4 lowz_highw_hash_2 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.z ) );
-		vec4 lowz_highw_hash_3 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.w ) );
-		hashval = x0y0_x1y0_x0y1_x1y1 * z0w0_z1w0_z0w1_z1w1.wwww;
-		vec4 highz_highw_hash_0 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.x ) );
-		vec4 highz_highw_hash_1 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.y ) );
-		vec4 highz_highw_hash_2 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.z ) );
-		vec4 highz_highw_hash_3 = fract( hashval * ( 1.0 / SOMELARGEFLOATS.w ) );
+		// calculate the hash
+		vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+		Pt *= Pt;
+		Pt = Pt.xzxz * Pt.yyww;
+		const vec3 SOMELARGEFLOATS = vec3( 635.298681, 682.357502, 668.926525 );
+		const vec3 ZINC = vec3( 48.500388, 65.294118, 63.934599 );
+		vec3 lowz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi.zzz * ZINC ) );
+		vec3 highz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi_inc1.zzz * ZINC ) );
+		vec4 hashx0 = fract( Pt * lowz_mod.xxxx );
+		vec4 hashx1 = fract( Pt * highz_mod.xxxx );
+		vec4 hashy0 = fract( Pt * lowz_mod.yyyy );
+		vec4 hashy1 = fract( Pt * highz_mod.yyyy );
+		vec4 hashz0 = fract( Pt * lowz_mod.zzzz );
+		vec4 hashz1 = fract( Pt * highz_mod.zzzz );
 
 		// calculate the gradients
-		lowz_loww_hash_0 -= 0.49999;
-		lowz_loww_hash_1 -= 0.49999;
-		lowz_loww_hash_2 -= 0.49999;
-		lowz_loww_hash_3 -= 0.49999;
-		highz_loww_hash_0 -= 0.49999;
-		highz_loww_hash_1 -= 0.49999;
-		highz_loww_hash_2 -= 0.49999;
-		highz_loww_hash_3 -= 0.49999;
-		lowz_highw_hash_0 -= 0.49999;
-		lowz_highw_hash_1 -= 0.49999;
-		lowz_highw_hash_2 -= 0.49999;
-		lowz_highw_hash_3 -= 0.49999;
-		highz_highw_hash_0 -= 0.49999;
-		highz_highw_hash_1 -= 0.49999;
-		highz_highw_hash_2 -= 0.49999;
-		highz_highw_hash_3 -= 0.49999;
-
-		vec4 grad_results_lowz_loww = inversesqrt( lowz_loww_hash_0 * lowz_loww_hash_0 + lowz_loww_hash_1 * lowz_loww_hash_1 + lowz_loww_hash_2 * lowz_loww_hash_2 + lowz_loww_hash_3 * lowz_loww_hash_3 );
-		grad_results_lowz_loww *= ( vec2( Pf.x, Pf_min1.x ).xyxy * lowz_loww_hash_0 + vec2( Pf.y, Pf_min1.y ).xxyy * lowz_loww_hash_1 + Pf.zzzz * lowz_loww_hash_2 + Pf.wwww * lowz_loww_hash_3 );
-
-		vec4 grad_results_highz_loww = inversesqrt( highz_loww_hash_0 * highz_loww_hash_0 + highz_loww_hash_1 * highz_loww_hash_1 + highz_loww_hash_2 * highz_loww_hash_2 + highz_loww_hash_3 * highz_loww_hash_3 );
-		grad_results_highz_loww *= ( vec2( Pf.x, Pf_min1.x ).xyxy * highz_loww_hash_0 + vec2( Pf.y, Pf_min1.y ).xxyy * highz_loww_hash_1 + Pf_min1.zzzz * highz_loww_hash_2 + Pf.wwww * highz_loww_hash_3 );
-
-		vec4 grad_results_lowz_highw = inversesqrt( lowz_highw_hash_0 * lowz_highw_hash_0 + lowz_highw_hash_1 * lowz_highw_hash_1 + lowz_highw_hash_2 * lowz_highw_hash_2 + lowz_highw_hash_3 * lowz_highw_hash_3 );
-		grad_results_lowz_highw *= ( vec2( Pf.x, Pf_min1.x ).xyxy * lowz_highw_hash_0 + vec2( Pf.y, Pf_min1.y ).xxyy * lowz_highw_hash_1 + Pf.zzzz * lowz_highw_hash_2 + Pf_min1.wwww * lowz_highw_hash_3 );
-
-		vec4 grad_results_highz_highw = inversesqrt( highz_highw_hash_0 * highz_highw_hash_0 + highz_highw_hash_1 * highz_highw_hash_1 + highz_highw_hash_2 * highz_highw_hash_2 + highz_highw_hash_3 * highz_highw_hash_3 );
-		grad_results_highz_highw *= ( vec2( Pf.x, Pf_min1.x ).xyxy * highz_highw_hash_0 + vec2( Pf.y, Pf_min1.y ).xxyy * highz_highw_hash_1 + Pf_min1.zzzz * highz_highw_hash_2 + Pf_min1.wwww * highz_highw_hash_3 );
+		vec4 grad_x0 = hashx0 - 0.49999;
+		vec4 grad_y0 = hashy0 - 0.49999;
+		vec4 grad_z0 = hashz0 - 0.49999;
+		vec4 grad_x1 = hashx1 - 0.49999;
+		vec4 grad_y1 = hashy1 - 0.49999;
+		vec4 grad_z1 = hashz1 - 0.49999;
+		vec4 grad_results_0 = inversesqrt( grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x0 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y0 + Pf.zzzz * grad_z0 );
+		vec4 grad_results_1 = inversesqrt( grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x1 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y1 + Pf_min1.zzzz * grad_z1 );
 
 		// Classic Perlin Interpolation
-		vec4 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
-		vec4 res0 = grad_results_lowz_loww + ( grad_results_lowz_highw - grad_results_lowz_loww ) * blend.wwww;
-		vec4 res1 = grad_results_highz_loww + ( grad_results_highz_highw - grad_results_highz_loww ) * blend.wwww;
-		res0 = res0 + ( res1 - res0 ) * blend.zzzz;
-		blend.zw = vec2( 1.0 ) - blend.xy;
-		return dot( res0, blend.zxzx * blend.wwyy );
+		vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+		vec4 res0 = mix( grad_results_0, grad_results_1, blend.z );
+		vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
+		float final = dot( res0, blend2.zxzx * blend2.wwyy );
+		return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
 	}
-	#define HASHSCALE1 .1031
+
 	float hash11(float p) {
+		const float HASHSCALE1 = 0.1031;
 		vec3 p3  = fract(vec3(p) * HASHSCALE1);
 		p3 += dot(p3, p3.yzx + 19.19);
 		return fract((p3.x + p3.y) * p3.z);
@@ -231,7 +196,7 @@ vertex = [[
 	// Vertex shader main()
 	void main(void)
 	{
-		vec4 modelVertexPos = gl_Vertex;
+		modelVertexPos = gl_Vertex;
 		vec3 modelVertexNormal = gl_Normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
@@ -241,10 +206,13 @@ vertex = [[
 		}
 
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
+			vec3 seedVec = 0.1 * modelVertexPos.xyz;
+			seedVec.y += 1.0 * hash11(float(intOptions[0]));
+
 			modelVertexPos.xyz +=
 				clamp(1.0 - floatOptions[1], 0.0, 1.0) *	//1.0 - current health percentage
 				floatOptions[2] *							//vertex displacement value
-				Perlin4D( vec4(0.1 * modelVertexPos.xyz, 100.0 * hash11(float(intOptions[0]))) )  * normalize(modelVertexPos.xyz);
+				Perlin3D( seedVec ) * normalize(modelVertexPos.xyz);
 		}
 
 		modelUV = gl_MultiTexCoord0.xy;
@@ -418,9 +386,14 @@ fragment = [[
 	// Sampler uniforms
 	uniform sampler2D texture1;			//0
 	uniform sampler2D texture2;			//1
-	uniform sampler2DShadow shadowTex;	//2
-	uniform samplerCube reflectTex;		//3
-	uniform sampler2D normalTex;		//4
+	uniform sampler2D normalTex;		//2
+
+	uniform sampler2D texture1w;		//3
+	uniform sampler2D texture2w;		//4
+	uniform sampler2D normalTexw;		//5
+
+	uniform sampler2DShadow shadowTex;	//6
+	uniform samplerCube reflectTex;		//7
 
 	/***********************************************************************/
 	// Sunlight uniforms
@@ -448,19 +421,20 @@ fragment = [[
 	#ifdef USE_LOSMAP
 		uniform vec2 mapSize;
 		uniform float inLosMode;
-		uniform sampler2D losMapTex;	//5
+		uniform sampler2D losMapTex;	//8
 	#endif
 
 	/***********************************************************************/
 	// PBR uniforms
-	uniform sampler2D brdfLUT;			//6
-	uniform sampler2D envLUT;			//7
+	uniform sampler2D brdfLUT;			//9
+	uniform sampler2D envLUT;			//10
 
 	uniform float pbrParams[8];
 
 	/***********************************************************************/
 	// Unit/Feature uniforms
-	uniform float floatOptions[2];
+	uniform int intOptions[1];
+	uniform float floatOptions[4];
 
 
 	/***********************************************************************/
@@ -491,6 +465,7 @@ fragment = [[
 	/***********************************************************************/
 	// Varyings
 	in Data {
+		vec4 modelVertexPos;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -670,6 +645,13 @@ fragment = [[
 		vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
 		float final = dot( res0, blend2.zxzx * blend2.wwyy );
 		return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
+	}
+
+	float hash11(float p) {
+		const float HASHSCALE1 = 0.1031;
+		vec3 p3  = fract(vec3(p) * HASHSCALE1);
+		p3 += dot(p3, p3.yzx + 19.19);
+		return fract((p3.x + p3.y) * p3.z);
 	}
 
 	ivec2 NPOT(ivec2 n) {
@@ -1189,27 +1171,27 @@ fragment = [[
 		// N - worldFragNormal
 		vec3 N;
 
+		float healthMix;
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
+			vec3 seedVec = modelVertexPos.xyz * 0.8;
+			seedVec.y += 5.0 * hash11(float(intOptions[0]));
+
+			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz));
+			healthMix = smoothstep(0.0, 2.0 * healthMix, clamp(1.0 - floatOptions[1], 0.0, 1.0));
+		}
+
 		vec3 tbnNormal;
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
 			tbnNormal = NORM2SNORM(texture(normalTex, myUV).xyz);
+			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
+				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV).xyz);
+				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
+			}
 		} else if (BITMASK_FIELD(bitOptions, OPTION_AUTONORMAL)) {
 			tbnNormal = GetNormalFromDiffuse(myUV);
 		} else {
 			tbnNormal = vec3(0.0, 0.0, 1.0);
 		}
-
-		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
-			vec3 seedVec = modelPos.xyz * 8.0;
-			float rndValue = Perlin3D(seedVec.xyz);
-		#endif
-		#if defined(ROUGHNESS_PERTURB_NORMAL)
-			float normalPerturbScale = mix(0.0, ROUGHNESS_PERTURB_NORMAL, roughness);
-			vec3 rndNormal = normalize(vec3(
-				normalPerturbScale * vec2(rndValue),
-				1.0
-			));
-			tbnNormal = NormalBlendUnpackedRNM(tbnNormal, rndNormal);
-		#endif
 
 		N = normalize(worldTBN * tbnNormal);
 
@@ -1219,6 +1201,13 @@ fragment = [[
 
 		vec4 texColor1 = texture(texture1, myUV);
 		vec4 texColor2 = texture(texture2, myUV);
+
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
+			vec4 texColor1w = texture(texture1w, myUV);
+			vec4 texColor2w = texture(texture2w, myUV);
+			texColor1 = mix(texColor1, texColor1w, healthMix);
+			texColor2 = mix(texColor2, texColor2w, healthMix);
+		}
 
 		// PBR Params
 		#ifdef EMISSIVENESS
@@ -1488,12 +1477,18 @@ fragment = [[
 	uniformInt = {
 		texture1 	 = 0,
 		texture2 	 = 1,
-		shadowTex    = 2,
-		reflectTex   = 3,
-		normalTex    = 4,
-		losMapTex    = 5,
-		brdfLUT      = 6,
-		envLUT       = 7,
+		normalTex    = 2,
+
+		texture1w    = 3,
+		texture2w    = 4,
+		normalTexw   = 5,
+
+		shadowTex    = 6,
+		reflectTex   = 7,
+
+		losMapTex    = 8,
+		brdfLUT      = 9,
+		envLUT       = 10,
 	},
 	uniformFloat = {
 		sunAmbient		= {gl.GetSun("ambient" ,"unit")},
@@ -1571,12 +1566,11 @@ local defaultMaterialTemplate = {
 	feature = false,
 
 	texUnits = {
-		[2] = "$shadow",
-		[3] = "$reflection",
-		--[4] = "%NORMALTEX",
-		[5] = "$info",
-		[6] = GG.GetBrdfTexture(),
-		[7] = GG.GetEnvTexture(),
+		[6] = "$shadow",
+		[7] = "$reflection",
+
+		[9] = GG.GetBrdfTexture(),
+		[10] = GG.GetEnvTexture(),
 	},
 
 	predl = nil, -- `predl` is replaced with `prelist` later in api_cus
