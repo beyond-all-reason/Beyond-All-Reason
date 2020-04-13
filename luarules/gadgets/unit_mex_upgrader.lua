@@ -57,8 +57,8 @@ local CMD_AUTOMEX = 31143
 
 local CMD_UPGRADEMEX = 31244 
 
-local ONTooltip = "Metal makers are upgraded automatically\nby this builder." 
-local OFFTooltip = "Metal makers are NOT upgraded automatically\nby this builder." 
+local ONTooltip = "Metal extractors are upgraded\nautomaticallyby this builder."
+local OFFTooltip = "Metal extractors wont be upgraded\nautomatically by this builder."
 
 local autoMexCmdDesc = { 
   id      = CMD_AUTOMEX, 

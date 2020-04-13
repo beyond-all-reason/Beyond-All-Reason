@@ -113,13 +113,13 @@ pausedTargets = {}
 --------------------------------------------------------------------------------
 -- Commands
 
-local tooltipText = 'Sets a top priority attack target, to be used if within range (not removed by move commands)'
+local tooltipText = 'Set a priority attack target,\nto be used when within range\n(not removed by move commands)'
 
 
 local unitSetTargetNoGroundCmdDesc = {
 	id		= CMD_UNIT_SET_TARGET_NO_GROUND,
 	type	= CMDTYPE.ICON_UNIT,
-	name	= '\n Set\nUnit\nTarget\n',
+	name	= 'Set Unit Target',
 	action	= 'settargetnoground',
 	cursor	= 'settarget',
 	tooltip	= tooltipText,
@@ -129,7 +129,7 @@ local unitSetTargetNoGroundCmdDesc = {
 local unitSetTargetRectangleCmdDesc = {
 	id		= CMD_UNIT_SET_TARGET_RECTANGLE,
 	type	= CMDTYPE.ICON_UNIT_OR_RECTANGLE,
-	name	= '\n  Set\nTarget\n',
+	name	= 'Set Target',
 	action	= 'settargetrectangle',
 	cursor	= 'settarget',
 	tooltip	= tooltipText,
@@ -139,7 +139,7 @@ local unitSetTargetRectangleCmdDesc = {
 local unitSetTargetCircleCmdDesc = {
 	id		= CMD_UNIT_SET_TARGET,
 	type	= CMDTYPE.ICON_UNIT_OR_AREA,
-	name	= '\n  Set\nTarget\n', --extra spaces center the 'Set' text
+	name	= 'Set Target', --extra spaces center the 'Set' text
 	action	= 'settarget',
 	cursor	= 'settarget',
 	tooltip	= tooltipText,
@@ -150,7 +150,7 @@ local unitSetTargetCircleCmdDesc = {
 local unitCancelTargetCmdDesc = {
 	id		= CMD_UNIT_CANCEL_TARGET,
 	type	= CMDTYPE.ICON,
-	name	= '\nCancel\nTarget\n',
+	name	= 'Cancel Target',
 	action	= 'canceltarget',
 	tooltip	= 'Removes top priority target, if set',
 	hidden	= false,

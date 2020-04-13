@@ -68,7 +68,7 @@ end
 
 local landAtAnyAirbaseCmd = {
    id      = CMD_LAND_AT_AIRBASE,
-   name    = " Land At \n  Airbase ",
+   name    = "Land At Airbase",
    action  = "landatairbase",
    cursor  = 'landatairbase',
    type    = CMDTYPE.ICON,
@@ -77,7 +77,7 @@ local landAtAnyAirbaseCmd = {
 
 local landAtSpecificAirbaseCmd = {
    id      = CMD_LAND_AT_SPECIFIC_AIRBASE,
-   name    = "     Land At    \nSpecific Airbase", -- dirty method of spacing for redui
+   name    = "Land At Specific Airbase",
    action  = "landatspecificairbase",
    cursor  = 'landatspecificairbase',
    type    = CMDTYPE.ICON_UNIT,

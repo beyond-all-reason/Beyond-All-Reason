@@ -49,7 +49,7 @@ local landCmd = {
       name    = "apLandAt",
       action  = "apLandAt",
       type    = CMDTYPE.ICON_MODE,
-      tooltip = "Plant Land Mode: settings for Aircraft leaving the plant",
+      tooltip = "setting for Aircraft leaving the plant",
       params  = { '1', ' Fly ', 'Land'}
 }
 
@@ -58,7 +58,7 @@ local airCmd = {
       name    = "apAirRepair",
       action  = "apAirRepair",
       type    = CMDTYPE.ICON_MODE,
-      tooltip = "Plant Repair Level: settings for Aircraft leaving the plant",
+      tooltip = "return to base and land on air repair pad below this health percentage",
       params  = { '1', 'LandAt 0', 'LandAt 30', 'LandAt 50', 'LandAt 80'}
 }
 

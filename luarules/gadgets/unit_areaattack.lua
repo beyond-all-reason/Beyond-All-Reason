@@ -45,7 +45,7 @@ local aadesc = {
 	action = "areaattack",
 	id = CMD_AREAATTACK,
 	type = CMDTYPE.ICON_AREA,
-	tooltip = "Attack an area randomly",
+	tooltip = "attack an area randomly",
 	cursor = "cursorattack",
 }
 

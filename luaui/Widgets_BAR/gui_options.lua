@@ -1683,6 +1683,10 @@ function init()
 				engine64 = false
 			end
 		end
+		-- adding some widescreen resolutions for local testing
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
@@ -2533,6 +2537,10 @@ function init()
 			 saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', {'fontsizeMultiplier'}, value)
 			 saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		 end,
+		},
+		{id="ordermenu_colorize", group="ui", basic=true, name="Ordermenu"..widgetOptionColor.."  colorize", type="slider", min=0, max=1, step=0.1, value=0, description='',
+		   onload = function(i) loadWidgetData("Order menu", "ordermenu", {'colorize'}) end,
+		   onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
 		},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
 		 onload = function(i) end,

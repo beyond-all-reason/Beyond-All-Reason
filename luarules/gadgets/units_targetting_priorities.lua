@@ -20,7 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 		type    = CMDTYPE.ICON_MODE,
 		name    = 'Set Priority',
 		action  = 'setpriority',
-		tooltip = 'Toggle for target type priority',
+		tooltip = 'target priority',
 		queueing = false,
 		params  = { '0', 'Fighters', 'Bombers', 'none'} ,
 	}
@@ -29,7 +29,7 @@ if gadgetHandler:IsSyncedCode() then
 		type    = CMDTYPE.ICON_MODE,
 		name    = 'Set Priority',
 		action  = 'setpriority',
-		tooltip = 'Toggle for target type priority',
+		tooltip = 'target priority',
 		queueing = false,
 		params  = { '1', 'Fighters', 'Bombers', 'none'} ,
 	}
@@ -38,7 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 		type    = CMDTYPE.ICON_MODE,
 		name    = 'Set Priority',
 		action  = 'setpriority',
-		tooltip = 'Toggle for target type priority',
+		tooltip = 'target priority',
 		queueing = false,
 		params  = { '2', 'Fighters', 'Bombers', 'No priority'} ,
 	}

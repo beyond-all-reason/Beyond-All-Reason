@@ -26,7 +26,7 @@ local unitWantCloakCommandDesc = {
 	name    = 'Cloak State',
 	action  = 'wantcloak',
 	queueing = false,
-	tooltip	= 'Unit cloaking state',
+	tooltip	= 'invisiblility state',
 	params 	= {0, 'Decloaked', 'Cloaked'}
 }
 

@@ -14,6 +14,8 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local showIcons = false
+local colorize = 0
 local playSounds = true
 local posY = 0.7635
 local width = 0.23
@@ -21,6 +23,23 @@ local height = 0.16
 local cellMargin = 0.055
 local bgBorder = 0.0033
 local bgMargin = 0.0058
+local cmdColor = {
+  Move = {0.64,1,0.64},
+  Stop = {1,0.4,0.4},
+  Attack = {1,0.66,0.66},
+  ManualFire = {1,0.66,0.66},
+  Patrol = {0.66,0.66,1},
+  Fight = {1,0.66,1},
+  Guard = {0.87,0.92,1},
+  --Wait = {0.8,0.8,0.8},
+  Repair = {1,1,0.82},
+  Reclaim = {0.88,1,0.88},
+  Restore = {0.77,1,0.77},
+  Capture = {1,0.85,0.5},
+  --['Set Target'] = {1,1,0.5},
+  --['Cancel Target'] = {1,1,0.5},
+  --Mex = {0.9,0.9,0.9},
+}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -30,7 +49,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 8
-local fontfileOutlineStrength = 1.4
+local fontfileOutlineStrength = 1.3
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -84,6 +103,11 @@ local glColor = gl.Color
 local glRect = gl.Rect
 
 local isSpec = Spring.GetSpectatingState()
+local cursorTextures = {}
+
+local function convertColor(r,g,b)
+  return string.char(255, (r*255), (g*255), (b*255))
+end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -207,6 +231,18 @@ end
 function widget:Initialize()
   widget:ViewResize()
   widget:SelectionChanged()
+
+  WG['ordermenu'] = {}
+  WG['ordermenu'].getColorize = function()
+    return colorize
+  end
+  WG['ordermenu'].setColorize = function(value)
+    doUpdate = true
+    colorize = value
+    if colorize > 1 then
+      colorize = 1
+    end
+  end
 end
 
 function widget:Shutdown()
@@ -329,32 +365,62 @@ function drawOrders()
     else
       glColor(0.5,0.5,0.5,0.75)
     end
-    RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
+    RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, cellRects[cell][4]-cellMarginPx, padding*1.5 ,2,2,2,2)
     glColor(0.09,0.09,0.09,0.66)
     if activeCmd and activeCmd == cmd.name then
       glColor(1,1,1,0.66)
     end
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx-padding), padding ,2,2,2,2)
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, cellRects[cell][4]-cellMarginPx-padding, padding ,2,2,2,2)
+
+    -- icon
+    if showIcons then
+      if cursorTextures[cmd.cursor] == nil then
+        local cursorTexture = 'anims/icexuick_200/cursor'..string.lower(cmd.cursor)..'_0.png'
+        cursorTextures[cmd.cursor] = VFS.FileExists(cursorTexture) and cursorTexture or false
+      end
+      if cursorTextures[cmd.cursor] then
+        local cursorTexture = 'anims/icexuick_200/cursor'..string.lower(cmd.cursor)..'_0.png'
+        if VFS.FileExists(cursorTexture) then
+          Spring.Echo(cursorTexture)
+          local s = 0.45
+          local halfsize = s * ((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding))
+          --local midPosX = (cellRects[cell][3]-cellMarginPx-padding) - halfsize - (halfsize*((1-s-s)/2))
+          --local midPosY = (cellRects[cell][4]-cellMarginPx-padding) - (((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding)) / 2)
+          local midPosX = (cellRects[cell][3]-cellMarginPx-padding) - (((cellRects[cell][3]-cellMarginPx-padding) - (cellRects[cell][1]+cellMarginPx+padding)) / 2)
+          local midPosY = (cellRects[cell][4]-cellMarginPx-padding) - (((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding)) / 2)
+          glColor(1,1,1,0.66)
+          glTexture(''..cursorTexture)
+          glTexRect(midPosX-halfsize,  midPosY-halfsize,  midPosX+halfsize,  midPosY+halfsize)
+        end
+      end
+    end
 
     -- text
-    local text = string_gsub(cmd.name, "\n", " ")
-    if cmd.params[1] and cmd.params[cmd.params[1]+2] then
-      text = cmd.params[cmd.params[1]+2]
+    if not showIcons or not cursorTextures[cmd.cursor] then
+      local text = string_gsub(cmd.name, "\n", " ")
+      if cmd.params[1] and cmd.params[cmd.params[1]+2] then
+        text = cmd.params[cmd.params[1]+2]
+      end
+      local fontSize = cellInnerWidth / font:GetTextWidth(' '..text..' ')
+      if fontSize > cellInnerWidth / 6 then
+        fontSize = cellInnerWidth / 6
+      end
+      local fontHeight = font:GetTextHeight(text)*fontSize
+      local fontHeightOffset = fontHeight*0.34
+      if cmd.type == 5 then  -- state cmds (fire at will, etc)
+        fontHeightOffset = fontHeight*0.22
+      end
+      local textColor = "\255\225\225\225"
+      if colorize > 0 and cmdColor[cmd.name] then
+        local part = (1/colorize)
+        local grey = (0.9*(part-1))
+        textColor = convertColor((grey + cmdColor[cmd.name][1]) / part, (grey + cmdColor[cmd.name][2]) / part, (grey + cmdColor[cmd.name][3]) / part)
+      end
+      if activeCmd and activeCmd == cmd.name then
+        textColor = "\255\020\020\020"
+      end
+      font2:Print(textColor..text, cellRects[cell][1] + ((cellRects[cell][3]-cellRects[cell][1])/2), (cellRects[cell][2] - ((cellRects[cell][2]-cellRects[cell][4])/2) - fontHeightOffset), fontSize, "con")
     end
-    local fontSize = cellInnerWidth / font:GetTextWidth(' '..text..' ')
-    if fontSize > cellInnerWidth / 6 then
-      fontSize = cellInnerWidth / 6
-    end
-    local fontHeight = font:GetTextHeight(text)*fontSize
-    local fontHeightOffset = fontHeight*0.34
-    if cmd.type == 5 then  -- state cmds (fire at will, etc)
-      fontHeightOffset = fontHeight*0.22
-    end
-    local textColor = "\255\225\225\225"
-    if activeCmd and activeCmd == cmd.name then
-      textColor = "\255\020\020\020"
-    end
-    font2:Print(textColor..text, cellRects[cell][1] + ((cellRects[cell][3]-cellRects[cell][1])/2), (cellRects[cell][2] - ((cellRects[cell][2]-cellRects[cell][4])/2) - fontHeightOffset), fontSize, "con")
 
     -- state lights
     if cmd.type == 5 then  -- state cmds (fire at will, etc)
@@ -572,9 +638,11 @@ end
 
 
 function widget:GetConfigData() --save config
-
+  return {colorize=colorize}
 end
 
 function widget:SetConfigData(data) --load config
-
+  if data.colorize ~= nil then
+    colorize = data.colorize
+  end
 end

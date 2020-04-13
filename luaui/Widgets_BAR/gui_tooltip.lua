@@ -168,7 +168,7 @@ function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
 
 	local paddingH = 7 *widgetScale
-	local paddingW = paddingH * 1.33
+	local paddingW = paddingH * 1.45
 	local posX = x + paddingW
 	local posY = y + paddingH
 
