@@ -61,6 +61,7 @@ vertex = [[
 	uniform int simFrame;
 	uniform int drawFrame;
 
+	uniform int intOptions[1];
 	uniform float floatOptions[4];
 	uniform int bitOptions;
 
@@ -172,6 +173,12 @@ vertex = [[
 		blend.zw = vec2( 1.0 ) - blend.xy;
 		return dot( res0, blend.zxzx * blend.wwyy );
 	}
+	#define HASHSCALE1 .1031
+	float hash11(float p) {
+		vec3 p3  = fract(vec3(p) * HASHSCALE1);
+		p3 += dot(p3, p3.yzx + 19.19);
+		return fract((p3.x + p3.y) * p3.z);
+	}
 
 	/***********************************************************************/
 	// Auxilary functions
@@ -237,7 +244,7 @@ vertex = [[
 			modelVertexPos.xyz +=
 				clamp(1.0 - floatOptions[1], 0.0, 1.0) *	//1.0 - current health percentage
 				floatOptions[2] *							//vertex displacement value
-				Perlin4D( vec4(0.1 * modelVertexPos.xyz, 5.0 * floatOptions[1]))  * normalize(modelVertexPos.xyz);
+				Perlin4D( vec4(0.1 * modelVertexPos.xyz, 100.0 * hash11(float(intOptions[0]))) )  * normalize(modelVertexPos.xyz);
 		}
 
 		modelUV = gl_MultiTexCoord0.xy;
