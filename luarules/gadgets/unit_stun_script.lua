@@ -59,7 +59,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDamaged(unitID,unitDefID,unitTeam,damage,paralyzer,weaponDefID,projectileID,attackerID,attackerDefID,attackerTeam)
-    if paralyzer and hasSetStunned[unitDefID] ~= nil then
+    if paralyzer and hasSetStunned[unitDefID] then
         if select(2, spGetUnitIsStunned(unitID)) then
             stunnedUnits[unitID] = true
             spCallCOBScript(unitID, 'SetStunned', 0, true)
