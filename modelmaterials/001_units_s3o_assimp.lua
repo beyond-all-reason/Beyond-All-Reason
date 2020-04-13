@@ -40,6 +40,7 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		normalmapping = true,
 		flashlights = true,
 		vertex_ao = true,
+		health_displace = true,
 	},
 	deferredOptions = {
 		normalmapping = true,
@@ -51,7 +52,7 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 
 ----------------------------------------------
 
-
+local GL_FLOAT = 0x1406
 -- args=<objID, matName, lodMatNum, uniformName, uniformType, uniformData>
 local urSetMaterialUniform = {
 	[false] = Spring.UnitRendering.SetForwardMaterialUniform,
@@ -65,27 +66,63 @@ local urClearMaterialUniform = {
 }
 
 local armTanks = {}
-local function UnitCreatedArmTanks(unitID, unitDefID, mat)
-	armTanks[unitID] = true
-end
-
 local coreTanks = {}
-local function UnitCreatedCoreTanks(unitID, unitDefID, mat)
-	coreTanks[unitID] = true
+local otherUnits = {}
+
+local spGetUnitHealth = Spring.GetUnitHealth
+
+local healthArray = {[1] = 0.0}
+local function SendHealthInfo(unitID, isDeferred)
+	local h, mh = spGetUnitHealth(unitID, isDeferred)
+	if h and mh then
+		healthArray[1] = h / mh
+		--Spring.Echo("SendHealthInfo", unitID, isDeferred, urSetMaterialUniform[isDeferred], healthArray[1])
+		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, healthArray)
+	end
 end
 
-local function UnitDestroyedArmTanks(unitID, unitDefID)
-	armTanks[unitID] = nil
+local vertDisp = {} --cache
+local vdArray = {[1] = 0.0}
+local function SendVertDisplacement(unitID, unitDefID, isDeferred)
+	-- fill cache, if empty
+	if not vertDisp[unitDefID] then
+		local udefCM = UnitDefs[unitDefID].customParams
+		vertDisp[unitDefID] = tonumber(udefCM.scavvertdisp) or 0
+		vertDisp[unitDefID] = 10.0;
+	end
+
+	if vertDisp[unitDefID] > 0 then
+		vdArray[1] = vertDisp[unitDefID]
+		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[2]", GL_FLOAT, vdArray)
+	end
 end
 
-local function UnitDestroyedCoreTanks(unitID, unitDefID)
-	coreTanks[unitID] = nil
+local function UnitCreated(unitsList, unitID, unitDefID, mat)
+	unitsList[unitID] = true
+	if mat.standardShaderObj then
+		SendVertDisplacement(unitID, unitDefID, false)
+		SendHealthInfo(unitID, false)
+	end
+	if mat.deferredShaderObj then
+		SendVertDisplacement(unitID, unitDefID, true)
+		SendHealthInfo(unitID, true)
+	end
+end
+
+local function UnitDestroyed(unitsList, unitID, unitDefID)
+	unitsList[unitID] = nil
+end
+
+local function GameFrameSlow(unitsList, gf, mat, isDeferred)
+	for unitID, _ in pairs(unitsList) do
+		SendHealthInfo(unitID, isDeferred)
+	end
 end
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDirection = Spring.GetUnitDirection
 
-local GL_FLOAT = 0x1406
+
 local threadsArray = {[1] = 0.0}
 
 local function GameFrameArmTanks(gf, mat, isDeferred)
@@ -106,16 +143,14 @@ local function GameFrameArmTanks(gf, mat, isDeferred)
 		local offset = ((gf % 12) * (4.0 / 4096.0)) * speed
 		----
 
-		threadsArray[1] = offset
-		urSetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		if isDeferred then
+			threadsArray[1] = -offset
+			urSetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		end
 	end
 end
 
 local function GameFrameCoreTanks(gf, mat, isDeferred)
-	if isDeferred then
-		return
-	end
-	
 	for unitID, _ in pairs(coreTanks) do
 		-----
 		local usx, usy, usz, speed = spGetUnitVelocity(unitID)
@@ -126,14 +161,19 @@ local function GameFrameCoreTanks(gf, mat, isDeferred)
 			speed = -speed
 		end
 
-		local offset = ((gf % 10) * (8.0 / 2048.0)) * speed
+		local offset = ((gf % 8) * (8.0 / 2048.0)) * speed
 		----
 
-		threadsArray[1] = offset
-		urSetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		if isDeferred then
+			threadsArray[1] = -offset
+			urSetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		end
 	end
 end
 
+local function UnitDamaged(unitID, unitDefID, mat, isDeferred)
+	SendHealthInfo(unitID, isDeferred)
+end
 
 ---------------------------------------------------
 
@@ -146,9 +186,13 @@ local materials = {
 		deferredOptions = {
 			materialIndex = 1,
 		},
-		UnitCreated = UnitCreatedArmTanks,
-		UnitDestroyed = UnitDestroyedArmTanks,
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(armTanks, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(armTanks, unitID, unitDefID) end,
+
 		GameFrame = GameFrameArmTanks,
+		GameFrameSlow = function (gf, mat, isDeferred) GameFrameSlow(otherUnits, gf, mat, isDeferred) end,
+
+		UnitDamaged = UnitDamaged,
 	}),
 	unitsNormalMapCoreTanks = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		shaderOptions = {
@@ -157,9 +201,13 @@ local materials = {
 		deferredOptions = {
 			materialIndex = 2,
 		},
-		UnitCreated = UnitCreatedCoreTanks,
-		UnitDestroyed = UnitDestroyedCoreTanks,
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(coreTanks, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(coreTanks, unitID, unitDefID) end,
+
 		GameFrame = GameFrameCoreTanks,
+		GameFrameSlow = function (gf, mat, isDeferred) GameFrameSlow(otherUnits, gf, mat, isDeferred) end,
+
+		UnitDamaged = UnitDamaged,
 	}),
 	unitsNormalMapOthers = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		shaderOptions = {
@@ -167,6 +215,11 @@ local materials = {
 		deferredOptions = {
 			materialIndex = 3,
 		},
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
+
+		UnitDamaged = UnitDamaged,
+		GameFrameSlow = function (gf, mat, isDeferred) GameFrameSlow(otherUnits, gf, mat, isDeferred) end,
 	}),
 }
 

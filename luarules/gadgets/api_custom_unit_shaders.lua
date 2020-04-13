@@ -78,7 +78,8 @@ local registeredOptions = {}
 local idToDefID = {}
 
 --- Main data structures:
--- rendering.drawList[objectID] = matSrc
+-- rendering.objectList[objectID] = matSrc -- All units
+-- rendering.drawList[objectID] = matSrc -- Lua Draw
 -- rendering.materialInfos[objectDefID] = {matName, name = param, name1 = param1}
 -- rendering.bufMaterials[objectDefID] = rendering.spGetMaterial("opaque") / luaMat
 -- rendering.bufShadowMaterials[objectDefID] = rendering.spGetMaterial("shadow") / luaMat
@@ -87,6 +88,7 @@ local idToDefID = {}
 ---
 
 local unitRendering = {
+	objectList          = {},
 	drawList            = {},
 	materialInfos       = {},
 	bufMaterials        = {},
@@ -108,9 +110,11 @@ local unitRendering = {
 	DrawObject           = "DrawUnit", --avoid, will kill CPU-side of performance!
 	ObjectCreated        = "UnitCreated",
 	ObjectDestroyed      = "UnitDestroyed",
+	ObjectDamaged        = "UnitDamaged",
 }
 
 local featureRendering = {
+	objectList          = {},
 	drawList            = {},
 	materialInfos       = {},
 	bufMaterials        = {},
@@ -132,6 +136,7 @@ local featureRendering = {
 	DrawObject           = "DrawFeature", --avoid, will kill CPU-side of performance!
 	ObjectCreated        = "FeatureCreated",
 	ObjectDestroyed      = "FeatureDestroyed",
+	ObjectDamaged        = "FeatureDamaged",
 }
 
 local allRendering = {
@@ -558,6 +563,7 @@ local function BindMaterials()
 end
 
 local function ToggleAdvShading()
+
 	unitRendering.drawList = {}
 	featureRendering.drawList = {}
 
@@ -582,6 +588,8 @@ local function ObjectFinished(rendering, objectID, objectDefID)
 		local mat = rendering.materialDefs[objectMat[1]]
 
 		if mat.standardShader then
+			rendering.objectList[objectID] = mat
+
 			rendering.spActivateMaterial(objectID, 3)
 
 			rendering.spSetMaterial(objectID, 3, "opaque", GetObjectMaterial(rendering, objectDefID))
@@ -653,15 +661,31 @@ local function _CleanupEverything(rendering)
 end
 
 local function ObjectDestroyed(rendering, objectID, objectDefID)
-	local mat = rendering.drawList[objectID]
+	local mat = rendering.objectList[objectID]
 	if mat then
 		local _ObjectDestroyed = mat[rendering.ObjectDestroyed]
 		if _ObjectDestroyed then
 			_ObjectDestroyed(objectID, objectDefID)
 		end
+		rendering.objectList[objectID] = nil
 		rendering.drawList[objectID] = nil
 	end
 	rendering.spDeactivateMaterial(objectID, 3)
+end
+
+local function ObjectDamaged(rendering, objectID, objectDefID)
+	local mat = rendering.objectList[objectID]
+	if mat then
+		local _ObjectDamaged = mat[rendering.ObjectDamaged]
+		if _ObjectDamaged then
+			if mat.standardShaderObj then
+				_ObjectDamaged(objectID, objectDefID, mat, false)
+			end
+			if mat.deferredShaderObj then
+				_ObjectDamaged(objectID, objectDefID, mat, true)
+			end
+		end
+	end
 end
 
 local function DrawObject(rendering, objectID, objectDefID, drawMode)
@@ -796,6 +820,14 @@ end
 function gadget:FeatureCreated(featureID)
 	idToDefID[-featureID] = Spring.GetFeatureDefID(featureID)
 	ObjectFinished(featureRendering, featureID, idToDefID[-featureID])
+end
+
+function gadget:UnitDamaged(unitID, unitDefID)
+	ObjectDamaged(unitRendering, unitID, unitDefID)
+end
+
+function gadget:FeatureDamaged(featureID, featureDefID)
+	ObjectDamaged(featureRendering, featureID, featureDefID)
 end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID)
