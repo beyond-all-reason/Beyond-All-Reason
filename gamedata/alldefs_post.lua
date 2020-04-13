@@ -177,7 +177,6 @@ function UnitDef_Post(name, uDef)
 	--	Spring.Echo('import file not found: '..filename)
 	--end
 
-
 	-- scavengers
 	if string.find(name, '_scav') then -- if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
 		--name = string.gsub(name, '_scav', '')

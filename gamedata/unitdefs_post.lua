@@ -77,6 +77,6 @@ for name,ud in pairs(UnitDefs) do
   --ud.turnrate = 800
   
   if SaveDefsToCustomParams then
-      SaveDefToCustomParams("UnitDefs", name, ud)    
+      SaveDefToCustomParams("UnitDefs", name, ud)
   end
 end

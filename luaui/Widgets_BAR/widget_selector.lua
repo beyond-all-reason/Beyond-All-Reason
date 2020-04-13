@@ -306,7 +306,7 @@ local function UpdateList()
   widgetsList = {}
   local fullWidgetsListCount = #fullWidgetsList
   for name,data in pairs(widgetHandler.knownWidgets) do
-    if name ~= myName then
+    if name ~= myName and name ~= 'Write customparam.__def to files' then
       fullWidgetsListCount = fullWidgetsListCount + 1
       fullWidgetsList[fullWidgetsListCount] = { name, data }
       -- look for the maxWidth
@@ -319,7 +319,7 @@ local function UpdateList()
   
   maxWidth = (maxWidth / fontSize)
 
-  if widgetHandler.knownCount ~= (fullWidgetsListCount + 1) then
+  if widgetHandler.knownCount ~= (fullWidgetsListCount + 2) then
     error('knownCount mismatch')
   end
 
@@ -541,21 +541,21 @@ function widget:DrawScreen()
   
   else
     if (pointedY) then
-    gl.Color(1.0, 1.0, 1.0, 0.09)
-    local xn = minx + 0.5
-    local xp = maxx - 0.5
-    local yn = pointedY - ((fontSpace * 0.5 + 1)*sizeMultiplier)
-    local yp = pointedY + ((fontSize + fontSpace * 0.5 + 1)*sizeMultiplier)
-    if scrollbarOffset < 0 then
-    	xp = xp + scrollbarOffset
-    	--xn = xn - scrollbarOffset
+      gl.Color(1.0, 1.0, 1.0, 0.09)
+      local xn = minx + 0.5
+      local xp = maxx - 0.5
+      local yn = pointedY - ((fontSpace * 0.5 + 1)*sizeMultiplier)
+      local yp = pointedY + ((fontSize + fontSpace * 0.5 + 1)*sizeMultiplier)
+      if scrollbarOffset < 0 then
+          xp = xp + scrollbarOffset
+          --xn = xn - scrollbarOffset
+      end
+      yn = yn + 0.5
+      yp = yp - 0.5
+      gl.Blending(GL.SRC_ALPHA, GL.ONE)
+      RectRound(xn, yn, xp, yp, 5*sizeMultiplier)
+      gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
     end
-    yn = yn + 0.5
-    yp = yp - 0.5
-    gl.Blending(GL.SRC_ALPHA, GL.ONE)
-    RectRound(xn, yn, xp, yp, 5*sizeMultiplier)
-    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-end
   end
 
   font:End()

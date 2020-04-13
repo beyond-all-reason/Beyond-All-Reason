@@ -7,6 +7,9 @@ for _,def in pairs(UnitDefs) do
 end
 
 if customparamDefsDetected then
+
+    local excludeScavengers = true
+
     function widget:GetInfo()
         return {
             name      = "Write customparam.__def to files",
@@ -48,17 +51,27 @@ if customparamDefsDetected then
             end
             if isEmpty then ud_table[k].customparams=nil end
         end
-        table.save2(ud_table, folder .. "/" .. v.name .. ".lua")
+
+        local subfolder = ''
+        if folder == "baked_defs/units" and v.customParams and v.customParams.subfolder then
+            subfolder = v.customParams.subfolder .. "/"
+            Spring.CreateDir(folder.."/"..subfolder)
+        end
+
+        table.save2(ud_table, folder .. "/" .. subfolder .. v.name .. ".lua")
         return true
     end
 
     function HandleDefs(Defs, folder)
         local failures = 0
+
         Spring.Echo("Processing Defs for " .. folder)
         for _,v in pairs(Defs) do
-            if failures >=3 then break end
-            local success = WriteDefToFile("baked_defs/" .. folder, v)
-            if (not success) then failures = failures + 1 end
+            if not excludeScavengers or not v.name or not string.find(v.name, '_scav') then
+                if failures >=3 then break end
+                local success = WriteDefToFile("baked_defs/" .. folder, v)
+                if (not success) then failures = failures + 1 end
+            end
         end
 
         if failures>0 then
