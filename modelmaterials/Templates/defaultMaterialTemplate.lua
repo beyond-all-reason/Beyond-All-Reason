@@ -1206,7 +1206,7 @@ fragment = [[
 			vec4 texColor1w = texture(texture1w, myUV);
 			vec4 texColor2w = texture(texture2w, myUV);
 			texColor1 = mix(texColor1, texColor1w, healthMix);
-			texColor2 = mix(texColor2, texColor2w, healthMix);
+			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
 		}
 
 		// PBR Params
@@ -1460,7 +1460,7 @@ fragment = [[
 			fragData[0] = vec4(outColor, texColor2.a);
 		#else
 			outSpecularColor = TONEMAP(outSpecularColor);
-		
+
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), 1.0);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, texColor2.a);
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, texColor2.a);
@@ -1531,12 +1531,14 @@ local defaultMaterialTemplate = {
 		threads_arm 	= false,
 		threads_core 	= false,
 
+		health_displace  = false,
+		health_texturing = false,
+
 		treewind 		= false,
 		pom 			= false,
 		autonormal 		= false,
 
 		shadowsQuality	= 2,
-		materialIndex	= 0,
 
 		autoNormalParams = {1.0, 0.00200}, -- Sampling distance, autonormal value
 		pomParams = {0.002, 1.0, 24.0, -2.0}, -- scale, minLayers, maxLayers, lodBias
@@ -1552,6 +1554,9 @@ local defaultMaterialTemplate = {
 
 		threads_arm 	= false,
 		threads_core 	= false,
+
+		health_displace  = false,
+		health_texturing = false,
 
 		treewind 		= false,
 		pom 			= false,
