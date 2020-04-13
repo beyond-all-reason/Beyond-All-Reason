@@ -2539,7 +2539,7 @@ function init()
 		 end,
 		},
 		{id="ordermenu_colorize", group="ui", basic=true, name="Ordermenu"..widgetOptionColor.."  colorize", type="slider", min=0, max=1, step=0.1, value=0, description='',
-		   onload = function(i) loadWidgetData("Order menu", "ordermenu", {'colorize'}) end,
+		   onload = function(i) loadWidgetData("Order menu", "ordermenu_colorize", {'colorize'}) end,
 		   onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
 		},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
