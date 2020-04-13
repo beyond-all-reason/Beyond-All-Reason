@@ -1446,7 +1446,7 @@ fragment = [[
 			outColor *= EXPOSURE;
 		#endif
 
-		outColor = CustomTM(outColor);
+		outColor = TONEMAP(outColor);
 
 		// debug hook
 		#if 0
@@ -1459,6 +1459,8 @@ fragment = [[
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
 		#else
+			outSpecularColor = TONEMAP(outSpecularColor);
+		
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), 1.0);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, texColor2.a);
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, texColor2.a);
