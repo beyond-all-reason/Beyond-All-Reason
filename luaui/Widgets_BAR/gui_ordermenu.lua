@@ -555,7 +555,7 @@ function widget:DrawScreen()
     -- draw highlight on top of button
     if cellHovered and not disableInput then
       local padding = (bgBorder*vsy) * 0.5
-      glColor(1,1,1,0.08)
+      glColor(1,1,1,0.09)
       RectRound(cellRects[cellHovered][1]+cellMarginPx, cellRects[cellHovered][2]+cellMarginPx, cellRects[cellHovered][3]-cellMarginPx, (cellRects[cellHovered][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
     end
 
@@ -563,7 +563,7 @@ function widget:DrawScreen()
     if clickedCellTime and cmds[clickedCell] then
       local cell = clickedCell
       local padding = (bgBorder*vsy) * 0.5
-      local alpha = 0.33 - ((os_clock()-clickedCellTime) / 0.4)
+      local alpha = 0.3 - ((os_clock()-clickedCellTime) / 0.4)
       if alpha > 0 then
         if activeCmd and activeCmd == cmds[cell].name then
           glColor(0,0,0,alpha)
