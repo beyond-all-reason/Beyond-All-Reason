@@ -267,7 +267,7 @@ local UnitEffects = {
         {class='AirJet',options={color={0.2,0.8,0.2}, width=4, length=25, piece="thrust", onActive=true}},
     },
     ["armseap"] = {
-        {class='AirJet',options={color={0.2,0.8,0.2}, width=5, length=35, piece="thrust", onActive=true, light=1}},
+        {class='AirJet',options={color={0.2,0.8,0.2}, width=5, length=35, piece="thrustm", onActive=true, light=1}},
     },
     ["armsehak"] = {
         {class='AirJet',options={color={0.2,0.8,0.2}, width=3.5, length=37, piece="thrust", onActive=true}, light=1},

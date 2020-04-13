@@ -15,7 +15,8 @@
 -- strictly speaking, alldefs.lua is a misnomer since this file does not handle armordefs, featuredefs or movedefs
 
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
--- The widget to do so can be found in 'etc/Lua/bake_unitdefs_post'
+-- The widget to do so is included in the game and detects these customparams auto-enables itself
+-- and writes them to Spring/baked_defs
 SaveDefsToCustomParams = false
 
 
@@ -68,7 +69,45 @@ local function Split(s, separator)
 end
 
 
+--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
+     The engine uses full frames for actual reload times, but forwards the raw
+     value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
+local function round_to_frames(name, wd, key)
+	local original_value = wd[key]
+	if not original_value then
+		-- even reloadtime can be nil (shields, death explosions)
+		return
+	end
+
+	local frames = math.max(1, math.floor((original_value + 1E-3) * Game.gameSpeed))
+
+	local sanitized_value = frames / Game.gameSpeed
+	if math.abs (original_value - sanitized_value) > 1E-3 then
+		Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
+	end
+
+	return sanitized_value + 1E-5
+end
+
+local function processWeapons(unitDefName, unitDef)
+	local weaponDefs = unitDef.weapondefs
+	if not weaponDefs then
+		return
+	end
+
+	for weaponDefName, weaponDef in pairs (weaponDefs) do
+		local fullWeaponName = unitDefName .. "." .. weaponDefName
+		weaponDef.reloadtime = round_to_frames(fullWeaponName, weaponDef, "reloadtime")
+		weaponDef.burstrate = round_to_frames(fullWeaponName, weaponDef, "burstrate")
+	end
+end
+
 function UnitDef_Post(name, uDef)
+
+	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
+         The engine uses full frames for actual reload times, but forwards the raw
+         value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
+	processWeapons(name, uDef)
 
     -- vehicles
     --if uDef.category and string.find(uDef.category, "TANK") then
@@ -202,64 +241,67 @@ end
 -- process weapondef
 function WeaponDef_Post(name, wDef)
 
-	--Use targetborderoverride in weapondef customparams to override this global setting
-	--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
-	if wDef.customparams and wDef.customparams.targetborderoverride == nil then
-		wDef.targetborder = 1 --Aim for just inside the hitsphere
-	elseif wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
-		wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
-	end
+	if not SaveDefsToCustomParams then
 
-	if wDef.craterareaofeffect then
-		wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect/1500
-		--Spring.Echo(name..'  '..wDef.cratermult)
-	end
+		--Use targetborderoverride in weapondef customparams to override this global setting
+		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
+		if wDef.customparams and wDef.customparams.targetborderoverride == nil then
+			wDef.targetborder = 1 --Aim for just inside the hitsphere
+		elseif wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
+			wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
+		end
 
-	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
-	-- wDef.targetborder = 1.0
+		if wDef.craterareaofeffect then
+			wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect/1500
+			--Spring.Echo(name..'  '..wDef.cratermult)
+		end
 
-	if wDef.weapontype == "Cannon" then
-		if wDef.stages == nil then
-			wDef.stages = 10
-			if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then
-				wDef.stages = math.floor(7.5 + math.min(wDef.damage.default * 0.0033, wDef.areaofeffect * 0.13))
-				wDef.alphadecay = 1 - ((1/wDef.stages)/1.5)
-				wDef.sizedecay = 0.4 / wDef.stages
+		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
+		-- wDef.targetborder = 1.0
+
+		if wDef.weapontype == "Cannon" then
+			if wDef.stages == nil then
+				wDef.stages = 10
+				if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then
+					wDef.stages = math.floor(7.5 + math.min(wDef.damage.default * 0.0033, wDef.areaofeffect * 0.13))
+					wDef.alphadecay = 1 - ((1/wDef.stages)/1.5)
+					wDef.sizedecay = 0.4 / wDef.stages
+				end
 			end
 		end
-	end
 
-	if wDef.damage ~= nil then
-		wDef.damage.indestructable = 0
-	end
+		if wDef.damage ~= nil then
+			wDef.damage.indestructable = 0
+		end
 
-	if wDef.weapontype == "BeamLaser" then
-		if wDef.beamttl == nil then
-			wDef.beamttl = 3
-			wDef.beamdecay = 0.7
+		if wDef.weapontype == "BeamLaser" then
+			if wDef.beamttl == nil then
+				wDef.beamttl = 3
+				wDef.beamdecay = 0.7
+			end
+			if wDef.corethickness then
+				wDef.corethickness = wDef.corethickness * 1.21
+			end
+			if wDef.thickness then
+				wDef.thickness = wDef.thickness * 1.27
+			end
+			if wDef.laserflaresize then
+				wDef.laserflaresize = wDef.laserflaresize * 1.15		-- note: thickness affects this too
+			end
+			wDef.texture1 = "largebeam"		-- The projectile texture
+			--wDef.texture2 = ""		-- The end-of-beam texture for #LaserCannon, #BeamLaser
+			wDef.texture3 = "flare2"	-- Flare texture for #BeamLaser
+			wDef.texture4 = "flare2"	-- Flare texture for #BeamLaser with largeBeamLaser = true
 		end
-		if wDef.corethickness then
-			wDef.corethickness = wDef.corethickness * 1.21
-		end
-		if wDef.thickness then
-			wDef.thickness = wDef.thickness * 1.27
-		end
-		if wDef.laserflaresize then
-			wDef.laserflaresize = wDef.laserflaresize * 1.15		-- note: thickness affects this too
-		end
-		wDef.texture1 = "largebeam"		-- The projectile texture
-		--wDef.texture2 = ""		-- The end-of-beam texture for #LaserCannon, #BeamLaser
-		wDef.texture3 = "flare2"	-- Flare texture for #BeamLaser
-		wDef.texture4 = "flare2"	-- Flare texture for #BeamLaser with largeBeamLaser = true
-	end
 
-	-- scavengers
-	if string.find(name, '_scav') then -- if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
-		VFS.Include("gamedata/scavengers/weapondef_post.lua")
-		wDef = scav_Wdef_Post(name, wDef)
-	end
+		-- scavengers
+		if string.find(name, '_scav') then -- if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
+			VFS.Include("gamedata/scavengers/weapondef_post.lua")
+			wDef = scav_Wdef_Post(name, wDef)
+		end
 
-	ProcessSoundDefaults(wDef)
+		ProcessSoundDefaults(wDef)
+	end
 end
 
 -- process effects
