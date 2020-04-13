@@ -86,7 +86,9 @@ local function SendHealthInfo(unitID, isDeferred)
 
 		if not unitsHealth[unitID] then
 			unitsHealth[unitID] = h / mh
-		elseif math.abs(unitsHealth[unitID] - h / mh) >= 0.005 then --consider the change of 0.5% significant
+		elseif (h / mh - unitsHealth[unitID]) >= 0.005 then --consider the change of 0.5% significant. Health is increasing
+			unitsHealth[unitID] = h / mh
+		elseif (unitsHealth[unitID] - h / mh) >= 0.125 then --health is decreasing. Quantize by 12.5%.
 			unitsHealth[unitID] = h / mh
 		end
 		healthArray[1] = unitsHealth[unitID]
@@ -105,7 +107,7 @@ local function SendVertDisplacement(unitID, unitDefID, isDeferred)
 	if not vertDisp[unitDefID] then
 		local udefCM = UnitDefs[unitDefID].customParams
 		vertDisp[unitDefID] = tonumber(udefCM.scavvertdisp) or 0
-		vertDisp[unitDefID] = 10.0;
+		vertDisp[unitDefID] = 3.0;
 	end
 
 	if vertDisp[unitDefID] > 0 then
