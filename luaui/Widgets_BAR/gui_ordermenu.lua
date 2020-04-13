@@ -97,10 +97,21 @@ local string_gsub = string.gsub
 local os_clock = os.clock
 
 local GL_QUADS = GL.QUADS
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glRect = gl.Rect
+local glVertex = gl.Vertex
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+
+local twicePi = math.pi * 2
+local mCos = math.cos
+local mSin = math.sin
 
 local isSpec = Spring.GetSpectatingState()
 local cursorTextures = {}
@@ -339,6 +350,16 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
+local function doCircle(x, y, z, radius, sides)
+  local sideAngle = twicePi / sides
+  glVertex(x, z, y)
+  for i = 1, sides+1 do
+    local cx = x + (radius * mCos(i * sideAngle))
+    local cz = z + (radius * mSin(i * sideAngle))
+    glVertex(cx, cz, y)
+  end
+end
+
 function drawOrders()
   -- background
   local padding = bgBorder*vsy
@@ -347,7 +368,7 @@ function drawOrders()
   glColor(1,1,1,0.05)
   RectRound(backgroundRect[1]+padding, backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1.33)
 
-  padding = (bgBorder*vsy) * 0.5
+  padding = (bgBorder*vsy) * 0.46
   local numCells = #cmds
   if numCells > #cellRects then
     numCells = #cellRects
@@ -361,14 +382,14 @@ function drawOrders()
 
     -- order button background
     if WG['guishader'] then
-      glColor(0.6,0.6,0.6,0.5)
+      glColor(0.6,0.6,0.6,0.58)
     else
-      glColor(0.5,0.5,0.5,0.75)
+      glColor(0.45,0.45,0.45,1)
     end
     RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, cellRects[cell][4]-cellMarginPx, padding*1.5 ,2,2,2,2)
-    glColor(0.09,0.09,0.09,0.66)
+    glColor(0,0,0,0.6)
     if activeCmd and activeCmd == cmd.name then
-      glColor(1,1,1,0.66)
+      glColor(1,1,1,0.8)
     end
     RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, cellRects[cell][4]-cellMarginPx-padding, padding ,2,2,2,2)
 
@@ -395,6 +416,49 @@ function drawOrders()
       end
     end
 
+    --if cmdColor[cmd.name] then
+    --  --local x1 = cellRects[cell][1] + cellMarginPx
+    --  --local y1 = cellRects[cell][2] + cellMarginPx
+    --  --local x2 = cellRects[cell][3] - cellMarginPx --x1 + (padding*2.5)
+    --  --local y2 = cellRects[cell][2] + cellMarginPx + (padding*2) --cellRects[cell][4] - cellMarginPx - padding
+    --  --local x1 = cellRects[cell][1] + cellMarginPx + (cellInnerWidth*0.07)
+    --  --local y1 = cellRects[cell][4] + cellMarginPx + (cellInnerHeight*0.17)
+    --  --local x2 = cellRects[cell][3] - cellMarginPx - (cellInnerWidth*0.07)
+    --  --local y2 = cellRects[cell][4] + cellMarginPx + (cellInnerHeight*0.17) + (padding*1.5) --cellRects[cell][4] - cellMarginPx - padding
+    --  local x1 = cellRects[cell][1] + cellMarginPx
+    --  local y1 = cellRects[cell][2] + cellMarginPx
+    --  local x2 = cellRects[cell][3] - cellMarginPx --x1 + (padding*2.5)
+    --  local y2 = cellRects[cell][2] + cellMarginPx + (padding*2) --cellRects[cell][4] - cellMarginPx - padding
+    --  glColor(cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.2)
+    --  if rows < 6 then  -- fancy fitting rectrounds
+    --    RectRound(x1, y1, x2, y2, padding, 0,0,1,1)
+    --  else
+    --    glRect(x1,y1,x2,y2)
+    --  end
+    --  x1 = cellRects[cell][1] + cellMarginPx
+    --  y2 = cellRects[cell][4] - cellMarginPx
+    --  x2 = cellRects[cell][3] - cellMarginPx --x1 + (padding*2.5)
+    --  y1 = cellRects[cell][4] - cellMarginPx - (padding*2) --cellRects[cell][4] - cellMarginPx - padding
+    --  if rows < 6 then  -- fancy fitting rectrounds
+    --    RectRound(x1, y1, x2, y2, padding, 1,1,0,0)
+    --  else
+    --    glRect(x1,y1,x2,y2)
+    --  end
+    --end
+
+    --if cmdColor[cmd.name] then
+    --  local s = 0.11
+    --  local radius = s * ((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding))
+    --  local posX = cellRects[cell][3]-cellMarginPx-padding - (radius*2)
+    --  local posY = cellRects[cell][4]-cellMarginPx-padding - (radius*2)
+    --
+    --  glColor(cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.75)
+    --  glBeginEnd(GL_TRIANGLE_FAN, doCircle, posX, 0, posY, radius, 16)
+    --  radius = radius * 0.6
+    --  glColor(0,0,0, 0.15)
+    --  glBeginEnd(GL_TRIANGLE_FAN, doCircle, posX, 0, posY, radius, 12)
+    --end
+
     -- text
     if not showIcons or not cursorTextures[cmd.cursor] then
       local text = string_gsub(cmd.name, "\n", " ")
@@ -410,10 +474,10 @@ function drawOrders()
       if cmd.type == 5 then  -- state cmds (fire at will, etc)
         fontHeightOffset = fontHeight*0.22
       end
-      local textColor = "\255\225\225\225"
+      local textColor = "\255\233\233\233"
       if colorize > 0 and cmdColor[cmd.name] then
         local part = (1/colorize)
-        local grey = (0.9*(part-1))
+        local grey = (0.93*(part-1))
         textColor = convertColor((grey + cmdColor[cmd.name][1]) / part, (grey + cmdColor[cmd.name][2]) / part, (grey + cmdColor[cmd.name][3]) / part)
       end
       if activeCmd and activeCmd == cmd.name then
@@ -434,7 +498,8 @@ function drawOrders()
         clickedCellDesiredState = nil
         desiredState = nil
       end
-      local stateWidth = cellInnerWidth / statecount
+      local statePadding = 0
+      local stateWidth = (cellInnerWidth*(1-statePadding)) / statecount
       local stateHeight = cellInnerHeight * 0.145
       local stateMargin = stateWidth*0.07
       local glowSize = stateHeight * 5.5
@@ -456,10 +521,10 @@ function drawOrders()
           r,g,b,a = 0,0,0,0.3  -- default off state
         end
         glColor(r,g,b,a)
-        local x1 = cellRects[cell][1] + cellMarginPx + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin)
-        local y1 = cellRects[cell][2] + cellMarginPx + padding
+        local x1 = (cellInnerWidth*statePadding) + cellRects[cell][1] + cellMarginPx + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin)
+        local y1 = (cellInnerWidth*statePadding) + cellRects[cell][2] + cellMarginPx + padding
         local x2 = cellRects[cell][1] + cellMarginPx - padding + (stateWidth*i) - (i==statecount and 0 or stateMargin)
-        local y2 = cellRects[cell][2] + cellMarginPx + stateHeight
+        local y2 = (cellInnerWidth*statePadding) + cellRects[cell][2] + cellMarginPx + stateHeight
         if rows < 6 then  -- fancy fitting rectrounds
           RectRound(x1, y1, x2, y2, padding,
                   (i==1 and 0 or 2), (i==statecount and 0 or 2), (i==statecount and 2 or 0), (i==1 and 2 or 0))
@@ -554,26 +619,31 @@ function widget:DrawScreen()
 
     -- draw highlight on top of button
     if cellHovered and not disableInput then
+      glBlending(GL_SRC_ALPHA, GL_ONE)
       local padding = (bgBorder*vsy) * 0.5
-      glColor(1,1,1,0.09)
+      glColor(1,1,1,0.11)
       RectRound(cellRects[cellHovered][1]+cellMarginPx, cellRects[cellHovered][2]+cellMarginPx, cellRects[cellHovered][3]-cellMarginPx, (cellRects[cellHovered][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
+      glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
     end
 
     -- clicked cell effect
     if clickedCellTime and cmds[clickedCell] then
       local cell = clickedCell
       local padding = (bgBorder*vsy) * 0.5
-      local alpha = 0.3 - ((os_clock()-clickedCellTime) / 0.4)
+      local alpha = 0.33 - ((os_clock()-clickedCellTime) / 0.25)
       if alpha > 0 then
         if activeCmd and activeCmd == cmds[cell].name then
           glColor(0,0,0,alpha)
         else
+          glBlending(GL_SRC_ALPHA, GL_ONE)
           glColor(1,1,1,alpha)
         end
         RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
       else
         clickedCellTime = nil
       end
+      glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     end
 
     -- background blur
