@@ -343,14 +343,13 @@ local function updateRejoin()
 		local barArea = {area[1]+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 		local barWidth = barArea[3] - barArea[1]
 
-		glColor(0.0,0.5,0,0.33)
-		glTexture(barbg)
-		glTexRect(barArea[1], barArea[2], barArea[3], barArea[4])
+		-- bar background
+		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0.5,0,0.25},{0,0,0,0.25})
 
 		-- Bar value
 		glColor(0, 1, 0, 1)
-		glTexture(barbg)
-		glTexRect(barArea[1], barArea[2], barArea[1]+(catchup * barWidth), barArea[4])
+		RectRound(barArea[1], barArea[2], barArea[1]+(catchup * barWidth), barArea[4], barHeight*0.2, 1,1,1,1, {0,0.55,0,1},{0, 1, 0, 1})
+
 
 		-- Bar value glow
 		local glowSize = barHeight * 6
@@ -789,7 +788,7 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][1])
 		glDeleteList(dlistResbar[res][2])
 	end
-	local barHeight = (height*widgetScale/10)
+	local barHeight = (height*widgetScale/9)
 	local barHeighPadding = 9*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
 	local barLeftPadding = 41 * widgetScale
@@ -798,7 +797,7 @@ local function updateResbar(res)
 	local sliderHeightAdd = barHeight / 1.55
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
-	local glowSize = barHeight * 6
+	local glowSize = barHeight * 7
 
 	if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
 		sliderHeightAdd = barHeight / 0.75
@@ -857,15 +856,17 @@ local function updateResbar(res)
 		end
 		glTexRect(area[1]+iconPadding, area[2]+iconPadding, area[1]+(height*widgetScale)-iconPadding, area[4]-iconPadding)
 		glTexture(false)
-		
+
 		-- Bar background
+		local color1, color2
 		if res == 'metal' then
-			glColor(0.5,0.5,0.5,0.33)
+			color2 = {0,0,0,0.25}
+			color1 = {0.5,0.5,0.5,0.25}
 		else
-			glColor(0.5,0.5,0,0.33)
+			color2 = {0,0,0,0.25}
+			color1 = {0.5,0.5,0,0.25}
 		end
-		glTexture(barbg)
-		glTexRect(barArea[1], barArea[2], barArea[3], barArea[4])
+		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, color1,color2)
 	end)
 
 	dlistResbar[res][2] = glCreateList( function()
@@ -1150,6 +1151,7 @@ function widget:Update(dt)
 end
 
 function drawResbarValues(res)
+	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
 	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
 	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5.5
 
@@ -1165,9 +1167,15 @@ function drawResbarValues(res)
 	end
 
 	-- Bar value
-	glColor(resbarDrawinfo[res].barColor)
-	glTexture(barbg)
-	glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[res][2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
+	local color1,color2
+	if res == 'metal' then
+		color1 = {0.56,0.56,0.55,1}
+		color2 = {1,1,1,1}
+	else
+		color1 = {0.7,0.66,0,1}
+		color2 = {1,0.99,0.33,1}
+	end
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[res][2]) * barWidth), resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1, color1,color2)
 
 	-- Bar value glow
 	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
