@@ -287,12 +287,12 @@ local function setEngineFont()
 	local relativesize = 0.75
 	--"fonts/FreeSansBold.otf"
 	Spring.SetConfigInt("SmallFontSize", fontfileSize*fontfileScale * relativesize)
-	Spring.SetConfigInt("SmallFontOutlineWidth", fontfileOutlineSize*fontfileScale * relativesize)
-	Spring.SetConfigInt("SmallFontOutlineWeight", fontfileOutlineStrength * 1.5)
+	Spring.SetConfigInt("SmallFontOutlineWidth", fontfileOutlineSize*fontfileScale * relativesize * 0.85)
+	Spring.SetConfigInt("SmallFontOutlineWeight", 2)
 
 	Spring.SetConfigInt("FontSize", fontfileSize*fontfileScale * relativesize)
-	Spring.SetConfigInt("FontOutlineWidth", fontfileOutlineSize*fontfileScale * relativesize)
-	Spring.SetConfigInt("FontOutlineWeight", fontfileOutlineStrength * 1.5)
+	Spring.SetConfigInt("FontOutlineWidth", fontfileOutlineSize*fontfileScale * relativesize * 0.85)
+	Spring.SetConfigInt("FontOutlineWeight", 2)
 
 	Spring.SendCommands("font "..Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"))
 

@@ -399,7 +399,10 @@ function drawOrders()
   --glColor(0,0,0,ui_opacity)
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*2, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   --glColor(1,1,1,0.05)
-  RectRound(backgroundRect[1]+padding, backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1.33, 1,1,1,1,{0,0,0,ui_opacity*0.15}, {1,1,1,ui_opacity*0.15})
+  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1.33, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.25}, {1,1,1,ui_opacity*0.25})
+  --local h = (backgroundRect[4]-backgroundRect[2])/5
+  --RectRound(backgroundRect[1], backgroundRect[4]-padding-h, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1.33, 0,1,0,0,{0.6,0.6,0.6,ui_opacity*0.33}, {1,1,1,ui_opacity*0.3})
+  --RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+h, padding*1.33, 0,0,1,0, {1,1,1,ui_opacity*0.3}, {1,1,1,0})
 
   padding = (bgBorder*vsy) * 0.4
 

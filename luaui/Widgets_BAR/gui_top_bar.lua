@@ -327,22 +327,22 @@ local function updateRejoin()
 
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity},{0.05,0.05,0.05,ui_opacity})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.15},{0,0,0,ui_opacity*0.15})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.3,0.3,0.3,ui_opacity*0.25})
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
-		
+
 		local barHeight = (height*widgetScale/10)
 		local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 		local barLeftPadding = 7* widgetScale
 		local barRightPadding = 7 * widgetScale
 		local barArea = {area[1]+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 		local barWidth = barArea[3] - barArea[1]
-		
+
 		glColor(0.0,0.5,0,0.33)
 		glTexture(barbg)
 		glTexRect(barArea[1], barArea[2], barArea[3], barArea[4])
@@ -351,7 +351,7 @@ local function updateRejoin()
 		glColor(0, 1, 0, 1)
 		glTexture(barbg)
 		glTexRect(barArea[1], barArea[2], barArea[1]+(catchup * barWidth), barArea[4])
-		
+
 		-- Bar value glow
 		local glowSize = barHeight * 6
 		glColor(0, 1, 0, 0.09)
@@ -360,13 +360,13 @@ local function updateRejoin()
 		glTexture(barGlowEdgeTexture)
 		glTexRect(barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize)
 		glTexRect((barArea[1]+(catchup * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
-		
+
 		-- Text
 		local fontsize = 12*widgetScale
         font2:Begin()
         font2:Print('\255\225\255\225Catching up', area[1]+((area[3]-area[1])/2), area[2]+barHeight*2+fontsize, fontsize, 'cor')
         font2:End()
-		
+
 	end)
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].AddTooltip('rejoin', area, "Displays the catchup progress")
@@ -376,7 +376,7 @@ end
 
 local function updateButtons()
 	local area = buttonsArea
-	
+
 	local totalWidth = area[3] - area[1]
 
 	local text = '    '
@@ -414,21 +414,21 @@ local function updateButtons()
 		glDeleteList(dlistButtons1)
 	end
 	dlistButtons1 = glCreateList( function()
-	
+
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity},{0.05,0.05,0.05,ui_opacity})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.15},{0,0,0,ui_opacity*0.15})
-		
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
+
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
 		end
-		
+
 		if buttonsArea['buttons'] == nil then
 			buttonsArea['buttons'] = {}
-			
+
 			local margin = height*widgetScale / 11
 			local offset = margin
 			local width = 0
@@ -481,7 +481,7 @@ local function updateButtons()
 			end
 		end
 	end)
-	
+
 	if dlistButtons2 ~= nil then
 		glDeleteList(dlistButtons2)
 	end
@@ -514,10 +514,10 @@ local function updateComs(forceText)
 
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity},{0.05,0.05,0.05,ui_opacity})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.15},{0,0,0,ui_opacity*0.15})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
 
 
 		if WG['guishader'] then
@@ -541,7 +541,7 @@ local function updateComs(forceText)
             font2:Begin()
 			local fontsize = (height/2.85)*widgetScale
             font2:Print('\255\255\000\000'..enemyComCount, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
-			
+
 			fontSize = (height/2.15)*widgetScale
             font2:Print("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
             font2:End()
@@ -586,10 +586,10 @@ local function updateWind()
 
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity},{0.05,0.05,0.05,ui_opacity})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.15},{0,0,0,ui_opacity*0.15})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
 
 
 		if WG['guishader'] then
@@ -784,7 +784,7 @@ end
 
 local function updateResbar(res)
 	local area = resbarArea[res]
-	
+
 	if dlistResbar[res][1] ~= nil then
 		glDeleteList(dlistResbar[res][1])
 		glDeleteList(dlistResbar[res][2])
@@ -811,12 +811,12 @@ local function updateResbar(res)
 		resbarDrawinfo[res].barColor = {1,1,0,1}
 	end
 	resbarDrawinfo[res].barArea = barArea
-	
+
 	resbarDrawinfo[res].barTexRect = {barArea[1], barArea[2], barArea[1]+((r[res][1]/r[res][2]) * barWidth), barArea[4]}
 	resbarDrawinfo[res].barGlowMiddleTexRect = {resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
 	resbarDrawinfo[res].barGlowLeftTexRect = {resbarDrawinfo[res].barTexRect[1]-(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize}
 	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
-	
+
 	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
 	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
 	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(8*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'ord'}
@@ -838,10 +838,10 @@ local function updateResbar(res)
 
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity},{0.05,0.05,0.05,ui_opacity})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.15},{0,0,0,ui_opacity*0.15})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_'..res)
@@ -1420,7 +1420,7 @@ function widget:DrawScreen()
                 -- window
                 glColor(1,1,1,0.5+(0.36*fadeProgress))
                 RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
-                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding*0.8, 1,1,1,1, {0,0,0,0.1+(0.035*fadeProgress)}, {0.55,0.55,0.5,0.12+(0.035*fadeProgress)})
+                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding*0.8, 1,1,1,1, {0.55,0.55,0.5,0.12+(0.035*fadeProgress)}, {0,0,0,0.1+(0.035*fadeProgress)})
 
                 local fontSize = height/6
                 font:Begin()
@@ -1434,10 +1434,10 @@ function widget:DrawScreen()
                 -- quit button
 				local color1,color2
                 if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
-					color1 = {0.44,0.036,0.036,0.4+(0.5*fadeProgress)}
+					color1 = {0.44,0,0,0.4+(0.5*fadeProgress)}
 					color2 = {0.66,0.05,0.05,0.4+(0.5*fadeProgress)}
                 else
-					color1 = {0.22,0,0,0.35+(0.4*fadeProgress)}
+					color1 = {0.2,0,0,0.35+(0.4*fadeProgress)}
 					color2 = {0.45,0,0,0.35+(0.4*fadeProgress)}
                 end
                 RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 3.5*widgetScale, 1,1,1,1, color1,color2)

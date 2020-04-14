@@ -161,28 +161,48 @@ function createCountdownLists()
 	--end
 end
 
-local function DrawRectRound(px,py,sx,sy,cs)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.TexCoord(0.8,0.8)
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
 
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
 
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
 
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
+	local offset = 0.15		-- texture offset, because else gaps could show
 
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	-- bottom left
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -191,8 +211,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -201,8 +221,11 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -211,8 +234,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -222,12 +245,9 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.Texture(false)
 end
 
@@ -239,20 +259,22 @@ local function createList()
 		local fontSize = (widgetHeight*widgetScale) * 0.5
 		local text = '   cancel camera   '
 		local color = '\255\255\222\222'
+		local color1, color2
 		if not toggled and not lockPlayerID then
 			text = '   Player TV   '
 			color = '\255\222\255\222'
-			gl.Color(0, 0.5, 0, 0.66)
+			color1 = {0, 0.66, 0, 0.66}
+			color2 = {0, 0.33, 0, 0.66}
 		else
-			gl.Color(0.66, 0, 0, 0.66)
+			color1 = {0.66, 0.15, 0.1, 0.66}
+			color2 = {0.33, 0.1, 0.05, 0.66}
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		RectRound(right-textWidth, bottom, right, top, 5.5*widgetScale)
+		RectRound(right-textWidth, bottom, right, top, 4*widgetScale, 1,1,1,1, color1, color2)
 		toggleButton = {right-textWidth, bottom, right, top }
 
-		local borderPadding = 2.5*widgetScale
-		gl.Color(0,0,0,0.18)
-		RectRound(right-textWidth+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4*widgetScale)
+		local borderPadding = 2.25*widgetScale
+		RectRound(right-textWidth+borderPadding, bottom, right-borderPadding, top-borderPadding, 2.5*widgetScale, 1,1,1,1, {0.3,0.3,0.3,0.25}, {0.05,0.05,0.05,0.25})
 
 		font:Begin()
         font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
@@ -275,11 +297,11 @@ local function createList()
 		else
 			gl.Color(0.2, 1, 0.2, 0.4)
 		end
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 5.5*widgetScale)
+		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 4.5*widgetScale)
 
 		local borderPadding = 2.75*widgetScale
 		gl.Color(0,0,0,0.14)
-		RectRound(toggleButton[1]+borderPadding, toggleButton[2]+borderPadding, toggleButton[3]-borderPadding, toggleButton[4]-borderPadding, 4.4*widgetScale)
+		RectRound(toggleButton[1]+borderPadding, toggleButton[2]+borderPadding, toggleButton[3]-borderPadding, toggleButton[4]-borderPadding, 3.6*widgetScale)
 
 		local text = '   cancel camera   '
 		local color = '\255\255\222\222'
