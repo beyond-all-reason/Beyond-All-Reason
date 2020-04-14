@@ -48,7 +48,7 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 -- Globals
 ------------------------------------------------------------------------------------
-local fontSize = 16
+local fontSize = 15.5
 local useSelection = true
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -59,10 +59,10 @@ local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local customFontSize = 16
+local customFontSize = 15.5
 
-local bgcornerSize = fontSize*0.45
-local bgpadding = fontSize*0.9
+local bgcornerSize = fontSize*0.35
+local bgpadding = fontSize*1.15
 
 local cX, cY, cYstart
 
@@ -253,7 +253,7 @@ local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
 	textBuffer[textBufferCount] = {t1,t2,cX,cY}
 	cY = cY - fontSize
-	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize), (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5))
+	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + bgpadding*2, (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + bgpadding*2)
 end
 
 local function DrawTextBuffer()
@@ -339,8 +339,8 @@ function init()
 	widgetScale = (0.60 + (vsx*vsy / 5000000))
 	fontSize = customFontSize * widgetScale
 	
-	bgcornerSize = fontSize*0.45
-	bgpadding = fontSize*0.9
+	bgcornerSize = fontSize*0.35
+	bgpadding = fontSize*1.05
 
 	xOffset = (32 + bgpadding)*widgetScale
 	yOffset = -((32 + bgpadding)*widgetScale)
@@ -447,9 +447,10 @@ function widget:DrawScreen()
 	cY = my + yOffset
 	cYstart = cY
 
+	cY = cY - (bgpadding/2)
 
 	local titleFontSize = fontSize*1.1
-	local cornersize = ceil(bgpadding*0.21)
+	local cornersize = ceil(bgpadding*0.2)
 	cY = cY - 2 * titleFontSize
 	textBuffer = {}
 	textBufferCount = 0
@@ -725,7 +726,7 @@ function widget:DrawScreen()
 	if uID then
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
 	end
-	local iconHalfSize = titleFontSize*0.75
+	local iconHalfSize = titleFontSize*0.9
 	if not uID then
 		iconHalfSize = -bgpadding/2.5
 	end
@@ -747,7 +748,7 @@ function widget:DrawScreen()
 		end), 'unit_stats_title')
 	end
 
-	cornersize = ceil(bgpadding*0.25)
+	cornersize = ceil(bgpadding*0.2)
 	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize*0.88, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
 
 
@@ -760,7 +761,7 @@ function widget:DrawScreen()
 			--glTexture('#' .. uDefID)
 			glTexture(':lcr80,80:unitpics/'..unitBuildPic[uDefID])
 		end
-		glTexRect(cX, cYstart+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cYstart+cornersize+iconHalfSize)
+		glTexRect(cX-(iconHalfSize*0.6), cYstart+cornersize-iconHalfSize, cX+(iconHalfSize*1.4), cYstart+cornersize+iconHalfSize)
 		glTexture(false)
 	end
 
@@ -777,7 +778,7 @@ function widget:DrawScreen()
 	else
 		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
 	end
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize, 2,2,2,2, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize, 2,2,2,2, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
 
 	if WG['guishader'] then
 		guishaderEnabled = true
@@ -786,8 +787,8 @@ function widget:DrawScreen()
 		end), 'unit_stats_data')
 	end
 
-	cornersize = ceil(bgpadding*0.23)
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.88, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
+	cornersize = ceil(bgpadding*0.15)
+	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.88, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
 
 	DrawTextBuffer()
 

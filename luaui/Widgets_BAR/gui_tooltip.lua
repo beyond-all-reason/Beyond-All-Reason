@@ -241,7 +241,7 @@ end
 function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
 
-	local paddingH = 7 *widgetScale
+	local paddingH = 11 *widgetScale
 	local paddingW = paddingH * 1.45
 	local posX = x + paddingW
 	local posY = y + paddingH
@@ -274,7 +274,7 @@ function drawTooltip(name, x, y)
 	-- draw background
 	local cornersize = 0
 	--glColor(0.45,0.45,0.45,(WG['guishader'] and 0.66 or 0.8))
-	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 4*widgetScale, 2,2,2,2, {0.3,0.3,0.3,(WG['guishader'] and 0.77 or 0.96)}, {0.4,0.4,0.4 ,(WG['guishader'] and 0.77 or 0.96)})
+	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 4*widgetScale, 2,2,2,2, {0.44,0.44,0.44,(WG['guishader'] and 0.77 or 0.96)}, {0.66,0.66,0.66 ,(WG['guishader'] and 0.77 or 0.96)})
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
 			RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 4*widgetScale)
@@ -287,7 +287,7 @@ function drawTooltip(name, x, y)
 		posX+maxWidth+paddingW-cornersize,
 		posY+paddingH-cornersize-0.06,
 		2.9*widgetScale,
-		2,2,2,2, {0,0,0,(WG['guishader'] and 0.3 or 0.35)}, {0.15,0.15,0.15,(WG['guishader'] and 0.3 or 0.35)})
+		2,2,2,2, {0,0,0,(WG['guishader'] and 0.5 or 0.55)}, {0.15,0.15,0.15,(WG['guishader'] and 0.5 or 0.55)})
 	
 	-- draw text
 	maxHeight = -fontSize*0.93
