@@ -93,6 +93,7 @@ local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 	},
 	feature = true,
 	shaderDefinitions = {
+		"#define RENDERING_MODE 0",
 		"#define USE_LOSMAP",
 
 		"#define SUNMULT 1.5",
@@ -109,6 +110,7 @@ local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		--"#define TONEMAP(c) ACESFilmicTM(c)",
 	},
 	deferredDefinitions = {
+		"#define RENDERING_MODE 1",
 		"#define USE_LOSMAP",
 
 		"#define SUNMULT 1.5",
@@ -142,6 +144,7 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 	},
 	feature = true,
 	shaderDefinitions = {
+		"#define RENDERING_MODE 0",
 		"#define SUNMULT 1.0",
 		--"#define EXPOSURE 1.0",
 
@@ -155,6 +158,7 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		--"#define TONEMAP(c) SteveMTM1(c)",
 	},
 	deferredDefinitions = {
+		"#define RENDERING_MODE 1",
 		"#define SUNMULT 1.0",
 		--"#define EXPOSURE 1.0",
 

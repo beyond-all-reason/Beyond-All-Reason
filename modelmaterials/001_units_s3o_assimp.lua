@@ -7,6 +7,7 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		[2] = "%NORMALTEX",
 	},
 	shaderDefinitions = {
+		"#define RENDERING_MODE 0",
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -22,6 +23,7 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
+		"#define RENDERING_MODE 1",
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 

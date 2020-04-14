@@ -19,6 +19,10 @@ function widget:DrawGenesis()
 end
 
 local texName = "$model_gbuffer_normtex"
+--local texName = "$model_gbuffer_difftex"
+--local texName = "$model_gbuffer_spectex"
+--local texName = "$model_gbuffer_emittex"
+--local texName = "$model_gbuffer_misctex"
 
 function widget:DrawScreenEffects()
 	gl.Texture(0, texName)

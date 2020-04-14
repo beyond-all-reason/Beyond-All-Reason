@@ -1508,6 +1508,8 @@ local defaultMaterialTemplate = {
 	deferred = shaderTemplate, -- `deferred` is replaced with deferredShader later in api_cus
 	shadow   = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
 
+	-- note these definitions below are not inherited!!!
+	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
 	},
