@@ -416,15 +416,15 @@ function drawOrders()
     local color1, color2
     if not isActiveCmd then
       if WG['guishader'] then
-        color1 = (cmd.type == 5) and {0.33,0.33,0.33,0.6} or {0.44,0.44,0.44,0.6}
-        color2 = {0.48,0.48,0.48,0.6}
+        color1 = (cmd.type == 5) and {0.35,0.35,0.35,0.6} or {0.5,0.5,0.5,0.6}
+        color2 = {0.66,0.66,0.66,0.6}
       else
-        color1 = (cmd.type == 5) and {0.22,0.22,0.22,1} or {0.33,0.33,0.33,1}
-        color2 = {0.42,0.42,0.42,1}
+        color1 = (cmd.type == 5) and {0.25,0.25,0.25,1} or {0.33,0.33,0.33,1}
+        color2 = {0.48,0.48,0.48,1}
       end
       RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, cellRects[cell][4]-cellMarginPx, padding*1.66 ,2,2,2,2, color1,color2)
-      color1 = (cmd.type == 5) and {0.08,0.08,0.08,0.8} or {0.08,0.08,0.08,0.75}
-      color2 = (cmd.type == 5) and {0,0,0,0.8} or {0,0,0,0.75}
+      color1 = (cmd.type == 5) and {0.12,0.12,0.12,0.8} or {0.08,0.08,0.08,0.75}
+      color2 = (cmd.type == 5) and {0.05,0.05,0.05,0.8} or {0,0,0,0.75}
     else
       color1 = {0.66,0.66,0.66,0.95}
       color2 = {1,1,1,0.95}

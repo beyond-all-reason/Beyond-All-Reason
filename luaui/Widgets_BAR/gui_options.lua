@@ -558,7 +558,7 @@ function DrawWindow()
 			xpos = groupRect[id][3]
 			if currentGroupTab == nil or currentGroupTab ~= group.id then
 				RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0, WG['guishader'] and {0,0,0,0.8} or {0,0,0,0.85}, WG['guishader'] and {0.05,0.05,0.05,0.8} or {0.05,0.05,0.05,0.85})
-				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {0.62,0.5,0.22,0.06}, {0.62,0.5,0.22,0.24})
+				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {0.44,0.35,0.18,0.2}, {0.68,0.55,0.25,0.2})
 				font2:Begin()
 				font2:SetTextColor(0.6,0.51,0.38,1)
 				font2:SetOutlineColor(0,0,0,0.4)
@@ -566,7 +566,7 @@ function DrawWindow()
 				font2:End()
 			else
 				RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0, WG['guishader'] and {0,0,0,0.8} or {0,0,0,0.85}, WG['guishader'] and {0.05,0.05,0.05,0.8} or {0.05,0.05,0.05,0.85})
-				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {0.4,0.4,0.4,0.25}, {0.4,0.4,0.4,0.05})
+				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {0.5,0.5,0.5,0.2}, {0.66,0.66,0.66,0.2})
 				font2:Begin()
 				font2:SetTextColor(1,0.75,0.4,1)
 				font2:SetOutlineColor(0,0,0,0.4)
@@ -709,7 +709,7 @@ function DrawWindow()
 					if option.type == 'bool' then
 						optionButtons[oid] = {}
 						optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
-						RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2, 2,2,2,2, {0.5,0.5,0.5,0.12}, {1,1,1,0.12})
+						RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2, 2,2,2,2, {0.5,0.5,0.5,0.11}, {1,1,1,0.11})
 						if option.value == true then
 							RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 1, 2,2,2,2, {0.6,0.9,0.6,1}, {0.88,1,0.88,1})
 							local boolGlow = boolPadding*4
@@ -744,7 +744,7 @@ function DrawWindow()
 						else
 							sliderPos = (option.value-option.min) / (option.max-option.min)
 						end
-						RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1, 2,2,2,2, {1,1,1,0.06}, {1,1,1,0.14})
+						RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*5), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1, 2,2,2,2, {0,0,0,0.14}, {1,1,1,0.14})
 						RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 1, 2,2,2,2, {0.62,0.62,0.62,1}, {0.88,0.88,0.88,1})
 						optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
 						optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
@@ -1012,7 +1012,7 @@ function widget:DrawScreen()
 				--local cx, cy = correctMouseForScaling(x,y)
 				if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 					local groupMargin = bgMargin/1.7
-					RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0.03}, {1,1,1,0.2})
+					RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0.04}, {1,1,1,0.2})
 				end
 				if groupRect ~= nil then
 					for id,group in pairs(optionGroups) do
@@ -1024,10 +1024,10 @@ function widget:DrawScreen()
 					end
 				end
 				if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-					RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/12, 2,2,2,2, ml and {1,1,1,0} or {1,1,1,0.2}, {1,1,1,0.15})
+					RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/12, 2,2,2,2, ml and {1,0.91,0.66,0.1} or {1,0.91,0.66,0.3}, {1,0.91,0.66,0.2})
 				end
 				if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-					RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/12, 2,2,2,2, ml and {1,0.91,0.66,0.1} or {1,0.91,0.66,0.5}, {1,1,1,0.15})
+					RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/12, 2,2,2,2, ml and {1,0.91,0.66,0.1} or {1,0.91,0.66,0.3}, {1,0.91,0.66,0.2})
 				end
 
 				if not showSelectOptions then
@@ -1046,7 +1046,7 @@ function widget:DrawScreen()
 					end
 					for i, o in pairs(optionButtons) do
 						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-							RectRound(o[1], o[2], o[3], o[4], 1, 2,2,2,2, {0.5,0.5,0.5,0.2}, {1,1,1,0.25})
+							RectRound(o[1], o[2], o[3], o[4], 1, 2,2,2,2, {0.5,0.5,0.5,0.22}, {1,1,1,0.22})
 							if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 								local value = options[i].value
 								if options[i].steps then
@@ -1092,7 +1092,7 @@ function widget:DrawScreen()
 							glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 							glScale(widgetScale, widgetScale, 1)
 						end
-						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, WG['guishader'] and {0.33,0.33,0.33,0.7} or {0.33,0.33,0.33,0.85}, WG['guishader'] and {0.2,0.2,0.2,0.7} or {0.2,0.2,0.2,0.85})
+						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, {0.25,0.25,0.25,WG['guishader'] and 0.82 or 0.94}, {0.22,0.22,0.22,WG['guishader'] and 0.82 or 0.94})
 						RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, {0.5,0.5,0.5,0.1}, {1,1,1,0.1})
 						for i, option in pairs(options[showSelectOptions].options) do
 							yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
