@@ -200,6 +200,21 @@ local materials = {
 		},
 	}),
 
+	featuresTreeAutoNormalNoSway = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+		shaderOptions = {
+			treewind = false,
+			autonormal = true,
+			autoNormalParams = {0.5, 0.01},
+		},
+		deferredOptions = {
+			treewind = false,
+			materialIndex = 130,
+		},
+		shadowOptions = {
+			treewind = false,
+		},
+	}),
+
 	featuresMetalDeadOrHeap = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
 		texUnits  = {
 			[2] = "%NORMALTEX",
@@ -208,7 +223,7 @@ local materials = {
 			normalmapping = true,
 		},
 		deferredOptions = {
-			materialIndex = 130,
+			materialIndex = 131,
 		},
 	}),
 
@@ -218,7 +233,7 @@ local materials = {
 			autoNormalParams = {0.5, 0.01},
 		},
 		deferredOptions = {
-			materialIndex = 131,
+			materialIndex = 1,
 		},
 	}),
 
@@ -262,11 +277,13 @@ local featureNameTrees = {
 	{str = "tree", prefix = false, fakeNormal = true},
 }
 
-
-local featureNameTreeExceptions = {
+local featureNameTreesNoSway = {
 	"fern1",  --doesn't look good on DownPour_v1
 	"fern6",
 	"fern8",
+}
+
+local featureNameTreeExceptions = {
 	"street",
 }
 
@@ -279,15 +296,19 @@ local function GetTreeInfo(fdef)
 
 	local isTree = false
 	local fakeNormal = false
+	local noSway = false
 
 	for _, treeInfo in ipairs(featureNameTrees) do
 		local idx = fdef.name:find(treeInfo.str)
 		if idx and ((treeInfo.prefix and idx == 1) or (not treeInfo.prefix)) then
-				--Spring.Echo(fdef.name)
 
 			local isException = false
 			for _, exc in ipairs(featureNameTreeExceptions) do
 				isException = isException or fdef.name:find(exc) ~= nil
+			end
+
+			for _, exc in ipairs(featureNameTreesNoSway) do
+				noSway = noSway or fdef.name:find(exc) ~= nil
 			end
 
 			if not isException then
@@ -297,7 +318,7 @@ local function GetTreeInfo(fdef)
 		end
 	end
 
-	return isTree, fakeNormal
+	return isTree, fakeNormal, noSway
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -315,14 +336,18 @@ local featureMaterials = {}
 for id = 1, #FeatureDefs do
 	local featureDef = FeatureDefs[id]
 	if not cusFeaturesMaterials[id] and featureDef.modeltype ~= "3do" then
-		local isTree, fakeNormal = GetTreeInfo(featureDef)
+		local isTree, fakeNormal, noSway = GetTreeInfo(featureDef)
 		local metallic = featureDef.metal >= 1
 
 		if isTree then
 			if fakeNormal then
 				featureMaterials[id] = {"featuresTreeFakeNormal", NORMALTEX = FAKE_NORMALTEX}
 			else
-				featureMaterials[id] = {"featuresTreeAutoNormal", NORMALTEX = FAKE_NORMALTEX}
+				if noSway then
+					featureMaterials[id] = {"featuresTreeAutoNormalNoSway"}
+				else
+					featureMaterials[id] = {"featuresTreeAutoNormal"}
+				end
 			end
 
 		elseif metallic then

@@ -1459,13 +1459,15 @@ fragment = [[
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
 		#else
+			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
+
 			outSpecularColor = TONEMAP(outSpecularColor);
 
-			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), 1.0);
-			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, texColor2.a);
-			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, texColor2.a);
-			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(emissiveness), 1.0);
-			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, 0.0);
+			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
+			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, alphaBin);
+			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, alphaBin);
+			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(emissiveness), alphaBin);
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
 		#endif
 	}
 #else //shadow pass

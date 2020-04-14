@@ -48,9 +48,10 @@ void main() {
 	vec2 uv = gl_FragCoord.xy / viewPortSize;
 
 	#if (USE_MATERIAL_INDICES == 1)
-		#define TREEMAT_INDEX 129
+		#define TREEMAT_INDEX_B 128
+		#define TREEMAT_INDEX_E 130
 		int matIndex = int(texture(miscTex, uv).r * 255.0);
-		if (matIndex == TREEMAT_INDEX)
+		if (matIndex >= TREEMAT_INDEX_B && matIndex <= TREEMAT_INDEX_E)
 			discard;
 	#endif
 
