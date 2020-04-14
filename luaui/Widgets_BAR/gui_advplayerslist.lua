@@ -2022,8 +2022,8 @@ function CreateBackground()
 		--gl_Color(1,1,1,ui_opacity*0.055)
 		--RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.3,0.3,0.3,ui_opacity*0.3}, {1,1,1,ui_opacity*0.3})
 		local height = 46
-		RectRound(absLeft+paddingLeft,absTop-paddingTop-height,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), 0, 0, {0.6,0.6,0.6,ui_opacity*0.25}, {1,1,1,ui_opacity*0.25})
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,padding*1.1, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.25}, {0.6,0.6,0.6,ui_opacity*0.25})
+		RectRound(absLeft+paddingLeft,absTop-paddingTop-height,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), 0, 0, {0.6,0.6,0.6,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,padding*1.1, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.2}, {0.6,0.6,0.6,ui_opacity*0.2})
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'

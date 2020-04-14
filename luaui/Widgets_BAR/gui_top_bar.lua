@@ -330,7 +330,7 @@ local function updateRejoin()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.3,0.3,0.3,ui_opacity*0.25})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2}, {0.3,0.3,0.3,ui_opacity*0.2})
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
@@ -419,7 +419,7 @@ local function updateButtons()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -516,7 +516,7 @@ local function updateComs(forceText)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
 
 
 		if WG['guishader'] then
@@ -588,7 +588,7 @@ local function updateWind()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
 
 
 		if WG['guishader'] then
@@ -840,7 +840,7 @@ local function updateResbar(res)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.25},{0.15,0.15,0.15,ui_opacity*0.25})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_'..res)
@@ -860,13 +860,14 @@ local function updateResbar(res)
 		-- Bar background
 		local color1, color2
 		if res == 'metal' then
-			color2 = {0,0,0,0.25}
-			color1 = {0.5,0.5,0.5,0.25}
+			color1 = {0,0,0,0.25}
+			color2 = {0.44,0.44,0.44,0.3}
 		else
-			color2 = {0,0,0,0.25}
-			color1 = {0.5,0.5,0,0.25}
+			color1 = {0,0,0,0.2}
+			color2 = {0.44,0.44,0.44,0.3}
 		end
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, color1,color2)
+		local addedSize = (barArea[4]-barArea[2])*0.2
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.2, 1,1,1,1, color1,color2)
 	end)
 
 	dlistResbar[res][2] = glCreateList( function()

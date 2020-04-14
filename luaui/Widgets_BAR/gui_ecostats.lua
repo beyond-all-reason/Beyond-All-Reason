@@ -704,7 +704,7 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	--glColor(0,0,0,ui_opacity)
 	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding*1.33, 1,1,1,1, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
 	--glColor(1,1,1,ui_opacity*0.055)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding*1.33, 1, 1,1,1, {0.3,0.3,0.3,ui_opacity*0.25}, {1,1,1,ui_opacity*0.25})
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding*1.33, 1, 1,1,1, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
 	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 5*widgetScale}
 

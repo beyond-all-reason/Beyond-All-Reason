@@ -381,7 +381,7 @@ local function createList()
 			borderPaddingLeft = 0
 		end
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.25}, {1,1,1,ui_opacity*0.25})
+		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 		
 	end)
 	drawlist[2] = glCreateList( function()
