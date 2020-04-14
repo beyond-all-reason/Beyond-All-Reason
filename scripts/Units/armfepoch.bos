@@ -138,26 +138,26 @@ Create()
 
 MoveRate0()
 {
-	turn jetl1 to x-axis <-90.000000> speed <25.000000>;
-	turn jetr1 to x-axis <-90.000000> speed <25.000000>;
+	turn jetl1 to x-axis <-92.000000> speed <25.000000>;
+	turn jetr1 to x-axis <-92.000000> speed <25.000000>;
 	turn jetl2 to x-axis <-90.000000> speed <25.000000>;
 	turn jetr2 to x-axis <-90.000000> speed <25.000000>;
 }
 
 MoveRate1()
 {
-	turn jetl1 to x-axis <-70.000000> speed <15.000000>;
-	turn jetr1 to x-axis <-70.000000> speed <15.000000>;
-	turn jetl2 to x-axis <-70.000000> speed <15.000000>;
-	turn jetr2 to x-axis <-70.000000> speed <15.000000>;
+	turn jetl1 to x-axis <-92.000000> speed <15.000000>;
+	turn jetr1 to x-axis <-92.000000> speed <15.000000>;
+	turn jetl2 to x-axis <-83.000000> speed <15.000000>;
+	turn jetr2 to x-axis <-83.000000> speed <15.000000>;
 }
 
 MoveRate2()
 {
-	turn jetl1 to x-axis <-50.000000> speed <10.000000>;
-	turn jetr1 to x-axis <-50.000000> speed <10.000000>;
-	turn jetl2 to x-axis <-50.000000> speed <10.000000>;
-	turn jetr2 to x-axis <-50.000000> speed <10.000000>;
+	turn jetl1 to x-axis <-92.000000> speed <10.000000>;
+	turn jetr1 to x-axis <-92.000000> speed <10.000000>;
+	turn jetl2 to x-axis <-76.000000> speed <10.000000>;
+	turn jetr2 to x-axis <-76.000000> speed <10.000000>;
 }
 
 MoveRate3()
