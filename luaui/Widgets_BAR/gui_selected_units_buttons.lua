@@ -386,11 +386,11 @@ function DrawPicList()
   local ymid = (ymin + ymax) * 0.5
 
   backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
-  gl.Color(0,0,0,ui_opacity)
-  RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 8)
+  --gl.Color(0,0,0,ui_opacity)
+  RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 8, 1,1,1,1, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   local borderPadding = iconMargin*1.4
-  glColor(1,1,1,ui_opacity*0.055)
-  RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 14)
+  --glColor(1,1,1,ui_opacity*0.055)
+  RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 12, 1,1,1,1, {0,0,0,ui_opacity*0.15}, {1,1,1,ui_opacity*0.15})
 
   -- back button
   if startFromIcon > 0 then
@@ -467,28 +467,94 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 end
 
 
-function RectRound(px,py,sx,sy,cs)
-	
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
-	glTexture(false)
-	glRect(px+cs, py, sx-cs, sy)
-	glRect(sx-cs, py+cs, sx, sy-cs)
-	glRect(px+cs, py+cs, px, sy-cs)
-	
-	if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(px, py+cs, px+cs, py)		-- top left
-	
-	if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(sx, py+cs, sx-cs, py)		-- top right
-	
-	if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
-	
-	if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	
-	glTexture(false)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+  gl.TexCoord(0.8,0.8)
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  gl.Vertex(px+cs, py, 0)
+  gl.Vertex(sx-cs, py, 0)
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  gl.Vertex(sx-cs, sy, 0)
+  gl.Vertex(px+cs, sy, 0)
+
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  gl.Vertex(px, py+cs, 0)
+  gl.Vertex(px+cs, py+cs, 0)
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  gl.Vertex(px+cs, sy-cs, 0)
+  gl.Vertex(px, sy-cs, 0)
+
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  gl.Vertex(sx, py+cs, 0)
+  gl.Vertex(sx-cs, py+cs, 0)
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  gl.Vertex(sx-cs, sy-cs, 0)
+  gl.Vertex(sx, sy-cs, 0)
+
+  local offset = 0.15		-- texture offset, because else gaps could show
+
+  -- bottom left
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(px, py, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(px+cs, py, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(px+cs, py+cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(px, py+cs, 0)
+  -- bottom right
+  if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(sx, py, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(sx-cs, py, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(sx-cs, py+cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(sx, py+cs, 0)
+  -- top left
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(px, sy, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(px+cs, sy, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(px+cs, sy-cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(px, sy-cs, 0)
+  -- top right
+  if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(sx, sy, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(sx-cs, sy, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(sx-cs, sy-cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(sx, sy-cs, 0)
+end
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
+  gl.Texture(bgcorner)
+  gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+  gl.Texture(false)
 end
 
 function DrawIconQuad(iconPos, color)

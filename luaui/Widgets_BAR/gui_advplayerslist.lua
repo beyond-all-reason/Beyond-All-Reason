@@ -292,7 +292,7 @@ local sliderOrigin                  = nil   -- position of the cursor before dra
 local firstclick                   = 0		--
 
 local dblclickPeriod = 0.4
-local backgroundMargin = 7
+local backgroundMargin = 8
 local widgetRelRight = 0
 
 local desiredLosmodeChanged = 0
@@ -1885,26 +1885,47 @@ end
 --  Background gllist
 ---------------------------------------------------------------------------------------------------
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.TexCoord(0.8,0.8)
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
 
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
 
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
 
-	local offset = 0.07		-- texture offset, because else gaps could show
+	local offset = 0.15		-- texture offset, because else gaps could show
 
 	-- bottom left
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
@@ -1925,6 +1946,9 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- top left
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
@@ -1945,9 +1969,9 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.Texture(false)
 end
 
@@ -1974,7 +1998,7 @@ function CreateBackground()
 	local absTop		= math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1)))
 	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
 
-	local padding = 3*widgetScale
+	local padding = 2.5*widgetScale
 	local paddingBottom = padding
 	local paddingRight = padding
 	local paddingTop = padding
@@ -1986,17 +2010,17 @@ function CreateBackground()
 
 	if WG['guishader'] then
 		BackgroundGuishader = gl_CreateList( function()
-			RectRound(absLeft,absBottom,absRight,absTop,padding*1.6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+			RectRound(absLeft,absBottom,absRight,absTop,padding*1.45, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		end)
 		WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
 		--WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
 
-		gl_Color(0,0,0,ui_opacity)
-		RectRound(absLeft,absBottom,absRight,absTop,padding*1.6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
-		gl_Color(1,1,1,ui_opacity*0.055)
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		--gl_Color(0,0,0,ui_opacity)
+		RectRound(absLeft,absBottom,absRight,absTop,padding*1.45, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+		--gl_Color(1,1,1,ui_opacity*0.055)
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0,0,0,ui_opacity*0.15}, {1,1,1,ui_opacity*0.15})
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'

@@ -40,8 +40,8 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
-local fontfileOutlineSize = 9
-local fontfileOutlineStrength = 1.4
+local fontfileOutlineSize = 8
+local fontfileOutlineStrength = 1.15
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfileScale2 = fontfileScale * 1.2
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -340,76 +340,100 @@ if Engine and Engine.version then
 end
 
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
-	gl.TexCoord(0.8,0.8)
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
+ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+	 gl.TexCoord(0.8,0.8)
+	 if c2 then
+		 gl.Color(c1[1],c1[2],c1[3],c1[4])
+	 end
+	 gl.Vertex(px+cs, py, 0)
+	 gl.Vertex(sx-cs, py, 0)
+	 if c2 then
+		 gl.Color(c2[1],c2[2],c2[3],c2[4])
+	 end
+	 gl.Vertex(sx-cs, sy, 0)
+	 gl.Vertex(px+cs, sy, 0)
 
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
+	 if c2 then
+		 gl.Color(c1[1],c1[2],c1[3],c1[4])
+	 end
+	 gl.Vertex(px, py+cs, 0)
+	 gl.Vertex(px+cs, py+cs, 0)
+	 if c2 then
+		 gl.Color(c2[1],c2[2],c2[3],c2[4])
+	 end
+	 gl.Vertex(px+cs, sy-cs, 0)
+	 gl.Vertex(px, sy-cs, 0)
 
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
+	 if c2 then
+		 gl.Color(c1[1],c1[2],c1[3],c1[4])
+	 end
+	 gl.Vertex(sx, py+cs, 0)
+	 gl.Vertex(sx-cs, py+cs, 0)
+	 if c2 then
+		 gl.Color(c2[1],c2[2],c2[3],c2[4])
+	 end
+	 gl.Vertex(sx-cs, sy-cs, 0)
+	 gl.Vertex(sx, sy-cs, 0)
 
-	local offset = 0.07		-- texture offset, because else gaps could show
+	 local offset = 0.15		-- texture offset, because else gaps could show
 
-	-- bottom left
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
-	gl.Texture(false)
-end
+	 -- bottom left
+	 if c2 then
+		 gl.Color(c1[1],c1[2],c1[3],c1[4])
+	 end
+	 if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+	 gl.TexCoord(o,o)
+	 gl.Vertex(px, py, 0)
+	 gl.TexCoord(o,1-offset)
+	 gl.Vertex(px+cs, py, 0)
+	 gl.TexCoord(1-offset,1-offset)
+	 gl.Vertex(px+cs, py+cs, 0)
+	 gl.TexCoord(1-offset,o)
+	 gl.Vertex(px, py+cs, 0)
+	 -- bottom right
+	 if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+	 gl.TexCoord(o,o)
+	 gl.Vertex(sx, py, 0)
+	 gl.TexCoord(o,1-offset)
+	 gl.Vertex(sx-cs, py, 0)
+	 gl.TexCoord(1-offset,1-offset)
+	 gl.Vertex(sx-cs, py+cs, 0)
+	 gl.TexCoord(1-offset,o)
+	 gl.Vertex(sx, py+cs, 0)
+	 -- top left
+	 if c2 then
+		 gl.Color(c2[1],c2[2],c2[3],c2[4])
+	 end
+	 if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
+	 gl.TexCoord(o,o)
+	 gl.Vertex(px, sy, 0)
+	 gl.TexCoord(o,1-offset)
+	 gl.Vertex(px+cs, sy, 0)
+	 gl.TexCoord(1-offset,1-offset)
+	 gl.Vertex(px+cs, sy-cs, 0)
+	 gl.TexCoord(1-offset,o)
+	 gl.Vertex(px, sy-cs, 0)
+	 -- top right
+	 if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
+	 gl.TexCoord(o,o)
+	 gl.Vertex(sx, sy, 0)
+	 gl.TexCoord(o,1-offset)
+	 gl.Vertex(sx-cs, sy, 0)
+	 gl.TexCoord(1-offset,1-offset)
+	 gl.Vertex(sx-cs, sy-cs, 0)
+	 gl.TexCoord(1-offset,o)
+	 gl.Vertex(sx, sy-cs, 0)
+ end
+ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
+	 gl.Texture(bgcorner)
+	 gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+	 gl.Texture(false)
+ end
 
 function lines(str)
   local t = {}
   local function helper(line) t[#t+1]=line return "" end
-  helper((str:gsub("(.-)\r?\n", helper)))
+  helper((str:gsub("(.-)\r?\n", helpe3r)))
   return t
 end
 
@@ -510,20 +534,8 @@ function DrawWindow()
 
 	local x = screenX --rightwards
 	local y = screenY --upwards
-	-- background
-	if WG['guishader'] then
-		gl.Color(0,0,0,0.8)
-	else
-		gl.Color(0,0,0,0.85)
-	end
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
-	-- content area
-	if currentGroupTab then
-		gl.Color(0.4,0.4,0.4,0.15)
-	else
-		gl.Color(0.33,0.33,0.33,0.15)
-	end
-	RectRound(x,y-screenHeight,x+screenWidth,y,5.5)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	RectRound(x,y-screenHeight,x+screenWidth,y,5.5, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
 
 	-- title
 	local color = '\255\255\255\255'
@@ -545,28 +557,16 @@ function DrawWindow()
 			if advSettings or group.id ~= 'dev' then
 			xpos = groupRect[id][3]
 			if currentGroupTab == nil or currentGroupTab ~= group.id then
-				if WG['guishader'] then
-					gl.Color(0,0,0,0.8)
-				else
-					gl.Color(0,0,0,0.85)
-				end
-				RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
-				gl.Color(0.62,0.5,0.22,0.18)
-				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
+				RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0, WG['guishader'] and {0,0,0,0.8} or {0,0,0,0.85}, WG['guishader'] and {0.05,0.05,0.05,0.8} or {0.05,0.05,0.05,0.85})
+				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {0.62,0.5,0.22,0.06}, {0.62,0.5,0.22,0.24})
 				font2:Begin()
 				font2:SetTextColor(0.6,0.51,0.38,1)
 				font2:SetOutlineColor(0,0,0,0.4)
 				font2:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
 				font2:End()
 			else
-				if WG['guishader'] then
-					gl.Color(0,0,0,0.8)
-				else
-					gl.Color(0,0,0,0.85)
-				end
-				RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
-				gl.Color(0.4,0.4,0.4,0.15)
-				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
+				RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0, WG['guishader'] and {0,0,0,0.8} or {0,0,0,0.85}, WG['guishader'] and {0.05,0.05,0.05,0.8} or {0.05,0.05,0.05,0.85})
+				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {0.4,0.4,0.4,0.25}, {0.4,0.4,0.4,0.05})
 				font2:Begin()
 				font2:SetTextColor(1,0.75,0.4,1)
 				font2:SetOutlineColor(0,0,0,0.4)
@@ -577,12 +577,7 @@ function DrawWindow()
 	end
 
 	-- title drawing
-	if WG['guishader'] then
-		gl.Color(0,0,0,0.8)
-	else
-		gl.Color(0,0,0,0.85)
-	end
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0, WG['guishader'] and {0,0,0,0.8} or {0,0,0,0.85}, WG['guishader'] and {0.05,0.05,0.05,0.8} or {0.05,0.05,0.05,0.85})
 
 	font2:Begin()
 	font2:SetTextColor(1,1,1,1)
@@ -597,8 +592,7 @@ function DrawWindow()
 
 	-- description background
 	--gl.Color(0.55,0.48,0.22,0.14)
-	gl.Color(1,0.85,0.55,0.04)
-	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6)
+	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6, 0,1,0,1, {1,0.85,0.55,0.04}, {1,0.85,0.55,0.075})
 
 	-- draw options
 	local oHeight = 15
@@ -715,12 +709,10 @@ function DrawWindow()
 					if option.type == 'bool' then
 						optionButtons[oid] = {}
 						optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
-						glColor(1,1,1,0.11)
-						RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2)
+						RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2, 2,2,2,2, {0.5,0.5,0.5,0.12}, {1,1,1,0.12})
 						if option.value == true then
-							glColor(0.66,0.92,0.66,1)
-							RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 1)
-							local boolGlow = boolPadding*3.5
+							RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 1, 2,2,2,2, {0.6,0.9,0.6,1}, {0.88,1,0.88,1})
+							local boolGlow = boolPadding*4
 							glColor(0.66,1,0.66,0.5)
 							glTexture(glowTex)
 							glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
@@ -728,11 +720,15 @@ function DrawWindow()
 							glTexture(glowTex)
 							glTexRect(xPosMax-oHeight+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
 						elseif option.value == 0.5 then
-							glColor(0.91,0.82,0.66,1)
-							RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 1)
+							RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 1, 2,2,2,2, {0.88,0.73,0.6,1}, {1,0.9,0.75,1})
 						else
-							glColor(0.9,0.66,0.66,1)
-							RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 1)
+							RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 1, 2,2,2,2, {0.8,0.5,0.5,1}, {1,0.75,0.75,1})	local boolGlow = boolPadding*4
+							--glColor(1,0.66,0.66,0.25)
+							--glTexture(glowTex)
+							--glTexRect(xPosMax-boolWidth+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolWidth+oHeight-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
+							--glColor(1,0.55,0.55,0.045)
+							--glTexture(glowTex)
+							--glTexRect(xPosMax-boolWidth+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolWidth+oHeight-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
 						end
 
 					elseif option.type == 'slider' then
@@ -748,17 +744,14 @@ function DrawWindow()
 						else
 							sliderPos = (option.value-option.min) / (option.max-option.min)
 						end
-						glColor(1,1,1,0.11)
-						RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
-						glColor(0.8,0.8,0.8,1)
-						RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 1)
+						RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1, 2,2,2,2, {1,1,1,0.06}, {1,1,1,0.14})
+						RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 1, 2,2,2,2, {0.62,0.62,0.62,1}, {0.88,0.88,0.88,1})
 						optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
 						optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
 
 					elseif option.type == 'select' then
 						optionButtons[oid] = {xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
-						glColor(1,1,1,0.11)
-						RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2)
+						RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2, 2,2,2,2, {1,1,1,0.06}, {1,1,1,0.14})
 						if option.options[tonumber(option.value)] ~= nil then
 							if option.id == 'font2' then
 								font:End()
@@ -772,8 +765,7 @@ function DrawWindow()
 								font:Print(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
 							end
 						end
-						glColor(1,1,1,0.11)
-						RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 1)
+						RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 1, 2,2,2,2, {1,1,1,0.06}, {1,1,1,0.14})
 						glColor(1,1,1,0.16)
 						glTexture(bgcorner)
 						glPushMatrix()
@@ -813,6 +805,9 @@ function widget:Update(dt)
 		--end
 	end
 	sec = sec + dt
+
+
+	Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
 	Spring.SetConfigInt("ROAM", 1)
 	Spring.SendCommands("mapmeshdrawer 2")
@@ -1017,8 +1012,7 @@ function widget:DrawScreen()
 				--local cx, cy = correctMouseForScaling(x,y)
 				if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 					local groupMargin = bgMargin/1.7
-					gl.Color(1,1,1,0.1)
-					RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0)
+					RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0.03}, {1,1,1,0.2})
 				end
 				if groupRect ~= nil then
 					for id,group in pairs(optionGroups) do
@@ -1030,31 +1024,16 @@ function widget:DrawScreen()
 					end
 				end
 				if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-					if ml then
-						glColor(1,0.91,0.66,0.36)
-					else
-						glColor(1,1,1,0.14)
-					end
-					RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/12)
+					RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/12, 2,2,2,2, ml and {1,1,1,0} or {1,1,1,0.2}, {1,1,1,0.15})
 				end
 				if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-					if ml then
-						glColor(1,0.91,0.66,0.36)
-					else
-						glColor(1,1,1,0.14)
-					end
-					RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/12)
+					RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/12, 2,2,2,2, ml and {1,0.91,0.66,0.1} or {1,0.91,0.66,0.5}, {1,1,1,0.15})
 				end
 
 				if not showSelectOptions then
 					for i, o in pairs(optionHover) do
 						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
-							if options[i].onclick ~= nil then
-								glColor(0.5,1,0.2,0.1)
-							else
-								glColor(1,1,1,0.055)
-							end
-							RectRound(o[1]-4, o[2], o[3]+4, o[4], 2)
+							RectRound(o[1]-4, o[2], o[3]+4, o[4], 2, 2,2,2,2, options[i].onclick and {0.5,1,0.2,0.1} or {1,1,1,0.05}, options[i].onclick and {0.5,1,0.2,0.2} or {1,1,1,0.1})
 							font:Begin()
 							if options[i].description ~= nil then
 								description = options[i].description
@@ -1067,8 +1046,7 @@ function widget:DrawScreen()
 					end
 					for i, o in pairs(optionButtons) do
 						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-							gl.Color(0,0,0,0.08)
-							RectRound(o[1], o[2], o[3], o[4], 1)
+							RectRound(o[1], o[2], o[3], o[4], 1, 2,2,2,2, {0.5,0.5,0.5,0.2}, {1,1,1,0.25})
 							if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 								local value = options[i].value
 								if options[i].steps then
@@ -1090,11 +1068,10 @@ function widget:DrawScreen()
 
 					-- highlight all that are affected by presets
 					if options[showSelectOptions].id == 'preset' then
-						glColor(1,1,1,0.07)
 						for optionID, _ in pairs(presets['lowest']) do
 							optionKey = getOptionByID(optionID)
 							if optionHover[optionKey] ~= nil then
-								RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 1)
+								RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 1, 2,2,2,2, {0,0,0,0.12}, {1,1,1,0.12})
 							end
 						end
 					end
@@ -1114,18 +1091,13 @@ function widget:DrawScreen()
 							glPushMatrix()
 							glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 							glScale(widgetScale, widgetScale, 1)
-							glColor(0.25,0.25,0.25,0.7)
-						else
-							glColor(0.25,0.25,0.25,0.85)
 						end
-						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
-						glColor(1,1,1,0.07)
-						RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
+						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, WG['guishader'] and {0.33,0.33,0.33,0.7} or {0.33,0.33,0.33,0.85}, WG['guishader'] and {0.2,0.2,0.2,0.7} or {0.2,0.2,0.2,0.85})
+						RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, {0.5,0.5,0.5,0.1}, {1,1,1,0.1})
 						for i, option in pairs(options[showSelectOptions].options) do
 							yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 							if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
-								glColor(1,1,1,0.18)
-								RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 2)
+								RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 2, 2,2,2,2, {0.5,0.5,0.5,0.3}, {1,1,1,0.3})
 								if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 									Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
 								end

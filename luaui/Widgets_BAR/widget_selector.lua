@@ -146,73 +146,94 @@ end
 -------------------------------------------------------------------------------
 
 
-local function DrawRectRound(px,py,sx,sy,cs)
-	gl.TexCoord(0.8,0.8)
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-	
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.07		-- texture offset, because else gaps could show
-	local o = offset
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, sy-cs, 0)
-end
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+  gl.TexCoord(0.8,0.8)
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  gl.Vertex(px+cs, py, 0)
+  gl.Vertex(sx-cs, py, 0)
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  gl.Vertex(sx-cs, sy, 0)
+  gl.Vertex(px+cs, sy, 0)
 
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
-	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
-	gl.Texture(false)
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  gl.Vertex(px, py+cs, 0)
+  gl.Vertex(px+cs, py+cs, 0)
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  gl.Vertex(px+cs, sy-cs, 0)
+  gl.Vertex(px, sy-cs, 0)
+
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  gl.Vertex(sx, py+cs, 0)
+  gl.Vertex(sx-cs, py+cs, 0)
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  gl.Vertex(sx-cs, sy-cs, 0)
+  gl.Vertex(sx, sy-cs, 0)
+
+  local offset = 0.15		-- texture offset, because else gaps could show
+
+  -- bottom left
+  if c2 then
+    gl.Color(c1[1],c1[2],c1[3],c1[4])
+  end
+  if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(px, py, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(px+cs, py, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(px+cs, py+cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(px, py+cs, 0)
+  -- bottom right
+  if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(sx, py, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(sx-cs, py, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(sx-cs, py+cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(sx, py+cs, 0)
+  -- top left
+  if c2 then
+    gl.Color(c2[1],c2[2],c2[3],c2[4])
+  end
+  if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(px, sy, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(px+cs, sy, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(px+cs, sy-cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(px, sy-cs, 0)
+  -- top right
+  if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
+  gl.TexCoord(o,o)
+  gl.Vertex(sx, sy, 0)
+  gl.TexCoord(o,1-offset)
+  gl.Vertex(sx-cs, sy, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(sx-cs, sy-cs, 0)
+  gl.TexCoord(1-offset,o)
+  gl.Vertex(sx, sy-cs, 0)
+end
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
+  gl.Texture(bgcorner)
+  gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+  gl.Texture(false)
 end
 
 
@@ -415,15 +436,8 @@ function widget:DrawScreen()
   tcol = WhiteStr
 
   -- draw the box
-  if WG['guishader'] then
-    gl.Color(0,0,0,0.8)
-  else
-    gl.Color(0,0,0,0.85)
-  end
-  RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
-  
-  gl.Color(0.33,0.33,0.33,0.2)
-  RectRound(minx, miny, maxx, maxy, 5.5*sizeMultiplier)
+  RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+  RectRound(minx, miny, maxx, maxy, 5.5*sizeMultiplier, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
   
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
@@ -503,8 +517,7 @@ function widget:DrawScreen()
     --gl.Color(0.0, 0.0, 0.0, 0.2)
 	--RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6*sizeMultiplier)
     if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
-      gl.Color(1,1,1,0.04)
-	  RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6*sizeMultiplier)
+	  RectRound(sbposx, miny, sbposx + (sbsizex*0.61), maxy, 6*sizeMultiplier, 1,1,1,1, {0.2,0.2,0.2,0.2}, {0.5,0.5,0.5,0.2})
     end
     
     --[[gl.Color(1.0, 1.0, 1.0, 0.15)
@@ -521,7 +534,7 @@ function widget:DrawScreen()
     
     -- scroller
     if (sbposx < mx and mx < sbposx + sbsizex and sby2 < my and my < sby2 + sbheight) then
-      gl.Color(1.0, 1.0, 1.0, 0.4) 
+      gl.Color(1,1,1, 0.1)
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	  RectRound(sbposx+scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 1.75*sizeMultiplier)
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -541,7 +554,6 @@ function widget:DrawScreen()
   
   else
     if (pointedY) then
-      gl.Color(1.0, 1.0, 1.0, 0.09)
       local xn = minx + 0.5
       local xp = maxx - 0.5
       local yn = pointedY - ((fontSpace * 0.5 + 1)*sizeMultiplier)
@@ -553,7 +565,7 @@ function widget:DrawScreen()
       yn = yn + 0.5
       yp = yp - 0.5
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      RectRound(xn, yn, xp, yp, 5*sizeMultiplier)
+      RectRound(xn, yn, xp, yp, 3.3*sizeMultiplier, 1,1,1,1, {0.5,0.5,0.5, 0.12}, {1,1,1, 0.12})
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
     end
   end
