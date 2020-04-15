@@ -3337,7 +3337,7 @@ function init()
 		for k, file in ipairs(files) do
 			local name = string.sub(file, 7)
 			local ext = string.sub(name, string.len(name) - 2)
-			if ext == 'otf' or ext == 'ttf' then
+			if name ~= 'FreeSansBold.otf' and ext == 'otf' or ext == 'ttf' then
 				name = string.sub(name, 1, string.len(name) - 4)
 				if not fontsn[name:lower()] then
 					fonts[#fonts+1] = name

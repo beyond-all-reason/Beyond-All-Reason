@@ -43,7 +43,6 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 
 local buttons = {}
 
-local previousTrack = ''
 local curTrack	= "no name"
 local manualPlay = false	-- gets enabled when user loads a track
 
@@ -687,7 +686,7 @@ function PlayNewTrack(track)
 	end
 
 	local newTrack
-	if track then	-- user initiates manual play of a track
+	if track then	-- user initiates manual play of a specific track
 		manualPlay = true
 		newTrack = track
 		if not playing then
@@ -695,7 +694,6 @@ function PlayNewTrack(track)
 		end
 	else
 		manualPlay = false
-		newTrack = previousTrack
 		-- make sure tracks dont get repeated until all of them played already
 		local attempts = 0
 		local maxAttempts = 1000
@@ -715,7 +713,6 @@ function PlayNewTrack(track)
 			until continue
 		end
 	end
-	previousTrack = newTrack
 	curTrack = newTrack
 	Spring.PlaySoundStream(newTrack)
     Spring.SetSoundStreamVolume(0)
