@@ -789,10 +789,10 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][2])
 	end
 	local barHeight = (height*widgetScale/9)
-	local barHeighPadding = 9*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+	local barHeighPadding = (height/4.25)*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = 41 * widgetScale
-	local barRightPadding = 10 * widgetScale
+	local barLeftPadding = 45 * widgetScale
+	local barRightPadding = 14.5 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 1.55
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
@@ -816,11 +816,11 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barGlowLeftTexRect = {resbarDrawinfo[res].barTexRect[1]-(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize}
 	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
 
-	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
-	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(8*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'old'}
-	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(8*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2.3, (height/2.75)*widgetScale, 'ocd'}
+	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2.35, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(10*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'old'}
+	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(10*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
 
 	-- add background blur
 	if dlistResbar[res][0] ~= nil then
