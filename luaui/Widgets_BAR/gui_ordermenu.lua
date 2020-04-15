@@ -20,7 +20,7 @@ local playSounds = true
 local posY = 0.7635
 local width = 0.23
 local height = 0.16
-local cellMargin = 0.07
+local cellMargin = 0.075
 local bgBorder = 0.0033
 local bgMargin = 0.0058
 local cmdColorDefault = {0.95,0.95,0.95}
@@ -414,22 +414,27 @@ function drawOrders()
     local isActiveCmd = (activeCmd == cmd.name)
     -- order button background
     local color1, color2
-    if not isActiveCmd then
-      if WG['guishader'] then
-        color1 = (cmd.type == 5) and {0.35,0.35,0.35,0.6} or {0.5,0.5,0.5,0.6}
-        color2 = {0.66,0.66,0.66,0.6}
-      else
-        color1 = (cmd.type == 5) and {0.25,0.25,0.25,1} or {0.33,0.33,0.33,1}
-        color2 = {0.48,0.48,0.48,1}
-      end
-      RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, cellRects[cell][4]-cellMarginPx, padding*1.66 ,2,2,2,2, color1,color2)
-      color1 = (cmd.type == 5) and {0.12,0.12,0.12,0.8} or {0.08,0.08,0.08,0.75}
-      color2 = (cmd.type == 5) and {0.05,0.05,0.05,0.8} or {0,0,0,0.75}
-    else
+    if isActiveCmd then
       color1 = {0.66,0.66,0.66,0.95}
       color2 = {1,1,1,0.95}
+    else
+      if WG['guishader'] then
+        color1 = (cmd.type == 5) and {0.4,0.4,0.4,0.6} or {0.6,0.6,0.6,0.6}
+        color2 = {0.8,0.8,0.8,0.6}
+      else
+        color1 = (cmd.type == 5) and {0.25,0.25,0.25,1} or {0.33,0.33,0.33,1}
+        color2 = {0.55,0.55,0.55,0.95}
+      end
+      RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, cellRects[cell][4]-cellMarginPx, padding*1.66 ,2,2,2,2, color1,color2)
+
+      color1 = {0,0,0,0.8}
+      color2 = {0,0,0,0.6}
     end
     RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, cellRects[cell][4]-cellMarginPx-padding, padding*1.1 ,2,2,2,2, color1,color2)
+
+    -- glossy effect
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.1 ,2,2,0,0, {1,1,1,0.045}, {1,1,1,0.09})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.1 ,0,0,2,2, {1,1,1,0.06}, {1,1,1,0})
 
     -- icon
     if showIcons then
@@ -649,11 +654,11 @@ function widget:DrawScreen()
 
     -- draw highlight on top of button
     if cellHovered and not disableInput then
-      glBlending(GL_SRC_ALPHA, GL_ONE)
-      local padding = (bgBorder*vsy) * 0.5
-      glColor(1,1,1,0.09)
-      RectRound(cellRects[cellHovered][1]+cellMarginPx, cellRects[cellHovered][2]+cellMarginPx, cellRects[cellHovered][3]-cellMarginPx, (cellRects[cellHovered][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
-      glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+      --glBlending(GL_SRC_ALPHA, GL_ONE)
+      local padding = activeCmd == cmds[cellHovered].name and (bgBorder*vsy) * 0.4 or 0
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.12}, {1,1,1,0.35})
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,0.16}, {1,1,1,0})
+      --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     end
 
     -- clicked cell effect
