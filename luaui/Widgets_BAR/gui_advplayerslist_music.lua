@@ -399,7 +399,7 @@ local function createList()
 		--glColor(1,1,1,0.7)
 		--glTexture(buttonTex)
 		--glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
-		glColor(0.7,0.7,0.7,0.9)
+		glColor(0.77,0.77,0.77,0.9)
 		if playing then
 			glTexture(pauseTex)
 		else
@@ -411,7 +411,7 @@ local function createList()
 		--glColor(1,1,1,0.7)
 		--glTexture(buttonTex)
 		--glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
-		glColor(0.7,0.7,0.7,0.9)
+		glColor(0.77,0.77,0.77,0.9)
 		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
@@ -832,12 +832,11 @@ function widget:DrawScreen()
 			    if progressPx < borderPadding*5 then
 			    	progressPx = borderPadding*5
 			    end
-			    glColor(1,1,1,ui_opacity*0.09)
-			    RectRound(left+borderPaddingLeft, bottom+borderPadding, left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.66)
+			    RectRound(left+borderPaddingLeft, bottom+borderPadding-(1.8*widgetScale), left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.4, 2,2,2,2, {0.6,0.6,0.6,ui_opacity*0.14}, {1,1,1,ui_opacity*0.14})
 			  end
 
-			  local color = {1,1,1,0.25}
-			  local colorHighlight = {1,1,1,0.33}
+			  local color = {1,1,1,0.3}
+			  local colorHighlight = {1,1,1,0.4}
 			  local button = 'playpause'
 				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
 					if mlb then
