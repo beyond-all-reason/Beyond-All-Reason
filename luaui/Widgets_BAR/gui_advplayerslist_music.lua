@@ -69,8 +69,14 @@ for i,v in pairs(warTracks) do
 	end
 end
 
+local totalTracks = 0
+for i,v in pairs(tracksConfig) do
+	totalTracks = totalTracks + 1
+end
 
 local tracks = peaceTracks
+
+local playedTracks = {}
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
@@ -236,6 +242,10 @@ function widget:Initialize()
 		-- set track
 		WG['music']['setTrack'..track] = function(value)
 			toggleTrack(track, value)
+
+			for i,v in pairs(tracksConfig) do
+				totalTracks = totalTracks + 1
+			end
 		end
 	end
 end
@@ -686,10 +696,23 @@ function PlayNewTrack(track)
 	else
 		manualPlay = false
 		newTrack = previousTrack
+		-- make sure tracks dont get repeated until all of them played already
+		local attempts = 0
+		local maxAttempts = 1000
 		if #tracks > 1 then
+			local continue = false
 			repeat
 				newTrack = tracks[math.random(1, #tracks)]
-			until newTrack ~= previousTrack
+				if not playedTracks[newTrack] then
+					playedTracks[newTrack] = true
+					continue = true
+				end
+				attempts = attempts + 1
+				if attempts > maxAttempts then
+					playedTracks = {}
+					continue = true
+				end
+			until continue
 		end
 	end
 	previousTrack = newTrack
@@ -863,6 +886,7 @@ function widget:GetConfigData(data)
   savedTable.playing = playing
   savedTable.maxMusicVolume = maxMusicVolume
   savedTable.tracksConfig = tracksConfig
+  savedTable.playedTracks = playedTracks
   return savedTable
 end
 
@@ -881,6 +905,9 @@ function widget:SetConfigData(data)
 			end
 		end
 		applyTracksConfig()
+	end
+	if data.playedTracks ~= nil then
+		playedTracks = data.playedTracks
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.curTrack ~= nil then

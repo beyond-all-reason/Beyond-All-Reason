@@ -390,7 +390,7 @@ function DrawPicList()
   RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 8, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
   local borderPadding = iconMargin*1.4
   --glColor(1,1,1,ui_opacity*0.055)
-  RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 12, 1,1,1,1, {0.15,0.15,0.15,ui_opacity*0.25}, {1,1,1,ui_opacity*0.25})
+  RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 12, 1,1,1,1, {0.15,0.15,0.15,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
   -- back button
   if startFromIcon > 0 then
