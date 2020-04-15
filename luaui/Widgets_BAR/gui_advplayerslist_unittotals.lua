@@ -171,7 +171,7 @@ local function updateValues()
 		local valueColor = '\255\245\245\245'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
-		font:Print(titleColor..'# units  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits, left+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print(titleColor..'# units  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits, left+textXPadding, bottom+textYPadding-(0.9*widgetScale), textsize, 'no')
         font:End()
     end)
 end
