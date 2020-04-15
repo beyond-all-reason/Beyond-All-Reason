@@ -435,7 +435,7 @@ local function createList()
 		end
 		trackname = text
 		font:Begin()
-		font:Print('\255\185\185\185'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print('\255\200\200\200'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()

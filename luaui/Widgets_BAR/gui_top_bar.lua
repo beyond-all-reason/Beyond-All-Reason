@@ -816,7 +816,7 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barGlowLeftTexRect = {resbarDrawinfo[res].barTexRect[1]-(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize}
 	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
 
-	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2.3, (height/2.75)*widgetScale, 'ocd'}
+	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2.25, (height/2.75)*widgetScale, 'ocd'}
 	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2.35, (height/3.2)*widgetScale, 'ord'}
 	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(10*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'ord'}
 	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'old'}
@@ -848,13 +848,13 @@ local function updateResbar(res)
 		
 		-- Icon
 		glColor(1,1,1,1)
-		local iconPadding = (area[4] - area[2]) / 9
+		local iconPadding = (area[4] - area[2]) / 11
 		if res == 'metal' then
 			glTexture(":l:LuaUI/Images/metal.png")
 		else
 			glTexture(":l:LuaUI/Images/energy.png")
 		end
-		glTexRect(area[1]+iconPadding, area[2]+iconPadding, area[1]+(height*widgetScale)-iconPadding, area[4]-iconPadding)
+		glTexRect(area[1]+iconPadding+(height*0.02*widgetScale), area[2]+iconPadding+(height*0.04*widgetScale), area[1]+(height*1.1*widgetScale)-iconPadding, area[4]-iconPadding+(height*0.04*widgetScale))
 		glTexture(false)
 
 		-- Bar background
@@ -866,7 +866,7 @@ local function updateResbar(res)
 			color1 = {0,0,0,0.2}
 			color2 = {0.44,0.44,0.44,0.3}
 		end
-		local addedSize = (barArea[4]-barArea[2])*0.2
+		local addedSize = (barArea[4]-barArea[2])*0.22
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.2, 1,1,1,1, color1,color2)
 	end)
 

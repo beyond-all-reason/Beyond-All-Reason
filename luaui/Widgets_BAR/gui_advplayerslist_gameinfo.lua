@@ -170,8 +170,8 @@ local function updateValues()
 		local _,gamespeed,_ = Spring.GetGameSpeed()
 		gamespeed = string.format("%.2f", gamespeed)
 		local fps = Spring.GetFPS()
-		local titleColor = '\255\185\185\185'
-		local valueColor = '\255\230\230\230'
+		local titleColor = '\255\200\200\200'
+		local valueColor = '\255\245\245\245'
 		local gameframe = Spring.GetGameFrame()
 		local minutes = math.floor((gameframe / 30 / 60))
 		local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)

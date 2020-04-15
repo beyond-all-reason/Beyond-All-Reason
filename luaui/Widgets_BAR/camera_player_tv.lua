@@ -152,7 +152,7 @@ function createCountdownLists()
 				font:SetTextColor(0,0,0,0.6)
 				font:Print(i, leftPadding+left-(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
 				font:Print(i, leftPadding+left+(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
-				font:SetTextColor(0.8,0.8,0.8,1)
+				font:SetTextColor(0.88,0.88,0.88,1)
 				font:Print(i, leftPadding+left, bottom+(8*widgetScale), fontSize*widgetScale, 'n')
 				font:End()
 			end)
@@ -263,11 +263,11 @@ local function createList()
 		if not toggled and not lockPlayerID then
 			text = '   Player TV   '
 			color = '\255\222\255\222'
-			color1 = {0, 0.66, 0, 0.66}
-			color2 = {0, 0.33, 0, 0.66}
+			color1 = {0, 0.8, 0, 0.66}
+			color2 = {0, 0.55, 0, 0.66}
 		else
-			color1 = {0.66, 0.15, 0.1, 0.66}
-			color2 = {0.33, 0.1, 0.05, 0.66}
+			color1 = {0.88, 0.1, 0.1, 0.66}
+			color2 = {0.6, 0.05, 0.05, 0.66}
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
 		RectRound(right-textWidth, bottom, right, top, 4*widgetScale, 1,1,1,1, color1, color2)
@@ -304,10 +304,10 @@ local function createList()
 		RectRound(toggleButton[1]+borderPadding, toggleButton[2]+borderPadding, toggleButton[3]-borderPadding, toggleButton[4]-borderPadding, 3.6*widgetScale)
 
 		local text = '   cancel camera   '
-		local color = '\255\255\222\222'
+		local color = '\255\255\225\225'
 		if not toggled and not lockPlayerID then
 			text = '   Player TV   '
-			color = '\255\222\255\222'
+			color = '\255\225\255\225'
 		end
 		local fontSize = (widgetHeight*widgetScale) * 0.5
 		local textWidth = font:GetTextWidth(text) * fontSize
