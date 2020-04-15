@@ -253,7 +253,7 @@ if not VFS.FileExists(fontfile2) then
 	Spring.SetConfigString('bar_font2', defaultFont2)
 	fontfile2 = 'fonts/'..defaultFont2
 end
-local fontfile3 = 'fonts/Xolonium.otf'
+local fontfile3 = 'fonts/unlisted/Xolonium.otf'
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontScale = (0.5 + (vsx*vsy / 5700000))/2
