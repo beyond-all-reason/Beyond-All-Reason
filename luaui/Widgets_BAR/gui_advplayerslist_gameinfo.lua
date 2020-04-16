@@ -161,7 +161,7 @@ local function updateValues()
 	
 	local textsize = 11*widgetScale
 	local textYPadding = 8*widgetScale
-	local textXPadding = 7*widgetScale
+	local textXPadding = 10*widgetScale
 		
 	if drawlist[2] ~= nil then
 		glDeleteList(drawlist[2])

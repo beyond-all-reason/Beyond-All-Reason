@@ -494,7 +494,7 @@ local function updateButtons()
 	end
 	dlistButtons2 = glCreateList( function()
         font2:Begin()
-        font2:Print('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
+		font2:Print('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])*0.52)-(fontsize/5), fontsize, 'o')
         font2:End()
 	end)
 end
@@ -778,7 +778,7 @@ local function updateResbarText(res)
                     font2:Begin()
                     font2:SetTextColor(1,0.88,0.88,1)
                     font2:SetOutlineColor(0.2,0,0,0.6)
-                    font2:Print(text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 11.5*widgetScale, 'or')
+                    font2:Print(text, resbarArea[res][3]-7*widgetScale, resbarArea[res][4]-9.5*widgetScale, 11.5*widgetScale, 'or')
                     font2:End()
 				end
 			else
