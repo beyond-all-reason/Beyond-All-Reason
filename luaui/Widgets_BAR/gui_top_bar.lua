@@ -84,6 +84,11 @@ local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 
 local sformat = string.format
 
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+
 local minWind = Game.windMin
 local maxWind = Game.windMax
 local windRotation = 0
@@ -416,10 +421,13 @@ local function updateButtons()
 
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,0.5+(ui_opacity*0.4)}, {0.1,0.1,0.1,0.5+(ui_opacity*0.4)})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {0.2,0.2,0.2,	0.2+(ui_opacity*0.25)},{0,0,0,0.2+(ui_opacity*0.25)})
+
+		RectRound(area[1]+bgpadding, area[4]+bgpadding-((area[4]-area[2])*0.5), area[3], area[4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.07}, {1,1,1,0.22})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[2]+bgpadding+((area[4]-area[2])*0.35), bgpadding*1.25, 0,0,1,1, {1,1,1,0.15},{0,0,0,0})
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -816,11 +824,11 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barGlowLeftTexRect = {resbarDrawinfo[res].barTexRect[1]-(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize}
 	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
 
-	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2.25, (height/2.75)*widgetScale, 'ocd'}
+	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2.2, (height/2.75)*widgetScale, 'ocd'}
 	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2.35, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(10*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'old'}
-	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(10*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(10*widgetScale), barArea[2]+barHeight*2.75, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.2, (height/3.2)*widgetScale, 'old'}
+	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(10*widgetScale), barArea[2]-barHeight/1.65, (height/3.2)*widgetScale, 'ord'}
 
 	-- add background blur
 	if dlistResbar[res][0] ~= nil then
@@ -1382,7 +1390,13 @@ function widget:DrawScreen()
 			buttonsAreaHovered = nil
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 1,1,1,1, {1,1,1,b and 0.5 or 0.35}, {0.44,0.4,0.44,b and 0.5 or 0.35})
+					glBlending(GL_SRC_ALPHA, GL_ONE)
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 0,0,1,1, {1,1,1,b and 0.1 or 0.05}, {0.44,0.4,0.44,b and 0.35 or 0.2})
+					local mult = 1
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4]-((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.5), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.35), 3.3*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})
+					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 					break
 				end
 			end
@@ -1442,14 +1456,22 @@ function widget:DrawScreen()
 
                 -- quit button
 				local color1,color2
+				local mult = 0.85
                 if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
-					color1 = {0.44,0,0,0.4+(0.5*fadeProgress)}
-					color2 = {0.66,0.05,0.05,0.4+(0.5*fadeProgress)}
+					color1 = {0.4,0,0,0.4+(0.5*fadeProgress)}
+					color2 = {0.6,0.05,0.05,0.4+(0.5*fadeProgress)}
+					mult = 1.4
                 else
-					color1 = {0.2,0,0,0.35+(0.4*fadeProgress)}
-					color2 = {0.45,0,0,0.35+(0.4*fadeProgress)}
+					color1 = {0.25,0,0,0.35+(0.5*fadeProgress)}
+					color2 = {0.5,0,0,0.35+(0.5*fadeProgress)}
                 end
-                RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 3.5*widgetScale, 1,1,1,1, color1,color2)
+				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 3.3*widgetScale, 1,1,1,1, color1,color2)
+
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4]-((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], 3.3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.35), 3.3*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 				font:End()
 
                 fontSize = fontSize*0.92
@@ -1459,15 +1481,22 @@ function widget:DrawScreen()
                 font2:Print("Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
 
                 -- resign button
+				mult = 0.85
                 if not spec then
                     if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
-						color1 = {0.3,0.3,0.3,0.4+(0.5*fadeProgress)}
-						color2 = {0.55,0.55,0.55,0.4+(0.5*fadeProgress)}
+						color1 = {0.28,0.28,0.28,0.4+(0.5*fadeProgress)}
+						color2 = {0.45,0.45,0.45,0.4+(0.5*fadeProgress)}
+						mult = 1.3
 					else
-						color1 = {0.18,0.18,0.18,0.4+(0.4*fadeProgress)}
-						color2 = {0.33,0.33,0.33,0.4+(0.4*fadeProgress)}
+						color1 = {0.18,0.18,0.18,0.4+(0.5*fadeProgress)}
+						color2 = {0.33,0.33,0.33,0.4+(0.5*fadeProgress)}
 					end
-					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 3.5*widgetScale, 1,1,1,1, color1,color2)
+					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 3.3*widgetScale, 1,1,1,1, color1,color2)
+
+					glBlending(GL_SRC_ALPHA, GL_ONE)
+					RectRound(quitscreenResignArea[1], quitscreenResignArea[4]-((quitscreenResignArea[4]-quitscreenResignArea[2])*0.5), quitscreenResignArea[3], quitscreenResignArea[4], 3.3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])*0.35), 3.3*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})
+					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 					font2:Print("Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
                 end
