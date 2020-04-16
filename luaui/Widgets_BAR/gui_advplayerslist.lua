@@ -2362,7 +2362,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name) end
+			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team) end
 		end
 	end
 
@@ -2967,7 +2967,7 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
 end
 
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
 			pingLvl = pingLvl.." ms"
@@ -2986,7 +2986,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name)
 			tipText = tipText.."    Gpu mem: "..gpumem.."%"
 		end
 		if system ~= nil then
-			tipText = "\255\000\000\000"..name.."\n\255\233\180\180"..tipText.."\n\255\240\240\240"..system
+			tipText = colourNames(teamID)..name.."\n\255\215\255\215"..tipText.."\n\255\240\240\240"..system
 		end
 	end
 end
