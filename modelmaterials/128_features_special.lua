@@ -307,14 +307,17 @@ local function GetTreeInfo(fdef)
 				isException = isException or fdef.name:find(exc) ~= nil
 			end
 
-			for _, exc in ipairs(featureNameTreesNoSway) do
-				noSway = noSway or fdef.name:find(exc) ~= nil
-			end
-
 			if not isException then
 				isTree = true
 				fakeNormal = FAKE_NORMALTEX and treeInfo.fakeNormal
 			end
+
+			for _, exc in ipairs(featureNameTreesNoSway) do
+				noSway = noSway or fdef.name:find(exc) ~= nil
+				fakeNormal = false --don't use fake normals for noSway trees
+			end
+
+			break
 		end
 	end
 
