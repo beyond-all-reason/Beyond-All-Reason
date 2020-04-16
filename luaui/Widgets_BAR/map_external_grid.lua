@@ -16,14 +16,6 @@ if VFS.FileExists("nomapedgewidget.txt") then
 	return
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
 local DspLst = nil
 --local updateFrequency = 120	-- unused
 local gridTex = "LuaUI/Images/vr_grid.png"
@@ -72,7 +64,7 @@ options = {
 				gl.DeleteList(DspLst)
 				widget:Initialize()
 			end
-		end, 		
+		end,
 	},
 	res = {
 		name = "Tile size (64-512)",
@@ -88,7 +80,7 @@ options = {
 				gl.DeleteList(DspLst)
 				widget:Initialize()
 			end
-		end, 
+		end,
 	},
 	range = {
 		name = "Range (1024-8192)",
@@ -104,7 +96,7 @@ options = {
 				gl.DeleteList(DspLst)
 				widget:Initialize()
 			end
-		end, 
+		end,
 	},	
 	northSouthText = {
 		name = "North, East, South, & West text",
@@ -116,7 +108,7 @@ options = {
 				gl.DeleteList(DspLst)
 				widget:Initialize()
 			end
-		end, 		
+		end,
 	},	
 }
 
@@ -259,34 +251,6 @@ function widget:GameFrame(n)
 end
 ]]--
 
-local function TextOutside()
-	if (options.northSouthText.value) then
-		local mapSizeX = mapSizeX
-		local mapSizeZ = mapSizeZ
-		local average = (GetGroundHeight(mapSizeX/2,0) + GetGroundHeight(0,mapSizeZ/2) + GetGroundHeight(mapSizeX/2,mapSizeZ) +GetGroundHeight(mapSizeX,mapSizeZ/2))/4
-
-		gl.Rotate(-90,1,0,0)
-		gl.Translate (0,0,average)
-		font:Begin()
-		font:Print("North", mapSizeX/2, 200, 200, "co")
-		
-		gl.Rotate(-90,0,0,1)
-		font:Print("East", mapSizeZ/2, mapSizeX+200, 200, "co")
-		
-		gl.Rotate(-90,0,0,1)
-		font:Print("South", -mapSizeX/2, mapSizeZ +200, 200, "co")
-		
-		gl.Rotate(-90,0,0,1)
-		font:Print("West", -mapSizeZ/2,200, 200, "co")
-		font:End()
-		
-		-- gl.Text("North", mapSizeX/2, 100, 200, "on")
-		-- gl.Text("South", mapSizeX/2,-mapSizeZ, 200, "on")
-		-- gl.Text("East", mapSizeX,-(mapSizeZ/2), 200, "on")
-		-- gl.Text("West", 0,-(mapSizeZ/2), 200, "on")
-	end
-end
-
 local function TilesVerticesOutside()
 	local res = options.res.value or 128
 	local range = (options.range.value or 8192)/res
@@ -318,34 +282,22 @@ local function DrawTiles()
 	gl.Texture(false)
 	gl.DepthMask(false)
 	gl.DepthTest(false)
-	TextOutside()
 	glColor(1,1,1,1)
 	gl.PopAttrib()
-end
-
-function widget:ViewResize(n_vsx,n_vsy)
-	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.80 + (vsx*vsy / 6000000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
 end
 
 function widget:DrawWorldPreUnit()
 	if DspLst and isInView then
 		gl.CallList(DspLst)-- Or maybe you want to keep it cached but not draw it everytime.
 		-- Maybe you want Spring.SetDrawGround(false) somewhere
-	end	
+	end
 end
 
 function widget:DrawWorldRefraction()
 	if DspLst and isInView then
 		gl.CallList(DspLst)-- Or maybe you want to keep it cached but not draw it everytime.
 		-- Maybe you want Spring.SetDrawGround(false) somewhere
-	end	
+	end
 end
 
 
@@ -361,7 +313,6 @@ end
 
 function widget:Shutdown()
 	gl.DeleteList(DspLst)
-	gl.DeleteFont(font)
 end
 
 -- reset needed when waterlevel has changed by gadget (modoption)

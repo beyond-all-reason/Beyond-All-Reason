@@ -63,8 +63,8 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.7 + (vsx*vsy / 7000000))
 local fontfileSize = 36
-local fontfileOutlineSize = 8
-local fontfileOutlineStrength = 1.35
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.1
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfileScale2 = fontfileScale * 1.25
@@ -2362,7 +2362,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team) end
+			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec) end
 		end
 	end
 
@@ -2967,7 +2967,7 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
 end
 
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
 			pingLvl = pingLvl.." ms"
@@ -2986,7 +2986,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID)
 			tipText = tipText.."    Gpu mem: "..gpumem.."%"
 		end
 		if system ~= nil then
-			tipText = colourNames(teamID)..name.."\n\255\215\255\215"..tipText.."\n\255\240\240\240"..system
+			tipText = (spec and "\255\240\240\240" or colourNames(teamID))..name.."\n\255\215\255\215"..tipText.."\n\255\240\240\240"..system
 		end
 	end
 end

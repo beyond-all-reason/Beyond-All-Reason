@@ -39,8 +39,8 @@ local backgroundOpacity = 0.18
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 38
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.55
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.3
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local vsx, vsy = gl.GetViewSizes()
