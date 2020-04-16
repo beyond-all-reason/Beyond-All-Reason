@@ -731,11 +731,11 @@ function widget:DrawScreen()
   end
   -- draw border around factory list
   --if (#facs>0) then DrawLineRect(facRect, { 0, 0, 0, 1 },borderSize+2) end
-  local deltat = Spring.DiffTimers(Spring.GetTimer(),t0)
-  gl.PushMatrix()
-  gl.Color(1.0,1.0,1.0,1.0)
-  gl.Text(deltat*1000000.0 .. " us deltat", 50,10,16,"d")
-  gl.PopMatrix()
+  --local deltat = Spring.DiffTimers(Spring.GetTimer(),t0)
+  --gl.PushMatrix()
+  --gl.Color(1.0,1.0,1.0,1.0)
+  --gl.Text(deltat*1000000.0 .. " us deltat", 50,10,16,"d")
+  --gl.PopMatrix()
   --Spring.Echo(deltat)
   
 end
