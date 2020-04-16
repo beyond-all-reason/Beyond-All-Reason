@@ -421,10 +421,10 @@ local function updateButtons()
 
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,0.5+(ui_opacity*0.4)}, {0.1,0.1,0.1,0.5+(ui_opacity*0.4)})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,0.5+(ui_opacity*0.4)}, {0.1,0.1,0.1,(ui_opacity)})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {0.2,0.2,0.2,	0.2+(ui_opacity*0.25)},{0,0,0,0.2+(ui_opacity*0.25)})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {0.2,0.2,0.2,(ui_opacity)},{0,0,0,(ui_opacity)})
 
 		RectRound(area[1]+bgpadding, area[4]+bgpadding-((area[4]-area[2])*0.5), area[3], area[4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.07}, {1,1,1,0.22})
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[2]+bgpadding+((area[4]-area[2])*0.35), bgpadding*1.25, 0,0,1,1, {1,1,1,0.15},{0,0,0,0})
@@ -868,13 +868,13 @@ local function updateResbar(res)
 		-- Bar background
 		local color1, color2
 		if res == 'metal' then
-			color1 = {0,0,0,0.25}
-			color2 = {0.44,0.44,0.44,0.3}
+			color1 = {0,0,0,0.27}
+			color2 = {0.44,0.44,0.44,0.44}
 		else
-			color1 = {0,0,0,0.2}
-			color2 = {0.44,0.44,0.44,0.3}
+			color1 = {0,0,0,0.27}
+			color2 = {0.44,0.44,0.44,0.44}
 		end
-		local addedSize = (barArea[4]-barArea[2])*0.22
+		local addedSize = (barArea[4]-barArea[2])*0.25
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.2, 1,1,1,1, color1,color2)
 	end)
 
