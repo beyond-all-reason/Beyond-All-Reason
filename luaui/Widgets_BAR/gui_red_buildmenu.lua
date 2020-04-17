@@ -89,17 +89,17 @@ local Config = {
 		
 		roundedPercentage = 0.07,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.91,
-		iconhoverscale = 0.91,
-		ispreadx=0,ispready=0, --space between icons
+		iconscale = 1.0,
+		iconhoverscale = 1.1,
+		ispreadx=2,ispready=2, --space between icons
 		
-		margin = 5, --distance from background border
+		margin = 8, --distance from background border
 		
 		padding = 3*widgetScale, -- for border effect
 		color2 = {1,1,1,ui_opacity*0.055}, -- for border effect
 		
-		fadetime = 0.1, --fade effect time, in seconds
-		fadetimeOut = 0.015, --fade effect time, in seconds
+		fadetime = 0.12, --fade effect time, in seconds
+		fadetimeOut = 0.3, --fade effect time, in seconds
 
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
 		cbackground = {0,0,0,ui_opacity},
@@ -290,11 +290,11 @@ local function CreateGrid(r)
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
 		iconscale=(iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and r.iconscale or 1),
-		color={0.85,0.65,0,0.25},
+		color={0.85,0.85,0.75,0.20},
 		border={0.8,0,0,0},
 		glone=0.12,
 		texture = "LuaUI/Images/button-pushed.dds",
-		texturecolor={1,0,0,0.15},
+		texturecolor={1,1,1,0.15},
 
 		active=false,
 		onupdate=function(self)
@@ -362,7 +362,7 @@ local function CreateGrid(r)
 				--	heldhighlight.iconscale = self.iconscale
 				--end
 				heldhighlight.iconscale = self.iconscale
-				heldhighlight.color={1,0.75,0,0.06}
+				heldhighlight.color={1,1,1,0.03}
 				heldhighlight.px = self.px
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
@@ -375,7 +375,7 @@ local function CreateGrid(r)
 				--	heldhighlight.iconscale = self.iconscale
 				--end
 				heldhighlight.iconscale = self.iconscale
-				heldhighlight.color={1,0.2,0,0.06}
+				heldhighlight.color={1,1,1,0.05}
 				heldhighlight.px = self.px
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
@@ -512,16 +512,16 @@ local function CreateGrid(r)
 			texts[#texts+1] = b
 
 			b = New(Copy(queuetext,true))
-			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx -(r.margin*1.4)
-			b.py = background.py + r.margin + (y-1)*(r.ispready + r.isy) - (r.margin*0.2)
+			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx -(r.margin*0.5)
+			b.py = background.py + r.margin + (y-1)*(r.ispready + r.isy)
 			b.py = b.py - (b.sy/4.7)
 			background.movableslaves[#background.movableslaves+1] = b
 			queuetexts[#queuetexts+1] = b
 
-			local iconsize = 0.27
+			local iconsize = 0.25
 			b = New(Copy(radaricon,true))
-			b.px = background.px + (r.margin/1.5) + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/1.33)
-			b.py = background.py + (r.margin/1.5) + (y-1)*(r.ispready + r.isy) -(r.margin/1.33) +(b.sy*(1-iconsize))
+			b.px = background.px + (r.margin) + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/2)
+			b.py = background.py + (r.margin) + (y-1)*(r.ispready + r.isy) -(r.margin/2) +(b.sy*(1-iconsize))
 			b.sx = b.sx*iconsize
 			b.sy = b.sy*iconsize
 			background.movableslaves[#background.movableslaves+1] = b
