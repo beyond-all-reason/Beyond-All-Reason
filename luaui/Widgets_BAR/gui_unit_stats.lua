@@ -336,7 +336,7 @@ end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (0.60 + (vsx*vsy / 5000000))
+	widgetScale = ((vsx+vsy) / 2000) * 0.66 --(0.60 + (vsx*vsy / 5000000))
 	fontSize = customFontSize * widgetScale
 	
 	bgcornerSize = fontSize*0.35

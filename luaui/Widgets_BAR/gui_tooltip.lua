@@ -177,7 +177,7 @@ end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (0.60 + (vsx*vsy / 5000000))
+	widgetScale = ((vsx+vsy) / 2000) * 0.66
 
     if WG['tooltip'] == nil then
         WG['tooltip'] = {}

@@ -4126,7 +4126,7 @@ function updateWidgetScale()
 	if customScale < 0.65 then
 		customScale = 0.65
 	end
-	widgetScale = (0.75 + (vsx*vsy / 5000000)) * customScale
+	widgetScale = ((vsx+vsy) / 2000) * 0.85 -- (0.75 + (vsx*vsy / 5000000)) * customScale
 	widgetScale = widgetScale - ((widgetScale * ((vsx/vsy) - 1.78)) * 0.12)	-- reduce size on ultrawides (bigger than 16:9)
 end
 
