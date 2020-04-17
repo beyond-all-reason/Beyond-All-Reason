@@ -1,3 +1,4 @@
+
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
@@ -63,7 +64,7 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-	    emit-sfx 1024 + 0 from flare1;
+	    emit-sfx 1024 + 0 from flare2;
 		move barrel to z-axis [-2.00000] now;
 		move barrel to z-axis [0.000000] speed [37.500000];
 		gun_1 = flare2;
@@ -71,7 +72,7 @@ FirePrimary()
 	}
 	if( gun_1 == 1 )
 	{
-	    emit-sfx 1024 + 0 from flare2;
+	    emit-sfx 1024 + 0 from flare1;
 		move barrel to z-axis [-2.00000] now;
 		move barrel to z-axis [0.000000] speed [37.500000];
 		gun_1 = flare1;
