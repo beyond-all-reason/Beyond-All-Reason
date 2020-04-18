@@ -79,9 +79,6 @@ vertex = [[
 		// main light vector(s)
 		vec3 worldCameraDir;
 
-		// main textureCoord
-		vec2 modelUV;
-
 		// shadowPosition
 		vec4 shadowVertexPos;
 
@@ -215,7 +212,7 @@ vertex = [[
 				Perlin3D( seedVec ) * normalize(modelVertexPos.xyz);
 		}
 
-		modelUV = gl_MultiTexCoord0.xy;
+		gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
 
 		#if (RENDERING_MODE != 2) //non-shadow pass
 
@@ -226,9 +223,9 @@ vertex = [[
 				// note, invert we invert Y axis
 				const vec4 treadBoundaries = vec4(2572.0, 3070.0, atlasSize - 1761.0, atlasSize - 1548.0) / atlasSize;
 				if (all(bvec4(
-						modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
-						modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
-					modelUV.x += floatOptions[3];
+						gl_TexCoord[0].x >= treadBoundaries.x, gl_TexCoord[0].x <= treadBoundaries.y,
+						gl_TexCoord[0].y >= treadBoundaries.z, gl_TexCoord[0].y <= treadBoundaries.w))) {
+					gl_TexCoord[0].x += floatOptions[3];
 				}
 			}
 
@@ -237,9 +234,9 @@ vertex = [[
 				// note, invert we invert Y axis
 				const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
 				if (all(bvec4(
-						modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
-						modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
-					modelUV.x += floatOptions[3];
+						gl_TexCoord[0].x >= treadBoundaries.x, gl_TexCoord[0].x <= treadBoundaries.y,
+						gl_TexCoord[0].y >= treadBoundaries.z, gl_TexCoord[0].y <= treadBoundaries.w))) {
+					gl_TexCoord[0].x += floatOptions[3];
 				}
 			}
 
@@ -277,8 +274,8 @@ vertex = [[
 			}
 
 			if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
-				//aoTerm = clamp(1.0 * fract(modelUV.x * 16384.0), shadowDensity, 1.0);
-				aoTerm = clamp(1.0 * fract(modelUV.x * 16384.0), 0.1, 1.0);
+				//aoTerm = clamp(1.0 * fract(gl_TexCoord[0].x * 16384.0), shadowDensity, 1.0);
+				aoTerm = clamp(1.0 * fract(gl_TexCoord[0].x * 16384.0), 0.1, 1.0);
 			} else {
 				aoTerm = 1.0;
 			}
@@ -293,8 +290,9 @@ vertex = [[
 			gl_Position = projectionMatrix * viewMatrix * worldVertexPos;
 
 			%%VERTEX_POST_TRANSFORM%%
+			gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
 
-		#else //shadow pass
+		#elif (RENDERING_MODE == 2) //shadow pass
 
 			vec4 lightVertexPos = gl_ModelViewMatrix * modelVertexPos;
 			vec3 lightVertexNormal = normalize(gl_NormalMatrix * modelVertexNormal);
@@ -310,7 +308,6 @@ vertex = [[
 			lightVertexPos.z += bias;
 
 			gl_Position = gl_ProjectionMatrix * lightVertexPos; //TODO figure out gl_ProjectionMatrix replacement ?
-			//gl_Position = shadowMatrix * gl_ModelViewMatrix *  modelVertexPos;
 		#endif
 	}
 ]],
@@ -474,9 +471,6 @@ fragment = [[
 
 		// main light vector(s)
 		vec3 worldCameraDir;
-
-		// main textureCoord
-		vec2 modelUV;
 
 		// shadowPosition
 		vec4 shadowVertexPos;
@@ -1147,7 +1141,7 @@ fragment = [[
 	void main(void){
 		#line 30540
 
-		vec2 myUV = modelUV;
+		vec2 myUV = gl_TexCoord[0].xy;
 
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAP_FLIP)) {
 			myUV.y = 1.0 - myUV.y;
@@ -1458,7 +1452,7 @@ fragment = [[
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
-		#else
+		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 
 			outSpecularColor = TONEMAP(outSpecularColor);
@@ -1471,11 +1465,7 @@ fragment = [[
 		#endif
 	}
 #else //shadow pass
-	void main(void){
-		vec4 texColor2 = texture(texture2, modelUV);
-		if (texColor2.a < 0.5)
-			discard;
-	}
+
 #endif
 ]],
 	uniformInt = {

@@ -96,6 +96,9 @@ local unitRendering = {
 	materialDefs        = {},
 	loadedTextures      = {},
 
+	shadowsPreDLs       = {},
+	shadowsPostDL       = nil,
+
 	spGetAllObjects      = Spring.GetAllUnits,
 	spGetObjectPieceList = Spring.GetUnitPieceList,
 
@@ -121,6 +124,9 @@ local featureRendering = {
 	bufShadowMaterials  = {},
 	materialDefs        = {},
 	loadedTextures      = {},
+
+	shadowsPreDLs       = {},
+	shadowsPostDL       = nil,
 
 	spGetAllObjects      = Spring.GetAllFeatures,
 	spGetObjectPieceList = Spring.GetFeaturePieceList,
@@ -278,6 +284,9 @@ local function _CompileMaterialShaders(rendering)
 		end
 
 		if (matSrc.shadowSource) then
+			-- work around AMD bug
+			matSrc.shadowSource.fragment = nil
+
 			local luaShader = _CompileShader(
 				matSrc.shadowSource,
 				matSrc.shadowDefinitions,
@@ -445,6 +454,28 @@ local function GetObjectShadowMaterial(rendering, objectDefID)
 	end)
 	gl.DeleteList(texdl)
 
+	-- needs TEX2 to perform alpha tests
+	-- cannot do it in shader because of some weird bug with AMD
+	-- not accepting any frag shaders for shadow pass
+	local shadowAlphaTexNum = mat.shadowAlphaTexNum or 1
+	local shadowAlphaTex = texUnits[shadowAlphaTexNum].tex
+
+	if not rendering.shadowsPostDL then
+		rendering.shadowsPostDL = gl.CreateList(function()
+			gl.Texture(0, false)
+		end)
+	end
+
+	if shadowAlphaTex then
+		if not rendering.shadowsPreDLs[shadowAlphaTex] then
+			rendering.shadowsPreDLs[shadowAlphaTex] = gl.CreateList(function()
+				gl.Texture(0, shadowAlphaTex)
+			end)
+		end
+	end
+
+	local shadowsPreDL = rendering.shadowsPreDLs[shadowAlphaTex]
+
 	--No deferred statements are required
 	local luaShadowMat = rendering.spGetMaterial("shadow", {
 		standardshader = mat.shadowShader,
@@ -453,7 +484,9 @@ local function GetObjectShadowMaterial(rendering, objectDefID)
 
 		usecamera   = true,
 		culling     = mat.shadowCulling,
-		texunits    = texUnits,
+		--texunits    = {[shadowAlphaTexNum] = {tex = texUnits[shadowAlphaTexNum].tex, enable = false}},
+		prelist     = shadowsPreDL,
+		postlist    = rendering.shadowsPostDL,
 	})
 
 	rendering.bufShadowMaterials[objectDefID] = luaShadowMat
@@ -617,49 +650,6 @@ local function ObjectFinished(rendering, objectID, objectDefID)
 end
 
 
-local function _CleanupEverything(rendering)
-	for objectID, mat in pairs(rendering.drawList) do
-		local DrawObject = mat[rendering.DrawObject]
-		if DrawObject then
-			rendering.spSetObjectLuaDraw(objectID, false)
-		end
-	end
-
-	for _, mat in pairs(rendering.materialDefs) do
-		if mat.Finalize then
-			mat.Finalize(matName, matSrc)
-		end
-		for _, shaderObject in pairs({mat.standardShaderObj, mat.deferredShaderObj, mat.shadowShaderObj}) do
-			if shaderObject then
-				shaderObject:Finalize()
-			end
-		end
-	end
-
-	for tex, _ in pairs(rendering.loadedTextures) do
-		gl.DeleteTexture(tex)
-	end
-
-	for _, oid in ipairs(rendering.spGetAllObjects()) do
-		rendering.spSetLODCount(oid, 0)
-	end
-
-	for optName, _ in pairs(registeredOptions) do
-		gadgetHandler:RemoveChatAction(optName)
-	end
-
-	rendering.drawList            = {}
-	rendering.materialInfos       = {}
-	rendering.bufMaterials        = {}
-	rendering.bufShadowMaterials  = {}
-	rendering.materialDefs        = {}
-	rendering.loadedTextures      = {}
-
-	gadgetHandler:RemoveChatAction("updatesun")
-	gadgetHandler:RemoveChatAction("cusreload")
-	gadgetHandler:RemoveChatAction("reloadcus")
-end
-
 local function ObjectDestroyed(rendering, objectID, objectDefID)
 	local mat = rendering.objectList[objectID]
 	if mat then
@@ -699,6 +689,70 @@ local function DrawObject(rendering, objectID, objectDefID, drawMode)
 		local luaShaderObj = ((drawMode == 1) and mat.standardShaderObj) or ((drawMode == 5) and mat.deferredShaderObj)
 		return _DrawObject(objectID, objectDefID, mat, drawMode, luaShaderObj)
 	end
+end
+
+
+local function _CleanupEverything(rendering)
+	for objectID, mat in pairs(rendering.drawList) do
+		local DrawObject = mat[rendering.DrawObject]
+		if DrawObject then
+			rendering.spSetObjectLuaDraw(objectID, false)
+		end
+	end
+
+	for _, mat in pairs(rendering.materialDefs) do
+		if mat.Finalize then
+			mat.Finalize(matName, matSrc)
+		end
+		for _, shaderObject in pairs({mat.standardShaderObj, mat.deferredShaderObj, mat.shadowShaderObj}) do
+			if shaderObject then
+				shaderObject:Finalize()
+			end
+		end
+	end
+
+	for tex, _ in pairs(rendering.loadedTextures) do
+		gl.DeleteTexture(tex)
+	end
+
+	for _, dl in pairs(rendering.shadowsPreDLs) do
+		gl.DeleteList(dl)
+	end
+
+	if rendering.shadowsPostDL then
+		gl.DeleteList(rendering.shadowsPostDL)
+	end
+
+-- crashes system
+--[[
+	for objectID, mat in pairs(rendering.objectList) do
+		ObjectDestroyed(rendering, objectID, nil)
+	end
+]]--
+
+	for _, oid in ipairs(rendering.spGetAllObjects()) do
+		rendering.spSetLODCount(oid, 0)
+	end
+
+	for optName, _ in pairs(registeredOptions) do
+		gadgetHandler:RemoveChatAction(optName)
+	end
+
+	rendering.objectList          = {}
+	rendering.drawList            = {}
+	rendering.materialInfos       = {}
+	rendering.bufMaterials        = {}
+	rendering.bufShadowMaterials  = {}
+	rendering.materialDefs        = {}
+	rendering.loadedTextures      = {}
+	rendering.shadowsPreDLs       = {}
+	rendering.shadowsPostDL       = nil
+
+	gadgetHandler:RemoveChatAction("updatesun")
+	gadgetHandler:RemoveChatAction("cusreload")
+	gadgetHandler:RemoveChatAction("reloadcus")
+
+	collectgarbage()
 end
 
 
@@ -922,7 +976,6 @@ function gadget:Initialize()
 		shadowmapping     = shadows,
 		normalmapping     = normalmapping,
 		treewind          = treewind,
-		--metal_highlight   = false,
 	}
 
 	for _, rendering in ipairs(allRendering) do
