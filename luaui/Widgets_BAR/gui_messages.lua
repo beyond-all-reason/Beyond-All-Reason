@@ -39,12 +39,14 @@ local backgroundOpacity = 0.18
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 38
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.3
+local fontfileOutlineSize = 7
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = (0.5 + (vsx*vsy / 5700000))
+local widgetScale = (((vsx+vsy) / 2000) * 0.6) * (1+(ui_scale-1)/1.6)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -165,7 +167,7 @@ end
 function widget:ViewResize()
     vsx,vsy = Spring.GetViewGeometry()
     lineMaxWidth = lineMaxWidth / widgetScale
-    widgetScale = (0.5 + (vsx*vsy / 5700000))
+    widgetScale = (((vsx+vsy) / 2000) * 0.6) * (1+(ui_scale-1)/1.6)
     lineMaxWidth = lineMaxWidth * widgetScale
 
     local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -272,7 +274,16 @@ end
 
 local sec = 0
 local testmessaged = 0
+local uiSec = 0
 function widget:Update(dt)
+    uiSec = uiSec + dt
+    if uiSec > 0.5 then
+        uiSec = 0
+        if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+            ui_scale = Spring.GetConfigFloat("ui_scale",1)
+            widget:ViewResize(vsx,vsy)
+        end
+    end
 
     local x,y,b = Spring.GetMouseState()
     if WG['topbar'] and WG['topbar'].showingQuit() then

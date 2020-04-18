@@ -70,6 +70,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.60 + (vsx*vsy / 5000000))
 local xOffset = (32 + (fontSize*0.9))*widgetScale
 local yOffset = -((32 - (fontSize*0.9))*widgetScale)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -336,7 +337,7 @@ end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = ((vsx+vsy) / 2000) * 0.66 --(0.60 + (vsx*vsy / 5000000))
+	widgetScale = ((vsx+vsy) / 2000) * 0.66 * (1+(ui_scale-1)/2)
 	fontSize = customFontSize * widgetScale
 	
 	bgcornerSize = fontSize*0.35
@@ -346,9 +347,21 @@ function init()
 	yOffset = -((32 + bgpadding)*widgetScale)
 end
 
+local uiSec = 0
+function widget:Update(dt)
+	uiSec = uiSec + dt
+	if uiSec > 0.5 then
+		uiSec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(vsx,vsy)
+		end
+	end
+end
+
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	widgetScale = ((vsx+vsy) / 2000) * 0.66 * (1+(ui_scale-1)/2)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale

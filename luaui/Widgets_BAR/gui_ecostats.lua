@@ -92,6 +92,7 @@ local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0)
 local maxPlayers					= 0
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local myFullview = select(2,Spring.GetSpectatingState())
 
@@ -315,8 +316,8 @@ end
 
 function processScaling()
 	setDefaults()
-	
-	sizeMultiplier   = 0.45 + (vsx*vsy / 7000000)
+
+	sizeMultiplier = (((vsx+vsy) / 2000) * 0.66) * (1+(ui_scale-1)/1.5)
 	
 	tH				= math.floor(tH * sizeMultiplier)
 	widgetWidth		= math.floor(widgetWidth * sizeMultiplier)
@@ -1590,7 +1591,9 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
-	widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
+	--widgetScale = (1 + (vsx*vsy / 7500000))
+	widgetScale = (((vsx+vsy) / 2000) * 0.66) * (1+(ui_scale-1)/1.5)		-- only used for rounded corners atm
+
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
@@ -1655,7 +1658,12 @@ local uiOpacitySec = 0.5
 function widget:Update(dt)
 
 	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec>0.5 then
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(Spring.GetViewGeometry())
+		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)

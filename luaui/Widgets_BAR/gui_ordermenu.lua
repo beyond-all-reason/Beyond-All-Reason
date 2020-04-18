@@ -18,11 +18,13 @@ local showIcons = false
 local colorize = 0
 local playSounds = true
 local posY = 0.7635
-local width = 0.23
-local height = 0.16
-local cellMargin = 0.075
-local bgBorder = 0.0033
-local bgMargin = 0.0058
+local width = 0
+local height = 0
+local cellMarginOrg = 0.035
+local cellMargin = cellMarginOrg
+local bgBorderOrg = 0.0018
+local bgBorder = bgBorderOrg
+local bgMargin = 0.005
 local cmdColorDefault = {0.95,0.95,0.95}
 local cmdColor = {
   Move = {0.64,1,0.64},
@@ -69,6 +71,7 @@ local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local backgroundRect = {}
 local activeRect = {}
@@ -167,34 +170,45 @@ local function RefreshCommands()
   setupCellGrid()
 end
 
-function setupCellGrid()
+function setupCellGrid(force)
   local oldColls = colls
   local oldRows = rows
   local cmdCount = #cmds
-  if cmdCount <= 16 then
-    colls = 4
-    rows = 4
-  elseif cmdCount <= 20 then
-    colls = 5
-    rows = 4
-  elseif cmdCount <= 25 then
-    colls = 5
-    rows = 5
-  elseif cmdCount <= 30 then
-    colls = 5
-    rows = 6
-  elseif cmdCount <= 36 then
-    colls = 6
-    rows = 6
-  elseif cmdCount <= 42 then
-    colls = 6
-    rows = 7
+  local addColl = ui_scale < 0.85 and -1 or 0
+  local addRow = ui_scale < 0.85 and 0 or 0
+  if cmdCount <= (4+addColl) * (4+addRow) then
+    colls = 4 + addColl
+    rows = 4 + addRow
+  elseif cmdCount <= (5+addColl) * (4+addRow) then
+    colls = 5 + addColl
+    rows = 4 + addRow
+  elseif cmdCount <= (5+addColl) * (5+addRow) then
+    colls = 5 + addColl
+    rows = 5 + addRow
+  elseif cmdCount <= (5+addColl) * (6+addRow) then
+    colls = 5 + addColl
+    rows = 6 + addRow
+  elseif cmdCount <= (6+addColl) * (6+addRow) then
+    colls = 6 + addColl
+    rows = 6 + addRow
+  elseif cmdCount <= (6+addColl) * (7+addRow) then
+    colls = 6 + addColl
+    rows = 7 + addRow
   else
-    colls = 7
-    rows = 7
+    colls = 7 + addColl
+    rows = 7 + addRow
   end
 
-  if oldColls ~= colls or oldRows ~= rows then
+  local sizeDivider =  ((colls + rows) / 16)
+  cellMargin = (cellMarginOrg / sizeDivider) * ui_scale
+  bgBorder = (bgBorderOrg / sizeDivider) * ui_scale
+
+  if minusColumn then
+    colls = colls - 1
+    rows = rows + 1
+  end
+
+  if force or oldColls ~= colls or oldRows ~= rows then
     clickedCell = nil
     clickedCellTime = nil
     clickedCellDesiredState = nil
@@ -227,6 +241,7 @@ function widget:ViewResize()
       height = 0.16
   end
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
+  width = width * ui_scale
 
   vsx,vsy = Spring.GetViewGeometry()
   backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
@@ -276,6 +291,12 @@ function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.5 then
     uiOpacitySec = 0
+    if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+      ui_scale = Spring.GetConfigFloat("ui_scale",1)
+      widget:ViewResize()
+      setupCellGrid(true)
+      doUpdate = true
+    end
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
       doUpdate = true
@@ -445,7 +466,6 @@ function drawOrders()
       if cursorTextures[cmd.cursor] then
         local cursorTexture = 'anims/icexuick_200/cursor'..string.lower(cmd.cursor)..'_0.png'
         if VFS.FileExists(cursorTexture) then
-          Spring.Echo(cursorTexture)
           local s = 0.45
           local halfsize = s * ((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding))
           --local midPosX = (cellRects[cell][3]-cellMarginPx-padding) - halfsize - (halfsize*((1-s-s)/2))

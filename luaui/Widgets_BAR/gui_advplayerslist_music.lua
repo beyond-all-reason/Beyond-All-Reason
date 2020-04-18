@@ -78,6 +78,7 @@ local tracks = peaceTracks
 local playedTracks = {}
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local firstTime = false
 local wasPaused = false
@@ -727,7 +728,12 @@ function widget:Update(dt)
 		doCreateList = true
 	end
 	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec>0.5 then
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(Spring.GetViewGeometry())
+		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)

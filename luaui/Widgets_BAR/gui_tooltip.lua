@@ -64,6 +64,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetTooltip = Spring.GetCurrentTooltip
 
 local vsx, vsy = Spring.GetViewGeometry()
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local tooltips = {}
 
@@ -177,7 +178,7 @@ end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = ((vsx+vsy) / 2000) * 0.66
+	widgetScale = (((vsx+vsy) / 2000) * 0.66) * (1+(ui_scale-1)/2.5)
 
     if WG['tooltip'] == nil then
         WG['tooltip'] = {}
@@ -210,10 +211,21 @@ function init()
     end
 end
 
+local uiSec = 0
+function widget:Update(dt)
+	uiSec = uiSec + dt
+	if uiSec > 0.5 then
+		uiSec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(vsx,vsy)
+		end
+	end
+end
 
 function widget:ViewResize(x,y)
 	vsx,vsy = Spring.GetViewGeometry()
-	usedFontSize = cfgFontSize - (3 * ((vsx/vsy) - 1.78))
+	usedFontSize = (cfgFontSize - (3 * ((vsx/vsy) - 1.78))) * (1+(ui_scale-1)/2.5)
 	yOffset = -xOffset-usedFontSize
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then

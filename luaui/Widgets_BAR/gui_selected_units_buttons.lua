@@ -80,7 +80,8 @@ end
 -------------------------------------------------------------------------------
 
 local ui_opacityMultiplier = 0.6
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66) * ui_opacityMultiplier
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1) * ui_opacityMultiplier
 
 local bgcorner = ":l:LuaUI/Images/bgcorner.png"
 local highlightImg = ":l:LuaUI/Images/button-highlight.dds"
@@ -113,8 +114,8 @@ local iconSizeX = 76
 local iconSizeY = 76
 local iconImgMult = 0.85
 
-local usedIconSizeX = iconSizeX
-local usedIconSizeY = iconSizeY
+local usedIconSizeX = iconSizeX * ui_scale
+local usedIconSizeY = iconSizeY * ui_scale
 local rectMinX = 0
 local rectMaxX = 0
 local rectMinY = 0
@@ -185,8 +186,8 @@ function widget:ViewResize(n_vsx,n_vsy)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 
-  usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
-  usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
+  usedIconSizeX = math.floor(((iconSizeX/2) + ((vsx*vsy) / 115000)) * ui_scale)
+  usedIconSizeY =  math.floor(((iconSizeY/2) + ((vsx*vsy) / 115000)) * ui_scale)
   fontSize = usedIconSizeY * 0.28
   iconMargin = usedIconSizeX / 25
   
@@ -291,7 +292,12 @@ local uiOpacitySec = 0
 local selChangedSec = 0
 function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
-  if uiOpacitySec>0.5 then
+  if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(Spring.GetViewGeometry())
+		end
     uiOpacitySec = 0
     if ui_opacity ~= (Spring.GetConfigFloat("ui_opacity",0.66) * ui_opacityMultiplier) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66) * ui_opacityMultiplier

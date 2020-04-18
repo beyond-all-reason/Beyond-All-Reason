@@ -36,6 +36,7 @@ local fontfileOutlineStrength = 1.1
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local bgcorner = ":l:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1
@@ -229,7 +230,12 @@ local uiOpacitySec = 0.5
 function widget:Update(dt)
 
 	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec>0.5 then
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(Spring.GetViewGeometry())
+		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
 			guishaderEnabled = (WG['guishader'])

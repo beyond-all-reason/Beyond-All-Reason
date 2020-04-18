@@ -232,7 +232,10 @@ local myLastCameraState
 --------------------------------------------------------------------------------
 --
 --------------------------------------------------------------------------------
+
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+
 local playSounds = true
 local buttonclick = LUAUI_DIRNAME..'Sounds/buildbar_waypoint.wav'
 local sliderdrag = LUAUI_DIRNAME..'Sounds/buildbar_rem.wav'
@@ -4009,7 +4012,12 @@ function widget:Update(delta) --handles takes & related messages
 
 
 	uiOpacitySec = uiOpacitySec + delta
-	if uiOpacitySec>0.5 then
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(Spring.GetViewGeometry())
+		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
@@ -4128,6 +4136,7 @@ function updateWidgetScale()
 	end
 	widgetScale = ((vsx+vsy) / 2000) * 0.85 -- (0.75 + (vsx*vsy / 5000000)) * customScale
 	widgetScale = widgetScale - ((widgetScale * ((vsx/vsy) - 1.78)) * 0.12)	-- reduce size on ultrawides (bigger than 16:9)
+	widgetScale = widgetScale * (1+(ui_scale-1)/1.25)
 end
 
 function customScaleUp()

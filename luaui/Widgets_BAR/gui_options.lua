@@ -41,7 +41,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
+local fontfileOutlineStrength = 1
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfileScale2 = fontfileScale * 1.2
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -309,7 +309,7 @@ function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*centerPosX) - (screenWidth/2)
   screenY = (vsy*centerPosY) + (screenHeight/2)
-  widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+  widgetScale = ((vsx+vsy) / 2000) * 0.65	--(0.5 + (vsx*vsy / 5700000)) * customScale
   widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
   WG.uiScale = widgetScale
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -1672,9 +1672,10 @@ function init()
 			end
 		end
 		-- adding some widescreen resolutions for local testing
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
+		supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
+		supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
+		supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
+		supportedResolutions[#supportedResolutions+1] = '2560 x 900'
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
@@ -2419,13 +2420,17 @@ function init()
 			 end
 		 end,
 		},
-		{id="guiopacity", group="ui", basic=true, name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description='',
+		{id="guiopacity", group="ui", basic=true, name="Interface"..widgetOptionColor.."  opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("ui_opacity", value) end,
 		},
+		{id="uiscale", group="ui", basic=true, name=widgetOptionColor.."   scale", type="slider", min=0.75, max=1.15, step=0.01, value=Spring.GetConfigFloat("ui_scale",1), description='',
+		 onload = function(i) end,
+		 onchange = function(i, value) Spring.SetConfigFloat("ui_scale", value) end,
+		},
 
-		{id="guishader", group="ui", basic=true, widget="GUI Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
-		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.001, max=0.003, step=0.0001, value=0.002, description='',
+		{id="guishader", group="ui", basic=true, widget="GUI Shader", name=widgetOptionColor.."   blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
+		{id="guishaderintensity", group="ui", name=widgetOptionColor.."      intensity", type="slider", min=0.001, max=0.003, step=0.0001, value=0.002, description='',
 		 onload = function(i) loadWidgetData("GUI Shader", "guishaderintensity", {'blurIntensity'}) end,
 		 onchange = function(i, value) saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', {'blurIntensity'}, value) end,
 		},

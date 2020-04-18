@@ -26,12 +26,16 @@ local enabledAsSpec = false
 
 local MAX_ICONS = 10
 local iconsize = 37
-local ICON_SIZE_X = iconsize
-local ICON_SIZE_Y = iconsize
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
 local POSITION_Y = 0.095 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
+
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+
+local ICON_SIZE_X = iconsize * (1+(ui_scale-1)/1.5)
+local ICON_SIZE_Y = ICON_SIZE_X
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -146,10 +150,11 @@ local getn = table.getn
 local sizeMultiplier = 1
 local function init()
     vsx,vsy = GetViewGeometry()
-	sizeMultiplier = 1 + (vsx*vsy / 4500000)
+	sizeMultiplier = (((vsx+vsy) / 2000) * 1) * (1+(ui_scale-1)/1.5)
 
 	ICON_SIZE_X = iconsize * sizeMultiplier
 	ICON_SIZE_Y = ICON_SIZE_X
+
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
     noOfIcons = 0   -- this fixes positioning when resolution change
 end
@@ -477,10 +482,25 @@ end
 
 local sec = 0
 local doUpdate = true
+local uiOpacitySec = 0.5
 function widget:Update(dt)
+
 	if chobbyInterface then return end
 
 	if not enabled then return end
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(Spring.GetViewGeometry())
+		end
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+		end
+	end
 		
 	local iconNum = MouseOverIcon(GetMouseState())
 	if iconNum < 0 then

@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -23,7 +24,9 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local height = 46
+local orgHeight = 46
+local height = orgHeight * (1+(ui_scale-1)/1.33)
+
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
@@ -172,32 +175,30 @@ function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize(n_vsx,n_vsy, force)
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.043	-- using 734 because redui-console uses this value too
+	widgetScale = widgetScale * ui_scale
 	xPos = vsx*relXpos
 
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-	gl.DeleteFont(font)
-	font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    gl.DeleteFont(font2)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000)) * ui_scale
+	if fontfileScale ~= newFontfileScale or force then
+		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		gl.DeleteFont(font2)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
 
     for n,_ in pairs(dlistWindText) do
-        glDeleteList(dlistWindText[n])
+		dlistWindText[n] = glDeleteList(dlistWindText[n])
     end
-    dlistWindText = {}
 	for n,_ in pairs(dlistResValues['metal']) do
-		glDeleteList(dlistResValues['metal'][n])
+		dlistResValues['metal'][n] = glDeleteList(dlistResValues['metal'][n])
 	end
-	dlistResValues['metal'] = {}
 	for n,_ in pairs(dlistResValues['energy']) do
-		glDeleteList(dlistResValues['energy'][n])
+		dlistResValues['energy'][n] = glDeleteList(dlistResValues['energy'][n])
 	end
-	dlistResValues['energy'] = {}
 
 	init()
 end
@@ -734,7 +735,7 @@ local function updateResbarText(res)
 							end
 						end
 					end
-					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale
+					local textWidth = (bgpadding*2) + 22 + font2:GetTextWidth(text) * (orgHeight * (1+(ui_scale-1)/1.33)/4) * widgetScale
 
 					-- background
 					local color1,color2
@@ -778,7 +779,7 @@ local function updateResbarText(res)
                     font2:Begin()
                     font2:SetTextColor(1,0.88,0.88,1)
                     font2:SetOutlineColor(0.2,0,0,0.6)
-                    font2:Print(text, resbarArea[res][3]-7*widgetScale, resbarArea[res][4]-9.5*widgetScale, 11.5*widgetScale, 'or')
+                    font2:Print(text, resbarArea[res][3]-7*widgetScale, resbarArea[res][4]-9.5*widgetScale, (orgHeight * (1+(ui_scale-1)/1.33)/4)*widgetScale, 'or')
                     font2:End()
 				end
 			else
@@ -941,7 +942,10 @@ function init()
 
 	topbarArea = {xPos, math.floor(vsy-(borderPadding*widgetScale)-(height*widgetScale)), vsx, vsy}
 	barContentArea = {xPos+(borderPadding*widgetScale), math.floor(vsy-(height*widgetScale)), vsx, vsy}
-	
+
+	--Spring.Echo((borderPadding*widgetScale)-(height*widgetScale))
+	--Spring.Echo(ui_scale..'   '..topbarArea[2])
+
 	local filledWidth = 0
 	local totalWidth = barContentArea[3] - barContentArea[1]
 	local areaSeparator = (borderPadding*widgetScale)
@@ -1043,15 +1047,6 @@ function widget:Update(dt)
     end
 
 	local mx,my = spGetMouseState()
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec>0.5 then
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			init()
-		end
-	end
 
 	if blinkDirection then
 		blinkProgress = blinkProgress + (dt*9)
@@ -1155,6 +1150,21 @@ function widget:Update(dt)
 				showRejoinUI = false
 				updateRejoin()
 			end
+		end
+	end
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			init()
+		end
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			height = orgHeight * (1+(ui_scale-1)/1.33)
+			shutdown()
+			widget:ViewResize(vsx,vsy)
 		end
 	end
 end
@@ -1429,23 +1439,23 @@ function widget:DrawScreen()
 
             if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
 
-                local width = 335*widgetScale
-                local height = width/3.5
-                local padding = width/70
-                local buttonPadding = width/90
-                local buttonMargin = width/30
-                local buttonHeight = height*0.55
+                local w = 335*widgetScale
+                local h = w/3.5
+                local padding = w/70
+                local buttonPadding = w/90
+                local buttonMargin = w/30
+                local buttonHeight = h*0.55
 
-                quitscreenArea = {(vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2)}
-                quitscreenResignArea = {(vsx/2)-(width/2)+buttonMargin, (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)-(buttonMargin/2), (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
-                quitscreenQuitArea = {(vsx/2)+(buttonMargin/2), (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)+(width/2)-buttonMargin, (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
+                quitscreenArea = {(vsx/2)-(w/2), (vsy/1.8)-(h/2), (vsx/2)+(w/2), (vsy/1.8)+(h/2)}
+                quitscreenResignArea = {(vsx/2)-(w/2)+buttonMargin, (vsy/1.8)-(h/2)+buttonMargin, (vsx/2)-(buttonMargin/2), (vsy/1.8)-(h/2)+buttonHeight-buttonMargin}
+                quitscreenQuitArea = {(vsx/2)+(buttonMargin/2), (vsy/1.8)-(h/2)+buttonMargin, (vsx/2)+(w/2)-buttonMargin, (vsy/1.8)-(h/2)+buttonHeight-buttonMargin}
 
                 -- window
                 glColor(1,1,1,0.5+(0.36*fadeProgress))
                 RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
                 RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding*0.8, 1,1,1,1, {0.55,0.55,0.5,0.12+(0.035*fadeProgress)}, {0,0,0,0.1+(0.035*fadeProgress)})
 
-                local fontSize = height/6
+                local fontSize = h/6
                 font:Begin()
                 font:SetTextColor(0,0,0,1)
                 if not spec then
@@ -1874,41 +1884,41 @@ function widget:Initialize()
 	end
 end
 
-
-function widget:Shutdown()
-	Spring.SendCommands("resbar 1")
+function shutdown()
 	if dlistBackground ~= nil then
-		glDeleteList(dlistWindGuishader)
-		glDeleteList(dlistWind1)
-		glDeleteList(dlistWind2)
-		glDeleteList(dlistComsGuishader)
-		glDeleteList(dlistComs1)
-		glDeleteList(dlistComs2)
-		glDeleteList(dlistButtonsGuishader)
-		glDeleteList(dlistButtons1)
-		glDeleteList(dlistButtons2)
-		glDeleteList(dlistRejoinGuishader)
-		glDeleteList(dlistRejoin)
-        glDeleteList(dlistQuit)
+		dlistWindGuishader = glDeleteList(dlistWindGuishader)
+		dlistWind1 = glDeleteList(dlistWind1)
+		dlistWind2 = glDeleteList(dlistWind2)
+		dlistComsGuishader = glDeleteList(dlistComsGuishader)
+		dlistComs1 = glDeleteList(dlistComs1)
+		dlistComs2 = glDeleteList(dlistComs2)
+		dlistButtonsGuishader = glDeleteList(dlistButtonsGuishader)
+		dlistButtons1 = glDeleteList(dlistButtons1)
+		dlistButtons2 = glDeleteList(dlistButtons2)
+		dlistRejoinGuishader = glDeleteList(dlistRejoinGuishader)
+		dlistRejoin = glDeleteList(dlistRejoin)
+		dlistQuit = glDeleteList(dlistQuit)
 
 		for n,_ in pairs(dlistWindText) do
-			glDeleteList(dlistWindText[n])
+			dlistWindText[n] = glDeleteList(dlistWindText[n])
 		end
 		for n,_ in pairs(dlistResbar['metal']) do
-			glDeleteList(dlistResbar['metal'][n])
+			dlistResbar['metal'][n] = glDeleteList(dlistResbar['metal'][n])
 		end
 		for n,_ in pairs(dlistResbar['energy']) do
-			glDeleteList(dlistResbar['energy'][n])
+			dlistResbar['energy'][n] = glDeleteList(dlistResbar['energy'][n])
 		end
 		for n,_ in pairs(dlistResValues['metal']) do
-			glDeleteList(dlistResValues['metal'][n])
+			dlistResValues['metal'][n] = glDeleteList(dlistResValues['metal'][n])
 		end
 		for n,_ in pairs(dlistResValues['energy']) do
-			glDeleteList(dlistResValues['energy'][n])
+			dlistResValues['energy'][n] = glDeleteList(dlistResValues['energy'][n])
 		end
 	end
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
+	--gl.DeleteFont(font)
+	--gl.DeleteFont(font2)
+	--font = nil
+	--font2 = nil
 	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('topbar_energy')
 		WG['guishader'].RemoveDlist('topbar_metal')
@@ -1937,5 +1947,14 @@ function widget:Shutdown()
 		WG['tooltip'].RemoveTooltip(res..'_storage')
 		WG['tooltip'].RemoveTooltip(res..'_curent')
 	end
+end
+
+function widget:Shutdown()
+	Spring.SendCommands("resbar 1")
+	shutdown()
+	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
+	font = nil
+	font2 = nil
 	WG['topbar'] = nil
 end

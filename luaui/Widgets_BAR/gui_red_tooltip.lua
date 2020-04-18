@@ -20,6 +20,7 @@ local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local normalSx = 299
 local largeSx = 323
 local Config = {
@@ -298,7 +299,14 @@ end
 local uiOpacitySec = 0
 function widget:Update(dt)
 	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec>0.5 then
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			Config.tooltip.sx = (WG['red_buildmenu'].getConfigLargeUnitIcons() and largeSx or normalSx) * ui_scale
+			tooltip.background.sx = Config.tooltip.sx
+			tooltip.background2.sx = Config.tooltip.sx
+		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)

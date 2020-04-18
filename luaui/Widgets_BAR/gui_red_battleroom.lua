@@ -16,7 +16,6 @@ function widget:GetInfo()
 	}
 end
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = vsx/1500
 
 local NeededFrameworkVersion = 8
 local SoundIncomingChat  = 'beep4'
@@ -46,15 +45,22 @@ local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+
 local posX = 0.304
-local posY = 0.052	- (0.01 * ((vsx/vsy) - 1.78))
+local posY = (0.052	- (0.01 * ((vsx/vsy) - 1.78))) * (1+(ui_scale-1)/1)
+
+local widgetScale = (vsx/1500) * (1+(ui_scale-1)/1.5)
+
+local fontsize = (11.5 - (2.5 * ((vsx/vsy) - 1.78)))
 
 local Config = {
 	console = {
 		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
 		
-		fontsize = (11.5 - (2.5 * ((vsx/vsy) - 1.78))) * widgetScale,
+		fontsize = fontsize * widgetScale,
 		minlines = 3, --minimal number of lines to display
 		maxlines = 3,
 		maxlinesScrollmode = 3,
@@ -928,7 +934,16 @@ function widget:AddConsoleLine(lines,priority)
 	clipHistory(console,true)
 end
 
-function widget:Update()
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize()
+		end
+	end
 	updateconsole(console,Config.console)
 	AutoResizeObjects()
 	if not Initialized then
@@ -942,18 +957,20 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = vsx/1500
+	widgetScale = (vsx/1500) * (1+(ui_scale-1)/1.5)
+	Config.console.fontsize = fontsize*widgetScale
 	Config.console.px = posX*vsx
-	Config.console.py = posY*vsy
+	Config.console.py = (posY*vsy) * (1+(ui_scale-1)/1)
 	Config.console.sx = vsx*0.4
 	if console ~= nil and console.vars then
 		console.background.px = Config.console.px
 		console.background.py = Config.console.py
 		console.lines.px = Config.console.px+Config.console.margin
 		console.lines.py = Config.console.py+Config.console.margin
+		console.lines.fontsize = Config.console.fontsize
 		console.counters.px = Config.console.px
 		console.counters.py = Config.console.py
-		--console.vars._forceupdate = true
+		console.vars._forceupdate = true
 	end
 end
 
