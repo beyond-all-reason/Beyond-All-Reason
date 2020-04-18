@@ -151,7 +151,7 @@ local icons = {
     {"nuke.user", "nuke",1.8},
     {"nuke_big.user", "nuke",2.4},
     {"antinuke.user", "antinuke",1.6},
-    {"antinuke_mobile.user", "antinuke",1.4},
+    {"antinuke_mobile.user", "antinukemobile",1.4},
   
     {"aa1.user", "aa", 0.85},
     {"aa2.user", "aa", 1.1},
@@ -248,6 +248,7 @@ local icons = {
     {"air_t2_transport.user", "air_trans",1.75},
     {"air_t2_radar.user", "air_los",1.33},
     {"air_t2_torpbomber.user", "air_hover",1.6},
+    {"air_flagship.user", "air_flagship",2},
     {"air_bladew.user", "air_hover_bw",0.75},
     {"air_torp.user", "air_hover",1.5},
     {"air_krow.user", "air_krow",2},
@@ -734,6 +735,8 @@ function loadUnitIcons()
                 Spring.SetUnitDefIcon(udid, iconPrefix.."ship_tiny.user")
             elseif (name=="armpship" or name=="corpship") then
                 Spring.SetUnitDefIcon(udid, iconPrefix.."ship_pship.user")
+            elseif (name=="armfepoch" or name=="corfblackhy") then
+                Spring.SetUnitDefIcon(udid, iconPrefix.."air_flagship.user")
             elseif ud.isBuilder then
                 if (name=="armmls" or name=="cormls") then
                     Spring.SetUnitDefIcon(udid, iconPrefix.."ship_engineer.user")
