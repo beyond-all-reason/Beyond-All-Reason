@@ -317,7 +317,7 @@ end
 function processScaling()
 	setDefaults()
 
-	sizeMultiplier = (((vsx+vsy) / 2000) * 0.66) * (1+(ui_scale-1)/1.5)
+	sizeMultiplier = (((vsx+vsy) / 2000) * 0.5) * (1+(ui_scale-1)/1.5)
 	
 	tH				= math.floor(tH * sizeMultiplier)
 	widgetWidth		= math.floor(widgetWidth * sizeMultiplier)
@@ -703,11 +703,11 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 		borderPaddingRight = 0
 	end
 	--glColor(0,0,0,ui_opacity)
-	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding*1.33, 1,1,1,1, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding, 1,1,1,1, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
 	--glColor(1,1,1,ui_opacity*0.055)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding*1.33, 1, 1,1,1, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, 1, 1,1,1, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
-	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 5*widgetScale}
+	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4*widgetScale}
 
 	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
@@ -1592,7 +1592,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	--widgetScale = (1 + (vsx*vsy / 7500000))
-	widgetScale = (((vsx+vsy) / 2000) * 0.66) * (1+(ui_scale-1)/1.5)		-- only used for rounded corners atm
+	widgetScale = (((vsx+vsy) / 2000) * 0.5) * (1+(ui_scale-1)/1.5)		-- only used for rounded corners atm
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then

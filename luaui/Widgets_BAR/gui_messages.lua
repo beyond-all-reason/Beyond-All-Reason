@@ -46,7 +46,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = (((vsx+vsy) / 2000) * 0.6) * (1+(ui_scale-1)/1.6)
+local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (1+(ui_scale-1)/1.5)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -167,7 +167,7 @@ end
 function widget:ViewResize()
     vsx,vsy = Spring.GetViewGeometry()
     lineMaxWidth = lineMaxWidth / widgetScale
-    widgetScale = (((vsx+vsy) / 2000) * 0.6) * (1+(ui_scale-1)/1.6)
+    widgetScale = (((vsx+vsy) / 2000) * 0.55) * (1+(ui_scale-1)/1.5)
     lineMaxWidth = lineMaxWidth * widgetScale
 
     local newFontfileScale = (0.5 + (vsx*vsy / 5700000))

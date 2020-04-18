@@ -1049,7 +1049,7 @@ function widget:DrawScreen()
 				if not showSelectOptions then
 					for i, o in pairs(optionHover) do
 						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
-							RectRound(o[1]-4, o[2], o[3]+4, o[4], 2, 2,2,2,2, options[i].onclick and {0.5,1,0.2,0.1} or {1,1,1,0.05}, options[i].onclick and {0.5,1,0.2,0.2} or {1,1,1,0.1})
+							RectRound(o[1]-4, o[2], o[3]+4, o[4], 2, 2,2,2,2, options[i].onclick and {0.5,1,0.2,0.1} or {1,1,1,0.045}, options[i].onclick and {0.5,1,0.2,0.2} or {1,1,1,0.09})
 							font:Begin()
 							if options[i].description ~= nil then
 								description = options[i].description
@@ -1087,7 +1087,7 @@ function widget:DrawScreen()
 						for optionID, _ in pairs(presets['lowest']) do
 							optionKey = getOptionByID(optionID)
 							if optionHover[optionKey] ~= nil then
-								RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 1, 2,2,2,2, {0,0,0,0.12}, {1,1,1,0.12})
+								RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 1, 2,2,2,2, {0,0,0,0.15}, {1,1,1,0.15})
 							end
 						end
 					end
@@ -1108,7 +1108,7 @@ function widget:DrawScreen()
 							glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 							glScale(widgetScale, widgetScale, 1)
 						end
-						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, {0.25,0.25,0.25,WG['guishader'] and 0.82 or 0.94}, {0.22,0.22,0.22,WG['guishader'] and 0.82 or 0.94})
+						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, {0.28,0.28,0.28,WG['guishader'] and 0.84 or 0.94}, {0.33,0.33,0.33,WG['guishader'] and 0.84 or 0.94})
 						RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2,2,2,2, {0.5,0.5,0.5,0.1}, {1,1,1,0.1})
 						for i, option in pairs(options[showSelectOptions].options) do
 							yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
