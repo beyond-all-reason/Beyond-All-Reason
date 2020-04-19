@@ -139,20 +139,26 @@ end
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDirection = Spring.GetUnitDirection
 
+local threadOffsets = {} --cache
 local threadsArray = {[1] = 0.0}
 local function SendTracksOffset(unitID, isDeferred, gf, mod, texSpeed, atlasSize)
+	if not threadOffsets[unitID] then
+		threadOffsets[unitID] = 0.0
+	end
+
 	local usx, usy, usz, speed = spGetUnitVelocity(unitID)
-	if speed > 0.01 then speed = 1 end
+	if speed > 0.02 then speed = 1 else speed = 0 end
+	
+	local offset = ((gf % mod) * (texSpeed / atlasSize)) * speed
 
 	local udx, udy, udz = spGetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
-		speed = -speed
+		offset = -offset
 	end
-
-	local offset = ((gf % mod) * (texSpeed / atlasSize)) * speed
-	----
-
-	if not isDeferred then
+	
+	if threadOffsets[unitID] ~= offset and not isDeferred then
+		threadOffsets[unitID] = offset
+		--Spring.Echo(unitID, offset)
 		threadsArray[1] = offset
 		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
 	end
