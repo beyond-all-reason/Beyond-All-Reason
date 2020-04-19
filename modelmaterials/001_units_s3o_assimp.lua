@@ -93,7 +93,7 @@ local function SendHealthInfo(unitID, isDeferred)
 		elseif (unitsHealth[unitID] - h / mh) >= 0.0625 then --health is decreasing. Quantize by 6.25%.
 			unitsHealth[unitID] = h / mh
 		end
-		healthArray[1] = (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
+		healthArray[1] = 0.8 * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
 		--Spring.Echo("SendHealthInfo", unitID, isDeferred, urSetMaterialUniform[isDeferred], healthArray[1])
 		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		if not isDeferred then
