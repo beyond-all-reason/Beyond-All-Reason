@@ -21,7 +21,7 @@ function scav_Udef_Post(name, uDef)
 
 	--local udefVertDisp = uDef.customparams.vertdisp1 or 0
 	--uDef.customparams.vertdisp = 2.0 * udefVertDisp
-	uDef.customparams.healthlookmod = 0.35
+	uDef.customparams.healthlookmod = 0.40
 
 	-- make barrelshot purple
 	if uDef.customparams.firingceg then

@@ -185,7 +185,7 @@ function UnitDef_Post(name, uDef)
 	if vertexDisplacement > 10 then
 		vertexDisplacement = 10
 	end
-	uDef.customparams.vertdisp = 0.75 * vertexDisplacement
+	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
 	uDef.customparams.healthlookmod = 0
 
 	-- scavengers
