@@ -10,7 +10,7 @@
 -- What happens:
 -- unitdefs_post.lua calls the _Post functions for unitDefs and any weaponDefs that are contained in the unitdef files
 -- unitdefs_post.lua writes the corresponding unitDefs to customparams (if wanted)
--- weapondefs_post.lua fetches any weapondefs from the unitdefs, 
+-- weapondefs_post.lua fetches any weapondefs from the unitdefs,
 -- weapondefs_post.lua fetches the standlaone weapondefs, calls the _post functions for them, writes them to customparams (if wanted)
 -- strictly speaking, alldefs.lua is a misnomer since this file does not handle armordefs, featuredefs or movedefs
 
@@ -103,6 +103,9 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if not uDef.customparams then
+		uDef.customparams = {}
+	end
 
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
          The engine uses full frames for actual reload times, but forwards the raw
@@ -177,6 +180,14 @@ function UnitDef_Post(name, uDef)
 	--	Spring.Echo('import file not found: '..filename)
 	--end
 
+	-- add model vertex displacement
+	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
+	if vertexDisplacement > 10 then
+		vertexDisplacement = 10
+	end
+	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
+	uDef.customparams.healthlookmod = 0
+
 	-- scavengers
 	if string.find(name, '_scav') then -- if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
 		--name = string.gsub(name, '_scav', '')
@@ -232,7 +243,7 @@ local function ProcessSoundDefaults(wd)
 				wd.soundhitwetvolume = soundVolume * 0.3
 		else
 			wd.soundhitwetvolume = soundVolume
-		end		
+		end
 	end
 end
 
@@ -350,13 +361,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 
 		-- transporting enemy coms
 		if (modOptions.transportenemy == "notcoms") then
-			for name,ud in pairs(UnitDefs) do  
+			for name,ud in pairs(UnitDefs) do
 				if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
 					ud.transportbyenemy = false
 				end
 			end
 		elseif (modOptions.transportenemy == "none") then
-			for name, ud in pairs(UnitDefs) do  
+			for name, ud in pairs(UnitDefs) do
 				ud.transportbyenemy = false
 			end
 		end
@@ -373,7 +384,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			--Spring.Echo(beamTimeInFrames)
 			wDef.beamttl = beamTimeInFrames
 			--Spring.Echo(wDef.beamttl)
-			wDef.beamtime = 0.01		
+			wDef.beamtime = 0.01
 		end
 	end
 	]]--

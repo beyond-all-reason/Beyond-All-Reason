@@ -18,11 +18,10 @@ function scav_Udef_Post(name, uDef)
 	uDef.category = uDef.category..' SCAVENGER'
 
 	-- add model vertex displacement
-	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
-	if vertexDisplacement > 10 then
-		vertexDisplacement = 10
-	end
-	uDef.customparams.scavvertdisp = vertexDisplacement
+
+	--local udefVertDisp = uDef.customparams.vertdisp1 or 0
+	--uDef.customparams.vertdisp = 2.0 * udefVertDisp
+	uDef.customparams.healthlookmod = 0.40
 
 	-- make barrelshot purple
 	if uDef.customparams.firingceg then
@@ -68,7 +67,7 @@ function scav_Udef_Post(name, uDef)
             end
         end
     end
-	
+
 	-- add Scavenger name prefix to wrecks
 	if uDef.featuredefs then
 		if uDef.featuredefs.dead then
@@ -82,22 +81,22 @@ function scav_Udef_Post(name, uDef)
 		if uDef.featuredefs.heap then
 			if uDef.featuredefs.heap.description then
 				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
-			end	
+			end
 			-- if uDef.featuredefs.heap.metal then
 				-- uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
 			-- end
 		end
 	end
-	
+
 	-- add Scavenger name prefix to units
 	if uDef.name then
 		uDef.name = "Scavenger "..uDef.name
 	end
-	
+
 	if uDef.buildcostenergy then
 		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.5)
 	end
-	
+
 	if uDef.buildcostmetal then
 		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
 	end
@@ -105,39 +104,39 @@ function scav_Udef_Post(name, uDef)
 	if uDef.energymake then
 		uDef.energymake = math.ceil(uDef.energymake*0.5)
 	end
-	
+
 	if uDef.metalmake then
 		uDef.metalmake = math.ceil(uDef.metalmake*0.5)
 	end
-	
+
 	if uDef.maxdamage then
 		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
 	end
-	
+
 	if uDef.maxvelocity then
 		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
 	end
-	
+
 	if uDef.radardistancejam then
 		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.5)
 	end
-	
+
 	if uDef.maxdamage then
 		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
 		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
-	else 
+	else
 		uDef.autoheal = 5
 		uDef.idleautoheal = 5
 	end
-	
+
 	if uDef.turnrate then
 		uDef.turnrate = uDef.turnrate*3
 	end
-	
+
 	if uDef.turninplaceanglelimit then
 		uDef.turninplaceanglelimit = 360
 	end
-	
+
 	-- don't let players get scav constructors
 	if uDef.buildoptions then
 		uDef.capturable = false
@@ -150,20 +149,20 @@ function scav_Udef_Post(name, uDef)
 			end
 		end
 	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	--[[
 	if not uDef.customparams then
 		uDef.customparams = {}
@@ -227,21 +226,21 @@ function scav_Udef_Post(name, uDef)
             end
         end
     end
-	
+
 	-- if uDef.featuredefs then
 		-- if uDef.featuredefs.dead then
 			-- uDef.featuredefs.dead.resurrectable = 0
 		-- end
 	-- end
-	
+
 	if uDef.featuredefs then
 		if uDef.featuredefs.dead then
 			if uDef.featuredefs.dead.description then
 				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
-			end	
+			end
 			if uDef.featuredefs.dead.metal then
 				uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
-			end		
+			end
 		end
 	end
 
@@ -249,17 +248,17 @@ function scav_Udef_Post(name, uDef)
 		if uDef.featuredefs.heap then
 			if uDef.featuredefs.heap.description then
 				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
-			end	
+			end
 			if uDef.featuredefs.heap.metal then
 				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
-			end		
+			end
 		end
 	end
-	
+
 	if uDef.name then
 		uDef.name = "Scavenger "..uDef.name
 	end
-	
+
 	if uDef.buildcostenergy then
 		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.5)
 	end
@@ -297,11 +296,11 @@ function scav_Udef_Post(name, uDef)
  	--if not uDef.stealth then
  	--	uDef.stealth = true
  	--end
-	
+
 	 if not uDef.maxdamage then
 		uDef.autoheal = math.ceil(uDef.maxdamage/100)
 		uDef.idleautoheal = math.ceil(uDef.maxdamage/100)
-	else 
+	else
 		uDef.autoheal = 5
 		uDef.idleautoheal = 5
 	end
@@ -314,7 +313,7 @@ function scav_Udef_Post(name, uDef)
 
 
 	]]--
-	
+
 	return uDef
-	
+
 end

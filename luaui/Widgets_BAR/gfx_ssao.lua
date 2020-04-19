@@ -45,7 +45,7 @@ local BLUR_SIGMA = 1.8 -- Gaussian sigma of a single blur pass, other factors li
 
 local DOWNSAMPLE = 2 -- increasing downsapling will reduce GPU RAM occupation (a little bit), increase performace (a little bit), introduce occlusion blockiness
 
---local MERGE_MISC = true -- for future material indices based SSAO evaluation
+local MERGE_MISC = true -- for future material indices based SSAO evaluation
 local DEBUG_SSAO = false -- use for debug
 
 local math_sqrt = math.sqrt

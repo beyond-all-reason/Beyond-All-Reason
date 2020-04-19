@@ -1,4 +1,7 @@
 local scavDisplacementPlugin = {
+	GLOBAL_OPTIONS = [[
+		#define OPTION_SCAV_DISPLACEMENT
+	]]
 	VERTEX_GLOBAL_NAMESPACE = [[
 		#ifdef SCAVENGER_VERTEX_DISPLACEMENT
 			float Perlin3D( vec3 P ) {
@@ -58,6 +61,9 @@ local scavDisplacementPlugin = {
 }
 
 local treeDisplacementPlugun = {
+	GLOBAL_OPTIONS = [[
+		#define OPTION_TREEWIND
+	]],
 	VERTEX_GLOBAL_NAMESPACE = [[
 		vec2 getWind(int period) {
 			vec2 wind;
@@ -106,6 +112,39 @@ local treeDisplacementPlugun = {
 
 		fractModelPos.xz += diff + diff2 * wind;
 	]]
+}
+
+local movingThreadsPlugin = {
+	GLOBAL_OPTIONS = [[
+		#define OPTION_MOVING_THREADS_ARM
+		#define OPTION_MOVING_THREADS_CORE
+	]],
+	VERTEX_UV_TRANSFORM = [[
+		if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_CORE)) {
+			#define trackTexOffset floatOptions[0]
+			vec4 treadBoundaries;
+			if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_ARM) {
+				const float atlasSize = 4096.0;
+				// note, invert we invert Y axis
+				vec4 treadBoundaries = vec4(2572.0, 3070.0, 1548.0, 1761.0) / atlasSize; //(x, X, y, Y);
+			}
+
+			if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_CORE) {
+				const float atlasSize = 2048.0;
+				// note, invert we invert Y axis
+				vec4 treadBoundaries = vec4(1536.0, 2048.0, 1792.0, 2048.0) / atlasSize; //(x, X, y, Y);
+			}
+
+			//invert Y axis of texture, swap y and Y because of axis inversion
+			treadBoundaries.wz = vec2(1.0) - treadBoundaries.zw;
+			if ( all(bvec4(
+					greaterThanEqual(modelUV, treadBoundaries.xz),
+					lessThanEqual(modelUV, treadBoundaries.yw)))) {
+				modelUV.x += trackTexOffset
+			}
+			#undef trackTexOffset
+		}
+	]],
 }
 
 local function SunChanged(curShaderObj)
