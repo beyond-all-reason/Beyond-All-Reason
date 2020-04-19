@@ -214,7 +214,7 @@ vertex = [[
 				Perlin3D( seedVec ) * normalize(modelVertexPos.xyz);
 		}
 
-		gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+		gl_TexCoord[0] = gl_MultiTexCoord0;
 
 		#if (RENDERING_MODE != 2) //non-shadow pass
 
@@ -292,7 +292,6 @@ vertex = [[
 			gl_Position = projectionMatrix * viewMatrix * worldVertexPos;
 
 			%%VERTEX_POST_TRANSFORM%%
-			gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
 
 		#elif (RENDERING_MODE == 2) //shadow pass
 
