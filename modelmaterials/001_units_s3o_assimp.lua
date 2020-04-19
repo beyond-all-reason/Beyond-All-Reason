@@ -82,9 +82,21 @@ local spGetUnitHealth = Spring.GetUnitHealth
 
 local unitsHealth = {} --cache
 local healthArray = {[1] = 0.0}
-local function SendHealthInfo(unitID, isDeferred)
+local unitDefSide = {} -- 1 - arm, 2 - core, 0 - hell know what
+local function SendHealthInfo(unitID, unitDefID, isDeferred)
 	local h, mh = spGetUnitHealth(unitID, isDeferred)
 	if h and mh then
+
+		if not unitDefSide[unitDefID] then
+			local facName = string.sub(UnitDefs[unitDefID].name, 1, 3)
+			if facName == "arm" then
+				unitDefSide[unitDefID] = 1
+			elseif facname == "cor" then
+				unitDefSide[unitDefID] = 2
+			else
+				unitDefSide[unitDefID] = 0
+			end
+		end
 
 		if not unitsHealth[unitID] then
 			unitsHealth[unitID] = h / mh
@@ -93,7 +105,15 @@ local function SendHealthInfo(unitID, isDeferred)
 		elseif (unitsHealth[unitID] - h / mh) >= 0.0625 then --health is decreasing. Quantize by 6.25%.
 			unitsHealth[unitID] = h / mh
 		end
-		healthArray[1] = 0.8 * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
+		
+		local healthMixMult = 1.0
+		if unitDefSide[unitDefID] == 1 then --arm
+			healthMixMult = 0.6
+		elseif unitDefSide[unitDefID] == 2 then --core
+			healthMixMult = 0.8
+		end
+		
+		healthArray[1] = healthMixMult * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
 		--Spring.Echo("SendHealthInfo", unitID, isDeferred, urSetMaterialUniform[isDeferred], healthArray[1])
 		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		if not isDeferred then
@@ -148,14 +168,14 @@ local function SendTracksOffset(unitID, isDeferred, gf, mod, texSpeed, atlasSize
 
 	local usx, usy, usz, speed = spGetUnitVelocity(unitID)
 	if speed > 0.02 then speed = 1 else speed = 0 end
-	
+
 	local offset = ((gf % mod) * (texSpeed / atlasSize)) * speed
 
 	local udx, udy, udz = spGetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
 		offset = -offset
 	end
-	
+
 	if threadOffsets[unitID] ~= offset and not isDeferred then
 		threadOffsets[unitID] = offset
 		--Spring.Echo(unitID, offset)
@@ -165,16 +185,16 @@ local function SendTracksOffset(unitID, isDeferred, gf, mod, texSpeed, atlasSize
 end
 
 local function UnitCreated(unitsList, unitID, unitDefID, mat)
-	unitsList[unitID] = true
+	unitsList[unitID] = unitDefID
 	if mat.standardShaderObj then
 		SendUnitID(unitID, false)
 		SendVertDispAndHelthMod(unitID, unitDefID, false)
-		SendHealthInfo(unitID, false)
+		SendHealthInfo(unitID, unitDefID, false)
 	end
 	if mat.deferredShaderObj then
 		SendUnitID(unitID, true)
 		SendVertDispAndHelthMod(unitID, unitDefID, true)
-		SendHealthInfo(unitID, true)
+		SendHealthInfo(unitID, unitDefID, true)
 	end
 end
 
@@ -183,40 +203,40 @@ local function UnitDestroyed(unitsList, unitID, unitDefID)
 end
 
 local function GameFrameSlow(unitsList, gf, mat, isDeferred)
-	for unitID, _ in pairs(unitsList) do
-		SendHealthInfo(unitID, isDeferred)
+	for unitID, unitDefID in pairs(unitsList) do
+		SendHealthInfo(unitID, unitDefID, isDeferred)
 	end
 end
 
 
 local function GameFrameArmTanks(gf, mat, isDeferred)
-	for unitID, _ in pairs(armTanks) do
+	for unitID, unitDefID in pairs(armTanks) do
 		---------------
 		SendTracksOffset(unitID, isDeferred, gf, 12, 4.0, 4096.0)
 		---------------
-		SendHealthInfo(unitID, isDeferred)
+		SendHealthInfo(unitID, unitDefID, isDeferred)
 		---------------
 	end
 end
 
 local function GameFrameCoreTanks(gf, mat, isDeferred)
-	for unitID, _ in pairs(coreTanks) do
+	for unitID, unitDefID in pairs(coreTanks) do
 		---------------
 		SendTracksOffset(unitID, isDeferred, gf, 8, -8.0, 2048.0)
 		---------------
-		SendHealthInfo(unitID, isDeferred)
+		SendHealthInfo(unitID, unitDefID, isDeferred)
 		---------------
 	end
 end
 
 local function GameFrameOtherUnits(gf, mat, isDeferred)
-	for unitID, _ in pairs(otherUnits) do
-		SendHealthInfo(unitID, isDeferred)
+	for unitID, unitDefID in pairs(otherUnits) do
+		SendHealthInfo(unitID, unitDefID, isDeferred)
 	end
 end
 
 local function UnitDamaged(unitID, unitDefID, mat, isDeferred)
-	SendHealthInfo(unitID, isDeferred)
+	SendHealthInfo(unitID, unitDefID, isDeferred)
 end
 
 ---------------------------------------------------
