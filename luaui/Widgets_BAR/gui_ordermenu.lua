@@ -59,7 +59,7 @@ local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+--local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local loadedFontSize = fontfileSize*fontfileScale
@@ -252,8 +252,8 @@ function widget:ViewResize()
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if fontfileScale ~= newFontfileScale then
     fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    --gl.DeleteFont(font)
+    --font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
     gl.DeleteFont(font2)
     font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
     loadedFontSize = fontfileSize*fontfileScale
@@ -519,11 +519,11 @@ function drawOrders()
       if cmd.params[1] and cmd.params[cmd.params[1]+2] then
         text = cmd.params[cmd.params[1]+2]
       end
-      local fontSize = cellInnerWidth / font:GetTextWidth(' '..text..' ') * math_min(1, (cellInnerHeight/(rows*6)))
+      local fontSize = cellInnerWidth / font2:GetTextWidth(' '..text..' ') * math_min(1, (cellInnerHeight/(rows*6)))
       if fontSize > cellInnerWidth / 6 then
         fontSize = cellInnerWidth / 6
       end
-      local fontHeight = font:GetTextHeight(text)*fontSize
+      local fontHeight = font2:GetTextHeight(text)*fontSize
       local fontHeightOffset = fontHeight*0.34
       if cmd.type == 5 then  -- state cmds (fire at will, etc)
         fontHeightOffset = fontHeight*0.22
