@@ -166,6 +166,7 @@ local featureNameTrees = {
 	{str = "art", prefix = true, fakeNormal = true},
 
 	-- from BAR
+	{str = "allpinesb", prefix = true, fakeNormal = true},
 	{str = "bush", prefix = true, fakeNormal = true},
 	{str = "vegetation", prefix = true, fakeNormal = true},
 	{str = "vegitation", prefix = true, fakeNormal = true},
@@ -256,6 +257,7 @@ local featureMaterials = {}
 for id = 1, #FeatureDefs do
 	local featureDef = FeatureDefs[id]
 	if not cusFeaturesMaterials[id] and featureDef.modeltype ~= "3do" then
+		Spring.Echo(featureDef.name)
 		local isTree, fakeNormal, noSway = GetTreeInfo(featureDef)
 		local metallic = featureDef.metal >= 1
 
