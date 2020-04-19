@@ -108,7 +108,7 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 		
 		local healthMixMult = 1.0
 		if unitDefSide[unitDefID] == 1 then --arm
-			healthMixMult = 0.6
+			healthMixMult = 0.8
 		elseif unitDefSide[unitDefID] == 2 then --core
 			healthMixMult = 0.8
 		end
