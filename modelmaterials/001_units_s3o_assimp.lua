@@ -90,33 +90,39 @@ local function SendHealthInfo(unitID, isDeferred)
 			unitsHealth[unitID] = h / mh
 		elseif (h / mh - unitsHealth[unitID]) >= 0.005 then --consider the change of 0.5% significant. Health is increasing
 			unitsHealth[unitID] = h / mh
-		elseif (unitsHealth[unitID] - h / mh) >= 0.125 then --health is decreasing. Quantize by 12.5%.
+		elseif (unitsHealth[unitID] - h / mh) >= 0.0625 then --health is decreasing. Quantize by 6.25%.
 			unitsHealth[unitID] = h / mh
 		end
-		healthArray[1] = unitsHealth[unitID]
+		healthArray[1] = (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
 		--Spring.Echo("SendHealthInfo", unitID, isDeferred, urSetMaterialUniform[isDeferred], healthArray[1])
-		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, healthArray)
+		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		if not isDeferred then
-			urSetMaterialUniform[isDeferred](unitID, "shadow", 3, "floatOptions[1]", GL_FLOAT, healthArray)
+			urSetMaterialUniform[isDeferred](unitID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
 	end
 end
 
+local healthMod = {} --cache
 local vertDisp = {} --cache
-local vdArray = {[1] = 0.0}
-local function SendVertDisplacement(unitID, unitDefID, isDeferred)
-	-- fill cache, if empty
-	if not vertDisp[unitDefID] then
+local vdhmArray = {[1] = 0.0}
+local function SendVertDispAndHelthMod(unitID, unitDefID, isDeferred)
+	-- fill caches, if empty
+	if not healthMod[unitDefID] then
 		local udefCM = UnitDefs[unitDefID].customParams
-		vertDisp[unitDefID] = tonumber(udefCM.scavvertdisp) or 0
-		vertDisp[unitDefID] = 3.0;
+		healthMod[unitDefID] = tonumber(udefCM.healthlookmod) or 0
 	end
 
-	if vertDisp[unitDefID] > 0 then
-		vdArray[1] = vertDisp[unitDefID]
-		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[2]", GL_FLOAT, vdArray)
+	if not vertDisp[unitDefID] then
+		local udefCM = UnitDefs[unitDefID].customParams
+		vertDisp[unitDefID] = tonumber(udefCM.vertdisp) or 0
+	end
+
+	if vertDisp[unitDefID] > 0 or healthMod[unitDefID] > 0 then
+		vdhmArray[1] = healthMod[unitDefID]
+		vdhmArray[2] = vertDisp[unitDefID]
+		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
 		if not isDeferred then
-			urSetMaterialUniform[isDeferred](unitID, "shadow", 3, "floatOptions[2]", GL_FLOAT, vdArray)
+			urSetMaterialUniform[isDeferred](unitID, "shadow", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
 		end
 	end
 end
@@ -156,12 +162,12 @@ local function UnitCreated(unitsList, unitID, unitDefID, mat)
 	unitsList[unitID] = true
 	if mat.standardShaderObj then
 		SendUnitID(unitID, false)
-		SendVertDisplacement(unitID, unitDefID, false)
+		SendVertDispAndHelthMod(unitID, unitDefID, false)
 		SendHealthInfo(unitID, false)
 	end
 	if mat.deferredShaderObj then
 		SendUnitID(unitID, true)
-		SendVertDisplacement(unitID, unitDefID, true)
+		SendVertDispAndHelthMod(unitID, unitDefID, true)
 		SendHealthInfo(unitID, true)
 	end
 end

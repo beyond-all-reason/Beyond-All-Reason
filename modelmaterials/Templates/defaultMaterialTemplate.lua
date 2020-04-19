@@ -62,6 +62,8 @@ vertex = [[
 	uniform int drawFrame;
 
 	uniform int intOptions[1];
+
+	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
 	uniform int bitOptions;
 
@@ -204,10 +206,10 @@ vertex = [[
 
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
 			vec3 seedVec = 0.1 * modelVertexPos.xyz;
-			seedVec.y += 1.0 * hash11(float(intOptions[0]));
+			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
 
 			modelVertexPos.xyz +=
-				clamp(1.0 - floatOptions[1], 0.0, 1.0) *	//1.0 - current health percentage
+				max(floatOptions[0] + floatOptions[1], 0.0) *
 				floatOptions[2] *							//vertex displacement value
 				Perlin3D( seedVec ) * normalize(modelVertexPos.xyz);
 		}
@@ -431,6 +433,8 @@ fragment = [[
 	/***********************************************************************/
 	// Unit/Feature uniforms
 	uniform int intOptions[1];
+
+	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
 
 
@@ -1168,10 +1172,10 @@ fragment = [[
 		float healthMix;
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 			vec3 seedVec = modelVertexPos.xyz * 0.8;
-			seedVec.y += 5.0 * hash11(float(intOptions[0]));
+			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
 
-			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz));
-			healthMix = smoothstep(0.0, 2.0 * healthMix, clamp(1.0 - floatOptions[1], 0.0, 1.0));
+			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);
+			healthMix = smoothstep(0.0, healthMix, max(floatOptions[0] + floatOptions[1], 0.0));
 		}
 
 		vec3 tbnNormal;
@@ -1201,6 +1205,7 @@ fragment = [[
 			vec4 texColor2w = texture(texture2w, myUV);
 			texColor1 = mix(texColor1, texColor1w, healthMix);
 			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
+			texColor2.z += 0.5 * healthMix;
 		}
 
 		// PBR Params
