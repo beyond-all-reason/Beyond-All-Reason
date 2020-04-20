@@ -108,9 +108,9 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 		
 		local healthMixMult = 1.0
 		if unitDefSide[unitDefID] == 1 then --arm
-			healthMixMult = 0.8
+			healthMixMult = 0.86
 		elseif unitDefSide[unitDefID] == 2 then --core
-			healthMixMult = 0.8
+			healthMixMult = 0.86
 		end
 		
 		healthArray[1] = healthMixMult * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
