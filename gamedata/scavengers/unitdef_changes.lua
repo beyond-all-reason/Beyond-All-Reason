@@ -412,6 +412,31 @@ customDefs.corak = {
 	},
 }
 
+-- Heavy Slow Fire Warrior + Cloak
+customDefs.armwar = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+	script = "scavs/ARMWARSCAV.cob",
+	weapondefs = {
+		armwar_laser = {
+			beamtime = 0.23,
+			energypershot = 60,
+			laserflaresize = 9.2,
+			reloadtime = 1.2,
+			soundstart = "lasrfir4scav",
+			targetborder = 0.2,
+			thickness = 2.5,
+			damage = {
+				bombers = 36,
+				default = 242,
+				fighters = 36,
+				subs = 48,
+				vtol = 36,
+			},
+			},
+	},
+}
+
 -- Cloaked Radar
 
 customDefs.armrad = {
