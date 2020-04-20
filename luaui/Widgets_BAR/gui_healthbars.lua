@@ -37,7 +37,7 @@ local featureBarHeight          = 1.65
 local featureBarWidth           = 8
 local featureBarAlpha           = 0.6
 
-local hideHealthbars            = false       -- could be toggled if unit shader shows degradation
+local hideHealthbars            = true       -- could be toggled if unit shader shows degradation
 local showHealthbarOnSelection  = true
 
 local drawBarTitles             = true          -- (I disabled the healthbar text, cause that one doesnt need an explanation)
