@@ -194,8 +194,8 @@ local options={
 		name   = 'Scavengers Tech Speed',
 		desc   = 'Determines how fast scav tech ramps up. Adaptive will adjust to players skill',
 		type   = 'list',
-		section= 'options',
-		def  = "easy",
+		section = 'options',
+		def  = "adaptive",
 		items={
 			{key="adaptive", name="Adaptive", desc="Adapts to players skill"},
 			{key="easy", name="Easy", desc="Slow ramp up for newbies and noobs"},
