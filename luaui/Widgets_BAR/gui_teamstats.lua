@@ -34,7 +34,7 @@ local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
-local customScale = 1.1
+local customScale = 1
 
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
@@ -345,7 +345,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+	widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
@@ -640,72 +640,93 @@ function widget:DrawScreen()
 	DrawAllStats()
 end
 
-local function DrawRectRound(px,py,sx,sy,cs)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.TexCoord(0.8,0.8)
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
 
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
 
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
 
-	local offset = 0.07		-- texture offset, because else gaps could show
-	local o = offset
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	local offset = 0.25		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.Texture(false)
 end
 
@@ -729,7 +750,7 @@ function DrawBackground()
 		gl.Color(0,0,0,0.85)
 	end
 	local padding = 5*widgetScale
-	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale)
+	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
@@ -765,7 +786,7 @@ function ReGenerateBackgroundDisplayList()
 		end
 		glColor(colour)
 		if lineCount > 2 then
-			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3.5*widgetScale)
+			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3.5*widgetScale, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end

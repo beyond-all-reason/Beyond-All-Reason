@@ -83,7 +83,7 @@ local walls = {dragonsteeth=true,dragonsteeth_core=true,fortification=true,forti
 local stockpileH = 24
 local stockpileW = 12
 
-local healthChangeLog = {}
+local unitHealthChangeTime = {}
 local unitHealthLog = {}
 
 local OPTIONS = {}
@@ -1387,11 +1387,11 @@ do
           if hideHealthbars and showHealthbarOnSelection and SelectedUnitsCount > 0 and selectedUnits[unitID] ~= nil then
             hideHealth = false
           end
-          if hideHealthbars and showHealthbarOnChange and healthChangeLog[unitID] then
-            if healthChangeLog[unitID]+healthChangeTimer > now then
+          if hideHealthbars and showHealthbarOnChange and unitHealthChangeTime[unitID] then
+            if unitHealthChangeTime[unitID]+healthChangeTimer > now then
               hideHealth = false
             else
-              healthChangeLog[unitID] = nil
+              unitHealthChangeTime[unitID] = nil
             end
           end
           DrawUnitInfos(unitID, unitDefID, hideHealth)
@@ -1467,7 +1467,7 @@ do
     end
 
     sec3=sec3+dt
-    if showHealthbarOnChange and sec3>0.66 then
+    if showHealthbarOnChange and sec3>0.6 then
       sec3 = 0
       local unitID, unitHealth
       local now = os.clock()
@@ -1476,7 +1476,7 @@ do
         unitHealth = select(1, Spring.GetUnitHealth(unitID))
         if unitHealthLog[unitID] ~= unitHealth then
           if unitHealthLog[unitID] then
-            healthChangeLog[unitID] = now
+            unitHealthChangeTime[unitID] = now
           end
           unitHealthLog[unitID] = unitHealth
         end
@@ -1510,15 +1510,14 @@ do
 end --//end do
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  healthChangeLog[unitID] = nil
+  unitHealthChangeTime[unitID] = nil
   unitHealthLog[unitID] = nil
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-  if showHealthbarOnChange then
-    if not paralyzer then
-      healthChangeLog[unitID] = os.clock()
-    end
+  if showHealthbarOnChange and not paralyzer then
+    unitHealthChangeTime[unitID] = os.clock()
+    unitHealthLog[unitID] = select(1, Spring.GetUnitHealth(unitID))
   end
 end
 

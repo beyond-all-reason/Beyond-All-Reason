@@ -56,7 +56,7 @@ local bgMargin = 6
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
-local customScale = 1.16
+local customScale = 1
 local centerPosX = 0.5	-- note: dont go too far from 0.5
 local centerPosY = 0.49		-- note: dont go too far from 0.5
 local screenX = (vsx*centerPosX) - (screenWidth/2)
@@ -309,7 +309,7 @@ function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*centerPosX) - (screenWidth/2)
   screenY = (vsy*centerPosY) + (screenHeight/2)
-  widgetScale = ((vsx+vsy) / 2000) * 0.65	--(0.5 + (vsx*vsy / 5700000)) * customScale
+  widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale 	--(0.5 + (vsx*vsy / 5700000)) * customScale
   widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
   WG.uiScale = widgetScale
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -1672,10 +1672,10 @@ function init()
 			end
 		end
 		-- adding some widescreen resolutions for local testing
-		supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
-		supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
-		supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
-		supportedResolutions[#supportedResolutions+1] = '2560 x 900'
+		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
