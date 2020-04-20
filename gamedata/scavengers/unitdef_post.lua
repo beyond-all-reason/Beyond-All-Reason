@@ -114,7 +114,7 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxvelocity then
-		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
+		uDef.maxvelocity = math.ceil(uDef.maxvelocity*0.9)
 	end
 
 	if uDef.radardistancejam then
@@ -130,7 +130,7 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.turnrate then
-		uDef.turnrate = uDef.turnrate*3
+		uDef.turnrate = uDef.turnrate*0.8
 	end
 
 	if uDef.turninplaceanglelimit then
