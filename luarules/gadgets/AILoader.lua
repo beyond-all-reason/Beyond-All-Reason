@@ -31,24 +31,14 @@ local teams = Spring.GetTeamList()
 
 -- globals
 ShardSpringLua = true -- this is the AI Boot gadget, so we're in Spring Lua
-VFS.Include("luarules/gadgets/ai/boot.lua")
+VFS.Include( "luarules/gadgets/ai/preload/spring_lua/boot.lua" )
 
-local function checkAImode(modeName)
-	local path = "luarules/gadgets/ai/byar/"..modeName.."/"
-	if VFS.FileExists(path.."modules.lua") and VFS.FileExists(path.."behaviourfactory.lua") then
-		return true
-	end
-	return false
-end
+-- Shard object
+Shard = VFS.Include( "luarules/gadgets/ai/preload/spring_lua/shard.lua" )
+Shard.AIs = {}
+Shard.AIsByTeamID = {}
+local AIs = Shard.AIs
 
-local DAIlist = {}
-local DAIModes = VFS.SubDirs("luarules/gadgets/ai/byar/")
-for i,lmodeName in pairs(DAIModes) do
-	local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/ai/byar/") + 1, string.len(lmodeName) - 1)
-	if checkAImode(smodeName) == true then
-		DAIlist[smodeName] = true
-	end
-end
 -- fake os object
 --os = shard_include("spring_lua/fakeos")
 
@@ -57,15 +47,6 @@ function math.mod(number1, number2)
 	return number1 % number2
 end
 math.fmod = math.mod
-
--- Shard object
-Shard = shard_include("spring_lua/shard")
-Shard.AIs = {}
-Shard.AIsByTeamID = {}
-local AIs = Shard.AIs
-
--- fake api object
---api = shard_include("spring_lua/fakeapi")
 
 -- localization
 local spEcho = Spring.Echo
@@ -90,22 +71,11 @@ function gadget:Initialize()
 		local id = teamList[i]
 		local _,_,_,isAI,side,allyId = spGetTeamInfo(id,false)
 		if (isAI) then
-			spEcho( "Found an AI")
-			local aiInfo = spGetTeamLuaAI(id)
-			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,3) == "DAI") then
-				thisAI = self:SetupDAI(id, aiInfo)
-				if ( thisAI ~= nil ) then
-					Shard.AIsByTeamID[id] = thisAI
-					AIs[#AIs+1] = thisAI
-					spEcho("Player " .. teamList[i] .. " is a " .. aiInfo)
-				end
-				-- add AI object
-				--
-			else
-				spEcho("Player " .. teamList[i] .. " is another type of lua AI!")
+			thisAI = self:SetupAI(id)
+			if ( thisAI ~= nil ) then
+				Shard.AIsByTeamID[id] = thisAI
+				AIs[#AIs+1] = thisAI
 			end
-		else
-			spEcho( "K9: IS NOT AI!?")
 		end
 	end
 
@@ -120,16 +90,24 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:SetupDAI(id, aiInfo)
-	local teamList = spGetTeamList()
-	local mode = string.sub(aiInfo, 5)
-	if DAIlist[mode] ~= true then
-		Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
+function gadget:SetupAI(id)
+	local aiInfo = spGetTeamLuaAI(id)
+	if (type(aiInfo) == "string") then
+		spEcho("AI Player " .. teamList[i] .. " is a " .. aiInfo)
+	else
 		return nil
 	end
-	thisAI = ShardAI(mode)
+	if (string.sub(aiInfo,1,3) ~= "DAI") then
+		spEcho("AI Player " .. teamList[i] .. " is an unsupported AI type!")
+		return nil
+	end
+	local teamList = spGetTeamList()
+
+	thisAI = VFS.Include("luarules/gadgets/ai/ai.lua")
+	--thisAI = ShardAI(mode)
 	thisAI.id = id
 	thisAI.allyId = allyId
+	thisAI.fullname = aiInfo
 	
 	alliedTeamIds = {}
 	enemyTeamIds = {}
