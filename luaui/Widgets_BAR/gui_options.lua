@@ -2745,24 +2745,60 @@ function init()
 		{id="onlyfighterspatrol", group="game", basic=true, widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Only fighters obey a factory\'s patrol route after leaving airlab.'},
 		{id="fightersfly", group="game", basic=true, widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=GetWidgetToggleValue("Set fighters on Fly mode"), description='Setting fighters on Fly mode when created'},
 
-		{id="passivebuilders", group="game", basic=true, widget="Passive builders", name="Passive builders", type="bool", value=GetWidgetToggleValue("Passive builders"), description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: Set the most important builders on active and leave the rest passive'},
-		{id="passivebuilders_nanos", group="game", name=widgetOptionColor.."   nanos", type="bool", value=(WG['passivebuilders']~=nil and WG['passivebuilders'].getPassiveNanos~=nil and WG['passivebuilders'].getPassiveNanos()), description='',
-		 onload = function(i) loadWidgetData("Passive builders", "passivebuilders_nanos", {'passiveNanos'}) end,
-		 onchange = function(i, value)
-			 saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveNanos', {'passiveNanos'}, value)
-		 end,
+		{
+			id="passivebuilders",
+			group="game",
+			basic=true,
+			widget="Passive builders",
+			name="Passive builders",
+			type="bool",
+			value=GetWidgetToggleValue("Passive builders"),
+			description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: Set the most important builders on active and leave the rest passive'
 		},
-		{id="passivebuilders_cons", group="game", name=widgetOptionColor.."   cons", type="bool", value=(WG['passivebuilders']~=nil and WG['passivebuilders'].getPassiveCons~=nil and WG['passivebuilders'].getPassiveCons()), description='',
-		 onload = function(i) loadWidgetData("Passive builders", "passivebuilders_cons", {'passiveCons'}) end,
-		 onchange = function(i, value)
-			 saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveCons', {'passiveCons'}, value)
-		 end,
+
+		{
+			id    = "passivebuilders_nanos",
+			group = "game",
+			name  = widgetOptionColor.."   nanos",
+			type  = "bool",
+			value = (
+					WG['passivebuilders'] ~= nil
+				and WG['passivebuilders'].getPassiveNanos ~= nil
+				and WG['passivebuilders'].getPassiveNanos()
+			),
+			description = '',
+		 	onload      = function(i) loadWidgetData("Passive builders", "passivebuilders_nanos", {'passiveNanos'}) end,
+		 	onchange    = function(i, value) saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveNanos', {'passiveNanos'}, value) end,
 		},
-		{id="passivebuilders_labs", group="game", name=widgetOptionColor.."   labs", type="bool", value=(WG['passivebuilders']~=nil and WG['passivebuilders'].getPassiveLabs~=nil and WG['passivebuilders'].getPassiveLabs()), description='',
-		 onload = function(i) loadWidgetData("Passive builders", "passivebuilders_labs", {'passiveLabs'}) end,
-		 onchange = function(i, value)
-			 saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveLabs', {'passiveLabs'}, value)
-		 end,
+
+		{
+			id    = "passivebuilders_cons",
+			group = "game",
+			name  = widgetOptionColor.."   cons",
+			type  = "bool",
+			value = (
+					WG['passivebuilders'] ~= nil
+				and WG['passivebuilders'].getPassiveCons ~= nil
+				and WG['passivebuilders'].getPassiveCons()
+			),
+			description = '',
+		 	onload      = function(i) loadWidgetData("Passive builders", "passivebuilders_cons", {'passiveCons'}) end,
+		 	onchange    = function(i, value) saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveCons', {'passiveCons'}, value) end,
+		},
+
+		{
+			id    = "passivebuilders_labs",
+			group = "game",
+			name  = widgetOptionColor.."   labs",
+			type  = "bool",
+			value = (
+					WG['passivebuilders'] ~= nil
+				and WG['passivebuilders'].getPassiveLabs ~= nil
+				and WG['passivebuilders'].getPassiveLabs()
+			),
+			description = '',
+		 	onload      = function(i) loadWidgetData("Passive builders", "passivebuilders_labs", {'passiveLabs'}) end,
+		 	onchange    = function(i, value) saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveLabs', {'passiveLabs'}, value) end,
 		},
 
 		{id="autocloakpopups", group="game", basic=true, widget="Auto Cloak Popups", name="Auto cloak popups", type="bool", value=GetWidgetToggleValue("Auto Cloak Popups"), description='Auto cloaks Pit Bull and Ambusher'},
@@ -3013,7 +3049,7 @@ function init()
 			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-    
+
     {id="UnitShadowDensity", group="dev", name="UnitShadowDensity"..widgetOptionColor.."  ", type="slider", min=0, max=1.5, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local groundshadowDensity = gl.GetSun("shadowDensity","unit")
@@ -3024,7 +3060,7 @@ function init()
 			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-    
+
 		{id="color_groundambient_r", group="dev", name="Ground ambient"..widgetOptionColor.."  red", type="slider", min=0, max=1, step=0.001, value=0, description="",
 		 onload = function(i)
 			 local r,g,b = gl.GetSun("ambient")
