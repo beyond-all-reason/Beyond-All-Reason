@@ -39,6 +39,8 @@ local featureBarAlpha           = 0.6
 
 local hideHealthbars            = true       -- could be toggled if unit shader shows degradation
 local showHealthbarOnSelection  = true
+local showHealthbarOnChange  = true
+local healthChangeTimer         = 3
 
 local drawBarTitles             = true          -- (I disabled the healthbar text, cause that one doesnt need an explanation)
 local titlesAlpha               = 0.3*barAlpha
@@ -81,6 +83,7 @@ local walls = {dragonsteeth=true,dragonsteeth_core=true,fortification=true,forti
 local stockpileH = 24
 local stockpileW = 12
 
+local healthChangeLog = {}
 
 local OPTIONS = {}
 OPTIONS[1] = {
@@ -1372,7 +1375,7 @@ do
       glDepthMask(true)
       
       if (barShader) then gl.UseShader(barShader); glMyText(0); end
-
+      local now = os.clock()
       --// draw bars of units
       local unitID,unitDefID
       for i=1,#visibleUnits do
@@ -1382,6 +1385,13 @@ do
           local hideHealth = hideHealthbars
           if hideHealthbars and showHealthbarOnSelection and SelectedUnitsCount > 0 and selectedUnits[unitID] ~= nil then
             hideHealth = false
+          end
+          if hideHealthbars and showHealthbarOnChange and healthChangeLog[unitID] then
+            if healthChangeLog[unitID]+healthChangeTimer > now then
+              hideHealth = false
+            else
+              healthChangeLog[unitID] = nil
+            end
           end
           DrawUnitInfos(unitID, unitDefID, hideHealth)
         end
@@ -1480,13 +1490,27 @@ do
 
 end --//end do
 
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+  healthChangeLog[unitID] = nil
+end
+
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+  if showHealthbarOnChange then
+    if not paralyzer then
+      healthChangeLog[unitID] = os.clock()
+    end
+  end
+end
+
 
 function widget:SelectionChanged(sel)
-  selectedUnits = {}
-  for k,v in pairs(sel) do
-    selectedUnits[v] = true
+  if showHealthbarOnSelection then
+    selectedUnits = {}
+    for k,v in pairs(sel) do
+      selectedUnits[v] = true
+    end
+    SelectedUnitsCount = Spring.GetSelectedUnitsCount()
   end
-  SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 end
 
 --------------------------------------------------------------------------------
