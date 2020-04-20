@@ -39,7 +39,7 @@ local featureBarAlpha           = 0.6
 
 local hideHealthbars            = true       -- could be toggled if unit shader shows degradation
 local showHealthbarOnSelection  = true
-local showHealthbarOnChange  = true
+local showHealthbarOnChange     = true
 local healthChangeTimer         = 3
 
 local drawBarTitles             = true          -- (I disabled the healthbar text, cause that one doesnt need an explanation)
@@ -84,6 +84,7 @@ local stockpileH = 24
 local stockpileW = 12
 
 local healthChangeLog = {}
+local unitHealthLog = {}
 
 local OPTIONS = {}
 OPTIONS[1] = {
@@ -1451,6 +1452,7 @@ do
   local sec = 0
   local sec1 = 0
   local sec2 = 0
+  local sec3 = 0
 
   function widget:Update(dt)
     gameFrame = GetGameFrame()
@@ -1462,6 +1464,23 @@ do
     if (sec1>1/4) and ((cy-smoothheight)^2 < maxUnitDistance) then
       sec1 = 0
       visibleUnits = GetVisibleUnits(-1,nil,false)	-- expensive
+    end
+
+    sec3=sec3+dt
+    if showHealthbarOnChange and sec3>0.66 then
+      sec3 = 0
+      local unitID, unitHealth
+      local now = os.clock()
+      for i=1,#visibleUnits do
+        unitID = visibleUnits[i]
+        unitHealth = select(1, Spring.GetUnitHealth(unitID))
+        if unitHealthLog[unitID] ~= unitHealth then
+          if unitHealthLog[unitID] then
+            healthChangeLog[unitID] = now
+          end
+          unitHealthLog[unitID] = unitHealth
+        end
+      end
     end
 
     sec2=sec2+dt
@@ -1492,6 +1511,7 @@ end --//end do
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   healthChangeLog[unitID] = nil
+  unitHealthLog[unitID] = nil
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
