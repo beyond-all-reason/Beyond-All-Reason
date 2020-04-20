@@ -2503,9 +2503,13 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Unit energy icons', 'unitenergyicons', 'setOnlyShowOwnTeam', {'onlyShowOwnTeam'}, value) end,
 		},
 
-		{id="healthbarsscale", group="ui", name="Health bar scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
+		{id="healthbarsscale", group="ui", name="Health bars"..widgetOptionColor.."  scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
 		 onload=function(i) loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
 		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
+		},
+		{id="healthbarshide", group="ui", name=widgetOptionColor.."   hide health", type="bool", value=(WG['healthbar']~=nil and WG['nametags'].getDrawForIcon()), description='Hidethe healthbar and rely on damaged unit looks',
+		 onload = function(i) loadWidgetData("Health Bars", "healthbarshide", {'hideHealthbars'}) end,
+		 onchange = function(i, value) saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', {'hideHealthbars'}, value) end,
 		},
 
 		{id="nametags_icon", group="ui", name="Commander name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon',

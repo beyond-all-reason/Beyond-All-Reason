@@ -37,6 +37,8 @@ local featureBarHeight          = 1.65
 local featureBarWidth           = 8
 local featureBarAlpha           = 0.6
 
+local hideHealthbars            = false       -- could be toggled if unit shader shows degradation
+
 local drawBarTitles             = true          -- (I disabled the healthbar text, cause that one doesnt need an explanation)
 local titlesAlpha               = 0.3*barAlpha
 
@@ -761,6 +763,12 @@ function widget:Initialize()
     barScale = value
     init()
   end
+  WG['healthbars'].getHideHealth = function()
+    return barScale
+  end
+  WG['healthbars'].setHideHealth = function(value)
+    hideHealthbars = value
+  end
 
   init()
 end
@@ -1012,7 +1020,7 @@ do
     }
   end
 
-  function DrawUnitInfos(unitID,unitDefID)
+  function DrawUnitInfos(unitID,unitDefID,hideHealth)
     if ignoreUnits[unitDefID] ~= nil then return end
 
     if not customInfo[unitDefID] then
@@ -1043,6 +1051,10 @@ do
 	
     --// GET UNIT INFORMATION
     health,maxHealth,paralyzeDamage,capture,build = GetUnitHealth(unitID)
+    if hideHealth then
+      health = maxHealth
+    end
+
     --if (not health)    then health=-1   elseif(health<1)    then health=1    end
     if not maxHealth or maxHealth < 1 then maxHealth = 1 end
     if not build then build = 1   end
@@ -1363,7 +1375,7 @@ do
         unitID    = visibleUnits[i]
         unitDefID = GetUnitDefID(unitID)
         if unitDefID then
-          DrawUnitInfos(unitID, unitDefID)
+          DrawUnitInfos(unitID, unitDefID, hideHealthbars)
         end
       end
 
@@ -1470,6 +1482,7 @@ function widget:GetConfigData(data)
     savedTable.drawBarPercentage				= drawBarPercentage
     savedTable.alwaysDrawBarPercentageForComs	= alwaysDrawBarPercentageForComs
     savedTable.currentOption					= currentOption
+    savedTable.hideHealthbars                   = hideHealthbars
     return savedTable
 end
 
@@ -1478,6 +1491,7 @@ function widget:SetConfigData(data)
   drawBarPercentage = data.drawBarPercentage or drawBarPercentage
   alwaysDrawBarPercentageForComs = data.alwaysDrawBarPercentageForComs or alwaysDrawBarPercentageForComs
   currentOption = data.currentOption or currentOption
+  hideHealthbars = data.hideHealthbars or hideHealthbars
 end
 
 function widget:TextCommand(command)
@@ -1487,7 +1501,10 @@ function widget:TextCommand(command)
     if (string.find(command, "healthbars_compercentage") == 1  and  string.len(command) == 24) then 
 		alwaysDrawBarPercentageForComs = not alwaysDrawBarPercentageForComs
 	end
-    if (string.find(command, "healthbars_style") == 1  and  string.len(command) == 16) then 
-		toggleOption()
-	end
+    if (string.find(command, "healthbars_style") == 1  and  string.len(command) == 16) then
+      toggleOption()
+    end
+    if (string.find(command, "healthbars_health") == 1  and  string.len(command) == 17) then
+      hideHealthbars = not hideHealthbars
+    end
 end
