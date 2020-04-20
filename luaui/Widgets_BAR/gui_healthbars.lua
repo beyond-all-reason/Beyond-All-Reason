@@ -38,6 +38,7 @@ local featureBarWidth           = 8
 local featureBarAlpha           = 0.6
 
 local hideHealthbars            = false       -- could be toggled if unit shader shows degradation
+local showHealthbarOnSelection  = true
 
 local drawBarTitles             = true          -- (I disabled the healthbar text, cause that one doesnt need an explanation)
 local titlesAlpha               = 0.3*barAlpha
@@ -100,6 +101,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     isCommander[unitDefID] = true
   end
 end
+
+local selectedUnits = {}
+local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1375,7 +1379,11 @@ do
         unitID    = visibleUnits[i]
         unitDefID = GetUnitDefID(unitID)
         if unitDefID then
-          DrawUnitInfos(unitID, unitDefID, hideHealthbars)
+          local hideHealth = hideHealthbars
+          if hideHealthbars and showHealthbarOnSelection and SelectedUnitsCount > 0 and selectedUnits[unitID] ~= nil then
+            hideHealth = false
+          end
+          DrawUnitInfos(unitID, unitDefID, hideHealth)
         end
       end
 
@@ -1472,6 +1480,14 @@ do
 
 end --//end do
 
+
+function widget:SelectionChanged(sel)
+  selectedUnits = {}
+  for k,v in pairs(sel) do
+    selectedUnits[v] = true
+  end
+  SelectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

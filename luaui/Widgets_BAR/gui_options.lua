@@ -2507,7 +2507,7 @@ function init()
 		 onload=function(i) loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
 		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
 		},
-		{id="healthbarshide", group="ui", name=widgetOptionColor.."   hide health", type="bool", value=(WG['healthbar']~=nil and WG['nametags'].getDrawForIcon()), description='Hidethe healthbar and rely on damaged unit looks',
+		{id="healthbarshide", group="ui", name=widgetOptionColor.."   show health only when selected", type="bool", value=(WG['healthbar']~=nil and WG['nametags'].getDrawForIcon()), description='Hide the healthbar and rely on damaged unit looks',
 		 onload = function(i) loadWidgetData("Health Bars", "healthbarshide", {'hideHealthbars'}) end,
 		 onchange = function(i, value) saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', {'hideHealthbars'}, value) end,
 		},
