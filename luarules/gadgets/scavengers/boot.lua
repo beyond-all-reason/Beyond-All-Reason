@@ -214,7 +214,11 @@ function gadget:GameFrame(n)
 			BossWaveStarted = true
 		else
 			if scavengersAIEnabled and scavengersAIEnabled == true then
-				ScavSendMessage("Scavengers Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%, Score: "..globalScore)
+				if globalScore/scavconfig.timers.BossFight < 1 then
+					ScavSendMessage("Scavengers Tech Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
+				else
+					ScavSendMessage("Scavengers Tech Progress: 100%")
+				end
 			end
 		end
 	end
