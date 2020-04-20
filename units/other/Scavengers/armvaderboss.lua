@@ -24,7 +24,7 @@ return {
 		mass = 1500000,
 		maxdamage = 100000,
 		maxslope = 32,
-		maxvelocity = 0.5,
+		maxvelocity = 0.67,
 		maxwaterdepth = 112,
 		movementclass = "BOSSPEEWEE4",
 		name = "Giant Invader",
