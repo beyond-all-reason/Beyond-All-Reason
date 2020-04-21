@@ -984,6 +984,8 @@ end --//end do
 
 local DrawUnitInfos
 
+local spGetUnitHealth        = Spring.GetUnitHealth
+
 do
   --//speedup
   local glTranslate     = gl.Translate
@@ -1394,6 +1396,9 @@ do
               unitHealthChangeTime[unitID] = nil
             end
           end
+          if hideHealth and alwaysDrawBarPercentageForComs and isCommander[unitDefID] then
+            hideHealth = false
+          end
           DrawUnitInfos(unitID, unitDefID, hideHealth)
         end
       end
@@ -1469,16 +1474,18 @@ do
     sec3=sec3+dt
     if showHealthbarOnChange and sec3>0.6 then
       sec3 = 0
-      local unitID, unitHealth
+      local unitID, health, maxHealth
       local now = os.clock()
       for i=1,#visibleUnits do
         unitID = visibleUnits[i]
-        unitHealth = select(1, Spring.GetUnitHealth(unitID))
-        if unitHealthLog[unitID] ~= unitHealth then
+        health,maxHealth = spGetUnitHealth(unitID)
+        if unitHealthLog[unitID] ~= health then
           if unitHealthLog[unitID] then
-            unitHealthChangeTime[unitID] = now
+            if health < unitHealthLog[unitID] or (health > unitHealthLog[unitID] and (health-unitHealthLog[unitID])/maxHealth > 0.006) then -- put it threshold against autorepair
+              unitHealthChangeTime[unitID] = now
+            end
           end
-          unitHealthLog[unitID] = unitHealth
+          unitHealthLog[unitID] = health
         end
       end
     end
@@ -1517,7 +1524,7 @@ end
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
   if showHealthbarOnChange and not paralyzer then
     unitHealthChangeTime[unitID] = os.clock()
-    unitHealthLog[unitID] = select(1, Spring.GetUnitHealth(unitID))
+    unitHealthLog[unitID] = select(1, spGetUnitHealth(unitID))
   end
 end
 
