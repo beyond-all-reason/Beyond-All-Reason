@@ -227,7 +227,6 @@ function GenEnvLut:Execute(saveDebug)
 					gl.SaveImage(0, 0, self.numSamples, 3, string.format("envLut_%s.png", gf))
 				end
 			end)
-
 		gl.UseShader(0)
 		gl.Texture(7, false)
 	end
