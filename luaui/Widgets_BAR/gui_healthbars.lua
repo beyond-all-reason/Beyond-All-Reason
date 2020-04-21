@@ -1480,7 +1480,7 @@ do
         unitID = visibleUnits[i]
         health,maxHealth = spGetUnitHealth(unitID)
         if not unitHealthLog[unitID] or unitHealthLog[unitID] ~= health then
-          if unitHealthLog[unitID] then
+          if unitHealthLog[unitID] and health then
             if health < unitHealthLog[unitID] or (health > unitHealthLog[unitID] and (health-unitHealthLog[unitID])/maxHealth > 0.006) then -- put it threshold against autorepair
               unitHealthChangeTime[unitID] = now
             end
