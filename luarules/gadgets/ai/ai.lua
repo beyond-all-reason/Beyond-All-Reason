@@ -10,6 +10,7 @@ local function checkAImode(modeName)
 	end
 	return false
 end
+
 function ShardAI:Init()
 	self.api = shard_include("preload/api")
 	self.game = self.api.game
