@@ -9,6 +9,10 @@ local function checkAImode(modeName)
 end
 
 function ShardAI:Init()
+	if self.loaded ~= nil then
+		return
+	end
+	self.loaded = true
 	self.api = shard_include("preload/api")
 	self.game = self.api.game
 	self.map = self.api.map
