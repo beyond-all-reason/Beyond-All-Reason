@@ -190,7 +190,7 @@ function GenEnvLut:Initialize()
 		fragment = lutFS,
 
 		uniformInt = {
-			reflectTex = 3,
+			reflectTex = 7,
 		},
 	})
 
