@@ -1536,7 +1536,7 @@ local defaultMaterialTemplate = {
 		pom 			= false,
 		autonormal 		= false,
 
-		shadowsQuality	= 2,
+		shadowsQuality	= 1,
 
 		autoNormalParams = {1.0, 0.00200}, -- Sampling distance, autonormal value
 		pomParams = {0.002, 1.0, 24.0, -2.0}, -- scale, minLayers, maxLayers, lodBias
