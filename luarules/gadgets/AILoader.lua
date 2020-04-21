@@ -90,18 +90,18 @@ end
 
 function gadget:SetupAI(id)
 	local aiInfo = spGetTeamLuaAI(id)
+	local teamList = spGetTeamList()
 	if (type(aiInfo) == "string") then
-		spEcho("AI Player " .. teamList[i] .. " is a " .. aiInfo)
+		spEcho("AI Player " .. id .. " is a " .. aiInfo)
 	else
 		return nil
 	end
 	if (string.sub(aiInfo,1,3) ~= "DAI") then
-		spEcho("AI Player " .. teamList[i] .. " is an unsupported AI type!")
+		spEcho("AI Player " .. teamList[id] .. " is an unsupported AI type!")
 		return nil
 	end
-	local teamList = spGetTeamList()
 
-	thisAI = VFS.Include("luarules/gadgets/ai/ai.lua")
+	thisAI = VFS.Include("luarules/gadgets/ai/boot.lua")
 	--thisAI = ShardAI(mode)
 	thisAI.id = id
 	thisAI.allyId = allyId
