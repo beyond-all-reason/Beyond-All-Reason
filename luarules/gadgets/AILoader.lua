@@ -27,8 +27,6 @@ else
 	return false
 end
 
-local teams = Spring.GetTeamList()
-
 -- globals
 ShardSpringLua = true -- this is the AI Boot gadget, so we're in Spring Lua
 VFS.Include( "luarules/gadgets/ai/preload/spring_lua/boot.lua" )
