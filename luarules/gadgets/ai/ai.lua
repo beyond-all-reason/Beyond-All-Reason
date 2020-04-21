@@ -1,7 +1,4 @@
-ShardAI = class(AIBase, (function(c, subf)
-	c.subf = subf
-	end)
-	)
+ShardAI = class(AIBase)
 
 local function checkAImode(modeName)
 	local path = "luarules/gadgets/ai/byar/"..modeName.."/"
@@ -57,7 +54,9 @@ function ShardAI:Init()
 end
 
 function ShardAI:Prepare()
--- 	if not self.modules then self:Init() end
+	if not self.modules then
+		self:Init()
+	end
 	ai = self
 	game = self.game
 	map = self.map
