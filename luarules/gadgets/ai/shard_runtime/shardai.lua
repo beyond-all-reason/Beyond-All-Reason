@@ -1,13 +1,5 @@
 ShardAI = class(AIBase)
 
-local function checkAImode(modeName)
-	local path = "luarules/gadgets/ai/byar/"..modeName.."/"
-	if VFS.FileExists(path.."modules.lua") and VFS.FileExists(path.."behaviourfactory.lua") then
-		return true
-	end
-	return false
-end
-
 function ShardAI:Init()
 	if self.loaded == true then
 		self.game:SendToConsole("Init called multiple times")
@@ -20,9 +12,9 @@ function ShardAI:Init()
 	self.map.ai = self
 	self.game:SendToConsole("Shard by AF - playing: "..self.game:GameName().." on: "..self.map:MapName())
 
-	shard_include("behaviourfactory")
-	shard_include("unit")
-	shard_include("modules")
+	self.api.shard_include("behaviourfactory")
+	self.api.shard_include("unit")
+	self.api.shard_include("modules")
 	self.modules = {}
 
 	if next(modules) ~= nil then
