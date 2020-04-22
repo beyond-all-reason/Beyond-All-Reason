@@ -1,9 +1,9 @@
 function gadget:GetInfo()
 return {
-	name = "ShardLua",
+	name = "Shard AI Loader",
 	desc = "Shard by AF for Spring Lua",
 	author = "eronoobos, based on gadget by raaar, and original AI by AF",
-	date = "April 2016",
+	date = "April 2020",
 	license = "GPL",
 	layer = 999999,
 	enabled = true,
@@ -14,7 +14,7 @@ local teams = Spring.GetTeamList()
 for i =1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI ~= "" then
-		if (type(luaAI) == "string") and (string.sub(luaAI,1,3) == "DAI") then
+		if (type(luaAI) == "string") and (VFS.FileExists("luarules/gadgets/ai/"..luaAI.."/boot.lua")) then
 			shardEnabled = true
 		end
 	end
@@ -28,7 +28,9 @@ else
 end
 
 -- globals
-ShardSpringLua = true -- this is the AI Boot gadget, so we're in Spring Lua
+ShardSpringLua = true
+
+-- this is the AI Boot gadget, so we're in Spring Lua
 VFS.Include( "luarules/gadgets/ai/shard_runtime/spring_lua/boot.lua" )
 
 -- Shard object
@@ -101,6 +103,7 @@ function gadget:SetupAI(id)
 	end
 
 	thisAI = VFS.Include("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")
+	thisAI.loaded = false
 	thisAI.id = id
 	thisAI.allyId = allyId
 	thisAI.fullname = aiInfo
@@ -115,7 +118,7 @@ function gadget:SetupAI(id)
 		end
 	end
 	thisAI.api = VFS.Include("luarules/gadgets/ai/shard_runtime/api.lua")
-	this.api.shard_include = shard_include
+	thisAI.api.shard_include = shard_include
 	thisAI.alliedTeamIds = alliedTeamIds
 	thisAI.enemyTeamIds = enemyTeamIds
 	thisAI.ownUnitIds = thisAI.ownUnitIds or {}
