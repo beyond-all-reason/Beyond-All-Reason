@@ -20,10 +20,10 @@ local UDN = UnitDefNames
 ----------------------------------------------------------------------
 
 local possibilities = {} -- Possibilities[builderName][tableName] = {unit1, unit2, unit3,...,unitN} -> Register "attackers", "scouts"... and other premade unitTables for everykind of lab to generate lists of possible buildoptions
-shard_include('attackers', subf)
-shard_include('scouts', subf)
-shard_include('builders', subf)
-shard_include('defenses', subf)
+shard_include('attackers')
+shard_include('scouts')
+shard_include('builders')
+shard_include('defenses')
 
 local lolCannonIDlist = {}
 	for ct, unitName in pairs(lolcannonlist) do

@@ -1,4 +1,4 @@
-shard_include( "attackers", subf)
+shard_include( "attackers")
 
 
 -- speedups
