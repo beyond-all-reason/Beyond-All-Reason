@@ -1,4 +1,4 @@
-shard_include( "attackers", subf)
+shard_include( "attackers")
 
 function IsBomber(unit)
 	for i,name in ipairs(bomberlist) do
