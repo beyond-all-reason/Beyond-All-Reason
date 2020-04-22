@@ -121,7 +121,7 @@ function UnitDef_Post(name, uDef)
 		
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.heap then
-				uDef.featuredefs.heap.damage = uDef.maxdamage*0.75
+				uDef.featuredefs.heap.damage = uDef.maxdamage*1.5
 			end
 		end
     end
