@@ -735,11 +735,16 @@ function gadget:DrawScreen()
 						"STAI",
 						"Shard"
 					}
+					local hasAI = false
 					for key,ai in ipairs(validAIs) do
-						if (aiName ~= ai) and (not string.find( aiName, ai)) then
-							enabled = false
-							unsupportedAI = aiName
+						if string.find( aiName, ai) then
+							hasAI = true
+							break
 						end
+					end
+					if not hasAI then
+						enabled = false
+						unsupportedAI = aiName
 					end
 				end
 			end
