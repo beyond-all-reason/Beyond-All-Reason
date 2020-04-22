@@ -12,10 +12,10 @@ shard_include( "ai" )
 
 -- create and use an AI
 if ShardSpringLua then
-	return ShardAI()
+	return DAI()
 elseif game_engine then
-	ai = ShardAI()
+	ai = DAI()
 else
-	ai = ShardAI()
+	ai = DAI()
 	ai:Init()
 end
