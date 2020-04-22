@@ -12,16 +12,6 @@ local SpGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 ------
 
-
-function IsScouts(unit)
-	for i,name in ipairs(scoutslist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
-end
-
 ScoutsBehaviour = class(Behaviour)
 
 function ScoutsBehaviour:Init()

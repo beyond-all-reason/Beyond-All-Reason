@@ -5,8 +5,6 @@ shard_include(  "attackerbehaviour" )
 shard_include(  "pointcapturerbehaviour" )
 shard_include(  "bootbehaviour" )
 
-behaviours = { }
-
 function defaultBehaviours(unit, ai)
 	b = {}
 	if unit == nil then
@@ -26,3 +24,5 @@ function defaultBehaviours(unit, ai)
 	end
 	return b
 end
+
+return { }
