@@ -3,6 +3,7 @@
  • T1 Metal Extractors cost 3 Energy to operate, and also have slightly reduced buildprice
  • Ground scout vehicles/kbot: 10% more LoS
  • Enabled ground deformation
+ • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
 
 
 10.23 -> 10.24
