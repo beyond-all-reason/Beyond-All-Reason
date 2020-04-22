@@ -9,7 +9,8 @@ local function checkAImode(modeName)
 end
 
 function ShardAI:Init()
-	if self.loaded ~= nil then
+	if self.loaded == true then
+		self.game:SendToConsole("Init called multiple times")
 		return
 	end
 	self.loaded = true
@@ -19,25 +20,9 @@ function ShardAI:Init()
 	self.map.ai = self
 	self.game:SendToConsole("Shard by AF - playing: "..self.game:GameName().." on: "..self.map:MapName())
 
-	local DAIlist = {}
-	local DAIModes = VFS.SubDirs("luarules/gadgets/ai/byar/")
-	for i,lmodeName in pairs(DAIModes) do
-		local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/ai/byar/") + 1, string.len(lmodeName) - 1)
-		if checkAImode(smodeName) == true then
-			DAIlist[smodeName] = true
-		end
-	end
-
-	local mode = string.sub(self.fullname, 5)
-	if DAIlist[mode] ~= true then
-		Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
-		return nil
-	end
-
-	self.subf = mode
-	shard_include("behaviourfactory", self.subf)
-	shard_include("unit", self.subf)
-	shard_include("modules", self.subf)
+	shard_include("behaviourfactory")
+	shard_include("unit")
+	shard_include("modules")
 	self.modules = {}
 
 	if next(modules) ~= nil then
@@ -56,7 +41,7 @@ function ShardAI:Init()
 end
 
 function ShardAI:Prepare()
-	if self.loaded ~= nil then
+	if self.loaded ~= true then
 		self:Init()
 	end
 	ai = self
@@ -97,6 +82,10 @@ function ShardAI:UnitCreated(engineunit)
 	end
 	if engineunit == nil then
 		self.game:SendToConsole("shard found nil engineunit")
+		return
+	end
+	if ( self.modules == nil ) or ( #self.modules == 0 )  then
+		self.game:SendToConsole("No modules found in AI")
 		return
 	end
 	for i,m in ipairs(self.modules) do
