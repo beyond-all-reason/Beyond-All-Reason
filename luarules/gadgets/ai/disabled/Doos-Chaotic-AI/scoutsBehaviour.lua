@@ -1,4 +1,4 @@
-shard_include( "scouts", subf)
+shard_include( "scouts")
 
 
 -- speedups
