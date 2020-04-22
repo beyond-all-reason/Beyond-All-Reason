@@ -724,9 +724,24 @@ function gadget:DrawScreen()
 				if aiName == "" then
 					aiName = select(4,Spring.GetAIInfo(teams[i]))
 				end
-				if aiName and aiName ~= '' and not string.find(aiName, "Chicken:") and not string.find(aiName, "DAI") and not string.find(aiName, "KAIK") and not string.find(aiName, "NullAI") and not string.find(aiName, "ScavengersAI") and not string.find(aiName, "newAI") then
-					enabled = false
-					unsupportedAI = aiName
+				local validAIs = {
+					"Chicken:",
+					"KAIK",
+					"NullAI",
+					"DAI",
+					"newAI",
+					"ScavengersAI",
+					"STAI",
+					"Shard"
+				}
+				if aiName and aiName ~= '' then
+					for key,ai in ipairs(validAIs) do
+						if not string.find( aiName, ai) then
+							enabled = false
+							unsupportedAI = aiName
+							break
+						end
+					end
 				end
 			end
 		end
