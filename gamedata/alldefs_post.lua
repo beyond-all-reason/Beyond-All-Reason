@@ -112,7 +112,21 @@ function UnitDef_Post(name, uDef)
          value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
 	processWeapons(name, uDef)
 
-    -- vehicles
+	if uDef.name and uDef.name ~= "Commander" then
+		if uDef.featuredefs and uDef.maxdamage then
+			if uDef.featuredefs.dead then
+				uDef.featuredefs.dead.damage = uDef.maxdamage
+			end
+		end
+		
+		if uDef.featuredefs and uDef.maxdamage then
+			if uDef.featuredefs.heap then
+				uDef.featuredefs.heap.damage = uDef.maxdamage
+			end
+		end
+    end
+	
+	-- vehicles
     --if uDef.category and string.find(uDef.category, "TANK") then
     --	if uDef.turnrate ~= nil then
     --		uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
