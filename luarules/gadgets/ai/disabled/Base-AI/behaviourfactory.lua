@@ -1,6 +1,6 @@
 shard_include( "behaviour" )
 BehaviourFactory = class(AIBase)
-shard_include( "behaviours", subf )
+shard_include( "behaviours" )
 function BehaviourFactory:Init()
 	--
 end
