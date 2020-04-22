@@ -87,6 +87,9 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 	local h, mh = spGetUnitHealth(unitID, isDeferred)
 	if h and mh then
 
+		h = math.max(h, 0)
+		mh = math.max(mh, 0.01)
+
 		if not unitDefSide[unitDefID] then
 			local facName = string.sub(UnitDefs[unitDefID].name, 1, 3)
 			if facName == "arm" then

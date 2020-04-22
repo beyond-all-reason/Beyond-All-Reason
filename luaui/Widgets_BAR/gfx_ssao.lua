@@ -476,7 +476,6 @@ local function DoDrawSSAO(isScreenSpace)
 			gl.Texture(3, false)
 			gl.Texture(4, false)
 			if MERGE_MISC then
-				gl.Texture(4, false)
 				gl.Texture(5, false)
 				gl.Texture(6, false)
 			end
@@ -484,6 +483,7 @@ local function DoDrawSSAO(isScreenSpace)
 	end)
 
 	gl.ActiveFBO(ssaoFBO, function()
+		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		ssaoShader:ActivateWith( function ()
 			ssaoShader:SetUniformMatrix("projMatrix", "projection")
 

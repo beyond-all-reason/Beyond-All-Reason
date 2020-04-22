@@ -156,7 +156,6 @@ local function new(class, numSamples)
 
 		shader = nil,
 		tex = nil,
-		fbo = nil,
 
 	}, class)
 end
@@ -174,6 +173,7 @@ function GenEnvLut:Initialize()
 		mag_filter = GL.NEAREST,
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
 	}
 
 	-- Spherical Harmonics of order 3. Each of {R,G,B} takes mat3 of space
@@ -183,15 +183,6 @@ function GenEnvLut:Initialize()
 		Spring.Echo("GenEnvLut: tex creation error:\n")
 	end
 
-	self.fbo = gl.CreateFBO({
-		color0 = self.tex,
-		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
-	})
-
-	if not self.fbo then
-		Spring.Echo("GenEnvLut: FBO creation error:\n")
-	end
-
 	lutFS = lutFS:gsub("###ENV_SMPL_NUM###", tostring(self.numSamples))
 
 	self.shader = gl.CreateShader({
@@ -199,7 +190,7 @@ function GenEnvLut:Initialize()
 		fragment = lutFS,
 
 		uniformInt = {
-			reflectTex = 3,
+			reflectTex = 7,
 		},
 	})
 
@@ -219,32 +210,30 @@ function GenEnvLut:GetTexture()
 end
 
 function GenEnvLut:Execute(saveDebug)
-	if self.shader and gl.IsValidFBO(self.fbo) then
-		gl.Texture(3, "$reflection") --reflectTex
-		gl.ActiveShader(self.shader, function ()
-			gl.ActiveFBO(self.fbo, function()
+	if self.shader then
+		gl.Texture(7, "$reflection") --reflectTex
+		gl.UseShader(self.shader)
+
+			gl.RenderToTexture(self.tex, function()
 				gl.DepthTest(false)
 				gl.Blending(false)
-				gl.PushPopMatrix(function()
+				gl.PushMatrix()
 					gl.MatrixMode(GL.PROJECTION); gl.LoadIdentity();
 					gl.MatrixMode(GL.MODELVIEW); gl.LoadIdentity();
 					gl.TexRect(-1, -1, 1, 1)
-				end)
+				gl.PopMatrix()
 				if saveDebug then
 					local gf = Spring.GetGameFrame()
 					gl.SaveImage(0, 0, self.numSamples, 3, string.format("envLut_%s.png", gf))
 				end
 			end)
-		end)
-		gl.Texture(3, false)
+		gl.UseShader(0)
+		gl.Texture(7, false)
 	end
 end
 
 function GenEnvLut:Finalize()
-	gl.DeleteFBO(self.fbo)
-
-	gl.DeleteTexture(self.tex)
-
+	gl.DeleteTextureFBO(self.tex)
 	gl.DeleteShader(self.shader)
 end
 

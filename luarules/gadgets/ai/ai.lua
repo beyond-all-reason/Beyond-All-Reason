@@ -1,9 +1,18 @@
-ShardAI = class(AIBase, (function(c, subf)
-	c.subf = subf
-	end)
-	)
+ShardAI = class(AIBase)
+
+local function checkAImode(modeName)
+	local path = "luarules/gadgets/ai/byar/"..modeName.."/"
+	if VFS.FileExists(path.."modules.lua") and VFS.FileExists(path.."behaviourfactory.lua") then
+		return true
+	end
+	return false
+end
 
 function ShardAI:Init()
+	if self.loaded ~= nil then
+		return
+	end
+	self.loaded = true
 	self.api = shard_include("preload/api")
 	self.game = self.api.game
 	self.map = self.api.map
@@ -11,6 +20,23 @@ function ShardAI:Init()
 	self.map.ai = self
 	self.game.map = self.map
 	self.game:SendToConsole("Shard by AF - playing: "..self.game:GameName().." on: "..self.map:MapName())
+
+	local DAIlist = {}
+	local DAIModes = VFS.SubDirs("luarules/gadgets/ai/byar/")
+	for i,lmodeName in pairs(DAIModes) do
+		local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/ai/byar/") + 1, string.len(lmodeName) - 1)
+		if checkAImode(smodeName) == true then
+			DAIlist[smodeName] = true
+		end
+	end
+
+	local mode = string.sub(self.fullname, 5)
+	if DAIlist[mode] ~= true then
+		Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
+		return nil
+	end
+
+	self.subf = mode
 	shard_include("behaviourfactory", self.subf)
 	shard_include("unit", self.subf)
 	shard_include("modules", self.subf)
@@ -26,7 +52,18 @@ function ShardAI:Init()
 			newmodule:SetAI(self)
 			newmodule:Init()
 		end
+	else
+		self.game:SendToConsole("No modules found :s")
 	end
+end
+
+function ShardAI:Prepare()
+	if not self.modules then
+		self:Init()
+	end
+	ai = self
+	game = self.game
+	map = self.map
 end
 
 function ShardAI:Update()

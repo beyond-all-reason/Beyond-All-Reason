@@ -27,28 +27,15 @@ else
 	return false
 end
 
-local teams = Spring.GetTeamList()
-
 -- globals
 ShardSpringLua = true -- this is the AI Boot gadget, so we're in Spring Lua
-VFS.Include("luarules/gadgets/ai/boot.lua")
+VFS.Include( "luarules/gadgets/ai/preload/spring_lua/boot.lua" )
 
-local function checkAImode(modeName)
-	local path = "luarules/gadgets/ai/byar/"..modeName.."/"
-	if VFS.FileExists(path.."modules.lua") and VFS.FileExists(path.."behaviourfactory.lua") then
-		return true
-	end
-	return false
-end
+-- Shard object
+Shard = VFS.Include( "luarules/gadgets/ai/preload/spring_lua/shard.lua" )
+Shard.AIs = {}
+Shard.AIsByTeamID = {}
 
-local DAIlist = {}
-local DAIModes = VFS.SubDirs("luarules/gadgets/ai/byar/")
-for i,lmodeName in pairs(DAIModes) do
-	local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/ai/byar/") + 1, string.len(lmodeName) - 1)
-	if checkAImode(smodeName) == true then
-		DAIlist[smodeName] = true
-	end
-end
 -- fake os object
 --os = shard_include("spring_lua/fakeos")
 
@@ -57,15 +44,6 @@ function math.mod(number1, number2)
 	return number1 % number2
 end
 math.fmod = math.mod
-
--- Shard object
-Shard = shard_include("spring_lua/shard")
-Shard.AIs = {}
-Shard.AIsByTeamID = {}
-local AIs = Shard.AIs
-
--- fake api object
---api = shard_include("spring_lua/fakeapi")
 
 -- localization
 local spEcho = Spring.Echo
@@ -78,75 +56,24 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 
-local function prepareTheAI(thisAI)
-	if not thisAI.modules then thisAI:Init() end
-	ai = thisAI
-	game = thisAI.game
-	map = thisAI.map
-end
-
 --SYNCED CODE
 if (gadgetHandler:IsSyncedCode()) then
 
 function gadget:Initialize()
 	GG.AiHelpers.Start()
-	local numberOfmFAITeams = 0
 	local teamList = spGetTeamList()
-	spEcho( "k9: ailoader gadget go!")
+	spEcho( "Looking for AIs")
 
 	for i=1,#teamList do
 		local id = teamList[i]
 		local _,_,_,isAI,side,allyId = spGetTeamInfo(id,false)
-
-		--spEcho("Player " .. teamList[i] .. " is " .. side .. " AI=" .. tostring(isAI))
-
-		---- adding AI
-		spEcho( "K9: Is AI?")
 		if (isAI) then
-			spEcho( "K9: IT IS AI")
-			local aiInfo = spGetTeamLuaAI(id)
-			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,3) == "DAI") then
-				numberOfmFAITeams = numberOfmFAITeams + 1
-				spEcho("Moomin Player " .. teamList[i] .. " is " .. aiInfo)
-				-- add AI object
-				local mode = string.sub(aiInfo, 5)
-				if DAIlist[mode] == true then
-					thisAI = ShardAI(mode)
-				else
-					Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
-					break
-				end
-				thisAI.id = id
-				thisAI.allyId = allyId
-				-- thisAI:Init()
-				AIs[#AIs+1] = thisAI
+			thisAI = self:SetupAI(id)
+			if ( thisAI ~= nil ) then
 				Shard.AIsByTeamID[id] = thisAI
-			else
-				spEcho("Player " .. teamList[i] .. " is another type of lua AI!")
-			end
-		else
-			spEcho( "K9: IS NOT AI!?")
-		end
-	end
-
-	-- add allied teams for each AI
-	for _,thisAI in ipairs(AIs) do
-		alliedTeamIds = {}
-		enemyTeamIds = {}
-		for i=1,#teamList do
-			if (spAreTeamsAllied(thisAI.id,teamList[i])) then
-				alliedTeamIds[teamList[i]] = true
-			else
-				enemyTeamIds[teamList[i]] = true
+				Shard.AIs[#Shard.AIs+1] = thisAI
 			end
 		end
-		-- spEcho("AI "..thisAI.id.." : allies="..#alliedTeamIds.." enemies="..#enemyTeamIds)
-		thisAI.alliedTeamIds = alliedTeamIds
-		thisAI.enemyTeamIds = enemyTeamIds
-		thisAI.ownUnitIds = thisAI.ownUnitIds or {}
-		thisAI.friendlyUnitIds = thisAI.friendlyUnitIds or {}
-		thisAI.alliedUnitIds = thisAI.alliedUnitIds or {}
-		thisAI.enemyUnitIds = thisAI.enemyUnitIds or {}
 	end
 
 	-- catch up to started game
@@ -160,14 +87,53 @@ function gadget:Initialize()
 	end
 end
 
+function gadget:SetupAI(id)
+	local aiInfo = spGetTeamLuaAI(id)
+	local teamList = spGetTeamList()
+	if (type(aiInfo) == "string") then
+		spEcho("AI Player " .. id .. " is a " .. aiInfo)
+	else
+		return nil
+	end
+	if (string.sub(aiInfo,1,3) ~= "DAI") then
+		spEcho("AI Player " .. teamList[id] .. " is an unsupported AI type!")
+		return nil
+	end
+
+	thisAI = VFS.Include("luarules/gadgets/ai/boot.lua")
+	--thisAI = ShardAI(mode)
+	thisAI.id = id
+	thisAI.allyId = allyId
+	thisAI.fullname = aiInfo
+	
+	alliedTeamIds = {}
+	enemyTeamIds = {}
+	for i=1,#teamList do
+		if (spAreTeamsAllied(thisAI.id,teamList[i])) then
+			alliedTeamIds[teamList[i]] = true
+		else
+			enemyTeamIds[teamList[i]] = true
+		end
+	end
+
+	thisAI.alliedTeamIds = alliedTeamIds
+	thisAI.enemyTeamIds = enemyTeamIds
+	thisAI.ownUnitIds = thisAI.ownUnitIds or {}
+	thisAI.friendlyUnitIds = thisAI.friendlyUnitIds or {}
+	thisAI.alliedUnitIds = thisAI.alliedUnitIds or {}
+	thisAI.enemyUnitIds = thisAI.enemyUnitIds or {}
+	return thisAI
+end
+
 function gadget:GameStart()
 	-- Initialise AIs
-	for _,thisAI in ipairs(AIs) do
+	for _,thisAI in ipairs(Shard.AIs) do
 		local _,_,_,isAI,side = spGetTeamInfo(thisAI.id,false)
 		thisAI.side = side
 		local x,y,z = spGetTeamStartPosition(thisAI.id)
 		thisAI.startPos = {x,y,z}
-		if not thisAI.modules then thisAI:Init() end
+		thisAI:Prepare()
+		thisAI:Init()
 	end
 end
 
@@ -175,11 +141,11 @@ end
 function gadget:GameFrame(n)
 
 	-- for each AI...
-	for _,thisAI in ipairs(AIs) do
+	for _,thisAI in ipairs(Shard.AIs) do
 
 		-- update sets of unit ids : own, friendlies, enemies
-		-- run AI game frame update handlers
-		prepareTheAI(thisAI)
+		--1 run AI game frame update handlers
+		thisAI:Prepare()
 		thisAI:Update()
 	end
 end
@@ -188,7 +154,7 @@ end
 function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
 	-- for each AI...
 	local unit = Shard:shardify_unit(unitId)
-	for _,thisAI in ipairs(AIs) do
+	for _,thisAI in ipairs(Shard.AIs) do
 		if (spGetUnitTeam(unitId) == thisAI.id) then
 			thisAI.ownUnitIds[unitId] = true
 			thisAI.friendlyUnitIds[unitId] = true
@@ -200,8 +166,9 @@ function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
 		end
 		
 		if Spring.GetUnitTeam(unitId) == thisAI.id then
-			prepareTheAI(thisAI)
-			thisAI:UnitCreated(unit)
+			--prepareTheAI(thisAI)
+			thisAI:Prepare()
+			thisAI.UnitCreated(thisAI, unit)
 		end
 		-- thisAI:UnitCreated(unitId, unitDefId, teamId, builderId)
 	end
@@ -211,9 +178,10 @@ function gadget:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDef
 	-- for each AI...
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
-		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+		for _,thisAI in ipairs(Shard.AIs) do
+			thisAI:Prepare()
 			thisAI:UnitDead(unit)
+
 			thisAI.ownUnitIds[unitId] = nil
 			thisAI.friendlyUnitIds[unitId] = nil
 			thisAI.alliedUnitIds[unitId] = nil
@@ -231,8 +199,8 @@ function gadget:UnitDamaged(unitId, unitDefId, unitTeamId, damage, paralyzer, we
 	if unit then
 		local attackerUnit = Shard:shardify_unit(attackerId)
 		local damageObj = Shard:shardify_damage(damage, weaponDefId, paralyzer)
-		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+		for _,thisAI in ipairs(Shard.AIs) do
+			thisAI:Prepare()
 			thisAI:UnitDamaged(unit, attackerUnit, damageObj)
 			-- thisAI:UnitDamaged(unitId, unitDefId, unitTeamId, attackerId, attackerDefId, attackerTeamId)
 		end
@@ -243,8 +211,8 @@ function gadget:UnitIdle(unitId, unitDefId, teamId)
 	-- for each AI...
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
-		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+		for _,thisAI in ipairs(Shard.AIs) do
+			thisAI:Prepare()
 			thisAI:UnitIdle(unit)
 			-- thisAI:UnitIdle(unitId, unitDefId, teamId)
 		end
@@ -256,9 +224,9 @@ function gadget:UnitFinished(unitId, unitDefId, teamId)
 	-- for each AI...
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
-		for _,thisAI in ipairs(AIs) do
+		for _,thisAI in ipairs(Shard.AIs) do
 			-- thisAI:UnitFinished(unitId, unitDefId, teamId)
-			prepareTheAI(thisAI)
+			thisAI:Prepare()
 			thisAI:UnitBuilt(unit)
 		end
 	end
@@ -267,8 +235,8 @@ end
 function gadget:UnitTaken(unitId, unitDefId, teamId, newTeamId)
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
-		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+		for _,thisAI in ipairs(Shard.AIs) do
+			thisAI:Prepare()
 			-- thisAI:UnitTaken(unitId, unitDefId, teamId, newTeamId)
 			thisAI:UnitDead(unit)
 		end
@@ -278,8 +246,8 @@ end
 function gadget:UnitGiven(unitId, unitDefId, teamId, oldTeamId)
 	local unit = Shard:shardify_unit(unitId)
 	if unit then
-		for _,thisAI in ipairs(AIs) do
-			prepareTheAI(thisAI)
+		for _,thisAI in ipairs(Shard.AIs) do
+			thisAI:Prepare()
 			-- thisAI:UnitCreated(unitId, unitDefId, teamId, oldTeamId)
 			thisAI:UnitCreated(unit)
 		end
