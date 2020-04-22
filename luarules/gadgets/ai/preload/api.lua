@@ -18,6 +18,8 @@ else
 	api.map = shard_include "preload/shard_null/map"
 end
 
+api.game.map = api.map
+
 return api
 
 --}

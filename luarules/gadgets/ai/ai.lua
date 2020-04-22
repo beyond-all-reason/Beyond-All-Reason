@@ -13,12 +13,10 @@ function ShardAI:Init()
 		return
 	end
 	self.loaded = true
-	self.api = shard_include("preload/api")
 	self.game = self.api.game
 	self.map = self.api.map
 	self.game.ai = self
 	self.map.ai = self
-	self.game.map = self.map
 	self.game:SendToConsole("Shard by AF - playing: "..self.game:GameName().." on: "..self.map:MapName())
 
 	local DAIlist = {}
