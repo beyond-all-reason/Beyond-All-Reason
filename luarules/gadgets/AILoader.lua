@@ -29,10 +29,10 @@ end
 
 -- globals
 ShardSpringLua = true -- this is the AI Boot gadget, so we're in Spring Lua
-VFS.Include( "luarules/gadgets/ai/preload/spring_lua/boot.lua" )
+VFS.Include( "luarules/gadgets/ai/shard_runtime/spring_lua/boot.lua" )
 
 -- Shard object
-Shard = VFS.Include( "luarules/gadgets/ai/preload/spring_lua/shard.lua" )
+Shard = VFS.Include( "luarules/gadgets/ai/shard_runtime/spring_lua/shard.lua" )
 Shard.AIs = {}
 Shard.AIsByTeamID = {}
 
@@ -115,7 +115,7 @@ function gadget:SetupAI(id)
 			enemyTeamIds[teamList[i]] = true
 		end
 	end
-	thisAI.api = VFS.Include("luarules/gadgets/ai/preload/api.lua")
+	thisAI.api = VFS.Include("luarules/gadgets/ai/shard_runtime/api.lua")
 	thisAI.alliedTeamIds = alliedTeamIds
 	thisAI.enemyTeamIds = enemyTeamIds
 	thisAI.ownUnitIds = thisAI.ownUnitIds or {}
