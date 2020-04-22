@@ -14,8 +14,8 @@ elseif game_engine then
 	api.map = shard_include "spring_cpp/map"
 else
 	-- who knows! Load a Null non-op API
-	api.game = shard_include "preload/shard_null/game"
-	api.map = shard_include "preload/shard_null/map"
+	api.game = shard_include "shard_runtime/shard_null/game"
+	api.map = shard_include "shard_runtime/shard_null/map"
 end
 
 api.game.map = api.map

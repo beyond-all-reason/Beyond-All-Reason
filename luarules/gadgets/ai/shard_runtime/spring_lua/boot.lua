@@ -13,7 +13,7 @@ function shard_include( file , subf)
 	end
 	local gameFile = "luarules/gadgets/ai/" ..  subdir .. "/" .. file .. ".lua"
 	local baseFile = "luarules/gadgets/ai/" .. file .. ".lua"
-	local preloadFile = "luarules/gadgets/ai/preload/" .. file .. ".lua"
+	local preloadFile = "luarules/gadgets/ai/shard_runtime/" .. file .. ".lua"
 	if VFS.FileExists(gameFile) then
 		return VFS.Include(gameFile, curEnv)
 	elseif VFS.FileExists(baseFile) then
@@ -23,15 +23,15 @@ function shard_include( file , subf)
 	end
 end
 
-shard_include "preload/spring_lua/shard"
-os = shard_include "preload/spring_lua/fakeos"
-api = shard_include "preload/spring_lua/fakeapi"
-shard_include "preload/hooks"
-shard_include "preload/class"
-shard_include "preload/aibase"
-shard_include "preload/module"
-shard_include "preload/spring_lua/unit"
-shard_include "preload/spring_lua/unittype"
-shard_include "preload/spring_lua/damage"
-shard_include "preload/spring_lua/feature"
-shard_include "preload/spring_lua/controlpoint"
+shard_include "shard_runtime/spring_lua/shard"
+os = shard_include "shard_runtime/spring_lua/fakeos"
+api = shard_include "shard_runtime/spring_lua/fakeapi"
+shard_include "shard_runtime/hooks"
+shard_include "shard_runtime/class"
+shard_include "shard_runtime/aibase"
+shard_include "shard_runtime/module"
+shard_include "shard_runtime/spring_lua/unit"
+shard_include "shard_runtime/spring_lua/unittype"
+shard_include "shard_runtime/spring_lua/damage"
+shard_include "shard_runtime/spring_lua/feature"
+shard_include "shard_runtime/spring_lua/controlpoint"
