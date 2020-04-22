@@ -100,8 +100,7 @@ function gadget:SetupAI(id)
 		return nil
 	end
 
-	thisAI = VFS.Include("luarules/gadgets/ai/boot.lua")
-	--thisAI = ShardAI(mode)
+	thisAI = VFS.Include("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")
 	thisAI.id = id
 	thisAI.allyId = allyId
 	thisAI.fullname = aiInfo
@@ -116,6 +115,7 @@ function gadget:SetupAI(id)
 		end
 	end
 	thisAI.api = VFS.Include("luarules/gadgets/ai/shard_runtime/api.lua")
+	this.api.shard_include = shard_include
 	thisAI.alliedTeamIds = alliedTeamIds
 	thisAI.enemyTeamIds = enemyTeamIds
 	thisAI.ownUnitIds = thisAI.ownUnitIds or {}
