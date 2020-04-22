@@ -138,7 +138,7 @@ function TaskQueueBehaviour:Init()
 	
 
 	if not taskqueues then
-		shard_include("taskqueues",subf)
+		shard_include("taskqueues")
 	end
 	if ai.outmodedFactories == nil then ai.outmodedFactories = 0 end
 
