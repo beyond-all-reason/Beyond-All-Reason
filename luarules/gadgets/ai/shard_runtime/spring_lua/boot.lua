@@ -11,18 +11,28 @@ function shard_include(file)
 	elseif VFS.FileExists(preloadFile) then
 		return VFS.Include(preloadFile)
 	end
-	return nil
+	Spring.Echo( "Failed to load "..baseFile.." and "..preloadFile )
+	return
 end
 
-shard_include "shard_runtime/spring_lua/shard"
-os = shard_include "shard_runtime/spring_lua/fakeos"
-api = shard_include "shard_runtime/spring_lua/fakeapi"
-shard_include "shard_runtime/hooks"
-shard_include "shard_runtime/class"
-shard_include "shard_runtime/aibase"
-shard_include "shard_runtime/module"
-shard_include "shard_runtime/spring_lua/unit"
-shard_include "shard_runtime/spring_lua/unittype"
-shard_include "shard_runtime/spring_lua/damage"
-shard_include "shard_runtime/spring_lua/feature"
-shard_include "shard_runtime/spring_lua/controlpoint"
+os = shard_include "spring_lua/fakeos"
+api = shard_include "spring_lua/fakeapi"
+
+local runtime_includes = {
+	"spring_lua/shard",
+	"hooks",
+	"class",
+	"aibase",
+	"module",
+	"spring_lua/unit",
+	"spring_lua/unittype",
+	"spring_lua/damage",
+	"spring_lua/feature",
+	"spring_lua/controlpoint"
+}
+
+
+for key,include in ipairs(runtime_includes) 
+do
+	local result = shard_include( include )
+end
