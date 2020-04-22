@@ -2,7 +2,7 @@
 Attackers!
 ]]--
 
-scoutslist = {
+return {
 	"armflea",		--	Flea			/	Scout
 	"armfast",  	--  Zipper          /   Fast Raider Kbot
 	"armspy",   	--  Infiltrator     /   Radar-Invisibility Spy Kbot

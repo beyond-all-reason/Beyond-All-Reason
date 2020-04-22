@@ -380,6 +380,7 @@ function Artillery(tqb, ai, unit)
 end
 
 function Scout(tqb, ai, unit)
+	local scoutslist = ai.api.shard_include("scouts")
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	if not possibilities[unit:Name()]["scouts"] then
 		possibilities[unit:Name()]["scouts"] = {}
