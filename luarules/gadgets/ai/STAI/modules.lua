@@ -22,7 +22,7 @@ shard_include ("cleanhandler",subf)
 shard_include ("nanohandler",subf)
 shard_include ("overviewhandler",subf)
 
-modules = {
+return {
 	Sleep,
 	MapHandler,
 	EconHandler,
