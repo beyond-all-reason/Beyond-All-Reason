@@ -7,7 +7,7 @@
 --
 --
 	
-local prelist = {
+return {
   {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
@@ -56,8 +56,8 @@ local prelist = {
 }
 
 
-finalList = prelist
-return finalList
+-- finalList = prelist
+-- return finalList
 
 
 --------------------------------------------------------------------------------
