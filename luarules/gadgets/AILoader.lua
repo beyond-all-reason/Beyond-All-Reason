@@ -33,23 +33,6 @@ ShardSpringLua = true
 -- this is the AI Boot gadget, so we're in Spring Lua
 VFS.Include( "luarules/gadgets/ai/shard_runtime/spring_lua/boot.lua" )
 
-function shard_generate_include_func( runtime_path, ai_path )
-	return function( file )
-		if type(file) ~= 'string' then
-			return nil
-		end
-		local ai_file = ai_path .. "/" .. file .. ".lua"
-		local runtime_file = runtime_path .. "/" .. file .. ".lua"
-		if VFS.FileExists(ai_file) then
-			return VFS.Include(ai_file)
-		elseif VFS.FileExists(runtime_file) then
-			return VFS.Include(runtime_file)
-		end
-		Spring.Echo( "Failed to load "..ai_file.." or "..runtime_file )
-		return nil
-	end
-end
-
 -- Shard object
 Shard = VFS.Include( "luarules/gadgets/ai/shard_runtime/spring_lua/shard.lua" )
 Shard.AIs = {}
