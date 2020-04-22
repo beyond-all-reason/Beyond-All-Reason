@@ -115,7 +115,7 @@ function gadget:SetupAI(id)
 			enemyTeamIds[teamList[i]] = true
 		end
 	end
-
+	thisAI.api = VFS.Include("luarules/gadgets/ai/preload/api.lua")
 	thisAI.alliedTeamIds = alliedTeamIds
 	thisAI.enemyTeamIds = enemyTeamIds
 	thisAI.ownUnitIds = thisAI.ownUnitIds or {}
