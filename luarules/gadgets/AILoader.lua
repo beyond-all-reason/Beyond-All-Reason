@@ -141,7 +141,7 @@ function gadget:GameStart()
 		local x,y,z = spGetTeamStartPosition(thisAI.id)
 		thisAI.startPos = {x,y,z}
 		thisAI:Prepare()
-		thisAI:Init()
+		--thisAI:Init()
 	end
 end
 
