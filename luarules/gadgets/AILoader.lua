@@ -97,10 +97,15 @@ function gadget:SetupAI(id)
 	else
 		return nil
 	end
-	if (string.sub(aiInfo,1,3) ~= "DAI") then
-		spEcho("AI Player " .. teamList[id] .. " is an unsupported AI type!")
+	if ( not VFS.Exists("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")) then
+		spEcho("AI Player " .. teamList[id] .. " is an unsupported AI type! ("..aiInfo..")")
 		return nil
 	end
+
+	shard_include = shard_generate_include_func(
+		"luarules/gadgets/ai/shard_runtime",
+		"luarules/gadgets/ai/"..aiInfo
+	)
 
 	thisAI = VFS.Include("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")
 	thisAI.loaded = false
@@ -118,10 +123,6 @@ function gadget:SetupAI(id)
 		end
 	end
 	thisAI.api = VFS.Include("luarules/gadgets/ai/shard_runtime/api.lua")
-	this.api.shard_include = shard_generate_include_func(
-		"luarules/gadgets/ai/shard_runtime",
-		"luarules/gadgets/ai/"..aiInfo
-	)
 	thisAI.api.shard_include = shard_include
 	thisAI.alliedTeamIds = alliedTeamIds
 	thisAI.enemyTeamIds = enemyTeamIds
