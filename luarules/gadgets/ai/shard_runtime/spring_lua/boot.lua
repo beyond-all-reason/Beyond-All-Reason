@@ -4,19 +4,16 @@ function shard_include(file)
 	if type(file) ~= 'string' then
 		return nil
 	end
-	local baseFile = "luarules/gadgets/ai/DAI/" .. file .. ".lua"
 	local preloadFile = "luarules/gadgets/ai/shard_runtime/" .. file .. ".lua"
-	if VFS.FileExists(baseFile) then
-		return VFS.Include(baseFile)
-	elseif VFS.FileExists(preloadFile) then
+	if VFS.FileExists(preloadFile) then
 		return VFS.Include(preloadFile)
 	end
-	Spring.Echo( "Failed to load "..baseFile.." and "..preloadFile )
+	Spring.Echo( "Failed to load "..preloadFile )
 	return
 end
 
-os = shard_include "spring_lua/fakeos"
-api = shard_include "spring_lua/fakeapi"
+os = shard_include( "spring_lua/fakeos" )
+api = shard_include( "spring_lua/fakeapi" )
 
 local runtime_includes = {
 	"spring_lua/shard",
