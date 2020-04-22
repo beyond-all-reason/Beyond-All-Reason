@@ -1,26 +1,17 @@
 -- initial setup of things
 
-function shard_include( file , subf)
+function shard_include(file)
 	if type(file) ~= 'string' then
 		return nil
 	end
-	subdir = Game.gameShortName	
-	local curEnv = nil
-	if subf then
-		subdir = subdir.."/"..subf -- "BYAR/low/behaviourfactory.lua"
-		curEnv = getfenv()
-		curEnv.subf = subf
-	end
-	local gameFile = "luarules/gadgets/ai/" ..  subdir .. "/" .. file .. ".lua"
-	local baseFile = "luarules/gadgets/ai/" .. file .. ".lua"
+	local baseFile = "luarules/gadgets/ai/DAI/" .. file .. ".lua"
 	local preloadFile = "luarules/gadgets/ai/shard_runtime/" .. file .. ".lua"
-	if VFS.FileExists(gameFile) then
-		return VFS.Include(gameFile, curEnv)
-	elseif VFS.FileExists(baseFile) then
+	if VFS.FileExists(baseFile) then
 		return VFS.Include(baseFile)
 	elseif VFS.FileExists(preloadFile) then
 		return VFS.Include(preloadFile)
 	end
+	return nil
 end
 
 shard_include "shard_runtime/spring_lua/shard"

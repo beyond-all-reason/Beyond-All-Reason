@@ -51,17 +51,18 @@ function ShardAI:Init()
 			newmodule:Init()
 		end
 	else
-		self.game:SendToConsole("No modules found :s")
+		self.game:SendToConsole("No modules found :(")
 	end
 end
 
 function ShardAI:Prepare()
-	if not self.modules then
+	if self.loaded ~= nil then
 		self:Init()
 	end
 	ai = self
-	game = self.game
-	map = self.map
+	game = self.api.game
+	map = self.api.map
+	shard_include = self.api.shard_include
 end
 
 function ShardAI:Update()
