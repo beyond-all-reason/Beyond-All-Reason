@@ -504,6 +504,7 @@ local function DrawEText(numberE, vOffset)
 end
 
 local function DrawMText(numberM, vOffset)
+	vOffset = vOffset - (borderPadding*0.5)
 	if Options["resText"]["On"] then
 		local label = tconcat({"",formatRes(numberM)})
 		font:Begin()
@@ -514,11 +515,13 @@ local function DrawMText(numberM, vOffset)
 end
 
 local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
+	vOffset = vOffset - (borderPadding*0.5)
+	tE = math.max(tE, 0)
+
 	local dx = 15*sizeMultiplier
 	local dy = tH*0.43
 	local maxW = widgetWidth - (30*sizeMultiplier)
 	local barheight = 1 + math.floor(tH * 0.08)
-
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
 	end
@@ -605,6 +608,8 @@ end
 
 
 local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
+	vOffset = vOffset - (borderPadding*0.5)
+	tM = math.max(tM, 0)
 	local dx = 15*sizeMultiplier
 	local dy = tH*0.67
 	local maxW = widgetWidth - (30*sizeMultiplier)
@@ -703,9 +708,9 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 		borderPaddingRight = 0
 	end
 	--glColor(0,0,0,ui_opacity)
-	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding, 1,1,1,1, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding,  (posY~=32 and 1 or 0),1,1,1, {0,0,0,ui_opacity}, {0.05,0.05,0.05,ui_opacity})
 	--glColor(1,1,1,ui_opacity*0.055)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, 1, 1,1,1, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding*0.6, (posY~=32 and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.25}, {1,1,1,ui_opacity*0.25})
 
 	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4*widgetScale}
 
@@ -866,7 +871,7 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 		WG['tooltip'].AddTooltip('ecostats_team_'..tID, area, teamData[tID]["leaderName"])
 	end
 	--glTexture(sideImage)
-	glTexRect(area[1],area[2],area[3],area[4])
+	glTexRect(area[1],area[2]+(borderPadding*0.5),area[3],area[4]+(borderPadding*0.5))
 	glTexture(false)
 	glColor(1,1,1,1)
 end
