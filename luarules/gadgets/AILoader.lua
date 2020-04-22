@@ -97,7 +97,7 @@ function gadget:SetupAI(id)
 	else
 		return nil
 	end
-	if ( not VFS.Exists("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")) then
+	if ( not VFS.FileExists("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")) then
 		spEcho("AI Player " .. teamList[id] .. " is an unsupported AI type! ("..aiInfo..")")
 		return nil
 	end
