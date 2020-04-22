@@ -13,7 +13,7 @@ local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 ------
 
 
-function IsScouts(unit)
+function IsScouts(unit, scoutslist)
 	for i,name in ipairs(scoutslist) do
 		if name == unit:Internal():Name() then
 			return true

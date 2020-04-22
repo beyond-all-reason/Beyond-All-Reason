@@ -14,6 +14,7 @@ local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 
 function IsScouts(unit)
+	local scoutslist = ai.api.shard_include("scouts")
 	for i,name in ipairs(scoutslist) do
 		if name == unit:Internal():Name() then
 			return true
