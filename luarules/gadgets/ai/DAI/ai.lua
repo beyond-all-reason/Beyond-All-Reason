@@ -86,6 +86,7 @@ function ShardAI:UnitCreated(engineunit)
 	end
 	if ( self.modules == nil ) or ( #self.modules == 0 )  then
 		self.game:SendToConsole("No modules found in AI")
+		return
 	end
 	for i,m in ipairs(self.modules) do
 		m:UnitCreated(engineunit)
