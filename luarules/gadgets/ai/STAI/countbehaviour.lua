@@ -4,10 +4,8 @@ function CountBehaviour:Name()
 	return "CountBehaviour"
 end
 
-CountBehaviour.DebugEnabled = false
-
-
 function CountBehaviour:Init()
+	self.DebugEnabled = false
 	self.finished = false
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()

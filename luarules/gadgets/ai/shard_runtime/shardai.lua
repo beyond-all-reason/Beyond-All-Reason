@@ -10,11 +10,11 @@ function ShardAI:Init()
 	self.map = self.api.map
 	self.game.ai = self
 	self.map.ai = self
-	self.game:SendToConsole("Shard by AF - playing: "..self.game:GameName().." on: "..self.map:MapName())
+	self.game:SendToConsole(self.fullname.." - playing: "..self.game:GameName().." on: "..self.map:MapName())
 
 	self.api.shard_include("behaviourfactory")
 	self.api.shard_include("unit")
-	self.api.shard_include("modules")
+	local modules = self.api.shard_include("modules")
 	self.modules = {}
 
 	if next(modules) ~= nil then

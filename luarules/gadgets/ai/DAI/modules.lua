@@ -17,4 +17,4 @@ shard_include( "triggerhandler")
 shard_include( "mainsquadhandler")
 
 --modules = { UnitHandler, RaiderHandler, SkirmisherHandler, ArtilleryHandler, BomberHandler, FighterHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, AiModeHandler, Sleep, ScoutsHandler, TriggerHandler, MainSquadHandler, }
-modules = { UnitHandler, BomberHandler, FighterHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, AiModeHandler, Sleep, ScoutsHandler, TriggerHandler, MainSquadHandler, }
+return { UnitHandler, BomberHandler, FighterHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, AiModeHandler, Sleep, ScoutsHandler, TriggerHandler, MainSquadHandler, }

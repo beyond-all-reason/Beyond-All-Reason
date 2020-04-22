@@ -9,6 +9,7 @@ function CountHandler:internalName()
 end
 
 function CountHandler:Init()
+	self.ai.game:SendToConsole("counting handler!!!")
 	self.DebugEnabled = false
 
 	self.ai.factories = 0
