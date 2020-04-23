@@ -25,7 +25,7 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local orgHeight = 46
-local height = orgHeight * (1+(ui_scale-1)/1.33)
+local height = orgHeight * (1+(ui_scale-1)/1.7)
 
 local relXpos = 0.3
 local borderPadding = 5
@@ -177,7 +177,7 @@ end
 
 function widget:ViewResize(n_vsx,n_vsy, force)
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (vsy / height) * 0.043	-- using 734 because redui-console uses this value too
+	widgetScale = (vsy / height) * 0.046
 	widgetScale = widgetScale * ui_scale
 	xPos = vsx*relXpos
 
@@ -1162,7 +1162,7 @@ function widget:Update(dt)
 		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			height = orgHeight * (1+(ui_scale-1)/1.33)
+			height = orgHeight * (1+(ui_scale-1)/1.7)
 			shutdown()
 			widget:ViewResize(vsx,vsy)
 		end
@@ -1878,6 +1878,7 @@ function widget:Initialize()
 	end
 
 	init()
+	widget:ViewResize(vsx,vsy)
 
 	if gameFrame > 0 then
 		widget:GameStart()

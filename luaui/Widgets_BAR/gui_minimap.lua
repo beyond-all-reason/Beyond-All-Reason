@@ -14,9 +14,12 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local maxWidth = 0.275
+local vsx,vsy = Spring.GetViewGeometry()
+
+local maxWidth = 0.275 * (vsx/vsy)
 local maxHeight = 0.23
 maxWidth = math.min(maxHeight*(Game.mapX/Game.mapY), maxWidth)
+
 local height = maxHeight
 local bgBorderOrg = 0.0025
 local bgBorder = bgBorderOrg
@@ -25,36 +28,16 @@ local bgMargin = 0.005
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
-
-local bgcorner = ":l:LuaUI/Images/bgcorner.png"
-local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
-local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
-
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local backgroundRect = {0,0,0,0}
 local currentTooltip = ''
 
-local isSpec = Spring.GetSpectatingState()
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local bgcorner = ":l:LuaUI/Images/bgcorner.png"
 
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetCameraState = Spring.GetCameraState
-local spSendCommands = Spring.SendCommands
-local string_format = string.format
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -76,29 +59,15 @@ local function checkGuishader(force)
   end
 end
 
-function widget:PlayerChanged(playerID)
-  isSpec = Spring.GetSpectatingState()
-end
-
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-  spSendCommands(string_format("minimap geometry %i %i %i %i",  0, 0, maxWidth*vsx, maxHeight*vsy))
+  Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, maxWidth*vsy, maxHeight*vsy))
 
-  backgroundRect = {0, vsy-(height*vsy), maxWidth*vsx, vsy}
+  backgroundRect = {0, vsy-(height*vsy), maxWidth*vsy, vsy}
 
   checkGuishader(true)
 
   clear()
-
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if fontfileScale ~= newFontfileScale then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    gl.DeleteFont(font2)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    loadedFontSize = fontfileSize*fontfileScale
-  end
 end
 
 function widget:Initialize()
@@ -120,7 +89,7 @@ function widget:Shutdown()
   end
 
   gl.SlaveMiniMap(false)
-  spSendCommands("minimap geometry "..oldMinimapGeometry)
+  Spring.SendCommands("minimap geometry "..oldMinimapGeometry)
 end
 
 local uiOpacitySec = 0
@@ -235,20 +204,10 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-local function doCircle(x, y, z, radius, sides)
-  local sideAngle = twicePi / sides
-  glVertex(x, z, y)
-  for i = 1, sides+1 do
-    local cx = x + (radius * mCos(i * sideAngle))
-    local cz = z + (radius * mSin(i * sideAngle))
-    glVertex(cx, cz, y)
-  end
-end
-
 function drawMinimap()
   local padding = bgBorder*vsy
-  RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+  RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], padding*1.7, 0,0,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  --RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 end
 
 
