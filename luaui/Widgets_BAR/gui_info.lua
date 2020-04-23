@@ -53,6 +53,8 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
 
+local SelectedUnitsCount = spGetSelectedUnitsCount()
+
 local string_sub = string.sub
 local string_gsub = string.gsub
 local os_clock = os.clock
@@ -291,12 +293,15 @@ function drawInfo()
   --RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+h, padding*1.33, 0,0,1,0, {1,1,1,ui_opacity*0.3}, {1,1,1,0})
 
   padding = (bgBorder*vsy) * 0.4
-  local fontSize = height*vsy * 0.12
-  local contentPadding = height*vsy * 0.1
+  local fontSize = (height*vsy * 0.12) * (1-((1-ui_scale)*0.6))
+  local contentPadding = (height*vsy * 0.1) * (1-((1-ui_scale)*0.6))
   local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
   font:Begin()
   local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
-  font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize*(1-((1-ui_scale)*0.6)), "o")
+  if SelectedUnitsCount > 0 then
+    text = "Selected units: "..SelectedUnitsCount.."\n" .. text
+  end
+  font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
   font:End()
 end
 
@@ -329,7 +334,9 @@ end
 
 
 function widget:SelectionChanged(sel)
-  SelectedUnitsCount = spGetSelectedUnitsCount()
+  if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
+    SelectedUnitsCount = spGetSelectedUnitsCount()
+  end
 end
 
 
