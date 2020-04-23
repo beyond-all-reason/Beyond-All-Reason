@@ -134,18 +134,19 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local function checkGuishader()
+local function checkGuishader(force)
   if WG['guishader'] then
+    if force and dlistGuishader then
+      dlistGuishader = gl.DeleteList(dlistGuishader)
+    end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
         RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'ordermenu')
     end
-  else
-    if dlistGuishader then
-      dlistGuishader = gl.DeleteList(dlistGuishader)
-    end
+  elseif dlistGuishader then
+    dlistGuishader = gl.DeleteList(dlistGuishader)
   end
 end
 
@@ -262,9 +263,9 @@ function widget:ViewResize()
   backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
   activeRect = {0 + (bgMargin*vsy), ((posY-height)+bgMargin)*vsy, (width*vsx)-(bgMargin*vsy), (posY-bgMargin)*vsy}
 
-  widget:Shutdown()
+  dlistOrders = gl.DeleteList(dlistOrders)
 
-  checkGuishader()
+  checkGuishader(true)
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if fontfileScale ~= newFontfileScale then
@@ -298,7 +299,8 @@ end
 
 function widget:Shutdown()
   if WG['guishader'] and dlistGuishader then
-    dlistGuishader = WG['guishader'].DeleteDlist('ordermenu')
+    WG['guishader'].DeleteDlist('ordermenu')
+    dlistGuishader = nil
   end
   dlistOrders = gl.DeleteList(dlistOrders)
 end
@@ -697,8 +699,8 @@ function widget:DrawScreen()
     if cellHovered and not disableInput then
       --glBlending(GL_SRC_ALPHA, GL_ONE)
       local padding = activeCmd == cmds[cellHovered].name and (bgBorder*vsy) * 0.4 or 0
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.12}, {1,1,1,0.35})
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,0.16}, {1,1,1,0})
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.14}, {1,1,1,0.44})
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,0.2}, {1,1,1,0})
       --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     end
 

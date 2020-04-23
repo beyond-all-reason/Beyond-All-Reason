@@ -59,8 +59,11 @@ local string_format = string.format
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local function checkGuishader()
+local function checkGuishader(force)
   if WG['guishader'] then
+    if force and dlistGuishader then
+      dlistGuishader = gl.DeleteList(dlistGuishader)
+    end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
         local padding = bgBorder*vsy
@@ -68,10 +71,8 @@ local function checkGuishader()
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
     end
-  else
-    if dlistGuishader then
-      dlistGuishader = gl.DeleteList(dlistGuishader)
-    end
+  elseif dlistGuishader then
+    dlistGuishader = gl.DeleteList(dlistGuishader)
   end
 end
 
@@ -85,7 +86,7 @@ function widget:ViewResize()
 
   backgroundRect = {0, vsy-(height*vsy), maxWidth*vsx, vsy}
 
-  checkGuishader()
+  checkGuishader(true)
 
   clear()
 
@@ -113,8 +114,9 @@ end
 
 function widget:Shutdown()
   clear()
-  if WG['guishader'] then
+  if WG['guishader'] and dlistGuishader then
     WG['guishader'].DeleteDlist('minimap')
+    dlistGuishader = nil
   end
 
   gl.SlaveMiniMap(false)

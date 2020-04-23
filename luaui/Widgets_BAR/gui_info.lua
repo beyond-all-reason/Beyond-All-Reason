@@ -57,18 +57,19 @@ local isSpec = Spring.GetSpectatingState()
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local function checkGuishader()
+local function checkGuishader(force)
   if WG['guishader'] then
+    if force and dlistGuishader then
+      dlistGuishader = gl.DeleteList(dlistGuishader)
+    end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
         RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'info')
     end
-  else
-    if dlistGuishader then
-      dlistGuishader = gl.DeleteList(dlistGuishader)
-    end
+  elseif dlistGuishader then
+    dlistGuishader = gl.DeleteList(dlistGuishader)
   end
 end
 
@@ -84,10 +85,10 @@ function widget:ViewResize()
 
   backgroundRect = {0, 0, width*vsx, height*vsy}
 
-  checkGuishader()
-
   doUpdate = true
   clear()
+
+  checkGuishader(true)
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if fontfileScale ~= newFontfileScale then
@@ -117,8 +118,9 @@ function widget:Shutdown()
   Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
   Spring.SendCommands("tooltip 1")
   clear()
-  if WG['guishader'] then
-    dlistGuishader = WG['guishader'].DeleteDlist('info')
+  if WG['guishader'] and dlistGuishader then
+    WG['guishader'].DeleteDlist('info')
+    dlistGuishader = nil
   end
 end
 
@@ -129,10 +131,10 @@ function widget:Update(dt)
   if uiOpacitySec > 0.5 then
     uiOpacitySec = 0
     checkGuishader()
-    --if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-    --  ui_scale = Spring.GetConfigFloat("ui_scale",1)
-    --  widget:ViewResize()
-    --end
+    if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+      ui_scale = Spring.GetConfigFloat("ui_scale",1)
+      widget:ViewResize()
+    end
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
       doUpdate = true
@@ -268,9 +270,9 @@ function widget:DrawScreen()
 
   local x,y,b = Spring.GetMouseState()
 
-  --if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-  --  Spring.SetMouseCursor('cursornormal')
-  --end
+  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+    Spring.SetMouseCursor('cursornormal')
+  end
 
   if doUpdate then
     clear()
@@ -290,5 +292,11 @@ function widget:SelectionChanged(sel)
   if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
     doUpdate = true
     SelectedUnitsCount = spGetSelectedUnitsCount()
+  end
+end
+
+function widget:MousePress(x, y, button)
+  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+    return true
   end
 end
