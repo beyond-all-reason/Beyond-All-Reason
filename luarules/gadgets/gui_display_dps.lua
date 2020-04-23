@@ -97,6 +97,7 @@ local function unitHeight(unitDefID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+  if not enabled then return end
   if not heightList[unitDefID] then
     heightList[unitDefID] = (GetUnitDefDimensions(unitDefID).height * 0.9)
   end
@@ -124,6 +125,7 @@ local function displayDamage(unitID, unitDefID, damage, paralyze)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+  if not enabled then return end
   if unitDamage[unitID] then
     local ux, uy, uz = GetUnitViewPosition(unitID)
     if ux ~= nil then
@@ -169,12 +171,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+  if not enabled then return end
   if not (AreTeamsAllied(oldTeam, newTeam)) then
     gadget:UnitDestroyed(unitID, unitDefID, newTeam)
   end
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+  if not enabled then return end
 
   if (damage < 1.5) then return end
 
