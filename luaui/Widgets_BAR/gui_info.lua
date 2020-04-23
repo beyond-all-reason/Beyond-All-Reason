@@ -98,6 +98,15 @@ function widget:ViewResize()
 
   backgroundRect = {0, 0, width*vsx, height*vsy}
 
+
+  -- background blur
+  if WG['guishader'] then
+    dlistGuishader = gl.CreateList( function()
+      RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
+    end)
+    WG['guishader'].InsertDlist(dlistGuishader, 'info')
+  end
+
   clear()
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -121,9 +130,6 @@ function widget:Initialize()
 end
 
 function clear()
-  if WG['guishader'] then
-    WG['guishader'].DeleteDlist('info')
-  end
   dlistInfo = gl.DeleteList(dlistInfo)
 end
 
@@ -131,6 +137,9 @@ function widget:Shutdown()
   Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
   Spring.SendCommands("tooltip 1")
   clear()
+  if WG['guishader'] then
+    WG['guishader'].DeleteDlist('info')
+  end
 end
 
 local uiOpacitySec = 0
@@ -316,14 +325,6 @@ function widget:DrawScreen()
     end)
   end
   gl.CallList(dlistInfo)
-
-  -- background blur
-  if WG['guishader'] then
-    dlistGuishader = gl.CreateList( function()
-      RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
-    end)
-    WG['guishader'].InsertDlist(dlistGuishader, 'info')
-  end
 end
 
 
