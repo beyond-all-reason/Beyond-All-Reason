@@ -25,7 +25,6 @@ vertex = [[
 
 	#define OPTION_TREEWIND 10
 
-	#define OPTION_POM 20
 	#define OPTION_AUTONORMAL 21
 
 	%%GLOBAL_OPTIONS%%
@@ -341,7 +340,6 @@ fragment = [[
 
 	#define OPTION_TREEWIND 10
 
-	#define OPTION_POM 20
 	#define OPTION_AUTONORMAL 21
 
 	%%GLOBAL_OPTIONS%%
@@ -406,7 +404,6 @@ fragment = [[
 	uniform vec4 teamColor;
 	uniform float shadowDensity;
 
-	uniform vec4 pomParams;
 	uniform vec2 autoNormalParams;
 
 	uniform int shadowsQuality;
@@ -686,76 +683,6 @@ fragment = [[
 		);
 	}
 
-
-	/***********************************************************************/
-	// Parallax Occlusion Mapping functions
-
-	#define POM_SCALE pomParams.x
-	#define POM_MINLAYERS pomParams.y
-	#define POM_MAXLAYERS pomParams.z
-	#define POM_LODBIAS pomParams.w
-	#define GET_DISPLACEMENT_VALUE(coord) (1.0 - texture(normalTex, coord, POM_LODBIAS).w)
-
-	vec2 ParallaxOcclusionMapping(vec2 uv, vec3 viewDir, float camDistNorm) {
-
-		float oneDotVDZ = abs(dot(vec3(0.0, 0.0, 1.0), viewDir));
-		float numLayers = POM_MAXLAYERS * (1.0 - oneDotVDZ) * camDistNorm;
-		numLayers = ceil(numLayers);
-
-		numLayers = clamp(numLayers, POM_MINLAYERS, POM_MAXLAYERS);
-
-		// calculate the size of each layer
-		float layerDepth = 1.0 / numLayers;
-
-		// depth of current layer
-		float currentLayerDepth = 0.0;
-
-		vec2 Pn = viewDir.xy;
-		vec2 Pp = Pn / viewDir.z;
-
-		float Pmix = smoothstep(0.0, 0.4, oneDotVDZ);
-		//float Pmix = step(0.5, oneDotVDZ);
-
-
-		vec2 P = mix(Pn, Pp, Pmix) * POM_SCALE;
-
-		vec2 deltaTexCoords = P / numLayers;
-
-		// get initial values
-		vec2  currentTexCoords     = uv;
-		float currentDepthMapValue = GET_DISPLACEMENT_VALUE(currentTexCoords);
-
-		int currentStep = int(numLayers);
-		while(currentStep > 0) {
-			// shift texture coordinates along direction of P
-			currentTexCoords -= deltaTexCoords;
-
-			// get depthmap value at current texture coordinates
-			currentDepthMapValue = GET_DISPLACEMENT_VALUE(currentTexCoords);
-
-			// get depth of next layer
-			currentLayerDepth += layerDepth;
-			if (currentLayerDepth >= currentDepthMapValue)
-				break;
-
-			currentStep--;
-		}
-
-
-		// get texture coordinates before collision (reverse operations)
-		vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
-
-
-		// get depth after and before collision for linear interpolation
-		float afterDepth  = currentDepthMapValue - currentLayerDepth;
-		float beforeDepth = GET_DISPLACEMENT_VALUE(prevTexCoords) - currentLayerDepth + layerDepth;
-
-		// interpolation of texture coordinates
-		float weight = afterDepth / (afterDepth - beforeDepth);
-		vec2 finalTexCoords = mix(currentTexCoords, prevTexCoords, weight);
-
-		return finalTexCoords;
-	}
 
 	/***********************************************************************/
 	// Spherical Harmonics Lib
@@ -1152,19 +1079,6 @@ fragment = [[
 
 		mat3 worldTBN = mat3(worldTangent, worldBitangent, worldNormal);
 
-		if (BITMASK_FIELD(bitOptions, OPTION_POM)) {
-			mat3 invWorldTBN = transpose(worldTBN);
-			vec3 tbnV = invWorldTBN * normalize(worldCameraDir);
-
-			float depthPomScale = 1.0 - smoothstep(15.0, 250.0, 1.0 / gl_FragCoord.w);
-			myUV = ParallaxOcclusionMapping(myUV, tbnV, depthPomScale);
-
-			bvec4 badTexCoords = bvec4(myUV.x > 1.0, myUV.y > 1.0, myUV.x < 0.0, myUV.y < 0.0);
-			if (any(badTexCoords)) {
-				discard;
-			}
-		}
-
 		// N - worldFragNormal
 		vec3 N;
 
@@ -1362,6 +1276,7 @@ fragment = [[
 		// Indirect and ambient lighting
         vec3 outColor;
 		vec3 ambientContrib;
+		vec3 iblDiffuse, iblSpecular;
         {
             // ambient lighting (we now use IBL as the ambient term)
 			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
@@ -1371,8 +1286,6 @@ fragment = [[
             kD *= 1.0 - metalness;
 
             ///
-			vec3 iblDiffuse, iblSpecular;
-
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
 				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 			#endif
@@ -1451,7 +1364,7 @@ fragment = [[
 			//outColor = dirContrib + ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
-			outColor = vec3(1.0);
+			outColor = vec3(iblDiffuse);
 		#endif
 
 		#if (RENDERING_MODE == 0)
@@ -1533,13 +1446,11 @@ local defaultMaterialTemplate = {
 		health_texturing = false,
 
 		treewind 		= false,
-		pom 			= false,
 		autonormal 		= false,
 
 		shadowsQuality	= 2,
 
 		autoNormalParams = {1.0, 0.00200}, -- Sampling distance, autonormal value
-		pomParams = {0.002, 1.0, 24.0, -2.0}, -- scale, minLayers, maxLayers, lodBias
 	},
 
 	deferredOptions = {
@@ -1557,7 +1468,6 @@ local defaultMaterialTemplate = {
 		health_texturing = false,
 
 		treewind 		= false,
-		pom 			= false,
 		autonormal 		= false,
 
 		shadowsQuality	= 0,
@@ -1608,7 +1518,6 @@ local shaderPlugins = {
 
 	#define OPTION_TREEWIND 10
 
-	#define OPTION_POM 20
 	#define OPTION_AUTONORMAL 21
 ]]--
 
@@ -1627,7 +1536,6 @@ local knownBitOptions = {
 	["health_displace"] = 8,
 
 	["treewind"] = 10,
-	["pom"] = 20,
 	["autonormal"] = 21,
 }
 
@@ -1638,7 +1546,6 @@ local knownIntOptions = {
 }
 local knownFloatOptions = {
 	["autoNormalParams"] = 2,
-	["pomParams"] = 4,
 }
 
 local allOptions = nil

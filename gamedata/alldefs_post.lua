@@ -115,13 +115,13 @@ function UnitDef_Post(name, uDef)
 	if uDef.name and uDef.name ~= "Commander" then
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.dead then
-				uDef.featuredefs.dead.damage = uDef.maxdamage*1.5
+				uDef.featuredefs.dead.damage = uDef.maxdamage
 			end
 		end
 		
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.heap then
-				uDef.featuredefs.heap.damage = uDef.maxdamage*0.75
+				uDef.featuredefs.heap.damage = uDef.maxdamage
 			end
 		end
     end

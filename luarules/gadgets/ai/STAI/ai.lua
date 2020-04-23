@@ -1,0 +1,1 @@
+STAI = class(ShardAI)

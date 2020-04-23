@@ -87,6 +87,9 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 	local h, mh = spGetUnitHealth(unitID, isDeferred)
 	if h and mh then
 
+		h = math.max(h, 0)
+		mh = math.max(mh, 0.01)
+
 		if not unitDefSide[unitDefID] then
 			local facName = string.sub(UnitDefs[unitDefID].name, 1, 3)
 			if facName == "arm" then
@@ -106,12 +109,12 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 			unitsHealth[unitID] = h / mh
 		end
 		
-		local healthMixMult = 1.0
-		if unitDefSide[unitDefID] == 1 then --arm
-			healthMixMult = 0.86
-		elseif unitDefSide[unitDefID] == 2 then --core
-			healthMixMult = 0.86
-		end
+		local healthMixMult = 0.80
+		-- if unitDefSide[unitDefID] == 1 then --arm
+		-- 	healthMixMult = 0.90
+		-- elseif unitDefSide[unitDefID] == 2 then --core
+		-- 	healthMixMult = 0.90
+		-- end
 		
 		healthArray[1] = healthMixMult * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
 		--Spring.Echo("SendHealthInfo", unitID, isDeferred, urSetMaterialUniform[isDeferred], healthArray[1])

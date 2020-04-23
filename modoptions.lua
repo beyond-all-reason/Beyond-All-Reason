@@ -190,6 +190,21 @@ local options={
 		step   = 0.1,
 	},
 	{
+		key    = 'scavengerstech',
+		name   = 'Scavengers Tech Speed',
+		desc   = 'Determines how fast scav tech ramps up. Adaptive will adjust to players skill',
+		type   = 'list',
+		section = 'options',
+		def  = "adaptive",
+		items={
+			{key="adaptive", name="Adaptive", desc="Adapts to players skill"},
+			{key="easy", name="Easy", desc="Slow ramp up for newbies and noobs"},
+			{key="medium", name="Medium", desc="Normal ramp up for slightly experienced players"},
+			{key="hard", name="Hard", desc="Hard ramp up for experienced players"},
+			{key="brutal", name="Brutal", desc="You'll die"},
+		}
+	},
+	{
 		key    = 'minions',
 		name   = 'Enable Minions',
 		desc   = 'placeholder-description',

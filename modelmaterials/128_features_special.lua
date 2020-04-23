@@ -257,7 +257,7 @@ local featureMaterials = {}
 for id = 1, #FeatureDefs do
 	local featureDef = FeatureDefs[id]
 	if not cusFeaturesMaterials[id] and featureDef.modeltype ~= "3do" then
-		Spring.Echo(featureDef.name)
+		--Spring.Echo(featureDef.name)
 		local isTree, fakeNormal, noSway = GetTreeInfo(featureDef)
 		local metallic = featureDef.metal >= 1
 

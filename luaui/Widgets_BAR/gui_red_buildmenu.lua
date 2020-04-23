@@ -72,7 +72,7 @@ WG.hoverID = nil
 --}
 local normalUnitIconSize = {
 	isx = 48.1,isy = 48.1, --icon size
-	ix = 6,iy = 7, --icons x/y
+	ix = 6,iy = 6, --icons x/y
 	py = CanvasY - 440
 }
 local largeUnitIconSize = {

@@ -214,7 +214,11 @@ function gadget:GameFrame(n)
 			BossWaveStarted = true
 		else
 			if scavengersAIEnabled and scavengersAIEnabled == true then
-				ScavSendMessage("Scavengers Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%, Score: "..globalScore)
+				if globalScore/scavconfig.timers.BossFight < 1 then
+					ScavSendMessage("Scavengers Tech Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
+				else
+					ScavSendMessage("Scavengers Tech Progress: 100%")
+				end
 			end
 		end
 	end
@@ -377,15 +381,38 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local UnitName = UnitDefs[unitDefID].name
+	--Spring.Echo(Spring.GetUnitHeading(unitID))
 	if UnitName == "scavengerdroppodfriendly" then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
 		
+		
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else
 			UnitSuffixLenght[unitID] = 0
+			local frame =Spring.GetGameFrame()
+			if frame > 300 then
+				local heading = Spring.GetUnitHeading(unitID)
+				local suffix = scavconfig.unitnamesuffix
+				local posx, posy, posz = Spring.GetUnitPosition(unitID)
+				Spring.DestroyUnit(unitID, false, true)
+				if heading >= -24576 and heading < -8192 then -- west
+					-- 3
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
+				elseif heading >= -8192 and heading < 8192 then -- south
+					-- 0
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
+				elseif heading >= 8192 and heading < 24576 then -- east
+					-- 1
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
+				else -- north
+					-- 2
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
+				end
+				return
+			end
 		end
 		if UnitName == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})

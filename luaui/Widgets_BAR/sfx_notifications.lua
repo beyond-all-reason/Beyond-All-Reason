@@ -67,11 +67,11 @@ addSound('MexLost', 'MexLost.wav', 8, 1.53, 'Metal extractor lost')
 
 -- resources
 addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.63, 'Your are overflowing metal')
-addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 40, 1.7, 'Your are overflowing energy')
+addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
 addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
 addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
 addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.82, 'The whole team is wasting metal')
-addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 30, 2.14, 'Your whole team is wasting energy')
+addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 100, 2.14, 'Your whole team is wasting energy')
 --addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
 addSound('LowPower', 'LowPower.wav', 20, 0.95, 'Low power')

@@ -1401,7 +1401,7 @@ function widget:DrawScreen()
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
 					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 0,0,1,1, {1,1,1,b and 0.1 or 0.05}, {0.44,0.4,0.44,b and 0.35 or 0.2})
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 0,0,1,1, {1,1,1,b and 0.15 or 0.055}, {0.44,0.44,0.44,b and 0.45 or 0.22})
 					local mult = 1
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4]-((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.5), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.35), 3.3*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})

@@ -5,6 +5,12 @@ Spring.Echo("[Scavengers] Config initialized")
 -- Config for Scavengers Survival AI
 if scavengersAIEnabled then
 	scavconfig = {
+		difficulty = {
+			easy = 1,
+			medium = 2,
+			hard = 3,
+			brutal = 5,
+		},
 		unitnamesuffix = "_scav",
 		messenger = true, -- BYAR specific thing, don't enable otherwise (or get gui_messages.lua from BYAR)
 		modules = {
@@ -246,6 +252,12 @@ if scavengersAIEnabled then
 -- Config for PvP (Gaia) Scavengers
 else
 	scavconfig = {
+		difficulty = {
+			easy = 1,
+			medium = 2,
+			hard = 3,
+			brutal = 5,
+		},
 		unitnamesuffix = "_scav",
 		messenger = true, -- BYAR specific thing, don't enable otherwise (or get gui_messages.lua from BYAR)
 		modules = {

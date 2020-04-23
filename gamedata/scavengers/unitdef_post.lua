@@ -125,8 +125,8 @@ function scav_Udef_Post(name, uDef)
 		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
 		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
 	else
-		uDef.autoheal = 5
-		uDef.idleautoheal = 5
+		uDef.autoheal = 3
+		uDef.idleautoheal = 3
 	end
 
 	if uDef.turnrate then
