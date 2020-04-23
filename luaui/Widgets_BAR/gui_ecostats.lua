@@ -111,7 +111,7 @@ local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
-local borderPadding					= 5.5
+local borderPadding					= 4.5
 
 local avgFrames 					= 8
 
@@ -337,7 +337,7 @@ function setDefaults()
 	tH						= 32
 	vsx,vsy 				= gl.GetViewSizes()
 	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
-	borderPadding			= 5.5
+	borderPadding			= 4.5
 	WBadge					= tH*0.5
 	cW						= 88
 	textsize				= 14
@@ -708,9 +708,9 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 		borderPaddingRight = 0
 	end
 	--glColor(0,0,0,ui_opacity)
-	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding,  (posY~=32 and 1 or 0),1,1,1, {0,0,0,ui_opacity}, {0.05,0.05,0.05,ui_opacity})
+	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding*1.4,  (posY~=tH and 1 or 0),1,1,1, {0,0,0,ui_opacity*1.1}, {0.05,0.05,0.05,ui_opacity*1.1})
 	--glColor(1,1,1,ui_opacity*0.055)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding*0.6, (posY~=32 and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.25}, {1,1,1,ui_opacity*0.25})
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY~=tH and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.3}, {1,1,1,ui_opacity*0.3})
 
 	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4*widgetScale}
 
