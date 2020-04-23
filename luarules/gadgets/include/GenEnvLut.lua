@@ -224,7 +224,7 @@ function GenEnvLut:Execute(saveDebug)
 				gl.PopMatrix()
 				if saveDebug then
 					local gf = Spring.GetGameFrame()
-					gl.SaveImage(0, 0, self.numSamples, 3, string.format("envLut_%s.png", gf))
+					gl.SaveImage(0, 0, 3, 3, string.format("envLut_%s.png", gf))
 				end
 			end)
 		gl.UseShader(0)

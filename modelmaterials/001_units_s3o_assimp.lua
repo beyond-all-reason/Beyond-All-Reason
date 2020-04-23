@@ -84,7 +84,7 @@ local unitsHealth = {} --cache
 local healthArray = {[1] = 0.0}
 local unitDefSide = {} -- 1 - arm, 2 - core, 0 - hell know what
 local function SendHealthInfo(unitID, unitDefID, isDeferred)
-	local h, mh = spGetUnitHealth(unitID, isDeferred)
+	local h, mh = spGetUnitHealth(unitID)
 	if h and mh then
 
 		h = math.max(h, 0)
@@ -127,7 +127,7 @@ end
 
 local healthMod = {} --cache
 local vertDisp = {} --cache
-local vdhmArray = {[1] = 0.0}
+local vdhmArray = {[1] = 0.0, [2] = 0.0}
 local function SendVertDispAndHelthMod(unitID, unitDefID, isDeferred)
 	-- fill caches, if empty
 	if not healthMod[unitDefID] then

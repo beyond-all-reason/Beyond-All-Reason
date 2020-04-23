@@ -3,6 +3,137 @@ local matTemplate = VFS.Include("ModelMaterials/Templates/defaultMaterialTemplat
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local GL_FLOAT = 0x1406
+local GL_INT = 0x1404
+-- args=<objID, matName, lodMatNum, uniformName, uniformType, uniformData>
+local frSetMaterialUniform = {
+	[false] = Spring.FeatureRendering.SetForwardMaterialUniform,
+	[true]  = Spring.FeatureRendering.SetDeferredMaterialUniform,
+}
+
+-- args=<objID, matName, lodMatNum, uniformName>
+local frClearMaterialUniform = {
+	[false] = Spring.FeatureRendering.ClearForwardMaterialUniform,
+	[true]  = Spring.FeatureRendering.ClearDeferredMaterialUniform,
+}
+
+----------------------------------------------
+
+local spGetFeatureHealth = Spring.GetFeatureHealth
+
+local featuresHealth = {} --cache
+local healthArray = {[1] = 0.0}
+local featureDefSide = {} -- 1 - arm, 2 - core, 0 - hell know what
+local function SendHealthInfo(featureID, featureDefID, isDeferred)
+	local h, mh = spGetFeatureHealth(featureID)
+	if h and mh then
+
+		h = math.max(h, 0)
+		mh = math.max(mh, 0.01)
+
+		if not featureDefSide[featureDefID] then
+			local facName = string.sub(FeatureDefs[featureDefID].name, 1, 3)
+			if facName == "arm" then
+				featureDefSide[featureDefID] = 1
+			elseif facname == "cor" then
+				featureDefSide[featureDefID] = 2
+			else
+				featureDefSide[featureDefID] = 0
+			end
+		end
+
+		if not featuresHealth[featureID] then
+			featuresHealth[featureID] = h / mh
+		elseif (h / mh - featuresHealth[featureID]) >= 0.005 then --consider the change of 0.5% significant. Health is increasing
+			featuresHealth[featureID] = h / mh
+		elseif (featuresHealth[featureID] - h / mh) >= 0.0625 then --health is decreasing. Quantize by 6.25%.
+			featuresHealth[featureID] = h / mh
+		end
+
+		local healthMixMult = 0.80
+		-- if featureDefSide[featureDefID] == 1 then --arm
+		-- 	healthMixMult = 0.90
+		-- elseif featureDefSide[featureDefID] == 2 then --core
+		-- 	healthMixMult = 0.90
+		-- end
+
+		healthArray[1] = healthMixMult * (1.0 - featuresHealth[featureID]) --invert so it can be used as mix() easier
+		healthArray[1] = 1.0;
+		--Spring.Echo("SendHealthInfo", featureID, isDeferred, frSetMaterialUniform[isDeferred], healthArray[1])
+		frSetMaterialUniform[isDeferred](featureID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		if not isDeferred then
+			frSetMaterialUniform[isDeferred](featureID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		end
+	end
+end
+
+local healthMod = {} --cache
+local vertDisp = {} --cache
+local vdhmArray = {[1] = 0.0, [2] = 0.0}
+local function SendVertDispAndHelthMod(featureID, featureDefID, isDeferred)
+	-- fill caches, if empty
+	if not healthMod[featureDefID] then
+		local fdefCM = FeatureDefs[featureDefID].customParams
+		healthMod[featureDefID] = tonumber(fdefCM.healthlookmod) or 0
+	end
+
+	if not vertDisp[featureDefID] then
+		local fdefCM = FeatureDefs[featureDefID].customParams
+		vertDisp[featureDefID] = tonumber(fdefCM.vertdisp) or 10
+	end
+
+	if vertDisp[featureDefID] > 0 or healthMod[featureDefID] > 0 then
+		vdhmArray[1] = healthMod[featureDefID]
+		vdhmArray[2] = vertDisp[featureDefID]
+		frSetMaterialUniform[isDeferred](featureID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		if not isDeferred then
+			frSetMaterialUniform[isDeferred](featureID, "shadow", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		end
+	end
+end
+
+local fidArray = {[1] = 0}
+local function SendFeatureID(featureID, isDeferred)
+	fidArray[1] = featureID
+	frSetMaterialUniform[isDeferred](featureID, "opaque", 3, "intOptions[0]", GL_INT, fidArray)
+	if not isDeferred then
+		frSetMaterialUniform[isDeferred](featureID, "shadow", 3, "intOptions[0]", GL_INT, fidArray)
+	end
+end
+
+local featuresList = {}
+local function FeatureCreated(featureID, featureDefID, mat)
+	featuresList[featureID] = featureDefID
+	if mat.standardShaderObj then
+		SendFeatureID(featureID, false)
+		SendVertDispAndHelthMod(featureID, featureDefID, false)
+		SendHealthInfo(featureID, featureDefID, false)
+	end
+	if mat.deferredShaderObj then
+		SendFeatureID(featureID, true)
+		SendVertDispAndHelthMod(featureID, featureDefID, true)
+		SendHealthInfo(featureID, featureDefID, true)
+	end
+end
+
+local function FeatureDestroyed(featureID, featureDefID)
+	featuresList[featureID] = nil
+end
+
+local function GameFrameSlow(gf, mat, isDeferred)
+	for featureID, featureDefID in pairs(featuresList) do
+		SendHealthInfo(featureID, featureDefID, isDeferred)
+	end
+end
+
+local function FeatureDamaged(featureID, featureDefID, mat, isDeferred)
+	SendHealthInfo(featureID, featureDefID, isDeferred)
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
 local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 	texUnits  = {
 		[0] = "%%FEATUREDEFID:0",
@@ -138,10 +269,16 @@ local materials = {
 		},
 		shaderOptions = {
 			normalmapping = true,
+			health_displace = true,
 		},
 		deferredOptions = {
 			materialIndex = 131,
+			health_displace = true,
 		},
+		FeatureCreated = FeatureCreated,
+		FeatureDestroyed = FeatureDestroyed,
+		FeatureDamaged = FeatureDamaged,
+		GameFrameSlow = GameFrameSlow,
 	}),
 
 	featuresMetalNoWreck = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
