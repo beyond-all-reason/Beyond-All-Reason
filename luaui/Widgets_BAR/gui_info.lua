@@ -138,6 +138,16 @@ function widget:Update(dt)
       doUpdate = true
     end
   end
+
+  sec = sec + dt
+  if sec > 0.06 then
+    sec = 0
+    local newTooltip = spGetCurrentTooltip()
+    if newTooltip ~= currentTooltip then
+      currentTooltip = newTooltip
+      doUpdate = true
+    end
+  end
 end
 
 
