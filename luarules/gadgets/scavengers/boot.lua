@@ -381,7 +381,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local UnitName = UnitDefs[unitDefID].name
-	Spring.Echo(Spring.GetUnitHeading(unitID))
+	--Spring.Echo(Spring.GetUnitHeading(unitID))
 	if UnitName == "scavengerdroppodfriendly" then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
