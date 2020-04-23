@@ -108,14 +108,14 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 		elseif (unitsHealth[unitID] - h / mh) >= 0.0625 then --health is decreasing. Quantize by 6.25%.
 			unitsHealth[unitID] = h / mh
 		end
-		
+
 		local healthMixMult = 0.80
 		-- if unitDefSide[unitDefID] == 1 then --arm
 		-- 	healthMixMult = 0.90
 		-- elseif unitDefSide[unitDefID] == 2 then --core
 		-- 	healthMixMult = 0.90
 		-- end
-		
+
 		healthArray[1] = healthMixMult * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
 		--Spring.Echo("SendHealthInfo", unitID, isDeferred, urSetMaterialUniform[isDeferred], healthArray[1])
 		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
@@ -162,27 +162,24 @@ end
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDirection = Spring.GetUnitDirection
 
-local threadOffsets = {} --cache
+local threadSpeeds = {} --cache
 local threadsArray = {[1] = 0.0}
-local function SendTracksOffset(unitID, isDeferred, gf, mod, texSpeed, atlasSize)
-	if not threadOffsets[unitID] then
-		threadOffsets[unitID] = 0.0
+local function SendTracksOffset(unitID, isDeferred)
+	if not threadSpeeds[unitID] then
+		threadSpeeds[unitID] = 0.0
 	end
 
 	local usx, usy, usz, speed = spGetUnitVelocity(unitID)
-	if speed > 0.02 then speed = 1 else speed = 0 end
-
-	local offset = ((gf % mod) * (texSpeed / atlasSize)) * speed
+	if speed > 0.05 then speed = 1 else speed = 0 end
 
 	local udx, udy, udz = spGetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
-		offset = -offset
+		speed = -speed
 	end
 
-	if threadOffsets[unitID] ~= offset and not isDeferred then
-		threadOffsets[unitID] = offset
-		--Spring.Echo(unitID, offset)
-		threadsArray[1] = offset
+	if threadSpeeds[unitID] ~= speed and not isDeferred then
+		threadSpeeds[unitID] = speed
+		threadsArray[1] = speed
 		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
 	end
 end
@@ -205,36 +202,15 @@ local function UnitDestroyed(unitsList, unitID, unitDefID)
 	unitsList[unitID] = nil
 end
 
-local function GameFrameSlow(unitsList, gf, mat, isDeferred)
+local function GameFrame(isTank, unitsList, gf, mat, isDeferred)
+	local gfRem = gf % 10
 	for unitID, unitDefID in pairs(unitsList) do
-		SendHealthInfo(unitID, unitDefID, isDeferred)
-	end
-end
-
-
-local function GameFrameArmTanks(gf, mat, isDeferred)
-	for unitID, unitDefID in pairs(armTanks) do
-		---------------
-		SendTracksOffset(unitID, isDeferred, gf, 12, 4.0, 4096.0)
-		---------------
-		SendHealthInfo(unitID, unitDefID, isDeferred)
-		---------------
-	end
-end
-
-local function GameFrameCoreTanks(gf, mat, isDeferred)
-	for unitID, unitDefID in pairs(coreTanks) do
-		---------------
-		SendTracksOffset(unitID, isDeferred, gf, 8, -8.0, 2048.0)
-		---------------
-		SendHealthInfo(unitID, unitDefID, isDeferred)
-		---------------
-	end
-end
-
-local function GameFrameOtherUnits(gf, mat, isDeferred)
-	for unitID, unitDefID in pairs(otherUnits) do
-		SendHealthInfo(unitID, unitDefID, isDeferred)
+		if gfRem == unitID % 10 then
+			if isTank then
+				SendTracksOffset(unitID, isDeferred)
+			end
+			SendHealthInfo(unitID, unitDefID, isDeferred)
+		end
 	end
 end
 
@@ -261,8 +237,7 @@ local materials = {
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(armTanks, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(armTanks, unitID, unitDefID) end,
 
-		GameFrame = GameFrameArmTanks,
-		--GameFrameSlow = function (gf, mat, isDeferred) GameFrameSlow(otherUnits, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat, isDeferred) GameFrame(true, armTanks, gf, mat, isDeferred) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -281,8 +256,7 @@ local materials = {
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(coreTanks, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(coreTanks, unitID, unitDefID) end,
 
-		GameFrame = GameFrameCoreTanks,
-		--GameFrameSlow = function (gf, mat, isDeferred) GameFrameSlow(otherUnits, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat, isDeferred) GameFrame(true, coreTanks, gf, mat, isDeferred) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -300,8 +274,7 @@ local materials = {
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
 
-		GameFrame = GameFrameOtherUnits,
-		--GameFrameSlow = function (gf, mat, isDeferred) GameFrameSlow(otherUnits, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat, isDeferred) GameFrame(false, otherUnits, gf, mat, isDeferred) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -311,11 +284,12 @@ local materials = {
 		deferredOptions = {
 			materialIndex = 3,
 		},
+
+		-- are these below required?
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
 
-		GameFrame = GameFrameOtherUnits,
-		--GameFrameSlow = function (gf, mat, isDeferred) GameFrameSlow(otherUnits, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat, isDeferred) GameFrame(false, otherUnits, gf, mat, isDeferred) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
