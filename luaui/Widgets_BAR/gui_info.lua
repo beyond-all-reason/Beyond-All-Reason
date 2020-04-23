@@ -57,6 +57,21 @@ local isSpec = Spring.GetSpectatingState()
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local function checkGuishader()
+  if WG['guishader'] then
+    if not dlistGuishader then
+      dlistGuishader = gl.CreateList( function()
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
+      end)
+      WG['guishader'].InsertDlist(dlistGuishader, 'info')
+    end
+  else
+    if dlistGuishader then
+      dlistGuishader = gl.DeleteList(dlistGuishader)
+    end
+  end
+end
+
 function widget:PlayerChanged(playerID)
   isSpec = Spring.GetSpectatingState()
 end
@@ -69,15 +84,9 @@ function widget:ViewResize()
 
   backgroundRect = {0, 0, width*vsx, height*vsy}
 
+  checkGuishader()
 
-  -- background blur
-  if WG['guishader'] then
-    dlistGuishader = gl.CreateList( function()
-      RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
-    end)
-    WG['guishader'].InsertDlist(dlistGuishader, 'info')
-  end
-
+  doUpdate = true
   clear()
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -109,7 +118,7 @@ function widget:Shutdown()
   Spring.SendCommands("tooltip 1")
   clear()
   if WG['guishader'] then
-    WG['guishader'].DeleteDlist('info')
+    dlistGuishader = WG['guishader'].DeleteDlist('info')
   end
 end
 
@@ -119,6 +128,7 @@ function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.5 then
     uiOpacitySec = 0
+    checkGuishader()
     --if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
     --  ui_scale = Spring.GetConfigFloat("ui_scale",1)
     --  widget:ViewResize()
@@ -268,6 +278,7 @@ end
 
 function widget:SelectionChanged(sel)
   if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
+    doUpdate = true
     SelectedUnitsCount = spGetSelectedUnitsCount()
   end
 end

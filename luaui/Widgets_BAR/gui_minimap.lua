@@ -22,7 +22,6 @@ local height = maxHeight
 local bgBorderOrg = 0.0025
 local bgBorder = bgBorderOrg
 local bgMargin = 0.005
-local useGuishader = true
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -61,6 +60,22 @@ local string_format = string.format
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local function checkGuishader()
+  if WG['guishader'] then
+    if not dlistGuishader then
+      dlistGuishader = gl.CreateList( function()
+        local padding = bgBorder*vsy
+        RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], (bgBorder*vsy)*2)
+      end)
+      WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
+    end
+  else
+    if dlistGuishader then
+      dlistGuishader = gl.DeleteList(dlistGuishader)
+    end
+  end
+end
+
 function widget:PlayerChanged(playerID)
   isSpec = Spring.GetSpectatingState()
 end
@@ -71,14 +86,7 @@ function widget:ViewResize()
 
   backgroundRect = {0, vsy-(height*vsy), maxWidth*vsx, vsy}
 
-  -- background blur
-  if useGuishader and WG['guishader'] then
-    dlistGuishader = gl.CreateList( function()
-      local padding = bgBorder*vsy
-      RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], (bgBorder*vsy)*2)
-    end)
-    WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
-  end
+  checkGuishader()
 
   clear()
 
@@ -106,7 +114,7 @@ end
 
 function widget:Shutdown()
   clear()
-  if useGuishader and WG['guishader'] then
+  if WG['guishader'] then
     WG['guishader'].DeleteDlist('minimap')
   end
 
@@ -119,6 +127,7 @@ function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.5 then
     uiOpacitySec = 0
+    checkGuishader()
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
       widget:ViewResize()
@@ -254,8 +263,12 @@ function widget:DrawScreen()
   end
 
   local st = spGetCameraState()
-  if st.name ~= "ov" then --overview camera
-    if useGuishader and WG['guishader'] then
+  if st.name == "ov" then -- overview camera
+    if dlistGuishader and WG['guishader'] then
+      WG['guishader'].RemoveDlist('minimap')
+    end
+  else
+    if dlistGuishader and WG['guishader'] then
       WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
     end
     if not dlistMinimap then
@@ -264,10 +277,6 @@ function widget:DrawScreen()
       end)
     end
     gl.CallList(dlistMinimap)
-  else
-    if useGuishader and WG['guishader'] then
-      WG['guishader'].RemoveDlist('minimap')
-    end
   end
 
   --gl.ResetState()

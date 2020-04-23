@@ -134,6 +134,21 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local function checkGuishader()
+  if WG['guishader'] then
+    if not dlistGuishader then
+      dlistGuishader = gl.CreateList( function()
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
+      end)
+      WG['guishader'].InsertDlist(dlistGuishader, 'ordermenu')
+    end
+  else
+    if dlistGuishader then
+      dlistGuishader = gl.DeleteList(dlistGuishader)
+    end
+  end
+end
+
 function widget:PlayerChanged(playerID)
   isSpec = Spring.GetSpectatingState()
 end
@@ -249,6 +264,8 @@ function widget:ViewResize()
 
   widget:Shutdown()
 
+  checkGuishader()
+
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if fontfileScale ~= newFontfileScale then
     fontfileScale = newFontfileScale
@@ -280,17 +297,18 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-  if WG['guishader'] then
-    WG['guishader'].DeleteDlist('ordermenu')
+  if WG['guishader'] and dlistGuishader then
+    dlistGuishader = WG['guishader'].DeleteDlist('ordermenu')
   end
   dlistOrders = gl.DeleteList(dlistOrders)
 end
 
-local uiOpacitySec = 0
+local sec = 0
 function widget:Update(dt)
-  uiOpacitySec = uiOpacitySec + dt
-  if uiOpacitySec > 0.5 then
-    uiOpacitySec = 0
+  sec = sec + dt
+  if sec > 0.5 then
+    sec = 0
+    checkGuishader()
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
       widget:ViewResize()
@@ -658,10 +676,13 @@ function widget:DrawScreen()
   end
 
   if #cmds == 0 then
-    if WG['guishader'] then
-      WG['guishader'].DeleteDlist('ordermenu')
+    if dlistGuishader and WG['guishader'] then
+      WG['guishader'].RemoveDlist('ordermenu')
     end
   else
+    if dlistGuishader and WG['guishader'] then
+      WG['guishader'].InsertDlist(dlistGuishader, 'ordermenu')
+    end
     if doUpdate then
       dlistOrders = gl.DeleteList(dlistOrders)
     end
@@ -705,14 +726,6 @@ function widget:DrawScreen()
         clickedCellTime = nil
       end
       glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    end
-
-    -- background blur
-    if WG['guishader'] then
-      dlistGuishader = gl.CreateList( function()
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
-      end)
-      WG['guishader'].InsertDlist(dlistGuishader, 'ordermenu')
     end
   end
   doUpdate = nil
