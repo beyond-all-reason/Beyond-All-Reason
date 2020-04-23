@@ -10,7 +10,7 @@ https://www.beyondallreason.info/download
 
 ## Development Quick Start
 
-You will need a lobby for the Spring Engine, such as Spring Lobby. Once this is set up, go to your Spring data folder, and check out a copy of the game
+You will need a lobby for the Spring Engine, such as [SpringLobby](https://springlobby.springrts.com). Once this is set up, go to your Spring data folder, and check out a copy of the game
 
 ```shell
 git clone https://github.com/beyond-all-reason/Beyond-All-Reason.git bar.sdd
