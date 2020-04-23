@@ -12,8 +12,8 @@ activatescr()
 {
 	if( TRUE )
 	{
-		move lwing to x-axis [3.0] speed [4.0];
-		move rwing to x-axis [-3.0] speed [4.0];
+		move lwing to x-axis [-3.0] speed [4.0];
+		move rwing to x-axis [3.0] speed [4.0];
 		sleep 750;
 	}
 		if( TRUE )
