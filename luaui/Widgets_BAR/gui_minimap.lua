@@ -1,12 +1,13 @@
 function widget:GetInfo()
   return {
-    name      = "Info",
+    name      = "Minimap",
     desc      = "",
     author    = "Floris",
     date      = "April 2020",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = true
+    enabled   = true,
+    handler   = true,
   }
 end
 
@@ -14,11 +15,14 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local width = 0
-local height = 0
-local bgBorderOrg = 0.0035
+local maxWidth = 0.275
+local maxHeight = 0.23
+maxWidth = math.min(maxHeight*(Game.mapX/Game.mapY), maxWidth)
+local height = maxHeight
+local bgBorderOrg = 0.0025
 local bgBorder = bgBorderOrg
 local bgMargin = 0.005
+local useGuishader = true
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -44,15 +48,15 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local backgroundRect = {0,0,0,0}
 local currentTooltip = ''
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-local spGetCurrentTooltip = Spring.GetCurrentTooltip
-
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local SelectedUnitsCount = spGetSelectedUnitsCount()
-
 local isSpec = Spring.GetSpectatingState()
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
+local spGetCameraState = Spring.GetCameraState
+local spSendCommands = Spring.SendCommands
+local string_format = string.format
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -62,20 +66,18 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:ViewResize()
-  width = 0.23
-  height = 0.14
-  width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
-  width = width * ui_scale
+  vsx,vsy = Spring.GetViewGeometry()
+  spSendCommands(string_format("minimap geometry %i %i %i %i",  0, 0, maxWidth*vsx, maxHeight*vsy))
 
-  backgroundRect = {0, 0, width*vsx, height*vsy}
-
+  backgroundRect = {0, vsy-(height*vsy), maxWidth*vsx, vsy}
 
   -- background blur
-  if WG['guishader'] then
+  if useGuishader and WG['guishader'] then
     dlistGuishader = gl.CreateList( function()
-      RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
+      local padding = bgBorder*vsy
+      RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], (bgBorder*vsy)*2)
     end)
-    WG['guishader'].InsertDlist(dlistGuishader, 'info')
+    WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
   end
 
   clear()
@@ -89,43 +91,41 @@ function widget:ViewResize()
     font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
     loadedFontSize = fontfileSize*fontfileScale
   end
-
 end
 
-
 function widget:Initialize()
-  Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count
-  Spring.SendCommands("tooltip 0")
+  oldMinimapGeometry = spGetMiniMapGeometry()
+  gl.SlaveMiniMap(true)
+
   widget:ViewResize()
---  widget:SelectionChanged()
 end
 
 function clear()
-  dlistInfo = gl.DeleteList(dlistInfo)
+  dlistMinimap = gl.DeleteList(dlistMinimap)
 end
 
 function widget:Shutdown()
-  Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
-  Spring.SendCommands("tooltip 1")
   clear()
-  if WG['guishader'] then
-    WG['guishader'].DeleteDlist('info')
+  if useGuishader and WG['guishader'] then
+    WG['guishader'].DeleteDlist('minimap')
   end
+
+  gl.SlaveMiniMap(false)
+  spSendCommands("minimap geometry "..oldMinimapGeometry)
 end
 
 local uiOpacitySec = 0
-local sec = 0
 function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.5 then
     uiOpacitySec = 0
-    --if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-    --  ui_scale = Spring.GetConfigFloat("ui_scale",1)
-    --  widget:ViewResize()
-    --end
+    if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+      ui_scale = Spring.GetConfigFloat("ui_scale",1)
+      widget:ViewResize()
+    end
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-      doUpdate = true
+      clear()
     end
   end
 end
@@ -225,29 +225,25 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-function drawInfo()
-  local padding = bgBorder*vsy
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
-
-  padding = (bgBorder*vsy) * 0.4
-  local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
-  local contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
-  local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
-  font:Begin()
-  local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
-  if SelectedUnitsCount > 0 then
-    text = "Selected units: "..SelectedUnitsCount.."\n" .. text
+local function doCircle(x, y, z, radius, sides)
+  local sideAngle = twicePi / sides
+  glVertex(x, z, y)
+  for i = 1, sides+1 do
+    local cx = x + (radius * mCos(i * sideAngle))
+    local cz = z + (radius * mSin(i * sideAngle))
+    glVertex(cx, cz, y)
   end
-  font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
-  font:End()
+end
+
+function drawMinimap()
+  local padding = bgBorder*vsy
+  RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 end
 
 
 function widget:DrawScreen()
-
-  local x,y,b = Spring.GetMouseState()
-
+  --local x,y,b = Spring.GetMouseState()
   --if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
   --  Spring.SetMouseCursor('cursornormal')
   --end
@@ -257,17 +253,26 @@ function widget:DrawScreen()
     doUpdate = nil
   end
 
-  if not dlistInfo then
-    dlistInfo = gl.CreateList( function()
-      drawInfo()
-    end)
+  local st = spGetCameraState()
+  if st.name ~= "ov" then --overview camera
+    if useGuishader and WG['guishader'] then
+      WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
+    end
+    if not dlistMinimap then
+      dlistMinimap = gl.CreateList( function()
+        drawMinimap()
+      end)
+    end
+    gl.CallList(dlistMinimap)
+  else
+    if useGuishader and WG['guishader'] then
+      WG['guishader'].RemoveDlist('minimap')
+    end
   end
-  gl.CallList(dlistInfo)
-end
 
-
-function widget:SelectionChanged(sel)
-  if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
-    SelectedUnitsCount = spGetSelectedUnitsCount()
-  end
+  --gl.ResetState()
+  --gl.ResetMatrices()
+  gl.DrawMiniMap()
+  --gl.ResetState()
+  --gl.ResetMatrices()
 end
