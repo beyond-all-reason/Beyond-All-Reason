@@ -318,8 +318,16 @@ function checkEnabled()
   end
 end
 
+local sec = 0
+function gadget:Update()
+  sec = sec + Spring.GetLastUpdateSeconds()
+  if sec > 2 then
+    sec = 0
+    checkEnabled()
+  end
+end
+
 function gadget:DrawWorld()
-  checkEnabled()
   if not enabled then return end
   if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
