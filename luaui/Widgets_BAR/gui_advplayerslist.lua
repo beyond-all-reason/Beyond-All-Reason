@@ -2197,11 +2197,12 @@ end
 
 function DrawSeparator(vOffset)
 	vOffset = vOffset - 2
-	gl_Color(0.55,0.55,0.55,0.45)
-	gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset+(1/widgetScale), widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset)
-	gl_Color(0,0,0,0.3)
-	gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset, widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset-(1/widgetScale))
-	gl_Color(1,1,1)
+	--gl_Color(0.55,0.55,0.55,0.45)
+	RectRound(widgetPosX+2, widgetPosY + widgetHeight -vOffset-(1.5/widgetScale), widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset+(1.5/widgetScale), (0.5/widgetScale), 1,1,1,1, {0.66,0.66,0.66,0.35}, {0,0,0,0.35})
+	--gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset+(1/widgetScale), widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset)
+	--gl_Color(0,0,0,0.3)
+	--gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset, widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset-(1/widgetScale))
+	--gl_Color(1,1,1)
 end
 
 function DrawLabelRightside(text, vOffset)
