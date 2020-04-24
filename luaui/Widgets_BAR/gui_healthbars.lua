@@ -37,7 +37,7 @@ local featureBarHeight          = 1.65
 local featureBarWidth           = 8
 local featureBarAlpha           = 0.6
 
-local hideHealthbars            = true       -- could be toggled if unit shader shows degradation
+local hideHealthbars            = false       -- could be toggled if unit shader shows degradation
 local showHealthbarOnSelection  = true
 local showHealthbarOnChange     = true
 local healthChangeTimer         = 3
