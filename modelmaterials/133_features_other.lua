@@ -7,9 +7,37 @@ local materials = {
 			[1] = "%%FEATUREDEFID:1",
 		},
 		feature = true,
+		shaderDefinitions = {
+			"#define RENDERING_MODE 0",
+			"#define SUNMULT 1.0",
+			--"#define EXPOSURE 1.0",
+
+			"#define METALNESS 0.2",
+			"#define ROUGHNESS 0.6",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
+		},
+		deferredDefinitions = {
+			"#define RENDERING_MODE 1",
+			"#define SUNMULT 1.0",
+			--"#define EXPOSURE 1.0",
+
+			"#define METALNESS 0.2",
+			"#define ROUGHNESS 0.6",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
+		},
 		shaderOptions = {
 			autonormal = true,
-			autoNormalParams = {1.0, 0.03},
+			autoNormalParams = {1.5, 0.005},
 		},
 		deferredOptions = {
 			materialIndex = 133,

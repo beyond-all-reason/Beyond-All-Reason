@@ -58,7 +58,7 @@ local function SendHealthInfo(featureID, featureDefID, isDeferred)
 		-- end
 
 		healthArray[1] = healthMixMult * (1.0 - featuresHealth[featureID]) --invert so it can be used as mix() easier
-		healthArray[1] = 1.0;
+		--healthArray[1] = 1.0;
 		--Spring.Echo("SendHealthInfo", featureID, isDeferred, frSetMaterialUniform[isDeferred], healthArray[1])
 		frSetMaterialUniform[isDeferred](featureID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		if not isDeferred then
@@ -241,7 +241,7 @@ local materials = {
 	featuresTreeAutoNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
 		shaderOptions = {
 			autonormal = true,
-			autoNormalParams = {1.0, 0.01},
+			autoNormalParams = {1.5, 0.005},
 		},
 		deferredOptions = {
 			materialIndex = 129,
@@ -252,7 +252,7 @@ local materials = {
 		shaderOptions = {
 			treewind = false,
 			autonormal = true,
-			autoNormalParams = {1.0, 0.01},
+			autoNormalParams = {1.5, 0.005},
 		},
 		deferredOptions = {
 			treewind = false,
@@ -284,7 +284,7 @@ local materials = {
 	featuresMetalNoWreck = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
 		shaderOptions = {
 			autonormal = true,
-			autoNormalParams = {1.0, 0.01},
+			autoNormalParams = {1.5, 0.005},
 		},
 		deferredOptions = {
 			materialIndex = 1,
@@ -346,7 +346,7 @@ local FAKE_NORMALTEX = "UnitTextures/default_tree_normal.dds"
 FAKE_NORMALTEX = VFS.FileExists(FAKE_NORMALTEX) and FAKE_NORMALTEX or nil
 local function GetTreeInfo(fdef)
 	if not fdef or not fdef.name then
-		return false, false
+		return false, false, false
 	end
 
 	local isTree = false
@@ -364,12 +364,14 @@ local function GetTreeInfo(fdef)
 
 			if not isException then
 				isTree = true
-				fakeNormal = FAKE_NORMALTEX and treeInfo.fakeNormal
+				fakeNormal = treeInfo.fakeNormal
 			end
 
 			for _, exc in ipairs(featureNameTreesNoSway) do
 				noSway = noSway or fdef.name:find(exc) ~= nil
-				fakeNormal = false --don't use fake normals for noSway trees
+				if noSway then
+					fakeNormal = false --don't use fake normals for noSway trees
+				end
 			end
 
 			break
@@ -405,6 +407,7 @@ for id = 1, #FeatureDefs do
 				if noSway then
 					featureMaterials[id] = {"featuresTreeAutoNormalNoSway"}
 				else
+					Spring.Echo(featureDef.name,  isTree, fakeNormal, noSway)
 					featureMaterials[id] = {"featuresTreeAutoNormal"}
 				end
 			end

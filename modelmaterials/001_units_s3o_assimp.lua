@@ -103,7 +103,7 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 
 		if not unitsHealth[unitID] then
 			unitsHealth[unitID] = h / mh
-		elseif (h / mh - unitsHealth[unitID]) >= 0.005 then --consider the change of 0.5% significant. Health is increasing
+		elseif (h / mh - unitsHealth[unitID]) >= 0.02 then --consider the change of 2% significant. Health is increasing
 			unitsHealth[unitID] = h / mh
 		elseif (unitsHealth[unitID] - h / mh) >= 0.0625 then --health is decreasing. Quantize by 6.25%.
 			unitsHealth[unitID] = h / mh
