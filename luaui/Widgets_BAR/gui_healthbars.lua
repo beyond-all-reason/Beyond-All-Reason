@@ -772,7 +772,7 @@ function widget:Initialize()
     init()
   end
   WG['healthbars'].getHideHealth = function()
-    return barScale
+    return hideHealthbars
   end
   WG['healthbars'].setHideHealth = function(value)
     hideHealthbars = value
@@ -1557,7 +1557,9 @@ function widget:SetConfigData(data)
   drawBarPercentage = data.drawBarPercentage or drawBarPercentage
   alwaysDrawBarPercentageForComs = data.alwaysDrawBarPercentageForComs or alwaysDrawBarPercentageForComs
   currentOption = data.currentOption or currentOption
-  hideHealthbars = data.hideHealthbars or hideHealthbars
+  if data.hideHealthbars ~= nil then
+    hideHealthbars = data.hideHealthbars
+  end
 end
 
 function widget:TextCommand(command)
