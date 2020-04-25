@@ -261,6 +261,8 @@ function widget:ViewResize()
   dlistOrders = gl.DeleteList(dlistOrders)
 
   checkGuishader(true)
+  setupCellGrid(true)
+  doUpdate = true
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if fontfileScale ~= newFontfileScale then
