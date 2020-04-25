@@ -28,10 +28,11 @@ function gadget:UnitDestroyed(unitID)
 	SendToUnsynced("GlassUnitDestroyed", unitID) --TODO: figure out if it's worth performance toll
 end
 
-local function HideGlassPiece(unitID, pieceID)
-	spSetUnitPieceVisible(unitID, pieceID, false)
+local function ShowHideGlassPiece(unitID, pieceID, show)
+	spSetUnitPieceVisible(unitID, pieceID, show)
 end
 
+local pieceList
 local function FillGlassUnitDefs(unitID, unitDefID)
 	if not glassUnitDefs[unitDefID] then
 		pieceList = spGetUnitPieceList(unitID)
@@ -52,7 +53,7 @@ function gadget:UnitFinished(unitID, unitDefID)
 	FillGlassUnitDefs(unitID, unitDefID)
 	if glassUnitDefs[unitDefID] then
 		for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do
-			HideGlassPiece(unitID, pieceID)
+			ShowHideGlassPiece(unitID, pieceID, false)
 		end
 	end
 end
@@ -63,6 +64,18 @@ function gadget:Initialize()
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitTeamID = spGetUnitTeam(unitID)
 		gadget:UnitFinished(unitID, unitDefID, unitTeamID)
+	end
+end
+
+function gadget:Shutdown()
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in ipairs(allUnits) do
+		local unitDefID = spGetUnitDefID(unitID)
+		if glassUnitDefs[unitDefID] then
+			for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do
+				ShowHideGlassPiece(unitID, pieceID, true)
+			end
+		end
 	end
 end
 
