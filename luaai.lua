@@ -21,6 +21,10 @@ return {
     desc = 'STAI - Shard AI'
   },
   {
+    name = 'Shard',
+    desc = 'Shard - Basic Shard AI'
+  },
+  {
     name = 'Chicken: Very Easy',
     desc = 'Trivial Games'
   },
