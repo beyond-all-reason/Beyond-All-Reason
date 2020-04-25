@@ -301,13 +301,7 @@ end
 
 
 local function RenderGlassUnits()
-	local glassUnit = nil
-	for unitID, _ in pairs(glassUnits) do
-		glassUnit = unitID
-		break
-	end
-
-	if not glassUnit then
+	if #glassUnits == 0 then
 		return
 	end
 
@@ -336,46 +330,42 @@ local function RenderGlassUnits()
 
 			sunChanged = false
 		end
-
-		for unitID, _ in pairs(glassUnits) do
+		for i = 1, #glassUnits do
+			local unitID = glassUnits[i]
 			local unitDefID = udIDs[unitID]
-			if CallAsTeam(myTeamID, Spring.IsUnitInView, unitID) then	-- (maybe check this less frequently, update more frequent on camera move for example)
+			glUnitShapeTextures(unitDefID, true)
+			glTexture(2, normalMaps[unitDefID])
 
-				glUnitShapeTextures(unitDefID, true)
-				glTexture(2, normalMaps[unitDefID])
+			local glassUnitDef = glassUnitDefs[unitDefID]
 
-				--local tc = teamColors[unitID]
-				--glassShader:SetUniformFloatAlways("teamColor", tc[1], tc[2], tc[3], tc[4])
-
-				--/// Render only backfaces
-				glCulling(GL_FRONT)
-
-				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
-					glPushMatrix()
-						glUnitMultMatrix(unitID)
-						glUnitPieceMultMatrix(unitID, pieceID)
-						glUnitPiece(unitID, pieceID)
-					glPopMatrix()
-				end
-
-				--/// Render only frontfaces
-				glCulling(GL_BACK)
-
-				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
-					glPushMatrix()
-						glUnitMultMatrix(unitID)
-						glUnitPieceMultMatrix(unitID, pieceID)
-						glUnitPiece(unitID, pieceID)
-					glPopMatrix()
-				end
-
-				glUnitShapeTextures(unitDefID, false)
-				glTexture(2, false)
-
+			glCulling(GL_FRONT)
+			for j = 1, #glassUnitDef do
+				local pieceID = glassUnitDef[j]
+				glPushMatrix()
+					glUnitMultMatrix(unitID)
+					glUnitPieceMultMatrix(unitID, pieceID)
+					glUnitPiece(unitID, pieceID)
+				glPopMatrix()
 			end
+
+			glCulling(GL_BACK)
+			for j = 1, #glassUnitDef do
+				local pieceID = glassUnitDef[j]
+				glPushMatrix()
+					glUnitMultMatrix(unitID)
+					glUnitPieceMultMatrix(unitID, pieceID)
+					glUnitPiece(unitID, pieceID)
+				glPopMatrix()
+			end
+			--glUnitShapeTextures(unitDefID, false)
+			--glTexture(2, false)
 		end
 
+		glTexture(0, false)
+		glTexture(1, false)
+		glTexture(2, false)
 		glTexture(3, false)
+
 	end)
 
 	glDepthTest(false)
@@ -421,7 +411,7 @@ local function UpdateGlassUnit(unitID)
 	end
 
 	if glassUnitDefs[unitDefID] then --unitdef with glass pieces
-		glassUnits[unitID] = true
+		table.insert(glassUnits, unitID)
 		teamColors[unitID] = { spGetTeamColor(spGetUnitTeam(unitID)) }
 	end
 end
@@ -444,7 +434,7 @@ end
 
 local function GlassUnitDestroyed(unitID)
 	udIDs[unitID] = nil
-	glassUnits[unitID] = nil
+	--glassUnits[unitID] = nil
 	teamColors[unitID] = nil
 end
 
@@ -477,10 +467,10 @@ function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 end
 
 ----------------------------------------------------------------------
-
 function gadget:GameFrame(gf)
 	if gf % 7 == 1 then
 		UpdateAllGlassUnits()
+		first = false
 	end
 end
 
