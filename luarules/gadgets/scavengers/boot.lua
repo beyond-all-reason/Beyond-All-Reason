@@ -179,9 +179,12 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 
-	if n%30 == 0 and scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
-		spawnStartBoxProtection(n)
-		executeStartBoxProtection(n)
+	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
+		if n%30 == 0 then
+			spawnStartBoxProtection(n)
+			executeStartBoxProtection(n)
+		end
+		spawnStartBoxEffect(n)
 	end
 
 	if n%30 == 0 and scavconfig.modules.reinforcementsModule then
