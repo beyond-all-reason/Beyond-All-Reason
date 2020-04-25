@@ -73,12 +73,12 @@ WG.hoverID = nil
 local normalUnitIconSize = {
 	isx = 48.1,isy = 48.1, --icon size
 	ix = 6,iy = 6, --icons x/y
-	py = CanvasY - 440
+	py = CanvasY - 445
 }
 local largeUnitIconSize = {
 	isx = 62.5,isy = 62.5, --icon size
 	ix = 5,iy = 5, --icons x/y
-	py = CanvasY - 416
+	py = CanvasY - 445
 }
 local Config = {
 	buildmenu = {

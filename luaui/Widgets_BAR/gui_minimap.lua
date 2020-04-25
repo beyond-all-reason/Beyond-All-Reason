@@ -18,7 +18,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 
 
 local maxWidth = 0.275 * (vsx/vsy)  -- NOTE: changes in widget:ViewResize()
-local maxHeight = 0.23
+local maxHeight = 0.243  -- NOTE: changes in widget:ViewResize()
 maxWidth = math.min(maxHeight*(Game.mapX/Game.mapY), maxWidth)
 
 local bgBorderOrg = 0.0025
@@ -63,11 +63,11 @@ function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
 
   maxWidth = 0.275 * (vsx/vsy)
-  maxHeight = 0.23
+  maxHeight = 0.243
   maxWidth = math.min(maxHeight*(Game.mapX/Game.mapY), maxWidth)
 
   Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, maxWidth*vsy, maxHeight*vsy))
-  
+
   backgroundRect = {0, vsy-(maxHeight*vsy), maxWidth*vsy, vsy}
 
   checkGuishader(true)

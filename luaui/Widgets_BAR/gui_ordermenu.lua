@@ -17,7 +17,7 @@ end
 local showIcons = false
 local colorize = 0
 local playSounds = true
-local posY = 0.7635
+local posY = 0.75
 local width = 0
 local height = 0
 local cellMarginOrg = 0.035
@@ -250,13 +250,9 @@ end
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
 
-  if WG['red_buildmenu'] and WG['red_buildmenu'].getConfigLargeUnitIcons and WG['red_buildmenu'].getConfigLargeUnitIcons() then
-      width = 0.248
-      height = 0.193
-  else
-      width = 0.23
-      height = 0.16
-  end
+  width = 0.23
+  height = 0.14
+
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
   width = width * ui_scale
   backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
@@ -265,8 +261,6 @@ function widget:ViewResize()
   dlistOrders = gl.DeleteList(dlistOrders)
 
   checkGuishader(true)
-  setupCellGrid(true)
-  doUpdate = true
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if fontfileScale ~= newFontfileScale then
