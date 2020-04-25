@@ -217,11 +217,11 @@ function GenEnvLut:Execute(saveDebug)
 			gl.RenderToTexture(self.tex, function()
 				gl.DepthTest(false)
 				gl.Blending(false)
-				gl.PushMatrix()
-					gl.MatrixMode(GL.PROJECTION); gl.LoadIdentity();
-					gl.MatrixMode(GL.MODELVIEW); gl.LoadIdentity();
+				--gl.PushMatrix()
+					--gl.MatrixMode(GL.PROJECTION); gl.LoadIdentity();
+					--gl.MatrixMode(GL.MODELVIEW); gl.LoadIdentity();
 					gl.TexRect(-1, -1, 1, 1)
-				gl.PopMatrix()
+				--gl.PopMatrix()
 				if saveDebug then
 					local gf = Spring.GetGameFrame()
 					gl.SaveImage(0, 0, 3, 3, string.format("envLut_%s.png", gf))
