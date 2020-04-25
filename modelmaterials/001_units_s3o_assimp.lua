@@ -296,18 +296,28 @@ local materials = {
 	}),
 	unitsNormalMapOthers = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		shaderOptions = {
+			normalmapping = false,
+			flashlights = false,
+			vertex_ao = false,
+			health_displace = false,
+			health_texturing = false,
 		},
 		deferredOptions = {
-			materialIndex = 3,
+			normalmapping = false,
+			flashlights = false,
+			vertex_ao = false,
+			health_displace = false,
+			health_texturing = false,
+			materialIndex = 4,
 		},
 
 		-- are these below required?
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
+		--UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
+		--UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
+		--GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
 
-		UnitDamaged = UnitDamaged,
+		--UnitDamaged = UnitDamaged,
 	}),
 }
 
