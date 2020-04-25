@@ -107,6 +107,9 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams = {}
 	end
 
+	-- hide damage (healthbars)
+	uDef.hidedamage = true
+
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
          The engine uses full frames for actual reload times, but forwards the raw
          value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
