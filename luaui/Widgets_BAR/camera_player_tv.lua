@@ -255,6 +255,7 @@ local function createList()
 	for i=1,#drawlist do
 		gl.DeleteList(drawlist[i])
 	end
+	drawlist = {}
 	drawlist[1] = gl.CreateList( function()
 		local fontSize = (widgetHeight*widgetScale) * 0.5
 		local text = '   cancel camera   '
@@ -318,7 +319,7 @@ local function createList()
 
 	if WG['guishader'] and isSpec then
 		if backgroundGuishader then
-			gl.DeleteList(backgroundGuishader)
+			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = gl.CreateList( function()
 			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 5.5*widgetScale)
@@ -526,17 +527,21 @@ function widget:ViewResize(newX,newY)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 		gl.DeleteFont(font2)
 		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+
 		for i=1,#drawlistsCountdown do
 			gl.DeleteList(drawlistsCountdown[i])
 		end
 		for i,v in pairs(drawlistsPlayername) do
 			gl.DeleteList(drawlistsPlayername[i])
 		end
-		if WG['guishader'] then
+		drawlistsCountdown = {}
+		drawlistsPlayername = {}
+		if WG['guishader'] and backgroundGuishader then
 			WG['guishader'].DeleteDlist('playertv')
+			backgroundGuishader = nil
 		end
 		for i=1,#drawlist do
-			gl.DeleteList(drawlist[i])
+			drawlist[i] = gl.DeleteList(drawlist[i])
 		end
 	end
 	createCountdownLists()
@@ -558,7 +563,7 @@ function widget:DrawScreen()
 
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
 		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('playertv')
+			WG['guishader'].RemoveDlist('playertv')
 		end
 		--return
 	end
@@ -631,12 +636,15 @@ function widget:Shutdown()
 	for i,v in pairs(drawlistsPlayername) do
 		gl.DeleteList(drawlistsPlayername[i])
 	end
+	drawlistsCountdown = {}
+	drawlistsPlayername = {}
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('playertv')
 	end
 	for i=1,#drawlist do
 		gl.DeleteList(drawlist[i])
 	end
+	drawlist = {}
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 	if toggled and WG['advplayerlist_api'] then

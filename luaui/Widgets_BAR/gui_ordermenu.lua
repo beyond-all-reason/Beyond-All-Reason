@@ -551,9 +551,9 @@ function drawOrders()
       if cmd.params[1] and cmd.params[cmd.params[1]+2] then
         text = cmd.params[cmd.params[1]+2]
       end
-      local fontSize = cellInnerWidth / font2:GetTextWidth(' '..text..' ') * math_min(1, (cellInnerHeight/(rows*6)))
-      if fontSize > cellInnerWidth / 6 then
-        fontSize = cellInnerWidth / 6
+      local fontSize = cellInnerWidth / font2:GetTextWidth('  '..text..' ') * math_min(1, (cellInnerHeight/(rows*6)))
+      if fontSize > cellInnerWidth / 6.3 then
+        fontSize = cellInnerWidth / 6.3
       end
       local fontHeight = font2:GetTextHeight(text)*fontSize
       local fontHeightOffset = fontHeight*0.34
