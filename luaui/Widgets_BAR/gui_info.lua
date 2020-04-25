@@ -78,6 +78,8 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:ViewResize()
+  vsx,vsy = Spring.GetViewGeometry()
+
   width = 0.23
   height = 0.14
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
