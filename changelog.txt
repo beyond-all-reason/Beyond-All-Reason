@@ -4,6 +4,7 @@
  • Ground scout vehicles/kbot: 10% more LoS
  • Enabled ground deformation
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
+ • No healthbars for enemy units, see how damaged a unit looks instead!
 
 
 10.23 -> 10.24
