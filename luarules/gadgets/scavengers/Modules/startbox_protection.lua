@@ -93,3 +93,27 @@ function spawnStartBoxProtection(n)
     canSpawnDefence = nil
     pickedTurret = nil
 end
+
+function executeStartBoxProtection(n)
+	if ScavengerStartboxExists then
+		local list = Spring.GetUnitsInRectangle(ScavengerStartboxXMin,ScavengerStartboxZMin,ScavengerStartboxXMax,ScavengerStartboxZMax)
+		for i = 1,#list do
+			local unitID = list[i]
+			local unitTeam = Spring.GetUnitTeam(unitID)
+			if unitTeam ~= GaiaTeamID then
+				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
+				local damage = maxHealth*0.05
+				local r = math.random(0,3)
+				if r == 0 then
+					if damage < currentHealth then
+						Spring.SetUnitHealth(unitID,currentHealth-damage)
+						local posx, posy, posz = Spring.GetUnitPosition(unitID)
+						Spring.SpawnCEG("scaspawn-trail",posx,posy+5,posz,0,0,0)
+					else
+						Spring.DestroyUnit(unitID, false, false)
+					end
+				end
+			end
+		end
+	end
+end

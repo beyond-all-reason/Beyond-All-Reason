@@ -175,12 +175,13 @@ function gadget:GameFrame(n)
 		Spring.SetTeamColor(GaiaTeamID, 0.38, 0.14, 0.38)
 	end
 
-	if scavconfig.messenger == true and n%30 == 0 then
+	if n%30 == 0 and scavconfig.messenger == true then
 		pregameMessages(n)
 	end
 
-	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true and n%30 == 0 then
+	if n%30 == 0 and scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
 		spawnStartBoxProtection(n)
+		executeStartBoxProtection(n)
 	end
 
 	if n%30 == 0 and scavconfig.modules.reinforcementsModule then
