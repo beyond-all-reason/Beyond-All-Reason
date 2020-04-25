@@ -68,8 +68,6 @@ local LuaShader = VFS.Include(LUASHADER_DIR .. "LuaShader.lua")
 local advShading
 local shadows
 
-local bug3734wa = false
-
 local sunChanged = false --always on on load/reload
 local optionsChanged = false --just in case
 
@@ -223,6 +221,9 @@ end
 
 local function _CompileMaterialShaders(rendering)
 	for matName, matSrc in pairs(rendering.materialDefs) do
+		matSrc.hasStandardShader = false
+		matSrc.hasDeferredShader = false
+		matSrc.hasShadowShader = false
 		if matSrc.shaderSource then
 			local luaShader = _CompileShader(
 				matSrc.shaderSource,
@@ -240,20 +241,17 @@ local function _CompileMaterialShaders(rendering)
 					end
 				end
 				matSrc.standardShaderObj = luaShader
+				matSrc.hasStandardShader = true
 				matSrc.standardShader = luaShader:GetHandle()
 				luaShader:SetUnknownUniformIgnore(true)
 				luaShader:ActivateWith( function()
 					matSrc.standardUniforms = _FillUniformLocs(luaShader)
 				end)
 				luaShader:SetActiveStateIgnore(true)
-
-				if matSrc.Initialize then
-					matSrc.Initialize(matName, matSrc)
-				end
 			end
 		end
 
-		if (matSrc.deferredSource) then
+		if matSrc.deferredSource then
 			local luaShader = _CompileShader(
 				matSrc.deferredSource,
 				matSrc.deferredDefinitions,
@@ -270,20 +268,17 @@ local function _CompileMaterialShaders(rendering)
 					end
 				end
 				matSrc.deferredShaderObj = luaShader
+				matSrc.hasDeferredShader = true
 				matSrc.deferredShader = luaShader:GetHandle()
 				luaShader:SetUnknownUniformIgnore(true)
 				luaShader:ActivateWith( function()
 					matSrc.deferredUniforms = _FillUniformLocs(luaShader)
 				end)
 				luaShader:SetActiveStateIgnore(true)
-
-				if matSrc.Initialize then
-					matSrc.Initialize(matName, matSrc)
-				end
 			end
 		end
 
-		if (matSrc.shadowSource) then
+		if matSrc.shadowSource then
 			-- work around AMD bug
 			matSrc.shadowSource.fragment = nil
 
@@ -302,17 +297,18 @@ local function _CompileMaterialShaders(rendering)
 					end
 				end
 				matSrc.shadowShaderObj = luaShader
+				matSrc.hasShadowShader = true
 				matSrc.shadowShader = luaShader:GetHandle()
 				luaShader:SetUnknownUniformIgnore(true)
 				luaShader:ActivateWith( function()
 					matSrc.shadowUniforms = _FillUniformLocs(luaShader)
 				end)
 				luaShader:SetActiveStateIgnore(true)
-
-				if matSrc.Initialize then
-					matSrc.Initialize(matName, matSrc)
-				end
 			end
+		end
+
+		if matSrc.Initialize then
+			matSrc.Initialize(matName, matSrc)
 		end
 
 	end
@@ -626,7 +622,7 @@ local function ObjectFinished(rendering, objectID, objectDefID)
 			rendering.spActivateMaterial(objectID, 3)
 
 			rendering.spSetMaterial(objectID, 3, "opaque", GetObjectMaterial(rendering, objectDefID))
-			if mat.shadowShader and (not bug3734wa) then
+			if mat.shadowShader then
 				rendering.spSetMaterial(objectID, 3, "shadow", GetObjectShadowMaterial(rendering, objectDefID))
 			end
 
@@ -634,16 +630,16 @@ local function ObjectFinished(rendering, objectID, objectDefID)
 				rendering.spSetPieceList(objectID, 3, pieceID)
 			end
 
-			local DrawObject = mat[rendering.DrawObject]
-			local ObjectCreated = mat[rendering.ObjectCreated]
+			local _DrawObject = mat[rendering.DrawObject]
+			local _ObjectCreated = mat[rendering.ObjectCreated]
 
-			if DrawObject then
+			if _DrawObject then
 				rendering.spSetObjectLuaDraw(objectID, true)
 				rendering.drawList[objectID] = mat
 			end
 
-			if ObjectCreated then
-				ObjectCreated(objectID, objectDefID, mat)
+			if _ObjectCreated then
+				_ObjectCreated(objectID, objectDefID, mat)
 			end
 		end
 	end
@@ -655,7 +651,7 @@ local function ObjectDestroyed(rendering, objectID, objectDefID)
 	if mat then
 		local _ObjectDestroyed = mat[rendering.ObjectDestroyed]
 		if _ObjectDestroyed then
-			_ObjectDestroyed(objectID, objectDefID)
+			_ObjectDestroyed(objectID, objectDefID, mat)
 		end
 		rendering.objectList[objectID] = nil
 		rendering.drawList[objectID] = nil
@@ -668,12 +664,7 @@ local function ObjectDamaged(rendering, objectID, objectDefID)
 	if mat then
 		local _ObjectDamaged = mat[rendering.ObjectDamaged]
 		if _ObjectDamaged then
-			if mat.standardShaderObj then
-				_ObjectDamaged(objectID, objectDefID, mat, false)
-			end
-			if mat.deferredShaderObj then
-				_ObjectDamaged(objectID, objectDefID, mat, true)
-			end
+			_ObjectDamaged(objectID, objectDefID, mat)
 		end
 	end
 end
@@ -686,16 +677,15 @@ local function DrawObject(rendering, objectID, objectDefID, drawMode)
 
 	local _DrawObject = mat[rendering.DrawObject]
 	if _DrawObject then
-		local luaShaderObj = ((drawMode == 1) and mat.standardShaderObj) or ((drawMode == 5) and mat.deferredShaderObj)
-		return _DrawObject(objectID, objectDefID, mat, drawMode, luaShaderObj)
+		return _DrawObject(objectID, objectDefID, mat, drawMode)
 	end
 end
 
 
 local function _CleanupEverything(rendering)
 	for objectID, mat in pairs(rendering.drawList) do
-		local DrawObject = mat[rendering.DrawObject]
-		if DrawObject then
+		local _DrawObject = mat[rendering.DrawObject]
+		if _DrawObject then
 			rendering.spSetObjectLuaDraw(objectID, false)
 		end
 	end
@@ -813,12 +803,7 @@ local function _GameFrameSlow(gf)
 		for _, mat in pairs(rendering.materialDefs) do
 			local gameFrameSlowFunc = mat.GameFrameSlow
 			if gameFrameSlowFunc then
-				if mat.standardShaderObj then
-					gameFrameSlowFunc(gf, mat, false)
-				end
-				if mat.deferredShaderObj then
-					gameFrameSlowFunc(gf, mat, true)
-				end
+				gameFrameSlowFunc(gf, mat)
 			end
 		end
 	end
@@ -830,12 +815,7 @@ local function _GameFrame(gf)
 		for _, mat in pairs(rendering.materialDefs) do
 			local gameFrameFunc = mat.GameFrame
 			if gameFrameFunc then
-				if mat.standardShaderObj then
-					gameFrameFunc(gf, mat, false)
-				end
-				if mat.deferredShaderObj then
-					gameFrameFunc(gf, mat, true)
-				end
+				gameFrameFunc(gf, mat)
 			end
 		end
 	end
@@ -966,8 +946,6 @@ function gadget:Initialize()
 
 	sunChanged = true --always on on load/reload
 	optionsChanged = true --just in case
-
-	bug3734wa = Spring.GetConfigInt("bug3734wa", 0) > 0
 
 	local normalmapping = Spring.GetConfigInt("NormalMapping", 1) > 0
 	local treewind = Spring.GetConfigInt("TreeWind", 1) > 0

@@ -6,13 +6,13 @@ local matTemplate = VFS.Include("ModelMaterials/Templates/defaultMaterialTemplat
 local GL_FLOAT = 0x1406
 local GL_INT = 0x1404
 -- args=<objID, matName, lodMatNum, uniformName, uniformType, uniformData>
-local frSetMaterialUniform = {
+local mySetMaterialUniform = {
 	[false] = Spring.FeatureRendering.SetForwardMaterialUniform,
 	[true]  = Spring.FeatureRendering.SetDeferredMaterialUniform,
 }
 
 -- args=<objID, matName, lodMatNum, uniformName>
-local frClearMaterialUniform = {
+local myClearMaterialUniform = {
 	[false] = Spring.FeatureRendering.ClearForwardMaterialUniform,
 	[true]  = Spring.FeatureRendering.ClearDeferredMaterialUniform,
 }
@@ -24,7 +24,7 @@ local spGetFeatureHealth = Spring.GetFeatureHealth
 local featuresHealth = {} --cache
 local healthArray = {[1] = 0.0}
 local featureDefSide = {} -- 1 - arm, 2 - core, 0 - hell know what
-local function SendHealthInfo(featureID, featureDefID, isDeferred)
+local function SendHealthInfo(featureID, featureDefID, hasStd, hasDef, hasShad)
 	local h, mh = spGetFeatureHealth(featureID)
 	if h and mh then
 
@@ -44,9 +44,9 @@ local function SendHealthInfo(featureID, featureDefID, isDeferred)
 
 		if not featuresHealth[featureID] then
 			featuresHealth[featureID] = h / mh
-		elseif (h / mh - featuresHealth[featureID]) >= 0.005 then --consider the change of 0.5% significant. Health is increasing
+		elseif (h / mh - featuresHealth[featureID]) >= 0.02 then --consider the change of 2% significant. Health is increasing
 			featuresHealth[featureID] = h / mh
-		elseif (featuresHealth[featureID] - h / mh) >= 0.0625 then --health is decreasing. Quantize by 6.25%.
+		elseif (featuresHealth[featureID] - h / mh) >= 0.10 then --health is decreasing. Quantize by 10%.
 			featuresHealth[featureID] = h / mh
 		end
 
@@ -59,18 +59,25 @@ local function SendHealthInfo(featureID, featureDefID, isDeferred)
 
 		healthArray[1] = healthMixMult * (1.0 - featuresHealth[featureID]) --invert so it can be used as mix() easier
 		--healthArray[1] = 1.0;
-		--Spring.Echo("SendHealthInfo", featureID, isDeferred, frSetMaterialUniform[isDeferred], healthArray[1])
-		frSetMaterialUniform[isDeferred](featureID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
-		if not isDeferred then
-			frSetMaterialUniform[isDeferred](featureID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		--Spring.Echo("SendHealthInfo", featureID, healthArray[1])
+		if hasStd then
+			mySetMaterialUniform[false](featureID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
+		if hasDef then
+			mySetMaterialUniform[true ](featureID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		end
+		if hasShad then
+			mySetMaterialUniform[false](featureID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		end
+
+
 	end
 end
 
 local healthMod = {} --cache
 local vertDisp = {} --cache
 local vdhmArray = {[1] = 0.0, [2] = 0.0}
-local function SendVertDispAndHelthMod(featureID, featureDefID, isDeferred)
+local function SendVertDispAndHelthMod(featureID, featureDefID, hasStd, hasDef, hasShad)
 	-- fill caches, if empty
 	if not healthMod[featureDefID] then
 		local fdefCM = FeatureDefs[featureDefID].customParams
@@ -85,49 +92,57 @@ local function SendVertDispAndHelthMod(featureID, featureDefID, isDeferred)
 	if vertDisp[featureDefID] > 0 or healthMod[featureDefID] > 0 then
 		vdhmArray[1] = healthMod[featureDefID]
 		vdhmArray[2] = vertDisp[featureDefID]
-		frSetMaterialUniform[isDeferred](featureID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
-		if not isDeferred then
-			frSetMaterialUniform[isDeferred](featureID, "shadow", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		if hasStd then
+			mySetMaterialUniform[false](featureID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		end
+		if hasDef then
+			mySetMaterialUniform[true ](featureID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		end
+		if hasShad then
+			mySetMaterialUniform[false](featureID, "shadow", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
 		end
 	end
 end
 
 local fidArray = {[1] = 0}
-local function SendFeatureID(featureID, isDeferred)
+local function SendFeatureID(featureID, hasStd, hasDef, hasShad)
 	fidArray[1] = featureID
-	frSetMaterialUniform[isDeferred](featureID, "opaque", 3, "intOptions[0]", GL_INT, fidArray)
-	if not isDeferred then
-		frSetMaterialUniform[isDeferred](featureID, "shadow", 3, "intOptions[0]", GL_INT, fidArray)
+	if hasStd then
+		mySetMaterialUniform[false](featureID, "opaque", 3, "intOptions[0]", GL_INT, fidArray)
+	end
+	if hasDef then
+		mySetMaterialUniform[true ](featureID, "opaque", 3, "intOptions[0]", GL_INT, fidArray)
+	end
+	if hasShad then
+		mySetMaterialUniform[false](featureID, "shadow", 3, "intOptions[0]", GL_INT, fidArray)
 	end
 end
 
 local featuresList = {}
 local function FeatureCreated(featureID, featureDefID, mat)
 	featuresList[featureID] = featureDefID
-	if mat.standardShaderObj then
-		SendFeatureID(featureID, false)
-		SendVertDispAndHelthMod(featureID, featureDefID, false)
-		SendHealthInfo(featureID, featureDefID, false)
-	end
-	if mat.deferredShaderObj then
-		SendFeatureID(featureID, true)
-		SendVertDispAndHelthMod(featureID, featureDefID, true)
-		SendHealthInfo(featureID, featureDefID, true)
-	end
+
+	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
+
+	SendFeatureID(featureID, featureID, hasDef, hasShad)
+	SendVertDispAndHelthMod(featureID, featureDefID, hasStd, hasDef, hasShad)
+	SendHealthInfo(featureID, featureDefID, hasStd, hasDef, hasShad)
 end
 
-local function FeatureDestroyed(featureID, featureDefID)
+local function FeatureDestroyed(featureID, featureDefID, mat)
 	featuresList[featureID] = nil
 end
 
-local function GameFrameSlow(gf, mat, isDeferred)
+local function GameFrameSlow(gf, mat)
+	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
 	for featureID, featureDefID in pairs(featuresList) do
-		SendHealthInfo(featureID, featureDefID, isDeferred)
+		SendHealthInfo(featureID, featureDefID, hasStd, hasDef, hasShad)
 	end
 end
 
-local function FeatureDamaged(featureID, featureDefID, mat, isDeferred)
-	SendHealthInfo(featureID, featureDefID, isDeferred)
+local function FeatureDamaged(featureID, featureDefID, mat)
+	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
+	SendHealthInfo(featureID, featureDefID, hasStd, hasDef, hasShad)
 end
 
 --------------------------------------------------------------------------------

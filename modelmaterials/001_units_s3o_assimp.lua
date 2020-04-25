@@ -63,13 +63,13 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 local GL_FLOAT = 0x1406
 local GL_INT = 0x1404
 -- args=<objID, matName, lodMatNum, uniformName, uniformType, uniformData>
-local urSetMaterialUniform = {
+local mySetMaterialUniform = {
 	[false] = Spring.UnitRendering.SetForwardMaterialUniform,
 	[true]  = Spring.UnitRendering.SetDeferredMaterialUniform,
 }
 
 -- args=<objID, matName, lodMatNum, uniformName>
-local urClearMaterialUniform = {
+local myClearMaterialUniform = {
 	[false] = Spring.UnitRendering.ClearForwardMaterialUniform,
 	[true]  = Spring.UnitRendering.ClearDeferredMaterialUniform,
 }
@@ -83,7 +83,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local unitsHealth = {} --cache
 local healthArray = {[1] = 0.0}
 local unitDefSide = {} -- 1 - arm, 2 - core, 0 - hell know what
-local function SendHealthInfo(unitID, unitDefID, isDeferred)
+local function SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 	local h, mh = spGetUnitHealth(unitID)
 	if h and mh then
 
@@ -117,10 +117,15 @@ local function SendHealthInfo(unitID, unitDefID, isDeferred)
 		-- end
 
 		healthArray[1] = healthMixMult * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
-		--Spring.Echo("SendHealthInfo", unitID, isDeferred, urSetMaterialUniform[isDeferred], healthArray[1])
-		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
-		if not isDeferred then
-			urSetMaterialUniform[isDeferred](unitID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		--Spring.Echo("SendHealthInfo", unitID, healthArray[1])
+		if hasStd then
+			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		end
+		if hasDef then
+			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+		end
+		if hasShad then
+			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
 	end
 end
@@ -128,7 +133,7 @@ end
 local healthMod = {} --cache
 local vertDisp = {} --cache
 local vdhmArray = {[1] = 0.0, [2] = 0.0}
-local function SendVertDispAndHelthMod(unitID, unitDefID, isDeferred)
+local function SendVertDispAndHelthMod(unitID, unitDefID, hasStd, hasDef, hasShad)
 	-- fill caches, if empty
 	if not healthMod[unitDefID] then
 		local udefCM = UnitDefs[unitDefID].customParams
@@ -143,19 +148,29 @@ local function SendVertDispAndHelthMod(unitID, unitDefID, isDeferred)
 	if vertDisp[unitDefID] > 0 or healthMod[unitDefID] > 0 then
 		vdhmArray[1] = healthMod[unitDefID]
 		vdhmArray[2] = vertDisp[unitDefID]
-		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
-		if not isDeferred then
-			urSetMaterialUniform[isDeferred](unitID, "shadow", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		if hasStd then
+			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		end
+		if hasDef then
+			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+		end
+		if hasShad then
+			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
 		end
 	end
 end
 
 local uidArray = {[1] = 0}
-local function SendUnitID(unitID, isDeferred)
+local function SendUnitID(unitID, hasStd, hasDef, hasShad)
 	uidArray[1] = unitID
-	urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "intOptions[0]", GL_INT, uidArray)
-	if not isDeferred then
-		urSetMaterialUniform[isDeferred](unitID, "shadow", 3, "intOptions[0]", GL_INT, uidArray)
+	if hasStd then
+		mySetMaterialUniform[false](unitID, "opaque", 3, "intOptions[0]", GL_INT, uidArray)
+	end
+	if hasDef then
+		mySetMaterialUniform[true ](unitID, "opaque", 3, "intOptions[0]", GL_INT, uidArray)
+	end
+	if hasShad then
+		mySetMaterialUniform[false](unitID, "shadow", 3, "intOptions[0]", GL_INT, uidArray)
 	end
 end
 
@@ -164,7 +179,7 @@ local spGetUnitDirection = Spring.GetUnitDirection
 
 local threadSpeeds = {} --cache
 local threadsArray = {[1] = 0.0}
-local function SendTracksOffset(unitID, isDeferred)
+local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 	if not threadSpeeds[unitID] then
 		threadSpeeds[unitID] = 0.0
 	end
@@ -177,45 +192,46 @@ local function SendTracksOffset(unitID, isDeferred)
 		speed = -speed
 	end
 
-	if threadSpeeds[unitID] ~= speed and not isDeferred then
+	if threadSpeeds[unitID] ~= speed then
 		threadSpeeds[unitID] = speed
 		threadsArray[1] = speed
-		urSetMaterialUniform[isDeferred](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		-- forward only
+		if hasStd then
+			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		end
 	end
 end
 
 local function UnitCreated(unitsList, unitID, unitDefID, mat)
 	unitsList[unitID] = unitDefID
-	if mat.standardShaderObj then
-		SendUnitID(unitID, false)
-		SendVertDispAndHelthMod(unitID, unitDefID, false)
-		SendHealthInfo(unitID, unitDefID, false)
-	end
-	if mat.deferredShaderObj then
-		SendUnitID(unitID, true)
-		SendVertDispAndHelthMod(unitID, unitDefID, true)
-		SendHealthInfo(unitID, unitDefID, true)
-	end
+
+	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
+
+	SendUnitID(unitID, hasStd, hasDef, hasShad)
+	SendVertDispAndHelthMod(unitID, unitDefID, hasStd, hasDef, hasShad)
+	SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 end
 
-local function UnitDestroyed(unitsList, unitID, unitDefID)
+local function UnitDestroyed(unitsList, unitID, unitDefID, mat)
 	unitsList[unitID] = nil
 end
 
-local function GameFrame(isTank, unitsList, gf, mat, isDeferred)
+local function GameFrame(isTank, unitsList, gf, mat)
+	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
 	local gfRem = gf % 10
 	for unitID, unitDefID in pairs(unitsList) do
 		if gfRem == unitID % 10 then
 			if isTank then
-				SendTracksOffset(unitID, isDeferred)
+				SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 			end
-			SendHealthInfo(unitID, unitDefID, isDeferred)
+			SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 		end
 	end
 end
 
-local function UnitDamaged(unitID, unitDefID, mat, isDeferred)
-	SendHealthInfo(unitID, unitDefID, isDeferred)
+local function UnitDamaged(unitID, unitDefID, mat)
+	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
+	SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 end
 
 ---------------------------------------------------
@@ -237,7 +253,7 @@ local materials = {
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(armTanks, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(armTanks, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat, isDeferred) GameFrame(true, armTanks, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat) GameFrame(true, armTanks, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -256,7 +272,7 @@ local materials = {
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(coreTanks, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(coreTanks, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat, isDeferred) GameFrame(true, coreTanks, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat) GameFrame(true, coreTanks, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -274,7 +290,7 @@ local materials = {
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat, isDeferred) GameFrame(false, otherUnits, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -289,7 +305,7 @@ local materials = {
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
 		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat, isDeferred) GameFrame(false, otherUnits, gf, mat, isDeferred) end,
+		GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
