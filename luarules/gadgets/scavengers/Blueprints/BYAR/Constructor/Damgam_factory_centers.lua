@@ -208,3 +208,15 @@ local function DamgamT1Spammer(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamT1Spammer)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamT1Spammer)
+
+local function DamgamT1EarlyFactory(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+	local posradius = 96
+	if radiusCheck then
+		return posradius
+	else
+		local randomfac = {UDN.armap_scav.id, UDN.armhp_scav.id, UDN.armlab_scav.id, UDN.armvp_scav.id, UDN.corap_scav.id, UDN.corhp_scav.id, UDN.corlab_scav.id, UDN.corvp_scav.id,}
+		Spring.GiveOrderToUnit(scav, -randomfac[math_random(1,#randomfac)], {posx, posy, posz, math_random(0,3)}, {"shift"})
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT0,DamgamT1EarlyFactory)
+table.insert(ScavengerConstructorBlueprintsT1,DamgamT1EarlyFactory)
