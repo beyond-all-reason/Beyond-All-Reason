@@ -765,8 +765,8 @@ end
 
 
 function widget:MousePress(x, y, button)
-  if #cmds > 0 then
-    if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+    if #cmds > 0 then
       if not disableInput then
         for cell=1, #cellRects do
           local cmd = cmds[cell]
@@ -803,8 +803,8 @@ function widget:MousePress(x, y, button)
           end
         end
       end
-      return true
     end
+    return true
   end
 end
 
