@@ -38,6 +38,9 @@ local currentTooltip = ''
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetCameraState = Spring.GetCameraState
 
+local usedWidth = maxWidth*vsy
+local usedHeight = maxHeight*vsy
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -60,7 +63,7 @@ end
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-  local w = 0.29
+  local w = 0.285
   if enlarged then
     maxWidth = w * (vsx/vsy)
     maxHeight = 0.3865
@@ -73,7 +76,9 @@ function widget:ViewResize()
       maxHeight = maxWidth / (Game.mapX/Game.mapY)
   end
 
-  Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, maxWidth*vsy, maxHeight*vsy))
+  usedWidth = maxWidth*vsy
+  usedHeight = maxHeight*vsy
+  Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, usedWidth, usedHeight))
 
   backgroundRect = {0, vsy-(maxHeight*vsy), maxWidth*vsy, vsy}
 
@@ -95,6 +100,9 @@ function widget:Initialize()
     WG['minimap'].setEnlarged = function(value)
         enlarged = value
         widget:ViewResize()
+    end
+    WG['minimap'].getHeight = function()
+        return usedHeight
     end
 end
 

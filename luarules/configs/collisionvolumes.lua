@@ -134,7 +134,7 @@ pieceCollisionVolume['armrad'] = {
 	['3']={60,13,13,11,0,0,1,0},
 }
 pieceCollisionVolume['armveil'] = {
-	['1']={25,58,25,0,30,0,1,1},
+	['1']={25,75,25,0,-15,0,1,1},
 	['3']={76,16,16,6,0,0,1,0},
 }
 pieceCollisionVolume['armbrtha'] = {
