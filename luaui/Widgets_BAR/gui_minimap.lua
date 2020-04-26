@@ -18,7 +18,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 
 local enlarged = false
 
-local maxWidth = 0.275 * (vsx/vsy)  -- NOTE: changes in widget:ViewResize()
+local maxWidth = 0.29 * (vsx/vsy)  -- NOTE: changes in widget:ViewResize()
 local maxHeight = 0.243  -- NOTE: changes in widget:ViewResize()
 maxWidth = math.min(maxHeight*(Game.mapX/Game.mapY), maxWidth)
 
@@ -60,14 +60,18 @@ end
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
+  local w = 0.29
   if enlarged then
-    maxWidth = 0.275 * (vsx/vsy)
+    maxWidth = w * (vsx/vsy)
     maxHeight = 0.3865
   else
-    maxWidth = 0.275 * (vsx/vsy)
+    maxWidth = w * (vsx/vsy)
     maxHeight = 0.243
   end
   maxWidth = math.min(maxHeight*(Game.mapX/Game.mapY), maxWidth)
+  if maxWidth >= w * (vsx/vsy)  then
+      maxHeight = maxWidth / (Game.mapX/Game.mapY)
+  end
 
   Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, maxWidth*vsy, maxHeight*vsy))
 
@@ -113,8 +117,18 @@ function widget:Shutdown()
   Spring.SendCommands("minimap geometry "..oldMinimapGeometry)
 end
 
+local delayedSetup = false
+local sec = 0
 local uiOpacitySec = 0
 function widget:Update(dt)
+  if not delayedSetup then
+      sec = sec + dt
+      if sec > 2 then
+          delayedSetup = true
+          widget:ViewResize()
+      end
+  end
+
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.5 then
     uiOpacitySec = 0
@@ -247,13 +261,11 @@ function drawMinimap()
   --RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 end
 
-
 function widget:DrawScreen()
   --local x,y,b = Spring.GetMouseState()
   --if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
   --  Spring.SetMouseCursor('cursornormal')
   --end
-
   local st = spGetCameraState()
   if st.name == "ov" then -- overview camera
     if dlistGuishader and WG['guishader'] then

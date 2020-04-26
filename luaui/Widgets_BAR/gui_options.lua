@@ -119,7 +119,7 @@ local optionGroups = {}
 local optionButtons = {}
 local optionHover = {}
 local optionSelect = {}
-
+local windowRect = {0,0,0,0}
 local showOnceMore = false		-- used because of GUI shader delay
 local resettedTonemapDefault = false
 
@@ -557,7 +557,8 @@ function DrawWindow()
 
 	local x = screenX --rightwards
 	local y = screenY --upwards
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	windowRect = {x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin}
+	RectRound(windowRect[1], windowRect[2], windowRect[3], windowRect[4],8, 0,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
 	RectRound(x,y-screenHeight,x+screenWidth,y,5.5, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
 
 	-- title
@@ -1544,6 +1545,11 @@ function mouseEvent(x, y, button, release)
 				return true
 			end
 		end
+
+		if IsOnRect(cx,cy, windowRect[1],windowRect[2],windowRect[3],windowRect[4]) then
+			Spring.Echo(Spring.GetGameFrame())
+			return true
+		end
 	end
 end
 
@@ -2451,7 +2457,7 @@ function init()
 		 onchange = function(i, value) saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', {'blurIntensity'}, value) end,
 		},
 
-		{id="minimap_enlarged", group="ui", basic=true, name="Minimap enlarged", type="bool", value=false, description='',
+		{id="minimap_enlarged", group="ui", basic=true, name="Minimap enlarged", type="bool", value=false, description='Relocates the order-menu to make room for the minimap',
 		 onload = function(i) loadWidgetData("Minimap", "minimap_enlarged", {'enlarged'}) end,
 		 onchange = function(i, value)
 			 saveOptionValue('Minimap', 'minimap', 'setEnlarged', {'enlarged'}, value)
