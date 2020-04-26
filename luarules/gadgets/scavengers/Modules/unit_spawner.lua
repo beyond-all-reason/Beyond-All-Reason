@@ -216,7 +216,7 @@ function UnitGroupSpawn(n)
 					end
 				end
 				
-				local groupsize = math.ceil(groupsize*bestTeamGroupMultiplier*math.floor(teamcount/2))
+				local groupsize = math.ceil(groupsize*bestTeamGroupMultiplier*(teamcount/2))
 				for i=1, groupsize do
 					local posx = posx+math_random(-160,160)
 					local posz = posz+math_random(-160,160)
