@@ -2021,13 +2021,6 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SendCommands("luarules uniticonscale "..value) end,
 		},
-		{id="minimapiconsize", group="gfx", name=widgetOptionColor.."   minimap scale", type="slider", min=1.5, max=5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",3.5) or 1), description='',
-		 onload = function(i) end,
-		 onchange = function(i, value) minimapIconsize = value
-			 Spring.SetConfigFloat("MinimapIconScale", value)
-			 Spring.SendCommands("minimap unitsize "..value)		-- spring wont remember what you set with '/minimap iconssize #'
-		 end,
-		},
 
 		{id="featuredrawdist", group="gfx", name="Feature draw distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureDrawDistance",6000) or 400), description='Features (trees, stones, wreckage) stop being displayed at this distance',
 		 onload = function(i) end,
@@ -2416,11 +2409,25 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', {'useSameTeamColors'}, value) end,
 		},
-		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!",
+		{id="simpleminimapcolors", group="ui", name="Minimap"..widgetOptionColor.."  simple colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!",
 		 onload = function(i) end,
 		 onchange = function(i, value)
 			 Spring.SendCommands("minimap simplecolors  "..(value and 1 or 0))
 			 Spring.SetConfigInt("SimpleMiniMapColors",(value and 1 or 0))
+		 end,
+		},
+		{id="minimapiconsize", group="ui", name=widgetOptionColor.."   icon scale", type="slider", min=2, max=5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",3.5) or 1), description='',
+		 onload = function(i) end,
+		 onchange = function(i, value) minimapIconsize = value
+			 Spring.SetConfigFloat("MinimapIconScale", value)
+			 Spring.SendCommands("minimap unitsize "..value)		-- spring wont remember what you set with '/minimap iconssize #'
+		 end,
+		},
+
+		{id="minimap_enlarged", group="ui", basic=true, name=widgetOptionColor.."   enlarged", type="bool", value=false, description='Relocates the order-menu to make room for the minimap',
+		 onload = function(i) loadWidgetData("Minimap", "minimap_enlarged", {'enlarged'}) end,
+		 onchange = function(i, value)
+			 saveOptionValue('Minimap', 'minimap', 'setEnlarged', {'enlarged'}, value)
 		 end,
 		},
 
@@ -2455,13 +2462,6 @@ function init()
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."      intensity", type="slider", min=0.001, max=0.003, step=0.0001, value=0.002, description='',
 		 onload = function(i) loadWidgetData("GUI Shader", "guishaderintensity", {'blurIntensity'}) end,
 		 onchange = function(i, value) saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', {'blurIntensity'}, value) end,
-		},
-
-		{id="minimap_enlarged", group="ui", basic=true, name="Minimap enlarged", type="bool", value=false, description='Relocates the order-menu to make room for the minimap',
-		 onload = function(i) loadWidgetData("Minimap", "minimap_enlarged", {'enlarged'}) end,
-		 onchange = function(i, value)
-			 saveOptionValue('Minimap', 'minimap', 'setEnlarged', {'enlarged'}, value)
-		 end,
 		},
 
 		{id="metalspots", group="ui", widget="Metalspots", name="Metalspot indicators", type="bool", value=GetWidgetToggleValue("Metalspots"), description='Shows a circle around metal spots with the amount of metal in it'},
