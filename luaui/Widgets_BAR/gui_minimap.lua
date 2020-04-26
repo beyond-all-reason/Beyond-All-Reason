@@ -16,6 +16,7 @@ end
 
 local vsx,vsy = Spring.GetViewGeometry()
 
+local enlarged = false
 
 local maxWidth = 0.275 * (vsx/vsy)  -- NOTE: changes in widget:ViewResize()
 local maxHeight = 0.243  -- NOTE: changes in widget:ViewResize()
@@ -59,9 +60,13 @@ end
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-
-  maxWidth = 0.275 * (vsx/vsy)
-  maxHeight = 0.243
+  if enlarged then
+    maxWidth = 0.275 * (vsx/vsy)
+    maxHeight = 0.3865
+  else
+    maxWidth = 0.275 * (vsx/vsy)
+    maxHeight = 0.243
+  end
   maxWidth = math.min(maxHeight*(Game.mapX/Game.mapY), maxWidth)
 
   Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, maxWidth*vsy, maxHeight*vsy))
@@ -78,6 +83,19 @@ function widget:Initialize()
   gl.SlaveMiniMap(true)
 
   widget:ViewResize()
+
+  WG['minimap'] = {}
+    WG['minimap'].getEnlarged = function()
+        return enlarged
+    end
+    WG['minimap'].setEnlarged = function(value)
+        enlarged = value
+        widget:ViewResize()
+    end
+end
+
+function widget:GameStart()
+    widget:ViewResize()
 end
 
 function clear()
@@ -236,11 +254,6 @@ function widget:DrawScreen()
   --  Spring.SetMouseCursor('cursornormal')
   --end
 
-  if doUpdate then
-    clear()
-    doUpdate = nil
-  end
-
   local st = spGetCameraState()
   if st.name == "ov" then -- overview camera
     if dlistGuishader and WG['guishader'] then
@@ -264,3 +277,17 @@ function widget:DrawScreen()
   --gl.ResetState()
   --gl.ResetMatrices()
 end
+
+
+function widget:GetConfigData() --save config
+    return {
+        enlarged = enlarged
+    }
+end
+
+function widget:SetConfigData(data) --load config
+    if data.enlarged ~= nil then
+        enlarged = data.enlarged
+    end
+end
+

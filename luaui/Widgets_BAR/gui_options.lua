@@ -2451,6 +2451,13 @@ function init()
 		 onchange = function(i, value) saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', {'blurIntensity'}, value) end,
 		},
 
+		{id="minimap_enlarged", group="ui", basic=true, name="Minimap enlarged", type="bool", value=false, description='',
+		 onload = function(i) loadWidgetData("Minimap", "minimap_enlarged", {'enlarged'}) end,
+		 onchange = function(i, value)
+			 saveOptionValue('Minimap', 'minimap', 'setEnlarged', {'enlarged'}, value)
+		 end,
+		},
+
 		{id="metalspots", group="ui", widget="Metalspots", name="Metalspot indicators", type="bool", value=GetWidgetToggleValue("Metalspots"), description='Shows a circle around metal spots with the amount of metal in it'},
 		{id="metalspots_opacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.1, max=1, step=0.01, value=0.5, description='Display metal values in the center',
 		 onload=function(i) loadWidgetData("Metalspots", "metalspots_opacity", {'opacity'}) end,

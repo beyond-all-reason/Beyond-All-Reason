@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Floris",
     date      = "April 2020",
     license   = "GNU GPL, v2 or later",
-    layer     = 0,
+    layer     = 1,
     enabled   = true
   }
 end
@@ -14,10 +14,13 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local altPosition = false
+
 local showIcons = false
 local colorize = 0
 local playSounds = true
 local posY = 0.75
+local posX = 0
 local width = 0
 local height = 0
 local cellMarginOrg = 0.035
@@ -254,8 +257,17 @@ function widget:ViewResize()
 
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
   width = width * ui_scale
-  backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
-  activeRect = {0 + (bgMargin*vsy), ((posY-height)+bgMargin)*vsy, (width*vsx)-(bgMargin*vsy), (posY-bgMargin)*vsy}
+
+  if altPosition then
+    posY = height
+    posX = width + 0.003
+  else
+    posY = 0.75
+    posX = 0
+  end
+
+  backgroundRect = {posX*vsx, (posY-height)*vsy, (posX+width)*vsx, posY*vsy}
+  activeRect = {(posX*vsx)+(bgMargin*vsy), ((posY-height)+bgMargin)*vsy, ((posX+width)*vsx)-(bgMargin*vsy), (posY-bgMargin)*vsy}
 
   dlistOrders = gl.DeleteList(dlistOrders)
 
@@ -277,6 +289,11 @@ end
 
 
 function widget:Initialize()
+
+  if WG['minimap'] then
+    altPosition = WG['minimap'].getEnlarged()
+  end
+
   widget:ViewResize()
   widget:SelectionChanged()
 
@@ -315,6 +332,12 @@ function widget:Update(dt)
     end
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+      doUpdate = true
+    end
+    if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
+      altPosition = WG['minimap'].getEnlarged()
+      widget:ViewResize()
+      setupCellGrid(true)
       doUpdate = true
     end
 
@@ -449,13 +472,8 @@ end
 function drawOrders()
   -- background
   local padding = bgBorder*vsy
-  --glColor(0,0,0,ui_opacity)
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  --glColor(1,1,1,0.05)
-  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
-  --local h = (backgroundRect[4]-backgroundRect[2])/5
-  --RectRound(backgroundRect[1], backgroundRect[4]-padding-h, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1.33, 0,1,0,0,{0.6,0.6,0.6,ui_opacity*0.33}, {1,1,1,ui_opacity*0.3})
-  --RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+h, padding*1.33, 0,0,1,0, {1,1,1,ui_opacity*0.3}, {1,1,1,0})
+  RectRound(backgroundRect[1]+(altPosition and padding or 0), backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
   padding = (bgBorder*vsy) * 0.4
 
