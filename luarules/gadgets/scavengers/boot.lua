@@ -90,12 +90,13 @@ end
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 
+
 local function DisableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
 	Spring.MoveCtrl.SetNoBlocking(unitID, true)
-	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+500, 2000, Game.mapSizeZ+500) --don't move too far out or prevent_aicraft_hax will explode it!
+	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1000, 2000, Game.mapSizeZ+1000) --don't move too far out or prevent_aicraft_hax will explode it!
 	Spring.SetUnitCloak(unitID, true)
-	Spring.SetUnitHealth(unitID, {paralyze=99999999})
+	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
 	Spring.SetUnitNoDraw(unitID, true)
 	Spring.SetUnitStealth(unitID, true)
 	Spring.SetUnitNoSelect(unitID, true)
@@ -107,6 +108,7 @@ end
 local function DisableCommander()
 	local teamUnits = Spring.GetTeamUnits(scavengerAITeamID)
 	for _, unitID in ipairs(teamUnits) do
+		HiddenCommander = unitID
 		DisableUnit(unitID)
 	end
 end
@@ -171,13 +173,14 @@ function gadget:GameFrame(n)
 	end
 
 	if n == 1 then
-		Spring.Echo("New Scavenger Spawner initialized")
+		--Spring.Echo("New Scavenger Spawner initialized")
 		Spring.SetTeamColor(GaiaTeamID, 0.38, 0.14, 0.38)
 	end
 
 	if n%30 == 0 and scavconfig.messenger == true then
 		pregameMessages(n)
 	end
+		
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
 		if n%30 == 0 then
@@ -193,8 +196,12 @@ function gadget:GameFrame(n)
 		SetBeaconsResourceProduction(n)
 	end
 
-	if n == 15 and GaiaTeamID ~= Spring.GetGaiaTeamID() then
-		DisableCommander()
+	if n%30 == 0 and GaiaTeamID ~= Spring.GetGaiaTeamID() then
+		if not disabledCommander then
+			DisableCommander()
+			disabledCommander = true
+		end
+		Spring.SetUnitHealth(HiddenCommander, 9999999)
 	end
 
 	if n == 100 and globalScore then
