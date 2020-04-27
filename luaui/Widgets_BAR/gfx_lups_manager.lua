@@ -25,8 +25,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local disableAtAvgFps = 40
-local avgFpsThreshold = 6   -- have this more fps than disableAtAvgFps to re-enable
+local disableAtAvgFps = 35
+local avgFpsThreshold = 16   -- have this more fps than disableAtAvgFps to re-enable
 
 local enabled = true
 local averageFps = 100
