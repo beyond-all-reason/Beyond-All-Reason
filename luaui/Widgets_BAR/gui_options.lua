@@ -2150,6 +2150,10 @@ function init()
 			 saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', {'enableThrusters'}, value)
 		 end,
 		},
+		{id="lups_disablefps", group="gfx", name=widgetOptionColor.."   disable below fps", type="slider", min=0, max=80, step=1, value=40, description='disable effects when average FPS gets below this amount',
+		 onload = function(i) loadWidgetData("LupsManager", "lups_disablefps", {'disableAtAvgFps'}) end,
+		 onchange = function(i, value) saveOptionValue('LupsManager', 'lups_manager', 'setDisableFps', {'disableAtAvgFps'}, value) end,
+		},
 
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game',
 		--		 onload = function(i) end,

@@ -25,6 +25,13 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local disableAtAvgFps = 40
+local avgFpsThreshold = 6   -- have this more fps than disableAtAvgFps to re-enable
+
+local enabled = true
+local averageFps = 100
+local spGetFPS = Spring.GetFPS
+
 local function MergeTable(table1,table2)
   local result = {}
   for i,v in pairs(table2) do
@@ -543,62 +550,99 @@ local function CheckForExistingUnits()
   widgetHandler:RemoveWidgetCallIn("Update",widget)
 end
 
-function widget:GameFrame()
-  if (Spring.GetGameFrame() > 0) then
+function widget:GameFrame(gameFrame)
+    if gameFrame%31==0 then
+        averageFps = ((averageFps * 19) + spGetFPS()) / 20
+        if enabled then
+            if averageFps < disableAtAvgFps then
+                enabled = false
+                widget:Shutdown()
+            end
+        else
+            if averageFps >= disableAtAvgFps + avgFpsThreshold then
+                enabled = true
+                tryloading = 1
+                initialized = false
+                init()
+                initCallins()
+                --CheckForExistingUnits()
+            end
+        end
+    end
+end
+
+function init()
+    Lups = WG['Lups']
+    local LupsWidget = widgetHandler.knownWidgets['Lups'] or {}
+
+    --// Lups running?
+    if not initialized then
+        if Lups and LupsWidget.active then
+            if tryloading == -1 then
+                Spring.Echo("LuaParticleSystem (Lups) activated.")
+            end
+            initialized=true
+            return
+        else
+            if tryloading == 1 then
+                Spring.Echo("Lups not found! Trying to activate it.")
+                widgetHandler:EnableWidget("Lups")
+                tryloading = -1
+                return
+            else
+                Spring.Echo("LuaParticleSystem (Lups) couldn't be loaded!")
+                widgetHandler:RemoveWidgetCallIn("Update",self)
+                return
+            end
+        end
+    end
+
+    LupsAddFX = Lups.AddParticles
+
     Spring.SendLuaRulesMsg("lups running","allies")
-    widgetHandler:RemoveWidgetCallIn("GameFrame",widget)
-  end
+    initCallins()
+end
+
+function initCallins()
+    widget.UnitFinished   = UnitFinished
+    widget.UnitDestroyed  = UnitDestroyed
+    widget.UnitEnteredLos = UnitEnteredLos
+    widget.UnitLeftLos    = UnitLeftLos
+    widget.GameFrame      = GameFrame
+    widget.PlayerChanged  = PlayerChanged
+    widgetHandler:UpdateWidgetCallIn("UnitFinished",widget)
+    widgetHandler:UpdateWidgetCallIn("UnitDestroyed",widget)
+    widgetHandler:UpdateWidgetCallIn("UnitEnteredLos",widget)
+    widgetHandler:UpdateWidgetCallIn("UnitLeftLos",widget)
+    widgetHandler:UpdateWidgetCallIn("PlayerChanged",widget)
+
+    widget.Update = CheckForExistingUnits
+    widgetHandler:UpdateWidgetCallIn("Update",widget)
+end
+
+function widget:Initialize()
+    WG['lups_manager'] = {}
+    WG['lups_manager'].getDisableFps = function()
+        return disableAtAvgFps
+    end
+    WG['lups_manager'].setDisableFps = function(value)
+        disableAtAvgFps = value
+    end
 end
 
 function widget:Update()
-  Lups = WG['Lups']
-  local LupsWidget = widgetHandler.knownWidgets['Lups'] or {}
-
-  --// Lups running?
-  if (not initialized) then
-    if (Lups and LupsWidget.active) then
-      if (tryloading==-1) then
-        Spring.Echo("LuaParticleSystem (Lups) activated.")
-      end
-      initialized=true
-      return
-    else
-      if (tryloading==1) then
-        Spring.Echo("Lups not found! Trying to activate it.")
-        widgetHandler:EnableWidget("Lups")
-        tryloading=-1
-        return
-      else
-        Spring.Echo("LuaParticleSystem (Lups) couldn't be loaded!")
-        widgetHandler:RemoveWidgetCallIn("Update",self)
-        return
-      end
-    end
-  end
-
-  LupsAddFX = Lups.AddParticles
-
-  Spring.SendLuaRulesMsg("lups running","allies")
-
-  widget.UnitFinished   = UnitFinished
-  widget.UnitDestroyed  = UnitDestroyed
-  widget.UnitEnteredLos = UnitEnteredLos
-  widget.UnitLeftLos    = UnitLeftLos
-  widget.GameFrame      = GameFrame
-  widget.PlayerChanged  = PlayerChanged
-  widgetHandler:UpdateWidgetCallIn("UnitFinished",widget)
-  widgetHandler:UpdateWidgetCallIn("UnitDestroyed",widget)
-  widgetHandler:UpdateWidgetCallIn("UnitEnteredLos",widget)
-  widgetHandler:UpdateWidgetCallIn("UnitLeftLos",widget)
-  widgetHandler:UpdateWidgetCallIn("GameFrame",widget)
-  widgetHandler:UpdateWidgetCallIn("PlayerChanged",widget)
-
-  widget.Update = CheckForExistingUnits
-  widgetHandler:UpdateWidgetCallIn("Update",widget)
+    init()
 end
 
 function widget:Shutdown()
-  if (initialized) then
+  if initialized then
+      widgetHandler:RemoveWidgetCallIn("UnitFinished",widget)
+      widgetHandler:RemoveWidgetCallIn("UnitDestroyed",widget)
+      widgetHandler:RemoveWidgetCallIn("UnitEnteredLos",widget)
+      widgetHandler:RemoveWidgetCallIn("UnitLeftLos",widget)
+      widgetHandler:RemoveWidgetCallIn("PlayerChanged",widget)
+      widgetHandler:RemoveWidgetCallIn("Update",widget)
+
     for _,unitFxIDs in pairs(particleIDs) do
       for _,fxID in ipairs(unitFxIDs) do
         Lups.RemoveParticles(fxID)
@@ -608,6 +652,26 @@ function widget:Shutdown()
   end
 
   Spring.SendLuaRulesMsg("lups shutdown","allies")
+  initialized = false
+end
+
+
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.averageFps = math.floor(averageFps)
+    savedTable.disableAtAvgFps = disableAtAvgFps
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+    if data.disableAtAvgFps ~= nil then
+        disableAtAvgFps = data.disableAtAvgFps
+    end
+    if Spring.GetGameFrame() > 0 then
+        if data.averageFps ~= nil then
+            averageFps = data.averageFps
+        end
+    end
 end
 
 --------------------------------------------------------------------------------
