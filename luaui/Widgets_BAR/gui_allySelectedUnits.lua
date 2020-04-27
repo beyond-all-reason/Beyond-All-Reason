@@ -64,6 +64,7 @@ local GL_LINE_LOOP			= GL.LINE_LOOP
 
 local spec = false
 local showGui = false
+local playerIsSpec = {}
 
 ----------------------------------------------------------------
 
@@ -250,6 +251,10 @@ function widget:PlayerChanged(playerID)
 	if oldCoopStatus ~= playerSelectedUnits[ playerID ]["coop"] then
 		getPlayerColour(playerID,playerTeam)
 	end
+
+	for i,playerID in pairs(Spring.GetPlayerList()) do
+		playerIsSpec[playerID] = select(3,spGetPlayerInfo(playerID),false)
+	end
 end
 
 function calcCircleLines(divs)
@@ -298,8 +303,7 @@ end
 
 
 function selectedUnitsClear(playerID)
-	isSpec = select(3,spGetPlayerInfo(playerID),false)
-	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
+	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
 		end
@@ -316,8 +320,7 @@ function selectedUnitsClear(playerID)
 end
 
 function selectedUnitsAdd(playerID,unitID)
-	isSpec = select(3,spGetPlayerInfo(playerID),false)
-	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
+	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
 		end
@@ -338,8 +341,7 @@ function selectedUnitsAdd(playerID,unitID)
 end
 
 function selectedUnitsRemove(playerID,unitID)
-	isSpec = select(3,spGetPlayerInfo(playerID),false)
-	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
+	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
 		end
@@ -465,9 +467,9 @@ function DrawSelectedUnits()
 	gl.PointSize(1)
 	local now = spGetGameSeconds()
 	for playerID, selUnits in pairs( playerSelectedUnits ) do
-	
-		if lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits) then
+		if (lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits)) and not playerIsSpec[playerID] then
 			if selUnits["todraw"] then
+
 				glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3], maxAlpha)  
 				for unitID, defRadius in pairs( selUnits["units"] ) do
 					local x, y, z = spGetUnitBasePosition(unitID)
