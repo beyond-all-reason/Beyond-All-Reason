@@ -463,7 +463,7 @@ SweetSpot(piecenum)
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = nano + nanoNozzle;
+	piecenum = head + nanoNozzle;  //head was nano
 	nanoNozzle = !nanoNozzle;
 }
 
