@@ -826,13 +826,19 @@ local lastUpdate = 0
 --	minGroundDetail = 2
 --end
 function widget:Update(dt)
+	if countDownOptionID and countDownOptionClock and countDownOptionClock < os.clock() then
+		applyOptionValue(countDownOptionID)
+		countDownOptionID = nil
+		countDownOptionClock = nil
+	end
+
 	if not initialized then return end
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-		--if select(7, Spring.GetMouseState()) then	-- when camera panning
-		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
-		--else
-			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
-		--end
+	--if select(7, Spring.GetMouseState()) then	-- when camera panning
+	--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+	--else
+	Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+	--end
 	end
 	sec = sec + dt
 
@@ -842,7 +848,7 @@ function widget:Update(dt)
 	Spring.SetConfigInt("ROAM", 1)
 	Spring.SendCommands("mapmeshdrawer 2")
 	if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < 100 then
-		Spring.SendCommands("GroundDetail "..100)
+	Spring.SendCommands("GroundDetail "..100)
 	end
 	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
 	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
@@ -873,32 +879,32 @@ function widget:Update(dt)
 
 
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
-		sec = 0
-		forceUpdate = nil
-		lastUpdate = sec
-		local changes = true
-		for i, option in ipairs(options) do
-			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
-				options[i].value = GetWidgetToggleValue(options[i].widget)
-				changes = true
-			end
-		end
-		if changes then
-			if windowList then
-				gl.DeleteList(windowList)
-			end
-			windowList = gl.CreateList(DrawWindow)
-		end
-		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
-		if getOptionByID('sndvolmusic') then
-			if WG['music'] and WG['music'].GetMusicVolume then
-				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
-			else
-				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)
-			end
-		end
+	sec = 0
+	forceUpdate = nil
+	lastUpdate = sec
+	local changes = true
+	for i, option in ipairs(options) do
+	if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
+	options[i].value = GetWidgetToggleValue(options[i].widget)
+	changes = true
 	end
-end
+	end
+	if changes then
+	if windowList then
+	gl.DeleteList(windowList)
+	end
+	windowList = gl.CreateList(DrawWindow)
+	end
+	options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
+	if getOptionByID('sndvolmusic') then
+	if WG['music'] and WG['music'].GetMusicVolume then
+	options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
+	else
+	options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)
+	end
+	end
+	end
+	end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
@@ -2017,9 +2023,18 @@ function init()
 			 Spring.SendCommands("disticon "..value)
 		 end,
 		},
-		{id="iconscale", group="gfx", basic=true, name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well',
+		{id="iconscale", group="gfx", basic=true, name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.8, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well',
 		 onload = function(i) end,
-		 onchange = function(i, value) Spring.SendCommands("luarules uniticonscale "..value) end,
+		 onchange = function(i, value)
+			 if countDownOptionClock and countDownOptionClock < os.clock() then	-- else sldier gets too sluggish when constantly updating
+				 Spring.SendCommands("luarules uniticonscale "..value)
+				 countDownOptionID = nil
+				 countDownOptionClock = nil
+			 else
+				countDownOptionID = getOptionByID('iconscale')
+			 	countDownOptionClock = os.clock() + 0.9
+			 end
+		 end,
 		},
 
 		{id="featuredrawdist", group="gfx", name="Feature draw distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureDrawDistance",6000) or 400), description='Features (trees, stones, wreckage) stop being displayed at this distance',
