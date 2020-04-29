@@ -135,7 +135,7 @@ return {
 				laserflaresize = 4.4,
 				name = "Laser",
 				noselfdamage = true,
-				range = 240,
+				range = 225,
 				reloadtime = 0.5,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",

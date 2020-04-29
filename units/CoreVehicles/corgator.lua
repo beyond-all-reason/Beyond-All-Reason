@@ -2,8 +2,8 @@ return {
 	corgator = {
 		acceleration = 0.04631,
 		brakerate = 0.09262,
-		buildcostenergy = 1150,
-		buildcostmetal = 125,
+		buildcostenergy = 1042,
+		buildcostmetal = 118,
 		buildpic = "CORGATOR.PNG",
 		buildtime = 1761,
 		canmove = true,
@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.96,
-		turnrate = 388,
+		turnrate = 427,
 		customparams = {
 			basename = "base",
 			cannon1name = "barrel",
@@ -56,8 +56,8 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corevehicles",
 			turretname = "turret",
-			wpn1turretx = "175",
-			wpn1turrety = "175",
+			wpn1turretx = "192.5",
+			wpn1turrety = "192.5",
 		},
 		featuredefs = {
 			dead = {

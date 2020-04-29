@@ -2,8 +2,8 @@ return {
 	armflash = {
 		acceleration = 0.06788,
 		brakerate = 0.13575,
-		buildcostenergy = 980,
-		buildcostmetal = 115,
+		buildcostenergy = 911,
+		buildcostmetal = 109,
 		buildpic = "ARMFLASH.PNG",
 		buildtime = 1963,
 		canmove = true,
@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.424,
-		turnrate = 473,
+		turnrate = 568,
 		customparams = {
 			basename = "base",
 			cannon1name = "barrel1",
@@ -58,8 +58,8 @@ return {
 			sleevename = "sleeves",
 			subfolder = "armvehicles",
 			turretname = "turret",
-			wpn1turretx = "200",
-			wpn1turrety = "200",
+			wpn1turretx = "240",
+			wpn1turrety = "240",
 		},
 		featuredefs = {
 			dead = {
