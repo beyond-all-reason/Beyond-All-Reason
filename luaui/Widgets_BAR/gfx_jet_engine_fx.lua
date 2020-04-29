@@ -11,7 +11,7 @@
 
 function widget:GetInfo()
   return {
-    name      = "LupsManager",
+    name      = "Jet engine fx",
     desc      = "",
     author    = "jK",
     date      = "Feb, 2008",
@@ -301,31 +301,17 @@ local UnitEffects = {
         {class='AirJet',options={color={0.2,0.8,0.2}, width=3.3, length=40, piece="thrusta", onActive=true, light=1}},
         {class='AirJet',options={color={0.2,0.8,0.2}, width=3.3, length=40, piece="thrustb", onActive=true, light=1}},
     },
-
-    -- shields
-    ["corgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts550)},
-    },
-    ["corfgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts600)},
-    },
-    ["armgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,25,5}},shieldBursts550)},
-    },
-    ["armfgate"] = {
-        {class='Bursts',options=MergeTable({pos={0,25,0}},shieldBursts600)},
-    },
 }
 
-local distoredShields = tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1
-if distoredShields then
-    local distortionAmount = 0.007
-	local minDistortionMult = 0.2
-    UnitEffects["corgate"][#UnitEffects["corgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
-    UnitEffects["corfgate"][#UnitEffects["corfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
-    UnitEffects["armgate"][#UnitEffects["armgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
-    UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
-end
+--local distoredShields = tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1
+--if distoredShields then
+--    local distortionAmount = 0.007
+--	local minDistortionMult = 0.2
+--    UnitEffects["corgate"][#UnitEffects["corgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+--    UnitEffects["corfgate"][#UnitEffects["corfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+--    UnitEffects["armgate"][#UnitEffects["armgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+--    UnitEffects["armfgate"][#UnitEffects["armfgate"]+1] = {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength = distortionAmount, strengthMin = distortionAmount * minDistortionMult, repeatEffect=true}}
+--end
 
 if UnitDefNames['armcom_scav'] then
 
@@ -621,11 +607,11 @@ function initCallins()
 end
 
 function widget:Initialize()
-    WG['lups_manager'] = {}
-    WG['lups_manager'].getDisableFps = function()
+    WG['lups_jetenginefx'] = {}
+    WG['lups_jetenginefx'].getDisableFps = function()
         return disableAtAvgFps
     end
-    WG['lups_manager'].setDisableFps = function(value)
+    WG['lups_jetenginefx'].setDisableFps = function(value)
         disableAtAvgFps = value
     end
 end

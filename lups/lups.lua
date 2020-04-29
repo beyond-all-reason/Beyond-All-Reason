@@ -993,17 +993,17 @@ local function Update(_,dt)
 	if (next(particles)) then
 		CreateVisibleFxList()
 	end
-	if reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 1 then
-		handler:RemoveCallIn("DrawWorldReflection")
-		handler:RemoveCallIn("DrawWorldRefraction")
-		reflectionrefractionEnabled = false
-		Spring.Echo("Lups reflection and refraction pass Disabled")
-	elseif not reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 0 then
-		handler:UpdateCallIn("DrawWorldReflection")
-		handler:UpdateCallIn("DrawWorldRefraction")
-		reflectionrefractionEnabled = true
-		Spring.Echo("Lups reflection and refraction pass Enabled")
-	end
+	--if reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 1 then
+	--	handler:RemoveCallIn("DrawWorldReflection")
+	--	handler:RemoveCallIn("DrawWorldRefraction")
+	--	reflectionrefractionEnabled = false
+	--	Spring.Echo("Lups reflection and refraction pass Disabled")
+	--elseif not reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 0 then
+	--	handler:UpdateCallIn("DrawWorldReflection")
+	--	handler:UpdateCallIn("DrawWorldRefraction")
+	--	reflectionrefractionEnabled = true
+	--	Spring.Echo("Lups reflection and refraction pass Enabled")
+	--end
 end
 
 --------------------------------------------------------------------------------
@@ -1142,11 +1142,11 @@ this.Initialize = Initialize
 this.Shutdown   = Shutdown
 this.DrawWorldPreUnit    = DrawParticlesOpaque
 this.DrawWorld           = DrawParticles
-if Spring.GetConfigInt("lupsreflectionrefraction", 0) == 1 then
-	reflectionrefractionEnabled = true
-	this.DrawWorldReflection = DrawParticlesWater
-	this.DrawWorldRefraction = DrawParticlesWater
-end
+--if Spring.GetConfigInt("lupsreflectionrefraction", 0) == 1 then
+--	reflectionrefractionEnabled = true
+--	this.DrawWorldReflection = DrawParticlesWater
+--	this.DrawWorldRefraction = DrawParticlesWater
+--end
 this.ViewResize = ViewResize
 this.Update     = Update
 if gadget then
