@@ -46,9 +46,15 @@ function ShardUnit:Name()
 	return 'nullunit'
 end
 
-function ShardUnit:InTypeNameList( unitTypeNames )
+function ShardUnit:InList( unitTypeNames )
 	for i,name in ipairs(unitTypeNames) do
 		if name == self:Name() then
+			return true
+		end
+		if name == self:ID() then
+			return true
+		end
+		if name == self:Type() then
 			return true
 		end
 	end
