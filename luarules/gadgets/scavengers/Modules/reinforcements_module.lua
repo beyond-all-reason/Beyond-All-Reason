@@ -8,7 +8,7 @@ local CaptureProgressForBeacons = {}
 function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
-	
+
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
 		local scavDef = Spring.GetUnitDefID(scav)
@@ -24,7 +24,7 @@ function CaptureBeacons(n)
 			CapturingUnitsTeamTest = {}
 			local TeamsCapturing = 0
 			CapturingUnits[scav] = 0
-			
+
 			for j = 1,#unitsAround do
 				local unitID = unitsAround[j]
 				local unitTeamID = spGetUnitTeam(unitID)
@@ -47,7 +47,7 @@ function CaptureBeacons(n)
 				end
 				captureraiTeam = nil
 			end
-			
+
 			for j = 1,#unitsAround do
 				local unitID = unitsAround[j]
 				local unitTeamID = spGetUnitTeam(unitID)
@@ -57,7 +57,7 @@ function CaptureBeacons(n)
 				local unitDefID = Spring.GetUnitDefID(unitID)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
 				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
-				
+
 				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 					captureraiTeam = false
 				else
@@ -67,7 +67,7 @@ function CaptureBeacons(n)
 				if not CapturingUnitsTeam[unitTeamID] then
 					CapturingUnitsTeam[unitTeamID] = 0
 				end
-				
+
 				for k = 1,#BeaconCaptureExcludedUnits do
 					if UnitDefs[unitDefID].name == BeaconCaptureExcludedUnits[k] then
 						IsUnitExcluded = true
@@ -76,7 +76,7 @@ function CaptureBeacons(n)
 						IsUnitExcluded = false
 					end
 				end
-				
+
 				if unitDefID == scavDef then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
 				elseif unitTeamID == GaiaTeamID and (not unitTeamID == scavDef) then
@@ -92,7 +92,7 @@ function CaptureBeacons(n)
 					CaptureProgressForBeacons[scav] = 1
 				end
 				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
-				
+
 				if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForBeacons[scav] >= 1 then
 					CaptureProgressForBeacons[scav] = 0
 					Spring.SetUnitHealth(scav, {capture = 0})
@@ -147,11 +147,11 @@ function SpawnDefencesAfterCapture(unitID, teamID)
 	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 		grouptiersea = StartboxDefenceStructuresT3Sea
 	end
-	
+
 	local posx,posy,posz = Spring.GetUnitPosition(unitID)
 	local posy = Spring.GetGroundHeight(posx, posz)
 	local n = Spring.GetGameFrame()
-	
+
 	local r = grouptier[math_random(1,#grouptier)]
 	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz-128, math_random(0,3),teamID)
@@ -161,7 +161,7 @@ function SpawnDefencesAfterCapture(unitID, teamID)
 	else
 		QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
 	end
-	
+
 	local r = grouptier[math_random(1,#grouptier)]
 	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz+128, math_random(0,3),teamID)
@@ -171,7 +171,7 @@ function SpawnDefencesAfterCapture(unitID, teamID)
 	else
 		QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
 	end
-	
+
 	local r = grouptier[math_random(1,#grouptier)]
 	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz+128, math_random(0,3),teamID)
@@ -181,7 +181,7 @@ function SpawnDefencesAfterCapture(unitID, teamID)
 	else
 		QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
 	end
-	
+
 	local r = grouptier[math_random(1,#grouptier)]
 	local r2 = grouptiersea[math_random(1,#grouptiersea)]
 	Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz-128, math_random(0,3),teamID)
@@ -191,7 +191,7 @@ function SpawnDefencesAfterCapture(unitID, teamID)
 	else
 		QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
 	end
-	
+
 	grouptier = nil
 	grouptiersea = nil
 end
@@ -227,7 +227,7 @@ function spawnPlayerReinforcements(n)
                 ReinforcementsCountPerTeam[teamID] = 0
             end
             if not ReinforcementsChancePerTeam[teamID] then
-                ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID]) 
+                ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
             end
 
             if not isDead then
@@ -359,9 +359,9 @@ function spawnPlayerReinforcements(n)
                     end
 
                 end
-            
+
             end
-        
+
         end
         pickedBeacon = nil
     end

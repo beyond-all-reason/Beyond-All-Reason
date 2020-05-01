@@ -14,11 +14,11 @@
 	-- if radiusCheck then
 		-- return posradius
 	-- else
-		-- Spring.CreateUnit("corrad", posx, posy, posz, math_random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("scallt", posx-100, posy, posz, math_random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("scallt", posx+100, posy, posz, math_random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("scallt", posx, posy, posz-100, math_random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("scallt", posx, posy, posz+100, math_random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("corrad", posx, posy, posz, math_random(0,3),GaiaTeamID)
+		-- Spring.CreateUnit("scallt", posx-100, posy, posz, math_random(0,3),GaiaTeamID)
+		-- Spring.CreateUnit("scallt", posx+100, posy, posz, math_random(0,3),GaiaTeamID)
+		-- Spring.CreateUnit("scallt", posx, posy, posz-100, math_random(0,3),GaiaTeamID)
+		-- Spring.CreateUnit("scallt", posx, posy, posz+100, math_random(0,3),GaiaTeamID)
 	-- end
 -- end
 -- table.insert(ScavengerBlueprintsT1,a)
@@ -38,4 +38,3 @@ local posradius = 200
 	end
 end
 table.insert(ScavengerBlueprintsT3,armpwboss_scav)
-

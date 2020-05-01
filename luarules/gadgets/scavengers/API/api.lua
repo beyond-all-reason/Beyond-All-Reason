@@ -1,86 +1,88 @@
 Spring.Echo("[Scavengers] API initialized")
-	math_random = math.random
-	-- variables
-	mapsizeX = Game.mapSizeX
-	mapsizeZ = Game.mapSizeZ
-	GaiaTeamID = Spring.GetGaiaTeamID()
-	ScavengerStartboxXMin = mapsizeX + 1
-	ScavengerStartboxZMin = mapsizeZ + 1
-	ScavengerStartboxXMax = mapsizeX + 1
-	ScavengerStartboxZMax = mapsizeZ + 1
-	ScavengerStartboxExists = false
-	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
-	scavTechDifficulty = Spring.GetModOptions().scavengerstech or "adaptive"
-	if scavengersAIEnabled then
-		if spawnmultiplier == 0 then
-			spawnmultiplier = 0.5
-		end
-		GaiaTeamID = scavengerAITeamID
-		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
-		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaAllyTeamID)
-		if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
-			ScavengerStartboxExists = false
-		else
-			ScavengerStartboxExists = true
-		end
-	else
-		_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
-		ScavengerStartboxExists = false
-	end
-	teamcount = #Spring.GetTeamList() - 1
-	allyteamcount = #Spring.GetAllyTeamList() - 1
-	
-	BossWaveStarted = false
-	selfdx = {}
-	selfdy = {}
-	selfdz = {}
-	oldselfdx = {}
-	oldselfdy = {}
-	oldselfdz = {}
-	scavNoSelfD = {}
-	UDC = Spring.GetTeamUnitDefCount
-	UDN = UnitDefNames
-	scavStructure = {}
-	scavConstructor = {}
-	scavAssistant = {}
-	scavResurrector = {}
-	scavFactory = {}
-	scavCollector = {}
-	scavSpawnBeacon = {}
-	scavStockpiler = {}
-	scavNuke = {}
-	UnitSuffixLenght = {}
-	numOfSpawnBeacons = 0
-	numOfSpawnBeaconsTeams = {}
-	scavMaxUnits = 2000
-	scavengerSoundPath = "Sounds/voice/scavengers/"
-	killedscavengers = 0
-	QueuedSpawns = {}
-	QueuedSpawnsFrames = {}
-	ConstructorNumberOfRetries = {}
-	CaptureProgressForBeacons = {}
-	
-	if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
-		scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
-	end
-	if GaiaTeamID == Spring.GetGaiaTeamID() then
-		scavMaxUnits = 10000
-	end
-	TierSpawnChances = {
-		T0 = 100,
-		T1 = 0,
-		T2 = 0,
-		T3 = 0,
-		T4 = 0,
-	}
 
-	-- check for solo play
-	if teamcount <= 0 then
-   	teamcount = 1
+
+math_random = math.random
+-- variables
+mapsizeX = Game.mapSizeX
+mapsizeZ = Game.mapSizeZ
+GaiaTeamID = Spring.GetGaiaTeamID()
+ScavengerStartboxXMin = mapsizeX + 1
+ScavengerStartboxZMin = mapsizeZ + 1
+ScavengerStartboxXMax = mapsizeX + 1
+ScavengerStartboxZMax = mapsizeZ + 1
+ScavengerStartboxExists = false
+spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
+scavTechDifficulty = Spring.GetModOptions().scavengerstech or "adaptive"
+if scavengersAIEnabled then
+	if spawnmultiplier == 0 then
+		spawnmultiplier = 0.5
 	end
-   	if allyteamcount <= 0 then
-   	allyteamcount = 1
+	GaiaTeamID = scavengerAITeamID
+	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaAllyTeamID)
+	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
+		ScavengerStartboxExists = false
+	else
+		ScavengerStartboxExists = true
 	end
+else
+	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+	ScavengerStartboxExists = false
+end
+teamcount = #Spring.GetTeamList() - 1
+allyteamcount = #Spring.GetAllyTeamList() - 1
+
+BossWaveStarted = false
+selfdx = {}
+selfdy = {}
+selfdz = {}
+oldselfdx = {}
+oldselfdy = {}
+oldselfdz = {}
+scavNoSelfD = {}
+UDC = Spring.GetTeamUnitDefCount
+UDN = UnitDefNames
+scavStructure = {}
+scavConstructor = {}
+scavAssistant = {}
+scavResurrector = {}
+scavFactory = {}
+scavCollector = {}
+scavSpawnBeacon = {}
+scavStockpiler = {}
+scavNuke = {}
+UnitSuffixLenght = {}
+numOfSpawnBeacons = 0
+numOfSpawnBeaconsTeams = {}
+scavMaxUnits = 2000
+scavengerSoundPath = "Sounds/voice/scavengers/"
+killedscavengers = 0
+QueuedSpawns = {}
+QueuedSpawnsFrames = {}
+ConstructorNumberOfRetries = {}
+CaptureProgressForBeacons = {}
+
+if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
+	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
+end
+if GaiaTeamID == Spring.GetGaiaTeamID() then
+	scavMaxUnits = 10000
+end
+TierSpawnChances = {
+	T0 = 100,
+	T1 = 0,
+	T2 = 0,
+	T3 = 0,
+	T4 = 0,
+}
+
+-- check for solo play
+if teamcount <= 0 then
+		teamcount = 1
+end
+	if allyteamcount <= 0 then
+		allyteamcount = 1
+end
 
 -- Check height diffrences
 function posCheck(posx, posy, posz, posradius)
@@ -216,7 +218,7 @@ function posMapsizeCheck(posx, posy, posz, posradius)
 end
 
 function teamsCheck()
-	
+
 	bestTeamScore = 0
 	bestTeam = 0
 	if scavTechDifficulty == "adaptive" or globalScore == nil then
@@ -244,11 +246,11 @@ function teamsCheck()
 				-- Spring.Echo("resourceScore "..i..": "..resourceScore)
 				-- Spring.Echo("nonFinalGlobalScore "..i..": "..nonFinalGlobalScore)
 				-- Spring.Echo("Final Score for team "..i..": "..finalScore)
-				
+
 				nonFinalGlobalScore = nonFinalGlobalScore + finalScore
-				
+
 				scorePerTeam[teamID] = finalScore
-				
+
 				if finalScore > bestTeamScore then
 					bestTeamScore = finalScore
 					bestTeam = i

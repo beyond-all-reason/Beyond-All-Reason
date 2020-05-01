@@ -167,7 +167,7 @@ function gadget:GameFrame(n)
 	-- if n%30 == 0 then
 		-- PutSpectatorsInScavTeam(n)
 	-- end
-	
+
 	if n > 1 then
 		SpawnFromQueue(n)
 	end
@@ -180,7 +180,7 @@ function gadget:GameFrame(n)
 	if n%30 == 0 and scavconfig.messenger == true then
 		pregameMessages(n)
 	end
-		
+
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
 		if n%30 == 0 then
@@ -257,13 +257,13 @@ function gadget:GameFrame(n)
 						ScavStockpile(n, scav)
 					end
 				end
-			
+
 				if scavconfig.modules.nukes == true then
 					if scavNuke[scav] == true then
 						SendRandomNukeOrder(n, scav)
 					end
 				end
-				
+
 				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then
 						if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
@@ -386,7 +386,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 		ConstructorNumberOfRetries[unitID] = nil
 		CaptureProgressForBeacons[unitID] = nil
 		Spring.SetUnitHealth(unitID, {capture = 0})
-		
+
 	else
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
@@ -402,8 +402,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
-		
-		
+
+
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else
@@ -464,7 +464,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				end
 			end
 		end
-	
+
 		if scavconfig.modules.nukes == true then
 			for i = 1,#NukingUnitNames do
 				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == NukingUnitNames[i] then
@@ -472,7 +472,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				end
 			end
 		end
-		
+
 		if scavconfig.modules.constructorControllerModule then
 			if constructorControllerModuleConfig.useconstructors then
 				for i = 1,#ConstructorsList do

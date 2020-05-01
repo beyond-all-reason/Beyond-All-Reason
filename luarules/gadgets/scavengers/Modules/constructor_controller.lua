@@ -94,7 +94,7 @@ function SpawnConstructor(n)
 					end
 				if scavvoicenotif < 20 then
 					scavvoicenotif = scavvoicenotif + 1
-				end				
+				end
 			end
 			SpawnBeacon(n)
 			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
@@ -132,8 +132,8 @@ function SpawnConstructor(n)
 	else
 		constructortimer = constructortimer +  math.ceil(n/constructorControllerModuleConfig.constructortimerreductionframes)
 	end
-end			
-	
+end
+
 ConstructorNumberOfRetries = {}
 function ConstructNewBlueprint(n, scav)
 	if not ConstructorNumberOfRetries[scav] then
@@ -161,7 +161,7 @@ function ConstructNewBlueprint(n, scav)
 			else
 				blueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
 			end
-		elseif posy <= 0 then	
+		elseif posy <= 0 then
 			if spawnTier <= TierSpawnChances.T0 then
 					blueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
 			elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -183,7 +183,7 @@ function ConstructNewBlueprint(n, scav)
 		local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
 		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, 0)
 	end
-							
+
 	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true)
 	canConstructHere = posOccupied(posx, posy, posz, posradius)
 	if canConstructHere then
@@ -195,7 +195,7 @@ function ConstructNewBlueprint(n, scav)
 	if canConstructHere then
 		canConstructHere = posMapsizeCheck(posx, posy, posz, posradius)
 	end
-	
+
 	if canConstructHere then
 		-- let's do this shit
 		Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx+math.random(-posradius,posradius),posy+500,posz+math.random(-posradius,posradius)}, {"shift"})

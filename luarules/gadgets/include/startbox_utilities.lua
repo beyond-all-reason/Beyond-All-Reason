@@ -78,7 +78,7 @@ local function ParseBoxes ()
 				}
 			end
 		end
-		
+
 		if not startboxStringLoadedBoxes then
 			if Game.mapSizeZ > Game.mapSizeX then
 				startBoxConfig[0] = {

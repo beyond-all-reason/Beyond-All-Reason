@@ -7,7 +7,7 @@
 local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
-local function DamgamNukeOutpost1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 80
 	if radiusCheck then
 		return posradius
@@ -26,7 +26,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost1)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost1)
 
-local function DamgamNukeOutpost2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 112
 	if radiusCheck then
 		return posradius
@@ -47,7 +47,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost2)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost2)
 
-local function DamgamNukeOutpost3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 192
 	if radiusCheck then
 		return posradius
@@ -72,7 +72,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost3)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost3)
 
-local function DamgamNukeOutpost4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 80
 	if radiusCheck then
 		return posradius
@@ -91,7 +91,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost4)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost4)
 
-local function DamgamNukeOutpost5(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost5(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 112
 	if radiusCheck then
 		return posradius
@@ -112,7 +112,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost5)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost5)
 
-local function DamgamNukeOutpost6(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost6(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 184
 	if radiusCheck then
 		return posradius
@@ -137,7 +137,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost6)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost6)
 
-local function DamgamNukeOutpost7(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost7(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 64
 	if radiusCheck then
 		return posradius
@@ -152,7 +152,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost7)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost7)
 
-local function DamgamNukeOutpost8(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost8(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 64
 	if radiusCheck then
 		return posradius
@@ -167,7 +167,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost8)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost8)
 
-local function DamgamNukeOutpost9(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost9(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 112
 	if radiusCheck then
 		return posradius
@@ -186,7 +186,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost9)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost9)
 
-local function DamgamNukeOutpost10(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost10(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 96
 	if radiusCheck then
 		return posradius
@@ -205,7 +205,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost10)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost10)
 
-local function DamgamNukeOutpost11(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost11(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 72
 	if radiusCheck then
 		return posradius
@@ -224,7 +224,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost11)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost11)
 
-local function DamgamNukeOutpost12(scav, posx, posy, posz, GaiaTeamID, radiusCheck)	
+local function DamgamNukeOutpost12(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local posradius = 72
 	if radiusCheck then
 		return posradius
@@ -242,23 +242,3 @@ local function DamgamNukeOutpost12(scav, posx, posy, posz, GaiaTeamID, radiusChe
 end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost12)
 table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost12)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

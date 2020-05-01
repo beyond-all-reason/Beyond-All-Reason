@@ -1,5 +1,4 @@
 
-
 function SendRandomNukeOrder(n, scav)
     local unitDefID = Spring.GetUnitDefID(scav)
     local unitRange = Spring.GetUnitMaxRange(scav)

@@ -17,11 +17,11 @@ local nameSuffix = '_scav'
 
 local function scavamphfactoryt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitoptions = {}
-local r = math_random(0,3)		
+local r = math_random(0,3)
 	local posradius = 60
 		if radiusCheck then
 			return posradius
-		else	
+		else
 			if r == 0 then
 				Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 			elseif r == 1 then
@@ -38,11 +38,11 @@ table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphfactoryt1)
 
 local function scavamphfactoryt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
-local r = math_random(0,8)		
+local r = math_random(0,8)
 	local posradius = 70
 		if radiusCheck then
 			return posradius
-		else	
+		else
 			if r == 0 or r == 1 then
 				Spring.GiveOrderToUnit(scav, -(UDN.corplat_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 			elseif r == 2 or r == 3 then
@@ -63,20 +63,20 @@ local function waterblocks(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptionsblue = {UDN.armfdrag_scav.id,}
 	local unitoptionsred = {UDN.corfdrag_scav.id,}
 	local posradius = 64
-	local r = math_random(0,3)	
+	local r = math_random(0,3)
 		if radiusCheck then
 			return posradius
-		else	
+		else
 			if r == 0 then
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx-64, posy, posz-64, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx-32, posy, posz-32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx, posy, posz, 0}, {"shift"})	
+				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx, posy, posz, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx+32, posy, posz+32, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx+64, posy, posz+64, 0}, {"shift"})
-			elseif r == 1 then		
+			elseif r == 1 then
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx-64, posy, posz+64, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx-32, posy, posz+32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx, posy, posz, 0}, {"shift"})	
+				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx, posy, posz, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx+32, posy, posz-32, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx+64, posy, posz-64, 0}, {"shift"})
 			elseif r == 2 then
@@ -101,18 +101,18 @@ local function searadar(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptionsblue = {UDN.armfrad_scav.id,}
 	local unitoptionsred = {UDN.corfrad_scav.id,}
 	local posradius = 64
-	local r = math_random(0,1)	
+	local r = math_random(0,1)
 		if radiusCheck then
 			return posradius
-		else	
+		else
 			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.armsonar_scav.id), {posx, posy, posz, 0}, {"shift"})	
+				Spring.GiveOrderToUnit(scav, -(UDN.armsonar_scav.id), {posx, posy, posz, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsblue[math_random(1,#unitoptionsblue)]), {posx+64, posy, posz+64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armfrt_scav.id), {posx-48, posy, posz+48, 0}, {"shift"})	
+				Spring.GiveOrderToUnit(scav, -(UDN.armfrt_scav.id), {posx-48, posy, posz+48, 0}, {"shift"})
 			else
 				Spring.GiveOrderToUnit(scav, -(UDN.corsonar_scav.id), {posx, posy, posz, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(unitoptionsred[math_random(1,#unitoptionsred)]), {posx+64, posy, posz-64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfrt_scav.id), {posx+48, posy, posz+64, 0}, {"shift"})	
+				Spring.GiveOrderToUnit(scav, -(UDN.corfrt_scav.id), {posx+48, posy, posz+64, 0}, {"shift"})
 		end
 	end
 end
@@ -124,10 +124,10 @@ local function scavsonaroutpost(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local defenseoptions = {UDN.armtl_scav.id, UDN.armtl_scav.id, UDN.armfrt_scav.id,}
 	local posradius = 120
 	local z1 = math_random(-60,40)
-	local z2 = math_random(-40,60)		
+	local z2 = math_random(-40,60)
 		if radiusCheck then
 			return posradius
-		else	
+		else
 			Spring.GiveOrderToUnit(scav, -(unitoptions[math_random(1,#unitoptions)]), {posx, posy, posz, 0}, {"shift"})
 			Spring.GiveOrderToUnit(scav, -(defenseoptions[math_random(1,#defenseoptions)]), {posx-70, posy, posz+z1, 1}, {"shift"})
 			Spring.GiveOrderToUnit(scav, -(defenseoptions[math_random(1,#defenseoptions)]), {posx+70, posy, posz+z2, 1}, {"shift"})
