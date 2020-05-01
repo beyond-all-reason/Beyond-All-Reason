@@ -72,7 +72,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 	[1] = {
 		{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},
 	},
-	
+
 	[2] = {
         {1,2},
         {5,9},
@@ -82,7 +82,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
         {10,12},
         {3,6},
         {4,6,},
-    },    
+    },
 	[3] = {
         {5,8,12},
         {7,8,12},
@@ -91,7 +91,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
         {1,11,16},
         {5,12,13},
         {9,11,14},
-        
+
     },
 	[4] = {
         {11,14,15,16},
@@ -145,7 +145,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{1,2,6,7,8,10,11,12,13,15},
 		{2,3,5,7,9,10,11,12,14,15},
 		{1,2,3,6,7,9,10,13,15,16},
-		{2,3,7,8,9,10,11,13,14,16},        
+		{2,3,7,8,9,10,11,13,14,16},
 	},
 	[11] = {
 		{2,5,6,8,9,10,11,12,13,14,15},
@@ -201,10 +201,10 @@ for i=1,16 do
 	ffaStartPoints[i] = {}
 	for j = 1,i do
 		--Spring.Echo(i,n,j)
-		local id = ffaStartPointsAll[i][n][j] 
+		local id = ffaStartPointsAll[i][n][j]
 		local sx = startpoints[id].x
 		local sz = startpoints[id].z
 		--Spring.Echo(sx,sz)
-		ffaStartPoints[i][j] = {x=sx,z=sz} 
+		ffaStartPoints[i][j] = {x=sx,z=sz}
 	end
 end

@@ -86,7 +86,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 	[1] = {
 		{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},
 	},
-	
+
 	[2] = {
 		{1,2},
 		{1,5},
@@ -132,7 +132,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{1,2,3,16},
 		{6,10,16,4},
 	},
-	
+
 	[5] = {
 		{1,2,3,4,5},
 		{1,3,6,7,8},
@@ -142,7 +142,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{4,11,12,3,5},
 		{6,9,10,7,2},
 	},
-	
+
 	[6] = {
 		{2,3,4,5,6,7},
 		{1,2,4,5,6,7},
@@ -153,7 +153,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{1,2,3,8,9,10},
 		{4,5,6,8,9,10},
 	},
-	
+
 	[7] = {
 		{1,2,3,4,5,6,7},
 	},
@@ -166,7 +166,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{8,9,10,11,12,13,14,15},
 		{4,3,5,6,7,9,12,8},
 	},
-	
+
 	[9] = {
 		{1,2,3,4,5,6,7,8,9},
 		{1,2,3,4,5,6,7,9,10},
@@ -178,7 +178,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{2,4,5,6,8,11,12,16,14},
 		{3,1,7,2,11,8,16,13,15},
 	},
-	
+
 	[10] = {
 		{1,2,3,4,5,6,7,8,9,10},
 		{1,2,3,4,5,6,7,8,11,12},
@@ -189,7 +189,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{5,6,7,8,9,10,13,14,15,16},
 		{2,4,6,3,8,9,12,11,15,16},
 	},
-	
+
 	[11] = {
 		{1,2,3,4,5,6,7,8,9,10,11},
 		{1,2,3,4,5,6,7,13,14,15,16},
@@ -199,11 +199,11 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{1,2,3,4,5,7,8,9,10,11,12},
 		{1,2,3,4,6,7,8,9,10,11,12},
 	},
-	
+
 	[12] = {
 		{1,2,3,4,5,6,7,8,9,10,11,12},
 	},
-	
+
 	[13] = {
 		{1,2,3,4,5,6,7,8,9,10,11,12,13},
 		{1,2,3,4,5,6,7,8,9,10,11,12,14},
@@ -213,7 +213,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{2,3,4,5,6,7,8,9,11,12,14,15,16},
 		{1,2,3,5,6,7,9,10,11,12,13,15,16},
 	},
-	
+
 	[14] = {
 		{1,2,3,4,5,6,7,8,9,10,11,12,13,14},
 		{1,2,3,4,5,6,7,8,9,10,11,12,13,15},
@@ -222,7 +222,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{1,2,3,4,5,6,7,8,9,10,11,12,14,16},
 		{1,2,3,4,5,6,7,8,9,10,11,12,15,16},
 	},
-	
+
 	[15] = {
 		{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
 		{1,2,3,4,5,6,7,8,9,10,11,12,13,14,16},
@@ -233,7 +233,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 		{1,2,3,4,5,6,7,8,10,11,12,13,14,15,16},
 		{1,2,3,4,5,6,7,9,10,11,12,13,14,15,16},
 	},
-	
+
 	[16] = {
 		{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
 	},
@@ -259,10 +259,10 @@ for i=1,16 do
 	ffaStartPoints[i] = {}
 	for j = 1,i do
 		--Spring.Echo(i,n,j)
-		local id = ffaStartPointsAll[i][n][j] 
+		local id = ffaStartPointsAll[i][n][j]
 		local sx = startpoints[id].x
 		local sz = startpoints[id].z
 		--Spring.Echo(sx,sz)
-		ffaStartPoints[i][j] = {x=sx,z=sz} 
+		ffaStartPoints[i][j] = {x=sx,z=sz}
 	end
 end

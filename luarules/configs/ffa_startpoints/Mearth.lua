@@ -79,7 +79,7 @@ local startpoints = { --locations of the startpoints
 local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys of startpoints table}
 	[1] = {
 		{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},
-	},	
+	},
 	[2] = {
         {1,3},
         {1,13},
@@ -96,7 +96,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
         {6,8},
         {2,3},
         {4,10},
-        {8,9},       
+        {8,9},
 	},
 	[3] = {
         {3,7,8},
@@ -216,10 +216,10 @@ for i=1,16 do
 	ffaStartPoints[i] = {}
 	for j = 1,i do
 		--Spring.Echo(i,n,j)
-		local id = ffaStartPointsAll[i][n][j] 
+		local id = ffaStartPointsAll[i][n][j]
 		local sx = startpoints[id].x
 		local sz = startpoints[id].z
 		--Spring.Echo(sx,sz)
-		ffaStartPoints[i][j] = {x=sx,z=sz} 
+		ffaStartPoints[i][j] = {x=sx,z=sz}
 	end
 end

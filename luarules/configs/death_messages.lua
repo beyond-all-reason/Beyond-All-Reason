@@ -6,7 +6,7 @@
  * you can buy me a beer in return.   [Fx]Bluestone
  * ----------------------------------------------------------------------------
 --]]
- 
+
 --[[
   ----------------------------------------------------------------------------
  * "THE BEER-WARE LICENSE" (Revision 42):
@@ -19,7 +19,7 @@
 --[[
   ----------------------------------------------------------------------------
  * This file was licensed as BEER-WARE, and then immediately sub-licensed as BEER-WARE
- * This means you would buy me TWO beers  
+ * This means you would buy me TWO beers
  * I accept horses if beers are not available in your country
  * You must retain this notice
  * ----------------------------------------------------------------------------
@@ -49,13 +49,13 @@ allyTeamDeathMessages = {
 	"XX has been dishabilitated",
 	"XX has been eliminated",
 	"XX has been annihilated",
-	"XX has been dominated", 
+	"XX has been dominated",
 	"XX has been deactivated",
 	"XX has been deprecated",
 	"XX has been incinerated",
 	"XX has been decapitated",
 	"XX has been floccinaucinihilipilificated",
-	"XX has been consummated", 
+	"XX has been consummated",
 
 	--ized
 	"XX has been hospitalized",
@@ -70,11 +70,11 @@ allyTeamDeathMessages = {
 	"XX has been neutralized",
 	"XX has been fossilized",
 	"XX has been vulcanized",
-	"XX has been exorcized", 
+	"XX has been exorcized",
 	"XX has been pulverized",
 	"XX has been amortized",
 	"XX has been vaporized",
-	
+
 	--lled
 	"XX has been steamrolled",
 	"XX has been levelled",
@@ -89,7 +89,7 @@ allyTeamDeathMessages = {
 	"XX has been expelled",
 	"XX has been disembowelled",
 	"XX has been unravelled",
-	
+
 	--oned
 	"XX has been bludgeoned",
 	"XX has been unbuttoned",
@@ -107,8 +107,8 @@ allyTeamDeathMessages = {
 	"XX has been pensioned",
 	"XX has been sectioned",
 
-}	
-	
+}
+
 teamDeathMessages = {
 
 	"XX was exported to pdf",
@@ -271,7 +271,7 @@ teamDeathMessages = {
 	"XX died in a fire",
 	"XX was uninsured",
 	"XX believes in resurrection",
-	"XX was blown up by the vogons", 
+	"XX was blown up by the vogons",
 	"XX, I am your father!",
 	"XX breathed it's last",
 	"XX should eat more spinach",
@@ -297,14 +297,14 @@ teamDeathMessages = {
 	"XX is never going to dance again",
 	"XX is easy come, easy go",
 	"XX was loyal to the true emperor, Marcus Aurelius",
-	"And like that, XX was gone",		
+	"And like that, XX was gone",
 	"XX passed into the realm of monsters and legends",
 	"The light still burns for XX, but there is nobody home",
 	"XX tottered over the brink",
 	"XX is as real in memory as was in flesh",
 	"XX should have used the shark repellent bat spray",
 	"XX lost its life in the line of duty",
-	"XX. That is all.", 
+	"XX. That is all.",
 	"XX will be sent a receipt",
 	"XX was just a story",
 	"XX is in a cold grave, under the deep deep sea",
@@ -328,7 +328,7 @@ teamDeathMessages = {
 	"XX sees dead people",
 	"XX lost its life but not its freedom",
 	"XX must remember that through all history, truth and love have always won",
-	"XX passed through nature to eternity",	
+	"XX passed through nature to eternity",
 	"XX is dust on the wind",
 	"XX was ravaged by viking invaders",
 	"XX was printed on recycled paper",
@@ -356,7 +356,7 @@ teamDeathMessages = {
 	"XX had everything under control",
 	"XX went and got itself killed, again",
 	"XX seems to be dead",
-	"XX died a hero's death",	
+	"XX died a hero's death",
 	"XX is dead as a doornail",
 	"XX did the Texas cakewalk",
 	"XX went west, where the sky is blue",
@@ -382,7 +382,7 @@ teamDeathMessages = {
 	"XX is stone dead",
 	"XX was cut out in little stars",
 	"XX got slippered",
-	"XX got bitten by zombies",	
+	"XX got bitten by zombies",
 	"XX was abducted by martians and internally probed",
 	"XX was stomped on by angry kangaroos",
 	"XX ran out of antibiotics",
@@ -419,7 +419,7 @@ teamDeathMessages = {
 	"XX carried on up the Khyber",
 	"XX left its heart in San Francisco",
 	"XX willll alwayyyys love yooouuuu",
-	"XX won't look back in anger",	
+	"XX won't look back in anger",
 	"XX was way past its bedtime",
 	"XX was torn down to make way for overflow parking",
 	"XX was moved to the recycle bin",
@@ -450,7 +450,7 @@ teamDeathMessages = {
 	"XX was felled by a beaver",
 	"XX was sawn in half by an inexperienced magician",
 	"XX fell off a ladder",
-	"XX discovered the perils of mortality",	
+	"XX discovered the perils of mortality",
 	"XX will always have Paris",
 	"Hasta la vista, XX",
 	"XX knows ever'thing there is to know 'bout the shrimpin' bidness",
@@ -536,7 +536,7 @@ teamDeathMessages = {
 	"XX wore a spacesuit filled with angry bees",
 	"XX was smashed up by a sonically created power yeti",
 	"XX fell into a wood-chipper",
-	"XX accidentally turned a children's book into three three-hour-long movies",	
+	"XX accidentally turned a children's book into three three-hour-long movies",
 	"It is pitch black. XX was eaten by a grue.",
 	"XX ate all the pies",
 	"XX trod on a mine",
@@ -1011,18 +1011,18 @@ teamDeathMessages = {
 	"That all you got, XX?",
 	"XX dressed up in its best and prepared to go down like a gentleman",
 	"XX opened its mouth and closed its eyes",
-	
-	
-	
 
 
 
 
 
 
-}    
-    
-    
+
+
+
+}
+
+
 
 
 

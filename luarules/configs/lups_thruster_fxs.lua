@@ -35,7 +35,7 @@ for unitName, data in pairs(tbl) do
       opts.baseSize = opts.size
     end
   end
-  
+
   local unitDefID = unitDef.id
   if unitDefID then
     tbl2[unitDefID] = data

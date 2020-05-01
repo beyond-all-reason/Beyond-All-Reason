@@ -126,21 +126,21 @@ end
 local function GetBoundedLineIntersection(line1, line2)
 	local x1, y1, x2, y2 = line1[1][1], line1[1][2], line1[2][1], line1[2][2]
 	local x3, y3, x4, y4 = line2[1][1], line2[1][2], line2[2][1], line2[2][2]
-	
+
 	local denominator = ((x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4))
 	if denominator == 0 then
 		return false
 	end
 	local first = ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4))/denominator
 	local second = -1*((x1 - x2)*(y1 - y3) - (y1 - y2)*(x1 - x3))/denominator
-	
+
 	if first < 0 or first > 1 or (second < 0 or second > 1) then
 		return false
 	end
-	
+
 	local px = x1 + first*(x2 - x1)
 	local py = y1 + first*(y2 - y1)
-	
+
 	return {px, py}
 end
 

@@ -8,9 +8,9 @@ local convertCapacities = {
     ['cormakr']  = { c = (70), e = (AC0) },
     ['armfmkr']  = { c = (70), e = (AC1) },
     ['corfmkr']  = { c = (70), e = (AC1) },
-    ['armmmkr']  = { c = (600), e = (AC2) }, 
+    ['armmmkr']  = { c = (600), e = (AC2) },
     ['cormmkr']  = { c = (600), e = (AC2) },
-    ['armuwmmm'] = { c = (650), e = (AC2) }, 
+    ['armuwmmm'] = { c = (650), e = (AC2) },
     ['coruwmmm'] = { c = (650), e = (AC2) },
 }
 for name, v in pairs(convertCapacities) do
