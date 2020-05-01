@@ -1,6 +1,6 @@
 return {
 	corcrwboss = {
-		acceleration = 0.1,
+		acceleration = 0.08,
 		activatewhenbuilt = true,
 		blocking = false,
 		brakerate = 0.275,
@@ -25,9 +25,9 @@ return {
 		icontype = "air",
 		idleautoheal = 15,
 		idletime = 1200,
-		maxdamage = 100000,
+		maxdamage = 90000,
 		maxslope = 10,
-		maxvelocity = 1.83,
+		maxvelocity = 1.65,
 		maxwaterdepth = 0,
 		name = "Krow Boss",
 		nochasecategory = "VTOL",
