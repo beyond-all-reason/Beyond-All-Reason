@@ -44,7 +44,7 @@ if scavengersAIEnabled then
 			T4med								= 21000,
 			T4high								= 24000,
 			T4top								= 28000,
-			BossFight							= 33000,
+			BossFight							= 28001,
 			-- don't delete
 			NoRadar								= 1200,
 		},

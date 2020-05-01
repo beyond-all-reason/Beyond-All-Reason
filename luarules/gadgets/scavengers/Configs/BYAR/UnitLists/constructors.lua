@@ -3,6 +3,12 @@ ConstructorsList = {
 	"corcom",
 }
 
+-- put ALL commander units from your game here
+CommandersList = {
+"armcom",
+"corcom",
+}
+
 ConstructorsCounter = {
 	UDN.armcom_scav.id,
 	UDN.corcom_scav.id,

@@ -312,19 +312,20 @@ function gadget:GameFrame(n)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	local UnitName = UnitDefs[unitDefID].name
 	if unitTeam == GaiaTeamID then
 		killedscavengers = killedscavengers + 1
-		if scavStructure[unitID] and not UnitDefs[unitDefID].name == "scavengerdroppod_scav" and not UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav"  then
+		if scavStructure[unitID] and not UnitName == "scavengerdroppod_scav" and not UnitName == "scavengerdroppodbeacon_scav"  then
 			killedscavengers = killedscavengers + 4
 		end
 		if scavConstructor[unitID] then
 			killedscavengers = killedscavengers + 99
 		end
-		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		if UnitName == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
 			killedscavengers = killedscavengers - 1
 		end
-		if UnitDefs[unitDefID].name == "scavengerdroppod_scav" then
+		if UnitName == "scavengerdroppod_scav" then
 			killedscavengers = killedscavengers - 1
 		end
 		selfdx[unitID] = nil
@@ -347,7 +348,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		ConstructorNumberOfRetries[unitID] = nil
 		CaptureProgressForBeacons[unitID] = nil
 	else
-		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		for i = 1,#AliveEnemyCommanders do
+			local comID = AliveEnemyCommanders[i]
+			if unitID == comID then
+				AliveEnemyCommandersCount = AliveEnemyCommandersCount - 1
+				table.remove(AliveEnemyCommanders, i)
+				break
+			end
+		end
+		if UnitName == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] - 1
 		end
 	end
@@ -518,6 +527,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 	else
+		--AliveEnemyCommanders
+		for i = 1,#CommandersList do
+			if string.sub(UnitName, 1, string.len(UnitName)) == CommandersList[i] then
+				AliveEnemyCommandersCount = AliveEnemyCommandersCount + 1
+				table.insert(AliveEnemyCommanders,unitID)
+			end
+		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1
 			if scavconfig.modules.reinforcementsModule == true then
