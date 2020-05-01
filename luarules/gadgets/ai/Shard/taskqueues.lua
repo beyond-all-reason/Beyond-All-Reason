@@ -1,5 +1,8 @@
 --[[
- Task Queues!
+Task Queues!
+
+This file returns a table mapping unit names on to lists of tasks/build orders
+
 ]]--
 
 math.randomseed( os.time() )
@@ -12,6 +15,7 @@ function CoreWindSolar( taskqueuebehaviour )
 		return "corsolar"
 	end
 end
+
 function randomLab( taskqueuebehaviour )
 	local r = math.random(0,2)
 	if r == 0 then
@@ -43,6 +47,7 @@ local corecommanderlist = {
 	"corllt",
 	CoreWindSolar,
 }
+
 local coreconstructionkbot = {
 	CoreWindSolar,
 	"cormex",
@@ -158,7 +163,8 @@ local armkbotlab = {
 	"armpw",
 	"armpw",
 }
-taskqueues = {
+
+return {
 	-- unittype = tasklist,
 	corcom = corecommanderlist,
 	-- we can assign 1 list, to multiple unit types, here a construction kbot (corck) gets the construction kbot tasklist, but then we assign it to the construction vehicle too (corcv))
