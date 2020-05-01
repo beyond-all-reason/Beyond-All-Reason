@@ -1,6 +1,7 @@
 TaskQueueBehaviour = class(Behaviour)
 
 function TaskQueueBehaviour:Init()
+	self.taskqueues = shard_include( "taskqueues" )
 	self.active = false
 	u = self.unit
 	u = u:Internal()
@@ -31,7 +32,7 @@ function dump(o)
 end
 
 function TaskQueueBehaviour:HasQueues()
-	return (taskqueues[self.name] ~= nil)
+	return (self.taskqueues[self.name] ~= nil)
 end
 
 function TaskQueueBehaviour:OwnerBuilt(unit)
@@ -67,7 +68,7 @@ function TaskQueueBehaviour:OwnerDead()
 end
 
 function TaskQueueBehaviour:GetQueue()
-	q = taskqueues[self.name]
+	q = self.taskqueues[self.name]
 	if type(q) == "function" then
 		q = q(self, self.ai, self.unit)
 	end
@@ -131,7 +132,7 @@ function TaskQueueBehaviour:Update()
 				self:CompareWithOldPos()
 			else
 				self:CompareWithOldPos() -- still register current position
-			end		
+			end
 		end
 	end
 	if not self:IsActive() then

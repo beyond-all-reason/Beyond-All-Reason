@@ -602,7 +602,7 @@ outmodedTaskqueues = {
 }
 
 -- finally, the taskqueue definitions
-taskqueues = {
+return {
 	corcom = anyCommander,
 	armcom = anyCommander,
 	armdecom = anyCommander,
