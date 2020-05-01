@@ -97,7 +97,7 @@ function Spring.Utilities.GetUnitNanoTarget(unitID)
       end
     end
   end
-  
+
   if inRange then
     return type, target, isFeature
   else

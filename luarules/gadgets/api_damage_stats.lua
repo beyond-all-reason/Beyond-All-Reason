@@ -51,15 +51,15 @@ function gadget:Initialize()
             nHumanTeams = nHumanTeams + 1
         end
     end
-    
+
     if nChickenTeams >=1 then
         gameType = "chicken defence"
         return
     end
-    
+
     if nHumanTeams <= 1 then gameType = "single player" -- and gaia
-    elseif nHumanTeams == 2 and nAITeams == 0 then gameType = "1v1" 
-    else gameType = "team" 
+    elseif nHumanTeams == 2 and nAITeams == 0 then gameType = "1v1"
+    else gameType = "team"
     end
 end
 
@@ -74,7 +74,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     mu = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 25
 
     info[unitDefID] = info[unitDefID] or {dmg_dealt=0,dmg_rec=0,kills=0,killed_cost=0,n=0,ts=0,minutes=0}
-    
+
     info[unitDefID].n = info[unitDefID].n + 1
     info[unitDefID].ts = info[unitDefID].ts + mu
     info[unitDefID].minutes = info[unitDefID].minutes + Spring.GetGameFrame()/(30*60)
@@ -88,9 +88,9 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
     if Spring.AreTeamsAllied(unitTeam,attackerTeam) then return end
     local h,_,_ = Spring.GetUnitHealth(unitID)
     if h > damage then damage = h end
-    
-    info[attackerDefID].dmg_dealt = info[attackerDefID].dmg_dealt + damage 
-    info[unitDefID].dmg_rec = info[unitDefID].dmg_rec + damage    
+
+    info[attackerDefID].dmg_dealt = info[attackerDefID].dmg_dealt + damage
+    info[unitDefID].dmg_rec = info[unitDefID].dmg_rec + damage
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)

@@ -50,20 +50,20 @@ local function getChickenSpawnLoc(unitID)
   if (not bx or not by or not bz) then
     return false
   end
-  
+
   local tries         = 0
   local s             = 64
-      
+
   repeat
     x = math.random(bx - s, bx + s)
     z = math.random(bz - s, bz + s)
     s = s + 4
     tries = tries + 1
-  until ((TestBuildOrder(SMALLUNIT, x, by, z, 1) == 2) and (not GetGroundBlocked(x, z))) 
+  until ((TestBuildOrder(SMALLUNIT, x, by, z, 1) == 2) and (not GetGroundBlocked(x, z)))
            or (tries > 10)
-   
+
   return x, by, z
-   
+
 end
 
 local function spawnChicken(number, ownerID, unitName, unitTeam)
@@ -94,7 +94,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     progList[unitID] = 6
   end
 end
-  
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
   if (unitDefID == BOSS_WHITE1) then
     progList[unitID] = nil
@@ -106,4 +106,4 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
   end
 end
 
-end 
+end

@@ -10,7 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
-
 if (not gadgetHandler:IsSyncedCode()) then
 
 	local unitScalesUnaffected = true		-- exclude units defined in unitScales from additional scalings
@@ -24,8 +23,6 @@ if (not gadgetHandler:IsSyncedCode()) then
 		[UnitDefNames['armham'].id] = 0.97,
 		[UnitDefNames['armwar'].id] = 1.02,
 		[UnitDefNames['armrock'].id] = 1.04,
-		
-
 	}
 	local scales = {
 		--global = 1,

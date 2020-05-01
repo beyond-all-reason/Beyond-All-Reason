@@ -39,7 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTurnrate[uDefID] then -- all non-flying units
 			Spring.MoveCtrl.SetGroundMoveTypeData(uID, "turnAccel", unitTurnrate[uDefID])
 		end
-		
+
 		--Instagibb any features that are unlucky enough to be in the build radius of new construction projects
 		if unitXsize5[uDefID] then	-- buildings/factories
 			--Spring.Echo("Wheee it spins!")
@@ -56,10 +56,10 @@ if gadgetHandler:IsSyncedCode() then
 				local fID = features[i]
 				local fDefID = Spring.GetFeatureDefID(fID)
 				local fDef = FeatureDefs[fDefID]
-			
-				if (not fDef.geoThermal) and (fDef.name ~= 'geovent') 
-				and (fDef.name ~= 'xelnotgawatchtower') 
-				and (fDef.name ~= 'crystalring') 
+
+				if (not fDef.geoThermal) and (fDef.name ~= 'geovent')
+				and (fDef.name ~= 'xelnotgawatchtower')
+				and (fDef.name ~= 'crystalring')
 				then
 					local fx, fy, fz = Spring.GetFeaturePosition(fID)
 					Spring.DestroyFeature(fID)
@@ -69,7 +69,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 	--Remove damage hardcoded in the engine of gibbed pieces of units (hardcoded to 50 damage in engine)
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if weaponDefID == -1 then

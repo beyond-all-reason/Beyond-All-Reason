@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Decloak when damaged",
-    desc      = "Decloaks units when they are damged",
-    author    = "Google Frog",
-    date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name      = "Decloak when damaged",
+		desc      = "Decloaks units when they are damged",
+		author    = "Google Frog",
+		date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true  --  loaded by default?
+	}
 end
 
 --------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ function gadget:GameFrame(n)
 				recloakUnit[unitID] = frames - UPDATE_FREQUENCY
 			end
 		end
-		
+
 		local i = 1
 	end
 end
@@ -135,36 +135,36 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 	if enemyID then
 		return false
 	end
-	
+
 	if recloakFrame[unitID] then
 		if recloakFrame[unitID] > currentFrame then
 			return false
 		end
 		recloakFrame[unitID] = nil
 	end
-	
+
 	local stunnedOrInbuild = spGetUnitIsStunned(unitID)
 	if stunnedOrInbuild then
 		return false
 	end
-	
+
 	local unitDefID = unitID and spGetUnitDefID(unitID)
 	local ud = unitDefID and UnitDefs[unitDefID]
 	if not ud then
 		return false
 	end
-	
+
 	local areaCloaked = (spGetUnitRulesParam(unitID, 'areacloaked') == 1) and ((spGetUnitRulesParam(unitID, 'cloak_shield') or 0) == 0)
 	if not areaCloaked then
 		local speed = select(4, spGetUnitVelocity(unitID))
 		local moving = speed and speed > CLOAK_MOVE_THRESHOLD
 		local cost = moving and ud.cloakCostMoving or ud.cloakCost
-		
+
 		if not spUseUnitResource(unitID, "e", cost/2) then -- SlowUpdate happens twice a second.
 			return false
 		end
 	end
-	
+
 	return true
 end
 
@@ -177,15 +177,15 @@ end
 
 local function SetWantedCloaked(unitID, state)
 	if (not unitID) or spGetUnitIsDead(unitID) then
-		return 
+		return
 	end
-	
+
 	local wantCloakState = spGetUnitRulesParam(unitID, 'wantcloak')
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_WANT_CLOAK)
 	if (cmdDescID) then
 		spEditUnitCmdDesc(unitID, cmdDescID, { params = {state, 'Decloaked', 'Cloaked'}})
 	end
-	
+
 	if state == 1 and wantCloakState ~= 1 then
 		local cannotCloak = spGetUnitRulesParam(unitID, 'cannotcloak')
 		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
@@ -204,11 +204,11 @@ end
 
 GG.SetWantedCloaked = SetWantedCloaked
 
-function gadget:AllowCommand_GetWantedCommand()	
+function gadget:AllowCommand_GetWantedCommand()
 	return {[CMD_CLOAK] = true, [CMD_WANT_CLOAK] = true}
 end
 
-function gadget:AllowCommand_GetWantedUnitDefID()	
+function gadget:AllowCommand_GetWantedUnitDefID()
 	return true
 end
 

@@ -17,20 +17,20 @@ if (tonumber((Spring.GetModOptions() or {}).coop) or 0) == 0 then
 end
 
 if gadgetHandler:IsSyncedCode() then
-	
+
 	----------------------------------------------------------------
 	-- Synced Var
 	----------------------------------------------------------------
 	local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z}, also acts as is-player-a-coop-player
 	GG.coopStartPoints = coopStartPoints -- Share to other gadgets
-	
+
 	local armcomDefID = UnitDefNames.armcom.id
 	local corcomDefID = UnitDefNames.corcom.id
-	
+
 	----------------------------------------------------------------
 	-- Setting up
 	----------------------------------------------------------------
-	
+
 	-- for debug echos
    	local function to_string(data, indent)
 		local str = ""
@@ -71,15 +71,15 @@ if gadgetHandler:IsSyncedCode() then
 
 		return str
 	end
-	
-	
+
+
 	local function SetCoopStartPoint(playerID, x, y, z)
 		coopStartPoints[playerID] = {x, y, z}
 		--Spring.Echo('coop dbg6',playerID,x,y,z,to_string(coopStartPoints))
-	   
+
 		SendToUnsynced("CoopStartPoint", playerID, x, y, z)
 	end
-	
+
 	do
 		local coopHasEffect = false
 		local teamHasPlayers = {}
@@ -96,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		
+
 		if coopHasEffect then
 			GG.coopMode = true -- Inform other gadgets that coop needs to be taken into account
 		end
@@ -148,10 +148,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		return true
 	end
-	
+
 	function IsSteep(x,z)
 		--check if the position (x,z) is too step to start a commander on or not
-		local mtta = math.acos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety 
+		local mtta = math.acos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety
 		local a1,a2,a3,a4 = 0,0,0,0
 		local d = 5
 		local y = Spring.GetGroundHeight(x,z)
@@ -163,15 +163,15 @@ if gadgetHandler:IsSyncedCode() then
 		if math.abs(y3 - y) > 0.1 then a3 = math.atan((y3-y)/d) end
 		local y4 = Spring.GetGroundHeight(x,z+d)
 		if math.abs(y4 - y) > 0.1 then a4 = math.atan((y4-y)/d) end
-		if math.abs(a1) > mtta or math.abs(a2) > mtta or math.abs(a3) > mtta or math.abs(a4) > mtta then 
+		if math.abs(a1) > mtta or math.abs(a2) > mtta or math.abs(a3) > mtta or math.abs(a4) > mtta then
 			return true --too steep
 		else
 			return false --ok
-		end	
+		end
 	end
-	
+
 	local function SpawnTeamStartUnit(playerID,teamID, allyID, x, z)
-		local startUnit = Spring.GetTeamRulesParam(teamID, 'startUnit') 
+		local startUnit = Spring.GetTeamRulesParam(teamID, 'startUnit')
 		if GG.playerStartingUnits then --use that player specific start unit if available
 			startUnit = GG.playerStartingUnits[playerID] or startUnit
 		end
@@ -184,7 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 				startUnit = armcomDefID
 			end
 		end
-		
+
 		--Newbie Placer chooses a start point for newbies (the coop teams start point will have already been set in initial_spawn, just place close to that)
 		if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) or x <= 0 or z <= 0 then --TODO: improve this
 			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
@@ -210,7 +210,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-	
+
 		--create
 		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
 		coopStartPoints[playerID] = {x,z}
@@ -218,8 +218,8 @@ if gadgetHandler:IsSyncedCode() then
 		--we set unit rule to mark who belongs to, so initial queue knows which com unitID belongs to which player's initial queue
 		Spring.SetUnitRulesParam(unitID, "startingOwner", playerID )
 	end
-	
-	function gadget:GameFrame(n)		
+
+	function gadget:GameFrame(n)
 		--spawn cooped coms
 		if n==0 and GG.coopMode then
 			--Spring.Echo('coop dbg7',to_string(coopStartPoints))
@@ -228,11 +228,11 @@ if gadgetHandler:IsSyncedCode() then
 				SpawnTeamStartUnit(playerID,teamID, allyID, startPos[1], startPos[3])
 			end
 		end
-		
+
 		gadgetHandler:RemoveGadget(self)
 		SendToUnsynced('RemoveGadget') -- Remove unsynced side too
 	end
-		
+
 
 else
 
@@ -248,11 +248,11 @@ else
 	-- Unsynced Var
 	----------------------------------------------------------------
 	local coneList
-	
+
 	local playerNames = {} -- playerNames[playerID] = playerName
 	local playerTeams = {} -- playerTeams[playerID] = playerTeamID
 	local coopStartPoints = {}
-	
+
 	----------------------------------------------------------------
 	-- Unsynced speedup
 	----------------------------------------------------------------
@@ -269,7 +269,7 @@ else
 	local spGetMyPlayerID = Spring.GetMyPlayerID
 	local spGetSpectatingState = Spring.GetSpectatingState
 	local spArePlayersAllied = Spring.ArePlayersAllied
-	
+
 	----------------------------------------------------------------
 	-- Stolen funcs from from minimap_startbox.lua (And cleaned up a bit)
 	----------------------------------------------------------------
@@ -277,27 +277,27 @@ else
 		local c = math.min(math.max(math.floor(x * 255), 1), 255)
 		return string.char(c)
 	end
-	
+
 	local teamColorStrs = {}
 	local function GetTeamColorStr(teamID)
-		
+
 		local colorStr = teamColorStrs[teamID]
 		if colorStr then
 			return colorStr
 		end
-		
+
 		local r, g, b = Spring.GetTeamColor(teamID)
 		local colorStr = '\255' .. ColorChar(r) .. ColorChar(g) .. ColorChar(b)
 		teamColorStrs[teamID] = colorStr
 		return colorStr
 	end
-	
+
 	local function CoopStartPoint(epicwtf, playerID, x, y, z) --this epicwtf param is used because it seem that when a registered function is locaal, then the registration name is  passed too. if the function is part of gadget: then it is not passed.
 		--Spring.Echo('coop dbg5',epicwtf,playerID,x,y,z,to_string(coopStartPoints))
-			
+
 		coopStartPoints[playerID] = {x, y, z}
 	end
-	
+
 	----------------------------------------------------------------
 	-- Unsynced Callins
 	----------------------------------------------------------------
@@ -322,7 +322,7 @@ else
 			playerTeams[playerID] = teamID
 			--Spring.Echo('coop dbg2',i,playerName,playerID,teamID,#playerList)
 		end
-		
+
 		-- Cone code taken directly from minimap_startbox.lua
 		coneList = gl.CreateList(function()
 				local h = 100
@@ -339,13 +339,13 @@ else
 					end)
 			end)
 	end
-	
+
 	function gadget:Shutdown()
 		gl.DeleteList(coneList)
 		gl.DeleteFont(font)
 		gadgetHandler:RemoveSyncAction("CoopStartPoint")
 	end
-	
+
 	function gadget:DrawWorld()
 		local areSpec = spGetSpectatingState()
 		local myPlayerID = spGetMyPlayerID()
@@ -365,14 +365,14 @@ else
 			end
 		end
 	end
-	
+
 	function gadget:DrawScreenEffects()
 		glBeginText()
 		local areSpec = spGetSpectatingState()
 		local myPlayerID = spGetMyPlayerID()
 		for playerID, startPosition in pairs(coopStartPoints) do
 			--Spring.Echo('coop dbg4',myPlayerID,playerID)
-		  
+
 			if areSpec or spArePlayersAllied(myPlayerID, playerID) then
 				local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
 				if sx > 0 or sz > 0 then
@@ -388,13 +388,13 @@ else
 		end
 		glEndText()
 	end
-	
+
 	function gadget:RecvFromSynced(arg1, ...)
 		if arg1 == 'RemoveGadget' then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
-	
+
 	-- for debug echos
 	function to_string(data, indent)
 		local str = ""

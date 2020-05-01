@@ -73,9 +73,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		return false -- noGFX
 	end
 
-
 else
-
 
 	local projectileLightDefs = {} -- indexed by unitDefID
 	local explosionLightDefs = {} -- indexed by weaponDefID
@@ -91,7 +89,6 @@ else
 	local SpringSetModelLightTrackingState = Spring.SetModelLightTrackingState
 	local SpringUpdateMapLight             = Spring.UpdateMapLight
 	local SpringUpdateModelLight           = Spring.UpdateModelLight
-
 
 	local function LoadLightDefs()
 		-- type(v) := {[1] = number, [2] = number, [3] = number}
@@ -127,9 +124,6 @@ else
 			end
 		end
 	end
-
-
-
 
 	local function ProjectileCreated(projectileID, projectileOwnerID, projectileWeaponDefID)
 		local projectileLightDef = projectileLightDefs[projectileWeaponDefID]
@@ -172,7 +166,6 @@ else
 		projectileLights[projectileID] = nil
 	end
 
-
 	local function ProjectileExplosion(weaponDefID, posx, posy, posz)
 		local explosionLightDef = explosionLightDefs[weaponDefID]
 
@@ -195,9 +188,6 @@ else
 		SpringUpdateMapLight(explosionLights[numExplosions][1], explosionLightTbl)
 		SpringUpdateModelLight(explosionLights[numExplosions][2], explosionLightTbl)
 	end
-
-
-
 
 	function gadget:GetInfo()
         return {

@@ -44,7 +44,7 @@ local unsupportedAI = false
 
 
 ----------------------------------------------------------------
--- Synced 
+-- Synced
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
 
@@ -81,11 +81,11 @@ local nSpawnTeams
 
 --each player gets to choose a faction
 local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID
-GG.playerStartingUnits = playerStartingUnits 
+GG.playerStartingUnits = playerStartingUnits
 
 --each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by coop
 local teamStartPoints = {} -- teamStartPoints[teamID] = {x,y,z}
-GG.teamStartPoints = teamStartPoints 
+GG.teamStartPoints = teamStartPoints
 local startPointTable = {} --temporary, only for use within this gadget & its libs
 
 local nAllyTeams
@@ -358,9 +358,9 @@ function gadget:GameStart()
     -- ffa mode spawning
     if useFFAStartPoints and ffaStartPoints and ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
 		-- cycle over ally teams and spawn starting units
-        local allyTeamSpawn = SetPermutedSpawns(nAllyTeams, allyTeams)            
+        local allyTeamSpawn = SetPermutedSpawns(nAllyTeams, allyTeams)
 			for teamID, allyTeamID in pairs(spawnTeams) do
-            SpawnFFAStartUnit(nAllyTeams, allyTeamSpawn[allyTeamID], teamID) 
+            SpawnFFAStartUnit(nAllyTeams, allyTeamSpawn[allyTeamID], teamID)
 			end
 			return
 		end
@@ -368,21 +368,21 @@ function gadget:GameStart()
     -- use ffa mode startpoints for random spawning, if possible, but per team instead of per allyTeam
     if Game.startPosType==1 and ffaStartPoints and ffaStartPoints[nSpawnTeams] and #(ffaStartPoints[nSpawnTeams])==nSpawnTeams then
         local teamSpawn = SetPermutedSpawns(nSpawnTeams, spawnTeams)
-        for teamID, allyTeamID in pairs(spawnTeams) do        
+        for teamID, allyTeamID in pairs(spawnTeams) do
             SpawnFFAStartUnit(nSpawnTeams, teamSpawn[teamID], teamID)
         end
         return
 	end
-	
+
 	-- normal spawning (also used as fallback if ffaStartPoints fails)
-	-- cycle through teams and call spawn team starting unit 
+	-- cycle through teams and call spawn team starting unit
 	for teamID, allyTeamID in pairs(spawnTeams) do
-		SpawnTeamStartUnit(teamID, allyTeamID) 
-	end	
+		SpawnTeamStartUnit(teamID, allyTeamID)
+	end
 end
 
-function SetPermutedSpawns(nSpawns, idsToSpawn) 
-    -- this function assumes that idsToSpawn is a hash table with nSpawns elements    
+function SetPermutedSpawns(nSpawns, idsToSpawn)
+    -- this function assumes that idsToSpawn is a hash table with nSpawns elements
     -- returns a bijective random map from key values of idsToSpawn to [1,...,nSpawns]
 
     -- first, construct a random permutation of [1,...,nSpawns] using a Knuth shuffle
@@ -411,7 +411,7 @@ function SpawnFFAStartUnit(nSpawns, spawnID, teamID)
     local startPos = ffaStartPoints[nSpawns][spawnID]
 	local x = startPos.x
 	local z = startPos.z
-	
+
 	-- get team start pos; randomly move slightly to make it look nicer and (w.h.p.) avoid coms in same place in team ffa
 	local r = math.random(50,120)
 	local theta = math.random(100) / 100 * 2 * math.pi
@@ -421,7 +421,7 @@ function SpawnFFAStartUnit(nSpawns, spawnID, teamID)
 		x = cx
 		z = cz
 	end
-	
+
 	-- spawn
 	SpawnStartUnit(teamID, x, z)
 end
@@ -429,7 +429,7 @@ end
 
 function SpawnTeamStartUnit(teamID, allyTeamID)
 	local x,_,z = Spring.GetTeamStartPosition(teamID)
-	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID) 
+	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 
 	-- if its choose-in-game mode, see if we need to autoplace anyone
 	if Game.startPosType==2 then
@@ -437,14 +437,14 @@ function SpawnTeamStartUnit(teamID, allyTeamID)
 			-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
 			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		else
-			--fallback 
+			--fallback
 			if x<=0 or z<=0 then
 				x = (xmin + xmax) / 2
 				z = (zmin + zmax) / 2
 			end
 		end
 	end
-	
+
 	--spawn
 	SpawnStartUnit(teamID, x, z)
 end
@@ -454,7 +454,7 @@ function SpawnStartUnit(teamID, x, z)
 	--get starting unit
 	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 
-	--overwrite startUnit with random faction for newbies 
+	--overwrite startUnit with random faction for newbies
 	if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
 		if math.random() > 0.5 then
 			startUnit = corcomDefID
@@ -462,10 +462,10 @@ function SpawnStartUnit(teamID, x, z)
 			startUnit = armcomDefID
 		end
 	end
-	
+
 	--spawn starting unit
 	local y = spGetGroundHeight(x,z)
-	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID) 
+	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 
 	--share info
 	teamStartPoints[teamID] = {x,y,z}
@@ -539,17 +539,17 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
+
 	local offset = 0.07		-- texture offset, because else gaps could show
 	local o = offset
 	-- bottom left
@@ -601,7 +601,7 @@ end
 
 function StartPointChosen(_,playerID)
 	if playerID == myPlayerID then
-		startPointChosen = true 
+		startPointChosen = true
 		if not readied and Script.LuaUI("PlayerReadyStateChanged") then
 			Script.LuaUI.PlayerReadyStateChanged(playerID, 4)
 		end
@@ -613,12 +613,12 @@ function gadget:GameSetup(state,ready,playerStates)
 	if gameStarting==nil and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then --ugly but effective (can also detect by parsing state string)
 		gameStarting = true
 	end
-	
+
 	-- if we can't choose startpositions, no need for ready button etc
 	if Game.startPosType ~= 2 or ffaMode then
 		return true,true
 	end
-	
+
 	-- notify LuaUI if readyStates have changed
 	for playerID,readyState in pairs(playerStates) do
 		if pStates[playerID] ~= readyState then
@@ -634,22 +634,22 @@ function gadget:GameSetup(state,ready,playerStates)
 			pStates[playerID] = readyState
 		end
 	end
-	
-	-- set my readyState to true if i am a newbie, or if ffa 
-	if not readied or not ready then 
+
+	-- set my readyState to true if i am a newbie, or if ffa
+	if not readied or not ready then
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 		if amNewbie or ffaMode then
 			readied = true
-			return true, true 
+			return true, true
 		end
 	end
-	
+
 	if not ready and readied then -- check if we just readied
 		ready = true
 	elseif ready and not readied then	-- check if we just reconnected/dropped
 		ready = false
 	end
-	
+
 	return true, ready
 end
 
@@ -673,7 +673,7 @@ function gadget:MousePress(sx,sy)
 			Spring.Echo("Please choose a start point!")
 		end
 	end
-	
+
 	-- message when trying to place startpoint but can't
 	if amNewbie then
 		local target,_ = Spring.TraceScreenRay(sx,sy)
@@ -690,7 +690,7 @@ end
 function gadget:Initialize()
 	-- add function to receive when startpoints were chosen
 	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
-	
+
 	-- create ready button
 	readyButton = gl.CreateList(function()
 		-- draws background rectangle

@@ -6,48 +6,48 @@ function pregameMessages(n)
 		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
-	
+
 	if n == 1830 then
 		ScavSendNotification("scav_unidentifiedObjectsDetected")
 	end
-	
+
 	-- if n == 2100 then
 	-- 	ScavSendMessage("... waiting for further data ... ")
 	-- 	ScavSendVoiceMessage(scavengerSoundPath.."waitingForIntel.wav")
 	-- end
-	
+
 	if n == 3900 then
 		ScavSendNotification("scav_classifiedAsScavengers")
 	end
-	
+
 	-- if n == 6300 then
 	-- 	ScavSendMessage("WARNING")
 	-- 	--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	-- end
-	
+
 	-- if n == 6330 then
 	-- 	ScavSendMessage("Scavenger Droppods detected nearby")
 	-- 	ScavSendVoiceMessage(scavengerSoundPath.."droppodsDetectedNearby.wav")
 	-- end
-	
+
 	if n == 7200 then
 		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
-	
+
 	if n == 7230 then
 		ScavSendNotification("scav_droppodsDetectedInArea")
 	end
-	
+
 	if n == 9000 then
 		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
-	
+
 	if n == 9030 then
 		ScavSendNotification("scav_droppingUnits")
 	end
-	
+
 end
 
 function BossFightMessages(BossWaveTimeLeft)
@@ -105,7 +105,7 @@ function BossFightMessages(BossWaveTimeLeft)
 		ScavSendVoiceMessage(scavengerSoundPath.."scavfinalcountdown.wav")
 		ScavSendMessage("10")
 	end
-	
+
 	if BossWaveTimeLeft == 9 then
 		ScavSendMessage("9")
 	end

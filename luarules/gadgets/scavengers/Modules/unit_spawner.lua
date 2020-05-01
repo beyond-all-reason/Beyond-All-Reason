@@ -23,7 +23,7 @@ function BossWaveTimer(n)
 			if r == 1 then
 				Spring.DestroyUnit(units[i],false,false)
 			end
-		end 
+		end
 	end
 end
 
@@ -54,7 +54,7 @@ function UnitGroupSpawn(n)
 					table.insert(SpawnBeacons,scav)
 				end
 			end
-			
+
 			for b = 1,10 do
 				local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
 				local _,_,_,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
@@ -68,7 +68,7 @@ function UnitGroupSpawn(n)
 			if pickedBeacon == 1234567890 then
 				return
 			end
-				
+
 			local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local posradius = 256
@@ -83,9 +83,9 @@ function UnitGroupSpawn(n)
 			--Spring.DestroyUnit(pickedBeacon,false,false)
 			SpawnBeacon(n)
 			pickedBeacon = nil
-			
+
 			if canSpawnHere then
-				
+
 				if BossWaveTimeLeft then
 					UnitSpawnChance = math.ceil(unitSpawnerModuleConfig.spawnchance / (teamcount/2))
 				else
@@ -102,7 +102,7 @@ function UnitGroupSpawn(n)
 				local aircraftchanceonsea = math_random(0,unitSpawnerModuleConfig.chanceforaircraftonsea)
 				local bossaircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance*5)
 				local spawnTier = math_random(1,100)
-				
+
 				if (posy <= -20 and aircraftchanceonsea ~= 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						if spawnTier < 50 then
@@ -169,11 +169,11 @@ function UnitGroupSpawn(n)
 									ScavSendNotification("scav_scavtech3d")
 								else
 									ScavSendNotification("scav_scavtech3e")
-								end	
+								end
 							else
 								ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 							end
-								
+
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
@@ -215,7 +215,7 @@ function UnitGroupSpawn(n)
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				end
-				
+
 				local groupsize = math.ceil(groupsize*bestTeamGroupMultiplier*(teamcount/2))
 				for i=1, groupsize do
 					local posx = posx+math_random(-160,160)
@@ -239,4 +239,4 @@ function UnitGroupSpawn(n)
 			end
 		end
 	end
-end			
+end

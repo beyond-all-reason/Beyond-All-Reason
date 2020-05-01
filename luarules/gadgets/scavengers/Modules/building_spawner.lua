@@ -30,7 +30,7 @@ function SpawnBlueprint(n)
 				else
 					blueprint = ScavengerBlueprintsT0[math_random(1,#ScavengerBlueprintsT0)]
 				end
-			elseif posy <= 0 then	
+			elseif posy <= 0 then
 				if spawnTier <= TierSpawnChances.T0 then
 						blueprint = ScavengerBlueprintsT0Sea[math_random(1,#ScavengerBlueprintsT0Sea)]
 				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -53,7 +53,7 @@ function SpawnBlueprint(n)
 			if canBuildHere then
 				canBuildHere = posCheck(posx, posy, posz, posradius)
 			end
-		
+
 			if canBuildHere then
 				-- let's do this shit
 				blueprint(posx, posy, posz, GaiaTeamID, false)

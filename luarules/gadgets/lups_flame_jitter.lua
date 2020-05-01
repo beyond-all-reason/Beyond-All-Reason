@@ -3,15 +3,15 @@
 -------------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Lups Flamethrower Jitter",
-    desc      = "Flamethrower jitter FX with LUPS",
-    author    = "jK",
-    date      = "Apr, 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true,  --  loaded by default?
-  }
+    return {
+        name      = "Lups Flamethrower Jitter",
+        desc      = "Flamethrower jitter FX with LUPS",
+        author    = "jK",
+        date      = "Apr, 2008",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true,  --  loaded by default?
+    }
 end
 
 local MIN_EFFECT_INTERVAL = 3
@@ -37,7 +37,7 @@ if (gadgetHandler:IsSyncedCode()) then
       SendToUnsynced("flame_FlameShot", unitID, unitDefID, weapon)
     end
   end
-  
+
   GG.LUPS = GG.LUPS or {}
   GG.LUPS.FlameShot = FlameShot
 
@@ -81,7 +81,7 @@ else
   end
 
   function FlameShot(_,unitID, unitDefID, weapon)
- 		if Spring.IsUnitIcon(unitID) then return end 
+ 		if Spring.IsUnitIcon(unitID) then return end
 	-- why is this even needed? we limited frequency of fire FX back in synced
 	--[[
     local n = Spring.GetGameFrame()
@@ -100,7 +100,7 @@ else
     local partpos = "x*delay,y*delay,z*delay|x="..speedx..",y="..speedy..",z="..speedz
 
 	local altFlameTexture = altflametex[wd]	-- FIXME: more elegant solution when this is actually implemented (as in, one that doesn't rely on different unitdef)
-	
+
     particleList[particleCnt] = {
       class        = 'JitterParticles2',
       colormap     = { {1,1,1,1},{1,1,1,1} },

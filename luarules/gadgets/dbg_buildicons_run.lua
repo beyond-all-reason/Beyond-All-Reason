@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "Build Icons Slowy (/luarules buildiconslow or buildiconanim or buildiconanimslow)",
-    desc      = "builds them all slow-like",
-    author    = "Beherith, Floris",
-    date      = "2015",
-    license   = "Horses",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Build Icons Slowy (/luarules buildiconslow or buildiconanim or buildiconanimslow)",
+        desc      = "builds them all slow-like",
+        author    = "Beherith, Floris",
+        date      = "2015",
+        license   = "Horses",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 -- when using /luarules buildiconanim unitname:

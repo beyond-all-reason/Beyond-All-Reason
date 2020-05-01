@@ -23,7 +23,7 @@ local fx = {
       strength     = 1.0,
       heat         = 2,
     },
-    
+
     sonic_distort = {
       class        = 'SphereDistortion',
       colormap     = { {1,1,1,1},{1,1,1,1} },
@@ -36,7 +36,7 @@ local fx = {
       emitRotSpread= 180,
 
       speed        = 0,
-      
+
       speedSpread  = 0,
       speedExp     = 0,
 

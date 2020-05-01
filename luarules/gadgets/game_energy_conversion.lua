@@ -36,7 +36,7 @@ local function SetMMRulesParams()
         local capacity = conv.c
         local ratio = conv.e
         Spring.SetGameRulesParam(unitName .. "_mm_capacity", capacity)
-        Spring.SetGameRulesParam(unitName .. "_mm_ratio", ratio)        
+        Spring.SetGameRulesParam(unitName .. "_mm_ratio", ratio)
     end
 end
 
@@ -96,7 +96,7 @@ end
 local function AdjustTeamCapacity(teamID, adjustment, e)
     local newCapacity = teamCapacities[teamID][e] + adjustment
     teamCapacities[teamID][e] = newCapacity
-	
+
 	local totalCapacity = 0
 	for j = 1, #eSteps do
 		totalCapacity = totalCapacity + teamCapacities[teamID][eSteps[j]]
@@ -120,7 +120,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 					if amount < 0 then amount = 0 end
 					energyUse = (energyUse - defs.capacity)
 					updateUnitConversion(unitID, amount, eSteps[j])
-					
+
 					if (defs.status == 0) then
 						Spring.CallCOBScript(unitID,"MMStatus",0,1)
 						defs.status = 1
@@ -184,7 +184,7 @@ function EmpedVector:process(currentFrame)
 	for uID, frameID in pairs(self.unitBuffer) do
 		if (currentFrame >= frameID) then
 			UnitParalysisOver(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
-			
+
 			self.unitBuffer[uID] = nil
 		end
 	end
@@ -203,7 +203,7 @@ function Efficiencies:avg()
 		if not (self.buffer[j] == nil) then
 			sumM = sumM + self.buffer[j].m
 			sumE = sumE + self.buffer[j].e
-			nonZeroCount = nonZeroCount + 1 
+			nonZeroCount = nonZeroCount + 1
 		end
 	end
 	if(nonZeroCount > 0 and sumE > 0) then return sumM/sumE end
@@ -288,9 +288,9 @@ function gadget:GameFrame(n)
 		for i = 0, (math.ceil(#teamList / resourceRefreshRate) -1) do
 			local tID
 			local tpos = (splitMMPointer + (i * resourceRefreshRate))
-			if tpos < #teamList then 
+			if tpos < #teamList then
 				tID = teamList[tpos]
-				
+
 				local eCur, eStor = spGetTeamResources(tID, 'energy')
 				local convertAmount = eCur - eStor * spGetTeamRulesParam(tID, mmLevelParamName)
 				local eConvert, mConvert, eConverted, mConverted, teamUsages = 0, 0, 0, 0, 0
@@ -334,7 +334,7 @@ end
 function gadget:UnitFinished(uID, uDefID, uTeam)
 	if convertCapacities[uDefID] then
 		local cDefs = convertCapacities[uDefID]
-        if not teamMMList[uTeam][cDefs.e][uID] then 
+        if not teamMMList[uTeam][cDefs.e][uID] then
 	    teamMMList[uTeam][cDefs.e][uID] = {capacity = 0, status = 0, built = false, emped = false}
         end
         teamMMList[uTeam][cDefs.e][uID].capacity = cDefs.c
@@ -353,7 +353,7 @@ function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer)
     if paralyzer and convertCapacities[uDefID] then
 		local _, maxHealth, paralyzeDamage, _ ,_ = spGetUnitHealth(uID)
 		local relativeParDmg = paralyzeDamage -  maxHealth
-		if (relativeParDmg > 0) then 
+		if (relativeParDmg > 0) then
 			EmpedVector:push(uID, currentFrameStamp + math.ceil(relativeParDmg / (maxHealth / paralysisRelRate)))
 		end
     end
@@ -399,7 +399,7 @@ function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
 			teamMMList[newTeam][cDefs.e][uID].status = teamMMList[oldTeam][cDefs.e][uID].status
 			teamMMList[newTeam][cDefs.e][uID].emped = teamMMList[oldTeam][cDefs.e][uID].emped
 			teamMMList[newTeam][cDefs.e][uID].built  = teamMMList[oldTeam][cDefs.e][uID].built
-			
+
             teamMMList[oldTeam][cDefs.e][uID] = nil
         end
     end

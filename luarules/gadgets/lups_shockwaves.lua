@@ -1,15 +1,15 @@
 -- $Id: lups_shockwaves.lua 3171 2008-11-06 09:06:29Z det $
 
 function gadget:GetInfo()
-  return {
-    name      = "Shockwaves",
-    desc      = "",
-    author    = "jK",
-    date      = "Jan. 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+    return {
+        name      = "Shockwaves",
+        desc      = "",
+        author    = "jK",
+        date      = "Jan. 2008",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 -------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ if (gadgetHandler:IsSyncedCode()) then
       end
     end
   end
-  
+
   function gadget:Explosion_GetWantedWeaponDef()
 		return wantedList
   end

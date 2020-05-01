@@ -10,25 +10,25 @@
 --------------------------------------------------------------------------------
 -- This gadget checks through the attributes of each unitdef and assigns an appropriate icon for use in the minimap & zoomed out mode.
 --
--- The reason that this is a gadget (it could also be a widget) and not part of weapondefs_post.lua/iconTypes.lua is the following:  
--- the default valuesfor UnitDefs attributes that are not specified in our unitdefs lua files are only loaded into UnitDefs AFTER  
--- unitdefs_post.lua and iconTypes.lua have been processed. For example, at the time of unitdefs_post, for most units ud.speed is  
--- nil and not a number, so we can't e.g. compare it to zero. Also, it's more modularized as a widget/gadget. 
+-- The reason that this is a gadget (it could also be a widget) and not part of weapondefs_post.lua/iconTypes.lua is the following:
+-- the default valuesfor UnitDefs attributes that are not specified in our unitdefs lua files are only loaded into UnitDefs AFTER
+-- unitdefs_post.lua and iconTypes.lua have been processed. For example, at the time of unitdefs_post, for most units ud.speed is
+-- nil and not a number, so we can't e.g. compare it to zero. Also, it's more modularized as a widget/gadget.
 -- [We could set the default values up in unitdefs_post to match engine defaults but thats just too hacky.]
 --
 -- Bluestone 27/04/2013
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "CustomIcons",
-    desc      = "Sets custom unit icons",
-    author    = "trepan,BD,TheFatController,Floris",
-    date      = "Jan 8, 2007",
-    license   = "GNU GPL, v2 or later",
-    layer     = -100,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "CustomIcons",
+        desc      = "Sets custom unit icons",
+        author    = "trepan,BD,TheFatController,Floris",
+        date      = "Jan 8, 2007",
+        license   = "GNU GPL, v2 or later",
+        layer     = -100,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 
@@ -50,11 +50,11 @@ local icons = {
     -- ID,   icon png file,   scale
     {"armcom.user", "armcom",1.75},
     {"corcom.user", "corcom",1.75},
-  
+
     {"mine1.user", "mine",0.36},
     {"mine2.user", "mine",0.44},
     {"mine3.user", "mine",0.53},
-  
+
     {"sub_t1.user", "sub",1.33},
     {"sub_t2.user", "sub",1.7},
     {"sub_t3.user", "sub",2},
@@ -63,7 +63,7 @@ local icons = {
 
     {"beacon.user", "beacon",1.66},
     {"corlootboxgold.user", "mine",1.1},
-  
+
     {"wind.user", "wind",1},
     {"energy1.user", "solar",1.5},
     {"energy2.user", "energy",1.63},
@@ -71,7 +71,7 @@ local icons = {
     {"energy4.user", "hazardous",1.8},
     {"energy5.user", "fusion",1.8},
     {"energy6.user", "energy",2.05},
-  
+
     {"eye.user", "eyes",0.85},
     {"spy.user", "eye",1.18},
 
@@ -84,7 +84,7 @@ local icons = {
     {"hover_t2.user", "hover",1.5},
     {"hover_t3.user", "hover",1.75},
     {"hover_transport.user", "hovertrans",1.7},
-  
+
     {"ship_tiny.user", "ship",0.8},
     {"ship_raid.user", "ship",1.1},
     {"ship.user", "ship",1.2},
@@ -117,7 +117,7 @@ local icons = {
     {"amphib_t2.user", "amphib",1.6},
     {"amphib_t2_aa.user", "amphib_aa",1.6},
     {"amphib_t3.user", "amphib",2.1},
-  
+
     {"shield.user", "shield", 1.5},
 
     {"targetting.user", "targetting", 1.3},
@@ -127,17 +127,17 @@ local icons = {
     {"jammer_t1.user", "jammer", 0.9},
     {"radar_t2.user", "radar", 1.2},
     {"jammer_t2.user", "jammer", 1.2},
-  
+
     {"krogoth.user", "mech",3.3},
     {"bantha.user", "bantha",2.6},
     {"juggernaut.user", "juggernaut",3.2},
     {"juggernaut2.user", "kbot",2.75},
     {"commando.user", "commando",1.35},
     {"commando2.user", "mech",1.3},  -- old
-  
+
     {"mex_t1.user", "mex",0.77},
     {"mex_t2.user", "mex",1.15},
-  
+
     {"metalmaker_t1.user", "metalmaker",0.75},
     {"metalmaker_t2.user", "metalmaker",1.15},
 
@@ -152,12 +152,12 @@ local icons = {
     {"nuke_big.user", "nuke",2.4},
     {"antinuke.user", "antinuke",1.6},
     {"antinuke_mobile.user", "antinukemobile",1.4},
-  
+
     {"aa1.user", "aa", 0.85},
     {"aa2.user", "aa", 1.1},
     {"aa_flak.user", "aa", 1.4},
     {"aa_longrange.user", "aa", 1.8},
-  
+
     {"worker.user", "worker", 0.85},
 
     {"allterrain_t1.user", "allterrain",1},
@@ -181,7 +181,7 @@ local icons = {
     {"kbot_t2_worker.user", "kbot_worker", 1.33},
     {"kbot_t2_aa.user", "kbot_aa",1.28},
     {"kbot_t3.user", "kbot",1.9},
-  
+
     {"vehicle_t1_flea.user", "vehicle",0.55},
     {"vehicle_t1_raid.user", "vehicle",0.85},
     {"vehicle_t1.user", "vehicle",1},
@@ -199,7 +199,7 @@ local icons = {
     {"vehicle_t2_worker.user", "vehicle_worker", 1.3},
 
     {"vehicle_trans.user", "vehicle_trans",1.7},
-  
+
     {"building_t1.user", "building", 1},
     {"building_t2.user", "building", 1.3},
 
@@ -231,9 +231,9 @@ local icons = {
     {"chicken_queen.user", "chicken_queen", 4},
 
     {"meteor.user", "blank", 1},
-  
+
     {"wall.user", "building",0.5},
-  
+
     {"air_t1.user", "air",0.82},
     {"air_t1_worker.user", "air_worker",1.2},
     {"air_t1_hover.user", "air_hover",1.2},

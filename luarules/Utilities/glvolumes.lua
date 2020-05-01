@@ -75,20 +75,20 @@ end
 local function CreateSinCosTable(divs)
   local sinTable = {}
   local cosTable = {}
-  
+
   local divAngle = TWO_PI / divs
   local alpha = 0
   local i = 1
   repeat
     sinTable[i] = sin(alpha)
     cosTable[i] = cos(alpha)
-    
+
     alpha = alpha + divAngle
     i = i + 1
   until (alpha >= TWO_PI)
   sinTable[i] = 0.0 -- sin(TWO_PI)
   cosTable[i] = 1.0 -- cos(TWO_PI)
-  
+
   return sinTable, cosTable
 end
 
@@ -98,7 +98,7 @@ function gl.Utilities.DrawMyCylinder(x,y,z, height,radius,divs)
   local sinTable, cosTable = CreateSinCosTable(divs)
   local bottomY = y - (height / 2)
   local topY    = y + (height / 2)
-  
+
   gl.BeginEnd(GL.TRIANGLE_STRIP, function()
     --// top
     for i = #sinTable, 1, -1 do

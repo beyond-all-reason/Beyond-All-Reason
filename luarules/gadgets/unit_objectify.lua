@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Objectify",
-    desc      = "makes units neutral and stealthy when unit has customparam: objectify",
-    author    = "Bluestone, Floris",
-    date      = "Feb 2015",
-    license   = "Bacon",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Objectify",
+        desc      = "makes units neutral and stealthy when unit has customparam: objectify",
+        author    = "Bluestone, Floris",
+        date      = "Feb 2015",
+        license   = "Bacon",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 -- make them neutral, radar stealthy, not appear on the minimap

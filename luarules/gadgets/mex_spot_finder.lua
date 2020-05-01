@@ -50,7 +50,7 @@ local spSetGameRulesParam = Spring.SetGameRulesParam
 
 local extractorRadius = Game.extractorRadius
 local extractorRadiusSqr = extractorRadius * extractorRadius
- 
+
 local buildmapSizeX = Game.mapSizeX - buildGridSize
 local buildmapSizeZ = Game.mapSizeZ - buildGridSize
 local buildmapStartX = buildGridSize
@@ -95,10 +95,10 @@ local function SetMexGameRulesParams(metalSpots)
 		spSetGameRulesParam("mex_count", -1)
 		return
 	end
-	
+
 	local mexCount = #metalSpots
 	spSetGameRulesParam("mex_count", mexCount)
-	
+
 	for i = 1, mexCount do
 		local mex = metalSpots[i]
 		spSetGameRulesParam("mex_x" .. i, mex.x)
@@ -116,14 +116,14 @@ function gadget:Initialize()
 	Spring.SetGameRulesParam("base_extraction", 0.001)
 	local metalSpots, fromEngineMetalmap = GetSpots()
 	local metalSpotsByPos = false
-	
+
 	if fromEngineMetalmap and #metalSpots < 6 then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Indiscrete metal map detected")
 		metalSpots = false
 	end
-	
+
 	local metalValueOverride = gameConfig and gameConfig.metalValueOverride
-	
+
 	if metalSpots then
 		local mult = (modOptions and modOptions.metalmult) or 1
 		local i = 1
@@ -140,17 +140,17 @@ function gadget:Initialize()
 				metalSpots[#metalSpots] = nil
 			end
 		end
-		
+
 		metalSpotsByPos = GetSpotsByPos(metalSpots)
 	end
-	
+
 	SetMexGameRulesParams(metalSpots)
 
 	GG.metalSpots = metalSpots
 	GG.metalSpotsByPos = metalSpotsByPos
-	
+
 	GG.IntegrateMetal = IntegrateMetal
-	
+
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal Spots found and GGed")
 end
 
@@ -160,22 +160,22 @@ end
 
 function IntegrateMetal(x, z, radius)
 	local centerX, centerZ
-	
+
 	radius = radius or MEX_RADIUS
-	
+
 	centerX = (floor( x / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
 	centerZ = (floor( z / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
-	
+
 	local startX = floor((centerX - radius) / METAL_MAP_SQUARE_SIZE)
 	local startZ = floor((centerZ - radius) / METAL_MAP_SQUARE_SIZE)
 	local endX = floor((centerX + radius) / METAL_MAP_SQUARE_SIZE)
 	local endZ = floor((centerZ + radius) / METAL_MAP_SQUARE_SIZE)
 	startX, startZ = max(startX, 0), max(startZ, 0)
 	endX, endZ = min(endX, MAP_SIZE_X_SCALED - 1), min(endZ, MAP_SIZE_Z_SCALED - 1)
-	
+
 	local mult = Spring.GetGameRulesParam("base_extraction")
 	local result = 0
-	
+
 	for i = startX, endX do
 		for j = startZ, endZ do
 			local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
@@ -187,7 +187,7 @@ function IntegrateMetal(x, z, radius)
 			end
 		end
 	end
-	
+
 	return result * mult, centerX, centerZ
 end
 
@@ -209,7 +209,7 @@ local function SanitiseSpots(spots, metalValueOverride)
 			spot[#spots] = nil
 		end
 	end
-	
+
 	return spots
 end
 
@@ -231,7 +231,7 @@ local function makeString(group)
 end
 
 function GetSpots()
-	
+
 	local spots = {}
 
 	-- Check configs
@@ -242,34 +242,34 @@ function GetSpots()
 			return spots, false
 		end
 	end
-	
+
 	if mapConfig then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading mapside mex config")
 		loadConfig = true
 		spots = SanitiseSpots(mapConfig.spots, mapConfig.metalValueOverride)
 		return spots, false
 	end
-	
+
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Detecting mex config from metalmap")
 
 	-- Main group collection
 	local uniqueGroups = {}
-	
+
 	-- Strip info
 	local nStrips = 0
 	local stripLeft = {}
 	local stripRight = {}
 	local stripGroup = {}
-	
+
 	-- Indexes
 	local aboveIdx
 	local workingIdx
-	
+
 	-- Strip processing function (To avoid some code duplication)
 	local function DoStrip(x1, x2, z, worth)
-		
+
 		local assignedTo
-		
+
 		for i = aboveIdx, workingIdx - 1 do
 			if stripLeft[i] > x2 + gridSize then
 				break
@@ -301,11 +301,11 @@ function GetSpots()
 				aboveIdx = aboveIdx + 1
 			end
 		end
-		
+
 		nStrips = nStrips + 1
 		stripLeft[nStrips] = x1
 		stripRight[nStrips] = x2
-		
+
 		if assignedTo then
 			stripGroup[nStrips] = assignedTo
 		else
@@ -320,17 +320,17 @@ function GetSpots()
 			uniqueGroups[makeString(newGroup)] = newGroup
 		end
 	end
-	
+
 	-- Strip finding
 	workingIdx = huge
 	for mz = metalmapStartX, metalmapSizeZ, gridSize do
-		
+
 		aboveIdx = workingIdx
 		workingIdx = nStrips + 1
-		
+
 		local stripStart = nil
 		local stripWorth = 0
-		
+
 		for mx = metalmapStartZ, metalmapSizeX, gridSize do
 			local _,_, groundMetal = spGetGroundInfo(mx, mz)
 			if groundMetal > 0 then
@@ -342,16 +342,16 @@ function GetSpots()
 				stripWorth = 0
 			end
 		end
-		
+
 		if stripStart then
 			DoStrip(stripStart, metalmapSizeX, mz, stripWorth)
 		end
 	end
-	
+
 	-- Final processing
 	for _, g in pairs(uniqueGroups) do
 		local d = {}
-		
+
 		local gMinX, gMaxX = huge, -1
 		local gLeft, gRight = g.left, g.right
 		for iz = g.minZ, g.maxZ, gridSize do
@@ -360,19 +360,19 @@ function GetSpots()
 		end
 		local x = (gMinX + gMaxX) * 0.5
 		local z = (g.minZ + g.maxZ) * 0.5
-		
+
 		d.metal, d.x, d.z = IntegrateMetal(x,z)
-		
+
 		d.y = spGetGroundHeight(d.x, d.z)
-		
+
 		local merged = false
-		
+
 		for i = 1, #spots do
 			local spot = spots[i]
 			local dis = (d.x - spot.x)^2 + (d.z - spot.z)^2
 			if dis < extractorRadiusSqr*4 then
 				local metal, mx, mz = IntegrateMetal((d.x + spot.x) * 0.5, (d.z + spot.z) * 0.5)
-				
+
 				if dis < extractorRadiusSqr*1.7 or metal > (d.metal + spot.metal)*0.95 then
 					spot.x = mx
 					spot.y = spGetGroundHeight(mx, mx)
@@ -383,27 +383,27 @@ function GetSpots()
 				end
 			end
 		end
-		
+
 		if not merged then
 			spots[#spots + 1] = d
 		end
 	end
-	
+
 	--for i = 1, #spots do
 	--	Spring.MarkerAddPoint(spots[i].x,spots[i].y,spots[i].z,"")
 	--end
-	
+
 	return spots, true
 end
 
 function GetValidStrips(spot)
-	
+
 	local sMinZ, sMaxZ = spot.minZ, spot.maxZ
 	local sLeft, sRight = spot.left, spot.right
-	
+
 	local validLeft = {}
 	local validRight = {}
-	
+
 	local maxZOffset = buildGridSize * ceil(extractorRadius / buildGridSize - 1)
 	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), buildGridSize do
 		local vLeft, vRight = buildmapStartX, buildmapSizeX
@@ -417,7 +417,7 @@ function GetValidStrips(spot)
 		validLeft[mz] = vLeft
 		validRight[mz] = vRight
 	end
-	
+
 	spot.validLeft = validLeft
 	spot.validRight = validRight
 end

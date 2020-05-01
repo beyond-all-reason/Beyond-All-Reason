@@ -44,7 +44,7 @@ function gadget:Initialize()
 	end
 
 	if not hasMetalmap and mapConfig and Spring.GetGameFrame() == 0 then
-	
+
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading map-side lua metal spot configuration...")
 		local spots = mapConfig.spots
 		local metalFactor = 0.43 * 9 / 21
@@ -61,7 +61,7 @@ function gadget:Initialize()
 
 				-- place metal for spot
 				if (px and pz and metal) then
-					
+
 					--Spring.Echo("metal set for x="..px.." z="..pz.." metal="..metal)
 					xIndex = math.floor(px / METAL_MAP_SQUARE_SIZE)
 					zIndex = math.floor(pz / METAL_MAP_SQUARE_SIZE)
@@ -70,13 +70,13 @@ function gadget:Initialize()
 					if xIndex >=0 and zIndex >=0 then
 						for dxi = -2, 2 do
 							for dzi = -2, 2 do
-								if (math.abs(dxi) == 2 and math.abs(dzi) == 2) then 
+								if (math.abs(dxi) == 2 and math.abs(dzi) == 2) then
 									-- skip corners
 								else
 									xi = xIndex + dxi
 									zi = zIndex + dzi
-		
-									if (xi > 0 and xi < MAP_SIZE_X_SCALED and zi > 0 and zi < MAP_SIZE_Z_SCALED ) then							
+
+									if (xi > 0 and xi < MAP_SIZE_X_SCALED and zi > 0 and zi < MAP_SIZE_Z_SCALED ) then
 										Spring.SetMetalAmount(xi,zi,metal * metalFactor *255)
 									end
 								end

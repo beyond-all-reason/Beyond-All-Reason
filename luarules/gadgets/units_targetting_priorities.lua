@@ -103,7 +103,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitRulesParam = Spring.GetUnitRulesParam
-	
+
 	function gadget:UnitCreated(unitID, unitDefID)
 		if hasPriorityAir[unitDefID] then
 			Spring.InsertUnitCmdDesc(unitID, CMD_SET_PRIORITY, setPriorityAirn)
@@ -112,7 +112,7 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 		end
 	end
-	
+
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		if cmdID == CMD_SET_PRIORITY then
 			local cmdDescId = Spring.FindUnitCmdDesc(unitID, CMD_SET_PRIORITY)
@@ -128,7 +128,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
-	
+
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 		if cmdID == CMD_SET_PRIORITY then
 			if cmdParams and cmdParams[1] then
@@ -148,7 +148,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 		if (targetID == -1) and (attackerWeaponNum == -1) then
 			return true, defPriority

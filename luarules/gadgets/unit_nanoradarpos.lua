@@ -1,14 +1,14 @@
 
 function gadget:GetInfo()
-  return {
-    name      = "Nano Radar Pos",
-    desc      = "Removes radar icon wobble for nanos since these units are technically not buildings (no yardmap)",
-    author    = "Floris",
-    date      = "November 2019",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+    return {
+        name      = "Nano Radar Pos",
+        desc      = "Removes radar icon wobble for nanos since these units are technically not buildings (no yardmap)",
+        author    = "Floris",
+        date      = "November 2019",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 

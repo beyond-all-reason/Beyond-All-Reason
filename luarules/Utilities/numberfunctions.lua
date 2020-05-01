@@ -42,7 +42,7 @@ function ToSIPrec(num) -- more presise
   if type(num) ~= 'number' then
 	num = tonumber(num)
   end
- 
+
   if (num == 0) then
     return "0"
   else
@@ -53,11 +53,11 @@ function ToSIPrec(num) -- more presise
       return strFormat("%.2f", num)
     elseif (absNum < 10) then
       return strFormat("%.2f", num)
-	
+
 	elseif (absNum < 1000) then
       return strFormat("%.0f", num)
 	  --return num
-	  
+
     elseif (absNum < 1000000) then
       return strFormat("%.1fk", 0.001 * num)
     else

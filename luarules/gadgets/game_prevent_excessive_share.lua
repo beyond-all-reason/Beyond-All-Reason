@@ -22,7 +22,7 @@ end
 -- Callins
 ----------------------------------------------------------------
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
-    
+
     -- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
     -- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
     local resourceName
@@ -34,11 +34,11 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
         -- We don't handle whatever this resource is, allow it
         return true
     end
-    
+
     -- Calculate the maximum amount the receiver can receive
     local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverTeamId, resourceName)
     local maxShare = rStor * rShare - rCur
-    
+
     -- Is the sender trying to send more than the maximum? Block it, possibly sending a reduced amount instead
     if amount > maxShare then
         if maxShare > 0 then
@@ -46,7 +46,7 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
         end
         return false
     end
-    
+
     -- Allow anything we don't explictly block
     return true
 end

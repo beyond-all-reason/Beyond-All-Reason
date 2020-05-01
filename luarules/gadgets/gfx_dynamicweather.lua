@@ -1,15 +1,15 @@
 local enabled = (Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0)
 
 function gadget:GetInfo()
-  return {
-    name      = "Dynamic Weather",
-    desc      = "Yea, Dynamic Weather",
-    author    = "Damgam",
-    date      = "2020",
-    license   = "What?",
-    layer     = 0,
-    enabled   = enabled
-  }
+	return {
+		name      = "Dynamic Weather",
+		desc      = "Yea, Dynamic Weather",
+		author    = "Damgam",
+		date      = "2020",
+		license   = "What?",
+		layer     = 0,
+		enabled   = enabled
+	}
 end
 
 if (not gadgetHandler:IsSyncedCode()) then
@@ -59,7 +59,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 				local oldSunY = SunY
 				local oldSunZ = SunZ
 				if cycle == "Day" then
-					if SunX > -MapMaxSunX then 
+					if SunX > -MapMaxSunX then
 						SunX = oldSunX - MapSunSpeed
 					elseif SunX <= -MapMaxSunX then
 						Spring.SendCommands("TimeOfTheDay Nighttime")
@@ -73,14 +73,14 @@ if (not gadgetHandler:IsSyncedCode()) then
 						SunHeightState = "OHFUCKITSSOBRIGHT"
 						shadowopacity = maxshadowopacity
 					end
-					
+
 					if SunHeightState == "Sunrise" then
 						SunY = oldSunY + (MapSunSpeed * 2.1)
 						if SunY <= maxshadowopacity and SunY >= 0 then
 							shadowopacity = SunY*(1/MapMaxSunHeight)
 						end
-						
-						
+
+
 						if SunY <= defdiffr and SunY >= 0 then
 							diffr = SunY*(1/MapMaxSunHeight)
 						end
@@ -90,8 +90,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 						if SunY <= defdiffb and SunY >= 0 then
 							diffb = SunY*(1/MapMaxSunHeight)
 						end
-						
-						
+
+
 						if SunY <= defspecr and SunY >= 0 then
 							specr = SunY*(1/MapMaxSunHeight)
 						end
@@ -101,8 +101,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 						if SunY <= defspecb and SunY >= 0 then
 							specb = SunY*(1/MapMaxSunHeight)
 						end
-						
-						
+
+
 						if SunY > MapMaxSunHeight then
 							SunY = MapMaxSunHeight
 						end
@@ -111,8 +111,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 						if SunY <= maxshadowopacity and SunY >= 0 then
 							shadowopacity = SunY*(1/MapMaxSunHeight)
 						end
-						
-						
+
+
 						if SunY <= defdiffr and SunY >= 0 then
 							diffr = SunY*(1/MapMaxSunHeight)
 						end
@@ -122,8 +122,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 						if SunY <= defdiffb and SunY >= 0 then
 							diffb = SunY*(1/MapMaxSunHeight)
 						end
-						
-						
+
+
 						if SunY <= defspecr and SunY >= 0 then
 							specr = SunY*(1/MapMaxSunHeight)
 						end
@@ -133,8 +133,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 						if SunY <= defspecb and SunY >= 0 then
 							specb = SunY*(1/MapMaxSunHeight)
 						end
-						
-						
+
+
 						if SunY < -0.1 then
 							SunY = -0.1
 						end
@@ -147,7 +147,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 					if shadowopacity <= 0 then
 						shadowopacity = 0
 					end
-					if SunX < MapMaxSunX then 
+					if SunX < MapMaxSunX then
 						SunX = oldSunX + MapSunSpeed*nighttime
 					elseif SunX >= MapMaxSunX then
 						Spring.SendCommands("TimeOfTheDay Daytime")
@@ -167,7 +167,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 			end
 		end
 else
-	
+
 	-- function gadget:GotChatMsg(msg, playerID)
 		-- if string.find(msg, "TimeOfTheDay") then
 			-- if string.find(msg, "Daytime") then
@@ -179,9 +179,9 @@ else
 			-- end
 		-- end
 	-- end
-				
-	
-	
+
+
+
 	-- function gadget:Initialize()
 		-- gadgetHandler:AddSyncAction("GetDayOrNight", timeoftheday)
 	-- end
@@ -189,7 +189,7 @@ else
 	-- function gadget:Shutdown()
 		-- gadgetHandler:RemoveSyncAction("GetDayOrNight")
 	-- end
-	
+
 	-- function gadget:GameFrame(n)
 		-- if n%5 == 0 then
 			-- if SunHeighToSynced < MapMaxSunHeight/5 then

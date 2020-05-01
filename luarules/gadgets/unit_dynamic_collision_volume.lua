@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "Dynamic collision volume & Hitsphere Scaledown",
-    desc      = "Adjusts collision volume for pop-up style units & Reduces the diameter of default sphere collision volume for 3DO models",
-    author    = "Deadnight Warrior",
-    date      = "Nov 26, 2011",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name      = "Dynamic collision volume & Hitsphere Scaledown",
+		desc      = "Adjusts collision volume for pop-up style units & Reduces the diameter of default sphere collision volume for 3DO models",
+		author    = "Deadnight Warrior",
+		date      = "Nov 26, 2011",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true  --  loaded by default?
+	}
 end
 
 if (gadgetHandler:IsSyncedCode()) then
@@ -89,13 +89,13 @@ if (gadgetHandler:IsSyncedCode()) then
 					if (spGetFeatureRadius(featID)>47) then
 						rs, hs = 0.68, 0.60
 					else
-						rs, hs = 0.75, 0.67  
+						rs, hs = 0.75, 0.67
 					end
 					local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featID)
 					if (vtype>=3 and xs==ys and ys==zs) then
 						spSetFeatureCollisionData(featID, xs*rs, ys*hs, zs*rs,  xo, yo-ys*0.1323529*rs, zo,  vtype, htype, axis)
 					end
-					spSetFeatureRadiusAndHeight(featID, spGetFeatureRadius(featID)*rs, spGetFeatureHeight(featID)*hs)			
+					spSetFeatureRadiusAndHeight(featID, spGetFeatureRadius(featID)*rs, spGetFeatureHeight(featID)*hs)
 				elseif featureModel:find(".s3o") then
 					local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featID)
 					if (vtype>=3 and xs==ys and ys==zs) then
@@ -115,7 +115,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 
-	
+
 	--Reduces the diameter of default (unspecified) collision volume for 3DO models,
 	--for S3O models it's not needed and will in fact result in wrong collision volume
 	--also handles per piece collision volume definitions
@@ -150,7 +150,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		elseif modeltype == "3do" then
 			local rs, hs, ws
-			local r = spGetUnitRadius(unitID) 
+			local r = spGetUnitRadius(unitID)
 			if (r>47 and not canFly[unitDefID]) then
 				rs, hs, ws = 0.68, 0.68, 0.68
 			elseif (not canFly[unitDefID]) then
@@ -164,18 +164,18 @@ if (gadgetHandler:IsSyncedCode()) then
 			    spSetUnitCollisionData(unitID, xs*ws, 13, zs*rs,  xo, yo, zo,  1, htype, 1)
 			  elseif (canFly[unitDefID]) then
 				spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  1, htype, 1)
-			  else 
+			  else
 				spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  vtype, htype, axis)
 			  end
 			end
-			
-			-- set aircraft size 
+
+			-- set aircraft size
 			if canFly[unitDefID] and UnitDefs[unitDefID].transportCapacity>0 then
 				spSetUnitRadiusAndHeight(unitID, 16, 16)
 			else
 				spSetUnitRadiusAndHeight(unitID, spGetUnitRadius(unitID)*rs, spGetUnitHeight(unitID)*hs)
 			end
-			
+
 			-- make sure underwater units are really underwater (need midpoint + model radius <0)
 			local h = spGetUnitHeight(unitID)
 			local wd = UnitDefs[unitDefID].minWaterDepth
@@ -213,7 +213,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			if (vtype>=3 and xs==ys and ys==zs) then
 				spSetFeatureCollisionData(featureID, xs*rs, ys*hs, zs*rs,  xo, yo-ys*0.09, zo,  vtype, htype, axis)
 			end
-			spSetFeatureRadiusAndHeight(featureID, spGetFeatureRadius(featureID)*rs, spGetFeatureHeight(featureID)*hs)			
+			spSetFeatureRadiusAndHeight(featureID, spGetFeatureRadius(featureID)*rs, spGetFeatureHeight(featureID)*hs)
 		end
 	end
 
@@ -237,7 +237,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 
-	
+
 	--Dynamic adjustment of pop-up style of units' collision volumes based on unit's ARMORED status, runs twice per second
 	--rescaling of radius and height of 3DO buildings
 	function gadget:GameFrame(n)
@@ -291,5 +291,5 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		end
 	end
-	
+
 end

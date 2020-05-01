@@ -7,13 +7,12 @@ function gadget:GetInfo()
 		version   = "v1",
 		desc      = "Sets map waterlevel according to the modoption",
 		author    = "Doo",
-		date      = "Nov 2017", 
+		date      = "Nov 2017",
 		license   = "GPL",
 		layer     = math.huge,	--higher layer is loaded last
-		enabled   = true,  
+		enabled   = true,
 	}
 end
-
 
 local PACKET_HEADER = "$wl$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
@@ -76,9 +75,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		Spring.Echo('Changed waterlevel: '..waterlevel)
 	end
 
-
 else	-- UNSYNCED
-
 
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction('waterlevel', waterlevel)
@@ -98,5 +95,3 @@ else	-- UNSYNCED
 		end
 	end
 end
-
-

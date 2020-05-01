@@ -64,7 +64,7 @@ else
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("selectionUpdate", handleSelectionUpdateEvent)
 	end
-	
+
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("selectionUpdate")
 	end
@@ -77,11 +77,11 @@ else
 				return
 			end
 		end
-			
+
 		if compressed then		--we have a compressed msg here
 			msg = ZlibDecompress( msg )
 		end
-		
+
 		local counts = UnpackU16( msg, 1, 2 )
 		if counts[1] == counts[2] and counts[1] == 0xffff then
 			--clear all
@@ -128,7 +128,7 @@ else
 		end
 
 		timeSeconds = floor(time)
-		
+
 		if fullSelectionUpdateInt ~= 0 and timeSeconds%fullSelectionUpdateInt == 0 then
 			--its time for a full update
 			sendUnitsMsg(PackU16(0xffff) .. PackU16(0xffff))
@@ -140,7 +140,7 @@ else
 
 	--all values are 16bit
 	--FORMAT: uncompressed msg "cosu[addCount][removeCount]([unitIdToAdd]*)([unitIdToRemove]*)"
-	--FORMAT: compressed msg "cosc{[addCount][removeCount]([unitIdToAdd]*)([unitIdToRemove]*)}"  the part in curly braces has to be zlib compressed 
+	--FORMAT: compressed msg "cosc{[addCount][removeCount]([unitIdToAdd]*)([unitIdToRemove]*)}"  the part in curly braces has to be zlib compressed
 	--FORMAT clear all: "cosu[0xffffff][0xffffff]"  --magic value. impossible to have as normal message
 
 	function sendFullRefresh()
@@ -151,16 +151,16 @@ else
 		local finalMsg = msg
 		local header = HEADER_SEL_UNCOMPRESSED
 		if ZlibCompress and msg:len() >= minZlibSize then
-			finalMsg = ZlibCompress( finalMsg ) 
+			finalMsg = ZlibCompress( finalMsg )
 			header = HEADER_SEL_COMPRESSED
 		end
-		
+
 		SendLuaRulesMsg(validation .. header .. finalMsg)
 	end
 
 	function sendSelectedUnits()
 		local units = GetSelectedUnits()
-		
+
 		local partAdd = ""
 		local addCount = 0
 		for i=1,#units do
@@ -170,7 +170,7 @@ else
 				partAdd = partAdd .. PackU16(unitId)
 				myLastSelectedUnits[unitId] = true
 				addCount = addCount + 1
-				
+
 				if addCount > unitLimitPerFrame then
 					break
 				end
@@ -186,18 +186,18 @@ else
 				partRemove = partRemove .. PackU16(unitId)
 				remTab[unitId] = true
 				remCount = remCount + 1
-				
+
 				if (addCount + remCount) > unitLimitPerFrame then
 					break
 				end
 			end
 		end
-		
+
 		--remove not anymore selected units
 		for unitId, b in pairs(remTab) do
 			myLastSelectedUnits[unitId] = nil
 		end
-		
+
 		local msg = partAdd .. partRemove
 		if msg:len() > 1 then
 			local msgToSend = ""
@@ -217,9 +217,9 @@ else
 				else
 					--send standard message
 					msgToSend = PackU16(addCount) .. PackU16(remCount) .. msg
-					
+
 				end
-				
+
 				sendUnitsMsg( msgToSend)
 			end
 		end

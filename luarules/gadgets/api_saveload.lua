@@ -6,7 +6,7 @@
 --					remove the -y to not overwrite
 --				/savegame to save to Spring/Saves/QuickSave.ssf
 --				open an .ssf with spring.exe to load
---				/reloadgame reloads the save you loaded 
+--				/reloadgame reloads the save you loaded
 --					(gadget purges existing units and feautres)
 --	NOTES
 --	- heightmap saving is implemented by engine
@@ -97,7 +97,7 @@ local function ReadFile(zip, name, file)
 	name = name or ''
 	if (not file) then return end
 	local dataRaw, dataFunc, data, err
-	
+
 	zip:open(file)
 	dataRaw = zip:read("*all")
 	if not (dataRaw and type(dataRaw) == 'string') then
@@ -111,7 +111,7 @@ local function ReadFile(zip, name, file)
 			end
 		end
 	end
-	if err then 
+	if err then
 		Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Save/Load error: ' .. err)
 		return nil
 	end
@@ -250,7 +250,7 @@ local function LoadOrdersForUnit(oldID, data)
 	if not data then
 		return
 	end
-	
+
 	local px, py, pz = unpack(data.pos)
 	local isNanoTurret = data.unitDefName == "staticcon"
 	for i=1,#data.commands do
@@ -272,13 +272,13 @@ local function LoadOrdersForUnit(oldID, data)
 				command.params[1] = GetNewFeatureID(targetID) + FEATURE_ID_CONSTANT
 			end
 		end
-		
+
 		-- workaround for stupid bug where the coordinates are all mixed up
 		local params = {}
 		for i=1,#command.params do
 			params[i] = command.params[i]
 		end
-		
+
 		Spring.GiveOrderToUnit(data.newID, command.id, params, command.options.coded)
 	end
 end
@@ -331,7 +331,7 @@ local function LoadUnits()
 				end
 			end
 			spSetUnitStockpile(newID, data.stockpile.num or 0, data.stockpile.progress or 0)
-			
+
 			-- states
 			spGiveOrderToUnit(newID, CMD.FIRE_STATE, {data.states.firestate or 2}, 0)
 			spGiveOrderToUnit(newID, CMD.MOVE_STATE, {data.states.movestate or 1}, 0)
@@ -341,7 +341,7 @@ local function LoadUnits()
 			spGiveOrderToUnit(newID, CMD.TRAJECTORY, {boolToNum(data.states.trajectory)}, 0)
 			spGiveOrderToUnit(newID, CMD.IDLEMODE, {boolToNum(data.states.autoland)}, 0)
 			spGiveOrderToUnit(newID, CMD.AUTOREPAIRLEVEL, {boolToNum(data.states.autorepairlevel)}, 0)
-			
+
 			if data.states.custom then
 				for cmdID, state in pairs(data.states.custom) do
 					if not nonLoadedCommands[cmdID] then
@@ -354,7 +354,7 @@ local function LoadUnits()
 					end
 				end
 			end
-			
+
 			if data.cloak then
 				-- restored on its own by gadgets, but without this code line there is a delay where units are uncloaked and enemy tracks them
 				-- ...actually they track it even with this line, comment it out
@@ -364,10 +364,10 @@ local function LoadUnits()
 				Spring.SetUnitCloak(newID, false)	-- workaround cloak persisting even when unit's "want cloak" state is false
 			end
 			--GG.UpdateUnitAttributes(newID) -- BAR doesnt have the gadget ZK has
-			
+
 			-- is neutral
 			spSetUnitNeutral(newID, data.neutral or false)
-			
+
 			-- control group
 			if data.ctrlGroup then
 				SendToUnsynced("saveLoad_SetControlGroup", newID, data.unitTeam, data.ctrlGroup)
@@ -376,7 +376,7 @@ local function LoadUnits()
 			Spring.MarkerAddPoint(px, py, pz, "Cannot load " .. data.unitDefName)
 		end
 	end
-	
+
 	-- Things that rely on unitID remapping, and/or rulesparams
 	for oldID, data in pairs(savedata.unit) do
 		if data.newID then
@@ -385,12 +385,12 @@ local function LoadUnits()
 			for name,value in pairs(data.rulesParams) do
 				Spring.SetUnitRulesParam(newID, name, ValidateUnitRule(name, value))
 			end
-			
+
 			-- transport
 			if data.transporter then
 				local transporterID = GetNewUnitID(data.transporter)
 				data.transporter = transporterID
-				
+
 				local env = Spring.UnitScript.GetScriptEnv(transporterID)
 				if env and env.script.BeginTransport then
 					Spring.UnitScript.CallAsUnit(transporterID, env.script.BeginTransport, newID)
@@ -398,14 +398,14 @@ local function LoadUnits()
 					Spring.UnitAttach(data.transporter, newID, 0)	-- FIXME: no way to get the proper piece atm
 				end
 			end
-			
+
 			local env = Spring.UnitScript.GetScriptEnv(newID)
 			if env and env.OnLoadGame then
 				Spring.UnitScript.CallAsUnit(newID, env.OnLoadGame)
 			end
 		end
 	end
-	
+
 	-- second pass for orders
 	for oldID, data in pairs(savedata.unit) do
 		LoadOrdersForUnit(unitID, data)
@@ -428,7 +428,7 @@ local function LoadUnits()
 			end
 		end
 	end
-	
+
 	-- WAIT WAIT everything
 	for oldID, data in pairs(savedata.unit) do
 		if data.newID then
@@ -436,7 +436,7 @@ local function LoadUnits()
 			spGiveOrderToUnit(data.newID, CMD.WAIT, {}, 0)
 		end
 	end
-	
+
 	for i=1,#factoryBuildeesToDelete do
 		local buildeeData = factoryBuildeesToDelete[i]
 		--Spring.DestroyUnit(buildeeData.unitID, false, true)	-- clear the unit so factory can build it again
@@ -464,7 +464,7 @@ local function LoadFeatures()
 		local newID = spCreateFeature(data.featureDefName, px, py, pz, data.heading, data.allyTeam)
 		if newID then
 			data.newID = newID
-			
+
 			if data.dir then
 				spSetFeatureDirection(newID, unpack(data.dir))
 			end
@@ -491,12 +491,12 @@ local function LoadProjectiles()
 	local PROJECTILE_TARGET_FEATURE = 102
 	local PROJECTILE_TARGET_GROUND = 103
 	local PROJECTILE_TARGET_UNIT = 117
-	
+
 	-- Create projectiles
 	for oldID, data in pairs(savedata.projectile) do
-		
+
 		local weaponDefID = data.projectileDefID
-	
+
 		local params = {
 			pos = data.pos,
 			speed = data.velocity,
@@ -507,17 +507,17 @@ local function LoadProjectiles()
 			ttl = data.timeToLive,
 			upTime = data.upTime,
 		}
-		
+
 		if WeaponDefs[weaponDefID] then
 			local wd = WeaponDefs[weaponDefID]
 			params.tracking = wd.turnRate
 			params.maxRange = wd.range
 		end
-	
+
 		local newID = spSpawnProjectile(weaponDefID, params)
 		data.newID = newID
 	end
-	
+
 	-- Set projectile targets
 	for oldID, data in pairs(savedata.projectile) do
 		if data.targetType and data.target then
@@ -546,7 +546,7 @@ local function LoadProjectiles()
 			end
 		end
 	end
-	
+
 	-- Check intercept
 	for oldID, data in pairs(savedata.projectile) do
 		local newIntercept = spGetProjectileIsIntercepted(data.newID) or false
@@ -562,19 +562,19 @@ local function LoadGeneralInfo()
 	for name,value in pairs(gameRulesParams) do
 		spSetGameRulesParam(name, value)
 	end
-	
+
 	local currentGameFrame = Spring.GetGameFrame()
-	
+
 	-- The subtraction of current game frame should support /reloadgame
 	savedata.general.gameFrame = savedata.general.gameFrame - currentGameFrame
-	
+
 	-- Game frame when the game was last saved.
 	spSetGameRulesParam("lastSaveGameFrame", savedata.general.gameFrame)
 	-- Total game frame if all saves were stitched together
 	spSetGameRulesParam("totalSaveGameFrame", savedata.general.totalGameFrame)
 	-- Set the gameID of the original game
 	spSetGameRulesParam("save_gameID", savedata.general.save_gameID)
-	
+
 	-- team data
 	for teamID, teamData in pairs(savedata.general.teams or {}) do
 		-- this bugs with storage units - do it after units are created
@@ -582,7 +582,7 @@ local function LoadGeneralInfo()
 		--spSetTeamResource(teamID, "ms", teamData.resources.ms)
 		--spSetTeamResource(teamID, "e", teamData.resources.e)
 		--spSetTeamResource(teamID, "es", teamData.resources.es)
-		
+
 		local rulesParams = teamData.rulesParams or {}
 		for name, value in pairs (rulesParams) do
 			spSetTeamRulesParam(teamID, name, value)
@@ -628,7 +628,7 @@ function gadget:Load(zip)
 	for i=1,#features do
 		Spring.DestroyFeature(features[i])
 	end
-	
+
 	savedata.projectile = ReadFile(zip, "Projectile", projectileFile) or {}
 	savedata.general = ReadFile(zip, "General", generalFile)
 
@@ -643,7 +643,7 @@ function gadget:Load(zip)
 	LoadUnits()
 	LoadProjectiles() -- do projectiles after units so they can home onto units.
 	SetStorage()
-	
+
 	Spring.SetGameRulesParam("loadPurge", 0)
 	Spring.SetGameRulesParam("loadedGame", 1)
 end
@@ -652,7 +652,7 @@ function gadget:GameFrame(n)
 	if autosave and n % AUTOSAVE_FREQUENCY == 0 then
 		Spring.SendCommands("save -y autosave")
 	end
-	
+
 	if n == cleanupFrame then
 		for i=1,#toCleanupFactory do
 			local data = toCleanupFactory[i]
@@ -747,7 +747,7 @@ local keywords = {
 --[[
 	raw = print table key-value pairs straight to file (i.e. not as a table)
 	if you use it make sure your keys are valid variable names!
-	
+
 	valid params: {
 		numIndents = int,
 		raw = bool,
@@ -775,18 +775,18 @@ local function WriteTable(concatArray, tab, tabName, params)
 	params = params or {}
 	local processed = {}
 	concatArray = concatArray or {}
-	
+
 	params.numIndents = params.numIndents or 0
 	local isDict = IsDictOrContainsDict(tab)
 	local comma = params.raw and "" or ", "
 	local endLine = comma .. "\n"
 	local str = ""
-	
+
 	local function NewLine()
 		concatArray[#concatArray + 1] = str
 		str = ""
 	end
-	
+
 	local function ProcessKeyValuePair(i,v, isArray, lastItem)
 		local pairEndLine = (lastItem and "") or (isArray and comma) or endLine
 		if isDict then
@@ -801,7 +801,7 @@ local function WriteTable(concatArray, tab, tabName, params)
 		else
 			str = str .. i .. " = "
 		end
-		
+
 		if type(v) == "table" then
 			local arg = {numIndents = (params.numIndents + 1), endOfFile = false}
 			NewLine()
@@ -822,7 +822,7 @@ local function WriteTable(concatArray, tab, tabName, params)
 		end
 		NewLine()
 	end
-	
+
 	if not params.raw then
 		if params.prefixReturn then
 			str = "return "
@@ -832,7 +832,7 @@ local function WriteTable(concatArray, tab, tabName, params)
 		str = str .. (isDict and "{\n" or "{")
 	end
 	NewLine()
-	
+
 	-- do array component first (ensures order is preserved)
 	for i=0,#tab do
 		local v = tab[i]
@@ -846,7 +846,7 @@ local function WriteTable(concatArray, tab, tabName, params)
 			ProcessKeyValuePair(i,v)
 		end
 	end
-	
+
 	if isDict then
 		str = str .. WriteIndents(params.numIndents)
 	end
@@ -855,7 +855,7 @@ local function WriteTable(concatArray, tab, tabName, params)
 		str = str .. endLine
 	end
 	NewLine()
-	
+
 	return concatArray
 end
 
@@ -891,20 +891,20 @@ end
 
 local function SaveUnits()
 	local data = {}
-	
+
 	local retreatTagsMove, retreatTagsWait = {}, {}
 	if GG.Retreat then
 		retreatTagsMove = GG.Retreat.GetRetreaterTagsMoveCopy()
 		retreatTagsWait = GG.Retreat.GetRetreaterTagsWaitCopy()
 	end
-	
+
 	local units = Spring.GetAllUnits()
 	for i=1,#units do
 		local unitID = units[i]
 		if Spring.GetUnitRulesParam(unitID, "do_not_save") ~= 1 then
 			data[unitID] = {}
 			local unitInfo = data[unitID]
-			
+
 			-- basic unit information
 			local unitDefID = spGetUnitDefID(unitID)
 			local unitDef = UnitDefs[unitDefID]
@@ -916,11 +916,11 @@ local function SaveUnits()
 			unitInfo.dir = {spGetUnitDirection(unitID)}
 			unitInfo.vel = {spGetUnitVelocity(unitID)}
 			unitInfo.heading = spGetUnitHeading(unitID)
-			
+
 			if unitDef.isImmobile and unitInfo.pos then
 				unitInfo.groundHeight = Spring.GetGroundHeight(unitInfo.pos[1], unitInfo.pos[3])
 			end
-			
+
 			-- save health
 			unitInfo.health, unitInfo.maxHealth, unitInfo.paralyzeDamage, unitInfo.captureProgress, unitInfo.buildProgress = spGetUnitHealth(unitID)
 			-- save weapons
@@ -937,11 +937,11 @@ local function SaveUnits()
 			end
 			unitInfo.stockpile = {}
 			unitInfo.stockpile.num, _, unitInfo.stockpile.progress = spGetUnitStockpile(unitID)
-			
+
 			unitInfo.cloak = Spring.GetUnitIsCloaked(unitID)
-			
+
 			unitInfo.transporter = Spring.GetUnitTransporter(unitID)
-			
+
 			-- factory properties
 			if unitDef.isFactory then
 				local factoryCommands = Spring.GetFactoryCommands(unitID) or {}
@@ -963,16 +963,16 @@ local function SaveUnits()
 					end
 				end
 			end
-			
+
 			-- save commands and states
-			
-			
+
+
 			local commandsTemp = spGetCommandQueue(unitID, -1)
 			local commands = {}
 			for i=1,#commandsTemp do
 				local v = commandsTemp[i]
 				if (type(v) == "table" and v.params) then v.params.n = nil end
-				
+
 				-- don't save commands from retreat, we'll regenerate those at load)
 				if (retreatTagsMove[unitID] and retreatTagsMove[unitID] == v.tag) or (retreatTagsWait[unitID] and retreatTagsWait[unitID] == v.tag) then
 					-- do nothing
@@ -983,7 +983,7 @@ local function SaveUnits()
 			end
 			unitInfo.commands = commands
 			unitInfo.states = spGetUnitStates(unitID)
-			
+
 			unitInfo.states.custom = {}
 			local custom = unitInfo.states.custom
 			local cmdDescs = Spring.GetUnitCmdDescs(unitID)
@@ -993,16 +993,16 @@ local function SaveUnits()
 					custom[cmdDesc.id] = cmdDesc.params and tonumber(cmdDesc.params[1])
 				end
 			end
-			
+
 			-- save experience
 			unitInfo.experience = spGetUnitExperience(unitID)
 			-- save rulesparams
 			unitInfo.rulesParams = {}
 			local params = Spring.GetUnitRulesParams(unitID)
 			for name,value in pairs(params) do
-				unitInfo.rulesParams[name] = value 
+				unitInfo.rulesParams[name] = value
 			end
-			
+
 			-- control group
 			local ctrlGroup = Spring.GetUnitGroup(unitID)
 			if ctrlGroup then
@@ -1020,7 +1020,7 @@ local function SaveFeatures()
 		local featureID = features[i]
 		data[featureID] = {}
 		local featureInfo = data[featureID]
-		
+
 		-- basic feature information
 		local featureDefID = spGetFeatureDefID(featureID)
 		featureInfo.featureDefName = FeatureDefs[featureDefID].name
@@ -1043,16 +1043,16 @@ local function GetProjectileSaveInfo(projectileID)
 	if not isWeapon then
 		return
 	end
-	
+
 	local projectileInfo = {}
 	-- basic projectile information
 	local projectileDefID = spGetProjectileDefID(projectileID)
 	local wd = WeaponDefs[projectileDefID]
-	
+
 	if wd and wd.customParams and wd.customParams.do_not_save then
 		return
 	end
-	
+
 	projectileInfo.projectileDefID = projectileDefID
 	projectileInfo.teamID = spGetProjectileTeamID(projectileID)
 	projectileInfo.ownerID = spGetProjectileOwnerID(projectileID)
@@ -1066,11 +1066,11 @@ local function GetProjectileSaveInfo(projectileID)
 	projectileInfo.targetType = targetType
 	projectileInfo.target = target
 	projectileInfo.isIntercepted = spGetProjectileIsIntercepted(projectileID)
-	
+
 	if wd and wd.type == "StarburstLauncher" and wd.customParams then
 		local cp = wd.customParams
 		-- Some crazyness with how these values are interpreted:
-		-- flightTime (ttl) is multiplied by 32 when weaponDefs are loaded. 
+		-- flightTime (ttl) is multiplied by 32 when weaponDefs are loaded.
 		-- weaponTimer (upTime) is multiplied by 30 when the weapon is loaded.
 		projectileInfo.upTime = math.max(0, cp.weapontimer*30 - math.max(0, cp.flighttime*32 - timeToLive))
 	end
@@ -1093,18 +1093,18 @@ end
 
 local function SaveGeneralInfo()
 	local data = {}
-	
+
 	data.gameFrame = Spring.GetGameFrame()
 	data.totalGameFrame = data.gameFrame + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
 	data.save_gameID = (Spring.GetGameRulesParam("save_gameID") or Game.gameID)
-	
+
 	-- gameRulesParams
 	data.gameRulesParams = {}
 	local gameRulesParams = spGetGameRulesParams()
 	for name,value in pairs(gameRulesParams) do
-		data.gameRulesParams[name] = value 
+		data.gameRulesParams[name] = value
 	end
-	
+
 	-- team stuff - rulesparams, resources
 	data.teams = {}
 	local teams = Spring.GetTeamList()
@@ -1114,14 +1114,14 @@ local function SaveGeneralInfo()
 		local m, ms = Spring.GetTeamResources(teamID, "metal")
 		local e, es = Spring.GetTeamResources(teamID, "energy")
 		data.teams[teamID].resources = { m = m, e = e, ms = ms, es = es }
-		
+
 		local rulesParams = spGetTeamRulesParams(teamID) or {}
 		data.teams[teamID].rulesParams = {}
 		for name,value in pairs(rulesParams) do
-			data.teams[teamID].rulesParams[name] = value 
+			data.teams[teamID].rulesParams[name] = value
 		end
 	end
-	
+
 	return data
 end
 
@@ -1162,7 +1162,7 @@ function gadget:Save(zip)
 		collectgarbage("collect")
 	end
 	Spring.Echo("SaveProjectiles - Done")
-	
+
 	for _,entry in pairs(savedata.gadgets) do
 		WriteSaveData(zip, entry.filename, entry.data)
 	end

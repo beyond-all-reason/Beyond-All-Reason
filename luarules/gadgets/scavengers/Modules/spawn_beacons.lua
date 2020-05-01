@@ -37,7 +37,7 @@ function SpawnBeacon(n)
 				if canSpawnBeaconHere then
 					canSpawnBeaconHere = posOccupied(posx, posy, posz, posradius)
 				end
-				
+
 				if canSpawnBeaconHere then
 					local spawnTier = math_random(1,100)
 					if spawnTier <= TierSpawnChances.T0 then
@@ -63,7 +63,7 @@ function SpawnBeacon(n)
 
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
@@ -73,7 +73,7 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
@@ -83,7 +83,7 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
@@ -93,7 +93,7 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
@@ -103,10 +103,10 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					grouptier = nil
 					grouptiersea = nil
-					
+
 				end
 			else
 				BeaconSpawnChance = BeaconSpawnChance - 1
@@ -159,7 +159,7 @@ function SpawnBeacon(n)
 					local posradius = 384
 					canSpawnBeaconHere = posOccupied(posx, posy, posz, posradius)
 				end
-				
+
 				if canSpawnBeaconHere then
 					beaconspawnretrycount = 0
 					local spawnTier = math_random(1,100)
@@ -184,7 +184,7 @@ function SpawnBeacon(n)
 
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
@@ -194,7 +194,7 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
@@ -204,7 +204,7 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
@@ -214,7 +214,7 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					local r = grouptier[math_random(1,#grouptier)]
 					local r2 = grouptiersea[math_random(1,#grouptiersea)]
 					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
@@ -224,7 +224,7 @@ function SpawnBeacon(n)
 					else
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90)
 					end
-					
+
 					grouptier = nil
 					grouptiersea = nil
 				end
@@ -239,4 +239,3 @@ function SpawnBeacon(n)
 		end
 	end
 end
-

@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Prevent Strange Orders",
-    desc      = "There's no reason to need to insert a remove command (if even possible)",
-    author    = "TheFatController",
-    date      = "Aug 31, 2009",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Prevent Strange Orders",
+        desc      = "There's no reason to need to insert a remove command (if even possible)",
+        author    = "TheFatController",
+        date      = "Aug 31, 2009",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 --------------------------------------------------------------------------------

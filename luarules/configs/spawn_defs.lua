@@ -17,7 +17,7 @@ maxTurrets           = 3   		 -- Max Turrets per burrow
 queenSpawnMult       = 1         -- how many times bigger is a queen hatch than a normal burrow hatch
 burrowSpawnRate      = 60
 chickenSpawnRate     = 59
-minBaseDistance      = 600      
+minBaseDistance      = 600
 maxBaseDistance      = 7200
 chickensPerPlayer    = 8
 spawnChance          = 0.5
@@ -45,7 +45,7 @@ maxAges["chickenh1b"] = 200
 --------------------------------------------------------------------------------
 
 local function Copy(original)
-  local copy = {} 
+  local copy = {}
   for k, v in pairs(original) do
     if (type(v) == "table") then
       copy[k] = Copy(v)
@@ -107,7 +107,7 @@ local chickenTypes = {
   chickenh4     =  true,
   chickenh5     =  true,
   chickenw1     =  true,
-  chickenw1b    =  true, 
+  chickenw1b    =  true,
   chickenw1c    =  true,
   chickenw1d    =  true,
   chickenw2     =  true,
@@ -115,7 +115,7 @@ local chickenTypes = {
   chickenp1     =  true,
 }
 
-local defenders = { 
+local defenders = {
   chickend1 = true,
 }
 
@@ -275,7 +275,7 @@ SURVIVAL = "Chicken: Survival"
 
 difficulties = {
   [VERYEASY] = {
-    chickenSpawnRate  = 100, 
+    chickenSpawnRate  = 100,
     burrowSpawnRate   = 120,
     queenSpawnMult    = 0,
     angerBonus        = 0.05,
@@ -288,7 +288,7 @@ difficulties = {
     damageMod         = 0.25,
   },
   [EASY] = {
-    chickenSpawnRate  = 100, 
+    chickenSpawnRate  = 100,
     burrowSpawnRate   = 120,
     queenSpawnMult    = 0,
     angerBonus        = 0.075,

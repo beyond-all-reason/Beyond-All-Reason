@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 --
 --  file:    unit_icongenerator.lua
---  brief:   
+--  brief:
 --  author:  jK
 --
 --  Copyright (C) 2007.
@@ -23,15 +23,15 @@ example usage (need cheats):
 --3. make units get their default stance (e.g. armcom)
 
 function gadget:GetInfo()
-  return {
-    name      = "IconGenerator",
-    desc      = "/luarules buildicon(s) [unitdefname|all]",
-    author    = "jK",
-    date      = "Oct 01, 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = -10,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "IconGenerator",
+        desc      = "/luarules buildicon(s) [unitdefname|all]",
+        author    = "jK",
+        date      = "Oct 01, 2008",
+        license   = "GNU GPL, v2 or later",
+        layer     = -10,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 --------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			local env = Spring.UnitScript.GetScriptEnv(uid)
 			if env then lus = true end
 			local undefid = Spring.GetUnitDefID(uid)
-				
+
 			--Spring.Echo("Processing unit :- ",undefid)
 			if lus then
 				if env.Activate then Spring.UnitScript.CallAsUnit(uid, env.Activate) end
@@ -289,13 +289,13 @@ local function CreateResources()
       varying vec3 normal;
       varying vec4 pos;
       varying float clamp;
-      
+
       varying float aoTerm;
-	  
+
       void main(void) {
         gl_FrontColor = gl_Color;
         gl_TexCoord[0] = gl_MultiTexCoord0;
-		
+
          aoTerm= max(0.4,fract(gl_MultiTexCoord0.s*16384.0)*1.3); // great
         clamp = gl_MultiTexCoord1.x;
         normal = gl_Normal;
@@ -309,7 +309,7 @@ local function CreateResources()
 	  #version 150 compatibility
       uniform sampler2D unitTex;
       uniform sampler2D unitTex2;
-	  
+
 
       varying vec3 normal;
       varying vec4 pos;
@@ -322,7 +322,7 @@ local function CreateResources()
         gl_FragData[0]     = texture2D(unitTex,gl_TexCoord[0].st) *  aoTerm;
 		gl_FragData[2] = texture2D(unitTex2,gl_TexCoord[0].st);
         gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Color.rgb, gl_FragData[0].a);
-		gl_FragData[0].rgb += (gl_FragData[2].rrr)*0.5; 
+		gl_FragData[0].rgb += (gl_FragData[2].rrr)*0.5;
         gl_FragData[0].a   = gl_FragCoord.z; //we save and read t from here cuz of the higher precision (the depthtex uses just bytes)
         gl_FragData[1]     = vec4(normal,1.0);
       }
@@ -686,7 +686,7 @@ local function DrawIcon(udid,teamID,uid)
         --gl.UnitShape(udid, teamID, false, false, true))
 		gl.UnitShapeTextures(udid, false)
   end
-	
+
   gl.ActiveTexture(0,gl.MatrixMode,GL.TEXTURE)
   gl.PopMatrix()
   gl.MatrixMode(GL.PROJECTION)
@@ -786,8 +786,8 @@ end
       end
     end
   end
-  
-  
+
+
   local function Overlay(unitdefid)
   	local waterunit, amfibianunit, builderunit = false, false,false
 	  if (UnitDefs[unitdefid].waterline ~= nil and UnitDefs[unitdefid].waterline > 0) or (UnitDefs[unitdefid].minWaterDepth ~= nil and UnitDefs[unitdefid].minWaterDepth > 0) then
@@ -795,7 +795,7 @@ end
 	  	if UnitDefs[unitdefid].levelGround == false then
 		    amfibianunit = true
 		  end
-		
+
 	  end
 	  if (UnitDefs[unitdefid].maxWaterDepth ~= nil and UnitDefs[unitdefid].maxWaterDepth >= 255 and (UnitDefs[unitdefid].waterline == nil or UnitDefs[unitdefid].waterline <= 0)) and (UnitDefs[unitdefid].minWaterDepth == nil or UnitDefs[unitdefid].minWaterDepth <= 0) then
 		  amfibianunit = true
@@ -1139,7 +1139,7 @@ local schemes,resolutions,ratios = {},{},{}
     for _,res in pairs(resolutions) do
       for _,_scheme in pairs(schemes) do
         for _ratio_name,_ratio in pairs(ratios) do
-          
+
 
 
 			  AddJob( FreeResources )

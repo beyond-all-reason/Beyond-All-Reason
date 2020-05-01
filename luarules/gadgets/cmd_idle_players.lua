@@ -16,7 +16,7 @@ local finishedResumingPing = 2 --in seconds
 local maxInitialQueueSlack = 120 -- in seconds
 local takeCommand = "take2"
 local minTimeToTake = 10 -- in seconds
-local checkQueueTime = 25 -- in seconds 
+local checkQueueTime = 25 -- in seconds
 --in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
 minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
 
@@ -106,8 +106,8 @@ if ( not gadgetHandler:IsSyncedCode()) then
             return
         end
         updateTimer = 0
-        
-        -- 
+
+        --
         if checkQueueTime and GetGameSeconds() > checkQueueTime then
             local playerID = Spring.GetMyPlayerID()
             local teamID = Spring.GetMyTeamID()
@@ -129,9 +129,9 @@ if ( not gadgetHandler:IsSyncedCode()) then
                 end
             end
             lastActionTime = min(max(lastActionTime, timer+queueTime),gameStartTime+maxInitialQueueSlack) --treat this queue as though is was an initial queue
-            checkQueueTime = nil 
+            checkQueueTime = nil
         end
-        
+
         -- ugly code to check if the mouse moved since the call-in doesn't work
         local x,y = GetMouseState()
         if mx ~= x or my ~= y then

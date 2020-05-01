@@ -91,7 +91,7 @@ else
 	local timeSinceBroadcast = 0
 
 	local lastPacketSent
-	
+
 	local CAMERA_IDS = GetCameraNames()
 	local CAMERA_NAMES = {}
 	local CAMERA_STATE_FORMATS = {}
@@ -272,7 +272,7 @@ else
 	SetCameraState(prevCameraState,0)
 	--workaround a bug where minimap remains minimized because we switched to overview cam
 	SendCommands("minimap minimize")
-	
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("cameraBroadcast", handleCameraBroadcastEvent)
 	end
@@ -314,12 +314,12 @@ else
 		end
 
 		local dt = GetLastUpdateSeconds()
-		totalTime = totalTime + dt 
+		totalTime = totalTime + dt
 		timeSinceBroadcast = timeSinceBroadcast + dt
 		if timeSinceBroadcast < broadcastPeriod then
 			return
 		end
-	
+
 		local state = GetCameraState()
 		local msg = CameraStateToPacket(state)
 
@@ -327,7 +327,7 @@ else
 			Echo("<LockCamera>: Error creating packet!")
 			return
 		end
-	
+
 		--don't send duplicates
 		if msg ~= lastPacketSent then
 			SendLuaRulesMsg(msg)

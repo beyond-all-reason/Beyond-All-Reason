@@ -58,7 +58,7 @@ local critterConfig = {
   { spawnBox = {x1=1800, z1=650, x2=14700, z2=7400}, unitNames = {["critter_penguin"]=rnd(10,20)} },
   { spawnBox = {x1=50, z1=50, x2=16300, z2=8150}, unitNames = {["critter_goldfish"]=rnd(75,150)} },
 l},
- 
+
 ["Barbary Coves v2"] = {
   { spawnBox = {x1=50, z1=50, x2=9200, z2=8150}, unitNames = {["critter_goldfish"]=rnd(100,250)} },
   { spawnBox = {x1=50, z1=50, x2=9200, z2=8150}, unitNames = {["critter_gull"]=rnd(8,15)} },
@@ -568,8 +568,8 @@ l},
   { spawnBox = {x1=10400, z1=9085, x2=10550, z2=9500}, unitNames = {["critter_penguin"]=2} },
   { spawnBox = {x1=50, z1=50, x2=16300, z2=16300}, unitNames = {["critter_goldfish"]=rnd(190,350)} },
 },
-  
-  
+
+
 }
 
 return critterConfig

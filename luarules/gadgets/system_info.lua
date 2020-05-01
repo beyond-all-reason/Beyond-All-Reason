@@ -34,7 +34,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 	end
-	
+
 else
 	--------------------------------------------------------------------------------
 	-- unsynced
@@ -48,7 +48,7 @@ else
 	local SendLuaRulesMsg				= Spring.SendLuaRulesMsg
 	local systems						= {}
 	local validation = SYNCED.validationSys
-	
+
 	function lines(str)
 	  local t = {}
 	  local function helper(line) table.insert(t, line) return "" end

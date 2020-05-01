@@ -28,7 +28,7 @@ function SelfDestructionControls(n, scav, scavDef)
 	end
 	UnitRange[scav] = nil
 end
-				
+
 function ArmyMoveOrders(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 10 then
@@ -45,5 +45,5 @@ function ArmyMoveOrders(n, scav, scavDef)
 		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 	else
 		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
-	end		
+	end
 end

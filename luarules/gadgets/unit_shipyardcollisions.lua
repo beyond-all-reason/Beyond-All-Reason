@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "Shipyards Collisions",
-    desc      = "Makes sure units (boats only) are pushed away from shipyards",
-    author    = "Doo",
-    date      = "Sept 19th 2017",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = false  --  loaded by default?
-  }
+	return {
+		name      = "Shipyards Collisions",
+		desc      = "Makes sure units (boats only) are pushed away from shipyards",
+		author    = "Doo",
+		date      = "Sept 19th 2017",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = false  --  loaded by default?
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then

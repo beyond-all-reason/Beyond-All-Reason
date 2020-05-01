@@ -12,10 +12,10 @@ local fileNames = {
     ["Throne v3"] = "Throne",
     ["Throne v4"] = "Throne",
     ["Throne v5"] = "Throne",
-    
+
     --Blindside
     ["Blindside_v2"] = "Blindside",
-    
+
     --Mearth
     ["Mearth_v4"] = "Mearth",
 }
@@ -29,10 +29,10 @@ if fileNames[thisMap] then
         -- format is ffaStartPoints[#allyTeamIDs][startPointNum] = {x,z}
         include(fileName)
         -- initial_spawn will take care of where to place teamIDs about the allyTeamID start point
-        -- initial_spawn will count how many allyTeamIDs are going spawn units 
+        -- initial_spawn will count how many allyTeamIDs are going spawn units
         -- and will randomly assign each allyTeamID to one of the startpoints in ffaStartPoints
     else
         -- debug
-        --Spring.Echo("Could not find " .. fileName) 
+        --Spring.Echo("Could not find " .. fileName)
     end
 end

@@ -1,21 +1,21 @@
 
 function gadget:GetInfo()
-  return {
-    name      = "Watereffects",
-    desc      = "Make splash sound in water",
-    version   = "1.1",
-    author    = "Jools ,Nixtux",
-    date      = "April,2012",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true,  --  loaded by default?
-  }
+	return {
+		name      = "Watereffects",
+		desc      = "Make splash sound in water",
+		version   = "1.1",
+		author    = "Jools ,Nixtux",
+		date      = "April,2012",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true,  --  loaded by default?
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
     return false
 end
-	
+
 local abs = math.abs
 local GetGroundBlocked = Spring.GetGroundBlocked
 local nonexplosiveWeapons = {

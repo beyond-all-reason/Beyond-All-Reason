@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Commando Watch",
-    desc      = "Commando Watch",
-    author    = "TheFatController",
-    date      = "Aug 17, 2010",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+    return {
+        name      = "Commando Watch",
+        desc      = "Commando Watch",
+        author    = "TheFatController",
+        date      = "Aug 17, 2010",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 --------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ local MINE2 = UnitDefNames["cormine4"].id
 local MINE_BLAST = {}
 MINE_BLAST[WeaponDefNames["mine_light"].id] = true
 MINE_BLAST[WeaponDefNames["mine_medium"].id] = true
-MINE_BLAST[WeaponDefNames["mine_heavy"].id] = true 
+MINE_BLAST[WeaponDefNames["mine_heavy"].id] = true
 local mines = {}
 local orderQueue = {}
 

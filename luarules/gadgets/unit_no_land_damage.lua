@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "No Land Damage",
-    desc      = "Stops torpedo bombers from damaging units when they're on land.",
-    author    = "TheFatController",
-    date      = "Aug 31, 2009",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "No Land Damage",
+        desc      = "Stops torpedo bombers from damaging units when they're on land.",
+        author    = "TheFatController",
+        date      = "Aug 31, 2009",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -31,9 +31,9 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   if NO_LAND_DAMAGE[weaponID] then
-    if select(2,GetUnitBasePosition(unitID)) > 0 then 
+    if select(2,GetUnitBasePosition(unitID)) > 0 then
       return (damage * 0.2),1
-    else 
+    else
       return damage,1
     end
   else

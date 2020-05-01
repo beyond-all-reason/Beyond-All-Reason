@@ -17,10 +17,10 @@ end
  -Set customParams.wpnXturretx and customParams.wpnXturrety values (= old COB values)
  -The gadget will call the SetWeaponXTurretSpeed(var1,var2) cob function with wpnXturretx, wpnXturrety values, therefore setting the static_vars to their wanted values
  -If using continuous aiming, the correct values for the waitforturn checks are: > 65536, > WeaponXTurretY/30, < 65536 - WeaponXTurretY/30 (== not within one frame of the last valid heading)
- 
- This gadget will only call the setting function if it finds both the wpnXturretx and wpnXturrety customParams, if the weapon doesn't use a rotation around x-axis in its aiming then just set it to 1 (not nil) 
+
+ This gadget will only call the setting function if it finds both the wpnXturretx and wpnXturrety customParams, if the weapon doesn't use a rotation around x-axis in its aiming then just set it to 1 (not nil)
  ]]
-	
+
 if not gadgetHandler:IsSyncedCode() then return end
 
 local unitConf = {}

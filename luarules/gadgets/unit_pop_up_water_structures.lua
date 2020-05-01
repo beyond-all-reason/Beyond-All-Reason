@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "PopUpWaterStructures",
-    desc      = "",
-    author    = "TheFatController",
-    date      = "26 May 2013",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name      = "PopUpWaterStructures",
+		desc      = "",
+		author    = "TheFatController",
+		date      = "26 May 2013",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true  --  loaded by default?
+	}
 end
 
 --------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-  if (POP_UP_UNIT[unitDefID]) then 
+  if (POP_UP_UNIT[unitDefID]) then
     popUps[unitID] = { velocity = 0.05, waterLine = POP_UP_UNIT[unitDefID].waterLine , process = false}
   end
 end
@@ -43,7 +43,7 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
   if (POP_UP_UNIT[unitDefID]) and unitID and Spring.ValidUnitID(unitID) then
     Spring.MoveCtrl.Enable(unitID)
-    popUps[unitID].process = true	
+    popUps[unitID].process = true
   end
 end
 
@@ -89,7 +89,7 @@ function gadget:GameFrame(n)
 					end
 				end
 		  end
-		else 
+		else
 			Spring.MoveCtrl.SetRelativeVelocity(unitID,0,defs.velocity,0)
 			popUps[unitID].velocity = math_max(defs.velocity * 1.05, 1.75)
 			if math_random() > 0.8 then

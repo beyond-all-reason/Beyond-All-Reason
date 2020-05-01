@@ -1,7 +1,5 @@
 Spring.Echo("[Scavengers] Config initialized")
 
-
-
 -- Config for Scavengers Survival AI
 if scavengersAIEnabled then
 	scavconfig = {
@@ -338,7 +336,7 @@ else
 			searesurrectors					= false,
 		useconstructors						= true,
 		usecollectors						= true,
-			
+
 	}
 
 	unitControllerModuleConfig = {
@@ -357,7 +355,7 @@ else
 
 	function UpdateTierChances(n)
 		-- Must be 100 in total
-		
+
 		if globalScore > scavconfig.timers.T4top then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0

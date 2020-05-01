@@ -32,11 +32,11 @@ local function MakeWords(line)
   local words = {}
   for w in string.gmatch(line, "[^%s]+") do
     table.insert(words, w)
-  end   
+  end
   return words
 end
 
-            
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -240,7 +240,7 @@ local function RecvFromSynced(...)
     if (callInfoList == nil) then
       return false
     end
-    
+
     for i,callInfo in ipairs(callInfoList) do
       local func = callInfo[1]
       -- local gadget = callInfo[2]
@@ -258,7 +258,7 @@ local function RecvFromSynced(...)
     end
     return false
   end
-  
+
   return false -- unknown type
 end
 

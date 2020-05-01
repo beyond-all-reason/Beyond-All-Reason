@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-	name      = "Fighter radius",
-	desc      = "If collisions enabled: Set a smaller unit radius for fighters",
-	author    = "Floris",
-	date      = "October 2017",
-	license   = "",
-	layer     = 1000,
-	enabled   = true,
-  }
+	return {
+		name      = "Fighter radius",
+		desc      = "If collisions enabled: Set a smaller unit radius for fighters",
+		author    = "Floris",
+		date      = "October 2017",
+		license   = "",
+		layer     = 1000,
+		enabled   = true,
+	}
 end
 
 if gadgetHandler:IsSyncedCode() then

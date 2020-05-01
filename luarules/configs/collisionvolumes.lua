@@ -1,5 +1,5 @@
 --[[  from Spring Wiki and source code, info about CollisionVolumeData
-Spring.GetUnitCollisionVolumeData ( number unitID ) -> 
+Spring.GetUnitCollisionVolumeData ( number unitID ) ->
 	number scaleX, number scaleY, number scaleZ, number offsetX, number offsetY, number offsetZ,
 	number volumeType, number testType, number primaryAxis, boolean disabled
 
@@ -11,7 +11,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 					number offsetX, number offsetY, number offsetZ, number vType, number Axis) -> nil
 	per piece collision volumes always use COLVOL_TEST_CONT as tType
 	above syntax is for 0.83, for 0.82 compatibility repeat enabled 3 more times
-	
+
    possible vType constants
      DISABLED = -1  disables collision volume and collision detection for that unit, do not use
      ELLIPSOID = 0
@@ -19,7 +19,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
      BOX =       2
      SPHERE =    3
      FOOTPRINT = 4  intersection of sphere and footprint-prism, makes a sphere collision volume, default
-	 
+
    possible tType constants, for non-sphere collision volumes use 1
      COLVOL_TEST_DISC = 0
      COLVOL_TEST_CONT = 1
@@ -31,7 +31,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 
    sample collision volume with detailed descriptions
 	unitCollisionVolume["arm_advanced_radar_tower"] = {
-		on=            -- Unit is active/open/poped-up 
+		on=            -- Unit is active/open/poped-up
 		   {60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
 		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
 		    0,1,0[,    -- vType, tType, axis [,  -- Optional
@@ -42,7 +42,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 		["0"]={true,       -- [pieceIndexNumber]={enabled,
 			   48,74,48,   --            Volume X scale, Volume Y scale, Volume Z scale,
 		       0,0,0,      --            Volume X offset, Volume Y offset, Volume Z offset,
-			   1,1},       --            vType, axis},   
+			   1,1},       --            vType, axis},
 		....               -- All undefined pieces will be treated as disabled for collision detection
 	}
 	dynamicPieceCollisionVolume["core_viper"] = {	--same as with pieceCollisionVolume only uses "on" and "off" tables
@@ -50,13 +50,13 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 			["0"]={true,51,12,53,0,4,0,2,0},
 			["5"]={true,25,66,25,0,-14,0,1,1},
 			offsets={0,35,0}   -- Aimpoint X offset, Aimpoint Y offset, Aimpoint Z offset
-		},                     -- offsets entry is optional 
+		},                     -- offsets entry is optional
 		off = {
 			["0"]={true,51,12,53,0,4,0,2,0},
 			offsets={0,8,0}
 		}
 	}
-	
+
 	Q: How am I supposed to guess the piece index number?
 	A: Open the model in UpSpring and locate your piece. Count all pieces above it in the piece tree.
 	   Piece index number is equal to number of pieces above it in tree. Root piece has index 0.

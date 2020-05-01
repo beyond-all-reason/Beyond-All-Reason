@@ -44,7 +44,7 @@ function spawnStartBoxProtection(n)
     if canSpawnDefence then
         local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
         local spawnTier = math_random(1,100)
-        
+
         if spawnPosY > 0 then
             if spawnTier <= TierSpawnChances.T0 then
                 pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
@@ -74,19 +74,19 @@ function spawnStartBoxProtection(n)
                 pickedTurret = StartboxDefenceStructuresT0Sea[math_random(1,#StartboxDefenceStructuresT0Sea)]
             end
         end
-        
+
         canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
         if canSpawnDefence then
             canSpawnDefence = posOccupied(spawnPosX, spawnPosY, spawnPosZ, spread)
         end
-        
+
         if canSpawnDefence then
             QueueSpawn(pickedTurret..scavconfig.unitnamesuffix, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID,n+90)
             Spring.CreateUnit("scavengerdroppod_scav", spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID)
         end
     end
 
-    
+
     spawnPosX = nil
     spawnPosZ = nil
     spawnDirection = nil

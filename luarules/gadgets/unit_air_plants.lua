@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "AirPlantParents",
-    desc      = "Adds options to air plants, makes building aircraft neutral",
-    author    = "TheFatController",
-    date      = "15 Dec 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "AirPlantParents",
+        desc      = "Adds options to air plants, makes building aircraft neutral",
+        author    = "TheFatController",
+        date      = "15 Dec 2008",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 --------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
   if isAirplant[unitDefID] then
-    if (cmdID == 34569) then 
+    if (cmdID == 34569) then
       local cmdDescID = FindUnitCmdDesc(unitID, 34569)
       landCmd.params[1] = cmdParams[1]
       EditUnitCmdDesc(unitID, cmdDescID, landCmd)
