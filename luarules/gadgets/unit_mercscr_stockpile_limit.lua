@@ -65,7 +65,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
- 
+
 -- UNSYNCED --
 else
 

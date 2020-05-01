@@ -1,20 +1,20 @@
 function gadget:GetInfo()
-  return {
-    name      = "Tree feller",
-    desc      = "Destroyes features that have 0 m and >0 energy",
-    author    = "Beherith",
-    date      = "march 201",
-    license   = "CC BY NC ND",
-    layer     = 0,
-    enabled   = true,
-  }
+	return {
+		name      = "Tree feller",
+		desc      = "Destroyes features that have 0 m and >0 energy",
+		author    = "Beherith",
+		date      = "march 201",
+		license   = "CC BY NC ND",
+		layer     = 0,
+		enabled   = true,
+	}
 end
 
 if  (gadgetHandler:IsSyncedCode()) then
 
 	local math_sqrt = math.sqrt
 	local math_random = math.random
-	
+
 	local treefireExplosion = {
 		tiny = {
 			weaponDef = WeaponDefNames['treefire_tiny'].id,
@@ -138,7 +138,7 @@ if  (gadgetHandler:IsSyncedCode()) then
         if (fx ~= nil) then
             local health, maxhealth, _ = GetFeatureHealth(featureID)
             --Echo('health=',health,' fx=',fx)
-            if (Damage >= health) then 
+            if (Damage >= health) then
                 local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft= GetFeatureResources(featureID)
 				local dissapearSpeed = 1
 				local size = 'medium'
@@ -167,7 +167,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = featureMass[featureDefID] / dmg, fire = fire, size = size, dissapearSpeed = dissapearSpeed, destroyFrame = destroyFrame } -- this prevents this tobedestroyed feature to be replaced multiple times
                         featureID = CreateFeature(featureDefID,fx,fy,fz)
                         SetFeatureDirection(featureID,dx, dy ,dz)
-                        SetFeatureBlocking(featureID, false,false,false,false,false,false,false) 
+                        SetFeatureBlocking(featureID, false,false,false,false,false,false,false)
                         --Echo('tree created... ',featureID)
                     else
                         Damage=0.0 -- so it doesnt take multiple frames for tree to get killed.
@@ -199,7 +199,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						fire = false
 					elseif attackerID and weaponDefID and not (noFireWeapons[weaponDefID]) then -- UNITEXPLOSION
 						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
-						dmg = math.min(featureMass[featureDefID] * 2, dmg)	
+						dmg = math.min(featureMass[featureDefID] * 2, dmg)
 						if fy >= 0 then
 							fire = true
 						end
@@ -230,10 +230,10 @@ if  (gadgetHandler:IsSyncedCode()) then
         --Echo("passthrough damage=",Damage)
         return Damage, 0.0
     end
-	
+
 	function gadget:FeatureDestroyed(fid)
 	end
-	
+
     function gadget:GameFrame(gf)
         for featureID, featureinfo in pairs(treesdying) do
 			if not GetFeaturePosition(featureID) then

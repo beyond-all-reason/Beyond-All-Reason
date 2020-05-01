@@ -2,15 +2,15 @@
 -------------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Stun Energy Storage",
-    desc      = "Makes stunned storage leak/use energy",
-    author    = "Nixtux",
-    date      = "June 15, 2014",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name      = "Stun Energy Storage",
+		desc      = "Makes stunned storage leak/use energy",
+		author    = "Nixtux",
+		date      = "June 15, 2014",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true  --  loaded by default?
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -18,21 +18,21 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local storageDefs = {
-  --Arm 
+  --Arm
   [ UnitDefNames.armestor.id ] = true,
   [ UnitDefNames.armuwadves.id ] = true,
   [ UnitDefNames.armuwes.id ] = true,
-  --Core 
+  --Core
   [ UnitDefNames.corestor.id ] = true,
   [ UnitDefNames.coruwadves.id ] = true,
   [ UnitDefNames.coruwes.id ] = true,
 }
 for udid, ud in pairs(UnitDefs) do
-    for id, v in pairs(storageDefs) do
-        if string.find(ud.name, UnitDefs[id].name) then
-            storageDefs[udid] = v
-        end
-    end
+	for id, v in pairs(storageDefs) do
+		if string.find(ud.name, UnitDefs[id].name) then
+			storageDefs[udid] = v
+		end
+	end
 end
 
 local storageunits = {}
@@ -46,11 +46,11 @@ local spSpawnCEG = Spring.SpawnCEG
 
 function gadget:GameFrame(n)
   if ((n+18) % 30) < 0.1 then
-    for unitID, _ in pairs(storageunits) do
+	for unitID, _ in pairs(storageunits) do
 	   if spGetUnitIsStunned(unitID) then
-	     --Spring.Echo(unitID .. " is stunned  " ..storageunits[unitID].storagecap,penality,storageunits[unitID].height)
-	     local team = spGetUnitTeam(unitID)
-	     if team ~= nil then
+		 --Spring.Echo(unitID .. " is stunned  " ..storageunits[unitID].storagecap,penality,storageunits[unitID].height)
+		 local team = spGetUnitTeam(unitID)
+		 if team ~= nil then
 			local penality = storageunits[unitID].storagecap * 0.01 -- work's out 60e per second for t1 storage and 400e per second for t2 storage
 			local x,y,z = spGetUnitPosition(unitID)
 			local height = storageunits[unitID].height * 0.40
@@ -58,35 +58,35 @@ function gadget:GameFrame(n)
 			spUseTeamResource(team, "energy", penality)
 		 end
 	   end
-    end
+	end
   end
 end
 
 local function SetupUnit(unitID,unitDefID)
   if UnitDefs[unitDefID] == nil or UnitDefs[unitDefID].height == nil then
-      return nil
+	  return nil
   end
   storageunits[unitID] = {
-      height = UnitDefs[unitDefID].height,
-      storagecap = UnitDefs[unitDefID].energyStorage
+	  height = UnitDefs[unitDefID].height,
+	  storagecap = UnitDefs[unitDefID].energyStorage
   }
 end
 
 --[[
 function gadget:Initialize() --for tesing only
   for _, unitID in ipairs(SpGetAllUnits()) do
-    local unitDefID = GetUnitDefID(unitID)
-    if (storageDefs[unitDefID]) then
-      SetupUnit(unitID,unitDefID)
-    end
+	local unitDefID = GetUnitDefID(unitID)
+	if (storageDefs[unitDefID]) then
+	  SetupUnit(unitID,unitDefID)
+	end
   end
 end
 --]]
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-    if storageDefs[unitDefID] then
-        SetupUnit(unitID,unitDefID)
-    end
+	if storageDefs[unitDefID] then
+		SetupUnit(unitID,unitDefID)
+	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam)
@@ -98,7 +98,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if storageDefs[unitDefID] then
-        storageunits[unitID] = nil
+		storageunits[unitID] = nil
 	end
 end
 

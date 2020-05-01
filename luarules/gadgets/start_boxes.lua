@@ -1,14 +1,16 @@
 if not gadgetHandler:IsSyncedCode() or VFS.FileExists("mission.lua") then return end
 
-function gadget:GetInfo() return {
-	name     = "Startbox handler",
-	desc     = "Handles startboxes",
-	author   = "Sprung",
-	date     = "2015-05-19",
-	license  = "PD",
-	layer    = -math.huge + 10,
-	enabled  = false,
-} end
+function gadget:GetInfo()
+	return {
+		name     = "Startbox handler",
+		desc     = "Handles startboxes",
+		author   = "Sprung",
+		date     = "2015-05-19",
+		license  = "PD",
+		layer    = -math.huge + 10,
+		enabled  = false,
+	}
+end
 
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 local shuffleMode = Spring.GetModOptions().shuffle or "auto"
@@ -27,7 +29,7 @@ local function GetAverageStartpoint(boxID)
 	end
 	x = x / #startpoints
 	z = z / #startpoints
-	
+
 	return x, z
 end
 
@@ -40,12 +42,12 @@ local function RegtangularizeTrapezoid(edgeA, edgeB)
 		-- Swap points if lines are passed backwards
 		edgeB[1], edgeB[2] = edgeB[2], edgeB[1]
 	end
-	
+
 	local distANear, distAFar = 0, vector.AbsVal(vector.Subtract(edgeA[2], edgeA[1]))
 	local distBNear, distBFar = vector.Dot(vector.Subtract(edgeB[1], edgeA[1]), unit), vector.Dot(vector.Subtract(edgeB[2], edgeA[1]), unit)
-	
+
 	local nearDist, farDist = math.max(distANear, distBNear), math.min(distAFar, distBFar)
-	
+
 	edgeA[1] = vector.Add(origin, vector.Mult(nearDist, unit))
 	edgeA[2] = vector.Add(origin, vector.Mult(farDist, unit))
 	local normal = vector.Normal(vector.Subtract(edgeB[1], edgeA[1]), unit)
@@ -81,7 +83,7 @@ local function GetPlanetwarsBoxes (teamDistance, teamWidth, neutralWidth, edgeDi
 	local defenderBoxStart = GetPointOnLine(teamDistance)
 	local attackerBoxStart = GetPointOnLine(1 - teamDistance)
 	local middleBoxStart   = GetPointOnLine(0.5 - (neutralWidth / 2))
-	
+
 	local defenderBoxEnd = GetPointOnLine(teamDistance + teamWidth)
 	local attackerBoxEnd = GetPointOnLine(1 - (teamDistance + teamWidth))
 	local middleBoxEnd   = GetPointOnLine(0.5 + (neutralWidth / 2))
@@ -101,7 +103,7 @@ local function GetPlanetwarsBoxes (teamDistance, teamWidth, neutralWidth, edgeDi
 			}
 		end
 	end
-	
+
 	if math.abs(defenderX - attackerX) < 10 or math.abs(defenderZ - attackerZ) < 10 then
 		local isX = math.abs(defenderX - attackerX) < 10
 		return {
@@ -110,13 +112,13 @@ local function GetPlanetwarsBoxes (teamDistance, teamWidth, neutralWidth, edgeDi
 			neutral = GetBasicRectangle(middleBoxStart, middleBoxEnd, isX),
 		}
 	end
-	
+
 	-- Note that the gradient is perpendicular to the gradient Attacker-Defender line.
 	local gradient = (attackerX - defenderX) / (defenderZ - attackerZ)
-	
+
 	local function GetEdgePoints(point)
 		local offset = point[2] - (gradient * point[1])
-		
+
 		local left = {
 			edgeDist,
 			(gradient * edgeDist) + offset,
@@ -128,7 +130,7 @@ local function GetPlanetwarsBoxes (teamDistance, teamWidth, neutralWidth, edgeDi
 			left[1] = ((Game.mapSizeZ - edgeDist) - offset) / gradient
 			left[2] = Game.mapSizeZ - edgeDist
 		end
-		
+
 		local right = {
 			Game.mapSizeX - edgeDist,
 			(gradient * (Game.mapSizeX - edgeDist)) + offset,
@@ -140,14 +142,14 @@ local function GetPlanetwarsBoxes (teamDistance, teamWidth, neutralWidth, edgeDi
 			right[1] = ((Game.mapSizeZ - edgeDist) - offset) / gradient
 			right[2] = Game.mapSizeZ - edgeDist
 		end
-		
+
 		return {left, right}
 	end
 
 	local function GetRectangle(pointA, pointB)
 		local edgesA = GetEdgePoints(pointA)
 		local edgesB = GetEdgePoints(pointB)
-		
+
 		return RegtangularizeTrapezoid(edgesA, edgesB)
 	end
 
@@ -449,7 +451,7 @@ function gadget:RecvSkirmishAIMessage(teamID, dataStr)
 	local command = "ai_is_valid_startpos:"
 	local command2 = "ai_is_valid_enemy_startpos:"
 	if not dataStr:find(command,1,true) and not dataStr:find(command2,1,true) then return end
-	
+
 	if dataStr:find(command2,1,true) then
 		command = command2
 	end
@@ -476,7 +478,7 @@ function gadget:RecvSkirmishAIMessage(teamID, dataStr)
 		local enemyboxes = {}
 		local _,_,_,_,_,allyteamid = Spring.GetTeamInfo(teamID, false)
 		local allyteams = Spring.GetAllyTeamList()
-		
+
 		if shuffleMode == "allshuffle" then
 			for id,_ in pairs(startboxConfig) do
 				if id ~= boxID then
@@ -497,7 +499,7 @@ function gadget:RecvSkirmishAIMessage(teamID, dataStr)
 				end
 			end
 		end
-		
+
 		for bid,_ in pairs(enemyboxes) do
 			if CheckStartbox(bid, x, z) then
 				return "1"

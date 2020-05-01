@@ -1,11 +1,11 @@
 function gadget:GetInfo()
-  return {
-    name      = "gaia critter units",
-    desc      = "units spawn and wander around the map",
-    author    = "Floris (original: knorke, 2013)",
-    date      = "2016",
-    layer     = -100, --negative, otherwise critters spawned by gadget do not disappear on death (spawned with /give they always die)
-    enabled   = true,
+	return {
+    	name      = "gaia critter units",
+    	desc      = "units spawn and wander around the map",
+    	author    = "Floris (original: knorke, 2013)",
+    	date      = "2016",
+    	layer     = -100, --negative, otherwise critters spawned by gadget do not disappear on death (spawned with /give they always die)
+    	enabled   = true,
 	}
 end
 
@@ -88,7 +88,7 @@ local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minW
 		attempts = 150
 	end
 	local ordersGiven = 0
-	
+
 	local x,z
 	local modifiers = {}
 	for i=1,attempts do
@@ -136,7 +136,7 @@ local processOrders = true
 
 -- doing multiple orders per unit gives errors, so doing 1 per gameframe is best
 local function processSceduledOrders()
-	
+
 	processOrders = false
 	local orders = 0
 	for unitID, UnitOrders in pairs(sceduledOrders) do
@@ -151,7 +151,7 @@ local function processSceduledOrders()
 				processOrders = true
 				break
 			end
-			if orders == 0 then 
+			if orders == 0 then
 				sceduledOrders[unitID] = nil
 			end
 		end
@@ -237,7 +237,7 @@ function gadget:Initialize()
 		Spring.Echo("[Gaia Critters] Critters disabled via ModOption")
 		gadgetHandler:RemoveGadget(self)
 	end
-	
+
 	Spring.Echo("[Gaia Critters] gadget:Initialize() Game.mapName=" .. Game.mapName)
 	if not critterConfig[Game.mapName] then
 		Spring.Echo("[Gaia Critters] No critter config for this map")
@@ -278,19 +278,19 @@ end
 local function adjustCritters(newAliveCritters)
 
 	if newAliveCritters == aliveCritters then return end
-	
-	local critterDifference = newAliveCritters - aliveCritters 
+
+	local critterDifference = newAliveCritters - aliveCritters
 	local add = false
-	if critterDifference > 0 then 
-		add = true 
+	if critterDifference > 0 then
+		add = true
 		if not addCrittersAgain then return end
 	end
-	
+
 	local removeKeys = {}
 	local removeKeysCount = 0
 	for unitID, critter in pairs(critterUnits) do
 		if add and not critter.alive  or  not add and critter.alive then
-			if add then 
+			if add then
 				if critter.x ~= nil and critter.y ~= nil and critter.z ~= nil then	-- had nil error once so yeah...
 					removeKeysCount = removeKeysCount + 1
 					removeKeys[removeKeysCount] = unitID
@@ -316,7 +316,7 @@ local function adjustCritters(newAliveCritters)
 	end
 	if add then
 		for i, unitID in ipairs(removeKeys) do
-			critterUnits[unitID] = nil		-- this however leaves these keys still being iterated 
+			critterUnits[unitID] = nil		-- this however leaves these keys still being iterated
 		end
 		--if totalCritters > 800 then		-- occasional cleanup (leaving this in will make ´critterDifference´ useless)
 		newCritterUnits = {}
@@ -377,22 +377,22 @@ end
 -- add map dependent critters
 function addMapCritters()
 	if critterConfig[Game.mapName] == nil then
-		return 
+		return
 	end
-	
+
 	for key, cC in pairs(critterConfig[Game.mapName]) do
-		if cC.spawnBox then	
+		if cC.spawnBox then
 			for unitName, unitAmount in pairs(cC.unitNames) do
 				local unitDefID = getUnitDefIdbyName(unitName)
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end
-				
+
 				-- to make sure at least 1 critter is placed  (to prevent when the multiplier is small, that a small critter-amount always gets diminished to zero)
 				local amount = unitAmount * amountMultiplier
-				if amount > 0 and amount < 1 then amount = 1 end	
+				if amount > 0 and amount < 1 then amount = 1 end
 				amount = round(amount)
-				
+
 				for i=1, amount do
 					local unitID = nil
 					local x = random(cC.spawnBox.x1, cC.spawnBox.x2)
@@ -414,7 +414,7 @@ function addMapCritters()
 					end
 				end
 			end
-		elseif cC.spawnCircle then			
+		elseif cC.spawnCircle then
 			for unitName, unitAmount in pairs(cC.unitNames) do
 				local unitDefID = getUnitDefIdbyName(unitName)
 				if not UnitDefs[unitDefID] then
@@ -423,12 +423,12 @@ function addMapCritters()
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end
-				
+
 				-- to make sure at least 1 critter is placed  (to prevent when the multiplier is small, that a small critter-amount always gets diminished to zero)
 				local amount = unitAmount * amountMultiplier
-				if amount > 0 and amount < 1 then amount = 1 end	
+				if amount > 0 and amount < 1 then amount = 1 end
 				amount = round(amount)
-				
+
 				for i=1, amount do
 					local unitID = nil
 					local a = rad(random(0, 360))
@@ -466,7 +466,7 @@ function gadget:GameFrame(gameFrame)
 		addedInitialCritters = true
 		addMapCritters()
 	end
-	
+
 	-- update companion critters
 	if totalCritters > 0 then
 		if gameFrame%77==1 then
@@ -567,7 +567,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 		local circle = {x=x, z=z, r=radius}
 		randomPatrolInCircle(unitID, circle)
-		
+
 		-- make it a companion if close to a commander
 		companionRadius = companionRadiusStart
 		if unitTeam == GaiaTeamID then
@@ -581,7 +581,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		else
 			local commanderID = getTeamCommanderUnitID(unitTeam)
-			if commanderID then 
+			if commanderID then
 				local cx,cy,cz = GetUnitPosition(commanderID,true,true)
 				local comlist = {}
 				comlist[commanderID] = {cx,cz}
@@ -598,7 +598,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	commanders[unitID] = nil
-	if critterUnits[unitID] ~= nil and attackerID ~= nil then 
+	if critterUnits[unitID] ~= nil and attackerID ~= nil then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
 	end
@@ -608,14 +608,14 @@ end
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30109
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	--Spring.Echo (CMD[cmdID] or "nil")
-	if cmdID and cmdID == CMD.ATTACK then 		
-		if cmdParams and #cmdParams == 1 then			
+	if cmdID and cmdID == CMD.ATTACK then
+		if cmdParams and #cmdParams == 1 then
 			--Spring.Echo ("[Gaia Critters] target is unit" .. cmdParams[1] .. " #cmdParams=" .. #cmdParams)
-			if critterUnits[cmdParams[1]] ~= nil then 
-			--	Spring.Echo ("[Gaia Critters] target is a critter and ignored!") 
-				return false 
+			if critterUnits[cmdParams[1]] ~= nil then
+			--	Spring.Echo ("[Gaia Critters] target is a critter and ignored!")
+				return false
 			end
 		end
-	end		
+	end
 	return true
 end

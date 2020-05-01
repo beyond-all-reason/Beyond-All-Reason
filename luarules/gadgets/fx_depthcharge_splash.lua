@@ -1,14 +1,14 @@
 function gadget:GetInfo()
-  return {
-    name      = "Depthcharge splash",
-    desc      = "Makes splashes for depth-charges and torpedoes entering the water",
-    version   = "cake",
-    author    = "Bluestone",
-    date      = "July 2014",
-    license   = "GNU GPL, v3 or later",
-    layer     = 0,
-    enabled   = true,  --  loaded by default?
-  }
+    return {
+        name      = "Depthcharge splash",
+        desc      = "Makes splashes for depth-charges and torpedoes entering the water",
+        version   = "cake",
+        author    = "Bluestone",
+        date      = "July 2014",
+        license   = "GNU GPL, v3 or later",
+        layer     = 0,
+        enabled   = true,  --  loaded by default?
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -55,7 +55,7 @@ end
 function gadget:ProjectileDestroyed(proID)
     if depthChargeWeapons[weaponDefID] then
         missiles[proID] = nil
-    end    
+    end
 end
 
 

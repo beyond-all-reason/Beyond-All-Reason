@@ -1,5 +1,5 @@
 --in BAR "commando" unit always survives being shot down during transport
---when a com dies in mid air the damage done is controlled by unit_combomb_full_damage 
+--when a com dies in mid air the damage done is controlled by unit_combomb_full_damage
 
 --several other ways to code this do not work because:
 --when UnitDestroyed() is called, Spring.GetUnitIsTransporting is already empty -> meh
@@ -16,15 +16,15 @@
 
 
 function gadget:GetInfo()
-  return {
-    name      = "transport_dies_load_dies",
-    desc      = "kills units in transports when transports dies (except commandos)",
-    author    = "knorke, bluestone, icexuick",
-    date      = "Dec 2012",
-    license   = "horse has fallen over",
-    layer     = 0,
-    enabled   = true
-  }
+	return {
+		name      = "transport_dies_load_dies",
+		desc      = "kills units in transports when transports dies (except commandos)",
+		author    = "knorke, bluestone, icexuick",
+		date      = "Dec 2012",
+		license   = "horse has fallen over",
+		layer     = 0,
+		enabled   = true
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then return end
@@ -45,7 +45,7 @@ local currentFrame = 0
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	--Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
-	
+
 	if not isCommando[unitDefID] then
 		currentFrame = Spring.GetGameFrame()
 		if not toKill[currentFrame+1] then
@@ -63,13 +63,13 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	end
 end
 
-function gadget:GameFrame (currentFrame) 
+function gadget:GameFrame (currentFrame)
 	if toKill[currentFrame] then --kill units as requested from above
 		for uID,_ in pairs (toKill[currentFrame]) do
 			local tID = fromtrans[currentFrame][uID]
 			--Spring.Echo ("delayed killing check called for unit " .. uID .. " and trans " .. tID .. ". ")
-			--check that trans is dead/crashing and unit is still alive 
-			if not Spring.GetUnitIsDead(uID) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState=="crashing"))	then	
+			--check that trans is dead/crashing and unit is still alive
+			if not Spring.GetUnitIsDead(uID) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState=="crashing"))	then
 				--Spring.Echo("killing unit " .. uID)=
 				local deathExplosion = UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion
 				if deathExplosion and WeaponDefNames[deathExplosion].id and WeaponDefs[WeaponDefNames[deathExplosion].id] then
@@ -87,6 +87,6 @@ function gadget:GameFrame (currentFrame)
 end
 
 
-	
+
 
 

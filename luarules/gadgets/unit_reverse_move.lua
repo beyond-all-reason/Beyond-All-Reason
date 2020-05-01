@@ -32,15 +32,15 @@ if (gadgetHandler:IsSyncedCode()) then
 			reverseUnit[unitID] = unitDefID
 			refreshList[unitID] = unitDefID
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", unitSpeed[unitDefID])
-			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)		
+			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)
 		end
 	end
-	
+
 	function gadget:UnitDestroyed(unitID) -- Erase killed units from table
 		reverseUnit[unitID] = nil
 		refreshList[unitID] = nil
 	end
-	
+
 	function gadget:Initialize()
 		for ct, unitID in pairs(Spring.GetAllUnits()) do
 			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
@@ -52,13 +52,13 @@ if (gadgetHandler:IsSyncedCode()) then
 			refreshList[unitID] = unitDefID
 		end
 	end
-	
+
 	function gadget:UnitIdle(unitID, unitDefID)
 		if reverseUnit[unitID] then
 			refreshList[unitID] = unitDefID
 		end
 	end
-	
+
 	function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 		if reverseUnit[unitID] then
 			refreshList[unitID] = unitDefID

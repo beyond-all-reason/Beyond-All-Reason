@@ -136,17 +136,17 @@ function gadget:Update()
 			end
 			n = n + 1
 		end
-		
+
 		updateTick = updateTimer + saveEach
 	end
-		
+
 	if n > numMousePos then
 		n = 0
 		updateTimer = 0
 		updateTick = saveEach
-		
+
 		local posStr = "0"
-	
+
 		for i=numMousePos,1,-1 do
 			local xStr = poshistory[i*2]
 			local zStr = poshistory[i*2+1]
@@ -155,7 +155,7 @@ function gadget:Update()
 			end
 		end
 		SendLuaRulesMsg("£" .. validation .. posStr)
-	 
+
 	end
 end
 
@@ -173,7 +173,7 @@ function gadget:MousePress(x,y,button)
 	if abs(pos[1] - lastx) > 300 or abs(pos[3] - lastz) > 300 then
 		for i=0,5 do
 			local posindex = i%2 == 0 and 1 or 3
-			poshistory[i] = PackU16(floor(pos[posindex])) 
+			poshistory[i] = PackU16(floor(pos[posindex]))
 		end
 		lastx,lastz = pos[1],pos[3]
 		updateTick = saveEach

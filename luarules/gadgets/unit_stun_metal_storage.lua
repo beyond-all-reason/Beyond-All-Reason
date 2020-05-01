@@ -2,15 +2,15 @@
 -------------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Stun Metal Storage",
-    desc      = "Makes stunned storage drop capactiy",
-    author    = "Nixtux",
-    date      = "June 15, 2014",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Stun Metal Storage",
+        desc      = "Makes stunned storage drop capactiy",
+        author    = "Nixtux",
+        date      = "June 15, 2014",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -68,7 +68,7 @@ function gadget:GameFrame(n)
 				    Spring.SpawnCEG("METAL_STORAGE_LEAK",x,y+height,z,0,0,0)
 		        end
 		        storageunits[unitID].isEMPed = true
-		        stunnedstorage[unitID] = true 
+		        stunnedstorage[unitID] = true
 	        end
         end
         for unitID,_ in pairs(stunnedstorage) do

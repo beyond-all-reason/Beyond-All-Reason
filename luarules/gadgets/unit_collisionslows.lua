@@ -1,14 +1,14 @@
 
 function gadget:GetInfo()
-  return {
-	name 	= "CollisionSlows",
-	desc	= "Apllies slows on unit-unit and unit-feature collisions",
-	author	= "Doo",
-	date	= "05/09/2017",
-	license	= "GNU GPL, v2 or later",
-	layer	= 0,
-	enabled = false,
-  }
+    return {
+        name 	= "CollisionSlows",
+        desc	= "Apllies slows on unit-unit and unit-feature collisions",
+        author	= "Doo",
+        date	= "05/09/2017",
+        license	= "GNU GPL, v2 or later",
+        layer	= 0,
+        enabled = false,
+    }
 end
 
 -- TODO: localize UnitDefs:

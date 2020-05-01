@@ -2,22 +2,22 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Prevent Range Hax",
-    desc      = "Prevent Range Hax",
-    author    = "TheFatController",
-    date      = "Jul 24, 2007",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Prevent Range Hax",
+        desc      = "Prevent Range Hax",
+        author    = "TheFatController",
+        date      = "Jul 24, 2007",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 if (not gadgetHandler:IsSyncedCode()) then
-  return false
+    return false
 end
 
 local GiveOrderToUnit = Spring.GiveOrderToUnit
@@ -38,8 +38,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     if (cmdParams[5] > y) then
       GiveOrderToUnit(UnitID, CMD_INSERT, {cmdParams[1],cmdParams[2],cmdParams[3],cmdParams[4],y,cmdParams[6]}, cmdOptions.coded)
       return false
-    end    
-  end  
+    end
+  end
   if (cmdID == CMD_ATTACK) and cmdParams[3] then
 	y=GetGroundHeight(cmdParams[1],cmdParams[3])
     if (cmdParams[2] > y) then

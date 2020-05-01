@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-   return {
-      name = "Air Transports Speed",
-      desc = "Slows down transport depending on loaded mass (up to 50%)",
-      author = "raaar",
-      date = "2015",
-      license = "PD",
-      layer = 0,
-      enabled = true,
-   }
+	return {
+		name = "Air Transports Speed",
+		desc = "Slows down transport depending on loaded mass (up to 50%)",
+		author = "raaar",
+		date = "2015",
+		license = "PD",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 if (not gadgetHandler:IsSyncedCode()) then return end
@@ -39,7 +39,7 @@ local currentMassUsage = 0
 function updateAllowedSpeed(transportId)
 	local uDefID = Spring.GetUnitDefID(transportId)
 
-	-- get sum of mass and size for all transported units                                
+	-- get sum of mass and size for all transported units
 	currentMassUsage = 0
 	for _,tUnitId in pairs(Spring.GetUnitIsTransporting(transportId)) do
 		currentMassUsage = currentMassUsage + unitMass[Spring.GetUnitDefID(tUnitId)]
@@ -70,7 +70,7 @@ end
 
 -- every frame, adjust speed of air transports according to transported mass, if any
 function gadget:GameFrame(n)
-    
+
 	-- for each air transport with units loaded, reduce speed if currently greater than allowed
 	local factor = 1
 	local vx,vy,vz,vw = 0

@@ -10,7 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
-
 if (gadgetHandler:IsSyncedCode()) then
 
 	local toUpdateList = {}
@@ -36,11 +35,11 @@ if (gadgetHandler:IsSyncedCode()) then
 			Spring.SetUnitMidAndAimPos(unitID, 0, 10, 0, 0, 10, 0, true)
 		end
 	end
-	
+
 	function gadget:UnitDestroyed(unitID)
 		toUpdateList[unitID] = nil
 	end
-	
+
 	function gadget:GameFrame(f)
 		if f % 15 == 0 then
 			for unitID, piecenum in pairs(toUpdateList) do

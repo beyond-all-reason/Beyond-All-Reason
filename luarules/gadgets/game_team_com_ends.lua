@@ -161,14 +161,14 @@ function gadget:GameFrame(t)
 			end
 			if (dt > defs.time) then
                 if defs.a then DestroyUnit(unitID, true, nil, defs.a)
-                    else DestroyUnit(unitID, true) -- if 4th arg is given, it cannot be nil (or engine complains)                
+                    else DestroyUnit(unitID, true) -- if 4th arg is given, it cannot be nil (or engine complains)
                 end
 				destroyUnitQueue[unitID] = nil
 			end
 		end
 		deathTimeBoost = math.min(deathTimeBoost * 1.5, 500)
 	end
-	
+
 end
 
 function gadget:UnitCreated(u, ud, team)

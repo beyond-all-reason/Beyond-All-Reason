@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "Com Counter",
-    desc      = "Tells each team the total number of commanders alive in enemy allyteams",
-    author    = "Bluestone",
-    date      = "08/03/2014",
-    license   = "Horses",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name      = "Com Counter",
+		desc      = "Tells each team the total number of commanders alive in enemy allyteams",
+		author    = "Bluestone",
+		date      = "08/03/2014",
+		license   = "Horses",
+		layer     = 0,
+		enabled   = true  --  loaded by default?
+	}
 end
 
 -------------------------------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	-- record com creation
 	if isCommander[unitDefID] then
-		if not teamComs[teamID] then 
+		if not teamComs[teamID] then
 			teamComs[teamID] = 0
 		end
 		teamComs[teamID] = teamComs[teamID] + 1
@@ -44,7 +44,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	-- record com death
 	if isCommander[unitDefID] then
-		if not teamComs[teamID] then 
+		if not teamComs[teamID] then
 			teamComs[teamID] = 0 --should never happen
 		end
 		teamComs[teamID] = teamComs[teamID] - 1

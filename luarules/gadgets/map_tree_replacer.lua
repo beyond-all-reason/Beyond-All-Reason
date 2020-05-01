@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		date      = "February 2018",
 		license   = "GPL",
 		layer     = -1,	--higher layer is loaded last
-		enabled   = true,  
+		enabled   = true,
 	}
 end
 
@@ -109,4 +109,3 @@ if (gadgetHandler:IsSyncedCode()) then
 --		 end
 --	end
 end
-

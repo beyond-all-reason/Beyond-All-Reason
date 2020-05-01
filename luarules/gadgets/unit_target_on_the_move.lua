@@ -1,14 +1,14 @@
 
 function gadget:GetInfo()
-  return {
-	name 	= "Target on the move",
-	desc	= "Adds a command to set a priority attack target",
-	author	= "Google Frog, adapted by BrainDamage, added priority to Dgun by doo",
-	date	= "06/05/2013",
-	license	= "GNU GPL, v2 or later",
-	layer	= 0,
-	enabled = true,
-  }
+	return {
+		name 	= "Target on the move",
+		desc	= "Adds a command to set a priority attack target",
+		author	= "Google Frog, adapted by BrainDamage, added priority to Dgun by doo",
+		date	= "06/05/2013",
+		license	= "GNU GPL, v2 or later",
+		layer	= 0,
+		enabled = true,
+	}
 end
 
 
@@ -330,7 +330,7 @@ function gadget:Initialize()
 	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET)
 	gadgetHandler:RegisterCMDID(CMD_UNIT_CANCEL_TARGET)
 	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_RECTANGLE)
-	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_NO_GROUND)	
+	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_NO_GROUND)
 
 	-- load active units
 	for _, unitID in pairs(Spring.GetAllUnits()) do
@@ -431,12 +431,12 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 					end
 					--re-insert in the queue as list of individual orders instead of processing directly, so that allowcommand etc can work
 					spGiveOrderArrayToUnitArray({unitID},orders)
-					
+
 				end
 			else
 				if #cmdParams == 3 or #cmdParams == 4 then
 					-- if radius is 0, it's a single click
-					if cmdParams[4] == 0 then 
+					if cmdParams[4] == 0 then
 						cmdParams[4] = nil
 					end
 					local target = cmdParams
@@ -455,14 +455,14 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 						end
 					end
 					if validTarget then
-						addUnitTargets(unitID, unitDefID, { 
+						addUnitTargets(unitID, unitDefID, {
 							{
 								alwaysSeen = true,
 								ignoreStop = ignoreStop,
 								userTarget = userTarget,
 								target = target,
 							}
-						}, append )	
+						}, append )
 					end
 				elseif #cmdParams == 1 then
 					--single target
@@ -478,14 +478,14 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 							end
 						end
 						if validTarget then
-							addUnitTargets(unitID, unitDefID, { 
+							addUnitTargets(unitID, unitDefID, {
 								{
 									alwaysSeen = UnitDefs[spGetUnitDefID(target)].isBuilding or UnitDefs[spGetUnitDefID(target)].speed == 0,
 									ignoreStop = ignoreStop,
 									userTarget = userTarget,
 									target = target,
 								}
-							}, append )	
+							}, append )
 						end
 					end
 				elseif #cmdParams == 0 then
@@ -546,7 +546,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams,
 			addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
 			pausedTargets[unitID] = nil
 			pauseEnd[unitID] = nil
-		end			
+		end
 	end
 end
 
@@ -567,7 +567,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 				pausedTargets[unitID] = unitTargets[unitID]
 				removeUnit(unitID, true)
 				pauseEnd[unitID] = Spring.GetGameFrame() + 45
-			end			
+			end
 		end
 	end
 	return true  -- command was not used OR was used but not fully processed, so don't block command
@@ -582,7 +582,7 @@ function gadget:GameFrame(n)
 	-- unfortunately since 103 that's not possible, attempt to override every frame
 	-- it might create a slight increase of cpu usage when hundreds of units gets
 	-- a set target command, howrever a quick test with 300 fidos only increased by 1%
-	-- sim here 
+	-- sim here
 	for unitID, pauseend in pairs(pauseEnd) do
 		if pauseEnd[unitID] and pauseEnd[unitID] == n then
 			addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)

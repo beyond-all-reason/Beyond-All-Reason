@@ -96,13 +96,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
                             weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-  
+
   if CHICKEN_RESISTS[unitDefID] and CHICKEN_RESISTS[unitDefID][weaponID] then
 	return damage * CHICKEN_RESISTS[unitDefID][weaponID], CHICKEN_RESISTS[unitDefID][weaponID]
-  end     
-  
+  end
+
   if DAMAGE_LIMITS[weaponID] then
 		return math.min(DAMAGE_LIMITS[weaponID],damage),1
   elseif DGUN[weaponID] and CHICKEN_QUEENS[unitDefID] then

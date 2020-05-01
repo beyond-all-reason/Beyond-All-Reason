@@ -1,10 +1,12 @@
 if not gadgetHandler:IsSyncedCode() then return end
 
-function gadget:GetInfo() return {
-	name    = "Debris physics",
-	desc    = "Enable debris to move in directions other than Y",
-	enabled = true
-} end
+function gadget:GetInfo()
+	return {
+		name    = "Debris physics",
+		desc    = "Enable debris to move in directions other than Y",
+		enabled = true
+	}
+end
 
 local validFeatureDefID = {}
 for i = 1, #FeatureDefs do

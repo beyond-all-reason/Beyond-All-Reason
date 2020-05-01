@@ -28,14 +28,14 @@ function gadget:Initialize()
 	local modOptions = Spring.GetModOptions() or {}
 	local startMetal  = tonumber(modOptions.startmetal)  or 1000
 	local startEnergy = tonumber(modOptions.startenergy) or 1000
-	local teamResources = true 
+	local teamResources = true
 
 	if ((modOptions.storageowner) and (modOptions.storageowner == "com")) then
     teamResources = false
 	end
-	
+
     if GG.coopMode then
-        
+
         local teamPlayerCounts = {}
         local playerList = Spring.GetPlayerList()
         for i = 1, #playerList do
@@ -45,7 +45,7 @@ function gadget:Initialize()
                 teamPlayerCounts[teamID] = (teamPlayerCounts[teamID] or 0) + 1
             end
         end
-        
+
         local teamList = Spring.GetTeamList()
         for i = 1, #teamList do
             local teamID = teamList[i]

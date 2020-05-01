@@ -8,15 +8,15 @@ end
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Thrusters",
-    desc      = "Da red ones go fasta",
-    author    = "KingRaptor (L.J. Lim)",
-    date      = "2013.06.25",
-    license   = "Public Domain",
-    layer     = 0,
-    enabled   = true,
-  }
+    return {
+        name      = "Thrusters",
+        desc      = "Da red ones go fasta",
+        author    = "KingRaptor (L.J. Lim)",
+        date      = "2013.06.25",
+        license   = "Public Domain",
+        layer     = 0,
+        enabled   = true,
+    }
 end
 
 local unitDefs = include("LuaRules/Configs/lups_thruster_fxs.lua")
@@ -33,7 +33,7 @@ local startup = true
 
 local function AddUnit(unitID, unitDefID)
   if (not Lups) then Lups = GG['Lups']; LupsAddParticles = Lups.AddParticles end
-  
+
   units[unitID] = {
     unitDefID = unitDefID,
     speed = unitSpeeds[unitID],
@@ -74,19 +74,19 @@ local function GameFrameUnitsCheck()
     elseif delta < -maxDelta then
       delta = -maxDelta
     end
-    
+
     local speed = oldSpeed + delta
     if speed < def.minSpeed then
       speed = def.minSpeed
     end
-    
+
     if delta > 0.01 or delta < -0.01 then
       data.speed = speed
       local modDelta = delta + delta*def.accelMod -- give bigger thrust when accelerating then when at constant speed
       local modSpeed = speed + modDelta
-      
+
       local mult = modSpeed/(def.baseSpeed or 8)
-      
+
       for i=1,#data.fx do
 	local fxID = data.fx[i]
 	local fx = Lups.GetParticles(fxID)
@@ -129,7 +129,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
   if unitDefs[unitDefID] then
     AddUnit(unitID, unitDefID)
-    unitSpeeds[unitID] = GetUnitSpeed(unitID) 
+    unitSpeeds[unitID] = GetUnitSpeed(unitID)
   end
 end
 

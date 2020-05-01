@@ -2,17 +2,16 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "preventcombomb",
-    desc      = "Commanders survive commander blast and DGun",
-    author    = "TheFatController",
-    date      = "Aug 31, 2009",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name      = "preventcombomb",
+		desc      = "Commanders survive commander blast and DGun",
+		author    = "TheFatController",
+		date      = "Aug 31, 2009",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true  --  loaded by default?
+	}
 end
-
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
@@ -50,7 +49,6 @@ for udefID,_ in ipairs(isCommander) do
 	end
 end
 
-
 function CommCount(unitTeam)
 
 	local allyteamlist = Spring.GetAllyTeamList()
@@ -68,13 +66,12 @@ function CommCount(unitTeam)
 	return count
 end
 
-
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 	--falling & debris damage
 	if weaponID < 0 and cantFall[unitID] then
 		return 0, 0
 	end
-	
+
 	local hp,_ = GetUnitHealth(unitID)
 	hp = hp or 0
 	local combombDamage = hp-200-math_random(1,10)
@@ -106,14 +103,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			cantFall[unitID] = GetGameFrame() + 30
 			return combombDamage, 0
 		else
-			--com blast hurts the attackerID 
+			--com blast hurts the attackerID
 			return damage
 		end
 	end
-	
+
 	return damage
 end
-
 
 function gadget:GameFrame(currentFrame)
 	for unitID,expirationTime in pairs(immuneDgunList) do
@@ -144,4 +140,3 @@ function gadget:GameFrame(currentFrame)
 		end
 	end
 end
-

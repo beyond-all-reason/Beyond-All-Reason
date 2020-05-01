@@ -45,7 +45,7 @@ local type  = type
 -- (int) [exp/(exp+1)] / expGrade
 --  If this integer differs from the one before the experience change
 --  it will call UnitExperience().
-local EXP_GRADE = 0.0005	
+local EXP_GRADE = 0.0005
 
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------

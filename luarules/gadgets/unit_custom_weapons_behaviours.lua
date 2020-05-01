@@ -1,15 +1,14 @@
 function gadget:GetInfo()
-  return {
-    name      = "Custom weapon behaviours",
-    desc      = "Handler for special weapon behaviours",
-    author    = "Doo",
-    date      = "Sept 19th 2017",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name      = "Custom weapon behaviours",
+		desc      = "Handler for special weapon behaviours",
+		author    = "Doo",
+		date      = "Sept 19th 2017",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true  --  loaded by default?
+	}
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -31,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 	end
-	
+
 	applyingFunctions.split = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
@@ -67,7 +66,7 @@ if gadgetHandler:IsSyncedCode() then
 			projectiles[proID] = specialIDs[wDefID]
 		end
 	end
-	
+
 	function gadget:ProjectileDestroyed(proID)
 		projectiles[proID] = nil
 	end

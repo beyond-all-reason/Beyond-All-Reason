@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-   return {
-      name      = "Airbase Manager",
-      desc      = "Automated and manual use of air repair pads",
-      author    = "ashdnazg, Bluestone",
-      date      = "February 2016",
-      license   = "GNU GPL, v2 or later",
-      layer     = 1,
-      enabled   = true  --  loaded by default?
-   }
+    return {
+        name      = "Airbase Manager",
+        desc      = "Automated and manual use of air repair pads",
+        author    = "ashdnazg, Bluestone",
+        date      = "February 2016",
+        license   = "GNU GPL, v2 or later",
+        layer     = 1,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 local CMD_LAND_AT_AIRBASE = 35430
@@ -21,11 +21,10 @@ CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 local tractorDist = 100^2 -- default sqr tractor distance
 local airbaseDefIDs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-   if unitDef.customParams and unitDef.customParams.isairbase then
-      airbaseDefIDs[unitDefID] = tractorDist
-   end
+    if unitDef.customParams and unitDef.customParams.isairbase then
+        airbaseDefIDs[unitDefID] = tractorDist
+    end
 end
-
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -57,36 +56,36 @@ local CMD_WAIT = CMD.WAIT
 local isAirUnit = {}
 local unitTimeToBuild = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-   if unitDef.isAirUnit then
-      isAirUnit[unitDefID] = true
-   end
-   unitTimeToBuild[unitDefID] = unitDef.buildTime / unitDef.buildSpeed
+    if unitDef.isAirUnit then
+        isAirUnit[unitDefID] = true
+    end
+    unitTimeToBuild[unitDefID] = unitDef.buildTime / unitDef.buildSpeed
 end
 
 ---------------------------
 -- custom commands
 
 local landAtAnyAirbaseCmd = {
-   id      = CMD_LAND_AT_AIRBASE,
-   name    = "Land At Airbase",
-   action  = "landatairbase",
-   cursor  = 'landatairbase',
-   type    = CMDTYPE.ICON,
-   tooltip = "Airbase: Tells the unit to land at the nearest available airbase for repairs",
+    id      = CMD_LAND_AT_AIRBASE,
+    name    = "Land At Airbase",
+    action  = "landatairbase",
+    cursor  = 'landatairbase',
+    type    = CMDTYPE.ICON,
+    tooltip = "Airbase: Tells the unit to land at the nearest available airbase for repairs",
 }
 
 local landAtSpecificAirbaseCmd = {
-   id      = CMD_LAND_AT_SPECIFIC_AIRBASE,
-   name    = "Land At Specific Airbase",
-   action  = "landatspecificairbase",
-   cursor  = 'landatspecificairbase',
-   type    = CMDTYPE.ICON_UNIT,
-   tooltip = "Airbase: Tells the unit to land at an airbase for repairs ",
+    id      = CMD_LAND_AT_SPECIFIC_AIRBASE,
+    name    = "Land At Specific Airbase",
+    action  = "landatspecificairbase",
+    cursor  = 'landatspecificairbase',
+    type    = CMDTYPE.ICON_UNIT,
+    tooltip = "Airbase: Tells the unit to land at an airbase for repairs ",
 }
 
 function InsertLandAtAirbaseCommands(unitID)
-   --Spring.InsertUnitCmdDesc(unitID, landAtSpecificAirbaseCmd)
-   Spring.InsertUnitCmdDesc(unitID, landAtAnyAirbaseCmd)
+    --Spring.InsertUnitCmdDesc(unitID, landAtSpecificAirbaseCmd)
+    Spring.InsertUnitCmdDesc(unitID, landAtAnyAirbaseCmd)
 end
 
 ---------------------------------------
@@ -120,13 +119,13 @@ function FindAirBase(unitID)
          end
       end
    end
-   
+
    return closestAirbaseID, closestPieceNum
 end
 
 function CanLandAt(unitID, airbaseID)
    -- return either false (-> cannot land at this airbase) or the piece number of a free pad within this airbase
-   
+
    -- check that this airbase has pads (needed?)
    local airbasePads = airbases[airbaseID]
    if not airbasePads then
@@ -160,7 +159,7 @@ function RemovePlane(unitID)
    if landingPlanes[unitID] then RemoveLandingPlane(unitID) end
    if tractorPlanes[unitID] then RemoveTractorPlane(unitID) end
    landedPlanes[unitID] = nil
-   
+
    RemoveOrderFromQueue(unitID, CMD_LAND_AT_SPECIFIC_AIRBASE)
    RemoveOrderFromQueue(unitID, CMD_LAND_AT_AIRBASE)
 end
@@ -205,7 +204,7 @@ function DetachFromPad(unitID)
       if reservedBy == unitID then
          airbasePads[pieceNum] = false
       end
-   end   
+   end
    Spring.UnitDetach(unitID)
 end
 
@@ -225,22 +224,22 @@ function CheckAll()
    for unitID,_ in pairs(planes) do
       if not landingPlanes[unitID] and not landedPlanes[unitID] and not tractorPlanes[unitID] and NeedsRepair(unitID) then
          pendingLanders[unitID] = true
-      end     
-   end  
+      end
+   end
 end
 
 function FlyAway(unitID, airbaseID)
    --
-   -- hack, after detaching units don't always continue with their command q 
+   -- hack, after detaching units don't always continue with their command q
    GiveWaitWaitOrder(unitID)
    --
-   
+
    -- if the unit has no orders, tell it to move a little away from the airbase
     local q = Spring.GetCommandQueue(unitID,0)
    if q==0 then
       local px,_,pz = Spring.GetUnitPosition(airbaseID)
       local theta = math_random()*2*math_pi
-      local r = 2.5 * Spring.GetUnitRadius(airbaseID) 
+      local r = 2.5 * Spring.GetUnitRadius(airbaseID)
       local tx,tz = px+r*math_sin(theta), pz+r*math_cos(theta)
       local ty = Spring.GetGroundHeight(tx,tz)
       --local uDID = Spring.GetUnitDefID(unitID)
@@ -295,12 +294,12 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
    if not planes[unitID] and not airbases[unitID] then return end
-   
+
    if planes[unitID] then
        RemovePlane(unitID)
       planes[unitID] = nil
    end
-   
+
    if airbases[unitID] then
       for pieceNum,planeID in pairs(airbases[unitID]) do
          if planeID then
@@ -316,18 +315,18 @@ end
 
 function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
    -- handle our two custom commands
-   
+
    if cmdID == CMD_LAND_AT_SPECIFIC_AIRBASE then
-      if landedPlanes[unitID] then 
+      if landedPlanes[unitID] then
          -- this order is now completed
          return true, true
       end
-      
+
       if landingPlanes[unitID] or tractorPlanes[unitID] then
          -- this order is not yet completed, call CommandFallback again
          return true, false
       end
-      
+
       -- this order has just reached the top of the command queue and we are not a landingPlane
       -- process the order and make us into a landing plane!
 
@@ -344,15 +343,15 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmd
       --SendToUnsynced("SetUnitLandGoal", unitID, airbaseID, pieceNum)
       return true, false
    end
-   
+
    if cmdID == CMD_LAND_AT_AIRBASE then
-      if landingPlanes[unitID] or tractorPlanes[unitID] then 
+      if landingPlanes[unitID] or tractorPlanes[unitID] then
          -- finished processing
          return true, true
       end
-   
+
       pendingLanders[unitID] = true
-      return true, false 
+      return true, false
    end
 
    return false
@@ -378,15 +377,15 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
    if cmdID == CMD_INSERT and cmdParams[2] == CMD_LAND_AT_AIRBASE then return end
    if cmdID == CMD_INSERT and cmdParams[2] == CMD_LAND_AT_SPECIFIC_AIRBASE then return end
    if cmdID == CMD_REMOVE then return end
-   
+
    -- release control of this plane
-   if landingPlanes[unitID] then 
-      RemoveLandingPlane(unitID) 
+   if landingPlanes[unitID] then
+      RemoveLandingPlane(unitID)
    elseif landedPlanes[unitID] then
-      DetachFromPad(unitID) 
+      DetachFromPad(unitID)
    end
-   
-   -- and remove it from our book-keeping 
+
+   -- and remove it from our book-keeping
    -- (in many situations, unless the user changes the RepairAt level, it will be quickly reinserted, but we have to assume that's what they want!)
    landingPlanes[unitID] = nil
    landedPlanes[unitID] = nil
@@ -410,7 +409,7 @@ function gadget:GameFrame(n)
    -- add them to pending landers, if so
    if n%72==0 then
       CheckAll()
-   end   
+   end
 
    -- assign airbases & pads to planes in pendingLanders, if possible
    -- once done, move into landingPlanes
@@ -424,18 +423,18 @@ function gadget:GameFrame(n)
          end
 
          local airbaseID, pieceNum = FindAirBase(unitID)
-         if airbaseID then 
+         if airbaseID then
             -- reserve pad, give landing order to unit
             airbases[airbaseID][pieceNum] = unitID
             landingPlanes[unitID] = {airbaseID, pieceNum}
             pendingLanders[unitID] = nil
             Spring.SetUnitLoadingTransport(unitID, airbaseID)
-            RemoveOrderFromQueue(unitID, CMD_LAND_AT_AIRBASE) 
+            RemoveOrderFromQueue(unitID, CMD_LAND_AT_AIRBASE)
             Spring.GiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_LAND_AT_SPECIFIC_AIRBASE, 0, airbaseID}, {"alt"}) --fixme: it fails without "alt", but idk why
          end
       end
    end
-   
+
    -- fly towards pad
    -- once 'close enough' snap into pads, then move into landedPlanes
    if n%2==0 then
@@ -446,7 +445,7 @@ function gadget:GameFrame(n)
             toRemoveCount = toRemoveCount + 1
             toRemove[toRemoveCount] = unitID
          end
-         
+
          local airbaseID, padPieceNum = t[1], t[2]
          local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
          local ux, uy, uz = Spring.GetUnitPosition(unitID)
@@ -455,7 +454,7 @@ function gadget:GameFrame(n)
             -- check if we're close enough, move into tractorPlanes if so
             local r = Spring.GetUnitRadius(unitID)
             local airbaseDefID = Spring.GetUnitDefID(airbaseID)
-            if airbaseDefID and sqrDist < airbaseDefIDs[airbaseDefID] then 
+            if airbaseDefID and sqrDist < airbaseDefIDs[airbaseDefID] then
                -- land onto pad
                landingPlanes[unitID] = nil
                tractorPlanes[unitID] = {airbaseID, padPieceNum}
@@ -467,13 +466,13 @@ function gadget:GameFrame(n)
          end
       end
    end
-   
+
    -- move ctrl for final stage of landing
    for unitID, t in pairs(tractorPlanes) do
       --Spring.Echo("tractor", unitID)
       local airbaseID, padPieceNum = t[1], t[2]
       local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
-      local ux, uy, uz = Spring.GetUnitPosition(unitID)         
+      local ux, uy, uz = Spring.GetUnitPosition(unitID)
       local upitch,uyaw,uroll = Spring.GetUnitRotation(unitID)
       local ppitch,pyaw,proll = Spring.GetUnitRotation(airbaseID)
       local sqrDist = (ux and px) and (ux-px)*(ux-px) + (uy-py)*(uy-py) + (uz-pz)*(uz-pz)
@@ -492,17 +491,17 @@ function gadget:GameFrame(n)
             local dx,dy,dz = px-ux,py-uy,pz-uz
             local velNormMult = tractorSpeed / math_sqrt(dx*dx + dy*dy + dz*dz)
             local vx,vy,vz = dx*velNormMult,dy*velNormMult,dz*velNormMult
-            Spring.MoveCtrl.SetPosition(unitID, ux+vx, uy+vy, uz+vz)         
+            Spring.MoveCtrl.SetPosition(unitID, ux+vx, uy+vy, uz+vz)
          end
          if rotSqrDist >=0.025 then
-            local dpitch,dyaw,droll = ppitch-upitch,pyaw-uyaw,proll-uroll 
+            local dpitch,dyaw,droll = ppitch-upitch,pyaw-uyaw,proll-uroll
             local rotNormMult = rotTractorSpeed / math_sqrt(dpitch*dpitch + dyaw*dyaw + droll*droll)
             local rpitch,ryaw,rroll = dpitch*rotNormMult,dyaw*rotNormMult,droll*rotNormMult
             Spring.MoveCtrl.SetRotation(unitID, upitch+rpitch, uyaw+ryaw, uroll+rroll)
          end
       end
    end
-   
+
    -- heal landedPlanes
    -- release if fully healed
    if n%8==0 then
@@ -519,12 +518,12 @@ function gadget:GameFrame(n)
          elseif h then
             -- still needs healing
             HealUnit(unitID, airbaseID, resourceFrames, h, mh)
-         end   
+         end
       end
       previousHealFrame = n
    end
-   
-   
+
+
    -- get rid of planes that have (auto-)healed themselves before reaching the pad
    for _,unitID in ipairs(toRemove) do
       RemovePlane(unitID)
@@ -546,7 +545,7 @@ function gadget:Initialize()
          Spring.UnitDetach(unitID)
       end
    end
-   
+
 end
 
 function gadget:ShutDown()
@@ -566,7 +565,7 @@ local landAtAirBaseCmdColor = {0.50, 1.00, 1.00, 0.8} -- same colour as repair
 function gadget:Initialize()
    Spring.SetCustomCommandDrawData(CMD_LAND_AT_SPECIFIC_AIRBASE, "landatairbase", landAtAirBaseCmdColor, false)
    Spring.SetCustomCommandDrawData(CMD_LAND_AT_AIRBASE, "landatspecificairbase", landAtAirBaseCmdColorr, false)
-   Spring.AssignMouseCursor("landatspecificairbase", "cursorrepair", false, false) 
+   Spring.AssignMouseCursor("landatspecificairbase", "cursorrepair", false, false)
 end
 
 local spGetMouseState = Spring.GetMouseState

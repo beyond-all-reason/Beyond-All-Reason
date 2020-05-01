@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-return {
-	name = "Shard AI Loader",
-	desc = "Shard by AF for Spring Lua",
-	author = "eronoobos, based on gadget by raaar, and original AI by AF",
-	date = "April 2020",
-	license = "GPL",
-	layer = 999999,
-	enabled = true,
-}
+	return {
+		name = "Shard AI Loader",
+		desc = "Shard by AF for Spring Lua",
+		author = "eronoobos, based on gadget by raaar, and original AI by AF",
+		date = "April 2020",
+		license = "GPL",
+		layer = 999999,
+		enabled = true,
+	}
 end
 
 local teams = Spring.GetTeamList()
@@ -112,7 +112,7 @@ function gadget:SetupAI(id)
 	thisAI.id = id
 	thisAI.allyId = allyId
 	thisAI.fullname = aiInfo
-	
+
 	alliedTeamIds = {}
 	enemyTeamIds = {}
 	for i=1,#teamList do
@@ -172,7 +172,7 @@ function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
 		else
 			thisAI.enemyUnitIds[unitId] = true
 		end
-		
+
 		if Spring.GetUnitTeam(unitId) == thisAI.id then
 			--prepareTheAI(thisAI)
 			thisAI:Prepare()
@@ -368,13 +368,13 @@ else
 			Script.LuaUI.ShardStopTimer(name)
 		end
 	end
-	
+
 	local function sSaveTable(_,tableinput, tablename, filename)
 		if (Script.LuaUI('ShardSaveTable')) then
 			Script.LuaUI.ShardSaveTable(tableinput, tablename, filename)
 		end
 	end
-	
+
 	function gadget:Initialize()
 		Spring.Echo("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)

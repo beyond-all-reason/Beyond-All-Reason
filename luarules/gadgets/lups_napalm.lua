@@ -1,15 +1,15 @@
 -- $Id: lups_napalm.lua 3171 2008-11-06 09:06:29Z det $
 
 function gadget:GetInfo()
-  return {
-    name      = "Napalm",
-    desc      = "",
-    author    = "jK",
-    date      = "Sep. 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = false,
-  }
+    return {
+        name      = "Napalm",
+        desc      = "",
+        author    = "jK",
+        date      = "Sep. 2008",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = false,
+    }
 end
 
 
@@ -36,7 +36,7 @@ if (gadgetHandler:IsSyncedCode()) then
   function gadget:Explosion_GetWantedWeaponDef()
 	return wantedList
   end
-  
+
   function gadget:Explosion(weaponID, px, py, pz)
     if (napalmWeapons[weaponID]) then
       napalmExplosions[#napalmExplosions+1] = {weaponID, px, py, pz}
@@ -58,16 +58,16 @@ else
   local napalmFX, heatFX = include("LuaRules/Configs/lups_napalm_fxs.lua")
 
   local Lups
-  local LupsAddParticles 
+  local LupsAddParticles
   local SYNCED = SYNCED
 
   local function SpawnNapalmFX(data)
 	local nFXkey = WeaponDefs[data[1]].customParams and WeaponDefs[data[1]].customParams.lups_napalm_fx or "default"
 	local hFXkey = WeaponDefs[data[1]].customParams and WeaponDefs[data[1]].customParams.lups_heat_fx or "default"
-	
+
 	local nFX = napalmFX[nFXkey]
 	local hFX = heatFX[hFXkey]
-	
+
     nFX.pos = {data[2],data[3],data[4]}
     Lups.AddParticles('SimpleParticles2',nFX)
     hFX.pos = nFX.pos

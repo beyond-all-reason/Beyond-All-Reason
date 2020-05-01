@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "Experimental Bots Steps Damages",
-    desc      = "Controls damages done by exp units footsteps",
-    author    = "Doo",
-    date      = "July 2017",
-    license   = "Whatever you want, lua will make it",
-    layer     = 0,
-    enabled   = true
-  }
+	return {
+		name      = "Experimental Bots Steps Damages",
+		desc      = "Controls damages done by exp units footsteps",
+		author    = "Doo",
+		date      = "July 2017",
+		license   = "Whatever you want, lua will make it",
+		layer     = 0,
+		enabled   = true
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then

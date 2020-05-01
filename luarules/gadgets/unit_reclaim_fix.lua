@@ -1,17 +1,17 @@
 function gadget:GetInfo()
-  return {
-    name      = "Reclaim Fix",
-    desc      = "Implements Old Style Reclaim.",
-    author    = "TheFatController", -- lots of help from Lurker
-    date      = "May 24th, 2009",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Reclaim Fix",
+        desc      = "Implements Old Style Reclaim.",
+        author    = "TheFatController", -- lots of help from Lurker
+        date      = "May 24th, 2009",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then
-  return
+    return
 end
 
 local SetFeatureReclaim = Spring.SetFeatureReclaim

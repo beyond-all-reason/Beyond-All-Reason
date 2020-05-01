@@ -1,19 +1,18 @@
-
-
--- disabled it... cause not all missile weapons have flighttime defined, but can run out of fuel when they dont traight fly to maxrange
+-- disabled it... cause not all missile weapons have flighttime defined,
+-- but can run out of fuel when they dont traight fly to maxrange
 
 
 function gadget:GetInfo()
-  return {
-    name      = "Starburst Missile Liftoff",
-    desc      = "",
-    version   = "tart",
-    author    = "Floris",
-    date      = "February 2018",
-    license   = "GNU GPL, v3 or later",
-    layer     = 0,
-    enabled   = true,  --  loaded by default?
-  }
+    return {
+        name      = "Starburst Missile Liftoff",
+        desc      = "",
+        version   = "tart",
+        author    = "Floris",
+        date      = "February 2018",
+        license   = "GNU GPL, v3 or later",
+        layer     = 0,
+        enabled   = true,  --  loaded by default?
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then

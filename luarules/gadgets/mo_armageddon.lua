@@ -35,16 +35,16 @@ end
 
 local toKillUnits = {}
 local toKillFrame = {}
-local toKill = {} 
+local toKill = {}
 
 local isArmageddon = false
-local hadArmageddon = false 
+local hadArmageddon = false
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
- 
+
 local spGetUnitDefID 	= Spring.GetUnitDefID
 local spValidUnitID		= Spring.ValidUnitID
-local spDestroyUnit		= Spring.DestroyUnit 
+local spDestroyUnit		= Spring.DestroyUnit
 local spGetGameFrame	= Spring.GetGameFrame
 
 local numX = Game.mapX-1
@@ -54,7 +54,7 @@ local nSquares = numX*numZ
 local meteorDefID = UnitDefNames["meteor"].id
 local METEOR_EXPLOSION = WeaponDefNames["meteor_weapon"].id
 local nextStrike = armageddonFrame
-local meteorStrike = math.max(10,math.sqrt(15*math.floor(numX*numZ))) 
+local meteorStrike = math.max(10,math.sqrt(15*math.floor(numX*numZ)))
 local pStrike = meteorStrike / (armageddonDuration * 30)
 
 local isCommander = {}
@@ -81,7 +81,7 @@ function RandomCoordInSquare(sx,sz)
 	local z = 512 * sz + math.random(512)
 	return x,z
 end
- 
+
 function FireMeteor()
     -- sample square, with a bias towards squares that haven't been hit much
     local nMost = 0
@@ -98,8 +98,8 @@ function FireMeteor()
     local N = 0
     for x=1,numX do
     for z=1,numZ do
-        chanceOfSquare[id] = {p=nMost+1-meteorCount[x][z], x=x, z=z} 
-        N = N + chanceOfSquare[id].p 
+        chanceOfSquare[id] = {p=nMost+1-meteorCount[x][z], x=x, z=z}
+        N = N + chanceOfSquare[id].p
         id = id + 1
     end
     end
@@ -114,13 +114,13 @@ function FireMeteor()
     end
     local sx = chanceOfSquare[id].x
     local sz = chanceOfSquare[id].z
-    
+
     -- fire
     local x,z = RandomCoordInSquare(sx,sz)
     local y = Spring.GetGroundHeight(x,z)
     Spring.CreateUnit(meteorDefID, x, y, z, "north", gaiaTeamID)
-end 
- 
+end
+
 function gadget:GameFrame(n)
 	-- cause the armageddon; kill everything immobile
     if n == armageddonFrame - 1 then
@@ -148,16 +148,16 @@ function gadget:GameFrame(n)
 					spDestroyUnit(toKillUnits[i],true) --boom!
 				end
 			end
-        end  
+        end
 	elseif n == armageddonFrame + (armageddonDuration + 1) * 30 then
 		isArmageddon = false
 	end
-	
-    -- meteor shower 
+
+    -- meteor shower
     if n>=armageddonFrame then
         if n==argmageddonFrame then
-            FireMeteor()   
-        elseif n > armageddonFrame and n <= armageddonFrame + 6*30 then 
+            FireMeteor()
+        elseif n > armageddonFrame and n <= armageddonFrame + 6*30 then
             if math.random() < pStrike/4 then
                 FireMeteor()
             end
@@ -175,13 +175,13 @@ function gadget:GameFrame(n)
             end
         end
     end
-    
+
     -- keep firing meteors, slower rate
     if n == nextStrike then
         FireMeteor()
         nextStrike = nextStrike + 5 * math.random(25) --about twice every second
     end
-    
+
 	-- kill anything that is created (as instructed by UnitFinished)
 	if toKill[n] then
 		for i=1,#(toKill[n]) do
@@ -199,7 +199,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
         if isCommander(unitDefID) then
             local h, mh = Spring.GetUnitHealth(unitID)
             if h <= mh/4 then
-                return 0 
+                return 0
             else
                 return h/4
             end
@@ -219,7 +219,7 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 		local n = spGetGameFrame()
 		if not toKill[n+1] then toKill[n+1] = {} end
 		local k = #(toKill[n+1])+1
-		toKill[n+1][k] = unitID --destroying units on the same simframe as they are created is a bad idea 
+		toKill[n+1][k] = unitID --destroying units on the same simframe as they are created is a bad idea
 	end
 end
 
@@ -231,7 +231,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
         if not toKill[m] then toKill[m] = {} end
         local k = #(toKill[n+3*30+2])+1
         toKill[n+3*30+2][k] = unitID --just to make sure, although its own explosion should kill it on the frame before
-        
+
         Spring.SetUnitNoDraw(unitID, true)
 		Spring.SetUnitStealth(unitID, true)
 		Spring.SetUnitSonarStealth(unitID, true)

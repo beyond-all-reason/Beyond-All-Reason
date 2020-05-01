@@ -13,7 +13,6 @@ function gadget:GetInfo()
     }
 end
 
-
 function GetAllyTeamID(teamID)
 	return select(6,Spring.GetTeamInfo(teamID,false))
 end
@@ -109,7 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 -- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		if Spring.GetProjectileDefID(proID) == armnuke or Spring.GetProjectileDefID(proID) == cornuke then
@@ -122,7 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 -- Idle Builder send to all in team
 	--function gadget:UnitIdle(unitID)
 	--	local defs = UnitDefs[Spring.GetUnitDefID(unitID)]
@@ -136,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 	--		end
 	--	end
 	--end
-	
+
 -- Unit Lost send to all in team
 	--function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	--	if not (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
@@ -166,7 +165,7 @@ if gadgetHandler:IsSyncedCode() then
 	--		end
 	--	end
 	--end
-	
+
 -- Game paused send to all
 	function gadget:GamePaused()
 		local event = "GamePause"
@@ -193,7 +192,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadgetHandler:GameOver(winningAllyTeams)
 		gameover = true
 	end
-	
+
 --Player left send to all in allyteam
 	function gadget:PlayerRemoved(playerID, reason)
 		local event = "PlayerLeft"
@@ -219,7 +218,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 else
 
 	local isCommander = {}

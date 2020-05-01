@@ -95,7 +95,7 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget(self)
         return
 	end
-	
+
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local teamCount = 0
 	for _,teamID in ipairs(GetTeamList()) do
@@ -103,14 +103,14 @@ function gadget:Initialize()
 			teamCount = teamCount + 1
 		end
 	end
-	
+
 	if teamCount < 2 then -- sandbox mode ( possibly gaia + possibly one player)
 		gadgetHandler:RemoveGadget(self)
 		return
 	elseif teamCount == 2 then
 		playerQuitIsDead = false -- let player quit & rejoin in 1v1
 	end
-	
+
 	-- at start, fill in the table of all alive allyteams
 	for _,allyTeamID in ipairs(GetAllyTeamList()) do
 		local allyTeamInfo = {}
@@ -141,7 +141,7 @@ function gadget:Initialize()
 				teamInfo.isControlled = true
 			end
 			teamInfo.unitCount = GetTeamUnitCount(teamID)
-			allyTeamInfo.unitCount = allyTeamInfo.unitCount + teamInfo.unitCount 
+			allyTeamInfo.unitCount = allyTeamInfo.unitCount + teamInfo.unitCount
 			allyTeamInfo.teams[teamID] = teamInfo
 		end
 		allyTeamInfos[allyTeamID] = allyTeamInfo
@@ -177,7 +177,7 @@ local function AreAllyTeamsDoubleAllied(firstAllyTeamID,  secondAllyTeamID)
 		for teamB in pairs(allyTeamInfos[secondAllyTeamID].teams) do
 			if not AreTeamsAllied(teamA, teamB) or not AreTeamsAllied(teamB, teamA) then
 				return false
-			end 
+			end
 		end
 	end
 	return true
@@ -205,7 +205,7 @@ local function CheckSharedAllyVictoryEnd()
 	if aliveCount*aliveCount ~= winnerCountSquared then
 		return false
 	end
-	
+
 	-- all the allyteams alive are bidirectionally allied against eachother, they are all winners
 	local winnersCorrectFormat = {}
 	local winnersCorrectFormatCount = 0
@@ -309,9 +309,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 	if allyTeamInfo.isGaia and ignoreGaia == 1 then
 		return
 	end
-	
+
 	if allyTeamUnitCount == 0 then
-		Script.LuaRules.AllyTeamDeathMessage(allyTeamID) 
+		Script.LuaRules.AllyTeamDeathMessage(allyTeamID)
 		for teamID in pairs(allyTeamInfo.teams) do
 			KillTeam(teamID)
 		end

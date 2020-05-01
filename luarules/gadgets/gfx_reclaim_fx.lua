@@ -1,15 +1,15 @@
 function gadget:GetInfo()
-  return {
-	name      = "Reclaim effect",
-	desc      = "Nice unit reclaim effect",
-	author    = "Floris",
-	date      = "December 2016",
-	license   = "PD",
-	layer     = 0,
-	enabled   = true,
-  }
+	return {
+		name      = "Reclaim effect",
+		desc      = "Nice unit reclaim effect",
+		author    = "Floris",
+		date      = "December 2016",
+		license   = "PD",
+		layer     = 0,
+		enabled   = true,
+	}
 end
-     
+
 if not gadgetHandler:IsSyncedCode() then
   return
 end
@@ -57,7 +57,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		if ux ~= nil then
 			local x,y,z = ux,uy,uz
 			Spring.SpawnCEG("metalshards1", x, y, z)
-			
+
 			-- add more effects depending on unit cost
 			local posMultiplier = 0.5
 			for i=1, unitNumFx[unitDefID], 1 do

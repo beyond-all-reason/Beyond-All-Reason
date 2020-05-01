@@ -1,5 +1,4 @@
 
-
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
@@ -11,7 +10,6 @@ function gadget:GetInfo()
 		enabled		= true,
 	}
 end
-
 
 local enableUnitDecorations = true		-- burst out xmas ball after unit death
 for _,teamID in ipairs(Spring.GetTeamList()) do

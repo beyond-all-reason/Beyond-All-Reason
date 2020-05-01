@@ -1,14 +1,14 @@
 function gadget:GetInfo()
-  return {
-    name      = "subMissile splash",
-    desc      = "Makes splashes for missiles that emerge from the water",
-    version   = "cake",
-    author    = "Bluestone",
-    date      = "July 2014",
-    license   = "GNU GPL, v3 or later",
-    layer     = 0,
-    enabled   = true,  --  loaded by default?
-  }
+    return {
+        name      = "subMissile splash",
+        desc      = "Makes splashes for missiles that emerge from the water",
+        version   = "cake",
+        author    = "Bluestone",
+        date      = "July 2014",
+        license   = "GNU GPL, v3 or later",
+        layer     = 0,
+        enabled   = true,  --  loaded by default?
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -57,9 +57,8 @@ end
 function gadget:ProjectileDestroyed(proID)
     if subMissileWeapons[weaponDefID] then
         missiles[proID] = nil
-    end    
+    end
 end
-
 
 function gadget:GameFrame(n)
     for proID, CEG in pairs(missiles) do
@@ -74,5 +73,3 @@ function gadget:GameFrame(n)
         end
     end
 end
-
-

@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Prevent Load Hax",
-    desc      = "Prevent Load Hax",
-    author    = "TheFatController",
-    date      = "Jul 20, 2009",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Prevent Load Hax",
+        desc      = "Prevent Load Hax",
+        author    = "TheFatController",
+        date      = "Jul 20, 2009",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 --------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
            return false
          end
        end
-     end    
+     end
   elseif (cmdID == CMD_LOAD_UNITS) then
      if cmdParams[4] then
        local tx,ty,tz = GetUnitPosition(unitID)
@@ -85,7 +85,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
      else
        local dist = GetUnitSeparation(unitID, cmdParams[1])
        if (not dist) then return false end
-       if ((dist < 80) and (GetUnitTeam(unitID) ~= GetUnitTeam(cmdParams[1]))) then	
+       if ((dist < 80) and (GetUnitTeam(unitID) ~= GetUnitTeam(cmdParams[1]))) then
          local tx,ty,tz = GetUnitPosition(unitID)
          local ux,_,uz = GetUnitPosition(cmdParams[1])
          local angle = math.atan2((tx-ux),(tz-uz))
@@ -98,7 +98,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
        else
          return true
        end
-     end    
+     end
   end
   return true
 end

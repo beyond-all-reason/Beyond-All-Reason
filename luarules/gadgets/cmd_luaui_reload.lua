@@ -19,7 +19,7 @@ function LuaUIReload(cmd, line, words, playerID)
         Spring.SendCommands("luaui reload")
     end
 end
-    
+
 
 function gadget:Initialize()
 	gadgetHandler:AddChatAction('reloadluaui', LuaUIReload, "")

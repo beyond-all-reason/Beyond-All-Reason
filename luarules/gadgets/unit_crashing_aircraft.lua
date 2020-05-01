@@ -1,20 +1,20 @@
-   function gadget:GetInfo()
-      return {
-        name      = "Crashing Aircraft",
-        desc      = "Make aircraft crash-land instead of exploding",
-        author    = "Beherith",
-        date      = "aug 2012",
-        license   = "PD",
-        layer     = 1000,
-        enabled   = true,
-      }
-    end
-     
-if (not gadgetHandler:IsSyncedCode()) then
-  return
+function gadget:GetInfo()
+	return {
+		name      = "Crashing Aircraft",
+		desc      = "Make aircraft crash-land instead of exploding",
+		author    = "Beherith",
+		date      = "aug 2012",
+		license   = "PD",
+		layer     = 1000,
+		enabled   = true,
+	}
 end
 
-local random			= math.random 
+if (not gadgetHandler:IsSyncedCode()) then
+	return
+end
+
+local random			= math.random
 local GetUnitHealth 	= Spring.GetUnitHealth
 local SetUnitCOBValue 	= Spring.SetUnitCOBValue
 local SetUnitNoSelect	= Spring.SetUnitNoSelect

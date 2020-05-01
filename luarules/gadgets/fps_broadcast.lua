@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 	end
-	
+
 else
 	--------------------------------------------------------------------------------
 	-- unsynced
@@ -49,7 +49,7 @@ else
 	local GetLastUpdateSeconds= Spring.GetLastUpdateSeconds
 	local SendLuaRulesMsg			= Spring.SendLuaRulesMsg
 	local GetFPS					= Spring.GetFPS
-	
+
 	local updateTimer				= 0
 	local avgFps					= GetFPS()
 	local numFrames					= 0
@@ -82,4 +82,3 @@ else
 	end
 
 end
-

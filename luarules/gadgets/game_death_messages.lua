@@ -11,7 +11,7 @@ function gadget:GetInfo()
 end
 
 --This gadget makes callins for death messages accessible via Script.LuaRules
---The callins are called from within game_end 
+--The callins are called from within game_end
 
 --Each team can be part of precisely one death messages
 --This death message can be either just for itself (if it resigns/etc) or as part of its allyteam message (if it is alive when its allyteam dies)
@@ -35,14 +35,14 @@ local msg
 include("luarules/configs/death_messages.lua")
 local numTeamDeathMsgs = #teamDeathMessages
 local numAllyTeamDeathMsgs = #allyTeamDeathMessages
-local msgColour = "\255\255\255\255" 
+local msgColour = "\255\255\255\255"
 
 --construct death message for team
 function TeamDeathMessage(teamID)
 	--choose msg
 	local n = math.random(numTeamDeathMsgs)
 	local msg = teamDeathMessages[n]
-	if msg == nil then 
+	if msg == nil then
 		return "Team " .. teamID .. " got an error (no msg) instead of a death message!"
 	end
 
@@ -50,8 +50,8 @@ function TeamDeathMessage(teamID)
 	if plList == nil then
 		return --this team has already received a death message
 	end
-	
-	--fill in XX 
+
+	--fill in XX
 	local plNames = ""
 	for _,name in pairs(plList) do
 		plNames = plNames .. name .. ", "
@@ -63,14 +63,14 @@ function TeamDeathMessage(teamID)
 	if plNames ~= "" then
 		plNames = " (" .. plNames .. ")"
 	end
-	local toCut = "XX" 
-	local toPaste = "Team " .. teamID .. plNames 
+	local toCut = "XX"
+	local toPaste = "Team " .. teamID .. plNames
 	local msg,_ = sgsub(msg, toCut, toPaste)
 
 	--send msg
 	msg = msgColour .. msg
 	Spring.SendMessage(msg)
-	
+
 	--remove names from playerListByTeam
 	playerListByTeam[teamID] = nil
 end
@@ -79,12 +79,12 @@ function AllyTeamDeathMessage(allyTeamID)
 	--choose msg
 	local n = math.random(numAllyTeamDeathMsgs)
 	local msg = allyTeamDeathMessages[n]
-	if msg == nil then 
+	if msg == nil then
 		return "Allyteam " .. allyTeamID .. " got an error (no msg) instead of a death message!"
 	end
-	
-	--fill in XX 	
-	local teamList = Spring.GetTeamList(allyTeamID)	
+
+	--fill in XX
+	local teamList = Spring.GetTeamList(allyTeamID)
 	local plNames = ""
 	for _,teamID in pairs(teamList) do
 		local plList = playerListByTeam[teamID]
@@ -102,13 +102,13 @@ function AllyTeamDeathMessage(allyTeamID)
 	if plNames ~= "" then
 		plNames = " (" .. plNames .. ")"
 	end
-	local toCut = "XX" 
-	local toPaste = "Allyteam " .. allyTeamID .. plNames 
+	local toCut = "XX"
+	local toPaste = "Allyteam " .. allyTeamID .. plNames
 	local msg,_ = sgsub(msg, toCut, toPaste)
 
 	--send msg
 	msg = msgColour .. msg
-	Spring.SendMessage(msg)	
+	Spring.SendMessage(msg)
 end
 
 function gadget:Initialize()

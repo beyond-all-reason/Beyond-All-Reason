@@ -16,7 +16,6 @@ if (gadgetHandler:IsSyncedCode()) then
 
 else
 
-
 	local function MergeTable(table1,table2)
 		local result = {}
 		for i,v in pairs(table2) do

@@ -47,7 +47,7 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
     end
 end
 
-function gadget:AllowUnitCreation(unitDefID, builderID,builderTeam, x, y, z) 
+function gadget:AllowUnitCreation(unitDefID, builderID,builderTeam, x, y, z)
 	if x and y and z then
 		local footprintx = UnitDefs[unitDefID]['xsize'] * 4+8 --add 8 for the mines size too
 		local footprintz = UnitDefs[unitDefID]['zsize'] * 4+8  --size is 2x footprint in engine
@@ -57,7 +57,7 @@ function gadget:AllowUnitCreation(unitDefID, builderID,builderTeam, x, y, z)
 					-- local udef = UnitDefs[builderID]
 					-- Spring.Echo( udef.humanName  .. ": Can't build on top of mines!" )
 				-- end
-				
+
 				return false
 			end
 		end

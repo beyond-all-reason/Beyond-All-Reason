@@ -12,15 +12,15 @@
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "Display DPS",
-    desc      = "Displays damage per second done to visible units",
-    author    = "TheFatController",
-    date      = "May 27, 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Display DPS",
+        desc      = "Displays damage per second done to visible units",
+        author    = "TheFatController",
+        date      = "May 27, 2008",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 

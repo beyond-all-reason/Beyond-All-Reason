@@ -1,14 +1,14 @@
 
 function gadget:GetInfo()
-  return {
-    name      = "Explosion_lights",
-    desc      = "",
-    author    = "Floris",
-    date      = "April 2017",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+    return {
+        name      = "Explosion_lights",
+        desc      = "",
+        author    = "Floris",
+        date      = "April 2017",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 -------------------------------------------------------------------------------
@@ -55,11 +55,11 @@ if (gadgetHandler:IsSyncedCode()) then
     end
 
 else
-	
+
 -------------------------------------------------------------------------------
 -- Unsynced
 -------------------------------------------------------------------------------
-	
+
     local myAllyID = Spring.GetMyAllyTeamID()
     local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
     local spIsPosInLos = Spring.IsPosInLos

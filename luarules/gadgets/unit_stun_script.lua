@@ -1,14 +1,14 @@
 
 function gadget:GetInfo()
-  return {
-    name      = "Stun Script",
-    desc      = "makes unit stun status known to unit scripts",
-    author    = "Floris",
-    date      = "April 2020",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+    return {
+        name      = "Stun Script",
+        desc      = "makes unit stun status known to unit scripts",
+        author    = "Floris",
+        date      = "April 2020",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then

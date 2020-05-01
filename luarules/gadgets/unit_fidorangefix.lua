@@ -1,14 +1,14 @@
 
 function gadget:GetInfo()
-  return {
-	name 	= "Ranges Fix",
-	desc	= "Makes sure the unit's maxRange fits its weapons",
-	author	= "Doo",
-	date	= "01/09/2018",
-	license	= "GNU GPL, v2 or later",
-	layer	= 0,
-	enabled = true,
-  }
+	return {
+		name 	= "Ranges Fix",
+		desc	= "Makes sure the unit's maxRange fits its weapons",
+		author	= "Doo",
+		date	= "01/09/2018",
+		license	= "GNU GPL, v2 or later",
+		layer	= 0,
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then

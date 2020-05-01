@@ -51,7 +51,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
             local max_para_time = weaponParalyzeDamageTime[weaponID]
             local h,mh,ph = spGetUnitHealth(uID)
             local max_para_damage = mh + ((max_para_time<maxTime) and mh or mh*maxTime/max_para_time)
-            damage = math.min(damage, math.max(0,max_para_damage-ph) )            
+            damage = math.min(damage, math.max(0,max_para_damage-ph) )
             --Spring.Echo(h,mh, ph, max_para_damage, max_para_time, damage)
         end
         return damage, 1

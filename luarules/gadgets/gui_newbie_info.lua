@@ -28,7 +28,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 end
 
 
---unsynced    
+--unsynced
 else
 --
 
@@ -41,7 +41,7 @@ local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local keyInfo --glList for keybind info
-local amNewbie 		
+local amNewbie
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local show = false
@@ -83,7 +83,7 @@ function gadget:GameSetup()
     	amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) and not Spring.GetSpectatingState()
 	end
     show = show or amNewbie
-    
+
 	if (Spring.GetPlayerTraffic(-1, 4) or 0) > 0 then
 		gameStarted = true
         show = false
@@ -94,16 +94,16 @@ function gadget:GameStart()
 end
 
 function gadget:GameOver()
-    if keyInfo then 
+    if keyInfo then
 		gl.DeleteList(keyInfo)
 	end
-	gadgetHandler:RemoveGadget(self)	
+	gadgetHandler:RemoveGadget(self)
 end
 
 
 function gadget:Initialize()
-	gadgetHandler:AddSyncAction("ToggleHelp", ToggleHelp)	
-	gadgetHandler:AddSyncAction("CloseHelp", CloseHelp)	
+	gadgetHandler:AddSyncAction("ToggleHelp", ToggleHelp)
+	gadgetHandler:AddSyncAction("CloseHelp", CloseHelp)
 
 	local indent = 15
 	local textSize = 16
@@ -118,13 +118,13 @@ function gadget:Initialize()
 	local dx = vsx*0.5-width/2
 	local dy = vsy*0.47 + height/2
 	local curPos = 0
-	
+
 	keyInfo = gl.CreateList(function()
 		font:Begin()
 		-- draws background rectangle
-		gl.Color(0.1,0.1,.45,0.2)                              
+		gl.Color(0.1,0.1,.45,0.2)
 		gl.Rect(dx-5,dy+textSize, dx+width, dy-height)
-	
+
 		-- draws black border
 		gl.Color(0,0,0,1)
 		gl.BeginEnd(GL.LINE_LOOP, function()
@@ -134,7 +134,7 @@ function gadget:Initialize()
 			gl.Vertex(dx+width,dy+textSize)
 		end)
 		gl.Color(1,1,1,1)
-	
+
 		-- draws text
 		font:Print("Welcome! Some useful info:", dx, dy, textSize, "o")
 		curPos = curPos + gapSize
@@ -144,11 +144,11 @@ function gadget:Initialize()
 		curPos = curPos + lineHeight
 		font:Print("To select orders or build commands, use the unit menu or keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		font:Print("To give an order to selected unit(s), use the left/right mouse", dx+indent, dy-curPos, textSize, "o")	
+		font:Print("To give an order to selected unit(s), use the left/right mouse", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize
-		font:Print("Select multiple units, right click and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")	
+		font:Print("Select multiple units, right click and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		font:Print("Hold shift to queue multiple orders", dx+indent, dy-curPos, textSize, "o")	
+		font:Print("Hold shift to queue multiple orders", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize
 		font:Print("\255\250\250\0Energy\255\255\255\255 comes from solar collectors, wind/tidal generators and fusions", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
@@ -163,7 +163,7 @@ function gadget:Initialize()
 		font:Print("With a constructor selected, use \255\255\150\000z\255\255\255\255,\255\255\150\000x\255\255\255\255,\255\255\150\000c\255\255\255\255,\255\255\150\000v\255\255\255\255 to cycle through some useful buildings", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		font:Print("Check out the forum on \255\200\200\255springrts.com\255\255\255\255 for a list of all keybinds", dx+indent, dy-curPos, textSize, "o")
-		curPos = curPos + gapSize	
+		curPos = curPos + gapSize
 		font:Print("For your first few (multiplayer) games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		font:Print("After that, you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
@@ -179,8 +179,8 @@ function gadget:Shutdown()
         gl.DeleteList(keyInfo)
 	end
 	gl.DeleteFont(font)
-    gadgetHandler:RemoveSyncAction("ToggleHelp")	
-    gadgetHandler:RemoveSyncAction("CloseHelp")	
+    gadgetHandler:RemoveSyncAction("ToggleHelp")
+    gadgetHandler:RemoveSyncAction("CloseHelp")
 end
 
 --

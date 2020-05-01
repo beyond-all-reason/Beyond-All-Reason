@@ -1,13 +1,13 @@
 function gadget:GetInfo()
-  return {
-    name      = "Prevent Lab Hax2",
-    desc      = "Prevents units to keep being built after lab's death",
-    author    = "Doo",
-    date      = "Sept 2017",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+    return {
+        name      = "Prevent Lab Hax2",
+        desc      = "Prevents units to keep being built after lab's death",
+        author    = "Doo",
+        date      = "Sept 2017",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true  --  loaded by default?
+    }
 end
 
 if (gadgetHandler:IsSyncedCode()) then

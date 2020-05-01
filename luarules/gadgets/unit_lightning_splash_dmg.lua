@@ -49,7 +49,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
       local count = 0
       for i=1,#nearUnits do
         local nearUnit = nearUnits[i]
-        if (count >= sparkWeapons[weaponID].maxunits) then 
+        if (count >= sparkWeapons[weaponID].maxunits) then
           return
         end
         local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
@@ -59,6 +59,6 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
           Spring.AddUnitDamage(nearUnit, damage*sparkWeapons[weaponID].forkdamage, 0, attackerID)
           count = count + 1
         end
-      end    
+      end
     end
 end

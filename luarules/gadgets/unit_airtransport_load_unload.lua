@@ -1,16 +1,15 @@
 
 function gadget:GetInfo()
-   return {
-	  name = "Load/unload",
-	  desc = "Sets up a constant 10 or 15 elmos load/unload radius for air transports and allows unload as soon as distance is reached (104.0.1 - maintenace 686+)",
-	  author = "Doo",
-	  date = "2018",
-	  license = "PD",
-	  layer = 0,
-	  enabled = true,
-   }
+	return {
+		name = "Load/unload",
+		desc = "Sets up a constant 10 or 15 elmos load/unload radius for air transports and allows unload as soon as distance is reached (104.0.1 - maintenace 686+)",
+		author = "Doo",
+		date = "2018",
+		license = "PD",
+		layer = 0,
+		enabled = true,
+	}
 end
-
 
 local isAirTransport = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -22,7 +21,6 @@ for udefID,def in ipairs(UnitDefs) do
 		end
 	end
 end
-
 
 if (gadgetHandler:IsSyncedCode()) then
 
@@ -48,12 +46,12 @@ if (gadgetHandler:IsSyncedCode()) then
 				return true
 			else
 				return false
-			end			
+			end
 		else
 			return true
 		end
 	end
-	
+
 	function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 		if isAirTransport[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]

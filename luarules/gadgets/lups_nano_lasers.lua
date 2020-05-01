@@ -3,15 +3,15 @@
 -------------------------------------------------------------------------------------
 
 function gadget:GetInfo()
-  return {
-    name      = "LupsNanoLasers",
-    desc      = "Wraps the nano spray to LUPS",
-    author    = "jK",
-    date      = "2008-2012",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+    return {
+        name      = "LupsNanoLasers",
+        desc      = "Wraps the nano spray to LUPS",
+        author    = "jK",
+        date      = "2008-2012",
+        license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 
