@@ -47,16 +47,16 @@ function BehaviourFactory:DefaultBehaviours(unit)
 	if IsRaider(unit) then
 		table.insert(b,RaiderBehaviour)
 	end
-	if IsFighter(unit) then
+	if unit:InList(fighterlist) then
 		table.insert(b,FighterBehaviour)
 	end
-	if IsBomber(unit) then
+	if unit:InList(bomberlist) then
 		table.insert(b,BomberBehaviour)
 	end
 	if IsArtillery(unit) then
 		table.insert(b,ArtilleryBehaviour)
 	end
-	if IsScouts(unit, self.scoutslist) then
+	if unit:Inlist(self.scoutslist) then
 		table.insert(b,ScoutsBehaviour)
 	end
 	if IsStaticWeapon(unit) then
@@ -66,13 +66,4 @@ function BehaviourFactory:DefaultBehaviours(unit)
 		--table.insert(b,PointCapturerBehaviour)
 	--end
 	return b
-end
-
-function IsScouts(unit, scoutslist)
-	for i,name in ipairs(scoutslist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
 end

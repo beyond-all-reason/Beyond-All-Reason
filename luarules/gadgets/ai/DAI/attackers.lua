@@ -41,9 +41,9 @@ artillerylist = {
 	"corvroc",	--	Diplomat		/	Stealthy Rocket Launcher
 	"cormh",	--	Nixer			/	Hovercraft Rocket Launcher
 	"corsok",	--	Sokolov			/	Heavy Laser Hovertank
-	"armseer",	--	Seer			/	Radar Vehicle	
-	"corvrad",	--	Informer		/	Radar Vehicle	
-	"armmark",  --  Marky           /   Radar Kbot	
+	"armseer",	--	Seer			/	Radar Vehicle
+	"corvrad",	--	Informer		/	Radar Vehicle
+	"armmark",  --  Marky           /   Radar Kbot
 	"corvoyr",	--	Voyeur			/	Radar Kbot
 }
 
@@ -60,13 +60,13 @@ attackerlist = {
 }
 
 gunshiplist = {
-	"armbrawl",	--	Brawler			/	Gunship	
-	"armblade",	--	Blade			/	Rapid Assault Gunship	
-	"armkam",	--	Banshee			/	Light Gunship	
-	"corbw",	--	Bladewing		/	Paralyzer Drone	
-	"corcrw",	--	Krow			/	Flying Fortress	
-	"corape",	--	Rapier			/	Gunship	
-	"corcut",	--	Cutlass			/	Seaplane Gunship	
+	"armbrawl",	--	Brawler			/	Gunship
+	"armblade",	--	Blade			/	Rapid Assault Gunship
+	"armkam",	--	Banshee			/	Light Gunship
+	"corbw",	--	Bladewing		/	Paralyzer Drone
+	"corcrw",	--	Krow			/	Flying Fortress
+	"corape",	--	Rapier			/	Gunship
+	"corcut",	--	Cutlass			/	Seaplane Gunship
 	-- "corseap",	--	Typhoon			/	Torpedo Gunship
 	-- "armseap",	--	Albatross		/	Torpedo Gunship
 	"armsaber",	--	Sabre			/	Seaplane Gunship
@@ -120,10 +120,10 @@ bomberlist = {
 	"corhurc",	--	Hurricane		/	Heavy Strategic Bomber
 	"corsb",	--	Dam Buster		/	Seaplane Bomber
 	"corshad",	--	Shadow			/	Bomber
-	"armthund",	--	Thunder			/	Bomber	
-	-- "armlance",	--	Lancet			/	Torpedo Bomber	
-	"armliche",	--	Liche			/	Atomic Bomber	
-	"armpnix",	--	Phoenix			/	Strategic Bomber	
+	"armthund",	--	Thunder			/	Bomber
+	-- "armlance",	--	Lancet			/	Torpedo Bomber
+	"armliche",	--	Liche			/	Atomic Bomber
+	"armpnix",	--	Phoenix			/	Strategic Bomber
 	"armsb",	--	Tsunami			/	Seaplane Bomber
 	"armstil",	--	Stiletto		/	EMP Bomber
 
@@ -133,8 +133,8 @@ fighterlist = {
 	"corsfig",	--	Voodoo			/	Seaplane Swarmer
 	"corvamp",	--	Vamp			/	Stealth Fighter
 	"corveng",	--	Avenger			/	Fighter
-	"armsfig",	--	Tornado			/	Seaplane Swarmer	
-	"armhawk",	--	Hawk			/	Sealth Fighter	
+	"armsfig",	--	Tornado			/	Seaplane Swarmer
+	"armhawk",	--	Hawk			/	Sealth Fighter
 	"armfig",	-- 	Freedom Fighter /	Fighter
 }
 
@@ -189,7 +189,7 @@ raiderlist = {
 	"coresupp",	--	Supporter		/	Fast Assault Corvette
 	"corpship",	--	Era				/	Assault Frigate
 	"corcrus",	--	Executioner		/	Cruiser
-}	
+}
 
 if UnitDefNames['armcom_scav'] then
 	local A = #skirmisherlist

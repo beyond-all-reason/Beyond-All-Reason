@@ -9,6 +9,7 @@ BehaviourFactory = class(AIBase)
 shard_include( "behaviours" )
 function BehaviourFactory:Init()
 	self.behaviours = shard_include( "behaviours" )
+	self.attackers = shard_include("attackers")
 end
 
 function BehaviourFactory:AddBehaviours(unit)
@@ -30,7 +31,7 @@ function BehaviourFactory:AddBehaviours(unit)
 	end
 end
 
-function BehaviourFactory:DefaultBehaviours(unit, ai)
+function BehaviourFactory:DefaultBehaviours(unit)
 	b = {}
 	if unit == nil then
 		return b
@@ -40,12 +41,24 @@ function BehaviourFactory:DefaultBehaviours(unit, ai)
 	if u:CanBuild() then
 		table.insert(b,TaskQueueBehaviour)
 	else
-		if IsPointCapturer(unit, ai) then
+		if self:IsPointCapturer(unit) then
 			table.insert(b,PointCapturerBehaviour)
 		end
-		if IsAttacker(unit) then
+		if unit:InList(self.attackers) then
 			table.insert(b,AttackerBehaviour)
 		end
 	end
 	return b
 end
+
+function BehaviourFactory:IsPointCapturer(unit)
+	local noncapturelist = self.ai.game:ControlPointNonCapturingUnits()
+	for i = 1, #noncapturelist do
+		local name = noncapturelist[i]
+		if name == unit:Internal():Name() then
+			return false
+		end
+	end
+	return true
+end
+

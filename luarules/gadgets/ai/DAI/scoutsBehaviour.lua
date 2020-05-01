@@ -1,6 +1,3 @@
-shard_include( "scouts")
-
-
 -- speedups
 local SpGetGameFrame = Spring.GetGameFrame
 local SpGetUnitPosition = Spring.GetUnitPosition
@@ -30,7 +27,6 @@ end
 
 function ScoutsBehaviour:OwnerDead()
 end
-
 
 function ScoutsBehaviour:ExecuteScouting()
 	local pos = self.ai.scoutshandler:GetPosToScout()

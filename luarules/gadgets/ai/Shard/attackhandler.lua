@@ -15,7 +15,7 @@ end
 
 function AttackHandler:Update()
 -- stagger targetting if multiple shards are in the game
-	local f = self.game:Frame() + self.game:GetTeamID() 
+	local f = self.game:Frame() + self.game:GetTeamID()
 	if f % 15 == 0 then
 		self:DoTargetting()
 	end
@@ -48,7 +48,7 @@ function AttackHandler:DoTargetting()
 		end
 		self.recruits = nrecruits
 		if #nrecruits > self.counter then
-			
+
 		else
 			return
 		end]]--
@@ -81,7 +81,7 @@ function AttackHandler:DoTargetting()
 					end
 					cell = cells[px][pz]
 					cell.count = cell.count + self:ScoreUnit(e)
-					
+
 					-- we dont want to target the center of the cell encase its a ledge with nothing
 					-- on it etc so target this units position instead
 					cell.posx = pos.x
@@ -92,7 +92,7 @@ function AttackHandler:DoTargetting()
 				end
 
 			end
-			
+
 			local bestCell = nil
 			-- now find the smallest nonvacant cell to go lynch!
 			for i=1,#celllist do
@@ -105,26 +105,26 @@ function AttackHandler:DoTargetting()
 					end
 				end
 			end
-			
+
 			-- if we have a cell then lets go attack it!
 			if bestCell ~= nil then
 				for i,recruit in ipairs(self.recruits) do
 					recruit:AttackCell(bestCell)
 				end
-				
+
 				self.counter = self.counter + 0.2
 				self.counter = (self.counter < 20 and self.counter or 20)
-				
+
 				-- remove all our recruits!
 				self.recruits = {}
 			end
 		end
-		
+
 		-- cleanup
 		cellist = nil
 		cells = nil
 		mapdimensions = nil
-		
+
 	end
 end
 
@@ -158,7 +158,7 @@ function AttackHandler:RemoveRecruit(attkbehaviour)
 end
 
 -- How much is this unit worth?
--- 
+--
 -- Idea: add a table with hardcoded values,
 -- and use said values if a units found in
 -- that table to highlight strategic value

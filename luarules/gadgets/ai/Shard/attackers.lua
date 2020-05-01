@@ -1,8 +1,10 @@
 --[[
 Attackers!
+
+Returns a table listing the unit names of attackers
 ]]--
 
-attackerlist = {
+return {
 	"corak",
 	"armpw",
 	"corgator",

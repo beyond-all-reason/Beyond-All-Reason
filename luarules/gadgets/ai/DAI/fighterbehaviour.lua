@@ -1,14 +1,5 @@
 shard_include( "attackers")
 
-function IsFighter(unit)
-	for i,name in ipairs(fighterlist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
-end
-
 FighterBehaviour = class(Behaviour)
 
 function FighterBehaviour:Init()

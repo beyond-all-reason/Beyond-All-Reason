@@ -1,14 +1,3 @@
-shard_include( "attackers" )
-
-function IsAttacker(unit)
-	for i,name in ipairs(attackerlist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
-end
-
 AttackerBehaviour = class(Behaviour)
 
 function AttackerBehaviour:Init()

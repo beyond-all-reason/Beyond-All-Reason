@@ -5,4 +5,11 @@ shard_include( "attackhandler" )
 shard_include( "placementhandler" )
 shard_include( "sleep" )
 
-return { UnitHandler, AttackHandler, ControlPointHandler, MetalSpotHandler, PlacementHandler, Sleep }
+return {
+	UnitHandler,
+	AttackHandler,
+	ControlPointHandler,
+	MetalSpotHandler,
+	PlacementHandler,
+	Sleep
+}

@@ -49,7 +49,7 @@ local runtime_includes = {
 }
 
 
-for key,include in ipairs(runtime_includes) 
+for key,include in ipairs(runtime_includes)
 do
 	local result = shard_include( include )
 end

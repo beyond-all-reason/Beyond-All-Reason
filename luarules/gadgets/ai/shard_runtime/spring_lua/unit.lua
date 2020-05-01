@@ -48,6 +48,20 @@ function ShardUnit:Name()
 	return self.type:Name()
 end
 
+function ShardUnit:InList( unitTypeNames )
+	for i,name in ipairs(unitTypeNames) do
+		if name == self:Name() then
+			return true
+		end
+		if name == self:ID() then
+			return true
+		end
+		if name == self:Type() then
+			return true
+		end
+	end
+	return false
+end
 
 function ShardUnit:IsAlive()
 	return not Spring.GetUnitIsDead(self.id)

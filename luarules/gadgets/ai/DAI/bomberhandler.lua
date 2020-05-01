@@ -23,7 +23,7 @@ function BomberHandler:Update()
 	if Spring.GetGameFrame()% 1800 == (self.ai.id*200)%1800 then
 		self:UpdatePatrolPositions()
 	end
-	
+
 	if Spring.GetGameFrame()% 300 == (self.ai.id*15)%300 and #self.standbypatrol >= Spring.GetGameSeconds()/120 then
 		if self.PatrolPositions then
 			self:DoPatrol()
@@ -42,7 +42,7 @@ function BomberHandler:DoBombingRun()
 		self.ai.fighterhandler:RequestFighterSupport({x = x, y = y, z = z})
 	end
 end
-	
+
 
 function BomberHandler:UpdatePatrolPositions()
 	local teamUnitsList = Spring.GetTeamUnitsByDefs(self.ai.id, BuildingsNeedingPatrol)
@@ -55,7 +55,7 @@ function BomberHandler:UpdatePatrolPositions()
 		self.PatrolPositions[count + 3] = {x = math.min(Game.mapSizeX, x+1000), y = y, z = math.min(Game.mapSizeZ, z+1000)}
 		self.PatrolPositions[count + 4] = {x = math.min(Game.mapSizeX, x+1000), y = y, z = math.max(0, z-1000)}
 		count = count + 4
-	end	
+	end
 end
 
 function BomberHandler:DoPatrol()

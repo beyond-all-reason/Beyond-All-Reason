@@ -1,14 +1,5 @@
 shard_include( "attackers")
 
-function IsBomber(unit)
-	for i,name in ipairs(bomberlist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
-end
-
 BomberBehaviour = class(Behaviour)
 
 function BomberBehaviour:Init()
@@ -23,9 +14,6 @@ function BomberBehaviour:Update()
 		end
 	end
 end
-		
-
-	
 
 function BomberBehaviour:DoPatrol(positions)
 	if #positions > 1 then

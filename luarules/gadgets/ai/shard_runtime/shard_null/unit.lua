@@ -46,6 +46,14 @@ function ShardUnit:Name()
 	return 'nullunit'
 end
 
+function ShardUnit:InTypeNameList( unitTypeNames )
+	for i,name in ipairs(unitTypeNames) do
+		if name == self:Name() then
+			return true
+		end
+	end
+	return false
+end
 
 function ShardUnit:IsAlive()
 	return true
