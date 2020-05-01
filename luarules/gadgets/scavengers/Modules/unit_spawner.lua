@@ -103,7 +103,7 @@ function UnitGroupSpawn(n)
 				local bossaircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance*5)
 				local spawnTier = math_random(1,100)
 
-				if (posy <= -20 and aircraftchanceonsea ~= 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
+				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						if spawnTier < 50 then
 							groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
