@@ -71,5 +71,7 @@ T3SeaUnits = {
 
 T4SeaUnits = {
 "corcrwboss",
-"corcrwboss",
+"armvaderboss",
+"armfepoch",
+"armfblackhy",
 }
