@@ -60,6 +60,8 @@ QueuedSpawns = {}
 QueuedSpawnsFrames = {}
 ConstructorNumberOfRetries = {}
 CaptureProgressForBeacons = {}
+AliveEnemyCommanders = {}
+AliveEnemyCommandersCount = 0
 
 if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
