@@ -267,6 +267,11 @@ function gadget:GameFrame(n)
 				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then
 						if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
+							-- if n%1800 == 0 then
+								-- if (not HiddenCommander) or (scav ~= HiddenCommander) then
+									-- SelfDestructionControls(n, scav, scavDef)
+								-- end
+							-- end
 							ConstructNewBlueprint(n, scav)
 						end
 					end
@@ -403,7 +408,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else
 			UnitSuffixLenght[unitID] = 0
-			local frame =Spring.GetGameFrame()
+			local frame = Spring.GetGameFrame()
 			if frame > 300 then
 				local heading = Spring.GetUnitHeading(unitID)
 				local suffix = scavconfig.unitnamesuffix

@@ -199,6 +199,22 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 	return true
 end
 
+function posStartboxCheck(posx, posy, posz, posradius)
+	if ScavengerStartboxExists and posx <= ScavengerStartboxXMax and posx >= ScavengerStartboxXMin and posz >= ScavengerStartboxZMin and posz <= ScavengerStartboxZMax then
+		return false
+	else
+		return true
+	end
+end
+
+function posMapsizeCheck(posx, posy, posz, posradius)
+	if posx + posradius >= mapsizeX or posx - posradius <= 0 or posz - posradius <= 0 or posz + posradius >= mapsizeZ then
+		return false
+	else
+		return true
+	end
+end
+
 function teamsCheck()
 	
 	bestTeamScore = 0

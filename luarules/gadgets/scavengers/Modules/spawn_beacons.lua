@@ -48,6 +48,8 @@ function SpawnBeacon(n)
 						grouptier = BeaconDefenceStructuresT2
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 						grouptier = BeaconDefenceStructuresT3
+					else
+						grouptier = BeaconDefenceStructuresT0
 					end
 					if spawnTier <= TierSpawnChances.T0 then
 						grouptiersea = StartboxDefenceStructuresT0Sea

@@ -102,7 +102,7 @@ function executeStartBoxProtection(n)
 			local unitTeam = Spring.GetUnitTeam(unitID)
 			if unitTeam ~= GaiaTeamID then
 				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
-				local damage = maxHealth*0.05
+				local damage = maxHealth*0.1
 				local r = math.random(0,3)
 				if r == 0 then
 					if damage < currentHealth then

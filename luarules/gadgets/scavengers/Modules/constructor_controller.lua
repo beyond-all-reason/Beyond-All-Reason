@@ -189,10 +189,16 @@ function ConstructNewBlueprint(n, scav)
 	if canConstructHere then
 		canConstructHere = posCheck(posx, posy, posz, posradius)
 	end
+	if canConstructHere then
+		canConstructHere = posStartboxCheck(posx, posy, posz, posradius)
+	end
+	if canConstructHere then
+		canConstructHere = posMapsizeCheck(posx, posy, posz, posradius)
+	end
 	
 	if canConstructHere then
 		-- let's do this shit
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx,posy,posz}, {"shift"})
+		Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx+math.random(-posradius,posradius),posy+500,posz+math.random(-posradius,posradius)}, {"shift"})
 		blueprint(scav, posx, posy, posz, GaiaTeamID, false)
 		ConstructorNumberOfRetries[scav] = 0
 	else
