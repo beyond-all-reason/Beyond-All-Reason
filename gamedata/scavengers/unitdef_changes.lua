@@ -395,7 +395,7 @@ customDefs.armrock = {
 -- Rapid Fire AK + Cloak
 customDefs.corak = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 	maxvelocity = 3,
 	weapondefs = {
 		gator_laser = {
@@ -417,7 +417,7 @@ customDefs.corak = {
 -- Heavy Slow Fire Warrior + Cloak
 customDefs.armwar = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 	script = "scavs/ARMWARSCAV.cob",
 	weapondefs = {
 		armwar_laser = {
@@ -443,7 +443,7 @@ customDefs.armwar = {
 
 customDefs.armrad = {
 	cloakcost = 6,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armarad = {
@@ -453,7 +453,7 @@ customDefs.armarad = {
 
 customDefs.corrad = {
 	cloakcost = 6,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corarad = {
@@ -496,124 +496,124 @@ customDefs.corshroud = {
 
 customDefs.correcl = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armrecl = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corck = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corcv = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.cormuskrat = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corack = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.coracv = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corca = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.coraca = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armck = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armcv = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armbeaver = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armack = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armacv = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armca = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armaca = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 -- Cloaked Radar/Jammer Units
 
 customDefs.armaser = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armmark = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armjam = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armseer = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corspec = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corvoyr = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.coreter = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corvrad = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 
@@ -621,7 +621,7 @@ customDefs.corvrad = {
 
 customDefs.corcrash = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.coraak = {
@@ -631,7 +631,7 @@ customDefs.coraak = {
 
 customDefs.armjeth = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armaak = {
@@ -666,12 +666,12 @@ customDefs.armzeus = {
 
 customDefs.corroach = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.armvader = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 -- Cloaked + Stealh Units
@@ -684,13 +684,13 @@ customDefs.corkarg = {
 
 customDefs.corroach = {
 	cloakcost = 3,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 customDefs.corsktl = {
 	cloakcost = 6,
 	stealth = true,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 }
 
 -- Cloaked Defenses
@@ -787,13 +787,13 @@ customDefs.armllt = {
 --Custom Nanoturrets - 25% more range
 customDefs.armnanotc = {
 	cloakcost = 6,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 	builddistance = 500,
 }
 
 customDefs.cornanotc = {
 	cloakcost = 6,
-	mincloakdistance = 72,
+	mincloakdistance = 144,
 	builddistance = 500,
 }
 
