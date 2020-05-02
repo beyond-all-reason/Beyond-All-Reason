@@ -33,7 +33,6 @@ local sgsub = string.gsub
 local sfind = string.find
 local sformat = string.format
 local schar = string.char
-local sgsub = string.gsub
 local mfloor = math.floor
 local sbyte = string.byte
 local sreverse = string.reverse
@@ -398,11 +397,13 @@ local function clipHistory(g,oneline)
 	
 	if oneline then
 		local line = history[#history]
-		local lines,firstclip = clipLine(line[1],fontsize,maxsize)	
-		line[1] = ssub(line[1],1,firstclip)
-		for i=1,#lines do
-			if (i>1) then
-				history[#history+1] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
+		if line then
+			local lines,firstclip = clipLine(line[1],fontsize,maxsize)
+			line[1] = ssub(line[1],1,firstclip)
+			for i=1,#lines do
+				if (i>1) then
+					history[#history+1] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
+				end
 			end
 		end
 	else
@@ -431,7 +432,7 @@ end
 
 local function processLine(line,g,cfg,newlinecolor)
 
-	
+
 	g.vars.nextupdate = 0
 
 	local roster = sGetPlayerRoster()
@@ -523,71 +524,76 @@ local function processLine(line,g,cfg,newlinecolor)
     end
 	
 	if registermyname and not nameregistered then
-	myname = name
-	registermyname = false
-	nameregistered = true
-	bypassThisMessage = true 
+		myname = name
+		registermyname = false
+		nameregistered = true
+		bypassThisMessage = true
 	elseif sfind(line, "My player ID is") and sfind(line, regID) then
-	bypassThisMessage = true 
-	end
-	
-	-- filter shadows config changes
-	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
 		bypassThisMessage = true
 	end
-	
+
+
+	-- filter all but chat and markers
+	if not sfind(line,"^(>* *<.*>)") and not sfind(line," added point: ") then
+		bypassThisMessage = true
+	end
+
+	-- filter shadows config changes
+	--if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
+	--	bypassThisMessage = true
+	--end
+
+	-- filter Sync error when its a spectator
+	--if sfind(line,"^Sync error for ") then
+	--	name = ssub(line,16,sfind(line," in frame ")-1)
+	--	if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
+	--		bypassThisMessage = true
+	--	end
+	--end
 	
 	-- filter Sync error when its a spectator
-	if sfind(line,"^Sync error for ") then
-		name = ssub(line,16,sfind(line," in frame ")-1)
-		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
-			bypassThisMessage = true
-		end
-	end
-	
-	-- filter Sync error when its a spectator
-	if sfind(line,"^Error: %[DESYNC WARNING%] ") then
-		name = ssub(line,sfind(line," %(")+2,sfind(line,"%) ")-1)
-		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
-			bypassThisMessage = true
-		end
-	end
+	--if sfind(line,"^Error: %[DESYNC WARNING%] ") then
+	--	name = ssub(line,sfind(line," %(")+2,sfind(line,"%) ")-1)
+	--	if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
+	--		bypassThisMessage = true
+	--	end
+	--end
 	
 	-- filter Connection attempts
-	if sfind(line,"^Connection attempt from ") then
-		name = ssub(line,25)
-		lastConnectionAttempt = name
-	  bypassThisMessage = true
-	end
+	--if sfind(line,"^Connection attempt from ") then
+	--	name = ssub(line,25)
+	--	lastConnectionAttempt = name
+	--  bypassThisMessage = true
+	--end
 	
 	-- filter Connection established
-	if sfind(line," Connection established") then
-		name = lastConnectionAttempt
-	  bypassThisMessage = true
-	end
+	--if sfind(line," Connection established") then
+	--	name = lastConnectionAttempt
+	--  bypassThisMessage = true
+	--end
+	--Spring.Echo(line..'\n')
 	
-	
-	if linetype==0 then
-		--filter out some engine messages; 
-		--2 lines (instead of 4) appears when player connects
-		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') or sfind(line,'Address') then
-			bypassThisMessage = true
-		end
-
-        if sfind(line,"Wrong network version") then
-            local n,_ = sfind(line,"Message")
-            if n ~= nil then
-				line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
-			end
-        end
-
-		
-		if gameOver then
-			if sfind(line,'left the game') then
-				bypassThisMessage = true
-			end
-		end
-	end
+	--if linetype==0 then
+	--	--filter out some engine messages;
+	--	--2 lines (instead of 4) appears when player connects
+	--	if sfind(line,'-> Version') or sfind(line,'ClientReadNet') or sfind(line,'Address') then
+	--		bypassThisMessage = true
+	--	end
+	--
+    --    if sfind(line,"Wrong network version") then
+    --        local n,_ = sfind(line,"Message")
+    --        if n ~= nil then
+	--			line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
+	--		end
+    --    end
+	--
+	--
+	--	if gameOver then
+	--		if sfind(line,'left the game') then
+	--			bypassThisMessage = true
+	--		end
+	--	end
+	--end
 	
 
 	--ignore messages from muted--
@@ -601,7 +607,8 @@ local function processLine(line,g,cfg,newlinecolor)
 	local textcolor = nil
 	
     local playSound = false
-	if (linetype==1) then --playermessage
+
+	if linetype == 1 then --playermessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
 		if (sfind(text,"Allies: ") == 1) then
@@ -625,7 +632,7 @@ local function processLine(line,g,cfg,newlinecolor)
         
         playSound = true
 		
-	elseif (linetype==2) then --spectatormessage
+	elseif linetype == 2 then --spectatormessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
 		if (sfind(text,"Allies: ") == 1) then
@@ -644,7 +651,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		
         playSound = true
         
-	elseif (linetype==3) then --playerpoint
+	elseif linetype == 3 then --playerpoint
 		local c = cfg.cspectext
 		local namecolor = convertColor(c[1],c[2],c[3])
 		
@@ -672,7 +679,7 @@ local function processLine(line,g,cfg,newlinecolor)
 
 		line = namecolor..name..misccolor.." * "..textcolor..text
 		
-	elseif (linetype==4) then --gamemessage
+	elseif linetype == 4 then --gamemessage
 		local c = cfg.cgametext
 		textcolor = convertColor(c[1],c[2],c[3])
 		if ignoreThisMessage and name then  -- ignored player talking in battleroom
@@ -693,7 +700,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	local history = g.vars.consolehistory
 	local historyCount = #history
 
-	if not bypassThisMessage == true then		--mute--
+	if not bypassThisMessage then		--mute--
 		if g.vars.browsinghistory then
 		if g.vars.historyoffset == nil then
 			g.vars.historyoffset = 0
@@ -898,7 +905,12 @@ function widget:AddConsoleLine(lines,priority)
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	local textcolor
 	for line in lines:gmatch("[^\n]+") do
-		textcolor = processLine(line, console, Config.console, textcolor)[4]
+		textcolor = processLine(line, console, Config.console, textcolor)
+		if textcolor and textcolor[4] then
+			textcolor = textcolor[4]
+		else
+			--textcolor = "\255\255\255\255"
+		end
 	end
 	clipHistory(console,true)
 end
