@@ -14,14 +14,6 @@ static-var  restore_delay, v1;
 #define SIG_AIM				4
 #define SIG_AIM_2			8
 #define SIG_AIM_3			16
-#define MIN 131 // get
-#define MAX 132 // get
-#define ABS 133 // get
-#define GAME_FRAME 134 // get
-#define KSIN 135 // get (kiloSine : 1024*sin(x))
-#define KCOS 136 // get (kiloCosine : 1024*cos(x))
-#define KTAN 137 // get (kiloTangent : 1024*tan(x))
-#define SQRT 138 // get (square root)
 
 HitByWeapon(anglex, anglez)
 {
@@ -174,11 +166,11 @@ AimPrimary(heading, pitch)
 	p = get KTAN(pitch);
 	h = get KTAN(heading);
 	a = get ATAN(h, p);
-	turn turretf to z-axis a speed <2000.000000>;
+	turn turretf to z-axis a speed <200.000000>;
 
 	a = get HYPOT(h, p);
 	a = get ATAN(a, 1000);
-	turn sleevef to x-axis <0> - a speed <2000.000000>;
+	turn sleevef to x-axis <0> - a speed <200.000000>;
 	wait-for-turn turretf around z-axis;
 	wait-for-turn sleevef around x-axis;
 	start-script RestoreAfterDelay();
