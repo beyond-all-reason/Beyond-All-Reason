@@ -528,7 +528,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	bypassThisMessage = true
 	if sfind(line,"^(>* *<.*>)") or sfind(line," added point: ") then
 		bypassThisMessage = false
-	elseif sfind(line,"^(\[\[.*\])") then
+	elseif sfind(line,"^(\[\[.*\] )") then
 		local name = ssub(line, 2, sfind(line, "\] ")-1)
 		if name and names[name] then
 			bypassThisMessage = false
