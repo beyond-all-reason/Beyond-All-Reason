@@ -452,7 +452,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	for i=1,#roster do
 		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3],roster[i][2]}
 	end
-	
+
 	local name = ""
 	local text = ""
 	local linetype = 0 --other
@@ -522,7 +522,21 @@ local function processLine(line,g,cfg,newlinecolor)
             end
 		end		
     end
-	
+
+
+	-- filter all but chat and markers
+	bypassThisMessage = true
+	if sfind(line,"^(>* *<.*>)") or sfind(line," added point: ") then
+		bypassThisMessage = false
+	elseif sfind(line,"^(\[\[.*\])") then
+		local name = ssub(line, 2, sfind(line, "\] ")-1)
+		if name and names[name] then
+			bypassThisMessage = false
+		else
+			bypassThisMessage = true
+		end
+	end
+
 	if registermyname and not nameregistered then
 		myname = name
 		registermyname = false
@@ -533,10 +547,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	end
 
 
-	-- filter all but chat and markers
-	if not sfind(line,"^(>* *<.*>)") and not sfind(line,"^(\[\[.*\])") and not sfind(line," added point: ") then
-		bypassThisMessage = true
-	end
+	--Spring.Echo(bypassThisMessage)
 
 	-- filter shadows config changes
 	--if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
