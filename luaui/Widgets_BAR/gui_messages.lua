@@ -22,6 +22,8 @@ end
 
 local vsx,vsy = Spring.GetViewGeometry()
 
+local posY = 0.145
+
 local showTestMessages = false
 
 local charSize = 19.5 - (3.5 * ((vsx/vsy) - 1.78))
@@ -47,8 +49,6 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (1+(ui_scale-1)/1.5)
-
-local bgcorner = "LuaUI/Images/bgcorner.png"
 
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
@@ -76,88 +76,110 @@ function lines(str)
     return t
 end
 
-local function DrawRectRound(px,py,sx,sy,cs)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+    local csyMult = 1 / ((sy-py)/cs)
 
-    local csx = cs
-    local csy = cs
-    if sx-px < (cs*2) then
-        csx = (sx-px)/2
-        if csx < 0 then csx = 0 end
+    if c2 then
+        gl.Color(c1[1],c1[2],c1[3],c1[4])
     end
-    if sy-py < (cs*2) then
-        csy = (sy-py)/2
-        if csy < 0 then csy = 0 end
-    end
-
-    cs = (csx < csy and csx or csy)
-
-    gl.TexCoord(0.8,0.8)
     gl.Vertex(px+cs, py, 0)
     gl.Vertex(sx-cs, py, 0)
+    if c2 then
+        gl.Color(c2[1],c2[2],c2[3],c2[4])
+    end
     gl.Vertex(sx-cs, sy, 0)
     gl.Vertex(px+cs, sy, 0)
 
+    -- left side
+    if c2 then
+        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+    end
     gl.Vertex(px, py+cs, 0)
     gl.Vertex(px+cs, py+cs, 0)
+    if c2 then
+        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+    end
     gl.Vertex(px+cs, sy-cs, 0)
     gl.Vertex(px, sy-cs, 0)
 
+    -- right side
+    if c2 then
+        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+    end
     gl.Vertex(sx, py+cs, 0)
     gl.Vertex(sx-cs, py+cs, 0)
+    if c2 then
+        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+    end
     gl.Vertex(sx-cs, sy-cs, 0)
     gl.Vertex(sx, sy-cs, 0)
 
-    local offset = 0.05		-- texture offset, because else gaps could show
-    local o = offset
+    local offset = 0.15		-- texture offset, because else gaps could show
 
-    -- top left
-    if py <= 0 or px <= 0 then o = 0.5 else o = offset end
-    gl.TexCoord(o,o)
-    gl.Vertex(px, py, 0)
-    gl.TexCoord(o,1-offset)
-    gl.Vertex(px+cs, py, 0)
-    gl.TexCoord(1-offset,1-offset)
-    gl.Vertex(px+cs, py+cs, 0)
-    gl.TexCoord(1-offset,o)
-    gl.Vertex(px, py+cs, 0)
-    -- top right
-    if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
-    gl.TexCoord(o,o)
-    gl.Vertex(sx, py, 0)
-    gl.TexCoord(o,1-offset)
-    gl.Vertex(sx-cs, py, 0)
-    gl.TexCoord(1-offset,1-offset)
-    gl.Vertex(sx-cs, py+cs, 0)
-    gl.TexCoord(1-offset,o)
-    gl.Vertex(sx, py+cs, 0)
     -- bottom left
-    if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
-    gl.TexCoord(o,o)
-    gl.Vertex(px, sy, 0)
-    gl.TexCoord(o,1-offset)
-    gl.Vertex(px+cs, sy, 0)
-    gl.TexCoord(1-offset,1-offset)
-    gl.Vertex(px+cs, sy-cs, 0)
-    gl.TexCoord(1-offset,o)
-    gl.Vertex(px, sy-cs, 0)
+    if c2 then
+        gl.Color(c1[1],c1[2],c1[3],c1[4])
+    end
+    if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+        gl.Vertex(px, py, 0)
+    else
+        gl.Vertex(px+cs, py, 0)
+    end
+    gl.Vertex(px+cs, py, 0)
+    if c2 then
+        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+    end
+    gl.Vertex(px+cs, py+cs, 0)
+    gl.Vertex(px, py+cs, 0)
     -- bottom right
-    if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
-    gl.TexCoord(o,o)
-    gl.Vertex(sx, sy, 0)
-    gl.TexCoord(o,1-offset)
+    if c2 then
+        gl.Color(c1[1],c1[2],c1[3],c1[4])
+    end
+    if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+        gl.Vertex(sx, py, 0)
+    else
+        gl.Vertex(sx-cs, py, 0)
+    end
+    gl.Vertex(sx-cs, py, 0)
+    if c2 then
+        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+    end
+    gl.Vertex(sx-cs, py+cs, 0)
+    gl.Vertex(sx, py+cs, 0)
+    -- top left
+    if c2 then
+        gl.Color(c2[1],c2[2],c2[3],c2[4])
+    end
+    if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+        gl.Vertex(px, sy, 0)
+    else
+        gl.Vertex(px+cs, sy, 0)
+    end
+    gl.Vertex(px+cs, sy, 0)
+    if c2 then
+        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+    end
+    gl.Vertex(px+cs, sy-cs, 0)
+    gl.Vertex(px, sy-cs, 0)
+    -- top right
+    if c2 then
+        gl.Color(c2[1],c2[2],c2[3],c2[4])
+    end
+    if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+        gl.Vertex(sx, sy, 0)
+    else
+        gl.Vertex(sx-cs, sy, 0)
+    end
     gl.Vertex(sx-cs, sy, 0)
-    gl.TexCoord(1-offset,1-offset)
+    if c2 then
+        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+    end
     gl.Vertex(sx-cs, sy-cs, 0)
-    gl.TexCoord(1-offset,o)
     gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-    local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-
-    gl.Texture(bgcorner)
-    gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
     gl.Texture(false)
+    gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 function IsOnRect(x, y, leftX, bottomY,rightX,TopY)
@@ -185,8 +207,8 @@ function widget:ViewResize()
     end
 
     activationArea = {
-        (vsx * 0.31)-(charSize*widgetScale), (vsy * 0.133)+(charSize*0.15*widgetScale),
-        (vsx * 0.6), (vsy * 0.210)
+        (vsx * 0.31)-(charSize*widgetScale), (vsy * posY)+(charSize*0.15*widgetScale),
+        (vsx * 0.6), (vsy * (posY+0.077))
     }
     lineMaxWidth = math.max(lineMaxWidth, activationArea[3] - activationArea[1])
     activatedHeight = (1+maxLinesScroll)*charSize*1.15*widgetScale
@@ -399,7 +421,7 @@ function widget:DrawScreen()
 
     if messageLines[currentLine] then
         glPushMatrix()
-        glTranslate((vsx * 0.31), (vsy * 0.133), 0)
+        glTranslate((vsx * 0.31), (vsy * posY), 0)
         local displayedLines = 0
         local i = currentLine
         local usedMaxLines = maxLines
@@ -423,7 +445,7 @@ function widget:DrawScreen()
         -- show newly written line when in scrolling mode
         if scrolling and currentLine < #messageLines and os.clock() - messageLines[currentTypewriterLine][1] < lineTTL then
             glPushMatrix()
-            glTranslate((vsx * 0.31), (vsy * 0.11), 0)
+            glTranslate((vsx * 0.31), (vsy * (posY-0.02)), 0)
             processLine(currentTypewriterLine)
             glCallList(messageLines[currentTypewriterLine][6])
             glPopMatrix()
