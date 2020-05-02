@@ -529,7 +529,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		bypassThisMessage = false
 
 	-- battleroom chat
-	elseif sfind(line,"^(>* *<.*>)") then
+	elseif sfind(line,"^(> <.*>)") then
 		local endChar = sfind(line, "> ")
 		if endChar then
 			-- will not check for name, user might not have connected before
