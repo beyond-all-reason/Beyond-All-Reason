@@ -302,6 +302,7 @@ local function setEngineFont()
 	-- set spring engine default font cause it cant thee game archive fonts on launch
 	Spring.SetConfigString("SmallFontFile", "FreeSansBold.otf")
 	Spring.SetConfigString("FontFile", "FreeSansBold.otf")
+
 end
 
 setEngineFont()
@@ -3882,7 +3883,7 @@ function widget:Initialize()
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
 
-	Spring.SetConfigString("InputTextGeo", "0.26 0.73 0.3 0.42")	-- input chat position posX, posY, ?, ?
+	Spring.SetConfigString("InputTextGeo", "0.35 0.72 0.03 0.04")	-- input chat position posX, posY, ?, ?
 
 	if Spring.GetGameFrame() == 0 then
 		-- set minimum particle amount

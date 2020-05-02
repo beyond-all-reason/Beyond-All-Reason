@@ -534,7 +534,7 @@ local function processLine(line,g,cfg,newlinecolor)
 
 
 	-- filter all but chat and markers
-	if not sfind(line,"^(>* *<.*>)") and not sfind(line," added point: ") then
+	if not sfind(line,"^(>* *<.*>)") and not sfind(line,"^(\[\[.*\])") and not sfind(line," added point: ") then
 		bypassThisMessage = true
 	end
 
