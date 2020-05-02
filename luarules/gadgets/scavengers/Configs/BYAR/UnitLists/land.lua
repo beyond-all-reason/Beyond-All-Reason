@@ -49,7 +49,6 @@ T2LandUnits = {
 	--bots
 	"armrectr",
 	"armvader",
-	"armspy",
 	"armspid",
 	"armsptk",
 	"armfast",
@@ -61,7 +60,6 @@ T2LandUnits = {
 	"armmav",
 	"cornecro",
 	"corroach",
-	"corspy",
 	"corpyro",
 	"corfast",
 	"cormort",
@@ -72,7 +70,6 @@ T2LandUnits = {
 	"cortermite",
 	"cormando",
 	--vechicles
-	"armjam",
 	"armgremlin",
 	"armmart",
 	"armlatnk",
@@ -134,4 +131,7 @@ T4LandUnits = {
 	"armpwboss",
 	"armstumpboss",
 	"armvaderboss",
+	"armfepoch",
+	"corfblackhy",
+	"corcrwboss",
 }
