@@ -237,31 +237,31 @@ return {
 		weapons = {
 			[1] = {
 				def = "HEAVYPLASMA",
-				onlytargetcategory = "SURFACE",
+				--onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "MEDIUMPLASMA",
 				maindir = "0 0 1",
 				maxangledif = 320,
-				onlytargetcategory = "SURFACE",
+				--onlytargetcategory = "SURFACE",
 			},
 			[3] = {
 				def = "HEAVYPLASMA",
 				maindir = "0 0 1",
 				maxangledif = 240,
-				onlytargetcategory = "SURFACE",
+				--onlytargetcategory = "SURFACE",
 			},
 			[4] = {
 				def = "MEDIUMPLASMA",
 				maindir = "-4 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "SURFACE",
+				--onlytargetcategory = "SURFACE",
 			},
 			[5] = {
 				def = "MEDIUMPLASMA",
 				maindir = "4 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "SURFACE",
+				--onlytargetcategory = "SURFACE",
 			},
 		},
 	},
