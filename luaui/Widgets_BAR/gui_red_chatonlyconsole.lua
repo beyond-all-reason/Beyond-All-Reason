@@ -526,8 +526,15 @@ local function processLine(line,g,cfg,newlinecolor)
 
 	-- filter all but chat and markers
 	bypassThisMessage = true
-	if sfind(line,"^(>* *<.*>)") or sfind(line," added point: ") then
+	if sfind(line," added point: ") then
 		bypassThisMessage = false
+	elseif sfind(line,"^(>* *<.*> )") then
+		local name = ssub(line, sfind(line, "<")+1, sfind(line, "> ")-1)
+		if name and names[name] then
+			bypassThisMessage = false
+		else
+			bypassThisMessage = true
+		end
 	elseif sfind(line,"^(\[\[.*\] )") then
 		local name = ssub(line, 2, sfind(line, "\] ")-1)
 		if name and names[name] then

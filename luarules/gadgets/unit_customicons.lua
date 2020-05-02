@@ -248,7 +248,7 @@ local icons = {
     {"air_t2_transport.user", "air_trans",1.75},
     {"air_t2_radar.user", "air_los",1.33},
     {"air_t2_torpbomber.user", "air_hover",1.6},
-    {"air_flagship.user", "air_flagship",2},
+    {"air_flagship.user", "air_flagship",2.75},
     {"air_bladew.user", "air_hover_bw",0.75},
     {"air_torp.user", "air_hover",1.5},
     {"air_krow.user", "air_krow",2},
@@ -414,6 +414,10 @@ function loadUnitIcons()
 
         if name=="meteor" then
             Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
+        elseif (name=="armcom") or (name=="armdecom") then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."armcom.user")
+        elseif (name=="corcom") or (name=="cordecom") then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."corcom.user")
         elseif string.find(name, 'lootbox') then
             Spring.SetUnitDefIcon(udid, iconPrefix.."corlootboxgold.user")
         elseif string.find(name, 'boss') then
@@ -440,6 +444,8 @@ function loadUnitIcons()
             Spring.SetUnitDefIcon(udid, iconPrefix.."commando.user")
         elseif (name=="cormando") then
             Spring.SetUnitDefIcon(udid, iconPrefix.."commando2.user")
+        elseif (name=="armfepoch" or name=="corfblackhy") then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."air_flagship.user")
 
             -- chickens
         elseif (name=="chickenr3") then
@@ -510,12 +516,6 @@ function loadUnitIcons()
             Spring.SetUnitDefIcon(udid, iconPrefix.."lrpc_lolcannon.user")
         elseif (name=="armbrtha") or (name=="corint") then
             Spring.SetUnitDefIcon(udid, iconPrefix.."lrpc.user")
-
-            -- commander
-        elseif (name=="armcom") or (name=="armdecom") then
-            Spring.SetUnitDefIcon(udid, iconPrefix.."armcom.user")
-        elseif (name=="corcom") or (name=="cordecom") then
-            Spring.SetUnitDefIcon(udid, iconPrefix.."corcom.user")
 
             --elseif (name=="armclaw") or (name=="cormaw") then
             --  Spring.SetUnitDefIcon(udid, "defence_0.user")
@@ -735,8 +735,6 @@ function loadUnitIcons()
                 Spring.SetUnitDefIcon(udid, iconPrefix.."ship_tiny.user")
             elseif (name=="armpship" or name=="corpship") then
                 Spring.SetUnitDefIcon(udid, iconPrefix.."ship_pship.user")
-            elseif (name=="armfepoch" or name=="corfblackhy") then
-                Spring.SetUnitDefIcon(udid, iconPrefix.."air_flagship.user")
             elseif ud.isBuilder then
                 if (name=="armmls" or name=="cormls") then
                     Spring.SetUnitDefIcon(udid, iconPrefix.."ship_engineer.user")
@@ -961,6 +959,7 @@ function loadUnitIcons()
     for k, file in ipairs(files2) do
         files[#files+1] = file
     end
+
     for k, file in ipairs(files) do
         local scavPrefix = ''
         local scavSuffix = ''
