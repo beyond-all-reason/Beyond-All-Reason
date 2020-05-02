@@ -523,24 +523,37 @@ local function processLine(line,g,cfg,newlinecolor)
 		end		
     end
 
-
-	-- filter all but chat and markers
+	-- filter all but chat messages and map-markers
 	bypassThisMessage = true
 	if sfind(line," added point: ") then
 		bypassThisMessage = false
-	elseif sfind(line,"^(>* *<.*> )") then
-		local name = ssub(line, sfind(line, "<")+1, sfind(line, "> ")-1)
-		if name and names[name] then
+
+	-- battleroom chat
+	elseif sfind(line,"^(>* *<.*>)") then
+		local endChar = sfind(line, "> ")
+		if endChar then
+			-- will not check for name, user might not have connected before
 			bypassThisMessage = false
-		else
-			bypassThisMessage = true
 		end
-	elseif sfind(line,"^(\[\[.*\] )") then
-		local name = ssub(line, 2, sfind(line, "\] ")-1)
-		if name and names[name] then
-			bypassThisMessage = false
-		else
-			bypassThisMessage = true
+
+	-- player chat
+	elseif sfind(line,"^(<.*>)") then
+		local endChar = sfind(line, "> ")
+		if endChar then
+			local name = ssub(line, sfind(line, "<")+1, endChar-1)
+			if name and names[name] then
+				bypassThisMessage = false
+			end
+		end
+
+	-- spectator chat
+	elseif sfind(line,"^(\[\[.*\])") then	-- somehow adding space at end doesnt work
+		local endChar = sfind(line, "\] ")
+		if endChar then
+			local name = ssub(line, 2, endChar-1)
+			if name and names[name] then
+				bypassThisMessage = false
+			end
 		end
 	end
 

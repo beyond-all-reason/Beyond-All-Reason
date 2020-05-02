@@ -248,7 +248,7 @@ local icons = {
     {"air_t2_transport.user", "air_trans",1.75},
     {"air_t2_radar.user", "air_los",1.33},
     {"air_t2_torpbomber.user", "air_hover",1.6},
-    {"air_flagship.user", "air_flagship",2.75},
+    {"air_flagship.user", "air_flagship",3},
     {"air_bladew.user", "air_hover_bw",0.75},
     {"air_torp.user", "air_hover",1.5},
     {"air_krow.user", "air_krow",2},
