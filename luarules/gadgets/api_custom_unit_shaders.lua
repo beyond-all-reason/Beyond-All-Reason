@@ -80,16 +80,19 @@ local idToDefID = {}
 -- rendering.drawList[objectID] = matSrc -- Lua Draw
 -- rendering.materialInfos[objectDefID] = {matName, name = param, name1 = param1}
 -- rendering.bufMaterials[objectDefID] = rendering.spGetMaterial("opaque") / luaMat
+-- rendering.bufAlphaMaterials[objectDefID] = rendering.spGetMaterial("alpha") / luaMat
 -- rendering.bufShadowMaterials[objectDefID] = rendering.spGetMaterial("shadow") / luaMat
 -- rendering.materialDefs[matName] = matSrc
 -- rendering.loadedTextures[texname] = true
 ---
 
 local unitRendering = {
+	name                = "UR",
 	objectList          = {},
 	drawList            = {},
 	materialInfos       = {},
 	bufMaterials        = {},
+	bufAlphaMaterials   = {},
 	bufShadowMaterials  = {},
 	materialDefs        = {},
 	loadedTextures      = {},
@@ -115,10 +118,12 @@ local unitRendering = {
 }
 
 local featureRendering = {
+	name                = "FR",
 	objectList          = {},
 	drawList            = {},
 	materialInfos       = {},
 	bufMaterials        = {},
+	bufAlphaMaterials   = {}, --don't exist?
 	bufShadowMaterials  = {},
 	materialDefs        = {},
 	loadedTextures      = {},
@@ -407,6 +412,66 @@ local function GetObjectMaterial(rendering, objectDefID)
 	return luaMat
 end
 
+local function GetObjectAlphaMaterial(rendering, objectDefID)
+	local mat = rendering.bufAlphaMaterials[objectDefID]
+	if mat then
+		return mat
+	end
+
+
+	local matInfo = rendering.materialInfos[objectDefID]
+	local mat = rendering.materialDefs[matInfo[1]]
+
+	if type(objectDefID) == "number" then
+		-- Non-number objectDefIDs are default material overrides. They will have
+		-- their textures defined in the unit materials files.
+		matInfo.UNITDEFID = objectDefID
+		matInfo.FEATUREDEFID = -objectDefID
+	end
+
+	--// find unitdef tex keyword and replace it
+	--// (a shader can be just for multiple unitdefs, so we support this keywords)
+	local texUnits = {}
+	for texid, tex in pairs(mat.texUnits or {}) do
+		local tex_ = tex
+		for varname, value in pairs(matInfo) do
+			tex_ = tex_:gsub("%%"..tostring(varname), value)
+		end
+		texUnits[texid] = {tex = tex_, enable = false}
+	end
+
+	--// materials don't load those textures themselves
+
+	local texdl = gl.CreateList(function() --this stupidity is required, because GetObjectMaterial() is called outside of GL enabled callins
+		for _, tex in pairs(texUnits) do
+			if not rendering.loadedTextures[tex.tex] then
+				local prefix = tex.tex:sub(1, 1)
+				if not validTexturePrefixes[prefix] then
+					gl.Texture(tex.tex)
+					rendering.loadedTextures[tex.tex] = true
+				end
+			end
+		end
+	end)
+	gl.DeleteList(texdl)
+
+
+	local luaMat = rendering.spGetMaterial("alpha", {
+		standardshader = mat.standardShader,
+
+		standarduniforms = mat.standardUniforms,
+
+		usecamera   = mat.usecamera,
+		culling     = mat.culling,
+		texunits    = texUnits,
+		prelist     = nil, --ignore for now
+		postlist    = nil, --ignore for now
+	})
+
+	rendering.bufAlphaMaterials[objectDefID] = luaMat
+	return luaMat
+end
+
 local function GetObjectShadowMaterial(rendering, objectDefID)
 	local mat = rendering.bufShadowMaterials[objectDefID]
 	if mat then
@@ -606,6 +671,10 @@ local function GetShaderOverride(objectID, objectDefID)
 	return false
 end
 
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spIsUnitVisible = Spring.IsUnitVisible
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local function ObjectFinished(rendering, objectID, objectDefID)
 	if not advShading then
 		return
@@ -621,7 +690,17 @@ local function ObjectFinished(rendering, objectID, objectDefID)
 
 			rendering.spActivateMaterial(objectID, 3)
 
+			--local renderCloaked = rendering.name == "UR" and spGetUnitIsCloaked(objectID)
+
+			--if not renderCloaked then
+				--rendering.spSetMaterial(objectID, 3, "opaque", GetObjectMaterial(rendering, objectDefID))
+			--else
+
+			--end
 			rendering.spSetMaterial(objectID, 3, "opaque", GetObjectMaterial(rendering, objectDefID))
+			rendering.spSetMaterial(objectID, 3, "alpha", GetObjectAlphaMaterial(rendering, objectDefID))
+
+			--set regardless
 			if mat.shadowShader then
 				rendering.spSetMaterial(objectID, 3, "shadow", GetObjectShadowMaterial(rendering, objectDefID))
 			end
@@ -681,6 +760,15 @@ local function DrawObject(rendering, objectID, objectDefID, drawMode)
 	end
 end
 
+local function CloakChangedObject(rendering, objectID, objectDefID, unitTeam, cloaked)
+	local mat = rendering.objectList[objectID]
+	if mat then
+		local _CloakChanged = mat[rendering.CloakChanged]
+		if _CloakChanged then
+			_CloakChanged(objectID, objectDefID, unitTeam, cloaked, mat)
+		end
+	end
+end
 
 local function _CleanupEverything(rendering)
 	for objectID, mat in pairs(rendering.drawList) do
@@ -732,6 +820,7 @@ local function _CleanupEverything(rendering)
 	rendering.drawList            = {}
 	rendering.materialInfos       = {}
 	rendering.bufMaterials        = {}
+	rendering.bufAlphaMaterials   = {}
 	rendering.bufShadowMaterials  = {}
 	rendering.materialDefs        = {}
 	rendering.loadedTextures      = {}
@@ -874,6 +963,14 @@ function gadget:FeatureDestroyed(featureID)
 	idToDefID[-featureID] = nil --not really required
 end
 
+function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
+	CloakChangedObject(unitRendering, objectID, objectDefID, unitTeam, true)
+end
+
+function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
+	CloakChangedObject(unitRendering, objectID, objectDefID, unitTeam, false)
+end
+
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 
@@ -903,8 +1000,8 @@ end
 -----------------------------------------------------------------
 
 gadget.UnitReverseBuilt = gadget.RenderUnitDestroyed
-gadget.UnitCloaked   = gadget.RenderUnitDestroyed
-gadget.UnitDecloaked = gadget.UnitFinished
+--gadget.UnitCloaked   = gadget.RenderUnitDestroyed
+--gadget.UnitDecloaked = gadget.UnitFinished
 
 
 -- NOTE: No feature equivalent (features can't change team)

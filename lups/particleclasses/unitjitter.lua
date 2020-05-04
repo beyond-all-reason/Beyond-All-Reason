@@ -85,6 +85,7 @@ function UnitJitter:EndDrawDistortion()
 end
 
 function UnitJitter:DrawDistortion()
+--[[
   if (self.inverse) then
     glMultiTexCoord(2, (thisGameFrame-self.firstGameFrame)/self.life )
   else
@@ -104,6 +105,7 @@ function UnitJitter:DrawDistortion()
   end
 
   glUnit(self.unit,true,-1)
+ ]]--
 end
 
 

@@ -60,7 +60,8 @@ vertex = [[
 	uniform int simFrame;
 	uniform int drawFrame;
 
-	uniform int intOptions[1];
+	//[0]-unitID, [1] - (de-)cloak gameframe
+	uniform int intOptions[2];
 
 	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
@@ -438,7 +439,8 @@ fragment = [[
 
 	/***********************************************************************/
 	// Unit/Feature uniforms
-	uniform int intOptions[1];
+	//[0]-unitID, [1] - (de-)cloak gameframe
+	uniform int intOptions[2];
 
 	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
@@ -1120,6 +1122,41 @@ fragment = [[
 			myUV.y = 1.0 - myUV.y;
 		}
 
+		/////
+		// Some vectors and dot products
+
+		// V - worldCameraDir
+		vec3 V = normalize(worldCameraDir);
+		float NdotV = clamp(dot(N, V), EPS, 1.0);
+		
+		const int cloakTransition = 15;
+		if (simFrame - intOptions[1] > cloakTransition) {
+			float opacity = clamp(1.0 - pow(NdotV, 2.0), 0.2, 1.0);
+			fragData[0] = vec4(teamColor.rgb, opacity);
+			return;
+		}
+
+		/////
+		// The rest of vectors and dot products, needed for PBR
+
+		// L - worldLightDir
+		/// Sun light is considered infinitely far, so it stays same no matter worldVertexPos.xyz
+		vec3 L = normalize(sunDir); //from fragment to light, world space
+
+		// H - worldHalfVec
+		vec3 H = normalize(L + V); //half vector
+
+		// R - reflection of worldCameraDir against worldFragNormal
+		vec3 Rv = -reflect(V, N);
+
+		// dot products
+		float NdotLu = dot(N, L);
+		float NdotL = clamp(NdotLu, 0.0, 1.0);
+		float NdotH = clamp(dot(H, N), 0.0, 1.0);
+		float VdotH = clamp(dot(V, H), 0.0, 1.0);
+
+		/////
+
 		vec4 texColor1 = texture(texture1, myUV);
 		vec4 texColor2 = texture(texture2, myUV);
 
@@ -1169,26 +1206,6 @@ fragment = [[
 
 		float roughness2 = roughness * roughness;
 		float roughness4 = roughness2 * roughness2;
-
-		// L - worldLightDir
-		/// Sun light is considered infinitely far, so it stays same no matter worldVertexPos.xyz
-		vec3 L = normalize(sunDir); //from fragment to light, world space
-
-		// V - worldCameraDir
-		vec3 V = normalize(worldCameraDir);
-
-		// H - worldHalfVec
-		vec3 H = normalize(L + V); //half vector
-
-		// R - reflection of worldCameraDir against worldFragNormal
-		vec3 Rv = -reflect(V, N);
-
-		// dot products
-		float NdotLu = dot(N, L);
-		float NdotL = clamp(NdotLu, 0.0, 1.0);
-		float NdotH = clamp(dot(H, N), 0.0, 1.0);
-		float NdotV = clamp(dot(N, V), EPS, 1.0);
-		float VdotH = clamp(dot(V, H), 0.0, 1.0);
 
 		#ifdef LUMAMULT
 		{

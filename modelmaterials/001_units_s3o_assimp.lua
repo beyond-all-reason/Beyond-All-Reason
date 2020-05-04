@@ -221,7 +221,9 @@ local function UnitDestroyed(unitsList, unitID, unitDefID, mat)
 	unitsList[unitID] = nil
 end
 
+local gameFrame = -10000
 local function GameFrame(isTank, unitsList, gf, mat)
+	gameFrame = gf
 	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
 	local gfRem = gf % 10
 	for unitID, unitDefID in pairs(unitsList) do
@@ -237,6 +239,16 @@ end
 local function UnitDamaged(unitID, unitDefID, mat)
 	local hasStd, hasDef, hasShad = mat.hasStandardShader, mat.hasDeferredShader, mat.hasShadowShader
 	SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
+end
+
+local cloakGameFrames = {[1] = 0}
+local function CloakChanged(unitID, unitDefID, unitTeam, cloaked, mat)
+	cloakGameFrames[1] = gameFrame
+	if cloaked then
+		mySetMaterialUniform[false](unitID, "alpha" , 3, "intOptions[1]", GL_INT, cloakGameFrames)
+	else
+		mySetMaterialUniform[false](unitID, "opaque", 3, "intOptions[1]", GL_INT, cloakGameFrames)
+	end
 end
 
 ---------------------------------------------------
@@ -298,6 +310,7 @@ local materials = {
 		GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
+		CloakChanged = CloakChanged,
 	}),
 	unitsNormalMapOthers = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		shaderOptions = {
