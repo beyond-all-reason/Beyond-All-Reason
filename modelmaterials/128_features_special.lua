@@ -337,7 +337,7 @@ local featureNameTrees = {
 	{str = "weed", prefix = true, fakeNormal = true},
 	{str = "plant", prefix = true, fakeNormal = true},
 	{str = "palmetto", prefix = true, fakeNormal = true},
-	{str = "lowpoly_tree", prefix = true, fakeNormal = true},
+	{str = "lowpoly_tree", prefix = true, fakeNormal = false},
 
 	{str = "treetype", prefix = true, fakeNormal = true}, --engine trees
 
@@ -422,7 +422,7 @@ for id = 1, #FeatureDefs do
 				if noSway then
 					featureMaterials[id] = {"featuresTreeAutoNormalNoSway"}
 				else
-					Spring.Echo(featureDef.name,  isTree, fakeNormal, noSway)
+					--Spring.Echo(featureDef.name,  isTree, fakeNormal, noSway)
 					featureMaterials[id] = {"featuresTreeAutoNormal"}
 				end
 			end
