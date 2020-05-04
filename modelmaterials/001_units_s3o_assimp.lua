@@ -176,6 +176,7 @@ end
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDirection = Spring.GetUnitDirection
+local floor = math.floor
 
 local threadSpeeds = {} --cache
 local threadsArray = {[1] = 0.0}
@@ -185,7 +186,11 @@ local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 	end
 
 	local usx, usy, usz, speed = spGetUnitVelocity(unitID)
-	if speed > 0.05 then speed = 1 else speed = 0 end
+	if speed > 0.05 then
+		speed = floor(4 * speed + 0.5) / 4 --quantize speed by 0.25
+	else
+		speed = 0
+	end
 
 	local udx, udy, udz = spGetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then

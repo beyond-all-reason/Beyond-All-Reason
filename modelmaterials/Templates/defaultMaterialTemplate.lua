@@ -221,8 +221,8 @@ vertex = [[
 
 			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_ARM)) {
 				const float atlasSize = 4096.0;
-				const float gfMod = 12.0;
-				const float texSpeed = 5.0;
+				const float gfMod = 8.0;
+				const float texSpeed = 4.0;
 
 				float texOffset = floatOptions[3] * mod(float(simFrame), gfMod) * (texSpeed / atlasSize);
 
@@ -237,8 +237,8 @@ vertex = [[
 
 			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_CORE)) {
 				const float atlasSize = 2048.0;
-				const float gfMod = 8.0;
-				const float texSpeed = -9.0;
+				const float gfMod = 6.0;
+				const float texSpeed = -6.0;
 
 				float texOffset = floatOptions[3] * mod(float(simFrame), gfMod) * (texSpeed / atlasSize);
 
