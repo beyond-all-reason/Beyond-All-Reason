@@ -219,7 +219,7 @@ function widget:Initialize()
   myTeamID = Spring.GetMyTeamID()
 
   UpdateFactoryList()
-  
+
   local viewSizeX, viewSizeY = widgetHandler:GetViewSizes()
   self:ViewResize(viewSizeX, viewSizeY)
 
@@ -326,27 +326,27 @@ local function DrawRect(rect, color)
 end
 
 function RectRound(px,py,sx,sy,cs)
-	
+
 	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
-	
+
 	gl.Rect(px+cs, py, sx-cs, sy)
 	gl.Rect(sx-cs, py+cs, sx, sy-cs)
 	gl.Rect(px+cs, py+cs, px, sy-cs)
-	
+
 	gl.Texture(bgcorner)
-	
+
 	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
 	gl.TexRect(px, py+cs, px+cs, py)		-- top left
-	
+
 	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
 	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
-	
+
 	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
 	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
-	
+
 	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
 	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	
+
 	gl.Texture(false)
 end
 
@@ -425,13 +425,13 @@ local function DrawBuildProgress(left,top,right,bottom, progress, color)
   end
 
   glShape(GL.TRIANGLE_FAN, list)
-  
+
   -- adding additive overlay
   glColor(color[1],color[2],color[3],color[4]/10)
   glBlending(GL_SRC_ALPHA, GL_ONE)
   glShape(GL.TRIANGLE_FAN, list)
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-  
+
   glColor(1,1,1,1)
 end
 
@@ -761,13 +761,13 @@ function widget:DrawScreen()
   --gl.Text(deltat*1000000.0 .. " us deltat", 50,10,16,"d")
   --gl.PopMatrix()
   --Spring.Echo(deltat)
-  
+
 end
 
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-  
+
   -- Draw factories command lines
   if waypointMode>1 or openedMenu>=0 then
     local fac
@@ -784,7 +784,7 @@ end
 
 
 function widget:DrawInMiniMap(sx,sy)
-  
+
    if openedMenu >- 1 then
      gl.PushMatrix()
        local pt = math.min(sx,sy)
@@ -818,7 +818,7 @@ local function _clampScreen(mid,half,vsd)
   if     (mid-half<0) then
     return          0, half*2
   elseif (mid+half>vsd) then
-    return vsd-half*2, vsd 
+    return vsd-half*2, vsd
   else
     local val = math.floor(mid - half)
     return        val, val+half*2
@@ -1136,9 +1136,9 @@ function WaypointHandler(x,y,button)
 
   local type,param = Spring.TraceScreenRay(x,y)
   if type=='ground' then
-    Spring.GiveOrderToUnit(facs[waypointFac+1].unitID, CMD.MOVE,param,opt) 
+    Spring.GiveOrderToUnit(facs[waypointFac+1].unitID, CMD.MOVE,param,opt)
   elseif type=='unit' then
-    Spring.GiveOrderToUnit(facs[waypointFac+1].unitID, CMD.GUARD,{param},opt)     
+    Spring.GiveOrderToUnit(facs[waypointFac+1].unitID, CMD.GUARD,{param},opt)
   else --feature
     type,param = Spring.TraceScreenRay(x,y,true)
     Spring.GiveOrderToUnit(facs[waypointFac+1].unitID, CMD.MOVE,param,opt)
@@ -1178,7 +1178,7 @@ function MouseOverSubIcon(x,y)
      (x >= boptRect[1]) and (x <= boptRect[3])and
      (y >= boptRect[4]) and (y <= boptRect[2])
   then
-    local icon  
+    local icon
     if bar_side==0 then
       icon = math.floor((x - boptRect[1]) / bopt_inext[1])
     elseif bar_side==2 then

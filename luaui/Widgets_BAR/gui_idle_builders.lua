@@ -40,7 +40,6 @@ local ICON_SIZE_Y = ICON_SIZE_X
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local bgcorner			= "LuaUI/Images/bgcorner.png"
 local cornerSize		= 7
 local bgcornerSize		= cornerSize
 
@@ -198,7 +197,7 @@ local function IsIdleBuilder(unitID)
       local _, _, _, _, buildProg = GetUnitHealth(unitID)
       if buildProg == 1 then  --- isnt under construction
         if isFactory[udef] then
-          return true 
+          return true
         else
           if GetCommandQueue(unitID,0) == 0 then
 			return true
@@ -209,7 +208,7 @@ local function IsIdleBuilder(unitID)
 			for _, thing in ipairs(bQueue) do
 				for _, count in pairs(thing) do
 					qCount = qCount + count
-				end 
+				end
 			end
 			if qCount <= NEAR_IDLE then
 				QCount[unitID] = qCount
@@ -227,8 +226,8 @@ local function DrawBoxes(number)
 	while (ct < number) do
 		ct = ct + 1
 		local X2 = X1+ICON_SIZE_X
-	
-		if widgetHandler:InTweakMode() then	
+
+		if widgetHandler:InTweakMode() then
 			glShape(GL_LINE_LOOP, {
 			{ v = { X1, Y_MIN } },
 			{ v = { X2, Y_MIN } },
@@ -244,7 +243,7 @@ local function DrawBoxes(number)
 end--]]
 
 local function CenterUnitDef(unitDefID)
-  local ud = UnitDefs[unitDefID] 
+  local ud = UnitDefs[unitDefID]
   if (not ud) then
     return
   end
@@ -288,7 +287,7 @@ end
 
 local function DrawUnitIcons(number)
 	if not drawTable then
-		return -1 
+		return -1
 	end
 	local ct = 0
 	local X1, X2
@@ -305,9 +304,9 @@ local function DrawUnitIcons(number)
 	while (ct < number) do
 		ct = ct + 1
 		local unitID = drawTable[ct][2]
-		
+
 		if (type(unitID) == 'number' and ValidUnitID(unitID)) or type(unitID) == 'table' then
-			
+
 			X1 = X_MIN+(ICON_SIZE_X*(ct-1))
 			X2 = X1+ICON_SIZE_X
 
@@ -329,7 +328,7 @@ local function DrawUnitIcons(number)
 
 				glScissor(false)
 			glPopMatrix()
-			
+
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
 				if NumberCondensed > 1 then
@@ -338,8 +337,8 @@ local function DrawUnitIcons(number)
 					font:End()
 				end
 			end
-			
-			if type(unitID) == 'table' then 
+
+			if type(unitID) == 'table' then
 				unitID = unitID[1]
 			end
 			if ValidUnitID(unitID) and QCount[unitID] then
@@ -347,7 +346,7 @@ local function DrawUnitIcons(number)
 				font:Print(QCount[unitID], X1+(0.5*ICON_SIZE_X),Y_MIN,10*sizeMultiplier,"ocn")
 				font:End()
 			end
-		end	
+		end
 	end
 
 	SetCameraTarget(cpx, cpy, cpz, -1.0)
@@ -356,13 +355,13 @@ end
 
 local function MouseOverIcon(x, y)
 	if not drawTable then return -1 end
-	
+
 	local NumOfIcons = table.getn(drawTable)
   if (x < X_MIN)   then return -1 end
   if (x > X_MAX)   then return -1 end
   if (y < Y_MIN)   then return -1 end
   if (y > Y_MAX)   then return -1 end
-  
+
   local icon = math.floor((x-X_MIN)/ICON_SIZE_X)
   if (icon < 0) then
     icon = 0
@@ -374,70 +373,110 @@ local function MouseOverIcon(x, y)
 end
 
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
-	glTexCoord(0.8,0.8)
-	glVertex(px+cs, py, 0)
-	glVertex(sx-cs, py, 0)
-	glVertex(sx-cs, sy, 0)
-	glVertex(px+cs, sy, 0)
-	
-	glVertex(px, py+cs, 0)
-	glVertex(px+cs, py+cs, 0)
-	glVertex(px+cs, sy-cs, 0)
-	glVertex(px, sy-cs, 0)
-	
-	glVertex(sx, py+cs, 0)
-	glVertex(sx-cs, py+cs, 0)
-	glVertex(sx-cs, sy-cs, 0)
-	glVertex(sx, sy-cs, 0)
-	
-	local offset = 0.03		-- texture offset, because else gaps could show
-	
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+	local csyMult = 1 / ((sy-py)/cs)
+
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+
+	-- left side
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+
+	-- right side
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+
+	local offset = 0.15		-- texture offset, because else gaps could show
+
 	-- bottom left
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
-	glTexCoord(o,o)
-	glVertex(px, py, 0)
-	glTexCoord(o,1-offset)
-	glVertex(px+cs, py, 0)
-	glTexCoord(1-offset,1-offset)
-	glVertex(px+cs, py+cs, 0)
-	glTexCoord(1-offset,o)
-	glVertex(px, py+cs, 0)
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+		gl.Vertex(px, py, 0)
+	else
+		gl.Vertex(px+cs, py, 0)
+	end
+	gl.Vertex(px+cs, py, 0)
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px, py+cs, 0)
 	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
-	glTexCoord(o,o)
-	glVertex(sx, py, 0)
-	glTexCoord(o,1-offset)
-	glVertex(sx-cs, py, 0)
-	glTexCoord(1-offset,1-offset)
-	glVertex(sx-cs, py+cs, 0)
-	glTexCoord(1-offset,o)
-	glVertex(sx, py+cs, 0)
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		gl.Vertex(sx, py, 0)
+	else
+		gl.Vertex(sx-cs, py, 0)
+	end
+	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx, py+cs, 0)
 	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
-	glTexCoord(o,o)
-	glVertex(px, sy, 0)
-	glTexCoord(o,1-offset)
-	glVertex(px+cs, sy, 0)
-	glTexCoord(1-offset,1-offset)
-	glVertex(px+cs, sy-cs, 0)
-	glTexCoord(1-offset,o)
-	glVertex(px, sy-cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		gl.Vertex(px, sy, 0)
+	else
+		gl.Vertex(px+cs, sy, 0)
+	end
+	gl.Vertex(px+cs, sy, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
 	-- top right
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
-	glTexCoord(o,o)
-	glVertex(sx, sy, 0)
-	glTexCoord(o,1-offset)
-	glVertex(sx-cs, sy, 0)
-	glTexCoord(1-offset,1-offset)
-	glVertex(sx-cs, sy-cs, 0)
-	glTexCoord(1-offset,o)
-	glVertex(sx, sy-cs, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		gl.Vertex(sx, sy, 0)
+	else
+		gl.Vertex(sx-cs, sy, 0)
+	end
+	gl.Vertex(sx-cs, sy, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
 end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
-	glTexture(bgcorner)
-	glBeginEnd(GL_QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
-	glTexture(false)
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
+	gl.Texture(false)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 
@@ -445,14 +484,14 @@ function DrawIconQuad(iconPos, color, size)
   local X1 = X_MIN + (ICON_SIZE_X * iconPos)
   local X2 = X1 + (ICON_SIZE_X)
   local corneradjust = (bgcornerSize / (3 + (math.abs(hoversize)))) * size
-  
+
   glColor(color)
   RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize)
-  
+
   if WG['guishader'] then
 	  WG['guishader'].InsertDlist(glCreateList( function() RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize) end), 'idlebuilders')
   end
-  
+
 end--]]
 
 
@@ -501,7 +540,7 @@ function widget:Update(dt)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 		end
 	end
-		
+
 	local iconNum = MouseOverIcon(GetMouseState())
 	if iconNum < 0 then
 		mouseOnUnitID = nil
@@ -516,11 +555,11 @@ function widget:Update(dt)
 		end
 		mouseOnUnitID = unitID
 	end
-		
+
 	sec = sec + dt
 	hoversize = math_sin(math_pi*(sec))
 	rot = 30* math_sin(math_pi*(sec/2.5))
-	
+
 	if GetGameFrame() % 31 == 0 or doUpdate then
 		doUpdate = false
 		IdleList = {}
@@ -541,7 +580,7 @@ function widget:Update(dt)
 				end
 			end
 		end
-		
+
 		if unitCount >= MAX_ICONS then
 			CONDENSE = true
 		else
@@ -602,11 +641,11 @@ function widget:DrawScreen()
 		font:End()
 		return
 	end
-	
+
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
 	end
-	
+
 	if enabled and noOfIcons > 0 then
 		local x, y, lb, mb, rb = GetMouseState()
 
@@ -640,7 +679,7 @@ function widget:TweakMouseMove(x, y, dx, dy, button)
 		left = 0
 		right = (MAX_ICONS*ICON_SIZE_X)/vsx
 	end
-	if top > 1 then 
+	if top > 1 then
 		top = 1
 		bottom = 1 - ICON_SIZE_Y/vsy
 	end
@@ -648,7 +687,7 @@ function widget:TweakMouseMove(x, y, dx, dy, button)
 		bottom = 0
 		top = ICON_SIZE_Y/vsy
 	end
-	
+
 	POSITION_X = 0.5*(right+left)
 	POSITION_Y = 0.5*(top+bottom)
 end
@@ -662,11 +701,11 @@ end
 
 function widget:MouseWheel(up, value)
 	if not widgetHandler:InTweakMode() then return false end
-	
+
 	local x,y,_,_,_ = GetMouseState()
 	local iconNum = MouseOverIcon(x, y)
   if iconNum < 0 then return false end
-	
+
 	if up then
 		MAX_ICONS = MAX_ICONS + 1
 	else

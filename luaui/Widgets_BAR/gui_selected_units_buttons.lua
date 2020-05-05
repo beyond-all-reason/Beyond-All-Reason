@@ -83,7 +83,6 @@ local ui_opacityMultiplier = 0.6
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1) * ui_opacityMultiplier
 
-local bgcorner = ":l:LuaUI/Images/bgcorner.png"
 local highlightImg = ":l:LuaUI/Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
@@ -190,7 +189,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   usedIconSizeY =  math.floor(((iconSizeY/2) + ((vsx*vsy) / 115000)) * ui_scale)
   fontSize = usedIconSizeY * 0.28
   iconMargin = usedIconSizeX / 25
-  
+
   if picList then
     gl.DeleteList(picList)
 	picList = gl.CreateList(DrawPicList)
@@ -361,14 +360,14 @@ function DrawPicList()
     currentDef  = nil
     return
   end
-  
+
   local xmid = vsx * 0.5
   local width = math.floor(usedIconSizeX * displayedUnitTypes)
   rectMinX = math.floor(xmid - (0.5 * width))
   rectMaxX = math.floor(xmid + (0.5 * width))
   rectMinY = 0
   rectMaxY = math.floor(rectMinY + usedIconSizeY)
-  
+
   -- draw background bar
   local xmin = math.floor(rectMinX)
   local xmax = math.floor(rectMinX + (usedIconSizeX * displayedUnitTypes))
@@ -442,11 +441,11 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   end
   local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 3
   local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 3
-  
+
   local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos)) + xPad
   local xmax = xmin + usedIconSizeX - xPad - xPad
   if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
-  
+
   local ymin = rectMinY + yPad
   local ymax = rectMaxY - yPad
   local xmid = (xmin + xmax) * 0.5
@@ -461,7 +460,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   end
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
-  
+
   if count > 1 then
     -- draw the count text
     local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
@@ -474,93 +473,109 @@ end
 
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-  gl.TexCoord(0.8,0.8)
-  if c2 then
-    gl.Color(c1[1],c1[2],c1[3],c1[4])
-  end
-  gl.Vertex(px+cs, py, 0)
-  gl.Vertex(sx-cs, py, 0)
-  if c2 then
-    gl.Color(c2[1],c2[2],c2[3],c2[4])
-  end
-  gl.Vertex(sx-cs, sy, 0)
-  gl.Vertex(px+cs, sy, 0)
+	local csyMult = 1 / ((sy-py)/cs)
 
-  if c2 then
-    gl.Color(c1[1],c1[2],c1[3],c1[4])
-  end
-  gl.Vertex(px, py+cs, 0)
-  gl.Vertex(px+cs, py+cs, 0)
-  if c2 then
-    gl.Color(c2[1],c2[2],c2[3],c2[4])
-  end
-  gl.Vertex(px+cs, sy-cs, 0)
-  gl.Vertex(px, sy-cs, 0)
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
 
-  if c2 then
-    gl.Color(c1[1],c1[2],c1[3],c1[4])
-  end
-  gl.Vertex(sx, py+cs, 0)
-  gl.Vertex(sx-cs, py+cs, 0)
-  if c2 then
-    gl.Color(c2[1],c2[2],c2[3],c2[4])
-  end
-  gl.Vertex(sx-cs, sy-cs, 0)
-  gl.Vertex(sx, sy-cs, 0)
+	-- left side
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
 
-  local offset = 0.15		-- texture offset, because else gaps could show
+	-- right side
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
 
-  -- bottom left
-  if c2 then
-    gl.Color(c1[1],c1[2],c1[3],c1[4])
-  end
-  if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
-  gl.TexCoord(o,o)
-  gl.Vertex(px, py, 0)
-  gl.TexCoord(o,1-offset)
-  gl.Vertex(px+cs, py, 0)
-  gl.TexCoord(1-offset,1-offset)
-  gl.Vertex(px+cs, py+cs, 0)
-  gl.TexCoord(1-offset,o)
-  gl.Vertex(px, py+cs, 0)
-  -- bottom right
-  if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
-  gl.TexCoord(o,o)
-  gl.Vertex(sx, py, 0)
-  gl.TexCoord(o,1-offset)
-  gl.Vertex(sx-cs, py, 0)
-  gl.TexCoord(1-offset,1-offset)
-  gl.Vertex(sx-cs, py+cs, 0)
-  gl.TexCoord(1-offset,o)
-  gl.Vertex(sx, py+cs, 0)
-  -- top left
-  if c2 then
-    gl.Color(c2[1],c2[2],c2[3],c2[4])
-  end
-  if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
-  gl.TexCoord(o,o)
-  gl.Vertex(px, sy, 0)
-  gl.TexCoord(o,1-offset)
-  gl.Vertex(px+cs, sy, 0)
-  gl.TexCoord(1-offset,1-offset)
-  gl.Vertex(px+cs, sy-cs, 0)
-  gl.TexCoord(1-offset,o)
-  gl.Vertex(px, sy-cs, 0)
-  -- top right
-  if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
-  gl.TexCoord(o,o)
-  gl.Vertex(sx, sy, 0)
-  gl.TexCoord(o,1-offset)
-  gl.Vertex(sx-cs, sy, 0)
-  gl.TexCoord(1-offset,1-offset)
-  gl.Vertex(sx-cs, sy-cs, 0)
-  gl.TexCoord(1-offset,o)
-  gl.Vertex(sx, sy-cs, 0)
+	local offset = 0.15		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+		gl.Vertex(px, py, 0)
+	else
+		gl.Vertex(px+cs, py, 0)
+	end
+	gl.Vertex(px+cs, py, 0)
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom right
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		gl.Vertex(sx, py, 0)
+	else
+		gl.Vertex(sx-cs, py, 0)
+	end
+	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx, py+cs, 0)
+	-- top left
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		gl.Vertex(px, sy, 0)
+	else
+		gl.Vertex(px+cs, sy, 0)
+	end
+	gl.Vertex(px+cs, sy, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	-- top right
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		gl.Vertex(sx, sy, 0)
+	else
+		gl.Vertex(sx-cs, sy, 0)
+	end
+	gl.Vertex(sx-cs, sy, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-  gl.Texture(bgcorner)
-  gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-  gl.Texture(false)
+	gl.Texture(false)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 function DrawIconQuad(iconPos, color)
@@ -583,7 +598,7 @@ function DrawIconQuad(iconPos, color)
   gl.Color(color)
   glTexRect(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin)
   gl.Texture(false)
-  
+
   RectRound(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin, (xmax-xmin)/15)
   glBlending(GL_SRC_ALPHA, GL_ONE)
   gl.Color(color[1],color[2],color[3],color[4]/2)

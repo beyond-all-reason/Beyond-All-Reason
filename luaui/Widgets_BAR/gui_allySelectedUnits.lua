@@ -74,7 +74,7 @@ local hotFadeTime				= 0.25
 local lockTeamUnits				= false --disallow selection of units selected by teammates
 local showAlly					= true 		--also show allies (besides coop)
 local useHotColor				= false --use RED for all hot units, if false use playerColor starting with transparency
-local showAsSpectator			= true 
+local showAsSpectator			= true
 local circleDivsCoop			= 32  --nice circle
 local circleDivsAlly			= 5  --aka pentagon
 local selectPlayerUnits			= true
@@ -98,7 +98,6 @@ local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 local panelWidth = 200;
 local panelHeight = 55;
 
-local bgcorner = "LuaUI/Images/bgcorner.png"
 local sizeMultiplier = 1
 
 --Internals------------------------------------------------------
@@ -126,7 +125,7 @@ function SetUnitConf()
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = scaleFactor*( xsize^2 + zsize^2 )^0.5
 		local shape, xscale, zscale
-		
+
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
 			shape = 'square'
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
@@ -152,7 +151,7 @@ end
 function widget:Initialize()
 	SetUnitConf()
 	circleLinesCoop = calcCircleLines(circleDivsCoop)
-	circleLinesAlly = calcCircleLines(circleDivsAlly) 
+	circleLinesAlly = calcCircleLines(circleDivsAlly)
 
 	setPlayerColours()
 
@@ -213,7 +212,7 @@ function widget:PlayerAdded(playerID)
 end
 
 function getPlayerColour(playerID,teamID)
-	if playerSelectedUnits[ playerID ]["coop"] and not spec then 
+	if playerSelectedUnits[ playerID ]["coop"] and not spec then
 		if not playerColorPool[ nextPlayerPoolId ] then
 			playerColors[ playerID ] = playerColorPool[ 1 ]  --we have only 8 colors, take color 1 as default
 		else
@@ -246,7 +245,7 @@ function widget:PlayerChanged(playerID)
 	local oldCoopStatus = playerSelectedUnits[ playerID ]["coop"]
 	playerSelectedUnits[ playerID ]["coop"] = (teamID == myTeamID)
 	playerSelectedUnits[ playerID ]["todraw"] = DoDrawPlayer(playerID)
-	
+
 	--grab color from color pool for new teammate
 	if oldCoopStatus ~= playerSelectedUnits[ playerID ]["coop"] then
 		getPlayerColour(playerID,playerTeam)
@@ -268,7 +267,7 @@ function calcCircleLines(divs)
 			end
 		end)
 	end)
-  
+
 	return lines
 end
 
@@ -281,7 +280,7 @@ end
 
 function widget:UnitDestroyed(unitID)
 	hotUnits[ unitID ] = nil
-	
+
 	for playerID, selUnits in pairs( playerSelectedUnits ) do
 		selUnits["units"][ unitID ] = nil
 	end
@@ -299,7 +298,7 @@ function newHotUnit( unitId, coop, playerID )
 			hotUnits[ unitId ] = { ts = os.clock(), coop = coop, defRadius = defRadius, playerID = playerID }
 		end
 	end
-end 
+end
 
 
 function selectedUnitsClear(playerID)
@@ -355,7 +354,7 @@ function selectedUnitsRemove(playerID,unitID)
 	end
 end
 
-function DoDrawPlayer(playerID,teamID)	
+function DoDrawPlayer(playerID,teamID)
 	if playerID == myPlayerID then
 		return false
 	end
@@ -363,7 +362,7 @@ function DoDrawPlayer(playerID,teamID)
 		return false
 	end
 	return true
-		 
+
 end
 
 function deselectAllTeamSelected()
@@ -470,7 +469,7 @@ function DrawSelectedUnits()
 		if (lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits)) and not playerIsSpec[playerID] then
 			if selUnits["todraw"] then
 
-				glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3], maxAlpha)  
+				glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3], maxAlpha)
 				for unitID, defRadius in pairs( selUnits["units"] ) do
 					local x, y, z = spGetUnitBasePosition(unitID)
 					local inView = false
@@ -497,7 +496,7 @@ function DrawSelectedUnits()
 			end
 		end
 	end
-	
+
  	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
@@ -508,7 +507,7 @@ function DrawHotUnits()
 	glLineWidth( 2 )
 
 	local toDelete = {}
-	 
+
 	for unitID, val in pairs( hotUnits ) do
 		if lockPlayerID == nil or val.playerID ~= lockPlayerID or (val.playerID == lockPlayerID and not selectPlayerUnits) then
 			local x, y, z = spGetUnitBasePosition(unitID)
@@ -519,7 +518,7 @@ function DrawHotUnits()
 			end
 			if ( inView ) then
 				local timeDiff = (os.clock() - val["ts"])
-				
+
 				if ( timeDiff <= hotFadeTime ) then
 					if ( useHotColor ) then
 						hotColor[4] = 1.0 - ( timeDiff / hotFadeTime )
@@ -527,12 +526,12 @@ function DrawHotUnits()
 					else
 						local cl = playerColors[ val["playerID"] ]
 						cl[4] = maxAlpha - maxAlpha * ( timeDiff / hotFadeTime )
-						glColor( cl )  
+						glColor( cl )
 					end
 				else
 					toDelete[unitID] = true
 				end
-				
+
 				if ( toDelete[unitID] == nil ) then
 					local lines = circleLinesAlly
 					if ( val["coop"] == true and not spec) then
@@ -548,11 +547,11 @@ function DrawHotUnits()
 			end
 		end
 	end
-	
+
 	for unitID, val in pairs( toDelete ) do
 		hotUnits[unitID] = nil
 	end
-	
+
 	glDepthTest(false)
  	glColor(1, 1, 1, 1)
 	glLineWidth( 1 )
@@ -604,74 +603,111 @@ if showGui then
         end
     end
 
-    local function DrawRectRound(px,py,sx,sy,cs)
-        gl.TexCoord(0.8,0.8)
-        gl.Vertex(px+cs, py, 0)
-        gl.Vertex(sx-cs, py, 0)
-        gl.Vertex(sx-cs, sy, 0)
-        gl.Vertex(px+cs, sy, 0)
+	local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+		local csyMult = 1 / ((sy-py)/cs)
 
-        gl.Vertex(px, py+cs, 0)
-        gl.Vertex(px+cs, py+cs, 0)
-        gl.Vertex(px+cs, sy-cs, 0)
-        gl.Vertex(px, sy-cs, 0)
+		if c2 then
+			gl.Color(c1[1],c1[2],c1[3],c1[4])
+		end
+		gl.Vertex(px+cs, py, 0)
+		gl.Vertex(sx-cs, py, 0)
+		if c2 then
+			gl.Color(c2[1],c2[2],c2[3],c2[4])
+		end
+		gl.Vertex(sx-cs, sy, 0)
+		gl.Vertex(px+cs, sy, 0)
 
-        gl.Vertex(sx, py+cs, 0)
-        gl.Vertex(sx-cs, py+cs, 0)
-        gl.Vertex(sx-cs, sy-cs, 0)
-        gl.Vertex(sx, sy-cs, 0)
+		-- left side
+		if c2 then
+			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		end
+		gl.Vertex(px, py+cs, 0)
+		gl.Vertex(px+cs, py+cs, 0)
+		if c2 then
+			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		end
+		gl.Vertex(px+cs, sy-cs, 0)
+		gl.Vertex(px, sy-cs, 0)
 
-        local offset = 0.07		-- texture offset, because else gaps could show
-        local o = offset
-        -- top left
-        --if py <= 0 or px <= 0 then o = 0.5 else o = offset end
-        gl.TexCoord(o,o)
-        gl.Vertex(px, py, 0)
-        gl.TexCoord(o,1-offset)
-        gl.Vertex(px+cs, py, 0)
-        gl.TexCoord(1-offset,1-offset)
-        gl.Vertex(px+cs, py+cs, 0)
-        gl.TexCoord(1-offset,o)
-        gl.Vertex(px, py+cs, 0)
-        -- top right
-        --if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
-        gl.TexCoord(o,o)
-        gl.Vertex(sx, py, 0)
-        gl.TexCoord(o,1-offset)
-        gl.Vertex(sx-cs, py, 0)
-        gl.TexCoord(1-offset,1-offset)
-        gl.Vertex(sx-cs, py+cs, 0)
-        gl.TexCoord(1-offset,o)
-        gl.Vertex(sx, py+cs, 0)
-        -- bottom left
-        --if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
-        gl.TexCoord(o,o)
-        gl.Vertex(px, sy, 0)
-        gl.TexCoord(o,1-offset)
-        gl.Vertex(px+cs, sy, 0)
-        gl.TexCoord(1-offset,1-offset)
-        gl.Vertex(px+cs, sy-cs, 0)
-        gl.TexCoord(1-offset,o)
-        gl.Vertex(px, sy-cs, 0)
-        -- bottom right
-        --if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
-        gl.TexCoord(o,o)
-        gl.Vertex(sx, sy, 0)
-        gl.TexCoord(o,1-offset)
-        gl.Vertex(sx-cs, sy, 0)
-        gl.TexCoord(1-offset,1-offset)
-        gl.Vertex(sx-cs, sy-cs, 0)
-        gl.TexCoord(1-offset,o)
-        gl.Vertex(sx, sy-cs, 0)
-    end
+		-- right side
+		if c2 then
+			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		end
+		gl.Vertex(sx, py+cs, 0)
+		gl.Vertex(sx-cs, py+cs, 0)
+		if c2 then
+			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		end
+		gl.Vertex(sx-cs, sy-cs, 0)
+		gl.Vertex(sx, sy-cs, 0)
 
-    function RectRound(px,py,sx,sy,cs)
-        local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+		local offset = 0.15		-- texture offset, because else gaps could show
 
-        gl.Texture(bgcorner)
-        gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
-        gl.Texture(false)
-    end
+		-- bottom left
+		if c2 then
+			gl.Color(c1[1],c1[2],c1[3],c1[4])
+		end
+		if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+			gl.Vertex(px, py, 0)
+		else
+			gl.Vertex(px+cs, py, 0)
+		end
+		gl.Vertex(px+cs, py, 0)
+		if c2 then
+			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		end
+		gl.Vertex(px+cs, py+cs, 0)
+		gl.Vertex(px, py+cs, 0)
+		-- bottom right
+		if c2 then
+			gl.Color(c1[1],c1[2],c1[3],c1[4])
+		end
+		if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+			gl.Vertex(sx, py, 0)
+		else
+			gl.Vertex(sx-cs, py, 0)
+		end
+		gl.Vertex(sx-cs, py, 0)
+		if c2 then
+			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		end
+		gl.Vertex(sx-cs, py+cs, 0)
+		gl.Vertex(sx, py+cs, 0)
+		-- top left
+		if c2 then
+			gl.Color(c2[1],c2[2],c2[3],c2[4])
+		end
+		if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+			gl.Vertex(px, sy, 0)
+		else
+			gl.Vertex(px+cs, sy, 0)
+		end
+		gl.Vertex(px+cs, sy, 0)
+		if c2 then
+			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		end
+		gl.Vertex(px+cs, sy-cs, 0)
+		gl.Vertex(px, sy-cs, 0)
+		-- top right
+		if c2 then
+			gl.Color(c2[1],c2[2],c2[3],c2[4])
+		end
+		if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+			gl.Vertex(sx, sy, 0)
+		else
+			gl.Vertex(sx-cs, sy, 0)
+		end
+		gl.Vertex(sx-cs, sy, 0)
+		if c2 then
+			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		end
+		gl.Vertex(sx-cs, sy-cs, 0)
+		gl.Vertex(sx, sy-cs, 0)
+	end
+	function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
+		gl.Texture(false)
+		gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+	end
 
     function drawCheckbox(x, y, state, text)
         glPushMatrix()
