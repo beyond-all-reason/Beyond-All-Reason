@@ -18,7 +18,7 @@ end
 function scav_Wdef_Post(name, wDef)
     if wDef.weapontype == "Cannon" then
 		wDef.rgbcolor = {0.96, 0.42, 1}
-        --if wDef.intensity then 
+        --if wDef.intensity then
         --    wDef.intensity = math.ceil(wDef.intensity*2.5)
         --end
 		--wDef.rgbcolor = {0.95, 0.0, 1} Damgam Candy mode
@@ -27,6 +27,9 @@ function scav_Wdef_Post(name, wDef)
                 wDef.explosiongenerator = wDef.explosiongenerator..'-purple'
             end
         end
+		if wDef.cegtag and string.find(wDef.cegtag, '^arty-') then
+			wDef.cegtag = wDef.cegtag..'-purple'
+		end
     elseif wDef.weapontype == "MissileLauncher" or wDef.weapontype == "StarburstLauncher" then
         if wDef.explosiongenerator then
             if string.find(wDef.explosiongenerator, 'genericshellexplosion') or string.find(wDef.explosiongenerator, 'expldgun') then
