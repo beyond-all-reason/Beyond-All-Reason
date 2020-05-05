@@ -22,7 +22,7 @@ end
 
 local vsx,vsy = Spring.GetViewGeometry()
 
-local posY = 0.145
+local posY = 0.16
 
 local showTestMessages = false
 

@@ -142,7 +142,7 @@ return {
 				soundhitwet = "splslrg",
 				soundstart = "launch",
 				sprayangle = 10000,
-				startvelocity = 300,
+				startvelocity = 1200,
 				stockpile = true,
 				stockpiletime = 14,
 				texture1 = "trans",
