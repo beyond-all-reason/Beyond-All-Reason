@@ -87,7 +87,6 @@ local idToDefID = {}
 ---
 
 local unitRendering = {
-	name                = "UR",
 	objectList          = {},
 	drawList            = {},
 	materialInfos       = {},
@@ -99,6 +98,9 @@ local unitRendering = {
 
 	shadowsPreDLs       = {},
 	shadowsPostDL       = nil,
+
+	alphaPreDL          = nil,
+	alphaPostDL         = nil,
 
 	spGetAllObjects      = Spring.GetAllUnits,
 	spGetObjectPieceList = Spring.GetUnitPieceList,
@@ -115,10 +117,10 @@ local unitRendering = {
 	ObjectCreated        = "UnitCreated",
 	ObjectDestroyed      = "UnitDestroyed",
 	ObjectDamaged        = "UnitDamaged",
+	ObjectCloakChanged   = "UnitCloakChanged",
 }
 
 local featureRendering = {
-	name                = "FR",
 	objectList          = {},
 	drawList            = {},
 	materialInfos       = {},
@@ -130,6 +132,9 @@ local featureRendering = {
 
 	shadowsPreDLs       = {},
 	shadowsPostDL       = nil,
+
+	alphaPreDL          = nil,
+	alphaPostDL         = nil,
 
 	spGetAllObjects      = Spring.GetAllFeatures,
 	spGetObjectPieceList = Spring.GetFeaturePieceList,
@@ -146,6 +151,7 @@ local featureRendering = {
 	ObjectCreated        = "FeatureCreated",
 	ObjectDestroyed      = "FeatureDestroyed",
 	ObjectDamaged        = "FeatureDamaged",
+	CloakChanged         = nil, -- don't expose
 }
 
 local allRendering = {
@@ -455,6 +461,19 @@ local function GetObjectAlphaMaterial(rendering, objectDefID)
 	end)
 	gl.DeleteList(texdl)
 
+	if not rendering.alphaPreDL then
+		rendering.alphaPreDL = gl.CreateList(function()
+			gl.AlphaTest(GL.ALWAYS, 0.0)
+			gl.Blending(GL.ONE, GL.ONE)
+		end)
+	end
+
+	if not rendering.alphaPostDL then
+		rendering.alphaPostDL = gl.CreateList(function()
+			gl.AlphaTest(GL.GREATER, 0.1) -- engine default for alpha pass
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		end)
+	end
 
 	local luaMat = rendering.spGetMaterial("alpha", {
 		standardshader = mat.standardShader,
@@ -462,10 +481,10 @@ local function GetObjectAlphaMaterial(rendering, objectDefID)
 		standarduniforms = mat.standardUniforms,
 
 		usecamera   = mat.usecamera,
-		culling     = mat.culling,
+		culling     = mat.alphaCulling,
 		texunits    = texUnits,
-		prelist     = nil, --ignore for now
-		postlist    = nil, --ignore for now
+		prelist     = rendering.alphaPreDL,
+		postlist    = rendering.alphaPostDL,
 	})
 
 	rendering.bufAlphaMaterials[objectDefID] = luaMat
@@ -763,9 +782,9 @@ end
 local function CloakChangedObject(rendering, objectID, objectDefID, unitTeam, cloaked)
 	local mat = rendering.objectList[objectID]
 	if mat then
-		local _CloakChanged = mat[rendering.CloakChanged]
-		if _CloakChanged then
-			_CloakChanged(objectID, objectDefID, unitTeam, cloaked, mat)
+		local _ObjectCloakChanged = mat[rendering.ObjectCloakChanged]
+		if _ObjectCloakChanged then
+			_ObjectCloakChanged(objectID, objectDefID, unitTeam, cloaked, mat)
 		end
 	end
 end
@@ -791,6 +810,14 @@ local function _CleanupEverything(rendering)
 
 	for tex, _ in pairs(rendering.loadedTextures) do
 		gl.DeleteTexture(tex)
+	end
+
+	if rendering.alphaPreDL then
+		gl.DeleteList(rendering.alphaPreDL)
+	end
+
+	if rendering.alphaPostDL then
+		gl.DeleteList(rendering.alphaPostDL)
 	end
 
 	for _, dl in pairs(rendering.shadowsPreDLs) do
@@ -964,11 +991,11 @@ function gadget:FeatureDestroyed(featureID)
 end
 
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
-	CloakChangedObject(unitRendering, objectID, objectDefID, unitTeam, true)
+	CloakChangedObject(unitRendering, unitID, unitDefID, unitTeam, true)
 end
 
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
-	CloakChangedObject(unitRendering, objectID, objectDefID, unitTeam, false)
+	CloakChangedObject(unitRendering, unitID, unitDefID, unitTeam, false)
 end
 
 -----------------------------------------------------------------

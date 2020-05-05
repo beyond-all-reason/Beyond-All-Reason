@@ -1127,12 +1127,14 @@ fragment = [[
 
 		// V - worldCameraDir
 		vec3 V = normalize(worldCameraDir);
-		float NdotV = clamp(dot(N, V), EPS, 1.0);
-		
-		const int cloakTransition = 15;
-		if (simFrame - intOptions[1] > cloakTransition) {
-			float opacity = clamp(1.0 - pow(NdotV, 2.0), 0.2, 1.0);
-			fragData[0] = vec4(teamColor.rgb, opacity);
+
+		{
+			const int cloakTransition = 60;
+			float opac = 1.0 - abs(dot(N, V));
+			fragData[0] = mix(
+							teamColor * (opac + 0.15),
+							vec4(opac * opac),
+							opac * 0.5) * 0.5;
 			return;
 		}
 
@@ -1152,6 +1154,7 @@ fragment = [[
 		// dot products
 		float NdotLu = dot(N, L);
 		float NdotL = clamp(NdotLu, 0.0, 1.0);
+		float NdotV = clamp(dot(N, V), EPS, 1.0);
 		float NdotH = clamp(dot(H, N), 0.0, 1.0);
 		float VdotH = clamp(dot(V, H), 0.0, 1.0);
 
@@ -1522,6 +1525,7 @@ local defaultMaterialTemplate = {
 	order = nil, -- currently unused (not sent to engine)
 
 	culling = GL.BACK, -- usually GL.BACK is default, except for 3do
+	alphaCulling = GL.FRONT,
 	shadowCulling = GL.BACK,
 	usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
 }

@@ -242,7 +242,7 @@ local function UnitDamaged(unitID, unitDefID, mat)
 end
 
 local cloakGameFrames = {[1] = 0}
-local function CloakChanged(unitID, unitDefID, unitTeam, cloaked, mat)
+local function UnitCloakChanged(unitID, unitDefID, unitTeam, cloaked, mat)
 	cloakGameFrames[1] = gameFrame
 	if cloaked then
 		mySetMaterialUniform[false](unitID, "alpha" , 3, "intOptions[1]", GL_INT, cloakGameFrames)
@@ -310,7 +310,7 @@ local materials = {
 		GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
-		CloakChanged = CloakChanged,
+		UnitCloakChanged = UnitCloakChanged,
 	}),
 	unitsNormalMapOthers = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		shaderOptions = {
