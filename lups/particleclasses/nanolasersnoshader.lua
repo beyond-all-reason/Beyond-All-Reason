@@ -58,7 +58,7 @@ NanoLasersNoShader.Default = {
   streamThickness = -1,  --//streamThickness =  4+self.count*0.34,
   corethickness   = 1,
   corealpha       = 1,
-  texture         = "bitmaps/largelaserfalloff.tga",
+  texture         = "bitmaps/default/largelaserfalloff.tga",
 }
 
 -----------------------------------------------------------------------------------------------------------------

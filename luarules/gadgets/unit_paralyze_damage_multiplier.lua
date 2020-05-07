@@ -1,4 +1,3 @@
-
 function gadget:GetInfo()
     return {
         name      = 'Paralyze Damage Multiplier',
@@ -12,25 +11,14 @@ function gadget:GetInfo()
     }
 end
 
-----------------------------------------------------------------
--- Synced only
-----------------------------------------------------------------
+
 if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-----------------------------------------------------------------
--- Var
-----------------------------------------------------------------
 local paralyzeMultipliers = {} -- paralyzeMultipliers[uDefID] = uDef.customParams.paralyzemultiplier or 1
-
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
-function gadget:Initialize()
-    for uDefID, uDef in pairs(UnitDefs) do
-        paralyzeMultipliers[uDefID] = uDef.customParams and uDef.customParams.paralyzemultiplier or 1
-    end
+for uDefID, uDef in pairs(UnitDefs) do
+	paralyzeMultipliers[uDefID] = uDef.customParams and uDef.customParams.paralyzemultiplier or 1
 end
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
