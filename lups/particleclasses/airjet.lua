@@ -31,15 +31,16 @@ function AirJet.GetInfo()
   }
 end
 
+local math_huge = math.huge
 
 AirJet.Default = {
   --// visibility check
   los            = true,
   airLos         = true,
   radar          = false,
-  
+
   layer = 4,
-  life  = math.huge,
+  life  = math_huge,
   repeatEffect  = true,
 
   emitVector    = {0,0,-1},
@@ -48,8 +49,8 @@ AirJet.Default = {
   length        = 50,
   color         = {0, 0, 0.5},
   distortion    = 0.02,
-  jitterWidthScale  = 3,
-  jitterLengthScale = 3,
+  jitterWidthScale  = 2.5,
+  jitterLengthScale = 2.5,
   animSpeed     = 1,
 
   texture1      = "bitmaps/GPL/Lups/perlin_noise.jpg", --// noise texture
@@ -64,12 +65,20 @@ local spGetPositionLosState = Spring.GetPositionLosState
 local spGetUnitLosState     = Spring.GetUnitLosState
 local spIsSphereInView      = Spring.IsSphereInView
 local spGetUnitRadius       = Spring.GetUnitRadius
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 
-local IsPosInLos    = Spring.IsPosInLos
-local IsPosInAirLos = Spring.IsPosInAirLos
-local IsPosInRadar  = Spring.IsPosInRadar
+local spGetUnitPosition		= Spring.GetUnitPosition
+local spGetUnitRotation		= Spring.GetUnitRotation
+local spGetUnitPieceInfo	= Spring.GetUnitPieceInfo
+local spGetGameFrame		= Spring.GetGameFrame
+local spIsUnitIcon			= Spring.IsUnitIcon
 
-local spGetGameSeconds = Spring.GetGameSeconds
+local IsPosInLos    		= Spring.IsPosInLos
+local IsPosInAirLos 		= Spring.IsPosInAirLos
+local IsPosInRadar  		= Spring.IsPosInRadar
+
+local spGetGameSeconds		= Spring.GetGameSeconds
+
 local glUseShader = gl.UseShader
 local glUniform   = gl.Uniform
 local glBlending  = gl.Blending
@@ -78,6 +87,10 @@ local glCallList  = gl.CallList
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA           = GL.SRC_ALPHA
 local GL_ONE                 = GL.ONE
+local math_cos = math.cos
+local math_sin = math.sin
+local math_random = math.random
+local math_rad = math.rad
 
 function AirJet:BeginDraw()
   glUseShader(jetShader)
@@ -94,21 +107,17 @@ function AirJet:EndDraw()
 end
 
 function AirJet:Draw()
-  if not Spring.IsUnitIcon(self.unit) then
-    self.isicon = false
-    if (lastTexture1~=self.texture1) then
-      glTexture(1,self.texture1)
-      lastTexture1=self.texture1
-    end
-    if (lastTexture2~=self.texture2) then
-      glTexture(2,self.texture2)
-      lastTexture2=self.texture2
-    end
-
-    glCallList(self.dList)
-  else
-    self.isicon = true
-  end
+	if not self.isicon then
+		if (lastTexture1~=self.texture1) then
+			glTexture(1,self.texture1)
+			lastTexture1=self.texture1
+		end
+		if (lastTexture2~=self.texture2) then
+			glTexture(2,self.texture2)
+			lastTexture2=self.texture2
+		end
+		glCallList(self.dList)
+	end
 end
 
 
@@ -144,15 +153,22 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 local time = 0
+local time2 = 0
 function AirJet:Update(n)
-  time = time + n
-  if time > 1.5 then
-    time = 0
-    if Spring.GetUnitMoveTypeData(self.unit) and Spring.GetUnitMoveTypeData(self.unit).aircraftState == "crashing" then
-      self.repeatEffect = false
-      self.dieGameFrame = Spring.GetGameFrame() + 1
-    end
-  end
+	time = time + n
+	if time > 1.5 then
+		time = 0
+		if spGetUnitMoveTypeData(self.unit) and spGetUnitMoveTypeData(self.unit).aircraftState == "crashing" then
+			self.repeatEffect = false
+			self.dieGameFrame = spGetGameFrame() + 1
+		end
+	end
+
+	time2 = time2 + n
+	if time2 > 0.4 then
+		time2 = 0
+		self.isicon = spIsUnitIcon(self.unit)
+	end
 
   if self.light then
     if not WG['lighteffects'] or not WG['lighteffects'].enableThrusters then
@@ -164,19 +180,19 @@ function AirJet:Update(n)
           self.lightID = nil
         end
       else
-        local unitPos = {Spring.GetUnitPosition(self.unit)}
-        local pitch, yaw = Spring.GetUnitRotation(self.unit)
-        local lightOffset = Spring.GetUnitPieceInfo(self.unit, self.piecenum).offset
+        local unitPos = {spGetUnitPosition(self.unit)}
+        local pitch, yaw = spGetUnitRotation(self.unit)
+        local lightOffset = spGetUnitPieceInfo(self.unit, self.piecenum).offset
 
         -- still just only Y thus inacurate
-        local lightOffsetRotYx = lightOffset[1]*math.cos(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math.sin(3.1415+math.rad(90+ (((yaw+1.571)/6.2)*360) ))
-        local lightOffsetRotYz = lightOffset[1]*math.sin(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math.cos(3.1415+math.rad(90+ (((yaw+1.571)/6.2)*360) ))
-		
+        local lightOffsetRotYx = lightOffset[1]*math_cos(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math_sin(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
+        local lightOffsetRotYz = lightOffset[1]*math_sin(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math_cos(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
+
         local offsetX = lightOffsetRotYx
         local offsetY = lightOffset[2] --+ 7  -- add some height to make the light shine a bit more on top (for debugging)
         local offsetZ = lightOffsetRotYz
 
-        local radius = 0.8 * ((self.width*self.length) * (0.8+(math.random()/10)))  -- add a bit of flickering
+        local radius = 0.8 * ((self.width*self.length) * (0.8+(math_random()/10)))  -- add a bit of flickering
 
         if not self.lightID then
           if not self.color[4] then
@@ -342,7 +358,7 @@ function AirJet.Initialize()
   })
 
 
-  if (jitShader == nil) then
+  if jitShader == nil then
     print(PRIO_MAJOR,"LUPS->airjet: (jitter-)shader error: "..gl.GetShaderLog())
     return false
   end
@@ -352,7 +368,7 @@ function AirJet.Initialize()
 end
 
 function AirJet:Finalize()
-  if (gl.DeleteShader) then
+  if gl.DeleteShader then
     gl.DeleteShader(jetShader)
     gl.DeleteShader(jitShader)
   end
@@ -370,7 +386,7 @@ local GL_QUADS        = GL.QUADS
 
 local function BeginEndDrawList(self)
   local color = self.color
-  local ev    = self.emitVector 
+  local ev    = self.emitVector
   glMultiTexCoord(0,self.jitterWidthScale,self.jitterLengthScale,self.width/self.length,self.distortion)
   glMultiTexCoord(1,ev[1],ev[2],ev[3],1)
   glMultiTexCoord(2,color[1],color[2],color[3],self.animSpeed)
@@ -386,13 +402,11 @@ end
 
 
 function AirJet:CreateParticle()
-  self.dList = glCreateList(glBeginEnd,GL_QUADS,
-                            BeginEndDrawList,self)
+	self.dList = glCreateList(glBeginEnd,GL_QUADS,BeginEndDrawList,self)
+	self.dieGameFrame  = thisGameFrame + self.life
 
-  --// used for visibility check
-  self.radius = self.length*self.jitterLengthScale
-
-  self.dieGameFrame  = thisGameFrame + self.life
+	--// used for visibility check
+	--self.radius = self.length*self.jitterLengthScale
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -422,30 +436,32 @@ function AirJet:Destroy()
 end
 
 function AirJet:Visible()
-  local radius = self.length
-  local posX,posY,posZ = self.pos[1],self.pos[2],self.pos[3]
-  local losState
-  if (self.unit and not self.worldspace) then
-    losState = GetUnitLosState(self.unit)
-    local ux,uy,uz = spGetUnitViewPosition(self.unit)
-	if ux then
-      posX,posY,posZ = posX+ux,posY+uy,posZ+uz
-      radius = radius + (spGetUnitRadius(self.unit) or 30)
-	end
-  end
-  if (losState==nil) then
-    if (self.radar) then
-      losState = IsPosInRadar(posX,posY,posZ)
-    end
-    if ((not losState) and self.airLos) then
-      losState = IsPosInAirLos(posX,posY,posZ)
-    end
-    if ((not losState) and self.los) then
-      losState = IsPosInLos(posX,posY,posZ)
-    end
-  end
-  --self.visible = true
-  return (losState)and(spIsSphereInView(posX,posY,posZ,radius))
+	return true	-- just doing this is a lot faster, even when jets are out of view
+--
+--local radius = self.length
+--local posX,posY,posZ = self.pos[1],self.pos[2],self.pos[3]
+--local losState
+--if (self.unit and not self.worldspace) then
+--  losState = GetUnitLosState(self.unit)
+--  local ux,uy,uz = spGetUnitViewPosition(self.unit)
+--	if ux then
+--    posX,posY,posZ = posX+ux,posY+uy,posZ+uz
+--    radius = radius + (spGetUnitRadius(self.unit) or 30)
+--	end
+--end
+--if (losState==nil) then
+--  if (self.radar) then
+--    losState = IsPosInRadar(posX,posY,posZ)
+--  end
+--  if ((not losState) and self.airLos) then
+--    losState = IsPosInAirLos(posX,posY,posZ)
+--  end
+--  if ((not losState) and self.los) then
+--    losState = IsPosInLos(posX,posY,posZ)
+--  end
+--end
+----self.visible = true
+--return (losState)and(spIsSphereInView(posX,posY,posZ,radius))
 end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------

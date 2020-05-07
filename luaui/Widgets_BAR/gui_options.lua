@@ -2166,7 +2166,7 @@ function init()
 			 saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', {'enableThrusters'}, value)
 		 end,
 		},
-		{id="lups_jetenginefx_disablefps", group="gfx", name=widgetOptionColor.."   disable below fps", type="slider", min=0, max=80, step=1, value=35, description='disable when average FPS gets below this amount',
+		{id="lups_jetenginefx_disablefps", group="gfx", name=widgetOptionColor.."   disable below fps", type="slider", min=0, max=80, step=1, value=25, description='disable when average FPS gets below this amount',
 		 onload = function(i) loadWidgetData("LupsManager", "lups_jetenginefx_disablefps", {'disableAtAvgFps'}) end,
 		 onchange = function(i, value) saveOptionValue('LupsManager', 'lups_jetenginefx', 'setDisableFps', {'disableAtAvgFps'}, value) end,
 		},

@@ -25,8 +25,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local disableAtAvgFps = 35
-local avgFpsThreshold = 16   -- have this more fps than disableAtAvgFps to re-enable
+local disableAtAvgFps = 25
+local avgFpsThreshold = 15   -- have this more fps than disableAtAvgFps to re-enable
 
 local enabled = true
 local averageFps = 100
@@ -230,10 +230,10 @@ local UnitEffects = {
     ["corape"] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=16, piece="rthrust", emitVector= {0,0,-1}, onActive=true, xzVelocity=1.5, light=1}},
         {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=16, piece="lthrust", emitVector= {0,0,-1}, onActive=true, xzVelocity=1.5, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust1", emitVector= {1,0,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust2", emitVector= {1,0,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust2", emitVector= {-1,0,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust1", emitVector= {-1,0,0}, onActive=true, light=1}},
+        --{class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust1", emitVector= {1,0,0}, onActive=true, light=1}},
+        --{class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust2", emitVector= {1,0,0}, onActive=true, light=1}},
+        --{class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust2", emitVector= {-1,0,0}, onActive=true, light=1}},
+        --{class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust1", emitVector= {-1,0,0}, onActive=true, light=1}},
     },
     ["corca"] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=15, piece="thrust", onActive=true, xzVelocity=1.2}},
