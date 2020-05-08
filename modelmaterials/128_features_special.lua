@@ -240,7 +240,7 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 })
 
 local materials = {
-	featuresTreeFakeNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresTreeNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
 		texUnits  = {
 			[2] = "%NORMALTEX",
 		},
@@ -365,7 +365,7 @@ local function GetTreeInfo(fdef)
 	end
 
 	local isTree = false
-	local fakeNormal = false
+	local normalMap = nil
 	local noSway = false
 
 	for _, treeInfo in ipairs(featureNameTrees) do
@@ -379,13 +379,19 @@ local function GetTreeInfo(fdef)
 
 			if not isException then
 				isTree = true
-				fakeNormal = treeInfo.fakeNormal
+				local fdNM = (fdef.customParams or {}).normaltex
+				if fdNM then
+					normalMap = fdNM
+				else
+					normalMap = (treeInfo.fakeNormal and FAKE_NORMALTEX) or nil
+				end
+				--Spring.Utilities.TableEcho(fdef.customParams, fdef.name)
 			end
 
 			for _, exc in ipairs(featureNameTreesNoSway) do
 				noSway = noSway or fdef.name:find(exc) ~= nil
 				if noSway then
-					fakeNormal = false --don't use fake normals for noSway trees
+					normalMap = nil --don't use fake normals for noSway trees
 				end
 			end
 
@@ -393,7 +399,7 @@ local function GetTreeInfo(fdef)
 		end
 	end
 
-	return isTree, fakeNormal, noSway
+	return isTree, normalMap, noSway
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -412,12 +418,13 @@ for id = 1, #FeatureDefs do
 	local featureDef = FeatureDefs[id]
 	if not cusFeaturesMaterials[id] and featureDef.modeltype ~= "3do" then
 		--Spring.Echo(featureDef.name)
-		local isTree, fakeNormal, noSway = GetTreeInfo(featureDef)
+		local isTree, normalMap, noSway = GetTreeInfo(featureDef)
 		local metallic = featureDef.metal >= 1
 
 		if isTree then
-			if fakeNormal then
-				featureMaterials[id] = {"featuresTreeFakeNormal", NORMALTEX = FAKE_NORMALTEX}
+			--Spring.Echo(featureDef.name, normalMap)
+			if normalMap then
+				featureMaterials[id] = {"featuresTreeNormal", NORMALTEX = normalMap}
 			else
 				if noSway then
 					featureMaterials[id] = {"featuresTreeAutoNormalNoSway"}
