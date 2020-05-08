@@ -292,7 +292,7 @@ local function GetTeamColorSet(teamID)
     return colors
   end
   local r,g,b = spGetTeamColor(teamID)
-  
+
   colors = {r, g, b, spotterOpacity}
   teamColors[teamID] = colors
   return colors
@@ -307,7 +307,7 @@ local visibleUnits = {}
 local visibleUnitsCount = 0
 function checkAllUnits()
   drawUnits = {}
-  visibleUnits = spGetVisibleUnits(-1, 50, false)
+  visibleUnits = spGetVisibleUnits(-1, nil, false)
   visibleUnitsCount = #visibleUnits
   for i=1, visibleUnitsCount do
     checkUnit(visibleUnits[i])

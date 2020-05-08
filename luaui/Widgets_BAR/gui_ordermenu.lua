@@ -451,7 +451,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-  gl.Texture(false)
+  --gl.Texture(false)
   gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
@@ -525,6 +525,7 @@ function drawOrders()
           glColor(1,1,1,0.66)
           glTexture(''..cursorTexture)
           glTexRect(midPosX-halfsize,  midPosY-halfsize,  midPosX+halfsize,  midPosY+halfsize)
+          glTexture(false)
         end
       end
     end
@@ -643,6 +644,7 @@ function drawOrders()
           glTexture(barGlowEdgeTexture)
           glTexRect(x1-(glowSize*2), y1 - glowSize, x1, y2 + glowSize)
           glTexRect(x2+(glowSize*2), y1 - glowSize, x2, y2 + glowSize)
+          glTexture(false)
         end
       end
     end
@@ -676,7 +678,7 @@ function widget:DrawScreen()
             -- draw highlight under the button
             if not disableInput and not (activeCmd and activeCmd == cmd.name) then
               local padding = (bgBorder*vsy) * 0.5
-              glColor(1,1,1,0.75)
+              glColor(1,1,1,0.8)
               RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
               break
             end
@@ -729,8 +731,8 @@ function widget:DrawScreen()
     if cellHovered and not disableInput then
       --glBlending(GL_SRC_ALPHA, GL_ONE)
       local padding = activeCmd == cmds[cellHovered].name and (bgBorder*vsy) * 0.4 or 0
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.14}, {1,1,1,0.44})
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,0.2}, {1,1,1,0})
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.15}, {1,1,1,0.5})
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,0.22}, {1,1,1,0})
       --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     end
 

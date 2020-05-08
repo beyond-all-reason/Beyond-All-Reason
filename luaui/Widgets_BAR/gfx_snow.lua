@@ -107,8 +107,6 @@ local diffTime = 0
 
 local spGetFPS					= Spring.GetFPS
 local averageFps				= 60
-local spGetVisibleUnits			= Spring.GetVisibleUnits
-local spGetVisibleFeatures		= Spring.GetVisibleFeatures
 
 local firstPos = 0
 local secondPos = 0
@@ -230,10 +228,10 @@ end
 
 
 function init()
-	
+
 	-- abort if not enabled
 	if enabled == false then return end
-	
+
 	if (glCreateShader == nil) then
 		Spring.Echo("[Snow widget:Initialize] no shader support")
 		widgetHandler:RemoveWidget(self)
@@ -272,9 +270,9 @@ function init()
 					pos.z += 1;
 				}
 				pos = mod(pos, scale) - (scale * 0.5) + camPos;
-				
+
 				vec4 eyePos = gl_ModelViewMatrix * vec4(pos, 1.0);
-						
+
 				gl_PointSize = (1.0 + gl_Vertex.w) * 5000.0 / length(eyePos);
 
 				gl_Position = gl_ProjectionMatrix * eyePos;
@@ -294,13 +292,13 @@ function init()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	
+
 	shaderTimeLoc			= glGetUniformLocation(shader, 'time')
 	shaderCamPosLoc			= glGetUniformLocation(shader, 'camPos')
 
 	shaderScaleLoc			= glGetUniformLocation(shader, 'scale')
 	shaderSpeedLoc			= glGetUniformLocation(shader, 'speed')
-	
+
 	if particleLists[1] == nil then
 		CreateParticleLists()
 	end
@@ -309,7 +307,7 @@ end
 
 function getWindSpeed()
 	windDirX, _, windDirZ, _ = spGetWind()
-	
+
 	-- cap windspeed while preserving direction
 	if windDirX > maxWindSpeed and windDirX > windDirZ then
 		windDirZ = (windDirZ / windDirX) * maxWindSpeed
@@ -360,7 +358,7 @@ function widget:Initialize()
 	if spGetGameFrame() > 0 then
 		gameStarted = true
 	end
-	
+
 	drawinfolist = gl.CreateList( function()
 		local text = "Snowing less when FPS gets lower \n"
 		local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
@@ -373,7 +371,7 @@ function widget:Initialize()
 		font:Print(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
 		font:End()
 	end)
-	
+
 	startOsClock = os.clock()
 	-- check for keywords
 	local keywordFound = false
@@ -396,7 +394,7 @@ function widget:Initialize()
 	if enabled and keywordFound then
 		snowMaps[currentMapname] = true
 	end
-	
+
 	getWindSpeed()
 	init()
 end
@@ -414,7 +412,7 @@ function widget:GameFrame(gameFrame)
 	end
 
 	if not enabled and not widgetDisabledSnow then return end
-	
+
 	if gameFrameCountdown <= 0 then
 		if gameFrame%31==0 then
 			getWindSpeed()
@@ -427,13 +425,13 @@ function widget:GameFrame(gameFrame)
 		if gameFrame%88==0 and autoReduce then
 			if averageFps >= previousFps+fpsDifference or averageFps <= previousFps-fpsDifference then
 				local particleAmount = (averageFps-minFps) / (maxFps-minFps)
-				if particleAmount > 1 then 
-					particleAmount = 1 
+				if particleAmount > 1 then
+					particleAmount = 1
 				end
 				if previousParticleAmount ~= particleAmount then
 					previousParticleAmount = particleAmount
 					previousFps = averageFps
-					if particleAmount <= 1/particleSteps then 
+					if particleAmount <= 1/particleSteps then
 						enabled = false
 						widgetDisabledSnow = true
 					else
@@ -471,7 +469,7 @@ function widget:DrawScreen()
 		local now = os.clock()
 		local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
 		if opacityMultiplier > 1 then opacityMultiplier = 1 end
-		
+
 		if opacityMultiplier > 0 then
 			gl.PushMatrix()
 			gl.Translate(vsx/2, vsy/1.5, 0)
@@ -495,20 +493,20 @@ function widget:DrawWorld()
 	lastFrametime = Spring.GetTimer()
 	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
-			glUseShader(shader)	
+			glUseShader(shader)
 			camX,camY,camZ = Spring.GetCameraPosition()
 			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
 
 			glUniform(shaderTimeLoc,diffTime * 1)
 			glUniform(shaderCamPosLoc, camX, camY, camZ)
-			
+
 			glDepthTest(true)
 			glBlending(GL.SRC_ALPHA, GL.ONE)
-			
+
 			gl.PointSprite(true, true)
 			gl.PointSize(10.0)
 			gl.PointParameter(0, 0, 0.001, 0, 1e9, 1)
-			
+
 			local osClock = os.clock()
 			local timePassed = osClock - prevOsClock
 			prevOsClock = osClock
@@ -517,7 +515,7 @@ function widget:DrawWorld()
 				offsetX = offsetX + ((windDirX * windMultiplier) * timePassed)
 				offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
 			end
-			
+
 			for particleType, pt in pairs(particleTypes) do
 				glTexture(snowTexFolder..pt.texture)
 				glUniform(shaderScaleLoc, pt.scale*particleScale)
@@ -525,7 +523,7 @@ function widget:DrawWorld()
 				glCallList(particleLists[particleType][particleStep])
 				glTexture(false)
 			end
-			
+
 			gl.PointParameter(1, 0, 0, 0, 1e9, 1)
 			gl.PointSize(1.0)
 			gl.PointSprite(false, false)
@@ -570,11 +568,11 @@ function widget:SetConfigData(data)
 	if data.customParticleMultiplier ~= nil 	then  customParticleMultiplier = data.customParticleMultiplier end
 	if data.autoReduce ~= nil 	then  autoReduce = data.autoReduce end
 	if data.gameframe ~= nil and data.gameframe > 0	then
-		if data.averageFps ~= nil 	then  
+		if data.averageFps ~= nil 	then
 			averageFps = data.averageFps
 			avgFpsInit = true
 		end
-		if data.particleStep ~= nil and data.gameframe ~= nil and Spring.GetGameFrame() > 0 then  
+		if data.particleStep ~= nil and data.gameframe ~= nil and Spring.GetGameFrame() > 0 then
 			particleStep = data.particleStep
 			if particleStep < 1 then particleStep = 1 end
 			if particleStep > particleSteps then particleStep = particleSteps end
