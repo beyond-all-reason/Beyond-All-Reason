@@ -75,6 +75,8 @@ local currentPage = 1
 local pages = 1
 local paginatorRects = {}
 
+WG.hoverID = nil
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -443,6 +445,13 @@ function widget:Initialize()
     defaultColls = value
     doUpdate = true
   end
+  WG['buildmenu'].getAlternativeIcons = function()
+    return alternativeUnitpics
+  end
+  WG['buildmenu'].setAlternativeIcons = function(value)
+    alternativeUnitpics = value
+    doUpdate = true
+  end
 end
 
 function clear()
@@ -580,7 +589,7 @@ function drawBuildmenu()
 
       -- unit icon
       glColor(1,1,1,1)
-      glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..unitBuildPic[uDefID])
+      glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
       glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
 
       if makeFancy then
@@ -724,51 +733,55 @@ function widget:DrawScreen()
 
 
     -- hover
-    if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-      Spring.SetMouseCursor('cursornormal')
+    if not WG['topbar'] or not WG['topbar'].showingQuit() then
+      if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+        Spring.SetMouseCursor('cursornormal')
 
-      local paginatorHovered = false
-      if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-        paginatorHovered = 1
-      end
-      if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-        paginatorHovered = 2
-      end
-      if paginatorHovered then
-        if WG['tooltip'] then
-          local text = "\255\240\240\240"..(paginatorHovered == 1 and "previous page" or "next page")
-          WG['tooltip'].ShowTooltip('buildmenu', text)
+        local paginatorHovered = false
+        if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+          paginatorHovered = 1
         end
-        RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,1,1,{1,1,1,0}, {1,1,1,(b and 0.35 or 0.15)})
-        RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][4]-cellPadding-((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.5), paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.045}, {1,1,1,0.15})
-        RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][2]+cellPadding+((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.18), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
-      end
-
-      for cellRectID, cellRect in pairs(cellRects) do
-        if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
-          local uDefID = cmds[cellRectID].id*-1
-
+        if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+          paginatorHovered = 2
+        end
+        if paginatorHovered then
           if WG['tooltip'] then
-            local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
+            local text = "\255\240\240\240"..(paginatorHovered == 1 and "previous page" or "next page")
             WG['tooltip'].ShowTooltip('buildmenu', text)
           end
+          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,1,1,{1,1,1,0}, {1,1,1,(b and 0.35 or 0.15)})
+          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][4]-cellPadding-((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.5), paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.045}, {1,1,1,0.15})
+          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][2]+cellPadding+((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.18), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
+        end
 
-          -- highlight
-          glBlending(GL_SRC_ALPHA, GL_ONE)
-          if b and not disableInput then
-            glColor(1,1,1,0.3)
-          else
-            glColor(1,1,1,0.15)
+        for cellRectID, cellRect in pairs(cellRects) do
+          if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+            local uDefID = cmds[cellRectID].id*-1
+            WG.hoverID = uDefID
+
+            local alt, ctrl, meta, shift = Spring.GetModKeyState()
+            if WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
+              local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
+              WG['tooltip'].ShowTooltip('buildmenu', text)
+            end
+
+            -- highlight
+            glBlending(GL_SRC_ALPHA, GL_ONE)
+            if b and not disableInput then
+              glColor(1,1,1,0.3)
+            else
+              glColor(1,1,1,0.15)
+            end
+            glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
+            glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+            glTexture(false)
+            --top
+            RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.13})
+            -- bottom
+            RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.1}, {1,1,1,0})
+            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            break
           end
-          glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
-          glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
-          glTexture(false)
-          --top
-          RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.13})
-          -- bottom
-          RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.1}, {1,1,1,0})
-          glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-          break
         end
       end
     end
@@ -840,7 +853,8 @@ function widget:GetConfigData() --save config
     maxColls = maxColls,
     defaultColls = defaultColls,
     showShortcuts = showShortcuts,
-    makeFancy = makeFancy
+    makeFancy = makeFancy,
+    alternativeUnitpics = alternativeUnitpics,
   }
 end
 
@@ -868,5 +882,8 @@ function widget:SetConfigData(data) --load config
   end
   if data.makeFancy ~= nil then
     makeFancy = data.makeFancy
+  end
+  if data.alternativeUnitpics ~= nil then
+    alternativeUnitpics = data.alternativeUnitpics
   end
 end
