@@ -41,7 +41,7 @@ return {
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 60,
+		workertime = 75,
 		buildoptions = {
 			[1] = "armsolar",
 			[2] = "armadvsol",
@@ -89,7 +89,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armuwmex",
-			model_author = "FireStorm",
+			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",
 		},

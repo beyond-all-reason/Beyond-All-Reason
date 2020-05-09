@@ -16,10 +16,11 @@ activatescr()
 {
 	if( TRUE )
 	{
-		//move engine to z-axis [10.000000] now;
-		//move engine to z-axis [0.000000] speed [10];
+
 	move lwing to x-axis [0] speed[5];
 	move rwing to x-axis [0] speed[5];
+	spin centerblade around y-axis speed <540> accelerate <5>;
+	spin backblade around x-axis speed <540> accelerate <5>;
 		sleep 1000;
 	}
 	sleep 6;
@@ -30,10 +31,11 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-	move lwing to x-axis [5] speed[5];
-	move rwing to x-axis [-5] speed[5];
-		//move engine to z-axis [0.000000] now;
-		//move engine to z-axis [10.000000] speed [10];
+	move lwing to x-axis [7] speed[5];
+	move rwing to x-axis [-7] speed[5];
+	stop-spin centerblade around y-axis decelerate <1>;
+	stop-spin backblade around y-axis decelerate <1>;
+
 		sleep 1000;
 	}
 	sleep 7;
@@ -118,8 +120,8 @@ Create()
 	call-script InitState();
 	start-script SmokeUnit();
 	return (0);
-	move lwing to x-axis [5] now;
-	move rwing to x-axis [-5] now;
+	move lwing to x-axis [7] now;
+	move rwing to x-axis [-7] now;
 	hide thrusta;
 	hide thrustb;
 	hide emit;
