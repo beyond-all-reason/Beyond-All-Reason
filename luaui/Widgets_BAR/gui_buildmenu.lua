@@ -598,16 +598,16 @@ function drawBuildmenu()
         glBlending(GL_SRC_ALPHA, GL_ONE)
         -- glossy half
         --RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0}, {1,1,1,0.2})
+        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, 0,0,0,0,{1,1,1,0}, {1,1,1,0.2})
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         -- extra darken gradually
-        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, 0,0,1,1,{0,0,0,0.12}, {0,0,0,0})
+        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, 0,0,0,0,{0,0,0,0.12}, {0,0,0,0})
       end
 
       -- darken price background gradually
       if showPrice then
-        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,1,1,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
+        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,0,0,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
       end
 
       -- radar icon
@@ -808,7 +808,7 @@ end
 
 
 function widget:MousePress(x, y, button)
-  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+  if selectedBuilderCount > 0 and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     local paginatorHovered = false
     if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
       currentPage = currentPage - 1
