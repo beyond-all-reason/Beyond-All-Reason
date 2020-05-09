@@ -305,7 +305,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
+	--gl.Texture(false)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
@@ -379,6 +379,7 @@ local function updateRejoin()
 		glTexture(barGlowEdgeTexture)
 		glTexRect(barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize)
 		glTexRect((barArea[1]+(catchup * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
+		glTexture(false)
 
 		-- Text
 		local fontsize = 12*widgetScale
@@ -1197,6 +1198,7 @@ function drawResbarValues(res)
 		glTexture(glowTexture)
 		local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
 		glTexRect(resbarArea[res][1]+iconPadding, resbarArea[res][2]+iconPadding, resbarArea[res][1]+(height*widgetScale)-iconPadding, resbarArea[res][4]-iconPadding)
+		glTexture(false)
 	end
 
 	-- Bar value
@@ -1217,6 +1219,7 @@ function drawResbarValues(res)
 	glTexture(barGlowEdgeTexture)
 	glTexRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4])
 	glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[res][2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[res][2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
+	glTexture(false)
 
 	currentResValue[res] = short(cappedCurRes)
 	if not dlistResValues[res][currentResValue[res]] then

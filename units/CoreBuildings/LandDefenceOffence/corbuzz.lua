@@ -121,6 +121,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				avoidground = false,
+				cegtag = "arty-huge",
 				collidefriendly = false,
 				craterboost = 0.1,
 				cratermult = 0.1,
