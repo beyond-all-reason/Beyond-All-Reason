@@ -676,7 +676,7 @@ function widget:DrawScreen()
             cellHovered = cell
 
             -- draw highlight under the button
-            if not disableInput and not (activeCmd and activeCmd == cmd.name) then
+            if not (activeCmd and activeCmd == cmd.name) then
               local padding = (bgBorder*vsy) * 0.5
               glColor(1,1,1,0.8)
               RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
@@ -728,11 +728,11 @@ function widget:DrawScreen()
     gl.CallList(dlistOrders)
 
     -- draw highlight on top of button
-    if cellHovered and not disableInput then
+    if cellHovered then
       --glBlending(GL_SRC_ALPHA, GL_ONE)
       local padding = activeCmd == cmds[cellHovered].name and (bgBorder*vsy) * 0.4 or 0
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.15}, {1,1,1,0.5})
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,0.22}, {1,1,1,0})
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.15}, {1,1,1,(disableInput and 0.3 or 0.5)})
+      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,(disableInput and 0.15 or 0.22)}, {1,1,1,0})
       --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     end
 

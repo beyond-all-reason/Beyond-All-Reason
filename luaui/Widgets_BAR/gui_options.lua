@@ -834,22 +834,22 @@ function widget:Update(dt)
 	end
 
 	if not initialized then return end
+
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-	--if select(7, Spring.GetMouseState()) then	-- when camera panning
-	--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
-	--else
-	Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
-	--end
+		--if select(7, Spring.GetMouseState()) then	-- when camera panning
+		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		--else
+		Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		--end
 	end
 	sec = sec + dt
-
 
 	Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
 	Spring.SetConfigInt("ROAM", 1)
 	Spring.SendCommands("mapmeshdrawer 2")
 	if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < 100 then
-	Spring.SendCommands("GroundDetail "..100)
+		Spring.SendCommands("GroundDetail "..100)
 	end
 	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
 	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
@@ -878,34 +878,33 @@ function widget:Update(dt)
 	--	mapmeshdrawerChecked = true
 	--end
 
-
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
-	sec = 0
-	forceUpdate = nil
-	lastUpdate = sec
-	local changes = true
-	for i, option in ipairs(options) do
-	if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
-	options[i].value = GetWidgetToggleValue(options[i].widget)
-	changes = true
+		sec = 0
+		forceUpdate = nil
+		lastUpdate = sec
+		local changes = true
+		for i, option in ipairs(options) do
+			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
+				options[i].value = GetWidgetToggleValue(options[i].widget)
+				changes = true
+			end
+		end
+		if changes then
+			if windowList then
+				gl.DeleteList(windowList)
+			end
+			windowList = gl.CreateList(DrawWindow)
+		end
+		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
+		if getOptionByID('sndvolmusic') then
+			if WG['music'] and WG['music'].GetMusicVolume then
+				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
+			else
+				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)
+			end
+		end
 	end
-	end
-	if changes then
-	if windowList then
-	gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
-	end
-	options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
-	if getOptionByID('sndvolmusic') then
-	if WG['music'] and WG['music'].GetMusicVolume then
-	options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
-	else
-	options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)
-	end
-	end
-	end
-	end
+end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
@@ -2588,22 +2587,54 @@ function init()
 		   onload = function(i) loadWidgetData("Order menu", "ordermenu_colorize", {'colorize'}) end,
 		   onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
 		},
-		{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
+		--{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
+		--},
+		{id="buildmenu_makefancy", group="ui", basic=true, name="Buildmenu"..widgetOptionColor.."  fancy", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getMakeFancy~=nil and WG['buildmenu'].getMakeFancy()), description='Adds extra gradients and highlights',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMakeFancy', {'showMakeFancy'}, value) end,
 		},
-		{id="buildmenuprices", group="ui", name=widgetOptionColor.."   prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)',
+		{id="buildmenu_prices", group="ui", basic=true, name=widgetOptionColor.."   prices", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowPrice~=nil and WG['buildmenu'].getShowPrice()), description='Unit prices in the buildmenu',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowPrice', {'showPrice'}, value) end,
 		},
-		{id="buildmenuradaricons", group="ui", name=widgetOptionColor.."   radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)',
+		{id="buildmenu_radaricon", group="ui", basic=true, name=widgetOptionColor.."   radar icon", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowRadarIcon~=nil and WG['buildmenu'].getShowRadarIcon()), description='Radar icons in the buildmenu',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowRadarIcon', {'showRadarIcon'}, value) end,
 		},
-		{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
+		--{id="buildmenu_shortcuts", group="ui", basic=true, name=widgetOptionColor.."   shortcuts", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowShortcuts~=nil and WG['buildmenu'].getShowShortcuts()), description='Shortcuts prices in the buildmenu',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
+		--},
+		{id="buildmenu_defaultcolls", group="ui", basic=true, name=widgetOptionColor.."   columns", type="slider", min=4, max=6, step=1, value=5, description='Number of columns when "dynamic columns" is disabled',
+		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_defaultcolls", {'defaultColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setDefaultColls', {'defaultColls'}, value) end,
+		},
+		{id="buildmenu_dynamic", group="ui", basic=true, name=widgetOptionColor.."   dynamic columns", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getDynamicIconsize~=nil and WG['buildmenu'].getDynamicIconsize()), description='Use variable number of columns depending on number of buildoptions availible',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setDynamicIconsize', {'dynamicIconsize'}, value) end,
 		},
+		{id="buildmenu_mincolls", group="ui", name=widgetOptionColor.."      min columns", type="slider", min=4, max=6, step=1, value=5, description='',
+		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_mincolls", {'minColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMinColls', {'minColls'}, value) end,
+		},
+		{id="buildmenu_maxcolls", group="ui", name=widgetOptionColor.."      max columns", type="slider", min=4, max=7, step=1, value=6, description='',
+		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_maxcolls", {'maxColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMaxColls', {'maxColls'}, value) end,
+		},
+		--{id="buildmenuprices", group="ui", name=widgetOptionColor.."   prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, value) end,
+		--},
+		--{id="buildmenuradaricons", group="ui", name=widgetOptionColor.."   radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, value) end,
+		--},
+		--{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
+		--},
 
 		{id="commandsfx", group="ui", basic=true, widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
 		{id="commandsfxfilterai", group="ui", name=widgetOptionColor.."   filter AI teams", type="bool", value=true, description='Hide commands for AI teams',
@@ -3879,6 +3910,11 @@ end
 
 function widget:Initialize()
 
+
+	if not disabledReduiBuildmenuOnce then
+		widgetHandler:DisableWidget("Red Build Menu")
+	end
+
 	widget:ViewResize()
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
@@ -4096,6 +4132,7 @@ function widget:GetConfigData(data)
 	savedTable.defaultSunLighting = defaultSunLighting
 	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
+	savedTable.disabledReduiBuildmenuOnce = true
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -4158,5 +4195,8 @@ function widget:SetConfigData(data)
 	end
 	if data.customMapSunPos then
 		customMapSunPos = data.customMapSunPos
+	end
+	if data.disabledReduiBuildmenuOnce then
+		disabledReduiBuildmenuOnce = true
 	end
 end

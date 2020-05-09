@@ -8,7 +8,7 @@ function widget:GetInfo()
 	date      = "29 may 2015", --modified by CommonPlayer, Oct 2016
 	license   = "GNU GPL, v2 or later",
 	layer     = -10,
-	enabled   = true, --enabled by default
+	enabled   = false, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
@@ -84,21 +84,21 @@ local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
 		px = 0,py = CanvasY - 440, --default start position
-		
+
 		isx = 45,isy = 40, --icon size
 		ix = 5,iy = 8, --icons x/y
-		
+
 		roundedPercentage = 0.07,	-- 0.25 == iconsize / 4 == cornersize
-		
+
 		iconscale = 1.0,
 		iconhoverscale = 1.1,
 		ispreadx=2,ispready=2, --space between icons
-		
+
 		margin = 8, --distance from background border
-		
+
 		padding = 3*widgetScale, -- for border effect
 		color2 = {1,1,1,ui_opacity*0.055}, -- for border effect
-		
+
 		fadetime = 0.12, --fade effect time, in seconds
 		fadetimeOut = 0.3, --fade effect time, in seconds
 
@@ -285,7 +285,7 @@ local function CreateGrid(r)
 			background2.sy = self.sy - self.padding - self.padding
 		end,
 	}
-	
+
 	local selecthighlight = {"rectanglerounded",
 		roundedsize = math.floor(r.isy*r.roundedPercentage),
 		px=0,py=0,
@@ -302,13 +302,13 @@ local function CreateGrid(r)
 			self.active = false
 		end,
 	}
-	
+
 	local mouseoverhighlight = Copy(selecthighlight,true)
 	mouseoverhighlight.color={1,1,1,0.08}
 	mouseoverhighlight.border={1,1,1,0}
 	mouseoverhighlight.texture = "LuaUI/Images/button-highlight.dds"
 	mouseoverhighlight.texturecolor={1,1,1,0.08}
-	
+
 	local heldhighlight = Copy(selecthighlight,true)
 	heldhighlight.color={1,0.75,0,0.06}
 	heldhighlight.border={1,1,0,0}
@@ -350,7 +350,7 @@ local function CreateGrid(r)
 		options="n", --disable colorcodes
 		captioncolor=r.ctext,
 		font2 = true,
-		
+
 		overridecursor = true,
 		overrideclick = {3},
 
@@ -461,9 +461,9 @@ local function CreateGrid(r)
 				end
 			end
 		end,
-		
+
 		effects = background.effects,
-		
+
 		active=false,
 	}
 
@@ -483,13 +483,13 @@ local function CreateGrid(r)
 
 	local forward = New(Copy(icon,true))
 	forward.texture = "LuaUI/Images/forward.dds"
-	
+
 	local indicator = New({"rectangle",
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
 		captioncolor=r.ctext,
 		options = "n",
-		
+
 		effects = background.effects,
 	})
 	background.movableslaves={backward,forward,indicator}
@@ -531,21 +531,21 @@ local function CreateGrid(r)
 				backward.px = icons[#icons-r.ix+1].px
 				forward.px = icons[#icons].px
 				indicator.px = (forward.px + backward.px)/2
-				
+
 				backward.py = icons[#icons-r.ix].py + r.isy + r.ispready
 				forward.py = backward.py
 				indicator.py = backward.py
 			end
 		end
 	end
-	
+
 	New(selecthighlight)
 	New(mouseoverhighlight)
 	New(heldhighlight)
-	
+
 	--tooltip
 	background.mouseover = function(mx,my,self) SetTooltip(r.tooltip.background) end
-	
+
 	return {
 		["menuname"] = r.menuname,
 		["background"] = background,
@@ -816,7 +816,7 @@ end
 
 
 function widget:TextCommand(command)
-	if (string.find(command, "iconspace") == 1  and  string.len(command) == 9) then 
+	if (string.find(command, "iconspace") == 1  and  string.len(command) == 9) then
 		iconScaling = not iconScaling
 		--AutoResizeObjects()
 		Spring.ForceLayoutUpdate()
@@ -999,7 +999,7 @@ end
 --lots of hacks under this line ------------- overrides/disables default spring menu layout and gets current orders + filters out some commands
 local hijackedlayout = false
 function widget:Shutdown()
-	if (hijackedlayout) then
+	if hijackedlayout and not WG['buildmenu'] then
 		widgetHandler:ConfigLayoutHandler(true)
 		Spring.ForceLayoutUpdate()
 	end
@@ -1196,7 +1196,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			-- this prevents keys to be captured when you cannot build anything
 			local buildcmds = GetCommands()
 			if #buildcmds == 0 then return false end
-			
+
 			if key == buildStartKey then
 				building = 0
 				onNewCommands(true)
