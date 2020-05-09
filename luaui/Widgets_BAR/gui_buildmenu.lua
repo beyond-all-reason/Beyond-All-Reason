@@ -827,7 +827,7 @@ function widget:MousePress(x, y, button)
     if not disableInput then
       for cellRectID, cellRect in pairs(cellRects) do
         if cmds[cellRectID].id and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
-          if button ~= 2 then
+          if button ~= 3 then
             Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
             Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
           else
