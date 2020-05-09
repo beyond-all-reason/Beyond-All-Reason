@@ -86,7 +86,7 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-
+local disabledReduiBuildmenuFirsttime = false
 local scavengersAIEnabled = false
 local teams = Spring.GetTeamList()
 for i = 1,#teams do
@@ -827,6 +827,13 @@ local lastUpdate = 0
 --	minGroundDetail = 2
 --end
 function widget:Update(dt)
+
+
+	if not disabledReduiBuildmenuFirsttime then
+		widgetHandler:DisableWidget("Red Build Menu")
+		disabledReduiBuildmenuFirsttime = true
+	end
+
 	if countDownOptionID and countDownOptionClock and countDownOptionClock < os.clock() then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
@@ -3911,10 +3918,6 @@ end
 function widget:Initialize()
 
 
-	if not disabledReduiBuildmenuOnce then
-		widgetHandler:DisableWidget("Red Build Menu")
-	end
-
 	widget:ViewResize()
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
@@ -4132,7 +4135,7 @@ function widget:GetConfigData(data)
 	savedTable.defaultSunLighting = defaultSunLighting
 	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
-	savedTable.disabledReduiBuildmenuOnce = true
+	savedTable.disabledReduiBuildmenuFirsttime = true
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -4196,7 +4199,7 @@ function widget:SetConfigData(data)
 	if data.customMapSunPos then
 		customMapSunPos = data.customMapSunPos
 	end
-	if data.disabledReduiBuildmenuOnce then
-		disabledReduiBuildmenuOnce = true
+	if data.disabledReduiBuildmenuFirsttime then
+		disabledReduiBuildmenuFirsttime = true
 	end
 end
