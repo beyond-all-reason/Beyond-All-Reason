@@ -3,7 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, engine, thrusta, thrustb, emit;
+//piece  base, engine, thrusta, thrustb, emit;
+piece base, center, lwing, rwing, centerblade, backblade, thruster, thrusta, thrustb, nano, emit;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -15,9 +16,11 @@ activatescr()
 {
 	if( TRUE )
 	{
-		move engine to z-axis [10.000000] now;
-		move engine to z-axis [0.000000] speed [10];
-		sleep 996;
+		//move engine to z-axis [10.000000] now;
+		//move engine to z-axis [0.000000] speed [10];
+	move lwing to x-axis [0] speed[5];
+	move rwing to x-axis [0] speed[5];
+		sleep 1000;
 	}
 	sleep 6;
 	return (0);
@@ -27,9 +30,11 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move engine to z-axis [0.000000] now;
-		move engine to z-axis [10.000000] speed [10];
-		sleep 823;
+	move lwing to x-axis [5] speed[5];
+	move rwing to x-axis [-5] speed[5];
+		//move engine to z-axis [0.000000] now;
+		//move engine to z-axis [10.000000] speed [10];
+		sleep 1000;
 	}
 	sleep 7;
 	return (0);
@@ -113,6 +118,11 @@ Create()
 	call-script InitState();
 	start-script SmokeUnit();
 	return (0);
+	move lwing to x-axis [5] now;
+	move rwing to x-axis [-5] now;
+	hide thrusta;
+	hide thrustb;
+	hide emit;
 }
 
 Activate()
@@ -168,39 +178,39 @@ Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
-		corpsetype = 1 ;
+	corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode engine type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type BITMAPONLY | NOHEATCLOUD;
-		explode emit type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
+		explode thruster type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode center type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type BITMAPONLY | NOHEATCLOUD;
+		explode rwing type BITMAPONLY | NOHEATCLOUD;
+	return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
-		corpsetype = 2 ;
+	corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode engine type FALL | NOHEATCLOUD;
-		explode thrusta type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type FALL | NOHEATCLOUD;
-		explode emit type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		explode thruster type FALL | NOHEATCLOUD;
+		explode center type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing type FALL | NOHEATCLOUD;
+	return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
-		corpsetype = 3 ;
+	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode engine type SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode emit type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		explode thruster type SMOKE | FALL | NOHEATCLOUD;
+		explode center type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+	return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode engine type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode emit type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thruster type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode center type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
