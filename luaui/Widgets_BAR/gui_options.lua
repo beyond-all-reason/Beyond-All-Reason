@@ -2827,7 +2827,7 @@ function init()
 
 
 		-- GAME
-		{id="useNetworkSmoothing", restart=true, group="game", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nchange requires restart",
+		{id="networksmoothing", restart=true, group="game", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nchange requires restart",
 		 onload = function(i)
 			 options[i].onchange(i, options[i].value)
 		 end,

@@ -34,13 +34,13 @@ local cantFall = {}
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local isCommander = {}
-for udefID,def in ipairs(UnitDefs) do
+for udefID,def in pairs(UnitDefs) do
 	if def.customParams and def.customParams.iscommander then
 		isCommander[udefID] = true
 	end
 end
 local isDGUN = {}
-for udefID,_ in ipairs(isCommander) do
+for udefID,_ in pairs(isCommander) do
 	if WeaponDefNames[ UnitDefs[ udefID ].name..'_disintegrator' ] then
 		isDGUN[ WeaponDefNames[ UnitDefs[udefID].name..'_disintegrator' ].id ] = true
 	else
