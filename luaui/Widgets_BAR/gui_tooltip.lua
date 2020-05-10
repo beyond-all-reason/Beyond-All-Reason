@@ -35,7 +35,7 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 local vsx,vsy = Spring.GetViewGeometry()
 
 local defaultDelay = 0.4
-local cfgFontSize = 16.5
+local cfgFontSize = 16.8
 
 local usedFontSize = cfgFontSize - (3 * ((vsx/vsy) - 1.78))
 local xOffset = 35
@@ -268,7 +268,7 @@ end
 function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
 
-	local paddingH = 10 *widgetScale
+	local paddingH = 10 * widgetScale
 	local paddingW = paddingH * 1.45
 	local posX = x + paddingW
 	local posY = y + paddingH
@@ -278,7 +278,7 @@ function drawTooltip(name, x, y)
 	local maxHeight = 0
 	local lineHeight = fontSize + (fontSize/4.5)
 	local lines = lines(tooltips[name].value)
-	
+
 	-- get text dimentions
 	for i, line in ipairs(lines) do
 		maxWidth = math.max(maxWidth, (font:GetTextWidth(line)*fontSize))
@@ -297,7 +297,7 @@ function drawTooltip(name, x, y)
 	if posY-maxHeight-paddingH-paddingH < 0 then
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
-	
+
 	-- draw background
 	local cornersize = 0
 	--glColor(0.45,0.45,0.45,(WG['guishader'] and 0.66 or 0.8))
@@ -307,7 +307,7 @@ function drawTooltip(name, x, y)
 			RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 4*widgetScale)
 		end), 'tooltip_'..name)
 	end
-	cornersize = 2.45*widgetScale
+	cornersize = 2.4*widgetScale
 	--glColor(0,0,0,(WG['guishader'] and 0.22 or 0.26))
 	RectRound(posX-paddingW+cornersize,
 		posY-maxHeight-paddingH+cornersize,
@@ -315,7 +315,7 @@ function drawTooltip(name, x, y)
 		posY+paddingH-cornersize-0.06,
 		2.9*widgetScale,
 		2,2,2,2, {0,0,0,(WG['guishader'] and 0.5 or 0.55)}, {0.15,0.15,0.15,(WG['guishader'] and 0.47 or 0.55)})
-	
+
 	-- draw text
 	maxHeight = -fontSize*0.93
 	glTranslate(posX, posY, 0)
@@ -330,7 +330,7 @@ function drawTooltip(name, x, y)
 	glTranslate(-posX, -posY, 0)
 end
 
-local cleanupGuishaderAreas = {} 
+local cleanupGuishaderAreas = {}
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
