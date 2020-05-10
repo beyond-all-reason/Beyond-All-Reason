@@ -652,8 +652,15 @@ function drawOrders()
   font2:End()
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 local clickCountDown = 2
 function widget:DrawScreen()
+  if chobbyInterface then return end
   clickCountDown = clickCountDown - 1
   if clickCountDown == 0 then
     doUpdate = true
