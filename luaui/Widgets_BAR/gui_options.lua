@@ -67,7 +67,7 @@ local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
 
 local changesRequireRestart = false
 
-local networksmoothing = true		-- using custom vr and not directly from springsettings so we can always smooth when spec
+local networksmoothing = false
 
 local customMapSunPos = {}
 
@@ -2287,20 +2287,28 @@ function init()
 		},
 
 		-- CONTROL
-		{id="networksmoothing", group="control", name="Network smoothing", type="bool", value=networksmoothing, description="Adds additional delay to assure smooth gameplay and stability\n\n(will always smooth when spectator)",
+		{id="networksmoothing", restart=true, group="control", name="Network smoothing", type="bool", value=networksmoothing, description="Adds additional delay to assure smooth gameplay and stability\nToggle the off when you connection quality is good\n\nchange requires restart",
 		 onload = function(i)
-			 if not networksmoothing then
-				 if isSpec then
-					 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
-				 else
-					 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
-				 end
-			 end
+			 options[i].onchange(i, options[i].value)
 		 end,
 		 onchange=function(i, value)
 			 networksmoothing = value
-			 if not isSpec then
-				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", (value and 1 or 0))
+			 if networksmoothing then
+				 -- spring default
+				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
+				 Spring.SetConfigInt("NetworkLossFactor", 0)
+				 Spring.SetConfigInt("LinkOutgoingBandwidth", 65536)
+				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 65536)
+				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 32768)
+				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 64)
+
+			 else
+				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+				 Spring.SetConfigInt("NetworkLossFactor", 2)
+				 Spring.SetConfigInt("LinkOutgoingBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
 			 end
 		 end,
 		},
@@ -3944,13 +3952,6 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
-	if not networksmoothing then
-		if isSpec then
-			Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
-		elseif not networksmoothing then
-			Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
-		end
-	end
 end
 
 
