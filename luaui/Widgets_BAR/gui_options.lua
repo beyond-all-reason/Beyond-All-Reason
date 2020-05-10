@@ -67,7 +67,11 @@ local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
 
 local changesRequireRestart = false
 
+local networksmoothing = true		-- using custom vr and not directly from springsettings so we can always smooth when spec
+
 local customMapSunPos = {}
+
+local isSpec = Spring.GetSpectatingState()
 
 local spIsGUIHidden = Spring.IsGUIHidden
 
@@ -2283,6 +2287,23 @@ function init()
 		},
 
 		-- CONTROL
+		{id="networksmoothing", group="control", name="Network smoothing", type="bool", value=networksmoothing, description="Adds additional delay to assure smooth gameplay and stability\n\n(will always smooth when spectator)",
+		 onload = function(i)
+			 if not networksmoothing then
+				 if isSpec then
+					 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
+				 else
+					 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+				 end
+			 end
+		 end,
+		 onchange=function(i, value)
+			 networksmoothing = value
+			 if not isSpec then
+				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", (value and 1 or 0))
+			 end
+		 end,
+		},
 		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
 		 onload = function(i) end,
 		 onchange = function(i, value)
@@ -3920,8 +3941,20 @@ function checkResolution()
 	end
 end
 
-function widget:Initialize()
 
+function widget:PlayerChanged(playerID)
+	isSpec = Spring.GetSpectatingState()
+	if not networksmoothing then
+		if isSpec then
+			Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
+		elseif not networksmoothing then
+			Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+		end
+	end
+end
+
+
+function widget:Initialize()
 
 	widget:ViewResize()
 
@@ -4141,6 +4174,7 @@ function widget:GetConfigData(data)
 	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
 	savedTable.disabledReduiBuildmenuFirsttime = true
+	savedTable.networksmoothing = networksmoothing
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -4206,5 +4240,8 @@ function widget:SetConfigData(data)
 	end
 	if data.disabledReduiBuildmenuFirsttime then
 		disabledReduiBuildmenuFirsttime = true
+	end
+	if data.networksmoothing then
+		networksmoothing = true
 	end
 end
