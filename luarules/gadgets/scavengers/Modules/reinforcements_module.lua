@@ -18,7 +18,10 @@ function CaptureBeacons(n)
 				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
 			end
 			local posx,posy,posz = Spring.GetUnitPosition(scav)
-			local unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
+			--Spring.Echo("posx "..posx)
+			--Spring.Echo("posz "..posz)
+			unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
+			--Spring.Echo("#unitsAround "..#unitsAround)
 			CapturingUnits = {}
 			CapturingUnitsTeam = {}
 			CapturingUnitsTeamTest = {}
@@ -76,20 +79,25 @@ function CaptureBeacons(n)
 						IsUnitExcluded = false
 					end
 				end
-
+				
 				if unitDefID == scavDef then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
-				elseif unitTeamID == GaiaTeamID and (not unitTeamID == scavDef) then
+					--Spring.Echo("uncapturing myself")
+				elseif unitTeamID == GaiaTeamID and (not unitDefID == scavDef) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
+					--Spring.Echo("uncapturing our beacon")
 				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + 0.001
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
+					--Spring.Echo("capturing scav beacon")
 				end
 				if CaptureProgressForBeacons[scav] < 0 then
 					CaptureProgressForBeacons[scav] = 0
+					--Spring.Echo("capture below 0")
 				end
 				if CaptureProgressForBeacons[scav] > 1 then
 					CaptureProgressForBeacons[scav] = 1
+					--Spring.Echo("capture above 1")
 				end
 				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
 
@@ -105,6 +113,7 @@ function CaptureBeacons(n)
 			end
 			CapturingUnits = nil
 			CapturingUnitsTeam = nil
+			unitsAround = nil
 		end
 	end
 end
