@@ -356,7 +356,7 @@ local function updateRejoin()
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
 
-		local barHeight = (height*widgetScale/10)
+		local barHeight = (height*widgetScale/9)
 		local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 		local barLeftPadding = 7* widgetScale
 		local barRightPadding = 7 * widgetScale
@@ -364,12 +364,11 @@ local function updateRejoin()
 		local barWidth = barArea[3] - barArea[1]
 
 		-- bar background
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0.5,0,0.25},{0,0,0,0.25})
+		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0,0,0.27},{0.44,0.44,0.44,0.44})
 
 		-- Bar value
 		glColor(0, 1, 0, 1)
 		RectRound(barArea[1], barArea[2], barArea[1]+(catchup * barWidth), barArea[4], barHeight*0.2, 1,1,1,1, {0,0.55,0,1},{0, 1, 0, 1})
-
 
 		-- Bar value glow
 		local glowSize = barHeight * 6
@@ -869,7 +868,7 @@ local function updateResbar(res)
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_'..res)
 		end
-		
+
 		-- Icon
 		glColor(1,1,1,1)
 		local iconPadding = (area[4] - area[2]) / 11
@@ -882,16 +881,8 @@ local function updateResbar(res)
 		glTexture(false)
 
 		-- Bar background
-		local color1, color2
-		if res == 'metal' then
-			color1 = {0,0,0,0.27}
-			color2 = {0.44,0.44,0.44,0.44}
-		else
-			color1 = {0,0,0,0.27}
-			color2 = {0.44,0.44,0.44,0.44}
-		end
 		local addedSize = (barArea[4]-barArea[2])*0.25
-		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.2, 1,1,1,1, color1,color2)
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.2, 1,1,1,1, {0,0,0,0.27},{0.44,0.44,0.44,0.44})
 	end)
 
 	dlistResbar[res][2] = glCreateList( function()
@@ -969,7 +960,7 @@ function init()
 		glDeleteList(dlistBackground)
 	end
 	dlistBackground = glCreateList( function()
-		
+
 		--glColor(0, 0, 0, 0.66)
 		--RectRound(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], 6*widgetScale)
 		--
@@ -977,18 +968,18 @@ function init()
 		--RectRound(barContentArea[1], barContentArea[2], barContentArea[3], barContentArea[4]+(10*widgetScale), 5*widgetScale)
 
 	end)
-	
+
 	-- metal
 	local width = (totalWidth/4)
 	resbarArea['metal'] = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
 	updateResbar('metal')
-	
+
 	--energy
 	resbarArea['energy'] = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
 	updateResbar('energy')
-	
+
 	-- wind
 	width = ((height*1.18)*widgetScale)
 	windArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
@@ -1006,13 +997,13 @@ function init()
 	width = (totalWidth/4) / 3.3
 	rejoinArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
-	
+
 	-- buttons
 	width = (totalWidth/4)
 	buttonsArea = {barContentArea[3]-width, barContentArea[2], barContentArea[3], barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
 	updateButtons()
-	
+
 	WG['topbar'].GetPosition = function()
 		return {topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, barContentArea[2]}
 	end
@@ -1055,7 +1046,7 @@ local blinkDirection = true
 local blinkProgress = 0
 function widget:Update(dt)
 	if chobbyInterface then return end
-	
+
     local prevMyTeamID = myTeamID
     if spec and spGetMyTeamID() ~= prevMyTeamID then  -- check if the team that we are spectating changed
         checkStatus()
@@ -1468,9 +1459,9 @@ function widget:DrawScreen()
                 quitscreenQuitArea = {(vsx/2)+(buttonMargin/2), (vsy/1.8)-(h/2)+buttonMargin, (vsx/2)+(w/2)-buttonMargin, (vsy/1.8)-(h/2)+buttonHeight-buttonMargin}
 
                 -- window
-                glColor(1,1,1,0.5+(0.36*fadeProgress))
+                glColor(1,1,1,0.6+(0.34*fadeProgress))
                 RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
-                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding*0.8, 1,1,1,1, {0.55,0.55,0.5,0.12+(0.035*fadeProgress)}, {0,0,0,0.1+(0.035*fadeProgress)})
+                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding*0.8, 1,1,1,1, {0.55,0.55,0.5,0.025+(0.025*fadeProgress)}, {0.2,0.2,0.2,0.025+(0.025*fadeProgress)})
 
                 local fontSize = h/6
                 font:Begin()
@@ -1790,7 +1781,7 @@ function widget:MouseRelease(x, y, button)
 		adjustSliders(x, y)
 		draggingConversionIndicator = nil
 	end
-	
+
 	--if button == 1 then
 	--	if buttonsArea['buttons'] ~= nil then	-- reapply again because else the other widgets disable when there is a click outside of their window
 	--		for button, pos in pairs(buttonsArea['buttons']) do

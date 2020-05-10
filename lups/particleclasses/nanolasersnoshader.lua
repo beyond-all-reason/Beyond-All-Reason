@@ -60,7 +60,7 @@ NanoLasersNoShader.Default = {
   corealpha       = 1,
   texture         = "bitmaps/default/largelaserfalloff.tga",
 }
-
+local nanotex = "bitmaps/default/largelaserfalloff.tga"
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
@@ -139,9 +139,9 @@ local function DrawNanoLasersNoShader(dir,dir_upright,visibility,streamThickness
 end
 
 function NanoLasersNoShader:Draw()
-  if (lastTexture~=self.texture) then
-    glTexture(self.texture)
-    lastTexture=self.texture
+  if lastTexture~=nanotex then--self.texture then
+    glTexture(nanotex)--self.texture
+    lastTexture=nanotex--self.texture
   end
 
   glPushMatrix()

@@ -475,7 +475,7 @@ function drawOrders()
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1]+(altPosition and padding or 0), backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
-  padding = (bgBorder*vsy) * 0.4
+  padding = (bgBorder*vsy) * 0.35
 
   local cellInnerWidth = (cellRects[1][3]-cellMarginPx) - (cellRects[1][1]+cellMarginPx)--(width*vsx/colls)-cellMarginPx-cellMarginPx-padding-padding
   local cellInnerHeight = (cellRects[1][4]-cellMarginPx) - (cellRects[1][2]+cellMarginPx)--(height*vsy/rows)-cellMarginPx-cellMarginPx-padding-padding
@@ -652,8 +652,15 @@ function drawOrders()
   font2:End()
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 local clickCountDown = 2
 function widget:DrawScreen()
+  if chobbyInterface then return end
   clickCountDown = clickCountDown - 1
   if clickCountDown == 0 then
     doUpdate = true
@@ -666,8 +673,9 @@ function widget:DrawScreen()
 
   local x,y,b = Spring.GetMouseState()
   local cellHovered
-  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-    Spring.SetMouseCursor('cursornormal')
+  if not WG['topbar'] or not WG['topbar'].showingQuit() then
+    if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+      Spring.SetMouseCursor('cursornormal')
       for cell=1, #cellRects do
         if cmds[cell] then
           if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
@@ -676,7 +684,7 @@ function widget:DrawScreen()
             cellHovered = cell
 
             -- draw highlight under the button
-            if not disableInput and not (activeCmd and activeCmd == cmd.name) then
+            if not (activeCmd and activeCmd == cmd.name) then
               local padding = (bgBorder*vsy) * 0.5
               glColor(1,1,1,0.8)
               RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
@@ -686,6 +694,7 @@ function widget:DrawScreen()
         else
           break
         end
+      end
     end
   end
 
@@ -728,12 +737,14 @@ function widget:DrawScreen()
     gl.CallList(dlistOrders)
 
     -- draw highlight on top of button
-    if cellHovered and not disableInput then
-      --glBlending(GL_SRC_ALPHA, GL_ONE)
-      local padding = activeCmd == cmds[cellHovered].name and (bgBorder*vsy) * 0.4 or 0
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.15}, {1,1,1,0.5})
-      RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,0.22}, {1,1,1,0})
-      --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    if not WG['topbar'] or not WG['topbar'].showingQuit() then
+      if cellHovered then
+        --glBlending(GL_SRC_ALPHA, GL_ONE)
+        local padding = activeCmd == cmds[cellHovered].name and (bgBorder*vsy) * 0.35 or 0
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.15}, {1,1,1,(disableInput and 0.3 or 0.5)})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,(disableInput and 0.15 or 0.22)}, {1,1,1,0})
+        --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+      end
     end
 
     -- clicked cell effect

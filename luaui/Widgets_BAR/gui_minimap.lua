@@ -269,7 +269,14 @@ function drawMinimap()
   --RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+    if msg:sub(1,18) == 'LobbyOverlayActive' then
+        chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+    end
+end
+
 function widget:DrawScreen()
+    if chobbyInterface then return end
   --local x,y,b = Spring.GetMouseState()
   --if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
   --  Spring.SetMouseCursor('cursornormal')

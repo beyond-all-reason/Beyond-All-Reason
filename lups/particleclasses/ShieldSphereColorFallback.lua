@@ -30,6 +30,7 @@ ShieldSphereColorFallback.Default = {
   life       = math.huge,
   repeatEffect = true,
   shieldSize = "large",
+  size       = 1,
 }
 
 -----------------------------------------------------------------------------------------------------------------
@@ -59,10 +60,10 @@ end
 function ShieldSphereColorFallback:Draw()
   local pos  = self.pos
   gl.Translate(pos[1],pos[2],pos[3])
-  
+
   local col = GetShieldColor(self.unit, self)
   col[4] = col[4]*0.2
-  
+
   gl.Color(1, 1, 1, 1)
   gl.Material({
     ambient   = {col[1], col[2], col[3], col[4]},

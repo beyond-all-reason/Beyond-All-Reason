@@ -67,7 +67,11 @@ local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
 
 local changesRequireRestart = false
 
+local useNetworkSmoothing = false
+
 local customMapSunPos = {}
+
+local isSpec = Spring.GetSpectatingState()
 
 local spIsGUIHidden = Spring.IsGUIHidden
 
@@ -86,7 +90,7 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-
+local disabledReduiBuildmenuFirsttime = false
 local scavengersAIEnabled = false
 local teams = Spring.GetTeamList()
 for i = 1,#teams do
@@ -827,6 +831,12 @@ local lastUpdate = 0
 --	minGroundDetail = 2
 --end
 function widget:Update(dt)
+
+	if not disabledReduiBuildmenuFirsttime then
+		widgetHandler:DisableWidget("Red Build Menu")
+		disabledReduiBuildmenuFirsttime = true
+	end
+
 	if countDownOptionID and countDownOptionClock and countDownOptionClock < os.clock() then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
@@ -834,22 +844,22 @@ function widget:Update(dt)
 	end
 
 	if not initialized then return end
+
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-	--if select(7, Spring.GetMouseState()) then	-- when camera panning
-	--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
-	--else
-	Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
-	--end
+		--if select(7, Spring.GetMouseState()) then	-- when camera panning
+		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		--else
+		Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		--end
 	end
 	sec = sec + dt
-
 
 	Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
 	Spring.SetConfigInt("ROAM", 1)
 	Spring.SendCommands("mapmeshdrawer 2")
 	if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < 100 then
-	Spring.SendCommands("GroundDetail "..100)
+		Spring.SendCommands("GroundDetail "..100)
 	end
 	-- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
 	-- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
@@ -878,34 +888,33 @@ function widget:Update(dt)
 	--	mapmeshdrawerChecked = true
 	--end
 
-
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
-	sec = 0
-	forceUpdate = nil
-	lastUpdate = sec
-	local changes = true
-	for i, option in ipairs(options) do
-	if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
-	options[i].value = GetWidgetToggleValue(options[i].widget)
-	changes = true
+		sec = 0
+		forceUpdate = nil
+		lastUpdate = sec
+		local changes = true
+		for i, option in ipairs(options) do
+			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
+				options[i].value = GetWidgetToggleValue(options[i].widget)
+				changes = true
+			end
+		end
+		if changes then
+			if windowList then
+				gl.DeleteList(windowList)
+			end
+			windowList = gl.CreateList(DrawWindow)
+		end
+		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
+		if getOptionByID('sndvolmusic') then
+			if WG['music'] and WG['music'].GetMusicVolume then
+				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
+			else
+				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)
+			end
+		end
 	end
-	end
-	if changes then
-	if windowList then
-	gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
-	end
-	options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
-	if getOptionByID('sndvolmusic') then
-	if WG['music'] and WG['music'].GetMusicVolume then
-	options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
-	else
-	options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)
-	end
-	end
-	end
-	end
+end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
@@ -2278,6 +2287,30 @@ function init()
 		},
 
 		-- CONTROL
+		{id="useNetworkSmoothing", restart=true, group="control", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nToggle the off when you connection quality is good\n\nchange requires restart",
+		 onload = function(i)
+			 options[i].onchange(i, options[i].value)
+		 end,
+		 onchange=function(i, value)
+			 useNetworkSmoothing = value
+			 if useNetworkSmoothing then
+				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
+				 Spring.SetConfigInt("NetworkLossFactor", 0)
+				 Spring.SetConfigInt("LinkOutgoingBandwidth", 98304)
+				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 983044)
+				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 983044)
+				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 128)
+
+			 else
+				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+				 Spring.SetConfigInt("NetworkLossFactor", 2)
+				 Spring.SetConfigInt("LinkOutgoingBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
+			 end
+		 end,
+		},
 		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
 		 onload = function(i) end,
 		 onchange = function(i, value)
@@ -2413,17 +2446,6 @@ function init()
 		 end,
 		},
 
-		{id="buildmenualternativeicons", group="ui", name="Alternative unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigAlternativeIcons()), description='Switch to a different unit icon set',
-		 onload = function(i) end,
-		 onchange = function(i, value)
-			 saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-		 end,
-		},
-
 		{id="teamcolors", group="ui", basic=true, widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", basic=true, name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
 		 onload = function(i) end,
@@ -2451,31 +2473,13 @@ function init()
 		 end,
 		},
 
-		{id="font", group="ui", name="Font", type="select", options={}, value=1, description='Regular read friendly font used for text',
-		 onload = function(i) end,
-		 onchange = function(i, value)
-			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
-				 Spring.SetConfigString("bar_font", options[i].optionsFont[value])
-				 Spring.SendCommands("luarules reloadluaui")
-			 end
-		 end,
-		},
-		{id="font2", group="ui", name="Font 2", type="select", options={}, value=1, description='Stylistic font mainly used for names/buttons/titles',
-		 onload = function(i) end,
-		 onchange = function(i, value)
-			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
-				 Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
-				 Spring.SendCommands("luarules reloadluaui")
-			 end
-		 end,
-		},
-		{id="guiopacity", group="ui", basic=true, name="Interface"..widgetOptionColor.."  opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description='',
-		 onload = function(i) end,
-		 onchange = function(i, value) Spring.SetConfigFloat("ui_opacity", value) end,
-		},
-		{id="uiscale", group="ui", basic=true, name=widgetOptionColor.."   scale", type="slider", min=0.75, max=1.15, step=0.01, value=Spring.GetConfigFloat("ui_scale",1), description='',
+		{id="uiscale", group="ui", basic=true, name="Interface"..widgetOptionColor.."  scale", type="slider", min=0.75, max=1.15, step=0.01, value=Spring.GetConfigFloat("ui_scale",1), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("ui_scale", value) end,
+		},
+		{id="guiopacity", group="ui", basic=true, name=widgetOptionColor.."   opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description='',
+		 onload = function(i) end,
+		 onchange = function(i, value) Spring.SetConfigFloat("ui_opacity", value) end,
 		},
 
 		{id="guishader", group="ui", basic=true, widget="GUI Shader", name=widgetOptionColor.."   blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
@@ -2484,87 +2488,93 @@ function init()
 		 onchange = function(i, value) saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', {'blurIntensity'}, value) end,
 		},
 
-		{id="metalspots", group="ui", widget="Metalspots", name="Metalspot indicators", type="bool", value=GetWidgetToggleValue("Metalspots"), description='Shows a circle around metal spots with the amount of metal in it'},
-		{id="metalspots_opacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.1, max=1, step=0.01, value=0.5, description='Display metal values in the center',
-		 onload=function(i) loadWidgetData("Metalspots", "metalspots_opacity", {'opacity'}) end,
-		 onchange=function(i, value)
-			 WG.metalspots.setShowValue(value)
-			 saveOptionValue('Metalspots', 'metalspots', 'setOpacity', {'opacity'}, options[getOptionByID('metalspots_opacity')].value)
+		{id="font", group="ui", name=widgetOptionColor.."   font", type="select", options={}, value=1, description='Regular read friendly font used for text',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
+				 Spring.SetConfigString("bar_font", options[i].optionsFont[value])
+				 Spring.SendCommands("luarules reloadluaui")
+			 end
 		 end,
 		},
-		{id="metalspots_values", group="ui", name=widgetOptionColor.."   show values", type="bool", value=true, description='Display metal values (during game))\n\nPre-gamestart or when in metalmap view (f4) this will always be shown',
-		 onload=function(i) loadWidgetData("Metalspots", "metalspots_values", {'showValues'}) end,
-		 onchange=function(i, value)
-			 WG.metalspots.setShowValue(value)
-			 saveOptionValue('Metalspots', 'metalspots', 'setShowValue', {'showValue'}, options[getOptionByID('metalspots_values')].value)
-		 end,
-		},
-		{id="metalspots_metalviewonly", group="ui", name=widgetOptionColor.."   limit to F4 (metalmap) view", type="bool", value=false, description='Limit display to only during pre-gamestart or when in metalmap view (f4)',
-		 onload=function(i) loadWidgetData("Metalspots", "metalspots_metalviewonly", {'metalViewOnly'}) end,
-		 onchange=function(i, value)
-			 saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', {'showValue'}, options[getOptionByID('metalspots_metalviewonly')].value)
+		{id="font2", group="ui", name=widgetOptionColor.."   font 2", type="select", options={}, value=1, description='Stylistic font mainly used for names/buttons/titles',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 if VFS.FileExists('fonts/'..options[i].optionsFont[value]) then
+				 Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
+				 Spring.SendCommands("luarules reloadluaui")
+			 end
 		 end,
 		},
 
-		{id="cursorlight", group="ui", basic=true, widget="Cursor Light", name="Cursor light", type="bool", value=GetWidgetToggleValue("Cursor Light"), description='Adds a light at/above your cursor position'},
-		{id="cursorlight_lightradius", group="ui", name=widgetOptionColor.."   radius", type="slider", min=0.15, max=1, step=0.05, value=1.5, description='',
-		 onload=function(i) loadWidgetData("Cursor Light", "cursorlight_lightradius", {'lightRadiusMult'}) end,
-		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', {'lightRadiusMult'}, value) end,
-		},
-		{id="cursorlight_lightstrength", group="ui", name=widgetOptionColor.."   strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.2, description='',
-		 onload=function(i) loadWidgetData("Cursor Light", "cursorlight_lightstrength", {'lightStrengthMult'}) end,
-		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', {'lightStrengthMult'}, value) end,
-		},
-
-		{id="allycursors", group="ui", basic=true, widget="AllyCursors", name="Ally cursors", type="bool", value=GetWidgetToggleValue("AllyCursors"), description='Shows the position of ally cursors'},
-		{id="allycursors_playername", group="ui",  name=widgetOptionColor.."   player name", type="bool", value=true, description='Shows the player name next to the cursor',
-		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_playername", {'showPlayerName'}) end,
-		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', {'showPlayerName'}, value) end,
-		},
-		{id="allycursors_spectatorname", group="ui",  name=widgetOptionColor.."   spectator name", type="bool", value=true, description='Shows the spectator name next to the cursor',
-		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_spectatorname", {'showSpectatorName'}) end,
-		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorNames', {'showSpectatorName'}, value) end,
-		},
-		{id="allycursors_showdot", group="ui",  name=widgetOptionColor.."   cursor dot", type="bool", value=true, description='Shows a dot at the center of ally cursor position',
-		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_showdot", {'showCursorDot'}) end,
-		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', {'showCursorDot'}, value) end,
-		},
-		{id="allycursors_lights", group="ui", name=widgetOptionColor.."   lights (non-specs)", type="bool", value=true, description='Adds a colored light to every ally cursor',
-		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_lights", {'addLights'}) end,
-		 onchange=function(i, value)
-			 saveOptionValue('AllyCursors', 'allycursors', 'setLights', {'addLights'}, options[getOptionByID('allycursors_lights')].value)
+		{id="buildmenualternativeicons", group="ui", name=widgetOptionColor.."   Alternative unit icons", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getAlternativeIcons()), description='Switch to a different unit icon set',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Buildmenu', 'buildmenu', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 		 end,
 		},
-		{id="allycursors_lightradius", group="ui", name=widgetOptionColor.."      radius", type="slider", min=0.15, max=1, step=0.05, value=0.5, description='',
-		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_lightradius", {'lightRadiusMult'}) end,
-		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', {'lightRadiusMult'}, value) end,
-		},
-		{id="allycursors_lightstrength", group="ui", name=widgetOptionColor.."      strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.85, description='',
-		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_lightstrength", {'lightStrengthMult'}) end,
-		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightStrength', {'lightStrengthMult'}, value) end,
+
+		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
+		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
+
+		{id="ordermenu_colorize", group="ui", basic=true, name="Ordermenu"..widgetOptionColor.."  colorize", type="slider", min=0, max=1, step=0.1, value=0, description='',
+		 onload = function(i) loadWidgetData("Order menu", "ordermenu_colorize", {'colorize'}) end,
+		 onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
 		},
 
-		{id="showbuilderqueue", group="ui", basic=true, widget="Show Builder Queue", name="Show builder queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
-
-		{id="unitenergyicons", group="ui", basic=true, widget="Unit energy icons", name="Unit insufficient energy icons", type="bool", value=GetWidgetToggleValue("Unit energy icons"), description='Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy availible.'},
-		{id="unitenergyicons_self", group="ui", name=widgetOptionColor.."   limit to own units", type="bool", value=(WG['unitenergyicons']~=nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description='Only show above your own units',
-		 onload = function(i) loadWidgetData("Unit energy icons", "unitenergyicons_self", {'onlyShowOwnTeam'}) end,
-		 onchange = function(i, value) saveOptionValue('Unit energy icons', 'unitenergyicons', 'setOnlyShowOwnTeam', {'onlyShowOwnTeam'}, value) end,
+		--{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
+		--},
+		{id="buildmenu_makefancy", group="ui", basic=true, name="Buildmenu"..widgetOptionColor.."  fancy", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getMakeFancy~=nil and WG['buildmenu'].getMakeFancy()), description='Adds extra gradients and highlights',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMakeFancy', {'showMakeFancy'}, value) end,
 		},
-
-		{id="healthbarsscale", group="ui", name="Health bars"..widgetOptionColor.."  scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
-		 onload=function(i) loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
-		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
+		{id="buildmenu_prices", group="ui", basic=true, name=widgetOptionColor.."   prices", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowPrice~=nil and WG['buildmenu'].getShowPrice()), description='Unit prices in the buildmenu',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowPrice', {'showPrice'}, value) end,
 		},
-		{id="healthbarshide", group="ui", name=widgetOptionColor.."   show health only when selected", type="bool", value=(WG['healthbar']~=nil and WG['nametags'].getDrawForIcon()), description='Hide the healthbar and rely on damaged unit looks',
-		 onload = function(i) loadWidgetData("Health Bars", "healthbarshide", {'hideHealthbars'}) end,
-		 onchange = function(i, value) saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', {'hideHealthbars'}, value) end,
+		{id="buildmenu_radaricon", group="ui", basic=true, name=widgetOptionColor.."   radar icon", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowRadarIcon~=nil and WG['buildmenu'].getShowRadarIcon()), description='Radar icons in the buildmenu',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowRadarIcon', {'showRadarIcon'}, value) end,
 		},
-
-		{id="nametags_icon", group="ui", name="Commander name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon',
-		 onload = function(i) loadWidgetData("Commander Name Tags", "nametags_icon", {'drawForIcon'}) end,
-		 onchange = function(i, value) saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', {'drawForIcon'}, value) end,
+		--{id="buildmenu_shortcuts", group="ui", basic=true, name=widgetOptionColor.."   shortcuts", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowShortcuts~=nil and WG['buildmenu'].getShowShortcuts()), description='Shortcuts prices in the buildmenu',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
+		--},
+		{id="buildmenu_defaultcolls", group="ui", basic=true, name=widgetOptionColor.."   columns", type="slider", min=4, max=6, step=1, value=5, description='Number of columns when "dynamic columns" is disabled',
+		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_defaultcolls", {'defaultColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setDefaultColls', {'defaultColls'}, value) end,
 		},
+		{id="buildmenu_dynamic", group="ui", basic=true, name=widgetOptionColor.."   dynamic columns", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getDynamicIconsize~=nil and WG['buildmenu'].getDynamicIconsize()), description='Use variable number of columns depending on number of buildoptions availible',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setDynamicIconsize', {'dynamicIconsize'}, value) end,
+		},
+		{id="buildmenu_mincolls", group="ui", name=widgetOptionColor.."      min columns", type="slider", min=4, max=6, step=1, value=5, description='',
+		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_mincolls", {'minColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMinColls', {'minColls'}, value) end,
+		},
+		{id="buildmenu_maxcolls", group="ui", name=widgetOptionColor.."      max columns", type="slider", min=4, max=7, step=1, value=6, description='',
+		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_maxcolls", {'maxColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMaxColls', {'maxColls'}, value) end,
+		},
+		--{id="buildmenuprices", group="ui", name=widgetOptionColor.."   prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, value) end,
+		--},
+		--{id="buildmenuradaricons", group="ui", name=widgetOptionColor.."   radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, value) end,
+		--},
+		--{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
+		--},
 
 		{id="consolemaxlines", group="ui", name="Console"..widgetOptionColor.."  max lines", type="slider", min=3, max=9, step=1, value=6, description='',
 		 onload = function(i)
@@ -2584,36 +2594,14 @@ function init()
 			 saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		 end,
 		},
-		{id="ordermenu_colorize", group="ui", basic=true, name="Ordermenu"..widgetOptionColor.."  colorize", type="slider", min=0, max=1, step=0.1, value=0, description='',
-		   onload = function(i) loadWidgetData("Order menu", "ordermenu_colorize", {'colorize'}) end,
-		   onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
-		},
-		{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
+
+		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist"..widgetOptionColor.."  mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
+		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
+		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
-		},
-		{id="buildmenuprices", group="ui", name=widgetOptionColor.."   prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)',
-		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, value) end,
-		},
-		{id="buildmenuradaricons", group="ui", name=widgetOptionColor.."   radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)',
-		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, value) end,
-		},
-		{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
-		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
+		 onchange = function(i,value) if value then Spring.StopSoundStream() end end
 		},
 
-		{id="commandsfx", group="ui", basic=true, widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
-		{id="commandsfxfilterai", group="ui", name=widgetOptionColor.."   filter AI teams", type="bool", value=true, description='Hide commands for AI teams',
-		 onload = function(i) loadWidgetData("Commands FX", "commandsfxfilterai", {'filterAIteams'}) end,
-		 onchange = function(i, value) saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', {'filterAIteams'}, value) end,
-		},
-		{id="commandsfxopacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.25, max=1, step=0.1, value=1, description='',
-		 onload = function(i) loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'}) end,
-		 onchange = function(i, value) saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', {'opacity'}, value) end,
-		},
 
 		{id="teamplatter", group="ui", basic=true, widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="teamplatter_opacity", basic=true, group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters',
@@ -2666,14 +2654,97 @@ function init()
 		 end,
 		},
 
-		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
-		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
+		{id="metalspots", group="ui", widget="Metalspots", name="Metalspot indicators", type="bool", value=GetWidgetToggleValue("Metalspots"), description='Shows a circle around metal spots with the amount of metal in it'},
+		{id="metalspots_opacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.1, max=1, step=0.01, value=0.5, description='Display metal values in the center',
+		 onload=function(i) loadWidgetData("Metalspots", "metalspots_opacity", {'opacity'}) end,
+		 onchange=function(i, value)
+			 WG.metalspots.setShowValue(value)
+			 saveOptionValue('Metalspots', 'metalspots', 'setOpacity', {'opacity'}, options[getOptionByID('metalspots_opacity')].value)
+		 end,
+		},
+		{id="metalspots_values", group="ui", name=widgetOptionColor.."   show values", type="bool", value=true, description='Display metal values (during game))\n\nPre-gamestart or when in metalmap view (f4) this will always be shown',
+		 onload=function(i) loadWidgetData("Metalspots", "metalspots_values", {'showValues'}) end,
+		 onchange=function(i, value)
+			 WG.metalspots.setShowValue(value)
+			 saveOptionValue('Metalspots', 'metalspots', 'setShowValue', {'showValue'}, options[getOptionByID('metalspots_values')].value)
+		 end,
+		},
+		{id="metalspots_metalviewonly", group="ui", name=widgetOptionColor.."   limit to F4 (metalmap) view", type="bool", value=false, description='Limit display to only during pre-gamestart or when in metalmap view (f4)',
+		 onload=function(i) loadWidgetData("Metalspots", "metalspots_metalviewonly", {'metalViewOnly'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', {'showValue'}, options[getOptionByID('metalspots_metalviewonly')].value)
+		 end,
+		},
 
-		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist"..widgetOptionColor.."  mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
-		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
-		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
-		 onload = function(i) end,
-		 onchange = function(i,value) if value then Spring.StopSoundStream() end end
+		{id="healthbarsscale", group="ui", name="Health bars"..widgetOptionColor.."  scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
+		 onload=function(i) loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
+		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
+		},
+		{id="healthbarshide", group="ui", name=widgetOptionColor.."   show health only when selected", type="bool", value=(WG['healthbar']~=nil and WG['nametags'].getDrawForIcon()), description='Hide the healthbar and rely on damaged unit looks',
+		 onload = function(i) loadWidgetData("Health Bars", "healthbarshide", {'hideHealthbars'}) end,
+		 onchange = function(i, value) saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', {'hideHealthbars'}, value) end,
+		},
+
+		{id="allycursors", group="ui", basic=true, widget="AllyCursors", name="Ally cursors", type="bool", value=GetWidgetToggleValue("AllyCursors"), description='Shows the position of ally cursors'},
+		{id="allycursors_playername", group="ui",  name=widgetOptionColor.."   player name", type="bool", value=true, description='Shows the player name next to the cursor',
+		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_playername", {'showPlayerName'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', {'showPlayerName'}, value) end,
+		},
+		{id="allycursors_spectatorname", group="ui",  name=widgetOptionColor.."   spectator name", type="bool", value=true, description='Shows the spectator name next to the cursor',
+		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_spectatorname", {'showSpectatorName'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorNames', {'showSpectatorName'}, value) end,
+		},
+		{id="allycursors_showdot", group="ui",  name=widgetOptionColor.."   cursor dot", type="bool", value=true, description='Shows a dot at the center of ally cursor position',
+		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_showdot", {'showCursorDot'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', {'showCursorDot'}, value) end,
+		},
+		{id="allycursors_lights", group="ui", name=widgetOptionColor.."   lights (non-specs)", type="bool", value=true, description='Adds a colored light to every ally cursor',
+		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_lights", {'addLights'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('AllyCursors', 'allycursors', 'setLights', {'addLights'}, options[getOptionByID('allycursors_lights')].value)
+		 end,
+		},
+		{id="allycursors_lightradius", group="ui", name=widgetOptionColor.."      radius", type="slider", min=0.15, max=1, step=0.05, value=0.5, description='',
+		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_lightradius", {'lightRadiusMult'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', {'lightRadiusMult'}, value) end,
+		},
+		{id="allycursors_lightstrength", group="ui", name=widgetOptionColor.."      strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.85, description='',
+		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_lightstrength", {'lightStrengthMult'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightStrength', {'lightStrengthMult'}, value) end,
+		},
+
+		{id="cursorlight", group="ui", basic=true, widget="Cursor Light", name="Cursor light", type="bool", value=GetWidgetToggleValue("Cursor Light"), description='Adds a light at/above your cursor position'},
+		{id="cursorlight_lightradius", group="ui", name=widgetOptionColor.."   radius", type="slider", min=0.15, max=1, step=0.05, value=1.5, description='',
+		 onload=function(i) loadWidgetData("Cursor Light", "cursorlight_lightradius", {'lightRadiusMult'}) end,
+		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', {'lightRadiusMult'}, value) end,
+		},
+		{id="cursorlight_lightstrength", group="ui", name=widgetOptionColor.."   strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.2, description='',
+		 onload=function(i) loadWidgetData("Cursor Light", "cursorlight_lightstrength", {'lightStrengthMult'}) end,
+		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', {'lightStrengthMult'}, value) end,
+		},
+
+		{id="showbuilderqueue", group="ui", basic=true, widget="Show Builder Queue", name="Show builder queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
+
+		{id="unitenergyicons", group="ui", basic=true, widget="Unit energy icons", name="Unit insufficient energy icons", type="bool", value=GetWidgetToggleValue("Unit energy icons"), description='Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy availible.'},
+		{id="unitenergyicons_self", group="ui", name=widgetOptionColor.."   limit to own units", type="bool", value=(WG['unitenergyicons']~=nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description='Only show above your own units',
+		 onload = function(i) loadWidgetData("Unit energy icons", "unitenergyicons_self", {'onlyShowOwnTeam'}) end,
+		 onchange = function(i, value) saveOptionValue('Unit energy icons', 'unitenergyicons', 'setOnlyShowOwnTeam', {'onlyShowOwnTeam'}, value) end,
+		},
+
+
+		{id="nametags_icon", group="ui", name="Commander name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon',
+		 onload = function(i) loadWidgetData("Commander Name Tags", "nametags_icon", {'drawForIcon'}) end,
+		 onchange = function(i, value) saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', {'drawForIcon'}, value) end,
+		},
+
+		{id="commandsfx", group="ui", basic=true, widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		{id="commandsfxfilterai", group="ui", name=widgetOptionColor.."   filter AI teams", type="bool", value=true, description='Hide commands for AI teams',
+		 onload = function(i) loadWidgetData("Commands FX", "commandsfxfilterai", {'filterAIteams'}) end,
+		 onchange = function(i, value) saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', {'filterAIteams'}, value) end,
+		},
+		{id="commandsfxopacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.25, max=1, step=0.1, value=1, description='',
+		 onload = function(i) loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'}) end,
+		 onchange = function(i, value) saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', {'opacity'}, value) end,
 		},
 
 		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
@@ -3877,6 +3948,12 @@ function checkResolution()
 	end
 end
 
+
+function widget:PlayerChanged(playerID)
+	isSpec = Spring.GetSpectatingState()
+end
+
+
 function widget:Initialize()
 
 	widget:ViewResize()
@@ -4096,6 +4173,8 @@ function widget:GetConfigData(data)
 	savedTable.defaultSunLighting = defaultSunLighting
 	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
+	savedTable.disabledReduiBuildmenuFirsttime = true
+	savedTable.useNetworkSmoothing = useNetworkSmoothing
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -4158,5 +4237,11 @@ function widget:SetConfigData(data)
 	end
 	if data.customMapSunPos then
 		customMapSunPos = data.customMapSunPos
+	end
+	if data.disabledReduiBuildmenuFirsttime then
+		disabledReduiBuildmenuFirsttime = true
+	end
+	if data.useNetworkSmoothing then
+		useNetworkSmoothing = data.useNetworkSmoothing
 	end
 end
