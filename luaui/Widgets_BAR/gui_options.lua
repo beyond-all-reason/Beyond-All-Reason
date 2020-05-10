@@ -67,7 +67,7 @@ local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
 
 local changesRequireRestart = false
 
-local networksmoothing = false
+local useNetworkSmoothing = false
 
 local customMapSunPos = {}
 
@@ -2287,20 +2287,19 @@ function init()
 		},
 
 		-- CONTROL
-		{id="networksmoothing", restart=true, group="control", name="Network smoothing", type="bool", value=networksmoothing, description="Adds additional delay to assure smooth gameplay and stability\nToggle the off when you connection quality is good\n\nchange requires restart",
+		{id="useNetworkSmoothing", restart=true, group="control", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nToggle the off when you connection quality is good\n\nchange requires restart",
 		 onload = function(i)
 			 options[i].onchange(i, options[i].value)
 		 end,
 		 onchange=function(i, value)
-			 networksmoothing = value
-			 if networksmoothing then
-				 -- spring default
+			 useNetworkSmoothing = value
+			 if useNetworkSmoothing then
 				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
 				 Spring.SetConfigInt("NetworkLossFactor", 0)
-				 Spring.SetConfigInt("LinkOutgoingBandwidth", 65536)
-				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 65536)
-				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 32768)
-				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 64)
+				 Spring.SetConfigInt("LinkOutgoingBandwidth", 98304)
+				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 983044)
+				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 983044)
+				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 128)
 
 			 else
 				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
@@ -4175,7 +4174,7 @@ function widget:GetConfigData(data)
 	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
 	savedTable.disabledReduiBuildmenuFirsttime = true
-	savedTable.networksmoothing = networksmoothing
+	savedTable.useNetworkSmoothing = useNetworkSmoothing
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -4242,7 +4241,7 @@ function widget:SetConfigData(data)
 	if data.disabledReduiBuildmenuFirsttime then
 		disabledReduiBuildmenuFirsttime = true
 	end
-	if data.networksmoothing then
-		networksmoothing = true
+	if data.useNetworkSmoothing then
+		useNetworkSmoothing = data.useNetworkSmoothing
 	end
 end
