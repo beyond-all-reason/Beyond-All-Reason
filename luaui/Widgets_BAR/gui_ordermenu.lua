@@ -505,7 +505,7 @@ function drawOrders()
 
     -- glossy effect
     RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.1,2,2,0,0, {1,1,1,0.045}, {1,1,1,0.1})
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.1,0,0,2,2, {1,1,1,0.08}, {1,1,1,0})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, (bgBorder*vsy) * 0.5*1.1,0,0,2,2, {1,1,1,0.1}, {1,1,1,0})
 
     -- icon
     if showIcons then
@@ -778,42 +778,40 @@ end
 
 
 function widget:MousePress(x, y, button)
-  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-    if #cmds > 0 then
-      if not disableInput then
-        for cell=1, #cellRects do
-          local cmd = cmds[cell]
-          if cmd then
-            if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
-              if playSounds then
-                clickCountDown = 2
-                clickedCell = cell
-                clickedCellTime = os_clock()
+  if #cmds > 0 and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+    if not disableInput then
+      for cell=1, #cellRects do
+        local cmd = cmds[cell]
+        if cmd then
+          if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+            if playSounds then
+              clickCountDown = 2
+              clickedCell = cell
+              clickedCellTime = os_clock()
 
-                -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
-                if cmd.type == 5 then
-                  if button == 1 then
-                    clickedCellDesiredState = cmd.params[1]+1
-                    if clickedCellDesiredState >= #cmd.params-1 then
-                      clickedCellDesiredState = 0
-                    end
-                  else
-                    clickedCellDesiredState = cmd.params[1]-1
-                    if clickedCellDesiredState < 0 then
-                      clickedCellDesiredState = #cmd.params-1
-                    end
+              -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
+              if cmd.type == 5 then
+                if button == 1 then
+                  clickedCellDesiredState = cmd.params[1]+1
+                  if clickedCellDesiredState >= #cmd.params-1 then
+                    clickedCellDesiredState = 0
                   end
-                  doUpdate = true
+                else
+                  clickedCellDesiredState = cmd.params[1]-1
+                  if clickedCellDesiredState < 0 then
+                    clickedCellDesiredState = #cmd.params-1
+                  end
                 end
-
-                Spring.PlaySoundFile(sound_button, 0.6, 'ui')
-                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),button,true,false,Spring.GetModKeyState())
+                doUpdate = true
               end
-              break
+
+              Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+              Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),button,true,false,Spring.GetModKeyState())
             end
-          else
             break
           end
+        else
+          break
         end
       end
     end
