@@ -1,0 +1,34 @@
+Beyond All Reason Mod for SpringRTS is provided under:
+
+    SPDX-License-Identifier: GPL-3.0-only
+
+All contributions to Beyond All Reason Mod for SpringRTS are subject to this COPYING file.
+
+    Copyright (C) 2020 by AUTHORS (see AUTHORS file)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Graphics Assets
+
+    Models made by FireStorm, Beherith, Mr Bob, Kaiser, Cremuss are released
+    under the CC-BY-NC-SA 4.0 license.
+
+    These can be identified by their custom parameter: "author" in their
+    respective units/* files.
+
+    Artwork (unitpics, cursors, loadpics, textures, sounds, ...) have their
+    own respective licensing information in their folders (Custom file/folder).
+
+    Any asset not covered by aforementioned information is subject to its
+    respective copyright of the author.
