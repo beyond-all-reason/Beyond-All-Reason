@@ -2287,30 +2287,6 @@ function init()
 		},
 
 		-- CONTROL
-		{id="useNetworkSmoothing", restart=true, group="control", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nToggle the off when you connection quality is good\n\nchange requires restart",
-		 onload = function(i)
-			 options[i].onchange(i, options[i].value)
-		 end,
-		 onchange=function(i, value)
-			 useNetworkSmoothing = value
-			 if useNetworkSmoothing then
-				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
-				 Spring.SetConfigInt("NetworkLossFactor", 0)
-				 Spring.SetConfigInt("LinkOutgoingBandwidth", 98304)
-				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 983044)
-				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 983044)
-				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 128)
-
-			 else
-				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
-				 Spring.SetConfigInt("NetworkLossFactor", 2)
-				 Spring.SetConfigInt("LinkOutgoingBandwidth", 262144)
-				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 262144)
-				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 262144)
-				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
-			 end
-		 end,
-		},
 		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
 		 onload = function(i) end,
 		 onchange = function(i, value)
@@ -2851,6 +2827,30 @@ function init()
 
 
 		-- GAME
+		{id="useNetworkSmoothing", restart=true, group="game", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nchange requires restart",
+		 onload = function(i)
+			 options[i].onchange(i, options[i].value)
+		 end,
+		 onchange=function(i, value)
+			 useNetworkSmoothing = value
+			 if useNetworkSmoothing then
+				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
+				 Spring.SetConfigInt("NetworkLossFactor", 0)
+				 Spring.SetConfigInt("LinkOutgoingBandwidth", 98304)
+				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 98304)
+				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 98304)
+				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 128)
+
+			 else
+				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+				 Spring.SetConfigInt("NetworkLossFactor", 2)
+				 Spring.SetConfigInt("LinkOutgoingBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 262144)
+				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
+			 end
+		 end,
+		},
 		{id="autoquit", group="game", basic=true, widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
 		{id="smartselect_includebuildings", group="game", basic=true, name="Include structures in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\n\ndisabled: non-mobile units will be excluded\n(except: nanos always will be selected)',
