@@ -405,9 +405,9 @@ bigfire()
 {
 	turn ruparm to x-axis <40> now;
 	turn biggun to x-axis <-40> now;
-	turn ruparm to x-axis <0> speed <80>;
-	turn biggun to x-axis <0> speed <80>;
-	sleep 100;
+	turn ruparm to x-axis <0> speed <250>;
+	turn biggun to x-axis <0> speed <250>;
+	//sleep 100;
 	return (0);
 }
 
@@ -616,9 +616,9 @@ AimTertiary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	gun_3 = lfirept;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <300.000000>;
-	turn biggun to x-axis <0.000000> - pitch speed <150.000000>;
-	turn ruparm to x-axis <0> speed <300>;
+	turn torso to y-axis heading speed <360.000000>;
+	turn biggun to x-axis <0.000000> - pitch speed <360.000000>;
+	turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn biggun around x-axis;
 	return (1);
