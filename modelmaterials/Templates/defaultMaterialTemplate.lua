@@ -1525,7 +1525,7 @@ local defaultMaterialTemplate = {
 	order = nil, -- currently unused (not sent to engine)
 
 	culling = GL.BACK, -- usually GL.BACK is default, except for 3do
-	alphaCulling = GL.FRONT,
+	alphaCulling = GL.BACK,
 	shadowCulling = GL.BACK,
 	usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
 }
