@@ -463,8 +463,9 @@ local function GetObjectAlphaMaterial(rendering, objectDefID)
 
 	if not rendering.alphaPreDL then
 		rendering.alphaPreDL = gl.CreateList(function()
-			gl.AlphaTest(GL.ALWAYS, 0.0)
+			gl.AlphaTest(GL.GREATER, 0.01)
 			gl.Blending(GL.ONE, GL.ONE)
+			gl.PolygonOffset(-1, -1)
 		end)
 	end
 
@@ -472,6 +473,7 @@ local function GetObjectAlphaMaterial(rendering, objectDefID)
 		rendering.alphaPostDL = gl.CreateList(function()
 			gl.AlphaTest(GL.GREATER, 0.1) -- engine default for alpha pass
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.PolygonOffset(false)
 		end)
 	end
 
