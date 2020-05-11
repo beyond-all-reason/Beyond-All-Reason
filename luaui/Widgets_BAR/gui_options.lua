@@ -386,8 +386,6 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
 
-	local offset = 0.15		-- texture offset, because else gaps could show
-
 	-- bottom left
 	if c2 then
 		gl.Color(c1[1],c1[2],c1[3],c1[4])
@@ -747,13 +745,15 @@ function DrawWindow()
 						RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2, 2,2,2,2, {0.5,0.5,0.5,0.11}, {1,1,1,0.11})
 						if option.value == true then
 							RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 1, 2,2,2,2, {0.6,0.9,0.6,1}, {0.88,1,0.88,1})
-							local boolGlow = boolPadding*4
-							glColor(0.66,1,0.66,0.5)
+							local boolGlow = boolPadding*4.5
+							glColor(0.66,1,0.66,0.3)
 							glTexture(glowTex)
 							glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
+							glBlending(GL_SRC_ALPHA, GL_ONE)
 							glColor(0.55,1,0.55,0.09)
 							glTexture(glowTex)
 							glTexRect(xPosMax-oHeight+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
+							glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 						elseif option.value == 0.5 then
 							RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 1, 2,2,2,2, {0.88,0.73,0.6,1}, {1,0.9,0.75,1})
 						else
@@ -2827,7 +2827,7 @@ function init()
 
 
 		-- GAME
-		{id="networksmoothing", restart=true, group="game", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nchange requires restart",
+		{id="networksmoothing", restart=true, group="game", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nChanges will be applied next game",
 		 onload = function(i)
 			 options[i].onchange(i, options[i].value)
 		 end,
@@ -2840,7 +2840,6 @@ function init()
 				 Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 98304)
 				 Spring.SetConfigInt("LinkIncomingPeakBandwidth", 98304)
 				 Spring.SetConfigInt("LinkIncomingMaxPacketRate", 128)
-
 			 else
 				 Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
 				 Spring.SetConfigInt("NetworkLossFactor", 2)

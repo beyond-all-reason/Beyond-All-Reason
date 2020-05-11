@@ -387,8 +387,6 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   gl.Vertex(sx-cs, sy-cs, 0)
   gl.Vertex(sx, sy-cs, 0)
 
-  local offset = 0.15		-- texture offset, because else gaps could show
-
   -- bottom left
   if c2 then
     gl.Color(c1[1],c1[2],c1[3],c1[4])
@@ -607,7 +605,7 @@ function drawOrders()
       local stateWidth = (cellInnerWidth*(1-statePadding)) / statecount
       local stateHeight = cellInnerHeight * 0.145
       local stateMargin = stateWidth*0.07
-      local glowSize = stateHeight * 6
+      local glowSize = stateHeight * 7.5
       local r,g,b,a = 0,0,0,0
       for i=1, statecount do
         if i == curstate or i == desiredState then
@@ -623,7 +621,7 @@ function drawOrders()
             r,g,b,a = 0.1,1,0.1,(i == desiredState and 0.26 or 0.8)
           end
         else
-          r,g,b,a = 0,0,0,0.33  -- default off state
+          r,g,b,a = 0,0,0,0.35  -- default off state
         end
         glColor(r,g,b,a)
         local x1 = (cellInnerWidth*statePadding) + cellRects[cell][1] + cellMarginPx + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin)
@@ -638,13 +636,15 @@ function drawOrders()
         end
         -- fancy active state glow
         if rows < 6 and  i == curstate then
-          glColor(r,g,b,0.08)
+          glBlending(GL_SRC_ALPHA, GL_ONE)
+          glColor(r,g,b,0.095)
           glTexture(barGlowCenterTexture)
           glTexRect(x1, y1 - glowSize, x2, y2 + glowSize)
           glTexture(barGlowEdgeTexture)
           glTexRect(x1-(glowSize*2), y1 - glowSize, x1, y2 + glowSize)
           glTexRect(x2+(glowSize*2), y1 - glowSize, x2, y2 + glowSize)
           glTexture(false)
+          glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         end
       end
     end

@@ -41,7 +41,6 @@ local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
 local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local barbg = ":l:LuaUI/Images/resbar.dds"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":l:LuaUI/Images/blades.png"
@@ -241,8 +240,6 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
 
-	local offset = 0.15		-- texture offset, because else gaps could show
-
 	-- bottom left
 	if c2 then
 		gl.Color(c1[1],c1[2],c1[3],c1[4])
@@ -372,13 +369,15 @@ local function updateRejoin()
 
 		-- Bar value glow
 		local glowSize = barHeight * 6
-		glColor(0, 1, 0, 0.09)
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		glColor(0, 1, 0, 0.085)
 		glTexture(barGlowCenterTexture)
 		glTexRect(barArea[1], barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
 		glTexture(barGlowEdgeTexture)
 		glTexRect(barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize)
 		glTexRect((barArea[1]+(catchup * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
 		glTexture(false)
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Text
 		local fontsize = 12*widgetScale
@@ -836,8 +835,8 @@ local function updateResbar(res)
 
 	resbarDrawinfo[res].barTexRect = {barArea[1], barArea[2], barArea[1]+((r[res][1]/r[res][2]) * barWidth), barArea[4]}
 	resbarDrawinfo[res].barGlowMiddleTexRect = {resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
-	resbarDrawinfo[res].barGlowLeftTexRect = {resbarDrawinfo[res].barTexRect[1]-(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize}
-	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
+	resbarDrawinfo[res].barGlowLeftTexRect = {resbarDrawinfo[res].barTexRect[1]-(glowSize*2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize}
+	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
 
 	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2.2, (height/2.75)*widgetScale, 'ocd'}
 	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2.35, (height/3.2)*widgetScale, 'ord'}
@@ -1178,7 +1177,7 @@ end
 function drawResbarValues(res)
 	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
 	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5.5
+	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
 
 	local cappedCurRes = r[res][1]	-- limit so when production dies the value wont be much larger than what you can store
 	if r[res][1] > r[res][2]*1.07 then
@@ -1193,6 +1192,7 @@ function drawResbarValues(res)
 	end
 
 	-- Bar value
+	local valueWidth = ((cappedCurRes/r[res][2]) * barWidth)
 	local color1,color2
 	if res == 'metal' then
 		color1 = {0.56,0.56,0.55,1}
@@ -1201,16 +1201,28 @@ function drawResbarValues(res)
 		color1 = {0.7,0.66,0,1}
 		color2 = {1,0.99,0.33,1}
 	end
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[res][2]) * barWidth), resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1, color1,color2)
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1, color1,color2)
 
 	-- Bar value glow
+	glBlending(GL_SRC_ALPHA, GL_ONE)
 	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
 	glTexture(barGlowCenterTexture)
-	glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((cappedCurRes/r[res][2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
+	glTexRect(
+		resbarDrawinfo[res].barGlowMiddleTexRect[1],
+		resbarDrawinfo[res].barGlowMiddleTexRect[2],
+		resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth,
+		resbarDrawinfo[res].barGlowMiddleTexRect[4]
+	)
 	glTexture(barGlowEdgeTexture)
-	glTexRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4])
-	glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[res][2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[res][2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
+	glTexRect(
+		resbarDrawinfo[res].barGlowLeftTexRect[1],
+		resbarDrawinfo[res].barGlowLeftTexRect[2],
+		resbarDrawinfo[res].barGlowLeftTexRect[3],
+		resbarDrawinfo[res].barGlowLeftTexRect[4]
+	)
+	glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth)+(glowSize*3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4])
 	glTexture(false)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	currentResValue[res] = short(cappedCurRes)
 	if not dlistResValues[res][currentResValue[res]] then
