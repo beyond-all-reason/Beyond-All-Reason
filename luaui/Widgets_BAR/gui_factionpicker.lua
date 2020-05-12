@@ -73,17 +73,11 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local twicePi = math.pi * 2
 local mCos = math.cos
 local mSin = math.sin
 local math_min = math.min
 
 local isSpec = Spring.GetSpectatingState()
-local cursorTextures = {}
-
-local function convertColor(r,g,b)
-  return string.char(255, (r*255), (g*255), (b*255))
-end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -165,7 +159,6 @@ function widget:Shutdown()
     dlistGuishader = nil
   end
   dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
-
   gl.DeleteFont(font)
   gl.DeleteFont(font2)
 end
@@ -307,16 +300,6 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-local function doCircle(x, y, z, radius, sides)
-  local sideAngle = twicePi / sides
-  glVertex(x, z, y)
-  for i = 1, sides+1 do
-    local cx = x + (radius * mCos(i * sideAngle))
-    local cz = z + (radius * mSin(i * sideAngle))
-    glVertex(cx, cz, y)
-  end
-end
-
 function drawFactionpicker()
   -- background
   local padding = bgBorder*vsy
@@ -350,10 +333,10 @@ function drawFactionpicker()
       backgroundRect[2]+padding+cellSize
     }
     -- background
-    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,1,1,{0.3,0.3,0.3,0.5}, {1,1,1,0.5})
+    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,1,1,{0.3,0.3,0.3,0.35}, {1,1,1,0.35})
     -- gloss
-    RectRound(factionRect[i][1]+rectMargin, factionRect[i][4]-((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,0,0, {1,1,1,0.06}, {1,1,1,0.33})
-    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]-rectMargin, factionRect[i][3]-rectMargin, factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.22), rectMargin, 0,0,1,1, {1,1,1,0.25}, {1,1,1,0})
+    RectRound(factionRect[i][1]+rectMargin, factionRect[i][4]-((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,0,0, {1,1,1,0.06}, {1,1,1,0.3})
+    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]-rectMargin, factionRect[i][3]-rectMargin, factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.22), rectMargin, 0,0,1,1, {1,1,1,0.22}, {1,1,1,0})
 
     -- startunit icon
     glColor(1,1,1,1)
@@ -430,6 +413,8 @@ function widget:MousePress(x, y, button)
         if WG["buildmenu"] then
           WG["buildmenu"].factionChange(factions[i][1])
         end
+        -- tell initial spawn
+        Spring.SendLuaRulesMsg('\138' .. tostring(factions[i][1]))
         break
       end
     end
