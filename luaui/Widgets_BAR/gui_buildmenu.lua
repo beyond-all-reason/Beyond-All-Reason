@@ -1145,8 +1145,10 @@ function widget:GameFrame(n)
     for i = 1, #buildQueue do
       t = t + UnitDefs[buildQueue[i][1]].buildTime
     end
-    local buildTime = t / UnitDefs[startDefID].buildSpeed
-    Spring.SendCommands("luarules initialQueueTime " .. buildTime)
+    if startDefID then
+      local buildTime = t / UnitDefs[startDefID].buildSpeed
+      Spring.SendCommands("luarules initialQueueTime " .. buildTime)
+    end
     
     local tasker
     -- Search for our starting unit
