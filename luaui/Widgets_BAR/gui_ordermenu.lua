@@ -784,30 +784,30 @@ function widget:MousePress(x, y, button)
         local cmd = cmds[cell]
         if cmd then
           if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
-            if playSounds then
-              clickCountDown = 2
-              clickedCell = cell
-              clickedCellTime = os_clock()
+            clickCountDown = 2
+            clickedCell = cell
+            clickedCellTime = os_clock()
 
-              -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
-              if cmd.type == 5 then
-                if button == 1 then
-                  clickedCellDesiredState = cmd.params[1]+1
-                  if clickedCellDesiredState >= #cmd.params-1 then
-                    clickedCellDesiredState = 0
-                  end
-                else
-                  clickedCellDesiredState = cmd.params[1]-1
-                  if clickedCellDesiredState < 0 then
-                    clickedCellDesiredState = #cmd.params-1
-                  end
+            -- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
+            if cmd.type == 5 then
+              if button == 1 then
+                clickedCellDesiredState = cmd.params[1]+1
+                if clickedCellDesiredState >= #cmd.params-1 then
+                  clickedCellDesiredState = 0
                 end
-                doUpdate = true
+              else
+                clickedCellDesiredState = cmd.params[1]-1
+                if clickedCellDesiredState < 0 then
+                  clickedCellDesiredState = #cmd.params-1
+                end
               end
-
-              Spring.PlaySoundFile(sound_button, 0.6, 'ui')
-              Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),button,true,false,Spring.GetModKeyState())
+              doUpdate = true
             end
+
+            if playSounds then
+              Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+            end
+            Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),button,true,false,Spring.GetModKeyState())
             break
           end
         else

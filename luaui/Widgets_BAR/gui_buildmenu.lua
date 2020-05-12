@@ -56,6 +56,12 @@ local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
+local isSpec = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+
+local buildQueue = {}
+local disableInput = isSpec
 local backgroundRect = {0,0,0,0}
 local currentTooltip = ''
 local colls = 5
@@ -74,8 +80,15 @@ local lastUpdate = os.clock()-1
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
-
+local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local gameStarted = Spring.GetGameFrame() > 0
 WG.hoverID = nil
+
+local isSpec = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+
+local teamList = Spring.GetTeamList()
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -86,6 +99,10 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetTeamStartPosition = Spring.GetTeamStartPosition
+local spGetTeamRulesParam =Spring.GetTeamRulesParam
+local spGetGroundHeight = Spring.GetGroundHeight
+local glDepthTest = gl.DepthTest
 
 local SelectedUnitsCount = spGetSelectedUnitsCount()
 
@@ -111,8 +128,45 @@ local glActiveTexture = gl.ActiveTexture
 local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 
-local isSpec = Spring.GetSpectatingState()
-local disableInput = isSpec
+function table_invert(t)
+  local s={}
+  for k,v in pairs(t) do
+    s[v]=k
+  end
+  return s
+end
+
+-- used for pregame build queue, for switch faction buildings
+local armToCore = {
+  [UnitDefNames["armmex"].id] = UnitDefNames["cormex"].id,
+  [UnitDefNames["armuwmex"].id] = UnitDefNames["coruwmex"].id,
+  [UnitDefNames["armsolar"].id] = UnitDefNames["corsolar"].id,
+  [UnitDefNames["armwin"].id] = UnitDefNames["corwin"].id,
+  [UnitDefNames["armtide"].id] = UnitDefNames["cortide"].id,
+  [UnitDefNames["armllt"].id] = UnitDefNames["corllt"].id,
+  [UnitDefNames["armrad"].id] = UnitDefNames["corrad"].id,
+  [UnitDefNames["armrl"].id] = UnitDefNames["corrl"].id,
+  [UnitDefNames["armtl"].id] = UnitDefNames["cortl"].id,
+  [UnitDefNames["armsonar"].id] = UnitDefNames["corsonar"].id,
+  [UnitDefNames["armfrt"].id] = UnitDefNames["corfrt"].id,
+  [UnitDefNames["armlab"].id] = UnitDefNames["corlab"].id,
+  [UnitDefNames["armvp"].id] = UnitDefNames["corvp"].id,
+  [UnitDefNames["armsy"].id] = UnitDefNames["corsy"].id,
+  [UnitDefNames["armmstor"].id] = UnitDefNames["cormstor"].id,
+  [UnitDefNames["armestor"].id] = UnitDefNames["corestor"].id,
+  [UnitDefNames["armmakr"].id] = UnitDefNames["cormakr"].id,
+  [UnitDefNames["armeyes"].id] = UnitDefNames["coreyes"].id,
+  [UnitDefNames["armdrag"].id] = UnitDefNames["cordrag"].id,
+  [UnitDefNames["armdl"].id] = UnitDefNames["cordl"].id,
+  [UnitDefNames["armap"].id] = UnitDefNames["corap"].id,
+  [UnitDefNames["armfrad"].id] = UnitDefNames["corfrad"].id,
+  [UnitDefNames["armuwms"].id] = UnitDefNames["coruwms"].id,
+  [UnitDefNames["armuwes"].id] = UnitDefNames["coruwes"].id,
+  [UnitDefNames["armfmkr"].id] = UnitDefNames["corfmkr"].id,
+  [UnitDefNames["armfdrag"].id] = UnitDefNames["corfdrag"].id,
+  [UnitDefNames["armptl"].id] = UnitDefNames["corptl"].id,
+}
+local coreToArm = table_invert(armToCore)
 
 local function convertColor(r,g,b)
   return string.char(255, (r*255), (g*255), (b*255))
@@ -152,8 +206,13 @@ local unitHumanName = {}
 local unitDescriptionLong = {}
 local unitTooltip = {}
 local unitIconType = {}
+local isMex = {}
+local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
+  if unitDef.maxWeaponRange > 16 then
+    unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
+  end
   if unitDef.customParams.description_long then
     unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
   end
@@ -168,6 +227,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   end
   if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
     isBuilder[unitDefID] = true
+  end
+  if unitDef.extractsMetal > 0 then
+    isMex[unitDefID] = true
   end
 end
 
@@ -310,16 +372,33 @@ end
 
 function widget:PlayerChanged(playerID)
   isSpec = Spring.GetSpectatingState()
+  myTeamID = Spring.GetMyTeamID()
+  myPlayerID = Spring.GetMyPlayerID()
 end
 
 local function RefreshCommands()
   cmds = {}
   cmdsCount = 0
-  for index,cmd in pairs(spGetActiveCmdDescs()) do
-    if type(cmd) == "table" then
-      if string_sub(cmd.action,1,10) == 'buildunit_' then -- not cmd.disabled and cmd.type == 20 or
+  if preGamestartPlayer then
+    if startDefID then
+      -- mimmick output of spGetActiveCmdDescs
+      for i,udefid in pairs(UnitDefs[startDefID].buildOptions) do
         cmdsCount = cmdsCount + 1
-        cmds[cmdsCount] = cmd
+        cmds[cmdsCount] = {
+          id = udefid*-1,
+          name = UnitDefs[udefid].name,
+          params = {}
+        }
+      end
+    end
+
+  else
+    for index,cmd in pairs(spGetActiveCmdDescs()) do
+      if type(cmd) == "table" then
+        if string_sub(cmd.action,1,10) == 'buildunit_' then -- not cmd.disabled and cmd.type == 20 or
+          cmdsCount = cmdsCount + 1
+          cmds[cmdsCount] = cmd
+        end
       end
     end
   end
@@ -383,6 +462,18 @@ function widget:Initialize()
   if Script.LuaRules('GetIconTypes') then
     iconTypesMap = Script.LuaRules.GetIconTypes()
   end
+
+  -- Get our starting unit
+  if preGamestartPlayer then
+    SetBuildFacing()
+    local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
+    if mySide == '' then -- Don't run unless we know what faction the player is
+
+    else
+      startDefID = UnitDefNames[Spring.GetSideData(mySide)].id
+    end
+  end
+
   widget:ViewResize()
   widget:SelectionChanged(spGetSelectedUnits())
 
@@ -450,6 +541,10 @@ function widget:Initialize()
     alternativeUnitpics = value
     doUpdate = true
   end
+  WG['buildmenu'].factionChange = function(unitDefID)
+    startDefID = unitDefID
+    doUpdate = true
+  end
 end
 
 function clear()
@@ -473,6 +568,7 @@ local uiOpacitySec = 0
 function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.33 then
+
     doUpdate = true -- remove this when properly refreshing
     uiOpacitySec = 0
     checkGuishader()
@@ -700,15 +796,97 @@ function widget:RecvLuaMsg(msg, playerID)
   end
 end
 
+local function GetBuildingDimensions(uDefID, facing)
+  local bDef = UnitDefs[uDefID]
+  if (facing % 2 == 1) then
+    return 4 * bDef.zsize, 4 * bDef.xsize
+  else
+    return 4 * bDef.xsize, 4 * bDef.zsize
+  end
+end
+
+local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
+  local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
+  local bw, bh = GetBuildingDimensions(bDefID, facing)
+
+  gl.DepthTest(false)
+  gl.Color(borderColor)
+
+  gl.Shape(GL.LINE_LOOP, {{v={bx - bw, by, bz - bh}},
+                          {v={bx + bw, by, bz - bh}},
+                          {v={bx + bw, by, bz + bh}},
+                          {v={bx - bw, by, bz + bh}}})
+
+  if drawRanges then
+
+    if isMex[bDefID] then
+      gl.Color(1.0, 0.3, 0.3, 0.7)
+      gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
+    end
+
+    local wRange = unitMaxWeaponRange[bDefID]
+    if wRange then
+      gl.Color(1.0, 0.3, 0.3, 0.7)
+      gl.DrawGroundCircle(bx, by, bz, wRange, 40)
+    end
+  end
+
+  gl.DepthTest(GL.LEQUAL)
+  gl.DepthMask(true)
+  gl.Color(1.0, 1.0, 1.0, buildingAlpha)
+
+  gl.PushMatrix()
+  gl.LoadIdentity()
+  gl.Translate(bx, by, bz)
+  gl.Rotate(90 * facing, 0, 1, 0)
+  gl.UnitShape(bDefID, Spring.GetMyTeamID(), false, false, true)
+  gl.PopMatrix()
+
+  gl.Lighting(false)
+  gl.DepthTest(false)
+  gl.DepthMask(false)
+end
+
+local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
+  gl.Color(1,1,1,1)
+  gl.DepthTest(GL.LEQUAL)
+  gl.DepthMask(true)
+  gl.Lighting(true)
+
+  gl.PushMatrix()
+  gl.Translate(ux, uy, uz)
+  if scale then
+    gl.Scale(scale, scale, scale)
+  end
+  gl.UnitShape(uDefID, uTeam, false, true, true)
+  gl.PopMatrix()
+
+  gl.Lighting(false)
+  gl.DepthTest(false)
+  gl.DepthMask(false)
+end
+
+local function DoBuildingsClash(buildData1, buildData2)
+
+  local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
+  local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
+
+  return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
+          math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+end
+
+
 function widget:DrawScreen()
   if chobbyInterface then return end
+
+  -- refresh buildmenu if active cmd changed
   prevActiveCmd = activeCmd
   activeCmd = select(4, spGetActiveCommand())
   if activeCmd ~= prevActiveCmd then
     doUpdate = true
   end
 
-  if selectedBuilderCount <= 0 then
+  if not preGamestartPlayer and selectedBuilderCount == 0 then
     if WG['guishader'] and dlistGuishader then
       WG['guishader'].RemoveDlist('buildmenu')
     end
@@ -789,6 +967,127 @@ function widget:DrawScreen()
   end
 end
 
+function widget:GameStart()
+  gameStarted = true
+end
+
+function widget:DrawWorld()
+  if chobbyInterface then return end
+
+  -- draw pregamestart commander models on start positions
+  if not gameStarted then
+    glColor(1, 1, 1, 0.5)
+    glDepthTest(false)
+    for i = 1, #teamList do
+      local teamID = teamList[i]
+      local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
+      if tsx and tsx > 0 then
+        if spGetTeamRulesParam(teamID, 'startUnit') == UnitDefNames.armcom.id then
+          --glTexture('unitpics/alternative/armcom.png')
+          --glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+          DrawUnitDef(UnitDefNames.armcom.id, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
+        else
+          --glTexture('unitpics/alternative/corcom.png')
+          --glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+          DrawUnitDef(UnitDefNames.corcom.id, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
+        end
+      end
+    end
+    glColor(1, 1, 1, 1)
+    glTexture(false)
+
+
+    -- draw pregame build queue
+    if preGamestartPlayer then
+      local buildDistanceColor = {0.3, 1.0, 0.3, 0.6}
+      local buildLinesColor = {0.3, 1.0, 0.3, 0.6}
+      local borderNormalColor = {0.3, 1.0, 0.3, 0.5}
+      local borderClashColor = {0.7, 0.3, 0.3, 1.0}
+      local borderValidColor = {0.0, 1.0, 0.0, 1.0}
+      local borderInvalidColor = {1.0, 0.0, 0.0, 1.0}
+      local buildingQueuedAlpha = 0.5
+
+      gl.LineWidth(1.49)
+
+      -- We need data about currently selected building, for drawing clashes etc
+      local selBuildData
+      if selBuildQueueDefID then
+        local x,y,b = Spring.GetMouseState()
+        local _, pos = Spring.TraceScreenRay(x, y, true)
+        if pos then
+          local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
+          local buildFacing = Spring.GetBuildFacing()
+          selBuildData = {selBuildQueueDefID, bx, by, bz, buildFacing}
+        end
+      end
+
+      local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
+      local startChosen = (sx ~= -100)
+      if startChosen then
+        -- Correction for start positions in the air
+        sy = Spring.GetGroundHeight(sx, sz)
+
+        -- Draw the starting unit at start position
+        --DrawUnitDef(startDefID, myTeamID, sx, sy, sz)		--(disabled: faction change widget does this now)
+
+        -- Draw start units build radius
+        gl.Color(buildDistanceColor)
+        gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
+      end
+
+      -- Check for faction change
+      for b = 1, #buildQueue do
+        local buildData = buildQueue[b]
+        local buildDataId = buildData[1]
+        if startDefID == UnitDefNames["armcom"].id then
+          if coreToArm[buildDataId] ~= nil then
+            buildData[1] = coreToArm[buildDataId]
+            buildQueue[b] = buildData
+          end
+        elseif startDefID == UnitDefNames["corcom"].id then
+          if armToCore[buildDataId] ~= nil then
+            buildData[1] = armToCore[buildDataId]
+            buildQueue[b] = buildData
+          end
+        end
+      end
+
+      -- Draw all the buildings
+      local queueLineVerts = startChosen and {{v={sx, sy, sz}}} or {}
+      for b = 1, #buildQueue do
+        local buildData = buildQueue[b]
+
+        if selBuildData and DoBuildingsClash(selBuildData, buildData) then
+          DrawBuilding(buildData, borderClashColor, buildingQueuedAlpha)
+        else
+          DrawBuilding(buildData, borderNormalColor, buildingQueuedAlpha)
+        end
+
+        queueLineVerts[#queueLineVerts + 1] = {v={buildData[2], buildData[3], buildData[4]}}
+      end
+
+      -- Draw queue lines
+      glColor(buildLinesColor)
+      gl.LineStipple("springdefault")
+      gl.Shape(GL.LINE_STRIP, queueLineVerts)
+      gl.LineStipple(false)
+
+      -- Draw selected building
+      if selBuildData then
+        if Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 then
+          DrawBuilding(selBuildData, borderValidColor, 1.0, true)
+        else
+          DrawBuilding(selBuildData, borderInvalidColor, 1.0, true)
+        end
+      end
+
+      -- Reset gl
+      glColor(1,1,1,1)
+      gl.LineWidth(1.0)
+    end
+  end
+end
+
 
 function widget:SelectionChanged(sel)
   if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
@@ -808,39 +1107,225 @@ function widget:SelectionChanged(sel)
 end
 
 
-function widget:MousePress(x, y, button)
-  if selectedBuilderCount > 0 and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-    local paginatorHovered = false
-    if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-      currentPage = currentPage - 1
-      if currentPage < 1 then
-        currentPage = pages
-        doUpdate = true
-      end
+local function GetUnitCanCompleteQueue(uID)
+
+  local uDefID = Spring.GetUnitDefID(uID)
+  if uDefID == startDefID then
+    return true
+  end
+
+  -- What can this unit build ?
+  local uCanBuild = {}
+  local uBuilds = UnitDefs[uDefID].buildOptions
+  for i = 1, #uBuilds do
+    uCanBuild[uBuilds[i]] = true
+  end
+
+  -- Can it build everything that was queued ?
+  for i = 1, #buildQueue do
+    if not uCanBuild[buildQueue[i][1]] then
+      return false
     end
-    if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-      currentPage = currentPage + 1
-      if currentPage > pages then
-        currentPage = 1
-        doUpdate = true
-      end
+  end
+
+  return true
+end
+
+
+function widget:GameFrame(n)
+
+  -- handle the pregame build queue
+  preGamestartPlayer = false
+  if n <= 90 and #buildQueue > 0 then
+
+    if n < 2 then return end -- Give the unit frames 0 and 1 to spawn
+
+    -- inform gadget how long is our queue
+    local t = 0
+    for i = 1, #buildQueue do
+      t = t + UnitDefs[buildQueue[i][1]].buildTime
     end
-    if not disableInput then
-      for cellRectID, cellRect in pairs(cellRects) do
-        if cmds[cellRectID].id and unitHumanName[-cmds[cellRectID].id] and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
-          if button ~= 3 then
-            Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
-            Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
-          else
-            Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
-            Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),3,false,true,Spring.GetModKeyState())
-          end
-          doUpdate = true
-          return true
+    local buildTime = t / UnitDefs[startDefID].buildSpeed
+    Spring.SendCommands("luarules initialQueueTime " .. buildTime)
+    
+    local tasker
+    -- Search for our starting unit
+    local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+    for u = 1, #units do
+      local uID = units[u]
+      if GetUnitCanCompleteQueue(uID) then
+        tasker = uID
+        if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
+          -- we found our com even if cooping, assigning queue to this particular unit
+          break
         end
       end
     end
-    return true
+    if tasker then
+      for b=1, #buildQueue do
+        local buildData = buildQueue[b]
+        Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+      end
+      buildQueue = {}
+    end
+  end
+end
+
+
+function SetBuildFacing()
+  local wx,wy,_,_ = Spring.GetScreenGeometry()
+  local _, pos = Spring.TraceScreenRay(wx/2, wy/2, true)
+  if not pos then return end
+  local x = pos[1]
+  local z = pos[3]
+
+  if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
+    if (2*x>Game.mapSizeX) then
+      facing=3
+    else
+      facing=1
+    end
+  else
+    if (2*z>Game.mapSizeZ) then
+      facing=2
+    else
+      facing=0
+    end
+  end
+  Spring.SetBuildFacing(facing)
+end
+
+local function setPreGamestartDefID(uDefID)
+  selBuildQueueDefID = uDefID
+  if isMex[uDefID] then
+    if Spring.GetMapDrawMode() ~= "metal" then
+      Spring.SendCommands("ShowMetalMap")
+    end
+  elseif Spring.GetMapDrawMode() == "metal" then
+      Spring.SendCommands("ShowStandard")
+  end
+end
+
+
+function widget:KeyPress(key,mods,isRepeat)
+  -- add buildfacing shortcuts (facing commands are only handled by spring if we have a building selected, which isn't possible pre-game)
+  if preGamestartPlayer and selBuildQueueDefID then
+    if key == 91 then  -- [
+      local facing = Spring.GetBuildFacing()
+      facing = facing + 1
+      if facing > 3 then
+        facing = 0
+      end
+      Spring.SetBuildFacing(facing)
+    end
+    if key == 93 then  -- ]
+      local facing = Spring.GetBuildFacing()
+      facing = facing - 1
+      if facing < 0 then
+        facing = 3
+      end
+      Spring.SetBuildFacing(facing)
+    end
+    if key == 27 then  -- ESC
+      setPreGamestartDefID()
+    end
+  end
+end
+
+
+function widget:MousePress(x, y, button)
+  if (WG['topbar'] and WG['topbar'].showingQuit()) then return end
+
+  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+    if selectedBuilderCount > 0 or (preGamestartPlayer and startDefID) then
+      local paginatorHovered = false
+      if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+        currentPage = currentPage - 1
+        if currentPage < 1 then
+          currentPage = pages
+          doUpdate = true
+        end
+      end
+      if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+        currentPage = currentPage + 1
+        if currentPage > pages then
+          currentPage = 1
+          doUpdate = true
+        end
+      end
+      if not disableInput then
+        for cellRectID, cellRect in pairs(cellRects) do
+          if cmds[cellRectID].id and unitHumanName[-cmds[cellRectID].id] and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+            if button ~= 3 then
+              Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
+              if preGamestartPlayer then
+                setPreGamestartDefID(cmds[cellRectID].id*-1)
+              else
+                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
+              end
+            else
+              Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+              if preGamestartPlayer then
+                setPreGamestartDefID(cmds[cellRectID].id*-1)
+              else
+                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),3,false,true,Spring.GetModKeyState())
+              end
+            end
+            doUpdate = true
+            return true
+          end
+        end
+      end
+      return true
+    end
+
+  elseif preGamestartPlayer then
+
+    if selBuildQueueDefID then
+      if button == 1 then
+
+        local mx, my = Spring.GetMouseState()
+        local _, pos = Spring.TraceScreenRay(mx, my, true)
+        if not pos then return end
+        local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
+        local buildFacing = Spring.GetBuildFacing()
+
+        if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
+
+          local buildData = {selBuildQueueDefID, bx, by, bz, buildFacing}
+          local _, _, meta, shift = Spring.GetModKeyState()
+          if meta then
+            table.insert(buildQueue, 1, buildData)
+
+          elseif shift then
+
+            local anyClashes = false
+            for i = #buildQueue, 1, -1 do
+              if DoBuildingsClash(buildData, buildQueue[i]) then
+                anyClashes = true
+                table.remove(buildQueue, i)
+              end
+            end
+
+            if not anyClashes then
+              buildQueue[#buildQueue + 1] = buildData
+            end
+          else
+            buildQueue = {buildData}
+          end
+
+          if not shift then
+            setPreGamestartDefID(nil)
+          end
+        end
+
+        return true
+
+      elseif button == 3 then
+        setPreGamestartDefID(nil)
+        return true
+      end
+    end
   end
 end
 
@@ -856,6 +1341,8 @@ function widget:GetConfigData() --save config
     showShortcuts = showShortcuts,
     makeFancy = makeFancy,
     alternativeUnitpics = alternativeUnitpics,
+    buildQueue = buildQueue,
+    gameID = Game.gameID,
   }
 end
 
@@ -886,5 +1373,8 @@ function widget:SetConfigData(data) --load config
   end
   if data.alternativeUnitpics ~= nil then
     alternativeUnitpics = data.alternativeUnitpics
+  end
+  if data.buildQueue and Spring.GetGameFrame() == 0 then
+    buildQueue = data.buildQueue
   end
 end
