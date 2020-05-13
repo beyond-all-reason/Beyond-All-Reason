@@ -101,7 +101,7 @@ function SpawnConstructor(n)
 			local r = ConstructorsList[math_random(1,#ConstructorsList)]
 			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+90)
 			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
-			if scavconfig.constructorControllerModuleConfig.useresurrectors then
+			if constructorControllerModuleConfig.useresurrectors then
 				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz, math_random(0,3),GaiaTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz, math_random(0,3),GaiaTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+posradius, math_random(0,3),GaiaTeamID)
