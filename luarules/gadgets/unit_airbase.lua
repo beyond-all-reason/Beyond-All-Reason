@@ -478,7 +478,7 @@ function gadget:GameFrame(n)
 		local sqrDist = (ux and px) and (ux-px)*(ux-px) + (uy-py)*(uy-py) + (uz-pz)*(uz-pz)
 		local rotSqrDist = (upitch and ppitch) and (upitch-ppitch)*(upitch-ppitch) + (uyaw-pyaw)*(uyaw-pyaw) + (uroll-proll)*(uroll-proll)
 		if sqrDist and rotSqrDist then
-			if  sqrDist < 2 and rotSqrDist < 0.025 then
+			if sqrDist < 2 and rotSqrDist < 0.025 then
 				-- snap into place
 				tractorPlanes[unitID] = nil
 				landedPlanes[unitID] = airbaseID
@@ -501,7 +501,8 @@ function gadget:GameFrame(n)
 					Spring.MoveCtrl.SetRotation(unitID, upitch+rpitch, uyaw+ryaw, uroll+rroll)
 				end
 			end
-
+		else
+			tractorPlanes[unitID] = nil
 		end
 	end
 

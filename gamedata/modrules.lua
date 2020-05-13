@@ -16,7 +16,7 @@ local modrules  = {
     unitEnergyCostFactor    = 0,    -- How much energy should reclaiming a unit cost? Multiplier against the fraction of the unit's buildCostEnergy reclaimed.
     unitEfficiency          = 1,    -- How much metal should reclaiming a unit return? Multiplier against the unit's buildCostMetal.
     featureEnergyCostFactor = 0,    -- How much energy should reclaiming a feature cost? Multiplier against the fraction of the features' metal content reclaimed.
-	
+
     allowEnemies = true,    -- Can enemy units be reclaimed?
     allowAllies  = true,    -- Can allied units be reclaimed?
   },
@@ -43,7 +43,7 @@ local modrules  = {
     alwaysVisibleOverridesCloaked = false,  -- If true then units will be visible even when cloaked (probably?).
 
     los = {
-      losMipLevel   = 4,  -- Controls the resolution of the LOS calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the LOS map in both x and y direction. Must be between 0 and 6 inclusive.
+      losMipLevel   = 3,  -- Controls the resolution of the LOS calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the LOS map in both x and y direction. Must be between 0 and 6 inclusive.
       airMipLevel   = 4,  -- Controls the resolution of the LOS vs. aircraft calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the air-LOS map in both x and y direction. Must be between 0 and 30 inclusive. [1] - jK describe for you what the value means.
       radarMipLevel = 4,  -- Controls the resolution of the radar. See description of airMipLevel for details.
     },
@@ -65,8 +65,8 @@ local modrules  = {
     allowPushingEnemyUnits    = false,  -- Can enemy ground units push each other during collisions?
     allowHoverUnitStrafing    = true,   -- Allows hovercraft units to slide in turns.
   },
-  
-  featureLOS = { 
+
+  featureLOS = {
     featureVisibility = 3,    -- Can be 0 - no default LOS for features, 1 - Gaia features always visible, 2 - allyteam & Gaia features always visible, or 3 - all features always visible.
   },
 
