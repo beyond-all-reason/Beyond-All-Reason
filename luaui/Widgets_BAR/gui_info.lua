@@ -145,10 +145,18 @@ function widget:Update(dt)
   sec = sec + dt
   if sec > 0.06 then
     sec = 0
-    local newTooltip = spGetCurrentTooltip()
-    if newTooltip ~= currentTooltip then
-      currentTooltip = newTooltip
+    if WG['buildmenu'] and WG['buildmenu'].hoverID then
+      currentTooltip = ''--WG['buildmenu'].hoverID
       doUpdate = true
+    else
+      local newTooltip = spGetCurrentTooltip()
+      if newTooltip ~= currentTooltip then
+        currentTooltip = newTooltip
+        if SelectedUnitsCount > 0 then
+          currentTooltip = "Selected units: "..SelectedUnitsCount.."\n" .. currentTooltip
+        end
+        doUpdate = true
+      end
     end
   end
 end
@@ -275,9 +283,6 @@ function drawInfo()
   local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
   font:Begin()
   local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
-  if SelectedUnitsCount > 0 then
-    text = "Selected units: "..SelectedUnitsCount.."\n" .. text
-  end
   font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
   font:End()
 end

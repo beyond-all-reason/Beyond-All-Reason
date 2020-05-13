@@ -2316,7 +2316,7 @@ function init()
 			 Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 		 end,
 		},
-		{id="screenedgemovewidth", group="control", basic=true, name=widgetOptionColor.."   edge width", type="slider", min=0, max=0.1, step=0.01, value=tonumber(Spring.GetConfigFloat("EdgeMoveWidth",1) or 1), description="In percentage of screen border",
+		{id="screenedgemovewidth", group="control", basic=true, name=widgetOptionColor.."   edge width", type="slider", min=0, max=0.1, step=0.01, value=tonumber(Spring.GetConfigFloat("EdgeMoveWidth",1) or 0.02), description="In percentage of screen border",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("EdgeMoveWidth", value)
 		 end,
@@ -2827,7 +2827,7 @@ function init()
 
 
 		-- GAME
-		{id="networksmoothing", restart=true, group="game", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nChanges will be applied next game",
+		{id="networksmoothing", restart=true, basic=true, group="game", name="Network smoothing", type="bool", value=useNetworkSmoothing, description="Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nChanges will be applied next game",
 		 onload = function(i)
 			 options[i].onchange(i, options[i].value)
 		 end,

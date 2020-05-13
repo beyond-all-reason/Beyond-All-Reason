@@ -82,7 +82,6 @@ local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local gameStarted = Spring.GetGameFrame() > 0
-WG.hoverID = nil
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -912,6 +911,7 @@ function widget:DrawScreen()
 
 
     -- hover
+    WG['buildmenu'].hoverID = nil
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
       if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
         Spring.SetMouseCursor('cursornormal')
@@ -936,7 +936,7 @@ function widget:DrawScreen()
         for cellRectID, cellRect in pairs(cellRects) do
           if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
             local uDefID = cmds[cellRectID].id*-1
-            WG.hoverID = uDefID
+            WG['buildmenu'].hoverID = uDefID
 
             local alt, ctrl, meta, shift = Spring.GetModKeyState()
             if WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip

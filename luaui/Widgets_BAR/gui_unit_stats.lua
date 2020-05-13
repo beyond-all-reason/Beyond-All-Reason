@@ -353,7 +353,7 @@ function init()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = ((vsx+vsy) / 2000) * 0.66 * (1+(ui_scale-1)/2)
 	fontSize = customFontSize * widgetScale
-	
+
 	bgcornerSize = fontSize*0.35
 	bgpadding = fontSize*1.05
 
@@ -408,9 +408,8 @@ function widget:DrawScreen()
 
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if not meta or spIsUserWriting() then
-		WG.hoverID = nil 
-		RemoveGuishader() 
-		return 
+		RemoveGuishader()
+		return
 	end
 	local mx, my = spGetMouseState()
 	local uID
@@ -426,9 +425,9 @@ function widget:DrawScreen()
 	local useHoverID = false
 	local _, activeID = Spring.GetActiveCommand()
 	if not activeID then activeID = 0 end
-	if not uID and (not WG.hoverID) and not (activeID < 0) then
+	if not uID and (WG['buildmenu'] and not WG['buildmenu'].hoverID) and not (activeID < 0) then
 		RemoveGuishader() return
-	elseif WG.hoverID and not (activeID < 0) then
+	elseif WG['buildmenu'] and WG['buildmenu'].hoverID and not (activeID < 0) then
 		uID = nil
 		useHoverID = true
 	elseif activeID < 0 then
@@ -436,8 +435,8 @@ function widget:DrawScreen()
 		useHoverID = false
 	end
 	local useExp = ctrl
-	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG.hoverID) or (UnitDefs[-activeID] and -activeID)
-	
+	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG['buildmenu'] and WG['buildmenu'].hoverID) or (UnitDefs[-activeID] and -activeID)
+
 	if not uDefID then
 		RemoveGuishader() return
 	end
@@ -721,7 +720,7 @@ function widget:DrawScreen()
 	end
 
 	-- background
-	if WG.hoverID ~= nil then
+	if WG['buildmenu'] and WG['buildmenu'].hoverID ~= nil then
 		glColor(0.11,0.11,0.11,0.9)
 	else
 		glColor(0,0,0,0.66)
