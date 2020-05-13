@@ -467,40 +467,43 @@ function gadget:GameFrame(n)
       end
    end
 
-   -- move ctrl for final stage of landing
-   for unitID, t in pairs(tractorPlanes) do
-      --Spring.Echo("tractor", unitID)
-      local airbaseID, padPieceNum = t[1], t[2]
-      local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
-      local ux, uy, uz = Spring.GetUnitPosition(unitID)
-      local upitch,uyaw,uroll = Spring.GetUnitRotation(unitID)
-      local ppitch,pyaw,proll = Spring.GetUnitRotation(airbaseID)
-      local sqrDist = (ux and px) and (ux-px)*(ux-px) + (uy-py)*(uy-py) + (uz-pz)*(uz-pz)
-      local rotSqrDist = (upitch and ppitch) and (upitch-ppitch)*(upitch-ppitch) + (uyaw-pyaw)*(uyaw-pyaw) + (uroll-proll)*(uroll-proll)
-      if sqrDist and sqrDist < 2 and rotSqrDist and rotSqrDist < 0.025 then
-         -- snap into place
-         tractorPlanes[unitID] = nil
-         landedPlanes[unitID] = airbaseID
-         AttachToPad(unitID, airbaseID, padPieceNum)
-         Spring.MoveCtrl.Disable(unitID)
-         Spring.SetUnitLoadingTransport(unitID, nil)
-         RemoveOrderFromQueue(unitID, CMD_LAND_AT_SPECIFIC_AIRBASE) -- also clears the move goal by triggering widget:UnitCmdDone
-      else
-         -- tractor towards pad
-         if sqrDist >=2 then
-            local dx,dy,dz = px-ux,py-uy,pz-uz
-            local velNormMult = tractorSpeed / math_sqrt(dx*dx + dy*dy + dz*dz)
-            local vx,vy,vz = dx*velNormMult,dy*velNormMult,dz*velNormMult
-            Spring.MoveCtrl.SetPosition(unitID, ux+vx, uy+vy, uz+vz)
-         end
-         if rotSqrDist >=0.025 then
-            local dpitch,dyaw,droll = ppitch-upitch,pyaw-uyaw,proll-uroll
-            local rotNormMult = rotTractorSpeed / math_sqrt(dpitch*dpitch + dyaw*dyaw + droll*droll)
-            local rpitch,ryaw,rroll = dpitch*rotNormMult,dyaw*rotNormMult,droll*rotNormMult
-            Spring.MoveCtrl.SetRotation(unitID, upitch+rpitch, uyaw+ryaw, uroll+rroll)
-         end
-      end
-   end
+	-- move ctrl for final stage of landing
+	for unitID, t in pairs(tractorPlanes) do
+		--Spring.Echo("tractor", unitID)
+		local airbaseID, padPieceNum = t[1], t[2]
+		local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
+		local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		local upitch,uyaw,uroll = Spring.GetUnitRotation(unitID)
+		local ppitch,pyaw,proll = Spring.GetUnitRotation(airbaseID)
+		local sqrDist = (ux and px) and (ux-px)*(ux-px) + (uy-py)*(uy-py) + (uz-pz)*(uz-pz)
+		local rotSqrDist = (upitch and ppitch) and (upitch-ppitch)*(upitch-ppitch) + (uyaw-pyaw)*(uyaw-pyaw) + (uroll-proll)*(uroll-proll)
+		if sqrDist and rotSqrDist then
+			if  sqrDist < 2 and rotSqrDist < 0.025 then
+				-- snap into place
+				tractorPlanes[unitID] = nil
+				landedPlanes[unitID] = airbaseID
+				AttachToPad(unitID, airbaseID, padPieceNum)
+				Spring.MoveCtrl.Disable(unitID)
+				Spring.SetUnitLoadingTransport(unitID, nil)
+				RemoveOrderFromQueue(unitID, CMD_LAND_AT_SPECIFIC_AIRBASE) -- also clears the move goal by triggering widget:UnitCmdDone
+			else
+				-- tractor towards pad
+				if sqrDist >=2 then
+					local dx,dy,dz = px-ux,py-uy,pz-uz
+					local velNormMult = tractorSpeed / math_sqrt(dx*dx + dy*dy + dz*dz)
+					local vx,vy,vz = dx*velNormMult,dy*velNormMult,dz*velNormMult
+					Spring.MoveCtrl.SetPosition(unitID, ux+vx, uy+vy, uz+vz)
+				end
+				if rotSqrDist >=0.025 then
+					local dpitch,dyaw,droll = ppitch-upitch,pyaw-uyaw,proll-uroll
+					local rotNormMult = rotTractorSpeed / math_sqrt(dpitch*dpitch + dyaw*dyaw + droll*droll)
+					local rpitch,ryaw,rroll = dpitch*rotNormMult,dyaw*rotNormMult,droll*rotNormMult
+					Spring.MoveCtrl.SetRotation(unitID, upitch+rpitch, uyaw+ryaw, uroll+rroll)
+				end
+			end
+
+		end
+	end
 
    -- heal landedPlanes
    -- release if fully healed

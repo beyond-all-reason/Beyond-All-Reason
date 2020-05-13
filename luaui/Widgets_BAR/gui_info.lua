@@ -145,8 +145,12 @@ function widget:Update(dt)
   sec = sec + dt
   if sec > 0.06 then
     sec = 0
+    -- reset
+    currentTooltip = ''
+    showUnitDefID = nil
+    showUnitID = nil
     if WG['buildmenu'] and WG['buildmenu'].hoverID then
-      currentTooltip = ''--WG['buildmenu'].hoverID
+      showUnitDefID = WG['buildmenu'].hoverID
       doUpdate = true
     else
       local newTooltip = spGetCurrentTooltip()
@@ -281,10 +285,14 @@ function drawInfo()
   local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
   local contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
   local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
-  font:Begin()
-  local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
-  font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
-  font:End()
+  if not showUnitDefID and not showUnitID then
+    local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
+    font:Begin()
+    font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
+    font:End()
+  else
+
+  end
 end
 
 

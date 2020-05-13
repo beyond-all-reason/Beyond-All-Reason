@@ -967,15 +967,11 @@ function widget:DrawScreen()
   end
 end
 
-function widget:GameStart()
-  gameStarted = true
-end
-
 function widget:DrawWorld()
   if chobbyInterface then return end
 
   -- draw pregamestart commander models on start positions
-  if not gameStarted then
+  if Spring.GetGameFrame() == 0 then
     glColor(1, 1, 1, 0.5)
     glDepthTest(false)
     for i = 1, #teamList do
