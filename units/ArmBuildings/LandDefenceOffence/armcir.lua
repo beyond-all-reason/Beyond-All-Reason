@@ -15,7 +15,7 @@ return {
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Bomb-Resistant Medium-Range Missile Battery",
+		description = "Bomb-Resistant Medium-Range Anti-Air Missile Battery",
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,

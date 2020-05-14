@@ -18,7 +18,7 @@ return {
 		collisionvolumescales = "45 54 45",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Hardened Missile Battery",
+		description = "Hardened Anti-Air Missile Battery",
 		energyuse = 5,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,

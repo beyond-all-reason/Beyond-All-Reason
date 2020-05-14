@@ -371,6 +371,7 @@ function drawInfo()
     local alternative = ''
     if hasAlternativeUnitpic[showUnitDefID] then
       alternative = 'alternative/'
+      iconPadding = padding
     end
 
     --glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -386,13 +387,15 @@ function drawInfo()
     glTexture(false)
     iconSize = iconSize + iconPadding
 
-    local radarIconSize = iconSize * 0.3
-    local radarIconMargin = radarIconSize * 0.3
-    glColor(1,1,1,0.88)
-    glTexture(':lr64,64:'..iconTypesMap[unitIconType[showUnitDefID]])
-    glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
-    glTexture(false)
-    glColor(1,1,1,1)
+    if unitIconType[showUnitDefID] and iconTypesMap[unitIconType[showUnitDefID]] then
+      local radarIconSize = iconSize * 0.3
+      local radarIconMargin = radarIconSize * 0.3
+      glColor(1,1,1,0.88)
+      glTexture(':lr64,64:'..iconTypesMap[unitIconType[showUnitDefID]])
+      glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
+      glTexture(false)
+      glColor(1,1,1,1)
+    end
 
     local unitNameColor = '\255\150\255\150'
     local descriptionColor = '\255\240\240\240'
@@ -408,7 +411,7 @@ function drawInfo()
     font:End()
     -- unit name
     font2:Begin()
-    font2:Print(unitNameColor..unitHumanName[showUnitDefID], backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
+    font2:Print(unitNameColor..unitHumanName[showUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
 
     local contentPaddingLeft = contentPadding * 0.75
     local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
