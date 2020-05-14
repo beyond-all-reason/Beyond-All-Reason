@@ -107,7 +107,6 @@ end
 -------------------------------------------------------------------------------
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
-local spGetActiveCommand = Spring.GetActiveCommand
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local SelectedUnitsCount = spGetSelectedUnitsCount()
 
@@ -442,18 +441,37 @@ function widget:RecvLuaMsg(msg, playerID)
   end
 end
 
+
+-- load all icons to prevent briefly showing white unit icons
+function cacheUnitIcons()
+  if not cached then
+    cached = true
+    gl.Color(1,1,1,0.001)
+    for id, unit in pairs(UnitDefs) do
+      if hasAlternativeUnitpic[id] then
+        gl.Texture(':lr128,128:unitpics/alternative/'..unitBuildPic[id])
+      else
+        gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
+      end
+      gl.TexRect(-1,-1,0,0)
+      gl.Texture(false)
+    end
+    gl.Color(1,1,1,1)
+  end
+end
+
+
 function widget:DrawScreen()
   if chobbyInterface then return end
 
   local x,y,b = Spring.GetMouseState()
-
-  local activeCmd = select(4, spGetActiveCommand())
 
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     Spring.SetMouseCursor('cursornormal')
   end
 
   if doUpdate then
+    cacheUnitIcons()
     clear()
     doUpdate = nil
   end

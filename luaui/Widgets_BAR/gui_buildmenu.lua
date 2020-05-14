@@ -233,6 +233,26 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   end
 end
 
+
+-- load all icons to prevent briefly showing white unit icons
+local cachedIconsize = {}
+function cacheUnitIcons(size)
+  if not cachedIconsize[size] then
+    cachedIconsize[size] = true
+    gl.Color(1,1,1,0.001)
+    for id, unit in pairs(UnitDefs) do
+      if alternativeUnitpics and hasAlternativeUnitpic[id] then
+        gl.Texture(':lr'..size..','..size..':unitpics/alternative/'..unitBuildPic[id])
+      else
+        gl.Texture(':lr'..size..','..size..':unitpics/'..unitBuildPic[id])
+      end
+      gl.TexRect(-1,-1,0,0)
+      gl.Texture(false)
+    end
+    gl.Color(1,1,1,1)
+  end
+end
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -547,6 +567,7 @@ function widget:Initialize()
   WG['buildmenu'].setAlternativeIcons = function(value)
     alternativeUnitpics = value
     doUpdate = true
+    cachedIconsize = {}
   end
   WG['buildmenu'].factionChange = function(unitDefID)
     startDefID = unitDefID
@@ -602,7 +623,6 @@ function widget:Update(dt)
 end
 
 function drawBuildmenu()
-  WG['buildmenu'].selectedID = nil
 
   -- background
   padding = bgBorder*vsy * ui_scale
@@ -657,8 +677,9 @@ function drawBuildmenu()
   radariconOffset = (cellInnerSize * 0.027) + cellPadding+iconPadding
   local priceFontSize = cellInnerSize*0.18
 
-  local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )
   local radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )
+  local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )
+  cacheUnitIcons(textureDetail)
 
   cellRects = {}
   local numCellsPerPage = rows*colls
@@ -895,6 +916,8 @@ function widget:DrawScreen()
     doUpdate = true
   end
 
+  WG['buildmenu'].hoverID = nil
+  WG['buildmenu'].selectedID = nil
   if not preGamestartPlayer and selectedBuilderCount == 0 then
     if WG['guishader'] and dlistGuishader then
       WG['guishader'].RemoveDlist('buildmenu')
@@ -921,7 +944,6 @@ function widget:DrawScreen()
 
 
     -- hover
-    WG['buildmenu'].hoverID = nil
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
       if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
         Spring.SetMouseCursor('cursornormal')
