@@ -594,6 +594,8 @@ function widget:Update(dt)
 end
 
 function drawBuildmenu()
+  WG['buildmenu'].selectedID = nil
+
   -- background
   padding = bgBorder*vsy * ui_scale
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
@@ -747,9 +749,9 @@ function drawBuildmenu()
                 cellInnerSize*0.33, "ro"
         )
       end
-
       -- active / selected
       if activeCmd and activeCmd == cmds[cellRectID].name then
+        WG['buildmenu'].selectedID = uDefID
         glBlending(GL_SRC_ALPHA, GL_ONE)
         glColor(1,0.85,0.2,0.66)
         glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
@@ -938,11 +940,12 @@ function widget:DrawScreen()
             local uDefID = cmds[cellRectID].id*-1
             WG['buildmenu'].hoverID = uDefID
 
+            gl.Color(1,1,1,1)
             local alt, ctrl, meta, shift = Spring.GetModKeyState()
-            if WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
-              local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
-              WG['tooltip'].ShowTooltip('buildmenu', text)
-            end
+            --if WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
+            --  local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
+            --  WG['tooltip'].ShowTooltip('buildmenu', text)
+            --end
 
             -- highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)

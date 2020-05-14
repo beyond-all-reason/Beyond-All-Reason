@@ -43,15 +43,88 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local backgroundRect = {0,0,0,0}
 local currentTooltip = ''
 
+function wrap(str, limit)
+  limit = limit or 72
+  local here = 1
+  local buf = ""
+  local t = {}
+  str:gsub("(%s*)()(%S+)()",
+          function(sp, st, word, fi)
+            if fi-here > limit then
+              --# Break the line
+              here = st
+              t[#t+1] = buf
+              buf = word
+            else
+              buf = buf..sp..word  --# Append
+            end
+          end)
+  --# Tack on any leftovers
+  if(buf ~= "") then
+    t[#t+1] = buf
+  end
+  return t
+end
+
+local hasAlternativeUnitpic = {}
+local unitBuildPic = {}
+local unitEnergyCost = {}
+local unitMetalCost = {}
+local unitBuildTime = {}
+local unitGroup = {}
+local isBuilder = {}
+local unitHumanName = {}
+local unitDescriptionLong = {}
+local unitTooltip = {}
+local unitIconType = {}
+local isMex = {}
+local unitMaxWeaponRange = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  unitHumanName[unitDefID] = unitDef.humanName
+  if unitDef.maxWeaponRange > 16 then
+    unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
+  end
+  if unitDef.customParams.description_long then
+    unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
+  end
+  unitTooltip[unitDefID] = unitDef.tooltip
+  unitIconType[unitDefID] = unitDef.iconType
+  unitEnergyCost[unitDefID] = unitDef.energyCost
+  unitMetalCost[unitDefID] = unitDef.metalCost
+  unitBuildTime[unitDefID] = unitDef.buildTime
+  unitBuildPic[unitDefID] = unitDef.buildpicname
+  if VFS.FileExists('unitpics/alternative/'..unitDef.name..'.png') then
+    hasAlternativeUnitpic[unitDefID] = true
+  end
+  if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
+    isBuilder[unitDefID] = true
+  end
+  if unitDef.extractsMetal > 0 then
+    isMex[unitDefID] = true
+  end
+end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
-
+local spGetActiveCommand = Spring.GetActiveCommand
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local SelectedUnitsCount = spGetSelectedUnitsCount()
 
 local isSpec = Spring.GetSpectatingState()
+
+local GL_QUADS = GL.QUADS
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local glBeginEnd = gl.BeginEnd
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glColor = gl.Color
+local glRect = gl.Rect
+local glVertex = gl.Vertex
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -105,6 +178,9 @@ end
 
 
 function widget:Initialize()
+  if Script.LuaRules('GetIconTypes') then
+    iconTypesMap = Script.LuaRules.GetIconTypes()
+  end
   Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count
   Spring.SendCommands("tooltip 0")
   widget:ViewResize()
@@ -149,8 +225,8 @@ function widget:Update(dt)
     currentTooltip = ''
     showUnitDefID = nil
     showUnitID = nil
-    if WG['buildmenu'] and WG['buildmenu'].hoverID then
-      showUnitDefID = WG['buildmenu'].hoverID
+    if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
+      showUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
       doUpdate = true
     else
       local newTooltip = spGetCurrentTooltip()
@@ -281,7 +357,6 @@ function drawInfo()
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
-  padding = (bgBorder*vsy) * 0.4
   local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
   local contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
   local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
@@ -290,8 +365,73 @@ function drawInfo()
     font:Begin()
     font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
     font:End()
-  else
+  elseif showUnitDefID and UnitDefs[showUnitDefID] then
 
+    local iconSize = fontSize*5
+    local iconPadding = 0
+    local alternative = ''
+    if hasAlternativeUnitpic[showUnitDefID] then
+      alternative = 'alternative/'
+    end
+
+    --glBlending(GL_SRC_ALPHA, GL_ONE)
+    --glColor(1,1,1,0.07)
+    --glTexture(":lr256,256:unitpics/"..unitBuildPic[showUnitDefID])
+    --glTexRect(backgroundRect[1], backgroundRect[4]-(backgroundRect[3]-backgroundRect[1])-padding, backgroundRect[1]+(backgroundRect[3]-backgroundRect[1])-padding, backgroundRect[4]-padding)
+    --glTexture(false)
+    --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    glColor(1,1,1,1)
+    glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[showUnitDefID])
+    glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-padding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-padding)
+    glTexture(false)
+    iconSize = iconSize + iconPadding
+
+    local radarIconSize = iconSize * 0.3
+    local radarIconMargin = radarIconSize * 0.3
+    glColor(1,1,1,0.88)
+    glTexture(':lr64,64:'..iconTypesMap[unitIconType[showUnitDefID]])
+    glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
+    glTexture(false)
+    glColor(1,1,1,1)
+
+    local unitNameColor = '\255\150\255\150'
+    local descriptionColor = '\255\240\240\240'
+    local metalColor = '\255\245\245\245'
+    local energyColor = '\255\255\255\000'
+    local buildtimeColor = '\255\100\255\100'
+
+
+    local text, numLines = font:WrapText(unitTooltip[showUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
+    -- unit tooltip
+    font:Begin()
+    font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.4), fontSize, "o")
+    font:End()
+    -- unit name
+    font2:Begin()
+    font2:Print(unitNameColor..unitHumanName[showUnitDefID], backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
+
+    local contentPaddingLeft = contentPadding * 0.75
+    local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
+    local texSize = fontSize * 1.15
+    glColor(1,1,1,1)
+    glTexture(":l:LuaUI/Images/info_metal.png")
+    glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize, backgroundRect[1]+contentPaddingLeft+texSize, texPosY)
+    glTexture(":l:LuaUI/Images/info_energy.png")
+    glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize-(fontSize*1.23), backgroundRect[1]+contentPaddingLeft+texSize, texPosY-(fontSize*1.23))
+    --glTexture(":l:LuaUI/Images/info_buildtime.png")
+    --glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize-(fontSize*2.46), backgroundRect[1]+contentPaddingLeft+texSize, texPosY-(fontSize*2.46))
+    glTexture(false)
+
+    -- metal
+    local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
+    font2:Print(metalColor..unitMetalCost[showUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
+    -- energy
+    font2:Print(energyColor..unitEnergyCost[showUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
+    -- buildtime
+    font2:Print(buildtimeColor..unitBuildTime[showUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
+
+    font2:End()
   end
 end
 
@@ -306,6 +446,8 @@ function widget:DrawScreen()
   if chobbyInterface then return end
 
   local x,y,b = Spring.GetMouseState()
+
+  local activeCmd = select(4, spGetActiveCommand())
 
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     Spring.SetMouseCursor('cursornormal')
