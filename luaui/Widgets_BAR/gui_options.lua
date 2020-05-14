@@ -90,7 +90,6 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-local disabledReduiBuildmenuFirsttime = false
 local scavengersAIEnabled = false
 local teams = Spring.GetTeamList()
 for i = 1,#teams do
@@ -831,11 +830,6 @@ local lastUpdate = 0
 --	minGroundDetail = 2
 --end
 function widget:Update(dt)
-
-	if not disabledReduiBuildmenuFirsttime then
-		widgetHandler:DisableWidget("Red Build Menu")
-		disabledReduiBuildmenuFirsttime = true
-	end
 
 	if countDownOptionID and countDownOptionClock and countDownOptionClock < os.clock() then
 		applyOptionValue(countDownOptionID)
@@ -2243,10 +2237,6 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
 		},
-		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons',
-		--		 onload = function(i) end,
-		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
-		--		},
 		{id="sndvolmusic", group="snd", basic=true, name="Music volume", type="slider", min=0, max=50, step=1, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20),
 		 onload = function(i) end,
 		 onchange = function(i, value)
@@ -2503,10 +2493,6 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
 		},
 
-		--{id="buildmenushortcuts", group="ui", name="Buildmenu"..widgetOptionColor.."  shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, value) end,
-		--},
 		{id="buildmenu_makefancy", group="ui", basic=true, name="Buildmenu"..widgetOptionColor.."  fancy", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getMakeFancy~=nil and WG['buildmenu'].getMakeFancy()), description='Adds extra gradients and highlights',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMakeFancy', {'showMakeFancy'}, value) end,
@@ -2519,6 +2505,11 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowRadarIcon', {'showRadarIcon'}, value) end,
 		},
+		{id="buildmenu_tooltip", group="ui", basic=true, name=widgetOptionColor.."   tooltips", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowTooltip~=nil and WG['buildmenu'].getShowTooltip()), description='Tooltip when hovering over a unit in the buildmenu',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowTooltip', {'showTooltip'}, value) end,
+		},
+
 		--{id="buildmenu_shortcuts", group="ui", basic=true, name=widgetOptionColor.."   shortcuts", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowShortcuts~=nil and WG['buildmenu'].getShowShortcuts()), description='Shortcuts prices in the buildmenu',
 		-- onload = function(i) end,
 		-- onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
@@ -4172,7 +4163,6 @@ function widget:GetConfigData(data)
 	savedTable.defaultSunLighting = defaultSunLighting
 	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
-	savedTable.disabledReduiBuildmenuFirsttime = true
 	savedTable.useNetworkSmoothing = useNetworkSmoothing
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
@@ -4236,9 +4226,6 @@ function widget:SetConfigData(data)
 	end
 	if data.customMapSunPos then
 		customMapSunPos = data.customMapSunPos
-	end
-	if data.disabledReduiBuildmenuFirsttime then
-		disabledReduiBuildmenuFirsttime = true
 	end
 	if data.useNetworkSmoothing then
 		useNetworkSmoothing = data.useNetworkSmoothing

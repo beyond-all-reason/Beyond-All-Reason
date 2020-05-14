@@ -21,6 +21,7 @@ local bgMargin = 0.005
 local showPrice = true
 local showRadarIcon = true
 local showShortcuts = false
+local showTooltip = false
 local makeFancy = true
 local dynamicIconsize = true
 local defaultColls = 5
@@ -505,6 +506,13 @@ function widget:Initialize()
     showShortcuts = value
     doUpdate = true
   end
+  WG['buildmenu'].getShowTooltip = function()
+    return showTooltip
+  end
+  WG['buildmenu'].setShowTooltip = function(value)
+    showTooltip = value
+    doUpdate = true
+  end
   WG['buildmenu'].getDynamicIconsize = function()
     return dynamicIconsize
   end
@@ -942,10 +950,10 @@ function widget:DrawScreen()
 
             gl.Color(1,1,1,1)
             local alt, ctrl, meta, shift = Spring.GetModKeyState()
-            --if WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
-            --  local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
-            --  WG['tooltip'].ShowTooltip('buildmenu', text)
-            --end
+            if showTooltip and WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
+              local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
+              WG['tooltip'].ShowTooltip('buildmenu', text)
+            end
 
             -- highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)
