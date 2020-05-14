@@ -236,20 +236,33 @@ end
 
 -- load all icons to prevent briefly showing white unit icons
 local cachedIconsize = {}
-function cacheUnitIcons(size)
-  if not cachedIconsize[size] then
-    cachedIconsize[size] = true
-    gl.Color(1,1,1,0.001)
-    for id, unit in pairs(UnitDefs) do
-      if alternativeUnitpics and hasAlternativeUnitpic[id] then
-        gl.Texture(':lr'..size..','..size..':unitpics/alternative/'..unitBuildPic[id])
-      else
-        gl.Texture(':lr'..size..','..size..':unitpics/'..unitBuildPic[id])
+function cacheUnitIcons()
+  local minC = minColls
+  local maxC = maxColls
+  if not dynamicIconsize then
+    minC = defaultColls
+    maxC = defaultColls
+  end
+  if minC > maxC then maxC = minC end -- just to be sure
+
+  local colls = minC
+  while colls <= maxC do
+    if not cachedIconsize[colls] then
+      local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- must be same formula as used in drawBuildmenu()
+      cachedIconsize[colls] = true
+      gl.Color(1,1,1,0.001)
+      for id, unit in pairs(UnitDefs) do
+        if alternativeUnitpics and hasAlternativeUnitpic[id] then
+          gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/alternative/'..unitBuildPic[id])
+        else
+          gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/'..unitBuildPic[id])
+        end
+        gl.TexRect(-1,-1,0,0)
+        gl.Texture(false)
       end
-      gl.TexRect(-1,-1,0,0)
-      gl.Texture(false)
+      gl.Color(1,1,1,1)
     end
-    gl.Color(1,1,1,1)
+    colls = colls + 1
   end
 end
 
@@ -567,7 +580,7 @@ function widget:Initialize()
   WG['buildmenu'].setAlternativeIcons = function(value)
     alternativeUnitpics = value
     doUpdate = true
-    cachedIconsize = {}
+    cachedIconsize = {}   -- re-cache icons
   end
   WG['buildmenu'].factionChange = function(unitDefID)
     startDefID = unitDefID
@@ -602,6 +615,7 @@ function widget:Update(dt)
     checkGuishader()
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
+      cachedIconsize = {}
       widget:ViewResize()
       doUpdate = true
     end
@@ -678,8 +692,7 @@ function drawBuildmenu()
   local priceFontSize = cellInnerSize*0.18
 
   local radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )
-  local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )
-  cacheUnitIcons(textureDetail)
+  local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons func
 
   cellRects = {}
   local numCellsPerPage = rows*colls
@@ -908,6 +921,8 @@ end
 
 function widget:DrawScreen()
   if chobbyInterface then return end
+
+  cacheUnitIcons()
 
   -- refresh buildmenu if active cmd changed
   prevActiveCmd = activeCmd
