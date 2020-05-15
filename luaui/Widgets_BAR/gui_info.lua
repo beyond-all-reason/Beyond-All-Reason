@@ -80,6 +80,7 @@ local unitTooltip = {}
 local unitIconType = {}
 local isMex = {}
 local unitMaxWeaponRange = {}
+local unitHealth = {}
 local unitBuildOptions = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
@@ -93,6 +94,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   unitIconType[unitDefID] = unitDef.iconType
   unitEnergyCost[unitDefID] = unitDef.energyCost
   unitMetalCost[unitDefID] = unitDef.metalCost
+  unitHealth[unitDefID] = unitDef.health
   unitBuildTime[unitDefID] = unitDef.buildTime
   unitBuildPic[unitDefID] = unitDef.buildpicname
   if VFS.FileExists('unitpics/alternative/'..unitDef.name..'.png') then
@@ -413,7 +415,7 @@ function drawInfo()
     local descriptionColor = '\255\240\240\240'
     local metalColor = '\255\245\245\245'
     local energyColor = '\255\255\255\000'
-    local buildtimeColor = '\255\100\255\100'
+    local healthColor = '\255\100\255\100'
 
     local text, numLines = font:WrapText(unitTooltip[unitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
     -- unit tooltip
@@ -432,8 +434,8 @@ function drawInfo()
     glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize, backgroundRect[1]+contentPaddingLeft+texSize, texPosY)
     glTexture(":l:LuaUI/Images/info_energy.png")
     glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize-(fontSize*1.23), backgroundRect[1]+contentPaddingLeft+texSize, texPosY-(fontSize*1.23))
-    --glTexture(":l:LuaUI/Images/info_buildtime.png")
-    --glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize-(fontSize*2.46), backgroundRect[1]+contentPaddingLeft+texSize, texPosY-(fontSize*2.46))
+    glTexture(":l:LuaUI/Images/info_health.png")
+    glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize-(fontSize*2.46), backgroundRect[1]+contentPaddingLeft+texSize, texPosY-(fontSize*2.46))
     glTexture(false)
 
     -- metal
@@ -441,8 +443,8 @@ function drawInfo()
     font2:Print(metalColor..unitMetalCost[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
     -- energy
     font2:Print(energyColor..unitEnergyCost[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
-    -- buildtime
-    font2:Print(buildtimeColor..unitBuildTime[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
+    -- health
+    font2:Print(healthColor..unitHealth[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
 
     font2:End()
 
