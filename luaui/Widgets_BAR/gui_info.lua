@@ -446,20 +446,20 @@ function drawInfo()
 
     font2:End()
 
-    -- custom unit info are
+    -- custom unit info background
     local width = contentWidth * 0.8
     local height = (backgroundRect[4]-backgroundRect[2]-padding) * 0.45
     local unitCustomInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+height+padding}
     RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.06})
 
-    -- draw buildoption unit icons grid
-    if unitBuildOptions[unitDefID] then
+    -- draw unit buildoption icons
+    if showUnitDefID and unitBuildOptions[unitDefID] then
       local rows = 2
       local colls = math.ceil(#unitBuildOptions[unitDefID] / rows)
       local cellsize = math.min(width/colls, height/rows)
 
       -- draw grid (bottom right to top left)
-      glColor(0.85,0.85,0.85,1)
+      glColor(0.88,0.88,0.88,1)
       local cellID = #unitBuildOptions[unitDefID]
       local cellPadding = cellsize * 0.035
       local cellRect = {}

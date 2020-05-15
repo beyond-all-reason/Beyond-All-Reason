@@ -690,10 +690,10 @@ function drawBuildmenu()
   cellInnerSize = cellSize-cellPadding-cellPadding
   radariconSize = cellInnerSize * 0.29
   radariconOffset = (cellInnerSize * 0.027) + cellPadding+iconPadding
-  local priceFontSize = cellInnerSize*0.18
+  priceFontSize = cellInnerSize*0.18
 
-  local radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )
-  local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons func
+  radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )
+  textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons func
 
   cellRects = {}
   local numCellsPerPage = rows*colls
@@ -786,10 +786,14 @@ function drawBuildmenu()
 
       -- factory queue number
       if cmds[cellRectID].params[1] then
+        local pad = cellInnerSize * 0.03
+        local textWidth = (font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.29)
+        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.38), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.1, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
+        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.38)+pad, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.085, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
         font2:Print("\255\190\255\190"..cmds[cellRectID].params[1],
-                cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.92),
-                cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.66),
-                cellInnerSize*0.33, "ro"
+                cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.94),
+                cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.71),
+                cellInnerSize*0.29, "ro"
         )
       end
       -- active / selected
@@ -1007,6 +1011,13 @@ function widget:DrawScreen()
             -- bottom
             RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.1}, {1,1,1,0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+            -- display price
+            if not showPrice then
+              RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,0,0,{0,0,0,0.35}, {0,0,0,0})
+              font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.4), priceFontSize, "o")
+            end
+
             break
           end
         end
