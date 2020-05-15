@@ -5,22 +5,24 @@
 
 #define SIG_ANIM 2
 
-piece  base, fan, tank1, tank2;
+piece  base, cover, converter;
 
 static-var  mmState, Active;
 
 
 activatescr()
 {
-	spin fan around y-axis speed <300.000000> accelerate <10>;		
+	hide cover;
+	move converter to y-axis <10> speed <5>;
+	sleep 2000;	
 }
 
 deactivatescr()
 {
-	stop-spin fan around y-axis decelerate <5>;
-	move tank1 to y-axis [0.000000] speed [5.000000];
-	move tank2 to y-axis [0.000000] speed [5.000000];
-	sleep 30;
+
+  	move converter to y-axis <0> speed <5>;
+  	show cover;
+	sleep 2000;
 }
 
 Go()
@@ -41,15 +43,12 @@ MovementControl()
 	{
 		while (mmState == 1)
 		{
-			move tank1 to y-axis [1.800000] speed [5.000000];
-			move tank2 to y-axis [-2.300000] speed [5.000000];
-
-			sleep 1000;
-		
-			move tank1 to y-axis [0.000000] speed [5.000000];
-			move tank2 to y-axis [0.000000] speed [5.000000];
-			sleep 1000;
-			}
+			move converter to y-axis [12] speed [5.000000];
+			sleep 250;
+			
+			move converter to y-axis [10] speed [5.000000];
+			sleep 250;
+		}
 			sleep 100;
 	}	
 }
@@ -128,33 +127,25 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tank1 type BITMAPONLY | NOHEATCLOUD;
-		explode tank2 type BITMAPONLY | NOHEATCLOUD;
+		explode converter type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode fan type FALL | NOHEATCLOUD;
-		explode tank1 type BITMAPONLY | NOHEATCLOUD;
-		explode tank2 type BITMAPONLY | NOHEATCLOUD;
+		explode converter type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode fan type SMOKE | FALL | NOHEATCLOUD;
-		explode tank1 type BITMAPONLY | NOHEATCLOUD;
-		explode tank2 type BITMAPONLY | NOHEATCLOUD;
+		explode converter type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tank1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tank2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode converter type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
