@@ -2473,7 +2473,7 @@ function init()
 		 end,
 		},
 
-		{id="buildmenualternativeicons", group="ui", name=widgetOptionColor.."   Alternative unit icons", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getAlternativeIcons()), description='Switch to a different unit icon set',
+		{id="buildmenualternativeicons", group="ui", name="Alternative unit icons", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getAlternativeIcons()), description='Switch to a different unit icon set',
 		 onload = function(i) end,
 		 onchange = function(i, value)
 			 saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
@@ -2484,6 +2484,15 @@ function init()
 			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 		 end,
 		},
+
+		--{id="los_opacity", group="ui", basic=true, name="LoS "..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
+		-- onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
+		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,
+		--},
+		--{id="los_colorize", group="ui", basic=true, name=widgetOptionColor.."   colorize", type="bool", value=(WG['los']~=nil and WG['los'].getColorize~=nil and WG['los'].getColorize()), description='',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setColorize', {'colorize'}, value) end,
+		--},
 
 		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},

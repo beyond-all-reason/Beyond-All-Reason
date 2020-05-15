@@ -19,6 +19,7 @@ local height = 0
 local bgBorderOrg = 0.0035
 local bgBorder = bgBorderOrg
 local bgMargin = 0.005
+local alternativeUnitpics = false
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -79,6 +80,7 @@ local unitTooltip = {}
 local unitIconType = {}
 local isMex = {}
 local unitMaxWeaponRange = {}
+local unitBuildOptions = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
   if unitDef.maxWeaponRange > 16 then
@@ -99,6 +101,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
     isBuilder[unitDefID] = true
   end
+  if unitDef.buildOptions[1] then
+    unitBuildOptions[unitDefID] = unitDef.buildOptions
+  end
   if unitDef.extractsMetal > 0 then
     isMex[unitDefID] = true
   end
@@ -108,7 +113,10 @@ end
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local SelectedUnitsCount = spGetSelectedUnitsCount()
+local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnits = Spring.GetSelectedUnits()
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetMouseState = Spring.GetMouseState
 
 local isSpec = Spring.GetSpectatingState()
 
@@ -359,59 +367,62 @@ function drawInfo()
   local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
   local contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
   local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
-  if not showUnitDefID and not showUnitID then
-    local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
-    font:Begin()
-    font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
-    font:End()
-  elseif showUnitDefID and UnitDefs[showUnitDefID] then
 
+  local mx, my = spGetMouseState()
+  local hoverType, hoverData = spTraceScreenRay(mx, my)
+
+  if (showUnitDefID and UnitDefs[showUnitDefID]) or SelectedUnitsCount > 0 or hoverType == 'unit' then
+    local unitDefID
+    if showUnitDefID then
+      unitDefID = showUnitDefID
+    elseif SelectedUnitsCount > 0 then
+      unitDefID = Spring.GetUnitDefID(selectedUnits[1])
+    else
+      unitDefID = Spring.GetUnitDefID(hoverData)
+    end
     local iconSize = fontSize*5
     local iconPadding = 0
     local alternative = ''
-    if hasAlternativeUnitpic[showUnitDefID] then
+    if hasAlternativeUnitpic[unitDefID] then
       alternative = 'alternative/'
       iconPadding = padding
     end
 
-    --glBlending(GL_SRC_ALPHA, GL_ONE)
-    --glColor(1,1,1,0.07)
-    --glTexture(":lr256,256:unitpics/"..unitBuildPic[showUnitDefID])
-    --glTexRect(backgroundRect[1], backgroundRect[4]-(backgroundRect[3]-backgroundRect[1])-padding, backgroundRect[1]+(backgroundRect[3]-backgroundRect[1])-padding, backgroundRect[4]-padding)
-    --glTexture(false)
-    --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
     glColor(1,1,1,1)
-    glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[showUnitDefID])
+    glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[unitDefID])
     glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-padding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-padding)
     glTexture(false)
     iconSize = iconSize + iconPadding
 
-    if unitIconType[showUnitDefID] and iconTypesMap[unitIconType[showUnitDefID]] then
+    if unitIconType[unitDefID] and iconTypesMap[unitIconType[unitDefID]] then
       local radarIconSize = iconSize * 0.3
       local radarIconMargin = radarIconSize * 0.3
       glColor(1,1,1,0.88)
-      glTexture(':lr64,64:'..iconTypesMap[unitIconType[showUnitDefID]])
+      glTexture(':lr64,64:'..iconTypesMap[unitIconType[unitDefID]])
       glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
       glTexture(false)
       glColor(1,1,1,1)
     end
 
-    local unitNameColor = '\255\150\255\150'
+    local unitNameColor = '\255\205\255\205'
+    if SelectedUnitsCount > 0 then
+      if not showUnitDefID or (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID))) then
+        unitNameColor = '\255\125\255\125'
+      end
+    end
     local descriptionColor = '\255\240\240\240'
     local metalColor = '\255\245\245\245'
     local energyColor = '\255\255\255\000'
     local buildtimeColor = '\255\100\255\100'
 
-
-    local text, numLines = font:WrapText(unitTooltip[showUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
+    local text, numLines = font:WrapText(unitTooltip[unitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
     -- unit tooltip
     font:Begin()
     font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.4), fontSize, "o")
     font:End()
     -- unit name
     font2:Begin()
-    font2:Print(unitNameColor..unitHumanName[showUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
+    font2:Print(unitNameColor..unitHumanName[unitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
 
     local contentPaddingLeft = contentPadding * 0.75
     local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
@@ -427,13 +438,56 @@ function drawInfo()
 
     -- metal
     local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
-    font2:Print(metalColor..unitMetalCost[showUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
+    font2:Print(metalColor..unitMetalCost[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
     -- energy
-    font2:Print(energyColor..unitEnergyCost[showUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
+    font2:Print(energyColor..unitEnergyCost[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
     -- buildtime
-    font2:Print(buildtimeColor..unitBuildTime[showUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
+    font2:Print(buildtimeColor..unitBuildTime[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
 
     font2:End()
+
+    -- custom unit info are
+    local width = contentWidth * 0.8
+    local height = (backgroundRect[4]-backgroundRect[2]-padding) * 0.45
+    local unitCustomInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+height+padding}
+    RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.06})
+
+    -- draw buildoption unit icons grid
+    if unitBuildOptions[unitDefID] then
+      local rows = 2
+      local colls = math.ceil(#unitBuildOptions[unitDefID] / rows)
+      local cellsize = math.min(width/colls, height/rows)
+
+      -- draw grid (bottom right to top left)
+      glColor(0.85,0.85,0.85,1)
+      local cellID = #unitBuildOptions[unitDefID]
+      local cellPadding = cellsize * 0.035
+      local cellRect = {}
+      for row=1, rows do
+        for coll=1, colls do
+          if unitBuildOptions[unitDefID][cellID] then
+            local uDefID = unitBuildOptions[unitDefID][cellID]
+            cellRect[cellID] = {unitCustomInfoArea[3]-(coll*cellsize), unitCustomInfoArea[2]+((row-1)*cellsize), unitCustomInfoArea[3]-((coll-1)*cellsize), unitCustomInfoArea[2]+((row)*cellsize)}
+            glTexture("unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+            glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
+          end
+          cellID = cellID - 1
+          if cellID <= 0 then break end
+        end
+        if cellID <= 0 then break end
+      end
+      glTexture(false)
+      glColor(1,1,1,1)
+    else
+
+    end
+
+  else
+    -- plain text tooltip
+    local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
+    font:Begin()
+    font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
+    font:End()
   end
 end
 
@@ -489,9 +543,15 @@ end
 
 
 function widget:SelectionChanged(sel)
-  if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
+  if SelectedUnitsCount ~= 0 and spGetSelectedUnitsCount() == 0 then
     doUpdate = true
+    SelectedUnitsCount = 0
+    selectedUnits = {}
+  end
+  if spGetSelectedUnitsCount() > 0 then
     SelectedUnitsCount = spGetSelectedUnitsCount()
+    selectedUnits = sel
+    doUpdate = true
   end
 end
 

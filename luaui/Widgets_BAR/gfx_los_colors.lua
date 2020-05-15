@@ -11,14 +11,13 @@ function widget:GetInfo()
     }
 end
 
--- project page: this widget is included in BAR repo
-
 --Changelog
 -- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
-local losWithRadarEnabled = true;
-local colorProfile = "greyscale" -- "colored"
+local losWithRadarEnabled = true
+local colorize = false
 local specDetected = false
+local opacity = 1
 
 local always, LOS, radar, jam, radar2
 
@@ -60,7 +59,7 @@ function setLosWithoutRadars()
 end
 
 function withRadars()
-    if colorProfile == "greyscale" then
+    if not colorize then
         updateLOS(losColorsWithRadarsGray)
     else
         updateLOS(losColorsWithRadarsColor)
@@ -71,7 +70,23 @@ function withoutRadars()
     updateLOS(losColorsWithoutRadars)
 end
 
+
+function applyOpacity(colors)
+	for i,c in pairs(colors.fog) do
+		colors['fog'][i] = c * opacity
+	end
+	--local newColors = {}
+	--for type,color in pairs(colors) do
+	--	newColors[type] = {}
+	--	for i,c in pairs(color) do
+	--		newColors[type][i] = c * opacity
+	--	end
+	--end
+	return colors
+end
+
 function updateLOS(colors)
+	colors = applyOpacity(colors)
     spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
 end
 
@@ -93,17 +108,25 @@ end
 function widget:GetConfigData()
     return {
         losWithRadarEnabled = losWithRadarEnabled,
-        colorProfile = colorProfile
+        colorize = colorize
     }
 end
 
+function refreshLOS()
+	if losWithRadarEnabled then
+		setLosWithRadars()
+	else
+		setLosWithoutRadars()
+	end
+end
+
 function setLosWithColors()
-    colorProfile = "colored"
+    colorize = true
     setLosWithRadars()
 end
 
 function setLosWithoutColors()
-    colorProfile = "greyscale"
+    colorize = false
     setLosWithRadars()
 end
 
@@ -121,7 +144,7 @@ function toggleLOSRadars()
 end
 
 function toggleLOSColors()
-    if colorProfile == "greyscale" then
+    if not colorize then
         setLosWithColors()
     else
         setLosWithoutColors()
@@ -134,6 +157,26 @@ function widget:Initialize()
 
     spSendCommands('unbindkeyset Any+;')
     spSendCommands('bind Any+; losradar')
+
+	WG['los'] = {}
+	WG['los'].getColorize = function()
+		return colorize
+	end
+	WG['los'].setColorize = function(value)
+		colorize = value
+		if not losWithRadarEnabled or not specDetected then
+			refreshLOS()
+		end
+	end
+	WG['los'].getOpacity = function()
+		return opacity
+	end
+	WG['los'].setOpacity = function(value)
+		opacity = value
+		if not losWithRadarEnabled or not specDetected then
+			refreshLOS()
+		end
+	end
 
     always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
 
@@ -151,10 +194,11 @@ function widget:SetConfigData(data)
         losWithRadarEnabled = true
     end
 
-    if data.colorProfile ~= nil then
-        colorProfile = data.colorProfile
-    else
-        colorProfile = "greyscale"
-    end
+	if data.colorize ~= nil then
+		colorize = data.colorize
+	end
+	if data.opacity ~= nil then
+		opacity = data.opacity
+	end
 end
 

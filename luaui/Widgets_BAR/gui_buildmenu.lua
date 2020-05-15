@@ -637,6 +637,7 @@ function widget:Update(dt)
 end
 
 function drawBuildmenu()
+  WG['buildmenu'].selectedID = nil
 
   -- background
   padding = bgBorder*vsy * ui_scale
@@ -932,7 +933,6 @@ function widget:DrawScreen()
   end
 
   WG['buildmenu'].hoverID = nil
-  WG['buildmenu'].selectedID = nil
   if not preGamestartPlayer and selectedBuilderCount == 0 then
     if WG['guishader'] and dlistGuishader then
       WG['guishader'].RemoveDlist('buildmenu')
