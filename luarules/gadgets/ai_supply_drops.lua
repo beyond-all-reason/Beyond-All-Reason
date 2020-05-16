@@ -130,11 +130,11 @@ function gadget:GameFrame(n)
                 local unitEnemy         = spNearestEnemy(unitID, 64, false)
                 if unitEnemy then
                     local enemyTeam = spGetUnitTeam(unitEnemy)
-                    if enemyTeam ~= spGaiaTeam then
+                    --if enemyTeam ~= spGaiaTeam then
                         local posx, posy, posz = spPosition(unitID)
                         Spring.MarkerErasePosition(posx, posy, posz)
                         spTransfer(unitID, enemyTeam, false)
-                    end
+                    --end
                 end
             end
         end
