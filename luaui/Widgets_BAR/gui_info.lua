@@ -82,6 +82,8 @@ local isMex = {}
 local unitMaxWeaponRange = {}
 local unitHealth = {}
 local unitBuildOptions = {}
+local unitWeapons = {}
+local unitDPS = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
   if unitDef.maxWeaponRange > 16 then
@@ -108,6 +110,19 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   end
   if unitDef.extractsMetal > 0 then
     isMex[unitDefID] = true
+  end
+
+  for i=1, #unitDef.weapons do
+    if not unitWeapons[unitDefID] then
+      unitWeapons[unitDefID] = {}
+      unitDPS[unitDefID] = 0
+    end
+    unitWeapons[unitDefID][i] = unitDef.weapons[i].weaponDef
+    local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+    if weaponDef.damages then
+      local defaultDPS = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
+      unitDPS[unitDefID] = math.floor(defaultDPS)
+    end
   end
 end
 -------------------------------------------------------------------------------
@@ -362,9 +377,14 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 end
 
 function drawInfo()
-  local padding = bgBorder*vsy
+  padding = bgBorder*vsy
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+  --gloss
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0.03}, {1,1,1,0.12})
+
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), padding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
 
   local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
   local contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
@@ -373,34 +393,42 @@ function drawInfo()
   local mx, my = spGetMouseState()
   local hoverType, hoverData = spTraceScreenRay(mx, my)
 
-  if (showUnitDefID and UnitDefs[showUnitDefID]) or SelectedUnitsCount > 0 or hoverType == 'unit' then
-    local unitDefID
-    if showUnitDefID then
-      unitDefID = showUnitDefID
-    elseif SelectedUnitsCount > 0 then
-      unitDefID = Spring.GetUnitDefID(selectedUnits[1])
-    else
-      unitDefID = Spring.GetUnitDefID(hoverData)
-    end
+  -- determine what mode to display
+  displayMode = 'text'
+  displayUnitID = nil
+  displayUnitDefID = nil
+  if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
+    displayMode = 'unitdef'
+    displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
+  elseif SelectedUnitsCount > 0 then
+    displayMode = 'selection'
+    displayUnitDefID = Spring.GetUnitDefID(selectedUnits[1])
+  elseif hoverType == 'unit' then
+    displayMode = 'unit'
+    displayUnitID = hoverData
+    displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
+  end
+  
+  if displayMode ~= 'text' then
     local iconSize = fontSize*5
     local iconPadding = 0
     local alternative = ''
-    if hasAlternativeUnitpic[unitDefID] then
+    if hasAlternativeUnitpic[displayUnitDefID] then
       alternative = 'alternative/'
       iconPadding = padding
     end
 
     glColor(1,1,1,1)
-    glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[unitDefID])
+    glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
     glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-padding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-padding)
     glTexture(false)
     iconSize = iconSize + iconPadding
 
-    if unitIconType[unitDefID] and iconTypesMap[unitIconType[unitDefID]] then
+    if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
       local radarIconSize = iconSize * 0.3
       local radarIconMargin = radarIconSize * 0.3
       glColor(1,1,1,0.88)
-      glTexture(':lr64,64:'..iconTypesMap[unitIconType[unitDefID]])
+      glTexture(':lr64,64:'..iconTypesMap[unitIconType[displayUnitDefID]])
       glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
       glTexture(false)
       glColor(1,1,1,1)
@@ -408,7 +436,7 @@ function drawInfo()
 
     local unitNameColor = '\255\205\255\205'
     if SelectedUnitsCount > 0 then
-      if not showUnitDefID or (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID))) then
+      if not showdisplayUnitDefID or (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID))) then
         unitNameColor = '\255\125\255\125'
       end
     end
@@ -417,14 +445,14 @@ function drawInfo()
     local energyColor = '\255\255\255\000'
     local healthColor = '\255\100\255\100'
 
-    local text, numLines = font:WrapText(unitTooltip[unitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
+    local text, numLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
     -- unit tooltip
     font:Begin()
     font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.4), fontSize, "o")
     font:End()
     -- unit name
     font2:Begin()
-    font2:Print(unitNameColor..unitHumanName[unitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
+    font2:Print(unitNameColor..unitHumanName[displayUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
 
     local contentPaddingLeft = contentPadding * 0.75
     local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
@@ -440,37 +468,37 @@ function drawInfo()
 
     -- metal
     local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
-    font2:Print(metalColor..unitMetalCost[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
+    font2:Print(metalColor..unitMetalCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
     -- energy
-    font2:Print(energyColor..unitEnergyCost[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
+    font2:Print(energyColor..unitEnergyCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
     -- health
-    font2:Print(healthColor..unitHealth[unitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
+    font2:Print(healthColor..unitHealth[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
 
     font2:End()
 
     -- custom unit info background
     local width = contentWidth * 0.8
     local height = (backgroundRect[4]-backgroundRect[2]-padding) * 0.45
-    local unitCustomInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+height+padding}
-    RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.06})
+    unitCustomInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+height+padding}
+    RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
 
     -- draw unit buildoption icons
-    if showUnitDefID and unitBuildOptions[unitDefID] then
+    if showdisplayUnitDefID and unitBuildOptions[displayUnitDefID] then
       local rows = 2
-      local colls = math.ceil(#unitBuildOptions[unitDefID] / rows)
+      local colls = math.ceil(#unitBuildOptions[displayUnitDefID] / rows)
       local cellsize = math.min(width/colls, height/rows)
 
       -- draw grid (bottom right to top left)
       glColor(0.88,0.88,0.88,1)
-      local cellID = #unitBuildOptions[unitDefID]
+      local cellID = #unitBuildOptions[displayUnitDefID]
       local cellPadding = cellsize * 0.035
       local cellRect = {}
       for row=1, rows do
         for coll=1, colls do
-          if unitBuildOptions[unitDefID][cellID] then
-            local uDefID = unitBuildOptions[unitDefID][cellID]
+          if unitBuildOptions[displayUnitDefID][cellID] then
+            local uDefID = unitBuildOptions[displayUnitDefID][cellID]
             cellRect[cellID] = {unitCustomInfoArea[3]-(coll*cellsize), unitCustomInfoArea[2]+((row-1)*cellsize), unitCustomInfoArea[3]-((coll-1)*cellsize), unitCustomInfoArea[2]+((row)*cellsize)}
-            glTexture("unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+            glTexture(":lr64,64:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
             glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
           end
           cellID = cellID - 1
@@ -482,9 +510,23 @@ function drawInfo()
       glColor(1,1,1,1)
     else
 
+      local contentPaddingLeft = unitCustomInfoArea[1] + (contentPadding)
+      local labelColor = '\255\166\166\166'
+      local valueColor = '\255\245\245\245'
+      -- dps
+      if unitDPS[displayUnitDefID] then
+        font2:Print(labelColor..'dps '..valueColor..unitDPS[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
+      end
+      -- energy
+      --font2:Print(energyColor..unitEnergyCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
+      -- health
+      --font2:Print(healthColor..unitHealth[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
+
+      font2:End()
     end
 
   else
+
     -- plain text tooltip
     local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
     font:Begin()
@@ -513,6 +555,8 @@ function cacheUnitIcons()
         gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
       end
       gl.TexRect(-1,-1,0,0)
+      gl.Texture(':lr64,64:unitpics/'..unitBuildPic[id])
+      gl.TexRect(-1,-1,0,0)
       gl.Texture(false)
     end
     gl.Color(1,1,1,1)
@@ -525,8 +569,24 @@ function widget:DrawScreen()
 
   local x,y,b = Spring.GetMouseState()
 
-  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+  if (displayUnitID or displayUnitDefID) and  IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     Spring.SetMouseCursor('cursornormal')
+
+    RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.4 or 0.25}, {1,1,1,b and 0.12 or 0.06})
+    RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.25),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,b and 0.3 or 0.15})
+    RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.2 or 0.1}, {1,1,1,b and 0.4 or 0.2})
+
+    -- add tooltip
+    if WG['tooltip'] then
+      if unitCustomInfoArea and IsOnRect(x, y, unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4]) then
+
+        glBlending(GL_SRC_ALPHA, GL_ONE)
+        RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.3 or 0.2})
+        glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        WG['tooltip'].ShowTooltip('info', 'Additional unit info goes here...')
+      end
+    end
   end
 
   if doUpdate then
