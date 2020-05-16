@@ -205,6 +205,17 @@ local options={
 		}
 	},
 	{
+		key    = 'lootboxes',
+		name   = 'Lootboxes',
+		desc   = '1 to enable, 0 to disable',
+		type   = 'number',
+		section= 'options',
+		def    = 0,
+		min    = 0,
+		max    = 1,
+		step   = 1,
+	},
+	{
 		key    = 'minions',
 		name   = 'Enable Minions',
 		desc   = 'placeholder-description',

@@ -1,4 +1,8 @@
-
+if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0) then
+    gadgetEnabled = true
+else
+    gadgetEnabled = false
+end
 
 function gadget:GetInfo()
     return {
@@ -7,7 +11,7 @@ function gadget:GetInfo()
       author    = "Damgam",
       date      = "2020",
       layer     = -100,
-      enabled   = false,
+      enabled   = gadgetEnabled,
     }
 end
 
@@ -16,8 +20,24 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 local lootboxesList = {
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
     "lootboxgold",
     "lootboxgold",
+    "lootboxplatinum",
 }
 
 
@@ -31,6 +51,7 @@ local spGetUnitTeam         = Spring.GetUnitTeam
 local spNearestEnemy        = Spring.GetUnitNearestEnemy
 local spNearestAlly         = Spring.GetUnitNearestAlly
 local spSeparation          = Spring.GetUnitSeparation
+local spPosition            = Spring.GetUnitPosition
 local spTransfer            = Spring.TransferUnit
 local mapsizeX              = Game.mapSizeX
 local mapsizeZ              = Game.mapSizeZ
@@ -104,19 +125,20 @@ function gadget:GameFrame(n)
         
         if #aliveLootboxes > 0 then
             for j = 1,#aliveLootboxes do 
-                local unitID            = aliveLootboxes[i]
+                local unitID            = aliveLootboxes[j]
                 local unitTeam          = spGetUnitTeam(unitID)
-                local unitEnemy         = spNearestEnemy(unitID, 999999, false)
-                local unitAlly          = spNearestAlly(unitID, 999999)
-                local allySeparation    = spSeparation(unitID, unitAlly)
-                local enemySeparation   = spSeparation(unitID, unitEnemy)
-                if enemySeparation > allySeparation then
+                local unitEnemy         = spNearestEnemy(unitID, 64, false)
+                if unitEnemy then
                     local enemyTeam = spGetUnitTeam(unitEnemy)
-                    spTransfer(unitID, enemyTeam, false)
+                    if enemyTeam ~= spGaiaTeam then
+                        local posx, posy, posz = spPosition(unitID)
+                        Spring.MarkerErasePosition(posx, posy, posz)
+                        spTransfer(unitID, enemyTeam, false)
+                    end
                 end
             end
         end
-        if n%300 == 0 then
+        if math_random(0,600) == 0 then
             for k = 1,100 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
@@ -125,6 +147,7 @@ function gadget:GameFrame(n)
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
                     spCreateUnit(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+                    Spring.MarkerAddPoint(posx, posy, posz, "Lootbox Spawned", false)
                     break
                 end
             end
@@ -137,7 +160,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local unitName = UnitDefs[unitDefID].name
     if string.find(unitName, "lootbox") then
         table.insert(aliveLootboxes,unitID)
-        aliveLootboxesCount = aliveLootboxesCount + 1
+        Spring.SetUnitNeutral(unitID, true)
     end
 end
 
@@ -145,10 +168,9 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     local unitName = UnitDefs[unitDefID].name
     if string.find(unitName, "lootbox") then
-        for i = 1,aliveLootboxesCount do
+        for i = 1,#aliveLootboxes do
             if unitID == aliveLootboxes[i] then
                 table.remove(aliveLootboxes,i)
-                aliveLootboxesCount = aliveLootboxesCount - 1
                 break
             end
         end
