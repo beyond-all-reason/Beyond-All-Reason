@@ -13,6 +13,7 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -69,6 +70,11 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamResources = Spring.GetTeamResources
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -84,11 +90,6 @@ local isReplay = Spring.IsReplay()
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 
 local sformat = string.format
-
-local glBlending = gl.Blending
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_ONE = GL.ONE
 
 local minWind = Game.windMin
 local maxWind = Game.windMax
@@ -302,7 +303,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	--gl.Texture(false)
+	gl.Texture(false)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
@@ -348,6 +349,12 @@ local function updateRejoin()
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2}, {0.3,0.3,0.3,ui_opacity*0.2})
+
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.35), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,1,1, {1,1,1,0.05*glossMult}, {1,1,1,0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
@@ -435,13 +442,16 @@ local function updateButtons()
 
 		-- background
 		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,0.38+(ui_opacity*0.44)}, {0.1,0.1,0.1,(ui_opacity)})
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,(ui_opacity)})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {0.2,0.2,0.2,(ui_opacity)},{0,0,0,(ui_opacity)})
 
-		RectRound(area[1]+bgpadding, area[4]+bgpadding-((area[4]-area[2])*0.5), area[3], area[4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.07}, {1,1,1,0.21})
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[2]+bgpadding+((area[4]-area[2])*0.35), bgpadding*1.25, 0,0,1,1, {1,1,1,0.09},{0,0,0,0})
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.35), area[3], area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,0,1, {1,1,1,0.05*glossMult}, {1,1,1,0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -540,6 +550,11 @@ local function updateComs(forceText)
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
 
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.35), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,1,1, {1,1,1,0.05*glossMult}, {1,1,1,0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistComsGuishader, 'topbar_coms')
@@ -612,6 +627,11 @@ local function updateWind()
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
 
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.35), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,1,1, {1,1,1,0.05*glossMult}, {1,1,1,0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistWindGuishader, 'topbar_wind')
@@ -789,7 +809,7 @@ local function updateResbarText(res)
 					end
 					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25, 1,1,1,1, color1,color2)
 
-                    font2:Begin()
+					font2:Begin()
                     font2:SetTextColor(1,0.88,0.88,1)
                     font2:SetOutlineColor(0.2,0,0,0.6)
                     font2:Print(text, resbarArea[res][3]-7*widgetScale, resbarArea[res][4]-9.5*widgetScale, (orgHeight * (1+(ui_scale-1)/1.33)/4)*widgetScale, 'or')
@@ -863,6 +883,12 @@ local function updateResbar(res)
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
+
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.35), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,1,1, {1,1,1,0.05*glossMult}, {1,1,1,0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_'..res)
@@ -1163,6 +1189,7 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			glossMult = 1 + (2.5-(ui_opacity*2.5))
 			init()
 		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then

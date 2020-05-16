@@ -43,6 +43,7 @@ local strgsub						= string.gsub
 local strfind						= string.find
 local tconcat						= table.concat
 local strchar						= string.char
+
 local GetGameSeconds				= Spring.GetGameSeconds
 local GetGameFrame					= Spring.GetGameFrame
 local glTexture						= gl.Texture
@@ -50,12 +51,17 @@ local glColor						= gl.Color
 local glTexRect						= gl.TexRect
 local glRect						= gl.Rect
 local glText						= gl.Text
+
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+
 local GetGameSpeed					= Spring.GetGameSpeed
 local GetTeamUnitCount				= Spring.GetTeamUnitCount
 local GetMyAllyTeamID				= Spring.GetMyAllyTeamID
 local GetTeamList					= Spring.GetTeamList
 local GetTeamInfo					= Spring.GetTeamInfo
-
 local GetPlayerInfo					= Spring.GetPlayerInfo
 local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
@@ -93,6 +99,7 @@ local maxPlayers					= 0
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local myFullview = select(2,Spring.GetSpectatingState())
 
@@ -726,6 +733,11 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding*1.4,  (posY>tH and 1 or 0),1,1,1, {0,0,0,ui_opacity*1.1}, {0.05,0.05,0.05,ui_opacity*1.1})
 	--glColor(1,1,1,ui_opacity*0.055)
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.3}, {1,1,1,ui_opacity*0.3})
+	-- gloss
+	glBlending(GL_SRC_ALPHA, GL_ONE)
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding+((y2-y1)*0.5), widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y1+borderPadding+((y2-y1)*0.22), borderPadding*0.8, 0,0,0,1, {1,1,1,0.05*glossMult}, {1,1,1,0})
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4*widgetScale}
 
@@ -1687,6 +1699,7 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			glossMult = 1 + (2-(ui_opacity*2))
 			Reinit()
 		end
 	end

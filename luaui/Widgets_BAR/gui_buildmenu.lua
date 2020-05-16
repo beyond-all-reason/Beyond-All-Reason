@@ -56,6 +56,7 @@ local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -621,6 +622,7 @@ function widget:Update(dt)
     end
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+      glossMult = 1 + (2-(ui_opacity*2))
       clear()
       doUpdate = true
     end
@@ -643,6 +645,12 @@ function drawBuildmenu()
   padding = bgBorder*vsy * ui_scale
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+
+  -- gloss
+  glBlending(GL_SRC_ALPHA, GL_ONE)
+  RectRound(backgroundRect[1], backgroundRect[4]-padding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+((backgroundRect[4]-backgroundRect[2])*0.045), padding*1, 0,0,1,0, {1,1,1,0.025*glossMult}, {1,1,1,0})
+  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   local activeArea = {backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding}
   local contentHeight = activeArea[4]-activeArea[2]

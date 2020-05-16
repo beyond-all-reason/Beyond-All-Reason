@@ -79,6 +79,7 @@ local playedTracks = {}
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local firstTime = false
 local wasPaused = false
@@ -101,7 +102,6 @@ local buttonTex				= ":l:"..LUAUI_DIRNAME.."Images/button.dds"
 local buttonHighlightTex	= ":l:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local widgetScale = 1
-local glBlending     = gl.Blending
 local glScale        = gl.Scale
 local glRotate       = gl.Rotate
 local glTranslate	 = gl.Translate
@@ -114,6 +114,11 @@ local glTexture      = gl.Texture
 local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
+
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
 
 local guishaderEnabled = (WG['guishader'])
 
@@ -407,7 +412,12 @@ local function createList()
 		end
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
-		
+
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.4), right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.3), borderPadding*1.1, 0,0,1,1, {1,1,1,0.05*glossMult},{1,1,1,0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 	drawlist[2] = glCreateList( function()
 	
@@ -752,6 +762,7 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			glossMult = 1 + (2-(ui_opacity*2))
 			guishaderEnabled = (WG['guishader'])
 			doCreateList = true
 		end

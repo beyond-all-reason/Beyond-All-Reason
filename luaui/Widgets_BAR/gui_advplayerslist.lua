@@ -113,6 +113,11 @@ local gl_DeleteList		= gl.DeleteList
 local gl_CallList		= gl.CallList
 local gl_Text			= gl.Text
 
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+
 --------------------------------------------------------------------------------
 -- IMAGES
 --------------------------------------------------------------------------------
@@ -233,6 +238,7 @@ local myLastCameraState
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local playSounds = true
 local buttonclick = LUAUI_DIRNAME..'Sounds/buildbar_waypoint.wav'
@@ -2033,7 +2039,6 @@ function CreateBackground()
 		--WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
-
 		--gl_Color(0,0,0,ui_opacity)
 		RectRound(absLeft,absBottom,absRight,absTop,padding*1.45, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
 		--gl_Color(1,1,1,ui_opacity*0.055)
@@ -2041,6 +2046,12 @@ function CreateBackground()
 		local height = 46
 		RectRound(absLeft+paddingLeft,absTop-paddingTop-height,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), 0, 0, {0.6,0.6,0.6,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,padding*1.1, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.2}, {0.6,0.6,0.6,ui_opacity*0.2})
+		--gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.4),absRight-paddingRight,absTop-paddingTop,padding*1.1, 1,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-(height*0.2),padding*1.1, 0,0,1,1, {1,1,1,0.05*glossMult},{1,1,1,0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'
@@ -4036,6 +4047,7 @@ function widget:Update(delta) --handles takes & related messages
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			glossMult = 1 + (2-(ui_opacity*2))
 			CreateBackground()
 		end
 	end

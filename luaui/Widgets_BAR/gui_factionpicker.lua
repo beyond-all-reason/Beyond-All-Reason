@@ -50,6 +50,7 @@ local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local backgroundRect = {}
 local lastUpdate = os.clock()-1
@@ -68,6 +69,7 @@ local glColor = gl.Color
 local glRect = gl.Rect
 local glVertex = gl.Vertex
 local glDepthTest = gl.DepthTest
+
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -181,6 +183,7 @@ function widget:Update(dt)
     end
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+      glossMult = 1 + (2-(ui_opacity*2))
       doUpdate = true
     end
     if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
@@ -305,6 +308,12 @@ function drawFactionpicker()
   local padding = bgBorder*vsy
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1]+(altPosition and padding or 0), backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+
+  -- gloss
+  glBlending(GL_SRC_ALPHA, GL_ONE)
+  RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+  RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[2]+(altPosition and 0 or padding),backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.035*glossMult}, {1,1,1,0})
+  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   armcomRect = backgroundRect
   corcomRect = backgroundRect
