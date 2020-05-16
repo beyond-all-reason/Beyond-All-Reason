@@ -515,14 +515,15 @@ function drawInfo()
       local valueColor = '\255\245\245\245'
       -- dps
       if unitDPS[displayUnitDefID] then
+        font2:Begin()
         font2:Print(labelColor..'dps '..valueColor..unitDPS[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
+        font2:End()
       end
       -- energy
       --font2:Print(energyColor..unitEnergyCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
       -- health
       --font2:Print(healthColor..unitHealth[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
 
-      font2:End()
     end
 
   else
