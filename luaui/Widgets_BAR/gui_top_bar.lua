@@ -445,7 +445,7 @@ local function updateButtons()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,(ui_opacity)})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {0.2,0.2,0.2,(ui_opacity)},{0,0,0,(ui_opacity)})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
