@@ -1,5 +1,5 @@
 return {
-	lootboxdroppod_gold = {
+	lootdroppod_gold = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
@@ -41,7 +41,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 0,
-		unitname = "lootboxdroppod",
+		unitname = "lootdroppod_gold",
 		upright = false,
 		waterline = 0,
 		workertime = 1500,
