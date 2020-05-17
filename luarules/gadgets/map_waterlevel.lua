@@ -5,7 +5,7 @@ function gadget:GetInfo()
 	return {
 		name      = "Map Waterlevel",
 		version   = "v1",
-		desc      = "Sets map waterlevel according to the modoption",
+		desc      = "Implements map_waterlevel modoption or enable cheats and do /luarules waterlevel #",
 		author    = "Doo",
 		date      = "Nov 2017",
 		license   = "GPL",
@@ -39,13 +39,9 @@ if (gadgetHandler:IsSyncedCode()) then
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 	end
 
-	function waterlevel()
-		if not Spring.IsCheatingEnabled() then return end
-
-	end
-
 	function gadget:Initialize()
 		if Spring.GetGameFrame() == 0 and Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and Spring.GetModOptions().map_waterlevel ~= "0" then
+			waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)))
 			adjustWaterlevel()
 		end
 	end
