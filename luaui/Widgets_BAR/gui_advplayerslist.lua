@@ -2046,10 +2046,10 @@ function CreateBackground()
 		local height = 46
 		RectRound(absLeft+paddingLeft,absTop-paddingTop-height,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), 0, 0, {0.6,0.6,0.6,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,padding*1.1, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.2}, {0.6,0.6,0.6,ui_opacity*0.2})
-		--gloss
+		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.55),absRight-paddingRight,absTop-paddingTop,padding*1.1, 1,1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-(height*0.2),padding*1.1, 0,0,1,1, {1,1,1,0.05*glossMult},{1,1,1,0})
+		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.4),absRight-paddingRight,absTop-paddingTop,padding*1.1, 1,1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.08*glossMult})
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-(height*0.15),padding*1.1, 0,0,1,1, {1,1,1,0.04*glossMult},{1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if collapsed then

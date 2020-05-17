@@ -249,8 +249,8 @@ local function createList()
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.4), right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.3), borderPadding*1.1, 0,0,1,1, {1,1,1,0.05*glossMult},{1,1,1,0})
+		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.08*glossMult})
+		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.25), borderPadding*0.9, 0,0,1,1, {1,1,1,0.04*glossMult},{1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 	updateValues()

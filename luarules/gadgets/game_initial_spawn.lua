@@ -734,27 +734,27 @@ function gadget:Initialize()
 	readyButton = gl.CreateList(function()
 		-- draws background rectangle
 		gl.Color(0,0,0,0.75)
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 5, 1,1,1,1, {0.05,0.05,0.05,0.75}, {0,0,0,0.75})
+		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 5, 2,2,2,2, {0.05,0.05,0.05,0.75}, {0,0,0,0.75})
 		-- gloss
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), 0, 5, 1,1,1,1, {1,1,1,0.06}, {1,1,1,0.15})
-		RectRound(-((readyW/2)+bgMargin), ((readyH/4)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 5, 1,1,1,1, {1,1,1,0.06}, {1,1,1,0})
+		RectRound(-((readyW/2)+bgMargin), 0, ((readyW/2)+bgMargin), -((readyH/2)+bgMargin), 5, 1,1,0,0, {1,1,1,0.06}, {1,1,1,0.15})
+		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), -((readyH/4)+bgMargin), 5, 0,0,1,1, {1,1,1,0.06}, {1,1,1,0})
 
 		gl.Color(1,1,1,0.11)
-		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3)
+		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2)
 		gl.Color(1,1,1,1)
 	end)
 	-- create ready button
 	readyButtonHover = gl.CreateList(function()
 		-- draws background rectangle
 		gl.Color(0.15,0.12,0,0.75)
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 5)
-		RectRound(readyX-bgMargin, readyY-bgMargin, readyX+readyW+bgMargin, readyY+readyH+bgMargin, 3)
+		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 5, 2,2,2,2)
+		RectRound(readyX-bgMargin, readyY-bgMargin, readyX+readyW+bgMargin, readyY+readyH+bgMargin, 3, 2,2,2,2)
 		-- gloss
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), 0, 5, 1,1,1,1, {1,1,1,0.12}, {1,1,1,0.25})
-		RectRound(-((readyW/2)+bgMargin), ((readyH/4)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 5, 1,1,1,1, {1,1,1,0.12}, {1,1,1,0})
+		RectRound(-((readyW/2)+bgMargin), 0, ((readyW/2)+bgMargin), -((readyH/2)+bgMargin), 5, 1,1,0,0, {1,1,1,0.12}, {1,1,1,0.25})
+		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), -((readyH/4)+bgMargin), 5, 0,0,1,1, {1,1,1,0.12}, {1,1,1,0})
 
 		gl.Color(1,0.8,0.3,0.28)
-		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3)
+		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2)
 		gl.Color(1,1,1,1)
 	end)
 end

@@ -333,7 +333,7 @@ function drawFactionpicker()
   local maxCellWidth = contentWidth/#factions
   local cellSize = math.min(maxCellHeight, maxCellWidth)
 
-  local rectMargin = padding * 0.8
+  local rectMargin = padding * 1
   for i, faction in pairs(factions) do
     factionRect[i] = {
       backgroundRect[3]-(altPosition and padding or 0)-(cellSize*i),
@@ -344,16 +344,16 @@ function drawFactionpicker()
     -- background
     local color1, color2
     if WG['guishader'] then
-      color1 = {0.6,0.6,0.6,0.6}
-      color2 = {0.8,0.8,0.8,0.6}
+      color1 = {0.35,0.35,0.35,0.66}
+      color2 = {0.45,0.45,0.45,0.66}
     else
-      color1 = {0.33,0.33,0.33,0.95}
-      color2 = {0.55,0.55,0.55,0.95}
+      color1 = {0.3,0.3,0.3,0.9}
+      color2 = {0.4,0.4,0.4,0.9}
     end
     RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,1,1, color1, color2)
     -- gloss
-    RectRound(factionRect[i][1]+rectMargin, factionRect[i][4]-((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,0,0, {1,1,1,0.06}, {1,1,1,0.3})
-    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]-rectMargin, factionRect[i][3]-rectMargin, factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.22), rectMargin, 0,0,1,1, {1,1,1,0.22}, {1,1,1,0})
+    RectRound(factionRect[i][1]+rectMargin, factionRect[i][4]-((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,0,0, {1,1,1,0.045}, {1,1,1,0.35})
+    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.24), rectMargin, 0,0,1,1, {1,1,1,0.18}, {1,1,1,0})
 
     -- startunit icon
     glColor(1,1,1,1)
