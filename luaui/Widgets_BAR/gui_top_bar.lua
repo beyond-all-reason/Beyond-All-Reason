@@ -307,6 +307,20 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
+local function RectQuad(px,py,sx,sy,offset)
+	gl.TexCoord(offset,1-offset)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(1-offset,offset)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(offset,offset)
+	gl.Vertex(px, sy, 0)
+end
+function DrawRect(px,py,sx,sy,zoom)
+	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
+end
+
 local function short(n,f)
 	if (f == nil) then
 		f = 0
@@ -379,10 +393,10 @@ local function updateRejoin()
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		glColor(0, 1, 0, 0.085)
 		glTexture(barGlowCenterTexture)
-		glTexRect(barArea[1], barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
+		DrawRect(barArea[1], barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize, 0.008)
 		glTexture(barGlowEdgeTexture)
-		glTexRect(barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize)
-		glTexRect((barArea[1]+(catchup * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
+		DrawRect(barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize, 0.008)
+		DrawRect((barArea[1]+(catchup * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize, 0.008)
 		glTexture(false)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -1235,20 +1249,10 @@ function drawResbarValues(res)
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
 	glTexture(barGlowCenterTexture)
-	glTexRect(
-		resbarDrawinfo[res].barGlowMiddleTexRect[1],
-		resbarDrawinfo[res].barGlowMiddleTexRect[2],
-		resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth,
-		resbarDrawinfo[res].barGlowMiddleTexRect[4]
-	)
+	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4] ,0.008)
 	glTexture(barGlowEdgeTexture)
-	glTexRect(
-		resbarDrawinfo[res].barGlowLeftTexRect[1],
-		resbarDrawinfo[res].barGlowLeftTexRect[2],
-		resbarDrawinfo[res].barGlowLeftTexRect[3],
-		resbarDrawinfo[res].barGlowLeftTexRect[4]
-	)
-	glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth)+(glowSize*3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4])
+	DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4] ,0.008)
+	DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth)+(glowSize*3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
 	glTexture(false)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

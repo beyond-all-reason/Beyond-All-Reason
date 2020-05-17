@@ -378,6 +378,20 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
+local function RectQuad(px,py,sx,sy,offset)
+  gl.TexCoord(offset,1-offset)
+  gl.Vertex(px, py, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(sx, py, 0)
+  gl.TexCoord(1-offset,offset)
+  gl.Vertex(sx, sy, 0)
+  gl.TexCoord(offset,offset)
+  gl.Vertex(px, sy, 0)
+end
+function DrawRect(px,py,sx,sy,zoom)
+  gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
+end
+
 function drawInfo()
   padding = bgBorder*vsy
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
@@ -413,7 +427,7 @@ function drawInfo()
     displayUnitID = hoverData
     displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
   end
-  
+
   if displayMode ~= 'text' then
     local iconSize = fontSize*5
     local iconPadding = 0
@@ -441,7 +455,7 @@ function drawInfo()
 
     local unitNameColor = '\255\205\255\205'
     if SelectedUnitsCount > 0 then
-      if not showdisplayUnitDefID or (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID))) then
+      if not displayMode == 'unitdef' or (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID))) then
         unitNameColor = '\255\125\255\125'
       end
     end
@@ -488,15 +502,19 @@ function drawInfo()
     RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
 
     -- draw unit buildoption icons
-    if showdisplayUnitDefID and unitBuildOptions[displayUnitDefID] then
+    if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
       local rows = 2
       local colls = math.ceil(#unitBuildOptions[displayUnitDefID] / rows)
       local cellsize = math.min(width/colls, height/rows)
-
+      if cellsize < height/3 then
+        rows = 3
+        colls = math.ceil(#unitBuildOptions[displayUnitDefID] / rows)
+        cellsize = math.min(width/colls, height/rows)
+      end
       -- draw grid (bottom right to top left)
       glColor(0.88,0.88,0.88,1)
       local cellID = #unitBuildOptions[displayUnitDefID]
-      local cellPadding = cellsize * 0.035
+      local cellPadding = cellsize * 0.033
       local cellRect = {}
       for row=1, rows do
         for coll=1, colls do
@@ -504,7 +522,8 @@ function drawInfo()
             local uDefID = unitBuildOptions[displayUnitDefID][cellID]
             cellRect[cellID] = {unitCustomInfoArea[3]-(coll*cellsize), unitCustomInfoArea[2]+((row-1)*cellsize), unitCustomInfoArea[3]-((coll-1)*cellsize), unitCustomInfoArea[2]+((row)*cellsize)}
             glTexture(":lr64,64:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-            glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
+            --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
+            DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.07)
           end
           cellID = cellID - 1
           if cellID <= 0 then break end
