@@ -159,6 +159,7 @@ function widget:MousePress(x,y,button)
 		end
 		speedbuttons[i].color = {0.75,0,0,0.66 }
 		sceduleUpdate = true
+		return true
 	end
 
 	local cb,i = clicked_button (buttons)
@@ -178,6 +179,7 @@ function widget:MousePress(x,y,button)
 			buttons[i].text = "  ||"
 		end
 		sceduleUpdate = true
+		return true
 	end
 end
 
