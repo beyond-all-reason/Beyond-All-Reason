@@ -401,7 +401,7 @@ local function createList()
 		--glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, 4.5*widgetScale, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
 		
-		borderPadding = 2.75*widgetScale
+		borderPadding = 2.5*widgetScale
 		borderPaddingRight = borderPadding
 		if right >= vsx-0.2 then
 			borderPaddingRight = 0

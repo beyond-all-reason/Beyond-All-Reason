@@ -739,10 +739,10 @@ local function updateResbarText(res)
 					showOverflowTooltip[res] = os.clock() + 0.5
 				end
 				if showOverflowTooltip[res] < os.clock() then
-					local bgpadding = 2.5*widgetScale
+					local bgpadding = 2.2 * widgetScale
 					local text = ''
 					if res == 'metal' then
-						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
+						text = (allyteamOverflowingMetal and '   Wasting Metal   ' or '   Overflowing   ')
 						if WG['notifications'] then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
@@ -755,7 +755,7 @@ local function updateResbarText(res)
 							end
 						end
 					else
-						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
+						text = (allyteamOverflowingEnergy and '   Wasting Energy   ' or '   Overflowing   ')
 						if WG['notifications'] then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 1 then
@@ -768,51 +768,52 @@ local function updateResbarText(res)
 							end
 						end
 					end
-					local textWidth = (bgpadding*2) + 22 + font2:GetTextWidth(text) * (orgHeight * (1+(ui_scale-1)/1.33)/4) * widgetScale
+					local fontSize = (orgHeight * (1+(ui_scale-1)/1.33)/4)*widgetScale
+					local textWidth = font2:GetTextWidth(text) * fontSize
 
 					-- background
 					local color1,color2
 					if res == 'metal' then
 						if allyteamOverflowingMetal then
-							color1 = {0.33,0,0,0.6}
-							color2 = {0.22,0,0,0.6}
+							color1 = {0.35,0.1,0.1,0.8}
+							color2 = {0.25,0.05,0.05,0.8}
 						else
-							color1 = {0.33,0.33,0.33,0.4}
-							color2 = {0.22,0.22,0.22,0.4}
+							color1 = {0.35,0.35,0.35,0.55}
+							color2 = {0.25,0.25,0.25,0.55}
 						end
 					else
 						if allyteamOverflowingEnergy then
-							color1 = {0.33,0,0,0.6}
-							color2 = {0.22,0,0,0.6}
+							color1 = {0.35,0.1,0.1,0.8}
+							color2 = {0.25,0.05,0.05,0.8}
 						else
-							color1 = {0.33,0.22,0,0.6}
-							color2 = {0.22,0.15,0,0.6}
+							color1 = {0.35,0.25,0,0.8}
+							color2 = {0.25,0.16,0,0.8}
 						end
 					end
-					RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale, 1,1,1,1, color1,color2)
+					RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7*widgetScale, 0,0,1,1, color1,color2)
 					if res == 'metal' then
 						if allyteamOverflowingMetal then
-							color1 = {1,0.3,0.3,0.2}
-							color2 = {1,0.3,0.3,0.33}
+							color1 = {1,0.3,0.3,0.25}
+							color2 = {1,0.3,0.3,0.44}
 						else
-							color1 = {1,1,1,0.15}
-							color2 = {1,1,1,0.33}
+							color1 = {1,1,1,0.25}
+							color2 = {1,1,1,0.44}
 						end
 					else
 						if allyteamOverflowingEnergy then
-							color1 = {1,0.3,0.3,0.2}
-							color2 = {1,0.3,0.3,0.33}
+							color1 = {1,0.3,0.3,0.25}
+							color2 = {1,0.3,0.3,0.44}
 						else
-							color1 = {1,0.88,0,0.2}
-							color2 = {1,0.88,0,0.33}
+							color1 = {1,0.88,0,0.25}
+							color2 = {1,0.88,0,0.44}
 						end
 					end
-					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25, 1,1,1,1, color1,color2)
+					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], 2.8*widgetScale, 0,0,1,1, color1,color2)
 
 					font2:Begin()
                     font2:SetTextColor(1,0.88,0.88,1)
                     font2:SetOutlineColor(0.2,0,0,0.6)
-                    font2:Print(text, resbarArea[res][3]-7*widgetScale, resbarArea[res][4]-9.5*widgetScale, (orgHeight * (1+(ui_scale-1)/1.33)/4)*widgetScale, 'or')
+                    font2:Print(text, resbarArea[res][3], resbarArea[res][4]-9.3*widgetScale, fontSize, 'or')
                     font2:End()
 				end
 			else

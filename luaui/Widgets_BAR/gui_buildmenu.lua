@@ -693,7 +693,7 @@ function drawBuildmenu()
   end
 
   -- there are globals so it can be used for the hover highlight
-  cellPadding = cellSize * 0.008
+  cellPadding = cellSize * 0.007
   iconPadding = cellSize * 0.02
   cellInnerSize = cellSize-cellPadding-cellPadding
   radariconSize = cellInnerSize * 0.29
@@ -823,8 +823,8 @@ function drawBuildmenu()
   else
     local paginatorFontSize = math.max(0.016*vsy, paginatorCellHeight*0.2)
     local paginatorCellWidth = contentWidth*0.3
-    paginatorRects[1] = {activeArea[1], activeArea[2], activeArea[1]+paginatorCellWidth, activeArea[2]+paginatorCellHeight}
-    paginatorRects[2] = {activeArea[3]-paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2]+paginatorCellHeight}
+    paginatorRects[1] = {activeArea[1], activeArea[2], activeArea[1]+paginatorCellWidth, activeArea[2]+paginatorCellHeight-cellPadding}
+    paginatorRects[2] = {activeArea[3]-paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2]+paginatorCellHeight-cellPadding}
 
     RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
     RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
