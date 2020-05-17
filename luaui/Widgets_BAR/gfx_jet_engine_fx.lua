@@ -568,7 +568,8 @@ function init()
                 Spring.Echo("LuaParticleSystem (Lups) activated.")
             end
             initialized=true
-            return
+			LupsAddFX = Lups.AddParticles
+			return
         else
             if tryloading == 1 then
                 Spring.Echo("Lups not found! Trying to activate it.")
