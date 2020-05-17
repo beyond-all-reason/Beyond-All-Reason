@@ -19,23 +19,36 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local lootboxesList = {
+local lootboxesListLow = {
+    "lootboxbronze",
+    "lootboxbronze",
+}
+
+local lootboxesListMid = {
+    "lootboxbronze",
+    "lootboxbronze",
+    "lootboxsilver",
+}
+
+local lootboxesListHigh = {
     "lootboxbronze",
     "lootboxbronze",
     "lootboxbronze",
-    "lootboxbronze",
-    "lootboxbronze",
-    "lootboxbronze",
-    "lootboxbronze",
-    "lootboxbronze",
-    "lootboxbronze",
-    "lootboxbronze",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxgold",
+}
+
+local lootboxesListTop = {
     "lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
     "lootboxgold",
     "lootboxplatinum",
 }
@@ -55,12 +68,13 @@ local spPosition            = Spring.GetUnitPosition
 local spTransfer            = Spring.TransferUnit
 local mapsizeX              = Game.mapSizeX
 local mapsizeZ              = Game.mapSizeZ
-local xBorder               = math.floor(mapsizeX/4)
-local zBorder               = math.floor(mapsizeZ/4)
+local xBorder               = math.floor(mapsizeX/5)
+local zBorder               = math.floor(mapsizeZ/5)
 local math_random           = math.random
 local spGroundHeight        = Spring.GetGroundHeight
 local spGaiaTeam            = Spring.GetGaiaTeamID()
 local spCreateUnit          = Spring.CreateUnit
+local spGetCylinder			= Spring.GetUnitsInCylinder
 
 local aliveLootboxes        = {}
 local aliveLootboxesCount   = 0
@@ -138,15 +152,24 @@ function gadget:GameFrame(n)
                 end
             end
         end
-        if math_random(0,600) == 0 then
-            for k = 1,100 do
+        if math_random(0,500) == 0 then
+            for k = 1,1000 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
                 local posy = spGroundHeight(posx, posz)
-                if posy > 0 then
+				local unitsCyl = spGetCylinder(posx, posz, 128)
+                if posy > 0 and #unitsCyl == 0 then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
-                    spCreateUnit(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+                    if aliveLootboxesCount < 2 then
+						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+					elseif aliveLootboxesCount < 4 then
+						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+					elseif aliveLootboxesCount < 6 then
+						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+					else
+						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+					end
                     Spring.MarkerAddPoint(posx, posy, posz, "Lootbox Spawned", false)
                     break
                 end
@@ -160,6 +183,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local unitName = UnitDefs[unitDefID].name
     if string.find(unitName, "lootbox") then
         table.insert(aliveLootboxes,unitID)
+		aliveLootboxesCount = aliveLootboxesCount + 1
         Spring.SetUnitNeutral(unitID, true)
     end
 end
@@ -170,6 +194,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if string.find(unitName, "lootbox") then
         for i = 1,#aliveLootboxes do
             if unitID == aliveLootboxes[i] then
+				aliveLootboxesCount = aliveLootboxesCount - 1
                 table.remove(aliveLootboxes,i)
                 break
             end
