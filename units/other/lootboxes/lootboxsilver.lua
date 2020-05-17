@@ -101,7 +101,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:LootboxLightGold",
-				[2] = "custom:LootboxBeaconGold",
+				[2] = "custom:LootboxBeaconSilver",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
