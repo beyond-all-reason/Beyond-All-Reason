@@ -4,7 +4,9 @@ NoSelfdList = {
 	"corfmd",
 	"coramd",
 	"lootboxgold",
-
+	"lootboxplatinum",
+	"lootboxsilver",
+	"lootboxbronze",
 
 	-- These operate through other modules
 	--"cornanotc",
