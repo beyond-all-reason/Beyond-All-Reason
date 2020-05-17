@@ -796,11 +796,11 @@ function drawBuildmenu()
       if cmds[cellRectID].params[1] then
         local pad = cellInnerSize * 0.03
         local textWidth = (font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.29)
-        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.38), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.1, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
-        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.38)+pad, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.085, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
+        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.08, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
+        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)+pad, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.06, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
         font2:Print("\255\190\255\190"..cmds[cellRectID].params[1],
                 cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.94),
-                cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.71),
+                cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.715),
                 cellInnerSize*0.29, "ro"
         )
       end
@@ -826,10 +826,10 @@ function drawBuildmenu()
     paginatorRects[1] = {activeArea[1], activeArea[2], activeArea[1]+paginatorCellWidth, activeArea[2]+paginatorCellHeight}
     paginatorRects[2] = {activeArea[3]-paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2]+paginatorCellHeight}
 
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.35,0.35,0.35,WG['guishader'] and 0.66 or 0.8}, {0.45,0.45,0.45,WG['guishader'] and 0.66 or 0.8})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.35,0.35,0.35,WG['guishader'] and 0.66 or 0.8}, {0.45,0.45,0.45,WG['guishader'] and 0.66 or 0.8})
-    RectRound(paginatorRects[1][1]+cellPadding+iconPadding, paginatorRects[1][2]+cellPadding+iconPadding, paginatorRects[1][3]-cellPadding-iconPadding, paginatorRects[1][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,0.3}, {0,0,0,0.2})
-    RectRound(paginatorRects[2][1]+cellPadding+iconPadding, paginatorRects[2][2]+cellPadding+iconPadding, paginatorRects[2][3]-cellPadding-iconPadding, paginatorRects[2][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,0.3}, {0,0,0,0.2})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
+    RectRound(paginatorRects[1][1]+cellPadding+iconPadding, paginatorRects[1][2]+cellPadding+iconPadding, paginatorRects[1][3]-cellPadding-iconPadding, paginatorRects[1][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,WG['guishader'] and 0.48 or 0.55}, {0,0,0,WG['guishader'] and 0.45 or 0.55})
+    RectRound(paginatorRects[2][1]+cellPadding+iconPadding, paginatorRects[2][2]+cellPadding+iconPadding, paginatorRects[2][3]-cellPadding-iconPadding, paginatorRects[2][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,WG['guishader'] and 0.48 or 0.55}, {0,0,0,WG['guishader'] and 0.45 or 0.55})
 
     -- glossy half
     glBlending(GL_SRC_ALPHA, GL_ONE)

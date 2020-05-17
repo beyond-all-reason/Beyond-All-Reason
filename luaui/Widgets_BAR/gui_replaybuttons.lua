@@ -125,8 +125,8 @@ function widget:DrawScreen()
 				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,buttonstate and 0.25 or 0.15}, {1,1,1,buttonstate and 0.25 or 0.15})
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y+(b[i].h*0.6), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
-				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.35), 4, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
+				uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
+				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.4), 4, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
 				break
@@ -139,8 +139,8 @@ function widget:DrawScreen()
 				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,buttonstate and 0.25 or 0.15}, {1,1,1,buttonstate and 0.25 or 0.15})
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y+(b[i].h*0.6), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
-				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.35), 4, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
+				uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
+				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.4), 4, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
 				break
@@ -453,8 +453,8 @@ function draw_buttons (b)
 		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		uiRect(b[i].x, b[i].y+(b[i].h*0.6), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.07*glossMult})
-		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.35), 4, 0,0,1,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
+		uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.07*glossMult})
+		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.4), 4, 0,0,1,1, {1,1,1,0.04*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
