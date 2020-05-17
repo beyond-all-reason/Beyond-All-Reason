@@ -648,7 +648,7 @@ function drawBuildmenu()
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1], backgroundRect[4]-padding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+  RectRound(backgroundRect[1], backgroundRect[4]-padding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.07*glossMult})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+((backgroundRect[4]-backgroundRect[2])*0.045), padding*1, 0,0,1,0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -826,18 +826,20 @@ function drawBuildmenu()
     paginatorRects[1] = {activeArea[1], activeArea[2], activeArea[1]+paginatorCellWidth, activeArea[2]+paginatorCellHeight}
     paginatorRects[2] = {activeArea[3]-paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2]+paginatorCellHeight}
 
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.21,0.21,0.21,0.85}, {0.27,0.27,0.27,0.85})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.21,0.21,0.21,0.85}, {0.27,0.27,0.27,0.85})
-    RectRound(paginatorRects[1][1]+cellPadding+iconPadding, paginatorRects[1][2]+cellPadding+iconPadding, paginatorRects[1][3]-cellPadding-iconPadding, paginatorRects[1][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,0.34}, {0,0,0,0.17})
-    RectRound(paginatorRects[2][1]+cellPadding+iconPadding, paginatorRects[2][2]+cellPadding+iconPadding, paginatorRects[2][3]-cellPadding-iconPadding, paginatorRects[2][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,0.34}, {0,0,0,0.17})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.35,0.35,0.35,WG['guishader'] and 0.66 or 0.8}, {0.45,0.45,0.45,WG['guishader'] and 0.66 or 0.8})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.35,0.35,0.35,WG['guishader'] and 0.66 or 0.8}, {0.45,0.45,0.45,WG['guishader'] and 0.66 or 0.8})
+    RectRound(paginatorRects[1][1]+cellPadding+iconPadding, paginatorRects[1][2]+cellPadding+iconPadding, paginatorRects[1][3]-cellPadding-iconPadding, paginatorRects[1][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,0.3}, {0,0,0,0.2})
+    RectRound(paginatorRects[2][1]+cellPadding+iconPadding, paginatorRects[2][2]+cellPadding+iconPadding, paginatorRects[2][3]-cellPadding-iconPadding, paginatorRects[2][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,0.3}, {0,0,0,0.2})
 
     -- glossy half
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][4]-cellPadding-((paginatorRects[1][4]-paginatorRects[1][2])*0.5), paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.045}, {1,1,1,0.15})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][4]-cellPadding-((paginatorRects[2][4]-paginatorRects[1][2])*0.5), paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.045}, {1,1,1,0.15})
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][4]-cellPadding-((paginatorRects[1][4]-paginatorRects[1][2])*0.5), paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.03}, {1,1,1,0.18})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][4]-cellPadding-((paginatorRects[2][4]-paginatorRects[1][2])*0.5), paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.03}, {1,1,1,0.18})
 
     -- glossy bottom
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][2]+cellPadding+((paginatorRects[1][4]-paginatorRects[1][2])*0.18), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][2]+cellPadding+((paginatorRects[2][4]-paginatorRects[1][2])*0.18), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][2]+cellPadding+((paginatorRects[1][4]-paginatorRects[1][2])*0.25), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][2]+cellPadding+((paginatorRects[2][4]-paginatorRects[1][2])*0.25), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     font2:Print("\255\245\245\245"..currentPage.."  \\  "..pages, contentWidth*0.5, activeArea[2]+(paginatorCellHeight*0.5)-(paginatorFontSize*0.25), paginatorFontSize, "co")
   end
