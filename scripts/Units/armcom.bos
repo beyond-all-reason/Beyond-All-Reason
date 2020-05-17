@@ -196,7 +196,7 @@ Poser(){
 	turn lthigh to  y-axis <0> speed <20.0000> ; //-- Turn(lthigh, y-axis, math.rad(0), math.rad(20))
 	
 	
-	move pelvis to y-axis [-1.5] now; //Move(pelvis, y-axis, -1.5, now)
+	move pelvis to y-axis [-2.5] speed [10]; //Move(pelvis, y-axis, -1.5, now)
 	turn torso to z-axis <0> now; //Turn(torso, z-axis, 0, now)
 	//signal SIG_WALK;//Signal(SIG_WALK)
 	//set-signal-mask SIG_WALK;//SetSignalMask(SIG_WALK)
@@ -430,23 +430,25 @@ AimSecondary(heading, pitch)
 	{
 		return (0);
 	}
-	if( isBuilding )
-	{
+	if (isAimingDgun){
 		return (0);
 	}
+	
+	call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-
-	turn torso to y-axis heading speed <300.000000>;
-	turn ruparm to x-axis <-5.000000> - pitch speed <250.000000>;
-	turn rloarm to x-axis <000000> speed <250.000000>;
+	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
+	wait-for-turn rloarm around x-axis;
 	wait-for-turn ruparm around x-axis;
-
+	isAiming = 1;
 	if( isBuilding == 1 )
 	{
 		start-script ResumeBuilding();
 	}
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
