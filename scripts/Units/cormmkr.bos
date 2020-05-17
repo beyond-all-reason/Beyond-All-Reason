@@ -13,16 +13,16 @@ static-var  mmState, Active;
 activatescr()
 {
 	hide cover;
-	move converter to y-axis <10> speed <5>;
-	sleep 2000;	
+	move converter to y-axis <6> speed <4>;
+	sleep 1500;	
 }
 
 deactivatescr()
 {
 
-  	move converter to y-axis <0> speed <5>;
-  	show cover;
+  	move converter to y-axis <0> speed <6>;
 	sleep 2000;
+	show cover;
 }
 
 Go()
@@ -35,6 +35,7 @@ Stop()
 {
 	set ARMORED to 1;
 	call-script deactivatescr();
+	
 }
 
 MovementControl()
@@ -43,11 +44,11 @@ MovementControl()
 	{
 		while (mmState == 1)
 		{
-			move converter to y-axis [12] speed [5.000000];
-			sleep 250;
+			move converter to y-axis [12] speed [2.000000];
+			sleep 3000;
 			
-			move converter to y-axis [10] speed [5.000000];
-			sleep 250;
+			move converter to y-axis [6] speed [2.000000];
+			sleep 3000;
 		}
 			sleep 100;
 	}	
