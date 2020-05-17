@@ -430,16 +430,16 @@ UnitSpeed()
 	return (0);
 }
 
-MotionControl(Func_Var_1, Func_Var_2)
+MotionControl(moving, aiming)
 {
 	while( TRUE )
 	{
-		Func_Var_1 = bMoving;
-		Func_Var_2 = bAiming;
-		if( Func_Var_1 )
+		moving = bMoving;
+		aiming = bAiming;
+		if( moving )
 		{
 			gun_3 = torso;
-			if( Func_Var_2 )
+			if( aiming )
 			{
 				Busy = 1;
 				call-script walklegs();
@@ -620,7 +620,7 @@ AimTertiary(heading, pitch)
 	turn biggun to x-axis <0.000000> - pitch speed <360.000000>;
 	turn ruparm to x-axis <0> speed <360>;
 	wait-for-turn torso around y-axis;
-	wait-for-turn biggun around x-axis;
+	//wait-for-turn biggun around x-axis;
 	return (1);
 }
 
@@ -703,15 +703,15 @@ StartBuilding(heading, pitch)
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	bIsBuilding = 1;
-	while( !Busy )
-	{
-		sleep 30;
-	}
+	//while( !Busy ) //aiming shouldnt block construction
+	//{
+	//	sleep 30;
+	//}
 	buildHeading = heading;
 	buildPitch = pitch;
 	turn torso to y-axis heading speed <300.000000>;
 	turn luparm to x-axis <-30.000000> - pitch speed <90.000000>;
-	wait-for-turn torso around y-axis;
+	//wait-for-turn torso around y-axis;
 	wait-for-turn luparm around x-axis;
 	set INBUILDSTANCE to 1;
 	return (0);
