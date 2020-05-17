@@ -1,0 +1,567 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+//INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 16
+
+piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel;    
+
+static-var isMoving, isAiming, isAimingDgun, isBuilding, counter , buildHeading, buildPitch, firedWeapon, speedmult, leftArm, rightArm,firststep, animSpeed;
+
+// Signal definitions
+#define SIG_AIM 2
+#define SIG_WALK 4
+
+//Coordinate system: In Lua, coordinate system is same as world coordinate system, with all rotations right-handed.
+//In COB, the moves along the x-axis and rotations around the z-axis have a different sign.
+
+
+Walk(){
+	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
+	turn rthigh to z-axis <0> speed <135.0000>  *  animSpeed / 100 ; //-- Turn(rthigh, z-axis, 0, math.rad(135))
+	turn lthigh to z-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(lthigh, z-axis, 0, math.rad(130))
+	turn lfoot to y-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(lfoot, y-axis, 0, math.rad(130))
+	turn rfoot to  y-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(rfoot, y-axis, 0, math.rad(130))
+	turn lfoot to  x-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(lfoot, x-axis, 0, math.rad(130))
+	turn rfoot to  x-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(rfoot, x-axis, 0, math.rad(130))
+	turn lfoot to  z-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(lfoot, z-axis, 0, math.rad(130))
+	turn rfoot to  z-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(rfoot, z-axis, 0, math.rad(130))
+
+	turn rthigh to  y-axis <0> speed <135.0000>  *  animSpeed / 100; //-- Turn(rthigh, y-axis, 0, math.rad(135))
+	turn lthigh to  y-axis <0> speed <130.0000>  *  animSpeed / 100; //-- Turn(lthigh, y-axis, 0, math.rad(130))
+
+	//--Spring.Echo("walk",isAiming)
+	firststep = 1;
+	while (isMoving){
+		if (isAiming == 0) {
+			if (leftArm == 1 ){
+				turn luparm to  x-axis <-20> speed <26.2500>  *  animSpeed / 100; //-- Turn(luparm, x-axis, math.rad(-20), math.rad(21 * speedMult))	
+				turn biggun to  x-axis <-60> speed <16.0000> ; //-- Turn(biggun, x-axis, math.rad(-50), math.rad(395))
+			}
+			if (rightArm == 1 ) {
+				turn ruparm to  x-axis <20> speed <26.2500>  *  animSpeed / 100 ; //-- Turn(ruparm, x-axis, math.rad(20*gravFactor), math.rad(21 * speedMult))
+				turn rloarm to  x-axis <-40> speed <16.0000> ; //-- Turn(rloarm, x-axis, math.rad(-50), math.rad(395))
+			}
+		}
+		turn pelvis to  y-axis <-5> speed <7.5000>  *  animSpeed / 100; //-- Turn(pelvis, y-axis, math.rad(-5), math.rad(6 * speedMult))
+		turn torso to  x-axis <20> speed <12.5000>  *  animSpeed / 100; //-- Turn(torso, x-axis, math.rad(20), math.rad(10 * speedMult))
+		turn torso to  y-axis <3> speed <7.5000>  *  animSpeed / 100; //-- Turn(torso, y-axis, math.rad(3), math.rad(6 * speedMult))
+		turn head to  y-axis <2> speed <7.5000>  *  animSpeed / 100; //-- Turn(head, y-axis, math.rad(2), math.rad(6 * speedMult))
+		turn rthigh to  y-axis <5> speed <7.5000>  *  animSpeed / 100; //-- Turn(rthigh, y-axis, math.rad(5), math.rad(6 * speedMult))
+		turn lthigh to  y-axis <5> speed <7.5000>  *  animSpeed / 100; //-- Turn(lthigh, y-axis, math.rad(5), math.rad(6 * speedMult))
+
+		turn torso to  z-axis <-2> speed <2.5000>  *  animSpeed / 100; //-- Turn(torso, z-axis, math.rad(2), math.rad(2 * speedMult))
+		turn rleg to  x-axis <65> speed <171.8750>  *  animSpeed / 100; //-- Turn(rleg, x-axis, math.rad(65), math.rad(137.5 * speedMult))
+		turn rthigh to  x-axis <-50> speed <87.5000>  *  animSpeed / 100; //-- Turn(rthigh, x-axis, math.rad(-50), math.rad(70 * speedMult))
+		turn lthigh to  x-axis <30> speed <87.5000>  *  animSpeed / 100; //-- Turn(lthigh, x-axis, math.rad(30), math.rad(70 * speedMult))
+		turn lfoot to x-axis <-15> speed <30> * animSpeed/100;
+		turn rfoot to x-axis <0> speed <30> * animSpeed/100;
+		sleep 333  *  animSpeed / 100; //Sleep(400/speedMult)
+
+		turn torso to x-axis <1> speed <7.5000>  *  animSpeed / 100 ; //-- Turn(torso, x-axis, math.rad(1*gravFactor), math.rad(6 * speedMult))
+		move pelvis to z-axis [0.4] speed [20]  *  animSpeed / 100; //Move(pelvis, z-axis, 0.4, 20)
+		move pelvis to y-axis [0.2] speed [5] *  animSpeed / 100; //Move(pelvis, y-axis, 0.2/gravFactor, 5)
+		if (firststep) {
+			firststep = 0;
+		}
+		else{
+			sleep 560  *  animSpeed / 100; //Sleep(700/speedMult)
+		}
+		
+		turn rleg to x-axis <15> speed <231.2500>  *  animSpeed / 100; //-- Turn(rleg, x-axis, math.rad(15), math.rad(185 * speedMult))
+		move pelvis to z-axis [-1.5] speed [10]  *  animSpeed / 100; //Move(pelvis, z-axis, -1.5, 10)
+		move pelvis to y-axis [-0.75] speed [8.75]  *  animSpeed / 100; //Move(pelvis, y-axis, -0.75, 8.75)
+
+		//--Spring.Echo("walk",isAiming)
+		if (isAiming == 0){
+			if (rightArm == 1 ) {
+				turn ruparm to  x-axis <-20> speed <26.2500>  *  animSpeed / 100; //-- Turn(ruparm, x-axis, math.rad(-20), math.rad(21 * speedMult))
+				turn rloarm to  x-axis <-60> speed <16.0000> ; //-- Turn(rloarm, x-axis, math.rad(-50), math.rad(395))
+
+			}
+			if (leftArm == 1 ) {
+				turn luparm to  x-axis <20> speed <26.2500>  *  animSpeed / 100; //-- Turn(luparm, x-axis, math.rad(20), math.rad(21 * speedMult))
+				turn biggun to  x-axis <-40> speed <16.0000> ; //-- Turn(biggun, x-axis, math.rad(-50), math.rad(395))
+
+			}
+		}
+		turn pelvis to  y-axis <5> speed <7.5000>  *  animSpeed / 100 ; //-- Turn(pelvis, y-axis, math.rad(5), math.rad(6 * speedMult))
+		turn torso to  x-axis <20> speed <12.5000>  *  animSpeed / 100; //-- Turn(torso, x-axis, math.rad(20*gravFactor), math.rad(10 * speedMult))
+		turn torso to  y-axis <-3> speed <7.5000>  *  animSpeed / 100; //-- Turn(torso, y-axis, math.rad(-3), math.rad(6 * speedMult))
+		turn head to  y-axis <-2> speed <7.5000>  *  animSpeed / 100; //-- Turn(head, y-axis, math.rad(-2), math.rad(6 * speedMult))
+		turn rthigh to  y-axis <-5> speed <7.5000>  *  animSpeed / 100; //-- Turn(rthigh, y-axis, math.rad(-5), math.rad(6 * speedMult))
+		turn lthigh to  y-axis <-5> speed <7.5000>  *  animSpeed / 100; //-- Turn(lthigh, y-axis, math.rad(-5), math.rad(6 * speedMult))
+
+		turn torso to  z-axis <2> speed <2.5000>  *  animSpeed / 100; //-- Turn(torso, z-axis, math.rad(-2), math.rad(2 * speedMult))
+		turn lleg to  x-axis <65> speed <171.8750>  *  animSpeed / 100; //-- Turn(lleg, x-axis, math.rad(65), math.rad(137.5 * speedMult))
+		turn lthigh to  x-axis <-50> speed <87.5000>  *  animSpeed / 100; //-- Turn(lthigh, x-axis, math.rad(-50), math.rad(70 * speedMult))
+		turn rthigh to  x-axis <30> speed <87.5000>  *  animSpeed / 100; //-- Turn(rthigh, x-axis, math.rad(30), math.rad(70 * speedMult))
+	
+		turn lfoot to x-axis <0> speed <30> * animSpeed/100;
+		turn rfoot to x-axis <-15> speed <30> * animSpeed/100;
+
+		sleep 320  *  animSpeed / 100; //Sleep(400/speedMult)
+
+		turn torso to  x-axis <1> speed <7.5000> *  animSpeed / 100 ; //-- Turn(torso, x-axis, math.rad(1*gravFactor), math.rad(6 * speedMult))
+
+		move pelvis to z-axis [0.4] speed [20] *  animSpeed / 100;//	Move(pelvis, z-axis, 0.4, 20)
+		move pelvis to y-axis [0.2] speed [5] *  animSpeed / 100;//Move(pelvis, y-axis, 0.2/gravFactor, 5)
+		
+		sleep 560  *  animSpeed / 100; //Sleep(700/speedMult)
+
+		turn lleg to  x-axis <15> speed <231.2500>  *  animSpeed / 100; //-- Turn(lleg, x-axis, math.rad(15), math.rad(185 * speedMult))
+		move pelvis to z-axis [-1.5] speed [10]  *  animSpeed / 100; //Move(pelvis, z-axis, -1.5, 10) 
+		move pelvis to y-axis [-0.75] speed [8.75]  *  animSpeed / 100; //Move(pelvis, y-axis, -0.75, 8.75)
+	}
+}
+
+LookAround(){
+	/*
+
+	while true do
+		if AmIBored() then
+turn torso to  y-axis <> speed <> ; //-- Turn(torso, y-axis, 0, 5)
+
+			local randomRotDegrees	= math.random(10, 50)
+			local randomRotRadians	= math.rad(randomRotDegrees)
+			randomAnim = math.random(1, 3)
+			--Spring.Echo("LookAround",isMoving, randomAnim, AmIBored())
+			if randomAnim >= 2  and AmIBored() then
+turn torso to  y-axis <> speed <> ; //-- Turn(torso, y-axis, randomRotRadians, 0.34*randomAnim)
+turn head to  y-axis <> speed <> ; //-- Turn(head, y-axis, randomRotRadians/2, 0.18*randomAnim)
+				Sleep(400)
+			end
+
+			if randomAnim == 2 and AmIBored() then
+				if (isAiming == false and isMoving  == false) then
+turn ruparm to  x-axis <> speed <> ; //-- Turn(ruparm, x-axis, -1.1, randomRotDegrees/10)
+turn luparm to  x-axis <> speed <> ; //-- Turn(luparm, x-axis, 0.1, 2)
+					Sleep(400)
+				end
+			else
+turn ruparm to  x-axis <> speed <> ; //-- Turn(ruparm, x-axis, -0.15, 0.18)
+turn luparm to  x-axis <> speed <> ; //-- Turn(luparm, x-axis, 0.1, 2)
+				Sleep(400)
+			end
+
+			if randomAnim <= 2 and AmIBored() then
+turn torso to  y-axis <> speed <> ; //-- Turn(torso, y-axis, -randomRotRadians, 0.34*randomAnim)
+turn head to  y-axis <> speed <> ; //-- Turn(head, y-axis, -randomRotRadians/2, 0.18*randomAnim)
+				Sleep(400)
+			end
+
+			if AmIBored() then
+				Sleep(500)
+			end
+
+			if randomAnim == 1 and AmIBored() then
+turn ruparm to  x-axis <> speed <> ; //-- Turn(ruparm, x-axis, 0.1, 2)
+turn luparm to  x-axis <> speed <> ; //-- Turn(luparm, x-axis, -randomRotDegrees/95, randomRotDegrees/20)
+				Sleep(400)
+			else
+				if randomAnim == 2 then
+turn ruparm to  x-axis <> speed <> ; //-- Turn(ruparm, x-axis, 0.1, 0.1)
+				else
+turn ruparm to  x-axis <> speed <> ; //-- Turn(ruparm, x-axis, 0.1, 0.5)
+				end
+turn luparm to  x-axis <> speed <> ; //-- Turn(luparm, x-axis, -0.15, 0.18)
+				Sleep(500)
+			end
+			Sleep(600)
+		else-- not aiming, not building oh lawd!
+			Sleep(600)
+		end
+	end
+	*/
+}
+
+
+
+
+
+Poser(){
+	signal SIG_WALK;//Signal(SIG_WALK)
+	set-signal-mask SIG_WALK;//SetSignalMask(SIG_WALK)
+	sleep 500;
+	turn pelvis to  y-axis <0> speed <20.0000> ; //-- Turn(pelvis, y-axis, math.rad(0), math.rad(20))
+	turn torso to  x-axis <0> speed <20.0000> ; //-- Turn(torso, x-axis, math.rad(0), math.rad(20))
+	//restoreafterdelay will take care of this:
+	//turn torso to  y-axis <0> speed <400.0000> ; //-- Turn(torso, y-axis, math.rad(0), math.rad(20))
+	turn head to  y-axis <0> speed <20.0000> ; //-- Turn(head, y-axis, math.rad(0), math.rad(20))
+	move pelvis to z-axis [0] speed [20]; //	Move(pelvis, z-axis, 0, 20)
+	move pelvis to y-axis [0] speed [8.75]; //	Move(pelvis, y-axis, 0, 8.75)
+	turn rthigh to  y-axis <0> speed <20.0000> ; //-- Turn(rthigh, y-axis, math.rad(0), math.rad(20))
+	turn lthigh to  y-axis <0> speed <20.0000> ; //-- Turn(lthigh, y-axis, math.rad(0), math.rad(20))
+	
+	
+	move pelvis to y-axis [-1.5] now; //Move(pelvis, y-axis, -1.5, now)
+	turn torso to z-axis <0> now; //Turn(torso, z-axis, 0, now)
+	//signal SIG_WALK;//Signal(SIG_WALK)
+	//set-signal-mask SIG_WALK;//SetSignalMask(SIG_WALK)
+	//if IsAimingDgun then return end
+	turn torso to  x-axis <5> speed <395.0000> ; //-- Turn(torso, x-axis, math.rad(5), math.rad(395))
+	turn pelvis to  x-axis <-5> speed <395.0000> ; //-- Turn(pelvis, x-axis, math.rad(-5), math.rad(395))
+
+	//move dish to y-axis [5] now;
+	if (isAiming == 0) {
+		
+		if (leftArm == 1 ) {
+			turn luparm to  x-axis <15> speed <395.0000> ; //-- Turn(luparm, x-axis, math.rad(15), math.rad(395))
+			turn luparm to  y-axis <5> speed <395.0000> ; //-- Turn(luparm, y-axis, math.rad(5), math.rad(395))
+			turn luparm to  z-axis <-10> speed <395.0000> ; //-- Turn(luparm, z-axis, math.rad(10), math.rad(395))
+			turn biggun to  x-axis <-50> speed <395.0000> ; //-- Turn(biggun, x-axis, math.rad(-50), math.rad(395))
+		}
+
+		if (rightArm == 1 ){
+			turn ruparm to  x-axis <15> speed <395.0000> ; //-- Turn(ruparm, x-axis, math.rad(15), math.rad(395))
+			turn ruparm to  y-axis <-5> speed <395.0000> ; //-- Turn(ruparm, y-axis, math.rad(-5), math.rad(395))
+			turn ruparm to  z-axis <10> speed <395.0000> ; //-- Turn(ruparm, z-axis, math.rad(-10), math.rad(395))
+			turn rloarm to  x-axis <-50> speed <395.0000> ; //-- Turn(rloarm, x-axis, math.rad(-50), math.rad(395))
+		}
+	}
+
+	turn rthigh to  x-axis <-24> speed <235.0000> ; //-- Turn(rthigh, x-axis, math.rad(-24), math.rad(235))
+	turn rthigh to  y-axis <-10> speed <135.0000> ; //-- Turn(rthigh, y-axis, math.rad(-10), math.rad(135))
+	turn rthigh to  z-axis <20> speed <135.0000> ; //-- Turn(rthigh, z-axis, math.rad(-20), math.rad(135))
+
+	turn lthigh to  x-axis <-24> speed <235.0000> ; //-- Turn(lthigh, x-axis, math.rad(-24), math.rad(235))
+	turn lthigh to  y-axis <10> speed <135.0000> ; //-- Turn(lthigh, y-axis, math.rad(10), math.rad(135))
+	turn lthigh to  z-axis <-20> speed <135.0000> ; //-- Turn(lthigh, z-axis, math.rad(20), math.rad(135))
+
+	turn lleg to  x-axis <45> speed <235.0000> ; //-- Turn(lleg, x-axis, math.rad(45), math.rad(235))
+	turn rleg to  x-axis <45> speed <230.0000> ; //-- Turn(rleg, x-axis, math.rad(45), math.rad(230))
+
+	turn lfoot to  x-axis <-11> speed <395.0000> ; //-- Turn(lfoot, x-axis, math.rad(-11), math.rad(395))
+	turn lfoot to  y-axis <10> speed <130.0000> ; //-- Turn(lfoot, y-axis, math.rad(10), math.rad(130))
+	turn lfoot to  z-axis <20> speed <130.0000> ; //-- Turn(lfoot, z-axis, math.rad(-20), math.rad(130))
+
+	turn rfoot to  x-axis <-11> speed <395.0000> ; //-- Turn(rfoot, x-axis, math.rad(-11), math.rad(395))
+	turn rfoot to  y-axis <-10> speed <130.0000> ; //-- Turn(rfoot, y-axis, math.rad(-10), math.rad(130))
+	turn rfoot to  z-axis <-20> speed <130.0000> ; //-- Turn(rfoot, z-axis, math.rad(20), math.rad(130))
+
+	//start-script SquatStance();
+}
+
+
+
+
+StartMoving(){
+	//move dish to y-axis [0] now;
+	isMoving = 1;
+	start-script Walk();
+}
+
+StopMoving(){
+	isMoving = 0;
+	//Spring.Echo(Spring.GetGameFrame(), "script.StopMoving","isAimingDgun", isAimingDgun, "isMoving", isMoving)
+	signal SIG_WALK; 
+	start-script Poser(); //used to be start-script
+	
+}
+
+FixArms(leftflag, rightflag){
+	turn luparm to  z-axis <0> speed <395.0000> ; //-- Turn(luparm, z-axis, 0, math.rad(395))
+	turn ruparm to  z-axis <0> speed <395.0000> ; //-- Turn(ruparm, z-axis, 0, math.rad(395))
+
+	if (leftflag == 1 ){
+		turn luparm to  x-axis <0> speed <395.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(395))
+		turn luparm to  y-axis <0> speed <395.0000> ; //-- Turn(luparm, y-axis, 0, math.rad(395))
+
+		turn biggun to  x-axis <0> speed <395.0000> ; //-- Turn(biggun, x-axis, 0, math.rad(395))
+	}
+	if (rightflag == 1 ) {
+		turn ruparm to  x-axis <0> speed <395.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(395))
+		turn ruparm to  y-axis <0> speed <395.0000> ; //-- Turn(ruparm, y-axis, 0, math.rad(395))
+
+		turn rloarm to  x-axis <0> speed <395.0000> ; //-- Turn(rloarm, x-axis, 0, math.rad(395))
+	}
+}
+
+
+AmIBored() {
+	//--[[Spring.Echo("isAiming: " , isAiming, "isBuilding: " , isBuilding, "isAiming == false and isBuilding == false", isAiming == false and isBuilding == false)]]--
+	//return isAiming == false and isBuilding == false and isMoving == false
+	if (isAiming == 0){
+		if (isBuilding == 0 ){
+			if (isMoving == 0){
+				return (1);
+			}
+		}
+	}
+	return (0);
+}
+
+
+
+//--------------------------------------------------------
+//--start ups :)
+//--------------------------------------------------------
+
+Create(){
+
+	turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
+	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
+	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
+	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
+	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
+	animSpeed = 100;
+	isMoving = 0;
+	isAiming = 0;
+	isBuilding = 0;
+	isAimingDgun = 0;
+	buildHeading = 0;
+	buildPitch = 0;
+	firststep = 0;
+	leftArm = 1;
+	rightArm = 1;
+	call-script Poser();
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = nano;
+	return (0);
+}
+
+
+
+RestoreAfterDelay(){
+	set-signal-mask SIG_AIM;
+	sleep 1000;
+	turn torso to  y-axis <0> speed <305.0000> ; //-- Turn(torso, y-axis, 0, math.rad(305))
+	
+	turn biggun to  x-axis <-38> speed <95.0000> ; //-- Turn(biggun, x-axis, math.rad(-38), math.rad(95))
+	turn luparm to  x-axis <0> speed <95.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
+	turn rloarm to  x-axis <-38> speed <95.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
+	turn ruparm to  x-axis <0> speed <95.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
+	
+	isAiming = 0;
+	isAimingDgun = 0;
+}
+
+
+ResumeBuilding()
+{
+	sleep 800;
+	if( isBuilding AND ( !isAiming ) )
+	{
+		turn torso to y-axis buildHeading speed <150.000000>;
+		turn luparm to x-axis <-55.000000> - buildPitch speed <45.000000>;
+	}
+	return (0);
+}
+
+
+//-----------------------------------------------------------------------
+//--gun functions;
+//-----------------------------------------------------------------------
+
+SweetSpot(piecenum)
+{
+	piecenum = torso;
+	return (0);
+}
+/////////// pew pew laser
+QueryPrimary(piecenum) //pew laser
+{
+	piecenum = laserflare;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = laserflare;
+	return (0);
+}
+
+AimPrimary(heading, pitch) //pew pew
+{
+	if (isAimingDgun){
+		return (0);
+	}
+	
+	call-script FixArms(0, 1);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
+	wait-for-turn torso around y-axis;
+	wait-for-turn rloarm around x-axis;
+	wait-for-turn ruparm around x-axis;
+	isAiming = 1;
+	if( isBuilding == 1 )
+	{
+		start-script ResumeBuilding();
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	sleep 100;
+	return (0);
+}
+
+/////////// uw weapon
+
+QuerySecondary(piecenum) //uw weapon
+{
+	piecenum = laserflare;
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = laserflare;
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	if( get PIECE_Y(head) > 0 )
+	{
+		return (0);
+	}
+	if( isAimingDgun == 1 )
+	{
+		return (0);
+	}
+	if( isBuilding )
+	{
+		return (0);
+	}
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+
+	turn torso to y-axis heading speed <300.000000>;
+	turn ruparm to x-axis <-5.000000> - pitch speed <250.000000>;
+	turn rloarm to x-axis <000000> speed <250.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn ruparm around x-axis;
+
+	if( isBuilding == 1 )
+	{
+		start-script ResumeBuilding();
+	}
+	return (1);
+}
+
+FireSecondary()
+{
+	sleep 100;
+	return (0);
+}
+
+////////// DGUN
+
+
+QueryTertiary(piecenum) //dgun
+{
+	piecenum = lflare;
+	return (0);
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = biggun;
+	return (0);
+}
+
+FireTertiary()
+{
+	//emit-sfx 1024 + 0 from lflare;
+	isAimingDgun = 0;
+	turn luparm to x-axis <20> now;
+	turn biggun to x-axis <-100> now;
+	move barrel to y-axis [-1.5] now;
+	
+	turn luparm to x-axis <5> speed <100>;
+	turn biggun to x-axis <-85> speed <100>;
+	move barrel to y-axis [0] speed [5];
+	
+	//call-script bigfire();
+	return (0);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	isAimingDgun = 1;
+	isAiming = 1;
+	call-script FixArms(1, 0);
+	turn torso to  y-axis heading speed <360.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn biggun to  x-axis <-85> speed <390.0000> ; //-- Turn(biggun, x-axis, math.rad(-85), math.rad(390))
+	turn luparm to 	x-axis <5> - pitch speed <390.0000> ; //-- Turn(luparm,	x-axis, math.rad(-5) - pitch, math.rad(390))
+	wait-for-turn torso around y-axis;
+	//wait-for-turn biggun around x-axis;
+	return (1);
+}
+
+SprayNano(heading, pitch){
+	set-signal-mask SIG_AIM;
+	sleep 1000;
+	while (1){
+	
+		turn torso to y-axis <10> + buildHeading speed <10>;
+		sleep 2000;
+		turn torso to y-axis <-10> + buildHeading speed <10>;		
+		sleep 2000;
+	}
+
+}
+
+StartBuilding(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	isBuilding		= 1;
+	//turn torso to  x-axis <0> speed <395.0000> ; //-- Turn(torso, x-axis, 0, math.rad(395))
+	//turn pelvis to  x-axis <0> speed <395.0000> ; //-- Turn(pelvis, x-axis, 0, math.rad(395))
+	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-55> -pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+
+	wait-for-turn ruparm around x-axis;
+	set INBUILDSTANCE to 1;
+	buildHeading = heading;
+	buildPitch = pitch;
+	start-script SprayNano(heading,pitch);
+	return (0);
+}
+
+
+
+
+TargetCleared(Func_Var_1)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	call-script RestoreAfterDelay();
+	return (0);
+}
+
+
+StopBuilding()
+{
+	isBuilding = 0;
+	set INBUILDSTANCE to 0;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	call-script RestoreAfterDelay();
+	return (0);
+}
+
+//-----------------------------------------------------------------------
+//-- death stuffs
+//-----------------------------------------------------------------------
+
+Killed( severity, corpsetype )
+{
+	corpsetype = 1;
+	return(corpsetype);
+}

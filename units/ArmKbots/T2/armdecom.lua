@@ -45,7 +45,7 @@ return {
 		objectname = "Units/ARMCOM.s3o",
 		radardistance = 50,
 		reclaimable = false,
-		script = "Units/ARMCOM.lua",
+		script = "Units/ARMDECOM.lua",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
 		showplayername = true,

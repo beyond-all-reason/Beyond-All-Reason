@@ -47,7 +47,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-		script = "Units/ARMCOM.lua",
+		script = "Units/ARMCOM.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
