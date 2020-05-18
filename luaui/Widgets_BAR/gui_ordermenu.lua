@@ -746,9 +746,12 @@ function widget:DrawScreen()
 
     -- draw highlight on top of button
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
-      if cellHovered then
+      if cmds and cellHovered then
         --glBlending(GL_SRC_ALPHA, GL_ONE)
-        local padding = activeCmd == cmds[cellHovered].name and (bgBorder*vsy) * 0.35 or 0
+        local padding = 0
+        if activeCmd == cmds[cellHovered].name then
+          padding = (bgBorder*vsy) * 0.35
+        end
         RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.15}, {1,1,1,(disableInput and 0.3 or 0.5)})
         RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,(disableInput and 0.09 or 0.13)}, {1,1,1,0})
         --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
