@@ -153,7 +153,7 @@ function gadget:GameFrame(n)
                 end
             end
         end
-        if math_random(0,500) == 0 then
+        if math_random(0,300) == 0 then
             for k = 1,1000 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
@@ -164,14 +164,18 @@ function gadget:GameFrame(n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
                     if aliveLootboxesCount < 2 then
 						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					elseif aliveLootboxesCount < 4 then
 						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					elseif aliveLootboxesCount < 6 then
 						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					else
 						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					end
-                    Spring.MarkerAddPoint(posx, posy, posz, "Lootbox Spawned", true)
+                    
                     break
                 end
             end
