@@ -36,7 +36,7 @@ local widgetPosX 							= vsx/2.5
 local widgetPosY 							= vsy/7.5
 local pressedToMove		 					= false
 local dt									= -1
-local bgcorner = "LuaUI/Images/bgcorner.png"
+
 --------------------------------------------------------------------------------
 -- SETTINGS, configurable
 --------------------------------------------------------------------------------
@@ -52,6 +52,11 @@ local red									= 0.1 -- volume bar colour, 0 to 1.
 local green									= 0.7 -- volume bar colour, 0 to 1.
 local blue									= 0 -- volume bar colour, 0 to 1.
 --------------------------------------------------------------------------------
+
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
 
 function widget:Initialize()
   volume = Spring.GetConfigInt("snd_volmaster", 60)
@@ -82,27 +87,109 @@ function widget:KeyPress(key, mods, isRepeat)
 	return false
 end
 
-function RectRound(px,py,sx,sy,cs)
-	
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
-	
-	gl.Rect(px+cs, py, sx-cs, sy)
-	gl.Rect(sx-cs, py+cs, sx, sy-cs)
-	gl.Rect(px+cs, py+cs, px, sy-cs)
-	
-	if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, py+cs, px+cs, py)		-- top left
-	
-	if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
-	
-	if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
-	
-	if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	
+
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+	local csyMult = 1 / ((sy-py)/cs)
+
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+
+	-- left side
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+
+	-- right side
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+
+	-- bottom left
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+		gl.Vertex(px, py, 0)
+	else
+		gl.Vertex(px+cs, py, 0)
+	end
+	gl.Vertex(px+cs, py, 0)
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom right
+	if c2 then
+		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	end
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		gl.Vertex(sx, py, 0)
+	else
+		gl.Vertex(sx-cs, py, 0)
+	end
+	gl.Vertex(sx-cs, py, 0)
+	if c2 then
+		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx, py+cs, 0)
+	-- top left
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		gl.Vertex(px, sy, 0)
+	else
+		gl.Vertex(px+cs, sy, 0)
+	end
+	gl.Vertex(px+cs, sy, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	-- top right
+	if c2 then
+		gl.Color(c2[1],c2[2],c2[3],c2[4])
+	end
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		gl.Vertex(sx, sy, 0)
+	else
+		gl.Vertex(sx-cs, sy, 0)
+	end
+	gl.Vertex(sx-cs, sy, 0)
+	if c2 then
+		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+	end
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+end
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(false)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -128,22 +215,28 @@ function widget:DrawScreen()
 		else
 			alpha = 3*(dtime-t)/dtime
 		end
-		
-		gl.Color(0,0,0,0.25*alpha)                              -- draws empty rectangles
+
+		local padding = boxwidth / 18
 		for i = 1,rectangles do
 			local u1 = x1+(i-1)*boxwidth
 			local u2= u1+boxwidth-boxspacing
 			--gl.Rect(u1,y1,u2,y2)
-			RectRound(u1,y1,u2,y2,(u2-u1)/3)
+			RectRound(u1,y1,u2,y2,(u2-u1)/4, 1,1,1,1, {0.1,0.1,0.1,0.6*alpha}, {0,0,0,0.4*alpha})
+			RectRound(u1+padding,y1+padding,u2-padding,y2-padding,(u2-u1)/5.5, 1,1,1,1, {0.66,1,0.66,0.03*alpha}, {0.66,1,0.66,0.03*alpha})
 		end
 		local vol2 = math.floor((volume/(100/rectangles))/2)
 		gl.Color(0,0.85,0,alpha)                              -- draws filled rectangles
 		local spacer2 = boxwidth / 10
-		gl.Color(0.2,1,0.2,alpha*0.8)   
 		for i = 1,vol2 do
 			local u1 = x1+(i-1)*boxwidth
-			local u2= u1+boxwidth-boxspacing            
-			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/4)
+			local u2= u1+boxwidth-boxspacing
+			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/5.5, 1,1,1,1, {0,0.5,0,alpha*0.8}, {0,1,0,alpha*0.8})
+			RectRound(u1+spacer2+padding,y1+spacer2+padding,u2-spacer2-padding,y2-spacer2-padding,((u2-spacer2)-(u1+spacer2))/6.5, 1,1,1,1, {1,1,1,alpha*0.33}, {1,1,1,alpha*0.33})
+			-- gloss
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			RectRound(u1+spacer2,y2-spacer2-((y2-y1)*0.4),u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/5.5, 1,1,0,0, {1,1,1,alpha*0}, {1,1,1,alpha*0.2})
+			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y1+spacer2+((y2-y1)*0.3),((u2-spacer2)-(u1+spacer2))/5.5, 0,0,1,1, {1,1,1,alpha*0.06}, {1,1,1,alpha*0})
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		end
 	end
 end
