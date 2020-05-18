@@ -501,9 +501,7 @@ function widget:Initialize()
   if preGamestartPlayer then
     SetBuildFacing()
     local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
-    if mySide == '' then -- Don't run unless we know what faction the player is
-
-    else
+    if mySide and mySide ~= '' then -- Don't run unless we know what faction the player is
       startDefID = UnitDefNames[Spring.GetSideData(mySide)].id
     end
   end

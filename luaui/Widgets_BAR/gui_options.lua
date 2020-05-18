@@ -70,6 +70,7 @@ local changesRequireRestart = false
 local useNetworkSmoothing = false
 
 local customMapSunPos = {}
+local customMapFog = {}
 
 local isSpec = Spring.GetSpectatingState()
 
@@ -110,12 +111,17 @@ local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local defaultMapSunPos = {gl.GetSun("pos")}
 local defaultSunLighting = {
-	groundAmbientColor = {gl.GetSun("ambient")},
-	unitAmbientColor = {gl.GetSun("ambient", "unit")},
-	groundDiffuseColor = {gl.GetSun("diffuse")},
-	unitDiffuseColor = {gl.GetSun("diffuse", "unit")},
-	groundSpecularColor = {gl.GetSun("specular")},
-	unitSpecularColor = {gl.GetSun("specular", "unit")},
+ groundAmbientColor = {gl.GetSun("ambient")},
+ unitAmbientColor = {gl.GetSun("ambient", "unit")},
+ groundDiffuseColor = {gl.GetSun("diffuse")},
+ unitDiffuseColor = {gl.GetSun("diffuse", "unit")},
+ groundSpecularColor = {gl.GetSun("specular")},
+ unitSpecularColor = {gl.GetSun("specular", "unit")},
+}
+local defaultFog = {
+	fogStart = {gl.GetAtmosphere("fogStart")},
+	fogEnd = {gl.GetAtmosphere("fogEnd")},
+	fogColor = {gl.GetAtmosphere("fogColor")},
 }
 local options = {}
 local optionGroups = {}
@@ -1917,6 +1923,29 @@ function init()
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, value) end,
+		},
+
+		{id="fog_start", group="gfx", name="Fog"..widgetOptionColor.."  start", type="slider", min=0, max=0.99, step=0.01, value=gl.GetAtmosphere("fogStart"), description='NOTE: remembers setting per map',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 if value >= options[getOptionByID('fog_end')].value then
+				 options[getOptionByID('fog_end')].value = value+0.01
+				 applyOptionValue(getOptionByID('fog_end'))
+			 end
+			 Spring.SetAtmosphere({fogStart = value})
+			 customMapFog[Game.mapName] = {fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogStart")}
+		 end,
+		},
+		{id="fog_end", group="gfx", name=widgetOptionColor.."   end", type="slider", min=0, max=1, step=0.01, value=gl.GetAtmosphere("fogEnd"), description='NOTE: remembers setting per map',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 if value <= options[getOptionByID('fog_start')].value then
+				 options[getOptionByID('fog_start')].value = value-0.01
+				 applyOptionValue(getOptionByID('fog_start'))
+			 end
+			 Spring.SetAtmosphere({fogEnd = value})
+			 customMapFog[Game.mapName] = {fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogEnd")}
+		 end,
 		},
 
 		{id="ssao", group="gfx", basic=true, name="SSAO", type="select", options={'disabled', 'low', 'medium', 'high'}, value=1, description='SSAO quality level\nlow quality looks more grainy (when closeup and moving the camera orunits)',
@@ -4023,6 +4052,9 @@ function widget:Initialize()
 			Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
 		end
+		if customMapFog[Game.mapName] and customMapFog[Game.mapName][1] then
+			Spring.SetAtmosphere(customMapFog[Game.mapName])
+		end
 
 		-- disable fog
 		--Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
@@ -4170,8 +4202,10 @@ function widget:GetConfigData(data)
 	savedTable.advSettings = advSettings
 	savedTable.defaultMapSunPos = defaultMapSunPos
 	savedTable.defaultSunLighting = defaultSunLighting
+	savedTable.defaultFog = defaultFog
 	savedTable.mapChecksum = Game.mapChecksum
 	savedTable.customMapSunPos = customMapSunPos
+	savedTable.customMapFog = customMapFog
 	savedTable.useNetworkSmoothing = useNetworkSmoothing
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
@@ -4232,9 +4266,15 @@ function widget:SetConfigData(data)
 		if data.defaultSunLighting ~= nil then
 			defaultSunLighting = data.defaultSunLighting
 		end
+		if data.defaultFog ~= nil then
+			defaultFog = data.defaultFog
+		end
 	end
 	if data.customMapSunPos then
 		customMapSunPos = data.customMapSunPos
+	end
+	if data.customMapFog then
+		customMapFog = data.customMapFog
 	end
 	if data.useNetworkSmoothing then
 		useNetworkSmoothing = data.useNetworkSmoothing
