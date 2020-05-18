@@ -422,7 +422,7 @@ function drawInfo()
   elseif SelectedUnitsCount > 0 then
     displayMode = 'selection'
     displayUnitDefID = Spring.GetUnitDefID(selectedUnits[1])
-  elseif hoverType == 'unit' then
+  elseif hoverType and hoverType == 'unit' then
     displayMode = 'unit'
     displayUnitID = hoverData
     displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
@@ -523,7 +523,7 @@ function drawInfo()
             cellRect[cellID] = {unitCustomInfoArea[3]-(coll*cellsize), unitCustomInfoArea[2]+((row-1)*cellsize), unitCustomInfoArea[3]-((coll-1)*cellsize), unitCustomInfoArea[2]+((row)*cellsize)}
             glTexture(":lr64,64:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
             --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
-            DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.07)
+            DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
           end
           cellID = cellID - 1
           if cellID <= 0 then break end
