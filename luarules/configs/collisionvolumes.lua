@@ -147,8 +147,8 @@ pieceCollisionVolume['corint'] = {
 	['3']={13,13,48,0,1,55,1,2},
 }
 pieceCollisionVolume['armvulc'] = {
-	['2']={98,140,98,0,5,0,1,1},
-	['5']={55,55,174,0,0,0,1,2},
+	['2']={98,140,98,0,-40,0,1,1},
+	['5']={55,55,174,0,18,0,1,2},
 }
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
