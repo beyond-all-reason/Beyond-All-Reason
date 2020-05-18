@@ -148,6 +148,7 @@ function gadget:GameFrame(n)
                         local posx, posy, posz = spPosition(unitID)
                         Spring.MarkerErasePosition(posx, posy, posz)
                         spTransfer(unitID, enemyTeam, false)
+						Spring.SetUnitNeutral(unitID, true)
                     --end
                 end
             end
@@ -170,7 +171,7 @@ function gadget:GameFrame(n)
 					else
 						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)], posx, posy, posz, math_random(0,3), spGaiaTeam)
 					end
-                    Spring.MarkerAddPoint(posx, posy, posz, "Lootbox Spawned", false)
+                    Spring.MarkerAddPoint(posx, posy, posz, "Lootbox Spawned", true)
                     break
                 end
             end
