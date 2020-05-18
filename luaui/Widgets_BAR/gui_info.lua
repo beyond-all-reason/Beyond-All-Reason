@@ -428,7 +428,7 @@ function drawInfo()
     displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
   end
 
-  if displayMode ~= 'text' then
+  if displayMode ~= 'text' and displayUnitDefID then
     local iconSize = fontSize*5
     local iconPadding = 0
     local alternative = ''
