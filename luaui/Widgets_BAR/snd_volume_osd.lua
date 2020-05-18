@@ -216,13 +216,13 @@ function widget:DrawScreen()
 			alpha = 3*(dtime-t)/dtime
 		end
 
-		local padding = boxwidth / 18
+		local padding = boxwidth / 17
 		for i = 1,rectangles do
 			local u1 = x1+(i-1)*boxwidth
 			local u2= u1+boxwidth-boxspacing
 			--gl.Rect(u1,y1,u2,y2)
 			RectRound(u1,y1,u2,y2,(u2-u1)/4, 1,1,1,1, {0.1,0.1,0.1,0.6*alpha}, {0,0,0,0.4*alpha})
-			RectRound(u1+padding,y1+padding,u2-padding,y2-padding,(u2-u1)/5.5, 1,1,1,1, {0.66,1,0.66,0.03*alpha}, {0.66,1,0.66,0.03*alpha})
+			RectRound(u1+padding,y1+padding,u2-padding,y2-padding,(u2-u1)/5.5, 1,1,1,1, {1,1,1,0.035*alpha}, {1,1,1,0.02*alpha})
 		end
 		local vol2 = math.floor((volume/(100/rectangles))/2)
 		gl.Color(0,0.85,0,alpha)                              -- draws filled rectangles
@@ -231,11 +231,11 @@ function widget:DrawScreen()
 			local u1 = x1+(i-1)*boxwidth
 			local u2= u1+boxwidth-boxspacing
 			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/5.5, 1,1,1,1, {0,0.5,0,alpha*0.8}, {0,1,0,alpha*0.8})
-			RectRound(u1+spacer2+padding,y1+spacer2+padding,u2-spacer2-padding,y2-spacer2-padding,((u2-spacer2)-(u1+spacer2))/6.5, 1,1,1,1, {1,1,1,alpha*0.33}, {1,1,1,alpha*0.33})
+			RectRound(u1+spacer2+padding,y1+spacer2+padding,u2-spacer2-padding,y2-spacer2-padding,((u2-spacer2)-(u1+spacer2))/6.5, 1,1,1,1, {1,1,1,alpha*0.25}, {1,1,1,alpha*0.25})
 			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(u1+spacer2,y2-spacer2-((y2-y1)*0.4),u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/5.5, 1,1,0,0, {1,1,1,alpha*0}, {1,1,1,alpha*0.2})
-			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y1+spacer2+((y2-y1)*0.3),((u2-spacer2)-(u1+spacer2))/5.5, 0,0,1,1, {1,1,1,alpha*0.06}, {1,1,1,alpha*0})
+			RectRound(u1+spacer2,y2-spacer2-((y2-y1)*0.23),u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/5.5, 1,1,0,0, {1,1,1,alpha*0.035}, {1,1,1,alpha*0.13})
+			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y1+spacer2+((y2-y1)*0.13),((u2-spacer2)-(u1+spacer2))/5.5, 0,0,1,1, {1,1,1,alpha*0.05}, {1,1,1,alpha*0})
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		end
 	end

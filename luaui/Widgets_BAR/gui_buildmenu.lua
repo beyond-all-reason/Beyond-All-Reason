@@ -27,6 +27,7 @@ local dynamicIconsize = true
 local defaultColls = 5
 local minColls = 5
 local maxColls = 6
+local selectedCellZoom = 0.05
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -374,6 +375,20 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
   gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
+local function RectQuad(px,py,sx,sy,offset)
+  gl.TexCoord(offset,1-offset)
+  gl.Vertex(px, py, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(sx, py, 0)
+  gl.TexCoord(1-offset,offset)
+  gl.Vertex(sx, sy, 0)
+  gl.TexCoord(offset,offset)
+  gl.Vertex(px, sy, 0)
+end
+function DrawRect(px,py,sx,sy,zoom)
+  gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -718,8 +733,11 @@ function drawBuildmenu()
       if cellRectID >= maxCellRectID then
         break
       end
+
       iconCount = iconCount + 1
       cellRectID = cellRectID + 1
+      local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+
       local uDefID = cmds[cellRectID].id*-1
       cellRects[cellRectID] = {
         activeArea[1] + ((coll-1)*cellSize),
@@ -734,7 +752,14 @@ function drawBuildmenu()
       -- unit icon
       glColor(1,1,1,1)
       glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-      glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+      --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+      DrawRect(
+        cellRects[cellRectID][1]+cellPadding+iconPadding,
+        cellRects[cellRectID][2]+cellPadding+iconPadding,
+        cellRects[cellRectID][3]-cellPadding-iconPadding,
+        cellRects[cellRectID][4]-cellPadding-iconPadding,
+        cellIsSelected and selectedCellZoom or 0
+      )
 
       if makeFancy then
 
@@ -803,7 +828,7 @@ function drawBuildmenu()
         )
       end
       -- active / selected
-      if activeCmd and activeCmd == cmds[cellRectID].name then
+      if cellIsSelected then
         WG['buildmenu'].selectedID = uDefID
         glBlending(GL_SRC_ALPHA, GL_ONE)
         glColor(1,0.85,0.2,0.66)
@@ -994,9 +1019,9 @@ function widget:DrawScreen()
 
         for cellRectID, cellRect in pairs(cellRects) do
           if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+            local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
             local uDefID = cmds[cellRectID].id*-1
             WG['buildmenu'].hoverID = uDefID
-
             gl.Color(1,1,1,1)
             local alt, ctrl, meta, shift = Spring.GetModKeyState()
             if showTooltip and WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
@@ -1012,7 +1037,14 @@ function widget:DrawScreen()
               glColor(1,1,1,0.15)
             end
             glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
-            glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+            --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+            DrawRect(
+                    cellRects[cellRectID][1]+cellPadding+iconPadding,
+                    cellRects[cellRectID][2]+cellPadding+iconPadding,
+                    cellRects[cellRectID][3]-cellPadding-iconPadding,
+                    cellRects[cellRectID][4]-cellPadding-iconPadding,
+                    cellIsSelected and selectedCellZoom or 0
+            )
             glTexture(false)
             --top
             RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.13})
