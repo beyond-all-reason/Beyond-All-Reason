@@ -1925,7 +1925,7 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, value) end,
 		},
 
-		{id="fog_start", group="gfx", name="Fog"..widgetOptionColor.."  start", type="slider", min=0, max=0.99, step=0.01, value=gl.GetAtmosphere("fogStart"), description='NOTE: remembers setting per map',
+		{id="fog_start", group="gfx", name="Fog"..widgetOptionColor.."  start", type="slider", min=0, max=1.99, step=0.01, value=gl.GetAtmosphere("fogStart"), description='NOTE: remembers setting per map',
 		 onload = function(i) end,
 		 onchange = function(i, value)
 			 if value >= options[getOptionByID('fog_end')].value then
@@ -1936,7 +1936,7 @@ function init()
 			 customMapFog[Game.mapName] = {fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogStart")}
 		 end,
 		},
-		{id="fog_end", group="gfx", name=widgetOptionColor.."   end", type="slider", min=0, max=1, step=0.01, value=gl.GetAtmosphere("fogEnd"), description='NOTE: remembers setting per map',
+		{id="fog_end", group="gfx", name=widgetOptionColor.."   end", type="slider", min=0.5, max=2, step=0.01, value=gl.GetAtmosphere("fogEnd"), description='NOTE: remembers setting per map',
 		 onload = function(i) end,
 		 onchange = function(i, value)
 			 if value <= options[getOptionByID('fog_start')].value then
@@ -4052,7 +4052,7 @@ function widget:Initialize()
 			Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
 		end
-		if customMapFog[Game.mapName] and customMapFog[Game.mapName][1] then
+		if customMapFog[Game.mapName] and customMapFog[Game.mapName] then
 			Spring.SetAtmosphere(customMapFog[Game.mapName])
 		end
 
