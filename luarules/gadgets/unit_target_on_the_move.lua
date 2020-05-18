@@ -644,7 +644,8 @@ local glDeleteList  = gl.DeleteList
 local GL_LINE_STRIP	= GL.LINE_STRIP
 local GL_LINES		= GL.LINES
 
-local spIsUnitInView 		= Spring.IsUnitInView
+local spIsUnitInLos			= Spring.IsUnitInLos
+local spIsUnitInRadar		= Spring.IsUnitInRadar
 local spGetUnitPosition 	= Spring.GetUnitPosition
 local spGetUnitLosState 	= Spring.GetUnitLosState
 local spValidUnitID 		= Spring.ValidUnitID
@@ -749,53 +750,57 @@ function handleTargetChangeEvent(_,unitID,dataA,dataB,dataC)
     return true
 end
 
-local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
-	if targetData and targetData.userTarget and tonumber(targetData.target) and spValidUnitID(targetData.target) then
-		--single unit target
-		if spectator then
-			local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
-			glVertex(x2,y2,z2)
-		else
-			local los = spGetUnitLosState(targetData.target, myAllyTeam, true)
-			if not los then
-				return
+local function drawTargetCommand(targetData,myTeam,myAllyTeam)
+
+	if targetData then
+
+		if targetData.userTarget and tonumber(targetData.target) and spValidUnitID(targetData.target) then
+			--single unit target
+			if fullview then
+				local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
+				glVertex(x2,y2,z2)
+			else
+				local los = spGetUnitLosState(targetData.target, myAllyTeam, true)
+				if not los then
+					return
+				end
+				local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
+				if los % 2 == 1 then -- in los
+					glVertex( x2, y2, z2)
+				elseif los == 14 then -- in radar   spIsUnitInRadar(targetData.target, myAllyTeam)
+					local dx, dy, dz = Spring.GetUnitPosErrorParams(targetData.target)
+					local size = Spring.GetRadarErrorParams(myAllyTeam)
+					glVertex( x2+dx*size,y2+dy*size,z2+dz*size)
+				end
 			end
-			local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
-			if los % 2 == 1 then -- in los
-				glVertex( x2, y2, z2)
-			elseif los % 4 == 0 then -- in radar
-				local dx, dy, dz = Spring.GetUnitPosErrorParams(targetData.target)
-				local size = Spring.GetRadarErrorParams(myAllyTeam)
-				glVertex( x2+dx*size,y2+dy*size,z2+dz*size)
-			end
+		elseif targetData.userTarget and not tonumber(targetData.target) and targetData.target then
+			-- 3d coordinate target
+			glVertex(targetData.target)
 		end
-	elseif targetData and targetData.userTarget and not tonumber(targetData.target) and targetData.target then
-		-- 3d coordinate target
-		glVertex(targetData.target)
 	end
 end
 
-local function drawCurrentTarget(unitID, unitData, spectator, myTeam, myAllyTeam)
+local function drawCurrentTarget(unitID, unitData, myTeam, myAllyTeam)
 	local _,_,_,x1,y1,z1 = spGetUnitPosition(unitID,true)
 	glVertex(x1,y1,z1)
 	--TODO: show cursor animation at target point
-	drawTargetCommand(unitData.targets[unitData.targetIndex],spectator,myTeam,myAllyTeam)
+	drawTargetCommand(unitData.targets[unitData.targetIndex],myTeam,myAllyTeam)
 end
 
-local function drawTargetQueue(unitID, unitData, spectator, myTeam, myAllyTeam)
+local function drawTargetQueue(unitID, unitData, myTeam, myAllyTeam)
 	local _,_,_,x1,y1,z1 = spGetUnitPosition(unitID,true)
 	glVertex(x1,y1,z1)
 	for _,targetData in ipairs(unitData.targets) do
-		drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
+		drawTargetCommand(targetData,myTeam,myAllyTeam)
 	end
 end
 
 function gadget:DrawWorld()
-	local spectator = spGetSpectatingState()
+	_, fullview = spGetSpectatingState()
 	local init = false
 	for unitID, unitData in pairs(targetList) do
 		if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
-			if spectator or spGetUnitAllyTeam(unitID) == myAllyTeam then
+			if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
 				if not init then
 					init = true
 					glPushAttrib(GL.LINE_BITS)
@@ -804,10 +809,10 @@ function gadget:DrawWorld()
 					glLineWidth(lineWidth)
 				end
 				glColor(queueColour)
-				glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData, spectator, myTeam, myAllyTeam)
+				glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData, myTeam, myAllyTeam)
 				if unitData.targetIndex then
 					glColor(commandColour)
-					glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, spectator, myTeam, myAllyTeam)
+					glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, myTeam, myAllyTeam)
 				end
 			end
 		end

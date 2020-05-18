@@ -438,9 +438,11 @@ function drawInfo()
     end
 
     glColor(1,1,1,1)
-    glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
-    glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-padding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-padding)
-    glTexture(false)
+    if unitBuildPic[displayUnitDefID] then
+      glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
+      glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-padding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-padding)
+      glTexture(false)
+    end
     iconSize = iconSize + iconPadding
 
     if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
