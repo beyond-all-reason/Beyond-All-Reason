@@ -9,6 +9,10 @@ local resources = {
             groundflashwhite = 'default/groundflashwhite.tga',
             groundring  = 'default/groundring.tga',
             seismic     = 'default/circles.tga',
+            circlefx0     = 'default/circlefx0.png',
+            circlefx1     = 'default/circlefx1.png',
+            circlefx2     = 'default/circlefx2.png',
+            circlefx3     = 'default/circlefx3.png',
          },
          projectiletextures = {
             circularthingy		= 'default/circularthingy.tga',
