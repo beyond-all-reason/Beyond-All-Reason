@@ -736,7 +736,7 @@ function drawBuildmenuBg()
   WG['buildmenu'].selectedID = nil
 
   -- background
-  padding = bgBorder*vsy * ui_scale
+  padding = 0.0033*vsy * ui_scale
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
@@ -1468,15 +1468,15 @@ function widget:MousePress(x, y, button)
         currentPage = currentPage - 1
         if currentPage < 1 then
           currentPage = pages
-          doUpdate = true
         end
+        doUpdate = true
       end
       if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
         currentPage = currentPage + 1
         if currentPage > pages then
           currentPage = 1
-          doUpdate = true
         end
+        doUpdate = true
       end
       if not disableInput then
         for cellRectID, cellRect in pairs(cellRects) do

@@ -38,6 +38,8 @@ local loadedFontSize = fontfileSize*fontfileScale
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 
+local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
+
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
@@ -130,13 +132,22 @@ end
 -------------------------------------------------------------------------------
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
+local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 local selectedUnits = Spring.GetSelectedUnits()
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetMouseState = Spring.GetMouseState
+local spGetModKeyState = Spring.GetModKeyState
+local spSelectUnitArray = Spring.SelectUnitArray
+local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
+local spSelectUnitMap = Spring.SelectUnitMap
+
+local os_clock = os.clock
 
 local isSpec = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
 
 local GL_QUADS = GL.QUADS
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
@@ -172,6 +183,7 @@ end
 
 function widget:PlayerChanged(playerID)
   isSpec = Spring.GetSpectatingState()
+  myTeamID = Spring.GetMyTeamID()
 end
 
 function widget:ViewResize()
@@ -245,25 +257,9 @@ function widget:Update(dt)
   end
 
   sec = sec + dt
-  if sec > 0.06 then
+  if sec > 0.05 then
     sec = 0
-    -- reset
-    currentTooltip = ''
-    showUnitDefID = nil
-    showUnitID = nil
-    if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
-      showUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
-      doUpdate = true
-    else
-      local newTooltip = spGetCurrentTooltip()
-      if newTooltip ~= currentTooltip then
-        currentTooltip = newTooltip
-        if SelectedUnitsCount > 0 then
-          currentTooltip = "Selected units: "..SelectedUnitsCount.."\n" .. currentTooltip
-        end
-        doUpdate = true
-      end
-    end
+    checkChanges()
   end
 end
 
@@ -392,8 +388,78 @@ function DrawRect(px,py,sx,sy,zoom)
   gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
 end
 
+local function RectRoundQuad(px,py,sx,sy,cs, tl,tr,br,bl, offset)
+  local csyMult = 1 / ((sy-py)/cs)
+
+  local function drawTexCoordVertex(x, y)
+    local yc = 1-((y-py) / (sy-py))
+    local xc = (offset*0.5) + ((x-px) / (sx-px)) + (-offset*((x-px) / (sx-px)))
+    yc = 1-(offset*0.5) - ((y-py) / (sy-py)) + (offset*((y-py) / (sy-py)))
+    gl.TexCoord(xc, yc)
+    gl.Vertex(x, y, 0)
+  end
+
+  -- mid section
+  drawTexCoordVertex(px+cs, py)
+  drawTexCoordVertex(sx-cs, py)
+  drawTexCoordVertex(sx-cs, sy)
+  drawTexCoordVertex(px+cs, sy)
+
+  -- left side
+  drawTexCoordVertex(px, py+cs)
+  drawTexCoordVertex(px+cs, py+cs)
+  drawTexCoordVertex(px+cs, sy-cs)
+  drawTexCoordVertex(px, sy-cs)
+
+  -- right side
+  drawTexCoordVertex(sx, py+cs)
+  drawTexCoordVertex(sx-cs, py+cs)
+  drawTexCoordVertex(sx-cs, sy-cs)
+  drawTexCoordVertex(sx, sy-cs)
+
+  -- bottom left
+  if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+    drawTexCoordVertex(px, py)
+  else
+    drawTexCoordVertex(px+cs, py)
+  end
+  drawTexCoordVertex(px+cs, py)
+  drawTexCoordVertex(px+cs, py+cs)
+  drawTexCoordVertex(px, py+cs)
+  -- bottom right
+  if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+    drawTexCoordVertex(sx, py)
+  else
+    drawTexCoordVertex(sx-cs, py)
+  end
+  drawTexCoordVertex(sx-cs, py)
+  drawTexCoordVertex(sx-cs, py+cs)
+  drawTexCoordVertex(sx, py+cs)
+  -- top left
+  if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+    drawTexCoordVertex(px, sy)
+  else
+    drawTexCoordVertex(px+cs, sy)
+  end
+  drawTexCoordVertex(px+cs, sy)
+  drawTexCoordVertex(px+cs, sy-cs)
+  drawTexCoordVertex(px, sy-cs)
+  -- top right
+  if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+    drawTexCoordVertex(sx, sy)
+  else
+    drawTexCoordVertex(sx-cs, sy)
+  end
+  drawTexCoordVertex(sx-cs, sy)
+  drawTexCoordVertex(sx-cs, sy-cs)
+  drawTexCoordVertex(sx, sy-cs)
+end
+function DrawTexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+  gl.BeginEnd(GL.QUADS, RectRoundQuad, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+end
+
 function drawInfo()
-  padding = bgBorder*vsy
+  padding = 0.0033*vsy * ui_scale
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
   -- gloss
@@ -409,26 +475,95 @@ function drawInfo()
   local contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
   local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
 
-  local mx, my = spGetMouseState()
-  local hoverType, hoverData = spTraceScreenRay(mx, my)
 
-  -- determine what mode to display
-  displayMode = 'text'
-  displayUnitID = nil
-  displayUnitDefID = nil
-  if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
-    displayMode = 'unitdef'
-    displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
-  elseif SelectedUnitsCount > 0 then
-    displayMode = 'selection'
-    displayUnitDefID = Spring.GetUnitDefID(selectedUnits[1])
-  elseif hoverType and hoverType == 'unit' then
-    displayMode = 'unit'
-    displayUnitID = hoverData
-    displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
-  end
+  if displayMode == 'selection' then
 
-  if displayMode ~= 'text' and displayUnitDefID then
+    selUnitsCounts = spGetSelectedUnitsCounts()
+    selUnitsSorted = spGetSelectedUnitsSorted()
+    selUnitTypes = 0
+    selectionCells = {}
+    for uDefID,v in pairs(selUnitsSorted) do
+      if type(v) == 'table' then
+        selUnitTypes = selUnitTypes + 1
+        selectionCells[selUnitTypes] = uDefID
+      end
+    end
+
+    -- selected units grid area
+    local width = backgroundRect[3]-backgroundRect[1]
+    local height = (backgroundRect[4]-backgroundRect[2])-padding-padding
+
+    customInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+height}
+    --RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 0,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
+
+    -- draw selected unit icons
+    local gridHeight = height
+    local rows = 2
+    local maxRows = 15  -- just to be sure
+    local colls = math.ceil(selUnitTypes / rows)
+    local cellsize = math.min(width/colls, gridHeight/rows)
+    while cellsize < gridHeight/(rows+1) do
+      rows = rows + 1
+      colls = math.ceil(selUnitTypes / rows)
+      cellsize = math.min(width/colls, gridHeight/rows)
+      if rows > maxRows then
+        break
+      end
+    end
+    -- draw grid (bottom right to top left)
+    local cellID = selUnitTypes
+    cellPadding = cellsize * 0.03
+    cellRect = {}
+    local texOffset = 0.05 + (0.03*rows)
+    local texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
+    local cornerSize = cellPadding
+    if texOffset > 0.25 then texOffset = 0.25 end
+    for row=1, rows do
+      for coll=1, colls do
+        if selectionCells[cellID] then
+          local uDefID = selectionCells[cellID]
+          cellRect[cellID] = {customInfoArea[3]-cellPadding-(coll*cellsize), customInfoArea[2]+cellPadding+((row-1)*cellsize), customInfoArea[3]-cellPadding-((coll-1)*cellsize), customInfoArea[2]+cellPadding+((row)*cellsize)}
+          glColor(1,1,1,1)
+          glTexture(texSetting.."unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+          --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
+          --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
+          DrawTexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,1,1, texOffset)
+          glTexture(false)
+          -- darkening bottom
+          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
+          -- gloss
+          glBlending(GL_SRC_ALPHA, GL_ONE)
+          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cornerSize, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
+          glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+          -- unitcount
+          if selUnitsCounts[uDefID] > 1 then
+            local fontSize = math.min(height*0.16, cellsize*0.7) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
+            font2:Begin()
+            font2:Print(selUnitsCounts[uDefID], cellRect[cellID][3]-cellPadding-(fontSize*0.09), cellRect[cellID][2]+(fontSize*0.3), fontSize, "ro")
+            font2:End()
+          end
+        end
+        cellID = cellID - 1
+        if cellID <= 0 then break end
+      end
+      if cellID <= 0 then break end
+    end
+    glTexture(false)
+    glColor(1,1,1,1)
+
+    -- text
+    --if showSelectionInfo then
+    --  local textColor = '\255\195\195\195'
+    --  local valueColor = '\255\255\255\255'
+    --  local text = textColor..'Selection: '..valueColor..#selectedUnits--..textColor..'  ('..selUnitTypes..textColor..' types) '
+    --  font:Begin()
+    --  font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.95), fontSize, "o")
+    --  font:End()
+    --end
+
+  elseif displayMode ~= 'text' and displayUnitDefID then
     local iconSize = fontSize*5
     local iconPadding = 0
     local alternative = ''
@@ -499,33 +634,44 @@ function drawInfo()
 
     -- custom unit info background
     local width = contentWidth * 0.8
-    local height = (backgroundRect[4]-backgroundRect[2]-padding) * 0.45
-    unitCustomInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+height+padding}
-    RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
+    local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
+    customInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+height}
+    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
 
     -- draw unit buildoption icons
     if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
+      local gridHeight = height*0.98
       local rows = 2
       local colls = math.ceil(#unitBuildOptions[displayUnitDefID] / rows)
-      local cellsize = math.min(width/colls, height/rows)
-      if cellsize < height/3 then
+      local cellsize = math.min(width/colls, gridHeight/rows)
+      if cellsize < gridHeight/3 then
         rows = 3
         colls = math.ceil(#unitBuildOptions[displayUnitDefID] / rows)
-        cellsize = math.min(width/colls, height/rows)
+        cellsize = math.min(width/colls, gridHeight/rows)
       end
       -- draw grid (bottom right to top left)
-      glColor(0.88,0.88,0.88,1)
       local cellID = #unitBuildOptions[displayUnitDefID]
-      local cellPadding = cellsize * 0.033
-      local cellRect = {}
+      cellPadding = cellsize * 0.03
+      cellRect = {}
       for row=1, rows do
         for coll=1, colls do
           if unitBuildOptions[displayUnitDefID][cellID] then
             local uDefID = unitBuildOptions[displayUnitDefID][cellID]
-            cellRect[cellID] = {unitCustomInfoArea[3]-(coll*cellsize), unitCustomInfoArea[2]+((row-1)*cellsize), unitCustomInfoArea[3]-((coll-1)*cellsize), unitCustomInfoArea[2]+((row)*cellsize)}
+            cellRect[cellID] = {customInfoArea[3]-cellPadding-(coll*cellsize), customInfoArea[2]+cellPadding+((row-1)*cellsize), customInfoArea[3]-cellPadding-((coll-1)*cellsize), customInfoArea[2]+cellPadding+((row)*cellsize)}
+            glColor(0.9,0.9,0.9,1)
             glTexture(":lr64,64:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
             --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
-            DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
+            --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
+            DrawTexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,1,1, 0.11)
+            glTexture(false)
+            -- darkening bottom
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
+            -- gloss
+            glBlending(GL_SRC_ALPHA, GL_ONE)
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellPadding*1.3, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
+            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
           end
           cellID = cellID - 1
           if cellID <= 0 then break end
@@ -534,9 +680,10 @@ function drawInfo()
       end
       glTexture(false)
       glColor(1,1,1,1)
-    else
 
-      local contentPaddingLeft = unitCustomInfoArea[1] + (contentPadding)
+    else
+      -- display default engine tooltip
+      local contentPaddingLeft = customInfoArea[1] + (contentPadding)
       local labelColor = '\255\166\166\166'
       local valueColor = '\255\245\245\245'
       -- dps
@@ -549,7 +696,6 @@ function drawInfo()
       --font2:Print(energyColor..unitEnergyCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
       -- health
       --font2:Print(healthColor..unitHealth[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
-
     end
 
   else
@@ -584,6 +730,8 @@ function cacheUnitIcons()
       gl.TexRect(-1,-1,0,0)
       gl.Texture(':lr64,64:unitpics/'..unitBuildPic[id])
       gl.TexRect(-1,-1,0,0)
+      gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
+      gl.TexRect(-1,-1,0,0)
       gl.Texture(false)
     end
     gl.Color(1,1,1,1)
@@ -591,32 +739,163 @@ function cacheUnitIcons()
 end
 
 
+local function LeftMouseButton(unitDefID, unitTable)
+  local alt, ctrl, meta, shift = spGetModKeyState()
+  local acted = false
+  if not ctrl then
+    -- select units of icon type
+    if alt or meta then
+      acted = true
+      spSelectUnitArray({ unitTable[1] })  -- only 1
+    else
+      acted = true
+      spSelectUnitArray(unitTable)
+    end
+  else
+    -- select all units of the icon type
+    local sorted = spGetTeamUnitsSorted(myTeamID)
+    local units = sorted[unitDefID]
+    if units then
+      acted = true
+      spSelectUnitArray(units, shift)
+    end
+  end
+  if acted and playSounds then
+    Spring.PlaySoundFile(sound_button, 0.75, 'ui')
+  end
+end
+
+local function MiddleMouseButton(unitDefID, unitTable)
+  local alt, ctrl, meta, shift = spGetModKeyState()
+  -- center the view
+  if ctrl then
+    -- center the view on the entire selection
+    Spring.SendCommands({"viewselection"})
+  else
+    -- center the view on this type on unit
+    spSelectUnitArray(unitTable)
+    Spring.SendCommands({"viewselection"})
+    spSelectUnitArray(selectedUnits)
+  end
+  if playSounds then
+    Spring.PlaySoundFile(sound_button, 0.75, 'ui')
+  end
+end
+
+local function RightMouseButton(unitDefID, unitTable)
+  local alt, ctrl, meta, shift = spGetModKeyState()
+  -- remove selected units of icon type
+  local map = {}
+  for i=1,#selectedUnits do
+    map[selectedUnits[i]] = true
+  end
+  for _,uid in ipairs(unitTable) do
+    map[uid] = nil
+    if (ctrl) then break end -- only remove 1 unit
+  end
+  spSelectUnitMap(map)
+  if playSounds then
+    Spring.PlaySoundFile(sound_button, 0.75, 'ui')
+  end
+end
+
+function widget:MouseRelease(x, y, button)
+
+  if displayMode and displayMode == 'selection' and customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
+    if selectionCells and selectionCells[1] and cellRect then
+      for cellID,unitDefID in pairs(selectionCells) do
+        if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+           -- apply selection
+          --if b then
+          --  local alt, ctrl, meta, shift = spGetModKeyState()
+          --  -- select all units of the icon type
+          --  local sorted = spGetTeamUnitsSorted(myTeamID)
+          --  local units = sorted[unitDefID]
+          --  local acted = false
+          --  if units then
+          --    acted = true
+          --    spSelectUnitArray(units, shift)
+          --  end
+          --  if acted then
+          --    Spring.PlaySoundFile(sound_button, 0.75, 'ui')
+          --  end
+          --end
+
+
+          local unitTable = nil
+          local index = 0
+          for udid,uTable in pairs(selUnitsSorted) do
+            if udid == unitDefID then
+              unitTable = uTable
+              break
+            end
+            index = index + 1
+          end
+          if unitTable == nil then
+            return -1
+          end
+
+          if button == 1 then
+            LeftMouseButton(unitDefID, unitTable)
+          elseif button == 2 then
+            MiddleMouseButton(unitDefID, unitTable)
+          elseif button == 3 then
+            RightMouseButton(unitDefID, unitTable)
+          end
+          return -1
+        end
+      end
+    end
+  end
+
+  if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
+  if (not activePress) then
+    return -1
+  end
+  activePress = false
+  local icon = MouseOverIcon(x, y)
+
+  local units = spGetSelectedUnitsSorted()
+  if (units.n ~= unitTypes) then
+    return -1  -- discard this click
+  end
+  units.n = nil
+
+  local unitDefID = -1
+  local unitTable = nil
+  local index = 0
+  for udid,uTable in pairs(units) do
+    if (index == icon) then
+      unitDefID = udid
+      unitTable = uTable
+      break
+    end
+    index = index + 1
+  end
+  if (unitTable == nil) then
+    return -1
+  end
+
+  local alt, ctrl, meta, shift = spGetModKeyState()
+
+  if (button == 1) then
+    LeftMouseButton(unitDefID, unitTable)
+  elseif (button == 2) then
+    MiddleMouseButton(unitDefID, unitTable)
+  elseif (button == 3) then
+    RightMouseButton(unitDefID, unitTable)
+  end
+
+  return -1
+end
+
 function widget:DrawScreen()
   if chobbyInterface then return end
 
   local x,y,b = Spring.GetMouseState()
 
-  if (displayUnitID or displayUnitDefID) and  IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-    Spring.SetMouseCursor('cursornormal')
-
-    RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.4 or 0.25}, {1,1,1,b and 0.12 or 0.06})
-    RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.25),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,b and 0.3 or 0.15})
-    RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.2 or 0.1}, {1,1,1,b and 0.4 or 0.2})
-
-    -- add tooltip
-    if WG['tooltip'] then
-      if unitCustomInfoArea and IsOnRect(x, y, unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4]) then
-
-        glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(unitCustomInfoArea[1], unitCustomInfoArea[2], unitCustomInfoArea[3], unitCustomInfoArea[4], padding, 1,0,0,0,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.3 or 0.2})
-        glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-        WG['tooltip'].ShowTooltip('info', 'Additional unit info goes here...')
-      end
-    end
-  end
-
-  if doUpdate then
+  if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) then
+    doUpdateClock = nil
     cacheUnitIcons()
     clear()
     doUpdate = nil
@@ -628,6 +907,91 @@ function widget:DrawScreen()
     end)
   end
   gl.CallList(dlistInfo)
+
+  if displayMode ~= 'text' and  IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+    Spring.SetMouseCursor('cursornormal')
+
+    --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.4 or 0.25}, {1,1,1,b and 0.12 or 0.06})
+    --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.25),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,b and 0.3 or 0.15})
+    --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.2 or 0.1}, {1,1,1,b and 0.4 or 0.2})
+
+    if customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
+      -- selection grid
+      if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
+        local cellHovered
+        for cellID,unitDefID in pairs(selectionCells) do
+          if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+            -- show tooltip
+            if WG['tooltip'] then
+              WG['tooltip'].ShowTooltip('info', '\255\205\255\205'..unitHumanName[unitDefID]..'\255\175\175\175 x \255\240\240\240'..selUnitsCounts[unitDefID])
+            end
+            -- draw highlight
+            glBlending(GL_SRC_ALPHA, GL_ONE)
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding, 1,1,1,1,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.2 or 0.1})
+            -- gloss
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding, 1,1,0,0,{1,1,1,0}, {1,1,1,b and 0.2 or 0.15})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.25), cellPadding, 0,0,1,1,{1,1,1,b and 0.15 or 0.1}, {1,1,1,0})
+            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            cellHovered = cellID
+            break
+          end
+        end
+        -- how to use info tooltip
+        if WG['tooltip'] and not cellHovered then
+          local text = "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Select\n \255\255\255\255   + CTRL\255\210\210\210: Select units of this type on map\n \255\255\255\255   + ALT\255\210\210\210: Select 1 single unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove\n \255\255\255\255    + CTRL\255\210\210\210: Remove only 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to center location\n \255\255\255\255    + CTRL\255\210\210\210: Move to center off whole selection"
+          WG['tooltip'].ShowTooltip('info', text)
+          --local textHeight, desc, numLines = font:GetTextHeight(text)
+          --WG['tooltip'].ShowTooltip('info', text, vsx, backgroundDimentions[4]+(usedIconSizeY*1.3) + (textHeight*numLines*15*fontfileScale))
+        end
+
+      else
+        --glBlending(GL_SRC_ALPHA, GL_ONE)
+        --RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.3 or 0.2})
+        --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        --if WG['tooltip'] then
+        --WG['tooltip'].ShowTooltip('info', 'Additional unit info goes here...')
+        --end
+      end
+    end
+  end
+end
+
+function checkChanges()
+  local mx, my = spGetMouseState()
+  local hoverType, hoverData = spTraceScreenRay(mx, my)
+
+  prevDisplayMode = displayMode
+  prevDisplayUnitDefID = displayUnitDefID
+  prevDisplayUnitID = displayUnitID
+
+  -- determine what mode to display
+  displayMode = 'text'
+  displayUnitID = nil
+  displayUnitDefID = nil
+  if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
+    displayMode = 'unitdef'
+    displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
+  elseif SelectedUnitsCount == 1 then
+    displayMode = 'unit'
+    displayUnitDefID = Spring.GetUnitDefID(selectedUnits[1])
+  elseif SelectedUnitsCount > 1 then
+    displayMode = 'selection'
+  elseif hoverType and hoverType == 'unit' then
+    displayMode = 'unit'
+    displayUnitID = hoverData
+    displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
+  else -- text
+    local newTooltip = spGetCurrentTooltip()
+    if newTooltip ~= currentTooltip then
+      currentTooltip = newTooltip
+      doUpdate = true
+    end
+  end
+
+  -- display changed
+  if prevDisplayMode ~= displayMode or prevDisplayUnitDefID ~= displayUnitDefID or prevDisplayUnitID ~= displayUnitID then
+    doUpdate = true
+  end
 end
 
 
@@ -640,7 +1004,9 @@ function widget:SelectionChanged(sel)
   if spGetSelectedUnitsCount() > 0 then
     SelectedUnitsCount = spGetSelectedUnitsCount()
     selectedUnits = sel
-    doUpdate = true
+    if not doUpdateClock then
+      doUpdateClock = os_clock() + 0.05  -- delay to save some performance
+    end
   end
 end
 
