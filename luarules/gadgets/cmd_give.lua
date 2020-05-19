@@ -17,6 +17,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 	local authorizedPlayers  = {
 		'Floris',
 		'[teh]Flow',
+		'IceXuick',
 	}
 
 
