@@ -2505,9 +2505,8 @@ function init()
 		{id="buildmenualternativeicons", group="ui", name="Alternative unit icons", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getAlternativeIcons()), description='Switch to a different unit icon set',
 		 onload = function(i) end,
 		 onchange = function(i, value)
-			 saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigAlternativeIcons', {'alternativeUnitpics'}, value)
 			 saveOptionValue('Buildmenu', 'buildmenu', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
-			 saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Info', 'info', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 			 saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 			 saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 			 saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', {'alternativeUnitpics'}, value)

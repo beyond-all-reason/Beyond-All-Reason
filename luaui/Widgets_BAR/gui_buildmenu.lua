@@ -745,7 +745,7 @@ function drawBuildmenuBg()
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1], backgroundRect[4]-padding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.07*glossMult})
+  RectRound(backgroundRect[1], backgroundRect[4]-padding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.07*glossMult})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+((backgroundRect[4]-backgroundRect[2])*0.045), padding*1, 0,0,1,0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
@@ -920,7 +920,7 @@ function drawBuildmenu()
         WG['buildmenu'].selectedID = uDefID
         glBlending(GL_SRC_ALPHA, GL_ONE)
         glColor(1,0.85,0.2,0.66)
-        glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
+        glTexture(':lr128,128:unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
         DrawTexRectRound(
           cellRects[cellRectID][1]+cellPadding+iconPadding,
           cellRects[cellRectID][2]+cellPadding+iconPadding,
@@ -1164,7 +1164,7 @@ function widget:DrawScreen()
           else
             glColor(1,1,1,0.2)
           end
-          glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
+          glTexture(':lr128,128:unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
           --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
           local cellZoom = defaultCellZoom
           if (b or b2) and not disableInput then

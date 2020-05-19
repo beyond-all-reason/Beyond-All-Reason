@@ -366,7 +366,7 @@ local function updateRejoin()
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.085*glossMult})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -463,7 +463,7 @@ local function updateButtons()
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3], area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.1*glossMult})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3], area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.1*glossMult})
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,0,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -566,7 +566,7 @@ local function updateComs(forceText)
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.085*glossMult})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -643,7 +643,7 @@ local function updateWind()
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.085*glossMult})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -901,7 +901,7 @@ local function updateResbar(res)
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.085*glossMult})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

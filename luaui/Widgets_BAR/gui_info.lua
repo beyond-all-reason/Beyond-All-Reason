@@ -215,6 +215,14 @@ end
 
 
 function widget:Initialize()
+  WG['info'] = {}
+  WG['info'].getAlternativeIcons = function()
+    return alternativeUnitpics
+  end
+  WG['info'].setAlternativeIcons = function(value)
+    alternativeUnitpics = value
+    doUpdate = true
+  end
   if Script.LuaRules('GetIconTypes') then
     iconTypesMap = Script.LuaRules.GetIconTypes()
   end
@@ -462,6 +470,12 @@ function drawInfo()
   padding = 0.0033*vsy * ui_scale
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+
+  --colorize
+  --glBlending(GL.DST_COLOR, GL.DST_COLOR)
+  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.5,0.5,0.5,1}, {0.5,0.5,0.5,1})
+  --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
   RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
@@ -760,7 +774,7 @@ local function LeftMouseButton(unitDefID, unitTable)
       spSelectUnitArray(units, shift)
     end
   end
-  if acted and playSounds then
+  if acted then
     Spring.PlaySoundFile(sound_button, 0.75, 'ui')
   end
 end
@@ -777,9 +791,7 @@ local function MiddleMouseButton(unitDefID, unitTable)
     Spring.SendCommands({"viewselection"})
     spSelectUnitArray(selectedUnits)
   end
-  if playSounds then
-    Spring.PlaySoundFile(sound_button, 0.75, 'ui')
-  end
+  Spring.PlaySoundFile(sound_button, 0.75, 'ui')
 end
 
 local function RightMouseButton(unitDefID, unitTable)
@@ -791,12 +803,10 @@ local function RightMouseButton(unitDefID, unitTable)
   end
   for _,uid in ipairs(unitTable) do
     map[uid] = nil
-    if (ctrl) then break end -- only remove 1 unit
+    if ctrl then break end -- only remove 1 unit
   end
   spSelectUnitMap(map)
-  if playSounds then
-    Spring.PlaySoundFile(sound_button, 0.75, 'ui')
-  end
+  Spring.PlaySoundFile(sound_button, 0.75, 'ui')
 end
 
 function widget:MouseRelease(x, y, button)
@@ -1013,5 +1023,18 @@ end
 function widget:MousePress(x, y, button)
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     return true
+  end
+end
+
+
+function widget:GetConfigData() --save config
+  return {
+    alternativeUnitpics = alternativeUnitpics,
+  }
+end
+
+function widget:SetConfigData(data) --load config
+  if data.alternativeUnitpics ~= nil then
+    alternativeUnitpics = data.alternativeUnitpics
   end
 end
