@@ -121,6 +121,7 @@ return {
 				areaofeffect = 192,
 				avoidfeature = false,
 				avoidfriendly = false,
+				cegtag = "arty-huge",
 				collidefriendly = false,
 				craterareaofeffect = 192,
 				craterboost = 0,
@@ -137,7 +138,7 @@ return {
 				predictboost = 0.25,
 				range = 1325,
 				reloadtime = 8,
-				size = 5,
+				--size = 5,
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
@@ -145,6 +146,11 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					light_color = "1 0.65 0.20",
+					light_mult = 3.5,
+					light_radius_mult = 1.1,
+				},
 				damage = {
 					commanders = 1100,
 					default = 1265,

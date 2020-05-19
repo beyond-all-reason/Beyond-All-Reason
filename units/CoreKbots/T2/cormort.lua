@@ -130,7 +130,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				--model = "energyball.s3o",
+				--model = "artshell-small.s3o",
 				name = "PlasmaCannon",
 				noselfdamage = true,
 				range = 850,
@@ -141,6 +141,11 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					light_color = "1 0.6 0.15",
+					light_mult = 3.5,
+					light_radius_mult = 1.1,
+				},
 				damage = {
 					bombers = 14,
 					default = 105,
