@@ -27,7 +27,10 @@ local dynamicIconsize = true
 local defaultColls = 5
 local minColls = 5
 local maxColls = 6
+local defaultCellZoom = 0.03
 local selectedCellZoom = 0.1
+local clickCellZoom = 0.06
+local rightclickCellZoom = 0
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -843,7 +846,7 @@ function drawBuildmenu()
         cellRects[cellRectID][3]-cellPadding-iconPadding,
         cellRects[cellRectID][4]-cellPadding-iconPadding,
         cornerSize, 1,1,1,1,
-        cellIsSelected and selectedCellZoom or 0
+        cellIsSelected and selectedCellZoom or defaultCellZoom
       )
 
       if makeFancy then
@@ -924,7 +927,7 @@ function drawBuildmenu()
           cellRects[cellRectID][3]-cellPadding-iconPadding,
           cellRects[cellRectID][4]-cellPadding-iconPadding,
           cornerSize, 1,1,1,1,
-          cellIsSelected and selectedCellZoom or 0
+          cellIsSelected and selectedCellZoom or defaultCellZoom
         )
         glTexture(false)
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1067,7 +1070,7 @@ function widget:DrawScreen()
       WG['guishader'].RemoveDlist('buildmenu')
     end
   else
-    local x,y,b = Spring.GetMouseState()
+    local x,y,b,b2,b3 = Spring.GetMouseState()
     local now = os_clock()
     if doUpdate or (doUpdateClock and now >= doUpdateClock) then
       if doUpdateClock and now >= doUpdateClock then
@@ -1095,7 +1098,7 @@ function widget:DrawScreen()
     -- draw buildmenu background
     gl.CallList(dlistBuildmenuBg)
 
-    -- pre process + dar 'highlight' under the icons
+    -- pre process + 'highlight' under the icons
     local hoveredCellID = nil
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
       if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -1154,20 +1157,30 @@ function widget:DrawScreen()
           -- highlight
           glBlending(GL_SRC_ALPHA, GL_ONE)
           --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.07}, {1,1,1,0.07})
-          if b and not disableInput then
-            glColor(1,1,1,0.34)
+          if (b or b2) and not disableInput then
+            glColor(1,0.9,0.7,0.4)
+          elseif b3 and not disableInput then
+            glColor(1,0.6,0.4,0.4)
           else
-            glColor(1,1,1,0.17)
+            glColor(1,1,1,0.2)
           end
           glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
           --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+          local cellZoom = defaultCellZoom
+          if (b or b2) and not disableInput then
+            cellZoom = clickCellZoom
+          elseif b3 and not disableInput then
+            cellZoom = rightclickCellZoom
+          elseif cellIsSelected then
+            cellZoom = selectedCellZoom
+          end
           DrawTexRectRound(
                   cellRects[cellRectID][1]+cellPadding+iconPadding,
                   cellRects[cellRectID][2]+cellPadding+iconPadding,
                   cellRects[cellRectID][3]-cellPadding-iconPadding,
                   cellRects[cellRectID][4]-cellPadding-iconPadding,
                   cornerSize, 1,1,1,1,
-                  cellIsSelected and selectedCellZoom or 0
+                  cellZoom
           )
           glTexture(false)
           --top
@@ -1489,7 +1502,9 @@ function widget:MousePress(x, y, button)
                 Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
               end
             else
-              Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+              if cmds[cellRectID].params[1] then  -- has queue
+                Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+              end
               if preGamestartPlayer then
                 setPreGamestartDefID(cmds[cellRectID].id*-1)
               else
@@ -1509,7 +1524,7 @@ function widget:MousePress(x, y, button)
     if selBuildQueueDefID then
       if button == 1 then
 
-        local mx, my = Spring.GetMouseState()
+        local mx, my, button = Spring.GetMouseState()
         local _, pos = Spring.TraceScreenRay(mx, my, true)
         if not pos then return end
         local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
