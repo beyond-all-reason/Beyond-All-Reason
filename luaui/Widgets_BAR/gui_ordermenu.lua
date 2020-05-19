@@ -53,6 +53,8 @@ local cmdColor = {
   ['Land At Airbase'] = {0.4,0.7,0.4},
 }
 
+local isStateCmd = {}
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -164,6 +166,9 @@ local function RefreshCommands()
   local otherCmdsCount = 0
   for index,cmd in pairs(spGetActiveCmdDescs()) do
     if type(cmd) == "table" then
+      if cmd.type == 5 then
+        isStateCmd[cmd.id] = true
+      end
       if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 and not cmd.disabled then
         if cmd.type == 20 --build building
           or (string_sub(cmd.action,1,10) == 'buildunit_') then
@@ -706,24 +711,15 @@ function widget:DrawScreen()
     end
   end
 
-  -- scan for state changes (they are delayed cause need to go to the server and confirmed back)
-  if not doUpdate and os_clock() - lastUpdate > 0.13 then
-    lastUpdate = os_clock()
-    local i = 0
-    for index,cmd in pairs(spGetActiveCmdDescs()) do
-      if type(cmd) == "table" and cmd.type == 5 and not hiddencmds[cmd.id] then
-        i = i + 1
-        if cmds[i] and cmds[i].params[1] ~= cmd.params[1] then
-          doUpdate = true
-          break
-        end
-      end
-    end
-  end
-
   -- make all cmd's fit in the grid
-  if doUpdate then
-    lastUpdate = os_clock()
+  local now = os_clock()
+  if doUpdate or (doUpdateClock and now >= doUpdateClock) then
+    if doUpdateClock and now >= doUpdateClock then
+      doUpdateClock = nil
+      doUpdate = true
+    end
+    doUpdateClock = nil
+    lastUpdate = now
     RefreshCommands()
   end
 
@@ -743,6 +739,7 @@ function widget:DrawScreen()
         drawOrders()
       end)
     end
+
     gl.CallList(dlistOrders)
 
     -- draw highlight on top of button
@@ -770,7 +767,7 @@ function widget:DrawScreen()
       elseif cmds[clickedCell].type == 5 then
         duration = 0.6
       end
-      local alpha = 0.33 - ((os_clock()-clickedCellTime) / duration)
+      local alpha = 0.33 - ((now-clickedCellTime) / duration)
       if alpha > 0 then
         if isActiveCmd then
           glColor(0,0,0,alpha)
@@ -828,6 +825,14 @@ function widget:MousePress(x, y, button)
       end
     end
     return true
+  end
+end
+
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
+  if isStateCmd[cmdID] then
+    if not hiddencmds[cmdID] and doUpdateClock == nil then
+      doUpdateClock = os_clock() + 0.01
+    end
   end
 end
 

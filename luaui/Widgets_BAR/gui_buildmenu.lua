@@ -95,6 +95,7 @@ local teamList = Spring.GetTeamList()
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -204,6 +205,7 @@ local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
 local isBuilder = {}
+local isFactory = {}
 local unitHumanName = {}
 local unitDescriptionLong = {}
 local unitTooltip = {}
@@ -229,6 +231,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   end
   if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
     isBuilder[unitDefID] = true
+  end
+  if unitDef.isFactory then
+    isFactory[unitDefID] = true
   end
   if unitDef.extractsMetal > 0 then
     isMex[unitDefID] = true
@@ -690,12 +695,17 @@ function widget:Shutdown()
   WG['buildmenu'] = nil
 end
 
+-- update queue number
+function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
+  if spIsUnitSelected(factID) then
+    doUpdateClock = os_clock() + 0.01
+  end
+end
+
 local uiOpacitySec = 0
 function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.33 then
-
-    doUpdate = true -- remove this when properly refreshing
     uiOpacitySec = 0
     checkGuishader()
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
@@ -1058,9 +1068,12 @@ function widget:DrawScreen()
     end
   else
     local x,y,b = Spring.GetMouseState()
-
-    if doUpdate then
-      lastUpdate = os_clock()
+    local now = os_clock()
+    if doUpdate or (doUpdateClock and now >= doUpdateClock) then
+      if doUpdateClock and now >= doUpdateClock then
+        doUpdateClock = nil
+      end
+      lastUpdate = now
       clear()
       RefreshCommands()
       doUpdate = nil
@@ -1291,6 +1304,13 @@ function widget:DrawWorld()
   end
 end
 
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
+  if isFactory[unitDefID] and cmdID < 0 then   -- filter away non build cmd's
+    if doUpdateClock == nil then
+      doUpdateClock = os_clock() + 0.01
+    end
+  end
+end
 
 function widget:SelectionChanged(sel)
   if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
@@ -1352,7 +1372,7 @@ function widget:GameFrame(n)
       local buildTime = t / UnitDefs[startDefID].buildSpeed
       Spring.SendCommands("luarules initialQueueTime " .. buildTime)
     end
-    
+
     local tasker
     -- Search for our starting unit
     local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
@@ -1476,7 +1496,7 @@ function widget:MousePress(x, y, button)
                 Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),3,false,true,Spring.GetModKeyState())
               end
             end
-            doUpdate = true
+            doUpdateClock = os_clock() + 0.01
             return true
           end
         end
