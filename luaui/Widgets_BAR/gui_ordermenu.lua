@@ -707,7 +707,8 @@ function widget:DrawScreen()
   end
 
   -- scan for state changes (they are delayed cause need to go to the server and confirmed back)
-  if not doUpdate and os_clock() - lastUpdate > 0.15 then
+  if not doUpdate and os_clock() - lastUpdate > 0.13 then
+    lastUpdate = os_clock()
     local i = 0
     for index,cmd in pairs(spGetActiveCmdDescs()) do
       if type(cmd) == "table" and cmd.type == 5 and not hiddencmds[cmd.id] then

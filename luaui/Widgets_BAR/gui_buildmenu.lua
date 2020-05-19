@@ -27,7 +27,7 @@ local dynamicIconsize = true
 local defaultColls = 5
 local minColls = 5
 local maxColls = 6
-local selectedCellZoom = 0.11
+local selectedCellZoom = 0.1
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
