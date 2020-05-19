@@ -297,7 +297,9 @@ MotionControl(Func_Var_1, Func_Var_2)
 			turn lfoot to x-axis <0> speed <160.000000>;
 		
 
-			turn head to y-axis <0> speed <50.000000>;
+			if (notBuilding) {
+				turn head to y-axis <0> speed <50.000000>;
+			}
 		
 			move pelvis to y-axis [0] speed [10];
 			turn pelvis to z-axis <0> speed <30.000000>;
@@ -372,9 +374,8 @@ Stop()
 {	
 
 	set-signal-mask SIG_BUILD;
-	sleep 1000;
 	set INBUILDSTANCE to 0;
-//	turn head to y-axis <0.000000> speed <160.000000>;
+	turn head to y-axis <0.000000> speed <160.000000>;
 //	turn luparm to x-axis <45.000000> speed <160.000000>;
 //	turn ruparm to x-axis <45.000000> speed <160.000000>;
 //	wait-for-turn head around y-axis;
@@ -437,7 +438,7 @@ StartBuilding(heading, pitch)
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
-	turn head to y-axis heading speed <160.000000>;
+	turn head to y-axis heading speed <260.000000>;
 	wait-for-turn head around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -446,7 +447,7 @@ StopBuilding()
 {
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
-	sleep 6000;
+	sleep 1000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	
 	start-script RequestState(1);
