@@ -27,7 +27,7 @@ local dynamicIconsize = true
 local defaultColls = 5
 local minColls = 5
 local maxColls = 6
-local selectedCellZoom = 0.05
+local selectedCellZoom = 0.11
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -389,6 +389,76 @@ function DrawRect(px,py,sx,sy,zoom)
   gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
 end
 
+local function RectRoundQuad(px,py,sx,sy,cs, tl,tr,br,bl, offset)
+  local csyMult = 1 / ((sy-py)/cs)
+
+  local function drawTexCoordVertex(x, y)
+    local yc = 1-((y-py) / (sy-py))
+    local xc = (offset*0.5) + ((x-px) / (sx-px)) + (-offset*((x-px) / (sx-px)))
+    yc = 1-(offset*0.5) - ((y-py) / (sy-py)) + (offset*((y-py) / (sy-py)))
+    gl.TexCoord(xc, yc)
+    gl.Vertex(x, y, 0)
+  end
+
+  -- mid section
+  drawTexCoordVertex(px+cs, py)
+  drawTexCoordVertex(sx-cs, py)
+  drawTexCoordVertex(sx-cs, sy)
+  drawTexCoordVertex(px+cs, sy)
+
+  -- left side
+  drawTexCoordVertex(px, py+cs)
+  drawTexCoordVertex(px+cs, py+cs)
+  drawTexCoordVertex(px+cs, sy-cs)
+  drawTexCoordVertex(px, sy-cs)
+
+  -- right side
+  drawTexCoordVertex(sx, py+cs)
+  drawTexCoordVertex(sx-cs, py+cs)
+  drawTexCoordVertex(sx-cs, sy-cs)
+  drawTexCoordVertex(sx, sy-cs)
+
+  -- bottom left
+  if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+    drawTexCoordVertex(px, py)
+  else
+    drawTexCoordVertex(px+cs, py)
+  end
+  drawTexCoordVertex(px+cs, py)
+  drawTexCoordVertex(px+cs, py+cs)
+  drawTexCoordVertex(px, py+cs)
+  -- bottom right
+  if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+    drawTexCoordVertex(sx, py)
+  else
+    drawTexCoordVertex(sx-cs, py)
+  end
+  drawTexCoordVertex(sx-cs, py)
+  drawTexCoordVertex(sx-cs, py+cs)
+  drawTexCoordVertex(sx, py+cs)
+  -- top left
+  if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+    drawTexCoordVertex(px, sy)
+  else
+    drawTexCoordVertex(px+cs, sy)
+  end
+  drawTexCoordVertex(px+cs, sy)
+  drawTexCoordVertex(px+cs, sy-cs)
+  drawTexCoordVertex(px, sy-cs)
+  -- top right
+  if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+    drawTexCoordVertex(sx, sy)
+  else
+    drawTexCoordVertex(sx-cs, sy)
+  end
+  drawTexCoordVertex(sx-cs, sy)
+  drawTexCoordVertex(sx-cs, sy-cs)
+  drawTexCoordVertex(sx, sy-cs)
+end
+function DrawTexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+  gl.BeginEnd(GL.QUADS, RectRoundQuad, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -604,6 +674,7 @@ end
 
 function clear()
   dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+  dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
 end
 
 function widget:Shutdown()
@@ -651,7 +722,7 @@ function widget:Update(dt)
   end
 end
 
-function drawBuildmenu()
+function drawBuildmenuBg()
   WG['buildmenu'].selectedID = nil
 
   -- background
@@ -664,7 +735,9 @@ function drawBuildmenu()
   RectRound(backgroundRect[1], backgroundRect[4]-padding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,0,0, {1,1,1,0.015*glossMult}, {1,1,1,0.07*glossMult})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+((backgroundRect[4]-backgroundRect[2])*0.045), padding*1, 0,0,1,0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+end
 
+function drawBuildmenu()
   local activeArea = {backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding}
   local contentHeight = activeArea[4]-activeArea[2]
   local contentWidth = activeArea[3]-activeArea[1]
@@ -708,6 +781,7 @@ function drawBuildmenu()
   -- there are globals so it can be used for the hover highlight
   cellPadding = cellSize * 0.007
   iconPadding = cellSize * 0.02
+  cornerSize = (cellPadding+iconPadding)*0.8
   cellInnerSize = cellSize-cellPadding-cellPadding
   radariconSize = cellInnerSize * 0.29
   radariconOffset = (cellInnerSize * 0.027) + cellPadding+iconPadding
@@ -753,11 +827,12 @@ function drawBuildmenu()
       glColor(1,1,1,1)
       glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
       --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
-      DrawRect(
+      DrawTexRectRound(
         cellRects[cellRectID][1]+cellPadding+iconPadding,
         cellRects[cellRectID][2]+cellPadding+iconPadding,
         cellRects[cellRectID][3]-cellPadding-iconPadding,
         cellRects[cellRectID][4]-cellPadding-iconPadding,
+        cornerSize, 1,1,1,1,
         cellIsSelected and selectedCellZoom or 0
       )
 
@@ -767,16 +842,16 @@ function drawBuildmenu()
         glBlending(GL_SRC_ALPHA, GL_ONE)
         -- glossy half
         --RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, 0,0,0,0,{1,1,1,0}, {1,1,1,0.2})
+        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 1,1,0,0,{1,1,1,0}, {1,1,1,0.2})
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         -- extra darken gradually
-        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, 0,0,0,0,{0,0,0,0.12}, {0,0,0,0})
+        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,1,1,{0,0,0,0.12}, {0,0,0,0})
       end
 
       -- darken price background gradually
       if showPrice then
-        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,0,0,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
+        RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cornerSize, 0,0,1,1,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
       end
 
       -- radar icon
@@ -833,7 +908,14 @@ function drawBuildmenu()
         glBlending(GL_SRC_ALPHA, GL_ONE)
         glColor(1,0.85,0.2,0.66)
         glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
-        glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+        DrawTexRectRound(
+          cellRects[cellRectID][1]+cellPadding+iconPadding,
+          cellRects[cellRectID][2]+cellPadding+iconPadding,
+          cellRects[cellRectID][3]-cellPadding-iconPadding,
+          cellRects[cellRectID][4]-cellPadding-iconPadding,
+          cornerSize, 1,1,1,1,
+          cellIsSelected and selectedCellZoom or 0
+        )
         glTexture(false)
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
       end
@@ -984,22 +1066,57 @@ function widget:DrawScreen()
       doUpdate = nil
     end
 
+    -- create buildmenu drawlists
     if WG['guishader'] and dlistGuishader then
       WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
     end
     if not dlistBuildmenu then
+      dlistBuildmenuBg = gl.CreateList( function()
+        drawBuildmenuBg()
+      end)
       dlistBuildmenu = gl.CreateList( function()
         drawBuildmenu()
       end)
     end
-    gl.CallList(dlistBuildmenu)
 
+    -- draw buildmenu background
+    gl.CallList(dlistBuildmenuBg)
 
-    -- hover
+    -- pre process + dar 'highlight' under the icons
+    local hoveredCellID = nil
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
       if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
         Spring.SetMouseCursor('cursornormal')
 
+        for cellRectID, cellRect in pairs(cellRects) do
+          if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+            hoveredCellID = cellRectID
+            local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+            local uDefID = cmds[cellRectID].id*-1
+            WG['buildmenu'].hoverID = uDefID
+            gl.Color(1,1,1,1)
+            local alt, ctrl, meta, shift = Spring.GetModKeyState()
+            if showTooltip and WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
+              local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
+              WG['tooltip'].ShowTooltip('buildmenu', text)
+            end
+
+            -- highlight --if b and not disableInput then
+            glBlending(GL_SRC_ALPHA, GL_ONE)
+            RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0,0,0,0.1*ui_opacity}, {0,0,0,0.1*ui_opacity})
+            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            break
+          end
+        end
+      end
+    end
+
+    -- draw buildmenu content
+    gl.CallList(dlistBuildmenu)
+
+    -- draw highlight
+    if not WG['topbar'] or not WG['topbar'].showingQuit() then
+      if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
         local paginatorHovered = false
         if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
           paginatorHovered = 1
@@ -1016,49 +1133,40 @@ function widget:DrawScreen()
           RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][4]-cellPadding-((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.5), paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.045}, {1,1,1,0.15})
           RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][2]+cellPadding+((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.18), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
         end
+        if hoveredCellID then
+          local cellRectID = hoveredCellID
+          local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+          local uDefID = cmds[cellRectID].id*-1
 
-        for cellRectID, cellRect in pairs(cellRects) do
-          if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
-            local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-            local uDefID = cmds[cellRectID].id*-1
-            WG['buildmenu'].hoverID = uDefID
-            gl.Color(1,1,1,1)
-            local alt, ctrl, meta, shift = Spring.GetModKeyState()
-            if showTooltip and WG['tooltip'] and not meta then  -- when meta: unitstats does the tooltip
-              local text = "\255\215\255\215"..unitHumanName[uDefID].."\n\255\240\240\240"..unitTooltip[uDefID]
-              WG['tooltip'].ShowTooltip('buildmenu', text)
-            end
+          -- highlight
+          glBlending(GL_SRC_ALPHA, GL_ONE)
+          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.07}, {1,1,1,0.07})
+          if b and not disableInput then
+            glColor(1,1,1,0.34)
+          else
+            glColor(1,1,1,0.17)
+          end
+          glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
+          --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
+          DrawTexRectRound(
+                  cellRects[cellRectID][1]+cellPadding+iconPadding,
+                  cellRects[cellRectID][2]+cellPadding+iconPadding,
+                  cellRects[cellRectID][3]-cellPadding-iconPadding,
+                  cellRects[cellRectID][4]-cellPadding-iconPadding,
+                  cornerSize, 1,1,1,1,
+                  cellIsSelected and selectedCellZoom or 0
+          )
+          glTexture(false)
+          --top
+          RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.1})
+          -- bottom
+          RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.08}, {1,1,1,0})
+          glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-            -- highlight
-            glBlending(GL_SRC_ALPHA, GL_ONE)
-            if b and not disableInput then
-              glColor(1,1,1,0.3)
-            else
-              glColor(1,1,1,0.15)
-            end
-            glTexture(':lr128,128:unitpics/'..unitBuildPic[uDefID])
-            --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
-            DrawRect(
-                    cellRects[cellRectID][1]+cellPadding+iconPadding,
-                    cellRects[cellRectID][2]+cellPadding+iconPadding,
-                    cellRects[cellRectID][3]-cellPadding-iconPadding,
-                    cellRects[cellRectID][4]-cellPadding-iconPadding,
-                    cellIsSelected and selectedCellZoom or 0
-            )
-            glTexture(false)
-            --top
-            RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.13})
-            -- bottom
-            RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.1}, {1,1,1,0})
-            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-            -- display price
-            if not showPrice then
-              RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,0,0,{0,0,0,0.35}, {0,0,0,0})
-              font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.4), priceFontSize, "o")
-            end
-
-            break
+          -- display price
+          if not showPrice then
+            RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,0,0,{0,0,0,0.35}, {0,0,0,0})
+            font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.4), priceFontSize, "o")
           end
         end
       end
