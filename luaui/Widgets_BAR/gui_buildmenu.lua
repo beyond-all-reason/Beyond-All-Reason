@@ -11,7 +11,6 @@ function widget:GetInfo()
   }
 end
 
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -848,6 +847,7 @@ function drawBuildmenu()
         cornerSize, 1,1,1,1,
         cellIsSelected and selectedCellZoom or defaultCellZoom
       )
+      glTexture(false)
 
       if makeFancy then
 
@@ -863,7 +863,7 @@ function drawBuildmenu()
       end
 
       -- darken price background gradually
-      if showPrice then
+      if showPrice and (not alternativeUnitpics or makeFancy) then
         RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cornerSize, 0,0,1,1,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
       end
 
@@ -873,8 +873,6 @@ function drawBuildmenu()
         glTexture(':lr'..radariconTextureDetail..','..radariconTextureDetail..':'..iconTypesMap[unitIconType[uDefID]])
         glTexRect(cellRects[cellRectID][3]-radariconOffset-radariconSize, cellRects[cellRectID][2]+radariconOffset, cellRects[cellRectID][3]-radariconOffset, cellRects[cellRectID][2]+radariconOffset+radariconSize)
       end
-
-      glTexture(false)
 
       -- price
       if showPrice then

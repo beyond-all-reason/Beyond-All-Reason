@@ -514,9 +514,9 @@ function drawOrders()
     end
     RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, cellRects[cell][4]-cellMarginPx-padding, padding*1.1 ,2,2,2,2, color1,color2)
 
-    -- glossy effect
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.1,2,2,0,0, {1,1,1,0.045}, {1,1,1,0.1})
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, (bgBorder*vsy) * 0.5*1.1,0,0,2,2, {1,1,1,0.1}, {1,1,1,0})
+    -- gloss
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx)-padding, padding*1.1, 2,2,0,0, {1,1,1,0.045}, {1,1,1,0.1})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, padding*1.1, 0,0,2,2, {1,1,1,0.085}, {1,1,1,0})
 
     -- icon
     if showIcons then
@@ -745,14 +745,15 @@ function widget:DrawScreen()
     -- draw highlight on top of button
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
       if cmds and cellHovered then
-        --glBlending(GL_SRC_ALPHA, GL_ONE)
         local padding = 0
-        if activeCmd == cmds[cellHovered].name then
-          padding = (bgBorder*vsy) * 0.35
+        if cmds[cellHovered] and activeCmd == cmds[cellHovered].name then
+          padding = 0.0033*vsy * ui_scale
         end
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.15}, {1,1,1,(disableInput and 0.3 or 0.5)})
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,(disableInput and 0.09 or 0.13)}, {1,1,1,0})
-        --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        -- gloss highlight
+        glBlending(GL_SRC_ALPHA, GL_ONE)
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, padding*1.1, 2,2,0,0, {1,1,1,0.09}, {1,1,1,(disableInput and 0.2 or 0.33)})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, padding*1.1, 0,0,2,2, {1,1,1,(disableInput and 0.04 or 0.08)}, {1,1,1,0})
+        glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
       end
     end
 
