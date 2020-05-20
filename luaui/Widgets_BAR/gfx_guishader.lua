@@ -12,7 +12,7 @@ function widget:GetInfo()
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = -99999999,
+    layer     = -99999999,  -- other widgets can be run earlier (lower layer) and thus guishader blur are will lag behind a frame, (like tooltip screenblur)
     enabled   = true  --  loaded by default?
   }
 end

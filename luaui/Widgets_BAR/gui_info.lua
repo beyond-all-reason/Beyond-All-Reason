@@ -143,6 +143,7 @@ local spGetModKeyState = Spring.GetModKeyState
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spSelectUnitMap = Spring.SelectUnitMap
+local spGetUnitHealth = Spring.GetUnitHealth
 
 local os_clock = os.clock
 
@@ -530,7 +531,7 @@ function drawInfo()
     cellRect = {}
     local texOffset = 0.05 + (0.03*rows)
     local texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
-    local cornerSize = cellPadding
+    local cornerSize = cellPadding*0.9
     if texOffset > 0.25 then texOffset = 0.25 end
     for row=1, rows do
       for coll=1, colls do
@@ -927,8 +928,10 @@ function widget:DrawScreen()
 
     if customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
       local tooltipTitleColor = '\255\205\255\205'
-      local tooltipTextColor = '\255\200\200\200'
-      local tooltipValueColor = '\255\255\255\255'
+      local tooltipTextColor = '\255\255\255\255'
+      local tooltipLabelTextColor = '\255\200\200\200'
+      local tooltipDarkTextColor = '\255\155\155\155'
+      local tooltipValueColor = '\255\255\245\175'
 
       -- selection grid
       if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
@@ -936,10 +939,10 @@ function widget:DrawScreen()
         for cellID,unitDefID in pairs(selectionCells) do
           if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
             glBlending(GL_SRC_ALPHA, GL_ONE)
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding, 1,1,1,1,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.2 or 0.1})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,1,1,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.2 or 0.1})
             -- gloss
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding, 1,1,0,0,{1,1,1,0}, {1,1,1,b and 0.2 or 0.15})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.25), cellPadding, 0,0,1,1,{1,1,1,b and 0.15 or 0.1}, {1,1,1,0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,0,0,{1,1,1,0}, {1,1,1,b and 0.2 or 0.15})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.25), cellPadding*0.9, 0,0,1,1,{1,1,1,b and 0.15 or 0.1}, {1,1,1,0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             cellHovered = cellID
             break
@@ -949,6 +952,11 @@ function widget:DrawScreen()
         if WG['tooltip'] then
           local stats = ''
           local cells = cellHovered and {[cellHovered]=selectionCells[cellHovered]} or selectionCells
+          -- description
+          if cellHovered then
+            local text, numLines = font:WrapText(unitTooltip[selectionCells[cellHovered]], (backgroundRect[3]-backgroundRect[1])*(loadedFontSize/16))
+            stats = stats..tooltipTextColor..text ..'\n\n'
+          end
           -- metal cost
           local totalValue = 0
           for _,unitDefID in pairs(cells) do
@@ -957,7 +965,7 @@ function widget:DrawScreen()
             end
           end
           if totalValue > 0 then
-            stats = stats..tooltipTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
+            stats = stats..tooltipLabelTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
           end
           -- energy cost
           totalValue = 0
@@ -967,17 +975,21 @@ function widget:DrawScreen()
             end
           end
           if totalValue > 0 then
-            stats = stats..tooltipTextColor.."energycost: "..tooltipValueColor..totalValue.."   "
+            stats = stats..tooltipLabelTextColor.."energycost: "..tooltipValueColor..totalValue.."   "
           end
           -- health
           totalValue = 0
-          for _,unitDefID in pairs(cells) do
-            if unitHealth[unitDefID] then
-              totalValue = totalValue + (unitHealth[unitDefID]*selUnitsCounts[unitDefID])
-            end
+          local totalHealth = 0
+          for _,unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
+            local health,maxHealth,_,_,buildProgress=spGetUnitHealth(unitID)
+            totalValue = totalValue + maxHealth
+            totalHealth = totalHealth + health
           end
+          totalHealth = math.floor(totalHealth)
+          totalValue = math.floor(totalValue)
           if totalValue > 0 then
-            stats = stats..'\n'..tooltipTextColor.."maxhealth: "..tooltipValueColor..totalValue.."   "
+            local percentage = math.floor((totalHealth/totalValue)*100)
+            stats = stats..'\n'..tooltipLabelTextColor.."health: "..tooltipValueColor..totalHealth..tooltipLabelTextColor..' / '..tooltipValueColor..totalValue..tooltipLabelTextColor.."   ("..tooltipValueColor..percentage..tooltipLabelTextColor.."%)"
           end
           -- DPS
           totalValue = 0
@@ -987,18 +999,22 @@ function widget:DrawScreen()
             end
           end
           if totalValue > 0 then
-            stats = stats..'\n'..tooltipTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
+            stats = stats..'\n'..tooltipLabelTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
           end
           if stats ~= '' then
             stats = '\n'..stats
+            if not cellHovered then
+              stats = '\n'..stats
+            end
           end
 
+          local text
           if cellHovered then
-            WG['tooltip'].ShowTooltip('info', tooltipTitleColor..unitHumanName[selectionCells[cellHovered]]..tooltipTextColor..' x '..tooltipValueColor..selUnitsCounts[selectionCells[cellHovered]]..tooltipTextColor..' '..stats)
+            text = tooltipTitleColor..unitHumanName[selectionCells[cellHovered]]..tooltipLabelTextColor..(selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x '..tooltipTextColor..selUnitsCounts[selectionCells[cellHovered]] or '')..stats
           else
-            local text = tooltipTitleColor.."Selected units: "..tooltipValueColor..#selectedUnits..stats.."\n "..(stats == '' and '' or '\n')..tooltipValueColor.."Left click"..tooltipTextColor..": Select\n "..tooltipValueColor.."   + CTRL"..tooltipTextColor..": Select units of this type on map\n "..tooltipValueColor.."   + ALT"..tooltipTextColor..": Select 1 single unit of this unit type\n "..tooltipValueColor.."Right click"..tooltipTextColor..": Remove\n "..tooltipValueColor.."    + CTRL"..tooltipTextColor..": Remove only 1 unit from that unit type\n "..tooltipValueColor.."Middle click"..tooltipTextColor..": Move to center location\n "..tooltipValueColor.."    + CTRL"..tooltipTextColor..": Move to center off whole selection"
-            WG['tooltip'].ShowTooltip('info', text)
+            text = tooltipTitleColor.."Selected units: "..tooltipTextColor..#selectedUnits..stats.."\n "..(stats == '' and '' or '\n')..tooltipTextColor.."Left click"..tooltipLabelTextColor..": Select\n "..tooltipTextColor.."   + CTRL"..tooltipLabelTextColor..": Select units of this type on map\n "..tooltipTextColor.."   + ALT"..tooltipLabelTextColor..": Select 1 single unit of this unit type\n "..tooltipTextColor.."Right click"..tooltipLabelTextColor..": Remove\n "..tooltipTextColor.."    + CTRL"..tooltipLabelTextColor..": Remove only 1 unit from that unit type\n "..tooltipTextColor.."Middle click"..tooltipLabelTextColor..": Move to center location\n "..tooltipTextColor.."    + CTRL"..tooltipLabelTextColor..": Move to center off whole selection"
           end
+          WG['tooltip'].ShowTooltip('info', text)
         end
 
       else
