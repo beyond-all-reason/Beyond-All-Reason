@@ -28,7 +28,7 @@ local defaultColls = 5
 local minColls = 5
 local maxColls = 6
 local defaultCellZoom = 0.03
-local selectedCellZoom = 0.1
+local selectedCellZoom = 0.12
 local clickCellZoom = 0.06
 local rightclickCellZoom = 0
 

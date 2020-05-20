@@ -926,16 +926,15 @@ function widget:DrawScreen()
     --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.2 or 0.1}, {1,1,1,b and 0.4 or 0.2})
 
     if customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
+      local tooltipTitleColor = '\255\205\255\205'
+      local tooltipTextColor = '\255\200\200\200'
+      local tooltipValueColor = '\255\255\255\255'
+
       -- selection grid
       if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
         local cellHovered
         for cellID,unitDefID in pairs(selectionCells) do
           if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
-            -- show tooltip
-            if WG['tooltip'] then
-              WG['tooltip'].ShowTooltip('info', '\255\205\255\205'..unitHumanName[unitDefID]..'\255\175\175\175 x \255\240\240\240'..selUnitsCounts[unitDefID])
-            end
-            -- draw highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding, 1,1,1,1,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.2 or 0.1})
             -- gloss
@@ -946,12 +945,60 @@ function widget:DrawScreen()
             break
           end
         end
-        -- how to use info tooltip
-        if WG['tooltip'] and not cellHovered then
-          local text = "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Select\n \255\255\255\255   + CTRL\255\210\210\210: Select units of this type on map\n \255\255\255\255   + ALT\255\210\210\210: Select 1 single unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove\n \255\255\255\255    + CTRL\255\210\210\210: Remove only 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to center location\n \255\255\255\255    + CTRL\255\210\210\210: Move to center off whole selection"
-          WG['tooltip'].ShowTooltip('info', text)
-          --local textHeight, desc, numLines = font:GetTextHeight(text)
-          --WG['tooltip'].ShowTooltip('info', text, vsx, backgroundDimentions[4]+(usedIconSizeY*1.3) + (textHeight*numLines*15*fontfileScale))
+
+        if WG['tooltip'] then
+          local stats = ''
+          local cells = cellHovered and {[cellHovered]=selectionCells[cellHovered]} or selectionCells
+          -- metal cost
+          local totalValue = 0
+          for _,unitDefID in pairs(cells) do
+            if unitMetalCost[unitDefID] then
+              totalValue = totalValue + (unitMetalCost[unitDefID]*selUnitsCounts[unitDefID])
+            end
+          end
+          if totalValue > 0 then
+            stats = stats..tooltipTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
+          end
+          -- energy cost
+          totalValue = 0
+          for _,unitDefID in pairs(cells) do
+            if unitEnergyCost[unitDefID] then
+              totalValue = totalValue + (unitEnergyCost[unitDefID]*selUnitsCounts[unitDefID])
+            end
+          end
+          if totalValue > 0 then
+            stats = stats..tooltipTextColor.."energycost: "..tooltipValueColor..totalValue.."   "
+          end
+          -- health
+          totalValue = 0
+          for _,unitDefID in pairs(cells) do
+            if unitHealth[unitDefID] then
+              totalValue = totalValue + (unitHealth[unitDefID]*selUnitsCounts[unitDefID])
+            end
+          end
+          if totalValue > 0 then
+            stats = stats..'\n'..tooltipTextColor.."maxhealth: "..tooltipValueColor..totalValue.."   "
+          end
+          -- DPS
+          totalValue = 0
+          for _,unitDefID in pairs(cells) do
+            if unitDPS[unitDefID] then
+              totalValue = totalValue + (unitDPS[unitDefID]*selUnitsCounts[unitDefID])
+            end
+          end
+          if totalValue > 0 then
+            stats = stats..'\n'..tooltipTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
+          end
+          if stats ~= '' then
+            stats = '\n'..stats
+          end
+
+          if cellHovered then
+            WG['tooltip'].ShowTooltip('info', tooltipTitleColor..unitHumanName[selectionCells[cellHovered]]..tooltipTextColor..' x '..tooltipValueColor..selUnitsCounts[selectionCells[cellHovered]]..tooltipTextColor..' '..stats)
+          else
+            local text = tooltipTitleColor.."Selected units: "..tooltipValueColor..#selectedUnits..stats.."\n "..(stats == '' and '' or '\n')..tooltipValueColor.."Left click"..tooltipTextColor..": Select\n "..tooltipValueColor.."   + CTRL"..tooltipTextColor..": Select units of this type on map\n "..tooltipValueColor.."   + ALT"..tooltipTextColor..": Select 1 single unit of this unit type\n "..tooltipValueColor.."Right click"..tooltipTextColor..": Remove\n "..tooltipValueColor.."    + CTRL"..tooltipTextColor..": Remove only 1 unit from that unit type\n "..tooltipValueColor.."Middle click"..tooltipTextColor..": Move to center location\n "..tooltipValueColor.."    + CTRL"..tooltipTextColor..": Move to center off whole selection"
+            WG['tooltip'].ShowTooltip('info', text)
+          end
         end
 
       else
