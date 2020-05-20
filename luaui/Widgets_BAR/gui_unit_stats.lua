@@ -129,7 +129,7 @@ local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
 	unitBuildPic[id] = def.buildpicname
-	if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
+	if VFS.FileExists('unitpics/alternative/'..string.gsub(def.buildpicname, '(.*/)', '')) then
 		hasAlternativeUnitpic[id] = true
 	end
 end

@@ -101,7 +101,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   unitHealth[unitDefID] = unitDef.health
   unitBuildTime[unitDefID] = unitDef.buildTime
   unitBuildPic[unitDefID] = unitDef.buildpicname
-  if VFS.FileExists('unitpics/alternative/'..unitDef.name..'.png') then
+  if VFS.FileExists('unitpics/alternative/'..string.gsub(unitDef.buildpicname, '(.*/)', '')) then
     hasAlternativeUnitpic[unitDefID] = true
   end
   if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then

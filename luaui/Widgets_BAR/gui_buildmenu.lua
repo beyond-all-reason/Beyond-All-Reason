@@ -228,7 +228,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   unitMetalCost[unitDefID] = unitDef.metalCost
   unitGroup = {}
   unitBuildPic[unitDefID] = unitDef.buildpicname
-  if VFS.FileExists('unitpics/alternative/'..unitDef.name..'.png') then
+  if VFS.FileExists('unitpics/alternative/'..string.gsub(unitDef.buildpicname, '(.*/)', '')) then
     hasAlternativeUnitpic[unitDefID] = true
   end
   if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
@@ -906,11 +906,12 @@ function drawBuildmenu()
       if cmds[cellRectID].params[1] then
         local pad = cellInnerSize * 0.03
         local textWidth = (font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.29)
-        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.08, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
-        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)+pad, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.06, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
+        local pad2 = (alternativeUnitpics and pad or 0)
+        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.08, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
+        RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2+pad, cellRects[cellRectID][3]-cellPadding-iconPadding-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-pad2, cellSize*0.06, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
         font2:Print("\255\190\255\190"..cmds[cellRectID].params[1],
-                cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.94),
-                cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.715),
+                cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.94)-pad2,
+                cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.715)-pad2,
                 cellInnerSize*0.29, "ro"
         )
       end
