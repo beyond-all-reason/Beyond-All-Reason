@@ -20,6 +20,11 @@ local bgBorder = bgBorderOrg
 local bgMargin = 0.005
 local alternativeUnitpics = false
 
+local defaultCellZoom = 0
+local rightclickCellZoom = 0.065
+local clickCellZoom = 0.065
+local hoverCellZoom = 0.03
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -507,7 +512,35 @@ function TexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
   gl.BeginEnd(GL.QUADS, DrawTexRectRound, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
 end
 
-function drawInfo()
+local function drawSelectionCell(cellID, uDefID, usedZoom)
+  if not usedZoom then
+    usedZoom = defaultCellZoom
+  end
+
+  glColor(1,1,1,1)
+  glTexture(texSetting.."unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+  --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
+  --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
+  TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,1,1, usedZoom)
+  glTexture(false)
+  -- darkening bottom
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
+  -- gloss
+  glBlending(GL_SRC_ALPHA, GL_ONE)
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cornerSize, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
+  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  -- unitcount
+  if selUnitsCounts[uDefID] > 1 then
+    local fontSize = math.min(gridHeight*0.16, cellsize*0.7) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
+    font2:Begin()
+    font2:Print(selUnitsCounts[uDefID], cellRect[cellID][3]-cellPadding-(fontSize*0.09), cellRect[cellID][2]+(fontSize*0.3), fontSize, "ro")
+    font2:End()
+  end
+end
+
+local function drawInfo()
   padding = 0.0033*vsy * ui_scale
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
@@ -527,8 +560,8 @@ function drawInfo()
   --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), padding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
 
   local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
-  local contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
-  local contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
+  contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
+  contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
 
 
   if displayMode == 'selection' then
@@ -545,60 +578,42 @@ function drawInfo()
     end
 
     -- selected units grid area
-    local width = backgroundRect[3]-backgroundRect[1]
-    local height = (backgroundRect[4]-backgroundRect[2])-padding-padding
+    gridWidth = backgroundRect[3]-backgroundRect[1]
+    gridHeight = (backgroundRect[4]-backgroundRect[2])-padding-padding
+    customInfoArea = {backgroundRect[3]-gridWidth-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+gridHeight}
 
-    customInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+height}
-    --RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 0,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
+    -- selected units grid area
 
     -- draw selected unit icons
-    local gridHeight = height
     local rows = 2
     local maxRows = 15  -- just to be sure
     local colls = math.ceil(selUnitTypes / rows)
-    local cellsize = math.min(width/colls, gridHeight/rows)
+    cellsize = math.min(gridWidth/colls, gridHeight/rows)
     while cellsize < gridHeight/(rows+1) do
       rows = rows + 1
       colls = math.ceil(selUnitTypes / rows)
-      cellsize = math.min(width/colls, gridHeight/rows)
+      cellsize = math.min(gridWidth/colls, gridHeight/rows)
       if rows > maxRows then
         break
       end
     end
     -- draw grid (bottom right to top left)
-    local cellID = selUnitTypes
     cellPadding = cellsize * 0.03
     cellRect = {}
-    local texOffset = 0.05 + (0.03*rows)
-    local texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
-    local cornerSize = cellPadding*0.9
+    texOffset = 0.05 + (0.03*rows)
+    texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
+    cornerSize = cellPadding*0.9
     if texOffset > 0.25 then texOffset = 0.25 end
+    local cellID = selUnitTypes
     for row=1, rows do
       for coll=1, colls do
         if selectionCells[cellID] then
           local uDefID = selectionCells[cellID]
+
           cellRect[cellID] = {customInfoArea[3]-cellPadding-(coll*cellsize), customInfoArea[2]+cellPadding+((row-1)*cellsize), customInfoArea[3]-cellPadding-((coll-1)*cellsize), customInfoArea[2]+cellPadding+((row)*cellsize)}
-          glColor(1,1,1,1)
-          glTexture(texSetting.."unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-          --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
-          --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-          TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,1,1, texOffset)
-          glTexture(false)
-          -- darkening bottom
-          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
-          -- gloss
-          glBlending(GL_SRC_ALPHA, GL_ONE)
-          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cornerSize, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
-          glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-          -- unitcount
-          if selUnitsCounts[uDefID] > 1 then
-            local fontSize = math.min(height*0.16, cellsize*0.7) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
-            font2:Begin()
-            font2:Print(selUnitsCounts[uDefID], cellRect[cellID][3]-cellPadding-(fontSize*0.09), cellRect[cellID][2]+(fontSize*0.3), fontSize, "ro")
-            font2:End()
-          end
+
+          drawSelectionCell(cellID, selectionCells[cellID], texOffset)
+
         end
         cellID = cellID - 1
         if cellID <= 0 then break end
@@ -919,7 +934,7 @@ end
 function widget:DrawScreen()
   if chobbyInterface then return end
 
-  local x,y,b = Spring.GetMouseState()
+  local x,y,b,b2,b3 = Spring.GetMouseState()
 
   if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) then
     doUpdateClock = nil
@@ -945,7 +960,7 @@ function widget:DrawScreen()
       local tooltipTitleColor = '\255\205\255\205'
       local tooltipTextColor = '\255\255\255\255'
       local tooltipLabelTextColor = '\255\200\200\200'
-      local tooltipDarkTextColor = '\255\155\155\155'
+      local tooltipDarkTextColor = '\255\133\133\133'
       local tooltipValueColor = '\255\255\245\175'
 
       -- selection grid
@@ -953,8 +968,21 @@ function widget:DrawScreen()
         local cellHovered
         for cellID,unitDefID in pairs(selectionCells) do
           if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+
+            local cellZoom = hoverCellZoom
+            local color = {1,1,1}
+            if b or b2 then
+              cellZoom = clickCellZoom
+              color = {0.7,1,0.5}
+            elseif b3 then
+              cellZoom = rightclickCellZoom
+              color = {1,0.55,0.3}
+            end
+            cellZoom = cellZoom + math.min(0.7 * cellZoom * (math.floor(gridHeight/cellsize)-2), 0.15)
+            drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom)
+
             glBlending(GL_SRC_ALPHA, GL_ONE)
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,1,1,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.2 or 0.1})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,1,1,{color[1],color[2],color[3],b and 0.4 or 0.2}, {color[1],color[2],color[3],b and 0.4 or 0.2})
             -- gloss
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,0,0,{1,1,1,0}, {1,1,1,b and 0.2 or 0.15})
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.25), cellPadding*0.9, 0,0,1,1,{1,1,1,b and 0.15 or 0.1}, {1,1,1,0})
@@ -965,12 +993,13 @@ function widget:DrawScreen()
         end
 
         if WG['tooltip'] then
+          local statsIndent = '  '
           local stats = ''
           local cells = cellHovered and {[cellHovered]=selectionCells[cellHovered]} or selectionCells
           -- description
           if cellHovered then
             local text, numLines = font:WrapText(unitTooltip[selectionCells[cellHovered]], (backgroundRect[3]-backgroundRect[1])*(loadedFontSize/16))
-            stats = stats..tooltipTextColor..text ..'\n\n'
+            stats = stats..statsIndent..tooltipTextColor..text ..'\n\n'
           end
           -- metal cost
           local totalValue = 0
@@ -980,7 +1009,7 @@ function widget:DrawScreen()
             end
           end
           if totalValue > 0 then
-            stats = stats..tooltipLabelTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
+            stats = stats..statsIndent..tooltipLabelTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
           end
           -- energy cost
           totalValue = 0
@@ -1006,7 +1035,7 @@ function widget:DrawScreen()
           totalValue = math.floor(totalValue)
           if totalValue > 0 then
             local percentage = math.floor((totalHealth/totalValue)*100)
-            stats = stats..'\n'..tooltipLabelTextColor.."health: "..tooltipValueColor..totalHealth..tooltipLabelTextColor..' / '..tooltipValueColor..totalValue..tooltipLabelTextColor.."   ("..tooltipValueColor..percentage..tooltipLabelTextColor.."%)"
+            stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."health: "..tooltipValueColor..percentage.."%"..tooltipDarkTextColor.."  ( "..tooltipLabelTextColor..totalHealth..tooltipDarkTextColor..' of '..tooltipLabelTextColor..totalValue..tooltipDarkTextColor.." )"
           end
           -- DPS
           totalValue = 0
@@ -1016,7 +1045,7 @@ function widget:DrawScreen()
             end
           end
           if totalValue > 0 then
-            stats = stats..'\n'..tooltipLabelTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
+            stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
           end
           if stats ~= '' then
             stats = '\n'..stats
