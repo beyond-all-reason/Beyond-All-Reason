@@ -141,7 +141,7 @@ function gadget:GameFrame(n)
             for j = 1,#aliveLootboxes do 
                 local unitID            = aliveLootboxes[j]
                 local unitTeam          = spGetUnitTeam(unitID)
-                local unitEnemy         = spNearestEnemy(unitID, 64, false)
+                local unitEnemy         = spNearestEnemy(unitID, 128, false)
                 if unitEnemy then
                     local enemyTeam = spGetUnitTeam(unitEnemy)
                     --if enemyTeam ~= spGaiaTeam then
