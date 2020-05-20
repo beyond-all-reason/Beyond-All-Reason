@@ -439,6 +439,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					end
 					return
 				end
+			else
+				UnitSuffixLenght[unitID] = 0
 			end
 		end
 		if UnitName == "scavengerdroppod_scav" then
