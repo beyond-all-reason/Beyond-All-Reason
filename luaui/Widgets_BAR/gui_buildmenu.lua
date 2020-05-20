@@ -872,6 +872,7 @@ function drawBuildmenu()
         glColor(1,1,1,0.9)
         glTexture(':lr'..radariconTextureDetail..','..radariconTextureDetail..':'..iconTypesMap[unitIconType[uDefID]])
         glTexRect(cellRects[cellRectID][3]-radariconOffset-radariconSize, cellRects[cellRectID][2]+radariconOffset, cellRects[cellRectID][3]-radariconOffset, cellRects[cellRectID][2]+radariconOffset+radariconSize)
+        glTexture(false)
       end
 
       -- price
