@@ -533,7 +533,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom)
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   -- unitcount
   if selUnitsCounts[uDefID] > 1 then
-    local fontSize = math.min(gridHeight*0.16, cellsize*0.7) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
+    local fontSize = math.min(gridHeight*0.19, cellsize*0.6) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
     font2:Begin()
     font2:Print(selUnitsCounts[uDefID], cellRect[cellID][3]-cellPadding-(fontSize*0.09), cellRect[cellID][2]+(fontSize*0.3), fontSize, "ro")
     font2:End()
@@ -973,19 +973,19 @@ function widget:DrawScreen()
             local color = {1,1,1}
             if b or b2 then
               cellZoom = clickCellZoom
-              color = {0.7,1,0.5}
+              color = {0.36,0.8,0.3}
             elseif b3 then
               cellZoom = rightclickCellZoom
-              color = {1,0.55,0.3}
+              color = {1,0.1,0.1}
             end
-            cellZoom = cellZoom + math.min(0.7 * cellZoom * (math.floor(gridHeight/cellsize)-2), 0.15)
+            cellZoom = cellZoom + math.min(0.33 * cellZoom * ((gridHeight/cellsize)-2), 0.15) -- add extra zoom when small icons
             drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom)
 
             glBlending(GL_SRC_ALPHA, GL_ONE)
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,1,1,{color[1],color[2],color[3],b and 0.4 or 0.2}, {color[1],color[2],color[3],b and 0.4 or 0.2})
             -- gloss
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,0,0,{1,1,1,0}, {1,1,1,b and 0.2 or 0.15})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.25), cellPadding*0.9, 0,0,1,1,{1,1,1,b and 0.15 or 0.1}, {1,1,1,0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,0,0,{color[1],color[2],color[3],0}, {color[1],color[2],color[3],b and 0.2 or 0.15})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.25), cellPadding*0.9, 0,0,1,1,{color[1],color[2],color[3],b and 0.15 or 0.1}, {color[1],color[2],color[3],0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             cellHovered = cellID
             break
