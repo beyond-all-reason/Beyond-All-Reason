@@ -159,7 +159,7 @@ function gadget:GameFrame(n)
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
                 local posy = spGroundHeight(posx, posz)
 				local unitsCyl = spGetCylinder(posx, posz, 128)
-                if posy > 0 and #unitsCyl == 0 then
+                if #unitsCyl == 0 then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
                     if aliveLootboxesCount < 2 then
