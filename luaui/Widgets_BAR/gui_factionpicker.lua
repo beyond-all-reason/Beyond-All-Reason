@@ -153,6 +153,11 @@ function widget:Initialize()
   end
 
   widget:ViewResize()
+
+  -- cache
+  dlistFactionpicker = gl.CreateList( function()
+    drawFactionpicker()
+  end)
 end
 
 function widget:Shutdown()

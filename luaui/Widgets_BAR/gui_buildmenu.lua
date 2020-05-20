@@ -246,9 +246,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 
--- load all icons to prevent briefly showing white unit icons
-local cachedIconsize = {}
-function cacheUnitIcons()
+-- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+local function cacheUnitIcons()
   local minC = minColls
   local maxC = maxColls
   if not dynamicIconsize then
@@ -259,23 +258,32 @@ function cacheUnitIcons()
 
   local colls = minC
   while colls <= maxC do
-    if not cachedIconsize[colls] then
-      local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- must be same formula as used in drawBuildmenu()
-      cachedIconsize[colls] = true
-      gl.Color(1,1,1,0.001)
-      for id, unit in pairs(UnitDefs) do
-        if alternativeUnitpics and hasAlternativeUnitpic[id] then
-          gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/alternative/'..unitBuildPic[id])
-        else
-          gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/'..unitBuildPic[id])
-        end
-        gl.TexRect(-1,-1,0,0)
-        gl.Texture(false)
+    local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- must be same formula as used in drawBuildmenu()
+    local radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )  -- must be same formula as used in drawBuildmenu()
+    gl.Color(1,1,1,0.001)
+    for id, unit in pairs(UnitDefs) do
+      if alternativeUnitpics and hasAlternativeUnitpic[id] then
+        gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/alternative/'..unitBuildPic[id])
+      else
+        gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/'..unitBuildPic[id])
       end
-      gl.Color(1,1,1,1)
+      gl.TexRect(-1,-1,0,0)
+      gl.Texture(':lr'..radariconTextureDetail..','..radariconTextureDetail..':'..iconTypesMap[unitIconType[id]])
+      gl.TexRect(-1,-1,0,0)
+      gl.Texture(false)
     end
+    gl.Color(1,1,1,1)
     colls = colls + 1
   end
+end
+
+local function refreshUnitIconCache()
+  if dlistCache then
+    dlistCache = gl.DeleteList(dlistCache)
+  end
+  dlistCache = gl.CreateList( function()
+    cacheUnitIcons()
+  end)
 end
 
 -------------------------------------------------------------------------------
@@ -399,7 +407,7 @@ function DrawRect(px,py,sx,sy,zoom)
   gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
 end
 
-local function RectRoundQuad(px,py,sx,sy,cs, tl,tr,br,bl, offset)
+local function DrawTexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, offset)
   local csyMult = 1 / ((sy-py)/cs)
 
   local function drawTexCoordVertex(x, y)
@@ -465,8 +473,8 @@ local function RectRoundQuad(px,py,sx,sy,cs, tl,tr,br,bl, offset)
   drawTexCoordVertex(sx-cs, sy-cs)
   drawTexCoordVertex(sx, sy-cs)
 end
-function DrawTexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
-  gl.BeginEnd(GL.QUADS, RectRoundQuad, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+function TexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+  gl.BeginEnd(GL.QUADS, DrawTexRectRound, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
@@ -653,6 +661,7 @@ function widget:Initialize()
   WG['buildmenu'].setMinColls = function(value)
     minColls = value
     doUpdate = true
+    refreshUnitIconCache()
   end
   WG['buildmenu'].getMaxColls = function()
     return maxColls
@@ -660,6 +669,7 @@ function widget:Initialize()
   WG['buildmenu'].setMaxColls = function(value)
     maxColls = value
     doUpdate = true
+    refreshUnitIconCache()
   end
   WG['buildmenu'].getDefaultColls = function()
     return defaultColls
@@ -667,6 +677,7 @@ function widget:Initialize()
   WG['buildmenu'].setDefaultColls = function(value)
     defaultColls = value
     doUpdate = true
+    refreshUnitIconCache()
   end
   WG['buildmenu'].getAlternativeIcons = function()
     return alternativeUnitpics
@@ -674,12 +685,13 @@ function widget:Initialize()
   WG['buildmenu'].setAlternativeIcons = function(value)
     alternativeUnitpics = value
     doUpdate = true
-    cachedIconsize = {}   -- re-cache icons
+    refreshUnitIconCache()
   end
   WG['buildmenu'].factionChange = function(unitDefID)
     startDefID = unitDefID
     doUpdate = true
   end
+  refreshUnitIconCache()
 end
 
 function clear()
@@ -696,6 +708,9 @@ function widget:Shutdown()
   if WG['guishader'] and dlistGuishader then
     WG['guishader'].DeleteDlist('buildmenu')
     dlistGuishader = nil
+  end
+  if dlistCache then
+    dlistCache = gl.DeleteList(dlistCache)
   end
   WG['buildmenu'] = nil
 end
@@ -715,7 +730,7 @@ function widget:Update(dt)
     checkGuishader()
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
-      cachedIconsize = {}
+      refreshUnitIconCache()
       widget:ViewResize()
       doUpdate = true
     end
@@ -726,6 +741,7 @@ function widget:Update(dt)
       doUpdate = true
     end
     if WG['minimap'] and minimapEnlarged ~= WG['minimap'].getEnlarged() then
+      refreshUnitIconCache()
       widget:ViewResize()
       doUpdate = true
     end
@@ -767,7 +783,7 @@ local function drawCell(cellRectID, usedZoom)
   glColor(1,1,1,1)
   glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
   --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
-  DrawTexRectRound(
+  TexRectRound(
     cellRects[cellRectID][1]+cellPadding+iconPadding,
     cellRects[cellRectID][2]+cellPadding+iconPadding,
     cellRects[cellRectID][3]-cellPadding-iconPadding,
@@ -849,7 +865,7 @@ local function drawCell(cellRectID, usedZoom)
     glBlending(GL_SRC_ALPHA, GL_ONE)
     glColor(1,0.85,0.2,0.66)
     glTexture(':lr128,128:unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-    DrawTexRectRound(
+    TexRectRound(
             cellRects[cellRectID][1]+cellPadding+iconPadding,
             cellRects[cellRectID][2]+cellPadding+iconPadding,
             cellRects[cellRectID][3]-cellPadding-iconPadding,
@@ -903,7 +919,7 @@ function drawBuildmenu()
     pages = 1
   end
 
-  -- there are globals so it can be used for the hover highlight
+  -- these are globals so it can be re-used (hover highlight)
   cellPadding = cellSize * 0.007
   iconPadding = cellSize * 0.02
   cornerSize = (cellPadding+iconPadding)*0.8
@@ -912,8 +928,8 @@ function drawBuildmenu()
   radariconOffset = (cellInnerSize * 0.027) + cellPadding+iconPadding
   priceFontSize = cellInnerSize*0.18
 
-  radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )
-  textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons func
+  radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )  -- NOTE: if changed: update formula as used in cacheUnitIcons()
+  textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons()
 
   cellRects = {}
   local numCellsPerPage = rows*colls
@@ -1068,8 +1084,6 @@ end
 function widget:DrawScreen()
   if chobbyInterface then return end
 
-  cacheUnitIcons()
-
   -- refresh buildmenu if active cmd changed
   prevActiveCmd = activeCmd
   activeCmd = select(4, spGetActiveCommand())
@@ -1191,7 +1205,7 @@ function widget:DrawScreen()
             glColor(1,1,1,alternativeUnitpics and 0.5 or 0.2)
           end
           glTexture(':lr128,128:unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-          DrawTexRectRound(
+          TexRectRound(
                   cellRects[cellRectID][1]+cellPadding+iconPadding,
                   cellRects[cellRectID][2]+cellPadding+iconPadding,
                   cellRects[cellRectID][3]-cellPadding-iconPadding,

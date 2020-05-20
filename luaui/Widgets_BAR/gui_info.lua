@@ -165,6 +165,44 @@ local GL_ONE = GL.ONE
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+
+
+-- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+local function cacheUnitIcons()
+  for id, unit in pairs(UnitDefs) do
+    if hasAlternativeUnitpic[id] then
+      gl.Texture(':lr128,128:unitpics/alternative/'..unitBuildPic[id])
+    else
+      gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
+    end
+    gl.TexRect(-1,-1,0,0)
+    if alternativeUnitpics and hasAlternativeUnitpic[id] then
+      gl.Texture(':lr64,64:unitpics/alternative/'..unitBuildPic[id])
+    else
+      gl.Texture(':lr64,64:unitpics/'..unitBuildPic[id])
+    end
+    gl.TexRect(-1,-1,0,0)
+    if alternativeUnitpics and hasAlternativeUnitpic[id] then
+      gl.Texture(':lr128,128:unitpics/alternative/'..unitBuildPic[id])
+    else
+      gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
+    end
+    gl.TexRect(-1,-1,0,0)
+    gl.Texture(':l:lr64,64:'..iconTypesMap[unitIconType[id]])
+    gl.TexRect(-1,-1,0,0)
+    gl.Texture(false)
+  end
+end
+
+local function refreshUnitIconCache()
+  if dlistCache then
+    dlistCache = gl.DeleteList(dlistCache)
+  end
+  dlistCache = gl.CreateList( function()
+    cacheUnitIcons()
+  end)
+end
+
 local function checkGuishader(force)
   if WG['guishader'] then
     if force and dlistGuishader then
@@ -222,6 +260,7 @@ function widget:Initialize()
   WG['info'].setAlternativeIcons = function(value)
     alternativeUnitpics = value
     doUpdate = true
+    refreshUnitIconCache()
   end
   if Script.LuaRules('GetIconTypes') then
     iconTypesMap = Script.LuaRules.GetIconTypes()
@@ -229,7 +268,8 @@ function widget:Initialize()
   Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count
   Spring.SendCommands("tooltip 0")
   widget:ViewResize()
---  widget:SelectionChanged()
+
+  refreshUnitIconCache()
 end
 
 function clear()
@@ -256,6 +296,7 @@ function widget:Update(dt)
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
       widget:ViewResize()
+      refreshUnitIconCache()
     end
     if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
       ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
@@ -396,7 +437,7 @@ function DrawRect(px,py,sx,sy,zoom)
   gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
 end
 
-local function RectRoundQuad(px,py,sx,sy,cs, tl,tr,br,bl, offset)
+local function DrawTexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, offset)
   local csyMult = 1 / ((sy-py)/cs)
 
   local function drawTexCoordVertex(x, y)
@@ -462,8 +503,8 @@ local function RectRoundQuad(px,py,sx,sy,cs, tl,tr,br,bl, offset)
   drawTexCoordVertex(sx-cs, sy-cs)
   drawTexCoordVertex(sx, sy-cs)
 end
-function DrawTexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
-  gl.BeginEnd(GL.QUADS, RectRoundQuad, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+function TexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
+  gl.BeginEnd(GL.QUADS, DrawTexRectRound, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
 end
 
 function drawInfo()
@@ -541,7 +582,7 @@ function drawInfo()
           glTexture(texSetting.."unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
           --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
           --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-          DrawTexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,1,1, texOffset)
+          TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,1,1, texOffset)
           glTexture(false)
           -- darkening bottom
           RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
@@ -676,7 +717,7 @@ function drawInfo()
             glTexture(":lr64,64:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
             --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
             --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-            DrawTexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,1,1, 0.11)
+            TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,1,1, 0.11)
             glTexture(false)
             -- darkening bottom
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
@@ -728,30 +769,6 @@ function widget:RecvLuaMsg(msg, playerID)
     chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
   end
 end
-
-
--- load all icons to prevent briefly showing white unit icons
-function cacheUnitIcons()
-  if not cached then
-    cached = true
-    gl.Color(1,1,1,0.001)
-    for id, unit in pairs(UnitDefs) do
-      if hasAlternativeUnitpic[id] then
-        gl.Texture(':lr128,128:unitpics/alternative/'..unitBuildPic[id])
-      else
-        gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
-      end
-      gl.TexRect(-1,-1,0,0)
-      gl.Texture(':lr64,64:unitpics/'..unitBuildPic[id])
-      gl.TexRect(-1,-1,0,0)
-      gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
-      gl.TexRect(-1,-1,0,0)
-      gl.Texture(false)
-    end
-    gl.Color(1,1,1,1)
-  end
-end
-
 
 local function LeftMouseButton(unitDefID, unitTable)
   local alt, ctrl, meta, shift = spGetModKeyState()
@@ -906,7 +923,6 @@ function widget:DrawScreen()
 
   if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) then
     doUpdateClock = nil
-    cacheUnitIcons()
     clear()
     doUpdate = nil
   end
