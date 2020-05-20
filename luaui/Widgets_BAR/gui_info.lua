@@ -10,7 +10,6 @@ function widget:GetInfo()
   }
 end
 
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -981,9 +980,11 @@ function widget:DrawScreen()
           totalValue = 0
           local totalHealth = 0
           for _,unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
-            local health,maxHealth,_,_,buildProgress=spGetUnitHealth(unitID)
-            totalValue = totalValue + maxHealth
-            totalHealth = totalHealth + health
+            local health,maxHealth,_,_,buildProgress = spGetUnitHealth(unitID)
+            if health and maxHealth then
+              totalValue = totalValue + maxHealth
+              totalHealth = totalHealth + health
+            end
           end
           totalHealth = math.floor(totalHealth)
           totalValue = math.floor(totalValue)
