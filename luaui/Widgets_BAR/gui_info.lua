@@ -935,7 +935,7 @@ end
 function widget:DrawScreen()
   if chobbyInterface then return end
 
-  local x,y,b,b2,b3 = Spring.GetMouseState()
+  local x,y,b,b2,b3 = spGetMouseState()
 
   if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) then
     doUpdateClock = nil
@@ -1084,8 +1084,8 @@ function widget:DrawScreen()
 end
 
 function checkChanges()
-  local mx, my = spGetMouseState()
-  local hoverType, hoverData = spTraceScreenRay(mx, my)
+  local x,y,b,b2,b3 = spGetMouseState()
+  local hoverType, hoverData = spTraceScreenRay(x, y)
 
   prevDisplayMode = displayMode
   prevDisplayUnitDefID = displayUnitDefID
@@ -1098,7 +1098,7 @@ function checkChanges()
   if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
     displayMode = 'unitdef'
     displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
-  elseif hoverType and hoverType == 'unit' then
+  elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then
     displayMode = 'unit'
     displayUnitID = hoverData
     displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
