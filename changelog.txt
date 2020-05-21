@@ -4,7 +4,7 @@
  • Ground scout vehicles/kbot: 10% more LoS
  • Enabled ground deformation
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
- • T1 vehicle artillery does 3x more damage per shot, but also has 3x reloadtime`
+ • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Removed reverse move
 
 
