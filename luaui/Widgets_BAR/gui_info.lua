@@ -512,6 +512,7 @@ function TexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
   gl.BeginEnd(GL.QUADS, DrawTexRectRound, px,py,sx,sy,cs, tl,tr,br,bl, zoom)
 end
 
+
 local function drawSelectionCell(cellID, uDefID, usedZoom)
   if not usedZoom then
     usedZoom = defaultCellZoom
@@ -971,22 +972,29 @@ function widget:DrawScreen()
 
             local cellZoom = hoverCellZoom
             local color = {1,1,1}
-            if b or b2 then
+            if b then
               cellZoom = clickCellZoom
               color = {0.36,0.8,0.3}
+            elseif b2 then
+              cellZoom = clickCellZoom
+              color = {1,0.66,0.1}
             elseif b3 then
               cellZoom = rightclickCellZoom
               color = {1,0.1,0.1}
             end
             cellZoom = cellZoom + math.min(0.33 * cellZoom * ((gridHeight/cellsize)-2), 0.15) -- add extra zoom when small icons
             drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom)
-
+            -- highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,1,1,{color[1],color[2],color[3],b and 0.4 or 0.2}, {color[1],color[2],color[3],b and 0.4 or 0.2})
+            if b or b2 or b3 then
+              RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.4 or 0.2}, {color[1],color[2],color[3],(b or b2 or b3) and 0.07 or 0.04})
+            end
             -- gloss
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,0,0,{color[1],color[2],color[3],0}, {color[1],color[2],color[3],b and 0.2 or 0.15})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.25), cellPadding*0.9, 0,0,1,1,{color[1],color[2],color[3],b and 0.15 or 0.1}, {color[1],color[2],color[3],0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.66), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,0,0,{color[1],color[2],color[3],0}, {color[1],color[2],color[3],(b or b2 or b3) and 0.18 or 0.13})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.18), cellPadding*0.9, 0,0,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.15 or 0.1}, {color[1],color[2],color[3],0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            -- bottom darkening
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.25 or 0.18}, {0,0,0,0})
             cellHovered = cellID
             break
           end
@@ -1090,15 +1098,15 @@ function checkChanges()
   if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
     displayMode = 'unitdef'
     displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
+  elseif hoverType and hoverType == 'unit' then
+    displayMode = 'unit'
+    displayUnitID = hoverData
+    displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
   elseif SelectedUnitsCount == 1 then
     displayMode = 'unit'
     displayUnitDefID = Spring.GetUnitDefID(selectedUnits[1])
   elseif SelectedUnitsCount > 1 then
     displayMode = 'selection'
-  elseif hoverType and hoverType == 'unit' then
-    displayMode = 'unit'
-    displayUnitID = hoverData
-    displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
   else -- text
     local newTooltip = spGetCurrentTooltip()
     if newTooltip ~= currentTooltip then
