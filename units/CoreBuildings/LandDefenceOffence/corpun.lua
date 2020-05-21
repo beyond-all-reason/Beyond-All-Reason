@@ -168,7 +168,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 1.4,
-				model = "artshell-medium.s3o",
+				--model = "artshell-medium.s3o",
 				name = "Long-range high-trajectory g2g AoE plasma cannon",
 				noselfdamage = true,
 				proximitypriority = -2,

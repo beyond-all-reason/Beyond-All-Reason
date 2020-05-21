@@ -20,6 +20,7 @@ local definitions = {
                 size               = 5.9,
                 sizegrowth         = [[-0.2 r0.1]],
                 ttl                = 1,
+                useairlos          = true,
             },
         },
     sparks = {
@@ -48,7 +49,7 @@ local definitions = {
 				sizegrowth         = 0.77,
 				sizemod            = 0.8,
 				texture            = [[gunshotglow]],
-				useairlos          = false,
+				useairlos          = true,
       		},
     	},
     fireback = {
@@ -77,7 +78,7 @@ local definitions = {
 		        sizegrowth         = -0.8,
 		        sizemod            = 1,
 		        texture            = [[dirt]],
-		        useairlos          = false,
+		        useairlos          = true,
 	        },
 	    },
     
@@ -100,6 +101,7 @@ local definitions = {
                 size               = 2.4,
                 sizegrowth         = -0.05,
                 ttl                = 4,
+                useairlos          = true,
             },
         }, 
 	-- traillight = {
@@ -139,7 +141,8 @@ local definitions = {
                 sidetexture        = [[trail]],
                 size               = 2.0,
                 sizegrowth         = -0.15,
-                ttl                = 6,
+                ttl                = 7,
+                useairlos          = true,
             },
         },
     -- traillight = {
@@ -180,8 +183,9 @@ local definitions = {
                 size               = 3.4,
                 sizegrowth         = -0.1,
                 ttl                = 5,
-            },
+                useairlos          = true,
         },
+    },    
     -- traillight = {
 	   --      air                = true,
 	   --      class              = [[CBitmapMuzzleFlame]],
@@ -221,6 +225,7 @@ local definitions = {
                 size               = 3.6,
                 sizegrowth         = -0.1,
                 ttl                = 10,
+                useairlos          = true,
             },
         },
     -- traillight = {
@@ -261,6 +266,7 @@ local definitions = {
                 size               = 5.2,
                 sizegrowth         = -0.15,
                 ttl                = 14,
+                useairlos          = true,
             },
         },
         sparks = {
@@ -289,7 +295,7 @@ local definitions = {
 				sizegrowth         = -0.3,
 				sizemod            = 0.8,
 				texture            = [[gunshotglow]],
-				useairlos          = false,
+				useairlos          = true,
       		},
     	},
  --    traillight = {

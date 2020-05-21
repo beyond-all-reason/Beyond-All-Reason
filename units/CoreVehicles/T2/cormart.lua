@@ -148,7 +148,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "artshell-medium.s3o",
+				--model = "artshell-medium.s3o",
 				name = "PlasmaCannon",
 				noselfdamage = true,
 				range = 915,

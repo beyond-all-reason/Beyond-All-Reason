@@ -36,7 +36,7 @@ local resources = {
             muzzleside			= 'default/muzzleside.tga',
             muzzlefront			= 'default/muzzlefront.tga',
             largebeam			= 'default/largelaserfalloff.tga',
-			null='PD/null.tga',
+			  null = 'PD/null.tga',
 
 			--Chicken Defense effects
 			uglynovaexplo='CC/uglynovaexplo.tga',

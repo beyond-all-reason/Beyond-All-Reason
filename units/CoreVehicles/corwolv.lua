@@ -134,7 +134,7 @@ return {
 				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "artshell-small.s3o",
+				--model = "artshell-small.s3o",
 				mygravity = 0.276,
 				name = "LightArtillery",
 				noselfdamage = true,

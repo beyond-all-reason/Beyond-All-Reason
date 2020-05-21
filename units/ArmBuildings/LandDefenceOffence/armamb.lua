@@ -135,7 +135,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
-				model = "artshell-large.s3o",
+				--model = "artshell-large.s3o",
 				name = "Pop-up heavy  long range g2g plasna cannon",
 				noselfdamage = true,
 				predictboost = 0.2,
