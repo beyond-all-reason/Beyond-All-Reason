@@ -1532,11 +1532,11 @@ function widget:DrawScreen()
 					color1 = {0.25,0,0,0.35+(0.5*fadeProgress)}
 					color2 = {0.5,0,0,0.35+(0.5*fadeProgress)}
                 end
-				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 3.3*widgetScale, 1,1,1,1, color1,color2)
+				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 2.5*widgetScale, 1,1,1,1, color1,color2)
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4]-((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], 3.3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
-				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.35), 3.3*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})
+				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4]-((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], 2.5*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.35), 2.5*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font:End()
@@ -1558,11 +1558,11 @@ function widget:DrawScreen()
 						color1 = {0.18,0.18,0.18,0.4+(0.5*fadeProgress)}
 						color2 = {0.33,0.33,0.33,0.4+(0.5*fadeProgress)}
 					end
-					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 3.3*widgetScale, 1,1,1,1, color1,color2)
+					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 2.5*widgetScale, 1,1,1,1, color1,color2)
 
 					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(quitscreenResignArea[1], quitscreenResignArea[4]-((quitscreenResignArea[4]-quitscreenResignArea[2])*0.5), quitscreenResignArea[3], quitscreenResignArea[4], 3.3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
-					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])*0.35), 3.3*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})
+					RectRound(quitscreenResignArea[1], quitscreenResignArea[4]-((quitscreenResignArea[4]-quitscreenResignArea[2])*0.5), quitscreenResignArea[3], quitscreenResignArea[4], 2.5*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])*0.35), 2.5*widgetScale, 0,0,2,2, {1,1,1,0.16*mult}, {1,1,1,0})
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 					font2:Print("Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
