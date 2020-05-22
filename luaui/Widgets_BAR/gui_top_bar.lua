@@ -474,46 +474,52 @@ local function updateButtons()
 		if buttonsArea['buttons'] == nil then
 			buttonsArea['buttons'] = {}
 
-			local margin = height*widgetScale / 11
+			local margin = 3*widgetScale
 			local offset = margin
 			local width = 0
             local buttons = 0
-
+			firstButton = nil
 			if (WG['scavengerinfo'] ~= nil) then
 				buttons = buttons + 1
 				if buttons > 1 then offset = offset+width end
 				width = font2:GetTextWidth('  Scavengers ') * fontsize
 				buttonsArea['buttons']['scavengers'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+				if not firstButton then firstButton = 'scavengers' end
 			end
             if (WG['teamstats'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
                 width = font2:GetTextWidth('   Stats ') * fontsize
                 buttonsArea['buttons']['stats'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4] }
+				if not firstButton then firstButton = 'stats' end
             end
             if (WG['commands'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
                 width = font2:GetTextWidth('  Cmd ') * fontsize
                 buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+				if not firstButton then firstButton = 'commands' end
 			end
             if (WG['keybinds'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
                 width = font2:GetTextWidth('  Keys ') * fontsize
                 buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+				if not firstButton then firstButton = 'keybinds' end
             end
             if (WG['changelog'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
                 width = font2:GetTextWidth('  Changes ') * fontsize
                 buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+				if not firstButton then firstButton = 'changelog' end
             end
             if (WG['options'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
                 width = font2:GetTextWidth('  Settings ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+				if not firstButton then firstButton = 'settings' end
             end
 			if chobbyLoaded then
 				offset = offset+width
@@ -1453,10 +1459,10 @@ function widget:DrawScreen()
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
 					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 0,0,1,1, {1,1,1,b and 0.15 or 0.055}, {0.44,0.44,0.44,b and 0.45 or 0.22})
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,b and 0.15 or 0.055}, {0.44,0.44,0.44,b and 0.45 or 0.22})
 					local mult = 1
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4]-((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.5), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.05*mult}, {1,1,1,0.18*mult})
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.35), 3.3*widgetScale, 0,0,2,2, {1,1,1,0.07*mult}, {1,1,1,0})
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.35), 3.3*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,0.07*mult}, {1,1,1,0})
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					break
 				end
