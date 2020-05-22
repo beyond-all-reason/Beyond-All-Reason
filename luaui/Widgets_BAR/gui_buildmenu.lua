@@ -110,7 +110,8 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam =Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
-local glDepthTest = gl.DepthTest
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
 
 local SelectedUnitsCount = spGetSelectedUnitsCount()
 
@@ -132,6 +133,7 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
+local glDepthTest = gl.DepthTest
 
 local glCreateTexture = gl.CreateTexture
 local glActiveTexture = gl.ActiveTexture
@@ -1111,7 +1113,7 @@ function widget:DrawScreen()
       WG['guishader'].RemoveDlist('buildmenu')
     end
   else
-    local x,y,b,b2,b3 = Spring.GetMouseState()
+    local x,y,b,b2,b3 = spGetMouseState()
     local now = os_clock()
     if doUpdate or (doUpdateClock and now >= doUpdateClock) then
       if doUpdateClock and now >= doUpdateClock then
@@ -1200,27 +1202,36 @@ function widget:DrawScreen()
           local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
           local uDefID = cmds[cellRectID].id*-1
 
-          -- determine zoom amount
+          -- determine zoom amount and cell color
           local usedZoom = hoverCellZoom
-          if (b or b2) and cellIsSelected then
-            usedZoom = clickSelectedCellZoom
-          elseif cellIsSelected then
-            usedZoom = selectedCellZoom
-          elseif (b or b2) and not disableInput then
-            usedZoom = clickCellZoom
-          elseif b3 and not disableInput and cmds[cellRectID].params[1] then  -- has queue
-            usedZoom = rightclickCellZoom
-          end
-          -- determine color
           local cellColor
-          if (b or b2) and not disableInput then
-            cellColor = {0.3,0.8,0.25,alternativeUnitpics and 0.7 or 0.2}
-          elseif b3 and not disableInput then
-            cellColor = {1,0.35,0.3,alternativeUnitpics and 0.7 or 0.2}
+          if not cellIsSelected then
+            if (b or b2) and cellIsSelected then
+              usedZoom = clickSelectedCellZoom
+            elseif cellIsSelected then
+              usedZoom = selectedCellZoom
+            elseif (b or b2) and not disableInput then
+              usedZoom = clickCellZoom
+            elseif b3 and not disableInput and cmds[cellRectID].params[1] then  -- has queue
+              usedZoom = rightclickCellZoom
+            end
+            -- determine color
+              if (b or b2) and not disableInput then
+                cellColor = {0.3,0.8,0.25,alternativeUnitpics and 0.7 or 0.2}
+              elseif b3 and not disableInput then
+                cellColor = {1,0.35,0.3,alternativeUnitpics and 0.7 or 0.2}
+              else
+                cellColor = {0.6,0.6,0.6,alternativeUnitpics and 0.25 or 0}
+            end
           else
-            cellColor = {0.6,0.6,0.6,alternativeUnitpics and 0.25 or 0}
+            -- selected cell
+            if (b or b2 or b3) then
+              usedZoom = clickSelectedCellZoom
+            else
+              usedZoom = selectedCellZoom
+            end
+            cellColor = {1,0.85,alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25}
           end
-
           -- re-draw cell with hover zoom
           drawCell(cellRectID, usedZoom, cellColor)
 
@@ -1281,8 +1292,8 @@ function widget:DrawWorld()
       -- We need data about currently selected building, for drawing clashes etc
       local selBuildData
       if selBuildQueueDefID then
-        local x,y,b = Spring.GetMouseState()
-        local _, pos = Spring.TraceScreenRay(x, y, true)
+        local x,y,b = spGetMouseState()
+        local _, pos = spTraceScreenRay(x, y, true)
         if pos then
           local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
           local buildFacing = Spring.GetBuildFacing()
@@ -1452,7 +1463,7 @@ end
 
 function SetBuildFacing()
   local wx,wy,_,_ = Spring.GetScreenGeometry()
-  local _, pos = Spring.TraceScreenRay(wx/2, wy/2, true)
+  local _, pos = spTraceScreenRay(wx/2, wy/2, true)
   if not pos then return end
   local x = pos[1]
   local z = pos[3]
@@ -1564,8 +1575,8 @@ function widget:MousePress(x, y, button)
     if selBuildQueueDefID then
       if button == 1 then
 
-        local mx, my, button = Spring.GetMouseState()
-        local _, pos = Spring.TraceScreenRay(mx, my, true)
+        local mx, my, button = spGetMouseState()
+        local _, pos = spTraceScreenRay(mx, my, true)
         if not pos then return end
         local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
         local buildFacing = Spring.GetBuildFacing()

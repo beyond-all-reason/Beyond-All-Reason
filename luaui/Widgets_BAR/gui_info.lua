@@ -42,6 +42,7 @@ local loadedFontSize = fontfileSize*fontfileScale
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 
+local hoverType, hoverData = '', ''
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -1085,8 +1086,16 @@ end
 
 function checkChanges()
   local x,y,b,b2,b3 = spGetMouseState()
-  local hoverType, hoverData = spTraceScreenRay(x, y)
-
+  lastType = hoverType
+  lastHoverData = hoverData
+  hoverType, hoverData = spTraceScreenRay(x, y)
+  if hoverType == 'unit' then
+    if lastHoverData ~= hoverData then
+      lastHoverDataClock = os_clock()
+    end
+  else
+    lastHoverDataClock = os_clock()
+  end
   prevDisplayMode = displayMode
   prevDisplayUnitDefID = displayUnitDefID
   prevDisplayUnitID = displayUnitID
@@ -1098,7 +1107,7 @@ function checkChanges()
   if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
     displayMode = 'unitdef'
     displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
-  elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then
+  elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock()-lastHoverDataClock > 0.1 then -- add small hover delay against eplilepsy
     displayMode = 'unit'
     displayUnitID = hoverData
     displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
