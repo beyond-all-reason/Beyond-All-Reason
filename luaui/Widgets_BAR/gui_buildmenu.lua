@@ -28,9 +28,9 @@ local minColls = 4
 local maxColls = 5
 
 local defaultCellZoom = 0.025
-local rightclickCellZoom = 0.045
-local clickCellZoom = 0.035
-local hoverCellZoom = 0.055
+local rightclickCellZoom = 0.033
+local clickCellZoom = 0.07
+local hoverCellZoom = 0.05
 local clickSelectedCellZoom = 0.125
 local selectedCellZoom = 0.135
 
@@ -130,6 +130,8 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
+local GL_DST_ALPHA = GL.DST_ALPHA
+local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
 local glCreateTexture = gl.CreateTexture
 local glActiveTexture = gl.ActiveTexture
@@ -768,13 +770,8 @@ function drawBuildmenuBg()
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
-local function drawCell(cellRectID, usedZoom)
+local function drawCell(cellRectID, usedZoom, cellColor)
   local uDefID = cmds[cellRectID].id*-1
-  local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-
-  if not usedZoom then
-    usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-  end
 
   -- encapsulating cell background
   --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,1,1, {0.3,0.3,0.3,0.95},{0.22,0.22,0.22,0.95})
@@ -791,6 +788,33 @@ local function drawCell(cellRectID, usedZoom)
     cornerSize, 1,1,1,1,
     usedZoom
   )
+
+  -- colorize/highlight unit icon
+  if cellColor then
+    glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
+    glColor(cellColor[1],cellColor[2],cellColor[3],cellColor[4])
+    glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+    TexRectRound(
+            cellRects[cellRectID][1]+cellPadding+iconPadding,
+            cellRects[cellRectID][2]+cellPadding+iconPadding,
+            cellRects[cellRectID][3]-cellPadding-iconPadding,
+            cellRects[cellRectID][4]-cellPadding-iconPadding,
+            cornerSize, 1,1,1,1,
+            usedZoom
+    )
+    if cellColor[4] > 0 then
+      glBlending(GL_SRC_ALPHA, GL_ONE)
+      TexRectRound(
+              cellRects[cellRectID][1]+cellPadding+iconPadding,
+              cellRects[cellRectID][2]+cellPadding+iconPadding,
+              cellRects[cellRectID][3]-cellPadding-iconPadding,
+              cellRects[cellRectID][4]-cellPadding-iconPadding,
+              cornerSize, 1,1,1,1,
+              usedZoom
+      )
+    end
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  end
   glTexture(false)
 
   if makeFancy then
@@ -858,33 +882,6 @@ local function drawCell(cellRectID, usedZoom)
             cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.715)-pad2,
             cellInnerSize*0.29, "ro"
     )
-  end
-  -- active / selected
-  if cellIsSelected then
-    WG['buildmenu'].selectedID = uDefID
-    glBlending(GL.DST_ALPHA, GL.ONE_MINUS_SRC_COLOR)
-    glColor(1,0.88,0.2,0.66)
-    glTexture(':lr128,128:unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-    TexRectRound(
-            cellRects[cellRectID][1]+cellPadding+iconPadding,
-            cellRects[cellRectID][2]+cellPadding+iconPadding,
-            cellRects[cellRectID][3]-cellPadding-iconPadding,
-            cellRects[cellRectID][4]-cellPadding-iconPadding,
-            cornerSize, 1,1,1,1,
-            usedZoom
-    )
-    glBlending(GL_SRC_ALPHA, GL_ONE)
-    glColor(1,0.88,0.25,alternativeUnitpics and 1 or 0.33)
-    TexRectRound(
-            cellRects[cellRectID][1]+cellPadding+iconPadding,
-            cellRects[cellRectID][2]+cellPadding+iconPadding,
-            cellRects[cellRectID][3]-cellPadding-iconPadding,
-            cellRects[cellRectID][4]-cellPadding-iconPadding,
-            cornerSize, 1,1,1,1,
-            usedZoom
-    )
-    glTexture(false)
-    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
 end
 
@@ -970,7 +967,14 @@ function drawBuildmenu()
         activeArea[4] - ((row-1)*cellSize)
       }
 
-      drawCell(cellRectID)
+      local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+      local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
+
+      if cellIsSelected then
+        WG['buildmenu'].selectedID = uDefID
+      end
+
+      drawCell(cellRectID, usedZoom, cellIsSelected and {1,0.85,alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25} or nil)
     end
   end
 
@@ -1170,6 +1174,8 @@ function widget:DrawScreen()
     -- draw highlight
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
       if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+
+        -- paginator buttons
         local paginatorHovered = false
         if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
           paginatorHovered = 1
@@ -1187,43 +1193,36 @@ function widget:DrawScreen()
           RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][4]-cellPadding-((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.5), paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.045}, {1,1,1,0.15})
           RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][2]+cellPadding+((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.18), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
         end
+
+        -- cells
         if hoveredCellID then
           local cellRectID = hoveredCellID
           local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
           local uDefID = cmds[cellRectID].id*-1
 
-          -- highlight
-          local cellZoom = hoverCellZoom
+          -- determine zoom amount
+          local usedZoom = hoverCellZoom
           if (b or b2) and cellIsSelected then
-            cellZoom = clickSelectedCellZoom
+            usedZoom = clickSelectedCellZoom
           elseif cellIsSelected then
-            cellZoom = selectedCellZoom
+            usedZoom = selectedCellZoom
           elseif (b or b2) and not disableInput then
-            cellZoom = clickCellZoom
+            usedZoom = clickCellZoom
           elseif b3 and not disableInput and cmds[cellRectID].params[1] then  -- has queue
-            cellZoom = rightclickCellZoom
+            usedZoom = rightclickCellZoom
           end
-          drawCell(cellRectID, cellZoom)
-
-          glBlending(GL_SRC_ALPHA, GL_ONE)
-          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.07}, {1,1,1,0.07})
+          -- determine color
+          local cellColor
           if (b or b2) and not disableInput then
-            glColor(0.7,1,0.5,alternativeUnitpics and 1 or 0.4)
+            cellColor = {0.3,0.8,0.25,alternativeUnitpics and 0.7 or 0.2}
           elseif b3 and not disableInput then
-            glColor(1,0.6,0.4,alternativeUnitpics and 1 or 0.4)
+            cellColor = {1,0.35,0.3,alternativeUnitpics and 0.7 or 0.2}
           else
-            glColor(1,1,1,alternativeUnitpics and 0.5 or 0.2)
+            cellColor = {0.6,0.6,0.6,alternativeUnitpics and 0.25 or 0}
           end
-          glTexture(':lr128,128:unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-          TexRectRound(
-                  cellRects[cellRectID][1]+cellPadding+iconPadding,
-                  cellRects[cellRectID][2]+cellPadding+iconPadding,
-                  cellRects[cellRectID][3]-cellPadding-iconPadding,
-                  cellRects[cellRectID][4]-cellPadding-iconPadding,
-                  cornerSize, 1,1,1,1,
-                  cellZoom
-          )
-          glTexture(false)
+
+          -- re-draw cell with hover zoom
+          drawCell(cellRectID, usedZoom, cellColor)
 
           -- gloss highlight
           RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.18 or 0.1})
