@@ -1,0 +1,105 @@
+// Mono-space font required
+{
+"porcupine": {
+	//            0         1            2
+	"unit": {
+		"arm":  ["armllt", "armbeamer", "armhlt"],
+		"core": ["corllt", "corhllt",   "corhlt"]
+	},
+	// Actual number of defences per cluster bounded by income
+	"land":  [0, 1, 2],
+	"water": [0],
+	"prevent": 1,  // number of preventive defences
+	"amount": {  // income bound factor
+		"offset": [0.025, 0.075],
+		// Amount factor: 10x10 ~ 1.7, 20x20 ~ 1.5
+		"factor": [1.7, 1.5],
+		"map": [10, 20]
+	},
+
+	// Base defence and time to build it, in seconds
+	"base": [[1, 600], [2, 1200]],
+
+	"superweapon": {
+		"unit": {
+			"arm":  ["armsy"],
+			"core": ["corsy"]
+		},
+		"weight":   [ 1.00],
+
+		"condition": [16, 2000]  // [<Minimum income>, <maximum seconds to build>]
+	},
+
+	// Fallback defence
+	"default": {
+		"arm": "armllt",
+		"core": "corllt"
+	}
+},
+
+// Actions on building finished event
+"build_chain": {
+	// WARNING: Avoid recursion
+	// <category>: factory, nano, store, pylon, energy, defence, bunker, big_gun, radar, sonar, mex, repair
+	"energy": {
+		// <UnitDef>: {<elements>}
+		"armadvsol": {
+			// Available elements:
+			// "energy": [max energy income, <"mex"|true>]
+			// "pylon": <boolean>
+			// "porc": <boolean>
+			// "terra": <boolean>
+			// "hub": [
+			//     // chain1
+			//     [{<unit1>, <category>, <offset>, <condition>}, {<unit2>, <category>, <offset>, <condition>}, ...],
+			//     // chain2
+			//     [{...}, {...}, ...],
+			//     ...
+			// ]
+			// <unit>: UnitDef
+			// <offset>:
+			//     1) [x, z] in South facing, elmos
+			//     2) {<direction>: <delta>} - left, right, front, back
+			// <condition>: air, no_air, maybe
+
+			// Build pylon in direction of nearby mex cluster
+//			"pylon": true,
+
+			// Build chain of units
+			"hub": [
+				[  // chain1
+					{"unit": "armllt", "category": "defence", "offset": [-80, -80]}
+				],
+				[  // chain2
+					{"unit": "armllt", "category": "defence", "offset": [80, 80]}
+				]
+			]
+		},
+		"coradvsol": {
+			"hub": [
+				[{"unit": "corllt", "category": "defence", "offset": [-80, -80]}],  // chain1
+				[{"unit": "corllt", "category": "defence", "offset": [80, 80]}]  // chain2
+			]
+		}
+	}
+//	"factory": {
+//		"armlab": {
+//			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 20}}]]
+//		},
+//		"armvp": {
+//			"hub": [[{"unit": "armllt", "category": "defence", "offset": {"back": 20}}]]
+//		}
+	},
+	"mex": {
+		"armmex": {
+//			"terra": true,
+			"energy": [20, true],
+			"porc": true
+		},
+		"cormex": {
+			"energy": [20, true],
+			"porc": true
+		}
+	}
+}
+}

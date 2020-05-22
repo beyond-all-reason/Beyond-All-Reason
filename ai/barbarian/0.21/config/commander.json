@@ -1,0 +1,69 @@
+// Mono-space font required
+{
+"commander": {
+	"prefix": "",
+	"suffix": "",
+	"unit": {
+		"armcom": {
+			// Choice importance, 0 by default
+			"importance": 0.5,
+
+			// Starting units (order matters)
+			"start": {
+				"factory": {
+					"armlab": [
+						// [<weight>, [<role>, <role>, ...]]
+						[0.9, ["raider", "raider", "builder", "raider", "raider", "builder", "raider", "raider", "raider", "raider"]],
+						[0.1, ["raider", "builder", "riot", "builder", "raider", "raider", "raider", "raider", "builder", "raider", "raider"]]
+					]
+				},
+				"default": ["raider", "raider", "builder", "raider", "raider"]
+			},
+
+			// Morph params
+			"upgrade": {
+//				"time": 120,  // Force-morph delay, in seconds
+				"module": []
+			},
+
+			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
+			"hide": {
+				"time": 480,  // seconds
+				"threat": 20,
+				"air": true,
+				"task_rad": 1000.0
+			}
+		},
+		"corcom": {
+			// Choice importance, 0 by default
+			"importance": 0.5,
+
+			// Starting units (order matters)
+			"start": {
+				"factory": {
+					"corlab": [
+						// [<weight>, [<role>, <role>, ...]]
+						[0.9, ["raider", "raider", "builder", "raider", "raider", "builder", "raider", "raider", "raider", "raider"]],
+						[0.1, ["raider", "builder", "riot", "builder", "raider", "raider", "raider", "raider", "builder", "raider", "raider"]]
+					]
+				},
+				"default": ["raider", "raider", "builder", "raider", "raider"]
+			},
+
+			// Morph params
+			"upgrade": {
+//				"time": 120,  // Force-morph delay, in seconds
+				"module": []
+			},
+
+			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
+			"hide": {
+				"time": 480,  // seconds
+				"threat": 20,
+				"air": true,
+				"task_rad": 1000.0
+			}
+		}
+	}
+}
+} 
