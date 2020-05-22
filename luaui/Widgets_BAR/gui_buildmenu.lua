@@ -24,15 +24,15 @@ local showTooltip = true
 local makeFancy = true
 local dynamicIconsize = true
 local defaultColls = 5
-local minColls = 5
-local maxColls = 6
+local minColls = 4
+local maxColls = 5
 
 local defaultCellZoom = 0.025
 local rightclickCellZoom = 0.045
 local clickCellZoom = 0.035
 local hoverCellZoom = 0.055
-local clickSelectedCellZoom = 0.11
-local selectedCellZoom = 0.12
+local clickSelectedCellZoom = 0.125
+local selectedCellZoom = 0.135
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -862,9 +862,19 @@ local function drawCell(cellRectID, usedZoom)
   -- active / selected
   if cellIsSelected then
     WG['buildmenu'].selectedID = uDefID
-    glBlending(GL_SRC_ALPHA, GL_ONE)
-    glColor(1,0.85,0.2,0.66)
+    glBlending(GL.DST_ALPHA, GL.ONE_MINUS_SRC_COLOR)
+    glColor(1,0.88,0.2,0.66)
     glTexture(':lr128,128:unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+    TexRectRound(
+            cellRects[cellRectID][1]+cellPadding+iconPadding,
+            cellRects[cellRectID][2]+cellPadding+iconPadding,
+            cellRects[cellRectID][3]-cellPadding-iconPadding,
+            cellRects[cellRectID][4]-cellPadding-iconPadding,
+            cornerSize, 1,1,1,1,
+            usedZoom
+    )
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+    glColor(1,0.88,0.25,alternativeUnitpics and 1 or 0.33)
     TexRectRound(
             cellRects[cellRectID][1]+cellPadding+iconPadding,
             cellRects[cellRectID][2]+cellPadding+iconPadding,
