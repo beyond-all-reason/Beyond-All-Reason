@@ -189,8 +189,8 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local titleColor = '\255\200\200\200'
-		local valueColor = '\255\245\245\245'
+		local titleColor = '\255\210\210\210'
+		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
 		font:Print(titleColor..'# units  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits, left+textXPadding, bottom+textYPadding-(0.9*widgetScale), textsize, 'no')

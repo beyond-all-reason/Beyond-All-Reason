@@ -192,11 +192,11 @@ local apiAbsPosition = {0,0,0,0,1,1,false}
 --------------------------------------------------------------------------------
 
 local pingCpuColors   = {
-	[1] = {r = 0.11, g = 0.82, b = 0.11},
-	[2] = {r = 0.4, g = 0.75, b = 0.2},
-	[3] = {r = 0.72, g = 0.72, b = 0.2},
-	[4] = {r = 0.82, g = 0.27, b = 0.18},
-	[5] = {r = 1, g = 0.15, b = 0.3}
+	[1] = {r = 0.25, g = 0.82, b = 0.25},
+	[2] = {r = 0.45, g = 0.75, b = 0.33},
+	[3] = {r = 0.75, g = 0.75, b = 0.33},
+	[4] = {r = 0.85, g = 0.33, b = 0.33},
+	[5] = {r = 1, g = 0.2, b = 0.35}
 }
 
 --------------------------------------------------------------------------------
@@ -2060,7 +2060,7 @@ function CreateBackground()
 			font:SetTextColor(0,0,0,0.2)
 			font:Print(text, widgetPosX - 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
 			font:Print(text, widgetPosX + 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
-			font:SetTextColor(0.9,0.9,0.9,0.75)
+			font:SetTextColor(0.87,0.87,0.87,1)
 			font:Print(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
 			font:End()
 		end
@@ -2199,7 +2199,7 @@ function DrawLabel(text, vOffset, drawSeparator)
 	--font:SetTextColor(0,0,0,0.2)
 	--font:Print(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
 	--font:Print(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
-	font:SetTextColor(0.9,0.9,0.9,0.75)
+	font:SetTextColor(0.87,0.87,0.87,1)
 	font:Print(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "on")
 	font:End()
 	if drawSeparator then
@@ -2215,7 +2215,7 @@ function DrawLabelTip(text, vOffset, xOffset)
 	--font:SetTextColor(0,0,0,0.08)
 	--font:Print(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
 	--font:Print(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
-	font:SetTextColor(0.9,0.9,0.9,0.35)
+	font:SetTextColor(0.9,0.9,0.9,0.4)
 	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "on")
 	font:End()
 end
@@ -2831,7 +2831,7 @@ end
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 	gl_Texture(pics["pingPic"])
 	if spec then
-		local grayvalue = 0.3 + (pingLvl / 15)
+		local grayvalue = 0.5 + (pingLvl / 20)
 		gl_Color(grayvalue,grayvalue,grayvalue,(0.2*pingLvl))
 		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 21, posY + 14)
 	else
@@ -2850,12 +2850,12 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 			if spec then
 				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
 				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.66*alpha*grayvalue)
+				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.75*alpha*grayvalue)
 				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
 			else
 				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
 				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
-				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
+				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.9*alpha*grayvalue)
 				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "ro")
 			end
 		end
@@ -2873,7 +2873,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 			if spec then
 				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
 				--font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.77*alpha*grayvalue)
+				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.87*alpha*grayvalue)
 				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
 			else
 				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))

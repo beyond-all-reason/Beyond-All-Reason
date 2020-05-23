@@ -80,7 +80,7 @@ local Config = {
 		cspectext = {1,1,0,1}, --spectator chat
 		
 		cotherallytext = {1,0.5,0.5,1}, --enemy ally messages (seen only when spectating)
-		cmisctext = {0.78,0.78,0.78,1}, --everything else
+		cmisctext = {0.85,0.85,0.85,1}, --everything else
 		cgametext = {0.4,1,1,1}, --server (autohost) chat
 		
 		cbackground = {0,0,0,0.0},

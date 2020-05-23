@@ -425,7 +425,7 @@ local function createList()
 		--glColor(1,1,1,0.7)
 		--glTexture(buttonTex)
 		--glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
-		glColor(0.77,0.77,0.77,0.9)
+		glColor(0.88,0.88,0.88,0.9)
 		if playing then
 			glTexture(pauseTex)
 		else
@@ -437,7 +437,7 @@ local function createList()
 		--glColor(1,1,1,0.7)
 		--glTexture(buttonTex)
 		--glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
-		glColor(0.77,0.77,0.77,0.9)
+		glColor(0.88,0.88,0.88,0.9)
 		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
@@ -461,7 +461,7 @@ local function createList()
 		end
 		trackname = text
 		font:Begin()
-		font:Print('\255\200\200\200'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding-(0.9*widgetScale), textsize, 'no')
+		font:Print('\255\235\235\235'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding-(0.9*widgetScale), textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
@@ -867,8 +867,9 @@ function widget:DrawScreen()
 			    RectRound(left+borderPaddingLeft, bottom+borderPadding-(1.8*widgetScale), left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.4, 2,2,2,2, {0.6,0.6,0.6,ui_opacity*0.14}, {1,1,1,ui_opacity*0.14})
 			  end
 
-			  local color = {1,1,1,0.3}
-			  local colorHighlight = {1,1,1,0.4}
+			  local color = {1,1,1,0.18}
+			  local colorHighlight = {1,1,1,0.3}
+			  glBlending(GL_SRC_ALPHA, GL_ONE)
 			  local button = 'playpause'
 				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
 					if mlb then
@@ -889,6 +890,7 @@ function widget:DrawScreen()
 					glTexture(buttonHighlightTex)
 					glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
 				end
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end
 		glPopMatrix()
 		mouseover = false

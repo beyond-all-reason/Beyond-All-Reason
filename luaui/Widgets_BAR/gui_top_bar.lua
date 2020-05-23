@@ -538,7 +538,7 @@ local function updateButtons()
 	end
 	dlistButtons2 = glCreateList( function()
         font2:Begin()
-		font2:Print('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])*0.52)-(fontsize/5), fontsize, 'o')
+		font2:Print('\255\240\240\240'..text, area[1], area[2]+((area[4]-area[2])*0.52)-(fontsize/5), fontsize, 'o')
         font2:End()
 	end)
 end
@@ -685,9 +685,9 @@ local function updateWind()
 		-- min and max wind
 		local fontsize = (height/3.7)*widgetScale
         font2:Begin()
-        font2:Print("\255\140\140\140"..minWind, area[3]-(2.8*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
-        font2:Print("\255\140\140\140"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
-        font2:Print("\255\140\140\140"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+        font2:Print("\255\210\210\210"..minWind, area[3]-(2.8*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
+        font2:Print("\255\210\210\210"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+        font2:Print("\255\210\210\210"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
         font2:End()
 
 	end)
@@ -729,7 +729,7 @@ local function updateResbarText(res)
 		end
 		dlistResbar[res][6] = glCreateList( function()
 			font2:Begin()
-			font2:Print("\255\150\150\150"..short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+			font2:Print("\255\210\210\210"..short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
 			font2:End()
 		end)
 	end
@@ -740,15 +740,15 @@ local function updateResbarText(res)
     dlistResbar[res][3] = glCreateList( function()
         font2:Begin()
         -- Text: pull
-        font2:Print("\255\210\100\100"..short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+        font2:Print("\255\240\125\125"..short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 		-- Text: expense
-		local textcolor = "\255\150\135\110"
+		local textcolor = "\255\240\180\145"
 		if r[res][3] == r[res][5] then
-			textcolor = "\255\166\115\110"
+			textcolor = "\255\200\140\130"
 		end
         font2:Print(textcolor..short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
 		-- income
-		font2:Print("\255\100\210\100"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+		font2:Print("\255\120\235\120"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 		font2:End()
 
 		if not spec and gameFrame > 90 then
