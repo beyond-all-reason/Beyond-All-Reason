@@ -83,7 +83,11 @@ function wrap(str, limit)
 end
 
 function round(value, numDecimalPlaces)
-  return string.format("%0."..numDecimalPlaces.."f", math.round(value, numDecimalPlaces))
+  if value then
+    return string.format("%0."..numDecimalPlaces.."f", math.round(value, numDecimalPlaces))
+  else
+    return 0
+  end
 end
 
 local hasAlternativeUnitpic = {}
@@ -804,8 +808,9 @@ local function drawInfo()
         local text = ''
         local separator = ''
         local infoFontsize = fontSize * 0.92
+
         local function addTextInfo(label, value)
-          text = text.. labelColor..separator..label .. (label~='' and ' ' or '') .. valueColor..value
+          text = text.. labelColor..separator..label .. (label~='' and ' ' or '') .. valueColor..(value and value or '')
           separator = ',   '
         end
 
@@ -823,9 +828,9 @@ local function drawInfo()
         --if metalExtraction then
         --  addTextInfo('metal extraction', round(metalExtraction, 2))
         --end
-        --if exp and exp > 0 then
+        if exp and exp > 0 then
           addTextInfo('xp', round(exp, 3))
-        --end
+        end
         addTextInfo('height', Spring.GetUnitHeight(displayUnitID))
         addTextInfo('radius', Spring.GetUnitRadius(displayUnitID))
         addTextInfo('mass', Spring.GetUnitMass(displayUnitID))

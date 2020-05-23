@@ -475,7 +475,7 @@ local function createList()
 		
 		button = 'musicvolumeicon'
 		local sliderY = buttons[button][2] + (buttons[button][4] - buttons[button][2])/2
-		glColor(0.66,0.66,0.66,1)
+		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
@@ -485,7 +485,7 @@ local function createList()
 
 
 		button = 'volumeicon'
-		glColor(0.7,0.7,0.7,1)
+		glColor(0.8,0.8,0.8,0.9)
 		glTexture(volumeTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
