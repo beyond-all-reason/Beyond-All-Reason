@@ -52,6 +52,13 @@ local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui 
 local backgroundRect = {0,0,0,0}
 local currentTooltip = ''
 
+function lines(str)
+  local t = {}
+  local function helper(line) t[#t+1] = line return "" end
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
+
 function wrap(str, limit)
   limit = limit or 72
   local here = 1
@@ -75,6 +82,10 @@ function wrap(str, limit)
   return t
 end
 
+function round(value, numDecimalPlaces)
+  return string.format("%0."..numDecimalPlaces.."f", math.round(value, numDecimalPlaces))
+end
+
 local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
 local unitEnergyCost = {}
@@ -92,6 +103,7 @@ local unitHealth = {}
 local unitBuildOptions = {}
 local unitWeapons = {}
 local unitDPS = {}
+local unitCanStockpile = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
   if unitDef.maxWeaponRange > 16 then
@@ -107,6 +119,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   unitHealth[unitDefID] = unitDef.health
   unitBuildTime[unitDefID] = unitDef.buildTime
   unitBuildPic[unitDefID] = unitDef.buildpicname
+  if unitDef.canStockpile then
+    unitCanStockpile[unitDefID] = true
+  end
   if VFS.FileExists('unitpics/alternative/'..string.gsub(unitDef.buildpicname, '(.*/)', '')) then
     hasAlternativeUnitpic[unitDefID] = true
   end
@@ -142,6 +157,7 @@ local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 local selectedUnits = Spring.GetSelectedUnits()
+local spGetUnitDefID = Spring.GetUnitDefID
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
@@ -149,6 +165,12 @@ local spSelectUnitArray = Spring.SelectUnitArray
 local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spSelectUnitMap = Spring.SelectUnitMap
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitResources = Spring.GetUnitResources
+local spGetUnitMaxRange = Spring.GetUnitMaxRange
+local spGetUnitExperience = Spring.GetUnitExperience
+local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
+local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitStockpile = Spring.GetUnitStockpile
 
 local os_clock = os.clock
 
@@ -635,6 +657,7 @@ local function drawInfo()
     --  font:End()
     --end
 
+
   elseif displayMode ~= 'text' and displayUnitDefID then
     local iconSize = fontSize*5
     local iconPadding = 0
@@ -753,26 +776,86 @@ local function drawInfo()
       glTexture(false)
       glColor(1,1,1,1)
 
-    else
-      -- display default engine tooltip
-      local contentPaddingLeft = customInfoArea[1] + (contentPadding)
-      local labelColor = '\255\166\166\166'
-      local valueColor = '\255\245\245\245'
-      -- dps
-      if unitDPS[displayUnitDefID] then
-        font2:Begin()
-        font2:Print(labelColor..'dps '..valueColor..unitDPS[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
-        font2:End()
+
+    else  -- unit/unitdef info (without buildoptions)
+      contentPadding = contentPadding * 0.7
+      local contentPaddingLeft = customInfoArea[1] + contentPadding
+      local labelColor = '\255\205\205\205'
+      local valueColor = '\255\255\255\255'
+
+      if displayMode == 'unit' then
+        -- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
+        local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
+        local maxRange = spGetUnitMaxRange(displayUnitID)
+        local exp = spGetUnitExperience(displayUnitID)
+        local metalExtraction, stockpile, dps
+        if isMex[displayUnitDefID] then
+          metalExtraction = spGetUnitMetalExtraction(displayUnitID)
+        end
+        local unitStates = spGetUnitStates(displayUnitID)
+        if unitCanStockpile[displayUnitDefID] then
+          stockpile = spGetUnitStockpile(displayUnitID)
+        end
+        if unitDPS[displayUnitDefID] then
+          dps = unitDPS[displayUnitDefID]
+        end
+
+        -- determine what to show in what order
+        local text = ''
+        local separator = ''
+        local infoFontsize = fontSize * 0.92
+        local function addTextInfo(label, value)
+          text = text.. labelColor..separator..label .. (label~='' and ' ' or '') .. valueColor..value
+          separator = ',   '
+        end
+
+        -- add text
+        addTextInfo('', labelColor..'m+'..valueColor..round(metalMake, 2)..labelColor..', m-'..valueColor..round(metalUse, 2)..labelColor..',  e+'..valueColor..round(energyMake, 0)..labelColor..', e-'..valueColor..round(energyUse, 0))
+        if unitWeapons[displayUnitDefID] then
+          addTextInfo('weapons', #unitWeapons[displayUnitDefID])
+          if maxRange then
+            addTextInfo('max-range', maxRange)
+          end
+          if dps then
+            addTextInfo('dps', dps)
+          end
+        end
+        --if metalExtraction then
+        --  addTextInfo('metal extraction', round(metalExtraction, 2))
+        --end
+        --if exp and exp > 0 then
+          addTextInfo('xp', round(exp, 3))
+        --end
+        addTextInfo('height', Spring.GetUnitHeight(displayUnitID))
+        addTextInfo('radius', Spring.GetUnitRadius(displayUnitID))
+        addTextInfo('mass', Spring.GetUnitMass(displayUnitID))
+
+        -- wordwrap text
+        unitInfoText = text   -- canbe used to show full text on mouse hover
+        text, numLines = font:WrapText(text,((backgroundRect[3]-padding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
+
+        -- prune number of lines
+        local lines = lines(text)
+        text = ''
+        for i,line in pairs(lines) do
+          text = text .. line
+          -- only 4 fully fit, but showing 5, so the top part of text shows and indicates there is more to see somehow
+          if i == 5 then
+            break
+          end
+          text = text .. '\n'
+        end
+
+        -- draw unit(def) info
+        font:Begin()
+        font:Print(text, backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(infoFontsize*0.42), infoFontsize, "o")
+        font:End()
       end
-      -- energy
-      --font2:Print(energyColor..unitEnergyCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
-      -- health
-      --font2:Print(healthColor..unitHealth[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
     end
 
   else
 
-    -- plain text tooltip
+    -- display default plaintext engine tooltip
     local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
     font:Begin()
     font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
@@ -1110,10 +1193,11 @@ function checkChanges()
   elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock()-lastHoverDataClock > 0.1 then -- add small hover delay against eplilepsy
     displayMode = 'unit'
     displayUnitID = hoverData
-    displayUnitDefID = Spring.GetUnitDefID(displayUnitID)
+    displayUnitDefID = spGetUnitDefID(displayUnitID)
   elseif SelectedUnitsCount == 1 then
     displayMode = 'unit'
-    displayUnitDefID = Spring.GetUnitDefID(selectedUnits[1])
+    displayUnitID = selectedUnits[1]
+    displayUnitDefID = spGetUnitDefID(selectedUnits[1])
   elseif SelectedUnitsCount > 1 then
     displayMode = 'selection'
   else -- text

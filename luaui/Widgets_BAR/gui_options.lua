@@ -1261,10 +1261,8 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 end
 
 
-function round(num, numDecimalPlaces)
-    local mult = 10^(numDecimalPlaces or 0)
-    if num >= 0 then return math.floor(num * mult + 0.5) / mult
-    else return math.ceil(num * mult - 0.5) / mult end
+function round(value, numDecimalPlaces)
+	return string.format("%0."..numDecimalPlaces.."f", math.round(value, numDecimalPlaces))
 end
 
 function NearestValue(table, number)
