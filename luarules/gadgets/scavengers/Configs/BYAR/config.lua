@@ -63,13 +63,13 @@ if scavengersAIEnabled then
 	unitSpawnerModuleConfig = {
 		bossFightEnabled					= true,
 		BossWaveTimeLeft					= 900,
-		aircraftchance 						= 20, -- higher number = lower chance
+		aircraftchance 						= 6, -- higher number = lower chance
 		globalscoreperoneunit 				= 900,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
 		minimumspawnbeacons					= 2,
 		landmultiplier 						= 0.75,
-		airmultiplier 						= 2,
+		airmultiplier 						= 1.5,
 		seamultiplier 						= 0.2,
 		chanceforaircraftonsea				= 2, -- higher number = lower chance
 
