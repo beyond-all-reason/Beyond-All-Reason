@@ -2,78 +2,59 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "StateChg.h"
 
 #define SIG_ANIM 2
 
 piece  base, cover, converter;
 
-static-var  mmState, Active;
-
-
-activatescr()
-{
-	hide cover;
-	//move converter to y-axis <6> speed <6>;
-	sleep 1000;	
-}
-
-deactivatescr()
-{
-	//move converter to y-axis <0> speed <6>;
-	sleep 1000;
-	show cover;
-}
+static-var  Active, coverState, convPhase;
 
 Go()
 {
-	call-script activatescr();
 	set ARMORED to 0;  //Not needed as MM in BAR have no damage modifyer tag set
 }
 
 Stop()
 {
 	set ARMORED to 1;
-	call-script deactivatescr();
 }
 
 MovementControl()
 {
 	while (TRUE)
 	{
-		while (mmState == 1)
+		if (Active)
 		{
-
-			move converter to y-axis [12] speed [6.000000];
-			sleep 2000;
-		
-			move converter to y-axis [0] speed [6.000000];
-			sleep 2000;
+			if (coverState)
+			{
+				hide cover;
+				coverState = 0;
+				convPhase = 0;
+			}
+			if (convPhase)
+			{
+				move converter to y-axis [12] speed [5.000000];
+			}
+			if (!convPhase)
+			{
+				move converter to y-axis [6] speed [5.000000];
+			}
+			convPhase = !convPhase;
+			sleep 1500;
+		} 
+		if (!Active)
+		{
+			if (!coverState)
+			{
+				move converter to y-axis [0] speed [6];
+				wait-for-move converter along y-axis;
+				show cover;
+				coverState = 1;
+			}
 		}
 		sleep 100;
 	}	
-}
-
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{
-		if (Active == 1)
-		{
-			if (mmState != 1) {
-				call-script Go();
-				mmState = 1;
-			}
-		}
-		else
-		{
-			if (mmState != 0) {
-				call-script Stop();
-				mmState = 0;
-			}
-		}
-		sleep 1000;
-	}
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -82,8 +63,9 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+
 	start-script MovementControl();
-	start-script ImAMetalMaker();
+
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -113,6 +95,8 @@ MMStatus(State)
 
 Create()
 {
+	coverState = 1;
+	convPhase = 0;
 	start-script SmokeUnit();
 }
 
@@ -120,7 +104,6 @@ SweetSpot(piecenum)
 {
 	piecenum = base;
 }
-
 
 Killed(severity, corpsetype)
 {
@@ -150,4 +133,3 @@ Killed(severity, corpsetype)
 		explode converter type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
-
