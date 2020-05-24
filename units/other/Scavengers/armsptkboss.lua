@@ -41,7 +41,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "armkbots/t2",
-			techlevel = 2,
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {
