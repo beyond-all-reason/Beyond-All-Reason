@@ -184,6 +184,7 @@ function ConstructNewBlueprint(n, scav)
 		local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
 		local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
 		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, 0)
+		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, {"shift"})
 	end
 
 	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true)
