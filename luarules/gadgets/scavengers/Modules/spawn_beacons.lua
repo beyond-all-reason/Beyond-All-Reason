@@ -153,13 +153,11 @@ function SpawnBeacon(n)
 				canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
 				if canSpawnBeaconHere then
 					if globalScore then
-						if ScavengerStartboxExists and ScavengerStartboxXMin < posx and ScavengerStartboxXMax > posx and ScavengerStartboxZMin < posz and ScavengerStartboxZMax > posz then
-							canSpawnBeaconHere = true
 						-- elseif globalScore > scavconfig.timers.NoRadar then
 							-- canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
-						-- else
+						--else
 							canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)
-						end
+						--end
 					end
 				end
 				if canSpawnBeaconHere then
