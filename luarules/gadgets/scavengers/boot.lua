@@ -140,8 +140,8 @@ function SpawnFromQueue(n)
 				Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
 				table.remove(QueuedSpawns, 1)
 				table.remove(QueuedSpawnsFrames, 1)
-			else
-				break
+			--else
+				--break
 			end
 		end
 	end
@@ -266,13 +266,15 @@ function gadget:GameFrame(n)
 
 				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then
-						if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
-							-- if n%1800 == 0 then
-								-- if (not HiddenCommander) or (scav ~= HiddenCommander) then
-									-- SelfDestructionControls(n, scav, scavDef)
+						if scavConstructor[scav] then
+							if Spring.GetCommandQueue(scav, 0) <= 0 then
+								-- if n%1800 == 0 then
+									-- if (not HiddenCommander) or (scav ~= HiddenCommander) then
+										-- SelfDestructionControls(n, scav, scavDef)
+									-- end
 								-- end
-							-- end
-							ConstructNewBlueprint(n, scav)
+								ConstructNewBlueprint(n, scav)
+							end
 						end
 					end
 
@@ -298,8 +300,9 @@ function gadget:GameFrame(n)
 						FactoryProduction(n, scav, scavDef)
 					end
 				end
-
-				if n%900 == 0 and not scavStructure[scav] and not scavConstructor[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
+				
+				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
+				if n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					SelfDestructionControls(n, scav, scavDef)
 				end
 				if Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then

@@ -67,9 +67,9 @@ if scavengersAIEnabled then
 		globalscoreperoneunit 				= 900,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
-		minimumspawnbeacons					= 2,
+		minimumspawnbeacons					= 3,
 		landmultiplier 						= 0.75,
-		airmultiplier 						= 1.5,
+		airmultiplier 						= 2.0,
 		seamultiplier 						= 0.2,
 		chanceforaircraftonsea				= 2, -- higher number = lower chance
 
@@ -81,10 +81,10 @@ if scavengersAIEnabled then
 	}
 
 	constructorControllerModuleConfig = {
-		constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-		constructortimer 					= 220, -- time in seconds between commander/constructor spawns
-		constructortimerreductionframes		= 36000,
-		minimumconstructors					= 5,
+		constructortimerstart				= 60, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
+		constructortimer 					= 120, -- time in seconds between commander/constructor spawns
+		constructortimerreductionframes		= 18000,
+		minimumconstructors					= 3,
 		useresurrectors						= true,
 			searesurrectors					= false,
 		useconstructors						= true,

@@ -121,6 +121,7 @@ T3LandUnits = {
 	--hovercraft
 	"armlun",
 	"corsok",
+	"armsptkboss",
 }
 
 T4LandUnits = {
@@ -134,4 +135,5 @@ T4LandUnits = {
 	"armfepoch",
 	"corfblackhy",
 	"corcrwboss",
+	"armsptkboss",
 }
