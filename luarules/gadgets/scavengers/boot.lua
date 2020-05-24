@@ -234,15 +234,15 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then
+	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule and not FinalBossUnitSpawned then
 		SpawnBlueprint(n)
 	end
 	if n%30 == 0 then
-		if scavconfig.modules.unitSpawnerModule then
+		if scavconfig.modules.unitSpawnerModule and not FinalBossUnitSpawned then
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > 9000 then
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > 9000 and not FinalBossUnitSpawned then
 			SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -317,6 +317,16 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	local UnitName = UnitDefs[unitDefID].name
 	if unitTeam == GaiaTeamID then
+		
+		if FinalBossUnitSpawned == true then
+			for i = 1,#BossUnits do
+				if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
+					Spring.Echo("GG")
+					FinalBossKilled = true
+				end
+			end
+		end
+		
 		killedscavengers = killedscavengers + 1
 		if scavStructure[unitID] and not UnitName == "scavengerdroppod_scav" and not UnitName == "scavengerdroppodbeacon_scav"  then
 			killedscavengers = killedscavengers + 4

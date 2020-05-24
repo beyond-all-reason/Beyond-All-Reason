@@ -13,15 +13,53 @@ function BossWaveTimer(n)
 		BossWaveTimeLeft = BossWaveTimeLeft - 1
 		BossFightMessages(BossWaveTimeLeft)
 	elseif BossWaveTimeLeft <= 0 then
-		local units = Spring.GetTeamUnits(GaiaTeamID)
-		FinalSelfDChance = FinalSelfDChance - 1
-		if FinalSelfDChance < 2 then
-			FinalSelfDChance = 2
-		end
-		for i = 1,#units do
-			local r = math_random(1,FinalSelfDChance)
-			if r == 1 then
-				Spring.DestroyUnit(units[i],false,false)
+		if not FinalBossUnitSpawned and unitSpawnerModuleConfig.FinalBossUnit == true then
+			
+			local bossunit = BossUnits[math_random(1,#BossUnits)]
+			
+			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+			SpawnBeacons = {}
+			for i = 1,#scavengerunits do
+				local scav = scavengerunits[i]
+				local scavDef = Spring.GetUnitDefID(scav)
+				if scavSpawnBeacon[scav] then
+					table.insert(SpawnBeacons,scav)
+				end
+			end
+			
+			for b = 1,1000 do
+				local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
+				local _,_,_,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
+				if pickedBeaconCaptureProgress == 0 then
+					pickedBeacon = pickedBeaconTest
+					break
+				else
+					pickedBeacon = 1234567890
+				end
+			end
+			if pickedBeacon == 1234567890 then
+				return
+			end
+			
+			local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
+			local posy = Spring.GetGroundHeight(posx, posz)
+			local posradius = 256
+			
+			Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+			FinalBossUnitSpawned = true
+			Spring.Echo("BOSS COMMANDER SPAWNED")
+
+		elseif (not unitSpawnerModuleConfig.FinalBossUnit) or FinalBossKilled == true then
+			local units = Spring.GetTeamUnits(GaiaTeamID)
+			FinalSelfDChance = FinalSelfDChance - 1
+			if FinalSelfDChance < 2 then
+				FinalSelfDChance = 2
+			end
+			for i = 1,#units do
+				local r = math_random(1,FinalSelfDChance)
+				if r == 1 then
+					Spring.DestroyUnit(units[i],false,false)
+				end
 			end
 		end
 	end
