@@ -36,6 +36,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
+			flashlightmin = 0.8,
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landeconomy",
