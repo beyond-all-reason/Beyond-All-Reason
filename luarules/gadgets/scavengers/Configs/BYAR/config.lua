@@ -81,8 +81,8 @@ if scavengersAIEnabled then
 	}
 
 	constructorControllerModuleConfig = {
-		constructortimerstart				= 60, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-		constructortimer 					= 120, -- time in seconds between commander/constructor spawns
+		constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
+		constructortimer 					= 240, -- time in seconds between commander/constructor spawns
 		constructortimerreductionframes		= 18000,
 		minimumconstructors					= 3,
 		useresurrectors						= true,
