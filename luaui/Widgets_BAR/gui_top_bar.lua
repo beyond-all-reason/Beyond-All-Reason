@@ -401,7 +401,7 @@ local function updateRejoin()
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Text
-		local fontsize = 12*widgetScale
+		local fontsize = 13.5*widgetScale
         font2:Begin()
         font2:Print('\255\225\255\225Catching up', area[1]+((area[3]-area[1])/2), area[2]+barHeight*2+fontsize, fontsize, 'cor')
         font2:End()

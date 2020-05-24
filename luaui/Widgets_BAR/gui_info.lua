@@ -20,10 +20,11 @@ local bgBorder = bgBorderOrg
 local bgMargin = 0.005
 local alternativeUnitpics = false
 
-local defaultCellZoom = 0
-local rightclickCellZoom = 0.065
-local clickCellZoom = 0.065
-local hoverCellZoom = 0.03
+local zoomMult = 1.5
+local defaultCellZoom = 0 * zoomMult
+local rightclickCellZoom = 0.065 * zoomMult
+local clickCellZoom = 0.065 * zoomMult
+local hoverCellZoom = 0.03 * zoomMult
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -628,7 +629,7 @@ local function drawInfo()
     -- draw grid (bottom right to top left)
     cellPadding = cellsize * 0.03
     cellRect = {}
-    texOffset = 0.05 + (0.03*rows)
+    texOffset = (0.05 + (0.03*rows)) * zoomMult
     texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
     cornerSize = cellPadding*0.9
     if texOffset > 0.25 then texOffset = 0.25 end
