@@ -50,7 +50,7 @@ for i=1,#files do
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
       maxconcurrent = 8,
-      rolloff = 0.5,
+      rolloff = 0.8,
    }
    
    if fileNames == "disigun1" then
