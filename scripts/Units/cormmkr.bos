@@ -13,15 +13,14 @@ static-var  mmState, Active;
 activatescr()
 {
 	hide cover;
-	move converter to y-axis <6> speed <4>;
-	sleep 1500;	
+	//move converter to y-axis <6> speed <6>;
+	sleep 1000;	
 }
 
 deactivatescr()
 {
-
-  	move converter to y-axis <0> speed <6>;
-	sleep 2000;
+	//move converter to y-axis <0> speed <6>;
+	sleep 1000;
 	show cover;
 }
 
@@ -35,7 +34,6 @@ Stop()
 {
 	set ARMORED to 1;
 	call-script deactivatescr();
-	
 }
 
 MovementControl()
@@ -44,13 +42,14 @@ MovementControl()
 	{
 		while (mmState == 1)
 		{
-			move converter to y-axis [12] speed [2.000000];
-			sleep 3000;
-			
-			move converter to y-axis [6] speed [2.000000];
-			sleep 3000;
+
+			move converter to y-axis [12] speed [6.000000];
+			sleep 2000;
+		
+			move converter to y-axis [0] speed [6.000000];
+			sleep 2000;
 		}
-			sleep 100;
+		sleep 100;
 	}	
 }
 
@@ -122,6 +121,7 @@ SweetSpot(piecenum)
 	piecenum = base;
 }
 
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
@@ -150,3 +150,4 @@ Killed(severity, corpsetype)
 		explode converter type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
+
