@@ -27,12 +27,13 @@ local defaultColls = 5
 local minColls = 4
 local maxColls = 5
 
-local defaultCellZoom = 0.025
-local rightclickCellZoom = 0.033
-local clickCellZoom = 0.07
-local hoverCellZoom = 0.05
-local clickSelectedCellZoom = 0.125
-local selectedCellZoom = 0.135
+local zoomMult = 1.5
+local defaultCellZoom = 0.025 * zoomMult
+local rightclickCellZoom = 0.033 * zoomMult
+local clickCellZoom = 0.07 * zoomMult
+local hoverCellZoom = 0.05 * zoomMult
+local clickSelectedCellZoom = 0.125 * zoomMult
+local selectedCellZoom = 0.135 * zoomMult
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -293,6 +294,9 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+-- RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2): Draw a rectangular shape with cut off edges
+--  optional: tl,tr,br,bl  0 = corner, 1 = depending on touching screen border, 2 = always
+--  optional: c1,c2 for top-down color gradients
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   local csyMult = 1 / ((sy-py)/cs)
 
@@ -331,7 +335,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   gl.Vertex(sx-cs, sy-cs, 0)
   gl.Vertex(sx, sy-cs, 0)
 
-  -- bottom left
+  -- bottom left corner
   if c2 then
     gl.Color(c1[1],c1[2],c1[3],c1[4])
   end
@@ -346,7 +350,8 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   end
   gl.Vertex(px+cs, py+cs, 0)
   gl.Vertex(px, py+cs, 0)
-  -- bottom right
+
+  -- bottom right corner
   if c2 then
     gl.Color(c1[1],c1[2],c1[3],c1[4])
   end
@@ -361,7 +366,8 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   end
   gl.Vertex(sx-cs, py+cs, 0)
   gl.Vertex(sx, py+cs, 0)
-  -- top left
+
+  -- top left corner
   if c2 then
     gl.Color(c2[1],c2[2],c2[3],c2[4])
   end
@@ -376,7 +382,8 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   end
   gl.Vertex(px+cs, sy-cs, 0)
   gl.Vertex(px, sy-cs, 0)
-  -- top right
+
+  -- top right corner
   if c2 then
     gl.Color(c2[1],c2[2],c2[3],c2[4])
   end
@@ -393,7 +400,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
   gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-  --gl.Texture(false)
+  --gl.Texture(false)   -- just make sure you do this before calling this function, or uncomment this line
   gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
@@ -762,7 +769,7 @@ function drawBuildmenuBg()
 
   -- background
   padding = 0.0033*vsy * ui_scale
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 0,1,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
 
   -- gloss
@@ -877,8 +884,8 @@ local function drawCell(cellRectID, usedZoom, cellColor)
     local pad = cellInnerSize * 0.03
     local textWidth = (font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.29)
     local pad2 = (alternativeUnitpics and pad or 0)
-    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.08, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
-    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2+pad, cellRects[cellRectID][3]-cellPadding-iconPadding-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-pad2, cellSize*0.06, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
+    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
+    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2+pad, cellRects[cellRectID][3]-cellPadding-iconPadding-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-pad2, cornerSize*0.9, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
     font2:Print("\255\190\255\190"..cmds[cellRectID].params[1],
             cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.94)-pad2,
             cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.715)-pad2,

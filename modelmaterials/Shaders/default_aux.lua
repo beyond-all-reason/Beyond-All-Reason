@@ -179,9 +179,11 @@ local function FillMaterials(unitMaterials, materials, matTemplate, matParentNam
 	local udefCM = udef.customParams
 	local lm = tonumber(udefCM.lumamult) or 1
 	local scvd = tonumber(udefCM.scavvertdisp) or 0
+	local flashlightmin = tonumber(udefCM.flashlightmin) or 0
 
 	local params = {
 		lm = lm,
+		flashlightmin = flashlightmin,
 		scvd = scvd,
 	}
 
@@ -192,6 +194,12 @@ local function FillMaterials(unitMaterials, materials, matTemplate, matParentNam
 
 		if lm ~= 1 then
 			local lmLM = string.format("#define LUMAMULT %f", lm)
+			table.insert(materials[matName].shaderDefinitions, lmLM)
+			table.insert(materials[matName].deferredDefinitions, lmLM)
+		end
+
+		if flashlightmin ~= 0 then
+			local lmLM = string.format("#define FLASHLIGHTMIN %f", lm)
 			table.insert(materials[matName].shaderDefinitions, lmLM)
 			table.insert(materials[matName].deferredDefinitions, lmLM)
 		end

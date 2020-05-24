@@ -106,6 +106,12 @@ vertex = [[
 			selfIllumMod = 1.0;
 		#endif
 
+		#if defined(FLASHLIGHTMIN)
+			#if selfIllumMod < FLASHLIGHTMIN
+				selfIllumMod = FLASHLIGHTMIN;
+			#endif
+		#endif
+
 		//float fogCoord = length(gl_Position.xyz); // maybe fog should be readded?
 		//fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; //gl_Fog.scale := 1.0 / (gl_Fog.end - gl_Fog.start)
 		//fogFactor = clamp(fogFactor, 0.0, 1.0);
