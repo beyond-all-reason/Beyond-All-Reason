@@ -221,7 +221,7 @@ local function cacheUnitIcons()
       gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
     end
     gl.TexRect(-1,-1,0,0)
-    gl.Texture(':l:lr64,64:'..iconTypesMap[unitIconType[id]])
+    gl.Texture(':lr64,64:'..iconTypesMap[unitIconType[id]])
     gl.TexRect(-1,-1,0,0)
     gl.Texture(false)
   end
