@@ -50,7 +50,7 @@ for i=1,#files do
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
       maxconcurrent = 8,
-      rolloff = 0.8,
+      rolloff = 1.0,
    }
    
    if fileNames == "disigun1" then
@@ -99,7 +99,7 @@ for i=1,#files do
 		gainmod  = 0.2*0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 2,
-		rolloff = 0.2,
+		rolloff = 0.7,
 	}
 end
 
@@ -131,11 +131,11 @@ for i=1,#files do
       gainmod  = 0.2*0.3,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
-	  rolloff = 0.2,
+	  rolloff = 0.7,
    }
 end
 
--- SCAVENGER SOUNDS
+-- SCAVENGER SOUNDS not in use currently
 local files = VFS.DirList("sounds/scavengers/")
 local t = Sounds.SoundItems
 for i=1,#files do
