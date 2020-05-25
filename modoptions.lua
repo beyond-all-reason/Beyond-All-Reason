@@ -119,17 +119,17 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
 		section= "options",
 	},
-	{
-		key    = 'ai_incomemultiplier',
-		name   = 'AI Income Multiplier',
-		desc   = 'Multiplies AI resource income',
-		type   = 'number',
-		section= 'options',
-		def    = 1,
-		min    = 1,
-		max    = 10,
-		step   = 0.1,
-	},
+	--{
+	--	key    = 'ai_incomemultiplier',
+	--	name   = 'AI Income Multiplier',
+	--	desc   = 'Multiplies AI resource income',
+	--	type   = 'number',
+	--	section= 'options',
+	--	def    = 1,
+	--	min    = 1,
+	--	max    = 10,
+	--	step   = 0.1,
+	--},
 	{
 		key="map_tidal",
 		name="Tidal Strength",
