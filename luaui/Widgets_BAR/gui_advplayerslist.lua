@@ -24,7 +24,7 @@ end
 
 --Changelog
 -- before v8.0 developed outside of BA by Marmoth
--- v9.0 (Bluestone): modifications to deal with twice as many players/specs; specs are rendered in a small font and cpu/ping does not show for them. 
+-- v9.0 (Bluestone): modifications to deal with twice as many players/specs; specs are rendered in a small font and cpu/ping does not show for them.
 -- v9.1 ([teh]decay): added notification about shared resources
 -- v10  (Bluestone): Better use of opengl for a big speed increase & less spaghetti
 -- v11  (Bluestone): Get take info from cmd_idle_players
@@ -2044,11 +2044,11 @@ function CreateBackground()
 		--gl_Color(1,1,1,ui_opacity*0.055)
 		--RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.3,0.3,0.3,ui_opacity*0.3}, {1,1,1,ui_opacity*0.3})
 		local height = 46
-		RectRound(absLeft+paddingLeft,absTop-paddingTop-height,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), 0, 0, {0.6,0.6,0.6,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,padding*1.1, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.1}, {0.6,0.6,0.6,ui_opacity*0.1})
+		RectRound(absLeft+paddingLeft,absTop-paddingTop-height,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), 0, 0, {0.6,0.6,0.6,ui_opacity*0.15}, {1,1,1,ui_opacity*0.15})
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,padding*1.1, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.15}, {0.6,0.6,0.6,ui_opacity*0.15})
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.4),absRight-paddingRight,absTop-paddingTop,padding*1.1, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.4),absRight-paddingRight,absTop-paddingTop,padding*1.1, 1,1,0,0, {1,1,1,0.004*glossMult}, {1,1,1,0.02*glossMult})
 		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-(height*0.15),padding*1.1, 0,0,1,1, {1,1,1,0.04*glossMult},{1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -3726,7 +3726,7 @@ function widget:GetConfigData(data)      -- save
 end
 
 function widget:SetConfigData(data)      -- load
-	
+
 	if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
 		if data.customScale ~= nil then
 			customScale = data.customScale
@@ -4168,14 +4168,14 @@ end
 
 function customScaleUp()
 	widgetPosX		= widgetPosX - (widgetWidth*customScaleStep)
-	widgetRight		= widgetPosX + widgetWidth  
+	widgetRight		= widgetPosX + widgetWidth
 	customScale		= customScale + customScaleStep
 	updateWidgetScale()
 end
 
 function customScaleDown()
 	widgetPosX		= widgetPosX + (widgetWidth*customScaleStep)
-	widgetRight		= widgetPosX + widgetWidth  
+	widgetRight		= widgetPosX + widgetWidth
 	customScale		= customScale - customScaleStep
 	updateWidgetScale()
 end
@@ -4221,7 +4221,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the p
 			player[playerID].pointTime = now + pointDuration
 		end
 	end
-	
+
 	local osClock = os.clock()
 	if cmdType == 'line' then
 		--mapDrawNicknameTime[playerID] = osClock
