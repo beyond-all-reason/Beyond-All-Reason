@@ -30,7 +30,7 @@ return {
 		objectname = "Units/scavboss/ARMSPTKBOSS.s3o",
 		script = "Units/ARMSPTK.cob",
 		seismicsignature = 0,
-		selfdestructas = "SPYBOMBX",
+		selfdestructas = "empblast",
 		sightdistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
