@@ -362,12 +362,12 @@ local function updateRejoin()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2}, {0.3,0.3,0.3,ui_opacity*0.2})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1}, {0.3,0.3,0.3,ui_opacity*0.1})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
@@ -459,12 +459,12 @@ local function updateButtons()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,(ui_opacity)})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3], area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.1*glossMult})
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,0,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3], area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[2]+bgpadding+((area[4]-area[2])*0.18), bgpadding*1.25, 0,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
@@ -568,12 +568,12 @@ local function updateComs(forceText)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
@@ -645,12 +645,12 @@ local function updateWind()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then
@@ -903,12 +903,12 @@ local function updateResbar(res)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.2},{0.15,0.15,0.15,ui_opacity*0.2})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.085*glossMult})
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.03*glossMult}, {1,1,1,0})
+		RectRound(area[1]+bgpadding, area[4]-((area[4]-area[2])*0.33), area[3]-bgpadding, area[4], bgpadding*1.25, 0,0,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[2]+bgpadding+((area[4]-area[2])*0.25), bgpadding*1.25, 0,0,1,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if WG['guishader'] then

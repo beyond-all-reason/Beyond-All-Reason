@@ -245,11 +245,11 @@ local function createList()
 			borderPaddingLeft = 0
 		end
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.08*glossMult})
+		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
 		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.35), borderPadding*0.9, 0,0,1,1, {1,1,1,0.025*glossMult},{1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)

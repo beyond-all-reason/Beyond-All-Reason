@@ -450,10 +450,10 @@ function draw_buttons (b)
 
 		local padding = 4.5
 		uiRect(b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h, 6, 0,1,1,0, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.07*glossMult})
+		uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
 		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.4), 4, 0,0,1,1, {1,1,1,0.04*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

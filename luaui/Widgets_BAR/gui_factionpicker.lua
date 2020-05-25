@@ -312,11 +312,11 @@ function drawFactionpicker()
   -- background
   local padding = bgBorder*vsy
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1]+(altPosition and padding or 0), backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+  RectRound(backgroundRect[1]+(altPosition and padding or 0), backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,0,0, {1,1,1,0.012*glossMult}, {1,1,1,0.1*glossMult})
+  RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
   RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[2]+(altPosition and 0 or padding),backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.035*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

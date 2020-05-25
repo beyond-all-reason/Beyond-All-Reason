@@ -2470,7 +2470,7 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("ui_scale", value) end,
 		},
-		{id="guiopacity", group="ui", basic=true, name=widgetOptionColor.."   opacity", type="slider", min=0.15, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description='',
+		{id="guiopacity", group="ui", basic=true, name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("ui_opacity", value) end,
 		},

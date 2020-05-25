@@ -266,7 +266,7 @@ end
 function drawMinimap()
   local padding = bgBorder*vsy
   RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], padding*1.7, 0,0,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  --RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.2}, {1,1,1,ui_opacity*0.2})
+  --RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 end
 
 function widget:RecvLuaMsg(msg, playerID)
