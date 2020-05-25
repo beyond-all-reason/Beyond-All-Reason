@@ -6,6 +6,7 @@ return {
 		brakerate = 1,
 		buildcostenergy = 25000,
 		buildcostmetal = 2500,
+		buildpic = "lootboxes/LOOTBOXPLATINUM.PNG",
 		buildtime = 5000,
 		canfight = false,
 		canguard = false,

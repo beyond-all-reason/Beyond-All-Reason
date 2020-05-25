@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 27000,
 		builddistance = 145,
 		builder = true,
-		buildpic = "CORCOM.PNG",
+		buildpic = "scavengers/CORCOMBOSS.PNG",
 		buildtime = 750000,
 		cancapture = true,
 		cancloak = true,
