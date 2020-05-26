@@ -50,7 +50,7 @@ return {
 			[5] = "cordl",
 			[6] = "cordrag",
 			[7] = "cormaw",
-			[8] = "coruwmex",
+			--[8] = "coruwmex",
 			[9] = "cortide",
 			[10] = "corgeo",
 			[11] = "corfmkr",

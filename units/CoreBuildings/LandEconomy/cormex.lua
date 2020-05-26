@@ -30,7 +30,7 @@ return {
 		idletime = 1800,
 		maxdamage = 175,
 		maxslope = 30,
-		maxwaterdepth = 20,
+		--maxwaterdepth = 20,
 		metalstorage = 50,
 		name = "Metal Extractor",
 		objectname = "Units/CORMEX.s3o",

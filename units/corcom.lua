@@ -79,7 +79,7 @@ return {
 			[16] = "cortide",
 			[17] = "coruwms",
 			[18] = "coruwes",
-			[19] = "coruwmex",
+			--[19] = "coruwmex",
 			[20] = "corfmkr",
 			[21] = "corsy",
 			[22] = "corfdrag",

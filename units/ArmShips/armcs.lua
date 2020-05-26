@@ -50,7 +50,7 @@ return {
 			[5] = "armdl",
 			[6] = "armdrag",
 			[7] = "armclaw",
-			[8] = "armuwmex",
+			--[8] = "armuwmex",
 			[9] = "armtide",
 			[10] = "armgeo",
 			[11] = "armfmkr",

@@ -77,7 +77,7 @@ return {
 			[32] = "coramsub",
 			[33] = "corplat",
 			[34] = "cortide",
-			[35] = "coruwmex",
+			--[35] = "coruwmex",
 			[36] = "corfmkr",
 			[37] = "coruwms",
 			[38] = "coruwes",

@@ -78,7 +78,7 @@ return {
 			[29] = "armfhp",
 			[30] = "armsy",
 			[31] = "armtide",
-			[32] = "armuwmex",
+			--[32] = "armuwmex",
 			[33] = "armfmkr",
 			[34] = "armuwms",
 			[35] = "armuwes",
