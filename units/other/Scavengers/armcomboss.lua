@@ -2,7 +2,7 @@ return {
 	armcomboss = {
 		acceleration = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 25,
+		autoheal = 1000,
 		brakerate = 0.6,
 		buildcostenergy = 260000,
 		buildcostmetal = 27000,
@@ -29,11 +29,11 @@ return {
 		footprintz = 5,
 		hidedamage = true,
 		icontype = "armcommander",
-		idleautoheal = 25,
+		idleautoheal = 1000,
 		idletime = 1800,
 		losemitheight = 100,
 		mass = 500000,
-		maxdamage = 1000000,
+		maxdamage = 300000,
 		maxslope = 25,
 		maxvelocity = 0.5,
 		maxwaterdepth = 85,
@@ -208,7 +208,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 500,
+					default = 99999,
 				},
 			},
 			armcomsealaser = {
@@ -247,7 +247,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 500,
+					default = 99999,
 				},
 			},
 			disintegrator = {
