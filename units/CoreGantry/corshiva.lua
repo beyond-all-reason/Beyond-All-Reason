@@ -27,7 +27,7 @@ return {
 		name = "Shiva",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHIVA.s3o",
-		script = "Units/CORSHIVA.lua",
+		script = "Units/CORSHIVA.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd-phib",
 		sightdistance = 520,
