@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  torso, gun, rfirept, lfirept, rgun, lgun, pelvis, rleg,
-       rfoot, lleg, lfoot, lthigh, rthigh, ground,ltoe,rtoe;
+       rfoot, lleg, lfoot, lthigh, rthigh,ltoe,rtoe;
 
 static-var  bMoving, bAiming, Static_Var_3, gun_1, restore, currentSpeed, moveSpeed, wpn1_lasthead;
 
@@ -602,7 +602,6 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode lthigh type BITMAPONLY | NOHEATCLOUD;
 		explode lleg type BITMAPONLY | NOHEATCLOUD;
@@ -623,7 +622,6 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -644,7 +642,6 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lleg type SMOKE | FALL | NOHEATCLOUD;
@@ -663,7 +660,6 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

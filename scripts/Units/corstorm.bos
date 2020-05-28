@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  torso, rfirept, lfirept, pelvis, rfoot, lfoot, launcher, lthigh,
-       rthigh, rleg, lleg, turret, base,rexhaust,lexhaust,lknee,rknee;
+piece  aimy1, rfirept, lfirept, pelvis, rfoot, lfoot, launcher, lthigh,
+       rthigh, rleg, lleg, turret,rexhaust,lexhaust,lknee,rknee;
 
 static-var  gun_1, notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
 
@@ -26,7 +26,7 @@ walk()
 		move lfoot to z-axis [0.000000] now;
 		move launcher to y-axis [0.000000] now;
 		turn pelvis to y-axis <0.000000> now;
-		turn torso to x-axis <-10.186813> speed <5.093407> * currentSpeed;
+		turn aimy1 to x-axis <-10.186813> speed <5.093407> * currentSpeed;
 		turn lthigh to x-axis <11.884615> speed <5.942308> * currentSpeed;
 		turn rthigh to x-axis <7.857143> speed <3.928571> * currentSpeed;
 		turn rthigh to y-axis <0.000000> now;
@@ -38,7 +38,7 @@ walk()
 
 		move pelvis to y-axis [0.300000] speed [0.225000] * currentSpeed;
 		turn pelvis to y-axis <0.153846> speed <0.076923> * currentSpeed;
-		turn torso to x-axis <-8.065934> speed <1.060440> * currentSpeed;
+		turn aimy1 to x-axis <-8.065934> speed <1.060440> * currentSpeed;
 		turn lthigh to x-axis <21.758242> speed <4.936813> * currentSpeed;
 		turn rthigh to x-axis <-14.010989> speed <10.934066> * currentSpeed;
 		turn rleg to x-axis <-5.093407> speed <2.546704> * currentSpeed;
@@ -49,7 +49,7 @@ walk()
 
 		move pelvis to y-axis [0.150000] speed [0.075000] * currentSpeed;
 		turn pelvis to y-axis <-0.104396> speed <0.129121> * currentSpeed;
-		turn torso to x-axis <-5.939560> speed <1.063187> * currentSpeed;
+		turn aimy1 to x-axis <-5.939560> speed <1.063187> * currentSpeed;
 		turn lthigh to x-axis <28.247253> speed <3.244506> * currentSpeed;
 		turn rthigh to x-axis <-14.857143> speed <0.423077> * currentSpeed;
 		turn rleg to x-axis <-51.598901> speed <23.252747> * currentSpeed;
@@ -60,7 +60,7 @@ walk()
 
 		move pelvis to y-axis [0.000000] speed [0.075000] * currentSpeed;
 		turn pelvis to y-axis <-0.016484> speed <0.043956> * currentSpeed;
-		turn torso to x-axis <2.120879> speed <4.030219> * currentSpeed;
+		turn aimy1 to x-axis <2.120879> speed <4.030219> * currentSpeed;
 		turn lthigh to x-axis <36.923077> speed <4.337912> * currentSpeed;
 		turn rthigh to x-axis <-15.708791> speed <0.425824> * currentSpeed;
 		turn rleg to x-axis <-30.659341> speed <10.469780> * currentSpeed;
@@ -71,7 +71,7 @@ walk()
 
 		move pelvis to y-axis [0.300000] speed [0.150000] * currentSpeed;
 		turn pelvis to y-axis <-0.192308> speed <0.087912> * currentSpeed;
-		turn torso to x-axis <-2.120879> speed <2.120879> * currentSpeed;
+		turn aimy1 to x-axis <-2.120879> speed <2.120879> * currentSpeed;
 		turn lthigh to x-axis <24.521978> speed <6.200549> * currentSpeed;
 		turn rthigh to x-axis <-10.741758> speed <2.483516> * currentSpeed;
 		turn rleg to x-axis <-23.054945> speed <3.802198> * currentSpeed;
@@ -82,7 +82,7 @@ walk()
 
 		move pelvis to y-axis [0.450000] speed [0.075000] * currentSpeed;
 		turn pelvis to y-axis <-0.131868> speed <0.030220> * currentSpeed;
-		turn torso to x-axis <-8.065934> speed <2.972527> * currentSpeed;
+		turn aimy1 to x-axis <-8.065934> speed <2.972527> * currentSpeed;
 		turn lthigh to x-axis <10.038462> speed <7.241758> * currentSpeed;
 		turn rthigh to x-axis <-3.956044> speed <3.392857> * currentSpeed;
 		turn rleg to x-axis <-28.708791> speed <2.826923> * currentSpeed;
@@ -93,7 +93,7 @@ walk()
 
 		move pelvis to y-axis [0.600000] speed [0.075000] * currentSpeed;
 		turn pelvis to y-axis <0.000000> speed <0.065934> * currentSpeed;
-		turn torso to x-axis <-10.186813> speed <1.060440> * currentSpeed;
+		turn aimy1 to x-axis <-10.186813> speed <1.060440> * currentSpeed;
 		turn lthigh to x-axis <-13.587912> speed <11.813187> * currentSpeed;
 		turn rthigh to x-axis <11.884615> speed <7.920329> * currentSpeed;
 		turn rleg to x-axis <-16.131868> speed <6.288462> * currentSpeed;
@@ -104,7 +104,7 @@ walk()
 
 		move pelvis to y-axis [0.300000] speed [0.150000] * currentSpeed;
 		turn pelvis to y-axis <-0.153846> speed <0.076923> * currentSpeed;
-		turn torso to x-axis <-8.065934> speed <1.060440> * currentSpeed;
+		turn aimy1 to x-axis <-8.065934> speed <1.060440> * currentSpeed;
 		turn lthigh to x-axis <-18.653846> speed <2.532967> * currentSpeed;
 		turn rthigh to x-axis <20.703297> speed <4.409341> * currentSpeed;
 		turn rleg to x-axis <-8.065934> speed <4.032967> * currentSpeed;
@@ -115,7 +115,7 @@ walk()
 
 		move pelvis to y-axis [0.150000] speed [0.075000] * currentSpeed;
 		turn pelvis to y-axis <0.104396> speed <0.129121> * currentSpeed;
-		turn torso to x-axis <-5.939560> speed <1.063187> * currentSpeed;
+		turn aimy1 to x-axis <-5.939560> speed <1.063187> * currentSpeed;
 		turn lthigh to x-axis <-15.285714> speed <1.684066> * currentSpeed;
 		turn rthigh to x-axis <30.005495> speed <4.651099> * currentSpeed;
 		turn rleg to x-axis <-3.818681> speed <2.123627> * currentSpeed;
@@ -126,7 +126,7 @@ walk()
 
 		move pelvis to y-axis [0.000000] speed [0.075000] * currentSpeed;
 		turn pelvis to y-axis <0.016484> speed <0.043956> * currentSpeed;
-		turn torso to x-axis <2.120879> speed <4.030219> * currentSpeed;
+		turn aimy1 to x-axis <2.120879> speed <4.030219> * currentSpeed;
 		turn lthigh to x-axis <-15.708791> speed <0.211538> * currentSpeed;
 		turn rthigh to x-axis <39.384615> speed <4.689560> * currentSpeed;
 		turn rthigh to y-axis <0.000000> now;
@@ -138,7 +138,7 @@ walk()
 
 		move pelvis to y-axis [0.600000] speed [0.300000] * currentSpeed;
 		turn pelvis to y-axis <-0.153846> speed <0.085165> * currentSpeed;
-		turn torso to x-axis <-2.120879> speed <2.120879> * currentSpeed;
+		turn aimy1 to x-axis <-2.120879> speed <2.120879> * currentSpeed;
 		turn lthigh to x-axis <-2.120879> speed <6.793956> * currentSpeed;
 		turn rthigh to x-axis <24.434066> speed <7.475274> * currentSpeed;
 		turn rleg to x-axis <13.010989> speed <6.505495> * currentSpeed;
@@ -149,7 +149,7 @@ walk()
 
 		move pelvis to y-axis [0.800000] speed [0.100000] * currentSpeed;
 		turn pelvis to y-axis <0.054945> speed <0.104396> * currentSpeed;
-		turn torso to x-axis <-8.065934> speed <2.972527> * currentSpeed;
+		turn aimy1 to x-axis <-8.065934> speed <2.972527> * currentSpeed;
 		turn lthigh to x-axis <5.093407> speed <3.607143> * currentSpeed;
 		turn rthigh to x-axis <16.923077> speed <3.755495> * currentSpeed;
 		turn rleg to x-axis <7.736264> speed <2.637363> * currentSpeed;
@@ -188,7 +188,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 			{
 				smoketype = 257;
 			}
-			emit-sfx smoketype from torso;
+			emit-sfx smoketype from aimy1;
 		}
 		sleeptime = healthpercent * 50;
 		if( sleeptime < 200 )
@@ -200,12 +200,12 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 }
 HitByWeapon(anglex, anglez)
 {
-	turn torso to z-axis anglez speed <105.000000>;
-	turn torso to x-axis <0> - anglex speed <105.000000>;
-	wait-for-turn torso around z-axis;
-	wait-for-turn torso around x-axis;
-	turn torso to z-axis <0.000000> speed <30.000000>;
-	turn torso to x-axis <0.000000> speed <30.000000>;
+	turn aimy1 to z-axis anglez speed <105.000000>;
+	turn aimy1 to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn aimy1 around z-axis;
+	wait-for-turn aimy1 around x-axis;
+	turn aimy1 to z-axis <0.000000> speed <30.000000>;
+	turn aimy1 to x-axis <0.000000> speed <30.000000>;
 }
 StartMoving()
 {
@@ -235,7 +235,7 @@ StopMoving()
 
 Create()
 {
-	gun_1 = torso;
+	gun_1 = aimy1;
 	notMoving = TRUE;
 	currentSpeed = 100;
 	moveSpeed = get MAX_SPEED;
@@ -248,7 +248,7 @@ Create()
 
 SweetSpot(piecenum)
 {
-	piecenum = torso;
+	piecenum = aimy1;
 }
 
 AimFromPrimary(piecenum)
@@ -319,9 +319,8 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
-		explode torso type BITMAPONLY | NOHEATCLOUD;
+		explode aimy1 type BITMAPONLY | NOHEATCLOUD;
 		//explode turret type BITMAPONLY | NOHEATCLOUD;
 		//explode launcher type BITMAPONLY | NOHEATCLOUD;
 		//explode rfirept type BITMAPONLY | NOHEATCLOUD;
@@ -341,9 +340,8 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pelvis type FALL | NOHEATCLOUD;
-		explode torso type FALL | NOHEATCLOUD;
+		explode aimy1 type FALL | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rfirept type FALL | NOHEATCLOUD;
@@ -363,9 +361,8 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pelvis type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode torso type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode aimy1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rfirept type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
@@ -383,9 +380,8 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode aimy1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode launcher type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode rfirept type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
