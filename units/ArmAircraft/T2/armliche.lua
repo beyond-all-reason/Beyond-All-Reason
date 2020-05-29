@@ -10,7 +10,7 @@ return {
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
-		collide = true,
+		collide = false,
 		cruisealt = 150,
 		description = "Atomic Bomber",
 		energyuse = 40,
