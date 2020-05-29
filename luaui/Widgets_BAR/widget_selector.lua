@@ -76,7 +76,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local bgPadding = 5.5
+local bgPadding = 4.5
 
 local maxWidth = 0.01
 local borderx = yStep * 0.75
@@ -451,8 +451,8 @@ function widget:DrawScreen()
   tcol = WhiteStr
 
   -- draw the box
-  RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
-  RectRound(minx, miny, maxx, maxy, 5.5*sizeMultiplier, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
+  RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 6*sizeMultiplier, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+  RectRound(minx, miny, maxx, maxy, 4.5*sizeMultiplier, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
 
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
@@ -529,10 +529,8 @@ function widget:DrawScreen()
     local scrollerPadding = 8*sizeMultiplier
 
     -- background
-    --gl.Color(0.0, 0.0, 0.0, 0.2)
-	--RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6*sizeMultiplier)
     if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
-	  RectRound(sbposx, miny, sbposx + (sbsizex*0.61), maxy, 6*sizeMultiplier, 1,1,1,1, {0.2,0.2,0.2,0.2}, {0.5,0.5,0.5,0.2})
+	  RectRound(sbposx, miny, sbposx + (sbsizex*0.61), maxy, 4.5*sizeMultiplier, 1,1,1,1, {0.2,0.2,0.2,0.2}, {0.5,0.5,0.5,0.2})
     end
 
     --[[gl.Color(1.0, 1.0, 1.0, 0.15)
@@ -580,7 +578,7 @@ function widget:DrawScreen()
       yn = yn + 0.5
       yp = yp - 0.5
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      RectRound(xn, yn, xp, yp, 3.3*sizeMultiplier, 1,1,1,1, {0.5,0.5,0.5, 0.12}, {1,1,1, 0.12})
+      RectRound(xn, yn, xp, yp, 2.5*sizeMultiplier, 1,1,1,1, {0.44,0.44,0.44, 0.12}, {1,1,1, 0.12})
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
     end
   end
