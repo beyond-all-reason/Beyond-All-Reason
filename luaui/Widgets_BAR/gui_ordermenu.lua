@@ -512,11 +512,11 @@ function drawOrders()
       color1 = {0,0,0,0.8}
       color2 = {0,0,0,0.6}
     end
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, cellRects[cell][4]-cellMarginPx-padding, padding*1.1 ,2,2,2,2, color1,color2)
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, cellRects[cell][4]-cellMarginPx-padding, padding*1.33 ,2,2,2,2, color1,color2)
 
     -- gloss
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx)-padding, padding*1.1, 2,2,0,0, {1,1,1,0.045}, {1,1,1,0.1})
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, padding*1.1, 0,0,2,2, {1,1,1,0.085}, {1,1,1,0})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx)-padding, padding*1.33, 2,2,0,0, {1,1,1,0.045}, {1,1,1,0.1})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.4)-padding, padding*1.33, 0,0,2,2, {1,1,1,0.085}, {1,1,1,0})
 
     -- icon
     if showIcons then
@@ -700,7 +700,7 @@ function widget:DrawScreen()
             if not (activeCmd and activeCmd == cmd.name) then
               local padding = (bgBorder*vsy) * 0.5
               glColor(1,1,1,0.8)
-              RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
+              RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.66 ,2,2,2,2)
               break
             end
           end
@@ -751,8 +751,8 @@ function widget:DrawScreen()
         end
         -- gloss highlight
         glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.09}, {1,1,1,(disableInput and 0.2 or 0.33)})
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.35)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,(disableInput and 0.04 or 0.08)}, {1,1,1,0})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.4)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.5 ,2,2,0,0, {1,1,1,0.06}, {1,1,1,(disableInput and 0.18 or 0.3)})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.5)-padding, (bgBorder*vsy) * 0.5*1.5 ,0,0,2,2, {1,1,1,(disableInput and 0.05 or 0.09)}, {1,1,1,0})
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
       end
     end
@@ -776,7 +776,7 @@ function widget:DrawScreen()
           glBlending(GL_SRC_ALPHA, GL_ONE)
           glColor(1,1,1,alpha)
         end
-        RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.5 ,2,2,2,2)
+        RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.66 ,2,2,2,2)
       else
         clickedCellTime = nil
       end
