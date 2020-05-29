@@ -39,6 +39,7 @@ return {
 		usebuildinggrounddecal = false,
 		yardmap = "f",
 		customparams = {
+			model_author = "Emma Shanks",
 			nohealthbars = true,
 			subfolder = "other",
 		},

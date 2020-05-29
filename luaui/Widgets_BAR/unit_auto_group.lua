@@ -90,12 +90,12 @@ local options = {
 		type = 'bool',
 		value = true,
 	},
-	
+
 	cleargroups = {
 		name = 'Clear Auto Groups',
 		type = 'button',
-		OnChange = function() 
-			unit2group = {} 
+		OnChange = function()
+			unit2group = {}
 			Spring.Echo('Cleared Autogroups.')
 		end,
 	},
@@ -152,7 +152,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	myTeam = Spring.GetMyTeamID()
+	widget:PlayerChanged()
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
@@ -221,19 +221,19 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		if (createdFrame[unitID] == GetGameFrame()) then
 			local gr = unit2group[unitDefID]
 			if gr ~= nil then SetUnitGroup(unitID, gr) end
-		else 
+		else
 			finiGroup[unitID] = 1
 		end
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID) 
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if (unitTeam == myTeam) then
 		createdFrame[unitID] = GetGameFrame()
 	end
 end
 
-function widget:UnitFromFactory(unitID, unitDefID, unitTeam) 
+function widget:UnitFromFactory(unitID, unitDefID, unitTeam)
 	if options.immediate.value or groupableBuildings[unitDefID] then
 		if (unitTeam == myTeam) then
 			createdFrame[unitID] = GetGameFrame()
@@ -266,7 +266,7 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, teamID)
 	finiGroup[unitID] = nil
 end
 
-function widget:UnitIdle(unitID, unitDefID, unitTeam) 
+function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if (unitTeam == myTeam and finiGroup[unitID]~=nil) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil then  SetUnitGroup(unitID, gr) end
@@ -279,7 +279,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 		local gr
 		if (key == KEYSYMS.N_0) then gr = 0 end
 		if (key == KEYSYMS.N_1) then gr = 1 end
-		if (key == KEYSYMS.N_2) then gr = 2 end 
+		if (key == KEYSYMS.N_2) then gr = 2 end
 		if (key == KEYSYMS.N_3) then gr = 3 end
 		if (key == KEYSYMS.N_4) then gr = 4 end
 		if (key == KEYSYMS.N_5) then gr = 5 end
@@ -348,11 +348,11 @@ function widget:KeyPress(key, modifier, isRepeat)
 				end
 				return true 	--key was processed by widget
 			end
-			
-	elseif (modifier.ctrl and not modifier.meta) then	
+
+	elseif (modifier.ctrl and not modifier.meta) then
 		if (key == KEYSYMS.BACKQUOTE) then
 			local mx,my = GetMouseState()
-			local _,pos = TraceScreenRay(mx,my,true)     
+			local _,pos = TraceScreenRay(mx,my,true)
 			local mindist = math.huge
 			local muid = nil
 			if (pos == nil) then return end
@@ -417,7 +417,7 @@ end
 
 function widget:GetConfigData()
 	local groups = {}
-	for id, gr in pairs(unit2group) do 
+	for id, gr in pairs(unit2group) do
 		table.insert(groups, {UnitDefs[id].name, gr})
 	end
 	local ret =
