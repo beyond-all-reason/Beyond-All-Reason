@@ -26,6 +26,8 @@ local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
 
+local firstlaunchsetupDone = false
+
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/tock.wav'
 local paginatorclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
@@ -2260,7 +2262,7 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigInt("snd_volunitreply", value) end,
 		},
-		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.1) or .1), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
+		{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0.05, max=0.4, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",.35) or .35), description="Air absorption is basically a low-pass filter relative to distance between sound source and listener,\nso when in your base or zoomed out, front battles will be heard as only low frequencies",
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
 		},
@@ -3981,6 +3983,25 @@ end
 
 function widget:Initialize()
 
+	if firstlaunchsetupDone == false then
+		firstlaunchsetupDone = true
+
+		Spring.Echo('First time setup:  setting air absorption to 0.35')
+		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
+
+		local turnVsyncOff = true       -- because vsync results in considerable amount of lagginess
+		if turnVsyncOff and tonumber(Spring.GetConfigInt("Vsync",1) or 1) == 1 then
+			Spring.SendCommands("Vsync 0")
+			Spring.SetConfigInt("Vsync",0)
+			Spring.Echo('First time setup:  disabling Vsync')
+		end
+		local minMaxparticles = 12000
+		if tonumber(Spring.GetConfigInt("MaxParticles",1) or 0) < minMaxparticles then
+			Spring.SetConfigInt("MaxParticles", minMaxparticles)
+			Spring.Echo('First time setup:  setting MaxParticles config value to '..minMaxparticles)
+		end
+	end
+
 	widget:ViewResize()
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
@@ -4189,6 +4210,7 @@ end
 
 function widget:GetConfigData(data)
 	savedTable = {}
+	savedTable.firsttimesetupDone = firstlaunchsetupDone
 	savedTable.resettedTonemapDefault = resettedTonemapDefault
 	savedTable.customPresets = customPresets
 	savedTable.cameraTransitionTime = cameraTransitionTime
@@ -4226,6 +4248,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.firsttimesetupDone ~= nil then
+		firstlaunchsetupDone = data.firsttimesetupDone
+	end
 	if data.resettedTonemapDefault ~= nil then
 		resettedTonemapDefault = data.resettedTonemapDefault
 	end
