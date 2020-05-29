@@ -6,7 +6,7 @@ local definitions = {
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	    underwater         = true,
       properties = {
         heat               = 10,
@@ -196,19 +196,19 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
       underwater         = true,
       properties = {
-        airdrag            = 0.86,
+        airdrag            = 0.88,
         colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
         emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.2, 0]],
+        gravity            = [[0, -0.12, 0]],
         numparticles       = 2,
-        particlelife       = 20,
-        particlelifespread = 8,
+        particlelife       = 18,
+        particlelifespread = 7,
         particlesize       = 30,
         particlesizespread = 22,
         particlespeed      = 7,
@@ -421,15 +421,15 @@ local definitions = {
       },
     },
   },
-  
-  
+
+
   [root.."-small"] = {
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	    underwater         = true,
       properties = {
         heat               = 10,
@@ -620,18 +620,18 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	    underwater         = true,
       properties = {
-        airdrag            = 0.86,
+        airdrag            = 0.88,
         colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
         emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.2, 0]],
+        gravity            = [[0, -0.12, 0]],
         numparticles       = 3,
-        particlelife       = 30,
+        particlelife       = 26,
         particlelifespread = 8,
         particlesize       = 30,
         particlesizespread = 22,
@@ -867,7 +867,7 @@ local definitions = {
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	    underwater         = true,
       properties = {
         heat               = 10,
@@ -1059,18 +1059,18 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
       underwater         = true,
       properties = {
-        airdrag            = 0.84,
+        airdrag            = 0.88,
         colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
         emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.2, 0]],
+        gravity            = [[0, -0.12, 0]],
         numparticles       = 5,
-        particlelife       = 36,
+        particlelife       = 32,
         particlelifespread = 10,
         particlesize       = 35,
         particlesizespread = 26,
@@ -1306,7 +1306,7 @@ local definitions = {
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	    underwater         = true,
       properties = {
                 heat               = 10,
@@ -1354,7 +1354,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	    underwater         = false,
       properties = {
         airdrag            = 0.84,
@@ -1498,10 +1498,10 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
       underwater         = true,
       properties = {
-        airdrag            = 0.86,
+        airdrag            = 0.88,
         colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 45,
@@ -1509,7 +1509,7 @@ local definitions = {
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.15, 0]],
         numparticles       = 5,
-        particlelife       = 36,
+        particlelife       = 32,
         particlelifespread = 10,
         particlesize       = 60,
         particlesizespread = 26,
@@ -1937,7 +1937,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
       underwater         = true,
       properties = {
         airdrag            = 0.88,
@@ -2379,15 +2379,15 @@ local definitions = {
       water              = true,
       underwater         = true,
       properties = {
-        airdrag            = 0.98,
+        airdrag            = 0.95,
         colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 18,
         emitrotspread      = 35,
         emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.3, 0]],
+        gravity            = [[0, -0.2, 0]],
         numparticles       = 7,
-        particlelife       = 8,
+        particlelife       = 12,
         particlelifespread = 19,
         particlesize       = 30,
         particlesizespread = 50,
@@ -2653,19 +2653,19 @@ end
 definitions[root] = definitions[root.."-small"]
 local sizes = {
 	tiny = {
-	
+
 	},
 
 	small = {
-	
+
 	},
-	
+
 	medium = {
-	
+
 	},
-	
+
 	large = {
-	
+
 	},
 
     huge = {
