@@ -629,7 +629,7 @@ local function drawInfo()
     -- draw grid (bottom right to top left)
     cellPadding = cellsize * 0.03
     cellRect = {}
-    texOffset = (0.05 + (0.03*rows)) * zoomMult
+    texOffset = (0.03*rows) * zoomMult
     texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
     cornerSize = cellPadding*0.9
     if texOffset > 0.25 then texOffset = 0.25 end

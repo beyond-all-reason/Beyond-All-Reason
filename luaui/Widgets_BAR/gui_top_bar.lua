@@ -158,12 +158,10 @@ end
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
-local showRejoinUI = false --//variable:indicate whether UI is shown or hidden.
 
-local CATCH_UP_THRESHOLD = 10 * Game.gameSpeed -- only show the window if behind this much
+local showRejoinUI = false	-- indicate whether UI is shown or hidden.
+local CATCH_UP_THRESHOLD = 10 * Game.gameSpeed	-- only show the window if behind this much
 local UPDATE_RATE_F = 10 -- frames
-local MOVING_AVG_COUNT = 30 -- update periods
-
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local serverFrame
 

@@ -6,6 +6,7 @@
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Removed reverse move
+ • Removed air collisions for bombers
 
 
 10.23 -> 10.24
