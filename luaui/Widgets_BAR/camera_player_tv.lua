@@ -286,11 +286,11 @@ local function createList()
 			color2 = {0.6, 0.05, 0.05, 0.66}
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		RectRound(right-textWidth, bottom, right, top, 4*widgetScale, 1,1,1,1, color1, color2)
+		RectRound(right-textWidth, bottom, right, top, 4*widgetScale, 1,1,1,0, color1, color2)
 		toggleButton = {right-textWidth, bottom, right, top }
 
 		local borderPadding = 2.25*widgetScale
-		RectRound(right-textWidth+borderPadding, bottom, right-borderPadding, top-borderPadding, 2.5*widgetScale, 1,1,1,1, {0.3,0.3,0.3,0.25}, {0.05,0.05,0.05,0.25})
+		RectRound(right-textWidth+borderPadding, bottom, right, top-borderPadding, 3*widgetScale, 1,1,1,0, {0.3,0.3,0.3,0.25}, {0.05,0.05,0.05,0.25})
 
 		font:Begin()
         font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
@@ -313,11 +313,11 @@ local function createList()
 		else
 			gl.Color(0.2, 1, 0.2, 0.4)
 		end
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 4.5*widgetScale)
+		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 4*widgetScale, 1,1,1,0)
 
 		local borderPadding = 2.75*widgetScale
 		gl.Color(0,0,0,0.14)
-		RectRound(toggleButton[1]+borderPadding, toggleButton[2]+borderPadding, toggleButton[3]-borderPadding, toggleButton[4]-borderPadding, 3.6*widgetScale)
+		RectRound(toggleButton[1]+borderPadding, toggleButton[2], toggleButton[3], toggleButton[4]-borderPadding, 3*widgetScale, 1,1,1,0)
 
 		local text = '   cancel camera   '
 		local color = '\255\255\225\225'
@@ -337,7 +337,7 @@ local function createList()
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = gl.CreateList( function()
-			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 5.5*widgetScale)
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 4*widgetScale,1,1,1,0)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
 	end

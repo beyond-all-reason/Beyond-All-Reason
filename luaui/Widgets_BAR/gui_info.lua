@@ -810,7 +810,7 @@ local function drawInfo()
 
 
     else  -- unit/unitdef info (without buildoptions)
-      contentPadding = contentPadding * 0.7
+      contentPadding = contentPadding * 0.95
       local contentPaddingLeft = customInfoArea[1] + contentPadding
       local labelColor = '\255\205\205\205'
       local valueColor = '\255\255\255\255'
@@ -882,7 +882,7 @@ local function drawInfo()
 
         -- unit info
         font:Begin()
-        font:Print(text, backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(infoFontsize*0.42), infoFontsize, "o")
+        font:Print(text, customInfoArea[1]+contentPadding, customInfoArea[4]-contentPadding-(infoFontsize*0.42), infoFontsize, "o")
         font:End()
 
         -- display health value/bar
