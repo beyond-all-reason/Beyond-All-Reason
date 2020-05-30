@@ -888,8 +888,8 @@ local function drawInfo()
         -- display health value/bar
         local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
         local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
-        local healthBarHeight = healthBarWidth * 0.12
-        local healthBarMargin = healthBarHeight * 0.8
+        local healthBarHeight = healthBarWidth * 0.1
+        local healthBarMargin = healthBarHeight * 0.7
         local healthBarPadding = healthBarHeight * 0.15
         local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
         local color = bfcolormap[math.floor((health/maxHealth)*100)]
@@ -911,7 +911,7 @@ local function drawInfo()
         )
         -- bar text value
         font:Begin()
-        font:Print(math.floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.12), infoFontsize*0.88, "oc")
+        font:Print(math.floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
         font:End()
       end
     end
