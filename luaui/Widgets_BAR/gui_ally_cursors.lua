@@ -153,7 +153,7 @@ end
 function widget:SetConfigData(data)
     if data.showSpectatorName ~= nil   then  showSpectatorName   = data.showSpectatorName end
     if data.showPlayerName ~= nil      then  showPlayerName      = data.showPlayerName end
-    
+
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
     end
@@ -263,7 +263,7 @@ function widget:Initialize()
         return showSpectatorName
     end
 
-    local now = clock()
+    local now = clock() - (idleCursorTime*0.95)
     local pList = Spring.GetPlayerList()
     for _,playerID in ipairs(pList) do
         alliedCursorsTime[playerID] = now
@@ -307,7 +307,7 @@ function MouseCursorEvent(playerID,x,z,click)
         return
     end
     playerPos[playerID] = {}
-    
+
     if alliedCursorsPos[playerID] then
         local acp = alliedCursorsPos[playerID]
 
@@ -337,15 +337,15 @@ function MouseCursorEvent(playerID,x,z,click)
         acp[(numMousePos+1)*2+2] = playerPosList[#playerPosList].click
         acp[(numMousePos+1)*2+3] = select(4,spGetPlayerInfo(playerID,false))
     end
-    
-    
+
+
     -- check if there has been changes
     wx,wz = alliedCursorsPos[playerID][1*2+1],alliedCursorsPos[playerID][1*2+1]
-    
+
     if prevCursorPos[playerID] == nil or wx ~= prevCursorPos[playerID].wx or wz ~= prevCursorPos[playerID].wz then
         alliedCursorsTime[playerID] = clock()
     end
-    
+
     if prevCursorPos[playerID] == nil then
         prevCursorPos[playerID] = {}
     end
@@ -372,7 +372,7 @@ local function SetTeamColor(teamID,playerID,a)
         gl.Color(color[1],color[2],color[3],color[4]*a)
         return
     end
-    
+
     --make color
     local r, g, b = spGetTeamColor(teamID)
     if specList[playerID] then
@@ -452,7 +452,7 @@ function createCursorDrawList(playerID, opacityMultiplier)
             gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
             gl.Texture(false)
         end
-        
+
         --draw the nickname
         gl.PushMatrix()
         gl.Translate(wx, wy, wz)
@@ -475,12 +475,12 @@ function createCursorDrawList(playerID, opacityMultiplier)
         end
         font:End()
         gl.PopMatrix()
-    end   
+    end
 end
 
 local function DrawCursor(playerID,wx,wy,wz,camX,camY,camZ,opacity)
 	if not (spIsSphereInView(wx,wy,wz,usedCursorSize)) then
-		return 
+		return
 	end
 
 	--calc scale
@@ -489,7 +489,7 @@ local function DrawCursor(playerID,wx,wy,wz,camX,camY,camZ,opacity)
 
 	-- calc opacity
 	local opacityMultiplier = 1
-	if drawNamesFade and camDistance > NameFadeStartDistance then 
+	if drawNamesFade and camDistance > NameFadeStartDistance then
 		opacityMultiplier = (1 - (camDistance-NameFadeStartDistance) / (NameFadeEndDistance-NameFadeStartDistance))
 		if opacityMultiplier > 1 then
 			opacityMultiplier = 1
@@ -501,9 +501,9 @@ local function DrawCursor(playerID,wx,wy,wz,camX,camY,camZ,opacity)
 	else	-- if (spec and) fading out due to idling
 		opacityMultiplier = floor(opacityMultiplier * (opacity * dlistAmount))/dlistAmount
 	end
-	
+
 	if opacityMultiplier > 0.11 then
-		if allycursorDrawList[playerID] == nil then 
+		if allycursorDrawList[playerID] == nil then
 			allycursorDrawList[playerID] = {}
 		end
 		if allycursorDrawList[playerID][opacityMultiplier] == nil then
@@ -561,6 +561,7 @@ function widget:Update(dt)
                 local wy = spGetGroundHeight(wx,wz)
                 cursors[playerID] = {wx,wy,wz,camX,camY,camZ,opacity,specList[playerID]}
             else
+				notIdle[playerID] = nil
                 cursors[playerID] = nil
             end
         else
