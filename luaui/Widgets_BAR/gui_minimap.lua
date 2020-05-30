@@ -33,7 +33,6 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local backgroundRect = {0,0,0,0}
-local currentTooltip = ''
 
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetCameraState = Spring.GetCameraState
@@ -94,16 +93,16 @@ function widget:Initialize()
   widget:ViewResize()
 
   WG['minimap'] = {}
-    WG['minimap'].getEnlarged = function()
-        return enlarged
-    end
-    WG['minimap'].setEnlarged = function(value)
-        enlarged = value
-        widget:ViewResize()
-    end
-    WG['minimap'].getHeight = function()
-        return usedHeight
-    end
+  WG['minimap'].getEnlarged = function()
+      return enlarged
+  end
+  WG['minimap'].setEnlarged = function(value)
+      enlarged = value
+      widget:ViewResize()
+  end
+  WG['minimap'].getHeight = function()
+      return usedHeight
+  end
 end
 
 function widget:GameStart()

@@ -267,6 +267,13 @@ function widget:ViewResize()
   if altPosition then
     posY = height
     posX = width + 0.003
+    if WG['buildpower'] then
+      buildpowerWidgetEnabled = true
+      bpWidth, bpHeight = WG['buildpower'].getPosition()
+      if bpWidth then
+        posX = bpWidth + 0.003
+      end
+    end
   else
     posY = 0.75
     posX = 0
@@ -304,6 +311,9 @@ function widget:Initialize()
   widget:SelectionChanged()
 
   WG['ordermenu'] = {}
+  WG['ordermenu'].getPosition = function()
+    return posX,posY,width,height
+  end
   WG['ordermenu'].getColorize = function()
     return colorize
   end
@@ -322,6 +332,7 @@ function widget:Shutdown()
     dlistGuishader = nil
   end
   dlistOrders = gl.DeleteList(dlistOrders)
+  WG['ordermenu'] = nil
 end
 
 local sec = 0
@@ -330,6 +341,15 @@ function widget:Update(dt)
   if sec > 0.5 then
     sec = 0
     checkGuishader()
+    if WG['buildpower'] then
+      local newBpWidth, newBpHeight = WG['buildpower'].getPosition()
+      if bpWidth == nil or (bpWidth ~= newBpWidth or bpHeight ~= newBpHeight) then
+        widget:ViewResize()
+      end
+    elseif buildpowerWidgetEnabled then
+      buildpowerWidgetEnabled = false
+      widget:ViewResize()
+    end
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
       widget:ViewResize()

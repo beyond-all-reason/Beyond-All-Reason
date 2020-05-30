@@ -54,6 +54,8 @@ local backgroundRect = {0,0,0,0}
 local currentTooltip = ''
 local lastUpdateClock = 0
 
+local hpcolormap = { {1, 0.0, 0.0, 1},  {0.8, 0.60, 0.0, 1}, {0.0, 0.75, 0.0, 1} }
+
 function lines(str)
   local t = {}
   local function helper(line) t[#t+1] = line return "" end
@@ -305,9 +307,11 @@ function GetColor(colormap,slider)
   col1[3]*ia + col2[3]*aa, col1[4]*ia + col2[4]*aa
 end
 
-local hpcolormap = { {1, 0.0, 0.0, 1},  {0.8, 0.60, 0.0, 1}, {0.0, 0.75, 0.0, 1} }
 function widget:Initialize()
   WG['info'] = {}
+  WG['info'].getPosition = function()
+    return width,height
+  end
   WG['info'].getAlternativeIcons = function()
     return alternativeUnitpics
   end
@@ -598,8 +602,8 @@ end
 
 local function drawInfo()
   padding = 0.0033*vsy * ui_scale
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,(WG['buildpower'] and 0 or 1),1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
   --colorize
   --glBlending(GL.DST_COLOR, GL.DST_COLOR)
@@ -608,11 +612,11 @@ local function drawInfo()
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0}, {1,1,1,0.1})
   --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), padding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
 
   local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
