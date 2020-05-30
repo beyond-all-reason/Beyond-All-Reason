@@ -196,8 +196,8 @@ function gadget:GameFrame(n)
 		local y = GetGroundHeight(builder.targetX, builder.targetZ)
 		local blockers = {}
 		local hsize = unitXsize[builder.targetUpgrade] * 4
-		for x = builder.targetX - hsize, builder.targetX + hsize, 8 do
-			for z = builder.targetZ - hsize, builder.targetZ + hsize, 8 do
+		for x = builder.targetX - hsize + 4, builder.targetX + hsize, 8 do
+			for z = builder.targetZ - hsize + 4, builder.targetZ + hsize, 8 do
 				local typ,blocker = Spring.GetGroundBlocked(x,z)
 				if blocker and not blockers[blocker] then
 					GiveOrderToUnit(unitID, CMD.RECLAIM, {blocker}, {"shift"})
