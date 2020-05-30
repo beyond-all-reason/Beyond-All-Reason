@@ -925,8 +925,8 @@ local function updateResbar(res)
 		glTexture(false)
 
 		-- Bar background
-		local addedSize = (barArea[4]-barArea[2])*0.22
-		RectRound(barArea[1]-(addedSize*1.4), barArea[2]-addedSize, barArea[3]+(addedSize*1.4), barArea[4]+addedSize, barHeight*0.3, 1,1,1,1, {0.15,0.15,0.15,0.25},{0.75,0.75,0.75,0.33})
+		local addedSize = (barArea[4]-barArea[2])*0.25
+		RectRound(barArea[1]-(addedSize*1.4), barArea[2]-addedSize, barArea[3]+(addedSize*1.4), barArea[4]+(addedSize*0.7), barHeight*0.3, 1,1,1,1, {0.15,0.15,0.15,0.25},{0.75,0.75,0.75,0.33})
 	end)
 
 	dlistResbar[res][2] = glCreateList( function()

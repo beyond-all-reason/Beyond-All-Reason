@@ -52,6 +52,7 @@ local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui 
 
 local backgroundRect = {0,0,0,0}
 local currentTooltip = ''
+local lastUpdateClock = 0
 
 function lines(str)
   local t = {}
@@ -286,7 +287,25 @@ function widget:ViewResize()
 
 end
 
+function GetColor(colormap,slider)
+  local coln = #colormap
+  if (slider>=1) then
+    local col = colormap[coln]
+    return col[1],col[2],col[3],col[4]
+  end
+  if (slider<0) then slider=0 elseif(slider>1) then slider=1 end
+  local posn  = 1+(coln-1) * slider
+  local iposn = math.floor(posn)
+  local aa    = posn - iposn
+  local ia    = 1-aa
 
+  local col1,col2 = colormap[iposn],colormap[iposn+1]
+
+  return col1[1]*ia + col2[1]*aa, col1[2]*ia + col2[2]*aa,
+  col1[3]*ia + col2[3]*aa, col1[4]*ia + col2[4]*aa
+end
+
+local hpcolormap = { {1, 0.0, 0.0, 1},  {0.8, 0.60, 0.0, 1}, {0.0, 0.75, 0.0, 1} }
 function widget:Initialize()
   WG['info'] = {}
   WG['info'].getAlternativeIcons = function()
@@ -304,6 +323,11 @@ function widget:Initialize()
   Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count
   Spring.SendCommands("tooltip 0")
   widget:ViewResize()
+
+  bfcolormap = {}
+  for hp=0,100 do
+    bfcolormap[hp] = {GetColor(hpcolormap,hp*0.01)}
+  end
 
   refreshUnitIconCache()
 end
@@ -791,6 +815,7 @@ local function drawInfo()
       local labelColor = '\255\205\205\205'
       local valueColor = '\255\255\255\255'
 
+      -- unit specific info
       if displayMode == 'unit' then
         -- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
         local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
@@ -855,9 +880,38 @@ local function drawInfo()
           text = text .. '\n'
         end
 
-        -- draw unit(def) info
+        -- unit info
         font:Begin()
         font:Print(text, backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(infoFontsize*0.42), infoFontsize, "o")
+        font:End()
+
+        -- display health value/bar
+        local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
+        local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
+        local healthBarHeight = healthBarWidth * 0.12
+        local healthBarMargin = healthBarHeight * 0.8
+        local healthBarPadding = healthBarHeight * 0.15
+        local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
+        local color = bfcolormap[math.floor((health/maxHealth)*100)]
+        -- bar background
+        RectRound(
+          customInfoArea[3]-healthBarMargin-healthBarWidth,
+          customInfoArea[4]+healthBarMargin,
+          customInfoArea[3]-healthBarMargin,
+          customInfoArea[4]+healthBarMargin+healthBarHeight,
+          healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
+        )
+        -- bar value
+        RectRound(
+          customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
+          customInfoArea[4]+healthBarMargin+healthBarPadding,
+          customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
+          customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
+          healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
+        )
+        -- bar text value
+        font:Begin()
+        font:Print(math.floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.12), infoFontsize*0.88, "oc")
         font:End()
       end
     end
@@ -1034,6 +1088,7 @@ function widget:DrawScreen()
     doUpdateClock = nil
     clear()
     doUpdate = nil
+    lastUpdateClock = os_clock()
   end
 
   if not dlistInfo then
@@ -1203,10 +1258,16 @@ function checkChanges()
     displayMode = 'unit'
     displayUnitID = hoverData
     displayUnitDefID = spGetUnitDefID(displayUnitID)
+    if lastUpdateClock+0.6 < os_clock() then -- unit stats could have changed meanwhile
+      doUpdate = true
+    end
   elseif SelectedUnitsCount == 1 then
     displayMode = 'unit'
     displayUnitID = selectedUnits[1]
     displayUnitDefID = spGetUnitDefID(selectedUnits[1])
+    if lastUpdateClock+0.6 < os_clock() then -- unit stats could have changed meanwhile
+      doUpdate = true
+    end
   elseif SelectedUnitsCount > 1 then
     displayMode = 'selection'
   else -- text
