@@ -220,9 +220,11 @@ local function cacheUnitIcons()
     else
       gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
     end
-    gl.TexRect(-1,-1,0,0)
-    gl.Texture(':lr64,64:'..iconTypesMap[unitIconType[id]])
-    gl.TexRect(-1,-1,0,0)
+    if iconTypesMap[unitIconType[id]] then
+      gl.TexRect(-1,-1,0,0)
+      gl.Texture(':lr64,64:'..iconTypesMap[unitIconType[id]])
+      gl.TexRect(-1,-1,0,0)
+    end
     gl.Texture(false)
   end
 end
@@ -295,6 +297,7 @@ function widget:Initialize()
     doUpdate = true
     refreshUnitIconCache()
   end
+  iconTypesMap = {}
   if Script.LuaRules('GetIconTypes') then
     iconTypesMap = Script.LuaRules.GetIconTypes()
   end

@@ -272,9 +272,11 @@ local function cacheUnitIcons()
       else
         gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/'..unitBuildPic[id])
       end
-      gl.TexRect(-1,-1,0,0)
-      gl.Texture(':lr'..radariconTextureDetail..','..radariconTextureDetail..':'..iconTypesMap[unitIconType[id]])
-      gl.TexRect(-1,-1,0,0)
+      if iconTypesMap[unitIconType[id]] then
+        gl.TexRect(-1,-1,0,0)
+        gl.Texture(':lr'..radariconTextureDetail..','..radariconTextureDetail..':'..iconTypesMap[unitIconType[id]])
+        gl.TexRect(-1,-1,0,0)
+      end
       gl.Texture(false)
     end
     gl.Color(1,1,1,1)
@@ -607,6 +609,8 @@ end
 
 function widget:Initialize()
   hijacklayout()
+
+  iconTypesMap = {}
   if Script.LuaRules('GetIconTypes') then
     iconTypesMap = Script.LuaRules.GetIconTypes()
   end
@@ -845,7 +849,7 @@ local function drawCell(cellRectID, usedZoom, cellColor)
   end
 
   -- radar icon
-  if showRadarIcon then
+  if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
     glColor(1,1,1,0.9)
     glTexture(':lr'..radariconTextureDetail..','..radariconTextureDetail..':'..iconTypesMap[unitIconType[uDefID]])
     glTexRect(cellRects[cellRectID][3]-radariconOffset-radariconSize, cellRects[cellRectID][2]+radariconOffset, cellRects[cellRectID][3]-radariconOffset, cellRects[cellRectID][2]+radariconOffset+radariconSize)
