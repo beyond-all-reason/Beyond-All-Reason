@@ -123,7 +123,7 @@ function widget:Shutdown()
     clear()
     clear2()
   if WG['guishader'] and dlistGuishader then
-    WG['guishader'].DeleteDlist('buildpower')
+      WG['guishader'].DeleteDlist('buildpower')
     dlistGuishader = nil
   end
   WG['buildpower'] = nil
@@ -289,18 +289,22 @@ function drawBuildpower()
   RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,0.1})
   --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), padding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
 
+  -- bar background
   contentMargin = (backgroundRect[3]-backgroundRect[1]) * 0.22
   RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-padding-contentMargin, backgroundRect[4]-padding-contentMargin, padding*0.5, 1,1,1,1,{0,0,0,0.15}, {0.1,0.1,0.1,0.15})
 end
 
+local avgFrames = 8     -- to smooth out changes
+local avgBuildPower = 0
 function drawBuildpower2()
     local usedBuildpower = 0
     for unitID, unitDefID in pairs(builders) do
         usedBuildpower = usedBuildpower + (spGetUnitCurrentBuildPower(unitID)*isBuilder[unitDefID])
     end
     local buildpower = usedBuildpower / totalBuildpower
+    avgBuildPower = (buildpower + (avgBuildPower * (avgFrames-1))) / avgFrames
     local contentMargin2 = contentMargin*1.33
-    local barHeight = (((backgroundRect[4]-padding-contentMargin2)-(backgroundRect[2]+contentMargin2))*buildpower)
+    local barHeight = (((backgroundRect[4]-padding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
     if barHeight > padding*2 then   -- prevent artifacts
         RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-padding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, padding*0.4, 1,1,1,1,{0.2,0.6,0.2,0.5}, {0.5,1,0.5,0.5})
     end

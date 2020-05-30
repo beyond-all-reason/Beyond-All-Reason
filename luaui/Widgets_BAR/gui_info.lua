@@ -891,32 +891,34 @@ local function drawInfo()
 
         -- display health value/bar
         local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
-        local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
-        local healthBarHeight = healthBarWidth * 0.1
-        local healthBarMargin = healthBarHeight * 0.7
-        local healthBarPadding = healthBarHeight * 0.15
-        local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
-        local color = bfcolormap[math.floor((health/maxHealth)*100)]
-        -- bar background
-        RectRound(
-          customInfoArea[3]-healthBarMargin-healthBarWidth,
-          customInfoArea[4]+healthBarMargin,
-          customInfoArea[3]-healthBarMargin,
-          customInfoArea[4]+healthBarMargin+healthBarHeight,
-          healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
-        )
-        -- bar value
-        RectRound(
-          customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
-          customInfoArea[4]+healthBarMargin+healthBarPadding,
-          customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
-          customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
-          healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
-        )
-        -- bar text value
-        font:Begin()
-        font:Print(math.floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
-        font:End()
+        if health then
+          local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
+          local healthBarHeight = healthBarWidth * 0.1
+          local healthBarMargin = healthBarHeight * 0.7
+          local healthBarPadding = healthBarHeight * 0.15
+          local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
+          local color = bfcolormap[math.floor((health/maxHealth)*100)]
+          -- bar background
+          RectRound(
+                  customInfoArea[3]-healthBarMargin-healthBarWidth,
+                  customInfoArea[4]+healthBarMargin,
+                  customInfoArea[3]-healthBarMargin,
+                  customInfoArea[4]+healthBarMargin+healthBarHeight,
+                  healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
+          )
+          -- bar value
+          RectRound(
+                  customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
+                  customInfoArea[4]+healthBarMargin+healthBarPadding,
+                  customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
+                  customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
+                  healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
+          )
+          -- bar text value
+          font:Begin()
+          font:Print(math.floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
+          font:End()
+        end
       end
     end
 
