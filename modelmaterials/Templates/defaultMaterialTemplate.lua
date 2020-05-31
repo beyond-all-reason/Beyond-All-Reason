@@ -1234,7 +1234,7 @@ fragment = [[
 
 		vec2 envBRDF = textureLod(brdfLUT, vec2(NdotV, roughness), 0.0).rg;
 
-		vec3 energyCompensation = 1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0);
+		vec3 energyCompensation = clamp(1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0), vec3(1.0), vec3(2.0));
 
 
 		//// Direct (sun) PBR lighting
