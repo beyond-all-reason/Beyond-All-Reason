@@ -115,8 +115,16 @@ function widget:ViewResize()
   width = width * ui_scale
 
   if altPosition then
+    local margin = (0.004 * (height/width))
     posY = height
-    posX = width + 0.003
+    posX = width + margin
+    if WG['buildpower'] then
+      buildpowerWidgetEnabled = true
+      bpWidth, bpHeight = WG['buildpower'].getPosition()
+      if bpWidth then
+        posX = bpWidth + margin
+      end
+    end
   else
     posY = 0.75
     posX = 0
@@ -181,6 +189,15 @@ function widget:Update(dt)
   if sec > 0.5 then
     sec = 0
     checkGuishader()
+    if WG['buildpower'] then
+      local newBpWidth, newBpHeight = WG['buildpower'].getPosition()
+      if bpWidth == nil or (bpWidth ~= newBpWidth or bpHeight ~= newBpHeight) then
+        widget:ViewResize()
+      end
+    elseif buildpowerWidgetEnabled then
+      buildpowerWidgetEnabled = false
+      widget:ViewResize()
+    end
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
       widget:ViewResize()

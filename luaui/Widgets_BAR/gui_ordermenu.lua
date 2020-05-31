@@ -265,13 +265,14 @@ function widget:ViewResize()
   width = width * ui_scale
 
   if altPosition then
+    local margin = (0.004 * (height/width))
     posY = height
-    posX = width + 0.003
+    posX = width + margin
     if WG['buildpower'] then
       buildpowerWidgetEnabled = true
       bpWidth, bpHeight = WG['buildpower'].getPosition()
       if bpWidth then
-        posX = bpWidth + 0.003
+        posX = bpWidth + margin
       end
     end
   else

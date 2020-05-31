@@ -36,6 +36,7 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 
+local totalBuilders = 0
 local builders = {}
 local totalBuildpower = 0
 
@@ -57,10 +58,12 @@ end
 local function initiateTeamBuildPower(teamID)
     local units = spGetTeamUnits(teamID)
     builders = {}
+    totalBuilders = 0
     totalBuildpower = 0
     for _,unitID in pairs(units) do
         if isBuilder[spGetUnitDefID(unitID)] then
             builders[unitID] = spGetUnitDefID(unitID)
+            totalBuilders = totalBuilders + 1
             totalBuildpower = totalBuildpower + isBuilder[spGetUnitDefID(unitID)]
         end
     end
@@ -74,7 +77,7 @@ local function checkGuishader(force)
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
         local padding = bgBorder*vsy
-        RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], (bgBorder*vsy)*2, 1,1,0,0)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*2, 1,1,0,0)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'buildpower')
     end
@@ -294,7 +297,7 @@ function drawBuildpower()
   RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-padding-contentMargin, backgroundRect[4]-padding-contentMargin, padding*0.5, 1,1,1,1,{0,0,0,0.15}, {0.1,0.1,0.1,0.15})
 end
 
-local avgFrames = 8     -- to smooth out changes
+local avgFrames = 7     -- to smooth out changes
 local avgBuildPower = 0
 function drawBuildpower2()
     local usedBuildpower = 0
@@ -303,6 +306,10 @@ function drawBuildpower2()
     end
     local buildpower = usedBuildpower / totalBuildpower
     avgBuildPower = (buildpower + (avgBuildPower * (avgFrames-1))) / avgFrames
+    if avgBuildPower > totalBuildpower then -- can happen due to the averaging
+        avgBuildPower = totalBuildpower
+    end
+
     local contentMargin2 = contentMargin*1.33
     local barHeight = (((backgroundRect[4]-padding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
     if barHeight > padding*2 then   -- prevent artifacts
@@ -329,6 +336,7 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if isBuilder[unitDefID] then
         builders[unitID] = unitDefID
+        totalBuilders = totalBuilders + 1
         totalBuildpower = totalBuildpower + isBuilder[unitDefID]
     end
 end
@@ -336,6 +344,7 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if isBuilder[unitDefID] then
         builders[unitID] = nil
+        totalBuilders = totalBuilders - 1
         totalBuildpower = totalBuildpower - isBuilder[unitDefID]
     end
 end
@@ -344,7 +353,7 @@ function widget:DrawScreen()
     if chobbyInterface then return end
     local x,y,b = Spring.GetMouseState()
     if WG['tooltip'] and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-      WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215Total used buildpower\n\255\240\240\240Increase efficiency and put idle units with buildpower to work!\n\255\240\240\240If you still cant increase: you\'re probably lacking resources\n\255\180\180\180total buildpower: \255\255\255\200'..totalBuildpower)
+      WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215Used buildpower: \255\255\255\200'..math.ceil(avgBuildPower*100)..'% \255\180\180\180   buildpower: \255\255\255\200'..totalBuildpower..' \255\180\180\180   builders: \255\255\255\200'..totalBuilders..'\n\255\240\240\240Increase efficiency -> put idle worker units to work! (have enough resources too!)\n\255\240\240\240High buildpower usage -> make more workers')
       --Spring.SetMouseCursor('cursornormal')
     end
 
