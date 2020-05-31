@@ -61,7 +61,10 @@ end
 function getUsedBuildpower()
     local usedBuildpower = 0
     for unitID, unitDefID in pairs(builders) do
-        usedBuildpower = usedBuildpower + (spGetUnitCurrentBuildPower(unitID)*isBuilder[unitDefID])
+        local currentUnitBp = spGetUnitCurrentBuildPower(unitID)
+        if currentUnitBp then
+            usedBuildpower = usedBuildpower + (currentUnitBp*isBuilder[unitDefID])
+        end
     end
     return usedBuildpower / totalBuildpower
 end
