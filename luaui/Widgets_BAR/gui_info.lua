@@ -109,6 +109,7 @@ local isMex = {}
 local unitMaxWeaponRange = {}
 local unitHealth = {}
 local unitBuildOptions = {}
+local unitBuildSpeed = {}
 local unitWeapons = {}
 local unitDPS = {}
 local unitCanStockpile = {}
@@ -133,8 +134,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   if VFS.FileExists('unitpics/alternative/'..string.gsub(unitDef.buildpicname, '(.*/)', '')) then
     hasAlternativeUnitpic[unitDefID] = true
   end
-  if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
-    isBuilder[unitDefID] = true
+  if unitDef.buildSpeed > 0 then
+    unitBuildSpeed[unitDefID] = unitDef.buildSpeed
   end
   if unitDef.buildOptions[1] then
     unitBuildOptions[unitDefID] = unitDef.buildOptions
@@ -818,6 +819,8 @@ local function drawInfo()
       local contentPaddingLeft = customInfoArea[1] + contentPadding
       local labelColor = '\255\205\205\205'
       local valueColor = '\255\255\255\255'
+      local valuePlusColor = '\255\180\255\180'
+      local valueMinColor = '\255\255\180\180'
 
       -- unit specific info
       if displayMode == 'unit' then
@@ -848,7 +851,7 @@ local function drawInfo()
         end
 
         -- add text
-        addTextInfo('', labelColor..'m+'..valueColor..round(metalMake, 2)..labelColor..', m-'..valueColor..round(metalUse, 2)..labelColor..',  e+'..valueColor..round(energyMake, 0)..labelColor..', e-'..valueColor..round(energyUse, 0))
+        addTextInfo('', labelColor..'m +'..valuePlusColor..round(metalMake, 1)..labelColor..' -'..valueMinColor..round(metalUse, 1)..labelColor..',   e +'..valuePlusColor..round(energyMake, 0)..labelColor..' -'..valueMinColor..round(energyUse, 0))
         if unitWeapons[displayUnitDefID] then
           addTextInfo('weapons', #unitWeapons[displayUnitDefID])
           if maxRange then
@@ -861,12 +864,18 @@ local function drawInfo()
         --if metalExtraction then
         --  addTextInfo('metal extraction', round(metalExtraction, 2))
         --end
-        if exp and exp > 0 then
-          addTextInfo('xp', round(exp, 3))
+        if unitBuildSpeed[displayUnitDefID] then
+          addTextInfo('builspeed', unitBuildSpeed[displayUnitDefID])
         end
-        addTextInfo('height', Spring.GetUnitHeight(displayUnitID))
-        addTextInfo('radius', Spring.GetUnitRadius(displayUnitID))
-        addTextInfo('mass', Spring.GetUnitMass(displayUnitID))
+        if unitBuildOptions[displayUnitDefID] then
+          addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
+        end
+        if exp and exp > 0.009 then
+          addTextInfo('xp', round(exp, 2))
+        end
+        addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
+        addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
+        addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
 
         -- wordwrap text
         unitInfoText = text   -- canbe used to show full text on mouse hover

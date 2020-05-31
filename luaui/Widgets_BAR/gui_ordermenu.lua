@@ -23,7 +23,7 @@ local posY = 0.75
 local posX = 0
 local width = 0
 local height = 0
-local cellMarginOrg = 0.035
+local cellMarginOrg = 0.055
 local cellMargin = cellMarginOrg
 local bgBorderOrg = 0.0018
 local bgBorder = bgBorderOrg
@@ -82,6 +82,7 @@ local backgroundRect = {}
 local activeRect = {}
 local cellRects = {}
 local cellMarginPx = 0
+local cellMarginPx2 = 0
 local cmds = {}
 local lastUpdate = os.clock()-1
 local rows = 0
@@ -128,6 +129,9 @@ local twicePi = math.pi * 2
 local mCos = math.cos
 local mSin = math.sin
 local math_min = math.min
+local math_max = math.max
+local math_ceil = math.ceil
+local math_floor = math.floor
 
 local isSpec = Spring.GetSpectatingState()
 local cursorTextures = {}
@@ -240,15 +244,16 @@ function setupCellGrid(force)
     local i = 0
     local cellWidth = (activeRect[3] - activeRect[1]) / colls
     local cellHeight = (activeRect[4] - activeRect[2]) / rows
-    cellMarginPx = cellHeight * cellMargin
+    cellMarginPx = math_max(1, math_ceil(cellHeight*0.75 * cellMargin))
+    cellMarginPx2 = math_max(1, math_ceil(cellHeight*0.25 * cellMargin))
     for row=1, rows do
       for col=1, colls do
         i = i + 1
         cellRects[i] = {
-          activeRect[1]+(cellWidth*(col-1)),
-          activeRect[4]-(cellHeight*row),
-          activeRect[1]+(cellWidth*col),
-          activeRect[4]-(cellHeight*(row-1))
+          math_floor(activeRect[1]+(cellWidth*(col-1))),
+          math_floor(activeRect[4]-(cellHeight*row)),
+          math_ceil(activeRect[1]+(cellWidth*col)),
+          math_ceil(activeRect[4]-(cellHeight*(row-1)))
         }
       end
     end
@@ -507,10 +512,11 @@ function drawOrders()
   RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[2]+(altPosition and 0 or padding),backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-  padding = (bgBorder*vsy) * 0.35
+  local cellInnerWidth = math_floor((cellRects[1][3]-cellMarginPx2) - (cellRects[1][1]+cellMarginPx))
+  local cellInnerHeight = math_floor((cellRects[1][4]-cellMarginPx2) - (cellRects[1][2]+cellMarginPx))
 
-  local cellInnerWidth = (cellRects[1][3]-cellMarginPx) - (cellRects[1][1]+cellMarginPx)--(width*vsx/colls)-cellMarginPx-cellMarginPx-padding-padding
-  local cellInnerHeight = (cellRects[1][4]-cellMarginPx) - (cellRects[1][2]+cellMarginPx)--(height*vsy/rows)-cellMarginPx-cellMarginPx-padding-padding
+  padding = math_max(1, math_ceil(cellInnerWidth * 0.011))
+
   font2:Begin()
   for cell=1, #cmds do
     local cmd = cmds[cell]
@@ -528,16 +534,16 @@ function drawOrders()
         color1 = (cmd.type == 5) and {0.25,0.25,0.25,1} or {0.33,0.33,0.33,1}
         color2 = {0.55,0.55,0.55,0.95}
       end
-      RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, cellRects[cell][4]-cellMarginPx, padding*1.66 ,2,2,2,2, color1,color2)
+      RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx2, cellRects[cell][4]-cellMarginPx2, padding*1.66 ,2,2,2,2, color1,color2)
 
       color1 = {0,0,0,0.8}
       color2 = {0,0,0,0.6}
     end
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, cellRects[cell][4]-cellMarginPx-padding, padding*1.35 ,2,2,2,2, color1,color2)
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, cellRects[cell][4]-cellMarginPx2-padding, padding*1.35 ,2,2,2,2, color1,color2)
 
     -- gloss
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.38)-padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][4]-cellMarginPx)-padding, padding*1.35, 2,2,0,0, {1,1,1,0.055}, {1,1,1,0.14})
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, padding*1.35, 0,0,2,2, {1,1,1,0.12}, {1,1,1,0})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.38)-padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][4]-cellMarginPx2)-padding, padding*1.35, 2,2,0,0, {1,1,1,0.055}, {1,1,1,0.14})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, padding*1.35, 0,0,2,2, {1,1,1,0.12}, {1,1,1,0})
 
     -- icon
     if showIcons then
@@ -549,11 +555,11 @@ function drawOrders()
         local cursorTexture = 'anims/icexuick_200/cursor'..string.lower(cmd.cursor)..'_0.png'
         if VFS.FileExists(cursorTexture) then
           local s = 0.45
-          local halfsize = s * ((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding))
+          local halfsize = s * ((cellRects[cell][4]-cellMarginPx2-padding)-(cellRects[cell][2]+cellMarginPx+padding))
           --local midPosX = (cellRects[cell][3]-cellMarginPx-padding) - halfsize - (halfsize*((1-s-s)/2))
           --local midPosY = (cellRects[cell][4]-cellMarginPx-padding) - (((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding)) / 2)
-          local midPosX = (cellRects[cell][3]-cellMarginPx-padding) - (((cellRects[cell][3]-cellMarginPx-padding) - (cellRects[cell][1]+cellMarginPx+padding)) / 2)
-          local midPosY = (cellRects[cell][4]-cellMarginPx-padding) - (((cellRects[cell][4]-cellMarginPx-padding)-(cellRects[cell][2]+cellMarginPx+padding)) / 2)
+          local midPosX = (cellRects[cell][3]-cellMarginPx2-padding) - (((cellRects[cell][3]-cellMarginPx2-padding) - (cellRects[cell][1]+cellMarginPx+padding)) / 2)
+          local midPosY = (cellRects[cell][4]-cellMarginPx2-padding) - (((cellRects[cell][4]-cellMarginPx2-padding)-(cellRects[cell][2]+cellMarginPx+padding)) / 2)
           glColor(1,1,1,0.66)
           glTexture(''..cursorTexture)
           glTexRect(midPosX-halfsize,  midPosY-halfsize,  midPosX+halfsize,  midPosY+halfsize)
@@ -568,8 +574,8 @@ function drawOrders()
         cmdColor[cmd.name] = cmdColorDefault
       end
       local y1 = cellRects[cell][2] + cellMarginPx
-      local x2 = cellRects[cell][3] - cellMarginPx --x1 + (padding*2.5)
-      local y2 = cellRects[cell][2] + cellMarginPx + ((cellRects[cell][4]-cellRects[cell][2])*0.2) --cellRects[cell][4] - cellMarginPx - padding
+      local x2 = cellRects[cell][3] - cellMarginPx2 --x1 + (padding*2.5)
+      local y2 = cellRects[cell][2] + cellMarginPx2 + ((cellRects[cell][4]-cellRects[cell][2])*0.2) --cellRects[cell][4] - cellMarginPx - padding
       RectRound(x1, y1, x2, y2, padding, 0,0,1,1, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.18*colorize}, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0})
       --x1 = cellRects[cell][1] + cellMarginPx
       --y1 = cellRects[cell][2] + cellMarginPx
@@ -577,8 +583,8 @@ function drawOrders()
       --y2 = cellRects[cell][2] + cellMarginPx + ((cellRects[cell][4]-cellRects[cell][2])*0.6) --cellRects[cell][4] - cellMarginPx - padding
       --RectRound(x1, y1, x2, y2, padding, 0,0,1,1, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.11*colorize}, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0})
       x1 = cellRects[cell][1] + cellMarginPx
-      y2 = cellRects[cell][4] - cellMarginPx
-      x2 = cellRects[cell][3] - cellMarginPx --x1 + (padding*2.5)
+      y2 = cellRects[cell][4] - cellMarginPx2
+      x2 = cellRects[cell][3] - cellMarginPx2 --x1 + (padding*2.5)
       y1 = cellRects[cell][4] - cellMarginPx - ((cellRects[cell][4]-cellRects[cell][2])*0.2) --cellRects[cell][4] - cellMarginPx - padding
       RectRound(x1, y1, x2, y2, padding, 0,0,1,1, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0}, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.12*colorize})
     end
@@ -721,7 +727,7 @@ function widget:DrawScreen()
             if not (activeCmd and activeCmd == cmd.name) then
               local padding = (bgBorder*vsy) * 0.5
               glColor(1,1,1,0.8)
-              RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.66 ,2,2,2,2)
+              RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx2, (cellRects[cell][4]-cellMarginPx2), padding*1.66 ,2,2,2,2)
               break
             end
           end
@@ -772,8 +778,8 @@ function widget:DrawScreen()
         end
         -- gloss highlight
         glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.38)-padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][4]-cellMarginPx)-padding, (bgBorder*vsy) * 0.5*1.35 ,2,2,0,0, {1,1,1,0.055}, {1,1,1,(disableInput and 0.16 or 0.27)})
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.5)-padding, (bgBorder*vsy) * 0.5*1.35 ,0,0,2,2, {1,1,1,(disableInput and 0.05 or 0.09)}, {1,1,1,0})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][4]-cellMarginPx-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.38)-padding, cellRects[cellHovered][3]-cellMarginPx2-padding, (cellRects[cellHovered][4]-cellMarginPx2)-padding, (bgBorder*vsy) * 0.5*1.35 ,2,2,0,0, {1,1,1,0.055}, {1,1,1,(disableInput and 0.16 or 0.27)})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+padding, cellRects[cellHovered][2]+cellMarginPx+padding, cellRects[cellHovered][3]-cellMarginPx2-padding, (cellRects[cellHovered][2]-cellMarginPx)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.5)-padding, (bgBorder*vsy) * 0.5*1.35 ,0,0,2,2, {1,1,1,(disableInput and 0.05 or 0.09)}, {1,1,1,0})
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
       end
     end
@@ -797,7 +803,7 @@ function widget:DrawScreen()
           glBlending(GL_SRC_ALPHA, GL_ONE)
           glColor(1,1,1,alpha)
         end
-        RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx, (cellRects[cell][4]-cellMarginPx), padding*1.66 ,2,2,2,2)
+        RectRound(cellRects[cell][1]+cellMarginPx, cellRects[cell][2]+cellMarginPx, cellRects[cell][3]-cellMarginPx2, (cellRects[cell][4]-cellMarginPx2), padding*1.66 ,2,2,2,2)
       else
         clickedCellTime = nil
       end
