@@ -23,7 +23,8 @@ function SpawnBeacon(n)
 				canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
 				if canSpawnBeaconHere then
 					if globalScore then
-						if ScavengerStartboxExists then
+						local g = math_random(0,3)
+						if ScavengerStartboxExists and g ~= 0 then
 							if ScavengerStartboxXMin < posx and ScavengerStartboxXMax > posx and ScavengerStartboxZMin < posz and ScavengerStartboxZMax > posz then
 								canSpawnBeaconHere = true
 							else
