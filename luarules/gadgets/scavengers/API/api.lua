@@ -218,6 +218,7 @@ function posMapsizeCheck(posx, posy, posz, posradius)
 	end
 end
 
+
 function teamsCheck()
 
 	bestTeamScore = 0
@@ -240,14 +241,11 @@ function teamsCheck()
 				scoreTeamCount = scoreTeamCount + 1
 				local _,_,_,mi = Spring.GetTeamResources(i, "metal")
 				local _,_,_,ei = Spring.GetTeamResources(i, "energy")
-				local resourceScore = mi + ei
-				local unitScore = unitCount
-				local finalScore = resourceScore + unitScore
-				-- Spring.Echo("unitScore "..i..": "..unitScore)
-				-- Spring.Echo("resourceScore "..i..": "..resourceScore)
-				-- Spring.Echo("nonFinalGlobalScore "..i..": "..nonFinalGlobalScore)
-				-- Spring.Echo("Final Score for team "..i..": "..finalScore)
-
+				local resourceScoreM = mi*scavconfig.scoreConfig.scorePerMetal
+				local resourceScoreE = ei*scavconfig.scoreConfig.scorePerEnergy
+				local unitScore = unitCount*scavconfig.scoreConfig.scorePerOwnedUnit
+				local finalScore = resourceScoreM + resourceScoreE + unitScore
+				
 				nonFinalGlobalScore = nonFinalGlobalScore + finalScore
 
 				scorePerTeam[teamID] = finalScore
@@ -262,8 +260,9 @@ function teamsCheck()
 	if not killedscavengers then
 		killedscavengers = 0
 	end
+	local timeScore = Spring.GetGameSeconds()*scavconfig.scoreConfig.scorePerSecond
 	if scavTechDifficulty == "adaptive" then
-		globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + Spring.GetGameSeconds())
+		globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + timeScore)
 	elseif scavTechDifficulty == "easy" then
 		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.easy*(Spring.GetGameSeconds()/60))
 	elseif scavTechDifficulty == "medium" then
@@ -275,5 +274,4 @@ function teamsCheck()
 	end
 	nonFinalGlobalScore = nil
 	scoreTeamCount = nil
-	--Spring.Echo("[scavengers] Global Score: "..globalScore)
 end

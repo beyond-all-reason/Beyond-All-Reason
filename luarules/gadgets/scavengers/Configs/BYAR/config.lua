@@ -21,6 +21,21 @@ if scavengersAIEnabled then
 			stockpilers						= true,
 			nukes							= true,
 		},
+		
+		scoreConfig = {
+			-- set to 0 to disable
+			scorePerMetal 					= 1, 	-- thisvalue*metalproduction
+			scorePerEnergy 					= 1,	-- thisvalue*energyproduction
+			scorePerSecond 					= 1,	-- thisvalue*secondspassed
+			scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
+			-----------------------------------------
+			baseScorePerKill 				= 1, -- How much score EVERY KILL and CAPTURE adds
+				-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
+				scorePerKilledBuilding 			= 4,
+				scorePerKilledConstructor 		= 99,
+				scorePerKilledSpawner 			= -1,
+				scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
+		},
 		timers = {
 			-- globalScore values
 			T0start								= 1,
@@ -269,6 +284,22 @@ else
 			stockpilers						= true,
 			nukes							= true,
 		},
+		
+		scoreConfig = {
+			-- set to 0 to disable
+			scorePerMetal 					= 1, 	-- thisvalue*metalproduction
+			scorePerEnergy 					= 1,	-- thisvalue*energyproduction
+			scorePerSecond 					= 1,	-- thisvalue*secondspassed
+			scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
+			-----------------------------------------
+			baseScorePerKill 				= 1, -- How much score EVERY KILL and CAPTURE adds
+				-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
+				scorePerKilledBuilding 			= 4,
+				scorePerKilledConstructor 		= 99,
+				scorePerKilledSpawner 			= -1,
+				scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
+		},
+		
 		timers = {
 			-- globalScore values
 			T0start								= 1,
