@@ -1459,8 +1459,8 @@ function widget:DrawScreen()
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,b and 0.15 or 0.055}, {0.44,0.44,0.44,b and 0.45 or 0.22})
 					local mult = 1
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4]-((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.5), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.05*mult}, {1,1,1,0.18*mult})
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.35), 3.3*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,0.07*mult}, {1,1,1,0})
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4]-((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.33), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.035*mult}, {1,1,1,0.18*mult})
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.25), 3.3*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,0.07*mult}, {1,1,1,0})
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					break
 				end

@@ -22,7 +22,10 @@ local bgBorderOrg = 0.0025
 local bgBorder = bgBorderOrg
 local bgMargin = 0.005
 
-local widthMult = 0.055   -- # of info widget width
+local avgFrames = 7     -- to smooth out changes
+local avgBuildPower = 0
+
+local widthMult = 0.055   -- multiplication of info widget width
 
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -55,6 +58,14 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+function getUsedBuildpower()
+    local usedBuildpower = 0
+    for unitID, unitDefID in pairs(builders) do
+        usedBuildpower = usedBuildpower + (spGetUnitCurrentBuildPower(unitID)*isBuilder[unitDefID])
+    end
+    return usedBuildpower / totalBuildpower
+end
+
 local function initiateTeamBuildPower(teamID)
     local units = spGetTeamUnits(teamID)
     builders = {}
@@ -66,6 +77,13 @@ local function initiateTeamBuildPower(teamID)
             totalBuilders = totalBuilders + 1
             totalBuildpower = totalBuildpower + isBuilder[spGetUnitDefID(unitID)]
         end
+    end
+
+    if gamestarted or Spring.GetGameFrame() > 0 then
+        gamestarted = true
+        avgBuildPower = getUsedBuildpower()
+    else
+        avgBuildPower = 0
     end
 end
 
@@ -91,7 +109,6 @@ function widget:ViewResize()
   if posX then
     backgroundRect = {width*vsx, 0, (width+(width*widthMult))*vsx, height*vsy}
     checkGuishader(true)
-
     clear()
   end
 end
@@ -294,26 +311,24 @@ function drawBuildpower()
 
   -- bar background
   contentMargin = (backgroundRect[3]-backgroundRect[1]) * 0.22
-  RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-padding-contentMargin, backgroundRect[4]-padding-contentMargin, padding*0.5, 1,1,1,1,{0,0,0,0.15}, {0.1,0.1,0.1,0.15})
+  RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-padding-contentMargin, backgroundRect[4]-padding-contentMargin, padding*0.5, 1,1,1,1,{0,0,0,0.13}, {0.08,0.08,0.08,0.13})
 end
 
-local avgFrames = 7     -- to smooth out changes
-local avgBuildPower = 0
 function drawBuildpower2()
-    local usedBuildpower = 0
-    for unitID, unitDefID in pairs(builders) do
-        usedBuildpower = usedBuildpower + (spGetUnitCurrentBuildPower(unitID)*isBuilder[unitDefID])
-    end
-    local buildpower = usedBuildpower / totalBuildpower
-    avgBuildPower = (buildpower + (avgBuildPower * (avgFrames-1))) / avgFrames
-    if avgBuildPower > totalBuildpower then -- can happen due to the averaging
-        avgBuildPower = totalBuildpower
-    end
+    if gamestarted or Spring.GetGameFrame() > 0 then
+        gamestarted = true
+        local buildpower = getUsedBuildpower()
+        avgBuildPower = (buildpower + (avgBuildPower * (avgFrames-1))) / avgFrames
+        if avgBuildPower > totalBuildpower then -- can happen due to the averaging
+            avgBuildPower = totalBuildpower
+        end
 
-    local contentMargin2 = contentMargin*1.33
-    local barHeight = (((backgroundRect[4]-padding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
-    if barHeight > padding*2 then   -- prevent artifacts
-        RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-padding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, padding*0.4, 1,1,1,1,{0.2,0.6,0.2,0.5}, {0.5,1,0.5,0.5})
+        local contentMargin2 = contentMargin*1.33
+        local barHeight = (((backgroundRect[4]-padding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
+        if barHeight > padding*2 then   -- prevent artifacts
+            RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-padding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, padding*0.4, 1,1,1,1,{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
+        end
+
     end
 end
 
