@@ -319,8 +319,8 @@ function drawBuildpower2()
         gamestarted = true
         local buildpower = getUsedBuildpower()
         avgBuildPower = (buildpower + (avgBuildPower * (avgFrames-1))) / avgFrames
-        if avgBuildPower > totalBuildpower then -- can happen due to the averaging
-            avgBuildPower = totalBuildpower
+        if avgBuildPower > 1 then -- can happen due to the averaging
+            avgBuildPower = 1
         end
 
         local contentMargin2 = contentMargin*1.33
