@@ -326,9 +326,8 @@ function drawBuildpower2()
         local contentMargin2 = contentMargin*1.33
         local barHeight = (((backgroundRect[4]-padding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
         if barHeight > padding*2 then   -- prevent artifacts
-            RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-padding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, padding*0.4, 1,1,1,1,{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
+            RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-padding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, padding*0.4, 1,1,1,1,{0.33,0.33,0.33,0.45}, {0.66,0.66,0.66,0.45}) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
         end
-
     end
 end
 

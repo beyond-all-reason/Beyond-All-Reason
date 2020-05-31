@@ -897,7 +897,8 @@ local function drawInfo()
           local healthBarMargin = healthBarHeight * 0.7
           local healthBarPadding = healthBarHeight * 0.15
           local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
-          local color = bfcolormap[math.max(math.floor((health/maxHealth)*100, 0))]
+          local color = bfcolormap[math.min(math.max(math.floor((health/maxHealth)*100, 0)), 100)]
+
           -- bar background
           RectRound(
                   customInfoArea[3]-healthBarMargin-healthBarWidth,
