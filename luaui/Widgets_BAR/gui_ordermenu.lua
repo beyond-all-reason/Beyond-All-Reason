@@ -244,8 +244,8 @@ function setupCellGrid(force)
     local i = 0
     local cellWidth = (activeRect[3] - activeRect[1]) / colls
     local cellHeight = (activeRect[4] - activeRect[2]) / rows
-    cellMarginPx = math_max(1, math_ceil(cellHeight*0.75 * cellMargin))
-    cellMarginPx2 = math_max(1, math_ceil(cellHeight*0.25 * cellMargin))
+    cellMarginPx = math_max(1, math_ceil(cellHeight*0.7 * cellMargin))
+    cellMarginPx2 = math_max(0, math_ceil(cellHeight*0.3 * cellMargin))
     for row=1, rows do
       for col=1, colls do
         i = i + 1
@@ -539,11 +539,11 @@ function drawOrders()
       color1 = {0,0,0,0.8}
       color2 = {0,0,0,0.6}
     end
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, cellRects[cell][4]-cellMarginPx2-padding, padding*1.3 ,2,2,2,2, color1,color2)
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, cellRects[cell][4]-cellMarginPx2-padding, padding ,2,2,2,2, color1,color2)
 
     -- gloss
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.38)-padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][4]-cellMarginPx2)-padding, padding*1.3, 2,2,0,0, {1,1,1,0.055}, {1,1,1,0.14})
-    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, padding*1.3, 0,0,2,2, {1,1,1,0.12}, {1,1,1,0})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx-((cellRects[cell][4]-cellRects[cell][2])*0.38)-padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][4]-cellMarginPx2)-padding, padding, 2,2,0,0, {1,1,1,0.055}, {1,1,1,0.14})
+    RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, padding, 0,0,2,2, {1,1,1,0.12}, {1,1,1,0})
 
     -- icon
     if showIcons then

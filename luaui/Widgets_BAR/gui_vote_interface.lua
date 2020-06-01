@@ -10,6 +10,9 @@ function widget:GetInfo()
 	}
 end
 
+-- dont show vote interface for specs for the following keywords
+local specBadKeywords = {'forcestart'}
+
 local vsx, vsy = gl.GetViewSizes()
 local customScale = 1.5
 local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
@@ -209,7 +212,7 @@ function widget:AddConsoleLine(lines, priority)
 					if not string.find(line,"\"resign ") or isTeamPlayer(string.sub(line,string.find(line,'"resign ')+8, string.find(line,' TEAM')-1)) then
 						StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote "))
 					end
-				elseif voteDlist and (string.find(line," passed.") or string.find(line," failed") or string.find(line,"Vote cancelled") or  string.find(line," cancelling \"")) then
+				elseif voteDlist and (string.find(line," passed.") or string.find(line," failed") or string.find(line,"Vote cancelled") or  string.find(line," Cancelling \"")) then
 					EndVote()
 				end
 			end
@@ -230,145 +233,156 @@ function EndVote()
 end
 
 function StartVote(name, owner)
-	if voteDlist then
-		gl.DeleteList(voteDlist)
+	local show = true
+	if mySpec then
+		for k,keyword in pairs(specBadKeywords) do
+			if string.find(name, keyword) then
+				show = false
+				break
+			end
+		end
 	end
-	if owner then
-		voteOwner = owner
-	end
-	voteDlist = gl.CreateList(function()
-		if name then
-			voteName = name
+	if show then
+		if voteDlist then
+			gl.DeleteList(voteDlist)
 		end
-
-		local x,y,b = Spring.GetMouseState()
-
-		local width = vsx/6.2
-		local height = vsy/13
-
-		local fontSize = height/5	-- title only
-		local minWidth = font:GetTextWidth('  '..voteName..'  ')*fontSize
-		if width < minWidth then
-			width = minWidth
+		if owner then
+			voteOwner = owner
 		end
+		voteDlist = gl.CreateList(function()
+			if name then
+				voteName = name
+			end
 
-		local padding = width/70
-		local buttonPadding = width/100
-		local buttonMargin = width/32
-		local buttonHeight = height*0.55
+			local x,y,b = Spring.GetMouseState()
 
-		local xpos = width/2
-		local ypos = vsy-(height/2)
+			local width = vsx/6.2
+			local height = vsy/13
 
-		if WG['topbar'] ~= nil then
-			local topbarArea = WG['topbar'].GetPosition()
-			--xpos = vsx-(width/2)
-			xpos = topbarArea[1] + (width/2) + ((vsx-topbarArea[1])/1.95)
-			ypos = topbarArea[6]-(5*topbarArea[5])-(height/2)
-		end
+			local fontSize = height/5	-- title only
+			local minWidth = font:GetTextWidth('  '..voteName..'  ')*fontSize
+			if width < minWidth then
+				width = minWidth
+			end
 
-		hovered = nil
+			local padding = width/70
+			local buttonPadding = width/100
+			local buttonMargin = width/32
+			local buttonHeight = height*0.55
 
-		windowArea = {xpos-(width/2), ypos-(height/2), xpos+(width/2), ypos+(height/2) }
-		closeButtonArea = {(xpos+(width/2))-(height/1.9), ypos+(height/5.5), xpos+(width/2), ypos+(height/2) }
-		yesButtonArea = {xpos-(width/2)+buttonMargin, ypos-(height/2)+buttonMargin, xpos-(buttonMargin/2), ypos-(height/2)+buttonHeight-buttonMargin }
-		noButtonArea = {xpos+(buttonMargin/2), ypos-(height/2)+buttonMargin, xpos+(width/2)-buttonMargin, ypos-(height/2)+buttonHeight-buttonMargin}
+			local xpos = width/2
+			local ypos = vsy-(height/2)
 
-		-- window
-		RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 5.5*widgetScale, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
-		RectRound(windowArea[1]+padding, windowArea[2]+padding, windowArea[3]-padding, windowArea[4]-padding, 3.5*widgetScale, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
+			if WG['topbar'] ~= nil then
+				local topbarArea = WG['topbar'].GetPosition()
+				--xpos = vsx-(width/2)
+				xpos = topbarArea[1] + (width/2) + ((vsx-topbarArea[1])/1.95)
+				ypos = topbarArea[6]-(5*topbarArea[5])-(height/2)
+			end
 
-		-- close
-		--gl.Color(0.1,0.1,0.1,0.55+(0.36))
-		--RectRound(closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4], 3.5*widgetScale)
-		local color1,color2
-		if IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
-			hovered = 'esc'
-			--gl.Color(1,1,1,0.55)
-			color1 = {0.6,0.6,0.6,0.6}
-			color2 = {1,1,1,0.6}
-		else
-			--gl.Color(1,1,1,0.027)
-			color1 = {0.6,0.6,0.6,0.08}
-			color2 = {1,1,1,0.08}
-		end
-		RectRound(closeButtonArea[1]+padding, closeButtonArea[2]+padding, closeButtonArea[3]-padding, closeButtonArea[4]-padding, 3.5*widgetScale, 0,1,0,1, color1, color2)
+			hovered = nil
 
-		fontSize = fontSize*0.85
-		gl.Color(0,0,0,1)
+			windowArea = {xpos-(width/2), ypos-(height/2), xpos+(width/2), ypos+(height/2) }
+			closeButtonArea = {(xpos+(width/2))-(height/1.9), ypos+(height/5.5), xpos+(width/2), ypos+(height/2) }
+			yesButtonArea = {xpos-(width/2)+buttonMargin, ypos-(height/2)+buttonMargin, xpos-(buttonMargin/2), ypos-(height/2)+buttonHeight-buttonMargin }
+			noButtonArea = {xpos+(buttonMargin/2), ypos-(height/2)+buttonMargin, xpos+(width/2)-buttonMargin, ypos-(height/2)+buttonHeight-buttonMargin}
 
-		-- vote name
-		font:Begin()
-		font:Print("\255\190\190\190"..voteName, windowArea[1]+((windowArea[3]-windowArea[1])/2), windowArea[4]-padding-padding-padding-fontSize, fontSize, "con")
-		font:End()
+			-- window
+			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 5.5*widgetScale, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+			RectRound(windowArea[1]+padding, windowArea[2]+padding, windowArea[3]-padding, windowArea[4]-padding, 3.5*widgetScale, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
 
-		font2:Begin()
-		-- ESC
-		font2:Print("\255\0\0\0ESC", closeButtonArea[1]+((closeButtonArea[3]-closeButtonArea[1])/2), closeButtonArea[2]+((closeButtonArea[4]-closeButtonArea[2])/2)-(fontSize/3), fontSize, "cn")
+			-- close
+			--gl.Color(0.1,0.1,0.1,0.55+(0.36))
+			--RectRound(closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4], 3.5*widgetScale)
+			local color1,color2
+			if IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
+				hovered = 'esc'
+				--gl.Color(1,1,1,0.55)
+				color1 = {0.6,0.6,0.6,0.6}
+				color2 = {1,1,1,0.6}
+			else
+				--gl.Color(1,1,1,0.027)
+				color1 = {0.6,0.6,0.6,0.08}
+				color2 = {1,1,1,0.08}
+			end
+			RectRound(closeButtonArea[1]+padding, closeButtonArea[2]+padding, closeButtonArea[3]-padding, closeButtonArea[4]-padding, 3.5*widgetScale, 0,1,0,1, color1, color2)
 
-		-- NO
-		local color1,color2,mult
-		if IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
-			hovered = 'n'
-			--gl.Color(0.7,0.1,0.1,0.8)
-			color1 = {0.5,0.07,0.07,0.8}
-			color2 = {0.7,0.1,0.1,0.8}
-			mult = 1.15
-		else
-			--gl.Color(0.5,0,0,0.7)
-			color1 = {0.4,0,0,0.75}
-			color2 = {0.5,0,0,0.75}
-			mult = 1
-		end
-		RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 3*widgetScale, 1,1,1,1, color1, color2)
+			fontSize = fontSize*0.85
+			gl.Color(0,0,0,1)
 
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(noButtonArea[1], noButtonArea[4]-((noButtonArea[4]-noButtonArea[2])*0.5), noButtonArea[3], noButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
-		RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])*0.35), 3*widgetScale, 0,0,2,2, {1,1,1,0.11*mult}, {1,1,1,0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		--gl.Color(0,0,0,0.075)
-		--RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 2.2*widgetScale)
+			-- vote name
+			font:Begin()
+			font:Print("\255\190\190\190"..voteName, windowArea[1]+((windowArea[3]-windowArea[1])/2), windowArea[4]-padding-padding-padding-fontSize, fontSize, "con")
+			font:End()
 
-		fontSize = fontSize*0.85
-		local noText = 'NO'
-		if voteOwner then
-			noText = 'End Vote'
-		end
-		font2:SetOutlineColor(0,0,0,0.4)
-		font2:Print(noText, noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+			font2:Begin()
+			-- ESC
+			font2:Print("\255\0\0\0ESC", closeButtonArea[1]+((closeButtonArea[3]-closeButtonArea[1])/2), closeButtonArea[2]+((closeButtonArea[4]-closeButtonArea[2])/2)-(fontSize/3), fontSize, "cn")
 
-		-- YES
-		if not voteOwner then
-			if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
-				hovered = 'y'
-				--gl.Color(0.05,0.6,0.05,0.8)
-				color1 = {0.035,0.4,0.035,0.8}
-				color2 = {0.05,0.6,0.5,0.8}
+			-- NO
+			local color1,color2,mult
+			if IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
+				hovered = 'n'
+				--gl.Color(0.7,0.1,0.1,0.8)
+				color1 = {0.5,0.07,0.07,0.8}
+				color2 = {0.7,0.1,0.1,0.8}
 				mult = 1.15
 			else
-				--gl.Color(0,0.5,0,0.35)
-				color1 = {0,0.4,0,0.38}
-				color2 = {0,0.5,0,0.38}
+				--gl.Color(0.5,0,0,0.7)
+				color1 = {0.4,0,0,0.75}
+				color2 = {0.5,0,0,0.75}
 				mult = 1
 			end
-			RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 3*widgetScale, 1,1,1,1, color1, color2)
+			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 3*widgetScale, 1,1,1,1, color1, color2)
+
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(yesButtonArea[1], yesButtonArea[4]-((yesButtonArea[4]-yesButtonArea[2])*0.5), yesButtonArea[3], yesButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
-			RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])*0.35), 3*widgetScale, 0,0,2,2, {1,1,1,0.11*mult}, {1,1,1,0})
+			RectRound(noButtonArea[1], noButtonArea[4]-((noButtonArea[4]-noButtonArea[2])*0.5), noButtonArea[3], noButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])*0.35), 3*widgetScale, 0,0,2,2, {1,1,1,0.11*mult}, {1,1,1,0})
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			--gl.Color(0,0,0,0.075)
-			--RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 2.2*widgetScale)
+			--RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 2.2*widgetScale)
 
-			font2:Print("YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
-		end
-		font2:End()
-	end)
-	-- background blur
-	if WG['guishader'] then
-		dlistGuishader = gl.CreateList( function()
-			RectRound(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 5.5*widgetScale)
+			fontSize = fontSize*0.85
+			local noText = 'NO'
+			if voteOwner then
+				noText = 'End Vote'
+			end
+			font2:SetOutlineColor(0,0,0,0.4)
+			font2:Print(noText, noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+
+			-- YES
+			if not voteOwner then
+				if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
+					hovered = 'y'
+					--gl.Color(0.05,0.6,0.05,0.8)
+					color1 = {0.035,0.4,0.035,0.8}
+					color2 = {0.05,0.6,0.5,0.8}
+					mult = 1.15
+				else
+					--gl.Color(0,0.5,0,0.35)
+					color1 = {0,0.4,0,0.38}
+					color2 = {0,0.5,0,0.38}
+					mult = 1
+				end
+				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 3*widgetScale, 1,1,1,1, color1, color2)
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				RectRound(yesButtonArea[1], yesButtonArea[4]-((yesButtonArea[4]-yesButtonArea[2])*0.5), yesButtonArea[3], yesButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])*0.35), 3*widgetScale, 0,0,2,2, {1,1,1,0.11*mult}, {1,1,1,0})
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+				--gl.Color(0,0,0,0.075)
+				--RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 2.2*widgetScale)
+
+				font2:Print("YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+			end
+			font2:End()
 		end)
-		WG['guishader'].InsertDlist(dlistGuishader, 'voteinterface')
+		-- background blur
+		if WG['guishader'] then
+			dlistGuishader = gl.CreateList( function()
+				RectRound(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 5.5*widgetScale)
+			end)
+			WG['guishader'].InsertDlist(dlistGuishader, 'voteinterface')
+		end
 	end
 end
 
