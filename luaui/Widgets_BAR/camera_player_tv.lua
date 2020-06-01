@@ -614,14 +614,25 @@ function widget:DrawScreen()
 				if lockPlayerID and not drawlistsPlayername[lockPlayerID] then
 					drawlistsPlayername[lockPlayerID] = gl.CreateList( function()
 						local name,_,spec,teamID,_,_,_,_,_ = Spring.GetPlayerInfo(lockPlayerID,false)
-						local fontSize = 31 * widgetScale
+						local fontSize = 26 * widgetScale
 						local nameColourR,nameColourG,nameColourB = 1,1,1
 						if not spec then
 							nameColourR,nameColourG,nameColourB,_ = Spring.GetTeamColor(teamID)
 						end
-						local posX = vsx * 0.5
-						local posY = vsy * 0.095
+						--local posX = vsx * 0.5
+						--local posY = vsy * 0.17
+						--font2:Begin()
+						--font2:SetTextColor(nameColourR,nameColourG,nameColourB,1)
+						--if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
+						--	font2:SetOutlineColor(1,1,1,1)
+						--else
+						--	font2:SetOutlineColor(0,0,0,1)
+						--end
+						--font2:Print(name, posX, posY, fontSize, "con")
+						--font2:End()
 
+						local posX = vsx * 0.985
+						local posY = top + (vsy * 0.0215)
 						font2:Begin()
 						font2:SetTextColor(nameColourR,nameColourG,nameColourB,1)
 						if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
@@ -629,7 +640,7 @@ function widget:DrawScreen()
 						else
 							font2:SetOutlineColor(0,0,0,1)
 						end
-						font2:Print(name, posX, posY, fontSize, "con")
+						font2:Print(name, posX, posY, fontSize, "ron")
 						font2:End()
 					end)
 				end
