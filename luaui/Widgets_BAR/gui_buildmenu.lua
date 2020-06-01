@@ -927,8 +927,10 @@ function drawBuildmenu()
   -- adjust grid size when pages are needed
   local paginatorCellHeight = contentHeight-(rows*cellSize)
   if cmdsCount > colls*rows then
-    --currentPage = 1
     pages = math.ceil(cmdsCount / (colls*rows))
+    if currentPage > pages then
+      currentPage = pages
+    end
     -- remove a row if there isnt enough room for the paginator UI
     if paginatorCellHeight < (0.06*(1-((colls/4)*0.25)))*vsy then
       rows = rows - 1
