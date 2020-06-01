@@ -512,8 +512,8 @@ function drawOrders()
   RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[2]+(altPosition and 0 or padding),backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-  local cellInnerWidth = math_floor((cellRects[1][3]-cellMarginPx2) - (cellRects[1][1]+cellMarginPx))
-  local cellInnerHeight = math_floor((cellRects[1][4]-cellMarginPx2) - (cellRects[1][2]+cellMarginPx))
+  local cellInnerWidth = math_ceil((cellRects[1][3]-cellMarginPx2) - (cellRects[1][1]+cellMarginPx))
+  local cellInnerHeight = math_ceil((cellRects[1][4]-cellMarginPx2) - (cellRects[1][2]+cellMarginPx))
 
   padding = math_max(1, math_ceil(cellInnerWidth * 0.011))
 
@@ -661,7 +661,7 @@ function drawOrders()
             r,g,b,a = 0.1,1,0.1,(i == desiredState and 0.26 or 0.8)
           end
         else
-          r,g,b,a = 0,0,0,0.35  -- default off state
+          r,g,b,a = 0,0,0,0.36  -- default off state
         end
         glColor(r,g,b,a)
         local x1 = (cellInnerWidth*statePadding) + cellRects[cell][1] + cellMarginPx + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin)
@@ -720,7 +720,9 @@ function widget:DrawScreen()
         if cmds[cell] then
           if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
             local cmd = cmds[cell]
-            WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
+            if WG['tooltip'] and cmd.tooltip then
+              WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
+            end
             cellHovered = cell
 
             -- draw highlight under the button
