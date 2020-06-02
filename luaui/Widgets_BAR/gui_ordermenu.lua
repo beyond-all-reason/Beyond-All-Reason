@@ -152,7 +152,6 @@ local function checkGuishader(force)
       dlistGuishader = gl.CreateList( function()
         RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
       end)
-      --WG['guishader'].InsertDlist(dlistGuishader, 'ordermenu')
     end
   elseif dlistGuishader then
     dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -347,7 +346,7 @@ function widget:Update(dt)
   sec = sec + dt
   if sec > 0.5 then
     sec = 0
-    --checkGuishader()
+    checkGuishader()
     if WG['buildpower'] then
       local newBpWidth, newBpHeight = WG['buildpower'].getPosition()
       if bpWidth == nil or (bpWidth ~= newBpWidth or bpHeight ~= newBpHeight) then
