@@ -131,6 +131,11 @@ return {
 				predictboost = 0.3,
 				range = 365,
 				reloadtime = 1,
+				separation = 2.2,
+				nogap = false,
+				sizeDecay = 0.08,
+				stages = 12,
+				alphaDecay = 0.10,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				soundstart = "Mavgun2",
@@ -138,6 +143,11 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					expl_light_life_mult = 1.1,
+					light_mult = 1.2,
+					light_radius_mult = 1.3,
+				},
 				damage = {
 					bombers = 65,
 					default = 265,
