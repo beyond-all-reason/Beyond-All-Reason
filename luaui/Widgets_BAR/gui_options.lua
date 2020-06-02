@@ -546,7 +546,8 @@ function mouseoverGroupTab(id)
 	local groupMargin = bgMargin/1.7
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0}, {1,1,1,0.07})
-	RectRound(groupRect[id][1]+groupMargin, groupRect[id][4]-groupMargin-((groupRect[id][4]-groupRect[id][2])*0.5), groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0.04}, {1,1,1,0.1})
+	-- gloss
+	RectRound(groupRect[id][1]+groupMargin, groupRect[id][4]-groupMargin-((groupRect[id][4]-groupRect[id][2])*0.5), groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0.025}, {1,1,1,0.1})
 	RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][2]+groupMargin+((groupRect[id][4]-groupRect[id][2])*0.35), groupMargin*1.25, 0,0,0,0, {1,1,1,0.06},{0,0,0,0})
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -595,7 +596,8 @@ function DrawWindow()
 				RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {0.44,0.35,0.18,0.2}, {0.68,0.55,0.25,0.2})
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(groupRect[id][1]+groupMargin, groupRect[id][4]-groupMargin-((groupRect[id][4]-groupRect[id][2])*0.5), groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.04}, {1,0.88,0.66,0.1})
+				-- gloss
+				RectRound(groupRect[id][1]+groupMargin, groupRect[id][4]-groupMargin-((groupRect[id][4]-groupRect[id][2])*0.5), groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.025}, {1,0.88,0.66,0.1})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font2:Begin()
@@ -2505,7 +2507,7 @@ function init()
 		{id="buildmenualternativeicons", group="ui", name="Alternative unit icons", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getAlternativeIcons()), description='Switch to a different unit icon set',
 		 onload = function(i) end,
 		 onchange = function(i, value)
-			 saveOptionValue('Buildmenu', 'buildmenu', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
+			 saveOptionValue('Build menu', 'buildmenu', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 			 saveOptionValue('Info', 'info', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 			 saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
 			 saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', {'alternativeUnitpics'}, value)
@@ -2530,55 +2532,43 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
 		},
 
-		{id="buildmenu_makefancy", group="ui", basic=true, name="Buildmenu"..widgetOptionColor.."  fancy", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getMakeFancy~=nil and WG['buildmenu'].getMakeFancy()), description='Adds extra gradients and highlights',
+		{id="buildmenu_makefancy", group="ui", basic=true, name="Build menu"..widgetOptionColor.."  fancy", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getMakeFancy~=nil and WG['buildmenu'].getMakeFancy()), description='Adds extra gradients and highlights',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMakeFancy', {'showMakeFancy'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setMakeFancy', {'showMakeFancy'}, value) end,
 		},
 		{id="buildmenu_prices", group="ui", basic=true, name=widgetOptionColor.."   prices", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowPrice~=nil and WG['buildmenu'].getShowPrice()), description='Unit prices in the buildmenu\n\n(when disabled: still show when hovering icon)',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowPrice', {'showPrice'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowPrice', {'showPrice'}, value) end,
 		},
 		{id="buildmenu_radaricon", group="ui", basic=true, name=widgetOptionColor.."   radar icon", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowRadarIcon~=nil and WG['buildmenu'].getShowRadarIcon()), description='Radar icons in the buildmenu',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowRadarIcon', {'showRadarIcon'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowRadarIcon', {'showRadarIcon'}, value) end,
 		},
 		{id="buildmenu_tooltip", group="ui", basic=true, name=widgetOptionColor.."   tooltips", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowTooltip~=nil and WG['buildmenu'].getShowTooltip()), description='Tooltip when hovering over a unit in the buildmenu',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowTooltip', {'showTooltip'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', {'showTooltip'}, value) end,
 		},
 
 		--{id="buildmenu_shortcuts", group="ui", basic=true, name=widgetOptionColor.."   shortcuts", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowShortcuts~=nil and WG['buildmenu'].getShowShortcuts()), description='Shortcuts prices in the buildmenu',
 		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
+		-- onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
 		--},
 		{id="buildmenu_defaultcolls", group="ui", basic=true, name=widgetOptionColor.."   columns", type="slider", min=4, max=6, step=1, value=5, description='Number of columns when "dynamic columns" is disabled',
-		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_defaultcolls", {'defaultColls'}) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setDefaultColls', {'defaultColls'}, value) end,
+		 onload = function(i) loadWidgetData("Build menu", "buildmenu_defaultcolls", {'defaultColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', {'defaultColls'}, value) end,
 		},
 		{id="buildmenu_dynamic", group="ui", basic=true, name=widgetOptionColor.."   dynamic columns", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getDynamicIconsize~=nil and WG['buildmenu'].getDynamicIconsize()), description='Use variable number of columns depending on number of buildoptions availible',
 		 onload = function(i) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setDynamicIconsize', {'dynamicIconsize'}, value) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setDynamicIconsize', {'dynamicIconsize'}, value) end,
 		},
 		{id="buildmenu_mincolls", group="ui", name=widgetOptionColor.."      min columns", type="slider", min=4, max=6, step=1, value=5, description='',
-		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_mincolls", {'minColls'}) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMinColls', {'minColls'}, value) end,
+		 onload = function(i) loadWidgetData("Build menu", "buildmenu_mincolls", {'minColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setMinColls', {'minColls'}, value) end,
 		},
 		{id="buildmenu_maxcolls", group="ui", name=widgetOptionColor.."      max columns", type="slider", min=4, max=7, step=1, value=6, description='',
-		 onload = function(i) loadWidgetData("Buildmenu", "buildmenu_maxcolls", {'maxColls'}) end,
-		 onchange = function(i, value) saveOptionValue('Buildmenu', 'buildmenu', 'setMaxColls', {'maxColls'}, value) end,
+		 onload = function(i) loadWidgetData("Build menu", "buildmenu_maxcolls", {'maxColls'}) end,
+		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setMaxColls', {'maxColls'}, value) end,
 		},
-		--{id="buildmenuprices", group="ui", name=widgetOptionColor.."   prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, value) end,
-		--},
-		--{id="buildmenuradaricons", group="ui", name=widgetOptionColor.."   radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, value) end,
-		--},
-		--{id="buildmenulargeicons", group="ui", name=widgetOptionColor.."   enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
-		--},
 
 		{id="consolemaxlines", group="ui", name="Console"..widgetOptionColor.."  max lines", type="slider", min=3, max=9, step=1, value=6, description='',
 		 onload = function(i)
@@ -3799,22 +3789,6 @@ function init()
 
 	if not widgetHandler.knownWidgets["Commander Name Tags"] then
 		options[getOptionByID('nametags_icon')] = nil
-	end
-
-	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigShortcutsInfo == nil then
-		options[getOptionByID('buildmenushortcuts')] = nil
-	end
-	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigUnitPrice == nil then
-		options[getOptionByID('buildmenuprices')] = nil
-	end
-	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigUnitRadaricon == nil then
-		options[getOptionByID('buildmenuradaricons')] = nil
-	end
-	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigPlaySounds == nil then
-		options[getOptionByID('buildmenusounds')] = nil
-	end
-	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigLargeUnitIcons == nil then
-		options[getOptionByID('buildmenulargeicons')] = nil
 	end
 
 	if WG['playercolorpalette'] == nil or WG['playercolorpalette'].getSameTeamColors == nil then

@@ -1,6 +1,6 @@
 function widget:GetInfo()
   return {
-    name      = "Buildmenu",
+    name      = "Build menu",
     desc      = "",
     author    = "Floris",
     date      = "April 2020",
