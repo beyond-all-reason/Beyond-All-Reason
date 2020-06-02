@@ -18,7 +18,7 @@ local armorDefs = {
 		"corroach",
 		"corsktl",
 	},
-	["else"] = {
+	standard = {
 		"armjuno",
 		"armageo",
 		"armaak",
@@ -414,7 +414,7 @@ local armorDefs = {
 		"armepoch",
 		"corblackhy",
 	},
-		
+
 	subs = {
 		"armsub",
 		"corsub",

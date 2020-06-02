@@ -107,6 +107,7 @@ local unitDescriptionLong = {}
 local unitTooltip = {}
 local unitIconType = {}
 local isMex = {}
+local isTransport = {}
 local unitMaxWeaponRange = {}
 local unitHealth = {}
 local unitBuildOptions = {}
@@ -114,6 +115,14 @@ local unitBuildSpeed = {}
 local unitWeapons = {}
 local unitDPS = {}
 local unitCanStockpile = {}
+local unitLosRadius = {}
+local unitAirLosRadius = {}
+local unitRadarRadius = {}
+local unitSonarRadius = {}
+local unitJammerRadius = {}
+local unitSonarJamRadius = {}
+local unitSeismicRadius = {}
+local unitArmorType = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
   if unitDef.maxWeaponRange > 16 then
@@ -122,6 +131,34 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   if unitDef.customParams.description_long then
     unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
   end
+  if unitDef.isTransport then
+    isTransport[unitDefID] = {unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity}
+  end
+
+  unitArmorType[unitDefID] = Game.armorTypes[unitDef.armorType or 0] or '???'
+
+  if unitDef.losRadius > 0 then
+    unitLosRadius[unitDefID] = unitDef.losRadius
+  end
+  if unitDef.airLosRadius > 0 then
+    unitAirLosRadius[unitDefID] = unitDef.airLosRadius
+  end
+  if unitDef.radarRadius > 0 then
+    unitRadarRadius[unitDefID] = unitDef.radarRadius
+  end
+  if unitDef.sonarRadius > 0 then
+    unitSonarRadius[unitDefID] = unitDef.sonarRadius
+  end
+  if unitDef.jammerRadius > 0 then
+    unitJammerRadius[unitDefID] = unitDef.jammerRadius
+  end
+  if unitDef.sonarJamRadius > 0 then
+    unitSonarJamRadius[unitDefID] = unitDef.sonarJamRadius
+  end
+  if unitDef.seismicRadius > 0 then
+    unitSeismicRadius[unitDefID] = unitDef.seismicRadius
+  end
+
   unitTooltip[unitDefID] = unitDef.tooltip
   unitIconType[unitDefID] = unitDef.iconType
   unitEnergyCost[unitDefID] = unitDef.energyCost
@@ -671,11 +708,8 @@ local function drawInfo()
       for coll=1, colls do
         if selectionCells[cellID] then
           local uDefID = selectionCells[cellID]
-
           cellRect[cellID] = {customInfoArea[3]-cellPadding-(coll*cellsize), customInfoArea[2]+cellPadding+((row-1)*cellsize), customInfoArea[3]-cellPadding-((coll-1)*cellsize), customInfoArea[2]+cellPadding+((row)*cellsize)}
-
           drawSelectionCell(cellID, selectionCells[cellID], texOffset)
-
         end
         cellID = cellID - 1
         if cellID <= 0 then break end
@@ -684,16 +718,6 @@ local function drawInfo()
     end
     glTexture(false)
     glColor(1,1,1,1)
-
-    -- text
-    --if showSelectionInfo then
-    --  local textColor = '\255\195\195\195'
-    --  local valueColor = '\255\255\255\255'
-    --  local text = textColor..'Selection: '..valueColor..#selectedUnits--..textColor..'  ('..selUnitTypes..textColor..' types) '
-    --  font:Begin()
-    --  font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.95), fontSize, "o")
-    --  font:End()
-    --end
 
 
   elseif displayMode ~= 'text' and displayUnitDefID then
@@ -713,15 +737,26 @@ local function drawInfo()
     end
     iconSize = iconSize + iconPadding
 
+    local radarIconSize = iconSize * 0.3
+    local radarIconMargin = radarIconSize * 0.3
+    local showingRadarIcon = false
     if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
-      local radarIconSize = iconSize * 0.3
-      local radarIconMargin = radarIconSize * 0.3
       glColor(1,1,1,0.88)
       glTexture(':lr64,64:'..iconTypesMap[unitIconType[displayUnitDefID]])
       glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
       glTexture(false)
       glColor(1,1,1,1)
+      showingRadarIcon = true
     end
+
+    -- unitID
+    if displayUnitID then
+      local radarIconSpace = showingRadarIcon and (radarIconMargin+radarIconSize) or 0
+      font:Begin()
+      font:Print('#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
+      font:End()
+    end
+
 
     local unitNameColor = '\255\205\255\205'
     if SelectedUnitsCount > 0 then
@@ -874,13 +909,40 @@ local function drawInfo()
         if exp and exp > 0.009 then
           addTextInfo('xp', round(exp, 2))
         end
+
+        if unitLosRadius[displayUnitDefID] then
+          addTextInfo('los', round(unitLosRadius[displayUnitDefID],0))
+        end
+        if unitAirLosRadius[displayUnitDefID] then
+          addTextInfo('airlos', round(unitAirLosRadius[displayUnitDefID],0))
+        end
+        if unitRadarRadius[displayUnitDefID] then
+          addTextInfo('radar', round(unitRadarRadius[displayUnitDefID],0))
+        end
+        if unitSonarRadius[displayUnitDefID] then
+          addTextInfo('sonar', round(unitSonarRadius[displayUnitDefID],0))
+        end
+        if unitJammerRadius[displayUnitDefID] then
+          addTextInfo('jammer', round(unitJammerRadius[displayUnitDefID],0))
+        end
+        if unitSonarJamRadius[displayUnitDefID] then
+          addTextInfo('sonarjam', round(unitSonarJamRadius[displayUnitDefID],0))
+        end
+        if unitSeismicRadius[displayUnitDefID] then
+          addTextInfo('seismic', unitSeismicRadius[displayUnitDefID])
+        end
+
+        if unitArmorType[displayUnitDefID] then
+          addTextInfo('armor', unitArmorType[displayUnitDefID])
+        end
+
         addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
         addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
         addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
 
         -- wordwrap text
         unitInfoText = text   -- canbe used to show full text on mouse hover
-        text, numLines = font:WrapText(text,((backgroundRect[3]-padding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
+        text, numLines = font:WrapText(text,((backgroundRect[3]-padding-padding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
 
         -- prune number of lines
         local lines = lines(text)

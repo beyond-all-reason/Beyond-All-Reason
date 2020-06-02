@@ -886,10 +886,11 @@ local function drawCell(cellRectID, usedZoom, cellColor)
   -- factory queue number
   if cmds[cellRectID].params[1] then
     local pad = cellInnerSize * 0.03
-    local textWidth = (font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.29)
+    local textWidth = (font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.285)
     local pad2 = (alternativeUnitpics and pad or 0)
-    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize*3, 0,0,0,1,{0.11,0.11,0.11,0.88}, {0.18,0.18,0.18,0.88})
-    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2+pad, cellRects[cellRectID][3]-cellPadding-iconPadding-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-pad2, cornerSize*2.4, 0,0,0,1,{1,1,1,0.1}, {1,1,1,0.1})
+    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize*3.3, 0,0,0,1,{0.15,0.15,0.15,0.95}, {0.25,0.25,0.25,0.95})
+    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.15)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, 0, 0,0,0,0,{1,1,1,0}, {1,1,1,0.05})
+    RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2+pad, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2+pad, cellRects[cellRectID][3]-cellPadding-iconPadding-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-pad2, cornerSize*2.6, 0,0,0,1,{0.7,0.7,0.7,0.1}, {1,1,1,0.1})
     font2:Print("\255\190\255\190"..cmds[cellRectID].params[1],
             cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.94)-pad2,
             cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.715)-pad2,
