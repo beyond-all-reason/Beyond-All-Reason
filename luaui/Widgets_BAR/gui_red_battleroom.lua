@@ -588,6 +588,10 @@ local function processLine(line,g,cfg,newlinecolor)
 		ignoreThisMessage = true
 	end
 
+	if sfind(line,"is using cheats") then
+		ignoreThisMessage = true
+	end
+
 	-- filter vsync changes
 	if sfind(line,"VSync::SetInterval") then
 		ignoreThisMessage = true
