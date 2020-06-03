@@ -2470,7 +2470,7 @@ function init()
 		 end,
 		},
 
-		{id="uiscale", group="ui", basic=true, name="Interface"..widgetOptionColor.."  scale", type="slider", min=0.8, max=1.15, step=0.01, value=Spring.GetConfigFloat("ui_scale",1), description='',
+		{id="uiscale", group="ui", basic=true, name="Interface"..widgetOptionColor.."  scale", type="slider", min=0.8, max=1.1, step=0.01, value=Spring.GetConfigFloat("ui_scale",1), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("ui_scale", value) end,
 		},

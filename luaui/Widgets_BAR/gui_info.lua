@@ -653,13 +653,11 @@ local function drawInfo()
   glBlending(GL_SRC_ALPHA, GL_ONE)
   RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0}, {1,1,1,0.07})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0}, {1,1,1,0.1})
-  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), padding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
-
-  local fontSize = (height*vsy * 0.11) * (1-((1-ui_scale)*0.5))
-  contentPadding = (height*vsy * 0.075) * (1-((1-ui_scale)*0.5))
+  local fontSize = (height*vsy * 0.11) * (0.95-((1-ui_scale)*0.5))
+  contentPadding = (height*vsy * 0.075) * (0.95-((1-ui_scale)*0.5))
   contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
 
 
@@ -769,42 +767,74 @@ local function drawInfo()
     local energyColor = '\255\255\255\000'
     local healthColor = '\255\100\255\100'
 
+    local labelColor = '\255\205\205\205'
+    local valueColor = '\255\255\255\255'
+    local valuePlusColor = '\255\180\255\180'
+    local valueMinColor = '\255\255\180\180'
+
     local text, numLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
     -- unit tooltip
     font:Begin()
     font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.4), fontSize, "o")
     font:End()
+
     -- unit name
     font2:Begin()
     font2:Print(unitNameColor..unitHumanName[displayUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
-
-    local contentPaddingLeft = contentPadding * 0.75
-    local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
-    local texSize = fontSize * 1.15
-    glColor(1,1,1,1)
-    glTexture(":l:LuaUI/Images/info_metal.png")
-    glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize, backgroundRect[1]+contentPaddingLeft+texSize, texPosY)
-    glTexture(":l:LuaUI/Images/info_energy.png")
-    glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize-(fontSize*1.23), backgroundRect[1]+contentPaddingLeft+texSize, texPosY-(fontSize*1.23))
-    glTexture(":l:LuaUI/Images/info_health.png")
-    glTexRect(backgroundRect[1]+contentPaddingLeft, texPosY-texSize-(fontSize*2.46), backgroundRect[1]+contentPaddingLeft+texSize, texPosY-(fontSize*2.46))
-    glTexture(false)
-
-    -- metal
-    local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
-    font2:Print(metalColor..unitMetalCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*0.6), fontSize, "o")
-    -- energy
-    font2:Print(energyColor..unitEnergyCost[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*1.85), fontSize, "o")
-    -- health
-    font2:Print(healthColor..unitHealth[displayUnitDefID], backgroundRect[1]+contentPaddingLeft, backgroundRect[4]-contentPadding-iconSize-(fontSize*3.1), fontSize, "o")
-
-    font2:End()
+    --font2:End()
 
     -- custom unit info background
     local width = contentWidth * 0.8
     local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
     customInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+height}
     RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
+
+    local contentPaddingLeft = contentPadding * 0.75
+    local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
+    local texSize = fontSize * 0.6
+
+    local posY1 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.1)
+    local posY2 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.38)
+    local posY3 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.67)
+
+    local valueY1 = ''
+    local valueY2 = ''
+    local valueY3 = ''
+    if displayUnitID then
+      local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
+      valueY1 = valuePlusColor..round(metalMake, 1)..valueMinColor..' -'..round(metalUse, 1)
+      valueY2 = valuePlusColor..round(energyMake, 0)..valueMinColor..' -'..round(energyUse, 0)
+      valueY3 = ''
+    else
+      valueY1 = metalColor..unitMetalCost[displayUnitDefID]
+      valueY2 = energyColor..unitEnergyCost[displayUnitDefID]
+      valueY3 = healthColor..unitHealth[displayUnitDefID]
+    end
+
+    glColor(1,1,1,1)
+    if valueY1 ~= '' then
+      glTexture(":l:LuaUI/Images/info_metal.png")
+      glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY1-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY1+texSize)
+    end
+    if valueY2 ~= '' then
+      glTexture(":l:LuaUI/Images/info_energy.png")
+      glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY2-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY2+texSize)
+    end
+    if valueY3 ~= '' then
+      glTexture(":l:LuaUI/Images/info_health.png")
+      glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY3-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY3+texSize)
+    end
+    glTexture(false)
+
+    -- metal
+    local fontSize2 = fontSize*0.96
+    local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
+    font2:Print(valueY1, backgroundRect[1]+contentPaddingLeft, posY1-(fontSize2*0.31), fontSize2, "o")
+    -- energy
+    font2:Print(valueY2, backgroundRect[1]+contentPaddingLeft, posY2-(fontSize2*0.31), fontSize2, "o")
+    -- health
+    font2:Print(valueY3, backgroundRect[1]+contentPaddingLeft, posY3-(fontSize2*0.31), fontSize2, "o")
+    font2:End()
 
     -- draw unit buildoption icons
     if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
@@ -853,10 +883,6 @@ local function drawInfo()
     else  -- unit/unitdef info (without buildoptions)
       contentPadding = contentPadding * 0.95
       local contentPaddingLeft = customInfoArea[1] + contentPadding
-      local labelColor = '\255\205\205\205'
-      local valueColor = '\255\255\255\255'
-      local valuePlusColor = '\255\180\255\180'
-      local valueMinColor = '\255\255\180\180'
 
       -- unit specific info
       if displayMode == 'unit' then
@@ -887,7 +913,8 @@ local function drawInfo()
         end
 
         -- add text
-        addTextInfo('', labelColor..'m +'..valuePlusColor..round(metalMake, 1)..labelColor..' -'..valueMinColor..round(metalUse, 1)..labelColor..',   e +'..valuePlusColor..round(energyMake, 0)..labelColor..' -'..valueMinColor..round(energyUse, 0))
+        --addTextInfo('', labelColor..'m +'..valuePlusColor..round(metalMake, 1)..labelColor..' -'..valueMinColor..round(metalUse, 1)..labelColor..',   e +'..valuePlusColor..round(energyMake, 0)..labelColor..' -'..valueMinColor..round(energyUse, 0))
+
         if unitWeapons[displayUnitDefID] then
           addTextInfo('weapons', #unitWeapons[displayUnitDefID])
           if maxRange then
@@ -1315,7 +1342,7 @@ function checkChanges()
   lastType = hoverType
   lastHoverData = hoverData
   hoverType, hoverData = spTraceScreenRay(x, y)
-  if hoverType == 'unit' then
+  if hoverType == 'unit' or hoverType=='feature' then
     if lastHoverData ~= hoverData then
       lastHoverDataClock = os_clock()
     end
@@ -1330,16 +1357,33 @@ function checkChanges()
   displayMode = 'text'
   displayUnitID = nil
   displayUnitDefID = nil
+
+  -- buildmenu unitdef
   if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
     displayMode = 'unitdef'
     displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
-  elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock()-lastHoverDataClock > 0.1 then -- add small hover delay against eplilepsy
+
+  -- hovered unit
+  elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock()-lastHoverDataClock > 0.08 then -- add small hover delay against eplilepsy
     displayMode = 'unit'
     displayUnitID = hoverData
     displayUnitDefID = spGetUnitDefID(displayUnitID)
     if lastUpdateClock+0.6 < os_clock() then -- unit stats could have changed meanwhile
       doUpdate = true
     end
+
+  -- hovered feature
+  elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' and os_clock()-lastHoverDataClock > 0.08 then -- add small hover delay against eplilepsy
+    --displayMode = 'feature'
+    --displayFeatureID = hoverData
+    --displayFeatureDefID = spGetUnitDefID(displayUnitID)
+    local newTooltip = spGetCurrentTooltip()
+    if newTooltip ~= currentTooltip then
+      currentTooltip = newTooltip
+      doUpdate = true
+    end
+
+  -- selected unit
   elseif SelectedUnitsCount == 1 then
     displayMode = 'unit'
     displayUnitID = selectedUnits[1]
@@ -1347,9 +1391,13 @@ function checkChanges()
     if lastUpdateClock+0.6 < os_clock() then -- unit stats could have changed meanwhile
       doUpdate = true
     end
+
+  -- selection
   elseif SelectedUnitsCount > 1 then
     displayMode = 'selection'
-  else -- text
+
+  -- tooltip text
+  else
     local newTooltip = spGetCurrentTooltip()
     if newTooltip ~= currentTooltip then
       currentTooltip = newTooltip
