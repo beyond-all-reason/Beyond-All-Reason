@@ -34,7 +34,7 @@ return {
 		objectname = "Units/CORAFUS.s3o",
 		script = "Units/CORAFUS.cob",
 		seismicsignature = 0,
-		selfdestructas = "advancedFusionExplosionSelfd",
+		selfdestructas = "advancedFusionExplosion",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooooooooooooooooooo",

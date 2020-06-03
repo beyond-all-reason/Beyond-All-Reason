@@ -2708,8 +2708,8 @@ local types = {
     groundflash_small = false,
     groundflash_large = false,
     groundflash_white = false,
-    dirt = false,
-    dirt2 = false,
+    dirt = true,
+    dirt2 = true,
     --sparks = false,
   },
   fire = {
