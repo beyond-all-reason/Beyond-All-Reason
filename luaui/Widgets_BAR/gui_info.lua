@@ -123,6 +123,8 @@ local unitJammerRadius = {}
 local unitSonarJamRadius = {}
 local unitSeismicRadius = {}
 local unitArmorType = {}
+local unitWreckMetal = {}
+local unitHeapMetal = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
   if unitDef.maxWeaponRange > 16 then
@@ -134,7 +136,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   if unitDef.isTransport then
     isTransport[unitDefID] = {unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity}
   end
-
+  if unitDef.wreckName then
+    if FeatureDefNames[unitDef.wreckName] then
+      unitWreckMetal[unitDefID] = FeatureDefNames[unitDef.wreckName].metal
+      if FeatureDefNames[unitDef.wreckName].deathFeatureID and FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID] then
+        unitHeapMetal[unitDefID] = FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID].metal
+      end
+    end
+  end
   unitArmorType[unitDefID] = Game.armorTypes[unitDef.armorType or 0] or '???'
 
   if unitDef.losRadius > 0 then
@@ -928,13 +937,20 @@ local function drawInfo()
         --  addTextInfo('metal extraction', round(metalExtraction, 2))
         --end
         if unitBuildSpeed[displayUnitDefID] then
-          addTextInfo('builspeed', unitBuildSpeed[displayUnitDefID])
+          addTextInfo('buildspeed', unitBuildSpeed[displayUnitDefID])
         end
         if unitBuildOptions[displayUnitDefID] then
           addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
         end
         if exp and exp > 0.009 then
           addTextInfo('xp', round(exp, 2))
+        end
+
+        if unitWreckMetal[displayUnitDefID] then
+          addTextInfo('wreck', round(unitWreckMetal[displayUnitDefID],0))
+        end
+        if unitHeapMetal[displayUnitDefID] then
+          addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
         end
 
         if unitLosRadius[displayUnitDefID] then
@@ -963,9 +979,9 @@ local function drawInfo()
           addTextInfo('armor', unitArmorType[displayUnitDefID])
         end
 
-        addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
-        addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
         addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
+        addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
+        addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
         -- wordwrap text
         unitInfoText = text   -- canbe used to show full text on mouse hover

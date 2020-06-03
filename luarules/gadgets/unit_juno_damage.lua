@@ -386,45 +386,45 @@ function UpdateList(_,curtime)
 	end
 	ring = glCreateList(function()
 
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	glDepthTest(GL_LEQUAL) --needed else it will draw on top of some trees/grass
-	--gl.PolygonOffset(1,1)
-	for counter,expl in pairs(centers) do
-		local ycoords_incr = ycoords_incr[counter]
-		local ran_num = ran_num_table[counter]
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		glDepthTest(GL_LEQUAL) --needed else it will draw on top of some trees/grass
+		--gl.PolygonOffset(1,1)
+		for counter,expl in pairs(centers) do
+			local ycoords_incr = ycoords_incr[counter]
+			local ran_num = ran_num_table[counter]
 
-		if ((expl.t + fadetime <= curtime) and (curtime <= expl.t + effectlength - fadetime)) then --check if we are fading in/out or not
-			glPushMatrix()
-			glTranslate(expl.x,0,expl.z)
-			for i=0,num_segments-1 do
-				glTranslate(xcoords_incr[i], ycoords_incr[i], zcoords_incr[i])
-				glCallList(FadedCircle)
-			end
-			glPopMatrix()
-		else
-			local q = (1/fadetime) * Mmin(curtime-expl.t, expl.t+effectlength-curtime) --tent function, |slope|=1/fadetime, up at expl.t and back down to expl.t+effectlength. controls 'fade' in/out.
-			local p = q
-
-			if q>0 then
-				if (curtime-expl.t <= fadetime) then -- controls the non-linearity in amount of tsuff drawn during the fade in/out
-					p = Mpow(p,3)
-				else
-					p = Mmin(1,Mpow((5/2)*p,3/2))
-				end
-
+			if ((expl.t + fadetime <= curtime) and (curtime <= expl.t + effectlength - fadetime)) then --check if we are fading in/out or not
 				glPushMatrix()
 				glTranslate(expl.x,0,expl.z)
 				for i=0,num_segments-1 do
-					glTranslate(q * xcoords_incr[i], ycoords_incr[i], q * zcoords_incr[i])
-					if (ran_num[i] <= p) then
-						glCallList(FadedCircle)
-					end
+					glTranslate(xcoords_incr[i], ycoords_incr[i], zcoords_incr[i])
+					glCallList(FadedCircle)
 				end
 				glPopMatrix()
+			else
+				local q = (1/fadetime) * Mmin(curtime-expl.t, expl.t+effectlength-curtime) --tent function, |slope|=1/fadetime, up at expl.t and back down to expl.t+effectlength. controls 'fade' in/out.
+				local p = q
+
+				if q>0 then
+					if (curtime-expl.t <= fadetime) then -- controls the non-linearity in amount of tsuff drawn during the fade in/out
+						p = Mpow(p,3)
+					else
+						p = Mmin(1,Mpow((5/2)*p,3/2))
+					end
+
+					glPushMatrix()
+					glTranslate(expl.x,0,expl.z)
+					for i=0,num_segments-1 do
+						glTranslate(q * xcoords_incr[i], ycoords_incr[i], q * zcoords_incr[i])
+						if (ran_num[i] <= p) then
+							glCallList(FadedCircle)
+						end
+					end
+					glPopMatrix()
+				end
 			end
 		end
-	end
-
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 
 end
