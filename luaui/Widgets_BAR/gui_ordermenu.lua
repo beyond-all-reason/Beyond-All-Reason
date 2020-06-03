@@ -269,7 +269,7 @@ function widget:ViewResize()
   width = width * ui_scale
 
   if altPosition then
-    local margin = (0.004 * (height/width))
+    local margin = (0.0045 * (vsy/vsx))
     posY = height
     posX = width + margin
     if WG['buildpower'] then
