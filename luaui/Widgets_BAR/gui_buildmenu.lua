@@ -569,7 +569,7 @@ function widget:ViewResize()
     posY = math.max(0.4615, (vsy-minimapHeight)/vsy) - 0.0064
   end
   height = (posY - posY2)
-  width = 0.23
+  width = 0.212
 
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
   width = width * ui_scale

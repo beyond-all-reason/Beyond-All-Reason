@@ -49,7 +49,7 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local customScale			= 1.1
+local customScale			= 1.035
 local customScaleStep		= 0.035
 local pointDuration    		= 40
 local cpuText				= false

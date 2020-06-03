@@ -112,7 +112,7 @@ if (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then		-- spots wont mat
 end
 
 local vsx,vsy = gl.GetViewSizes()
-local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
+local widgetScale = (0.95 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
 	
 --To determine faction at start
 local armcomDefID = UnitDefNames.armcom.id
@@ -1624,7 +1624,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	--widgetScale = (1 + (vsx*vsy / 7500000))
-	widgetScale = (((vsx+vsy) / 2000) * 0.5) * (1+(ui_scale-1)/1.5)		-- only used for rounded corners atm
+	widgetScale = (((vsx+vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then

@@ -51,7 +51,7 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local posX = 0.304
 local posY = (0.052	- (0.01 * ((vsx/vsy) - 1.78))) * (1+(ui_scale-1)/1)
 
-local widgetScale = (vsx/1500) * (1+(ui_scale-1)/1.5)
+local widgetScale = (vsx/1500) * (0.95+(ui_scale-1)/1.5)
 
 local fontsize = (11.5 - (2.5 * ((vsx/vsy) - 1.78)))
 
@@ -961,7 +961,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (vsx/1500) * (1+(ui_scale-1)/1.5)
+	widgetScale = (vsx/1500) * (0.95+(ui_scale-1)/1.5)
 	Config.console.fontsize = fontsize*widgetScale
 	Config.console.px = posX*vsx
 	Config.console.py = (posY*vsy) * (1+(ui_scale-1)/1)

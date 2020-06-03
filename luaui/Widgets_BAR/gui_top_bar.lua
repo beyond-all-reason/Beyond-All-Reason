@@ -174,7 +174,7 @@ end
 
 function widget:ViewResize(n_vsx,n_vsy, force)
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (vsy / height) * 0.046
+	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
 	xPos = vsx*relXpos
 

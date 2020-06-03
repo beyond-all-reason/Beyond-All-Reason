@@ -53,7 +53,7 @@ local showBackgroundOpacity = 0.19
 local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
-local widgetScale = (vsx/1500) * (1+(ui_scale-1)/1.5)
+local widgetScale = (vsx/1500) * (0.95+(ui_scale-1)/1.5)
 
 local posX = 0.304
 local posY = 0.110 * (1+(ui_scale-1)/1.5)	-- + (0.02 * ((vsx/vsy) - 1.78))
@@ -977,7 +977,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (vsx/1500) * (1+(ui_scale-1)/1.5)
+	widgetScale = (vsx/1500) * (0.95+(ui_scale-1)/1.5)
 	Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
 	Config.console.px = posX*vsx
 	Config.console.py = posY*vsy * (1+(ui_scale-1)/1.5)

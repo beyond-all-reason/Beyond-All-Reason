@@ -2463,14 +2463,14 @@ function init()
 		 end,
 		},
 
-		{id="minimap_enlarged", group="ui", basic=true, name=widgetOptionColor.."   enlarged", type="bool", value=false, description='Relocates the order-menu to make room for the minimap',
+		{id="minimap_enlarged", group="ui", basic=true, name="Enlarged minimap", type="bool", value=false, description='Relocates the order-menu to make room for the minimap',
 		 onload = function(i) loadWidgetData("Minimap", "minimap_enlarged", {'enlarged'}) end,
 		 onchange = function(i, value)
 			 saveOptionValue('Minimap', 'minimap', 'setEnlarged', {'enlarged'}, value)
 		 end,
 		},
 
-		{id="uiscale", group="ui", basic=true, name="Interface"..widgetOptionColor.."  scale", type="slider", min=0.75, max=1.15, step=0.01, value=Spring.GetConfigFloat("ui_scale",1), description='',
+		{id="uiscale", group="ui", basic=true, name="Interface"..widgetOptionColor.."  scale", type="slider", min=0.8, max=1.15, step=0.01, value=Spring.GetConfigFloat("ui_scale",1), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) Spring.SetConfigFloat("ui_scale", value) end,
 		},
