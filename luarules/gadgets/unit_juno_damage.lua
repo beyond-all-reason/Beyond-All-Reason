@@ -212,9 +212,16 @@ local glTranslate = gl.Translate
 local glCallList = gl.CallList
 local glColor = gl.Color
 local glVertex = gl.Vertex
+local glTexture = gl.Texture
 local glDeleteList = gl.DeleteList
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local GL_LEQUAL = GL.LEQUAL
+
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+
 local SpGetGameSeconds = Spring.GetGameSeconds
 local SpGetGroundHeight = Spring.GetGroundHeight
 local Mmin = math.min
@@ -379,9 +386,9 @@ function UpdateList(_,curtime)
 	end
 	ring = glCreateList(function()
 
+	glBlending(GL_SRC_ALPHA, GL_ONE)
 	glDepthTest(GL_LEQUAL) --needed else it will draw on top of some trees/grass
 	--gl.PolygonOffset(1,1)
-
 	for counter,expl in pairs(centers) do
 		local ycoords_incr = ycoords_incr[counter]
 		local ran_num = ran_num_table[counter]
