@@ -14,6 +14,7 @@ end
 -------------------------------------------------------------------------------
 
 local width = 0
+local addonWidth = 0
 local height = 0
 local bgBorderOrg = 0.0035
 local bgBorder = bgBorderOrg
@@ -317,8 +318,14 @@ function widget:ViewResize()
   height = 0.14
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
   width = width * ui_scale
+  -- make pixel aligned
+  height = math.floor(height * vsy) / vsy
+  width = math.floor(width * vsx) / vsx
 
-  backgroundRect = {0, 0, width*vsx, height*vsy}
+  local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+  bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+
+  backgroundRect = {0, 0, (width-addonWidth)*vsx, height*vsy}
 
   doUpdate = true
   clear()
@@ -405,6 +412,16 @@ function widget:Update(dt)
   if uiOpacitySec > 0.5 then
     uiOpacitySec = 0
     checkGuishader()
+    if WG['buildpower'] then
+      addonWidth, _ = WG['buildpower'].getSize()
+      if not addonWidth then
+        addonWidth = 0
+      end
+      widget:ViewResize()
+    elseif addonWidth > 0 then
+      addonWidth = 0
+      widget:ViewResize()
+    end
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
       ui_scale = Spring.GetConfigFloat("ui_scale",1)
       widget:ViewResize()
@@ -649,7 +666,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom)
 end
 
 local function drawInfo()
-  padding = 0.0033*vsy * ui_scale
+  padding = bgpadding
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,(WG['buildpower'] and 0 or 1),1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 

@@ -49,13 +49,19 @@ local poleTexture = ":l:LuaUI/Images/pole.png"
 local comTexture = ":l:LuaUI/Images/comIcon.png"
 local glowTexture = ":l:LuaUI/Images/glow.dds"
 
+local math_floor = math.floor
+
+
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
-local xPos = vsx*relXpos
+local xPos = math_floor(vsx*relXpos)
 local currentWind = 0
 local currentTidal = 0
 local gameStarted = false
 local displayComCounter = false
+
+local widgetSpaceMargin = math_floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 
 local glTranslate = gl.Translate
 local glColor = gl.Color
@@ -176,7 +182,10 @@ function widget:ViewResize(n_vsx,n_vsy, force)
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
-	xPos = vsx*relXpos
+	xPos = math_floor(vsx*relXpos)
+
+	widgetSpaceMargin = math_floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000)) * ui_scale
 	if fontfileScale ~= newFontfileScale or force then
@@ -358,7 +367,6 @@ local function updateRejoin()
 		-- background
 		--glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
-		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1}, {0.3,0.3,0.3,ui_opacity*0.1})
 
@@ -455,7 +463,6 @@ local function updateButtons()
 		-- background
 		--glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,(ui_opacity)})
-		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25, 0,0,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
@@ -564,7 +571,6 @@ local function updateComs(forceText)
 		-- background
 		--glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
-		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
@@ -617,8 +623,6 @@ local function updateWind()
 	local oorx = 10*widgetScale
 	local oory = 13*widgetScale
 
-	local bgpadding = 3*widgetScale
-
 	local poleWidth = 6 * widgetScale
 	local poleHeight = 14 * widgetScale
 
@@ -641,7 +645,6 @@ local function updateWind()
 		-- background
 		--glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
-		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
@@ -702,7 +705,6 @@ local function updateResbarText(res)
 		glDeleteList(dlistResbar[res][4])
 	end
 	dlistResbar[res][4] = glCreateList( function()
-		local bgpadding = 3*widgetScale
 		RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25)
 		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
 	end)
@@ -757,7 +759,7 @@ local function updateResbarText(res)
 					showOverflowTooltip[res] = os.clock() + 0.5
 				end
 				if showOverflowTooltip[res] < os.clock() then
-					local bgpadding = 2.2 * widgetScale
+					local bgpadding2 = 2.2 * widgetScale
 					local text = ''
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and '   Wasting Metal   ' or '   Overflowing   ')
@@ -826,7 +828,7 @@ local function updateResbarText(res)
 							color2 = {1,0.88,0,0.44}
 						end
 					end
-					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], 2.8*widgetScale, 0,0,1,1, color1,color2)
+					RectRound(resbarArea[res][3]-textWidth+bgpadding2, resbarArea[res][4]-15.5*widgetScale+bgpadding2, resbarArea[res][3]-bgpadding2, resbarArea[res][4], 2.8*widgetScale, 0,0,1,1, color1,color2)
 
 					font2:Begin()
                     font2:SetTextColor(1,0.88,0.88,1)
@@ -899,7 +901,6 @@ local function updateResbar(res)
 		-- background
 		--glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale, 1,1,1,1, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
-		local bgpadding = 3*widgetScale
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25, 1,1,1,1, {1,1,1,ui_opacity*0.1},{0.15,0.15,0.15,ui_opacity*0.1})
 
@@ -990,15 +991,14 @@ function init()
 
 	r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
 
-	topbarArea = {xPos, math.floor(vsy-(borderPadding*widgetScale)-(height*widgetScale)), vsx, vsy}
-	barContentArea = {xPos+(borderPadding*widgetScale), math.floor(vsy-(height*widgetScale)), vsx, vsy}
+	topbarArea = {xPos, math_floor(vsy-(borderPadding*widgetScale)-(height*widgetScale)), vsx, vsy}
+	barContentArea = {math_floor(xPos+(borderPadding*widgetScale)), math_floor(vsy-(height*widgetScale)), vsx, vsy}
 
 	--Spring.Echo((borderPadding*widgetScale)-(height*widgetScale))
 	--Spring.Echo(ui_scale..'   '..topbarArea[2])
 
 	local filledWidth = 0
 	local totalWidth = barContentArea[3] - barContentArea[1]
-	local areaSeparator = (borderPadding*widgetScale)
 
 	if dlistBackground then
 		glDeleteList(dlistBackground)
@@ -1014,38 +1014,38 @@ function init()
 	end)
 
 	-- metal
-	local width = (totalWidth/4)
+	local width = math_floor(totalWidth/4)
 	resbarArea['metal'] = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-	filledWidth = filledWidth + width + areaSeparator
+	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('metal')
 
 	--energy
 	resbarArea['energy'] = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-	filledWidth = filledWidth + width + areaSeparator
+	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('energy')
 
 	-- wind
-	width = ((height*1.18)*widgetScale)
+	width = math_floor((height*1.18)*widgetScale)
 	windArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-	filledWidth = filledWidth + width + areaSeparator
+	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateWind()
 
 	-- coms
 	if displayComCounter then
 		comsArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-		filledWidth = filledWidth + width + areaSeparator
+		filledWidth = filledWidth + width + widgetSpaceMargin
         updateComs()
 	end
 
 	-- rejoin
-	width = (totalWidth/4) / 3.3
+	width = math_floor(totalWidth/4) / 3.3
 	rejoinArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-	filledWidth = filledWidth + width + areaSeparator
+	filledWidth = filledWidth + width + widgetSpaceMargin
 
 	-- buttons
-	width = (totalWidth/4)
+	width = math_floor(totalWidth/4)
 	buttonsArea = {barContentArea[3]-width, barContentArea[2], barContentArea[3], barContentArea[4]}
-	filledWidth = filledWidth + width + areaSeparator
+	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateButtons()
 
 	WG['topbar'].GetPosition = function()
@@ -1597,7 +1597,7 @@ local function adjustSliders(x, y)
 		updateResbar(draggingShareIndicator)
 	end
 	if showConversionSlider and draggingConversionIndicator and not spec then
-		local convValue = math.floor((x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100)
+		local convValue = math_floor((x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100)
 		if convValue < 12 then convValue = 12 end
 		if convValue > 88 then convValue = 88 end
 		Spring.SendLuaRulesMsg(sformat(string.char(137)..'%i', convValue))

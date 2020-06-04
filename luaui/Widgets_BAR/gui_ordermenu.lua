@@ -150,7 +150,7 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 0.0033*vsy * ui_scale * 1.7)
       end)
     end
   elseif dlistGuishader then
@@ -268,19 +268,34 @@ function widget:ViewResize()
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
   width = width * ui_scale
 
+  -- make pixel aligned
+  width = math.floor(width * vsx) / vsx
+  height = math.floor(height * vsy) / vsy
+
   if altPosition then
-    local margin = (0.0045 * (vsy/vsx))
+    local widgetSpaceMargin = math.floor(0.0045 * (vsy/vsx) * vsx * ui_scale) / vsx
+    bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
+
     posY = height
-    posX = width + margin
+    posX = width + widgetSpaceMargin
     if WG['buildpower'] then
       buildpowerWidgetEnabled = true
       bpWidth, bpHeight = WG['buildpower'].getPosition()
       if bpWidth then
-        posX = bpWidth + margin
+        posX = bpWidth + widgetSpaceMargin
       end
     end
   else
+    local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+    bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
     posY = 0.75
+    if WG['minimap'] then
+      posY = 1 - (WG['minimap'].getHeight()/vsy) - widgetSpaceMargin
+    end
+    if WG['buildmenu'] then
+      local posY2, _ = WG['buildmenu'].getSize()
+      height = (posY - posY2) - widgetSpaceMargin
+    end
     posX = 0
   end
 
@@ -503,7 +518,7 @@ end
 
 function drawOrders()
   -- background
-  padding = 0.0033*vsy * ui_scale
+  padding = bgpadding
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1]+(altPosition and padding or 0), backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 

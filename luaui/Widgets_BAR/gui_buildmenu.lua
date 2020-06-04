@@ -563,16 +563,37 @@ function widget:ViewResize()
     minimapHeight = WG['minimap'].getHeight()
   end
 
+  local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+  bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+
   posY = 0.606
-  posY2 = 0.1445
+  posY2 = math.floor(0.14 * vsy) / vsy
+  posY2 = posY2 + widgetSpaceMargin
+
   if minimapEnlarged then
     posY = math.max(0.4615, (vsy-minimapHeight)/vsy) - 0.0064
+    if WG['minimap'] then
+      posY = 1 - (WG['minimap'].getHeight()/vsy) - widgetSpaceMargin
+    end
+  else
+    if WG['ordermenu'] then
+      local oposX,oposY,owidth,oheight = WG['ordermenu'].getPosition()
+      if oposY > 0.5 then
+        posY = oposY - oheight - widgetSpaceMargin
+      end
+    end
   end
+  posY = math.floor(posY * vsy) / vsy
+
   height = (posY - posY2)
   width = 0.212
 
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
   width = width * ui_scale
+
+  -- make pixel aligned
+  width = math.floor(width * vsx) / vsx
+  height = math.floor(height * vsy) / vsy
 
   backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
 
@@ -706,6 +727,9 @@ function widget:Initialize()
     startDefID = unitDefID
     doUpdate = true
   end
+  WG['buildmenu'].getSize = function()
+    return posY, posY2
+  end
   refreshUnitIconCache()
 end
 
@@ -772,7 +796,7 @@ function drawBuildmenuBg()
   WG['buildmenu'].selectedID = nil
 
   -- background
-  padding = 0.0033*vsy * ui_scale
+  padding = bgpadding
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 0,1,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 

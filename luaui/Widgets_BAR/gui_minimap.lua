@@ -50,8 +50,8 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        local padding = bgBorder*vsy
-        RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], (bgBorder*vsy)*2)
+        local padding = math.floor(bgBorder*vsy)
+        RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], bgpadding*1.7)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
     end
@@ -75,11 +75,15 @@ function widget:ViewResize()
       maxHeight = maxWidth / (Game.mapX/Game.mapY)
   end
 
-  usedWidth = maxWidth*vsy
-  usedHeight = maxHeight*vsy
+  usedWidth = math.floor(maxWidth*vsy)
+  usedHeight = math.floor(maxHeight*vsy)
+
+  local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+  bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+
   Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, usedWidth, usedHeight))
 
-  backgroundRect = {0, vsy-(maxHeight*vsy), maxWidth*vsy, vsy}
+  backgroundRect = {0, vsy-(usedHeight), usedWidth, vsy}
 
   checkGuishader(true)
 
@@ -101,8 +105,12 @@ function widget:Initialize()
       widget:ViewResize()
   end
   WG['minimap'].getHeight = function()
-      return usedHeight
+      return usedHeight + bgpadding
   end
+  --WG['minimap'].setHeight = function()
+  --
+  --    widget:ViewResize()
+  --end
 end
 
 function widget:GameStart()
@@ -263,9 +271,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 end
 
 function drawMinimap()
-  local padding = bgBorder*vsy
-  RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], padding*1.7, 0,0,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  --RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+  RectRound(backgroundRect[1],backgroundRect[2]-bgpadding,backgroundRect[3]+bgpadding,backgroundRect[4], bgpadding*1.7, 0,0,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
 end
 
 function widget:RecvLuaMsg(msg, playerID)

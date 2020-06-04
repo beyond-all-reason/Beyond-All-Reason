@@ -25,7 +25,7 @@ local bgMargin = 0.005
 local avgFrames = 7     -- to smooth out changes
 local avgBuildPower = 0
 
-local widthMult = 0.055   -- multiplication of info widget width
+local widthMult = 0.05   -- multiplication of info widget width
 
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -110,23 +110,32 @@ end
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   if posX then
-    backgroundRect = {width*vsx, 0, (width+(width*widthMult))*vsx, height*vsy}
+    backgroundRect = {(width-(width*widthMult))*vsx, 0, width*vsx, height*vsy}
     checkGuishader(true)
     clear()
   end
+  local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+  bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 end
 
 function widget:Initialize()
   widget:ViewResize()
 
   WG['buildpower'] = {}
-  WG['buildpower'].getPosition = function()
-      if posX then
-          return width+(width*widthMult), height
-      else
-          return nil
-      end
-  end
+    WG['buildpower'].getPosition = function()
+        if posX then
+            return width, height
+        else
+            return nil
+        end
+    end
+    WG['buildpower'].getSize = function()
+        if posX then
+            return (width*widthMult), height
+        else
+            return nil
+        end
+    end
 
   initiateTeamBuildPower(myTeamID)
 end
@@ -162,7 +171,7 @@ function widget:Update(dt)
       local newWidth,newHeight = WG['info'].getPosition()
       if posX == nil or (newWidth ~= width or newHeight ~= height) then
         width, height = newWidth, newHeight
-        posX, posY = width, 0
+        posX, posY = width-(width*widthMult), 0
         widget:ViewResize()
       end
     end
@@ -299,7 +308,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 end
 
 function drawBuildpower()
-  padding = 0.0033*vsy * ui_scale
+  padding = bgpadding
   RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 0,1,0,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,0,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
