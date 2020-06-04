@@ -126,6 +126,7 @@ local unitSeismicRadius = {}
 local unitArmorType = {}
 local unitWreckMetal = {}
 local unitHeapMetal = {}
+local unitParalyzeMult = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
   if unitDef.maxWeaponRange > 16 then
@@ -136,6 +137,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   end
   if unitDef.isTransport then
     isTransport[unitDefID] = {unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity}
+  end
+  if unitDef.customParams.paralyzemultiplier then
+    unitParalyzeMult[unitDefID] = tonumber(unitDef.customParams.paralyzemultiplier)
   end
   if unitDef.wreckName then
     if FeatureDefNames[unitDef.wreckName] then
@@ -972,6 +976,18 @@ local function drawInfo()
           addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
         end
 
+        if unitArmorType[displayUnitDefID] then
+          addTextInfo('armor', unitArmorType[displayUnitDefID])
+        end
+
+        if unitParalyzeMult[displayUnitDefID] then
+          if unitParalyzeMult[displayUnitDefID] == 0 then
+            addTextInfo('unparalyzable')
+          else
+            addTextInfo('paralyzeMult', round(unitParalyzeMult[displayUnitDefID],2))
+          end
+        end
+
         if unitLosRadius[displayUnitDefID] then
           addTextInfo('los', round(unitLosRadius[displayUnitDefID],0))
         end
@@ -992,10 +1008,6 @@ local function drawInfo()
         end
         if unitSeismicRadius[displayUnitDefID] then
           addTextInfo('seismic', unitSeismicRadius[displayUnitDefID])
-        end
-
-        if unitArmorType[displayUnitDefID] then
-          addTextInfo('armor', unitArmorType[displayUnitDefID])
         end
 
         addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
