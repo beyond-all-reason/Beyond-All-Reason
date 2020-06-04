@@ -58,6 +58,51 @@ local lastUpdateClock = 0
 
 local hpcolormap = { {1, 0.0, 0.0, 1},  {0.8, 0.60, 0.0, 1}, {0.0, 0.75, 0.0, 1} }
 
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+local spGetCurrentTooltip = Spring.GetCurrentTooltip
+local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnits = Spring.GetSelectedUnits()
+local spGetUnitDefID = Spring.GetUnitDefID
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetMouseState = Spring.GetMouseState
+local spGetModKeyState = Spring.GetModKeyState
+local spSelectUnitArray = Spring.SelectUnitArray
+local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
+local spSelectUnitMap = Spring.SelectUnitMap
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitResources = Spring.GetUnitResources
+local spGetUnitMaxRange = Spring.GetUnitMaxRange
+local spGetUnitExperience = Spring.GetUnitExperience
+local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
+local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitStockpile = Spring.GetUnitStockpile
+
+local math_floor = math.floor
+local math_ceil = math.ceil
+
+local os_clock = os.clock
+
+local isSpec = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+
+local GL_QUADS = GL.QUADS
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local glBeginEnd = gl.BeginEnd
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glColor = gl.Color
+local glRect = gl.Rect
+local glVertex = gl.Vertex
+local glBlending = gl.Blending
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_ONE = GL.ONE
+
 function lines(str)
   local t = {}
   local function helper(line) t[#t+1] = line return "" end
@@ -205,51 +250,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
     if weaponDef.damages then
       local defaultDPS = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
-      unitDPS[unitDefID] = math.floor(defaultDPS)
+      unitDPS[unitDefID] = math_floor(defaultDPS)
     end
   end
 end
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-local spGetCurrentTooltip = Spring.GetCurrentTooltip
-local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
-local selectedUnits = Spring.GetSelectedUnits()
-local spGetUnitDefID = Spring.GetUnitDefID
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
-local spSelectUnitArray = Spring.SelectUnitArray
-local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
-local spSelectUnitMap = Spring.SelectUnitMap
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitResources = Spring.GetUnitResources
-local spGetUnitMaxRange = Spring.GetUnitMaxRange
-local spGetUnitExperience = Spring.GetUnitExperience
-local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
-local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitStockpile = Spring.GetUnitStockpile
-
-local os_clock = os.clock
-
-local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
-
-local GL_QUADS = GL.QUADS
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-local glBeginEnd = gl.BeginEnd
-local glTexture = gl.Texture
-local glTexRect = gl.TexRect
-local glColor = gl.Color
-local glRect = gl.Rect
-local glVertex = gl.Vertex
-local glBlending = gl.Blending
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_ONE = GL.ONE
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -323,11 +327,11 @@ function widget:ViewResize()
   width = width / (vsx/vsy) * 1.78		-- make smaller for ultrawide screens
   width = width * ui_scale
   -- make pixel aligned
-  height = math.floor(height * vsy) / vsy
-  width = math.floor(width * vsx) / vsx
+  height = math_floor(height * vsy) / vsy
+  width = math_floor(width * vsx) / vsx
 
-  local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-  bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+  local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
+  bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
 
   backgroundRect = {0, 0, (width-addonWidth)*vsx, height*vsy}
 
@@ -356,7 +360,7 @@ function GetColor(colormap,slider)
   end
   if (slider<0) then slider=0 elseif(slider>1) then slider=1 end
   local posn  = 1+(coln-1) * slider
-  local iposn = math.floor(posn)
+  local iposn = math_floor(posn)
   local aa    = posn - iposn
   local ia    = 1-aa
 
@@ -650,15 +654,15 @@ local function drawSelectionCell(cellID, uDefID, usedZoom)
   glTexture(texSetting.."unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
   --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
   --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-  TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,1,1, usedZoom)
+  TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,1,1, usedZoom)
   glTexture(false)
   -- darkening bottom
-  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cornerSize, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cornerSize, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   -- unitcount
   if selUnitsCounts[uDefID] > 1 then
@@ -705,7 +709,7 @@ local function drawInfo()
     end
 
     -- selected units grid area
-    gridWidth = backgroundRect[3]-backgroundRect[1]
+    gridWidth = math_floor(backgroundRect[3]-backgroundRect[1])
     gridHeight = (backgroundRect[4]-backgroundRect[2])-padding-padding
     customInfoArea = {backgroundRect[3]-gridWidth-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+gridHeight}
 
@@ -714,29 +718,30 @@ local function drawInfo()
     -- draw selected unit icons
     local rows = 2
     local maxRows = 15  -- just to be sure
-    local colls = math.ceil(selUnitTypes / rows)
-    cellsize = math.min(gridWidth/colls, gridHeight/rows)
+    local colls = math_ceil(selUnitTypes / rows)
+    cellsize = math_floor(math.min(gridWidth/colls, gridHeight/rows))
     while cellsize < gridHeight/(rows+1) do
       rows = rows + 1
-      colls = math.ceil(selUnitTypes / rows)
+      colls = math_ceil(selUnitTypes / rows)
       cellsize = math.min(gridWidth/colls, gridHeight/rows)
       if rows > maxRows then
         break
       end
     end
+
     -- draw grid (bottom right to top left)
-    cellPadding = cellsize * 0.03
+    cellPadding = math.max(1, math_floor(cellsize * 0.05))
     cellRect = {}
     texOffset = (0.03*rows) * zoomMult
     texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
-    cornerSize = cellPadding*0.9
+    cornerSize = math.max(1, cellPadding*0.9)
     if texOffset > 0.25 then texOffset = 0.25 end
     local cellID = selUnitTypes
     for row=1, rows do
       for coll=1, colls do
         if selectionCells[cellID] then
           local uDefID = selectionCells[cellID]
-          cellRect[cellID] = {customInfoArea[3]-cellPadding-(coll*cellsize), customInfoArea[2]+cellPadding+((row-1)*cellsize), customInfoArea[3]-cellPadding-((coll-1)*cellsize), customInfoArea[2]+cellPadding+((row)*cellsize)}
+          cellRect[cellID] = {math_ceil(customInfoArea[3]-cellPadding-(coll*cellsize)), math_ceil(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_ceil(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_ceil(customInfoArea[2]+cellPadding+((row)*cellsize))}
           drawSelectionCell(cellID, selectionCells[cellID], texOffset)
         end
         cellID = cellID - 1
@@ -816,8 +821,8 @@ local function drawInfo()
     -- custom unit info background
     local width = contentWidth * 0.8
     local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
-    customInfoArea = {backgroundRect[3]-width-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+height}
-    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.12})
+    customInfoArea = {math_floor(backgroundRect[3]-width-padding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-padding), math_floor(backgroundRect[2]+height)}
+    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
 
     local contentPaddingLeft = contentPadding * 0.75
     local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
@@ -870,37 +875,37 @@ local function drawInfo()
 
     -- draw unit buildoption icons
     if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
-      local gridHeight = height*0.98
+      local gridHeight = math_ceil(height*0.98)
       local rows = 2
-      local colls = math.ceil(#unitBuildOptions[displayUnitDefID] / rows)
-      local cellsize = math.min(width/colls, gridHeight/rows)
+      local colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
+      local cellsize = math_ceil(math.min(width/colls, gridHeight/rows))
       if cellsize < gridHeight/3 then
         rows = 3
-        colls = math.ceil(#unitBuildOptions[displayUnitDefID] / rows)
+        colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
         cellsize = math.min(width/colls, gridHeight/rows)
       end
       -- draw grid (bottom right to top left)
       local cellID = #unitBuildOptions[displayUnitDefID]
-      cellPadding = cellsize * 0.03
+      cellPadding = math_ceil(cellsize * 0.022)
       cellRect = {}
       for row=1, rows do
         for coll=1, colls do
           if unitBuildOptions[displayUnitDefID][cellID] then
             local uDefID = unitBuildOptions[displayUnitDefID][cellID]
-            cellRect[cellID] = {customInfoArea[3]-cellPadding-(coll*cellsize), customInfoArea[2]+cellPadding+((row-1)*cellsize), customInfoArea[3]-cellPadding-((coll-1)*cellsize), customInfoArea[2]+cellPadding+((row)*cellsize)}
+            cellRect[cellID] = {math_floor(customInfoArea[3]-cellPadding-(coll*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_floor(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row)*cellsize))}
             glColor(0.9,0.9,0.9,1)
             glTexture(":lr64,64:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
             --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
             --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-            TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,1,1, 0.11)
+            TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,1,1, 0.11)
             glTexture(false)
             -- darkening bottom
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
             -- gloss
             glBlending(GL_SRC_ALPHA, GL_ONE)
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellPadding*1.3, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellPadding*1.3, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
           end
           cellID = cellID - 1
@@ -1043,7 +1048,7 @@ local function drawInfo()
           local healthBarMargin = healthBarHeight * 0.7
           local healthBarPadding = healthBarHeight * 0.15
           local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
-          local color = bfcolormap[math.min(math.max(math.floor((health/maxHealth)*100), 0), 100)]
+          local color = bfcolormap[math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)]
 
           -- bar background
           RectRound(
@@ -1063,7 +1068,7 @@ local function drawInfo()
           )
           -- bar text value
           font:Begin()
-          font:Print(math.floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
+          font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
           font:End()
         end
       end
@@ -1340,10 +1345,10 @@ function widget:DrawScreen()
               totalHealth = totalHealth + health
             end
           end
-          totalHealth = math.floor(totalHealth)
-          totalValue = math.floor(totalValue)
+          totalHealth = math_floor(totalHealth)
+          totalValue = math_floor(totalValue)
           if totalValue > 0 then
-            local percentage = math.floor((totalHealth/totalValue)*100)
+            local percentage = math_floor((totalHealth/totalValue)*100)
             stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."health: "..tooltipValueColor..percentage.."%"..tooltipDarkTextColor.."  ( "..tooltipLabelTextColor..totalHealth..tooltipDarkTextColor..' of '..tooltipLabelTextColor..totalValue..tooltipDarkTextColor.." )"
           end
           -- DPS
