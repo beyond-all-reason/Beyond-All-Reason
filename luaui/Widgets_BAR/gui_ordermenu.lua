@@ -249,10 +249,10 @@ function setupCellGrid(force)
       for col=1, colls do
         i = i + 1
         cellRects[i] = {
-          math_floor(activeRect[1]+(cellWidth*(col-1))),
-          math_floor(activeRect[4]-(cellHeight*row)),
-          math_ceil(activeRect[1]+(cellWidth*col)),
-          math_ceil(activeRect[4]-(cellHeight*(row-1)))
+          math_floor(activeRect[1]+(cellWidth*(col-1)) + 0.5),
+          math_floor(activeRect[4]-(cellHeight*row) + 0.5),
+          math_ceil(activeRect[1]+(cellWidth*col) - 0.5),
+          math_ceil(activeRect[4]-(cellHeight*(row-1)) - 0.5)
         }
       end
     end

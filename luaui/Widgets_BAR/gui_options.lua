@@ -1712,10 +1712,10 @@ function init()
 			end
 		end
 		-- adding some widescreen resolutions for local testing
-		supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
-		supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
-		supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
-		supportedResolutions[#supportedResolutions+1] = '2560 x 900'
+		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
+		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition

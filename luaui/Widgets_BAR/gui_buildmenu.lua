@@ -14,18 +14,23 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local bgBorderOrg = 0.0035
-local bgBorder = bgBorderOrg
-local bgMargin = 0.005
+local cfgCellPadding = 0.007
+local cfgIconPadding = 0.022 -- space between icons
+local cfgIconCornerSize = 0.025
+local cfgRadaiconSize = 0.29
+local cfgRadariconOffset = 0.027
+local cfgPriceFontSize = 0.18
+
+local defaultColls = 5
+local dynamicIconsize = true
+local minColls = 4
+local maxColls = 5
+
+local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = true
 local showRadarIcon = true
 local showShortcuts = false
 local showTooltip = true
-local makeFancy = true
-local dynamicIconsize = true
-local defaultColls = 5
-local minColls = 4
-local maxColls = 5
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -119,6 +124,10 @@ local SelectedUnitsCount = spGetSelectedUnitsCount()
 local string_sub = string.sub
 local string_gsub = string.gsub
 local os_clock = os.clock
+
+local math_floor = math.floor
+local math_ceil = math.ceil
+local math_max = math.max
 
 local GL_QUADS = GL.QUADS
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
@@ -263,8 +272,8 @@ local function cacheUnitIcons()
 
   local colls = minC
   while colls <= maxC do
-    local textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- must be same formula as used in drawBuildmenu()
-    local radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )  -- must be same formula as used in drawBuildmenu()
+    local textureDetail = math_max(80, math_ceil(160*(1-((colls/4)*0.15))) )  -- must be same formula as used in drawBuildmenu()
+    local radariconTextureDetail = math_max(28, math_ceil(120*(1-((colls/4)*0.4))) )  -- must be same formula as used in drawBuildmenu()
     gl.Color(1,1,1,0.001)
     for id, unit in pairs(UnitDefs) do
       if alternativeUnitpics and hasAlternativeUnitpic[id] then
@@ -511,7 +520,7 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
     end
@@ -563,15 +572,15 @@ function widget:ViewResize()
     minimapHeight = WG['minimap'].getHeight()
   end
 
-  local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-  bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+  local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
+  bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
 
   posY = 0.606
-  posY2 = math.floor(0.14 * vsy) / vsy
+  posY2 = math_floor(0.14 * vsy) / vsy
   posY2 = posY2 + widgetSpaceMargin
 
   if minimapEnlarged then
-    posY = math.max(0.4615, (vsy-minimapHeight)/vsy) - 0.0064
+    posY = math_max(0.4615, (vsy-minimapHeight)/vsy) - 0.0064
     if WG['minimap'] then
       posY = 1 - (WG['minimap'].getHeight()/vsy) - widgetSpaceMargin
     end
@@ -583,7 +592,7 @@ function widget:ViewResize()
       end
     end
   end
-  posY = math.floor(posY * vsy) / vsy
+  posY = math_floor(posY * vsy) / vsy
 
   height = (posY - posY2)
   width = 0.212
@@ -592,8 +601,8 @@ function widget:ViewResize()
   width = width * ui_scale
 
   -- make pixel aligned
-  width = math.floor(width * vsx) / vsx
-  height = math.floor(height * vsy) / vsy
+  width = math_floor(width * vsx) / vsx
+  height = math_floor(height * vsy) / vsy
 
   backgroundRect = {0, (posY-height)*vsy, width*vsx, posY*vsy}
 
@@ -796,14 +805,13 @@ function drawBuildmenuBg()
   WG['buildmenu'].selectedID = nil
 
   -- background
-  padding = bgpadding
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 0,1,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7, 0,1,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1], backgroundRect[4]-padding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-padding, backgroundRect[4]-padding, padding*1, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
-  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[2]+padding+((backgroundRect[4]-backgroundRect[2])*0.045), padding*1, 0,0,1,0, {1,1,1,0.025*glossMult}, {1,1,1,0})
+  RectRound(backgroundRect[1], backgroundRect[4]-bgpadding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+  RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[2]+bgpadding+((backgroundRect[4]-backgroundRect[2])*0.045), bgpadding, 0,0,1,0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
@@ -822,7 +830,7 @@ local function drawCell(cellRectID, usedZoom, cellColor)
     cellRects[cellRectID][2]+cellPadding+iconPadding,
     cellRects[cellRectID][3]-cellPadding-iconPadding,
     cellRects[cellRectID][4]-cellPadding-iconPadding,
-    cornerSize, 1,1,1,1,
+    cornerSize, 2,2,2,2,
     usedZoom
   )
 
@@ -836,7 +844,7 @@ local function drawCell(cellRectID, usedZoom, cellColor)
             cellRects[cellRectID][2]+cellPadding+iconPadding,
             cellRects[cellRectID][3]-cellPadding-iconPadding,
             cellRects[cellRectID][4]-cellPadding-iconPadding,
-            cornerSize, 1,1,1,1,
+            cornerSize, 2,2,2,2,
             usedZoom
     )
     if cellColor[4] > 0 then
@@ -846,7 +854,7 @@ local function drawCell(cellRectID, usedZoom, cellColor)
               cellRects[cellRectID][2]+cellPadding+iconPadding,
               cellRects[cellRectID][3]-cellPadding-iconPadding,
               cellRects[cellRectID][4]-cellPadding-iconPadding,
-              cornerSize, 1,1,1,1,
+              cornerSize, 2,2,2,2,
               usedZoom
       )
     end
@@ -860,16 +868,16 @@ local function drawCell(cellRectID, usedZoom, cellColor)
     glBlending(GL_SRC_ALPHA, GL_ONE)
     -- glossy half
     --RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 1,1,0,0,{1,1,1,0}, {1,1,1,0.2})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 2,2,0,0,{1,1,1,0}, {1,1,1,0.2})
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     -- extra darken gradually
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,1,1,{0,0,0,0.12}, {0,0,0,0})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.12}, {0,0,0,0})
   end
 
   -- darken price background gradually
   if showPrice and (not alternativeUnitpics or makeFancy) then
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cornerSize, 0,0,1,1,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cornerSize, 0,0,2,2,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
   end
 
   -- radar icon
@@ -924,24 +932,24 @@ local function drawCell(cellRectID, usedZoom, cellColor)
 end
 
 function drawBuildmenu()
-  local activeArea = {backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding}
+  local activeArea = {backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding}
   local contentHeight = activeArea[4]-activeArea[2]
   local contentWidth = activeArea[3]-activeArea[1]
 
   -- determine grid size
   if not dynamicIconsize then
     colls = defaultColls
-    cellSize = contentWidth/colls
-    rows = math.floor(contentHeight/cellSize)
+    cellSize = math_floor((contentWidth/colls)+0.33)
+    rows = math_floor(contentHeight/cellSize)
   else
     colls = minColls
-    cellSize = contentWidth/colls
-    rows = math.floor(contentHeight/cellSize)
+    cellSize = math_floor((contentWidth/colls)+0.33)
+    rows = math_floor(contentHeight/cellSize)
     if minColls < maxColls then
       while cmdsCount > rows*colls do
         colls = colls + 1
-        cellSize = contentWidth/colls
-        rows = math.floor(contentHeight/cellSize)
+        cellSize = math_floor((contentWidth/colls)+0.33)
+        rows = math_floor(contentHeight/cellSize)
         if colls == maxColls then
           break
         end
@@ -950,16 +958,16 @@ function drawBuildmenu()
   end
 
   -- adjust grid size when pages are needed
-  local paginatorCellHeight = contentHeight-(rows*cellSize)
+  local paginatorCellHeight = math_floor(contentHeight-(rows*cellSize))
   if cmdsCount > colls*rows then
-    pages = math.ceil(cmdsCount / (colls*rows))
+    pages = math_ceil(cmdsCount / (colls*rows))
     if currentPage > pages then
       currentPage = pages
     end
     -- remove a row if there isnt enough room for the paginator UI
     if paginatorCellHeight < (0.06*(1-((colls/4)*0.25)))*vsy then
       rows = rows - 1
-      paginatorCellHeight = contentHeight-(rows*cellSize)
+      paginatorCellHeight = math_floor(contentHeight-(rows*cellSize))
     end
   else
     currentPage = 1
@@ -967,16 +975,16 @@ function drawBuildmenu()
   end
 
   -- these are globals so it can be re-used (hover highlight)
-  cellPadding = cellSize * 0.007
-  iconPadding = cellSize * 0.02
-  cornerSize = (cellPadding+iconPadding)*0.8
+  cellPadding = math_floor(cellSize * cfgCellPadding)
+  iconPadding = math_floor(cellSize * cfgIconPadding)
+  cornerSize = math_floor(cellSize*cfgIconCornerSize)
   cellInnerSize = cellSize-cellPadding-cellPadding
-  radariconSize = cellInnerSize * 0.29
-  radariconOffset = (cellInnerSize * 0.027) + cellPadding+iconPadding
-  priceFontSize = cellInnerSize*0.18
+  radariconSize = cellInnerSize * cfgRadaiconSize
+  radariconOffset = (cellInnerSize * cfgRadariconOffset) + cellPadding+iconPadding
+  priceFontSize = cellInnerSize*cfgPriceFontSize
 
-  radariconTextureDetail = math.max(28, math.ceil(120*(1-((colls/4)*0.4))) )  -- NOTE: if changed: update formula as used in cacheUnitIcons()
-  textureDetail = math.max(80, math.ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons()
+  radariconTextureDetail = math_max(28, math_ceil(120*(1-((colls/4)*0.4))) )  -- NOTE: if changed: update formula as used in cacheUnitIcons()
+  textureDetail = math_max(80, math_ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons()
 
   cellRects = {}
   local numCellsPerPage = rows*colls
@@ -1001,9 +1009,9 @@ function drawBuildmenu()
 
       local uDefID = cmds[cellRectID].id*-1
       cellRects[cellRectID] = {
-        activeArea[1] + ((coll-1)*cellSize),
+        activeArea[3] - ((colls-coll+1)*cellSize),
         activeArea[4] - ((row)*cellSize),
-        activeArea[1] + ((coll)*cellSize),
+        activeArea[3] - (((colls-coll))*cellSize),
         activeArea[4] - ((row-1)*cellSize)
       }
 
@@ -1022,24 +1030,26 @@ function drawBuildmenu()
   if pages == 1 then
     paginatorRects = {}
   else
-    local paginatorFontSize = math.max(0.016*vsy, paginatorCellHeight*0.2)
-    local paginatorCellWidth = contentWidth*0.3
+    local paginatorFontSize = math_max(0.016*vsy, paginatorCellHeight*0.2)
+    local paginatorCellWidth = math_floor(contentWidth*0.3)
+    local paginatorBorderSize = math_floor(cellSize*((cfgIconPadding+cfgCellPadding)*0.8))
+
     paginatorRects[1] = {activeArea[1], activeArea[2], activeArea[1]+paginatorCellWidth, activeArea[2]+paginatorCellHeight-cellPadding}
     paginatorRects[2] = {activeArea[3]-paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2]+paginatorCellHeight-cellPadding}
 
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,1,1,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
-    RectRound(paginatorRects[1][1]+cellPadding+iconPadding, paginatorRects[1][2]+cellPadding+iconPadding, paginatorRects[1][3]-cellPadding-iconPadding, paginatorRects[1][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,WG['guishader'] and 0.48 or 0.55}, {0,0,0,WG['guishader'] and 0.45 or 0.55})
-    RectRound(paginatorRects[2][1]+cellPadding+iconPadding, paginatorRects[2][2]+cellPadding+iconPadding, paginatorRects[2][3]-cellPadding-iconPadding, paginatorRects[2][4]-cellPadding-iconPadding, cellSize*0.02, 1,1,1,1,{0,0,0,WG['guishader'] and 0.48 or 0.55}, {0,0,0,WG['guishader'] and 0.45 or 0.55})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 2,2,2,2,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 2,2,2,2,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
+    RectRound(paginatorRects[1][1]+cellPadding+paginatorBorderSize, paginatorRects[1][2]+cellPadding+paginatorBorderSize, paginatorRects[1][3]-cellPadding-paginatorBorderSize, paginatorRects[1][4]-cellPadding-paginatorBorderSize, cellSize*0.02, 2,2,2,2,{0,0,0,WG['guishader'] and 0.48 or 0.55}, {0,0,0,WG['guishader'] and 0.45 or 0.55})
+    RectRound(paginatorRects[2][1]+cellPadding+paginatorBorderSize, paginatorRects[2][2]+cellPadding+paginatorBorderSize, paginatorRects[2][3]-cellPadding-paginatorBorderSize, paginatorRects[2][4]-cellPadding-paginatorBorderSize, cellSize*0.02, 2,2,2,2,{0,0,0,WG['guishader'] and 0.48 or 0.55}, {0,0,0,WG['guishader'] and 0.45 or 0.55})
 
     -- glossy half
     glBlending(GL_SRC_ALPHA, GL_ONE)
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][4]-cellPadding-((paginatorRects[1][4]-paginatorRects[1][2])*0.5), paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.028}, {1,1,1,0.18})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][4]-cellPadding-((paginatorRects[2][4]-paginatorRects[1][2])*0.5), paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.028}, {1,1,1,0.18})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][4]-cellPadding-((paginatorRects[1][4]-paginatorRects[1][2])*0.5), paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 2,2,0,0,{1,1,1,0.028}, {1,1,1,0.18})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][4]-cellPadding-((paginatorRects[2][4]-paginatorRects[1][2])*0.5), paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 2,2,0,0,{1,1,1,0.028}, {1,1,1,0.18})
 
     -- glossy bottom
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][2]+cellPadding+((paginatorRects[1][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][2]+cellPadding+((paginatorRects[2][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,1,1,{1,1,1,0.06}, {1,1,1,0})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][2]+cellPadding+((paginatorRects[1][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,2,2,{1,1,1,0.06}, {1,1,1,0})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][2]+cellPadding+((paginatorRects[2][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,2,2,{1,1,1,0.06}, {1,1,1,0})
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     font2:Print("\255\245\245\245"..currentPage.."  \\  "..pages, contentWidth*0.5, activeArea[2]+(paginatorCellHeight*0.5)-(paginatorFontSize*0.25), paginatorFontSize, "co")
@@ -1228,10 +1238,10 @@ function widget:DrawScreen()
             local text = "\255\240\240\240"..(paginatorHovered == 1 and "previous page" or "next page")
             WG['tooltip'].ShowTooltip('buildmenu', text)
           end
-          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,1,1,{1,1,1,0}, {1,1,1,(b and 0.35 or 0.15)})
+          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 2,2,2,2,{1,1,1,0}, {1,1,1,(b and 0.35 or 0.15)})
           -- gloss
-          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][4]-cellPadding-((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.5), paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.025}, {1,1,1,0.13})
-          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][2]+cellPadding+((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.33), cellSize*0.03, 0,0,1,1,{1,1,1,0.045}, {1,1,1,0})
+          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][4]-cellPadding-((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.5), paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][4]-cellPadding, cellSize*0.03, 2,2,0,0,{1,1,1,0.025}, {1,1,1,0.13})
+          RectRound(paginatorRects[paginatorHovered][1]+cellPadding, paginatorRects[paginatorHovered][2]+cellPadding, paginatorRects[paginatorHovered][3]-cellPadding, paginatorRects[paginatorHovered][2]+cellPadding+((paginatorRects[paginatorHovered][4]-paginatorRects[paginatorHovered][2])*0.33), cellSize*0.03, 0,0,2,2,{1,1,1,0.045}, {1,1,1,0})
         end
 
         -- cells
