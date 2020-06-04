@@ -2693,14 +2693,14 @@ local types = {
   builder = {
     --explosion = {properties = {colormap = [[0 0 0 0   1 0.92 0.2 0.08   0.91 0.82 0.06 0.06   0.80 0.66 0.04 0.03   0 0 0 0.01]]}},
     --fireglow = { properties = {colormap           = [[0.3 0.3 0.04 0.025   0 0 0 0]]}},
-    sparks = { properties = {colormap           = [[0.93 0.9 0.20 0.015   0.8 0.8 0.1 0.01   0 0 0 0]]}},
+    --sparks = { properties = {colormap           = [[0.93 0.9 0.20 0.015   0.8 0.8 0.1 0.01   0 0 0 0]]}},
   },
   uw = {
     groundflash_small = false,
     groundflash_large = false,
     groundflash_white = false,
     explosion = {ground=false, water=false, air=false, underwater=false, properties={colormap=[[0 0 0 0   1 0.75 0.9 0.09   0.45 0.4 0.66 0.066   0.33 0.3 0.05 0.033   0 0 0 0]]}},
-    dirt = false,
+    dirt = true,
     dirt2 = false,
     --sparks = false,
   },
@@ -2709,7 +2709,7 @@ local types = {
     groundflash_large = false,
     groundflash_white = false,
     dirt = true,
-    dirt2 = true,
+    dirt2 = false,
     --sparks = false,
   },
   fire = {
