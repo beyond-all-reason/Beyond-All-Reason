@@ -20,6 +20,7 @@ local cfgIconCornerSize = 0.025
 local cfgRadaiconSize = 0.29
 local cfgRadariconOffset = 0.027
 local cfgPriceFontSize = 0.18
+local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
 local defaultColls = 5
 local dynamicIconsize = true
@@ -574,6 +575,7 @@ function widget:ViewResize()
 
   local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
   bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
+  activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
   posY = 0.606
   posY2 = math_floor(0.14 * vsy) / vsy
@@ -932,7 +934,7 @@ local function drawCell(cellRectID, usedZoom, cellColor)
 end
 
 function drawBuildmenu()
-  local activeArea = {backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding}
+  local activeArea = {backgroundRect[1]+activeAreaMargin, backgroundRect[2]+bgpadding+activeAreaMargin, backgroundRect[3]-bgpadding-activeAreaMargin, backgroundRect[4]-bgpadding-activeAreaMargin}
   local contentHeight = activeArea[4]-activeArea[2]
   local contentWidth = activeArea[3]-activeArea[1]
 
@@ -1034,8 +1036,8 @@ function drawBuildmenu()
     local paginatorCellWidth = math_floor(contentWidth*0.3)
     local paginatorBorderSize = math_floor(cellSize*((cfgIconPadding+cfgCellPadding)*0.8))
 
-    paginatorRects[1] = {activeArea[1], activeArea[2], activeArea[1]+paginatorCellWidth, activeArea[2]+paginatorCellHeight-cellPadding}
-    paginatorRects[2] = {activeArea[3]-paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2]+paginatorCellHeight-cellPadding}
+    paginatorRects[1] = {activeArea[1], activeArea[2], activeArea[1]+paginatorCellWidth, activeArea[2]+paginatorCellHeight-cellPadding-activeAreaMargin}
+    paginatorRects[2] = {activeArea[3]-paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2]+paginatorCellHeight-cellPadding-activeAreaMargin}
 
     RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 2,2,2,2,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
     RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 2,2,2,2,{0.28,0.28,0.28,WG['guishader'] and 0.66 or 0.8}, {0.36,0.36,0.36,WG['guishader'] and 0.66 or 0.88})
