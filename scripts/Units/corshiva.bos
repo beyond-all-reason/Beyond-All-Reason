@@ -8,7 +8,7 @@ piece  pelvis, aimy1, torso, aimx1, rturret, rflare, rrecoil, lturret, lflare, l
 
 static-var  bMoving, bAiming, restore_delay, gun_left, firststep;
 
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -400,7 +400,135 @@ StopWalking() {
 	turn torso to z-axis <0> speed <13.988601>;
 }
 
+static-var bAnimate;
+Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corshiva_anim_death_v1.blend 
+		if (bAnimate) {
+			move lankle to z-axis [0.902645] speed [3.868478] ; 
+			move lankle to y-axis [1.224814] speed [5.249201] ; 
+			turn lankle to x-axis <14.719044> speed <68.453426> ; 
+			turn lleg to x-axis <-34.659262> speed <148.539695> ; 
+			turn lleg to y-axis <0.227802> speed <0.976296> ; 
+			turn lthigh to x-axis <30.957487> speed <132.674946> ; 
+			turn lthigh to z-axis <0.173840> speed <0.745030> ; 
+			turn lthigh to y-axis <-0.298919> speed <1.281081> ; 
+			turn lturret to x-axis <-6.013723> speed <25.773100> ; 
+			move pelvis to z-axis [-2.098165] speed [8.992134] ; 
+			move pelvis to y-axis [-7.973025] speed [34.170109] ; 
+			turn pelvis to x-axis <-16.135753> speed <69.153228> ; 
+			move rankle to z-axis [0.894512] speed [3.833624] ; 
+			move rankle to y-axis [1.224886] speed [5.249512] ; 
+			turn rankle to x-axis <14.594736> speed <67.962571> ; 
+			turn rleg to x-axis <-34.733643> speed <148.858470> ; 
+			turn rleg to y-axis <-0.229656> speed <0.984241> ; 
+			turn rthigh to x-axis <31.111303> speed <133.334157> ; 
+			turn rthigh to z-axis <-0.175825> speed <0.753537> ; 
+			turn rthigh to y-axis <0.302243> speed <1.295327> ; 
+			turn rturret to x-axis <-6.013723> speed <25.773100> ; 
+		sleep 230;
+		}
+		if (bAnimate) {
+			move lankle to z-axis [1.805290] speed [3.868478] ; 
+			move lankle to y-axis [2.449627] speed [5.249201] ; 
+			turn lankle to x-axis <59.926215> speed <193.745019> ; 
+			turn lleg to x-axis <-46.569613> speed <51.044360> ; 
+			turn lleg to z-axis <0.282024> speed <1.006385> ; 
+			turn lleg to y-axis <0.360563> speed <0.568976> ; 
+			turn lthigh to x-axis <22.616006> speed <35.749205> ; 
+			turn lturret to x-axis <-0.392973> speed <24.088930> ; 
+			turn lturret to z-axis <8.443136> speed <36.184868> ; 
+			turn lturret to y-axis <5.320018> speed <22.800078> ; 
+			move pelvis to z-axis [-4.196329] speed [8.992134] ; 
+			move pelvis to y-axis [-15.946051] speed [34.170109] ; 
+			turn pelvis to x-axis <-32.271507> speed <69.153228> ; 
+			move rankle to z-axis [1.789024] speed [3.833624] ; 
+			move rankle to y-axis [2.449772] speed [5.249512] ; 
+			turn rankle to x-axis <59.985078> speed <194.530035> ; 
+			turn rleg to x-axis <-46.654755> speed <51.090478> ; 
+			turn rleg to z-axis <-0.285135> speed <1.016134> ; 
+			turn rleg to y-axis <-0.363469> speed <0.573484> ; 
+			turn rthigh to x-axis <22.697367> speed <36.059725> ; 
+			turn rthigh to z-axis <-0.074819> speed <0.432882> ; 
+			turn rturret to x-axis <-0.392973> speed <24.088930> ; 
+			turn rturret to z-axis <-8.443136> speed <36.184868> ; 
+			turn rturret to y-axis <-5.320018> speed <22.800078> ; 
+		sleep 230;
+		}
+		if (bAnimate) {
+			turn lankle to x-axis <56.847333> speed <9.236646> ; 
+			turn lankle to z-axis <-0.199874> speed <0.627350> ; 
+			turn lankle to y-axis <1.364711> speed <3.881026> ; 
+			turn lleg to x-axis <-39.226196> speed <22.030249> ; 
+			turn lleg to z-axis <-1.065266> speed <4.041869> ; 
+			turn lleg to y-axis <-1.791247> speed <6.455432> ; 
+			turn lthigh to x-axis <4.515302> speed <54.302113> ; 
+			turn lthigh to z-axis <0.604679> speed <1.590455> ; 
+			turn lthigh to y-axis <-0.570866> speed <0.816889> ; 
+			turn lturret to x-axis <0.000000> speed <1.178919> ; 
+			turn lturret to z-axis <-0.000000> speed <25.329407> ; 
+			turn lturret to y-axis <0.000000> speed <15.960054> ; 
+			turn pelvis to x-axis <-15.480665> speed <50.372526> ; 
+			turn pelvis to z-axis <-2.231866> speed <6.695597> ; 
+			turn pelvis to y-axis <1.700530> speed <5.101591> ; 
+			turn rankle to x-axis <57.371670> speed <7.840224> ; 
+			turn rankle to z-axis <-0.413880> speed <1.213843> ; 
+			turn rankle to y-axis <1.469695> speed <4.624172> ; 
+			turn rleg to x-axis <-44.441346> speed <6.640225> ; 
+			turn rleg to z-axis <-1.609562> speed <3.973282> ; 
+			turn rleg to y-axis <-2.600198> speed <6.710186> ; 
+			turn rthigh to x-axis <8.890320> speed <41.421142> ; 
+			turn rthigh to z-axis <0.452878> speed <1.583093> ; 
+			turn rthigh to y-axis <-0.154546> speed <1.366826> ; 
+			turn rturret to x-axis <0.000000> speed <1.178919> ; 
+			turn rturret to z-axis <-0.000000> speed <25.329407> ; 
+			turn rturret to y-axis <0.000000> speed <15.960054> ; 
+		sleep 329;
+		}
+		if (bAnimate) {
+			turn torso to x-axis <7.014775> speed <42.088648> ; 
+			turn torso to z-axis <-0.152166> speed <0.912995> ; 
+			turn torso to y-axis <-0.273173> speed <1.639040> ; 
+		sleep 164;
+		}
+}
 
+StopAnimation() {
+	move lankle to y-axis [0] speed [5.249201];
+	move lankle to z-axis [0] speed [3.868478];
+	move pelvis to y-axis [0] speed [34.170109];
+	move pelvis to z-axis [0] speed [8.992134];
+	move rankle to y-axis [0] speed [5.249512];
+	move rankle to z-axis [0] speed [3.833624];
+	turn lankle to x-axis <0> speed <193.745019>;
+	turn lankle to y-axis <0> speed <3.881026>;
+	turn lankle to z-axis <0> speed <0.627350>;
+	turn lleg to x-axis <0> speed <148.539695>;
+	turn lleg to y-axis <0> speed <6.455432>;
+	turn lleg to z-axis <0> speed <4.041869>;
+	turn lthigh to x-axis <0> speed <132.674946>;
+	turn lthigh to y-axis <0> speed <1.281081>;
+	turn lthigh to z-axis <0> speed <1.590455>;
+	turn lturret to x-axis <0> speed <25.773100>;
+	turn lturret to y-axis <0> speed <22.800078>;
+	turn lturret to z-axis <0> speed <36.184868>;
+	turn pelvis to x-axis <0> speed <69.153228>;
+	turn pelvis to y-axis <0> speed <5.101591>;
+	turn pelvis to z-axis <0> speed <6.695597>;
+	turn rankle to x-axis <0> speed <194.530035>;
+	turn rankle to y-axis <0> speed <4.624172>;
+	turn rankle to z-axis <0> speed <1.213843>;
+	turn rleg to x-axis <0> speed <148.858470>;
+	turn rleg to y-axis <0> speed <6.710186>;
+	turn rleg to z-axis <0> speed <3.973282>;
+	turn rthigh to x-axis <0> speed <133.334157>;
+	turn rthigh to y-axis <0> speed <1.366826>;
+	turn rthigh to z-axis <0> speed <1.583093>;
+	turn rturret to x-axis <0> speed <25.773100>;
+	turn rturret to y-axis <0> speed <22.800078>;
+	turn rturret to z-axis <0> speed <36.184868>;
+	turn torso to x-axis <0> speed <42.088648>;
+	turn torso to y-axis <0> speed <1.639040>;
+	turn torso to z-axis <0> speed <0.912995>;
+}
 MotionControl(moving, aiming, justmoved)
 {
 	justmoved = TRUE;
@@ -412,6 +540,7 @@ MotionControl(moving, aiming, justmoved)
 		aiming = bAiming;
 		if( moving )
 		{
+			signal SIG_WALK;
 			if( aiming )
 			{
 				call-script walk();
@@ -424,13 +553,23 @@ MotionControl(moving, aiming, justmoved)
 		}
 		else
 		{	
-			signal SIG_WALK;
+
 			if( justmoved )
 			{
 				justmoved = FALSE; //just cleared the animations from here, not sure what you will do with this 
 				call-script StopWalking();
 			}
+			
 			sleep 100;
+			if (RAND(1,200) ==1){ //this is bad place and thread to do this, just showing off...
+				if (!bAiming){
+					bAnimate = TRUE;
+					start-script Animate();
+					sleep 2000;
+					call-script StopAnimation() ;
+				}
+				//explode rrecoil type FIRE | SMOKE | FALL;
+			}
 		}
 	}
 }
@@ -483,6 +622,7 @@ Create()
 {
 	bMoving = FALSE;
 	bAiming = FALSE;
+	doorOpen = FALSE;
 	gun_left = TRUE;
 	animFramesPerKeyframe = 6;
 	animSpeed = 6;
@@ -493,7 +633,7 @@ Create()
 	//turn lflare to y-axis <20> now;
 	//turn rflare to x-axis <105> now;
 	//turn rflare to y-axis <20> now;
-	restore_delay = 2000;
+	restore_delay = 5000;
 	set ARMORED to 1;
 	start-script SmokeUnit();
 	start-script UnitSpeed();
@@ -521,7 +661,11 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	turn aimy1 to y-axis <0.000000> speed <120.000000>;
 	turn aimx1 to x-axis <0.000000> speed <125.000000>;
+	
+	turn rdoor to z-axis <0> speed <100>;
+	turn ldoor to z-axis <0> speed <100>;
 	bAiming = FALSE;
+	doorOpen = FALSE;
 }
 
 AimPrimary(heading, pitch)
@@ -535,14 +679,24 @@ AimPrimary(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	
-	//start-script RestoreAfterDelay();
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
 AimTertiary(heading, pitch)
 {
+	
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
+	
+	if (!doorOpen){
+		turn rdoor to z-axis <-115> speed <100>;
+		turn ldoor to z-axis <115> speed <100>;
+		wait-for-turn rdoor around z-axis;
+		wait-for-turn ldoor around z-axis;
+		doorOpen = TRUE;
+	}
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -552,14 +706,24 @@ FirePrimary()
 	{
 		move lrecoil to z-axis [-3.000000] speed [70.000000];
 		emit-sfx 1024 + 0 from lflare;
+		turn lturret to y-axis <5> now;
+		turn aimy1 to x-axis <-1> now;
 		sleep 150;
+		
+		turn aimy1 to x-axis <0> speed <3>;	
+		turn lturret to y-axis <0> speed <8>;
 		move lrecoil to z-axis [0.000000] speed [3.000000];
 	}
 	else
 	{
 		move rrecoil to z-axis [-3.000000] speed [70.000000];
 		emit-sfx 1024 + 0 from rflare;
+		turn rturret to y-axis <-5> now;
+		turn aimy1 to x-axis <-1> now;
 		sleep 150;
+		
+		turn aimy1 to x-axis <0> speed <3>;	
+		turn rturret to y-axis <0> speed <8>;
 		move rrecoil to z-axis [0.000000] speed [3.000000];
 	}
 	gun_left = !gun_left;
@@ -568,6 +732,13 @@ FirePrimary()
 
 FireTertiary()
 {
+	turn aimy1 to x-axis <-2> now;
+	turn rdoor to z-axis <-125> now; 
+	turn ldoor to z-axis <125> now;
+	sleep 150;
+	turn aimy1 to x-axis <0> speed <3>;
+	turn rdoor to z-axis <-115> speed <15>;
+	turn ldoor to z-axis <115> speed <15>;
 
 }
 
@@ -596,6 +767,7 @@ QueryPrimary(piecenum)
 
 QueryTertiary(piecenum)
 {
+	
 	piecenum = rlauncher; // not sure what should go here 
 }
 
