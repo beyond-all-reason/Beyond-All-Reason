@@ -1483,7 +1483,7 @@ local definitions = {
       water              = true,
 	  underwater         = true,
       properties = {
-        airdrag            = 0.90,
+        airdrag            = 0.86,
         colormap           = [[0.9 0.85 0.77 0.017   0.8 0.55 0.3 0.011   0 0 0 0]],
         directional        = true,
         emitrot            = 30,
@@ -1491,16 +1491,16 @@ local definitions = {
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.15, 0]],
         numparticles       = 5.5,
-        particlelife       = 7,
+        particlelife       = 8,
         particlelifespread = 12,
-        particlesize       = 65,
-        particlesizespread = 35,
-        particlespeed      = 6.5,
+        particlesize       = 35,
+        particlesizespread = 25,
+        particlespeed      = 9.5,
         particlespeedspread = 3.4,
         pos                = [[0, 4, 0]],
         sizegrowth         = 1,
         sizemod            = 0.77,
-        texture            = [[gunshotglow]],
+        texture            = [[gunshotxl]],
         useairlos          = false,
       },
     },
@@ -2771,7 +2771,7 @@ local colors = {
     outersmoke = {properties={colormap=[[1 0.58 0.36 0.4    0.48 0.24 0.14 0.45   0.26 0.16 0.13 0.4    0.2 0.16 0.14 0.35   0.1 0.09 0.088 0.25   0.07 0.063 0.058 0.17    0 0 0 0.01]]}},
     groundflash_small = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
     groundflash_large = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
-    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.36 0.13 0.017   0 0 0 0]]}},
+    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.45 0.18 0.017   0 0 0 0]]}},
   }
 }
 for color, effects in pairs(colors) do
@@ -2877,9 +2877,9 @@ definitions['genericshellexplosion-catapult'].explosion.properties.colormap = [[
 definitions['genericshellexplosion-catapult'].explosion2.properties.numparticles = 4
 definitions['genericshellexplosion-catapult'].explosion2.properties.colormap = [[0 0 0 0   1 0.38 0.1 0.09   0.55 0.22 0.05 0.066   0.25 0.08 0.03 0.033   0 0 0 0]]
 definitions['genericshellexplosion-catapult'].dustparticles.properties.numparticles = 1
-definitions['genericshellexplosion-catapult'].dirt.properties.numparticles = 2
-definitions['genericshellexplosion-catapult'].dirt2.properties.numparticles = 2
-definitions['genericshellexplosion-catapult'].sparks.properties.numparticles = 2
+definitions['genericshellexplosion-catapult'].dirt.properties.numparticles = 3
+definitions['genericshellexplosion-catapult'].dirt2.properties.numparticles = 3
+definitions['genericshellexplosion-catapult'].sparks.properties.numparticles = 4
 definitions['genericshellexplosion-catapult'].clouddust.properties.numparticles = 1
 
 
