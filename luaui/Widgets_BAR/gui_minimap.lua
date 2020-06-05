@@ -37,8 +37,8 @@ local backgroundRect = {0,0,0,0}
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetCameraState = Spring.GetCameraState
 
-local usedWidth = maxWidth*vsy
-local usedHeight = maxHeight*vsy
+local usedWidth = math.floor(maxWidth*vsy)
+local usedHeight = math.floor(maxHeight*vsy)
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
