@@ -588,6 +588,7 @@ Create()
 	Static_Var_6 = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
+	animSpeed = 6;
 	Static_Var_9 = 0;
 	Static_Var_10 = 0;
 	Static_Var_9 = 0;
