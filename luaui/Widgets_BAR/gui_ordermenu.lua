@@ -522,6 +522,20 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
   gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
+local function RectQuad(px,py,sx,sy,offset)
+  gl.TexCoord(offset,1-offset)
+  gl.Vertex(px, py, 0)
+  gl.TexCoord(1-offset,1-offset)
+  gl.Vertex(sx, py, 0)
+  gl.TexCoord(1-offset,offset)
+  gl.Vertex(sx, sy, 0)
+  gl.TexCoord(offset,offset)
+  gl.Vertex(px, sy, 0)
+end
+function DrawRect(px,py,sx,sy,zoom)
+  gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy,zoom)
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -671,7 +685,7 @@ function drawCell(cell, zoom)
       local stateWidth = cellInnerWidth / statecount
       local stateHeight = math_floor(cellInnerHeight * 0.14)
       local stateMargin = math_floor(stateWidth*0.07)
-      local glowSize = math_floor(stateHeight * 7.5)
+      local glowSize = math_floor(stateHeight * 8)
       local r,g,b,a = 0,0,0,0
       for i=1, statecount do
         if i == curstate or i == desiredState then
@@ -704,12 +718,12 @@ function drawCell(cell, zoom)
         -- fancy active state glow
         if rows < 6 and  i == curstate then
           glBlending(GL_SRC_ALPHA, GL_ONE)
-          glColor(r,g,b,0.095)
+          glColor(r,g,b,0.1)
           glTexture(barGlowCenterTexture)
-          glTexRect(x1, y1 - glowSize, x2, y2 + glowSize)
+          DrawRect(x1, y1 - glowSize, x2, y2 + glowSize, 0.008)
           glTexture(barGlowEdgeTexture)
-          glTexRect(x1-(glowSize*2), y1 - glowSize, x1, y2 + glowSize)
-          glTexRect(x2+(glowSize*2), y1 - glowSize, x2, y2 + glowSize)
+          DrawRect(x1-(glowSize*2), y1 - glowSize, x1, y2 + glowSize, 0.008)
+          DrawRect(x2+(glowSize*2), y1 - glowSize, x2, y2 + glowSize, 0.008)
           glTexture(false)
           glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         end
