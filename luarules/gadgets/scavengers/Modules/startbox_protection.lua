@@ -108,7 +108,7 @@ function executeStartBoxProtection(n)
 					if damage < currentHealth then
 						Spring.SetUnitHealth(unitID,currentHealth-damage)
 						local posx, posy, posz = Spring.GetUnitPosition(unitID)
-						Spring.SpawnCEG("scaspawn-trail",posx,posy+50,posz,0,0,0)
+						Spring.SpawnCEG("scav-damage",posx,posy+40,posz,0,0,0)
 					else
 						Spring.DestroyUnit(unitID, false, false)
 					end
@@ -123,6 +123,15 @@ function spawnStartBoxEffect(n)
 		local x = math.random(ScavengerStartboxXMin,ScavengerStartboxXMax)
 		local z = math.random(ScavengerStartboxZMin,ScavengerStartboxZMax)
 		local y = Spring.GetGroundHeight(x,z)
-		Spring.SpawnCEG("scaspawn-trail",x,y+100,z,0,0,0)
+		Spring.SpawnCEG("scavradiation",x,y+100,z,0,0,0)
+	end
+end
+
+function spawnStartBoxEffect2(n)
+	if ScavengerStartboxExists then
+		local x = math.random(ScavengerStartboxXMin,ScavengerStartboxXMax)
+		local z = math.random(ScavengerStartboxZMin,ScavengerStartboxZMax)
+		local y = Spring.GetGroundHeight(x,z)
+		Spring.SpawnCEG("scavradiation-lightning",x,y+100,z,0,0,0)
 	end
 end

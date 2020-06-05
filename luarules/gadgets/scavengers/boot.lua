@@ -186,8 +186,11 @@ function gadget:GameFrame(n)
 		if n%30 == 0 then
 			spawnStartBoxProtection(n)
 			executeStartBoxProtection(n)
+			spawnStartBoxEffect2(n)
 		end
-		spawnStartBoxEffect(n)
+		if n%3 == 0 then
+			spawnStartBoxEffect(n)
+		end
 	end
 
 	if n%30 == 0 and scavconfig.modules.reinforcementsModule then
