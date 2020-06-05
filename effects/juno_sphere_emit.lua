@@ -1,6 +1,6 @@
 return {
 	["juno_sphere_emit"] = {
-		"nonodecay" = {
+		nonodecay = {
 			class = [[CSimpleParticleSystem]],
 			air = true,
 			water = true,
