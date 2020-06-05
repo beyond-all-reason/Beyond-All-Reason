@@ -32,6 +32,7 @@ local showPrice = true
 local showRadarIcon = true
 local showShortcuts = false
 local showTooltip = true
+local showBuildProgress = true
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -87,8 +88,10 @@ local posY = 0
 local posY2 = 0
 local width = 0
 local height = 0
-local selectedBuilderCount = 0
 local selectedBuilders = {}
+local selectedBuilderCount = 0
+local selectedFactories = {}
+local selectedFactoryCount = 0
 local cellRects = {}
 local cmds = {}
 local lastUpdate = os.clock()-1
@@ -119,8 +122,10 @@ local spGetTeamRulesParam =Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
-
+local spGetUnitHealth = Spring.GetUnitHealth
 local SelectedUnitsCount = spGetSelectedUnitsCount()
+local spGetFullBuildQueue = Spring.GetFullBuildQueue
+local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 
 local string_sub = string.sub
 local string_gsub = string.gsub
@@ -129,8 +134,15 @@ local os_clock = os.clock
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
+local math_min = math.min
+local math_tan = math.tan
+local math_pi = math.pi
+local math_cos = math.cos
+local math_sin = math.sin
+local math_rad = math.rad
 
 local GL_QUADS = GL.QUADS
+local glShape = gl.Shape
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
@@ -250,9 +262,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     hasAlternativeUnitpic[unitDefID] = true
   end
   if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
-    isBuilder[unitDefID] = true
+    isBuilder[unitDefID] = unitDef.buildOptions
   end
-  if unitDef.isFactory then
+  if unitDef.isFactory and #unitDef.buildOptions > 0 then
     isFactory[unitDefID] = true
   end
   if unitDef.extractsMetal > 0 then
@@ -414,6 +426,65 @@ end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
   --gl.Texture(false)   -- just make sure you do this before calling this function, or uncomment this line
   gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+end
+
+
+-- cs (corner size) is not implemented yet
+local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
+
+  glColor(color)
+  local xcen = (left+right)/2
+  local ycen = (top+bottom)/2
+
+  local alpha = 360*(progress)
+  local alpha_rad = math_rad(alpha)
+  local beta_rad  = math_pi/2 - alpha_rad
+  local list = {}
+  local listCount = 1
+  list[listCount] = {v = { xcen,  ycen }}
+  listCount = listCount + 1
+  list[#list+1] = {v = { xcen,  top }}
+
+  local x,y
+  x = (top-ycen)*math_tan(alpha_rad) + xcen
+  if (alpha<90)and(x<right) then
+    listCount = listCount + 1
+    list[listCount] = {v = { x,  top }}
+  else
+    listCount = listCount + 1
+    list[listCount] = {v = { right,  top }}
+    y = (right-xcen)*math_tan(beta_rad) + ycen
+    if (alpha<180)and(y>bottom) then
+      listCount = listCount + 1
+      list[listCount] = {v = { right,  y }}
+    else
+      listCount = listCount + 1
+      list[listCount] = {v = { right,  bottom }}
+      x = (top-ycen)*math_tan(-alpha_rad) + xcen
+      if (alpha<270)and(x>left) then
+        listCount = listCount + 1
+        list[listCount] = {v = { x,  bottom }}
+      else
+        listCount = listCount + 1
+        list[listCount] = {v = { left,  bottom }}
+        y = (right-xcen)*math_tan(-beta_rad) + ycen
+        if (alpha<350)and(y<top) then
+          listCount = listCount + 1
+          list[listCount] = {v = { left,  y }}
+        else
+          listCount = listCount + 1
+          list[listCount] = {v = { left,  top }}
+          x = (top-ycen)*math_tan(alpha_rad) + xcen
+          listCount = listCount + 1
+          list[listCount] = {v = { x,  top }}
+        end
+      end
+    end
+  end
+  --glShape(GL.TRIANGLE_FAN, list)
+  glColor(color[1],color[2],color[3],color[4])
+  glShape(GL.TRIANGLE_FAN, list)
+  glColor(1,1,1,1)
 end
 
 local function RectQuad(px,py,sx,sy,offset)
@@ -817,7 +888,8 @@ function drawBuildmenuBg()
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor)
+
+local function drawCell(cellRectID, usedZoom, cellColor, progress)
   local uDefID = cmds[cellRectID].id*-1
 
   -- encapsulating cell background
@@ -864,8 +936,13 @@ local function drawCell(cellRectID, usedZoom, cellColor)
   end
   glTexture(false)
 
-  if makeFancy then
+  -- draw build progress pie on top of texture
+  if progress and showBuildProgress then
+    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.1,0.1,0.1,0.5})
+  end
 
+  -- make fancy
+  if makeFancy then
     -- lighten top
     glBlending(GL_SRC_ALPHA, GL_ONE)
     -- glossy half
@@ -874,7 +951,7 @@ local function drawCell(cellRectID, usedZoom, cellColor)
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     -- extra darken gradually
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.12}, {0,0,0,0})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.13}, {0,0,0,0})
   end
 
   -- darken price background gradually
@@ -931,7 +1008,15 @@ local function drawCell(cellRectID, usedZoom, cellColor)
             cellInnerSize*0.29, "ro"
     )
   end
+
+  -- draw build progress pie on top of it all
+  if progress and showBuildProgress then
+    --glBlending(GL_SRC_ALPHA, GL_ONE)
+    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.15,0.15,0.15,0.3})
+    --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  end
 end
+
 
 function drawBuildmenu()
   local activeArea = {backgroundRect[1]+activeAreaMargin, backgroundRect[2]+bgpadding+activeAreaMargin, backgroundRect[3]-bgpadding-activeAreaMargin, backgroundRect[4]-bgpadding-activeAreaMargin}
@@ -1224,6 +1309,8 @@ function widget:DrawScreen()
     gl.CallList(dlistBuildmenu)
 
     -- draw highlight
+    local usedZoom
+    local cellColor
     if not WG['topbar'] or not WG['topbar'].showingQuit() then
       if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
@@ -1253,8 +1340,7 @@ function widget:DrawScreen()
           local uDefID = cmds[cellRectID].id*-1
 
           -- determine zoom amount and cell color
-          local usedZoom = hoverCellZoom
-          local cellColor
+          usedZoom = hoverCellZoom
           if not cellIsSelected then
             if (b or b2) and cellIsSelected then
               usedZoom = clickSelectedCellZoom
@@ -1266,12 +1352,12 @@ function widget:DrawScreen()
               usedZoom = rightclickCellZoom
             end
             -- determine color
-              if (b or b2) and not disableInput then
-                cellColor = {0.3,0.8,0.25,alternativeUnitpics and 0.7 or 0.2}
-              elseif b3 and not disableInput then
-                cellColor = {1,0.35,0.3,alternativeUnitpics and 0.7 or 0.2}
-              else
-                cellColor = {0.6,0.6,0.6,alternativeUnitpics and 0.25 or 0}
+            if (b or b2) and not disableInput then
+              cellColor = {0.3,0.8,0.25,alternativeUnitpics and 0.7 or 0.2}
+            elseif b3 and not disableInput then
+              cellColor = {1,0.35,0.3,alternativeUnitpics and 0.7 or 0.2}
+            else
+              cellColor = {0.6,0.6,0.6,alternativeUnitpics and 0.25 or 0}
             end
           else
             -- selected cell
@@ -1294,6 +1380,50 @@ function widget:DrawScreen()
           if not showPrice then
             RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,0,0,{0,0,0,0.35}, {0,0,0,0})
             font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.4), priceFontSize, "o")
+          end
+        end
+      end
+    end
+
+
+    -- draw builders buildoption progress
+    if showBuildProgress then
+      local numCellsPerPage = rows*colls
+      local cellRectID = numCellsPerPage * (currentPage-1)
+      local maxCellRectID = numCellsPerPage * currentPage
+      if maxCellRectID > cmdsCount then
+        maxCellRectID = cmdsCount
+      end
+      -- loop selected builders
+      for builderUnitID,_ in pairs(selectedBuilders) do
+        local unitBuildID = spGetUnitIsBuilding(builderUnitID)
+        if unitBuildID then
+          local unitBuildDefID = spGetUnitDefID(unitBuildID)
+          if unitBuildDefID then
+            -- loop all shown cells
+            for cellRectID, cellRect in pairs(cellRects) do
+              if cellRectID >= maxCellRectID then
+                break
+              end
+              local cellUnitDefID = cmds[cellRectID].id*-1
+              if unitBuildDefID == cellUnitDefID then
+                local progress = select(5, spGetUnitHealth(unitBuildID))
+                if not usedZoom then
+                  if (b or b2 or b3) then
+                    usedZoom = clickSelectedCellZoom
+                  else
+                    local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+                    usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
+                  end
+                end
+                if cellColor and cellRectID ~= hoveredCellID then
+                  cellColor = nil
+                  usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
+                end
+                drawCell(cellRectID, usedZoom, cellColor, progress)
+                --RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {1,1,1,0.25})
+              end
+            end
           end
         end
       end
@@ -1430,10 +1560,16 @@ function widget:SelectionChanged(sel)
   if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
     SelectedUnitsCount = spGetSelectedUnitsCount()
   end
-  selectedBuilderCount = 0
   selectedBuilders = {}
+  selectedBuilderCount = 0
+  selectedFactories = {}
+  selectedFactoryCount = 0
   if SelectedUnitsCount > 0 then
     for _,unitID in pairs(sel) do
+      if isFactory[spGetUnitDefID(unitID)] then
+        selectedFactories[unitID] = true
+        selectedFactoryCount = selectedFactoryCount + 1
+      end
       if isBuilder[spGetUnitDefID(unitID)] then
         selectedBuilders[unitID] = true
         selectedBuilderCount = selectedBuilderCount + 1
