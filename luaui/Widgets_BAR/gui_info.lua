@@ -661,7 +661,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom)
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
   RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.06})
   RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cornerSize, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   -- unitcount
@@ -710,7 +710,7 @@ local function drawInfo()
 
     -- selected units grid area
     gridWidth = math_floor(backgroundRect[3]-backgroundRect[1])
-    gridHeight = (backgroundRect[4]-backgroundRect[2])-padding-padding
+    gridHeight = (backgroundRect[4]-backgroundRect[2])-padding-padding-padding
     customInfoArea = {backgroundRect[3]-gridWidth-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+gridHeight}
 
     -- selected units grid area
@@ -1293,14 +1293,14 @@ function widget:DrawScreen()
             -- highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)
             if b or b2 or b3 then
-              RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.4 or 0.2}, {color[1],color[2],color[3],(b or b2 or b3) and 0.07 or 0.04})
+              RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*0.9, 1,1,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.4 or 0.2}, {color[1],color[2],color[3],(b or b2 or b3) and 0.07 or 0.04})
             end
             -- gloss
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.66), cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding, cellPadding*0.9, 1,1,0,0,{color[1],color[2],color[3],0}, {color[1],color[2],color[3],(b or b2 or b3) and 0.18 or 0.13})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.18), cellPadding*0.9, 0,0,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.15 or 0.1}, {color[1],color[2],color[3],0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.66), cellRect[cellID][3], cellRect[cellID][4], cellPadding*0.9, 1,1,0,0,{color[1],color[2],color[3],0}, {color[1],color[2],color[3],(b or b2 or b3) and 0.18 or 0.13})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.18), cellPadding*0.9, 0,0,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.15 or 0.1}, {color[1],color[2],color[3],0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             -- bottom darkening
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.25 or 0.18}, {0,0,0,0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.25 or 0.18}, {0,0,0,0})
             cellHovered = cellID
             break
           end

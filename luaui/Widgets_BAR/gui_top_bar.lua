@@ -380,7 +380,7 @@ local function updateRejoin()
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
 
-		local barHeight = (height*widgetScale/9)
+		local barHeight = math_floor((height*widgetScale/9)+0.5)
 		local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 		local barLeftPadding = 7* widgetScale
 		local barRightPadding = 7 * widgetScale
@@ -751,6 +751,7 @@ local function updateResbarText(res)
 		font2:Print("\255\120\235\120"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 		font2:End()
 
+
 		if not spec and gameFrame > 90 then
 
 			-- display overflow notification
@@ -851,13 +852,13 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][1])
 		glDeleteList(dlistResbar[res][2])
 	end
-	local barHeight = (height*widgetScale/9)
+	local barHeight = math_floor((height*widgetScale/8)+0.5)
 	local barHeighPadding = (height/4.25)*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
 	local barLeftPadding = 45 * widgetScale
 	local barRightPadding = 14.5 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
-	local sliderHeightAdd = barHeight / 1.55
+	local sliderHeightAdd = math_floor(barHeight / 1.55)
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
 	local glowSize = barHeight * 7
@@ -866,6 +867,7 @@ local function updateResbar(res)
 		sliderHeightAdd = barHeight / 0.75
 		shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	end
+	shareSliderWidth = math.ceil(shareSliderWidth)
 
 	if res == 'metal' then
 		resbarDrawinfo[res].barColor = {1,1,1,1}
@@ -926,8 +928,12 @@ local function updateResbar(res)
 		glTexture(false)
 
 		-- Bar background
-		local addedSize = (barArea[4]-barArea[2])*0.25
-		RectRound(barArea[1]-(addedSize*1.4), barArea[2]-addedSize, barArea[3]+(addedSize*1.4), barArea[4]+(addedSize*0.7), barHeight*0.3, 1,1,1,1, {0.15,0.15,0.15,0.25},{0.75,0.75,0.75,0.33})
+		local addedSize = math.max(1, math_floor(((barArea[4]-barArea[2])*0.3)+0.5))
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.08})
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize, barHeight*0.33, 0,0,1,1, {1,1,1,0.055},{1,1,1,0.0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.18})
 	end)
 
 	dlistResbar[res][2] = glCreateList( function()
@@ -985,6 +991,60 @@ local function updateResbar(res)
 end
 
 
+function drawResbarValues(res)
+	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
+	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
+	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
+
+	local cappedCurRes = r[res][1]	-- limit so when production dies the value wont be much larger than what you can store
+	if r[res][1] > r[res][2]*1.07 then
+		cappedCurRes = r[res][2]*1.07
+	end
+	if res == 'energy' then
+		glColor(1,1,0, 0.04)
+		glTexture(glowTexture)
+		local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
+		glTexRect(resbarArea[res][1]+iconPadding, resbarArea[res][2]+iconPadding, resbarArea[res][1]+(height*widgetScale)-iconPadding, resbarArea[res][4]-iconPadding)
+		glTexture(false)
+	end
+
+	-- Bar value
+	local valueWidth = ((cappedCurRes/r[res][2]) * barWidth)
+	local color1,color2
+	if res == 'metal' then
+		color1 = {0.56,0.56,0.55,1}
+		color2 = {1,1,1,1}
+	else
+		color1 = {0.65,0.6,0,1}
+		color2 = {1,0.99,0.33,1}
+	end
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1, color1,color2)
+
+	-- bar value highlight
+	glBlending(GL_SRC_ALPHA, GL_ONE)
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4]-((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1,{1,1,1,0.02}, {1,1,1,0.09})
+
+	-- Bar value glow
+	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
+	glTexture(barGlowCenterTexture)
+	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4] ,0.008)
+	glTexture(barGlowEdgeTexture)
+	DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4] ,0.008)
+	DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth)+(glowSize*3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+	glTexture(false)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+	currentResValue[res] = short(cappedCurRes)
+	if not dlistResValues[res][currentResValue[res]] then
+		dlistResValues[res][currentResValue[res]] = glCreateList( function()
+			-- Text: current
+			font2:Begin()
+			font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+			font2:End()
+		end)
+	end
+	glCallList(dlistResValues[res][currentResValue[res]])
+end
 
 
 function init()
@@ -1218,58 +1278,6 @@ function widget:Update(dt)
 			widget:ViewResize(vsx,vsy)
 		end
 	end
-end
-
-function drawResbarValues(res)
-	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
-	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
-
-	local cappedCurRes = r[res][1]	-- limit so when production dies the value wont be much larger than what you can store
-	if r[res][1] > r[res][2]*1.07 then
-		cappedCurRes = r[res][2]*1.07
-	end
-	if res == 'energy' then
-		glColor(1,1,0, 0.04)
-		glTexture(glowTexture)
-		local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
-		glTexRect(resbarArea[res][1]+iconPadding, resbarArea[res][2]+iconPadding, resbarArea[res][1]+(height*widgetScale)-iconPadding, resbarArea[res][4]-iconPadding)
-		glTexture(false)
-	end
-
-	-- Bar value
-	local valueWidth = ((cappedCurRes/r[res][2]) * barWidth)
-	local color1,color2
-	if res == 'metal' then
-		color1 = {0.56,0.56,0.55,1}
-		color2 = {1,1,1,1}
-	else
-		color1 = {0.7,0.66,0,1}
-		color2 = {1,0.99,0.33,1}
-	end
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1, color1,color2)
-
-	-- Bar value glow
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
-	glTexture(barGlowCenterTexture)
-	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4] ,0.008)
-	glTexture(barGlowEdgeTexture)
-	DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4] ,0.008)
-	DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth)+(glowSize*3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
-	glTexture(false)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	currentResValue[res] = short(cappedCurRes)
-	if not dlistResValues[res][currentResValue[res]] then
-		dlistResValues[res][currentResValue[res]] = glCreateList( function()
-			-- Text: current
-            font2:Begin()
-            font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-            font2:End()
-        end)
-	end
-	glCallList(dlistResValues[res][currentResValue[res]])
 end
 
 function widget:RecvLuaMsg(msg, playerID)
