@@ -1409,7 +1409,7 @@ function widget:DrawScreen()
               if unitBuildDefID == cellUnitDefID then
                 local progress = select(5, spGetUnitHealth(unitBuildID))
                 if not usedZoom then
-                  if (b or b2 or b3) then
+                  if cellRectID == hoveredCellID and (b or b2 or b3) then
                     usedZoom = clickSelectedCellZoom
                   else
                     local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
