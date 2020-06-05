@@ -928,7 +928,8 @@ local function updateResbar(res)
 		glTexture(false)
 
 		-- Bar background
-		local addedSize = math.max(1, math_floor(((barArea[4]-barArea[2])*0.3)+0.5))
+		local addedSize = math.max(1, math_floor(((barArea[4]-barArea[2])*0.2)+0.5))
+		Spring.Echo(addedSize)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.1})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize, barHeight*0.33, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})

@@ -31,7 +31,6 @@ local cellMarginOrg = 0.055
 local cellMargin = cellMarginOrg
 local bgBorderOrg = 0.0018
 local bgBorder = bgBorderOrg
-local bgMargin = 0.005
 local cmdColorDefault = {0.95,0.95,0.95}
 local cmdColor = {
   Move = {0.64,1,0.64},
@@ -245,19 +244,36 @@ function setupCellGrid(force)
     clickedCellDesiredState = nil
     cellRects = {}
     local i = 0
-    cellWidth = (activeRect[3] - activeRect[1]) / colls
-    cellHeight = (activeRect[4] - activeRect[2]) / rows
+    cellWidth = ((activeRect[3] - activeRect[1]) / colls)
+    cellHeight = ((activeRect[4] - activeRect[2]) / rows)
+    local leftOverWidth = math_floor((activeRect[3] - activeRect[1]) - (cellWidth*colls))
+    local leftOverHeight = math_floor((activeRect[4] - activeRect[2]) - (cellHeight*rows))
     cellMarginPx = math_max(1, math_ceil(cellHeight*0.5 * cellMargin))
     cellMarginPx2 = math_max(0, math_ceil(cellHeight*0.2 * cellMargin))
+
+    --cellWidth = math_floor(cellWidth)
+    --cellHeight = math_floor(cellHeight)
+
+    --Spring.Echo(leftOverHeight)
+    local addedWidth = 0
+    local addedHeight = 0
+    local prevAddedWidth = 0
+    local prevAddedHeight = 0
     for row=1, rows do
+      prevAddedHeight = addedHeight
+      addedHeight = (math_floor((leftOverHeight/(row)+0.5)))
+      --Spring.Echo(addedHeight)
+      prevAddedWidth = 0
       for col=1, colls do
+        addedWidth = (math_floor((leftOverWidth/(col)+0.5)))
         i = i + 1
         cellRects[i] = {
-          math_floor(activeRect[1]+(cellWidth*(col-1)) + 0.5),
-          math_floor(activeRect[4]-(cellHeight*row) + 0.5),
-          math_ceil(activeRect[1]+(cellWidth*col) - 0.5),
-          math_ceil(activeRect[4]-(cellHeight*(row-1)) - 0.5)
+          math_floor(activeRect[1]+prevAddedWidth+(cellWidth*(col-1)) + 0.5),
+          math_floor(activeRect[4]-addedHeight-(cellHeight*row) + 0.5),
+          math_floor(activeRect[1]+addedWidth+(cellWidth*col) + 0.5),
+          math_floor(activeRect[4]-prevAddedHeight-(cellHeight*(row-1)) + 0.5)
         }
+        prevAddedWidth = addedWidth
       end
     end
   end
@@ -304,8 +320,8 @@ function widget:ViewResize()
   end
 
   backgroundRect = {posX*vsx, (posY-height)*vsy, (posX+width)*vsx, posY*vsy}
-  activeRect = {(posX*vsx)+(bgMargin*vsy), ((posY-height)+bgMargin)*vsy, ((posX+width)*vsx)-(bgMargin*vsy), (posY-bgMargin)*vsy}
-
+  local activeBgpadding = math_floor((bgpadding*1.4)+0.5)
+  activeRect = {(posX*vsx)+activeBgpadding, ((posY-height)*vsy)+(altPosition and math_floor(activeBgpadding/3) or activeBgpadding), ((posX+width)*vsx)-activeBgpadding, (posY*vsy)-activeBgpadding}
   dlistOrders = gl.DeleteList(dlistOrders)
 
   checkGuishader(true)
@@ -545,6 +561,7 @@ function drawCell(cell, zoom)
     color1 = {0,0,0,0.8}
     color2 = {0,0,0,0.6}
   end
+  local padding = math_max(1, math_floor((bgpadding*0.39)+0.5))
   RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, cellRects[cell][4]-cellMarginPx2-padding, cellWidth*0.017 ,2,2,2,2, color1,color2)
 
   -- gloss
@@ -639,6 +656,7 @@ function drawCell(cell, zoom)
 
   -- state lights
   if cmd.type == 5 then  -- state cmds (fire at will, etc)
+
     local statecount = #cmd.params-1 --number of states for the cmd
     local curstate = cmd.params[1]+1
     local desiredState = nil
@@ -649,11 +667,10 @@ function drawCell(cell, zoom)
       clickedCellDesiredState = nil
       desiredState = nil
     end
-    local statePadding = 0
-    local stateWidth = (cellInnerWidth*(1-statePadding)) / statecount
-    local stateHeight = cellInnerHeight * 0.145
-    local stateMargin = stateWidth*0.07
-    local glowSize = stateHeight * 7.5
+    local stateWidth = cellInnerWidth / statecount
+    local stateHeight = math_floor(cellInnerHeight * 0.14)
+    local stateMargin = math_floor(stateWidth*0.07)
+    local glowSize = math_floor(stateHeight * 7.5)
     local r,g,b,a = 0,0,0,0
     for i=1, statecount do
       if i == curstate or i == desiredState then
@@ -672,12 +689,13 @@ function drawCell(cell, zoom)
         r,g,b,a = 0,0,0,0.36  -- default off state
       end
       glColor(r,g,b,a)
-      local x1 = (cellInnerWidth*statePadding) + cellRects[cell][1] + cellMarginPx + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin)
-      local y1 = (cellInnerWidth*statePadding) + cellRects[cell][2] + cellMarginPx + padding
-      local x2 = cellRects[cell][1] + cellMarginPx - padding + (stateWidth*i) - (i==statecount and 0 or stateMargin)
-      local y2 = (cellInnerWidth*statePadding) + cellRects[cell][2] + cellMarginPx + stateHeight
-      if rows < 6 then  -- fancy fitting rectrounds
-        RectRound(x1, y1, x2, y2, padding,
+      local x1 = math_floor(cellRects[cell][1] + cellMarginPx + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin))
+      local y1 = math_floor(cellRects[cell][2] + cellMarginPx + padding)
+      local x2 = math_ceil(cellRects[cell][3] - cellMarginPx2 - padding - (stateWidth*(statecount-i)))
+      local y2 = math_ceil(cellRects[cell][2] + cellMarginPx + stateHeight)
+      -- fancy fitting rectrounds
+      if rows < 6 then
+        RectRound(x1, y1, x2, y2, stateHeight*0.4,
                 (i==1 and 0 or 2), (i==statecount and 0 or 2), (i==statecount and 2 or 0), (i==1 and 2 or 0))
       else
         glRect(x1,y1,x2,y2)
@@ -710,10 +728,10 @@ function drawOrders()
   RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[2]+(altPosition and 0 or padding),backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-  cellInnerWidth = math_ceil((cellRects[1][3]-cellMarginPx2) - (cellRects[1][1]+cellMarginPx))
-  cellInnerHeight = math_ceil((cellRects[1][4]-cellMarginPx2) - (cellRects[1][2]+cellMarginPx))
+  cellInnerWidth = math_floor(((cellRects[1][3]-cellMarginPx2) - (cellRects[1][1]+cellMarginPx))+0.5)
+  cellInnerHeight = math_floor(((cellRects[1][4]-cellMarginPx2) - (cellRects[1][2]+cellMarginPx))+0.5)
 
-  padding = math_max(1, math_ceil(cellInnerWidth * 0.011))
+  --RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,1,1,0.2}, {1,1,1,0.2})
 
   font2:Begin()
   for cell=1, #cmds do

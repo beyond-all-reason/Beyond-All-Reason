@@ -146,6 +146,7 @@ function widget:Update(dt)
 
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec > 0.5 then
+    Spring.SendCommands(string.format("minimap geometry %i %i %i %i",  0, 0, usedWidth, usedHeight))
     uiOpacitySec = 0
     checkGuishader()
     if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
