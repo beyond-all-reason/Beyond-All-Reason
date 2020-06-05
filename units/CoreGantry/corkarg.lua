@@ -27,7 +27,7 @@ return {
 		name = "Karganeth",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORKARG.s3o",
-		script = "Units/CORKARG.lua",
+		script = "Units/CORKARG.COB",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 455,
