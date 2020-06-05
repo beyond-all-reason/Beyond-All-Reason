@@ -285,7 +285,7 @@ local function cacheUnitIcons()
 
   local colls = minC
   while colls <= maxC do
-    local textureDetail = math_max(80, math_ceil(160*(1-((colls/4)*0.15))) )  -- must be same formula as used in drawBuildmenu()
+    local textureDetail = math_max(80, math_ceil(180*(1-((colls/4.5)*0.15))) )  -- must be same formula as used in drawBuildmenu()
     local radariconTextureDetail = math_max(28, math_ceil(120*(1-((colls/4)*0.4))) )  -- must be same formula as used in drawBuildmenu()
     gl.Color(1,1,1,0.001)
     for id, unit in pairs(UnitDefs) do
@@ -1071,7 +1071,7 @@ function drawBuildmenu()
   priceFontSize = cellInnerSize*cfgPriceFontSize
 
   radariconTextureDetail = math_max(28, math_ceil(120*(1-((colls/4)*0.4))) )  -- NOTE: if changed: update formula as used in cacheUnitIcons()
-  textureDetail = math_max(80, math_ceil(160*(1-((colls/4)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons()
+  textureDetail = math_max(80, math_ceil(180*(1-((colls/4.5)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons()
 
   cellRects = {}
   local numCellsPerPage = rows*colls
