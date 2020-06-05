@@ -101,6 +101,7 @@ return {
         [2]  = 0.66,
         [3]  = 1,
       },
+      alwaysvisible      = true,
     },
     lightningballs = {
       air                = true,
@@ -128,6 +129,7 @@ return {
         sizegrowth         = -0.2,
         sizemod            = 1.0,
         texture            = [[whitelightb]],
+        alwaysvisible      = true,
       },
     },
   },
@@ -143,6 +145,7 @@ return {
         [2]  = 0.1,
         [3]  = 0.8,
       },
+      alwaysvisible      = true,
     },
     lightningballs = {
       air                = true,
@@ -170,6 +173,7 @@ return {
         sizegrowth         = -0.4,
         sizemod            = 1.0,
         texture            = [[flare1]],
+        alwaysvisible      = true,
       },
     },
   },
