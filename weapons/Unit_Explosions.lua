@@ -974,6 +974,28 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.12,
         },
     },
+
+    scavcomexplosion = {
+        weaponType = "Cannon",
+        areaofeffect = 500,
+        camerashake = 500,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator = "custom:scav_commander_explosion",
+        damage = {
+            commanders = 1250,
+            default = 3500,
+        },
+        customparams = {
+            expl_light_color = "0.6 0.15 1",
+            expl_light_mult = 1.16,
+            expl_light_radius_mult = 1.11,
+            expl_light_life_mult = 1.3,
+            expl_light_heat_radius_mult = 1.1,
+        },
+    },
 	
 
 --NUKE EXPLOSIONS WITH DAMAGE--

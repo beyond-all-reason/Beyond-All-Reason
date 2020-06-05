@@ -23,7 +23,7 @@ customDefs.corcom = {
 	cloakcost = 50,
 	cloakcostmoving = 100,
 	collisionvolumescales = "64 52 64",
-	explodeas = "bantha",
+	explodeas = "scavcomexplosion",
 	footprintx = 4,
 	footprintz = 4,
 	hidedamage = true,
@@ -32,6 +32,7 @@ customDefs.corcom = {
 	maxvelocity = 1.10,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERKBOT",
+	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
 	workertime = 800,				-- can get multiplied in unitdef_post 
@@ -74,7 +75,7 @@ customDefs.armcom = {
 	cloakcost = 50,
 	cloakcostmoving = 100,
 	collisionvolumescales = "64 52 64",
-	explodeas = "bantha",
+	explodeas = "scavcomexplosion",
 	footprintx = 4,
 	footprintz = 4,
 	hidedamage = true,
@@ -83,6 +84,7 @@ customDefs.armcom = {
 	maxvelocity = 1.10,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERKBOT",
+	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
 	workertime = 800,				-- can get multiplied in unitdef_post 
@@ -495,150 +497,150 @@ customDefs.corshroud = {
 
 -- Cloaked Constructors
 
-customDefs.correcl = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.correcl = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armrecl = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armrecl = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.corck = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corck = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.corcv = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corcv = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.cormuskrat = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.cormuskrat = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.corack = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corack = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.coracv = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.coracv = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.corca = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corca = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.coraca = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.coraca = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armck = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armck = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armcv = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armcv = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armbeaver = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armbeaver = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armack = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armack = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armacv = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armacv = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armca = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armca = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armaca = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armaca = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
 -- Cloaked Radar/Jammer Units
 
-customDefs.armaser = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armaser = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armmark = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armmark = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armjam = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armjam = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armseer = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armseer = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.corspec = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corspec = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.corvoyr = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corvoyr = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.coreter = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.coreter = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.corvrad = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corvrad = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
 
 -- Cloaked Combat Units
 
-customDefs.corcrash = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.corcrash = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.coraak = {
-	cloakcost = 6,
-	mincloakdistance = 144,
-}
+-- customDefs.coraak = {
+-- 	cloakcost = 6,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armjeth = {
-	cloakcost = 3,
-	mincloakdistance = 144,
-}
+-- customDefs.armjeth = {
+-- 	cloakcost = 3,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armaak = {
-	cloakcost = 6,
-	mincloakdistance = 144,
-}
+-- customDefs.armaak = {
+-- 	cloakcost = 6,
+-- 	mincloakdistance = 144,
+-- }
 
 customDefs.corgator = {
 	cloakcost = 6,
@@ -655,10 +657,10 @@ customDefs.cormando = {
 	mincloakdistance = 144,
 }
 
-customDefs.corhrk = {
-	cloakcost = 12,
-	mincloakdistance = 160,
-}
+-- customDefs.corhrk = {
+-- 	cloakcost = 12,
+-- 	mincloakdistance = 160,
+-- }
 
 customDefs.armzeus = {
 	cloakcost = 12,
@@ -698,8 +700,8 @@ customDefs.corsktl = {
 
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.corllt = {
-	cloakcost = 6,
-	mincloakdistance = 144,
+	-- cloakcost = 6,
+	-- mincloakdistance = 144,
 	weapondefs = {
 		core_lightlaser = {
 			beamtime = 0.08,
@@ -719,8 +721,8 @@ customDefs.corllt = {
 
 -- Custom HLLT - low laser = faster - high laser is slower - unique sounds
 customDefs.corhllt = {
- 	cloakcost = 9,
- 	mincloakdistance = 144,
+ 	-- cloakcost = 9,
+ 	-- mincloakdistance = 144,
  	weapondefs = {
 		hllt_bottom = {
 			beamtime = 0.07,
@@ -753,20 +755,20 @@ customDefs.corhllt = {
 	},
  }
 
-customDefs.corhlt = {
-	cloakcost = 18,
-	mincloakdistance = 288,
-}
+-- customDefs.corhlt = {
+-- 	cloakcost = 18,
+-- 	mincloakdistance = 288,
+-- }
 
-customDefs.armhlt = {
-	cloakcost = 18,
-	mincloakdistance = 288,
-}
+-- customDefs.armhlt = {
+-- 	cloakcost = 18,
+-- 	mincloakdistance = 288,
+-- }
 
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.armllt = {
-	cloakcost = 6,
-	mincloakdistance = 144,
+	-- cloakcost = 6,
+	-- mincloakdistance = 144,
 	weapondefs = {
 		arm_lightlaser = {
 			beamtime = 0.08,
@@ -786,27 +788,27 @@ customDefs.armllt = {
 }
 
 --Custom Nanoturrets - 25% more range
-customDefs.armnanotc = {
-	cloakcost = 6,
-	mincloakdistance = 144,
-	builddistance = 500,
-}
+-- customDefs.armnanotc = {
+-- 	cloakcost = 6,
+-- 	mincloakdistance = 144,
+-- 	builddistance = 500,
+-- }
 
-customDefs.cornanotc = {
-	cloakcost = 6,
-	mincloakdistance = 144,
-	builddistance = 500,
-}
+-- customDefs.cornanotc = {
+-- 	cloakcost = 6,
+-- 	mincloakdistance = 144,
+-- 	builddistance = 500,
+-- }
 
-customDefs.corsilo = {
-	cloakcost = 100,
-	mincloakdistance = 144,
-}
+-- customDefs.corsilo = {
+-- 	cloakcost = 100,
+-- 	mincloakdistance = 144,
+-- }
 
-customDefs.armsilo = {
-	cloakcost = 100,
-	mincloakdistance = 144,
-}
+-- customDefs.armsilo = {
+-- 	cloakcost = 100,
+-- 	mincloakdistance = 144,
+-- }
 
 -- customDefs.armbeamer = {
 -- 	cloakcost = 6,
@@ -823,15 +825,15 @@ customDefs.cortoast = {
 	mincloakdistance = 288,
 }
 
-customDefs.corint = {
-	cloakcost = 75,
-	mincloakdistance = 432,
-}
+-- customDefs.corint = {
+-- 	cloakcost = 75,
+-- 	mincloakdistance = 432,
+-- }
 
-customDefs.cordoom = {
-	cloakcost = 50,
-	mincloakdistance = 432,
-}
+-- customDefs.cordoom = {
+-- 	cloakcost = 50,
+-- 	mincloakdistance = 432,
+-- }
 
 customDefs.armrectr = {
 	workertime = 400, 	-- can get multiplied in unitdef_post 
