@@ -709,9 +709,9 @@ local function drawInfo()
     end
 
     -- selected units grid area
-    gridWidth = math_floor(backgroundRect[3]-backgroundRect[1])
-    gridHeight = (backgroundRect[4]-backgroundRect[2])-padding-padding-padding
-    customInfoArea = {backgroundRect[3]-gridWidth-padding, backgroundRect[2], backgroundRect[3]-padding, backgroundRect[2]+gridHeight}
+    gridWidth = math_floor(backgroundRect[3]-backgroundRect[1]-bgpadding)
+    gridHeight = math_floor((backgroundRect[4]-backgroundRect[2])-bgpadding-bgpadding)
+    customInfoArea = {backgroundRect[3]-gridWidth, backgroundRect[2], backgroundRect[3]-bgpadding, backgroundRect[2]+gridHeight}
 
     -- selected units grid area
 
@@ -729,8 +729,12 @@ local function drawInfo()
       end
     end
 
+    -- adjust grid size to add some padding at the top and right side
+    cellsize = math_floor((cellsize * (1 - (0.04/rows)))+0.5)  -- leave some space at the top
+    cellPadding = math.max(1, math_floor(cellsize * 0.04))
+    customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
+
     -- draw grid (bottom right to top left)
-    cellPadding = math.max(1, math_floor(cellsize * 0.05))
     cellRect = {}
     texOffset = (0.03*rows) * zoomMult
     texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
@@ -1091,6 +1095,7 @@ function widget:RecvLuaMsg(msg, playerID)
   end
 end
 
+
 local function LeftMouseButton(unitDefID, unitTable)
   local alt, ctrl, meta, shift = spGetModKeyState()
   local acted = false
@@ -1117,6 +1122,7 @@ local function LeftMouseButton(unitDefID, unitTable)
   end
 end
 
+
 local function MiddleMouseButton(unitDefID, unitTable)
   local alt, ctrl, meta, shift = spGetModKeyState()
   -- center the view
@@ -1132,6 +1138,7 @@ local function MiddleMouseButton(unitDefID, unitTable)
   Spring.PlaySoundFile(sound_button, 0.5, 'ui')
 end
 
+
 local function RightMouseButton(unitDefID, unitTable)
   local alt, ctrl, meta, shift = spGetModKeyState()
   -- remove selected units of icon type
@@ -1146,6 +1153,7 @@ local function RightMouseButton(unitDefID, unitTable)
   spSelectUnitMap(map)
   Spring.PlaySoundFile(sound_button2, 0.5, 'ui')
 end
+
 
 function widget:MouseRelease(x, y, button)
 
@@ -1300,7 +1308,7 @@ function widget:DrawScreen()
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.18), cellPadding*0.9, 0,0,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.15 or 0.1}, {color[1],color[2],color[3],0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             -- bottom darkening
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.25 or 0.18}, {0,0,0,0})
+            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.33 or 0.25}, {0,0,0,0})
             cellHovered = cellID
             break
           end

@@ -548,8 +548,8 @@ function drawCell(cell, zoom)
   RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, cellRects[cell][4]-cellMarginPx2-padding, cellWidth*0.017 ,2,2,2,2, color1,color2)
 
   -- gloss
-  RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx2-((cellRects[cell][4]-cellRects[cell][2])*0.42)-padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][4]-cellMarginPx2)-padding, cellWidth*0.017, 2,2,0,0, {1,1,1,0.055}, {1,1,1,0.14})
-  RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, cellWidth*0.017, 0,0,2,2, {1,1,1,0.12}, {1,1,1,0})
+  RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][4]-cellMarginPx2-((cellRects[cell][4]-cellRects[cell][2])*0.42)-padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][4]-cellMarginPx2)-padding, cellWidth*0.017, 2,2,0,0, {1,1,1,0.045}, {1,1,1,0.13})
+  RectRound(cellRects[cell][1]+cellMarginPx+padding, cellRects[cell][2]+cellMarginPx+padding, cellRects[cell][3]-cellMarginPx2-padding, (cellRects[cell][2]-cellMarginPx)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, cellWidth*0.017, 0,0,2,2, {1,1,1,0.11}, {1,1,1,0})
 
   -- icon
   if showIcons then
@@ -807,8 +807,8 @@ function widget:DrawScreen()
         end
         -- gloss highlight
         glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+pad, cellRects[cellHovered][4]-cellMarginPx2-padding-pad-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.42), cellRects[cellHovered][3]-cellMarginPx2, (cellRects[cellHovered][4]-cellMarginPx2-pad), cellWidth*0.025 ,2,2,0,0, {1,1,1,0.04*colorMult}, {1,1,1,(disableInput and 0.15*colorMult or 0.27*colorMult)})
-        RectRound(cellRects[cellHovered][1]+cellMarginPx+pad, cellRects[cellHovered][2]+cellMarginPx+pad, cellRects[cellHovered][3]-cellMarginPx2-pad, (cellRects[cellHovered][2]-cellMarginPx-pad)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.5), cellWidth*0.025 ,0,0,2,2, {1,1,1,(disableInput and 0.045*colorMult or 0.085*colorMult)}, {1,1,1,0})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+pad, cellRects[cellHovered][4]-cellMarginPx2-padding-pad-((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.42), cellRects[cellHovered][3]-cellMarginPx2, (cellRects[cellHovered][4]-cellMarginPx2-pad), cellWidth*0.025 ,2,2,0,0, {1,1,1,0.035*colorMult}, {1,1,1,(disableInput and 0.11*colorMult or 0.24*colorMult)})
+        RectRound(cellRects[cellHovered][1]+cellMarginPx+pad, cellRects[cellHovered][2]+cellMarginPx+pad, cellRects[cellHovered][3]-cellMarginPx2-pad, (cellRects[cellHovered][2]-cellMarginPx-pad)+((cellRects[cellHovered][4]-cellRects[cellHovered][2])*0.5), cellWidth*0.025 ,0,0,2,2, {1,1,1,(disableInput and 0.035*colorMult or 0.075*colorMult)}, {1,1,1,0})
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
       end
     end

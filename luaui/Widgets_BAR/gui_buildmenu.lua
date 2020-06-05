@@ -1046,12 +1046,12 @@ function drawBuildmenu()
 
     -- glossy half
     glBlending(GL_SRC_ALPHA, GL_ONE)
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][4]-cellPadding-((paginatorRects[1][4]-paginatorRects[1][2])*0.5), paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 2,2,0,0,{1,1,1,0.028}, {1,1,1,0.18})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][4]-cellPadding-((paginatorRects[2][4]-paginatorRects[1][2])*0.5), paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 2,2,0,0,{1,1,1,0.028}, {1,1,1,0.18})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][4]-cellPadding-((paginatorRects[1][4]-paginatorRects[1][2])*0.5), paginatorRects[1][3]-cellPadding, paginatorRects[1][4]-cellPadding, cellSize*0.03, 2,2,0,0,{1,1,1,0.025}, {1,1,1,0.15})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][4]-cellPadding-((paginatorRects[2][4]-paginatorRects[1][2])*0.5), paginatorRects[2][3]-cellPadding, paginatorRects[2][4]-cellPadding, cellSize*0.03, 2,2,0,0,{1,1,1,0.025}, {1,1,1,0.15})
 
     -- glossy bottom
-    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][2]+cellPadding+((paginatorRects[1][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,2,2,{1,1,1,0.06}, {1,1,1,0})
-    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][2]+cellPadding+((paginatorRects[2][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,2,2,{1,1,1,0.06}, {1,1,1,0})
+    RectRound(paginatorRects[1][1]+cellPadding, paginatorRects[1][2]+cellPadding, paginatorRects[1][3]-cellPadding, paginatorRects[1][2]+cellPadding+((paginatorRects[1][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,2,2,{1,1,1,0.055}, {1,1,1,0})
+    RectRound(paginatorRects[2][1]+cellPadding, paginatorRects[2][2]+cellPadding, paginatorRects[2][3]-cellPadding, paginatorRects[2][2]+cellPadding+((paginatorRects[2][4]-paginatorRects[1][2])*0.35), cellSize*0.03, 0,0,2,2,{1,1,1,0.055}, {1,1,1,0})
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     font2:Print("\255\245\245\245"..currentPage.."  \\  "..pages, contentWidth*0.5, activeArea[2]+(paginatorCellHeight*0.5)-(paginatorFontSize*0.25), paginatorFontSize, "co")

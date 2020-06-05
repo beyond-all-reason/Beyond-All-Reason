@@ -930,10 +930,10 @@ local function updateResbar(res)
 		-- Bar background
 		local addedSize = math.max(1, math_floor(((barArea[4]-barArea[2])*0.3)+0.5))
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.08})
-		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize, barHeight*0.33, 0,0,1,1, {1,1,1,0.055},{1,1,1,0.0})
+		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.1})
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize, barHeight*0.33, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.18})
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
 	end)
 
 	dlistResbar[res][2] = glCreateList( function()
@@ -1022,7 +1022,7 @@ function drawResbarValues(res)
 
 	-- bar value highlight
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4]-((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1,{1,1,1,0.02}, {1,1,1,0.09})
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4]-((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1,{1,1,1,0}, {1,1,1,0.07})
 
 	-- Bar value glow
 	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
