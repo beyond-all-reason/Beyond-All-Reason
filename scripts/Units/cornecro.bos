@@ -5,224 +5,137 @@
 
 #define SIG_BUILD		4	
 
-piece  flare1, flare2, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm, rarm, larm, torso;
+piece  flare1, flare2, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm, rarm, larm, torso,aimy1, aimx1;
 
-//static-var  buildHeading, bMoving, bBuilding, Static_Var_4,
-//			currentSpeed, moveSpeed, nanoemit;
-static-var  bMoving, spray, statechg_DesiredState, statechg_StateChanging, notBuilding;
+static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
-walk()
-{
-
-			// 30*2.6 elmos per sec, anim cycle is 24 elmos/cyccle
-	
-	if (bMoving)
-	{
-		//step 0
-		turn rleg to x-axis <0> speed <405.000000>;
-		turn rfoot to x-axis <0> speed <405.000000>;
-		turn ruparm to x-axis <0> speed <300.000000>;
-		turn rarm to x-axis <0> speed <300.000000>;
-		turn lleg to x-axis <-32> speed <945.000000>;
-		turn lfoot to x-axis <108> speed <2025.000000>;
-		turn luparm to x-axis <-10> speed <150.000000>;
-		turn larm to x-axis <-10> speed <150.000000>;
-		turn torso to y-axis <0> speed <150.000000>;
-	
-		sleep 64;
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cornecro_anim_walk.blend 
+	if (bMoving) {
+			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
+			turn larm to x-axis <-0.560101> speed <16.803019> / animSpeed; 
+			turn luparm to x-axis <0.242998> speed <7.289952> / animSpeed; 
+			turn rarm to x-axis <-5.876015> speed <176.280455> / animSpeed; 
+			turn ruparm to x-axis <-0.803352> speed <24.100567> / animSpeed; 
+		sleep 98;
 	}
-	if (bMoving)
-	{
-		//step 1
-		turn rleg to x-axis <31> speed <465.000000>;
-		turn rfoot to x-axis <-27> speed <405.000000>;
-		turn ruparm to x-axis <-20> speed <300.000000>;
-		turn rarm to x-axis <-20> speed <300.000000>;
-		turn lleg to x-axis <-61> speed <435.000000>;
-		turn lfoot to x-axis <65> speed <645.000000>;
-		turn luparm to x-axis <10> speed <300.000000>;
-		turn larm to x-axis <10> speed <300.000000>;
-		turn torso to y-axis <7> speed <105.000000>;
-	
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 2
-		turn rleg to x-axis <8> speed <345.000000>;
-		turn rfoot to x-axis <61> speed <1320.000000>;
-		turn ruparm to x-axis <-30> speed <150.000000>;
-		turn rarm to x-axis <-30> speed <150.000000>;
-		turn lleg to x-axis <-27> speed <510.000000>;
-		turn lfoot to x-axis <27> speed <570.000000>;
-		turn luparm to x-axis <20> speed <150.000000>;
-		turn larm to x-axis <20> speed <150.000000>;
-	
-		turn torso to y-axis <10> speed <45.000000>;
-	
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 3
-		turn rleg to x-axis <-32> speed <600.000000>;
-		turn rfoot to x-axis <108> speed <705.000000>;
-		turn ruparm to x-axis <-10> speed <300.000000>;
-		turn rarm to x-axis <-10> speed <300.000000>;
-		turn lleg to x-axis <0> speed <405.000000>;
-		turn lfoot to x-axis <0> speed <405.000000>;
-		turn luparm to x-axis <0> speed <300.000000>;
-		turn larm to x-axis <0> speed <300.000000>;
-		turn torso to y-axis <0> speed <150.000000>;
-	
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 4
-		turn rleg to x-axis <-61> speed <435.000000>;
-		turn rfoot to x-axis <65> speed <645.000000>;
-		turn ruparm to x-axis <10> speed <300.000000>;
-		turn rarm to x-axis <10> speed <300.000000>;
-		turn lleg to x-axis <31> speed <465.000000>;
-		turn lfoot to x-axis <-27> speed <405.000000>;
-		turn luparm to x-axis <-20> speed <300.000000>;
-		turn larm to x-axis <-20> speed <300.000000>;
-		turn torso to y-axis <-7> speed <105.000000>;
-	
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 5
-		turn rleg to x-axis <-27> speed <510.000000>;
-		turn rfoot to x-axis <27> speed <570.000000>;
-		turn ruparm to x-axis <20> speed <150.000000>;
-		turn rarm to x-axis <20> speed <150.000000>;
-		turn lleg to x-axis <8> speed <345.000000>;
-		turn lfoot to x-axis <61> speed <1320.000000>;
-		turn luparm to x-axis <-30> speed <150.000000>;
-		turn larm to x-axis <-30> speed <150.000000>;
-		turn torso to y-axis <-10> speed <45.000000>;
-	
-	
-	}
-
-
-
-}
-
-walklegs()
-{
-				// 30*2.6 elmos per sec, anim cycle is 24 elmos/cyccle
-	
-	if (bMoving)
-	{
-		//step 0
-		turn rleg to x-axis <0> speed <405.000000>;
-		turn rfoot to x-axis <0> speed <405.000000>;
-		turn lleg to x-axis <-32> speed <945.000000>;
-		turn lfoot to x-axis <108> speed <2025.000000>;
-	
-		sleep 64;
-	}
-	if (bMoving)
-	{
-		//step 1
-		turn rleg to x-axis <31> speed <465.000000>;
-		turn rfoot to x-axis <-27> speed <405.000000>;
-		turn lleg to x-axis <-61> speed <435.000000>;
-		turn lfoot to x-axis <65> speed <645.000000>;
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 2
-		turn rleg to x-axis <8> speed <345.000000>;
-		turn rfoot to x-axis <61> speed <1320.000000>;
-		turn lleg to x-axis <-27> speed <510.000000>;
-		turn lfoot to x-axis <27> speed <570.000000>;
-	
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 3
-		turn rleg to x-axis <-32> speed <600.000000>;
-		turn rfoot to x-axis <108> speed <705.000000>;
-		turn lleg to x-axis <0> speed <405.000000>;
-		turn lfoot to x-axis <0> speed <405.000000>;
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 4
-		turn rleg to x-axis <-61> speed <435.000000>;
-		turn rfoot to x-axis <65> speed <645.000000>;
-		turn lleg to x-axis <31> speed <465.000000>;
-		turn lfoot to x-axis <-27> speed <405.000000>;
-		sleep 64;
-	}
-	if (bMoving)
-	{
-	
-		//step 5
-		turn rleg to x-axis <-27> speed <510.000000>;
-		turn rfoot to x-axis <27> speed <570.000000>;
-		turn lleg to x-axis <8> speed <345.000000>;
-		turn lfoot to x-axis <61> speed <1320.000000>;
-	
-	
-	}
-
-
-}
-
-MotionControl(moving, aiming, justmoved)
-{
-	justmoved = TRUE;
-	while( TRUE )
-	{
-		moving = bMoving;
-		aiming = notBuilding;
-		if( moving )
-		{
-			if( aiming )
-			{
-				call-script walk();
-			}
-			else
-			{
-				call-script walklegs();
-			}
-			justmoved = TRUE;
+	while(bMoving) {
+		if (bMoving) {
+			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
+			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
+			turn larm to x-axis <9.597569> speed <304.730096> / animSpeed; 
+			turn lfoot to x-axis <29.633575> speed <2420.907686> / animSpeed; 
+			turn lleg to x-axis <-65.287210> speed <354.353117> / animSpeed; 
+			turn luparm to x-axis <25.893575> speed <769.517298> / animSpeed; 
+			turn rarm to x-axis <-19.158424> speed <398.472280> / animSpeed; 
+			turn rfoot to x-axis <20.826635> speed <624.799050> / animSpeed; 
+			turn rleg to x-axis <33.449953> speed <1003.498599> / animSpeed; 
+			turn ruparm to x-axis <-19.517030> speed <561.410330> / animSpeed; 
+			turn torso to y-axis <13.899999> speed <416.999979> / animSpeed; 
+		sleep ((33*animSpeed) -1);
 		}
-		else
-		{
-			if( justmoved )
-			{
-
-				//step 5
-				turn rleg to x-axis <0> speed <510.000000>;
-				turn rfoot to x-axis <0> speed <570.000000>;
-				turn lleg to x-axis <0> speed <345.000000>;
-				turn lfoot to x-axis <0> speed <1320.000000>;
-				sleep 65;
-			
-				justmoved = FALSE;
-			}
+		if (bMoving) {
+			turn hip to x-axis <-3.000000> speed <90.000003> / animSpeed; 
+			turn larm to x-axis <17.195968> speed <227.951954> / animSpeed; 
+			turn lfoot to x-axis <9.054714> speed <617.365815> / animSpeed; 
+			turn lleg to x-axis <-55.896707> speed <281.715080> / animSpeed; 
+			turn luparm to x-axis <19.688662> speed <186.147380> / animSpeed; 
+			turn rarm to x-axis <-27.321836> speed <244.902341> / animSpeed; 
+			turn rfoot to x-axis <60.958646> speed <1203.960331> / animSpeed; 
+			turn rleg to x-axis <44.202163> speed <322.566304> / animSpeed; 
+			turn ruparm to x-axis <-24.486206> speed <149.075282> / animSpeed; 
+			turn torso to y-axis <6.300000> speed <227.999992> / animSpeed; 
+		sleep ((33*animSpeed) -1);
 		}
-		sleep 50;
+		if (bMoving) {
+			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
+			turn hip to x-axis <0.000000> speed <90.000003> / animSpeed; 
+			turn larm to x-axis <-5.876015> speed <692.159486> / animSpeed; 
+			turn lfoot to x-axis <-0.000000> speed <271.641430> / animSpeed; 
+			turn lleg to x-axis <-0.000000> speed <1676.901224> / animSpeed; 
+			turn luparm to x-axis <-0.803352> speed <614.760436> / animSpeed; 
+			turn rarm to x-axis <-3.907620> speed <702.426464> / animSpeed; 
+			turn rfoot to x-axis <110.330498> speed <1481.155550> / animSpeed; 
+			turn rleg to x-axis <-53.475440> speed <2930.328090> / animSpeed; 
+			turn ruparm to x-axis <-0.550249> speed <718.078724> / animSpeed; 
+			turn torso to y-axis <0.000000> speed <188.999987> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) {
+			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
+			turn hip to x-axis <-3.000000> speed <90.000009> / animSpeed; 
+			turn larm to x-axis <-19.158424> speed <398.472280> / animSpeed; 
+			turn lfoot to x-axis <20.826635> speed <624.799050> / animSpeed; 
+			turn lleg to x-axis <33.449953> speed <1003.498599> / animSpeed; 
+			turn luparm to x-axis <-19.517030> speed <561.410330> / animSpeed; 
+			turn rarm to x-axis <9.597569> speed <405.155688> / animSpeed; 
+			turn rfoot to x-axis <29.633575> speed <2420.907686> / animSpeed; 
+			turn rleg to x-axis <-65.287210> speed <354.353117> / animSpeed; 
+			turn ruparm to x-axis <25.893575> speed <793.314705> / animSpeed; 
+			turn torso to x-axis <9.333588> speed <280.007652> / animSpeed; 
+			turn torso to y-axis <-14.599999> speed <437.999968> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) {
+			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
+			turn larm to x-axis <-27.321836> speed <244.902341> / animSpeed; 
+			turn lfoot to x-axis <60.958646> speed <1203.960331> / animSpeed; 
+			turn lleg to x-axis <44.202163> speed <322.566304> / animSpeed; 
+			turn luparm to x-axis <-24.486206> speed <149.075282> / animSpeed; 
+			turn rarm to x-axis <17.195968> speed <227.951954> / animSpeed; 
+			turn rfoot to x-axis <9.054714> speed <617.365815> / animSpeed; 
+			turn rleg to x-axis <-55.896707> speed <281.715080> / animSpeed; 
+			turn ruparm to x-axis <19.688662> speed <186.147380> / animSpeed; 
+			turn torso to x-axis <-0.000000> speed <280.007652> / animSpeed; 
+			turn torso to y-axis <-8.300000> speed <188.999975> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) {
+			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
+			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
+			turn larm to x-axis <-3.907620> speed <702.426464> / animSpeed; 
+			turn lfoot to x-axis <110.330498> speed <1481.155550> / animSpeed; 
+			turn lleg to x-axis <-53.475440> speed <2930.328090> / animSpeed; 
+			turn luparm to x-axis <-0.550249> speed <718.078724> / animSpeed; 
+			turn rarm to x-axis <-5.876015> speed <692.159486> / animSpeed; 
+			turn rfoot to x-axis <-0.000000> speed <271.641430> / animSpeed; 
+			turn rleg to x-axis <-0.000000> speed <1676.901224> / animSpeed; 
+			turn ruparm to x-axis <-0.803352> speed <614.760436> / animSpeed; 
+			turn torso to y-axis <0.000000> speed <248.999993> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
 	}
 }
+// Call this from MotionControl()!
+StopWalking() {
+	move hip to y-axis [0] speed [10.000000];
+	turn hip to x-axis <0> speed <30.000003>;
+	turn larm to x-axis <0> speed <234.142155>;
+	turn lfoot to x-axis <0> speed <806.969229>;
+	turn lleg to x-axis <0> speed <976.776030>;
+	turn luparm to x-axis <0> speed <256.505766>;
+	turn rarm to x-axis <0> speed <234.142155>;
+	turn rfoot to x-axis <0> speed <806.969229>;
+	turn rleg to x-axis <0> speed <976.776030>;
+	turn ruparm to x-axis <0> speed <264.438235>;
+	turn torso to x-axis <0> speed <93.335884>;
+	turn torso to y-axis <0> speed <145.999989>;
 
+
+}
+UnitSpeed(){
+ maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+ animFramesPerKeyframe = 3; //we need to calc the frames per keyframe value, from the known animtime
+ maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+ while(TRUE){
+  animSpeed = (get CURRENT_SPEED);
+  if (animSpeed<1) animSpeed=1;
+  animSpeed = 1 + (maxSpeed * 3) / animSpeed; // add 1 to slow it down :)
+  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
+  if (animSpeed<2) animSpeed=2;
+  if (animspeed>8) animSpeed = 8;
+  sleep 132;
+ }
+}
 
 HitByWeapon(anglex, anglez)
 {
@@ -236,75 +149,13 @@ HitByWeapon(anglex, anglez)
 
 Go()
 {
-	turn luparm to x-axis <0.000000> now;
-	turn luparm to x-axis <-10.000000> speed <59.000000>;
-	turn ruparm to x-axis <0.000000> now;
-	turn ruparm to x-axis <-10.000000> speed <57.000000>;
-	turn Rarm to x-axis <0.000000> now;
-	turn Rarm to x-axis <-22.000000> speed <120.000000>;
-	turn Larm to x-axis <0.000000> now;
-	turn Larm to x-axis <-22.000000> speed <120.000000>;
-	sleep 30;
-
-	turn luparm to x-axis <-21.000000> speed <48.000000>;
-	turn ruparm to x-axis <-21.000000> speed <47.000000>;
-	turn Rarm to x-axis <-44.005495> speed <98.000000>;
-	turn Larm to x-axis <-44.005495> speed <98.000000>;
-	sleep 30;
 }
 
 Stop()
 {
 	set INBUILDSTANCE to 0;
-	turn torso to y-axis <0.000000> speed <160.000000>;
-	wait-for-turn torso around y-axis;
-
-//	turn luparm to x-axis <-21.890110> speed <87.383907>;
-//	turn ruparm to x-axis <-21.280220> speed <84.949265>;
-//	turn Rarm to x-axis <-44.395604> speed <177.224387>;
-//	turn Larm to x-axis <-44.395604> speed <177.224387>;
-//	sleep 200;
-
-//	turn luparm to x-axis <-10.000000> speed <54.000000>;
-//	turn ruparm to x-axis <-10.000000> speed <53.000000>;
-//	turn Rarm to x-axis <-22.000000> speed <111.000000>;
-//	turn Larm to x-axis <-22.000000> speed <111.000000>;
-//	sleep 200;
-//
-//	turn luparm to x-axis <0.000000> speed <54.000000>;
-//	turn ruparm to x-axis <0.000000> speed <53.000000>;
-//	turn Rarm to x-axis <0.000000> speed <111.000000>;
-//	turn Larm to x-axis <0.000000> speed <111.000000>;
-//	sleep 200;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -312,7 +163,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	start-script MotionControl();
+	//start-script MotionControl();
+	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -337,41 +189,50 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	bMoving = FALSE;
-	notBuilding = 1;
+	animSpeed = 3;
 	spray = flare1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
+}
+
+BuildAnim(){
+	set-signal-mask SIG_BUILD;
+	while (TRUE){
+		turn aimy1 to x-axis <-15> speed <10>;
+		wait-for-turn aimy1 around x-axis;
+		turn aimy1 to x-axis <15> speed <10>;
+		wait-for-turn aimy1 around x-axis;
+	}
 }
 
 StartBuilding(torsoing, pitch)
 {
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
-	turn torso to y-axis torsoing speed <240.000000>;
-	wait-for-turn torso around y-axis;
+	turn aimy1 to y-axis torsoing speed <240.000000>;
+	turn aimx1 to x-axis <-55> - pitch speed <240.0>;
+	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	start-script BuildAnim();
 }
 
 StopBuilding()
 {
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
-	sleep 3000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+	turn aimy1 to y-axis <0.000000> speed <160.000000>;
+	turn aimx1 to x-axis <0> speed <240.0>;
+	turn aimy1 to x-axis <0> speed <5>;
 }
 
 StartMoving()
 {
 	bMoving = TRUE;
+	call-script walk();
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
+	call-script StopWalking();
 }
 
 QueryNanoPiece(piecenum)
