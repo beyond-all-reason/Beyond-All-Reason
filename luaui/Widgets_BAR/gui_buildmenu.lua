@@ -432,7 +432,6 @@ end
 -- cs (corner size) is not implemented yet
 local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
 
-  glColor(color)
   local xcen = (left+right)/2
   local ycen = (top+bottom)/2
 
@@ -481,10 +480,21 @@ local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
       end
     end
   end
-  --glShape(GL.TRIANGLE_FAN, list)
+
   glColor(color[1],color[2],color[3],color[4])
-  glShape(GL.TRIANGLE_FAN, list)
+  glShape(GL_TRIANGLE_FAN, list)
   glColor(1,1,1,1)
+end
+
+
+local function doCircle(x, y, z, radius, sides)
+  local sideAngle = twicePi / sides
+  glVertex(x, z, y)
+  for i = 1, sides+1 do
+    local cx = x + (radius * mCos(i * sideAngle))
+    local cz = z + (radius * mSin(i * sideAngle))
+    glVertex(cx, cz, y)
+  end
 end
 
 local function RectQuad(px,py,sx,sy,offset)
@@ -573,16 +583,6 @@ end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
-local function doCircle(x, y, z, radius, sides)
-  local sideAngle = twicePi / sides
-  glVertex(x, z, y)
-  for i = 1, sides+1 do
-    local cx = x + (radius * mCos(i * sideAngle))
-    local cz = z + (radius * mSin(i * sideAngle))
-    glVertex(cx, cz, y)
-  end
 end
 
 local function checkGuishader(force)
@@ -938,7 +938,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
 
   -- draw build progress pie on top of texture
   if progress and showBuildProgress then
-    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.1,0.1,0.1,0.6})
+    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.08,0.08,0.08,0.55})
   end
 
   -- make fancy
@@ -1008,11 +1008,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
             cellInnerSize*0.29, "ro"
     )
   end
-
-  -- draw build progress pie on top of it all
-  --if progress and showBuildProgress then
-  --  RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.15,0.15,0.15,0.16})
-  --end
 end
 
 
@@ -1399,7 +1394,7 @@ function widget:DrawScreen()
           if unitBuildDefID then
             -- loop all shown cells
             for cellRectID, cellRect in pairs(cellRects) do
-              if cellRectID >= maxCellRectID then
+              if cellRectID > maxCellRectID then
                 break
               end
               local cellUnitDefID = cmds[cellRectID].id*-1
