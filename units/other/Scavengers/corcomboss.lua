@@ -33,7 +33,7 @@ return {
 		idletime = 1800,
 		losemitheight = 100,
 		mass = 500000,
-		maxdamage = 350000,
+		maxdamage = 750000,
 		maxslope = 25,
 		maxvelocity = 0.5,
 		maxwaterdepth = 200,
@@ -179,7 +179,7 @@ return {
 		},
 		weapondefs = {
 			corcomlaserboss = {
-				areaofeffect = 25,
+				areaofeffect = 35,
 				avoidfeature = false,
 				beamtime = 0.3,
 				corethickness = 0.22,
@@ -197,7 +197,7 @@ return {
 				name = "J8Laser",
 				noselfdamage = true,
 				range = 1250,
-				reloadtime = 3,
+				reloadtime = 1.4,
 				rgbcolor = "0.7 0.3 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -211,12 +211,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 5000,
+					bombers = 7500,
 					commanders = 1900,
 					default = 30000,
 					fighters = 10000,
 					subs = 500,
-					vtol = 12500,
+					vtol = 15000,
 				},
 			},
 			corcomsealaserboss = {
@@ -264,7 +264,7 @@ return {
 				},
 			},
 			disintegratorxl = {
-				areaofeffect = 45,
+				areaofeffect = 65,
 				avoidfeature = false,
 				avoidfriendly = false,
 				avoidground = false,
@@ -289,7 +289,7 @@ return {
 				noexplode = true,
 				noselfdamage = true,
 				range = 890,
-				reloadtime = 6,
+				reloadtime = 5,
 				rgbcolor = "0.7 0.3 1.0",
 				size = 8.5,
 				soundhit = "xplomas2",
@@ -307,6 +307,8 @@ return {
 					expl_light_heat_strength_mult = 0.66,
 					expl_light_mult = 0.5,
 					expl_light_radius_mult = 1.25,
+					light_mult = 1.3,
+					light_radius_mult = 1.4,
 				},
 				damage = {
 					default = 25000,
