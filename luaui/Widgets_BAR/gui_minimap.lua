@@ -16,7 +16,7 @@ end
 
 local vsx,vsy = Spring.GetViewGeometry()
 
-local enlarged = false
+local enlarged = true
 
 local maxWidth = 0.29 * (vsx/vsy)  -- NOTE: changes in widget:ViewResize()
 local maxHeight = 0.243  -- NOTE: changes in widget:ViewResize()

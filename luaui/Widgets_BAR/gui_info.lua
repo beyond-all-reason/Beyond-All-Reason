@@ -787,12 +787,12 @@ local function drawInfo()
     end
 
     -- unitID
-    if displayUnitID then
-      local radarIconSpace = showingRadarIcon and (radarIconMargin+radarIconSize) or 0
-      font:Begin()
-      font:Print('\255\200\200\200#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
-      font:End()
-    end
+    --if displayUnitID then
+    --  local radarIconSpace = showingRadarIcon and (radarIconMargin+radarIconSize) or 0
+    --  font:Begin()
+    --  font:Print('\255\200\200\200#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
+    --  font:End()
+    --end
 
 
     local unitNameColor = '\255\205\255\205'

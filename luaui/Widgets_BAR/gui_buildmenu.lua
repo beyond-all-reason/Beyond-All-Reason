@@ -938,7 +938,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
 
   -- draw build progress pie on top of texture
   if progress and showBuildProgress then
-    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.1,0.1,0.1,0.5})
+    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.1,0.1,0.1,0.6})
   end
 
   -- make fancy
@@ -1010,11 +1010,9 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
   end
 
   -- draw build progress pie on top of it all
-  if progress and showBuildProgress then
-    --glBlending(GL_SRC_ALPHA, GL_ONE)
-    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.15,0.15,0.15,0.3})
-    --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-  end
+  --if progress and showBuildProgress then
+  --  RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.15,0.15,0.15,0.16})
+  --end
 end
 
 
@@ -1385,7 +1383,6 @@ function widget:DrawScreen()
       end
     end
 
-
     -- draw builders buildoption progress
     if showBuildProgress then
       local numCellsPerPage = rows*colls
@@ -1407,7 +1404,7 @@ function widget:DrawScreen()
               end
               local cellUnitDefID = cmds[cellRectID].id*-1
               if unitBuildDefID == cellUnitDefID then
-                local progress = select(5, spGetUnitHealth(unitBuildID))
+                local progress = 1-select(5, spGetUnitHealth(unitBuildID))
                 if not usedZoom then
                   if cellRectID == hoveredCellID and (b or b2 or b3) then
                     usedZoom = clickSelectedCellZoom
