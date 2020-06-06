@@ -39,6 +39,7 @@ local exps = 0
 local shake = 0
 
 local powerScale = 130
+local maxOffset = 0.07
 
 local decayFactor = 5
 
@@ -47,11 +48,20 @@ local minPower = (0.02 / powerScale)
 local distAdj  = 100
 
 
+local vsx,vsy = Spring.GetViewGeometry()
+local maxOffsetPx = 0
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+	maxOffsetPx = ((vsy+vsx)/2) * maxOffset
+end
 
 function widget:Initialize()
+	widget:ViewResize()
+
   -- required for ShockFront() call-ins
   -- (threshold uses the 1/d^2 power)
   spSetShockFrontFactors(minArea, minPower, distAdj)
@@ -99,6 +109,16 @@ function widget:Update(dt)
     birand(pShake),
     birand(tShake),
     birand(tShake)
+	if px >  maxOffsetPx then px =  maxOffsetPx end
+	if px < -maxOffsetPx then px = -maxOffsetPx end
+	if py >  maxOffsetPx then py =  maxOffsetPx end
+	if py < -maxOffsetPx then py = -maxOffsetPx end
+	if pz >  maxOffsetPx then pz =  maxOffsetPx end
+	if pz < -maxOffsetPx then pz = -maxOffsetPx end
+	if tx >  maxOffsetPx then tx =  maxOffsetPx end
+	if tx < -maxOffsetPx then tx = -maxOffsetPx end
+	if ty >  maxOffsetPx then ty =  maxOffsetPx end
+	if ty < -maxOffsetPx then ty = -maxOffsetPx end
   spSetCameraOffset(px, py, pz, tx, ty)
 
   local decay = (1 - (decayFactor * dt))

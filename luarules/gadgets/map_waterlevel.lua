@@ -20,6 +20,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 if (gadgetHandler:IsSyncedCode()) then
 
 	local waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)) or 0)
+	local orgFeaturePosY = {}
 
 	function explode(div,str) -- credit: http://richard.warburton.it
 		if (div=='') then return false end
@@ -33,10 +34,27 @@ if (gadgetHandler:IsSyncedCode()) then
 		return arr
 	end
 
+	local function adjustFeatureHeight()
+		featuretable = Spring.GetAllFeatures()
+		for i = 1,#featuretable do
+			if not orgFeaturePosY[i] then
+				orgFeaturePosY[i] = select(2, Spring.GetFeaturePosition(featuretable[i]))
+			end
+			featureDefID = Spring.GetFeatureDefID(featuretable[i])
+			x,_,z = Spring.GetFeaturePosition(featuretable[i])
+			Spring.DestroyFeature(featuretable[i])
+			if (Spring.GetGroundHeight(x,z) >= 0) or (FeatureDefs[featureDefID].geoThermal == true) or (FeatureDefs[featureDefID].metal > 0) then -- Keep features (> 0 height) or (geovents) or (contains metal)
+				local y = orgFeaturePosY[i] - waterlevel --Spring.GetGroundHeight(x,z)
+				Spring.CreateFeature(featureDefID, x,y,z)
+			end
+		end
+	end
+
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+		adjustFeatureHeight()
 	end
 
 	function gadget:Initialize()
@@ -47,16 +65,8 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	function gadget:GamePreload()
-		if Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and Spring.GetModOptions().map_waterlevel ~= "0" then --only move features if there was a waterlevel change
-			featuretable = Spring.GetAllFeatures()
-			for i = 1,#featuretable do
-				featureDefID = Spring.GetFeatureDefID(featuretable[i])
-				x,_,z = Spring.GetFeaturePosition(featuretable[i])
-				Spring.DestroyFeature(featuretable[i])
-				if (Spring.GetGroundHeight(x,z) >= 0) or (FeatureDefs[featureDefID].geoThermal == true) or (FeatureDefs[featureDefID].metal > 0) then -- Keep features (> 0 height) or (geovents) or (contains metal)
-					Spring.CreateFeature(featureDefID, x, Spring.GetGroundHeight(x,z), z)
-				end
-			end
+		if waterlevel ~= 0 then
+			adjustFeatureHeight()
 		end
 	end
 

@@ -128,9 +128,9 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local twicePi = math.pi * 2
-local mCos = math.cos
-local mSin = math.sin
+local math_twicePi = math.pi * 2
+local math_cos = math.cos
+local math_sin = math.sin
 local math_min = math.min
 local math_max = math.max
 local math_ceil = math.ceil
@@ -538,14 +538,21 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-local function doCircle(x, y, z, radius, sides)
-  local sideAngle = twicePi / sides
+local function DrawCircle(x, y, z, radius, sides, color1, color2)
+  if not color2 then color2 = color1 end
+  local sideAngle = math_twicePi / sides
+  glColor(color1)
   glVertex(x, z, y)
+  glColor(color2)
   for i = 1, sides+1 do
-    local cx = x + (radius * mCos(i * sideAngle))
-    local cz = z + (radius * mSin(i * sideAngle))
+    local cx = x + (radius * math_cos(i * sideAngle))
+    local cz = z + (radius * math_sin(i * sideAngle))
     glVertex(cx, cz, y)
   end
+end
+
+local function doCircle(x, y, z, radius, sides, color1, color2)
+  glBeginEnd(GL_TRIANGLE_FAN, DrawCircle, x, 0, z, radius, sides, color1, color2)
 end
 
 
@@ -653,11 +660,9 @@ function drawCell(cell, zoom)
     --  local posX = cellRects[cell][3]-leftMargin-padding - (radius*2)
     --  local posY = cellRects[cell][4]-topMargin-padding - (radius*2)
     --
-    --  glColor(cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.75)
-    --  glBeginEnd(GL_TRIANGLE_FAN, doCircle, posX, 0, posY, radius, 16)
+    --  doCircle(posX, 0, posY, radius, 16, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.75})
     --  radius = radius * 0.6
-    --  glColor(0,0,0, 0.15)
-    --  glBeginEnd(GL_TRIANGLE_FAN, doCircle, posX, 0, posY, radius, 12)
+    --  doCircle(posX, 0, posY, radius, 12, {0,0,0, 0.15})
     --end
 
     -- text

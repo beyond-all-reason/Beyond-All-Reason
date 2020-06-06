@@ -140,6 +140,7 @@ local math_pi = math.pi
 local math_cos = math.cos
 local math_sin = math.sin
 local math_rad = math.rad
+local math_twicePi = math.pi * 2
 
 local GL_QUADS = GL.QUADS
 local glShape = gl.Shape
@@ -486,15 +487,39 @@ local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
   glColor(1,1,1,1)
 end
 
-
-local function doCircle(x, y, z, radius, sides)
-  local sideAngle = twicePi / sides
+local function DrawRectRoundCircle(x, y, z, radius, cs, color1, color2)
+  if not color2 then color2 = color1 end
+  local sideAngle = math_twicePi / 16
+  glColor(color1)
   glVertex(x, z, y)
-  for i = 1, sides+1 do
-    local cx = x + (radius * mCos(i * sideAngle))
-    local cz = z + (radius * mSin(i * sideAngle))
+  glColor(color2)
+  for i = 1, 16+1 do
+    local cx = x + (radius * math_cos(i * sideAngle))
+    local cz = z + (radius * math_sin(i * sideAngle))
     glVertex(cx, cz, y)
   end
+end
+
+local function RectRoundCircle(x, y, z, radius, cs, color1, color2)
+  glBeginEnd(GL_TRIANGLE_FAN, DrawRectRoundCircle, x, y, z, radius, cs, color1, color2)
+end
+
+
+local function DrawCircle(x, y, z, radius, sides, color1, color2)
+  if not color2 then color2 = color1 end
+  local sideAngle = math_twicePi / sides
+  glColor(color1)
+  glVertex(x, z, y)
+  glColor(color2)
+  for i = 1, sides+1 do
+    local cx = x + (radius * math_cos(i * sideAngle))
+    local cz = z + (radius * math_sin(i * sideAngle))
+    glVertex(cx, cz, y)
+  end
+end
+
+local function doCircle(x, y, z, radius, sides, color1, color2)
+  glBeginEnd(GL_TRIANGLE_FAN, DrawCircle, x, 0, z, radius, sides, color1, color2)
 end
 
 local function RectQuad(px,py,sx,sy,offset)
@@ -938,7 +963,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
 
   -- draw build progress pie on top of texture
   if progress and showBuildProgress then
-    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.08,0.08,0.08,0.55})
+    RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {0.08,0.08,0.08,0.6})
   end
 
   -- make fancy
@@ -952,6 +977,15 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
 
     -- extra darken gradually
     RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.13}, {0,0,0,0})
+
+    -- feather darken the edges
+    --local halfSize = (((cellRects[cellRectID][3]-cellPadding-iconPadding))-(cellRects[cellRectID][1]+cellPadding+iconPadding))*0.5
+    --RectRoundCircle(
+    --  cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
+    --  0,
+    --  cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
+    --  halfSize, cornerSize, {0,0,0,0}, {0,0,0,0.25}
+    --)
   end
 
   -- darken price background gradually
@@ -996,8 +1030,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
 
   -- factory queue number
   if cmds[cellRectID].params[1] then
-    local pad = cellInnerSize * 0.03
-    local textWidth = (font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.285)
+    local pad = math_floor(cellInnerSize * 0.03)
+    local textWidth = math_floor(font2:GetTextWidth(cmds[cellRectID].params[1]..'  ') * cellInnerSize*0.285)
     local pad2 = (alternativeUnitpics and pad or 0)
     RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.365)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize*3.3, 0,0,0,1,{0.15,0.15,0.15,0.95}, {0.25,0.25,0.25,0.95})
     RectRound(cellRects[cellRectID][3]-cellPadding-iconPadding-textWidth-pad2, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.15)-pad2, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, 0, 0,0,0,0,{1,1,1,0}, {1,1,1,0.05})
