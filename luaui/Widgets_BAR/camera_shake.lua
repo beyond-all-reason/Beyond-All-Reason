@@ -38,8 +38,8 @@ local math_random = math.random
 local exps = 0
 local shake = 0
 
-local powerScale = 130
-local maxOffset = 0.07
+local powerScale = 80
+local maxOffset = 0.03
 
 local decayFactor = 5
 

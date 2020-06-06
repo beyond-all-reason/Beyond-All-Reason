@@ -388,7 +388,12 @@ local function updateRejoin()
 		local barWidth = barArea[3] - barArea[1]
 
 		-- bar background
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0,0,0.27},{0.44,0.44,0.44,0.44})
+		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0,0,0.25},{0.44,0.44,0.44,0.33})
+		-- bar background gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(barArea[1], barArea[4]-(barHeight*0.3), barArea[3], barArea[4], barHeight*0.2, 0,0,1,1, {1,1,1,0.},{1,1,1,0.09})
+		RectRound(barArea[1], barArea[2], barArea[3], barArea[2]+(barHeight*0.18), barHeight*0.2, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Bar value
 		glColor(0, 1, 0, 1)
@@ -931,8 +936,8 @@ local function updateResbar(res)
 		local addedSize = math.max(1, math_floor(((barArea[4]-barArea[2])*0.2)+0.5))
 		Spring.Echo(addedSize)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.1})
-		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize, barHeight*0.33, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
+		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.09})
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize, barHeight*0.33, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
 	end)

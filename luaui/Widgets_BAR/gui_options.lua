@@ -2359,7 +2359,7 @@ function init()
 			 end
 		 end,
 		},
-		{id="camerashake", group="control", name=widgetOptionColor.."   shake", type="slider", min=0, max=250, step=10, value=130, description="Set the amount of camerashake on explosions",
+		{id="camerashake", group="control", name=widgetOptionColor.."   shake", type="slider", min=0, max=200, step=10, value=80, description="Set the amount of camerashake on explosions",
 		 onload = function(i)
 			 loadWidgetData("CameraShake", "camerashake", {'powerScale'})
 			 if options[i].value > 0 then
