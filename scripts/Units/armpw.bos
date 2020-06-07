@@ -362,6 +362,23 @@ UnitSpeed()
 	}
 }
 
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+
+	turn torso to y-axis <0> speed <300.00>;
+	turn ruparm to x-axis <0> speed <300.000000>;
+	turn ruparm to x-axis <0> speed <300.000000>;
+	turn lloarm to x-axis <90> speed <300.000000>;
+	turn rloarm to x-axis <90> speed <300.000000>;
+
+	
+	bAiming = FALSE;
+}
+
 static-var bAnimate;
 Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armpw_anim_idle_pushup.blend 
 		set-signal-mask (SIG_AIM | SIG_MOVE);
@@ -942,6 +959,7 @@ Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animati
 			turn torso to x-axis <0.052993> speed <70.186138> ; 
 		sleep 131;
 		}
+		start-script ExecuteRestoreAfterDelay();
 		bAnimate = FALSE;
 }
 // Call this from MotionControl()!
@@ -1075,24 +1093,7 @@ DrawWeapon1()
 	start-script Weapon1Drawn();
 }
 
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	start-script RestoreWeapon1();
 
-	turn torso to y-axis <0> speed <300.00>;
-	turn ruparm to x-axis <0> speed <300.000000>;
-	turn ruparm to x-axis <0> speed <300.000000>;
-	turn lloarm to x-axis <90> speed <300.000000>;
-	turn rloarm to x-axis <90> speed <300.000000>;
-
-	call-script Weapon1Restored();
-
-	bAiming = FALSE;
-}
 SetStunned(State)
 {
     Stunned = State;
