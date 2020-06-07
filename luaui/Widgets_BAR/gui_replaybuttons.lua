@@ -15,8 +15,8 @@ end
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
+local fontfileSize = 44
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.1
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -122,12 +122,11 @@ function widget:DrawScreen()
 	if point_in_rect (buttons[1].x, buttons[1].y, b[topbutton].x+b[topbutton].w, b[topbutton].y+b[topbutton].h,  uiX(mousex), uiY(mousey)) then
 		for i = 1, #b, 1 do
 			if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
-				local padding = 4.5
-				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,buttonstate and 0.25 or 0.15}, {1,1,1,buttonstate and 0.25 or 0.15})
+				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 0,1,1,0, {0.3,0.3,0.3,buttonstate and 0.25 or 0.15}, {1,1,1,buttonstate and 0.25 or 0.15})
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
-				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.4), 4, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
+				uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
+				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+(b[i].h*0.4), bgpadding, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
 				break
@@ -136,12 +135,11 @@ function widget:DrawScreen()
 		b = buttons
 		for i = 1, #b, 1 do
 			if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
-				local padding = 4.5
-				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,buttonstate and 0.25 or 0.15}, {1,1,1,buttonstate and 0.25 or 0.15})
+				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 0,1,1,0, {0.3,0.3,0.3,buttonstate and 0.25 or 0.15}, {1,1,1,buttonstate and 0.25 or 0.15})
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
-				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.4), 4, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
+				uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 1,1,0,0, {1,1,1,0.06}, {1,1,1,buttonstate and 0.4 or 0.25})
+				uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+(b[i].h*0.4), bgpadding, 0,0,1,1, {1,1,1,buttonstate and 0.25 or 0.15}, {1,1,1,0})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
 				break
@@ -302,7 +300,7 @@ end
 function drawmessage (message, x, y, s)
 	if (message.bgcolor) then
 		gl.Color (unpack(message.bgcolor))
-		uiRect(x,y+s/2, x+1, y-s/2, 6, 0,1,1,0)
+		uiRect(x,y+s/2, x+1, y-s/2, bgpadding*1.7, 0,1,1,0)
 	end
 	offx=0
 	font:Begin()

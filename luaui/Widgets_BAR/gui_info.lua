@@ -33,7 +33,7 @@ local hoverCellZoom = 0.03 * zoomMult
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
+local fontfileSize = 44
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.1
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -264,21 +264,21 @@ end
 local function cacheUnitIcons()
   for id, unit in pairs(UnitDefs) do
     if hasAlternativeUnitpic[id] then
-      gl.Texture(':lr128,128:unitpics/alternative/'..unitBuildPic[id])
+      gl.Texture(':lr160,160:unitpics/alternative/'..unitBuildPic[id])
     else
-      gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
+      gl.Texture(':lr160,160:unitpics/'..unitBuildPic[id])
     end
     gl.TexRect(-1,-1,0,0)
     if alternativeUnitpics and hasAlternativeUnitpic[id] then
-      gl.Texture(':lr64,64:unitpics/alternative/'..unitBuildPic[id])
+      gl.Texture(':lr80,80:unitpics/alternative/'..unitBuildPic[id])
     else
-      gl.Texture(':lr64,64:unitpics/'..unitBuildPic[id])
+      gl.Texture(':lr80,80:unitpics/'..unitBuildPic[id])
     end
     gl.TexRect(-1,-1,0,0)
     if alternativeUnitpics and hasAlternativeUnitpic[id] then
-      gl.Texture(':lr128,128:unitpics/alternative/'..unitBuildPic[id])
+      gl.Texture(':lr160,160:unitpics/alternative/'..unitBuildPic[id])
     else
-      gl.Texture(':lr128,128:unitpics/'..unitBuildPic[id])
+      gl.Texture(':lr160,160:unitpics/'..unitBuildPic[id])
     end
     if iconTypesMap[unitIconType[id]] then
       gl.TexRect(-1,-1,0,0)
@@ -737,7 +737,7 @@ local function drawInfo()
     -- draw grid (bottom right to top left)
     cellRect = {}
     texOffset = (0.03*rows) * zoomMult
-    texSetting = cellsize > 38 and ':lr128,128:' or ':lr64,64:'
+    texSetting = cellsize > 38 and ':lr160,160:' or ':lr80,80:'
     cornerSize = math.max(1, cellPadding*0.9)
     if texOffset > 0.25 then texOffset = 0.25 end
     local cellID = selUnitTypes
@@ -768,7 +768,7 @@ local function drawInfo()
 
     glColor(1,1,1,1)
     if unitBuildPic[displayUnitDefID] then
-      glTexture(":lr128,128:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
+      glTexture(":lr160,160:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
       glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-padding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-padding)
       glTexture(false)
     end
@@ -779,7 +779,7 @@ local function drawInfo()
     local showingRadarIcon = false
     if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
       glColor(1,1,1,0.88)
-      glTexture(':lr64,64:'..iconTypesMap[unitIconType[displayUnitDefID]])
+      glTexture(':lr80,80:'..iconTypesMap[unitIconType[displayUnitDefID]])
       glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
       glTexture(false)
       glColor(1,1,1,1)
@@ -882,15 +882,15 @@ local function drawInfo()
       local gridHeight = math_ceil(height*0.98)
       local rows = 2
       local colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
-      local cellsize = math_ceil(math.min(width/colls, gridHeight/rows))
+      local cellsize = math_floor((math.min(width/colls, gridHeight/rows)) + 0.5)
       if cellsize < gridHeight/3 then
         rows = 3
         colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
-        cellsize = math.min(width/colls, gridHeight/rows)
+        cellsize = math_floor((math.min(width/colls, gridHeight/rows)) + 0.5)
       end
       -- draw grid (bottom right to top left)
       local cellID = #unitBuildOptions[displayUnitDefID]
-      cellPadding = math_ceil(cellsize * 0.022)
+      cellPadding = math_floor((cellsize * 0.022)+0.5)
       cellRect = {}
       for row=1, rows do
         for coll=1, colls do
@@ -898,7 +898,7 @@ local function drawInfo()
             local uDefID = unitBuildOptions[displayUnitDefID][cellID]
             cellRect[cellID] = {math_floor(customInfoArea[3]-cellPadding-(coll*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_floor(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row)*cellsize))}
             glColor(0.9,0.9,0.9,1)
-            glTexture(":lr64,64:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+            glTexture(":lr80,80:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
             --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
             --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
             TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,1,1, 0.11)
