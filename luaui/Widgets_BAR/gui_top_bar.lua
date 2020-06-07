@@ -933,14 +933,13 @@ local function updateResbar(res)
 		glTexture(false)
 
 		-- Bar background
-		local addedSize = math.max(1, math_floor(((barArea[4]-barArea[2])*0.2)+0.5))
-		Spring.Echo(addedSize)
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.09})
-		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize, barHeight*0.33, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		local addedSize = math_floor(((barArea[4]-barArea[2])*0.15)+0.5)
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
-	end)
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.07})
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize+addedSize, barHeight*0.2, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end)
 
 	dlistResbar[res][2] = glCreateList( function()
 		-- Metalmaker Conversion slider

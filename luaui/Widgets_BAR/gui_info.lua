@@ -774,8 +774,8 @@ local function drawInfo()
     end
     iconSize = iconSize + iconPadding
 
-    local radarIconSize = iconSize * 0.3
-    local radarIconMargin = radarIconSize * 0.3
+    local radarIconSize = math_floor((iconSize * 0.3)+0.5)
+    local radarIconMargin = math_floor((radarIconSize * 0.3)+0.5)
     local showingRadarIcon = false
     if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
       glColor(1,1,1,0.88)
