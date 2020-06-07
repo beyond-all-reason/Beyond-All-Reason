@@ -380,7 +380,7 @@ local function updateRejoin()
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
 
-		local barHeight = math_floor((height*widgetScale/9)+0.5)
+		local barHeight = math_floor((height*widgetScale/7.5)+0.5)
 		local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 		local barLeftPadding = 7* widgetScale
 		local barRightPadding = 7 * widgetScale
@@ -388,11 +388,11 @@ local function updateRejoin()
 		local barWidth = barArea[3] - barArea[1]
 
 		-- bar background
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0,0,0.25},{0.44,0.44,0.44,0.33})
-		-- bar background gloss
+		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0,0,0.25},{0.44,0.44,0.44,0.4})
+		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1], barArea[4]-(barHeight*0.3), barArea[3], barArea[4], barHeight*0.2, 0,0,1,1, {1,1,1,0.},{1,1,1,0.09})
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[2]+(barHeight*0.18), barHeight*0.2, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
+		RectRound(barArea[1], barArea[4]-(barHeight*0.5), barArea[3], barArea[4], barHeight*0.2, 1,1,0,0, {1,1,1,0.},{1,1,1,0.09})
+		RectRound(barArea[1], barArea[2], barArea[3], barArea[2]+(barHeight*0.4), barHeight*0.2, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Bar value

@@ -4189,6 +4189,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	vsx, vsy = viewSizeX, viewSizeY
 
+	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+
 	--local oldWidgetScale = widgetScale
 	updateWidgetScale()
 	--local scaleDiff = 1 / (vsx/widgetScale)

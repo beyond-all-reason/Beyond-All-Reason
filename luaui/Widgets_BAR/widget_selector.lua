@@ -60,7 +60,7 @@ local minMaxEntries = 15
 local curMaxEntries = 25
 
 local startEntry = 1
-local pageStep  = math.floor(curMaxEntries / 2) - 1
+local pageStep  = floor(curMaxEntries / 2) - 1
 
 local fontSize = 13.5
 local fontSpace = 8.5
@@ -422,7 +422,7 @@ function widget:DrawScreen()
   if (WG['guishader']) and not activeGuishader then
     activeGuishader = true
     dlistGuishader = gl.CreateList( function()
-      RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
+      RectRound(floor(minx-(bgPadding*sizeMultiplier)), floor(miny-(bgPadding*sizeMultiplier)), floor(maxx+(bgPadding*sizeMultiplier)), floor(maxy+(bgPadding*sizeMultiplier)), 6*sizeMultiplier)
     end)
     WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
   end
@@ -451,8 +451,8 @@ function widget:DrawScreen()
   tcol = WhiteStr
 
   -- draw the box
-  RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 6*sizeMultiplier, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
-  RectRound(minx, miny, maxx, maxy, 4.5*sizeMultiplier, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
+  RectRound(floor(minx-(bgPadding*sizeMultiplier)), floor(miny-(bgPadding*sizeMultiplier)), floor(maxx+(bgPadding*sizeMultiplier)), floor(maxy+(bgPadding*sizeMultiplier)), 6*sizeMultiplier, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+  RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5*sizeMultiplier, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
 
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
@@ -513,7 +513,7 @@ function widget:DrawScreen()
     sbsize = sbheight * #widgetsList / #fullWidgetsList
     if activescrollbar then
     	startEntry = math.max(0, math.min(
-    	math.floor(#fullWidgetsList *
+    	floor(#fullWidgetsList *
     	((sby1 - sbsize) -
     	(my - math.min(scrollbargrabpos, sbsize)))
     	 / sbheight + 0.5),
@@ -658,7 +658,7 @@ end
 
 function widget:MouseMove(x, y, dx, dy, button)
   if show and activescrollbar then
-    startEntry = math.max(0, math.min(math.floor((#fullWidgetsList * ((sby1 - sbsize) - (y - math.min(scrollbargrabpos, sbsize))) / sbheight) + 0.5),
+    startEntry = math.max(0, math.min(floor((#fullWidgetsList * ((sby1 - sbsize) - (y - math.min(scrollbargrabpos, sbsize))) / sbheight) + 0.5),
     #fullWidgetsList - curMaxEntries)) + 1
     UpdateListScroll()
     return true

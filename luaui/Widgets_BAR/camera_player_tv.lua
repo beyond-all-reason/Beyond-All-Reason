@@ -13,13 +13,17 @@ end
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
+local fontfileSize = 44
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.15
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfileScale2 = fontfileScale * 2.75
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local displayPlayername = true
 
@@ -286,24 +290,23 @@ local function createList()
 			color2 = {0.6, 0.05, 0.05, 0.66}
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		RectRound(right-textWidth, bottom, right, top, 4*widgetScale, 1,1,1,0, color1, color2)
+		RectRound(right-textWidth, bottom, right, top, bgpadding*1.7, 1,1,1,0, color1, color2)
 		toggleButton = {right-textWidth, bottom, right, top }
 
-		local borderPadding = 2.25*widgetScale
-		RectRound(right-textWidth+borderPadding, bottom, right, top-borderPadding, 3*widgetScale, 1,1,1,0, {0.3,0.3,0.3,0.25}, {0.05,0.05,0.05,0.25})
+		RectRound(right-textWidth+bgpadding, bottom, right, top-bgpadding, bgpadding, 1,1,1,0, {0.3,0.3,0.3,0.25}, {0.05,0.05,0.05,0.25})
 
 		font:Begin()
-        font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
+        font:Print(color..text, right-(textWidth/2), toggleButton[2]+(7*widgetScale), fontSize, 'oc')
 
 		if toggled then
 			local name = 'Player TV  '
 			local fontSize = (widgetHeight*widgetScale) * 0.6
-			local vpos = bottom+(5.5*widgetScale)
+			local vpos = toggleButton[2]+(6.5*widgetScale)
 			font:SetTextColor(0,0,0,0.6)
-			font:Print(name, right-textWidth-(0.7*widgetScale), vpos, fontSize, 'rn')
-			font:Print(name, right-textWidth+(0.7*widgetScale), vpos, fontSize, 'rn')
+			font:Print(name, right-textWidth-(0.4*widgetScale), vpos, fontSize, 'rn')
+			font:Print(name, right-textWidth+(0.4*widgetScale), vpos, fontSize, 'rn')
 			font:SetTextColor(1,1,1,1)
-			font:Print(name, right-textWidth, vpos+(1*widgetScale), fontSize, 'rn')
+			font:Print(name, right-textWidth, vpos+(0.7*widgetScale), fontSize, 'r0n')
 		end
 		font:End()
 	end)
@@ -313,11 +316,10 @@ local function createList()
 		else
 			gl.Color(0.2, 1, 0.2, 0.4)
 		end
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 4*widgetScale, 1,1,1,0)
+		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding*1.7, 1,1,1,0)
 
-		local borderPadding = 2.75*widgetScale
 		gl.Color(0,0,0,0.14)
-		RectRound(toggleButton[1]+borderPadding, toggleButton[2], toggleButton[3], toggleButton[4]-borderPadding, 3*widgetScale, 1,1,1,0)
+		RectRound(toggleButton[1]+bgpadding, toggleButton[2], toggleButton[3], toggleButton[4]-bgpadding, bgpadding, 1,1,1,0)
 
 		local text = '   cancel camera   '
 		local color = '\255\255\225\225'
@@ -328,7 +330,7 @@ local function createList()
 		local fontSize = (widgetHeight*widgetScale) * 0.5
 		local textWidth = font:GetTextWidth(text) * fontSize
 		font:Begin()
-		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(8*widgetScale), fontSize, 'oc')
+		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(7*widgetScale), fontSize, 'oc')
 		font:End()
 	end)
 
@@ -360,7 +362,7 @@ function updatePosition(force)
 		left = parentPos[2]
 		bottom = parentPos[1]
 		right = parentPos[4]
-		top = parentPos[1]+(widgetHeight*parentPos[5])
+		top = parentPos[1]+math.floor(widgetHeight*parentPos[5])
 		widgetScale = parentPos[5]
 
 		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
@@ -372,6 +374,8 @@ end
 
 
 function widget:Initialize()
+	widget:ViewResize(Spring.GetViewGeometry())
+
 	isSpec = Spring.GetSpectatingState()
 	if WG['advplayerlist_api'] == nil then
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
@@ -436,7 +440,27 @@ function widget:PlayerChanged(playerID)
 end
 
 local passedTime = 1
+local passedTime = 0
+local passedTime2 = 0
+local uiOpacitySec = 0.5
 function widget:Update(dt)
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+			widget:ViewResize(Spring.GetViewGeometry())
+		end
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
+			guishaderEnabled = (WG['guishader'])
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			glossMult = 1 + (2-(ui_opacity*2))
+			createList()
+		end
+	end
+
 	passedTime = passedTime + dt
 	if passedTime > 0.1 then
 		passedTime = 0
@@ -534,6 +558,9 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.7 + (vsx*vsy / 5000000))
+
+	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then

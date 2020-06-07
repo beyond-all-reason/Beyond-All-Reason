@@ -40,7 +40,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-function widget:Initialize()	
+function widget:Initialize()
+	widget:ViewResize(Spring.GetViewGeometry())
 	if (not Spring.IsReplay()) then
 		Spring.Echo ("[Replay Control] Replay not detected, Shutting Down.")
 		widgetHandler:RemoveWidget(self)
@@ -93,7 +94,7 @@ function widget:DrawScreen()
 				gl.DeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = gl.CreateList( function()
-				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x+0.037), sY(wPos.y+dy), 6*widgetScale, 0,1,1,0)
+				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x+0.037), sY(wPos.y+dy), bgpadding*1.7, 0,1,1,0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'replaybuttons')
 		else
@@ -235,10 +236,10 @@ local glPushMatrix     = gl.PushMatrix
 
 --UI coordinaten zu scalierten screen koordinaten
 function sX (uix)
-	return uix*vsx
+	return math.floor((uix*vsx)+0.5)
 end
 function sY (uiy)
-	return uiy*vsy
+	return math.floor((uiy*vsy)+0.5)
 end
 ---...und andersrum!
 function uiX (sX)
@@ -252,6 +253,10 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
 	sceduleUpdate = true
+
+	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
@@ -448,13 +453,13 @@ function draw_buttons (b)
 		--end
 		if (b[i].name == selected_missionid) then gl.Color (0,1,1,0.66) end --highlight selected mission, bit unnice this way w/e
 
-		local padding = 4.5
-		uiRect(b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h, 6, 0,1,1,0, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 0,1,1,0, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+		local padding = bgpadding
+		uiRect(b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h, bgpadding*1.7, 0,1,1,0, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 0,1,1,0, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(padding/vsx), b[i].y+b[i].h-(padding/vsy), 4, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
-		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(padding/vsx), b[i].y+(b[i].h*0.4), 4, 0,0,1,1, {1,1,1,0.04*glossMult}, {1,1,1,0})
+		uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+(b[i].h*0.4), bgpadding, 0,0,1,1, {1,1,1,0.04*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')

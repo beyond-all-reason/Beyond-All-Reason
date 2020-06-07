@@ -19,7 +19,7 @@ local cfgIconPadding = 0.022 -- space between icons
 local cfgIconCornerSize = 0.025
 local cfgRadaiconSize = 0.29
 local cfgRadariconOffset = 0.027
-local cfgPriceFontSize = 0.18
+local cfgPriceFontSize = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
 local defaultColls = 5
@@ -57,7 +57,7 @@ local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
+local fontfileSize = 44
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.55
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -287,7 +287,7 @@ local function cacheUnitIcons()
   local colls = minC
   while colls <= maxC do
     local textureDetail = math_max(80, math_ceil(180*(1-((colls/4.5)*0.15))) )  -- must be same formula as used in drawBuildmenu()
-    local radariconTextureDetail = math_max(28, math_ceil(120*(1-((colls/4)*0.4))) )  -- must be same formula as used in drawBuildmenu()
+    local radariconTextureDetail = math_max(30, math_ceil(68*(1-((colls/4.5)*0.15))) )  -- must be same formula as used in drawBuildmenu()
     gl.Color(1,1,1,0.001)
     for id, unit in pairs(UnitDefs) do
       if alternativeUnitpics and hasAlternativeUnitpic[id] then
@@ -972,11 +972,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
     glBlending(GL_SRC_ALPHA, GL_ONE)
     -- glossy half
     --RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 2,2,0,0,{1,1,1,0}, {1,1,1,0.2})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 2,2,0,0,{1,1,1,0}, {1,1,1,0.15})
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     -- extra darken gradually
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.13}, {0,0,0,0})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.15}, {0,0,0,0})
 
     -- feather darken the edges
     --local halfSize = (((cellRects[cellRectID][3]-cellPadding-iconPadding))-(cellRects[cellRectID][1]+cellPadding+iconPadding))*0.5
@@ -1004,7 +1004,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
   -- price
   if showPrice then
     --doCircle(x, y, z, radius, sides)
-    font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.4), priceFontSize, "o")
+    font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.38), priceFontSize, "o")
   end
 
   -- shortcuts
@@ -1093,12 +1093,12 @@ function drawBuildmenu()
   iconPadding = math_floor(cellSize * cfgIconPadding)
   cornerSize = math_floor(cellSize*cfgIconCornerSize)
   cellInnerSize = cellSize-cellPadding-cellPadding
-  radariconSize = cellInnerSize * cfgRadaiconSize
-  radariconOffset = (cellInnerSize * cfgRadariconOffset) + cellPadding+iconPadding
-  priceFontSize = cellInnerSize*cfgPriceFontSize
+  radariconSize = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
+  radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding+iconPadding)+0.5)
+  priceFontSize = math_floor((cellInnerSize*cfgPriceFontSize)+0.5)
 
-  radariconTextureDetail = math_max(28, math_ceil(120*(1-((colls/4)*0.4))) )  -- NOTE: if changed: update formula as used in cacheUnitIcons()
   textureDetail = math_max(80, math_ceil(180*(1-((colls/4.5)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons()
+  radariconTextureDetail = math_max(30, math_ceil(68*(1-((colls/4.5)*0.15))) )  -- NOTE: if changed: update formula as used in cacheUnitIcons()
 
   cellRects = {}
   local numCellsPerPage = rows*colls

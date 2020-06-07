@@ -269,7 +269,7 @@ function Init()
 	WBadge = WBadge*sizeMultiplier
 
 	if maxPlayers * WBadge + (20*sizeMultiplier) > widgetWidth then
-		widgetWidth = (20*sizeMultiplier) + maxPlayers * WBadge
+		widgetWidth = math.ceil((20*sizeMultiplier) + maxPlayers * WBadge)
 	end
 
 	processScaling()
@@ -725,7 +725,7 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	local y2 = math.ceil(widgetPosY - posY + tH + widgetHeight)
 	local area = {widgetPosX, y1, widgetPosX+widgetWidth, y2 }
 
-	local borderPaddingRight = borderPadding
+	local borderPaddingRight = bgpadding
 	if (widgetPosX + widgetWidth) >= vsx-0.2 then
 		borderPaddingRight = 0
 	end
@@ -925,7 +925,7 @@ function DrawSideImages()
 			end
 
 			if type(data["tE"]) == "number" and drawpos and #(data.teams) > 0 then
-				DrawBackground(posy-(4*sizeMultiplier), aID, sideimagesWidth)
+				DrawBackground(posy-(4*sizeMultiplier), aID, math.floor(sideimagesWidth))
 			end
 
 			-- Player faction images
@@ -1625,6 +1625,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	--widgetScale = (1 + (vsx*vsy / 7500000))
 	widgetScale = (((vsx+vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
+
+	widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then

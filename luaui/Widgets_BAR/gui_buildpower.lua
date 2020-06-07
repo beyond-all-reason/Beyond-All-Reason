@@ -97,8 +97,7 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        local padding = bgBorder*vsy
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*2, 1,1,0,0)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7, 1,1,0,0)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'buildpower')
     end
@@ -152,8 +151,8 @@ function clear2()
 end
 
 function widget:Shutdown()
-    clear()
-    clear2()
+  clear()
+  clear2()
   if WG['guishader'] and dlistGuishader then
       WG['guishader'].DeleteDlist('buildpower')
     dlistGuishader = nil
@@ -308,22 +307,21 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 end
 
 function drawBuildpower()
-  padding = bgpadding
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 0,1,0,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,1,0,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7, 0,1,0,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,1,0,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), bgpadding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), padding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-bgpadding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), bgpadding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
 
   -- bar background
-  contentMargin = (backgroundRect[3]-backgroundRect[1]) * 0.22
-  RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-padding-contentMargin, backgroundRect[4]-padding-contentMargin, padding*0.5, 1,1,1,1,{0,0,0,0.13}, {0.08,0.08,0.08,0.13})
+  contentMargin = math.ceil((backgroundRect[3]-backgroundRect[1]) * 0.2)
+  RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-bgpadding-contentMargin, backgroundRect[4]-bgpadding-contentMargin, bgpadding*0.5, 1,1,1,1,{0,0,0,0.12}, {0.08,0.08,0.08,0.12})
 end
 
 function drawBuildpower2()
@@ -335,10 +333,10 @@ function drawBuildpower2()
             avgBuildPower = 1
         end
 
-        local contentMargin2 = contentMargin*1.33
-        local barHeight = (((backgroundRect[4]-padding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
-        if barHeight > padding*2 then   -- prevent artifacts
-            RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-padding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, padding*0.4, 1,1,1,1,{0.33,0.33,0.33,0.45}, {0.66,0.66,0.66,0.45}) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
+        local contentMargin2 = math.ceil(contentMargin*1.3)
+        local barHeight = math.ceil(((backgroundRect[4]-bgpadding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
+        if barHeight > bgpadding*2 then   -- prevent artifacts
+            RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-bgpadding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, bgpadding*0.4, 1,1,1,1,{0.33,0.33,0.33,0.45}, {0.6,0.6,0.6,0.45}) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
         end
     end
 end

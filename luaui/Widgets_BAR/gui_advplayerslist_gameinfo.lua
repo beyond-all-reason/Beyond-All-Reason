@@ -62,6 +62,7 @@ local top, left, bottom, right = 0,0,0,0
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
+	widget:ViewResize(Spring.GetViewGeometry())
 	updatePosition()
 	WG['displayinfo'] = {}
 	WG['displayinfo'].GetPosition = function()
@@ -224,7 +225,7 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[3] = glCreateList( function()
-			RectRound(left, bottom, right, top, 4.5*widgetScale)
+			RectRound(left, bottom, right, top, bgpadding*1.7)
 		end)
 		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo')
 	end
@@ -233,9 +234,9 @@ local function createList()
 	end
 	drawlist[1] = glCreateList( function()
 		--glColor(0, 0, 0, ui_opacity)
-		RectRound(left, bottom, right, top, 4.5*widgetScale, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
+		RectRound(left, bottom, right, top, bgpadding*1.7, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
 		
-		local borderPadding = 2.5*widgetScale
+		local borderPadding = bgpadding
 		local borderPaddingRight = borderPadding
 		if right >= vsx-0.2 then
 			borderPaddingRight = 0
@@ -245,12 +246,12 @@ local function createList()
 			borderPaddingLeft = 0
 		end
 		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, borderPadding*1.1, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.35), borderPadding*0.9, 0,0,1,1, {1,1,1,0.025*glossMult},{1,1,1,0})
+		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.35), bgpadding, 0,0,1,1, {1,1,1,0.025*glossMult},{1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 	updateValues()
@@ -332,6 +333,10 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+
+	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
