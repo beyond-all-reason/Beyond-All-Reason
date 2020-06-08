@@ -2504,6 +2504,17 @@ function init()
 		 end,
 		},
 
+		{id="advplayerlist_scale", group="ui", basic=true, name="Playerlist"..widgetOptionColor.."  scale", min=0.85, max=1.2, step=0.01, type="slider", value=1, description='Resize the playerlist (and its addons)',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_scale", {'customScale'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', {'customScale'}, value) end,
+		},
+		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name=widgetOptionColor.."   mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
+		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
+		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
+		 onload = function(i) end,
+		 onchange = function(i,value) if value then Spring.StopSoundStream() end end
+		},
+
 		{id="buildmenualternativeicons", group="ui", name="Alternative unit icons", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getAlternativeIcons()), description='Switch to a different unit icon set',
 		 onload = function(i) end,
 		 onchange = function(i, value)
@@ -2524,14 +2535,6 @@ function init()
 		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setColorize', {'colorize'}, value) end,
 		--},
 
-		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
-		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
-
-		{id="ordermenu_colorize", group="ui", basic=true, name="Ordermenu"..widgetOptionColor.."  colorize", type="slider", min=0, max=1, step=0.1, value=0, description='',
-		 onload = function(i) loadWidgetData("Order menu", "ordermenu_colorize", {'colorize'}) end,
-		 onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
-		},
-
 		{id="buildmenu_makefancy", group="ui", basic=true, name="Build menu"..widgetOptionColor.."  fancy", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getMakeFancy~=nil and WG['buildmenu'].getMakeFancy()), description='Adds extra gradients and highlights',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setMakeFancy', {'showMakeFancy'}, value) end,
@@ -2544,7 +2547,7 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowRadarIcon', {'showRadarIcon'}, value) end,
 		},
-		{id="buildmenu_tooltip", group="ui", basic=true, name=widgetOptionColor.."   tooltips", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowTooltip~=nil and WG['buildmenu'].getShowTooltip()), description='Tooltip when hovering over a unit in the buildmenu',
+		{id="buildmenu_tooltip", group="ui", name=widgetOptionColor.."   tooltips", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowTooltip~=nil and WG['buildmenu'].getShowTooltip()), description='Tooltip when hovering over a unit in the buildmenu',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', {'showTooltip'}, value) end,
 		},
@@ -2553,11 +2556,11 @@ function init()
 		-- onload = function(i) end,
 		-- onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
 		--},
-		{id="buildmenu_defaultcolls", group="ui", basic=true, name=widgetOptionColor.."   columns", type="slider", min=4, max=6, step=1, value=5, description='Number of columns when "dynamic columns" is disabled',
+		{id="buildmenu_defaultcolls", group="ui", name=widgetOptionColor.."   columns", type="slider", min=4, max=6, step=1, value=5, description='Number of columns when "dynamic columns" is disabled',
 		 onload = function(i) loadWidgetData("Build menu", "buildmenu_defaultcolls", {'defaultColls'}) end,
 		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', {'defaultColls'}, value) end,
 		},
-		{id="buildmenu_dynamic", group="ui", basic=true, name=widgetOptionColor.."   dynamic columns", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getDynamicIconsize~=nil and WG['buildmenu'].getDynamicIconsize()), description='Use variable number of columns depending on number of buildoptions availible',
+		{id="buildmenu_dynamic", group="ui", name=widgetOptionColor.."   dynamic columns", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getDynamicIconsize~=nil and WG['buildmenu'].getDynamicIconsize()), description='Use variable number of columns depending on number of buildoptions availible',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setDynamicIconsize', {'dynamicIconsize'}, value) end,
 		},
@@ -2568,6 +2571,11 @@ function init()
 		{id="buildmenu_maxcolls", group="ui", name=widgetOptionColor.."      max columns", type="slider", min=4, max=7, step=1, value=6, description='',
 		 onload = function(i) loadWidgetData("Build menu", "buildmenu_maxcolls", {'maxColls'}) end,
 		 onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setMaxColls', {'maxColls'}, value) end,
+		},
+
+		{id="ordermenu_colorize", group="ui", basic=true, name="Ordermenu"..widgetOptionColor.."  colorize", type="slider", min=0, max=1, step=0.1, value=0, description='',
+		 onload = function(i) loadWidgetData("Order menu", "ordermenu_colorize", {'colorize'}) end,
+		 onchange = function(i, value) saveOptionValue('Order menu', 'ordermenu', 'setColorize', {'colorize'}, value) end,
 		},
 
 		{id="consolemaxlines", group="ui", name="Console"..widgetOptionColor.."  max lines", type="slider", min=3, max=9, step=1, value=6, description='',
@@ -2589,12 +2597,8 @@ function init()
 		 end,
 		},
 
-		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist"..widgetOptionColor.."  mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
-		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
-		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
-		 onload = function(i) end,
-		 onchange = function(i,value) if value then Spring.StopSoundStream() end end
-		},
+		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
+		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
 
 		{id="teamplatter", group="ui", basic=true, widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},

@@ -618,19 +618,8 @@ function SetModulesPositionX()
 			if widgetWidth < 20 then
 				widgetWidth = 20
 			end
-			if widgetWidth + widgetPosX > vsx then
-				widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
-			end
-			if widgetRight - widgetWidth < 0 then
-				widgetRight = widgetWidth
-			end
-			if expandLeft == true then
-				widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
-			else
-				widgetRight = widgetPosX + widgetWidth
-			end
+			updateWidgetScale()
 		end
-
 	end
 end
 
@@ -1055,6 +1044,13 @@ function widget:Initialize()
 	SortList()
 
 	WG['advplayerlist_api'] = {}
+	WG['advplayerlist_api'].GetScale = function()
+		return customScale
+	end
+	WG['advplayerlist_api'].SetScale = function(value)
+		customScale = value
+		updateWidgetScale()
+	end
 	WG['advplayerlist_api'].GetPosition = function()
 		return apiAbsPosition
 	end
@@ -1556,23 +1552,7 @@ function SortList()
 	-- set the widget height according to space needed to show team
 	widgetHeight = vOffset + 3
 
-
-	-- move the widget if list is too long
-	if widgetHeight + widgetPosY > vsy then
-		widgetPosY = vsy - widgetHeight
-	end
-
-	if widgetTop - widgetHeight < 0 then
-		--widgetTop = widgetHeight
-	end
-
-	-- set the widget Y position or the top of the widget according to expand direction
-	if expandDown == true then
-		widgetPosY = widgetTop - widgetHeight
-	else
-		widgetTop = widgetPosY + widgetHeight
-	end
-
+	updateWidgetScale()
 end
 
 
@@ -2021,11 +2001,10 @@ function CreateBackground()
 	local absTop		= math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1)))
 	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
 
-	local padding = 2.5*widgetScale
-	local paddingBottom = padding
-	local paddingRight = padding
-	local paddingTop = padding
-	local paddingLeft = padding
+	local paddingBottom = bgpadding
+	local paddingRight = bgpadding
+	local paddingTop = bgpadding
+	local paddingLeft = bgpadding
 	if absBottom <= 0.2 then paddingBottom = 0 end
 	if absRight >= vsx-0.2 then paddingRight = 0 end
 	if absTop <= 0.2 then paddingTop = 0 end
@@ -2058,10 +2037,10 @@ function CreateBackground()
 			local yOffset = collapsedHeight*0.5
 			local xOffset = collapsedHeight/6
 			font:SetTextColor(0,0,0,0.2)
-			font:Print(text, widgetPosX - 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
-			font:Print(text, widgetPosX + 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
+			font:Print(text, widgetPosX - 1 + xOffset, TRcornerY-bgpadding -yOffset, 13, "")
+			font:Print(text, widgetPosX + 1 + xOffset, TRcornerY-bgpadding -yOffset, 13, "")
 			font:SetTextColor(0.87,0.87,0.87,1)
-			font:Print(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
+			font:Print(text, widgetPosX + xOffset, TRcornerY-bgpadding -yOffset+0.8, 13, "n")
 			font:End()
 		end
 		gl_Color(1,1,1,1)
@@ -4161,21 +4140,22 @@ function updateWidgetScale()
 	if customScale < 0.65 then
 		customScale = 0.65
 	end
-	widgetScale = ((vsx+vsy) / 2000) * 0.85 -- (0.75 + (vsx*vsy / 5000000)) * customScale
+	widgetScale = ((vsx+vsy) / 2000) * 0.85 * customScale -- (0.75 + (vsx*vsy / 5000000)) * customScale
 	widgetScale = widgetScale - ((widgetScale * ((vsx/vsy) - 1.78)) * 0.12)	-- reduce size on ultrawides (bigger than 16:9)
 	widgetScale = widgetScale * (1+(ui_scale-1)/1.25)
+
+	widgetPosX	= vsx - (widgetWidth*widgetScale)
+	widgetRight	= vsx
+	widgetPosY = 0
+	widgetTop   = widgetPosY + widgetHeight
 end
 
 function customScaleUp()
-	widgetPosX		= widgetPosX - (widgetWidth*customScaleStep)
-	widgetRight		= widgetPosX + widgetWidth
 	customScale		= customScale + customScaleStep
 	updateWidgetScale()
 end
 
 function customScaleDown()
-	widgetPosX		= widgetPosX + (widgetWidth*customScaleStep)
-	widgetRight		= widgetPosX + widgetWidth
 	customScale		= customScale - customScaleStep
 	updateWidgetScale()
 end
@@ -4192,18 +4172,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
-	--local oldWidgetScale = widgetScale
 	updateWidgetScale()
-	--local scaleDiff = 1 / (vsx/widgetScale)
 
-	if expandDown == true then
-		widgetTop  = widgetTop - dy
-		widgetPosY = widgetTop - widgetHeight
-	end
-	if expandLeft == true then
-		widgetRight = widgetRight - dx
-	    widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
-	end
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
