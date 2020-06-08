@@ -54,7 +54,7 @@ local GL_ONE = GL.ONE
 
 local drawlist = {}
 local advplayerlistPos = {}
-local widgetHeight = 22
+local widgetHeight = 21
 local top, left, bottom, right = 0,0,0,0
 local gameMaxUnits = 2000
 if Spring.GetModOptions() and Spring.GetModOptions().maxunits then

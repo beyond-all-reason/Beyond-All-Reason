@@ -153,7 +153,7 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale * 1.7)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale)
       end)
     end
   elseif dlistGuishader then
@@ -708,7 +708,7 @@ function drawCell(cell, zoom)
       end
       local stateWidth = cellInnerWidth / statecount
       local stateHeight = math_floor(cellInnerHeight * 0.14)
-      local stateMargin = math_floor((stateWidth*0.13)+0.5)
+      local stateMargin = math_floor((stateWidth*0.1)+0.5)
       local glowSize = math_floor(stateHeight * 8)
       local r,g,b,a = 0,0,0,0
       for i=1, statecount do
@@ -730,11 +730,11 @@ function drawCell(cell, zoom)
         glColor(r,g,b,a)
         local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + (stateWidth*(i-1)) + (i==1 and 0 or stateMargin))
         local y1 = math_floor(cellRects[cell][2]+bottomMargin + padding)
-        local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - (stateWidth*(statecount-i)))
+        local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - (stateWidth*(statecount-i)) - (i==statecount and 0 or stateMargin))
         local y2 = math_ceil(cellRects[cell][2]+bottomMargin + stateHeight)
         -- fancy fitting rectrounds
         if rows < 6 then
-          RectRound(x1, y1, x2, y2, stateHeight*0.4,
+          RectRound(x1, y1, x2, y2, stateHeight*0.33,
                   (i==1 and 0 or 2), (i==statecount and 0 or 2), (i==statecount and 2 or 0), (i==1 and 2 or 0))
         else
           glRect(x1,y1,x2,y2)
@@ -742,7 +742,7 @@ function drawCell(cell, zoom)
         -- fancy active state glow
         if rows < 6 and  i == curstate then
           glBlending(GL_SRC_ALPHA, GL_ONE)
-          glColor(r,g,b,0.1)
+          glColor(r,g,b,0.09)
           glTexture(barGlowCenterTexture)
           DrawRect(x1, y1 - glowSize, x2, y2 + glowSize, 0.008)
           glTexture(barGlowEdgeTexture)

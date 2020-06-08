@@ -124,7 +124,7 @@ local guishaderEnabled = (WG['guishader'])
 
 local drawlist = {}
 local advplayerlistPos = {}
-local widgetHeight = 22
+local widgetHeight = 21
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = 5
 
