@@ -301,7 +301,7 @@ local function createList()
 		if toggled then
 			local name = 'Player TV  '
 			local fontSize = (widgetHeight*widgetScale) * 0.6
-			local vpos = toggleButton[2]+(6.5*widgetScale)
+			local vpos = toggleButton[2]+(0.25*widgetHeight*widgetScale)
 			font:SetTextColor(0,0,0,0.6)
 			font:Print(name, right-textWidth-(0.4*widgetScale), vpos, fontSize, 'rn')
 			font:Print(name, right-textWidth+(0.4*widgetScale), vpos, fontSize, 'rn')
@@ -330,7 +330,7 @@ local function createList()
 		local fontSize = (widgetHeight*widgetScale) * 0.5
 		local textWidth = font:GetTextWidth(text) * fontSize
 		font:Begin()
-		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(7*widgetScale), fontSize, 'oc')
+		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(0.3*widgetHeight*widgetScale), fontSize, 'oc')
 		font:End()
 	end)
 

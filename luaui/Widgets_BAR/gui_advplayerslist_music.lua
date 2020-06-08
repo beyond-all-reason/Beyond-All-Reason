@@ -124,7 +124,7 @@ local guishaderEnabled = (WG['guishader'])
 
 local drawlist = {}
 local advplayerlistPos = {}
-local widgetHeight = 23
+local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = 5
 
@@ -462,7 +462,7 @@ local function createList()
 		end
 		trackname = text
 		font:Begin()
-		font:Print('\255\235\235\235'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding-(0.9*widgetScale), textsize, 'no')
+		font:Print('\255\235\235\235'..trackname, buttons['next'][3]+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()

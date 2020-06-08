@@ -49,8 +49,8 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local customScale			= 1.035
-local customScaleStep		= 0.035
+local customScale			= 1
+local customScaleStep		= 0.03
 local pointDuration    		= 40
 local cpuText				= false
 local drawAlliesLabel = false

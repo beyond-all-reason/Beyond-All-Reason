@@ -54,7 +54,7 @@ local GL_ONE = GL.ONE
 
 local drawlist = {}
 local advplayerlistPos = {}
-local widgetHeight = 23
+local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local gameMaxUnits = 2000
 if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
@@ -194,7 +194,7 @@ local function updateValues()
 		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
-		font:Print(titleColor..'# units  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits, left+textXPadding, bottom+textYPadding-(0.9*widgetScale), textsize, 'no')
+		font:Print(titleColor..'# units  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
         font:End()
     end)
 end

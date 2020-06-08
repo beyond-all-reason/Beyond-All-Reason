@@ -54,7 +54,7 @@ local GL_ONE = GL.ONE
 
 local drawlist = {}
 local advplayerlistPos = {}
-local widgetHeight = 23
+local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
 
@@ -206,7 +206,7 @@ local function updateValues()
 		local time = minutes..':'..seconds
 
         font:Begin()
-		font:Print(valueColor..time, left+textXPadding, bottom+textYPadding-(0.9*widgetScale), textsize, 'no')
+		font:Print(valueColor..time, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		local extraSpacing = 0
 		if minutes > 99 then
 			extraSpacing = 1.34
@@ -214,7 +214,7 @@ local function updateValues()
 			extraSpacing = 0.7
 		end
 
-		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'      fps '..valueColor..fps, left+textXPadding+(textsize*(3.2+extraSpacing)), bottom+textYPadding-(0.9*widgetScale), textsize, 'no')
+		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'      fps '..valueColor..fps, left+textXPadding+(textsize*(3.2+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		font:End()
     end)
 end
