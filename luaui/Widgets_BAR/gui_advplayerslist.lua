@@ -1121,6 +1121,20 @@ function widget:Initialize()
 			end
 		end
 	end
+	WG['advplayerlist_api'].GetModuleActive = function(module)
+		return modules[module].active
+	end
+	WG['advplayerlist_api'].SetModuleActive = function(value)
+		for n,module in pairs(modules) do
+			if module.name == value[1] then
+				modules[n].active = value[2]
+				SetModulesPositionX()
+				SortList()
+				CreateLists()
+				break
+			end
+		end
+	end
 end
 
 function widget:GameFrame(n)

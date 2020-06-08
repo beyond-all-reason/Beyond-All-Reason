@@ -1202,7 +1202,7 @@ function widget:DrawScreen()
 	end
 end
 
-function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar, configValue)
+function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar, configValue, widgetApiFunctionParam)	-- if widgetApiFunctionParam not defined then it uses configValue
 	if widgetHandler.configData[widgetName] == nil then
 		widgetHandler.configData[widgetName] = {}
 	end
@@ -1222,7 +1222,11 @@ function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar
 		widgetHandler.configData[widgetName][configVar[1]] = configValue
 	end
 	if widgetApiName ~= nil and WG[widgetApiName] ~= nil and WG[widgetApiName][widgetApiFunction] ~= nil then
-		WG[widgetApiName][widgetApiFunction](configValue)
+		if widgetApiFunctionParam ~= nil then
+			WG[widgetApiName][widgetApiFunction](widgetApiFunctionParam)
+		else
+			WG[widgetApiName][widgetApiFunction](configValue)
+		end
 	end
 end
 
@@ -2507,6 +2511,34 @@ function init()
 		{id="advplayerlist_scale", group="ui", basic=true, name="Playerlist"..widgetOptionColor.."  scale", min=0.85, max=1.2, step=0.01, type="slider", value=1, description='Resize the playerlist (and its addons)',
 		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_scale", {'customScale'}) end,
 		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', {'customScale'}, value) end,
+		},
+		{id="advplayerlist_showid", group="ui", name=widgetOptionColor.."   show Team ID", type="bool", value=false, description='show team ID',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_showid", {'m_active_Table','id'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', {'m_active_Table','id'}, value, {'id',value}) end,
+		},
+		{id="advplayerlist_country", group="ui", name=widgetOptionColor.."   show country flag", type="bool", value=true, description='show country flag',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_country", {'m_active_Table','country'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', {'m_active_Table','country'}, value, {'country',value}) end,
+		},
+		{id="advplayerlist_rank", group="ui", name=widgetOptionColor.."   show rank icon", type="bool", value=true, description='show rank icon',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_rank", {'m_active_Table','rank'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', {'m_active_Table','rank'}, value, {'rank',value}) end,
+		},
+		{id="advplayerlist_side", group="ui", name=widgetOptionColor.."   show faction icon", type="bool", value=true, description='show side/faction icon',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_side", {'m_active_Table','side'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', {'m_active_Table','side'}, value, {'side',value}) end,
+		},
+		{id="advplayerlist_skill", group="ui", name=widgetOptionColor.."   show skill number", type="bool", value=true, description='show trueskill number',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_skill", {'m_active_Table','skill'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', {'m_active_Table','skill'}, value, {'skill',value}) end,
+		},
+		{id="advplayerlist_cpuping", group="ui", name=widgetOptionColor.."   show cpuping number", type="bool", value=true, description='show cpu/ping usage/value',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_cpuping", {'m_active_Table','cpuping'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', {'m_active_Table','cpuping'}, value, {'cpuping',value}) end,
+		},
+		{id="advplayerlist_share", group="ui", name=widgetOptionColor.."   show share buttons", type="bool", value=true, description='show (quick) share buttons\n\nNOTE: auto hides when having no team members',
+		 onload = function(i) loadWidgetData("AdvPlayersList", "advplayerlist_share", {'m_active_Table','share'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', {'m_active_Table','share'}, value, {'share',value}) end,
 		},
 		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name=widgetOptionColor.."   mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
 		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},

@@ -708,7 +708,7 @@ function drawCell(cell, zoom)
       end
       local stateWidth = cellInnerWidth / statecount
       local stateHeight = math_floor(cellInnerHeight * 0.14)
-      local stateMargin = math_floor(stateWidth*0.07)
+      local stateMargin = math_floor((stateWidth*0.13)+0.5)
       local glowSize = math_floor(stateHeight * 8)
       local r,g,b,a = 0,0,0,0
       for i=1, statecount do
