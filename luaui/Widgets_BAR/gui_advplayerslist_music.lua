@@ -394,13 +394,13 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[5] = glCreateList( function()
-			RectRound(left, bottom, right, top, bgpadding*1.7)
+			RectRound(left, bottom, right, top, bgpadding*1.6)
 		end)
 		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
 	drawlist[1] = glCreateList( function()
 		--glColor(0, 0, 0, ui_opacity)
-		RectRound(left, bottom, right, top, bgpadding*1.7, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
+		RectRound(left, bottom, right, top, bgpadding*1.6, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
 		
 		borderPadding = bgpadding
 		borderPaddingRight = borderPadding

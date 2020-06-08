@@ -153,7 +153,7 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 0.0033*vsy * ui_scale * 1.7)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale * 1.7)
       end)
     end
   elseif dlistGuishader then
@@ -758,14 +758,13 @@ end
 
 function drawOrders()
   -- background
-  padding = bgpadding
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1]+(altPosition and padding or 0), backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1]+(altPosition and bgpadding or 0), backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, (altPosition and 1 or 0),1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, (altPosition and 1 or 0),1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
-  RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[2]+(altPosition and 0 or padding),backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.025*glossMult}, {1,1,1,0})
+  RectRound(backgroundRect[1]+(altPosition and bgpadding or 0),backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, (altPosition and 1 or 0),1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+  RectRound(backgroundRect[1]+(altPosition and bgpadding or 0),backgroundRect[2]+(altPosition and 0 or bgpadding),backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), bgpadding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   --RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,1,1,0.2}, {1,1,1,0.2})
@@ -881,7 +880,7 @@ function widget:DrawScreen()
 
         -- gloss highlight
         glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(cellRects[cell][1]+leftMargin+pad, cellRects[cell][4]-topMargin-padding-pad-((cellRects[cell][4]-cellRects[cell][2])*0.42), cellRects[cell][3]-rightMargin, (cellRects[cell][4]-topMargin-pad), cellWidth*0.025 ,2,2,0,0, {1,1,1,0.035*colorMult}, {1,1,1,(disableInput and 0.11*colorMult or 0.24*colorMult)})
+        RectRound(cellRects[cell][1]+leftMargin+pad, cellRects[cell][4]-topMargin-bgpadding-pad-((cellRects[cell][4]-cellRects[cell][2])*0.42), cellRects[cell][3]-rightMargin, (cellRects[cell][4]-topMargin-pad), cellWidth*0.025 ,2,2,0,0, {1,1,1,0.035*colorMult}, {1,1,1,(disableInput and 0.11*colorMult or 0.24*colorMult)})
         RectRound(cellRects[cell][1]+leftMargin+pad, cellRects[cell][2]+bottomMargin+pad, cellRects[cell][3]-rightMargin-pad, (cellRects[cell][2]-bottomMargin-pad)+((cellRects[cell][4]-cellRects[cell][2])*0.5), cellWidth*0.025 ,0,0,2,2, {1,1,1,(disableInput and 0.035*colorMult or 0.075*colorMult)}, {1,1,1,0})
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
       end

@@ -305,7 +305,7 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], (bgBorder*vsy)*2)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'info')
     end
@@ -674,20 +674,19 @@ local function drawSelectionCell(cellID, uDefID, usedZoom)
 end
 
 local function drawInfo()
-  padding = bgpadding
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,(WG['buildpower'] and 0 or 1),1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1], backgroundRect[2]+padding, backgroundRect[3]-padding, backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 1,(WG['buildpower'] and 0 or 1),1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
   --colorize
   --glBlending(GL.DST_COLOR, GL.DST_COLOR)
-  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], padding*1.7, 1,1,1,1,{0.5,0.5,0.5,1}, {0.5,0.5,0.5,1})
+  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7, 1,1,1,1,{0.5,0.5,0.5,1}, {0.5,0.5,0.5,1})
   --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0}, {1,1,1,0.07})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), bgpadding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0}, {1,1,1,0.07})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   local fontSize = (height*vsy * 0.11) * (0.95-((1-ui_scale)*0.5))
@@ -763,13 +762,13 @@ local function drawInfo()
     local alternative = ''
     if hasAlternativeUnitpic[displayUnitDefID] then
       alternative = 'alternative/'
-      iconPadding = padding
+      iconPadding = bgpadding
     end
 
     glColor(1,1,1,1)
     if unitBuildPic[displayUnitDefID] then
       glTexture(":lr160,160:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
-      glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-padding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-padding)
+      glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-bgpadding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-bgpadding)
       glTexture(false)
     end
     iconSize = iconSize + iconPadding
@@ -825,8 +824,8 @@ local function drawInfo()
     -- custom unit info background
     local width = contentWidth * 0.8
     local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
-    customInfoArea = {math_floor(backgroundRect[3]-width-padding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-padding), math_floor(backgroundRect[2]+height)}
-    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
+    customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
+    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
 
     local contentPaddingLeft = contentPadding * 0.75
     local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
@@ -1025,7 +1024,7 @@ local function drawInfo()
 
         -- wordwrap text
         unitInfoText = text   -- canbe used to show full text on mouse hover
-        text, numLines = font:WrapText(text,((backgroundRect[3]-padding-padding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
+        text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
 
         -- prune number of lines
         local lines = lines(text)

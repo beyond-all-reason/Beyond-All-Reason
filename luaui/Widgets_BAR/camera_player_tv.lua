@@ -290,7 +290,7 @@ local function createList()
 			color2 = {0.6, 0.05, 0.05, 0.66}
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		RectRound(right-textWidth, bottom, right, top, bgpadding*1.7, 1,1,1,0, color1, color2)
+		RectRound(right-textWidth, bottom, right, top, bgpadding*1.6, 1,1,1,0, color1, color2)
 		toggleButton = {right-textWidth, bottom, right, top }
 
 		RectRound(right-textWidth+bgpadding, bottom, right, top-bgpadding, bgpadding, 1,1,1,0, {0.3,0.3,0.3,0.25}, {0.05,0.05,0.05,0.25})
@@ -316,7 +316,7 @@ local function createList()
 		else
 			gl.Color(0.2, 1, 0.2, 0.4)
 		end
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding*1.7, 1,1,1,0)
+		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding*1.6, 1,1,1,0)
 
 		gl.Color(0,0,0,0.14)
 		RectRound(toggleButton[1]+bgpadding, toggleButton[2], toggleButton[3], toggleButton[4]-bgpadding, bgpadding, 1,1,1,0)

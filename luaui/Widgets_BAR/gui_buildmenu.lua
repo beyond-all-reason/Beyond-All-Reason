@@ -617,7 +617,7 @@ local function checkGuishader(force)
     end
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
-        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7)
+        RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
     end
@@ -903,7 +903,7 @@ function drawBuildmenuBg()
   WG['buildmenu'].selectedID = nil
 
   -- background
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7, 0,1,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 0,1,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
   RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,1,1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
   -- gloss

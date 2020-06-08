@@ -94,7 +94,7 @@ function widget:DrawScreen()
 				gl.DeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = gl.CreateList( function()
-				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x+0.037), sY(wPos.y+dy), bgpadding*1.7, 0,1,1,0)
+				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x+0.037), sY(wPos.y+dy), bgpadding*1.6, 0,1,1,0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'replaybuttons')
 		else
@@ -300,7 +300,7 @@ end
 function drawmessage (message, x, y, s)
 	if (message.bgcolor) then
 		gl.Color (unpack(message.bgcolor))
-		uiRect(x,y+s/2, x+1, y-s/2, bgpadding*1.7, 0,1,1,0)
+		uiRect(x,y+s/2, x+1, y-s/2, bgpadding*1.6, 0,1,1,0)
 	end
 	offx=0
 	font:Begin()
@@ -452,7 +452,7 @@ function draw_buttons (b)
 		if (b[i].name == selected_missionid) then gl.Color (0,1,1,0.66) end --highlight selected mission, bit unnice this way w/e
 
 		local padding = bgpadding
-		uiRect(b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h, bgpadding*1.7, 0,1,1,0, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+		uiRect(b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h, bgpadding*1.6, 0,1,1,0, {0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
 		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 0,1,1,0, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)

@@ -51,7 +51,7 @@ local function checkGuishader(force)
     if not dlistGuishader then
       dlistGuishader = gl.CreateList( function()
         local padding = math.floor(bgBorder*vsy)
-        RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], bgpadding*1.7)
+        RectRound(backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4], bgpadding*1.6)
       end)
       WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
     end
@@ -272,7 +272,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 end
 
 function drawMinimap()
-  RectRound(backgroundRect[1],backgroundRect[2]-bgpadding,backgroundRect[3]+bgpadding,backgroundRect[4], bgpadding*1.7, 0,0,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1],backgroundRect[2]-bgpadding,backgroundRect[3]+bgpadding,backgroundRect[4], bgpadding*1.6, 0,0,1,0,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
 end
 
 function widget:RecvLuaMsg(msg, playerID)
