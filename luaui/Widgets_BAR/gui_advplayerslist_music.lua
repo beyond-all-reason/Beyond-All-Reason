@@ -124,7 +124,7 @@ local guishaderEnabled = (WG['guishader'])
 
 local drawlist = {}
 local advplayerlistPos = {}
-local widgetHeight = 21
+local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = 5
 
@@ -216,7 +216,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
+
 	updatePosition()
 
 	WG['music'] = {}
@@ -363,23 +363,23 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
 end
 
 local function createList()
-	
+
 	local padding = 2.75*widgetScale -- button background margin
 	local padding2 = 2.5*widgetScale -- inner icon padding
 	local volumeWidth = 50*widgetScale
 	local heightoffset = -(0.9*widgetScale)
 	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
-	
+
 	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding+heightoffset}
-	
+
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
 	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/50)
-	
+
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding+heightoffset, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
 	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (volume/200)
-	
+
 	local textsize = 11*widgetScale
 	local textYPadding = 8*widgetScale
 	local textXPadding = 7*widgetScale
@@ -401,7 +401,7 @@ local function createList()
 	drawlist[1] = glCreateList( function()
 		--glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, bgpadding*1.6, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
-		
+
 		borderPadding = bgpadding
 		borderPaddingRight = borderPadding
 		if right >= vsx-0.2 then
@@ -421,7 +421,7 @@ local function createList()
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 	drawlist[2] = glCreateList( function()
-	
+
 		local button = 'playpause'
 		--glColor(1,1,1,0.7)
 		--glTexture(buttonTex)
@@ -433,7 +433,7 @@ local function createList()
 			glTexture(playTex)
 		end
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		
+
 		button = 'next'
 		--glColor(1,1,1,0.7)
 		--glTexture(buttonTex)
@@ -441,10 +441,10 @@ local function createList()
 		glColor(0.88,0.88,0.88,0.9)
 		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		
+
 	end)
 	drawlist[3] = glCreateList( function()
-		
+
 		-- track name
 		glColor(0.45,0.45,0.45,1)
 		trackname = string.gsub(curTrack, ".ogg", "")
@@ -466,20 +466,20 @@ local function createList()
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
-		
+
 		---glColor(0,0,0,0.5)
 		--RectRound(left, bottom, right, top, 5.5*widgetScale)
 
 		local sliderWidth = 4*widgetScale
 		local sliderHeight = 4*widgetScale
 		local lineHeight = 1.44*widgetScale
-		
+
 		button = 'musicvolumeicon'
 		local sliderY = buttons[button][2] + (buttons[button][4] - buttons[button][2])/2
 		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		
+
 		button = 'musicvolume'
 		RectRound(buttons[button][1], sliderY-lineHeight*1.3, buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
 		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/5)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
@@ -489,11 +489,11 @@ local function createList()
 		glColor(0.8,0.8,0.8,0.9)
 		glTexture(volumeTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		
+
 		button = 'volume'
 		RectRound(buttons[button][1], sliderY-lineHeight*1.3, buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
 		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/5)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
-		
+
 	end)
 	if WG['tooltip'] ~= nil and trackname then
 		if trackname and trackname ~= '' then
@@ -591,7 +591,7 @@ function widget:Shutdown()
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].RemoveTooltip('music')
 	end
-	
+
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
@@ -619,10 +619,10 @@ end
 function widget:GameFrame(n)
     if n%5 == 4 then
 		updateMusicVolume()
-		
+
 		dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
 		interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
-		
+
 		--Assume that if it isn't set, dynamic music is true
 		if dynamicMusic == nil then
 			dynamicMusic = 1
@@ -632,7 +632,7 @@ function widget:GameFrame(n)
 		if interruptMusic == nil then
 			interruptMusic = 1
 		end
-		
+
 		if dynamicMusic == 1 then
 			--Spring.Echo("[Music Player] Unit Death Count is currently: ".. warMeter)
 			if warMeter <= 1 then
@@ -649,11 +649,15 @@ function widget:GameFrame(n)
 					if tracks == peaceTracks and warMeter >= 200 then
 						fadeOut = true
 						targetTime = playedTime + fadeOutTime
-						if targetTime > totalTime then targetTime = totalTime end
+						if targetTime > totalTime then
+							targetTime = totalTime
+						end
 					elseif tracks == warTracks and warMeter <= 0 then
 						fadeOut = true
 						targetTime = playedTime + fadeOutTime
-						if targetTime > totalTime then targetTime = totalTime end
+						if targetTime > totalTime then
+							targetTime = totalTime
+						end
 					end
 				end
 			end
@@ -677,7 +681,7 @@ function PlayNewTrack(track)
 	prevStreamStartTime = os.clock()
 
 	Spring.StopSoundStream()
-	
+
 	if dynamicMusic == 0 then
 		--Spring.Echo("Choosing a random track")
 		r = math.random(0,1)
@@ -687,7 +691,7 @@ function PlayNewTrack(track)
 			tracks = warTracks
 		end
 	end
-	
+
 	if dynamicMusic == 1 then
 		--Spring.Echo("Unit Death Count is (Gameframe): " .. warMeter)
 		if warMeter <= 3 then
@@ -731,10 +735,11 @@ function PlayNewTrack(track)
 	Spring.PlaySoundStream(newTrack)
     Spring.SetSoundStreamVolume(0)
 	playedTime, totalTime = Spring.GetSoundStreamTime()
+	if playedTime == 0 then playedTime = 0.001 end
 	targetTime = totalTime
 	if not playing then
 		Spring.PauseSoundStream()
-	end	
+	end
 	createList()
 end
 
@@ -782,7 +787,7 @@ function widget:Update(dt)
 		firstTime = true -- pop this cherry
 	end
 
-	if playedTime >= targetTime then	-- both zero means track stopped in 8
+	if playedTime >= targetTime or playedTime == 0 then	-- both zero means track stopped in 8
 		PlayNewTrack()
 	end
 

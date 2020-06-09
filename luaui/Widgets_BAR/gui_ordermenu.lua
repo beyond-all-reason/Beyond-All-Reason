@@ -602,7 +602,7 @@ function drawCell(cell, zoom)
       color1 = {0,0,0,0.8}
       color2 = {0,0,0,0.6}
     end
-    local padding = math_max(1, math_floor((bgpadding*0.39)+0.5))
+    local padding = math_max(1, math_floor(bgpadding*0.52))
     RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][2]+bottomMargin+padding, cellRects[cell][3]-rightMargin-padding, cellRects[cell][4]-topMargin-padding, cellWidth*0.017 ,2,2,2,2, color1,color2)
 
     -- gloss
@@ -708,7 +708,7 @@ function drawCell(cell, zoom)
       end
       local stateWidth = cellInnerWidth / statecount
       local stateHeight = math_floor(cellInnerHeight * 0.14)
-      local stateMargin = math_floor((stateWidth*0.1)+0.5)
+      local stateMargin = math_floor((stateWidth*0.075)+0.5)
       local glowSize = math_floor(stateHeight * 8)
       local r,g,b,a = 0,0,0,0
       for i=1, statecount do

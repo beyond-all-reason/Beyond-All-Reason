@@ -69,7 +69,7 @@ local yStep = fontSize + fontSpace
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 32
+local fontfileSize = 36
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -520,7 +520,7 @@ function widget:DrawScreen()
         #fullWidgetsList - curMaxEntries)) + 1
     end
     local sizex = maxx - minx
-    sbposx = minx + sizex + 1.0 + scrollbarOffset
+    sbposx = minx + sizex + 1.0 + (scrollbarOffset*widgetScale)
     sbposy = sby1 - sbsize - sbheight * (startEntry - 1) / #fullWidgetsList
     sbsizex = (yStep * sizeMultiplier)
     sbsizey = sbsize
@@ -578,7 +578,9 @@ function widget:DrawScreen()
       yn = yn + 0.5
       yp = yp - 0.5
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      RectRound(xn, yn, xp, yp, 2.5*sizeMultiplier, 1,1,1,1, {0.44,0.44,0.44, 0.12}, {1,1,1, 0.12})
+		RectRound(xn, yn, xp, yp, 2.5*sizeMultiplier, 1,1,1,1, {0.15,0.15,0.15, 0.08}, {1,1,1, 0.08})
+		RectRound(xn, yp-((yp-yn)*0.45), xp, yp, 2.5*sizeMultiplier, 1,1,0,0, {1,1,1,0.01}, {1,1,1,0.08})
+		RectRound(xn, yn, xp, yn+((yp-yn)*0.4), 2.5*sizeMultiplier, 0,0,1,1, {1,1,1,0.05}, {1,1,1,0})
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
     end
   end

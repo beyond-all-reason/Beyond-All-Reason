@@ -54,7 +54,7 @@ local GL_ONE = GL.ONE
 
 local drawlist = {}
 local advplayerlistPos = {}
-local widgetHeight = 21
+local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
 
