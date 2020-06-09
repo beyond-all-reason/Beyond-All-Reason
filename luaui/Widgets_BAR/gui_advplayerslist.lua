@@ -240,6 +240,9 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
+local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+local bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+
 local playSounds = true
 local buttonclick = LUAUI_DIRNAME..'Sounds/buildbar_waypoint.wav'
 local sliderdrag = LUAUI_DIRNAME..'Sounds/buildbar_rem.wav'
@@ -4154,13 +4157,13 @@ function updateWidgetScale()
 	if customScale < 0.65 then
 		customScale = 0.65
 	end
-	widgetScale = (vsy / 1100) * (1+((vsx/vsy)*0.11)) * customScale
+	widgetScale = (vsy / 960) * (1+((vsx/vsy)*0.065)) * customScale
 	widgetScale = widgetScale * (1+(ui_scale-1)/1.25)
 
-	widgetPosX	= vsx - (widgetWidth*widgetScale)
-	widgetRight	= vsx
-	widgetPosY = 0
-	widgetTop   = widgetPosY + widgetHeight
+	widgetPosX	= vsx - (widgetWidth*widgetScale) - bgpadding
+	widgetRight	= vsx - bgpadding
+	widgetPosY = bgpadding
+	widgetTop   = widgetPosY + widgetHeight + bgpadding
 end
 
 function customScaleUp()
