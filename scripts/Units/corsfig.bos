@@ -99,28 +99,32 @@ RequestState(requestedstate, currentstate)
 	return (0);
 }
 
-MoveRate2()
+static-var maxSpeed, currentSpeed;
+BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 {
-	if( Rand( 1, 10 ) == 1 )
-	{
-		if( !Static_Var_1 )
+	currentSpeed = (get CURRENT_SPEED);
+	maxSpeed = (get MAX_SPEED);
+	
+	while (TRUE){
+		sleep 2000;
+		currentSpeed = (get CURRENT_SPEED);
+		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
+		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
 		{
-			Static_Var_1 = 1;
-			turn base to z-axis <-120.027473> speed <120.000000>;
+			turn base to z-axis <240.054945> speed <120.027473>;
 			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.000000>;
+			turn base to z-axis <120.027473> speed <180.043956>;
 			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.000000>;
-			Static_Var_1 = 0;
+			turn base to z-axis <0.000000> speed <120.027473>;
 		}
 	}
-	return (0);
 }
 
 Create()
 {
 	call-script InitState();
 	start-script SmokeUnit();
+	start-script BarrelRoll();
 	return (0);
 }
 
