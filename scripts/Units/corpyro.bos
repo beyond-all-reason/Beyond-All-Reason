@@ -5,11 +5,12 @@
 
 piece  torso, ruparm, luparm, flare, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, lknee, rknee, lloarm, head, backpack, aimy1, aimx1;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, wpn1_lasthead, currentSpeed, animSpeed, movespeed;
+static-var  bMoving, bAiming, restore_delay, wpn1_lasthead, currentSpeed, animSpeed, movespeed;
 
 static-var  maxSpeed, animFramesPerKeyframe;
 // Signal definitions
 #define SIG_AIM				4
+#define SIG_WALK			2
 
 lua_FlameShot(weapon) //Distortion and lups flame effect
 {
@@ -17,6 +18,7 @@ lua_FlameShot(weapon) //Distortion and lups flame effect
 }
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corpyro_anim_walk.blend 
+	set-signal-mask SIG_WALK;
 	if (bMoving) {
 			turn head to y-axis <-1.600000> speed <47.999996> / animSpeed; 
 			turn lfoot to x-axis <-49.526583> speed <1485.797483> / animSpeed; 
@@ -457,51 +459,6 @@ UnitSpeed(){
 }
 
 
-MotionControl(moving, aiming, justmoved)
-{
-	justmoved = TRUE;
-	while( TRUE )
-	{
-		moving = bMoving;
-		aiming = bAiming;
-		if( moving )
-		{
-			if( aiming )
-			{
-				Static_Var_3 = 1;
-			}
-			else
-			{
-				Static_Var_3 = 0;
-			}
-			
-			call-script walk();
-			justmoved = TRUE;
-		}
-		else
-		{
-			Static_Var_3 = 1;
-			if( justmoved )
-			{
-				move pelvis to y-axis [0.000000] speed [1.000000];
-				turn rthigh to x-axis <0.000000> speed <200.000000>;
-				turn rleg to x-axis <0.000000> speed <200.000000>;
-				turn rfoot to x-axis <0.000000> speed <200.000000>;
-				turn lthigh to x-axis <0.000000> speed <200.000000>;
-				turn lleg to x-axis <0.000000> speed <200.000000>;
-				turn lfoot to x-axis <0.000000> speed <200.000000>;
-				if( !aiming )
-				{
-					turn torso to y-axis <0.000000> speed <90.000000>;
-					turn ruparm to x-axis <0.000000> speed <200.000000>;
-					turn luparm to x-axis <0.000000> speed <200.000000>;
-				}
-				justmoved = FALSE;
-			}
-			sleep 100;
-		}
-	}
-}
 
 
 
@@ -511,7 +468,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script MotionControl();
 	start-script UnitSpeed();
 	while( TRUE )
 	{
@@ -561,7 +517,6 @@ Create()
 	hide flare;
 	bMoving = FALSE;
 	bAiming = FALSE;
-	Static_Var_3 = 1;
 	currentSpeed = 200;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 3;
@@ -578,11 +533,14 @@ SetMaxReloadTime(Func_Var_1)
 StartMoving()
 {
 	bMoving = TRUE;
+	signal SIG_WALK;
+	start-script Walk();
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
+	signal SIG_WALK;
 	start-script StopWalking();
 }
 
@@ -601,7 +559,6 @@ ExecuteRestoreAfterDelay()
 	turn aimx1 to x-axis <0.000000> speed <45.000000>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 }
 SetStunned(State)
@@ -634,17 +591,7 @@ AimPrimary(heading, pitch)
 	bAiming = TRUE;
 	turn aimy1 to y-axis heading speed <275.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <110.000000>;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
-	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
-	}
-	wpn1_lasthead = heading;
+	//wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
