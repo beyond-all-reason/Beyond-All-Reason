@@ -4,12 +4,15 @@
 #include "exptype.h"
 
 #define SIG_BUILD		4	
+#define SIG_WALK		2
+
 
 piece  flare1, flare2, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm, rarm, larm, torso,aimy1, aimx1;
 
 static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cornecro_anim_walk.blend 
+	set-signal-mask SIG_WALK;
 	if (bMoving) {
 			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
 			turn larm to x-axis <-0.560101> speed <16.803019> / animSpeed; 
@@ -226,12 +229,14 @@ StopBuilding()
 StartMoving()
 {
 	bMoving = TRUE;
-	call-script walk();
+	signal SIG_WALK;
+	start-script walk();
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
+	signal SIG_WALK;
 	call-script StopWalking();
 }
 
