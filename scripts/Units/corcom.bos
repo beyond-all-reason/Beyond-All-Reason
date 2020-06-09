@@ -341,6 +341,7 @@ StopWalking() {
 	turn ruparm to y-axis <0> speed <22.388888>;
 	turn torso to y-axis <0> speed <84.999997>;
 }
+
 UnitSpeed(){
  maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
  animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
@@ -368,63 +369,6 @@ bigfire()
 }
 
 
-MotionControl(moving, aiming)
-{
-	while( TRUE )
-	{
-		moving = bMoving;
-		aiming = bAiming;
-		if( moving )
-		{
-			gun_3 = torso;
-			if( aiming )
-			{
-				Busy = 1;
-				//call-script walklegs();
-			}
-			else
-			{
-				Busy = 0;
-			}
-			
-			call-script walk();
-			justmoved = TRUE;
-		}
-		else
-		{
-			Busy = 1;
-			if( justmoved ) 
-			{
-			 	call-script StopWalking();
-				justmoved=FALSE;
-			}
-			else
-			{
-				sleep 30;
-			}
-		}
-	}
-	return (0);
-}
-
-TeleportControl()
-{
-	move teleport to y-axis [700.000000] now;
-	turn teleport to x-axis <90.000000> now;
-	sleep 100;
-	emit-sfx 1025 from teleport;
-	sleep 2200;
-	emit-sfx 1026 from pelvis;
-	sleep 100;
-	while (counter < 23) 
-	{
-		emit-sfx 2051 from teleport;
-	    sleep 65;
-	    ++counter;
-	}
-	sleep 1000;
-	move teleport to y-axis [0.000000] now;
-}
 
 Create()
 {
@@ -443,7 +387,6 @@ Create()
 	maxSpeed = get MAX_SPEED;
 	animSpeed = 6;
 	currentSpeed = 100;
-	start-script MotionControl();
 	start-script UnitSpeed();
 	//call-script TeleportControl();
 	return (0);
@@ -453,12 +396,15 @@ StartMoving()
 {
 	bMoving = TRUE;
 	gun_3 = torso;
+	
+	start-script walk();
 	return (0);
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
+	call-script StopWalking();
 	return (0);
 }
 
@@ -640,7 +586,7 @@ StartBuilding(heading, pitch)
 {
 	gun_3 = torso;
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	//set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	bIsBuilding = 1;
 	//while( !Busy ) //aiming shouldnt block construction

@@ -520,7 +520,7 @@ SprayNano(heading, pitch){
 StartBuilding(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	//set-signal-mask SIG_AIM;
 	isBuilding		= 1;
 	//turn torso to  x-axis <0> speed <395.0000> ; //-- Turn(torso, x-axis, 0, math.rad(395))
 	//turn pelvis to  x-axis <0> speed <395.0000> ; //-- Turn(pelvis, x-axis, 0, math.rad(395))
