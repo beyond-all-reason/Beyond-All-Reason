@@ -15,7 +15,7 @@ end
 -------------------------------------------------------------------------------
 
 local cfgCellPadding = 0.007
-local cfgIconPadding = 0.022 -- space between icons
+local cfgIconPadding = 0.019 -- space between icons
 local cfgIconCornerSize = 0.025
 local cfgRadaiconSize = 0.29
 local cfgRadariconOffset = 0.027
@@ -433,50 +433,50 @@ end
 -- cs (corner size) is not implemented yet
 local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
 
-  local xcen = (left+right)/2
-  local ycen = (top+bottom)/2
+  local xcen = (left+right) / 2
+  local ycen = (top+bottom) / 2
 
-  local alpha = 360*(progress)
+  local alpha = 360 * (progress)
   local alpha_rad = math_rad(alpha)
   local beta_rad  = math_pi/2 - alpha_rad
   local list = {}
   local listCount = 1
-  list[listCount] = {v = { xcen,  ycen }}
+  list[listCount] = {v = {xcen, ycen}}
   listCount = listCount + 1
-  list[#list+1] = {v = { xcen,  top }}
+  list[#list+1] = {v = {xcen, top}}
 
   local x,y
-  x = (top-ycen)*math_tan(alpha_rad) + xcen
-  if (alpha<90)and(x<right) then
+  x = (top-ycen) * math_tan(alpha_rad) + xcen
+  if alpha < 90 and x < right then   -- < 25%
     listCount = listCount + 1
-    list[listCount] = {v = { x,  top }}
+    list[listCount] = {v = {x,  top}}
   else
     listCount = listCount + 1
-    list[listCount] = {v = { right,  top }}
-    y = (right-xcen)*math_tan(beta_rad) + ycen
-    if (alpha<180)and(y>bottom) then
+    list[listCount] = {v = {right, top}}
+    y = (right-xcen) * math_tan(beta_rad) + ycen
+    if alpha < 180 and y > bottom then   -- < 50%
       listCount = listCount + 1
-      list[listCount] = {v = { right,  y }}
+      list[listCount] = {v = {right, y}}
     else
       listCount = listCount + 1
-      list[listCount] = {v = { right,  bottom }}
-      x = (top-ycen)*math_tan(-alpha_rad) + xcen
-      if (alpha<270)and(x>left) then
+      list[listCount] = {v = {right, bottom}}
+      x = (top-ycen) * math_tan(-alpha_rad) + xcen
+      if alpha < 270 and x > left then   -- < 75%
         listCount = listCount + 1
-        list[listCount] = {v = { x,  bottom }}
+        list[listCount] = {v = {x, bottom}}
       else
         listCount = listCount + 1
-        list[listCount] = {v = { left,  bottom }}
-        y = (right-xcen)*math_tan(-beta_rad) + ycen
-        if (alpha<350)and(y<top) then
+        list[listCount] = {v = {left, bottom}}
+        y = (right-xcen) * math_tan(-beta_rad) + ycen
+        if alpha < 350 and y < top then   -- < 97%
           listCount = listCount + 1
-          list[listCount] = {v = { left,  y }}
+          list[listCount] = {v = {left, y}}
         else
           listCount = listCount + 1
-          list[listCount] = {v = { left,  top }}
-          x = (top-ycen)*math_tan(alpha_rad) + xcen
+          list[listCount] = {v = {left, top}}
+          x = (top-ycen) * math_tan(alpha_rad) + xcen
           listCount = listCount + 1
-          list[listCount] = {v = { x,  top }}
+          list[listCount] = {v = {x, top}}
         end
       end
     end

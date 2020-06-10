@@ -51,7 +51,7 @@ end
 
 local customScale			= 1
 local customScaleStep		= 0.03
-local pointDuration    		= 40
+local pointDuration    		= 45
 local cpuText				= false
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
@@ -4157,7 +4157,7 @@ function updateWidgetScale()
 	if customScale < 0.65 then
 		customScale = 0.65
 	end
-	widgetScale = (vsy / 960) * (1+((vsx/vsy)*0.065)) * customScale
+	widgetScale = (vsy / 980) * (1+((vsx/vsy)*0.065)) * customScale
 	widgetScale = widgetScale * (1+(ui_scale-1)/1.25)
 
 	widgetPosX	= vsx - (widgetWidth*widgetScale) - bgpadding
