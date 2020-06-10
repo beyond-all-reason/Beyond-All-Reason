@@ -115,6 +115,9 @@ end
 function gadget:UnitCreated(unitID,unitDefID)
 	if convertedUnits[unitDefID] and unitWeapons[unitDefID] then
 		for id, _ in pairs(unitWeapons[unitDefID]) do
+      -- NOTE: this will prevent unit from firing if it does not IMMEDIATELY return from AimWeapon (no sleeps, not wait for turns!)
+      -- So you have to manually check in script if it is at the desired heading
+      -- https://springrts.com/phpbb/viewtopic.php?t=36654
 			Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
 		end
 	end

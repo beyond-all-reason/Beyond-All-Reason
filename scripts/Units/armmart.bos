@@ -5,7 +5,7 @@
 
 piece  base, flare, turret, sleeve, barrel;
 
-static-var  restore_delay;
+static-var  restore_delay, wpnheading, bAiming;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -65,6 +65,8 @@ Create()
 {
 	hide flare;
 	restore_delay = 3000;
+	wpnheading = 0;
+	bAiming = 0;
 	start-script SmokeUnit();
 	return (0);
 }
@@ -83,6 +85,8 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.000000> speed <50.005495>;
 	turn sleeve to x-axis <0.000000> speed <50.005495>;
+	wpnheading = 0;
+	bAiming = 0;
 }
 SetStunned(State)
 {
@@ -93,18 +97,26 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
 {
+	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	
+	if (bAiming == 1) return;
 	turn turret to y-axis heading speed <35.005495>;
 	turn sleeve to x-axis <0.000000> - pitch speed <35.005495>;
-	//wait-for-turn turret around y-axis;
-	//wait-for-turn sleeve around x-axis;
+	if ((get ABS(wpnheading - heading)) > 500){ //	needed for luarules\gadgets\unit_continuous_aim.lua
+		bAiming = 1;
+		wait-for-turn turret around y-axis;
+		wait-for-turn sleeve around x-axis;
+		bAiming = 0;
+	}
+	wpnheading = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -120,19 +132,19 @@ FirePrimary()
 AimFromPrimary(piecenum)
 {
 	piecenum = turret;
-	return (0);
+	//return (0);
 }
 
 QueryPrimary(piecenum)
 {
 	piecenum = flare;
-	return (0);
+	//return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
-	return (0);
+	//return (0);
 }
 
 Killed(severity, corpsetype)

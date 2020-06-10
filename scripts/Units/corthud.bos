@@ -6,7 +6,7 @@
 piece  torso, gun, rfirept, lfirept, rgun, lgun, pelvis, rleg,
        rfoot, lleg, lfoot, lthigh, rthigh, aimx1, aimy1,ltoe,rtoe;
 
-static-var  bMoving, bAiming, gun_1, restore, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  bMoving, bAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe;
 // Signal definitions
 #define SIG_AIM				4
 #define SIG_WALK			2
@@ -401,7 +401,8 @@ Create()
 	hide rfirept;
 	hide lfirept;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	bAiming = 0;
+	wpnheading = 0;
 	animSpeed = 4;
 	gun_1 = torso;
 	start-script SmokeUnit();
@@ -450,8 +451,10 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn aimx1 to y-axis <0.000000> speed <90>;
+    turn aimy1 to y-axis <0.000000> speed <90>;
     turn aimx1 to x-axis <0.000000> speed <45>;
+    wpnheading = 0;
+    bAiming = 0;
 
 }
 SetStunned(State)
@@ -463,39 +466,39 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	return 0;
-	
+
 	set-signal-mask SIG_AIM;
-	while (restore == FALSE)
-	{
-	    sleep 50;
-	}
-	sleep 50;
-	if (restore == TRUE)
-	{
-        sleep 2750;
-	    start-script ExecuteRestoreAfterDelay();
-	}
+    sleep 2750;
+	start-script ExecuteRestoreAfterDelay();
 }
+
 
 AimPrimary(heading, pitch)
 {
+	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
-	//set-signal-mask SIG_AIM;
-	bAiming = TRUE;
-	turn aimx1 to y-axis <0> + heading speed <220>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <60>;
-	//wait-for-turn aimx1 around x-axis;
-	//wait-for-turn aimx1 around y-axis;
 	
+	if (bAiming == 1) return;
+	turn aimy1 to y-axis heading speed <220.005495>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <50.005495>;
+	
+	//needed for luarules\gadgets\unit_continuous_aim.lua
+	if ((get ABS(wpnheading - heading)) > 500){
+		bAiming = 1;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
+		bAiming = 0;
+	}
+	wpnheading = heading;
 	start-script RestoreAfterDelay();
-	//get PRINT(heading,pitch);
 	return (1);
 }
 
+
+
 FirePrimary()
 {
-	/*return (1);
+
 	if( gun_1 == 0 )
 	{
 		move rgun to z-axis [-2.000000] speed [60.000000];
@@ -515,7 +518,7 @@ FirePrimary()
 		move lgun to z-axis [0.000000] speed [4.000000];
 		wait-for-move lgun along z-axis;
 		return (0);
-	}*/
+	}
 }
 
 Killed(severity, corpsetype)
