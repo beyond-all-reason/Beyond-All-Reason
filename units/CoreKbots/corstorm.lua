@@ -129,6 +129,7 @@ return {
 				firestarter = 70,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
+				intensity = 1.0,
 				metalpershot = 0,
 				model = "cormissile2.s3o",
 				name = "Rockets",
