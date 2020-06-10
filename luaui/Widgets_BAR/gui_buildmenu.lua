@@ -284,12 +284,19 @@ local function cacheUnitIcons()
   end
   if minC > maxC then maxC = minC end -- just to be sure
 
+  local activeArea = {backgroundRect[1]+activeAreaMargin, backgroundRect[2]+bgpadding+activeAreaMargin, backgroundRect[3]-bgpadding-activeAreaMargin, backgroundRect[4]-bgpadding-activeAreaMargin}
+  local contentWidth = activeArea[3]-activeArea[1]
   local colls = minC
   while colls <= maxC do
-    local textureDetail = math_max(80, math_ceil(180*(1-((colls/4.5)*0.15))) )  -- must be same formula as used in drawBuildmenu()
-    local radariconTextureDetail = math_max(30, math_ceil(68*(1-((colls/4.5)*0.15))) )  -- must be same formula as used in drawBuildmenu()
+    -- these are globals so it can be re-used (hover highlight)
+    local cellSize = math_floor((contentWidth/colls)+0.33)
+    local cellPadding = math_floor(cellSize * cfgCellPadding)
+    local cellInnerSize = cellSize-cellPadding-cellPadding
+    local textureDetail = math_floor(cellInnerSize*(1+defaultCellZoom))
+    local radariconTextureDetail = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
     gl.Color(1,1,1,0.001)
     for id, unit in pairs(UnitDefs) do
+      -- only caching for defaultCellZoom
       if alternativeUnitpics and hasAlternativeUnitpic[id] then
         gl.Texture(':lr'..textureDetail..','..textureDetail..':unitpics/alternative/'..unitBuildPic[id])
       else
@@ -922,7 +929,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
 
   -- unit icon
   glColor(1,1,1,1)
-  glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+  glTexture(':lr'..math_floor(cellInnerSize*(1+usedZoom))..','..math_floor(cellInnerSize*(1+usedZoom))..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
   --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
   TexRectRound(
     cellRects[cellRectID][1]+cellPadding+iconPadding,
@@ -937,7 +944,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
   if cellColor then
     glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
     glColor(cellColor[1],cellColor[2],cellColor[3],cellColor[4])
-    glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+    glTexture(':lr'..math_floor(cellInnerSize*(1+usedZoom))..','..math_floor(cellInnerSize*(1+usedZoom))..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
     TexRectRound(
             cellRects[cellRectID][1]+cellPadding+iconPadding,
             cellRects[cellRectID][2]+cellPadding+iconPadding,
@@ -996,7 +1003,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
   -- radar icon
   if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
     glColor(1,1,1,0.9)
-    glTexture(':lr'..radariconTextureDetail..','..radariconTextureDetail..':'..iconTypesMap[unitIconType[uDefID]])
+    glTexture(':lr'..radariconSize..','..radariconSize..':'..iconTypesMap[unitIconType[uDefID]])
     glTexRect(cellRects[cellRectID][3]-radariconOffset-radariconSize, cellRects[cellRectID][2]+radariconOffset, cellRects[cellRectID][3]-radariconOffset, cellRects[cellRectID][2]+radariconOffset+radariconSize)
     glTexture(false)
   end
@@ -1096,9 +1103,6 @@ function drawBuildmenu()
   radariconSize = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
   radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding+iconPadding)+0.5)
   priceFontSize = math_floor((cellInnerSize*cfgPriceFontSize)+0.5)
-
-  textureDetail = math_max(80, math_ceil(180*(1-((colls/4.5)*0.15))) )  -- NOTE: if changed: update formula used in cacheUnitIcons()
-  radariconTextureDetail = math_max(30, math_ceil(68*(1-((colls/4.5)*0.15))) )  -- NOTE: if changed: update formula as used in cacheUnitIcons()
 
   cellRects = {}
   local numCellsPerPage = rows*colls
