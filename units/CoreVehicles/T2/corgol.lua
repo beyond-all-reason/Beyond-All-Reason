@@ -106,7 +106,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
-				[2] = "custom:DUST_CLOUD",
+				[2] = "custom:dust_cloud_dirt",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
