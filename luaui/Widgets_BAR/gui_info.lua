@@ -1253,7 +1253,7 @@ function widget:DrawScreen()
   if chobbyInterface then return end
   if ViewResizeUpdate then
     ViewResizeUpdate = nil
-    refreshUnitIconCache()()
+    refreshUnitIconCache()
   end
   local x,y,b,b2,b3 = spGetMouseState()
 
