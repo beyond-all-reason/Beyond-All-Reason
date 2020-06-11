@@ -262,6 +262,7 @@ end
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
+  local radarIconSize = math_floor((height*vsy*0.17)+0.5)   -- when changine this also update radarIconSize formula at other place in code
   for id, unit in pairs(UnitDefs) do
     if hasAlternativeUnitpic[id] then
       gl.Texture(':lr160,160:unitpics/alternative/'..unitBuildPic[id])
@@ -282,7 +283,7 @@ local function cacheUnitIcons()
     end
     if iconTypesMap[unitIconType[id]] then
       gl.TexRect(-1,-1,0,0)
-      gl.Texture(':lr64,64:'..iconTypesMap[unitIconType[id]])
+      gl.Texture(':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[id]])
       gl.TexRect(-1,-1,0,0)
     end
     gl.Texture(false)
@@ -320,6 +321,8 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:ViewResize()
+  ViewResizeUpdate = true
+
   vsx,vsy = Spring.GetViewGeometry()
 
   width = 0.2125
@@ -736,9 +739,11 @@ local function drawInfo()
     -- draw grid (bottom right to top left)
     cellRect = {}
     texOffset = (0.03*rows) * zoomMult
-    texSetting = cellsize > 38 and ':lr160,160:' or ':lr80,80:'
     cornerSize = math.max(1, cellPadding*0.9)
     if texOffset > 0.25 then texOffset = 0.25 end
+    --texDetail = math_floor((cellsize-cellPadding)*(1+texOffset))
+    --texSetting = ':lr'..texDetail..','..texDetail..':'
+    texSetting = cellsize > 38 and ':lr160,160:' or ':lr80,80:'
     local cellID = selUnitTypes
     for row=1, rows do
       for coll=1, colls do
@@ -773,12 +778,12 @@ local function drawInfo()
     end
     iconSize = iconSize + iconPadding
 
-    local radarIconSize = math_floor((iconSize * 0.3)+0.5)
+    local radarIconSize = math_floor((height*vsy*0.17)+0.5)
     local radarIconMargin = math_floor((radarIconSize * 0.3)+0.5)
     local showingRadarIcon = false
     if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
       glColor(1,1,1,0.88)
-      glTexture(':lr80,80:'..iconTypesMap[unitIconType[displayUnitDefID]])
+      glTexture(':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[displayUnitDefID]])
       glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
       glTexture(false)
       glColor(1,1,1,1)
@@ -1246,7 +1251,10 @@ end
 
 function widget:DrawScreen()
   if chobbyInterface then return end
-
+  if ViewResizeUpdate then
+    ViewResizeUpdate = nil
+    refreshUnitIconCache()()
+  end
   local x,y,b,b2,b3 = spGetMouseState()
 
   if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) then

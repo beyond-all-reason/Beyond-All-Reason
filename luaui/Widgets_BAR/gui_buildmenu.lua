@@ -1713,6 +1713,7 @@ end
 
 
 function widget:KeyPress(key,mods,isRepeat)
+  if Spring.IsGUIHidden() then return end
   -- add buildfacing shortcuts (facing commands are only handled by spring if we have a building selected, which isn't possible pre-game)
   if preGamestartPlayer and selBuildQueueDefID then
     if key == 91 then  -- [
@@ -1739,6 +1740,7 @@ end
 
 
 function widget:MousePress(x, y, button)
+  if Spring.IsGUIHidden() then return end
   if (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
