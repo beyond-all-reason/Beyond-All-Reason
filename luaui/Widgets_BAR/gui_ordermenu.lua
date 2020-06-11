@@ -917,6 +917,7 @@ end
 
 
 function widget:MousePress(x, y, button)
+  if Spring.IsGUIHidden() then return end
   if #cmds > 0 and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     if not disableInput then
       for cell=1, #cellRects do

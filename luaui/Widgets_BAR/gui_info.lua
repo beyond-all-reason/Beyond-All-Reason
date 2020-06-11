@@ -1160,7 +1160,7 @@ end
 
 
 function widget:MouseRelease(x, y, button)
-
+  if Spring.IsGUIHidden() then return end
   if displayMode and displayMode == 'selection' and customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
     if selectionCells and selectionCells[1] and cellRect then
       for cellID,unitDefID in pairs(selectionCells) do
@@ -1495,6 +1495,7 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:MousePress(x, y, button)
+  if Spring.IsGUIHidden() then return end
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     return true
   end
