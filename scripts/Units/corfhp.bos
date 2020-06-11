@@ -69,12 +69,37 @@ HitByWeapon(anglex, anglez)
 	turn base to x-axis <0.000000> speed <10.000000>;
 }
 
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn base to x-axis rockAng speed rockSpeed*5;
+			turn base to z-axis rockAng speed rockSpeed*5;
+			wait-for-turn base around x-axis;
+			wait-for-turn base around z-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
+
 SmokeUnit(healthpercent, sleeptime, smoketype)
 /*   10e:*/{
 /*   111:*/	while( get BUILD_PERCENT_LEFT )
 /*   113:*/	{
 /*   115:*/		sleep 400;
 /*   118:*/	}
+
+			start-script RockOnWaves();
 /*   11a:*/	while( TRUE )
 /*   11c:*/	{
 /*   11f:*/		healthpercent = get HEALTH;
@@ -173,6 +198,8 @@ RequestState(requestedstate, currentstate)
 /*   228:*/	statechg_StateChanging = FALSE;
 /*   22c:*/	return (0);
 /*   22d:*/}
+
+
 
 Create()
 /*   22d:*/{
