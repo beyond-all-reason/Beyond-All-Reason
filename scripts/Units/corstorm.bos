@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  aimy1, rfirept, lfirept, pelvis, rfoot, lfoot, launcher, lthigh,
-       rthigh, rleg, lleg, turret,rexhaust,lexhaust,lknee,rknee;
+       rthigh, rleg, lleg, turret,rexhaust,lexhaust,lknee,rknee, aimx1;
 
 static-var  gun_1, notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
 static-var  maxSpeed, animFramesPerKeyframe, bMoving;
@@ -423,7 +423,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn aimy1 to y-axis <0.000000> speed <90.021978>;
-	turn launcher to x-axis <0.000000> speed <45.010989>;
+	turn aimx1 to x-axis <0.000000> speed <45.010989>;
 	wpn1_lasthead = 1000000;
 }
 SetStunned(State)
@@ -444,12 +444,12 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	turn aimy1 to y-axis heading speed <90.021978>;
-	turn launcher to x-axis <0.000000> - pitch speed <45.010989>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <45.010989>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
-		wait-for-turn launcher around x-axis;
+		wait-for-turn aimx1 around x-axis;
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -461,10 +461,21 @@ FirePrimary()
 	if( gun_1 )
 	{
 		emit-sfx UNIT_SFX0 from rexhaust;
+		turn turret to y-axis <-8> now;
+		turn launcher to x-axis <-5> now;
+		
+		turn launcher to x-axis <0> speed <5>;
+		turn turret to y-axis <0> speed <16>;
 	}
 	else
 	{
 		emit-sfx UNIT_SFX0 from lexhaust;
+		
+		turn turret to y-axis <8> now;
+		turn launcher to x-axis <-5> now;
+		
+		turn launcher to x-axis <0> speed <5>;
+		turn turret to y-axis <0> speed <16>;
 	}
 	gun_1 = !gun_1;
 }
