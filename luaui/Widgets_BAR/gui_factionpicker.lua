@@ -27,6 +27,8 @@ local bgBorderOrg = 0.003
 local bgBorder = bgBorderOrg
 local bgMargin = 0.005
 
+local myTeamID = Spring.GetMyTeamID()
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -187,6 +189,7 @@ local sec = 0
 function widget:Update(dt)
   sec = sec + dt
   if sec > 0.5 then
+    doUpdate = true
     sec = 0
     checkGuishader()
     if WG['buildpower'] then
@@ -321,6 +324,45 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
   gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
+local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+  if not color2 then color2 = color1 end
+  --centerOffset = 0
+  local coords = {
+    {x-radius+cs, z+radius, y},   -- top left
+    {x+radius-cs, z+radius, y},   -- top right
+    {x+radius, z+radius-cs, y},   -- right top
+    {x+radius, z-radius+cs, y},   -- right bottom
+    {x+radius-cs, z-radius, y},   -- bottom right
+    {x-radius+cs, z-radius, y},   -- bottom left
+    {x-radius, z-radius+cs, y},   -- left bottom
+    {x-radius, z+radius-cs, y},   -- left top
+  }
+  local cs2 = cs * (centerOffset/radius)
+  local coords2 = {
+    {x-centerOffset+cs2, z+centerOffset, y},   -- top left
+    {x+centerOffset-cs2, z+centerOffset, y},   -- top right
+    {x+centerOffset, z+centerOffset-cs2, y},   -- right top
+    {x+centerOffset, z-centerOffset+cs2, y},   -- right bottom
+    {x+centerOffset-cs2, z-centerOffset, y},   -- bottom right
+    {x-centerOffset+cs2, z-centerOffset, y},   -- bottom left
+    {x-centerOffset, z-centerOffset+cs2, y},   -- left bottom
+    {x-centerOffset, z+centerOffset-cs2, y},   -- left top
+  }
+  for i = 1, 8 do
+    local i2 = (i>=8 and 1 or i + 1)
+    glColor(color2)
+    glVertex(coords[i][1], coords[i][2], coords[i][3])
+    glVertex(coords[i2][1], coords[i2][2], coords[i2][3])
+    glColor(color1)
+    glVertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
+    glVertex(coords2[i][1], coords2[i][2], coords2[i][3])
+  end
+end
+
+local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+  glBeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -337,9 +379,6 @@ function drawFactionpicker()
   RectRound(backgroundRect[1]+(altPosition and padding or 0),backgroundRect[2]+(altPosition and 0 or padding),backgroundRect[3]-padding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), padding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.035*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-  armcomRect = backgroundRect
-  corcomRect = backgroundRect
-
   padding = (bgBorder*vsy) * 0.35
 
   font2:Begin()
@@ -351,17 +390,17 @@ function drawFactionpicker()
   local contentHeight = backgroundRect[4]-backgroundRect[2]-contentPadding-contentPadding
   font2:Print("Pick your faction", backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
 
-  local maxCellHeight = contentHeight-(fontSize*1.1)
-  local maxCellWidth = contentWidth/#factions
+  local maxCellHeight = math.floor((contentHeight-(fontSize*1.1))+0.5)
+  local maxCellWidth = math.floor((contentWidth/#factions)+0.5)
   local cellSize = math.min(maxCellHeight, maxCellWidth)
 
-  local rectMargin = padding * 1
+  rectMargin = math.floor((padding * 1)+0.5)
   for i, faction in pairs(factions) do
     factionRect[i] = {
-      backgroundRect[3]-(altPosition and padding or 0)-(cellSize*i),
-      backgroundRect[2]+padding,
-      backgroundRect[3]-padding-(cellSize*(i-1)),
-      backgroundRect[2]+padding+cellSize
+      math.floor(backgroundRect[3]-(altPosition and padding or 0)-(cellSize*i)),
+      math.floor(backgroundRect[2]+padding),
+      math.floor(backgroundRect[3]-padding-(cellSize*(i-1))),
+      math.floor(backgroundRect[2]+padding+cellSize)
     }
     -- background
     local color1, color2
@@ -373,15 +412,31 @@ function drawFactionpicker()
       color2 = {0.4,0.4,0.4,0.9}
     end
     RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,1,1, color1, color2)
+
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+    RectRoundCircle(factionRect[i][1]+rectMargin+((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2), 0, factionRect[i][2]+rectMargin+((factionRect[i][4]-factionRect[i][2]-rectMargin-rectMargin)/2), ((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2), rectMargin, math.ceil(((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2)-rectMargin), {1,1,1,0.07}, {1,1,1,0.07})
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
     -- gloss
-    RectRound(factionRect[i][1]+rectMargin, factionRect[i][4]-((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,0,0, {1,1,1,0.045}, {1,1,1,0.35})
-    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.24), rectMargin, 0,0,1,1, {1,1,1,0.18}, {1,1,1,0})
+    RectRound(factionRect[i][1]+rectMargin, factionRect[i][4]-((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,0,0, {1,1,1,0.045}, {1,1,1,0.3})
+    RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.24), rectMargin, 0,0,1,1, {1,1,1,0.16}, {1,1,1,0})
+
 
     -- startunit icon
     glColor(1,1,1,1)
-    glTexture(factions[i][3])
+    glTexture(":lr256,256:"..factions[i][3])
     glTexRect(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin)
     glTexture(false)
+
+    -- selected
+    if Spring.GetTeamRulesParam(myTeamID, 'startUnit') == factions[i][1] then
+      glBlending(GL_SRC_ALPHA, GL_ONE)
+      RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,1,1, {1,1,1,0.08}, {1,1,1,0.08})
+      -- gloss
+      RectRound(factionRect[i][1]+rectMargin, factionRect[i][4]-((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,0,0, {1,1,1,0.04}, {1,1,1,0.3})
+      RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.24), rectMargin, 0,0,1,1, {1,1,1,0.15}, {1,1,1,0})
+      glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    end
 
     -- faction name
     font2:Print(factions[i][2], factionRect[i][1]+((factionRect[i][3]-factionRect[i][1])*0.5), factionRect[i][2]+((factionRect[i][4]-factionRect[i][2])*0.22)-(fontSize*0.5), fontSize*0.92, "co")
@@ -425,12 +480,11 @@ function widget:DrawScreen()
   gl.CallList(dlistFactionpicker)
 
   -- highlight
-  local rectMargin = 0
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     for i, faction in pairs(factions) do
       if IsOnRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
         glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, bgBorder*vsy, 1,1,1,1,{0.3,0.3,0.3,(b and 0.5 or 0.25)}, {1,1,1,(b and 0.3 or 0.15)})
+        RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,1,1,{0.3,0.3,0.3,(b and 0.5 or 0.25)}, {1,1,1,(b and 0.3 or 0.15)})
         glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         break
       end
@@ -454,6 +508,7 @@ function widget:MousePress(x, y, button)
         end
         -- tell initial spawn
         Spring.SendLuaRulesMsg('\138' .. tostring(factions[i][1]))
+        doUpdate = true
         break
       end
     end
