@@ -504,18 +504,19 @@ local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, co
     {x+radius, z-radius+cs, y},   -- right bottom
     {x+radius-cs, z-radius, y},   -- bottom right
     {x-radius+cs, z-radius, y},   -- bottom left
-    {x-radius, z-radius-cs, y},   -- left bottom
+    {x-radius, z-radius+cs, y},   -- left bottom
     {x-radius, z+radius-cs, y},   -- left top
   }
+  local cs2 = cs * (centerOffset/radius)
   local coords2 = {
-    {x-centerOffset+cs, z+centerOffset, y},   -- top left
-    {x+centerOffset-cs, z+centerOffset, y},   -- top right
-    {x+centerOffset, z+centerOffset-cs, y},   -- right top
-    {x+centerOffset, z-centerOffset+cs, y},   -- right bottom
-    {x+centerOffset-cs, z-centerOffset, y},   -- bottom right
-    {x-centerOffset+cs, z-centerOffset, y},   -- bottom left
-    {x-centerOffset, z-centerOffset-cs, y},   -- left bottom
-    {x-centerOffset, z+centerOffset-cs, y},   -- left top
+    {x-centerOffset+cs2, z+centerOffset, y},   -- top left
+    {x+centerOffset-cs2, z+centerOffset, y},   -- top right
+    {x+centerOffset, z+centerOffset-cs2, y},   -- right top
+    {x+centerOffset, z-centerOffset+cs2, y},   -- right bottom
+    {x+centerOffset-cs2, z-centerOffset, y},   -- bottom right
+    {x-centerOffset+cs2, z-centerOffset, y},   -- bottom left
+    {x-centerOffset, z-centerOffset+cs2, y},   -- left bottom
+    {x-centerOffset, z+centerOffset-cs2, y},   -- left top
   }
   for i = 1, 8 do
     local i2 = (i>=8 and 1 or i + 1)
@@ -1000,11 +1001,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
     glBlending(GL_SRC_ALPHA, GL_ONE)
     -- glossy half
     --RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 2,2,0,0,{1,1,1,0}, {1,1,1,0.15})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding-(cellInnerSize*0.66), cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 2,2,0,0,{1,1,1,0}, {1,1,1,0.13})
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     -- extra darken gradually
-    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.15}, {0,0,0,0})
+    RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.13}, {0,0,0,0})
   end
 
   -- darken price background gradually
@@ -1030,6 +1031,17 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
     )
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
+
+  -- lighten border
+  local halfSize = (((cellRects[cellRectID][3]-cellPadding-iconPadding))-(cellRects[cellRectID][1]+cellPadding+iconPadding))*0.5
+  glBlending(GL_SRC_ALPHA, GL_ONE)
+  RectRoundCircle(
+          cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
+          0,
+          cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
+          halfSize, cornerSize, halfSize-iconPadding, {1,1,1,0.07}, {1,1,1,0.07}
+  )
+  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   -- radar icon
   if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
@@ -1430,19 +1442,21 @@ function widget:DrawScreen()
             end
             cellColor = {1,0.85,alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25}
           end
-          -- re-draw cell with hover zoom
-          drawCell(cellRectID, usedZoom, cellColor, nil, {cellColor[1],cellColor[2],cellColor[3],0.045+(usedZoom*0.45)})
-
-          ---- gloss highlight
-          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.18 or 0.1})
-          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,alternativeUnitpics and 0.11 or 0.08}, {1,1,1,0})
-          --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-          -- display price
           if not showPrice then
-            RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cellSize*0.03, 0,0,0,0,{0,0,0,0.35}, {0,0,0,0})
-            font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.4), priceFontSize, "o")
+            unsetShowPrice = true
+            showPrice = true
           end
+          -- re-draw cell with hover zoom (and price shown)
+          drawCell(cellRectID, usedZoom, cellColor, nil, {cellColor[1],cellColor[2],cellColor[3],0.045+(usedZoom*0.45)})
+          if unsetShowPrice then
+            showPrice = false
+            unsetShowPrice = nil
+          end
+          -- gloss highlight
+          --glBlending(GL_SRC_ALPHA, GL_ONE)
+          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.16 or 0.09})
+          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,alternativeUnitpics and 0.11 or 0.07}, {1,1,1,0})
+          --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         end
       end
     end
