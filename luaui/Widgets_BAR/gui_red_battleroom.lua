@@ -385,6 +385,9 @@ local function clipLine(line,fontsize,maxwidth)
 end
 
 local function clipHistory(g,oneline)
+	if g.vars.consolehistory == nil then
+		g.vars.consolehistory = {}
+	end
 	local history = g.vars.consolehistory
 	local historyCount = #history
 	local maxsize = g.background.sx - (g.lines.px-g.background.px)
