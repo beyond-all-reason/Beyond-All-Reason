@@ -34,7 +34,10 @@ local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
 
-local texDetailMult = 1.2   -- dont go too high, will get pixely
+local iconBorderOpacity = 0.06  -- lighten the icon edges
+
+local texDetailMult = 1.25   -- dont go too high, will get pixely
+local radartexDetailMult = 2   -- dont go too high, will get pixely
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -295,7 +298,7 @@ local function cacheUnitIcons()
     local cellPadding = math_floor(cellSize * cfgCellPadding)
     local cellInnerSize = cellSize-cellPadding-cellPadding
     local textureDetail = math_floor(cellInnerSize*(1+defaultCellZoom)*texDetailMult)
-    local radariconTextureDetail = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
+    local radariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadaiconSize) + 0.5) * radartexDetailMult)
     gl.Color(1,1,1,0.001)
     for id, unit in pairs(UnitDefs) do
       -- only caching for defaultCellZoom
@@ -953,7 +956,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 
   -- unit icon
   glColor(1,1,1,1)
-  glTexture(':lr'..math_floor(cellInnerSize*(1+usedZoom)*texDetailMult)..','..math_floor(cellInnerSize*(1+usedZoom)*texDetailMult)..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+  local textureDetail = math_floor(cellInnerSize*(1+usedZoom)*texDetailMult)
+  glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
   --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
   TexRectRound(
     cellRects[cellRectID][1]+cellPadding+iconPadding,
@@ -968,7 +972,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
   if cellColor then
     glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
     glColor(cellColor[1],cellColor[2],cellColor[3],cellColor[4])
-    glTexture(':lr'..math_floor(cellInnerSize*(1+usedZoom))..','..math_floor(cellInnerSize*(1+usedZoom))..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+    glTexture(':lr'..textureDetail..','..textureDetail..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
     TexRectRound(
             cellRects[cellRectID][1]+cellPadding+iconPadding,
             cellRects[cellRectID][2]+cellPadding+iconPadding,
@@ -1035,20 +1039,22 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
   end
 
   -- lighten border
-  local halfSize = (((cellRects[cellRectID][3]-cellPadding-iconPadding))-(cellRects[cellRectID][1]+cellPadding+iconPadding))*0.5
-  glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRoundCircle(
-          cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
-          0,
-          cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
-          halfSize, cornerSize, halfSize-iconPadding, {1,1,1,0.07}, {1,1,1,0.07}
-  )
-  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  if iconBorderOpacity > 0 then
+    local halfSize = (((cellRects[cellRectID][3]-cellPadding-iconPadding))-(cellRects[cellRectID][1]+cellPadding+iconPadding))*0.5
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+    RectRoundCircle(
+            cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
+            0,
+            cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
+            halfSize, cornerSize, halfSize-iconPadding, {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+    )
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  end
 
   -- radar icon
   if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
     glColor(1,1,1,0.9)
-    glTexture(':lr'..radariconSize..','..radariconSize..':'..iconTypesMap[unitIconType[uDefID]])
+    glTexture(':lr'..radarIconDetail..','..radarIconDetail..':'..iconTypesMap[unitIconType[uDefID]])
     glTexRect(cellRects[cellRectID][3]-radariconOffset-radariconSize, cellRects[cellRectID][2]+radariconOffset, cellRects[cellRectID][3]-radariconOffset, cellRects[cellRectID][2]+radariconOffset+radariconSize)
     glTexture(false)
   end
@@ -1146,6 +1152,7 @@ function drawBuildmenu()
   cornerSize = math_floor(cellSize*cfgIconCornerSize)
   cellInnerSize = cellSize-cellPadding-cellPadding
   radariconSize = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
+  radarIconDetail = math_floor(radariconSize * radartexDetailMult)
   radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding+iconPadding)+0.5)
   priceFontSize = math_floor((cellInnerSize*cfgPriceFontSize)+0.5)
 

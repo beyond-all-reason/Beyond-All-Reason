@@ -314,6 +314,45 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
+local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+	if not color2 then color2 = color1 end
+	--centerOffset = 0
+	local coords = {
+		{x-radius+cs, z+radius, y},   -- top left
+		{x+radius-cs, z+radius, y},   -- top right
+		{x+radius, z+radius-cs, y},   -- right top
+		{x+radius, z-radius+cs, y},   -- right bottom
+		{x+radius-cs, z-radius, y},   -- bottom right
+		{x-radius+cs, z-radius, y},   -- bottom left
+		{x-radius, z-radius+cs, y},   -- left bottom
+		{x-radius, z+radius-cs, y},   -- left top
+	}
+	local cs2 = cs * (centerOffset/radius)
+	local coords2 = {
+		{x-centerOffset+cs2, z+centerOffset, y},   -- top left
+		{x+centerOffset-cs2, z+centerOffset, y},   -- top right
+		{x+centerOffset, z+centerOffset-cs2, y},   -- right top
+		{x+centerOffset, z-centerOffset+cs2, y},   -- right bottom
+		{x+centerOffset-cs2, z-centerOffset, y},   -- bottom right
+		{x-centerOffset+cs2, z-centerOffset, y},   -- bottom left
+		{x-centerOffset, z-centerOffset+cs2, y},   -- left bottom
+		{x-centerOffset, z+centerOffset-cs2, y},   -- left top
+	}
+	for i = 1, 8 do
+		local i2 = (i>=8 and 1 or i + 1)
+		gl.Color(color2)
+		gl.Vertex(coords[i][1], coords[i][2], coords[i][3])
+		gl.Vertex(coords[i2][1], coords[i2][2], coords[i2][3])
+		gl.Color(color1)
+		gl.Vertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
+		gl.Vertex(coords2[i][1], coords2[i][2], coords2[i][3])
+	end
+end
+
+local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+	gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
+end
+
 local function RectQuad(px,py,sx,sy,offset)
 	gl.TexCoord(offset,1-offset)
 	gl.Vertex(px, py, 0)
@@ -951,28 +990,30 @@ local function updateResbar(res)
 			if convValue == nil then
 				convValue = 1
 			end
-			conversionIndicatorArea = {barArea[1]+(convValue * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(convValue * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
+			conversionIndicatorArea = {math_floor(barArea[1]+(convValue * barWidth)-(shareSliderWidth/2)), math_floor(barArea[2]-sliderHeightAdd), math_floor(barArea[1]+(convValue * barWidth)+(shareSliderWidth/2)), math_floor(barArea[4]+sliderHeightAdd)}
 			local cornerSize
 			if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
-				cornerSize = 2.2*widgetScale
+				cornerSize = 2*widgetScale
 			else
-				cornerSize = 1.5*widgetScale
+				cornerSize = 1.33*widgetScale
 			end
 			RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],cornerSize, 1,1,1,1, {0.6, 0.6, 0.45, 1}, {0.95, 0.95, 0.7, 1})
+			RectRoundCircle(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), 0, conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2),  (conversionIndicatorArea[4]-conversionIndicatorArea[2])/2, cornerSize, math.ceil(((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)-cornerSize), {1,1,1,0.1}, {1,1,1,0.1})
 		end
 		-- Share slider
         local value = r[res][6]
         if draggingShareIndicatorValue[res] ~= nil then
             value = draggingShareIndicatorValue[res]
         end
-		shareIndicatorArea[res] = {barArea[1]+(value * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(value * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
+		shareIndicatorArea[res] = {math_floor(barArea[1]+(value * barWidth)-(shareSliderWidth/2)), math_floor(barArea[2]-sliderHeightAdd), math_floor(barArea[1]+(value * barWidth)+(shareSliderWidth/2)), math_floor(barArea[4]+sliderHeightAdd)}
 		local cornerSize
 		if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
-			cornerSize = 2.2*widgetScale
+			cornerSize = 2*widgetScale
 		else
-			cornerSize = 1.5*widgetScale
+			cornerSize = 1.33*widgetScale
 		end
-		RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4],cornerSize, 1,1,1,1, {0.4, 0, 0, 1}, {0.8, 0, 0, 1})
+		RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1,1,1,1, {0.4, 0, 0, 1}, {0.8, 0, 0, 1})
+		RectRoundCircle(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), 0, shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2),  (shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2, cornerSize, math.ceil(((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)-cornerSize), {1,1,1,0.13}, {1,1,1,0.13})
 
 		glTexture(false)
 	end)

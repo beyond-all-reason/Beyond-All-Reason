@@ -414,7 +414,7 @@ function drawFactionpicker()
     RectRound(factionRect[i][1]+rectMargin, factionRect[i][2]+rectMargin, factionRect[i][3]-rectMargin, factionRect[i][4]-rectMargin, rectMargin, 1,1,1,1, color1, color2)
 
     glBlending(GL_SRC_ALPHA, GL_ONE)
-    RectRoundCircle(factionRect[i][1]+rectMargin+((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2), 0, factionRect[i][2]+rectMargin+((factionRect[i][4]-factionRect[i][2]-rectMargin-rectMargin)/2), ((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2), rectMargin, math.ceil(((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2)-rectMargin), {1,1,1,0.07}, {1,1,1,0.07})
+    RectRoundCircle(factionRect[i][1]+rectMargin+((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2), 0, factionRect[i][2]+rectMargin+((factionRect[i][4]-factionRect[i][2]-rectMargin-rectMargin)/2), ((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2), rectMargin, math.ceil(((factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin)/2)-rectMargin), {1,1,1,0.06}, {1,1,1,0.06})
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     -- gloss
