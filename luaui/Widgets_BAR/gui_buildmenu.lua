@@ -34,6 +34,8 @@ local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
 
+local texDetailMult = 1.2   -- dont go too high, will get pixely
+
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
 local rightclickCellZoom = 0.033 * zoomMult
@@ -292,7 +294,7 @@ local function cacheUnitIcons()
     local cellSize = math_floor((contentWidth/colls)+0.33)
     local cellPadding = math_floor(cellSize * cfgCellPadding)
     local cellInnerSize = cellSize-cellPadding-cellPadding
-    local textureDetail = math_floor(cellInnerSize*(1+defaultCellZoom))
+    local textureDetail = math_floor(cellInnerSize*(1+defaultCellZoom)*texDetailMult)
     local radariconTextureDetail = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
     gl.Color(1,1,1,0.001)
     for id, unit in pairs(UnitDefs) do
@@ -951,7 +953,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 
   -- unit icon
   glColor(1,1,1,1)
-  glTexture(':lr'..math_floor(cellInnerSize*(1+usedZoom))..','..math_floor(cellInnerSize*(1+usedZoom))..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+  glTexture(':lr'..math_floor(cellInnerSize*(1+usedZoom)*texDetailMult)..','..math_floor(cellInnerSize*(1+usedZoom)*texDetailMult)..':unitpics/'..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
   --glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
   TexRectRound(
     cellRects[cellRectID][1]+cellPadding+iconPadding,
