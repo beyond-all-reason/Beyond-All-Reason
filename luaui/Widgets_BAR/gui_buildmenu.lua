@@ -494,21 +494,42 @@ local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
   glColor(1,1,1,1)
 end
 
-local function DrawRectRoundCircle(x, y, z, radius, cs, color1, color2)
+local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
   if not color2 then color2 = color1 end
-  local sideAngle = math_twicePi / 16
-  glColor(color1)
-  glVertex(x, z, y)
-  glColor(color2)
-  for i = 1, 16+1 do
-    local cx = x + (radius * math_cos(i * sideAngle))
-    local cz = z + (radius * math_sin(i * sideAngle))
-    glVertex(cx, cz, y)
+  --centerOffset = 0
+  local coords = {
+    {x-radius+cs, z+radius, y},   -- top left
+    {x+radius-cs, z+radius, y},   -- top right
+    {x+radius, z+radius-cs, y},   -- right top
+    {x+radius, z-radius+cs, y},   -- right bottom
+    {x+radius-cs, z-radius, y},   -- bottom right
+    {x-radius+cs, z-radius, y},   -- bottom left
+    {x-radius, z-radius-cs, y},   -- left bottom
+    {x-radius, z+radius-cs, y},   -- left top
+  }
+  local coords2 = {
+    {x-centerOffset+cs, z+centerOffset, y},   -- top left
+    {x+centerOffset-cs, z+centerOffset, y},   -- top right
+    {x+centerOffset, z+centerOffset-cs, y},   -- right top
+    {x+centerOffset, z-centerOffset+cs, y},   -- right bottom
+    {x+centerOffset-cs, z-centerOffset, y},   -- bottom right
+    {x-centerOffset+cs, z-centerOffset, y},   -- bottom left
+    {x-centerOffset, z-centerOffset-cs, y},   -- left bottom
+    {x-centerOffset, z+centerOffset-cs, y},   -- left top
+  }
+  for i = 1, 8 do
+    local i2 = (i>=8 and 1 or i + 1)
+    glColor(color2)
+    glVertex(coords[i][1], coords[i][2], coords[i][3])
+    glVertex(coords[i2][1], coords[i2][2], coords[i2][3])
+    glColor(color1)
+    glVertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
+    glVertex(coords2[i][1], coords2[i][2], coords2[i][3])
   end
 end
 
-local function RectRoundCircle(x, y, z, radius, cs, color1, color2)
-  glBeginEnd(GL_TRIANGLE_FAN, DrawRectRoundCircle, x, y, z, radius, cs, color1, color2)
+local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+  glBeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
 end
 
 
@@ -921,7 +942,7 @@ function drawBuildmenuBg()
 end
 
 
-local function drawCell(cellRectID, usedZoom, cellColor, progress)
+local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor)
   local uDefID = cmds[cellRectID].id*-1
 
   -- encapsulating cell background
@@ -984,20 +1005,30 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress)
 
     -- extra darken gradually
     RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cornerSize, 0,0,2,2,{0,0,0,0.15}, {0,0,0,0})
-
-    -- feather darken the edges
-    --local halfSize = (((cellRects[cellRectID][3]-cellPadding-iconPadding))-(cellRects[cellRectID][1]+cellPadding+iconPadding))*0.5
-    --RectRoundCircle(
-    --  cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
-    --  0,
-    --  cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
-    --  halfSize, cornerSize, {0,0,0,0}, {0,0,0,0.25}
-    --)
   end
 
   -- darken price background gradually
   if showPrice and (not alternativeUnitpics or makeFancy) then
     RectRound(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding+(cellInnerSize*0.415), cornerSize, 0,0,2,2,{0,0,0,(makeFancy and 0.22 or 0.3)}, {0,0,0,0})
+  end
+
+  -- lighten cell edges
+  if highlightColor then
+    local halfSize = (((cellRects[cellRectID][3]-cellPadding-iconPadding))-(cellRects[cellRectID][1]+cellPadding+iconPadding))*0.5
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+    RectRoundCircle(
+            cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
+            0,
+            cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
+            halfSize, cornerSize, halfSize*0.5, {highlightColor[1],highlightColor[2],highlightColor[3],0}, {highlightColor[1],highlightColor[2],highlightColor[3],highlightColor[4]*0.75}
+    )
+    RectRoundCircle(
+            cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
+            0,
+            cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
+            halfSize, cornerSize, halfSize*0.82, {highlightColor[1],highlightColor[2],highlightColor[3],0}, highlightColor
+    )
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
 
   -- radar icon
@@ -1388,7 +1419,7 @@ function widget:DrawScreen()
             elseif b3 and not disableInput then
               cellColor = {1,0.35,0.3,alternativeUnitpics and 0.7 or 0.2}
             else
-              cellColor = {0.6,0.6,0.6,alternativeUnitpics and 0.25 or 0}
+              cellColor = {0.63,0.63,0.63,alternativeUnitpics and 0.25 or 0}
             end
           else
             -- selected cell
@@ -1400,12 +1431,12 @@ function widget:DrawScreen()
             cellColor = {1,0.85,alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25}
           end
           -- re-draw cell with hover zoom
-          drawCell(cellRectID, usedZoom, cellColor)
+          drawCell(cellRectID, usedZoom, cellColor, nil, {cellColor[1],cellColor[2],cellColor[3],0.045+(usedZoom*0.45)})
 
-          -- gloss highlight
-          RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.18 or 0.1})
-          RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,alternativeUnitpics and 0.11 or 0.08}, {1,1,1,0})
-          glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+          ---- gloss highlight
+          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.18 or 0.1})
+          --RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,alternativeUnitpics and 0.11 or 0.08}, {1,1,1,0})
+          --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
           -- display price
           if not showPrice then
