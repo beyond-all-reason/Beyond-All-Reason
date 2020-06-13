@@ -290,6 +290,7 @@ function widget:ViewResize()
   width = math.floor(width * vsx) / vsx
   height = math.floor(height * vsy) / vsy
 
+
   if altPosition then
     local widgetSpaceMargin = math.floor(0.0045 * (vsy/vsx) * vsx * ui_scale) / vsx
     bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
@@ -310,10 +311,10 @@ function widget:ViewResize()
     if WG['minimap'] then
       posY = 1 - (WG['minimap'].getHeight()/vsy) - widgetSpaceMargin
     end
-    if WG['buildmenu'] then
-      local posY2, _ = WG['buildmenu'].getSize()
-      height = (posY - posY2) - widgetSpaceMargin
-    end
+    --if WG['buildmenu'] then
+    --  local posY2, _ = WG['buildmenu'].getSize()
+    --  height = (posY - posY2) - widgetSpaceMargin
+    --end
     posX = 0
   end
 

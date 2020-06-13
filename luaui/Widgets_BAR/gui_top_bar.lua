@@ -348,7 +348,6 @@ local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, co
 		gl.Vertex(coords2[i][1], coords2[i][2], coords2[i][3])
 	end
 end
-
 local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
 	gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
 end

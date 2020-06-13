@@ -27,6 +27,8 @@ local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 
+local iconBorderOpacity = 0.06
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -271,19 +273,19 @@ local function cacheUnitIcons()
     end
     gl.TexRect(-1,-1,0,0)
     if alternativeUnitpics and hasAlternativeUnitpic[id] then
-      gl.Texture(':lr80,80:unitpics/alternative/'..unitBuildPic[id])
+      gl.Texture(':lr100,100:unitpics/alternative/'..unitBuildPic[id])
     else
-      gl.Texture(':lr80,80:unitpics/'..unitBuildPic[id])
+      gl.Texture(':lr100,100:unitpics/'..unitBuildPic[id])
     end
     gl.TexRect(-1,-1,0,0)
     if alternativeUnitpics and hasAlternativeUnitpic[id] then
-      gl.Texture(':lr160,160:unitpics/alternative/'..unitBuildPic[id])
+      gl.Texture(':lr200,200:unitpics/alternative/'..unitBuildPic[id])
     else
-      gl.Texture(':lr160,160:unitpics/'..unitBuildPic[id])
+      gl.Texture(':lr200,200:unitpics/'..unitBuildPic[id])
     end
     if iconTypesMap[unitIconType[id]] then
       gl.TexRect(-1,-1,0,0)
-      gl.Texture(':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[id]])
+      gl.Texture(':lr'..(radarIconSize*2)..','..(radarIconSize*2)..':'..iconTypesMap[unitIconType[id]])
       gl.TexRect(-1,-1,0,0)
     end
     gl.Texture(false)
@@ -559,6 +561,44 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
   gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
+local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+  if not color2 then color2 = color1 end
+  --centerOffset = 0
+  local coords = {
+    {x-radius+cs, z+radius, y},   -- top left
+    {x+radius-cs, z+radius, y},   -- top right
+    {x+radius, z+radius-cs, y},   -- right top
+    {x+radius, z-radius+cs, y},   -- right bottom
+    {x+radius-cs, z-radius, y},   -- bottom right
+    {x-radius+cs, z-radius, y},   -- bottom left
+    {x-radius, z-radius+cs, y},   -- left bottom
+    {x-radius, z+radius-cs, y},   -- left top
+  }
+  local cs2 = cs * (centerOffset/radius)
+  local coords2 = {
+    {x-centerOffset+cs2, z+centerOffset, y},   -- top left
+    {x+centerOffset-cs2, z+centerOffset, y},   -- top right
+    {x+centerOffset, z+centerOffset-cs2, y},   -- right top
+    {x+centerOffset, z-centerOffset+cs2, y},   -- right bottom
+    {x+centerOffset-cs2, z-centerOffset, y},   -- bottom right
+    {x-centerOffset+cs2, z-centerOffset, y},   -- bottom left
+    {x-centerOffset, z-centerOffset+cs2, y},   -- left bottom
+    {x-centerOffset, z+centerOffset-cs2, y},   -- left top
+  }
+  for i = 1, 8 do
+    local i2 = (i>=8 and 1 or i + 1)
+    gl.Color(color2)
+    gl.Vertex(coords[i][1], coords[i][2], coords[i][3])
+    gl.Vertex(coords[i2][1], coords[i2][2], coords[i2][3])
+    gl.Color(color1)
+    gl.Vertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
+    gl.Vertex(coords2[i][1], coords2[i][2], coords2[i][3])
+  end
+end
+local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+  gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
   return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -648,7 +688,7 @@ function TexRectRound(px,py,sx,sy,cs, tl,tr,br,bl, zoom)
 end
 
 
-local function drawSelectionCell(cellID, uDefID, usedZoom)
+local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
   if not usedZoom then
     usedZoom = defaultCellZoom
   end
@@ -667,6 +707,39 @@ local function drawSelectionCell(cellID, uDefID, usedZoom)
   RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,0,0, {1,1,1,0}, {1,1,1,0.06})
   RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cornerSize, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+  -- lighten cell edges
+  if highlightColor then
+    local halfSize = (((cellRect[cellID][3]-cellPadding))-(cellRect[cellID][1]))*0.5
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+    RectRoundCircle(
+            cellRect[cellID][1]+cellPadding+halfSize,
+            0,
+            cellRect[cellID][2]+cellPadding+halfSize,
+            halfSize, cornerSize, halfSize*0.5, {highlightColor[1],highlightColor[2],highlightColor[3],0}, {highlightColor[1],highlightColor[2],highlightColor[3],highlightColor[4]*0.75}
+    )
+    RectRoundCircle(
+            cellRect[cellID][1]+cellPadding+halfSize,
+            0,
+            cellRect[cellID][2]+cellPadding+halfSize,
+            halfSize, cornerSize, halfSize*0.82, {highlightColor[1],highlightColor[2],highlightColor[3],0}, highlightColor
+    )
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  end
+
+  -- lighten border
+  if iconBorderOpacity > 0 then
+    local halfSize = (((cellRect[cellID][3]-cellPadding))-(cellRect[cellID][1]))*0.5
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+    RectRoundCircle(
+            cellRect[cellID][1]+cellPadding+halfSize,
+            0,
+            cellRect[cellID][2]+cellPadding+halfSize,
+            halfSize, cornerSize, halfSize-cellPadding, {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+    )
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  end
+
   -- unitcount
   if selUnitsCounts[uDefID] > 1 then
     local fontSize = math.min(gridHeight*0.19, cellsize*0.6) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
@@ -743,7 +816,7 @@ local function drawInfo()
     if texOffset > 0.25 then texOffset = 0.25 end
     --texDetail = math_floor((cellsize-cellPadding)*(1+texOffset))
     --texSetting = ':lr'..texDetail..','..texDetail..':'
-    texSetting = cellsize > 38 and ':lr160,160:' or ':lr80,80:'
+    texSetting = cellsize > 38 and ':lr160,160:' or ':lr100,100:'
     local cellID = selUnitTypes
     for row=1, rows do
       for coll=1, colls do
@@ -772,7 +845,7 @@ local function drawInfo()
 
     glColor(1,1,1,1)
     if unitBuildPic[displayUnitDefID] then
-      glTexture(":lr160,160:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
+      glTexture(":lr200,200:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
       glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-bgpadding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-bgpadding)
       glTexture(false)
     end
@@ -783,7 +856,7 @@ local function drawInfo()
     local showingRadarIcon = false
     if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
       glColor(1,1,1,0.88)
-      glTexture(':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[displayUnitDefID]])
+      glTexture(':lr'..(radarIconSize*2)..','..(radarIconSize*2)..':'..iconTypesMap[unitIconType[displayUnitDefID]])
       glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
       glTexture(false)
       glColor(1,1,1,1)
@@ -850,6 +923,40 @@ local function drawInfo()
         valueY2 = (energyMake > 0 and valuePlusColor..'+'..(energyMake < 10 and round(energyMake, 1) or round(energyMake, 0))..' ' or '') .. (energyUse > 0 and valueMinColor..'-'..(energyUse < 10 and round(energyUse, 1) or round(energyUse, 0)) or '')
         valueY3 = ''
       end
+
+      -- display health value/bar
+      local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
+      if health then
+        local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
+        local healthBarHeight = healthBarWidth * 0.1
+        local healthBarMargin = healthBarHeight * 0.7
+        local healthBarPadding = healthBarHeight * 0.15
+        local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
+        local color = bfcolormap[math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)]
+
+        valueY3 = math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)..'%'
+
+        ---- bar background
+        --RectRound(
+        --        customInfoArea[3]-healthBarMargin-healthBarWidth,
+        --        customInfoArea[4]+healthBarMargin,
+        --        customInfoArea[3]-healthBarMargin,
+        --        customInfoArea[4]+healthBarMargin+healthBarHeight,
+        --        healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
+        --)
+        ---- bar value
+        --RectRound(
+        --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
+        --        customInfoArea[4]+healthBarMargin+healthBarPadding,
+        --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
+        --        customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
+        --        healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
+        --)
+        ---- bar text value
+        --font:Begin()
+        --font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
+        --font:End()
+      end
     else
       valueY1 = metalColor..unitMetalCost[displayUnitDefID]
       valueY2 = energyColor..unitEnergyCost[displayUnitDefID]
@@ -902,7 +1009,7 @@ local function drawInfo()
             local uDefID = unitBuildOptions[displayUnitDefID][cellID]
             cellRect[cellID] = {math_floor(customInfoArea[3]-cellPadding-(coll*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_floor(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row)*cellsize))}
             glColor(0.9,0.9,0.9,1)
-            glTexture(":lr80,80:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+            glTexture(":lr100,100:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
             --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
             --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
             TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,1,1, 0.11)
@@ -1028,7 +1135,7 @@ local function drawInfo()
         addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
         -- wordwrap text
-        unitInfoText = text   -- canbe used to show full text on mouse hover
+        unitInfoText = text   -- can be used to show full text on mouse hover
         text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
 
         -- prune number of lines
@@ -1049,36 +1156,36 @@ local function drawInfo()
         font:End()
 
         -- display health value/bar
-        local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
-        if health then
-          local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
-          local healthBarHeight = healthBarWidth * 0.1
-          local healthBarMargin = healthBarHeight * 0.7
-          local healthBarPadding = healthBarHeight * 0.15
-          local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
-          local color = bfcolormap[math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)]
-
-          -- bar background
-          RectRound(
-                  customInfoArea[3]-healthBarMargin-healthBarWidth,
-                  customInfoArea[4]+healthBarMargin,
-                  customInfoArea[3]-healthBarMargin,
-                  customInfoArea[4]+healthBarMargin+healthBarHeight,
-                  healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
-          )
-          -- bar value
-          RectRound(
-                  customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
-                  customInfoArea[4]+healthBarMargin+healthBarPadding,
-                  customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
-                  customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
-                  healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
-          )
-          -- bar text value
-          font:Begin()
-          font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
-          font:End()
-        end
+        --local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
+        --if health then
+        --  local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
+        --  local healthBarHeight = healthBarWidth * 0.1
+        --  local healthBarMargin = healthBarHeight * 0.7
+        --  local healthBarPadding = healthBarHeight * 0.15
+        --  local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
+        --  local color = bfcolormap[math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)]
+        --
+        --  -- bar background
+        --  RectRound(
+        --          customInfoArea[3]-healthBarMargin-healthBarWidth,
+        --          customInfoArea[4]+healthBarMargin,
+        --          customInfoArea[3]-healthBarMargin,
+        --          customInfoArea[4]+healthBarMargin+healthBarHeight,
+        --          healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
+        --  )
+        --  -- bar value
+        --  RectRound(
+        --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
+        --          customInfoArea[4]+healthBarMargin+healthBarPadding,
+        --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
+        --          customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
+        --          healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
+        --  )
+        --  -- bar text value
+        --  font:Begin()
+        --  font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
+        --  font:End()
+        --end
       end
     end
 
@@ -1304,7 +1411,7 @@ function widget:DrawScreen()
               color = {1,0.1,0.1}
             end
             cellZoom = cellZoom + math.min(0.33 * cellZoom * ((gridHeight/cellsize)-2), 0.15) -- add extra zoom when small icons
-            drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom)
+            drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom, {color[1],color[2],color[3], 0.15})
             -- highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)
             if b or b2 or b3 then
@@ -1314,8 +1421,8 @@ function widget:DrawScreen()
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.66), cellRect[cellID][3], cellRect[cellID][4], cellPadding*0.9, 1,1,0,0,{color[1],color[2],color[3],0}, {color[1],color[2],color[3],(b or b2 or b3) and 0.18 or 0.13})
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.18), cellPadding*0.9, 0,0,1,1,{color[1],color[2],color[3],(b or b2 or b3) and 0.15 or 0.1}, {color[1],color[2],color[3],0})
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-            -- bottom darkening
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.33 or 0.25}, {0,0,0,0})
+            ---- bottom darkening
+            --RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.33 or 0.25}, {0,0,0,0})
             cellHovered = cellID
             break
           end

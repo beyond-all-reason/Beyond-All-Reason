@@ -321,7 +321,7 @@ function drawBuildpower()
 
   -- bar background
   contentMargin = math.ceil((backgroundRect[3]-backgroundRect[1]) * 0.2)
-  RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-bgpadding-contentMargin, backgroundRect[4]-bgpadding-contentMargin, bgpadding*0.5, 1,1,1,1,{0,0,0,0.12}, {0.08,0.08,0.08,0.12})
+  RectRound(backgroundRect[1]+contentMargin, backgroundRect[2]+contentMargin, backgroundRect[3]-bgpadding-contentMargin, backgroundRect[4]-bgpadding-contentMargin, bgpadding*0.5, 1,1,1,1,{0.04,0.04,0.04,0.12}, {0.09,0.09,0.09,0.12})
 end
 
 function drawBuildpower2()
@@ -336,7 +336,7 @@ function drawBuildpower2()
         local contentMargin2 = math.ceil(contentMargin*1.3)
         local barHeight = math.ceil(((backgroundRect[4]-bgpadding-contentMargin2)-(backgroundRect[2]+contentMargin2))*avgBuildPower)
         if barHeight > bgpadding*2 then   -- prevent artifacts
-            RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-bgpadding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, bgpadding*0.4, 1,1,1,1,{0.33,0.33,0.33,0.45}, {0.6,0.6,0.6,0.45}) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
+            RectRound(backgroundRect[1]+contentMargin2, backgroundRect[2]+contentMargin2, backgroundRect[3]-bgpadding-contentMargin2, backgroundRect[2]+contentMargin + barHeight, bgpadding*0.4, 1,1,1,1,{0.4,0.4,0.4,0.45}, {0.6,0.6,0.6,0.45}) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
         end
     end
 end
