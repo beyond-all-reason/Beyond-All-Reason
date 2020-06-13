@@ -27,7 +27,7 @@ local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 
-local iconBorderOpacity = 0.06
+local iconBorderOpacity = 0.07
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -141,6 +141,10 @@ function round(value, numDecimalPlaces)
   else
     return 0
   end
+end
+
+local function convertColor(r,g,b)
+  return string.char(255, (r*255), (g*255), (b*255))
 end
 
 local hasAlternativeUnitpic = {}
@@ -267,9 +271,9 @@ local function cacheUnitIcons()
   local radarIconSize = math_floor((height*vsy*0.17)+0.5)   -- when changine this also update radarIconSize formula at other place in code
   for id, unit in pairs(UnitDefs) do
     if hasAlternativeUnitpic[id] then
-      gl.Texture(':lr160,160:unitpics/alternative/'..unitBuildPic[id])
+      gl.Texture(':lr200,200:unitpics/alternative/'..unitBuildPic[id])
     else
-      gl.Texture(':lr160,160:unitpics/'..unitBuildPic[id])
+      gl.Texture(':lr200,200:unitpics/'..unitBuildPic[id])
     end
     gl.TexRect(-1,-1,0,0)
     if alternativeUnitpics and hasAlternativeUnitpic[id] then
@@ -279,9 +283,9 @@ local function cacheUnitIcons()
     end
     gl.TexRect(-1,-1,0,0)
     if alternativeUnitpics and hasAlternativeUnitpic[id] then
-      gl.Texture(':lr200,200:unitpics/alternative/'..unitBuildPic[id])
+      gl.Texture(':lr160,160:unitpics/alternative/'..unitBuildPic[id])
     else
-      gl.Texture(':lr200,200:unitpics/'..unitBuildPic[id])
+      gl.Texture(':lr160,160:unitpics/'..unitBuildPic[id])
     end
     if iconTypesMap[unitIconType[id]] then
       gl.TexRect(-1,-1,0,0)
@@ -735,7 +739,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
             cellRect[cellID][1]+cellPadding+halfSize,
             0,
             cellRect[cellID][2]+cellPadding+halfSize,
-            halfSize, cornerSize, halfSize-cellPadding, {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+            halfSize, cornerSize, halfSize-math.max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
     )
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
@@ -934,7 +938,7 @@ local function drawInfo()
         local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
         local color = bfcolormap[math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)]
 
-        valueY3 = math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)..'%'
+        valueY3 = convertColor(color[1],color[2],color[3])..math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)..'%'
 
         ---- bar background
         --RectRound(
@@ -1411,7 +1415,7 @@ function widget:DrawScreen()
               color = {1,0.1,0.1}
             end
             cellZoom = cellZoom + math.min(0.33 * cellZoom * ((gridHeight/cellsize)-2), 0.15) -- add extra zoom when small icons
-            drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom, {color[1],color[2],color[3], 0.15})
+            drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom, {color[1],color[2],color[3],0.1})
             -- highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)
             if b or b2 or b3 then

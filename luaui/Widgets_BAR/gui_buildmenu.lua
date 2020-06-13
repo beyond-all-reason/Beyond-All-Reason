@@ -27,6 +27,8 @@ local dynamicIconsize = true
 local minColls = 4
 local maxColls = 5
 
+local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
+
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = true
 local showRadarIcon = true
@@ -34,7 +36,7 @@ local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
 
-local iconBorderOpacity = 0.06  -- lighten the icon edges
+local iconBorderOpacity = 0.07  -- lighten the icon edges
 
 local texDetailMult = 1.25   -- dont go too high, will get pixely
 local radartexDetailMult = 2   -- dont go too high, will get pixely
@@ -50,10 +52,18 @@ local selectedCellZoom = 0.135 * zoomMult
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local buildStartKey = 98
-local buildNextKey = 110
-local buildKeys = {113, 119, 101, 114, 116, 97, 115, 100, 102, 103, 122, 120, 99, 118, 98}
-local buildLetters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+local buildKeys = {
+  113, -- Q
+  119, -- W
+  101, -- E
+  114, -- R
+  116, -- T
+  121, -- Y
+  117, -- U
+  105, -- I
+  111, -- O
+  112, -- P
+}
 
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -1045,7 +1055,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
             cellRects[cellRectID][1]+cellPadding+iconPadding+halfSize,
             0,
             cellRects[cellRectID][2]+cellPadding+iconPadding+halfSize,
-            halfSize, cornerSize, halfSize-iconPadding, {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+            halfSize, cornerSize, halfSize-math_max(1,math_floor(halfSize*0.06)), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
     )
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
@@ -1065,24 +1075,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
   end
 
   -- shortcuts
-  if showShortcuts then
-    --local text = ''
-    --if iconCount < 15 then
-    --  text = buildLetters[buildStartKey-96].." - "
-    --  if buildKeys[iconCount] then
-    --    text = text .. buildLetters[buildKeys[iconCount]-96]
-    --  else
-    --    text = ''
-    --  end
-    --else
-    --  text = buildLetters[buildNextKey-96].." - "
-    --  if buildKeys[iconCount-15] then
-    --    text = text .. buildLetters[buildKeys[iconCount-15]-96]
-    --  else
-    --    text = ''
-    --  end
-    --end
-    --font2:Print("\255\155\155\255"..text, cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][4]-cellPadding-priceFontSize, priceFontSize, "o")
+  if showShortcuts and enableShortcuts and not disableInput then
+    local row = math_ceil(cellRectID/colls)
+    local col = cellRectID - ((row-1)*colls)
+    local text = string.upper(string.char(buildKeys[row])..' '..string.char(buildKeys[col]))
+    font2:Print("\255\175\175\175"..text, cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][4]-cellPadding-priceFontSize, priceFontSize, "o")
   end
 
   -- factory queue number
@@ -1504,7 +1501,6 @@ function widget:DrawScreen()
                   usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
                 end
                 drawCell(cellRectID, usedZoom, cellColor, progress)
-                --RectRoundProgress(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding, cellSize*0.03, progress, {1,1,1,0.25})
               end
             end
           end
@@ -1788,6 +1784,33 @@ function widget:KeyPress(key,mods,isRepeat)
     if key == 27 then  -- ESC
       setPreGamestartDefID()
     end
+  end
+
+  -- unit icon shortcuts
+  if not disableInput and enableShortcuts and cmdsCount > 0 then
+    if rowPressedClock and rowPressedClock < (os_clock() + 3) then
+      rowPressed = nil
+      rowPressedClock = nil
+    end
+    for k,buildKey in pairs(buildKeys) do
+      if buildKey == key then
+        if not rowPressed then
+          rowPressed = k
+          rowPressedClock = os_clock()
+          return true
+        else
+          local cellRectID = k + ((rowPressed-1)*colls)
+          if cmds[cellRectID] and  cmds[cellRectID].id then
+            Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
+          end
+          rowPressed = nil
+          rowPressedClock = nil
+          return true
+        end
+        break
+      end
+    end
+    rowPressed = nil
   end
 end
 
