@@ -118,14 +118,19 @@ function UnitDef_Post(name, uDef)
 				uDef.featuredefs.dead.damage = uDef.maxdamage
 			end
 		end
-		
+
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.maxdamage
 			end
 		end
     end
-	
+
+
+	if uDef.maxslope then
+		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
+	end
+
 	-- vehicles
     --if uDef.category and string.find(uDef.category, "TANK") then
     --	if uDef.turnrate ~= nil then
