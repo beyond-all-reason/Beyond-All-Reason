@@ -309,7 +309,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   skip = false
   unitOrder[unitDefID] = 20000000
 
-
+  -- handle decoy unit like its the regular version
   if unitDef.customParams.decoyfor then
     unitDef = UnitDefNames[unitDef.customParams.decoyfor]
     unitOrder[unitDefID] = unitOrder[unitDefID] - 2
@@ -322,34 +322,43 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     unitOrder[unitDefID] = 500000
   end
 
+  -- mobile units
   if not (unitDef.isImmobile or unitDef.isBuilding) then
     addOrderImportance(unitDefID, skip, 15000000)
   end
-  if unitDef.extractsMetal > 0 then
-    addOrderImportance(unitDefID, skip, 14000000)
-  elseif unitDef.windGenerator > 0 then
-    addOrderImportance(unitDefID, skip, 13000000)
-  elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-    addOrderImportance(unitDefID, skip, 12000000)
-  elseif unitDef.energyUpkeep < -19 then
-    addOrderImportance(unitDefID, skip, 12500000)
-  end
-  if unitDef.tidalGenerator > 0 then
-    addOrderImportance(unitDefID, skip, 12000000)
-  end
-  if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-    addOrderImportance(unitDefID, skip, 11000000)
-  end
-  if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-    addOrderImportance(unitDefID, skip, 11000000)
-  end
-  if string.find(string.lower(unitDef.humanName), 'converter') then
-    addOrderImportance(unitDefID, skip, 10000000)
+
+  -- eco buildings
+  if unitDef.isImmobile or unitDef.isBuilding then
+    if unitDef.tidalGenerator > 0 then
+      addOrderImportance(unitDefID, skip, 12000000)
+    elseif unitDef.extractsMetal > 0 then
+      addOrderImportance(unitDefID, skip, 14000000)
+    elseif unitDef.windGenerator > 0 then
+      addOrderImportance(unitDefID, skip, 13000000)
+    elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
+      addOrderImportance(unitDefID, skip, 12000000)
+    elseif unitDef.energyUpkeep < -19 then
+      addOrderImportance(unitDefID, skip, 12500000)
+    end
+
+    -- storage
+    if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+      addOrderImportance(unitDefID, skip, 11000000)
+    end
+    if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
+      addOrderImportance(unitDefID, skip, 11000000)
+    end
+
+    -- converters
+    if string.find(string.lower(unitDef.humanName), 'converter') then
+      addOrderImportance(unitDefID, skip, 10000000)
+    end
   end
 
   if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
     addOrderImportance(unitDefID, skip, 5000000)
   end
+
   if unitDef.buildOptions[1] then
     if unitDef.isBuilding then
       addOrderImportance(unitDefID, skip, 2000000)
@@ -384,6 +393,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
   unitOrder[unitDefID] = math_max(1, math_floor(unitOrder[unitDefID]))
 
+  -- make more expensive units of the same kind lower in the list
   unitOrder[unitDefID] = unitOrder[unitDefID] + 1000000
   addOrderImportance(unitDefID, skip, -(unitDef.energyCost/70))
   addOrderImportance(unitDefID, skip, -unitDef.metalCost)
