@@ -147,6 +147,7 @@ local function convertColor(r,g,b)
   return string.char(255, (r*255), (g*255), (b*255))
 end
 
+
 local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
 local unitEnergyCost = {}
@@ -260,6 +261,85 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
   end
 end
+
+
+-- order units, add higher value for order importance
+local unitOrder = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  unitOrder[unitDefID] = 0
+  if unitDef.buildSpeed > 0 then
+    unitOrder[unitDefID] = unitOrder[unitDefID] + (unitDef.buildSpeed * 10000)
+  end
+  if unitDef.buildOptions[1] then
+    if unitDef.isBuilding then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 200000000
+    else
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 150000000
+    end
+    if unitDef.modCategories['notland'] or unitDef.modCategories['underwater'] then
+      unitOrder[unitDefID] = unitOrder[unitDefID] - 50000000
+    end
+  end
+  if unitDef.isImmobile or  unitDef.isBuilding then
+    if unitDef.floater or unitDef.floatOnWater then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 11000000
+    elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 10000000
+    else
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 12000000
+    end
+  else
+    if unitDef.modCategories['ship'] then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 9000000
+    elseif unitDef.modCategories['hover'] then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 8000000
+    elseif unitDef.modCategories['tank'] then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 7000000
+    elseif unitDef.modCategories['kbot'] then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 6000000
+    elseif unitDef.isAirUnit then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 5000000
+    elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
+      unitOrder[unitDefID] = unitOrder[unitDefID] + 8600000
+    end
+  end
+  if unitDef.energyCost then
+    unitOrder[unitDefID] = unitOrder[unitDefID] + (unitDef.energyCost/70)
+  end
+  if unitDef.metalCost then
+    unitOrder[unitDefID] = unitOrder[unitDefID] + unitDef.metalCost
+  end
+  if unitDPS[unitDefID] then
+    unitOrder[unitDefID] = unitOrder[unitDefID] + unitDPS[unitDefID]
+  end
+  unitOrder[unitDefID] = math_floor(unitOrder[unitDefID])
+  --Spring.Echo(unitHumanName[unitDefID]..' = '..unitOrder[unitDefID])
+end
+
+local function getHighestOrderedUnit()
+  local highest = {0,0}
+  for unitDefID,orderValue in pairs(unitOrder) do
+    if orderValue > highest[2] then
+      highest = {unitDefID,orderValue}
+    end
+  end
+  return highest[1]
+end
+
+local unitsOrdered = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  local uDefID = getHighestOrderedUnit()
+  unitsOrdered[#unitsOrdered+1] = uDefID
+  unitOrder[uDefID] = nil
+end
+
+
+unitOrder = unitsOrdered
+unitsOrdered = nil
+
+--for k, unitDefID in pairs(unitOrder) do
+--  Spring.Echo(k..'  '..unitHumanName[unitDefID])
+--end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -780,10 +860,15 @@ local function drawInfo()
     selUnitsSorted = spGetSelectedUnitsSorted()
     selUnitTypes = 0
     selectionCells = {}
-    for uDefID,v in pairs(selUnitsSorted) do
-      if type(v) == 'table' then
-        selUnitTypes = selUnitTypes + 1
-        selectionCells[selUnitTypes] = uDefID
+
+    for k,uDefID in pairs(unitOrder) do
+      if selUnitsSorted[uDefID] then
+        v = selUnitsSorted[uDefID]
+        --for uDefID,v in pairs(selUnitsSorted) do
+        if type(v) == 'table' then
+          selUnitTypes = selUnitTypes + 1
+          selectionCells[selUnitTypes] = uDefID
+        end
       end
     end
 
