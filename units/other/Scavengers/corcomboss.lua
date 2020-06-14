@@ -19,7 +19,7 @@ return {
 		--cloakcost = 200,
 		--cloakcostmoving = 2000,
 		collisionvolumeoffsets = "0 7 0",
-		collisionvolumescales = "59 125 59",
+		collisionvolumescales = "75 160 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Commander",
