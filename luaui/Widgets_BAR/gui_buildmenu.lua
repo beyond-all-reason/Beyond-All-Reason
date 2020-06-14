@@ -27,6 +27,8 @@ local dynamicIconsize = true
 local minColls = 4
 local maxColls = 5
 
+local maxPosY = 0.73
+
 local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
@@ -48,6 +50,7 @@ local clickCellZoom = 0.07 * zoomMult
 local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -724,6 +727,9 @@ function widget:ViewResize()
     posY = math_max(0.4615, (vsy-minimapHeight)/vsy) - 0.0064
     if WG['minimap'] then
       posY = 1 - (WG['minimap'].getHeight()/vsy) - widgetSpaceMargin
+      if posY > maxPosY then
+        posY = maxPosY
+      end
     end
   else
     if WG['ordermenu'] then

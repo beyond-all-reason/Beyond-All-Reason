@@ -277,7 +277,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
       unitOrder[unitDefID] = unitOrder[unitDefID] + 150000000
     end
     if unitDef.modCategories['notland'] or unitDef.modCategories['underwater'] then
-      unitOrder[unitDefID] = unitOrder[unitDefID] - 50000000
+      unitOrder[unitDefID] = unitOrder[unitDefID] - 25000000
     end
   end
   if unitDef.isImmobile or  unitDef.isBuilding then

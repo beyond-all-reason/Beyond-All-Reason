@@ -311,10 +311,12 @@ function widget:ViewResize()
     if WG['minimap'] then
       posY = 1 - (WG['minimap'].getHeight()/vsy) - widgetSpaceMargin
     end
-    --if WG['buildmenu'] then
-    --  local posY2, _ = WG['buildmenu'].getSize()
-    --  height = (posY - posY2) - widgetSpaceMargin
-    --end
+    if WG['buildmenu'] then
+      local posY2, _ = WG['buildmenu'].getSize()
+      posY2 = posY2 + widgetSpaceMargin
+      --height = (posY - posY2) - widgetSpaceMargin
+      posY = posY2 + height
+    end
     posX = 0
   end
 
