@@ -1467,21 +1467,33 @@ function widget:DrawScreen()
   end
   gl.CallList(dlistInfo)
 
-  if displayMode ~= 'text' and  IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+  if displayMode ~= 'text' and not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
     Spring.SetMouseCursor('cursornormal')
 
     --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.4 or 0.25}, {1,1,1,b and 0.12 or 0.06})
     --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.25),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,b and 0.3 or 0.15})
     --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.2 or 0.1}, {1,1,1,b and 0.4 or 0.2})
 
-    if customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
-      local tooltipTitleColor = '\255\205\255\205'
-      local tooltipTextColor = '\255\255\255\255'
-      local tooltipLabelTextColor = '\255\200\200\200'
-      local tooltipDarkTextColor = '\255\133\133\133'
-      local tooltipValueColor = '\255\255\245\175'
 
-      -- selection grid
+  else
+
+    --if customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
+    --glBlending(GL_SRC_ALPHA, GL_ONE)
+    --RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.3 or 0.2})
+    --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    --if WG['tooltip'] then
+    --WG['tooltip'].ShowTooltip('info', 'Additional unit info goes here...')
+    --end
+    --end
+
+    local tooltipTitleColor = '\255\205\255\205'
+    local tooltipTextColor = '\255\255\255\255'
+    local tooltipLabelTextColor = '\255\200\200\200'
+    local tooltipDarkTextColor = '\255\133\133\133'
+    local tooltipValueColor = '\255\255\245\175'
+
+    -- selection grid
+    if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
       if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
         local cellHovered
         for cellID,unitDefID in pairs(selectionCells) do
@@ -1587,14 +1599,6 @@ function widget:DrawScreen()
           end
           WG['tooltip'].ShowTooltip('info', text)
         end
-
-      else
-        --glBlending(GL_SRC_ALPHA, GL_ONE)
-        --RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.3 or 0.2})
-        --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        --if WG['tooltip'] then
-        --WG['tooltip'].ShowTooltip('info', 'Additional unit info goes here...')
-        --end
       end
     end
   end

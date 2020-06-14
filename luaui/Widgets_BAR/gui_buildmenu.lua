@@ -1313,7 +1313,6 @@ function drawBuildmenu()
       currentPage = pages
     end
 
-    Spring.Echo(cmdsCount, cmdsCount / (colls*rows))
     -- remove a row if there isnt enough room for the paginator UI
     if paginatorCellHeight < (0.06*(1-((colls/4)*0.25)))*vsy then
       rows = rows - 1
