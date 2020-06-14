@@ -355,15 +355,22 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
   end
 
+  -- nanos
   if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
-    addOrderImportance(unitDefID, skip, 5000000)
+    addOrderImportance(unitDefID, skip, 3500000)
   end
 
   if unitDef.buildOptions[1] then
     if unitDef.isBuilding then
-      addOrderImportance(unitDefID, skip, 2000000)
+      addOrderImportance(unitDefID, skip, 2500000)
     else
-      addOrderImportance(unitDefID, skip, 1500000)
+      if string.find(string.lower(unitDef.humanName), 'construction') then
+        addOrderImportance(unitDefID, skip, 6000000)
+      elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist')  or string.find(string.lower(unitDef.tooltip), 'engineer') then
+        addOrderImportance(unitDefID, skip, 4000000)
+      else
+        addOrderImportance(unitDefID, skip, 5000000)
+      end
     end
   end
   -- if unitDef.isImmobile or  unitDef.isBuilding then
@@ -832,7 +839,6 @@ local function RefreshCommands()
         }
       end
     end
-
   else
 
     local activeCmdDescs = spGetActiveCmdDescs()
@@ -1299,9 +1305,15 @@ function drawBuildmenu()
   local paginatorCellHeight = math_floor(contentHeight-(rows*cellSize))
   if cmdsCount > colls*rows then
     pages = math_ceil(cmdsCount / (colls*rows))
+    -- when more than 1 page: reserve bottom row for paginator and calc again
+    if pages > 1 then
+      pages = math_ceil(cmdsCount / (colls*(rows-1)))
+    end
     if currentPage > pages then
       currentPage = pages
     end
+
+    Spring.Echo(cmdsCount, cmdsCount / (colls*rows))
     -- remove a row if there isnt enough room for the paginator UI
     if paginatorCellHeight < (0.06*(1-((colls/4)*0.25)))*vsy then
       rows = rows - 1
