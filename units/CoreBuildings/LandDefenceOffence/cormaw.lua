@@ -42,6 +42,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
+			decoyfor = "cormaw",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
 			removewait = true,

@@ -76,6 +76,7 @@ return {
 			[17] = "corfmkr",
 		},
 		customparams = {
+			decoyfor = "corcom",
 			area_mex_def = "cormex",
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",

@@ -309,6 +309,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   skip = false
   unitOrder[unitDefID] = 20000000
 
+
+  if unitDef.customParams.decoyfor then
+    unitDef = UnitDefNames[unitDef.customParams.decoyfor]
+    unitOrder[unitDefID] = unitOrder[unitDefID] - 2
+  end
+
   -- is water unit
   local isWaterUnit = false
   if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then

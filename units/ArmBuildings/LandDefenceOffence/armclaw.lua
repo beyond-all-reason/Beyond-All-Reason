@@ -45,6 +45,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
+			decoyfor = "armdrag",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

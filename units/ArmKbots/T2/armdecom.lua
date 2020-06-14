@@ -76,6 +76,7 @@ return {
 			[17] = "armfmkr",
 		},
 		customparams = {
+			decoyfor = "armcom",
 			area_mex_def = "armmex",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
