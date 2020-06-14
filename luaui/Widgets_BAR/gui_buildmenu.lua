@@ -27,6 +27,9 @@ local dynamicIconsize = true
 local minColls = 4
 local maxColls = 5
 
+local showOrderDebug = false
+local smartOrderUnits = true
+
 local maxPosY = 0.73
 
 local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
@@ -133,6 +136,7 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
@@ -290,6 +294,125 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     isMex[unitDefID] = true
   end
 end
+
+
+local unitOrder = {}
+local function addOrderImportance(unitDefID, skip, value)
+  if not skip then
+    unitOrder[unitDefID] = unitOrder[unitDefID] + value
+  end
+end
+
+-- order units, add higher value for order importance
+local skip = false
+for unitDefID, unitDef in pairs(UnitDefs) do
+  skip = false
+  unitOrder[unitDefID] = 20000000
+
+  -- is water unit
+  local isWaterUnit = false
+  if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
+    isWaterUnit = true
+    unitOrder[unitDefID] = 500000
+  end
+
+  if not (unitDef.isImmobile or unitDef.isBuilding) then
+    addOrderImportance(unitDefID, skip, 15000000)
+  end
+  if unitDef.extractsMetal > 0 then
+    addOrderImportance(unitDefID, skip, 14000000)
+  elseif unitDef.windGenerator > 0 then
+    addOrderImportance(unitDefID, skip, 13000000)
+  elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
+    addOrderImportance(unitDefID, skip, 12000000)
+  elseif unitDef.energyUpkeep < -19 then
+    addOrderImportance(unitDefID, skip, 12500000)
+  end
+  if unitDef.tidalGenerator > 0 then
+    addOrderImportance(unitDefID, skip, 12000000)
+  end
+  if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+    addOrderImportance(unitDefID, skip, 11000000)
+  end
+  if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
+    addOrderImportance(unitDefID, skip, 11000000)
+  end
+  if string.find(string.lower(unitDef.humanName), 'converter') then
+    addOrderImportance(unitDefID, skip, 10000000)
+  end
+
+  if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
+    addOrderImportance(unitDefID, skip, 5000000)
+  end
+  if unitDef.buildOptions[1] then
+    if unitDef.isBuilding then
+      addOrderImportance(unitDefID, skip, 2000000)
+    else
+      addOrderImportance(unitDefID, skip, 1500000)
+    end
+  end
+  -- if unitDef.isImmobile or  unitDef.isBuilding then
+  --   if unitDef.floater or unitDef.floatOnWater then
+  --     addOrderImportance(unitDefID, skip, 11000000)
+  --   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
+  --     addOrderImportance(unitDefID, skip, 10000000)
+  --   else
+  --     addOrderImportance(unitDefID, skip, 12000000)
+  --   end
+  -- else
+  --   if unitDef.modCategories['ship'] then
+  --     addOrderImportance(unitDefID, skip, 9000000)
+  --   elseif unitDef.modCategories['hover'] then
+  --     addOrderImportance(unitDefID, skip, 8000000)
+  --   elseif unitDef.modCategories['tank'] then
+  --     addOrderImportance(unitDefID, skip, 7000000)
+  --   elseif unitDef.modCategories['kbot'] then
+  --     addOrderImportance(unitDefID, skip, 6000000)
+  --   elseif unitDef.isAirUnit then
+  --     addOrderImportance(unitDefID, skip, 5000000)
+  --   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
+  --     addOrderImportance(unitDefID, skip, 8600000)
+  --   end
+  -- end
+
+
+  unitOrder[unitDefID] = math_max(1, math_floor(unitOrder[unitDefID]))
+
+  unitOrder[unitDefID] = unitOrder[unitDefID] + 1000000
+  addOrderImportance(unitDefID, skip, -(unitDef.energyCost/70))
+  addOrderImportance(unitDefID, skip, -unitDef.metalCost)
+
+  unitOrder[unitDefID] = math_max(1, math_floor(unitOrder[unitDefID]))
+end
+
+local function getHighestOrderedUnit()
+  local highest = {0,0}
+  for unitDefID,orderValue in pairs(unitOrder) do
+    if orderValue > highest[2] then
+      highest = {unitDefID,orderValue}
+    end
+  end
+  return highest[1]
+end
+
+local unitsOrdered = {}
+local unitOrderDebug = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  local uDefID = getHighestOrderedUnit()
+  unitsOrdered[#unitsOrdered+1] = uDefID
+  unitOrderDebug[uDefID] = unitOrder[uDefID]
+  unitOrder[uDefID] = nil
+end
+
+if not showOrderDebug then
+  unitOrderDebug = nil
+end
+unitOrder = unitsOrdered
+unitsOrdered = nil
+
+--for k, unitDefID in pairs(unitOrder) do
+--  Spring.Echo(k..'  '..unitHumanName[unitDefID])
+--end
 
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
@@ -695,11 +818,30 @@ local function RefreshCommands()
     end
 
   else
-    for index,cmd in pairs(spGetActiveCmdDescs()) do
-      if type(cmd) == "table" then
-        if string_sub(cmd.action,1,10) == 'buildunit_' then -- not cmd.disabled and cmd.type == 20 or
+
+    local activeCmdDescs = spGetActiveCmdDescs()
+    if smartOrderUnits then
+      local cmdUnitdefs = {}
+      for index,cmd in pairs(activeCmdDescs) do
+        if type(cmd) == "table" then
+          if string_sub(cmd.action,1,10) == 'buildunit_' then -- not cmd.disabled and cmd.type == 20 or
+            cmdUnitdefs[cmd.id*-1] = index
+          end
+        end
+      end
+      for k,uDefID in pairs(unitOrder) do
+        if cmdUnitdefs[uDefID] then
           cmdsCount = cmdsCount + 1
-          cmds[cmdsCount] = cmd
+          cmds[cmdsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
+        end
+      end
+    else
+      for index,cmd in pairs(activeCmdDescs) do
+        if type(cmd) == "table" then
+          if string_sub(cmd.action,1,10) == 'buildunit_' then -- not cmd.disabled and cmd.type == 20 or
+            cmdsCount = cmdsCount + 1
+            cmds[cmdsCount] = cmd
+          end
         end
       end
     end
@@ -1078,6 +1220,12 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
   if showPrice then
     --doCircle(x, y, z, radius, sides)
     font2:Print("\255\245\245\245"..unitMetalCost[uDefID].."\n\255\255\255\000"..unitEnergyCost[uDefID], cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][2]+cellPadding+(priceFontSize*1.38), priceFontSize, "o")
+  end
+
+  -- debug order value
+  if showOrderDebug and smartOrderUnits and unitOrderDebug[uDefID] then
+    local text = unitOrderDebug[uDefID]
+    font2:Print("\255\175\175\175"..text, cellRects[cellRectID][1]+cellPadding+(cellInnerSize*0.05), cellRects[cellRectID][4]-cellPadding-priceFontSize, priceFontSize*0.82, "o")
   end
 
   -- shortcuts
