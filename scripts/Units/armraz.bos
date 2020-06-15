@@ -15,6 +15,7 @@ static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, animSpeed, max
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Dropbox\BAR\Remoddeling\razorback animation.blend 
+	set-signal-mask 16;
 	if (bMoving) { //Frame:4
 			turn lfoot to x-axis <13.795659> speed <401.053563> / animSpeed; 
 			turn lfoot to z-axis <5.049406> speed <183.380055> / animSpeed; 
@@ -46,7 +47,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn ruparm to z-axis <0.155189> speed <4.655660> / animSpeed; 
 			move torso to z-axis [2.034146] speed [26.420989] / animSpeed; 
 			turn torso to y-axis <-4.632961> speed <138.988839> / animSpeed; 
-		sleep 98;
+			sleep ((33*animSpeed) -1);
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:7
@@ -372,7 +373,7 @@ UnitSpeed(){
 
 StartMoving()
 {
-	set-signal-mask 16;
+	signal 16;
 	bMoving = TRUE;
 	start-script Walk();
 }
