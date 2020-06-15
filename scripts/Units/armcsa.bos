@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 //piece  base, engine, thrusta, thrustb, emit;
-piece base, center, lwing, rwing, centerblade, backblade, thruster, thrusta, thrustb, nano, emit;
+piece base, center, lwing, rwing, centerblad, backblade, thruster, thrusta, thrustb, nano, emit;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -19,7 +19,7 @@ activatescr()
 
 	move lwing to x-axis [0] speed[5];
 	move rwing to x-axis [0] speed[5];
-	spin centerblade around y-axis speed <540> accelerate <5>;
+	spin centerblad around y-axis speed <540> accelerate <5>;
 	spin backblade around x-axis speed <540> accelerate <5>;
 		sleep 1000;
 	}
@@ -33,7 +33,7 @@ deactivatescr()
 	{
 	move lwing to x-axis [7] speed[5];
 	move rwing to x-axis [-7] speed[5];
-	stop-spin centerblade around y-axis decelerate <1>;
+	stop-spin centerblad around y-axis decelerate <1>;
 	stop-spin backblade around y-axis decelerate <1>;
 
 		sleep 1000;
