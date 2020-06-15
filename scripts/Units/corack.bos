@@ -7,178 +7,116 @@
 
 piece  rnano, lnano, torso, lforeleg, rforeleg, rhindleg,
        lhindleg, lbeamcase, rbeamcase,  pelvis,
-       rbeamhinge, lbeamhinge ;
+       rbeamhinge, lbeamhinge, aimy1 ;
 
-static-var  bMoving, notBuilding, nanoNozzle, currentSpeed, moveSpeed,
-            statechg_DesiredState, statechg_StateChanging;
-
-
-walk()
-{
-	if( bMoving )
-	{
-		move lforeleg to z-axis [1.750000] speed [10.500000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-1.700000] speed [10.200000] *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
-		sleep 15000 / currentSpeed;
+static-var  bMoving, notBuilding, nanoNozzle,  statechg_DesiredState, statechg_StateChanging;
+            
+static-var animSpeed, maxSpeed, animFramesPerKeyframe;
+#define SIG_WALK 2
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corack_anim_walk.blend 
+	set-signal-mask SIG_WALK;
+	if (bMoving) { //Frame:5
+			turn lforeleg to y-axis <-0.000000> speed <473.999948> / animSpeed; 
+			turn lhindleg to y-axis <-0.000000> speed <1388.999837> / animSpeed; 
+			move pelvis to y-axis [1.038649] speed [31.159472] / animSpeed; 
+			turn pelvis to z-axis <5.100000> speed <152.999994> / animSpeed; 
+			turn rbeamcase to z-axis <-1.200000> speed <35.999997> / animSpeed; 
+			turn rforeleg to y-axis <-0.000000> speed <569.999948> / animSpeed; 
+			turn rhindleg to y-axis <-0.000000> speed <1292.999889> / animSpeed; 
+			turn torso to z-axis <4.700000> speed <140.999988> / animSpeed; 
+		sleep 164;
 	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [0.850000] speed [6.750000] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.450000] speed [3.375000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-1.700000] now;
-		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [1.500000] speed [11.250000] *  currentSpeed / 100;
-		turn torso to x-axis <-8.076923> speed <60.576923> *  currentSpeed / 100;
-		sleep 13000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [0.000000] speed [6.375000] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.950000] speed [3.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-1.650000] speed [0.375000] *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [3.150000] speed [12.375000] *  currentSpeed / 100;
-		turn torso to x-axis <-11.950549> speed <29.052195> *  currentSpeed / 100;
-		sleep 11000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [-0.789996] speed [5.924970] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.450000] speed [3.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [0.000000] speed [12.375000] *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [1.500000] speed [12.375000] *  currentSpeed / 100;
-		turn torso to x-axis <-8.076923> speed <29.052195> *  currentSpeed / 100;
-		sleep 13000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [-1.700000] speed [5.460024] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.000000] speed [2.700000] *  currentSpeed / 100;
-		move rforeleg to z-axis [1.600000] speed [9.600000] *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [0.000000] speed [9.000000] *  currentSpeed / 100;
-		turn torso to x-axis <0.000000> speed <48.461538> *  currentSpeed / 100;
-		sleep 15000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to y-axis [0.450000] speed [3.375000] *  currentSpeed / 100;
-		move rforeleg to z-axis [0.800000] speed [6.000000] *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
-		move lhindleg to z-axis [1.500000] speed [11.250000] *  currentSpeed / 100;
-		turn torso to x-axis <-8.076923> speed <60.576923> *  currentSpeed / 100;
-		sleep 13000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to y-axis [0.950000] speed [3.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [0.000000] speed [6.000000] *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
-		move lhindleg to z-axis [3.100000] speed [12.000000] *  currentSpeed / 100;
-		turn torso to x-axis <-11.950549> speed <29.052195> *  currentSpeed / 100;
-		sleep 11000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to y-axis [0.450000] speed [3.750000] *  currentSpeed / 100;
-		move lforeleg to z-axis [0.000000] speed [12.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-0.839996] speed [6.299970] *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
-		move lhindleg to z-axis [1.500000] speed [12.000000] *  currentSpeed / 100;
-		turn torso to x-axis <-8.076923> speed <29.052195> *  currentSpeed / 100;
-		sleep 13000 / currentSpeed;
-	}
-}
-
-walklegs()
-{
-	if( bMoving )
-	{
-		move lforeleg to z-axis [1.750000] speed [10.500000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-1.700000] speed [5.160024] *  currentSpeed / 100;
-		sleep 15000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [0.850000] speed [6.750000] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.450000] speed [3.375000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-1.700000] now;
-		move rhindleg to z-axis [1.500000] speed [11.250000] *  currentSpeed / 100;
-		sleep 13000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [0.000000] speed [6.375000] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.950000] speed [3.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-1.650000] speed [0.375000] *  currentSpeed / 100;
-		move rhindleg to z-axis [3.150000] speed [12.375000] *  currentSpeed / 100;
-		sleep 11000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [-0.789996] speed [5.924970] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.450000] speed [3.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [0.000000] speed [12.375000] *  currentSpeed / 100;
-		move rhindleg to z-axis [1.500000] speed [12.375000] *  currentSpeed / 100;
-		sleep 13000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to z-axis [-1.700000] speed [5.460024] *  currentSpeed / 100;
-		move rforeleg to y-axis [0.000000] speed [2.700000] *  currentSpeed / 100;
-		move rforeleg to z-axis [1.600000] speed [9.600000] *  currentSpeed / 100;
-		move rhindleg to z-axis [0.000000] speed [9.000000] *  currentSpeed / 100;
-		sleep 15000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to y-axis [0.450000] now;
-		move rforeleg to z-axis [0.800000] speed [6.000000] *  currentSpeed / 100;
-		move lhindleg to z-axis [1.500000] now;
-		sleep 13000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to y-axis [0.950000] speed [3.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [0.000000] speed [6.000000] *  currentSpeed / 100;
-		move lhindleg to z-axis [3.100000] speed [12.000000] *  currentSpeed / 100;
-		sleep 11000 / currentSpeed;
-	}
-	if( bMoving )
-	{
-		move lforeleg to y-axis [0.450000] speed [3.750000] *  currentSpeed / 100;
-		move lforeleg to z-axis [0.000000] speed [12.750000] *  currentSpeed / 100;
-		move rforeleg to z-axis [-0.839996] speed [6.299970] *  currentSpeed / 100;
-		move lhindleg to z-axis [1.500000] speed [12.000000] *  currentSpeed / 100;
-		sleep 13000 / currentSpeed;
-	}
-}
-
-MotionControl(moving, building)
-{
-	while( TRUE )
-	{
-		moving = bMoving;
-		building = notBuilding;
-		if( moving )
-		{
-			if( building )
-			{
-				call-script walk();
-			}
-			else
-			{
-				call-script walklegs();
-			}
+	while(bMoving) {
+		if (bMoving) { //Frame:10
+			turn lbeamhinge to z-axis <-7.299999> speed <218.999984> / animSpeed; 
+			move lforeleg to z-axis [-5.490000] speed [164.699993] / animSpeed; 
+			move pelvis to y-axis [0.000000] speed [31.159472] / animSpeed; 
+			turn pelvis to z-axis <-0.000000> speed <152.999994> / animSpeed; 
+			turn rbeamcase to z-axis <1.550000> speed <82.499991> / animSpeed; 
+			move rforeleg to z-axis [5.490000] speed [164.699993] / animSpeed; 
+			turn torso to x-axis <9.699999> speed <290.999971> / animSpeed; 
+			turn torso to z-axis <-5.600000> speed <308.999974> / animSpeed; 
+		sleep ((33*animSpeed) -1);
 		}
-		else
-		{
+		if (bMoving) { //Frame:15
+			turn lbeamhinge to z-axis <0.300000> speed <227.999979> / animSpeed; 
+			move lforeleg to z-axis [0.000000] speed [164.699993] / animSpeed; 
+			move pelvis to x-axis [0.424902] speed [12.747057] / animSpeed; 
+			move pelvis to y-axis [1.133072] speed [33.992153] / animSpeed; 
+			turn pelvis to z-axis <-5.899999> speed <176.999981> / animSpeed; 
+			turn rbeamcase to z-axis <-0.700000> speed <67.499992> / animSpeed; 
+			move rforeleg to z-axis [-0.090000] speed [167.399998] / animSpeed; 
+			turn torso to x-axis <-0.000000> speed <290.999971> / animSpeed; 
+			turn torso to z-axis <-1.189813> speed <132.305590> / animSpeed; 
+		sleep ((33*animSpeed) -1);
 		}
-		sleep 130;
+		if (bMoving) { //Frame:20
+			turn lbeamhinge to z-axis <-5.800000> speed <182.999991> / animSpeed; 
+			move lforeleg to z-axis [5.620000] speed [168.599997] / animSpeed; 
+			move pelvis to x-axis [0.000000] speed [12.747057] / animSpeed; 
+			move pelvis to y-axis [0.000000] speed [33.992153] / animSpeed; 
+			turn pelvis to z-axis <-0.000000> speed <176.999981> / animSpeed; 
+			turn rbeamcase to z-axis <-8.999999> speed <248.999984> / animSpeed; 
+			move rforeleg to z-axis [-5.510000] speed [162.599988] / animSpeed; 
+			turn torso to x-axis <8.649999> speed <259.499975> / animSpeed; 
+			turn torso to z-axis <4.048148> speed <157.138839> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { //Frame:25
+			turn lbeamhinge to z-axis <-0.000000> speed <173.999983> / animSpeed; 
+			move lforeleg to z-axis [0.000000] speed [168.599997] / animSpeed; 
+			move pelvis to y-axis [1.038649] speed [31.159472] / animSpeed; 
+			turn pelvis to z-axis <5.100000> speed <152.999994> / animSpeed; 
+			turn rbeamcase to z-axis <-1.300000> speed <230.999977> / animSpeed; 
+			move rforeleg to z-axis [0.000000] speed [165.299993] / animSpeed; 
+			turn torso to x-axis <-0.000000> speed <259.499975> / animSpeed; 
+			turn torso to z-axis <4.600000> speed <16.555546> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
 	}
 }
+// Call this from MotionControl()!
+StopWalking() {
+	move lforeleg to z-axis [0.000000] speed [33.719999];
+	move pelvis to x-axis [0.000000] speed [2.549411];
+	move pelvis to y-axis [0.000000] speed [6.798431];
+	move rforeleg to z-axis [0.000000] speed [33.480000];
+	turn lbeamhinge to z-axis <0.000000> speed <45.599996>;
+	turn lforeleg to y-axis <15.799998> speed <94.799990>;
+	turn lhindleg to y-axis <-46.299995> speed <277.799967>;
+	turn pelvis to z-axis <0.000000> speed <35.399996>;
+	turn rbeamcase to z-axis <0.000000> speed <49.799997>;
+	turn rforeleg to y-axis <-18.999998> speed <113.999990>;
+	turn rhindleg to y-axis <43.099996> speed <258.599978>;
+	turn torso to x-axis <0.000000> speed <58.199994>;
+	turn torso to z-axis <0.000000> speed <61.799995>;
+}
+// REMEMBER TO animspeed = 5 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 5) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<3) animSpeed=3;
+		if (animspeed>10) animSpeed = 10;
+		sleep 164;
+	}
+}
+StartMoving(){
+	signal SIG_WALK;
+	bMoving=TRUE;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIG_WALK;
+	bMoving=FALSE;
+	call-script StopWalking();
+}
+
 
 Go()
 {
@@ -249,15 +187,6 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
-		if (currentSpeed<20) currentSpeed=20;
-		sleep 142;
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -266,7 +195,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 500;
 	}
 	start-script UnitSpeed();
-	start-script MotionControl();
+	
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -293,8 +222,7 @@ Create()
 	bMoving = FALSE;
 	nanoNozzle = 0;
 	notBuilding = 1;
-	moveSpeed = get MAX_SPEED;
-	currentSpeed = 100;
+	animSpeed = 5;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
@@ -315,8 +243,8 @@ StartBuilding(heading, pitch)
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
-	turn torso to y-axis heading speed <160.000000>;
-	wait-for-turn torso around y-axis;
+	turn aimy1 to y-axis heading speed <160.000000>;
+	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
@@ -327,18 +255,11 @@ StopBuilding()
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	
+	
+	turn aimy1 to y-axis <0> speed <160.000000>;
 	start-script RequestState(1);
 }
 
-StartMoving()
-{
-	bMoving = TRUE;
-}
-
-StopMoving()
-{
-	bMoving = FALSE;
-}
 
 QueryNanoPiece(piecenum)
 {
