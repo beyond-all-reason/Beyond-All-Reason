@@ -51,9 +51,11 @@ triplepenetration(){
 	while(TRUE){
 		if( statechg_DesiredState == 0 )
 		{
-			move column to y-axis [20] speed Static_Var_1;
+			move column to y-axis [20] speed (Static_Var_1/2);
 			wait-for-move column along y-axis;
-			move column to y-axis [0] speed Static_Var_1;
+			//move column to y-axis [10] speed Static_Var_1;
+			//wait-for-move column along y-axis;
+			move column to y-axis [0] speed Static_Var_1*2;
 			wait-for-move column along y-axis;
 		}
 		sleep 1000;
