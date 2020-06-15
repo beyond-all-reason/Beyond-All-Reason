@@ -490,8 +490,8 @@ ResumeBuilding()
 	sleep 400;
 	if( bIsBuilding AND ( !gun_2 ) )
 	{
-		turn aimy1 to y-axis buildHeading speed <150.000000>;
-		turn aimx1 to x-axis <-30.000000> - buildPitch speed <45.000000>;
+	turn aimy1 to y-axis buildheading - <20> speed <300.000000>;
+	turn aimx1 to x-axis <-20.000000> - buildpitch speed <90.000000>;
 	}
 	return (0);
 }
@@ -651,8 +651,8 @@ StartBuilding(heading, pitch)
 	//}
 	buildHeading = heading;
 	buildPitch = pitch;
-	turn aimy1 to y-axis heading speed <300.000000>;
-	turn aimx1 to x-axis <-30.000000> - pitch speed <90.000000>;
+	turn aimy1 to y-axis heading - <20> speed <300.000000>;
+	turn aimx1 to x-axis <-20.000000> - pitch speed <90.000000>;
 	//wait-for-turn torso around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	set INBUILDSTANCE to 1;
