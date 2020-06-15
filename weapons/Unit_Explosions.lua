@@ -986,7 +986,7 @@ unitDeaths = {
         explosiongenerator = "custom:scav_commander_explosion",
         damage = {
             commanders = 1250,
-            default = 3500,
+            default = 5000,
         },
         customparams = {
             expl_light_color = "0.6 0.15 1",

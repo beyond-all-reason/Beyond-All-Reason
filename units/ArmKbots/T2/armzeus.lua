@@ -137,6 +137,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 24,
+				laserFlareSize = 5,
 				name = "Close-quarters g2g lightning rifle",
 				noselfdamage = true,
 				range = 280,
