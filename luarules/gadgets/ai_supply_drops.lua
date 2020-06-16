@@ -1,7 +1,7 @@
 if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0) then
-    gadgetEnabled = true
+    lootboxSpawnEnabled = true
 else
-    gadgetEnabled = false
+    lootboxSpawnEnabled = false
 end
 
 function gadget:GetInfo()
@@ -11,7 +11,7 @@ function gadget:GetInfo()
       author    = "Damgam",
       date      = "2020",
       layer     = -100,
-      enabled   = gadgetEnabled,
+      enabled   = true,
     }
 end
 
@@ -153,7 +153,7 @@ function gadget:GameFrame(n)
                 end
             end
         end
-        if math_random(0,300) == 0 then
+        if math_random(0,300) == 0 and lootboxSpawnEnabled then
             for k = 1,1000 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
