@@ -266,7 +266,7 @@ return {
 				noexplode = true,
 				noselfdamage = true,
 				range = 890,
-				reloadtime = 1,
+				reloadtime = 2,
 				rgbcolor = "0.7 0.3 1.0",
 				size = 8.5,
 				soundhit = "xplomas2",

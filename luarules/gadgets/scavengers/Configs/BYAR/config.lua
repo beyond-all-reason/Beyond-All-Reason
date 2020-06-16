@@ -361,10 +361,10 @@ else
 	}
 
 	constructorControllerModuleConfig = {
-		constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-		constructortimer 					= 280, -- time in seconds between commander/constructor spawns
+		constructortimerstart				= 140, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
+		constructortimer 					= 260, -- time in seconds between commander/constructor spawns
 		constructortimerreductionframes		= 36000,
-		minimumconstructors					= 1,
+		minimumconstructors					= 2,
 		useresurrectors						= true,
 			searesurrectors					= false,
 		useconstructors						= true,

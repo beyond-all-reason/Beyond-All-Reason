@@ -35,7 +35,7 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 250,				-- can get multiplied in unitdef_post 
+	workertime = 500,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -87,7 +87,7 @@ customDefs.armcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 250,				-- can get multiplied in unitdef_post 
+	workertime = 500,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -679,6 +679,18 @@ customDefs.armvader = {
 
 -- Cloaked + Stealh Units
 
+customDefs.corspy = {
+	explodeas = "spybombxscav",
+	selfdestructas = "spybombxscav",
+	mincloakdistance = 64,
+}
+
+customDefs.armspy = {
+	explodeas = "spybombxscav",
+	selfdestructas = "spybombxscav",
+	mincloakdistance = 64,
+}
+
 customDefs.corkarg = {
 	cloakcost = 24,
 	stealth = true,
@@ -841,4 +853,26 @@ customDefs.armrectr = {
 
 customDefs.cornecro = {
 	workertime = 400,		-- can get multiplied in unitdef_post 
+}
+
+-- LOOTBOXES
+
+customDefs.lootboxbronze = {
+	energymake = 400,
+	metalmake = 20,
+}
+
+customDefs.lootboxsilver = {
+	energymake = 800,
+	metalmake = 40,
+}
+
+customDefs.lootboxgold = {
+	energymake = 1600,
+	metalmake = 80,
+}
+
+customDefs.lootboxplatinum = {
+	energymake = 2800,
+	metalmake = 140,
 }

@@ -47,7 +47,7 @@ return {
 		script = "lootboxes/lootboxgold.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGeneric",
-		selfdestructcountdown = 20,
+		selfdestructcountdown = 9,
 		sightdistance = 96,
 		transportbyenemy = true,
 		turninplace = false,

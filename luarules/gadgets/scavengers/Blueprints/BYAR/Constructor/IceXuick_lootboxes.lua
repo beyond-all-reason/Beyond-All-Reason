@@ -38,7 +38,7 @@ table.insert(ScavengerConstructorBlueprintsT2Sea,IceXuickLootboxT1)
 
 local function IceXuickLootboxT2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
     local posradius = 48
-    local r = math_random(0,6)
+    local r = math_random(0,5)
     local posradius = 70
         if radiusCheck then
             return posradius
@@ -55,7 +55,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,IceXuickLootboxT2)
 
 local function IceXuickLootboxT3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
     local posradius = 48
-    local r = math_random(0,8)
+    local r = math_random(0,6)
     local posradius = 70
         if radiusCheck then
             return posradius
@@ -69,7 +69,7 @@ table.insert(ScavengerConstructorBlueprintsT3,IceXuickLootboxT3)
 table.insert(ScavengerConstructorBlueprintsT3Sea,IceXuickLootboxT3)
 
 local function IceXuickLootboxT4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local r = math_random(0,15)
+    local r = math_random(0,10)
     local posradius = 48
         if radiusCheck then
             return posradius
