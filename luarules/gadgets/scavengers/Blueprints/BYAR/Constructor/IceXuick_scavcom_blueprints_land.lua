@@ -20,7 +20,7 @@ local nameSuffix = '_scav'
 local function scavlabt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitoptions = {}
 local r = math_random(0,5)
-	local posradius = 90
+	local posradius = 120
 		if radiusCheck then
 			return posradius
 		else
@@ -150,7 +150,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavlabt2)
 -- ECO BUILDINGS
 
 local function scavmetalmakerst1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 70
+local posradius = 88
 local unitoptions = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
 	if radiusCheck then
 		return posradius
@@ -177,7 +177,7 @@ table.insert(ScavengerConstructorBlueprintsT0,scavmetalmakerst1)
 table.insert(ScavengerConstructorBlueprintsT1,scavmetalmakerst1)
 
 local function scavmetalmakerst2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 80
+local posradius = 120
 local unitoptions = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
 	if radiusCheck then
 		return posradius
@@ -204,7 +204,7 @@ table.insert(ScavengerConstructorBlueprintsT2,scavmetalmakerst2)
 table.insert(ScavengerConstructorBlueprintsT3,scavmetalmakerst2)
 
 local function scavpowerplants(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 80
+local posradius = 96
 local unitoptions = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
 	local r = math_random(0,2)
 		if radiusCheck then
@@ -285,7 +285,7 @@ table.insert(ScavengerConstructorBlueprintsT1,scavpowerplants)
 table.insert(ScavengerConstructorBlueprintsT2,scavpowerplants)
 
 local function scavmstoredual(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 80
+local posradius = 96
 local unitoptions = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
 	if radiusCheck then
 		return posradius
@@ -310,7 +310,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavmstoredual)
 -- SMALL RADAR OUTPOSTS
 
 local function scavradaronlyoutpost(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 80
+local posradius = 88
 local unitoptions = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corrl_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, UDN.cornanotc_scav.id,}
 	local r = math_random(0,1)
 		if radiusCheck then
@@ -359,7 +359,7 @@ table.insert(ScavengerConstructorBlueprintsT1,scavradaroutpostsmallred)
 local function roadblocks(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptionsblue = {UDN.armdrag_scav.id, UDN.armdrag_scav.id, UDN.armdrag_scav.id, UDN.armdrag_scav.id, UDN.armclaw_scav.id,}
 	local unitoptionsred = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
-	local posradius = 40
+	local posradius = 80
 	local r = math_random(0,7)
 		if radiusCheck then
 			return posradius
@@ -422,7 +422,7 @@ table.insert(ScavengerConstructorBlueprintsT1,roadblocks)
 
 local function scavwallofturrets(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptions = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corhllt_scav.id,}
-	local posradius = 80
+	local posradius = 112
 	local r = math_random(0,3)
 		if radiusCheck then
 			return posradius
@@ -454,7 +454,7 @@ table.insert(ScavengerConstructorBlueprintsT1,scavwallofturrets)
 local function scavwallofturretsadv(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptions = {UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id,}
 	local r = math_random(0,1)
-	local posradius = 90
+	local posradius = 100
 		if radiusCheck then
 			return posradius
 		else
@@ -482,7 +482,7 @@ local function scavadvsol(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local r = math_random(0,1)
 	local x1 = math_random(-48,48)
 	local x2 = math_random(-48,48)
-	local posradius = 80
+	local posradius = 112
 		if radiusCheck then
 			return posradius
 		else
@@ -509,7 +509,7 @@ table.insert(ScavengerConstructorBlueprintsT2,scavadvsol)
 -- MEDIUM RADAR OUTPOSTS
 
 local function scavradaroutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 110
+local posradius = 128
 local unitoptions = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corrl_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corerad_scav.id, UDN.cornanotc_scav.id,}
 	if radiusCheck then
 		return posradius
@@ -532,7 +532,7 @@ table.insert(ScavengerConstructorBlueprintsT1,scavradaroutpostred)
 table.insert(ScavengerConstructorBlueprintsT2,scavradaroutpostred)
 
 local function scavartyoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 90
+local posradius = 100
 local unitoptions = {UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, UDN.corrad_scav.id, UDN.coreyes_scav.id, UDN.corjamt_scav.id, UDN.cornanotc_scav.id,}
 local unitoptions2 = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id}
 	if radiusCheck then
@@ -558,7 +558,7 @@ table.insert(ScavengerConstructorBlueprintsT2,scavartyoutpostred)
 -- MEDIUM ARTILLERY BASES
 
 local function scavartyoutpostredadv(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 90
+local posradius = 128
 	if radiusCheck then
 		return posradius
 	else
@@ -583,7 +583,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavartyoutpostredadv)
 
 local function scavaaoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitoptions = {UDN.corarad_scav.id, UDN.corvipe_scav.id, UDN.corhlt_scav.id, UDN.corhllt_scav.id, UDN.cormadsam_scav.id,}
-	local posradius = 90
+	local posradius = 120
 	local r = math_random(0,1)
 		if radiusCheck then
 			return posradius
@@ -644,7 +644,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavaaoutpostred)
 -- CLOAKED BASES
 
 local function scavheavyoutpostcloak(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
+local posradius = 64
 local unitoptions = {UDN.corvipe_scav.id, UDN.armpacko_scav.id,}
 	if radiusCheck then
 		return posradius
@@ -659,7 +659,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavheavyoutpostcloak)
 -- BIG BASES
 
 local function scavbigoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 160
+local posradius = 176
 local unitoptions = {UDN.corrad_scav.id, UDN.corarad_scav.id, UDN.corshroud_scav.id, UDN.cornanotc_scav.id, UDN.armtarg_scav.id,}
 local defenseoptions = {UDN.corhlt_scav.id, UDN.corhllt_scav.id, UDN.corllt_scav.id, UDN.corrl_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corerad_scav.id, UDN.cornanotc_scav.id,}
 	local r = math_random(0,2)
@@ -772,7 +772,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavbigoutpostred)
 -- LONG RANGE PLASMA CANNON BASES
 
 local function scavlrpcoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 120
+local posradius = 136
 	local r = math_random(0,1)
 		if radiusCheck then
 			return posradius
@@ -810,7 +810,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavlrpcoutpostred)
 
 local function scavicsoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local defenseoptions = {UDN.corarad_scav.id, UDN.corshroud_scav.id, UDN.corhlt_scav.id, UDN.cornanotc_scav.id,}
-local posradius = 120
+local posradius = 144
 	if radiusCheck then
 		return posradius
 	else
@@ -866,7 +866,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavdoomoutpostred)
 -- HEAVY DEFENSIVE AIRREPAIR BASES
 
 local function scavdaaoutpostheavy(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 140
+local posradius = 170
 local unitoptions = {UDN.corvipe_scav.id, UDN.corvipe_scav.id, UDN.corflak_scav.id,}
 	if radiusCheck then
 		return posradius
@@ -920,7 +920,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavdaaoutpostheavy)
 
 local function scavnrgplants(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptions = {UDN.corhlt_scav.id, UDN.corflak_scav.id, UDN.corshroud_scav.id, UDN.cortarg_scav.id, UDN.corfort_scav.id, UDN.corfort_scav.id,}
-	local posradius = 130
+	local posradius = 160
 	local r = math_random(0,4)
 		if radiusCheck then
 			return posradius

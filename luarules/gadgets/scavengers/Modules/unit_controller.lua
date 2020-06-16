@@ -5,7 +5,7 @@ VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/s
 function SelfDestructionControls(n, scav, scavDef)
 	UnitRange = {}
 	Constructing = {}
-	Constructing[scav] = false
+	--Constructing[scav] = false
 	local _,_,_,_,buildProgress = Spring.GetUnitHealth(scav)
 	if buildProgress == 1 then
 		if selfdx[scav] then
@@ -24,7 +24,7 @@ function SelfDestructionControls(n, scav, scavDef)
 			UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
 		end
 		if scavConstructor[scav] then
-			local Spring.GetUnitResources(scav) = metalMake, metalUse
+			local metalMake, metalUse = Spring.GetUnitResources(scav)
 			if metalUse > 0 then
 				Constructing[scav] = true
 			else
@@ -34,7 +34,7 @@ function SelfDestructionControls(n, scav, scavDef)
 		local nearestselfd = Spring.GetUnitNearestEnemy(scav, UnitDefs[scavDef].maxWeaponRange + 200, false)
 		if not nearestselfd and (oldselfdx[scav] and oldselfdy[scav] and oldselfdz[scav]) and (oldselfdx[scav] > selfdx[scav]-10 and oldselfdx[scav] < selfdx[scav]+10) and (oldselfdy[scav] > selfdy[scav]-10 and oldselfdy[scav] < selfdy[scav]+10) and (oldselfdz[scav] > selfdz[scav]-10 and oldselfdz[scav] < selfdz[scav]+10) then
 			if selfdx[scav] < mapsizeX and selfdx[scav] > 0 and selfdz[scav] < mapsizeZ and selfdz[scav] > 0 then
-				if not scavConstructor[scav] or Constructing[scav] = false then
+				if not scavConstructor[scav] or Constructing[scav] == false then
 					local posx = math.random(selfdx[scav] - 100, selfdx[scav] + 100)
 					local posz = math.random(selfdz[scav] - 100, selfdz[scav] + 100)
 					Spring.SetUnitPosition(scav, posx, posz)

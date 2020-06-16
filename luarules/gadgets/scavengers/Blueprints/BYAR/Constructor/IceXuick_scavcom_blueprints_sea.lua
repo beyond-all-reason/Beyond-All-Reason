@@ -62,7 +62,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,scavamphfactoryt2)
 local function waterblocks(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptionsblue = {UDN.armfdrag_scav.id,}
 	local unitoptionsred = {UDN.corfdrag_scav.id,}
-	local posradius = 64
+	local posradius = 128
 	local r = math_random(0,3)
 		if radiusCheck then
 			return posradius
@@ -154,7 +154,7 @@ table.insert(ScavengerConstructorBlueprintsT2Sea,scavsonaroutpostadv)
 table.insert(ScavengerConstructorBlueprintsT3Sea,scavsonaroutpostadv)
 
 local function scavuwmstore(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
+local posradius = 128
 local unitoptions = {UDN.corsonar_scav.id, UDN.armsonar_scav.id,}
 local defenseoptions = {UDN.cortl_scav.id, UDN.armtl_scav.id, UDN.corfrt_scav.id,}
 	if radiusCheck then
@@ -170,7 +170,7 @@ table.insert(ScavengerConstructorBlueprintsT0Sea,scavuwmstore)
 table.insert(ScavengerConstructorBlueprintsT1Sea,scavuwmstore)
 
 local function scavuwmstoreadv(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
+local posradius = 128
 local unitoptions = {UDN.corsonar_scav.id, UDN.armsonar_scav.id,}
 local defenseoptions = {UDN.coratl_scav.id, UDN.armatl_scav.id, UDN.armfrt_scav.id,}
 	if radiusCheck then
@@ -185,7 +185,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavuwmstoreadv)
 
 local function scavuwestore(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
+local posradius = 128
 local unitoptions = {UDN.corsonar_scav.id, UDN.coruwfus_scav.id, UDN.cortl_scav.id,}
 local defenseoptions = {UDN.cortl_scav.id, UDN.coratl_scav.id, UDN.corfrt_scav.id,}
 	if radiusCheck then
@@ -201,7 +201,7 @@ table.insert(ScavengerConstructorBlueprintsT1Sea,scavuwestore)
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavuwestore)
 
 local function scavamphunitsblue(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 50
+local posradius = 64
 	if radiusCheck then
 		return posradius
 	else
@@ -215,7 +215,7 @@ table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphunitsblue)
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavamphunitsblue)
 
 local function scavamphunitsredadv(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 50
+local posradius = 65
 	if radiusCheck then
 		return posradius
 	else
@@ -228,7 +228,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavamphunitsredadv)
 
 local function scavuwfus(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
+local posradius = 112
 	if radiusCheck then
 		return posradius
 	else
@@ -241,7 +241,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT3Sea,scavuwfus)
 
 local function scavamphunitsredadvxl(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 64
+local posradius = 80
 	if radiusCheck then
 		return posradius
 	else
