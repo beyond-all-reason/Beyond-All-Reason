@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Units/CORJUGG.s3o",
 		pushresistant = true,
-		script = "Units/CORJUGG.lua",
+		script = "Units/CORJUGG.cob",
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",
 		sightdistance = 720,
