@@ -58,7 +58,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 				local nx,ny,nz = Spring.GetUnitPosition(nearUnit)
 				Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
 				if nearUnit ~= unitID then
-					Spring.AddUnitDamage(nearUnit, math.ceil(damage*sparkWeapons[weaponID].forkdamage), 0, attackerID)
+					Spring.AddUnitDamage(nearUnit, math.ceil(damage*sparkWeapons[weaponID].forkdamage), 0, attackerID, -7)
 					count = count + 1
 				end
 			end
