@@ -64,7 +64,7 @@ local function walk()
 		Move(torso, y_axis, 18, VAR_speed_bump_torso)
 		Move(torso, z_axis, 12, VAR_speed_bump_torso)
 		Turn(torso, x_axis, math.rad(6), VAR_speed)
-		
+
 		-- (1/2 cycle) 6 frames ahead of normal cycle
 		Turn(lbleg, x_axis, math.rad(105), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-80), VAR_speed)
@@ -78,35 +78,35 @@ local function walk()
 		Turn(rfleg, x_axis, math.rad(10), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-10), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame2
 		Turn(lbleg, x_axis, math.rad(120), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-70), VAR_speed)
-		 
+
 		Turn(lfleg, x_axis, math.rad(0), VAR_speed)
 		Turn(lffoot, x_axis, math.rad(-30), VAR_speed)
-		
+
 		Turn(rbleg, x_axis, math.rad(30), VAR_speed)
 		Turn(rbfoot, x_axis, math.rad(-30), VAR_speed)
 
 		Turn(rfleg, x_axis, math.rad(20), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-20), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame3
   		Turn(lbleg, x_axis, math.rad(135), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-60), VAR_speed)
 
 		Turn(lfleg, x_axis, math.rad(-10), VAR_speed)
 		Turn(lffoot, x_axis, math.rad(-30), VAR_speed)
-		
+
 		Turn(rbleg, x_axis, math.rad(0), VAR_speed)
 		Turn(rbfoot, x_axis, math.rad(-0), VAR_speed)
 
 		Turn(rfleg, x_axis, math.rad(30), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-30), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame4 (first of left front leg cycle)
 		Move(torso, y_axis, 12, VAR_speed_bump_torso)
 		Move(torso, z_axis, 0, VAR_speed_bump_torso)
@@ -123,7 +123,7 @@ local function walk()
 		Turn(rfleg, x_axis, math.rad(40), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-30), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame5
 		Turn(lbleg, x_axis, math.rad(105), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-80), VAR_speed)
@@ -137,7 +137,7 @@ local function walk()
 		Turn(rfleg, x_axis, math.rad(30), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-30), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame6
   		Turn(lbleg, x_axis, math.rad(90), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-90), VAR_speed)
@@ -151,38 +151,38 @@ local function walk()
 		Turn(rfleg, x_axis, math.rad(20), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-30), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame7 (first of left back leg cycle)
         Move(torso, y_axis, 18, VAR_speed_bump_torso)
 		Move(torso, z_axis, 12, VAR_speed_bump_torso)
-		
+
         Turn(lbleg, x_axis, math.rad(60), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-60), VAR_speed)
 
   		Turn(lfleg, x_axis, math.rad(10), VAR_speed)
 		Turn(lffoot, x_axis, math.rad(-10), VAR_speed)
-		
+
 		Turn(rbleg, x_axis, math.rad(105), VAR_speed)
 		Turn(rbfoot, x_axis, math.rad(-80), VAR_speed)
 
 		Turn(rfleg, x_axis, math.rad(10), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-30), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame8
         Turn(lbleg, x_axis, math.rad(30), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-30), VAR_speed)
-		
+
   		Turn(lfleg, x_axis, math.rad(20), VAR_speed)
 		Turn(lffoot, x_axis, math.rad(-20), VAR_speed)
-		
+
 		Turn(rbleg, x_axis, math.rad(120), VAR_speed)
 		Turn(rbfoot, x_axis, math.rad(-70), VAR_speed)
 
 		Turn(rfleg, x_axis, math.rad(0), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-30), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame9
         Turn(lbleg, x_axis, math.rad(0), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-0), VAR_speed)
@@ -196,7 +196,7 @@ local function walk()
 		Turn(rfleg, x_axis, math.rad(-10), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-30), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame10 (first of right front leg cycle)
 		Move(torso, y_axis, 12, VAR_speed_bump_torso)
 		Move(torso, z_axis, 0, VAR_speed_bump_torso)
@@ -213,7 +213,7 @@ local function walk()
 		Turn(rfleg, x_axis, math.rad(-10), VAR_speed) --or -20
 		Turn(rffoot, x_axis, math.rad(-20), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame11
         Turn(lbleg, x_axis, math.rad(60), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-60), VAR_speed)
@@ -227,7 +227,7 @@ local function walk()
 		Turn(rfleg, x_axis, math.rad(-10), VAR_speed)
 		Turn(rffoot, x_axis, math.rad(-10), VAR_speed)
 		Sleep(VAR_sleep)
-		
+
 		--frame12
 		Turn(lbleg, x_axis, math.rad(90), VAR_speed)
 		Turn(lbfoot, x_axis, math.rad(-90), VAR_speed)
@@ -250,21 +250,21 @@ local function stop()
 	SetSignalMask( SIG_stop )
 	Signal( SIG_stop )
 	Signal( SIG_walk )
-	local VAR_speed= 1		
+	local VAR_speed= 1
 
     Move(torso, y_axis, 0, 20)
     Move(torso, z_axis, 0, VAR_speed_bump_torso)
 	Turn(torso, x_axis, math.rad(0), 0.5)
-    
+
     Turn(lfleg, x_axis, math.rad(0), VAR_speed)
     Turn(lffoot, x_axis, math.rad(0), VAR_speed)
-	
+
 	Turn(rfleg, x_axis, math.rad(0), VAR_speed)
     Turn(rffoot, x_axis, math.rad(0), VAR_speed)
 
     Turn(lbleg, x_axis, math.rad(0), 2)
     Turn(lbfoot, x_axis, math.rad(0), VAR_speed)
-	
+
 	Turn(rbleg, x_axis, math.rad(0), 2)
     Turn(rbfoot, x_axis, math.rad(0), VAR_speed)
 
@@ -302,7 +302,7 @@ local function fire1()
     	EmitSfx(rbarrelflare,1024)
   end
 	Sleep(1)
-end	
+end
 
 local function fire2()
 	Sleep(1)
@@ -316,7 +316,7 @@ local function fire4()
 	Sleep(1)
 end
 
--- Call-Ins 
+-- Call-Ins
 
 ------
 
@@ -429,55 +429,55 @@ function script.Killed(recentDamage, maxHealth)
 		local severity = recentDamage/maxHealth
 	if severity < 0.25 then
 
-		Explode(torso, SFX.NONE)
-        Explode(tail, SFX.NONE)
+		Explode(torso, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(tail, SFX.NONE + SFX.NO_HEATCLOUD)
 
-		Explode(turret, SFX.NONE)
-        Explode(lbarrel, SFX.NONE)
-		Explode(rbarrel, SFX.NONE)
+		Explode(turret, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(lbarrel, SFX.NONE + SFX.NO_HEATCLOUD)
+		Explode(rbarrel, SFX.NONE + SFX.NO_HEATCLOUD)
 
-		Explode(llaser, SFX.NONE)
-        Explode(rlaser, SFX.NONE)
-        Explode(toplaser, SFX.NONE)
+		Explode(llaser, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(rlaser, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(toplaser, SFX.NONE + SFX.NO_HEATCLOUD)
 
-        Explode(lbleg, SFX.NONE)
-        Explode(lbfoot, SFX.NONE)
-        Explode(lfleg, SFX.NONE)
-        Explode(lffoot, SFX.NONE)
-        
-        Explode(rbleg, SFX.NONE)
-        Explode(rbfoot, SFX.NONE)
-        Explode(rfleg, SFX.NONE)
-        Explode(rffoot, SFX.NONE)
-        
+        Explode(lbleg, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(lbfoot, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(lfleg, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(lffoot, SFX.NONE + SFX.NO_HEATCLOUD)
+
+        Explode(rbleg, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(rbfoot, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(rfleg, SFX.NONE + SFX.NO_HEATCLOUD)
+        Explode(rffoot, SFX.NONE + SFX.NO_HEATCLOUD)
+
 		return 1
 	elseif severity<0.5 then
 
-		Explode(torso, SFX.SHATTER)
-		Explode(tail, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
+		Explode(torso, SFX.SHATTER + SFX.NO_HEATCLOUD)
+		Explode(tail, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
 
-		Explode(turret, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(lbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(rbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
+		Explode(turret, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(lbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(rbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
 
-		Explode(llaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(rlaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(toplaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
+		Explode(llaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(rlaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(toplaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
 
-        Explode(lbleg, SFX.SHATTER)
-        Explode(lbfoot, SFX.SHATTER)
-        Explode(lfleg, SFX.SHATTER)
-        Explode(lffoot, SFX.SHATTER)
+        Explode(lbleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(lbfoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(lfleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(lffoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
 
-        Explode(rbleg, SFX.SHATTER)
-        Explode(rbfoot, SFX.SHATTER)
-        Explode(rfleg, SFX.SHATTER)
-        Explode(rffoot, SFX.SHATTER)
+        Explode(rbleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(rbfoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(rfleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(rffoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
 
 		return 2
 	else
 
-		Explode(torso, SFX.SHATTER)
+		Explode(torso, SFX.SHATTER + SFX.NO_HEATCLOUD)
 		Explode(tail, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
 
 		Explode(turret, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
@@ -502,4 +502,3 @@ function script.Killed(recentDamage, maxHealth)
 	end
 end
 
-	
