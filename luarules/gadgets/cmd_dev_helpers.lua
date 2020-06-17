@@ -10,10 +10,37 @@ function gadget:GetInfo()
   }
 end
 
-----------------------------------------
+
+local authorizedPlayers  = {
+	'Floris',
+	'[teh]Flow',
+	'IceXuick',
+}
+
+local PACKET_HEADER = "$dev$"
+local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+
+
+function isAuthorized(playerID)
+	if Spring.IsCheatingEnabled() then
+		return true
+	else
+		local playername = Spring.GetPlayerInfo(playerID,false)
+		local authorized = false
+		for _,name in ipairs(authorizedPlayers) do
+			if playername == name or playername == "UnnamedPlayer" then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+
 -- SYNCED
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 ----------------------------------------
+
 
     function LoadMissiles()
         if not Spring.IsCheatingEnabled() then return end
@@ -39,7 +66,13 @@ if (gadgetHandler:IsSyncedCode()) then
     end
 
     function gadget:RecvLuaMsg(msg, playerID)
-        if not Spring.IsCheatingEnabled() then return end
+		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+			return
+		end
+
+		if not isAuthorized(playerID) then return end
+
+		msg = string.sub(msg, PACKET_HEADER_LENGTH)
 
         local words = {}
         for word in msg:gmatch("%w+") do table.insert(words, word) end
@@ -84,6 +117,7 @@ if (gadgetHandler:IsSyncedCode()) then
     end
 
     function DestroySelUnits(words, playerID)
+
         if #words<2 then return end
 
         for n=2,#words do
@@ -111,18 +145,18 @@ else
     end
 
     function MakeWreck (_,line, words, playerID)
-        if not Spring.IsCheatingEnabled() or playerID ~= Spring.GetMyPlayerID() then return end
+		if not isAuthorized(Spring.GetMyPlayerID()) then return end
 
-        local selUnits = Spring.GetSelectedUnits()
-        local msg = "destroyselunits"
-        for _,unitID in ipairs(selUnits) do
-            msg = msg .. " " .. tostring(unitID)
-        end
-        Spring.SendLuaRulesMsg(msg)
-    end
+		local selUnits = Spring.GetSelectedUnits()
+		local msg = "destroyselunits"
+		for _,unitID in ipairs(selUnits) do
+			msg = msg .. " " .. tostring(unitID)
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
+	end
 
     function GiveCat(_,line, words, playerID)
-        if not Spring.IsCheatingEnabled() or playerID ~= Spring.GetMyPlayerID() then return end
+		if not isAuthorized(Spring.GetMyPlayerID()) then return end
 
         local unitTypes = {}
         local techLevels = {}
@@ -278,8 +312,7 @@ else
             msg = msg .. " " .. uDID
         end
 
-        Spring.SendLuaRulesMsg(msg)
-
+		Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
     end
 
 
