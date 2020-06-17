@@ -1476,7 +1476,7 @@ function widget:DrawScreen()
   gl.CallList(dlistInfo)
 
   if displayMode ~= 'text' and not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-    Spring.SetMouseCursor('cursornormal')
+    --Spring.SetMouseCursor('cursornormal')
 
     --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.4 or 0.25}, {1,1,1,b and 0.12 or 0.06})
     --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.25),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,b and 0.3 or 0.15})
