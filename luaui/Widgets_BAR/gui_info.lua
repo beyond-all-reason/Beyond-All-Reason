@@ -281,7 +281,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
   end
   if unitDef.isImmobile or  unitDef.isBuilding then
-    if unitDef.floater or unitDef.floatOnWater then
+    if unitDef.floatOnWater then
       unitOrder[unitDefID] = unitOrder[unitDefID] + 11000000
     elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
       unitOrder[unitDefID] = unitOrder[unitDefID] + 10000000
@@ -680,7 +680,7 @@ local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, co
   end
 end
 local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-  gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
+  gl.BeginEnd(GL_QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
@@ -858,7 +858,7 @@ local function drawInfo()
 
     selUnitsCounts = spGetSelectedUnitsCounts()
     selUnitsSorted = spGetSelectedUnitsSorted()
-    selUnitTypes = 0
+    local selUnitTypes = 0
     selectionCells = {}
 
     for k,uDefID in pairs(unitOrder) do
@@ -873,7 +873,7 @@ local function drawInfo()
     end
 
     -- selected units grid area
-    gridWidth = math_floor(backgroundRect[3]-backgroundRect[1]-bgpadding)
+    local gridWidth = math_floor(backgroundRect[3]-backgroundRect[1]-bgpadding)
     gridHeight = math_floor((backgroundRect[4]-backgroundRect[2])-bgpadding-bgpadding)
     customInfoArea = {backgroundRect[3]-gridWidth, backgroundRect[2], backgroundRect[3]-bgpadding, backgroundRect[2]+gridHeight}
 
@@ -991,7 +991,7 @@ local function drawInfo()
     -- custom unit info background
     local width = contentWidth * 0.8
     local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
-    customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
+    local customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
     RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
 
     local contentPaddingLeft = contentPadding * 0.75
@@ -1108,8 +1108,15 @@ local function drawInfo()
             -- gloss
             glBlending(GL_SRC_ALPHA, GL_ONE)
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
             RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellPadding*1.3, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
+
+            --local halfSize = (((cellRect[cellID][3]-cellPadding))-(cellRect[cellID][1]))*0.5
+            --RectRoundCircle(
+            --        cellRect[cellID][1]+cellPadding+halfSize,
+            --        0,
+            --        cellRect[cellID][2]+cellPadding+halfSize,
+            --        halfSize, cellPadding*1.3, halfSize-math.max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+            --)
             glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
           end
           cellID = cellID - 1
@@ -1224,8 +1231,8 @@ local function drawInfo()
         addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
         -- wordwrap text
-        unitInfoText = text   -- can be used to show full text on mouse hover
-        text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
+        --unitInfoText = text   -- can be used to show full text on mouse hover
+        local text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
 
         -- prune number of lines
         local lines = lines(text)
@@ -1238,6 +1245,7 @@ local function drawInfo()
           end
           text = text .. '\n'
         end
+        lines = nil
 
         -- unit info
         font:Begin()

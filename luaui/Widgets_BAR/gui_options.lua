@@ -77,6 +77,9 @@ local customMapFog = {}
 local isSpec = Spring.GetSpectatingState()
 
 local spIsGUIHidden = Spring.IsGUIHidden
+local spGetGroundHeight = Spring.GetGroundHeight
+
+local os_clock = os.clock
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -103,6 +106,9 @@ for i = 1,#teams do
 	end
 end
 
+local desiredWaterValue = 4
+local waterDetected = false
+local heightmapChangeBuffer = {}
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
@@ -841,7 +847,7 @@ local lastUpdate = 0
 --end
 function widget:Update(dt)
 
-	if countDownOptionID and countDownOptionClock and countDownOptionClock < os.clock() then
+	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
 		countDownOptionClock = nil
@@ -892,10 +898,37 @@ function widget:Update(dt)
 	--	mapmeshdrawerChecked = true
 	--end
 
+	-- check if there is water shown
+	if not waterDetected and heightmapChangeClock and heightmapChangeClock+1 > os_clock() then
+		for k,coords in pairs(heightmapChangeBuffer) do
+			local x = coords[1]
+			local addX = (coords[1] < coords[3] and 1 or -1)
+			local z = coords[2]
+			local addZ = (coords[2] < coords[4] and 1 or -1)
+			while x ~= coords[3] do
+				while z ~= coords[4] do
+					if Spring.GetGroundHeight(x,z) < 0 then
+						waterDetected = true
+						Spring.SendCommands("water "..desiredWaterValue)
+						break
+					end
+					if waterDetected then
+						break
+					end
+					z = z + addZ
+				end
+				x = x + addX
+			end
+			heightmapChangeClock = nil
+			heightmapChangeBuffer = {}
+		end
+	end
+
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
 		sec = 0
 		forceUpdate = nil
 		lastUpdate = sec
+
 		local changes = true
 		for i, option in ipairs(options) do
 			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
@@ -1325,8 +1358,8 @@ function widget:MouseMove(x, y)
 			options[draggingSlider].value = newValue
 			sliderValueChanged = true
 			applyOptionValue(draggingSlider)	-- disabled so only on release it gets applied
-			if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
-				lastSliderSound = os.clock()
+			if playSounds and (lastSliderSound == nil or os_clock() - lastSliderSound > 0.04) then
+				lastSliderSound = os_clock()
 				Spring.PlaySoundFile(sliderdrag, 0.4, 'ui')
 			end
 		end
@@ -2030,10 +2063,13 @@ function init()
 		{id="mapedgeextension", group="gfx", basic=true, widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
 
-		{id="water", group="gfx", basic=true, name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1),
+		{id="water", group="gfx", basic=true, name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=desiredWaterValue,
+		 onload = function(i) end,
 		 onchange=function(i,value)
-			 Spring.SendCommands("water "..(value-1))
-			 --Spring.SendCommands("water "..(value-1)) -- dont know why i applied it twice, so disabling for now
+			 desiredWaterValue = (value-1)
+			 if waterDetected then
+			 	Spring.SendCommands("water "..desiredWaterValue)
+			 end
 		 end,
 		},
 
@@ -2065,13 +2101,13 @@ function init()
 		{id="iconscale", group="gfx", basic=true, name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.8, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well',
 		 onload = function(i) end,
 		 onchange = function(i, value)
-			 if countDownOptionClock and countDownOptionClock < os.clock() then	-- else sldier gets too sluggish when constantly updating
+			 if countDownOptionClock and countDownOptionClock < os_clock() then	-- else sldier gets too sluggish when constantly updating
 				 Spring.SendCommands("luarules uniticonscale "..value)
 				 countDownOptionID = nil
 				 countDownOptionClock = nil
 			 else
 				countDownOptionID = getOptionByID('iconscale')
-			 	countDownOptionClock = os.clock() + 0.9
+			 	countDownOptionClock = os_clock() + 0.9
 			 end
 		 end,
 		},
@@ -3991,6 +4027,14 @@ function widget:PlayerChanged(playerID)
 end
 
 
+function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
+	if not heightmapChangeClock then
+		heightmapChangeClock = os_clock()
+	end
+	heightmapChangeBuffer[#heightmapChangeBuffer+1] = {x1, z1, x2, z2}
+end
+
+
 function widget:Initialize()
 
 	if firstlaunchsetupDone == false then
@@ -4009,6 +4053,21 @@ function widget:Initialize()
 		if tonumber(Spring.GetConfigInt("MaxParticles",1) or 0) < minMaxparticles then
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo('First time setup:  setting MaxParticles config value to '..minMaxparticles)
+		end
+	end
+
+	if Spring.GetGameFrame() == 0 then
+		for x=1, Game.mapSizeX, 1 do
+			for z=1, Game.mapSizeZ, 1 do
+				if spGetGroundHeight(x, z) > 0 then
+					waterDetected = true
+					Spring.SendCommands("water 0")
+					break
+				end
+			end
+			if waterDetected then
+				break
+			end
 		end
 	end
 
@@ -4159,12 +4218,12 @@ function widget:TextCommand(command)
 	if (string.find(command, "options") == 1  and  string.len(command) == 7) then
 		show = not show
 	end
-	if os.clock() > lastOptionCommand+1 and string.sub(command, 1, 7) == "option " then		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)
+	if os_clock() > lastOptionCommand+1 and string.sub(command, 1, 7) == "option " then		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)
 		local option = string.sub(command, 8)
 		local optionID = getOptionByID(option)
 		if optionID then
 			if options[optionID].type == 'bool' then
-				lastOptionCommand = os.clock()
+				lastOptionCommand = os_clock()
 				options[optionID].value = not options[optionID].value
 				applyOptionValue(optionID)
 			else
@@ -4176,7 +4235,7 @@ function widget:TextCommand(command)
 			if optionID then
 				optionID = getOptionByID(optionID)
 				if optionID and option[2] then
-					lastOptionCommand = os.clock()
+					lastOptionCommand = os_clock()
 					if options[optionID].type == 'select' then
 						local selectKey = getSelectKey(optionID, option[2])
 						if selectKey then
@@ -4236,9 +4295,9 @@ function widget:GetConfigData(data)
 	savedTable.customMapSunPos = customMapSunPos
 	savedTable.customMapFog = customMapFog
 	savedTable.useNetworkSmoothing = useNetworkSmoothing
+	savedTable.desiredWaterValue = desiredWaterValue
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
-		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
 		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
 		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000)},
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
@@ -4258,6 +4317,12 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.desiredWaterValue ~= nil then
+		desiredWaterValue = data.desiredWaterValue
+	end
+	if data.waterDetected and Spring.GetGameFrame() > 0 then
+		waterDetected = data.waterDetected
+	end
 	if data.firsttimesetupDone ~= nil then
 		firstlaunchsetupDone = data.firsttimesetupDone
 	end

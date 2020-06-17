@@ -168,6 +168,7 @@ local flexCallIns = {
   'SunChanged',
   'FeatureCreated',
   'FeatureDestroyed',
+  'UnsyncedHeightMapUpdate',
 }
 local flexCallInMap = {}
 for _,ci in ipairs(flexCallIns) do
@@ -244,7 +245,7 @@ local function rev_iter(t, key)
   end
 end
 
-local function ripairs(t)
+local function r_ipairs(t)
   return rev_iter, t, (1 + #t)
 end
 
@@ -1270,7 +1271,7 @@ function widgetHandler:DrawScreen()
     })
     gl.Color(1, 1, 1)
   end
-  for _,w in ripairs(self.DrawScreenList) do
+  for _,w in r_ipairs(self.DrawScreenList) do
     w:DrawScreen()
     if (self.tweakMode and w.TweakDrawScreen) then
       w:TweakDrawScreen()
@@ -1281,7 +1282,7 @@ end
 
 
 function widgetHandler:DrawGenesis()
-  for _,w in ripairs(self.DrawGenesisList) do
+  for _,w in r_ipairs(self.DrawGenesisList) do
     w:DrawGenesis()
   end
   return
@@ -1289,7 +1290,7 @@ end
 
 
 function widgetHandler:DrawWorld()
-  for _,w in ripairs(self.DrawWorldList) do
+  for _,w in r_ipairs(self.DrawWorldList) do
     w:DrawWorld()
   end
   return
@@ -1297,14 +1298,14 @@ end
 
 
 function widgetHandler:DrawWorldPreUnit()
-  for _,w in ripairs(self.DrawWorldPreUnitList) do
+  for _,w in r_ipairs(self.DrawWorldPreUnitList) do
     w:DrawWorldPreUnit()
   end
   return
 end
 
 function widgetHandler:DrawWorldPreParticles()
-  for _,w in ripairs(self.DrawWorldPreParticlesList) do
+  for _,w in r_ipairs(self.DrawWorldPreParticlesList) do
     w:DrawWorldPreParticles()
   end
   return
@@ -1312,7 +1313,7 @@ end
 
 
 function widgetHandler:DrawWorldShadow()
-  for _,w in ripairs(self.DrawWorldShadowList) do
+  for _,w in r_ipairs(self.DrawWorldShadowList) do
     w:DrawWorldShadow()
   end
   return
@@ -1320,7 +1321,7 @@ end
 
 
 function widgetHandler:DrawWorldReflection()
-  for _,w in ripairs(self.DrawWorldReflectionList) do
+  for _,w in r_ipairs(self.DrawWorldReflectionList) do
     w:DrawWorldReflection()
   end
   return
@@ -1328,7 +1329,7 @@ end
 
 
 function widgetHandler:DrawWorldRefraction()
-  for _,w in ripairs(self.DrawWorldRefractionList) do
+  for _,w in r_ipairs(self.DrawWorldRefractionList) do
     w:DrawWorldRefraction()
   end
   return
@@ -1336,7 +1337,7 @@ end
 
 
 function widgetHandler:DrawUnitsPostDeferred()
-  for _,w in ripairs(self.DrawUnitsPostDeferredList) do
+  for _,w in r_ipairs(self.DrawUnitsPostDeferredList) do
     w:DrawUnitsPostDeferred()
   end
   return
@@ -1344,7 +1345,7 @@ end
 
 
 function widgetHandler:DrawFeaturesPostDeferred()
-  for _,w in ripairs(self.DrawFeaturesPostDeferredList) do
+  for _,w in r_ipairs(self.DrawFeaturesPostDeferredList) do
     w:DrawFeaturesPostDeferred()
   end
   return
@@ -1352,7 +1353,7 @@ end
 
 
 function widgetHandler:DrawScreenEffects(vsx, vsy)
-  for _,w in ripairs(self.DrawScreenEffectsList) do
+  for _,w in r_ipairs(self.DrawScreenEffectsList) do
     w:DrawScreenEffects(vsx, vsy)
   end
   return
@@ -1360,7 +1361,7 @@ end
 
 
 function widgetHandler:DrawScreenPost()
-  for _,w in ripairs(self.DrawScreenPostList) do
+  for _,w in r_ipairs(self.DrawScreenPostList) do
     w:DrawScreenPost()
   end
   return
@@ -1368,7 +1369,7 @@ end
 
 
 function widgetHandler:DrawInMiniMap(xSize, ySize)
-  for _,w in ripairs(self.DrawInMiniMapList) do
+  for _,w in r_ipairs(self.DrawInMiniMapList) do
     w:DrawInMiniMap(xSize, ySize)
   end
   return
@@ -1376,7 +1377,7 @@ end
 
 
 function widgetHandler:SunChanged()
-  for _,w in ripairs(self.SunChangedList) do
+  for _,w in r_ipairs(self.SunChangedList) do
     w:SunChanged()
   end
   return
@@ -1440,7 +1441,7 @@ function widgetHandler:TextInput(utf8, ...)
     return true
   end
 
-  for _,w in ripairs(self.TextInputList) do
+  for _,w in r_ipairs(self.TextInputList) do
     if (w:TextInput(utf8, ...)) then
       return true
     end
@@ -1765,6 +1766,13 @@ function widgetHandler:GameProgress(serverFrameNum)
   return
 end
 
+function widgetHandler:UnsyncedHeightMapUpdate(x1,z1,x2,z2)
+	for _,w in r_ipairs(self.UnsyncedHeightMapUpdateList) do
+		w:UnsyncedHeightMapUpdate(x1,z1,x2,z2)
+	end
+	return
+end
+
 function widgetHandler:ShockFront(power, dx, dy, dz)
   for _,w in ipairs(self.ShockFrontList) do
     w:ShockFront(power, dx, dy, dz)
@@ -1808,7 +1816,7 @@ end
 
 
 function widgetHandler:DefaultCommand(...)
-  for _,w in ripairs(self.DefaultCommandList) do
+  for _,w in r_ipairs(self.DefaultCommandList) do
     local result = w:DefaultCommand(...)
     if (type(result) == 'number') then
       return result
