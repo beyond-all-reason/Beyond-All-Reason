@@ -1,7 +1,6 @@
 
 return {
 	["COMMANDER_EXPLOSION"] = {
-
 		centerflare = {
             air                = true,
             class              = [[CHeatCloudProjectile]],
@@ -10,15 +9,15 @@ return {
             water              = true,
             underwater         = true,
             properties = {
-                heat               = 15,
-                heatfalloff        = 0.05,
-                maxheat            = 15,
-                pos                = [[r-10 r10, 10, r-10 r10]],
-                size               = 4,
-                sizegrowth         = 26,
-                sizemod			   = 1.05,
+                heat               = 10,
+                heatfalloff        = 0.4,
+                maxheat            = 20,
+                pos                = [[r-2 r2, 5, r-2 r2]],
+                size               = 40,
+                sizegrowth         = 40,
+                --sizemod          = 1.05,
                 speed              = [[0, 1 0, 0]],
-                texture            = [[new_dirta]],
+                texture            = [[flare]],
                 alwaysvisible      = true,
             },
         },
