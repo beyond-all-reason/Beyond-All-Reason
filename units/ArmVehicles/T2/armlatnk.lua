@@ -212,7 +212,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMLATNK_WEAPON",
+				def = "LIGHTNING",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
