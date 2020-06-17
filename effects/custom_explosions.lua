@@ -1,7 +1,6 @@
 
-return {
+local definitions = {
 	["afusexpl"] = {
-
 		centerflare = {
             air                = true,
             class              = [[CHeatCloudProjectile]],
@@ -615,4 +614,653 @@ return {
                 },
             },
         },
+    ["t3unitexplosion"] = {    
+        centerflare = {
+          air                = true,
+          class              = [[heatcloud]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          underwater         = true,
+          properties = {
+            heat               = 15,
+            heatfalloff        = 1.1,
+            maxheat            = 20,
+            pos                = [[r-2 r2, 5, r-2 r2]],
+            size               = 6,
+            sizegrowth         = 14.6,
+            speed              = [[0, 1 0, 0]],
+            texture            = [[explo]],
+          },
+        },
+        groundflash_large = {
+          class              = [[CSimpleGroundFlash]],
+          count              = 1,
+          air                = false,
+          ground             = true,
+          water              = true,
+          underwater         = false,
+          properties = {
+            colormap           = [[1 0.7 0.3 0.29   0 0 0 0.01]],
+            size               = 235,
+            sizegrowth         = -1.33,
+            ttl                = 52,
+            texture            = [[groundflash]],
+          },
+        },
+        groundflash_white = {
+          class              = [[CSimpleGroundFlash]],
+          count              = 1,
+          air                = false,
+          ground             = true,
+          water              = true,
+          underwater         = false,
+          properties = {
+            colormap           = [[1 0.9 0.8 0.7   1 0.9 0.8 0.25   0 0 0 0.01]],
+            size               = 200,
+            sizegrowth         = -1.4,
+            ttl                = 30,
+            texture            = [[groundflashwhite]],
+          },
+        },
+        pop1 = {
+            class=[[explo]],
+            air=1,
+            water=1,
+            ground=1,
+            count=2,
+            properties ={
+                --alwaysVisible=1,
+                texture=[[explo]],
+                heat = 14,
+                maxheat = 20,
+                heatFalloff = 0.2,
+                size = 6,
+                sizeGrowth = 14,
+                pos = [[r-5 r10, 10, r-5 r10]],
+                speed=[[0, 0, 0]],
+            },
+        },
+        explosion = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          underwater         = false,
+          properties = {
+            airdrag            = 0.84,
+            colormap           = [[0 0 0 0   1 0.8 0.5 0.09   0.9 0.4 0.15 0.066   0.66 0.22 0.03 0.033   0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 45,
+            emitrotspread      = 32,
+            emitvector         = [[0, 1.1, 0]],
+            gravity            = [[0, -0.01, 0]],
+            numparticles       = 13,
+            particlelife       = 6.5,
+            particlelifespread = 15,
+            particlesize       = 14,
+            particlesizespread = 10.5,
+            particlespeed      = 3.2,
+            particlespeedspread = 5.5,
+            pos                = [[0, 2, 0]],
+            sizegrowth         = 0.48,
+            sizemod            = 1,
+            texture            = [[flashside2]],
+            useairlos          = false,
+          },
+        },
+        dustparticles = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          underwater         = true,
+          water              = true,
+          properties = {
+            airdrag            = 0.88,
+            colormap           = [[1 0.85 0.6 0.22  1 0.72 0.4 0.12  1 0.66 0.3 0.06   0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 45,
+            emitrotspread      = 32,
+            emitvector         = [[0.5, 1, 0.5]],
+            gravity            = [[0, -0.011, 0]],
+            numparticles       = 3,
+            particlelife       = 6.75,
+            particlelifespread = 2,
+            particlesize       = 7.8,
+            particlesizespread = 1.8,
+            particlespeed      = 4.8,
+            particlespeedspread = 1.5,
+            pos                = [[0, 0, 0]],
+            sizegrowth         = 2.2,
+            sizemod            = 1.0,
+            texture            = [[randomdots]],
+          },
+        },
+        fireglow = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          underwater         = false,
+          properties = {
+            airdrag            = 0.5,
+            colormap           = [[0.4 0.3 0.055 0.02   0 0 0 0]],
+            directional        = true,
+            emitrot            = 90,
+            emitrotspread      = 0,
+            emitvector         = [[0.0, 1, 0.0]],
+            gravity            = [[0.0, 0.0, 0.0]],
+            numparticles       = 1,
+            particlelife       = 19,
+            particlelifespread = 4,
+            particlesize       = 190,
+            particlesizespread = 25,
+            particlespeed      = 0,
+            particlespeedspread = 0,
+            pos                = [[0, 2, 0]],
+            sizegrowth         = -0.2,
+            sizemod            = 1,
+            texture            = [[glow2]],
+            useairlos          = false,
+          },
+        },
+        innersmoke = {
+          class = [[CSimpleParticleSystem]],
+          underwater         = true,
+          water=1,
+          air=1,
+          ground=1,
+          count=1,
+          properties = {
+            airdrag=0.75,
+            alwaysVisible = 0,
+            sizeGrowth = 0.5,
+            sizeMod = 1.0,
+            pos = [[r-1 r1, 0, r-1 r1]],
+            emitRot=33,
+            emitRotSpread=50,
+            emitVector = [[0, 1, 0]],
+            gravity = [[0, 0.02, 0]],
+            colorMap=[[1 0.6 0.35 0.6    0.3 0.2 0.1 0.5   0.18 0.14 0.09 0.44    0.12 0.1 0.08 0.33   0.09 0.09 0.085 0.26   0.06 0.06 0.05 0.16    0 0 0 0.01]],
+            Texture=[[graysmoke]],
+            particleLife=66,
+            particleLifeSpread=100,
+            numparticles=5,
+            particleSpeed=3.3,
+            particleSpeedSpread=10.5,
+            particleSize=12,
+            particleSizeSpread=24,
+            directional=0,
+          },
+        },
+        outersmoke = {
+          class = [[CSimpleParticleSystem]],
+          underwater         = true,
+          water=1,
+          air=1,
+          ground=1,
+          count=1,
+          properties = {
+            airdrag=0.35,
+            alwaysVisible = 0,
+            sizeGrowth = 0.45,
+            sizeMod = 1.0,
+            pos = [[r-1 r1, 0, r-1 r1]],
+            emitRot=33,
+            emitRotSpread=50,
+            emitVector = [[0, 1, 0]],
+            gravity = [[0, -0.02, 0]],
+            colorMap=[[1 0.6 0.35 0.6    0.3 0.2 0.1 0.5   0.18 0.14 0.09 0.44    0.12 0.1 0.08 0.33   0.09 0.09 0.085 0.26   0.06 0.06 0.05 0.16    0 0 0 0.01]],
+            Texture=[[graysmoke]],
+            particleLife=60,
+            particleLifeSpread=75,
+            numparticles=3.4,
+            particleSpeed=4.9,
+            particleSpeedSpread=13,
+            particleSize=27,
+            particleSizeSpread=20,
+            directional=0,
+          },
+        },
+        sparks = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          underwater         = true,
+          properties = {
+            airdrag            = 0.91,
+            colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
+            directional        = true,
+            emitrot            = 45,
+            emitrotspread      = 32,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.17, 0]],
+            numparticles       = 7,
+            particlelife       = 52,
+            particlelifespread = 14,
+            particlesize       = 100,
+            particlesizespread = 45,
+            particlespeed      = 17,
+            particlespeedspread = 3,
+            pos                = [[0, 4, 0]],
+            sizegrowth         = -0.015,
+            sizemod            = 0.9,
+            texture            = [[gunshotglow]],
+            useairlos          = false,
+          },
+        },
+        shockwave = {
+            class              = [[CSpherePartSpawner]],
+                count              = 1,
+                ground             = true,
+                water              = true,
+                underwater         = false,
+                air                = true,
+                properties = {
+                    alpha           = 0.4,
+                    ttl             = 14.5,
+                    expansionSpeed  = 8.9,
+                    color           = [[1.0, 0.85, 0.45]],
+                    --alwaysvisible      = true,
+                },
+        },
+        shockwavewater = {
+            class              = [[CSpherePartSpawner]],
+                count              = 1,
+                ground             = false,
+                water              = true,
+                underwater         = true,
+                air                = false,
+                properties = {
+                    alpha           = 0.26,
+                    ttl             = 18.5,
+                    expansionSpeed  = 5.4,
+                    color           = [[0.55, 0.55, 0.8]],
+                    --alwaysvisible      = true,
+                },
+        },
+        dirt = {
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          unit               = false,
+          properties = {
+            airdrag            = 1,
+            colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+            directional        = true,
+            emitrot            = 15,
+            emitrotspread      = 36,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.33, 0]],
+            numparticles       = 8,
+            particlelife       = 30,
+            particlelifespread = 15,
+            particlesize       = 1.7,
+            particlesizespread = -1.4,
+            particlespeed      = 3.3,
+            particlespeedspread = 4.7,
+            pos                = [[0, 6, 0]],
+            sizegrowth         = -0.01,
+            sizemod            = 1,
+            texture            = [[bigexplosmoke]],
+            useairlos          = false,
+          },
+        },
+        dirt2 = {
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          unit               = false,
+          properties = {
+            airdrag            = 1,
+            colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+            directional        = true,
+            emitrot            = 0,
+            emitrotspread      = 13,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.33, 0]],
+            numparticles       = 4,
+            particlelife       = 23,
+            particlelifespread = 15,
+            particlesize       = 1.7,
+            particlesizespread = -1.4,
+            particlespeed      = 3.9,
+            particlespeedspread = 5.1,
+            pos                = [[0, 6, 0]],
+            sizegrowth         = -0.01,
+            sizemod            = 1,
+            texture            = [[bigexplosmoke]],
+            useairlos          = false,
+          },
+        },
+        shard1 = {
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          properties = {
+            airdrag            = 0.97,
+            colormap           = [[1 0.55 0.45 1    0.55 0.44 0.38 1    0.36 0.34 0.33 1    0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 20,
+            emitrotspread      = 33,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.3, 0]],
+            numparticles       = [[3 r2.3]],
+            particlelife       = 45,
+            particlelifespread = 25,
+            particlesize       = 4,
+            particlesizespread = 3.7,
+            particlespeed      = 2.4,
+            particlespeedspread = 7.7,
+            pos                = [[0, 2, 0]],
+            sizegrowth         = 0,
+            sizemod            = 1,
+            texture            = [[shard1]],
+            useairlos          = false,
+          },
+        },
+        shard2 = {
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          properties = {
+            airdrag            = 0.97,
+            colormap           = [[1 0.55 0.45 1    0.55 0.44 0.38 1    0.36 0.34 0.33 1    0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 20,
+            emitrotspread      = 33,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.3, 0]],
+            numparticles       = [[2 r2.2]],
+            particlelife       = 35,
+            particlelifespread = 18,
+            particlesize       = 4,
+            particlesizespread = 3.7,
+            particlespeed      = 2.4,
+            particlespeedspread = 7.7,
+            pos                = [[0, 2, 0]],
+            sizegrowth         = 0,
+            sizemod            = 1,
+            texture            = [[shard2]],
+            useairlos          = false,
+          },
+        },
+        shard3 = {
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          properties = {
+            airdrag            = 0.97,
+            colormap           = [[1 0.55 0.45 1    0.55 0.44 0.38 1    0.36 0.34 0.33 1    0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 20,
+            emitrotspread      = 33,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.3, 0]],
+            numparticles       = [[2 r1.5]],
+            particlelife       = 40,
+            particlelifespread = 20,
+            particlesize       = 4,
+            particlesizespread = 3.7,
+            particlespeed      = 2.4,
+            particlespeedspread = 7.7,
+            pos                = [[0, 2, 0]],
+            sizegrowth         = 0,
+            sizemod            = 1,
+            texture            = [[shard3]],
+            useairlos          = false,
+          },
+        },
+        clouddust = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          properties = {
+            airdrag            = 0.92,
+            colormap           = [[0.02 0.02 0.02 0.03  0.055 0.055 0.055 0.066  0.05 0.05 0.05 0.052  0.03 0.03 0.03 0.03  0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 45,
+            emitrotspread      = 4,
+            emitvector         = [[0.5, 1, 0.5]],
+            gravity            = [[0, 0.025, 0]],
+            numparticles       = 3,
+            particlelife       = 75,
+            particlelifespread = 110,
+            particlesize       = 90,
+            particlesizespread = 90,
+            particlespeed      = 3.8,
+            particlespeedspread = 3.8,
+            pos                = [[0, 4, 0]],
+            sizegrowth         = 0.25,
+            sizemod            = 1.0,
+            texture            = [[bigexplosmoke]],
+          },
+        },
+        grounddust = {
+          air                = false,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          unit               = false,
+          properties = {
+            airdrag            = 0.92,
+            colormap           = [[0.07 0.07 0.07 0.1   0 0 0 0.0]],
+            directional        = false,
+            emitrot            = 90,
+            emitrotspread      = -2,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, 0.02, 0]],
+            numparticles       = 17,
+            particlelife       = 20,
+            particlelifespread = 55,
+            particlesize       = 2.5,
+            particlesizespread = 1.1,
+            particlespeed      = 6.3,
+            particlespeedspread = 2,
+            pos                = [[0, 4, 0]],
+            sizegrowth         = 0.6,
+            sizemod            = 1.0,
+            texture            = [[bigexplosmoke]],
+          },
+        },
+      },    
 }
+
+function deepcopy(orig)
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+    copy = {}
+    for orig_key, orig_value in next, orig, nil do
+      copy[deepcopy(orig_key)] = deepcopy(orig_value)
+    end
+    setmetatable(copy, deepcopy(getmetatable(orig)))
+  else -- number, string, boolean, etc
+    copy = orig
+  end
+  return copy
+end
+
+local size = 0.7
+
+definitions['t3unitexplosionmed'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionmed'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].sparks.properties.particlespeed * size)
+definitions['t3unitexplosionmed'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionmed'].sparks.properties.particlespeedspread * size)
+definitions['t3unitexplosionmed'].explosion.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].explosion.properties.particlespeed * size)
+definitions['t3unitexplosionmed'].explosion.properties.particlesize = math.floor(definitions['t3unitexplosionmed'].explosion.properties.particlesize * size)
+definitions['t3unitexplosionmed'].explosion.properties.particlelife = math.floor(definitions['t3unitexplosionmed'].explosion.properties.particlelife * size)
+definitions['t3unitexplosionmed'].dustparticles.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].dustparticles.properties.particlespeed * size)
+definitions['t3unitexplosionmed'].dustparticles.properties.particlesize = math.floor(definitions['t3unitexplosionmed'].dustparticles.properties.particlesize * size)
+definitions['t3unitexplosionmed'].dustparticles.properties.particlelife = math.floor(definitions['t3unitexplosionmed'].dustparticles.properties.particlelife * size)
+definitions['t3unitexplosionmed'].dirt.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].dirt.properties.particlespeed * size)
+definitions['t3unitexplosionmed'].dirt.properties.particlespeedspread = math.floor(definitions['t3unitexplosionmed'].dirt.properties.particlespeedspread * size)
+definitions['t3unitexplosionmed'].dirt.properties.numparticles = math.floor(definitions['t3unitexplosionmed'].dirt.properties.numparticles * size)
+definitions['t3unitexplosionmed'].dirt2.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].dirt2.properties.particlespeed * size)
+definitions['t3unitexplosionmed'].dirt2.properties.particlespeedspread = math.floor(definitions['t3unitexplosionmed'].dirt2.properties.particlespeedspread * size)
+definitions['t3unitexplosionmed'].dirt2.properties.numparticles = math.floor(definitions['t3unitexplosionmed'].dirt2.properties.numparticles * size)
+definitions['t3unitexplosionmed'].shockwave.properties.ttl = math.floor(definitions['t3unitexplosionmed'].shockwave.properties.ttl * size)
+definitions['t3unitexplosionmed'].centerflare.properties.size = math.floor(definitions['t3unitexplosionmed'].centerflare.properties.size * size)
+definitions['t3unitexplosionmed'].centerflare.properties.heat = math.floor(definitions['t3unitexplosionmed'].centerflare.properties.heat * size)
+definitions['t3unitexplosionmed'].centerflare.properties.maxheat = math.floor(definitions['t3unitexplosionmed'].centerflare.properties.maxheat * size)
+definitions['t3unitexplosionmed'].groundflash_large.properties.size = math.floor(definitions['t3unitexplosionmed'].groundflash_large.properties.size * size)
+definitions['t3unitexplosionmed'].groundflash_large.properties.ttl = math.floor(definitions['t3unitexplosionmed'].groundflash_large.properties.ttl * size)
+definitions['t3unitexplosionmed'].groundflash_white.properties.size = math.floor(definitions['t3unitexplosionmed'].groundflash_white.properties.size * size)
+definitions['t3unitexplosionmed'].grounddust.properties.particlesize = math.floor(definitions['t3unitexplosionmed'].grounddust.properties.particlesize * size)
+definitions['t3unitexplosionmed'].grounddust.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].grounddust.properties.particlespeed * size)
+definitions['t3unitexplosionmed'].grounddust.properties.particlespeedspread = math.floor(definitions['t3unitexplosionmed'].grounddust.properties.particlespeedspread * size)
+definitions['t3unitexplosionmed'].grounddust.properties.particlelife = math.floor(definitions['t3unitexplosionmed'].grounddust.properties.particlelife * size)
+
+local size = 1.4
+
+definitions['t3unitexplosionxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxl'].sparks.properties.particlespeed * size)
+definitions['t3unitexplosionxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxl'].sparks.properties.particlespeedspread * size)
+definitions['t3unitexplosionxl'].explosion.properties.particlespeed = math.floor(definitions['t3unitexplosionxl'].explosion.properties.particlespeed * size)
+definitions['t3unitexplosionxl'].explosion.properties.particlesize = math.floor(definitions['t3unitexplosionxl'].explosion.properties.particlesize * size * 0.7)
+definitions['t3unitexplosionxl'].explosion.properties.particlelife = math.floor(definitions['t3unitexplosionxl'].explosion.properties.particlelife * size)
+definitions['t3unitexplosionxl'].dustparticles.properties.particlespeed = math.floor(definitions['t3unitexplosionxl'].dustparticles.properties.particlespeed * size * 0.6)
+definitions['t3unitexplosionxl'].dustparticles.properties.particlesize = math.floor(definitions['t3unitexplosionxl'].dustparticles.properties.particlesize * size * 0.5)
+definitions['t3unitexplosionxl'].dustparticles.properties.particlelife = math.floor(definitions['t3unitexplosionxl'].dustparticles.properties.particlelife * size)
+definitions['t3unitexplosionxl'].dirt.properties.particlespeed = math.floor(definitions['t3unitexplosionxl'].dirt.properties.particlespeed * size * 0.6)
+definitions['t3unitexplosionxl'].dirt.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxl'].dirt.properties.particlespeedspread * size * 0.6)
+definitions['t3unitexplosionxl'].dirt.properties.numparticles = math.floor(definitions['t3unitexplosionxl'].dirt.properties.numparticles * size)
+definitions['t3unitexplosionxl'].dirt2.properties.particlespeed = math.floor(definitions['t3unitexplosionxl'].dirt2.properties.particlespeed * size * 0.6)
+definitions['t3unitexplosionxl'].dirt2.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxl'].dirt2.properties.particlespeedspread * size * 0.6)
+definitions['t3unitexplosionxl'].dirt2.properties.numparticles = math.floor(definitions['t3unitexplosionxl'].dirt2.properties.numparticles * size)
+definitions['t3unitexplosionxl'].shockwave.properties.ttl = math.floor(definitions['t3unitexplosionxl'].shockwave.properties.ttl * size * 0.85)
+definitions['t3unitexplosionxl'].centerflare.properties.size = math.floor(definitions['t3unitexplosionxl'].centerflare.properties.size * size * 0.5)
+definitions['t3unitexplosionxl'].centerflare.properties.heat = math.floor(definitions['t3unitexplosionxl'].centerflare.properties.heat * size)
+definitions['t3unitexplosionxl'].centerflare.properties.maxheat = math.floor(definitions['t3unitexplosionxl'].centerflare.properties.maxheat * size)
+definitions['t3unitexplosionxl'].groundflash_large.properties.size = math.floor(definitions['t3unitexplosionxl'].groundflash_large.properties.size * size * 0.8)
+definitions['t3unitexplosionxl'].groundflash_large.properties.ttl = math.floor(definitions['t3unitexplosionxl'].groundflash_large.properties.ttl * size * 0.7)
+definitions['t3unitexplosionxl'].groundflash_white.properties.size = math.floor(definitions['t3unitexplosionxl'].groundflash_white.properties.size * size)
+definitions['t3unitexplosionxl'].grounddust.properties.particlesize = math.floor(definitions['t3unitexplosionxl'].grounddust.properties.particlesize * size)
+definitions['t3unitexplosionxl'].grounddust.properties.particlespeed = math.floor(definitions['t3unitexplosionxl'].grounddust.properties.particlespeed * size)
+definitions['t3unitexplosionxl'].grounddust.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxl'].grounddust.properties.particlespeedspread * size)
+definitions['t3unitexplosionxl'].grounddust.properties.particlelife = math.floor(definitions['t3unitexplosionxl'].grounddust.properties.particlelife * size * 0.6)
+
+local size = 1.7
+
+definitions['t3unitexplosionxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxl'].sparks.properties.particlespeed * size)
+definitions['t3unitexplosionxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxl'].sparks.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxl'].explosion.properties.particlespeed = math.floor(definitions['t3unitexplosionxxl'].explosion.properties.particlespeed * size)
+definitions['t3unitexplosionxxl'].explosion.properties.particlesize = math.floor(definitions['t3unitexplosionxxl'].explosion.properties.particlesize * size * 0.9)
+definitions['t3unitexplosionxxl'].explosion.properties.particlelife = math.floor(definitions['t3unitexplosionxxl'].explosion.properties.particlelife * size)
+definitions['t3unitexplosionxxl'].dustparticles.properties.particlespeed = math.floor(definitions['t3unitexplosionxxl'].dustparticles.properties.particlespeed * size * 0.8)
+definitions['t3unitexplosionxxl'].dustparticles.properties.particlesize = math.floor(definitions['t3unitexplosionxxl'].dustparticles.properties.particlesize * size * 0.7)
+definitions['t3unitexplosionxxl'].dustparticles.properties.particlelife = math.floor(definitions['t3unitexplosionxxl'].dustparticles.properties.particlelife * size)
+definitions['t3unitexplosionxxl'].dirt.properties.particlespeed = math.floor(definitions['t3unitexplosionxxl'].dirt.properties.particlespeed * size * 0.7)
+definitions['t3unitexplosionxxl'].dirt.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxl'].dirt.properties.particlespeedspread * size * 0.6)
+definitions['t3unitexplosionxxl'].dirt.properties.numparticles = math.floor(definitions['t3unitexplosionxxl'].dirt.properties.numparticles * size)
+definitions['t3unitexplosionxxl'].dirt2.properties.particlespeed = math.floor(definitions['t3unitexplosionxxl'].dirt2.properties.particlespeed * size * 0.8)
+definitions['t3unitexplosionxxl'].dirt2.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxl'].dirt2.properties.particlespeedspread * size * 0.6)
+definitions['t3unitexplosionxxl'].dirt2.properties.numparticles = math.floor(definitions['t3unitexplosionxxl'].dirt2.properties.numparticles * size)
+definitions['t3unitexplosionxxl'].shockwave.properties.ttl = math.floor(definitions['t3unitexplosionxxl'].shockwave.properties.ttl * size * 0.80)
+definitions['t3unitexplosionxxl'].shockwave.properties.alpha = math.floor(definitions['t3unitexplosionxxl'].shockwave.properties.alpha * size * 0.9)
+definitions['t3unitexplosionxxl'].centerflare.properties.size = math.floor(definitions['t3unitexplosionxxl'].centerflare.properties.size * size * 0.8)
+definitions['t3unitexplosionxxl'].centerflare.properties.heat = math.floor(definitions['t3unitexplosionxxl'].centerflare.properties.heat * size)
+definitions['t3unitexplosionxxl'].centerflare.properties.maxheat = math.floor(definitions['t3unitexplosionxxl'].centerflare.properties.maxheat * size)
+definitions['t3unitexplosionxxl'].groundflash_large.properties.size = math.floor(definitions['t3unitexplosionxxl'].groundflash_large.properties.size * size * 0.8)
+definitions['t3unitexplosionxxl'].groundflash_large.properties.ttl = math.floor(definitions['t3unitexplosionxxl'].groundflash_large.properties.ttl * size * 0.8)
+definitions['t3unitexplosionxxl'].groundflash_white.properties.size = math.floor(definitions['t3unitexplosionxxl'].groundflash_white.properties.size * size)
+definitions['t3unitexplosionxxl'].grounddust.properties.particlesize = math.floor(definitions['t3unitexplosionxxl'].grounddust.properties.particlesize * size)
+definitions['t3unitexplosionxxl'].grounddust.properties.particlespeed = math.floor(definitions['t3unitexplosionxxl'].grounddust.properties.particlespeed * size)
+definitions['t3unitexplosionxxl'].grounddust.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxl'].grounddust.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxl'].grounddust.properties.particlelife = math.floor(definitions['t3unitexplosionxxl'].grounddust.properties.particlelife * size * 0.9)
+
+local size = 2.2
+
+definitions['t3unitexplosionxxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxl'].sparks.properties.particlespeed * size)
+definitions['t3unitexplosionxxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxl'].sparks.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxxl'].explosion.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxl'].explosion.properties.particlespeed * size)
+definitions['t3unitexplosionxxxl'].explosion.properties.particlesize = math.floor(definitions['t3unitexplosionxxxl'].explosion.properties.particlesize * size * 0.7)
+definitions['t3unitexplosionxxxl'].explosion.properties.particlelife = math.floor(definitions['t3unitexplosionxxxl'].explosion.properties.particlelife * size)
+definitions['t3unitexplosionxxxl'].dustparticles.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxl'].dustparticles.properties.particlespeed * size * 0.6)
+definitions['t3unitexplosionxxxl'].dustparticles.properties.particlesize = math.floor(definitions['t3unitexplosionxxxl'].dustparticles.properties.particlesize * size * 0.5)
+definitions['t3unitexplosionxxxl'].dustparticles.properties.particlelife = math.floor(definitions['t3unitexplosionxxxl'].dustparticles.properties.particlelife * size)
+definitions['t3unitexplosionxxxl'].dirt.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxl'].dirt.properties.particlespeed * size * 0.6)
+definitions['t3unitexplosionxxxl'].dirt.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxl'].dirt.properties.particlespeedspread * size * 0.6)
+definitions['t3unitexplosionxxxl'].dirt.properties.numparticles = math.floor(definitions['t3unitexplosionxxxl'].dirt.properties.numparticles * size)
+definitions['t3unitexplosionxxxl'].dirt2.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxl'].dirt2.properties.particlespeed * size * 0.6)
+definitions['t3unitexplosionxxxl'].dirt2.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxl'].dirt2.properties.particlespeedspread * size * 0.6)
+definitions['t3unitexplosionxxxl'].dirt2.properties.numparticles = math.floor(definitions['t3unitexplosionxxxl'].dirt2.properties.numparticles * size)
+definitions['t3unitexplosionxxxl'].shockwave.properties.ttl = math.floor(definitions['t3unitexplosionxxxl'].shockwave.properties.ttl * size * 0.95)
+definitions['t3unitexplosionxxxl'].shockwave.properties.alpha = math.floor(definitions['t3unitexplosionxxxl'].shockwave.properties.alpha * size * 0.7)
+definitions['t3unitexplosionxxxl'].centerflare.properties.size = math.floor(definitions['t3unitexplosionxxxl'].centerflare.properties.size * size * 0.5)
+definitions['t3unitexplosionxxxl'].centerflare.properties.heat = math.floor(definitions['t3unitexplosionxxxl'].centerflare.properties.heat * size)
+definitions['t3unitexplosionxxxl'].centerflare.properties.maxheat = math.floor(definitions['t3unitexplosionxxxl'].centerflare.properties.maxheat * size)
+definitions['t3unitexplosionxxxl'].groundflash_large.properties.size = math.floor(definitions['t3unitexplosionxxxl'].groundflash_large.properties.size * size * 0.8)
+definitions['t3unitexplosionxxxl'].groundflash_large.properties.ttl = math.floor(definitions['t3unitexplosionxxxl'].groundflash_large.properties.ttl * size * 0.7)
+definitions['t3unitexplosionxxxl'].groundflash_white.properties.size = math.floor(definitions['t3unitexplosionxxxl'].groundflash_white.properties.size * size)
+definitions['t3unitexplosionxxxl'].grounddust.properties.particlesize = math.floor(definitions['t3unitexplosionxxxl'].grounddust.properties.particlesize * size)
+definitions['t3unitexplosionxxxl'].grounddust.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxl'].grounddust.properties.particlespeed * size)
+definitions['t3unitexplosionxxxl'].grounddust.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxl'].grounddust.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxxl'].grounddust.properties.particlelife = math.floor(definitions['t3unitexplosionxxxl'].grounddust.properties.particlelife * size * 0.6)
+
+local size = 2.6
+
+definitions['t3unitexplosionxxxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeed * size)
+definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxxxl'].explosion.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxl'].explosion.properties.particlespeed * size)
+definitions['t3unitexplosionxxxxl'].explosion.properties.particlesize = math.floor(definitions['t3unitexplosionxxxxl'].explosion.properties.particlesize * size * 0.8)
+definitions['t3unitexplosionxxxxl'].explosion.properties.particlelife = math.floor(definitions['t3unitexplosionxxxxl'].explosion.properties.particlelife * size)
+definitions['t3unitexplosionxxxxl'].dustparticles.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxl'].dustparticles.properties.particlespeed * size * 0.8)
+definitions['t3unitexplosionxxxxl'].dustparticles.properties.particlesize = math.floor(definitions['t3unitexplosionxxxxl'].dustparticles.properties.particlesize * size * 0.7)
+definitions['t3unitexplosionxxxxl'].dustparticles.properties.particlelife = math.floor(definitions['t3unitexplosionxxxxl'].dustparticles.properties.particlelife * size)
+definitions['t3unitexplosionxxxxl'].dirt.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxl'].dirt.properties.particlespeed * size * 0.8)
+definitions['t3unitexplosionxxxxl'].dirt.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxl'].dirt.properties.particlespeedspread * size * 0.8)
+definitions['t3unitexplosionxxxxl'].dirt.properties.numparticles = math.floor(definitions['t3unitexplosionxxxxl'].dirt.properties.numparticles * size)
+definitions['t3unitexplosionxxxxl'].dirt2.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxl'].dirt2.properties.particlespeed * size * 0.8)
+definitions['t3unitexplosionxxxxl'].dirt2.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxl'].dirt2.properties.particlespeedspread * size * 08)
+definitions['t3unitexplosionxxxxl'].dirt2.properties.numparticles = math.floor(definitions['t3unitexplosionxxxxl'].dirt2.properties.numparticles * size)
+definitions['t3unitexplosionxxxxl'].shockwave.properties.ttl = math.floor(definitions['t3unitexplosionxxxxl'].shockwave.properties.ttl * size * 1.05)
+definitions['t3unitexplosionxxxxl'].centerflare.properties.size = math.floor(definitions['t3unitexplosionxxxxl'].centerflare.properties.size * size * 0.7)
+definitions['t3unitexplosionxxxxl'].centerflare.properties.heat = math.floor(definitions['t3unitexplosionxxxxl'].centerflare.properties.heat * size)
+definitions['t3unitexplosionxxxxl'].centerflare.properties.maxheat = math.floor(definitions['t3unitexplosionxxxxl'].centerflare.properties.maxheat * size)
+definitions['t3unitexplosionxxxxl'].groundflash_large.properties.size = math.floor(definitions['t3unitexplosionxxxxl'].groundflash_large.properties.size * size * 0.9)
+definitions['t3unitexplosionxxxxl'].groundflash_large.properties.ttl = math.floor(definitions['t3unitexplosionxxxxl'].groundflash_large.properties.ttl * size * 0.8)
+definitions['t3unitexplosionxxxxl'].groundflash_white.properties.size = math.floor(definitions['t3unitexplosionxxxxl'].groundflash_white.properties.size * size)
+definitions['t3unitexplosionxxxxl'].grounddust.properties.particlesize = math.floor(definitions['t3unitexplosionxxxxl'].grounddust.properties.particlesize * size)
+definitions['t3unitexplosionxxxxl'].grounddust.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxl'].grounddust.properties.particlespeed * size)
+definitions['t3unitexplosionxxxxl'].grounddust.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxl'].grounddust.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxxxl'].grounddust.properties.particlelife = math.floor(definitions['t3unitexplosionxxxxl'].grounddust.properties.particlelife * size * 0.8)
+
+local size = 3.2
+
+definitions['t3unitexplosionxxxxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeed * size)
+definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxxxxl'].explosion.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].explosion.properties.particlespeed * size)
+definitions['t3unitexplosionxxxxxl'].explosion.properties.particlesize = math.floor(definitions['t3unitexplosionxxxxxl'].explosion.properties.particlesize * size * 0.9)
+definitions['t3unitexplosionxxxxxl'].explosion.properties.particlelife = math.floor(definitions['t3unitexplosionxxxxxl'].explosion.properties.particlelife * size)
+definitions['t3unitexplosionxxxxxl'].dustparticles.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].dustparticles.properties.particlespeed * size * 0.9)
+definitions['t3unitexplosionxxxxxl'].dustparticles.properties.particlesize = math.floor(definitions['t3unitexplosionxxxxxl'].dustparticles.properties.particlesize * size * 0.8)
+definitions['t3unitexplosionxxxxxl'].dustparticles.properties.particlelife = math.floor(definitions['t3unitexplosionxxxxxl'].dustparticles.properties.particlelife * size)
+definitions['t3unitexplosionxxxxxl'].dirt.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].dirt.properties.particlespeed * size * 0.9)
+definitions['t3unitexplosionxxxxxl'].dirt.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxxl'].dirt.properties.particlespeedspread * size * 0.9)
+definitions['t3unitexplosionxxxxxl'].dirt.properties.numparticles = math.floor(definitions['t3unitexplosionxxxxxl'].dirt.properties.numparticles * size)
+definitions['t3unitexplosionxxxxxl'].dirt2.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].dirt2.properties.particlespeed * size * 0.9)
+definitions['t3unitexplosionxxxxxl'].dirt2.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxxl'].dirt2.properties.particlespeedspread * size * 0.9)
+definitions['t3unitexplosionxxxxxl'].dirt2.properties.numparticles = math.floor(definitions['t3unitexplosionxxxxxl'].dirt2.properties.numparticles * size)
+definitions['t3unitexplosionxxxxxl'].shockwave.properties.ttl = math.floor(definitions['t3unitexplosionxxxxxl'].shockwave.properties.ttl * size * 1.1)
+definitions['t3unitexplosionxxxxxl'].centerflare.properties.size = math.floor(definitions['t3unitexplosionxxxxxl'].centerflare.properties.size * size * 0.8)
+definitions['t3unitexplosionxxxxxl'].centerflare.properties.heat = math.floor(definitions['t3unitexplosionxxxxxl'].centerflare.properties.heat * size)
+definitions['t3unitexplosionxxxxxl'].centerflare.properties.maxheat = math.floor(definitions['t3unitexplosionxxxxxl'].centerflare.properties.maxheat * size)
+definitions['t3unitexplosionxxxxxl'].groundflash_large.properties.size = math.floor(definitions['t3unitexplosionxxxxxl'].groundflash_large.properties.size * size * 0.9)
+definitions['t3unitexplosionxxxxxl'].groundflash_large.properties.ttl = math.floor(definitions['t3unitexplosionxxxxxl'].groundflash_large.properties.ttl * size * 0.8)
+definitions['t3unitexplosionxxxxxl'].groundflash_white.properties.size = math.floor(definitions['t3unitexplosionxxxxxl'].groundflash_white.properties.size * size)
+definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlesize = math.floor(definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlesize * size)
+definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeed * size)
+definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeedspread * size)
+definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlelife = math.floor(definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlelife * size * 0.9)
+
+return definitions

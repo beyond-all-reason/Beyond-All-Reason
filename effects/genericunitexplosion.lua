@@ -220,21 +220,21 @@ local definitions = {
         useairlos          = false,
       },
     },
-    shockwave = {
-        class              = [[CSpherePartSpawner]],
-            count              = 1,
-            ground             = true,
-            water              = true,
-            underwater         = false,
-            air                = true,
-            properties = {
-                alpha           = 0.20,
-                ttl             = 6,
-                expansionSpeed  = 5,
-                color           = [[1.0, 0.85, 0.45]],
-                alwaysvisible      = true,
-            },
-    },
+    -- shockwave = {
+    --     class              = [[CSpherePartSpawner]],
+    --         count              = 1,
+    --         ground             = true,
+    --         water              = true,
+    --         underwater         = false,
+    --         air                = true,
+    --         properties = {
+    --             alpha           = 0.20,
+    --             ttl             = 6,
+    --             expansionSpeed  = 5,
+    --             color           = [[1.0, 0.85, 0.45]],
+    --             --alwaysvisible      = true,
+    --         },
+    -- },
     dirt = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -656,7 +656,7 @@ local definitions = {
                 ttl             = 8,
                 expansionSpeed  = 7,
                 color           = [[1.0, 0.85, 0.45]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     shockwavewater = {
@@ -671,7 +671,7 @@ local definitions = {
                 ttl             = 12.0,
                 expansionSpeed  = 4,
                 color           = [[0.55, 0.55, 0.8]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     dirt = {
@@ -1095,7 +1095,7 @@ local definitions = {
                 ttl             = 9.3,
                 expansionSpeed  = 7.8,
                 color           = [[1.0, 0.85, 0.45]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     shockwavewater = {
@@ -1110,7 +1110,7 @@ local definitions = {
                 ttl             = 16.0,
                 expansionSpeed  = 4.3,
                 color           = [[0.55, 0.55, 0.8]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     dirt = {
@@ -1534,7 +1534,7 @@ local definitions = {
                 ttl             = 10.5,
                 expansionSpeed  = 8.5,
                 color           = [[1.0, 0.85, 0.45]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     shockwavewater = {
@@ -1549,7 +1549,7 @@ local definitions = {
                 ttl             = 17.5,
                 expansionSpeed  = 5.2,
                 color           = [[0.55, 0.55, 0.8]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     dirt = {
@@ -1973,7 +1973,7 @@ local definitions = {
                 ttl             = 10.5,
                 expansionSpeed  = 8.7,
                 color           = [[1.0, 0.85, 0.45]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     shockwavewater = {
@@ -1988,7 +1988,7 @@ local definitions = {
                 ttl             = 18.5,
                 expansionSpeed  = 5.4,
                 color           = [[0.55, 0.55, 0.8]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     dirt = {
@@ -2412,7 +2412,7 @@ local definitions = {
                 ttl             = 11.5,
                 expansionSpeed  = 9.0,
                 color           = [[1.0, 0.85, 0.45]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     shockwavewater = {
@@ -2427,7 +2427,7 @@ local definitions = {
                 ttl             = 19.5,
                 expansionSpeed  = 6,
                 color           = [[0.55, 0.55, 0.8]],
-                alwaysvisible      = true,
+                --alwaysvisible      = true,
             },
     },
     dirt = {
