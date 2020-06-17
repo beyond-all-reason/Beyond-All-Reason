@@ -20,6 +20,9 @@ local authorizedPlayers  = {
 local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
+if gadgetHandler:IsSyncedCode() then
+	local startPlayers = {}
+end
 
 function isAuthorized(playerID)
 	if Spring.IsCheatingEnabled() then
@@ -29,7 +32,9 @@ function isAuthorized(playerID)
 		local authorized = false
 		for _,name in ipairs(authorizedPlayers) do
 			if playername == name or playername == "UnnamedPlayer" then
-				return true
+				if startPlayers == nil or startPlayers[playername] == nil then
+					return true
+				end
 			end
 		end
 	end
@@ -38,17 +43,29 @@ end
 
 
 -- SYNCED
-if gadgetHandler:IsSyncedCode() then
 ----------------------------------------
 
-
+if gadgetHandler:IsSyncedCode() then
+	function checkStartPlayers()
+		for _,playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
+			local playername,_,spec = Spring.GetPlayerInfo(playerID,false)
+			if not spec then
+				startPlayers[playername] = true
+			end
+		end
+	end
+	function gadget:GameStart()
+		checkStartPlayers()
+	end
+	function gadget:PlayerChanged(playerID)
+		checkStartPlayers()
+	end
     function LoadMissiles()
         if not Spring.IsCheatingEnabled() then return end
 
         for _,unitID in pairs(Spring.GetAllUnits()) do
             Spring.SetUnitStockpile(unitID, math.max(5, select(2,Spring.GetUnitStockpile(unitID)))) --no effect if the unit can't stockpile
         end
-
     end
 
     function HalfHealth()
@@ -61,6 +78,7 @@ if gadgetHandler:IsSyncedCode() then
     end
 
     function gadget:Initialize()
+		checkStartPlayers()
         gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
         gadgetHandler:AddChatAction('halfhealth', HalfHealth, "")
     end
