@@ -168,7 +168,7 @@ return {
 					vtol = 85,
 				},
 			},
-			armlatnk_weapon = {
+			lightning = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamttl = 1,

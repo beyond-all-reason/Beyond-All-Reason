@@ -19,19 +19,20 @@ end
 local mRandom = math.random
 local sparkWeapons = {}
 local weapons = {
-    lightning = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5, maxunits=2},
-    dclaw = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.325, maxunits=2},
+    lightning = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5,   maxunits=2},
+    dclaw     = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.325, maxunits=2},
 }
 for wdid, wd in pairs(WeaponDefNames) do
     for name, v in pairs(weapons) do
         if string.find(wd.name, name) then
-            sparkWeapons[wdid] = v
+            sparkWeapons[wd.id] = v
         end
     end
 end
 
 local immuneToSplash = {
     [UnitDefNames.armzeus.id] = true,
+	[UnitDefNames.armlatnk.id] = true,
     [UnitDefNames.armclaw.id] = true,
 }
 for udid, ud in pairs(UnitDefs) do
@@ -49,11 +50,11 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
       local count = 0
       for i=1,#nearUnits do
         local nearUnit = nearUnits[i]
-        if (count >= sparkWeapons[weaponID].maxunits) then
+        if count >= sparkWeapons[weaponID].maxunits then
           return
         end
         local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
-        if (nearUnit ~= unitID) and (not immuneToSplash[nearUnitDefID]) then
+        if nearUnit ~= unitID and not immuneToSplash[nearUnitDefID] then
           local nx,ny,nz = Spring.GetUnitPosition(nearUnit)
           Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
           Spring.AddUnitDamage(nearUnit, damage*sparkWeapons[weaponID].forkdamage, 0, attackerID)
