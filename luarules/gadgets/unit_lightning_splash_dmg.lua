@@ -45,21 +45,23 @@ end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
     if sparkWeapons[weaponID] then
-      local x,y,z = Spring.GetUnitPosition(unitID)
-      local nearUnits = Spring.GetUnitsInSphere(x,y,z,60)
-      local count = 0
-      for i=1,#nearUnits do
-        local nearUnit = nearUnits[i]
-        if count >= sparkWeapons[weaponID].maxunits then
-          return
-        end
-        local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
-        if nearUnit ~= unitID and not immuneToSplash[nearUnitDefID] then
-          local nx,ny,nz = Spring.GetUnitPosition(nearUnit)
-          Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
-          Spring.AddUnitDamage(nearUnit, damage*sparkWeapons[weaponID].forkdamage, 0, attackerID)
-          count = count + 1
-        end
-      end
+		local x,y,z = Spring.GetUnitPosition(unitID)
+		local nearUnits = Spring.GetUnitsInSphere(x,y,z,60)
+		local count = 0
+		for i=1,#nearUnits do
+			local nearUnit = nearUnits[i]
+			if count >= sparkWeapons[weaponID].maxunits then
+				return
+			end
+			local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
+			if not immuneToSplash[nearUnitDefID] then
+				local nx,ny,nz = Spring.GetUnitPosition(nearUnit)
+				Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
+				if nearUnit ~= unitID then
+					Spring.AddUnitDamage(nearUnit, damage*sparkWeapons[weaponID].forkdamage, 0, attackerID)
+					count = count + 1
+				end
+			end
+		end
     end
 end
