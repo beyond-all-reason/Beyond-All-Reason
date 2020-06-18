@@ -21,7 +21,7 @@ local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
-	local startPlayers = {}
+	startPlayers = {}
 end
 
 function isAuthorized(playerID)

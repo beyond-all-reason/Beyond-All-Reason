@@ -233,7 +233,7 @@ return {
 					bombers = 99999,
 					commanders = 99999,
 					default = 99999,
-					fighters = 99999
+					fighters = 99999,
 					subs = 99999,
 					vtol = 99999,
 				},
