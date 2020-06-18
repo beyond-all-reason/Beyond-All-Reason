@@ -907,7 +907,7 @@ function widget:Update(dt)
 			local addZ = (coords[2] < coords[4] and 1 or -1)
 			while x ~= coords[3] do
 				while z ~= coords[4] do
-					if Spring.GetGroundHeight(x,z) < 0 then
+					if spGetGroundHeight(x,z) < 0 then
 						waterDetected = true
 						Spring.SendCommands("water "..desiredWaterValue)
 						break
@@ -4071,6 +4071,10 @@ function widget:Initialize()
 				break
 			end
 		end
+	end
+	
+	if not waterDetected then
+		Spring.SendCommands("water 0")
 	end
 
 	widget:ViewResize()
