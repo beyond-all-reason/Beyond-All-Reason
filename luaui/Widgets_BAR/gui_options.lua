@@ -4059,11 +4059,11 @@ function widget:Initialize()
 	end
 
 	if Spring.GetGameFrame() == 0 then
-		for x=1, Game.mapSizeX, 1 do
-			for z=1, Game.mapSizeZ, 1 do
+		for x=1, Game.mapSizeX do
+			for z=1, Game.mapSizeZ do
 				if spGetGroundHeight(x, z) < 0 then
 					waterDetected = true
-					Spring.SendCommands("water 0")
+					Spring.SendCommands("water "..desiredWaterValue)
 					break
 				end
 			end
