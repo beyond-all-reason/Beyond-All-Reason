@@ -56,6 +56,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 			local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
 			if not immuneToSplash[nearUnitDefID] then
 				local nx,ny,nz = Spring.GetUnitPosition(nearUnit)
+				ny = ny + (Spring.GetUnitHeight(nearUnit)*0.33)
 				Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
 				if nearUnit ~= unitID then
 					Spring.AddUnitDamage(nearUnit, math.ceil(damage*sparkWeapons[weaponID].forkdamage), 0, attackerID, -7)
