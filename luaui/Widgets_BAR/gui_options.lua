@@ -912,16 +912,16 @@ function widget:Update(dt)
 						Spring.SendCommands("water "..desiredWaterValue)
 						break
 					end
-					if waterDetected then
-						break
-					end
 					z = z + addZ
+				end
+				if waterDetected then
+					break
 				end
 				x = x + addX
 			end
-			heightmapChangeClock = nil
-			heightmapChangeBuffer = {}
 		end
+		heightmapChangeClock = nil
+		heightmapChangeBuffer = {}
 	end
 
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
@@ -4028,10 +4028,12 @@ end
 
 
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	if not heightmapChangeClock then
-		heightmapChangeClock = os_clock()
+	if not waterDetected then
+		if not heightmapChangeClock then
+			heightmapChangeClock = os_clock()
+		end
+		heightmapChangeBuffer[#heightmapChangeBuffer+1] = {x1, z1, x2, z2}
 	end
-	heightmapChangeBuffer[#heightmapChangeBuffer+1] = {x1, z1, x2, z2}
 end
 
 
