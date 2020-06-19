@@ -190,7 +190,7 @@ unitDeaths = {
             expl_light_life_mult = 1.08,
         },
 	},
-	
+
 	nanoselfd = {
 		weaponType = "Cannon",
 		areaofeffect = 64,
@@ -254,7 +254,7 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.15,
         },
     },
-	
+
 	windboom = {
 		weaponType = "Cannon",
 		AreaOfEffect = 180,
@@ -996,7 +996,7 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.1,
         },
     },
-	
+
 
 --NUKE EXPLOSIONS WITH DAMAGE--
 
@@ -1389,8 +1389,8 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.25,
         },
     },
-	
-	
+
+
 --UNIT DEATHS--
 
     tinyExplosionGeneric = {
@@ -2351,7 +2351,7 @@ unitDeaths = {
 
 }
 
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
     function deepcopy(orig)
         local orig_type = type(orig)
         local copy
@@ -2369,15 +2369,18 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~
 
     local scavengerDefs = {}
     for name, def in pairs(unitDeaths) do
-        if string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
-            scavengerDefs[name..'-purple'] = deepcopy(def)
-            scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
-        end
+		if string.find(string.lower(name), 'explosiont3') or string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
+			scavengerDefs[name..'-purple'] = deepcopy(def)
+			scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
+		elseif string.find(def.explosiongenerator, 't3unitexplosion') then
+			scavengerDefs[name..'-purple'] = deepcopy(def)
+			scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
+		end
     end
     for name,ud in pairs(scavengerDefs) do
         unitDeaths[name] = ud
     end
-end
+--end
 
 
 return lowerkeys(unitDeaths)

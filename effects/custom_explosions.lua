@@ -1197,7 +1197,7 @@ local definitions = {
                 },
             },
         },
-    ["t3unitexplosion"] = {    
+    ["t3unitexplosion"] = {
         centerflare = {
           air                = true,
           class              = [[heatcloud]],
@@ -1652,7 +1652,7 @@ local definitions = {
             texture            = [[bigexplosmoke]],
           },
         },
-      },    
+      },
 }
 
 function tableMerge(t1, t2)

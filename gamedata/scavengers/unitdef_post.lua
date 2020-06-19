@@ -49,12 +49,22 @@ function scav_Udef_Post(name, uDef)
 	end
 	-- make unit explosion purple
 	if uDef.explodeas then
-		if string.find(string.lower(uDef.explodeas), 'explosiongeneric') or string.find(string.lower(uDef.explodeas), 'buildingexplosiongeneric') then
+		if string.find(string.lower(uDef.explodeas), 'explosiongeneric') or
+			string.find(string.lower(uDef.explodeas), 'buildingexplosiongeneric') or
+			string.find(string.lower(uDef.explodeas), 'explosiont3') or
+			string.find(string.lower(uDef.explodeas), 'bantha') or
+			string.find(string.lower(uDef.explodeas), 'lootbox')
+		then
 			uDef.explodeas = uDef.explodeas..'-purple'
 		end
 	end
 	if uDef.selfdestructas then
-		if string.find(string.lower(uDef.selfdestructas), 'explosiongeneric') or string.find(string.lower(uDef.selfdestructas), 'buildingexplosiongeneric') then
+		if string.find(string.lower(uDef.selfdestructas), 'explosiongeneric') or
+			string.find(string.lower(uDef.selfdestructas), 'buildingexplosiongeneric') or
+		 	string.find(string.lower(uDef.selfdestructas), 'explosiont3') or
+			string.find(string.lower(uDef.selfdestructas), 'bantha') or
+			string.find(string.lower(uDef.selfdestructas), 'lootbox')
+		then
 			uDef.selfdestructas = uDef.selfdestructas..'-purple'
 		end
 	end
