@@ -59,9 +59,9 @@ for i=1,#files do
    if fileNames == "xplomas2" then
     t[fileNames].gain = 0.225*0.3
     end
-   if fileNames == "newboom" then
-    t[fileNames].gain = 0.045*0.3
-    end
+   -- if fileNames == "newboom" then
+   --  t[fileNames].gain = 0.045*0.3
+   --  end
     if fileNames == "beamershot2" then
     t[fileNames].gain = 0.5*0.3
     t[fileNames].pitchmod = 0.04
