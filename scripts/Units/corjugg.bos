@@ -4,11 +4,11 @@
 #include "exptype.h"
 
 piece  torso, lbleg, lfleg, rbleg, rfleg, lbfoot, lffoot, rbfoot, rffoot, lbtoe, lftoe, rbtoe, rftoe, aimy1,
-	turret, rbarrel, lbarrel, rbarrelflare, lbarrelflare, llaser, llaserflare, rlaser, rlaserflare, topturret, toplaser, toplaserflare, tail;
+	turret,sleeve, mainbarrel, mainbarrelflare , llaser, llaserflare, rlaser, rlaserflare, toplaser, toplaserflare, tail;
 	
 
 static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
-            Static_Var_6, Static_Var_7;
+            Static_Var_6, Static_Var_7, mainturretheading;
 // Generated for N:\animations\corjugg_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -643,6 +643,7 @@ Create()
 	Static_Var_2 = 0;
 	Static_Var_3 = 1;
 	animSpeed = 5;
+	mainturretheading = 0;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }
@@ -663,8 +664,7 @@ RestoreAfterDelay()
 	set-signal-mask 4 | 8 | 16 | 32;
 	sleep restore_delay;
 	turn aimy1 to y-axis <0.000000> speed <50.000000>;
-	turn rbarrel to x-axis <0.000000> speed <30.000000>;
-	turn lbarrel to x-axis <0.000000> speed <30.000000>;
+	turn sleeve to x-axis <0.000000> speed <30.000000>;
 	
 	turn toplaser to x-axis <0.000000> speed <30.000000>;
 	turn toplaser to y-axis <0.000000> speed <30.000000>;
@@ -675,13 +675,13 @@ RestoreAfterDelay()
 
 AimFromWeapon1(piecenum)
 {
-	piecenum = rbarrel;
+	piecenum = sleeve;
 }
 
 QueryWeapon1(piecenum)
 {
 
-	piecenum = Static_Var_5 + rbarrelflare;
+	piecenum = mainbarrel;
 }
 
 AimWeapon1(heading, pitch)
@@ -689,12 +689,11 @@ AimWeapon1(heading, pitch)
 	signal 4;
 	set-signal-mask 4;
 	Static_Var_2 = 1;
+	mainturretheading = heading;
 	turn aimy1 to y-axis heading speed <90.000000>;
-	turn rbarrel to x-axis <0.000000> - pitch speed <50.000000>;
-	turn lbarrel to x-axis <0.000000> - pitch speed <50.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn aimy1 around y-axis;
-	wait-for-turn rbarrel around x-axis;
-	wait-for-turn lbarrel around x-axis;
+	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -702,23 +701,9 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( Static_Var_5 == 0 )
-	{
-		/*move Rbarrel to z-axis [-5.000000] now;
-		show rflare;
-		sleep 150;
-		hide rflare;
-		move Rbarrel to z-axis [0.000000] speed [10.000000];*/
-	}
-	if( Static_Var_5 == 1 )
-	{
-		/*move Lbarrel to z-axis [-5.000000] now;
-		show lflare;
-		sleep 150;
-		hide lflare;
-		move Lbarrel to z-axis [0.000000] speed [10.000000];*/
-	}
-	Static_Var_5 = !Static_Var_5;
+	move mainbarrel to z-axis [-5.000000] now;
+	sleep 150;
+	move mainbarrel to z-axis [0.000000] speed [10.000000];
 }
 
 AimWeapon2(heading, pitch)
@@ -779,7 +764,7 @@ AimWeapon4(heading, pitch)
 {
 	signal 32;
 	set-signal-mask 32;
-	turn toplaser to y-axis heading speed <300.071429>;
+	turn toplaser to y-axis heading - mainturretheading speed <300.071429>;
 	turn toplaser to x-axis <0.000000> - pitch speed <200.038462>;
 	wait-for-turn toplaser around y-axis;
 	wait-for-turn toplaser around x-axis;
@@ -808,6 +793,7 @@ static-var bAnimate;
 //Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corjugg_anim_death.blend
 Killed(severity, corpsetype)
 {
+		bMoving = FALSE;
 			bAnimate = TRUE;
 		if (bAnimate) { //Frame:10
 			turn lbfoot to x-axis <5.952370> speed <17.857110> ; 
@@ -963,11 +949,8 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode Rbarrel type FALL | BITMAP3 | NOHEATCLOUD;
-		explode Lbarrel type FALL | BITMAP4 | NOHEATCLOUD;
 		explode rlaserflare type FALL | BITMAP1 | NOHEATCLOUD;
 		explode toplaser type FALL | BITMAP2 | NOHEATCLOUD;
-		explode Rbarrel type FALL | BITMAP3 | NOHEATCLOUD;
 		explode rlaserflare type FALL | BITMAP4 | NOHEATCLOUD;
 		explode rlaserflare type FALL | BITMAP5 | NOHEATCLOUD;
 		explode turret type FALL | BITMAP4 | NOHEATCLOUD;
@@ -977,10 +960,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3;
 		explode torso type SHATTER | BITMAP1 | NOHEATCLOUD;
-		explode Lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode rlaserflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode toplaser type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode Rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode rlaserflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode rlaserflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
@@ -988,10 +969,7 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode Lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode rlaserflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode Rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode rbarrelflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode rlaserflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
