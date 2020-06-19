@@ -1072,6 +1072,21 @@ local definitions = {
       },    
 }
 
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+        if type(v) == "table" then
+            if type(t1[k] or false) == "table" then
+                tableMerge(t1[k] or {}, t2[k] or {})
+            else
+                t1[k] = v
+            end
+        else
+            t1[k] = v
+        end
+    end
+    return t1
+end
+
 function deepcopy(orig)
   local orig_type = type(orig)
   local copy
@@ -1271,5 +1286,85 @@ definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlesize = math.f
 definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeed * size)
 definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlespeedspread * size)
 definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlelife = math.floor(definitions['t3unitexplosionxxxxxl'].grounddust.properties.particlelife * size * 0.9)
+
+-- add purple scavenger variants
+local scavengerDefs = {}
+for k,v in pairs(definitions) do
+  scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+end
+
+local purpleEffects = {
+  groundflash_small = {
+    properties = {
+      colormap           = [[0.7 0.3 1 0.28   0 0 0 0.01]],
+    },
+  },
+  groundflash_large = {
+    properties = {
+      colormap           = [[0.7 0.3 1 0.09   0 0 0 0.01]],
+    },
+  },
+  groundflash_white = {
+    properties = {
+      colormap           = [[0.9 0.7 1 0.25   0 0 0 0.01]],
+    },
+  },
+  explosion = {
+    properties = {
+      colormap           = [[0 0 0 0   0.8 0.5 1 0.09   0.65 0.2 0.9 0.066   0.35 0.07 0.6 0.033   0 0 0 0]],
+    },
+  },
+  fireglow = {
+    properties = {
+      colormap           = [[0.29 0.055 0.4 0.02   0 0 0 0]],
+    },
+  },
+  shockwave = {
+    properties = {
+      color              = [[0.9, 0.3, 1]],
+    },
+  },
+  innersmoke = {
+    properties = {
+      colormap=[[0.8 0.44 1 0.2    0.3 0.2 0.4 0.35   0.16 0.11 0.21 0.31    0.11 0.07 0.15 0.28   0.09 0.08 0.1 0.22   0.065 0.06 0.07 0.15    0 0 0 0.01]],
+    },
+  },
+  outersmoke = {
+    properties = {
+      colormap=[[0.8 0.45 1 0.45    0.22 0.15 0.3 0.4   0.15 0.11 0.18 0.35    0.12 0.1 0.13 0.32   0.105 0.095 0.11 0.25   0.061 0.059 0.063 0.17    0 0 0 0.01]],
+    },
+  },
+  sparks = {
+    properties = {
+      colormap=[[0.75 0.6 0.9 0.017   0.6 0.3 0.8 0.011   0 0 0 0]],
+    },
+  },
+  dustparticles = {
+    properties = {
+      colormap=[[0.85 0.6 1 0.22  0.75 0.3 1 0.12  0.6 0.2 1 0.06   0 0 0 0.01]],
+    },
+  },
+}
+for defName, def in pairs(scavengerDefs) do
+  for effect, effectParams in pairs(purpleEffects) do
+    if scavengerDefs[defName][effect] then
+      for param, paramValue in pairs(effectParams) do
+        if scavengerDefs[defName][effect][param] then
+          if param == 'properties' then
+            for property,propertyValue in pairs(paramValue) do
+              if scavengerDefs[defName][effect][param][property] then
+                scavengerDefs[defName][effect][param][property] = propertyValue
+              end
+            end
+          else
+            scavengerDefs[defName][effect][param] = paramValue
+          end
+        end
+      end
+    end
+  end
+end
+
+definitions = tableMerge(definitions, scavengerDefs)
 
 return definitions
