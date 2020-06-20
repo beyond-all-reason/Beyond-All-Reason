@@ -950,7 +950,9 @@ function widget:MousePress(x, y, button)
             if playSounds then
               Spring.PlaySoundFile(sound_button, 0.6, 'ui')
             end
-            Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),button,true,false,Spring.GetModKeyState())
+            if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
+              Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),button,true,false,Spring.GetModKeyState())
+            end
             break
           end
         else
