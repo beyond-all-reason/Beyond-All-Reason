@@ -163,8 +163,8 @@ return {
 					light_color = "1 0.5 0.05",
 				},
 				damage = {
-					commanders = 16,
-					default = 22,
+					commanders = 12,
+					default = 16,
 					subs = 1,
 				},
 			},

@@ -8,6 +8,7 @@
  • Removed reverse move
  • Removed air collisions for bombers
  • Increased maxslope for all units 50% (the slope which it allows to be build)
+ • Decreased cormaw damage 27%
 
 
 10.23 -> 10.24
