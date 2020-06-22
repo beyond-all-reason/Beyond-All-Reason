@@ -14,8 +14,10 @@ function gadget:GetInfo()
 end
 
 local authorized = {
-	["[teh]Flow"] = true,
 	['Floris'] = true,
+	["[teh]Flow"] = true,
+	["[teh]Beherith"] = true,
+	['IceXuick'] = true,
 	['Player'] = true,
 }
 
