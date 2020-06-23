@@ -381,6 +381,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
+	local UnitName = UnitDefs[unitDefID].name
 	if unitOldTeam == GaiaTeamID then
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
