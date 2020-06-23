@@ -13,7 +13,7 @@ static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIG_WALK 2
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corjugg_anim_walk_v2.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:10
@@ -599,12 +599,13 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
-	signal SIG_WALK;
+	//signal SIG_WALK;
 	bMoving=TRUE;
 	 start-script Walk();
 }
 StopMoving(){
-	bMoving=FALSE;
+	//bMoving=FALSE;
+	signal SIG_WALK;
 	call-script StopWalking();
 }
 
@@ -793,7 +794,7 @@ static-var bAnimate;
 //Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corjugg_anim_death.blend
 Killed(severity, corpsetype)
 {
-		bMoving = FALSE;
+		signal SIG_WALK;
 			bAnimate = TRUE;
 		if (bAnimate) { //Frame:10
 			turn lbfoot to x-axis <5.952370> speed <17.857110> ; 
