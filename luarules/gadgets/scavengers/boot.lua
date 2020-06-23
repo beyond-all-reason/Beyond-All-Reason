@@ -416,6 +416,11 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 
 	else
 		if unitNewTeam == GaiaTeamID then
+			if string.find(UnitName, scavconfig.unitnamesuffix) then
+				UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+			else
+				UnitSuffixLenght[unitID] = 0
+			end
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 			-- CMD.CLOAK = 37382
