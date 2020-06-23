@@ -369,7 +369,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 
-	turn torso to y-axis <0> speed <300.00>;
+	turn aimy1 to y-axis <0> speed <300.00>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn lloarm to x-axis <90> speed <300.000000>;

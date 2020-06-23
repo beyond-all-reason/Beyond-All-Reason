@@ -190,7 +190,7 @@ unitDeaths = {
             expl_light_life_mult = 1.08,
         },
 	},
-	
+
 	nanoselfd = {
 		weaponType = "Cannon",
 		areaofeffect = 64,
@@ -254,7 +254,7 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.15,
         },
     },
-	
+
 	windboom = {
 		weaponType = "Cannon",
 		AreaOfEffect = 180,
@@ -856,7 +856,7 @@ unitDeaths = {
         impulsefactor = impulsefactor,
         soundhit = "xplonuk3",
         soundstart = "largegun",
-        explosiongenerator="custom:genericbuildingexplosion-huge",
+        explosiongenerator="custom:fusexpl",
         damage = {
             commanders = 1400,
             default = 2400,
@@ -877,7 +877,7 @@ unitDeaths = {
         impulsefactor = impulsefactor,
         soundhit = "xplonuk3",
         soundstart = "largegun",
-        explosiongenerator="custom:genericbuildingexplosion-gigantic",
+        explosiongenerator="custom:fusexpl",
         damage = {
             commanders = 2200,
             default = 7500,
@@ -996,7 +996,7 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.1,
         },
     },
-	
+
 
 --NUKE EXPLOSIONS WITH DAMAGE--
 
@@ -1389,8 +1389,8 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.25,
         },
     },
-	
-	
+
+
 --UNIT DEATHS--
 
     tinyExplosionGeneric = {
@@ -2268,10 +2268,90 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.25,
         },
     },
+    lootboxExplosion1 = {
+        weaponType = "Cannon",
+        AreaOfEffect =  340,
+        cameraShake = 340,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed3",
+        soundstart = "largegun",
+        explosiongenerator="custom:t3unitexplosionxl",
+        damage = {
+            default = 600,
+        },
+        customparams = {
+            expl_light_color = "1 0.45 0.25",
+            expl_light_mult = 1.09,
+            expl_light_radius_mult = 1.09,
+            expl_light_life_mult = 1.14,
+            expl_light_heat_radius_mult = 1.15,
+        },
+    },
+    lootboxExplosion2 = {
+        weaponType = "Cannon",
+        AreaOfEffect =  620,
+        cameraShake = 620,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg4",
+        soundstart = "largegun",
+        explosiongenerator="custom:t3unitexplosionxxl",
+        damage = {
+            default = 1200,
+        },
+        customparams = {
+            expl_light_color = "1 0.45 0.25",
+            expl_light_mult = 1.1,
+            expl_light_radius_mult = 1.1,
+            expl_light_life_mult = 1.14,
+            expl_light_heat_radius_mult = 1.16,
+        },
+    },
+    lootboxExplosion3 = {
+        weaponType = "Cannon",
+        AreaOfEffect =  920,
+        cameraShake = 920,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplonuk3",
+        soundstart = "largegun",
+        explosiongenerator="custom:t3unitexplosionxxxl",
+        damage = {
+            default = 2400,
+        },
+        customparams = {
+            expl_light_color = "1 0.45 0.25",
+            expl_light_mult = 1.12,
+            expl_light_radius_mult = 1.12,
+            expl_light_life_mult = 1.15,
+            expl_light_heat_radius_mult = 1.17,
+        },
+    },
+    lootboxExplosion4 = {
+        weaponType = "Cannon",
+        AreaOfEffect =  1280,
+        cameraShake = 1280,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "newboom",
+        soundstart = "largegun",
+        explosiongenerator="custom:t3unitexplosionxxxxl",
+        damage = {
+            default = 4800,
+        },
+        customparams = {
+            expl_light_color = "1 0.45 0.25",
+            expl_light_mult = 1.13,
+            expl_light_radius_mult = 1.13,
+            expl_light_life_mult = 1.16,
+            expl_light_heat_radius_mult = 1.18,
+        },
+    },
 
 }
 
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
     function deepcopy(orig)
         local orig_type = type(orig)
         local copy
@@ -2289,15 +2369,18 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~
 
     local scavengerDefs = {}
     for name, def in pairs(unitDeaths) do
-        if string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
-            scavengerDefs[name..'-purple'] = deepcopy(def)
-            scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
-        end
+		if string.find(string.lower(name), 'explosiont3') or string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
+			scavengerDefs[name..'-purple'] = deepcopy(def)
+			scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
+		elseif string.find(def.explosiongenerator, 't3unitexplosion') then
+			scavengerDefs[name..'-purple'] = deepcopy(def)
+			scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
+		end
     end
     for name,ud in pairs(scavengerDefs) do
         unitDeaths[name] = ud
     end
-end
+--end
 
 
 return lowerkeys(unitDeaths)

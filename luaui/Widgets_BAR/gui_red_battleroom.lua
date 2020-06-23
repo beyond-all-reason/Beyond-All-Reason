@@ -396,26 +396,30 @@ local function clipHistory(g,oneline)
 	
 	if oneline then
 		local line = history[#history]
-		local lines,firstclip = clipLine(line[1],fontsize,maxsize)	
-		line[1] = ssub(line[1],1,firstclip)
-		for i=1,#lines do
-			if (i>1) then
-				historyCount = historyCount + 1
-				history[historyCount] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
+		if line then
+			local lines,firstclip = clipLine(line[1],fontsize,maxsize)
+			line[1] = ssub(line[1],1,firstclip)
+			for i=1,#lines do
+				if (i>1) then
+					historyCount = historyCount + 1
+					history[historyCount] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
+				end
 			end
 		end
 	else
 		local clippedhistory = {}
 		for i=1,#history do
 			local line = history[i]
-			local lines,firstclip = clipLine(line[1],fontsize,maxsize)
-			lines[1] = ssub(line[1],1,firstclip)
-			for i=1,#lines do
-				historyCount = historyCount + 1
-				if (i>1) then
-					clippedhistory[historyCount] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
-				else
-					clippedhistory[historyCount] = {lines[i],line[2],line[3],line[4],line[5]}
+			if line then
+				local lines,firstclip = clipLine(line[1],fontsize,maxsize)
+				lines[1] = ssub(line[1],1,firstclip)
+				for i=1,#lines do
+					historyCount = historyCount + 1
+					if (i>1) then
+						clippedhistory[historyCount] = {line[4]..lines[i],line[2],line[3],line[4],line[5]}
+					else
+						clippedhistory[historyCount] = {lines[i],line[2],line[3],line[4],line[5]}
+					end
 				end
 			end
 		end

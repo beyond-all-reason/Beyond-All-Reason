@@ -754,10 +754,10 @@ function PlayerDataBroadcast(playerName, msg)
 						end
 						startPos = i+1
 					elseif count == 2 then
-						screenshotWidth = string.sub(data,startPos,i-1)
+						screenshotWidth = tonumber(string.sub(data,startPos,i-1))
 						startPos = i+1
 					elseif count == 3 then
-						screenshotHeight = string.sub(data,startPos,i-1)
+						screenshotHeight = tonumber(string.sub(data,startPos,i-1))
 						startPos = i+1
 					elseif count == 4 then
 						screenshotGameframe = tonumber(string.sub(data,startPos,i-1))
@@ -814,9 +814,9 @@ function PlayerDataBroadcast(playerName, msg)
 
 					gl_Color(0,0,0,0.66)
 					local margin = 2
-					RectRound(-margin,-margin,screenshotWidth+margin+margin,screenshotHeight+15+margin+margin, 6, true)
+					RectRound(-margin,-margin,screenshotWidth+margin+margin,screenshotHeight+15+margin+margin, 6)
 					gl_Color(1,1,1,0.025)
-					RectRound(0,0,screenshotWidth,screenshotHeight+12+margin+margin, 4.5, true)
+					RectRound(0,0,screenshotWidth,screenshotHeight+12+margin+margin, 4.5)
 
                     font:Begin()
                     font:Print(screenshotPlayer, 4, screenshotHeight+6.5, 11, "on")
@@ -1849,7 +1849,7 @@ function widget:DrawScreen()
 				screenshotDlist = nil
 			else
 				gl.Color(0,0,0,0.25)
-				RectRound(screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale), 2*widgetScale, true)				-- close button
+				RectRound(screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale), 2*widgetScale)				-- close button
 				local size = (screenshotHeight*widgetScale)*1.2
 				local width = size*0.011
 				gl.Color(1,1,1,0.66)

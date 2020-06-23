@@ -14,15 +14,14 @@ function gadget:GetInfo()
 end
 
 local authorized = {
-	["[teh]Flow"] = true,
-	['FlowerPower'] = true,
 	['Floris'] = true,
-	['[Fx]Doo'] = true,
-	['[PiRO]JiZaH'] = true,
+	["[teh]Flow"] = true,
+	["[teh]Beherith"] = true,
+	['IceXuick'] = true,
 	['Player'] = true,
 }
 
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 	local charset = {}  do -- [0-9a-zA-Z]
 		for c = 48, 57  do table.insert(charset, string.char(c)) end
 		for c = 65, 90  do table.insert(charset, string.char(c)) end

@@ -3006,6 +3006,11 @@ local purpleEffects = {
       colormap           = [[0 0 0 0   0.8 0.5 1 0.09   0.65 0.2 0.9 0.066   0.35 0.07 0.6 0.033   0 0 0 0]],
     },
   },
+  shockwave = {
+    properties = {
+      color              = [[0.9, 0.3, 1]],
+    },
+  },
   fireglow = {
     properties = {
       colormap           = [[0.29 0.055 0.4 0.02   0 0 0 0]],

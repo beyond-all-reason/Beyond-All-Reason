@@ -188,7 +188,7 @@ function script.Shot(num)
 	gun_1 = 1 - gun_1
 	Move(gunPieces[gun_1].recoil, z_axis, -3)
 	Move(gunPieces[gun_1].recoil, z_axis, 0, 3)
-	
+
 	--Sleep(250)
 end
 
@@ -200,14 +200,14 @@ function script.Killed(recentDamage, maxHealth)
         Explode(torso, sfxNone + SFX.NO_HEATCLOUD)
         return 1
     elseif severity <= .5 then
-        Explode(torso, sfxShatter)
-        Explode(turret, sfxShatter)
+        Explode(torso, sfxShatter + SFX.NO_HEATCLOUD)
+        Explode(turret, sfxShatter + SFX.NO_HEATCLOUD)
         Explode(lbarrel, sfxFall + sfxSmoke + SFX.NO_HEATCLOUD)
         Explode(rbarrel, sfxFall + sfxSmoke + SFX.NO_HEATCLOUD)
         return 2
     else
-        Explode(torso, sfxShatter)
-        Explode(turret, sfxShatter)
+        Explode(torso, sfxShatter + SFX.NO_HEATCLOUD)
+        Explode(turret, sfxShatter + SFX.NO_HEATCLOUD)
         Explode(lbarrel, sfxFall + sfxSmoke + sfxFire + sfxExplode + SFX.NO_HEATCLOUD)
         Explode(rbarrel, sfxFall + sfxSmoke + sfxFire + sfxExplode + SFX.NO_HEATCLOUD)
         return 3
