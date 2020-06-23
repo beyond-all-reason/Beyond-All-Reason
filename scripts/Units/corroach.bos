@@ -8,110 +8,104 @@ piece  lega2, lega3, lega5, lega6, legb2, legb3, legb5, legb6,
 
 static-var  bMoving;
 
+movelegs(){
+	if (bMoving){
+		move lega6 to z-axis [-0.83] now;
+		move lega5 to z-axis [-0.83] now;
+		move legb6 to z-axis [-0.83] now;
+		move legb5 to z-axis [-0.83] now;
+	
+		move lega2 to z-axis [0.83] now;
+		move lega3 to z-axis [0.83] now;
+		move legb2 to z-axis [0.83] now;
+		move legb3 to z-axis [0.83] now;
+		
+		turn lega1 to x-axis <60> now;
+		turn legb1 to x-axis <60> now;
+		
+		turn lega4 to x-axis <60> now;
+		turn legb4 to x-axis <60> now;
+		sleep 30;
+		
+		move lega6 to z-axis [-1.66] now;
+		move lega5 to z-axis [-1.66] now;
+		move legb6 to z-axis [-1.66] now;
+		move legb5 to z-axis [-1.66] now;
+	
+		move lega2 to z-axis [1.66] now;
+		move lega3 to z-axis [1.66] now;
+		move legb2 to z-axis [1.66] now;
+		move legb3 to z-axis [1.66] now;
+		
+		turn lega1 to x-axis <120> now;
+		turn legb1 to x-axis <120> now;
+		
+		turn lega4 to x-axis <120> now;
+		turn legb4 to x-axis <120> now;
+		sleep 30;
+		
+		move lega6 to z-axis [0] now;
+		move lega5 to z-axis [0] now;
+		move legb6 to z-axis [0] now;
+		move legb5 to z-axis [0] now;
+	
+		move lega2 to z-axis [0] now;
+		move lega3 to z-axis [0] now;
+		move legb2 to z-axis [0] now;
+		move legb3 to z-axis [0] now;
+		
+		turn lega1 to x-axis <0> now;
+		turn legb1 to x-axis <0> now;
+		
+		turn lega4 to x-axis <0> now;
+		turn legb4 to x-axis <0> now;
+		sleep 30;
+	}
+
+}
 
 walkscr()
 {
-	while( bMoving )
-	{
-		if( bMoving )
-		{
-			move lega2 to x-axis [0.000000] now;
-			move lega2 to x-axis [0.000000] speed [0.000000];
-			move lega2 to z-axis [0.000000] now;
-			move lega2 to z-axis [0.250000] speed [8.000000];
-			move lega3 to z-axis [0.000000] now;
-			move lega3 to z-axis [0.250000] speed [8.000000];
-			move lega5 to z-axis [0.000000] now;
-			move lega5 to z-axis [-0.250000] speed [8.000000];
-			move lega6 to z-axis [0.000000] now;
-			move lega6 to z-axis [-0.250000] speed [8.000000];
-			move legb2 to z-axis [0.000000] now;
-			move legb2 to z-axis [0.250000] speed [8.000000];
-			move legb3 to z-axis [0.000000] now;
-			move legb3 to z-axis [0.250000] speed [8.000000];
-			move legb5 to z-axis [0.000000] now;
-			move legb5 to z-axis [-0.250000] speed [8.000000];
-			move legb6 to z-axis [0.000000] now;
-			move legb6 to z-axis [-0.250000] speed [8.000000];
-			turn lega1 to x-axis <0.000000> now;
-			turn lega1 to x-axis <45.010989> speed <1463.000000>;
-			turn lega4 to x-axis <0.000000> now;
-			turn lega4 to x-axis <44.005495> speed <1448.000000>;
-			turn legb1 to x-axis <0.000000> now;
-			turn legb1 to x-axis <45.010989> speed <1463.000000>;
-			turn legb4 to x-axis <0.000000> now;
-			turn legb4 to x-axis <45.010989> speed <1463.000000>;
-			sleep 31;
+	while (bMoving){
+		if (bMoving){ 
+			turn base to y-axis <-18> speed <60>;
+			move base to x-axis [0] speed [10];
+			
+			call-script movelegs();
+			call-script movelegs();
+			call-script movelegs();
+			}
+		
+		if (bMoving){ 
+			turn base to y-axis <0> speed <60>;
+			move base to x-axis [3] speed [10];
+			
+			call-script movelegs();
+			call-script movelegs();
+			call-script movelegs();
+			call-script movelegs();
+			}
+		if (bMoving){ 
+			turn base to y-axis <18> speed <60>;
+			move base to x-axis [0] speed [10];
+			
+			call-script movelegs();
+			call-script movelegs();
+			call-script movelegs();
 		}
-		if( bMoving )
-		{
-			move lega2 to z-axis [0.550000] speed [4.000000];
-			move lega3 to z-axis [0.550000] speed [4.000000];
-			move lega5 to z-axis [-0.550000] speed [4.000000];
-			move lega6 to z-axis [-0.550000] speed [4.000000];
-			move legb2 to z-axis [0.550000] speed [4.000000];
-			move legb3 to z-axis [0.550000] speed [4.000000];
-			move legb5 to z-axis [-0.550000] speed [4.000000];
-			move legb6 to z-axis [-0.550000] speed [4.000000];
-			turn lega1 to x-axis <89.016484> speed <1073.000000>;
-			turn lega4 to x-axis <86.016484> speed <1015.000000>;
-			turn legb1 to x-axis <89.016484> speed <1061.000000>;
-			turn legb2 to z-axis <0.000000> speed <23.000000>;
-			turn legb4 to x-axis <87.016484> speed <1015.000000>;
-			sleep 42;
+		if (bMoving){ 
+			turn base to y-axis <0> speed <60>;
+			move base to x-axis [-3] speed [10];
+			
+			call-script movelegs();
+			call-script movelegs();
+			call-script movelegs();
+			call-script movelegs();
 		}
-		if( bMoving )
-		{
-			move lega1 to y-axis [-0.150000] speed [0.000000];
-			move lega1 to z-axis [-0.200000] speed [4.000000];
-			move lega2 to z-axis [0.850000] speed [4.000000];
-			move lega3 to z-axis [0.850000] speed [4.000000];
-			move lega4 to y-axis [0.150000] speed [0.000000];
-			move lega4 to z-axis [0.200000] speed [4.000000];
-			move lega5 to z-axis [-0.900000] speed [8.000000];
-			move lega6 to z-axis [-0.850000] speed [4.000000];
-			move legb1 to y-axis [-0.150000] speed [0.000000];
-			move legb1 to z-axis [-0.200000] speed [4.000000];
-			move legb2 to z-axis [0.850000] speed [4.000000];
-			move legb3 to z-axis [0.850000] speed [4.000000];
-			move legb4 to y-axis [0.150000] speed [0.000000];
-			move legb4 to z-axis [0.200000] speed [4.000000];
-			move legb5 to z-axis [-0.900000] speed [8.000000];
-			move legb6 to z-axis [-0.850000] speed [4.000000];
-			turn lega1 to x-axis <135.032967> speed <1109.000000>;
-			turn lega4 to x-axis <135.032967> speed <1191.000000>;
-			turn legb1 to x-axis <134.027473> speed <1097.000000>;
-			turn legb2 to z-axis <0.000000> speed <23.000000>;
-			turn legb4 to x-axis <135.032967> speed <1167.000000>;
-			turn legb5 to z-axis <0.000000> speed <0.000000>;
-			sleep 164;
-		}
-		move lega1 to y-axis [0.000000] speed [300.000000];
-		move lega1 to z-axis [0.000000] speed [400.000000];
-		move lega2 to x-axis [0.000000] speed [0.000000];
-		move lega2 to z-axis [0.000000] speed [1696.000000];
-		move lega3 to z-axis [0.000000] speed [1696.000000];
-		move lega4 to y-axis [0.000000] speed [296.000000];
-		move lega4 to z-axis [0.000000] speed [396.000000];
-		move lega5 to z-axis [0.000000] speed [1796.000000];
-		move lega6 to z-axis [0.000000] speed [1700.000000];
-		move legb1 to y-axis [0.000000] speed [300.000000];
-		move legb1 to z-axis [0.000000] speed [400.000000];
-		move legb2 to z-axis [0.000000] speed [1700.000000];
-		move legb3 to z-axis [0.000000] speed [1700.000000];
-		move legb4 to y-axis [0.000000] speed [296.000000];
-		move legb4 to z-axis [0.000000] speed [400.000000];
-		move legb5 to z-axis [0.000000] speed [1796.000000];
-		move legb6 to z-axis [0.000000] speed [1700.000000];
-		turn lega1 to x-axis <0.000000> speed <67516.000000>;
-		turn lega4 to x-axis <0.000000> speed <67755.000000>;
-		turn legb1 to x-axis <0.000000> speed <67277.000000>;
-		turn legb4 to x-axis <0.000000> speed <67516.000000>;
-		turn legb5 to z-axis <0.000000> speed <0.000000>;
-		sleep 1;
+		
 	}
+	
 	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
