@@ -381,6 +381,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
+	local UnitName = UnitDefs[unitDefID].name
 	if unitOldTeam == GaiaTeamID then
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
@@ -415,6 +416,86 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 		Spring.SetUnitHealth(unitID, {capture = 0})
 
 	else
+		if unitNewTeam == GaiaTeamID then
+			if string.find(UnitName, scavconfig.unitnamesuffix) then
+				UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+			else
+				UnitSuffixLenght[unitID] = 0
+			end
+			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
+			numOfSpawnBeacons = numOfSpawnBeacons + 1
+			-- CMD.CLOAK = 37382
+			Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			-- Fire At Will
+			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
+			scavStructure[unitID] = UnitDefs[unitDefID].isBuilding
+			for i = 1,#NoSelfdList do
+				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == NoSelfdList[i] then--string.find(UnitName, NoSelfdList[i]) then
+					scavStructure[unitID] = true
+				end
+			end
+
+			if scavconfig.modules.stockpilers == true then
+				for i = 1,#StockpilingUnitNames do
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == StockpilingUnitNames[i] then
+						scavStockpiler[unitID] = true
+					end
+				end
+			end
+
+			if scavconfig.modules.nukes == true then
+				for i = 1,#NukingUnitNames do
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == NukingUnitNames[i] then
+						scavNuke[unitID] = true
+					end
+				end
+			end
+
+			if scavconfig.modules.constructorControllerModule then
+				if constructorControllerModuleConfig.useconstructors then
+					for i = 1,#ConstructorsList do
+						if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == ConstructorsList[i] then
+							scavConstructor[unitID] = true
+						end
+					end
+				end
+
+				if constructorControllerModuleConfig.useresurrectors then
+					for i = 1,#Resurrectors do
+						if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Resurrectors[i] then
+							scavResurrector[unitID] = true
+						end
+					end
+					for i = 1,#ResurrectorsSea do
+						if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == ResurrectorsSea[i] then
+							scavResurrector[unitID] = true
+						end
+					end
+				end
+
+				if constructorControllerModuleConfig.usecollectors then
+					for i = 1,#Collectors do
+						if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Collectors[i] then
+							scavCollector[unitID] = true
+						end
+					end
+				end
+
+				for i = 1,#AssistUnits do
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == AssistUnits[i] then
+						scavAssistant[unitID] = true
+					end
+				end
+			end
+
+			if scavconfig.modules.factoryControllerModule then
+				for i = 1,#Factories do
+					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Factories[i] then
+						scavFactory[unitID] = true
+					end
+				end
+			end
+		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
@@ -434,31 +515,27 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else
-			if not string.find(UnitName, "lootbox") then
-				UnitSuffixLenght[unitID] = 0
-				local frame = Spring.GetGameFrame()
-				if frame > 300 then
-					local heading = Spring.GetUnitHeading(unitID)
-					local suffix = scavconfig.unitnamesuffix
-					local posx, posy, posz = Spring.GetUnitPosition(unitID)
-					Spring.DestroyUnit(unitID, false, true)
-					if heading >= -24576 and heading < -8192 then -- west
-						-- 3
-						Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
-					elseif heading >= -8192 and heading < 8192 then -- south
-						-- 0
-						Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
-					elseif heading >= 8192 and heading < 24576 then -- east
-						-- 1
-						Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
-					else -- north
-						-- 2
-						Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
-					end
-					return
+			UnitSuffixLenght[unitID] = 0
+			local frame = Spring.GetGameFrame()
+			if frame > 300 then
+				local heading = Spring.GetUnitHeading(unitID)
+				local suffix = scavconfig.unitnamesuffix
+				local posx, posy, posz = Spring.GetUnitPosition(unitID)
+				Spring.DestroyUnit(unitID, false, true)
+				if heading >= -24576 and heading < -8192 then -- west
+					-- 3
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
+				elseif heading >= -8192 and heading < 8192 then -- south
+					-- 0
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
+				elseif heading >= 8192 and heading < 24576 then -- east
+					-- 1
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
+				else -- north
+					-- 2
+					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
 				end
-			else
-				UnitSuffixLenght[unitID] = 0
+				return
 			end
 		end
 		if UnitName == "scavengerdroppod_scav" then
