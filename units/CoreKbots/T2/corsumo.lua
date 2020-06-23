@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSUMO.s3o",
 		pushresistant = true,
-		script = "Units/CORSUMO.lua",
+		script = "Units/CORSUMO.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 510,
