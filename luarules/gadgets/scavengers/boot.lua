@@ -422,8 +422,12 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 			else
 				UnitSuffixLenght[unitID] = 0
 			end
-			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
-			numOfSpawnBeacons = numOfSpawnBeacons + 1
+			Spring.Echo("Scavs just captured me " .. UnitName .. " and my suffix lenght is " .. UnitSuffixLenght[unitID])
+			if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+				numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
+				numOfSpawnBeacons = numOfSpawnBeacons + 1
+				scavSpawnBeacon[unitID] = true
+			end
 			-- CMD.CLOAK = 37382
 			Spring.GiveOrderToUnit(unitID,37382,{1},0)
 			-- Fire At Will
