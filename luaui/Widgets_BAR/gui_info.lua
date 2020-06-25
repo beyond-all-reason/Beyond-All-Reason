@@ -86,6 +86,8 @@ local spGetUnitStockpile = Spring.GetUnitStockpile
 
 local math_floor = math.floor
 local math_ceil = math.ceil
+local math_min = math.min
+local math_max = math.max
 
 local os_clock = os.clock
 
@@ -161,6 +163,8 @@ local unitTooltip = {}
 local unitIconType = {}
 local isMex = {}
 local isTransport = {}
+local isAaUnit = {}
+local isAirUnit = {}
 local unitMaxWeaponRange = {}
 local unitHealth = {}
 local unitBuildOptions = {}
@@ -180,6 +184,11 @@ local unitWreckMetal = {}
 local unitHeapMetal = {}
 local unitParalyzeMult = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
+
+  if unitDef.isAirUnit then
+    isAirUnit[unitDefID] = true
+  end
+
   unitHumanName[unitDefID] = unitDef.humanName
   if unitDef.maxWeaponRange > 16 then
     unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
@@ -258,6 +267,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     if weaponDef.damages then
       local defaultDPS = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
       unitDPS[unitDefID] = math_floor(defaultDPS)
+    end
+    if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
+      isAaUnit[unitDefID] = true
     end
   end
 end
@@ -819,100 +831,288 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
             cellRect[cellID][1]+cellPadding+halfSize,
             0,
             cellRect[cellID][2]+cellPadding+halfSize,
-            halfSize, cornerSize, halfSize-math.max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+            halfSize, cornerSize, halfSize-math_max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
     )
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
 
   -- unitcount
   if selUnitsCounts[uDefID] > 1 then
-    local fontSize = math.min(gridHeight*0.19, cellsize*0.6) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
+    local fontSize = math_min(gridHeight*0.19, cellsize*0.6) * (1-((1+string.len(selUnitsCounts[uDefID]))*0.066))
     font2:Begin()
     font2:Print(selUnitsCounts[uDefID], cellRect[cellID][3]-cellPadding-(fontSize*0.09), cellRect[cellID][2]+(fontSize*0.3), fontSize, "ro")
     font2:End()
   end
 end
 
-local function drawInfo()
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 1,(WG['buildpower'] and 0 or 1),1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-  RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
-  --colorize
-  --glBlending(GL.DST_COLOR, GL.DST_COLOR)
-  --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.7, 1,1,1,1,{0.5,0.5,0.5,1}, {0.5,0.5,0.5,1})
-  --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+local function drawSelection()
 
-  -- gloss
-  glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
-  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), bgpadding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
-  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0}, {1,1,1,0.07})
-  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  selUnitsCounts = spGetSelectedUnitsCounts()
+  selUnitsSorted = spGetSelectedUnitsSorted()
+  local selUnitTypes = 0
+  selectionCells = {}
 
+  for k,uDefID in pairs(unitOrder) do
+    if selUnitsSorted[uDefID] then
+      if type(selUnitsSorted[uDefID]) == 'table' then
+        selUnitTypes = selUnitTypes + 1
+        selectionCells[selUnitTypes] = uDefID
+      end
+    end
+  end
+
+  -- selected units grid area
+  local gridWidth = math_floor(backgroundRect[3]-backgroundRect[1]-bgpadding)
+  gridHeight = math_floor((backgroundRect[4]-backgroundRect[2])-bgpadding-bgpadding)
+  local customInfoArea = {backgroundRect[3]-gridWidth, backgroundRect[2], backgroundRect[3]-bgpadding, backgroundRect[2]+gridHeight}
+
+  -- selected units grid area
+
+  -- draw selected unit icons
+  local rows = 2
+  local maxRows = 15  -- just to be sure
+  local colls = math_ceil(selUnitTypes / rows)
+  cellsize = math_floor(math_min(gridWidth/colls, gridHeight/rows))
+  while cellsize < gridHeight/(rows+1) do
+    rows = rows + 1
+    colls = math_ceil(selUnitTypes / rows)
+    cellsize = math_min(gridWidth/colls, gridHeight/rows)
+    if rows > maxRows then
+      break
+    end
+  end
+
+  -- adjust grid size to add some padding at the top and right side
+  cellsize = math_floor((cellsize * (1 - (0.04/rows)))+0.5)  -- leave some space at the top
+  cellPadding = math_max(1, math_floor(cellsize * 0.04))
+  customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
+
+  -- draw grid (bottom right to top left)
+  cellRect = {}
+  texOffset = (0.03*rows) * zoomMult
+  cornerSize = math_max(1, cellPadding*0.9)
+  if texOffset > 0.25 then texOffset = 0.25 end
+  --texDetail = math_floor((cellsize-cellPadding)*(1+texOffset))
+  --texSetting = ':lr'..texDetail..','..texDetail..':'
+  texSetting = cellsize > 38 and ':lr160,160:' or ':lr100,100:'
+  local cellID = selUnitTypes
+  for row=1, rows do
+    for coll=1, colls do
+      if selectionCells[cellID] then
+        local uDefID = selectionCells[cellID]
+        cellRect[cellID] = {math_ceil(customInfoArea[3]-cellPadding-(coll*cellsize)), math_ceil(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_ceil(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_ceil(customInfoArea[2]+cellPadding+((row)*cellsize))}
+        drawSelectionCell(cellID, selectionCells[cellID], texOffset)
+      end
+      cellID = cellID - 1
+      if cellID <= 0 then break end
+    end
+    if cellID <= 0 then break end
+  end
+  glTexture(false)
+  glColor(1,1,1,1)
+end
+
+
+local function drawUnitInfo()
   local fontSize = (height*vsy * 0.11) * (0.95-((1-ui_scale)*0.5))
-  contentPadding = (height*vsy * 0.075) * (0.95-((1-ui_scale)*0.5))
-  contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
+
+  local iconSize = fontSize*5
+  local iconPadding = 0
+  local alternative = ''
+  if hasAlternativeUnitpic[displayUnitDefID] then
+    alternative = 'alternative/'
+    iconPadding = bgpadding
+  end
+
+  glColor(1,1,1,1)
+  if unitBuildPic[displayUnitDefID] then
+    glTexture(":lr200,200:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
+    glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-bgpadding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-bgpadding)
+    glTexture(false)
+  end
+  iconSize = iconSize + iconPadding
+
+  local radarIconSize = math_floor((height*vsy*0.17)+0.5)
+  local radarIconMargin = math_floor((radarIconSize * 0.3)+0.5)
+  local showingRadarIcon = false
+  if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
+    glColor(1,1,1,0.88)
+    glTexture(':lr'..(radarIconSize*2)..','..(radarIconSize*2)..':'..iconTypesMap[unitIconType[displayUnitDefID]])
+    glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
+    glTexture(false)
+    glColor(1,1,1,1)
+    showingRadarIcon = true
+  end
+
+  -- unitID
+  --if displayUnitID then
+  --  local radarIconSpace = showingRadarIcon and (radarIconMargin+radarIconSize) or 0
+  --  font:Begin()
+  --  font:Print('\255\200\200\200#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
+  --  font:End()
+  --end
 
 
-  if displayMode == 'selection' then
+  local unitNameColor = '\255\205\255\205'
+  if SelectedUnitsCount > 0 then
+    if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
+      unitNameColor = '\255\125\255\125'
+    end
+  end
+  local descriptionColor = '\255\240\240\240'
+  local metalColor = '\255\245\245\245'
+  local energyColor = '\255\255\255\000'
+  local healthColor = '\255\100\255\100'
 
-    selUnitsCounts = spGetSelectedUnitsCounts()
-    selUnitsSorted = spGetSelectedUnitsSorted()
-    local selUnitTypes = 0
-    selectionCells = {}
+  local labelColor = '\255\205\205\205'
+  local valueColor = '\255\255\255\255'
+  local valuePlusColor = '\255\180\255\180'
+  local valueMinColor = '\255\255\180\180'
 
-    for k,uDefID in pairs(unitOrder) do
-      if selUnitsSorted[uDefID] then
-        v = selUnitsSorted[uDefID]
-        --for uDefID,v in pairs(selUnitsSorted) do
-        if type(v) == 'table' then
-          selUnitTypes = selUnitTypes + 1
-          selectionCells[selUnitTypes] = uDefID
-        end
-      end
+  local text, numLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
+  -- unit tooltip
+  font:Begin()
+  font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.4), fontSize, "o")
+  font:End()
+
+  -- unit name
+  font2:Begin()
+  font2:Print(unitNameColor..unitHumanName[displayUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
+  --font2:End()
+
+  -- custom unit info background
+  local width = contentWidth * 0.8
+  local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
+  local customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
+  RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
+
+  local contentPaddingLeft = contentPadding * 0.75
+  local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
+  local texSize = fontSize * 0.6
+
+  local posY1 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.1)
+  local posY2 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.38)
+  local posY3 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.67)
+
+  local valueY1 = ''
+  local valueY2 = ''
+  local valueY3 = ''
+  if displayUnitID then
+    local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
+    if metalMake then
+      valueY1 = (metalMake > 0 and valuePlusColor..'+'..(metalMake < 10 and round(metalMake, 1) or round(metalMake, 0))..' ' or '')   .. (metalUse > 0 and valueMinColor..'-'..(metalUse < 10 and round(metalUse, 1) or round(metalUse, 0)) or '')
+      valueY2 = (energyMake > 0 and valuePlusColor..'+'..(energyMake < 10 and round(energyMake, 1) or round(energyMake, 0))..' ' or '') .. (energyUse > 0 and valueMinColor..'-'..(energyUse < 10 and round(energyUse, 1) or round(energyUse, 0)) or '')
+      valueY3 = ''
     end
 
-    -- selected units grid area
-    local gridWidth = math_floor(backgroundRect[3]-backgroundRect[1]-bgpadding)
-    gridHeight = math_floor((backgroundRect[4]-backgroundRect[2])-bgpadding-bgpadding)
-    customInfoArea = {backgroundRect[3]-gridWidth, backgroundRect[2], backgroundRect[3]-bgpadding, backgroundRect[2]+gridHeight}
+    -- display health value/bar
+    local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
+    if health then
+      local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
+      local healthBarHeight = healthBarWidth * 0.1
+      local healthBarMargin = healthBarHeight * 0.7
+      local healthBarPadding = healthBarHeight * 0.15
+      local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
+      local color = bfcolormap[math_min(math_max(math_floor((health/maxHealth)*100), 0), 100)]
 
-    -- selected units grid area
+      --valueY3 = convertColor(color[1],color[2],color[3])..math_min(math_max(math_floor((health/maxHealth)*100), 0), 100)..'%'
+      valueY3 = convertColor(color[1],color[2],color[3])..math_floor(health)
 
-    -- draw selected unit icons
+      ---- bar background
+      --RectRound(
+      --        customInfoArea[3]-healthBarMargin-healthBarWidth,
+      --        customInfoArea[4]+healthBarMargin,
+      --        customInfoArea[3]-healthBarMargin,
+      --        customInfoArea[4]+healthBarMargin+healthBarHeight,
+      --        healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
+      --)
+      ---- bar value
+      --RectRound(
+      --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
+      --        customInfoArea[4]+healthBarMargin+healthBarPadding,
+      --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
+      --        customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
+      --        healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
+      --)
+      ---- bar text value
+      --font:Begin()
+      --font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
+      --font:End()
+    end
+  else
+    valueY1 = metalColor..unitMetalCost[displayUnitDefID]
+    valueY2 = energyColor..unitEnergyCost[displayUnitDefID]
+    valueY3 = healthColor..unitHealth[displayUnitDefID]
+  end
+
+  glColor(1,1,1,1)
+  local texDetailSize = math_floor(texSize * 4)
+  if valueY1 ~= '' then
+    glTexture(":lr"..texDetailSize..","..texDetailSize..":LuaUI/Images/metal-icon.png")
+    glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY1-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY1+texSize)
+  end
+  if valueY2 ~= '' then
+    glTexture(":lr"..texDetailSize..","..texDetailSize..":LuaUI/Images/energy-icon.png")
+    glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY2-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY2+texSize)
+  end
+  if valueY3 ~= '' then
+    glTexture(":lr"..texDetailSize..","..texDetailSize..":LuaUI/Images/info_health.png")
+    glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY3-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY3+texSize)
+  end
+  glTexture(false)
+
+  -- metal
+  local fontSize2 = fontSize*0.96
+  local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
+  font2:Print(valueY1, backgroundRect[1]+contentPaddingLeft, posY1-(fontSize2*0.31), fontSize2, "o")
+  -- energy
+  font2:Print(valueY2, backgroundRect[1]+contentPaddingLeft, posY2-(fontSize2*0.31), fontSize2, "o")
+  -- health
+  font2:Print(valueY3, backgroundRect[1]+contentPaddingLeft, posY3-(fontSize2*0.31), fontSize2, "o")
+  font2:End()
+
+  -- draw unit buildoption icons
+  if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
+    local gridHeight = math_ceil(height*0.98)
     local rows = 2
-    local maxRows = 15  -- just to be sure
-    local colls = math_ceil(selUnitTypes / rows)
-    cellsize = math_floor(math.min(gridWidth/colls, gridHeight/rows))
-    while cellsize < gridHeight/(rows+1) do
-      rows = rows + 1
-      colls = math_ceil(selUnitTypes / rows)
-      cellsize = math.min(gridWidth/colls, gridHeight/rows)
-      if rows > maxRows then
-        break
-      end
+    local colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
+    local cellsize = math_floor((math_min(width/colls, gridHeight/rows)) + 0.5)
+    if cellsize < gridHeight/3 then
+      rows = 3
+      colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
+      cellsize = math_floor((math_min(width/colls, gridHeight/rows)) + 0.5)
     end
-
-    -- adjust grid size to add some padding at the top and right side
-    cellsize = math_floor((cellsize * (1 - (0.04/rows)))+0.5)  -- leave some space at the top
-    cellPadding = math.max(1, math_floor(cellsize * 0.04))
-    customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
-
     -- draw grid (bottom right to top left)
+    local cellID = #unitBuildOptions[displayUnitDefID]
+    cellPadding = math_floor((cellsize * 0.022)+0.5)
     cellRect = {}
-    texOffset = (0.03*rows) * zoomMult
-    cornerSize = math.max(1, cellPadding*0.9)
-    if texOffset > 0.25 then texOffset = 0.25 end
-    --texDetail = math_floor((cellsize-cellPadding)*(1+texOffset))
-    --texSetting = ':lr'..texDetail..','..texDetail..':'
-    texSetting = cellsize > 38 and ':lr160,160:' or ':lr100,100:'
-    local cellID = selUnitTypes
     for row=1, rows do
       for coll=1, colls do
-        if selectionCells[cellID] then
-          local uDefID = selectionCells[cellID]
-          cellRect[cellID] = {math_ceil(customInfoArea[3]-cellPadding-(coll*cellsize)), math_ceil(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_ceil(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_ceil(customInfoArea[2]+cellPadding+((row)*cellsize))}
-          drawSelectionCell(cellID, selectionCells[cellID], texOffset)
+        if unitBuildOptions[displayUnitDefID][cellID] then
+          local uDefID = unitBuildOptions[displayUnitDefID][cellID]
+          cellRect[cellID] = {math_floor(customInfoArea[3]-cellPadding-(coll*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_floor(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row)*cellsize))}
+          glColor(0.9,0.9,0.9,1)
+          glTexture(":lr100,100:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
+          --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
+          --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
+          TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,1,1, 0.11)
+          glTexture(false)
+          -- darkening bottom
+          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
+          -- gloss
+          glBlending(GL_SRC_ALPHA, GL_ONE)
+          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
+          RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellPadding*1.3, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
+
+          --local halfSize = (((cellRect[cellID][3]-cellPadding))-(cellRect[cellID][1]))*0.5
+          --RectRoundCircle(
+          --        cellRect[cellID][1]+cellPadding+halfSize,
+          --        0,
+          --        cellRect[cellID][2]+cellPadding+halfSize,
+          --        halfSize, cellPadding*1.3, halfSize-math_max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+          --)
+          glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         end
         cellID = cellID - 1
         if cellID <= 0 then break end
@@ -923,376 +1123,196 @@ local function drawInfo()
     glColor(1,1,1,1)
 
 
-  elseif displayMode ~= 'text' and displayUnitDefID then
-    local iconSize = fontSize*5
-    local iconPadding = 0
-    local alternative = ''
-    if hasAlternativeUnitpic[displayUnitDefID] then
-      alternative = 'alternative/'
-      iconPadding = bgpadding
-    end
+  else  -- unit/unitdef info (without buildoptions)
+    contentPadding = contentPadding * 0.95
+    local contentPaddingLeft = customInfoArea[1] + contentPadding
 
-    glColor(1,1,1,1)
-    if unitBuildPic[displayUnitDefID] then
-      glTexture(":lr200,200:unitpics/"..alternative..unitBuildPic[displayUnitDefID])
-      glTexRect(backgroundRect[1]+iconPadding, backgroundRect[4]-iconPadding-iconSize-bgpadding, backgroundRect[1]+iconPadding+iconSize, backgroundRect[4]-iconPadding-bgpadding)
-      glTexture(false)
-    end
-    iconSize = iconSize + iconPadding
-
-    local radarIconSize = math_floor((height*vsy*0.17)+0.5)
-    local radarIconMargin = math_floor((radarIconSize * 0.3)+0.5)
-    local showingRadarIcon = false
-    if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
-      glColor(1,1,1,0.88)
-      glTexture(':lr'..(radarIconSize*2)..','..(radarIconSize*2)..':'..iconTypesMap[unitIconType[displayUnitDefID]])
-      glTexRect(backgroundRect[3]-radarIconMargin-radarIconSize, backgroundRect[4]-radarIconMargin-radarIconSize, backgroundRect[3]-radarIconMargin, backgroundRect[4]-radarIconMargin)
-      glTexture(false)
-      glColor(1,1,1,1)
-      showingRadarIcon = true
-    end
-
-    -- unitID
-    --if displayUnitID then
-    --  local radarIconSpace = showingRadarIcon and (radarIconMargin+radarIconSize) or 0
-    --  font:Begin()
-    --  font:Print('\255\200\200\200#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
-    --  font:End()
-    --end
-
-
-    local unitNameColor = '\255\205\255\205'
-    if SelectedUnitsCount > 0 then
-      if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
-        unitNameColor = '\255\125\255\125'
-      end
-    end
-    local descriptionColor = '\255\240\240\240'
-    local metalColor = '\255\245\245\245'
-    local energyColor = '\255\255\255\000'
-    local healthColor = '\255\100\255\100'
-
-    local labelColor = '\255\205\205\205'
-    local valueColor = '\255\255\255\255'
-    local valuePlusColor = '\255\180\255\180'
-    local valueMinColor = '\255\255\180\180'
-
-    local text, numLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
-    -- unit tooltip
-    font:Begin()
-    font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.4), fontSize, "o")
-    font:End()
-
-    -- unit name
-    font2:Begin()
-    font2:Print(unitNameColor..unitHumanName[displayUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
-    --font2:End()
-
-    -- custom unit info background
-    local width = contentWidth * 0.8
-    local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
-    local customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
-    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
-
-    local contentPaddingLeft = contentPadding * 0.75
-    local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
-    local texSize = fontSize * 0.6
-
-    local posY1 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.1)
-    local posY2 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.38)
-    local posY3 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.67)
-
-    local valueY1 = ''
-    local valueY2 = ''
-    local valueY3 = ''
-    if displayUnitID then
+    -- unit specific info
+    if displayMode == 'unit' then
+      -- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
       local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
-      if metalMake then
-        valueY1 = (metalMake > 0 and valuePlusColor..'+'..(metalMake < 10 and round(metalMake, 1) or round(metalMake, 0))..' ' or '')   .. (metalUse > 0 and valueMinColor..'-'..(metalUse < 10 and round(metalUse, 1) or round(metalUse, 0)) or '')
-        valueY2 = (energyMake > 0 and valuePlusColor..'+'..(energyMake < 10 and round(energyMake, 1) or round(energyMake, 0))..' ' or '') .. (energyUse > 0 and valueMinColor..'-'..(energyUse < 10 and round(energyUse, 1) or round(energyUse, 0)) or '')
-        valueY3 = ''
+      local maxRange = spGetUnitMaxRange(displayUnitID)
+      local exp = spGetUnitExperience(displayUnitID)
+      local metalExtraction, stockpile, dps
+      if isMex[displayUnitDefID] then
+        metalExtraction = spGetUnitMetalExtraction(displayUnitID)
       end
+      local unitStates = spGetUnitStates(displayUnitID)
+      if unitCanStockpile[displayUnitDefID] then
+        stockpile = spGetUnitStockpile(displayUnitID)
+      end
+      if unitDPS[displayUnitDefID] then
+        dps = unitDPS[displayUnitDefID]
+      end
+
+      -- determine what to show in what order
+      local text = ''
+      local separator = ''
+      local infoFontsize = fontSize * 0.92
+
+      local function addTextInfo(label, value)
+        text = text.. labelColor..separator..label .. (label~='' and ' ' or '') .. valueColor..(value and value or '')
+        separator = ',   '
+      end
+
+      -- add text
+      --addTextInfo('', labelColor..'m +'..valuePlusColor..round(metalMake, 1)..labelColor..' -'..valueMinColor..round(metalUse, 1)..labelColor..',   e +'..valuePlusColor..round(energyMake, 0)..labelColor..' -'..valueMinColor..round(energyUse, 0))
+
+      if unitWeapons[displayUnitDefID] then
+        addTextInfo('weapons', #unitWeapons[displayUnitDefID])
+        if maxRange then
+          addTextInfo('max-range', maxRange)
+        end
+        if dps then
+          addTextInfo('dps', dps)
+        end
+      end
+      --if metalExtraction then
+      --  addTextInfo('metal extraction', round(metalExtraction, 2))
+      --end
+      if unitBuildSpeed[displayUnitDefID] then
+        addTextInfo('buildspeed', unitBuildSpeed[displayUnitDefID])
+      end
+      if unitBuildOptions[displayUnitDefID] then
+        addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
+      end
+      if exp and exp > 0.009 then
+        addTextInfo('xp', round(exp, 2))
+      end
+
+      --if unitWreckMetal[displayUnitDefID] then
+      --  addTextInfo('wreck', round(unitWreckMetal[displayUnitDefID],0))
+      --end
+      --if unitHeapMetal[displayUnitDefID] then
+      --  addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
+      --end
+
+      if unitArmorType[displayUnitDefID] then
+        addTextInfo('armor', unitArmorType[displayUnitDefID])
+      end
+
+      if unitParalyzeMult[displayUnitDefID] then
+        if unitParalyzeMult[displayUnitDefID] == 0 then
+          addTextInfo('unparalyzable')
+        else
+          addTextInfo('paralyzeMult', round(unitParalyzeMult[displayUnitDefID],2))
+        end
+      end
+
+      if unitLosRadius[displayUnitDefID] then
+        addTextInfo('los', round(unitLosRadius[displayUnitDefID],0))
+      end
+      if unitAirLosRadius[displayUnitDefID] and (isAirUnit[displayUnitDefID] or isAaUnit[displayUnitDefID]) then
+        addTextInfo('airlos', round(unitAirLosRadius[displayUnitDefID],0))
+      end
+      if unitRadarRadius[displayUnitDefID] then
+        addTextInfo('radar', round(unitRadarRadius[displayUnitDefID],0))
+      end
+      if unitSonarRadius[displayUnitDefID] then
+        addTextInfo('sonar', round(unitSonarRadius[displayUnitDefID],0))
+      end
+      if unitJammerRadius[displayUnitDefID] then
+        addTextInfo('jammer', round(unitJammerRadius[displayUnitDefID],0))
+      end
+      if unitSonarJamRadius[displayUnitDefID] then
+        addTextInfo('sonarjam', round(unitSonarJamRadius[displayUnitDefID],0))
+      end
+      if unitSeismicRadius[displayUnitDefID] then
+        addTextInfo('seismic', unitSeismicRadius[displayUnitDefID])
+      end
+
+      --addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
+      --addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
+      --addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
+
+      -- wordwrap text
+      --unitInfoText = text   -- can be used to show full text on mouse hover
+      local text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
+
+      -- prune number of lines
+      local lines = lines(text)
+      text = ''
+      for i,line in pairs(lines) do
+        text = text .. line
+        -- only 4 fully fit, but showing 5, so the top part of text shows and indicates there is more to see somehow
+        if i == 5 then
+          break
+        end
+        text = text .. '\n'
+      end
+      lines = nil
+
+      -- unit info
+      font:Begin()
+      font:Print(text, customInfoArea[1]+contentPadding, customInfoArea[4]-contentPadding-(infoFontsize*0.42), infoFontsize, "o")
+      font:End()
 
       -- display health value/bar
-      local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
-      if health then
-        local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
-        local healthBarHeight = healthBarWidth * 0.1
-        local healthBarMargin = healthBarHeight * 0.7
-        local healthBarPadding = healthBarHeight * 0.15
-        local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
-        local color = bfcolormap[math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)]
-
-        valueY3 = convertColor(color[1],color[2],color[3])..math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)..'%'
-
-        ---- bar background
-        --RectRound(
-        --        customInfoArea[3]-healthBarMargin-healthBarWidth,
-        --        customInfoArea[4]+healthBarMargin,
-        --        customInfoArea[3]-healthBarMargin,
-        --        customInfoArea[4]+healthBarMargin+healthBarHeight,
-        --        healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
-        --)
-        ---- bar value
-        --RectRound(
-        --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
-        --        customInfoArea[4]+healthBarMargin+healthBarPadding,
-        --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
-        --        customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
-        --        healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
-        --)
-        ---- bar text value
-        --font:Begin()
-        --font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
-        --font:End()
-      end
-    else
-      valueY1 = metalColor..unitMetalCost[displayUnitDefID]
-      valueY2 = energyColor..unitEnergyCost[displayUnitDefID]
-      valueY3 = healthColor..unitHealth[displayUnitDefID]
+      --local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
+      --if health then
+      --  local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
+      --  local healthBarHeight = healthBarWidth * 0.1
+      --  local healthBarMargin = healthBarHeight * 0.7
+      --  local healthBarPadding = healthBarHeight * 0.15
+      --  local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
+      --  local color = bfcolormap[math_min(math_max(math_floor((health/maxHealth)*100), 0), 100)]
+      --
+      --  -- bar background
+      --  RectRound(
+      --          customInfoArea[3]-healthBarMargin-healthBarWidth,
+      --          customInfoArea[4]+healthBarMargin,
+      --          customInfoArea[3]-healthBarMargin,
+      --          customInfoArea[4]+healthBarMargin+healthBarHeight,
+      --          healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
+      --  )
+      --  -- bar value
+      --  RectRound(
+      --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
+      --          customInfoArea[4]+healthBarMargin+healthBarPadding,
+      --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
+      --          customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
+      --          healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
+      --  )
+      --  -- bar text value
+      --  font:Begin()
+      --  font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
+      --  font:End()
+      --end
     end
-
-    glColor(1,1,1,1)
-    if valueY1 ~= '' then
-      glTexture(":l:LuaUI/Images/info_metal.png")
-      glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY1-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY1+texSize)
-    end
-    if valueY2 ~= '' then
-      glTexture(":l:LuaUI/Images/info_energy.png")
-      glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY2-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY2+texSize)
-    end
-    if valueY3 ~= '' then
-      glTexture(":l:LuaUI/Images/info_health.png")
-      glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY3-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY3+texSize)
-    end
-    glTexture(false)
-
-    -- metal
-    local fontSize2 = fontSize*0.96
-    local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
-    font2:Print(valueY1, backgroundRect[1]+contentPaddingLeft, posY1-(fontSize2*0.31), fontSize2, "o")
-    -- energy
-    font2:Print(valueY2, backgroundRect[1]+contentPaddingLeft, posY2-(fontSize2*0.31), fontSize2, "o")
-    -- health
-    font2:Print(valueY3, backgroundRect[1]+contentPaddingLeft, posY3-(fontSize2*0.31), fontSize2, "o")
-    font2:End()
-
-    -- draw unit buildoption icons
-    if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
-      local gridHeight = math_ceil(height*0.98)
-      local rows = 2
-      local colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
-      local cellsize = math_floor((math.min(width/colls, gridHeight/rows)) + 0.5)
-      if cellsize < gridHeight/3 then
-        rows = 3
-        colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
-        cellsize = math_floor((math.min(width/colls, gridHeight/rows)) + 0.5)
-      end
-      -- draw grid (bottom right to top left)
-      local cellID = #unitBuildOptions[displayUnitDefID]
-      cellPadding = math_floor((cellsize * 0.022)+0.5)
-      cellRect = {}
-      for row=1, rows do
-        for coll=1, colls do
-          if unitBuildOptions[displayUnitDefID][cellID] then
-            local uDefID = unitBuildOptions[displayUnitDefID][cellID]
-            cellRect[cellID] = {math_floor(customInfoArea[3]-cellPadding-(coll*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row-1)*cellsize)), math_floor(customInfoArea[3]-cellPadding-((coll-1)*cellsize)), math_floor(customInfoArea[2]+cellPadding+((row)*cellsize))}
-            glColor(0.9,0.9,0.9,1)
-            glTexture(":lr100,100:unitpics/"..((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '')..unitBuildPic[uDefID])
-            --glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
-            --DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-            TexRectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,1,1, 0.11)
-            glTexture(false)
-            -- darkening bottom
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 0,0,1,1, {0,0,0,0.15}, {0,0,0,0})
-            -- gloss
-            glBlending(GL_SRC_ALPHA, GL_ONE)
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
-            RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellPadding*1.3, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
-
-            --local halfSize = (((cellRect[cellID][3]-cellPadding))-(cellRect[cellID][1]))*0.5
-            --RectRoundCircle(
-            --        cellRect[cellID][1]+cellPadding+halfSize,
-            --        0,
-            --        cellRect[cellID][2]+cellPadding+halfSize,
-            --        halfSize, cellPadding*1.3, halfSize-math.max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
-            --)
-            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-          end
-          cellID = cellID - 1
-          if cellID <= 0 then break end
-        end
-        if cellID <= 0 then break end
-      end
-      glTexture(false)
-      glColor(1,1,1,1)
+  end
+end
 
 
-    else  -- unit/unitdef info (without buildoptions)
-      contentPadding = contentPadding * 0.95
-      local contentPaddingLeft = customInfoArea[1] + contentPadding
+local function drawEngineTooltip()
+  -- display default plaintext engine tooltip
+  local fontSize = (height*vsy * 0.11) * (0.95-((1-ui_scale)*0.5))
+  local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
+  font:Begin()
+  font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
+  font:End()
+end
 
-      -- unit specific info
-      if displayMode == 'unit' then
-        -- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
-        local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
-        local maxRange = spGetUnitMaxRange(displayUnitID)
-        local exp = spGetUnitExperience(displayUnitID)
-        local metalExtraction, stockpile, dps
-        if isMex[displayUnitDefID] then
-          metalExtraction = spGetUnitMetalExtraction(displayUnitID)
-        end
-        local unitStates = spGetUnitStates(displayUnitID)
-        if unitCanStockpile[displayUnitDefID] then
-          stockpile = spGetUnitStockpile(displayUnitID)
-        end
-        if unitDPS[displayUnitDefID] then
-          dps = unitDPS[displayUnitDefID]
-        end
 
-        -- determine what to show in what order
-        local text = ''
-        local separator = ''
-        local infoFontsize = fontSize * 0.92
+local function drawInfo()
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 1,(WG['buildpower'] and 0 or 1),1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+  RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),1,0,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
-        local function addTextInfo(label, value)
-          text = text.. labelColor..separator..label .. (label~='' and ' ' or '') .. valueColor..(value and value or '')
-          separator = ',   '
-        end
+  -- gloss
+  glBlending(GL_SRC_ALPHA, GL_ONE)
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
+  RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), bgpadding, 0,0,0,0, {1,1,1,0.02*glossMult}, {1,1,1,0})
+  RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.4),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 0,(WG['buildpower'] and 0 or 1),0,0, {1,1,1,0}, {1,1,1,0.07})
+  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        -- add text
-        --addTextInfo('', labelColor..'m +'..valuePlusColor..round(metalMake, 1)..labelColor..' -'..valueMinColor..round(metalUse, 1)..labelColor..',   e +'..valuePlusColor..round(energyMake, 0)..labelColor..' -'..valueMinColor..round(energyUse, 0))
+  contentPadding = (height*vsy * 0.075) * (0.95-((1-ui_scale)*0.5))
+  contentWidth = backgroundRect[3]-backgroundRect[1]-contentPadding-contentPadding
 
-        if unitWeapons[displayUnitDefID] then
-          addTextInfo('weapons', #unitWeapons[displayUnitDefID])
-          if maxRange then
-            addTextInfo('max-range', maxRange)
-          end
-          if dps then
-            addTextInfo('dps', dps)
-          end
-        end
-        --if metalExtraction then
-        --  addTextInfo('metal extraction', round(metalExtraction, 2))
-        --end
-        if unitBuildSpeed[displayUnitDefID] then
-          addTextInfo('buildspeed', unitBuildSpeed[displayUnitDefID])
-        end
-        if unitBuildOptions[displayUnitDefID] then
-          addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
-        end
-        if exp and exp > 0.009 then
-          addTextInfo('xp', round(exp, 2))
-        end
-
-        if unitWreckMetal[displayUnitDefID] then
-          addTextInfo('wreck', round(unitWreckMetal[displayUnitDefID],0))
-        end
-        if unitHeapMetal[displayUnitDefID] then
-          addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
-        end
-
-        if unitArmorType[displayUnitDefID] then
-          addTextInfo('armor', unitArmorType[displayUnitDefID])
-        end
-
-        if unitParalyzeMult[displayUnitDefID] then
-          if unitParalyzeMult[displayUnitDefID] == 0 then
-            addTextInfo('unparalyzable')
-          else
-            addTextInfo('paralyzeMult', round(unitParalyzeMult[displayUnitDefID],2))
-          end
-        end
-
-        if unitLosRadius[displayUnitDefID] then
-          addTextInfo('los', round(unitLosRadius[displayUnitDefID],0))
-        end
-        if unitAirLosRadius[displayUnitDefID] then
-          addTextInfo('airlos', round(unitAirLosRadius[displayUnitDefID],0))
-        end
-        if unitRadarRadius[displayUnitDefID] then
-          addTextInfo('radar', round(unitRadarRadius[displayUnitDefID],0))
-        end
-        if unitSonarRadius[displayUnitDefID] then
-          addTextInfo('sonar', round(unitSonarRadius[displayUnitDefID],0))
-        end
-        if unitJammerRadius[displayUnitDefID] then
-          addTextInfo('jammer', round(unitJammerRadius[displayUnitDefID],0))
-        end
-        if unitSonarJamRadius[displayUnitDefID] then
-          addTextInfo('sonarjam', round(unitSonarJamRadius[displayUnitDefID],0))
-        end
-        if unitSeismicRadius[displayUnitDefID] then
-          addTextInfo('seismic', unitSeismicRadius[displayUnitDefID])
-        end
-
-        addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
-        addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
-        addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
-
-        -- wordwrap text
-        --unitInfoText = text   -- can be used to show full text on mouse hover
-        local text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
-
-        -- prune number of lines
-        local lines = lines(text)
-        text = ''
-        for i,line in pairs(lines) do
-          text = text .. line
-          -- only 4 fully fit, but showing 5, so the top part of text shows and indicates there is more to see somehow
-          if i == 5 then
-            break
-          end
-          text = text .. '\n'
-        end
-        lines = nil
-
-        -- unit info
-        font:Begin()
-        font:Print(text, customInfoArea[1]+contentPadding, customInfoArea[4]-contentPadding-(infoFontsize*0.42), infoFontsize, "o")
-        font:End()
-
-        -- display health value/bar
-        --local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
-        --if health then
-        --  local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
-        --  local healthBarHeight = healthBarWidth * 0.1
-        --  local healthBarMargin = healthBarHeight * 0.7
-        --  local healthBarPadding = healthBarHeight * 0.15
-        --  local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
-        --  local color = bfcolormap[math.min(math.max(math_floor((health/maxHealth)*100), 0), 100)]
-        --
-        --  -- bar background
-        --  RectRound(
-        --          customInfoArea[3]-healthBarMargin-healthBarWidth,
-        --          customInfoArea[4]+healthBarMargin,
-        --          customInfoArea[3]-healthBarMargin,
-        --          customInfoArea[4]+healthBarMargin+healthBarHeight,
-        --          healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
-        --  )
-        --  -- bar value
-        --  RectRound(
-        --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
-        --          customInfoArea[4]+healthBarMargin+healthBarPadding,
-        --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
-        --          customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
-        --          healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
-        --  )
-        --  -- bar text value
-        --  font:Begin()
-        --  font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
-        --  font:End()
-        --end
-      end
-    end
-
+  if displayMode == 'selection' then
+    drawSelection()
+  elseif displayMode ~= 'text' and displayUnitDefID then
+    drawUnitInfo()
   else
-
-    -- display default plaintext engine tooltip
-    local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
-    font:Begin()
-    font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
-    font:End()
+    drawEngineTooltip()
   end
 end
 
@@ -1453,8 +1473,10 @@ function widget:MouseRelease(x, y, button)
   return -1
 end
 
+
 function widget:DrawScreen()
   if chobbyInterface then return end
+
   if ViewResizeUpdate then
     ViewResizeUpdate = nil
     refreshUnitIconCache()
@@ -1475,34 +1497,19 @@ function widget:DrawScreen()
   end
   gl.CallList(dlistInfo)
 
-  if displayMode ~= 'text' and not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-    --Spring.SetMouseCursor('cursornormal')
 
-    --RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.4 or 0.25}, {1,1,1,b and 0.12 or 0.06})
-    --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.25),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,0}, {1,1,1,b and 0.3 or 0.15})
-    --RectRound(backgroundRect[1],backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-padding,backgroundRect[4]-padding, padding, 0,1,0,0, {1,1,1,b and 0.2 or 0.1}, {1,1,1,b and 0.4 or 0.2})
+    -- widget hovered
+  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
-
-  else
-
-    --if customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
-    --glBlending(GL_SRC_ALPHA, GL_ONE)
-    --RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], padding, 1,0,0,0,{1,1,1,b and 0.2 or 0.13}, {1,1,1,b and 0.3 or 0.2})
-    --glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    --if WG['tooltip'] then
-    --WG['tooltip'].ShowTooltip('info', 'Additional unit info goes here...')
-    --end
-    --end
-
-    local tooltipTitleColor = '\255\205\255\205'
-    local tooltipTextColor = '\255\255\255\255'
-    local tooltipLabelTextColor = '\255\200\200\200'
-    local tooltipDarkTextColor = '\255\133\133\133'
-    local tooltipValueColor = '\255\255\245\175'
-
-    -- selection grid
-    if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+      -- selection grid
       if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
+
+        local tooltipTitleColor = '\255\205\255\205'
+        local tooltipTextColor = '\255\255\255\255'
+        local tooltipLabelTextColor = '\255\200\200\200'
+        local tooltipDarkTextColor = '\255\133\133\133'
+        local tooltipValueColor = '\255\255\245\175'
+
         local cellHovered
         for cellID,unitDefID in pairs(selectionCells) do
           if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
@@ -1519,7 +1526,7 @@ function widget:DrawScreen()
               cellZoom = rightclickCellZoom
               color = {1,0.1,0.1}
             end
-            cellZoom = cellZoom + math.min(0.33 * cellZoom * ((gridHeight/cellsize)-2), 0.15) -- add extra zoom when small icons
+            cellZoom = cellZoom + math_min(0.33 * cellZoom * ((gridHeight/cellsize)-2), 0.15) -- add extra zoom when small icons
             drawSelectionCell(cellID, selectionCells[cellID], texOffset+cellZoom, {color[1],color[2],color[3],0.1})
             -- highlight
             glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1609,7 +1616,6 @@ function widget:DrawScreen()
         end
       end
     end
-  end
 end
 
 function checkChanges()
