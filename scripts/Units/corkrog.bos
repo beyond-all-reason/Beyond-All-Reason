@@ -28,23 +28,31 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			move hips to y-axis [-0.387490] speed [11.624712] / animSpeed; //delta=-0.39 
 			move lfoot to y-axis [-1.300000] speed [38.999999] / animSpeed; //delta=-1.30 
 			turn lleg to x-axis <-22.905410> speed <687.162298> / animSpeed; //delta=22.91 
+			turn lleg to y-axis <0.000000> speed <95.999993> / animSpeed; //delta=-3.20 
 			turn lmissle2 to z-axis <10.070595> speed <122.117853> / animSpeed; //delta=-4.07 
 			turn lthigh to x-axis <23.819402> speed <714.582058> / animSpeed; //delta=-23.82 
 			move rfoot to y-axis [4.125926] speed [82.752918] / animSpeed; //delta=2.76 
 			turn rfoot to x-axis <-0.000000> speed <173.714267> / animSpeed; //delta=-5.79 
 			turn rheel to x-axis <7.811363> speed <554.659069> / animSpeed; //delta=18.49 
 			turn rleg to x-axis <13.496208> speed <404.886237> / animSpeed; //delta=-13.50 
+			turn rleg to y-axis <0.000000> speed <74.999991> / animSpeed; //delta=2.50 
 			turn rmissle2 to z-axis <-2.174765> speed <119.184628> / animSpeed; //delta=-3.97 
 			turn rthigh to x-axis <-22.070578> speed <662.117343> / animSpeed; //delta=22.07 
 			turn rtoes to x-axis <8.366666> speed <250.999975> / animSpeed; //delta=-8.37 
 			turn torso to x-axis <0.788000> speed <23.640006> / animSpeed; //delta=-0.79 
 			turn torso to z-axis <1.596296> speed <47.888890> / animSpeed; //delta=-1.60 
 			turn torso to y-axis <-1.996297> speed <59.888896> / animSpeed; //delta=-2.00 
+	
+
 			if (!HandsUp){
-				turn larm to x-axis <-29.484520> speed <884.535589> / animSpeed; //delta=29.48 
-				turn rarm to x-axis <-43.404578> speed <1302.137350> / animSpeed; //delta=43.40 
+				turn larm to x-axis <-29.484520> speed <777.464280> / animSpeed; //delta=-25.92 
 				turn lshoulder to x-axis <-1.949999> speed <58.499956> / animSpeed; //delta=1.95 
+				turn luparm to x-axis <-0.000000> speed <314.999983> / animSpeed; //delta=10.50 
+				turn luparm to z-axis <0.000000> speed <339.000021> / animSpeed; //delta=-11.30 
 				turn rshoulder to x-axis <-0.299996> speed <8.999867> / animSpeed; //delta=0.30 
+				turn rarm to x-axis <-43.404578> speed <446.862497> / animSpeed; //delta=-14.90 
+				turn ruparm to x-axis <-0.000000> speed <299.999991> / animSpeed; //delta=10.00 
+				turn ruparm to z-axis <0.000000> speed <299.999991> / animSpeed; //delta=10.00 
 			}
 		sleep ((33*animSpeed) -1);
 	}
@@ -433,6 +441,7 @@ StopWalking() {
 	turn head to z-axis <0.000000> speed <5.986111>;
 	turn lheel to x-axis <0.000000> speed <87.877839>;
 	turn lleg to x-axis <0.000000> speed <106.124991>;
+	turn lleg to y-axis <3.200000> speed <11.999999>;
 	turn lmissle2 to x-axis <-6.000000> speed <9.605165>;
 	turn lmissle2 to z-axis <6.000000> speed <15.264732>;
 	turn lthigh to x-axis <0.000000> speed <106.158365>;
@@ -440,6 +449,7 @@ StopWalking() {
 	turn rfoot to x-axis <-5.790476> speed <21.714283>;
 	turn rheel to x-axis <26.299999> speed <87.877839>;
 	turn rleg to x-axis <0.000000> speed <106.124991>;
+	turn rleg to y-axis <-2.500000> speed <9.374999>;
 	turn rmissle2 to x-axis <-6.000000> speed <9.605165>;
 	turn rmissle2 to z-axis <-6.147586> speed <14.898079>;
 	turn rthigh to x-axis <0.000000> speed <106.158365>;
@@ -447,15 +457,21 @@ StopWalking() {
 	turn torso to x-axis <0.000000> speed <25.874999>;
 	turn torso to y-axis <0.000000> speed <7.673612>;
 	turn torso to z-axis <0.000000> speed <5.986111>;
+
 	if (!HandsUp){
-		turn larm to x-axis <0.000000> speed <110.566949>;
+		turn larm to x-axis <-55.399996> speed <97.183035>;
 		turn larm to y-axis <0.000000> speed <19.869266>;
 		turn larm to z-axis <0.000000> speed <20.114566>;
 		turn lshoulder to x-axis <0.000000> speed <69.609262>;
-		turn rarm to x-axis <0.000000> speed <162.767169>;
+		turn luparm to x-axis <10.499999> speed <39.374998>;
+		turn luparm to z-axis <-11.300001> speed <42.375003>;
+		turn rarm to x-axis <-58.299995> speed <55.857812>;
 		turn rarm to y-axis <0.000000> speed <17.663599>;
 		turn rarm to z-axis <0.000000> speed <17.881668>;
+		turn ruparm to x-axis <10.000000> speed <37.499999>;
+		turn ruparm to z-axis <10.000000> speed <37.499999>;
 		turn rshoulder to x-axis <0.000000> speed <67.317104>;
+
 	}
 }
 // REMEMBER TO animspeed = 8 in Create() !!
@@ -521,14 +537,23 @@ Stop()
 	if( HandsUp )
 	{
 		HandsUp = 0;
+		turn larm to x-axis <-55.399996> speed <97.183035>;
+		turn larm to y-axis <0.000000> speed <19.869266>;
+		turn larm to z-axis <0.000000> speed <20.114566>;
+		turn lshoulder to x-axis <0.000000> speed <69.609262>;
+		turn luparm to x-axis <10.499999> speed <39.374998>;
+		turn luparm to z-axis <-11.300001> speed <42.375003>;
+		turn rarm to x-axis <-58.299995> speed <55.857812>;
+		turn rarm to y-axis <0.000000> speed <17.663599>;
+		turn rarm to z-axis <0.000000> speed <17.881668>;
+		turn ruparm to x-axis <10.000000> speed <37.499999>;
+		turn ruparm to z-axis <10.000000> speed <37.499999>;
+		turn rshoulder to x-axis <0.000000> speed <67.317104>;
+		
 		turn lshoulder to z-axis <0.000000> speed <50.000000>;
 		turn rshoulder to z-axis <0.000000> speed <50.000000>;
 		turn lshoulder to x-axis <0.000000> speed <50.000000>;
 		turn rshoulder to x-axis <0.000000> speed <50.000000>;
-		turn larm to x-axis <0.000000> speed <50.000000>;
-		turn rarm to x-axis <0.000000> speed <50.000000>;
-		turn luparm to x-axis <0.000000> speed <120.000000>;
-		turn ruparm to x-axis <0.000000> speed <120.000000>;
 		//turn rmissle2 to z-axis <0.000000> speed <60.000000>;
 		//turn lmissle2 to z-axis <0.000000> speed <60.000000>;
 		//move rmissle2 to y-axis [0.000000] speed [10.000000];
