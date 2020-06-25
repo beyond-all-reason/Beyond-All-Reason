@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
--- dont show vote interface for specs for the following keywords
+-- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = {'forcestart'}
 
 local vsx, vsy = gl.GetViewSizes()
@@ -234,9 +234,9 @@ end
 
 function StartVote(name, owner)
 	local show = true
-	if mySpec then
+	if mySpec and name then
 		for k,keyword in pairs(specBadKeywords) do
-			if string.find(name, keyword) then
+			if string.find(string.lower(name), keyword) then
 				show = false
 				break
 			end
