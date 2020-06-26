@@ -96,7 +96,7 @@ return {
 				range = 410,
 				reloadtime = 1.1,
 				smoketrail = false,
-				soundhit = "explode",
+				soundhit = "rockhit",
 				soundhitwet = "splsmed",
 				soundstart = "rocklit3",
 				soundtrigger = true,
