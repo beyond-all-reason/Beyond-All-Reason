@@ -1105,13 +1105,13 @@ local function drawUnitInfo()
           RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][4]-cellPadding-((cellRect[cellID][4]-cellRect[cellID][2])*0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding*1.3, 1,1,0,0, {1,1,1,0}, {1,1,1,0.1})
           RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.14), cellPadding*1.3, 0,0,1,1, {1,1,1,0.08}, {1,1,1,0})
 
-          --local halfSize = (((cellRect[cellID][3]-cellPadding))-(cellRect[cellID][1]))*0.5
-          --RectRoundCircle(
-          --        cellRect[cellID][1]+cellPadding+halfSize,
-          --        0,
-          --        cellRect[cellID][2]+cellPadding+halfSize,
-          --        halfSize, cellPadding*1.3, halfSize-math_max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
-          --)
+          local halfSize = (((cellRect[cellID][3]-cellPadding))-(cellRect[cellID][1]))*0.5
+          RectRoundCircle(
+                  cellRect[cellID][1]+cellPadding+halfSize,
+                  0,
+                  cellRect[cellID][2]+cellPadding+halfSize,
+                  halfSize, cellPadding*1.3, halfSize-math_max(1,cellPadding), {1,1,1,iconBorderOpacity}, {1,1,1,iconBorderOpacity}
+          )
           glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         end
         cellID = cellID - 1

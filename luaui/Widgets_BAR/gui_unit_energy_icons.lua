@@ -178,7 +178,7 @@ end
 
 function DrawIcon(size, height, self, mult)
 	gl.Color(1,0,0, 0.66 * (mult or 1))
-	gl.Texture(':n:LuaUI/Images/energy.png')
+	gl.Texture('LuaUI/Images/energy.png')
 	gl.Translate(0,5+height+(size*0.5),0)
 	gl.Billboard()
 	gl.TexRect(-(size*0.5), -(size*0.5), (size*0.5), (size/2))

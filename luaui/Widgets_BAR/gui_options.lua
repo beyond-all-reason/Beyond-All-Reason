@@ -794,7 +794,8 @@ function DrawWindow()
 						else
 							sliderPos = (option.value-option.min) / (option.max-option.min)
 						end
-						RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*5), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1, 2,2,2,2, {0.1,0.1,0.1,0.22}, {0.9,0.9,0.9,0.22})
+						RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.5), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1, 2,2,2,2, {0.1,0.1,0.1,0.22}, {0.9,0.9,0.9,0.22})
+						RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.5), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*3.5), 1, 2,2,2,2, {1,1,1,0.09}, {1,1,1,0})
 						RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 1, 2,2,2,2, {0.58,0.58,0.58,1}, {0.88,0.88,0.88,1})
 						optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
 						optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
@@ -4072,7 +4073,7 @@ function widget:Initialize()
 			end
 		end
 	end
-	
+
 	if not waterDetected then
 		Spring.SendCommands("water 0")
 	end

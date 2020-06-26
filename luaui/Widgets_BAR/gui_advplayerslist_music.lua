@@ -98,8 +98,6 @@ local pauseTex				= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
 local nextTex				= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
 local musicTex				= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
 local volumeTex				= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
-local buttonTex				= ":l:"..LUAUI_DIRNAME.."Images/button.dds"
-local buttonHighlightTex	= ":l:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local widgetScale = 1
 local glScale        = gl.Scale
@@ -423,9 +421,6 @@ local function createList()
 	drawlist[2] = glCreateList( function()
 
 		local button = 'playpause'
-		--glColor(1,1,1,0.7)
-		--glTexture(buttonTex)
-		--glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
 		glColor(0.88,0.88,0.88,0.9)
 		if playing then
 			glTexture(pauseTex)
@@ -435,9 +430,6 @@ local function createList()
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 
 		button = 'next'
-		--glColor(1,1,1,0.7)
-		--glTexture(buttonTex)
-		--glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
 		glColor(0.88,0.88,0.88,0.9)
 		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
@@ -470,9 +462,9 @@ local function createList()
 		---glColor(0,0,0,0.5)
 		--RectRound(left, bottom, right, top, 5.5*widgetScale)
 
-		local sliderWidth = 4*widgetScale
-		local sliderHeight = 4*widgetScale
-		local lineHeight = 1.44*widgetScale
+		local sliderWidth = math.floor((4.5*widgetScale)+0.5)
+		local sliderHeight = math.floor((4.5*widgetScale)+0.5)
+		local lineHeight = math.floor((1.5*widgetScale)+0.5)
 
 		button = 'musicvolumeicon'
 		local sliderY = buttons[button][2] + (buttons[button][4] - buttons[button][2])/2
@@ -481,8 +473,9 @@ local function createList()
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 
 		button = 'musicvolume'
-		RectRound(buttons[button][1], sliderY-lineHeight*1.3, buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
-		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/5)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
+		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
+		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+(lineHeight*0.15), (lineHeight/3)*widgetScale,2,2,2,2, {1,1,1,0.17}, {1,1,1,0})
+		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/7)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
 
 
 		button = 'volumeicon'
@@ -491,8 +484,9 @@ local function createList()
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 
 		button = 'volume'
-		RectRound(buttons[button][1], sliderY-lineHeight*1.3, buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
-		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/5)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
+		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
+		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+(lineHeight*0.15), (lineHeight/3)*widgetScale,2,2,2,2, {1,1,1,0.17}, {1,1,1,0})
+		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/7)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
 
 	end)
 	if WG['tooltip'] ~= nil and trackname then
@@ -882,23 +876,11 @@ function widget:DrawScreen()
 			  glBlending(GL_SRC_ALPHA, GL_ONE)
 			  local button = 'playpause'
 				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					if mlb then
-						glColor(colorHighlight)
-					else
-						glColor(color)
-					end
-					glTexture(buttonHighlightTex)
-					glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
+					RectRound(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], borderPadding*0.6, 2,2,2,2, mlb and colorHighlight or color, mlb and colorHighlight or color)
 				end
 				button = 'next'
 				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					if mlb then
-						glColor(colorHighlight)
-					else
-						glColor(color)
-					end
-					glTexture(buttonHighlightTex)
-					glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
+					RectRound(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], borderPadding*0.6, 2,2,2,2, mlb and colorHighlight or color, mlb and colorHighlight or color)
 				end
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end
