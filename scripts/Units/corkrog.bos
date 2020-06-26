@@ -120,6 +120,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 				turn rshoulder to x-axis <23.524147> speed <453.527745> / animSpeed; //delta=-15.12 
 				turn rarm to x-axis <-31.017071> speed <172.424642> / animSpeed; //delta=-5.75 
 			}
+			NotReadytoStomp = 0;
+			WhichFootStompsBool=FALSE;
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:32
@@ -153,6 +155,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 				turn rarm to x-axis <-24.761012> speed <187.681765> / animSpeed; //delta=-6.26 
 				
 			}
+			NotReadytoStomp = 1;
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:40
@@ -306,6 +309,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 				turn rarm to y-axis <4.415225> speed <89.569893> / animSpeed; //delta=2.99 
 				turn rshoulder to x-axis <-31.124407> speed <349.800728> / animSpeed; //delta=11.66 
 			}
+			
+			NotReadytoStomp = 0;
+			WhichFootStompsBool=TRUE;
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:80
@@ -338,6 +344,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 				turn rarm to y-axis <7.051577> speed <79.090555> / animSpeed; //delta=2.64 
 				turn rshoulder to x-axis <-33.599995> speed <74.267652> / animSpeed; //delta=2.48 
 			}
+			NotReadytoStomp = 1;
 			
 		sleep ((33*animSpeed) -1);
 		}
@@ -558,18 +565,20 @@ Stop()
 		//turn lmissle2 to z-axis <0.000000> speed <60.000000>;
 		//move rmissle2 to y-axis [0.000000] speed [10.000000];
 		//move lmissle2 to y-axis [0.000000] speed [10.000000];
-		wait-for-turn luparm around x-axis;
+	/*	wait-for-turn luparm around x-axis;
 		wait-for-turn ruparm around x-axis;
 		wait-for-turn ruparm around z-axis;
 		wait-for-turn luparm around z-axis;
 		wait-for-turn rarm around x-axis;
-		wait-for-turn larm around x-axis;
+		wait-for-turn larm around x-axis;*/
 	}
 	InMotion = 0;
 }
 
 RequestState(requestedstate, currentstate)
 {
+	//get  PRINT(999, requestedstate,currentstate,statechg_StateChanging);
+	
 	if( statechg_StateChanging )
 	{
 		statechg_DesiredState = requestedstate;
@@ -606,14 +615,11 @@ MotionControl(moving, aiming, justmoved)
 			if( aiming )
 			{
 				Aim_while_moving = 1;
-				//call-script walklegs();
-				
-				call-script walk();
 			}
 			else
 			{
 				Aim_while_moving = 0;
-				call-script walk();
+
 			}
 			justmoved = TRUE;
 			if( SmokeEffectFeet == 3 )
@@ -641,27 +647,7 @@ MotionControl(moving, aiming, justmoved)
 			Aim_while_moving = 1;
 			if( justmoved )
 			{
-			/*
-				move rleg to y-axis [0.000000] speed [1.000000];
-				move rleg to z-axis [0.000000] speed [1.000000];
-				turn rthigh to x-axis <0.000000> speed <200.000000>;
-				turn lthigh to x-axis <0.000000> speed <200.000000>;
-				turn lleg to x-axis <0.000000> speed <200.000000>;
-				turn ltoes to x-axis <0.000000> speed <200.000000>;
-				turn lheel to x-axis <0.000000> speed <200.000000>;
-				turn rleg to x-axis <0.000000> speed <200.000000>;
-				turn rleg to y-axis <0.000000> speed <200.000000>;
-				turn rleg to y-axis <0.000000> speed <200.000000>;
-				turn rtoes to x-axis <0.000000> speed <200.000000>;
-				turn rheel to x-axis <0.000000> speed <200.000000>;
-				if( !aiming )
-				{
-					turn torso to y-axis <0.000000> speed <200.000000>;
-					turn luparm to x-axis <0.000000> speed <50.000000>;
-					turn ruparm to x-axis <0.000000> speed <50.000000>;
-				}
-				justmoved = FALSE;
-				*/
+
 			}
 			sleep 100;
 		}
@@ -722,18 +708,6 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1;
 }
 
-/*
-StartMoving()
-{
-	bMoving = TRUE;
-}
-
-StopMoving()
-{
-	bMoving = FALSE;
-}
-*/
-
 setSFXoccupy(Func_Var_1)
 {
 	SmokeEffectFeet = Func_Var_1;
@@ -748,7 +722,7 @@ RestoreBody()
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 	turn lshoulder to x-axis <0.0> speed <150>;
 	turn rshoulder to x-axis <0.0> speed <150>;
-	wpn1_lasthead = 1000000;
+	wpn1_lasthead = 0;
 }
 
 RestoreHead()
@@ -757,12 +731,13 @@ RestoreHead()
 	set-signal-mask SIG_HEAD; //sets what signals kill the current thread
 	sleep 3000;
 	turn aimy2 to y-axis <0.000000> speed <110.000000>;
-	wpn2_lasthead = 1000000;
+	wpn2_lasthead = 0;
 }
 
 AimWeapon2(heading, pitch) //headlazor
 {
 	signal SIG_HEAD;
+	//get PRINT(2, heading,wpn1_lasthead,wpn2_lasthead);
 	turn aimy2 to y-axis heading - wpn1_lasthead speed <130.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - 5000)))
 	{
@@ -812,21 +787,32 @@ QueryWeapon3(piecenum)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_BODY;
+
 	start-script RequestState(0);
+	signal SIG_BODY;
+	
+	//get PRINT(HandsUp, heading,wpn1_lasthead,wpn2_lasthead);
 	if( !HandsUp )
 	{
 		return (0);
 	}
-	signal 2;
+	signal SIG_HEAD;
 	turn aimy1 to y-axis heading speed <50.000000>;
 	turn lshoulder to x-axis <0.0> - pitch speed <150>;
 	turn rshoulder to x-axis <0.0> - pitch speed <150>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
+	//if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <1500>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <1500>)))
+	if (((get ABS(wpn1_lasthead - heading)) > <3>))
+	
 	{
-		wpn1_lasthead = heading;
+		//wpn1_lasthead = heading;
+		
+		//get PRINT(100, heading,wpn1_lasthead,wpn2_lasthead);
 		wait-for-turn aimy1 around y-axis;
+		
+		//get PRINT(1000, heading,wpn1_lasthead,wpn2_lasthead);
 	}
+	//get PRINT(10, heading,wpn1_lasthead,wpn2_lasthead);
+	
 	wpn1_lasthead = heading;
 	start-script RestoreBody();
 	return (1);
