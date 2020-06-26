@@ -114,9 +114,9 @@ T3LandUnits = {
 	"cortrem",
 	"corhrk",
 	--bots
-	--"armmar", currently doesn't shoot for scavs
+	"armmar",
 	"armvang",
-	--"armraz",  currently doesn't shoot for scavs
+	"armraz",
 	"corshiva",
 	"corkarg",
 	"corcat",
