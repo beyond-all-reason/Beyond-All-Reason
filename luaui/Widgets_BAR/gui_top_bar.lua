@@ -961,15 +961,16 @@ local function updateResbar(res)
 
 		-- Icon
 		glColor(1,1,1,1)
-		local iconPadding = math_floor((area[4] - area[2]) / 6.5)
+		local iconPadding = math_floor((area[4] - area[2]) / 7)
 		local iconSize = math_floor(area[4]-area[2]-iconPadding-iconPadding)
+		local bgpaddingHalf = math_floor((bgpadding * 0.5) + 0.5)
 		local texSize = math_floor(iconSize * 2)
 		if res == 'metal' then
 			glTexture(":lr"..texSize..","..texSize..":LuaUI/Images/metal-icon.png")
 		else
 			glTexture(":lr"..texSize..","..texSize..":LuaUI/Images/energy-icon.png")
 		end
-		glTexRect(area[1]+iconPadding, area[2]+iconPadding, area[1]+iconPadding+iconSize, area[4]-iconPadding)
+		glTexRect(area[1]+bgpaddingHalf+iconPadding, area[2]+bgpaddingHalf+iconPadding, area[1]+bgpaddingHalf+iconPadding+iconSize, area[4]+bgpaddingHalf-iconPadding)
 
 		glTexture(false)
 
