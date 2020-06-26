@@ -419,10 +419,10 @@ local function updateRejoin()
 		end
 
 		local barHeight = math_floor((height*widgetScale/7.5)+0.5)
-		local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+		local barHeightPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 		local barLeftPadding = 7* widgetScale
 		local barRightPadding = 7 * widgetScale
-		local barArea = {area[1]+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
+		local barArea = {area[1]+barLeftPadding, area[2]+barHeightPadding, area[3]-barRightPadding, area[2]+barHeight+barHeightPadding}
 		local barWidth = barArea[3] - barArea[1]
 
 		-- bar background
@@ -895,12 +895,12 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][1])
 		glDeleteList(dlistResbar[res][2])
 	end
-	local barHeight = math_floor((height*widgetScale/8)+0.5)
-	local barHeighPadding = (height/4.25)*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+	local barHeight = math_floor((height*widgetScale/7.5)+0.5)
+	local barHeightPadding = math_floor(((height/4.25)*widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = 45 * widgetScale
-	local barRightPadding = 14.5 * widgetScale
-	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
+	local barLeftPadding = math_floor(45 * widgetScale)
+	local barRightPadding = math_floor(14.5 * widgetScale)
+	local barArea = {area[1]+math_floor((height*widgetScale)+barLeftPadding), area[2]+barHeightPadding, area[3]-barRightPadding, area[2]+barHeight+barHeightPadding}
 	local sliderHeightAdd = math_floor(barHeight / 1.55)
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
@@ -966,9 +966,9 @@ local function updateResbar(res)
 		local bgpaddingHalf = math_floor((bgpadding * 0.5) + 0.5)
 		local texSize = math_floor(iconSize * 2)
 		if res == 'metal' then
-			glTexture(":lr"..texSize..","..texSize..":LuaUI/Images/metal-icon.png")
+			glTexture(":lr"..texSize..","..texSize..":LuaUI/Images/metal.png")
 		else
-			glTexture(":lr"..texSize..","..texSize..":LuaUI/Images/energy-icon.png")
+			glTexture(":lr"..texSize..","..texSize..":LuaUI/Images/energy.png")
 		end
 		glTexRect(area[1]+bgpaddingHalf+iconPadding, area[2]+bgpaddingHalf+iconPadding, area[1]+bgpaddingHalf+iconPadding+iconSize, area[4]+bgpaddingHalf-iconPadding)
 

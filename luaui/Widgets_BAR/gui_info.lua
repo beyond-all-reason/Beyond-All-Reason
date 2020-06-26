@@ -1049,11 +1049,11 @@ local function drawUnitInfo()
   glColor(1,1,1,1)
   local texDetailSize = math_floor(texSize * 4)
   if valueY1 ~= '' then
-    glTexture(":lr"..texDetailSize..","..texDetailSize..":LuaUI/Images/metal-icon.png")
+    glTexture(":lr"..texDetailSize..","..texDetailSize..":LuaUI/Images/metal.png")
     glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY1-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY1+texSize)
   end
   if valueY2 ~= '' then
-    glTexture(":lr"..texDetailSize..","..texDetailSize..":LuaUI/Images/energy-icon.png")
+    glTexture(":lr"..texDetailSize..","..texDetailSize..":LuaUI/Images/energy.png")
     glTexRect(backgroundRect[1]+contentPaddingLeft-(texSize*0.6), posY2-texSize, backgroundRect[1]+contentPaddingLeft+(texSize*1.4), posY2+texSize)
   end
   if valueY3 ~= '' then
