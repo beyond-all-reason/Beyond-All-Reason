@@ -865,7 +865,7 @@ local function drawSelection()
   -- selected units grid area
   local gridWidth = math_floor(backgroundRect[3]-backgroundRect[1]-bgpadding)
   gridHeight = math_floor((backgroundRect[4]-backgroundRect[2])-bgpadding-bgpadding)
-  local customInfoArea = {backgroundRect[3]-gridWidth, backgroundRect[2], backgroundRect[3]-bgpadding, backgroundRect[2]+gridHeight}
+  customInfoArea = {backgroundRect[3]-gridWidth, backgroundRect[2], backgroundRect[3]-bgpadding, backgroundRect[2]+gridHeight}
 
   -- selected units grid area
 
@@ -984,7 +984,7 @@ local function drawUnitInfo()
   -- custom unit info background
   local width = contentWidth * 0.8
   local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
-  local customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
+  customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
   RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
 
   local contentPaddingLeft = contentPadding * 0.75
@@ -1383,6 +1383,14 @@ local function RightMouseButton(unitDefID, unitTable)
 end
 
 
+function widget:MousePress(x, y, button)
+  if Spring.IsGUIHidden() then return end
+  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+    return true
+  end
+end
+
+
 function widget:MouseRelease(x, y, button)
   if Spring.IsGUIHidden() then return end
   if displayMode and displayMode == 'selection' and customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
@@ -1705,13 +1713,6 @@ function widget:SelectionChanged(sel)
     if not doUpdateClock then
       doUpdateClock = os_clock() + 0.05  -- delay to save some performance
     end
-  end
-end
-
-function widget:MousePress(x, y, button)
-  if Spring.IsGUIHidden() then return end
-  if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-    return true
   end
 end
 
