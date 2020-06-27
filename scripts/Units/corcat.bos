@@ -5,11 +5,11 @@
 
 piece  torso, pelvis, rleg, rfoot, lleg, lfoot, head, lthigh,
        rthigh, thing, lturret, rturret, lbarrel1, lbarrel2, 
-       rbarrel1, rbarrel2, lflare1, lflare2, rflare1, rflare2,ltoes, rtoes, aimx1, aimy1;
+       rbarrel1, rbarrel2, lflare1, lflare2, rflare1, rflare2,ltoes, rtoes, aimx1, aimy1, lexhaust1, lexhaust2, rexhaust1, rexhaust2;
 
 //MAKE SURE FIRE POINTS REMAIN CONSECUTIVE!
 
-static-var  bMoving, bAiming, isReady, gun_1, gun_1_side;
+static-var  bMoving, bAiming, isReady, gun_1, gun_1_side, aimy1velocity, aimy1target, aimy1position;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -698,6 +698,15 @@ Create()
 	gun_1 = 1;
 	gun_1_side = 0;
 	animSpeed = 4;
+	aimy1velocity = 0;
+	aimy1target = 0;
+	aimy1position = 0;
+	turn lexhaust1 to z-axis <180> now;
+	
+	turn lexhaust2 to z-axis <180> now;
+	
+	turn rexhaust1 to z-axis <180> now;
+	turn rexhaust2 to z-axis <180> now;
 	start-script SmokeUnit();
 }
 
@@ -712,6 +721,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+    aimy1position = 0;
+    aimy1velocity = 0; // TODO this needs to be constant accel too!
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 	turn aimx1 to x-axis <0.000000> speed <45.000000>;
 	
@@ -748,6 +759,13 @@ Shot1() {
 		++gun_1;
 	}
 	gun_1_side = !gun_1_side;
+	if (gun_1 == 0) emit-sfx UNIT_SFX0 from lexhaust2;
+
+	if (gun_1 == 1)	emit-sfx UNIT_SFX0 from lexhaust1;
+	if (gun_1 == 2) emit-sfx UNIT_SFX0 from rexhaust1;
+
+	if (gun_1 == 3) emit-sfx UNIT_SFX0 from rexhaust2;
+	
 }
 
 QueryWeapon1(piecenum) {
@@ -755,18 +773,26 @@ QueryWeapon1(piecenum) {
 		if (gun_1 == 0)
 		{
 			piecenum = lflare2;
+			
+			//emit-sfx UNIT_SFX0 from lexhaust2;
 		} 
 		if (gun_1 == 1)
 		{
 			piecenum = lflare1;
+			
+			//emit-sfx UNIT_SFX0 from lexhaust1;
 		} 
 		if (gun_1 == 2)
 		{
 			piecenum = rflare1;
+			
+			//emit-sfx UNIT_SFX0 from rexhaust1;
 		} 
 		if (gun_1 == 3)
 		{
 			piecenum = rflare2;
+			
+			//emit-sfx UNIT_SFX0 from rexhaust2;
 		}
 		if (gun_1 >= 3) {
 			gun_1=0;
@@ -777,19 +803,64 @@ QueryWeapon1(piecenum) {
 	}
 }
 
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// Velocity and acceleration are per frame (not second!)
+#define MAX_AIMY1_VELOCITY <3.00>
+#define AIMY1_ACCELERATION <0.16>
+
+static-var aimy1delta, timetozero, deceleratethreshold;
+
 AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	while( !isReady )
-	{
-		sleep 100;
-	}
-	turn aimy1 to y-axis heading speed <90.000000>;
+
+	//We can do this any time
 	turn aimx1 to x-axis <10.000000> - pitch speed <45.000000>;
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimx1 around x-axis;
+	
+	aimy1target = heading;
+	aimy1delta = aimy1position - aimy1target;
+
+	while( ( get ABS(aimy1delta) > <1.0> ) OR (get ABS(aimy1velocity) > <0.2>)){
+		//Clamp aimy1position and aimy1delta between <-180>;<180>
+		while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
+		while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
+		while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
+		while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
+	
+		//number of frames required to decelerate to 0
+		timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
+		
+		//distance from target where we should start decelerating, always 'positive'
+		//pos = t * v - (t*(t-1)*a/2)
+		deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+		
+		//get PRINT (heading, aimy1position,0,0);
+		//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
+		
+		if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
+			if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+			else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+		}	
+		else //we need to accelerate
+		{
+			if (aimy1delta > 0) aimy1velocity = aimy1velocity + AIMY1_ACCELERATION; 
+			else aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+		}
+		
+		//CLAMP SPEED between -1 and 1 MAX_AIMY1_VELOCITY
+		if (aimy1velocity > MAX_AIMY1_VELOCITY) aimy1velocity = MAX_AIMY1_VELOCITY;
+		if (aimy1velocity < ((-1)* MAX_AIMY1_VELOCITY)) aimy1velocity = (-1) * MAX_AIMY1_VELOCITY;
+		
+		aimy1position = aimy1position + aimy1velocity; 
+		turn aimy1 to y-axis aimy1position now;
+		aimy1delta = aimy1target - aimy1position; 	
+		
+		sleep 30;
+	}
+	aimy1velocity = 0;
 	start-script RestoreAfterDelay();
 	return (1);
 }
