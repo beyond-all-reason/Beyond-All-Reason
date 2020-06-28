@@ -34,7 +34,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.056,
-		turnrate = 1125.84998,
+		turnrate = 525.84998,
 		upright = true,
 		customparams = {
 			model_author = "FireStorm",
