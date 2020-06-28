@@ -42,11 +42,7 @@ local xOffset = 35
 local yOffset = -xOffset-usedFontSize
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfileScale = (0.75 + (vsx*vsy / 7000000))
-local fontfileSize = 40
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -181,11 +177,11 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
 end
 
 function widget:Initialize()
+	widget:ViewResize()
 	init()
 end
 
 function widget:Shutdown()
-    gl.DeleteFont(font)
 	if WG['guishader'] then
         for name, tooltip in pairs(tooltips) do
 		    WG['guishader'].DeleteScreenDlist('tooltip_'..name)
@@ -195,7 +191,6 @@ function widget:Shutdown()
 end
 
 function init()
-	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (((vsx+vsy) / 2000) * 0.66) * (0.95+(ui_scale-1)/2.5)
 
     if WG['tooltip'] == nil then
@@ -245,11 +240,8 @@ function widget:ViewResize(x,y)
 	vsx,vsy = Spring.GetViewGeometry()
 	usedFontSize = (cfgFontSize - (3 * ((vsx/vsy) - 1.78))) * (1+(ui_scale-1)/2.5)
 	yOffset = -xOffset-usedFontSize
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
-		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
+
+	font  = WG['fonts'].getFont(fontfile)
 
 	init()
 end

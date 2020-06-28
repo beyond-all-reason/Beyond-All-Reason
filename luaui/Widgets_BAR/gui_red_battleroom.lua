@@ -23,7 +23,7 @@ local SoundIncomingChatVolume = 1.0
 
 local gameOver = false
 local lastConnectionAttempt = ''
---todo: dont cut words apart when clipping text 
+--todo: dont cut words apart when clipping text
 
 
 local clock = os.clock
@@ -59,33 +59,33 @@ local Config = {
 	console = {
 		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
-		
+
 		fontsize = fontsize * widgetScale,
 		minlines = 3, --minimal number of lines to display
 		maxlines = 3,
 		maxlinesScrollmode = 3,
-		
+
 		maxage = 30, --max time for a message to be displayed, in seconds
-		
+
 		margin = 7*widgetScale, --distance from background border
-		
+
 		fadetime = 0.25, --fade effect time, in seconds
 		fadedistance = 1*widgetScale, --distance from cursor at which console shows up when empty
 
 		filterduplicates = true, --group identical lines, f.e. ( 5x Nickname: blahblah)
-		
+
 		--note: transparency for text not supported yet
 		cothertext = {1,1,1,1}, --normal chat color
 		callytext = {0,1,0,1}, --ally chat
 		cspectext = {1,1,0,1}, --spectator chat
-		
+
 		cotherallytext = {1,0.5,0.5,1}, --enemy ally messages (seen only when spectating)
 		cmisctext = {0.85,0.85,0.85,1}, --everything else
 		cgametext = {0.4,1,1,1}, --server (autohost) chat
-		
+
 		cbackground = {0,0,0,0.0},
 		cborder = {0,0,0,0},
-		
+
 		dragbutton = {2,3}, --middle mouse button
 		tooltip = {
 			background ="In CTRL+F11 mode:  Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the console.\n"..
@@ -175,18 +175,18 @@ end
 
 local function createconsole(r)
 	local vars = {}
-	
+
 	local lines = {"text",
 		px=r.px+r.margin,py=r.py+r.margin,
 		fontsize=r.fontsize,
 		caption="",
 		options="o", --black outline
 	}
-	
+
 	local activationarea = {"area",
 		px=r.px-r.fadedistance,py=r.py-r.fadedistance,
 		sx=r.sx+r.fadedistance*2,sy=0,
-		
+
 		mousewheel=function(up,mx,my,self)
 			if (vars.browsinghistory) then
 				local alt,ctrl,meta,shift = Spring.GetModKeyState()
@@ -219,24 +219,24 @@ local function createconsole(r)
 		color=r.cbackground,
 		border=r.cborder,
 		movable=r.dragbutton,
-		
+
 		obeyscreenedge = true,
 		--overrideclick = {2},
-		
+
 		movableslaves={lines,activationarea},
-		
+
 		effects = {
 			fadein_at_activation = r.fadetime,
 			fadeout_at_deactivation = r.fadetime,
 		},
 	}
-	
+
 	activationarea.onupdate=function(self)
 		local fadedistance = (self.sx-background.sx)/2
 		self.sy = background.sy+fadedistance*2
 		self.px = background.px-fadedistance
 		self.py = background.py-fadedistance
-		
+
 		if (not self._mousenotover) then
 			background.active = nil --activate
 			if (vars._empty) then
@@ -249,7 +249,7 @@ local function createconsole(r)
 					vars.nextupdate = -1
 					vars.browsinghistory = true
 					vars.historyoffset = 0
-					
+
 					self.overridewheel = true
 				end
 				vars._skipagecheck = true
@@ -260,13 +260,13 @@ local function createconsole(r)
 				vars._forceupdate = true
 				vars.browsinghistory = nil
 				vars.historyoffset = 0
-				
+
 				self.overridewheel = nil
 				vars._skipagecheck = nil
 				vars._usecounters = nil
 			end
 		end
-		
+
 		self._mousenotover = nil
 	end
 	activationarea.mousenotover=function(mx,my,self)
@@ -275,11 +275,11 @@ local function createconsole(r)
 			background.active = false
 		end
 	end
-	
+
 	New(activationarea)
 	New(background)
 	New(lines)
-	
+
 	local counters = {}
 	for i=1,r.maxlines do
 		local b = New(lines)
@@ -292,12 +292,12 @@ local function createconsole(r)
 		counters[#counters+1] = b
 		background.movableslaves[#background.movableslaves+1] = b
 	end
-	
+
 	--tooltip
 	background.mouseover = function(mx,my,self) SetTooltip(r.tooltip.background) end
-	
+
 	background.active = nil
-	
+
 	return {
 		["background"] = background,
 		["lines"] = lines,
@@ -310,7 +310,7 @@ local function lineColour(prevline) -- search prevline and find the final instan
 
 	local prevlineReverse = sreverse(prevline)
 	local newlinecolour = ""
-	
+
 	local colourCodePosReverse = sfind(prevlineReverse, "\255") --search string from back to front
 
 	if colourCodePosReverse then
@@ -321,11 +321,11 @@ local function lineColour(prevline) -- search prevline and find the final instan
 			end
 		end
 
-		local colourCodePos = slen(prevline) - colourCodePosReverse + 1 	
+		local colourCodePos = slen(prevline) - colourCodePosReverse + 1
 		if slen(ssub(prevline, colourCodePos)) >= 4 then
 			newlinecolour = ssub(prevline, colourCodePos, colourCodePos+3)
 		end
-	end	
+	end
 
 	return newlinecolour
 end
@@ -339,25 +339,25 @@ local function clipLine(line,fontsize,maxwidth)
 		local linelen = slen(line)
 		local i=1
 		while (1) do -- loop through potential positions where we might need to clip
-			if (font:GetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
+			if (font and font:GetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
 				local test = line
 				local newlinecolour = ""
-				
+
 				-- set colour of new clipped line
 				if firstpass == nil then
 					newlinecolour = lineColour(clipped[clippedCount])
 				end
-				
+
 				local newline = newlinecolour .. ssub(test,1,i)
 				clippedCount = clippedCount + 1
 				clipped[clippedCount] = newline
 				line = ssub(line,i+1)
-	
+
 				if (firstpass) then
 					firstclip = i
 					firstpass = nil
 				end
-				
+
 				break
 			end
 			i=i+1
@@ -367,12 +367,12 @@ local function clipLine(line,fontsize,maxwidth)
 		end
 
 		-- check if we need to clip again
-		local width = font:GetTextWidth(line)*fontsize
+		local width = font and font:GetTextWidth(line)*fontsize or 0
 		if (width <= maxwidth) then
 			break
 		end
 	end
-	
+
 	-- put remainder of line into final clipped line
 	local newlinecolour = ""
 	if clippedCount > 0 then
@@ -380,7 +380,7 @@ local function clipLine(line,fontsize,maxwidth)
 	end
 	clippedCount = clippedCount + 1
 	clipped[clippedCount] = newlinecolour .. line
-	
+
 	return clipped,firstclip
 end
 
@@ -391,9 +391,9 @@ local function clipHistory(g,oneline)
 	local history = g.vars.consolehistory
 	local historyCount = #history
 	local maxsize = g.background.sx - (g.lines.px-g.background.px)
-	
+
 	local fontsize = g.lines.fontsize
-	
+
 	if oneline then
 		local line = history[#history]
 		if line then
@@ -432,7 +432,7 @@ local function convertColor(r,g,b)
 end
 
 local function processLine(line,g,cfg,newlinecolor)
-	
+
 	g.vars.nextupdate = 0
 
 	local roster = sGetPlayerRoster()
@@ -447,7 +447,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		Spring.Echo(i,el)
 	end
 	--]]
-	
+
 	local names = {}
 	for i=1,#roster do
 		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3],roster[i][2]}
@@ -466,7 +466,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		ignoreThisMessage = false
 	end
     local playSound = false
-	
+
 	if sfind(line, "My player ID is") and sfind(line, regID) and not nameregistered then
 	-- Spring.SendCommands("say Registration ID found")
 	registermyname = true
@@ -547,7 +547,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			--	playSound = true
 			--	text = ssub(text, sfind(text, "BAAlphatest1") + 15)
 			--end
-			
+
 			--PROCESSS VOTES HERE--
 			if sfind(text, "called a vote for command") then
 				-- vote start: "Didgeri[doo] called a vote for command "bKick Didgeri[doo]" [!vote y, !vote n, !vote b]"
@@ -563,10 +563,10 @@ local function processLine(line,g,cfg,newlinecolor)
 				-- local votes = ssub(text,sfind(text, [[y:]]), sfind(text, [[\(]])-1)
 				-- local timeremaining = ssub(text,sfind(text, [[ \(]]) + 2, sfind(text, [[ remaining]])-1)
 				-- text = "Vote: "..votes..", "..timeremaining.." seconds left."
-			end			
-			
+			end
+
 			-- Will have to insert a basic autohosts list here, for now it's just available on tests hosts so let's not bother too much.
-			
+
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
 				ignoreThisMessage = true
 				if ssub(text,1,1) == "!" then
@@ -579,9 +579,9 @@ local function processLine(line,g,cfg,newlinecolor)
 					name = "unknown"
 				end
             end
-		end		
+		end
     end
-	
+
 	if registermyname and not nameregistered then
 		myname = name
 		registermyname = false
@@ -616,7 +616,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line,"HandleLobbyOverlay") then
 		ignoreThisMessage = true
 	end
-	
+
 	if sfind(line,"->") then
 		ignoreThisMessage = true
 	end
@@ -625,7 +625,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then
 		ignoreThisMessage = true
 	end
-	
+
 	-- filter Sync error when its a spectator
 	--if sfind(line,"^Sync error for ") then
 	--	name = ssub(line,16,sfind(line," in frame ")-1)
@@ -633,7 +633,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	--		ignoreThisMessage = true
 	--	end
 	--end
-	
+
 	-- filter Sync error when its a spectator
 	--if sfind(line,"^Error: %[DESYNC WARNING%] ") then
 	--	name = ssub(line,sfind(line," %(")+2,sfind(line,"%) ")-1)
@@ -641,23 +641,23 @@ local function processLine(line,g,cfg,newlinecolor)
 	--		ignoreThisMessage = true
 	--	end
 	--end
-	
+
 	-- filter Connection attempts
 	--if sfind(line,"^Connection attempt from ") then
 	--	name = ssub(line,25)
 	--	lastConnectionAttempt = name
 	--  ignoreThisMessage = true
 	--end
-	
+
 	-- filter Connection established
 	--if sfind(line," Connection established") then
 	--	name = lastConnectionAttempt
 	--  ignoreThisMessage = true
 	--end
-	
-	
+
+
 	if linetype==0 then
-		--filter out some engine messages; 
+		--filter out some engine messages;
 		--2 lines (instead of 4) appears when player connects
 		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') or sfind(line,'Address') then
 			ignoreThisMessage = true
@@ -670,24 +670,24 @@ local function processLine(line,g,cfg,newlinecolor)
 			end
         end
 
-		
+
 		if gameOver then
 			if sfind(line,'left the game') then
 				ignoreThisMessage = true
 			end
 		end
 	end
-	
+
 
 	--ignore messages from muted--
-	if WG.ignoredPlayers and WG.ignoredPlayers[name] then 
-		ignoreThisMessage = true 
+	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
+		ignoreThisMessage = true
 		--Spring.Echo ("blocked message by " .. name)
 	end
-	
+
 	local MyAllyTeamID = sGetMyAllyTeamID()
 	local textcolor = nil
-	
+
 
 	if (linetype==1) then --playermessage
 		local c = cfg.cothertext
@@ -703,15 +703,15 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(text,13)
 			c = cfg.cspectext
 		end
-		
+
 		textcolor = convertColor(c[1],c[2],c[3])
 		local r,g,b,a = sGetTeamColor(names[name][3])
 		local namecolor = convertColor(r,g,b)
-		
+
 		line = namecolor..name..misccolor..": "..textcolor..text
-        
+
         playSound = true
-		
+
 	elseif (linetype==2) then --spectatormessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
@@ -725,15 +725,15 @@ local function processLine(line,g,cfg,newlinecolor)
 		textcolor = convertColor(c[1],c[2],c[3])
 		c = cfg.cspectext
 		local namecolor = convertColor(c[1],c[2],c[3])
-		
+
 		line = namecolor.."(s) "..name..misccolor..": "..textcolor..text
-		
+
         playSound = true
-        
+
 	elseif (linetype==3) then --playerpoint
 		local c = cfg.cspectext
 		local namecolor = convertColor(c[1],c[2],c[3])
-		
+
 		local spectator = true
 		if (names[name] ~= nil) then
 			spectator = names[name][2]
@@ -744,7 +744,7 @@ local function processLine(line,g,cfg,newlinecolor)
             local r,g,b,a = sGetTeamColor(names[name][3])
             namecolor =  convertColor(r,g,b)
 		end
-		
+
 		c = cfg.cotherallytext
 		if (spectator) then
 			c = cfg.cspectext
@@ -754,25 +754,25 @@ local function processLine(line,g,cfg,newlinecolor)
 		textcolor = convertColor(c[1],c[2],c[3])
 		c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		
+
 		line = namecolor..name..misccolor.." * "..textcolor..text
-		
+
 	elseif (linetype==4) then --gamemessage
 		local c = cfg.cgametext
 		textcolor = convertColor(c[1],c[2],c[3])
-		
+
 		line = textcolor.."> "..text
 	else --every other message
 		local c = cfg.cmisctext
 		textcolor = convertColor(c[1],c[2],c[3])
-		
+
 		line = textcolor..line
 	end
-	
+
 	if g.vars.consolehistory == nil then
 		g.vars.consolehistory = {}
 	end
-	local history = g.vars.consolehistory	
+	local history = g.vars.consolehistory
 	local historyCount = #history
 
 	if not Initialized then
@@ -800,14 +800,14 @@ end
 local function updateconsole(g,cfg)
 	local forceupdate = g.vars._forceupdate
 	local justforcedupdate = g.vars._justforcedupdate
-	
+
 	if (forceupdate and (not justforcedupdate)) then
 		g.vars._justforcedupdate = true
 		g.vars._forceupdate = nil
 	else
 		g.vars._justforcedupdate = nil
 		g.vars._forceupdate = nil
-		
+
 		if (g.vars.nextupdate == nil) then
 			g.vars.nextupdate = 0
 		end
@@ -815,12 +815,12 @@ local function updateconsole(g,cfg)
 			return
 		end
 	end
-	
+
 	local skipagecheck = g.vars._skipagecheck
 	local usecounters = g.vars._usecounters
-	
+
 	local maxlines = cfg.maxlines
-	
+
 	local historyoffset = 0
 	if (g.vars.browsinghistory) then
 		if (g.vars.historyoffset == nil) then
@@ -829,12 +829,12 @@ local function updateconsole(g,cfg)
 		historyoffset = g.vars.historyoffset
 		maxlines = cfg.maxlinesScrollmode
 	end
-	
+
 	if (usecounters == nil) then
 		usecounters = cfg.filterduplicates
 	end
 
-	
+
 	local counters = {}
 	for i=1,maxlines do
 		counters[i] = 1
@@ -844,14 +844,14 @@ local function updateconsole(g,cfg)
 		g.counters[i].active = false
 		g.counters[i].caption = ""
 	end
-	
+
 	local maxage = cfg.maxage
 	local display = ""
 	local count = 0
 	local i=0
 	local lastID = 0
 	local lastLine = ""
-	
+
 	local history = g.vars.consolehistory or {}
 
 	while (count < maxlines) do
@@ -869,10 +869,10 @@ local function updateconsole(g,cfg)
 						display = line[1].."\n"..display
 					end
 				end
-				
+
 				lastLine = line[1]
 				lastID = line[3]
-				
+
 				if (skipagecheck) then
 					g.vars.nextupdate = -1
 				else
@@ -886,7 +886,7 @@ local function updateconsole(g,cfg)
 			break
 		end
 	end
-	
+
 	if (usecounters) then
 		for i=1,#counters do
 			if (counters[i] ~= 1) then
@@ -896,7 +896,7 @@ local function updateconsole(g,cfg)
 			end
 		end
 	end
-	
+
 	if (count == 0) then
 		g.vars.nextupdate = -1 --no update until new console line
 		g.background.active = false
@@ -909,7 +909,7 @@ local function updateconsole(g,cfg)
 		g.vars._empty = nil
 		g.background.sy = (count*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -(cfg.margin/3.5)
 	end
-	
+
 	g.lines.caption = display
 	g.lines.sx = 100
 end
@@ -918,10 +918,10 @@ function widget:Initialize()
 	if WG['Red'].font then
 		font = WG['Red'].font
 	end
-regID = tostring(Spring.GetMyPlayerID())
+	regID = tostring(Spring.GetMyPlayerID())
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
-	
+
 	console = createconsole(Config.console)
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
@@ -982,6 +982,10 @@ function widget:ViewResize()
 		console.counters.px = Config.console.px
 		console.counters.py = Config.console.py
 		console.vars._forceupdate = true
+	end
+
+	if WG['Red'].font then
+		font = WG['Red'].font
 	end
 end
 

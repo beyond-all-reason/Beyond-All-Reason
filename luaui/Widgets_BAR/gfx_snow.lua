@@ -19,13 +19,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at
@@ -319,6 +313,7 @@ function getWindSpeed()
 end
 
 function widget:Initialize()
+	widget:ViewResize()
 
 	WG['snow'] = {}
 	WG['snow'].getSnowMap = function()
@@ -533,15 +528,12 @@ function widget:DrawWorld()
 	end
 end
 
-function widget:ViewResize(newX,newY)
-	vsx, vsy = newX, newY
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.55 + (vsx*vsy / 10000000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+
+	font = WG['fonts'].getFont(nil, 1.5, nil, 1.3)
+
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
 		gameFrameCountdown = 80

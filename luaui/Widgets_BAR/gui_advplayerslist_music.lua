@@ -30,14 +30,6 @@ local fadeOutTime = 6.5
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.7 + (vsx*vsy / 7000000))
-local fontfileSize = 36
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
 
@@ -206,7 +198,7 @@ function toggleTrack(track, value)
 end
 
 function widget:Initialize()
-	widget:ViewResize(Spring.GetViewGeometry())
+	widget:ViewResize()
 	updateMusicVolume()
 
 	if #tracks == 0 then
@@ -590,7 +582,6 @@ function widget:Shutdown()
 		glDeleteList(drawlist[i])
 	end
 	WG['music'] = nil
-	gl.DeleteFont(font)
 end
 
 function widget:UnitDamaged(_, _, _, damage)
@@ -757,7 +748,7 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize(Spring.GetViewGeometry())
+			widget:ViewResize()
 		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
@@ -799,10 +790,6 @@ function updatePosition(force)
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 
-		--if widgetScale ~= advplayerlistPos[5] then
-		--	local fontScale = widgetScale/2
-		--	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
-		--end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
@@ -815,16 +802,15 @@ function updatePosition(force)
 end
 
 function widget:ViewResize(newX,newY)
-	vsx, vsy = newX, newY
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	local prevVsx, prevVsy = vsx, vsy
+	vsx, vsy = Spring.GetViewGeometry()
+
+	font = WG['fonts'].getFont()
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()
 	end
 end

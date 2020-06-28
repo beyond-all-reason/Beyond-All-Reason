@@ -38,13 +38,6 @@ local backgroundOpacity = 0.18
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 38
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local vsx, vsy = gl.GetViewSizes()
@@ -192,12 +185,7 @@ function widget:ViewResize()
     widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
     lineMaxWidth = lineMaxWidth * widgetScale
 
-    local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-    if (fontfileScale ~= newFontfileScale) then
-        fontfileScale = newFontfileScale
-        gl.DeleteFont(font)
-        font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    end
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 
     for i, _ in ipairs(messageLines) do
         if messageLines[i][6] then
@@ -286,7 +274,7 @@ function addMessage(text)
 end
 
 function widget:Initialize()
-    widget:ViewResize(vsx,vsy)
+    widget:ViewResize()
     widgetHandler:RegisterGlobal('GadgetAddMessage', addMessage)
     WG['messages'] = {}
     WG['messages'].addMessage = function(text)
@@ -303,7 +291,7 @@ function widget:Update(dt)
         uiSec = 0
         if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
             ui_scale = Spring.GetConfigFloat("ui_scale",1)
-            widget:ViewResize(vsx,vsy)
+            widget:ViewResize()
         end
     end
 
@@ -492,7 +480,6 @@ end
 
 function widget:Shutdown()
     WG['messages'] = nil
-    gl.DeleteFont(font)
     for i, _ in ipairs(messageLines) do
         if messageLines[i][6] then
             glDeleteList(messageLines[i][6])

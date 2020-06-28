@@ -35,13 +35,7 @@ include("keysym.h.lua")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local debug = false --of true generates debug messages
 local unit2group = {} -- list of unit types to group
@@ -128,14 +122,9 @@ function printDebug( value )
 	if ( debug ) then Echo( value ) end
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
-  vsx,vsy = Spring.GetViewGeometry()
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
 function widget:GameStart()
@@ -152,6 +141,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	widget:ViewResize()
 	widget:PlayerChanged()
 
 	WG['autogroup'] = {}
@@ -171,9 +161,9 @@ function widget:Initialize()
         end)
 	end
 
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-		widget:PlayerChanged()
-	end
+	--if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	--	widget:PlayerChanged()
+	--end
 end
 
 function widget:Shutdown()
@@ -184,7 +174,6 @@ function widget:Shutdown()
 		end
 		dlists = {}
 	end
-	gl.DeleteFont(font)
 end
 
 function widget:RecvLuaMsg(msg, playerID)

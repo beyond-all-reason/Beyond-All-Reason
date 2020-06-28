@@ -16,14 +16,9 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.7 + (vsx*vsy / 7000000))
-local fontfileSize = 38
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
+local vsx,vsy = Spring.GetViewGeometry()
 
 local orgHeight = 46
 local height = orgHeight * (1+(ui_scale-1)/1.7)
@@ -178,7 +173,7 @@ function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
 
-function widget:ViewResize(n_vsx,n_vsy, force)
+function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
@@ -187,14 +182,8 @@ function widget:ViewResize(n_vsx,n_vsy, force)
 	widgetSpaceMargin = math_floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000)) * ui_scale
-	if fontfileScale ~= newFontfileScale or force then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		gl.DeleteFont(font2)
-		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
+	font  = WG['fonts'].getFont(fontfile)
+	font2 = WG['fonts'].getFont(fontfile2)
 
     for n,_ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])
@@ -1324,7 +1313,7 @@ function widget:Update(dt)
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
 			height = orgHeight * (1+(ui_scale-1)/1.7)
 			shutdown()
-			widget:ViewResize(vsx,vsy)
+			widget:ViewResize()
 		end
 	end
 end
@@ -1971,6 +1960,7 @@ function widget:GameProgress (n) -- happens every 300 frames
 end
 
 function widget:Initialize()
+
 	gameFrame = Spring.GetGameFrame()
 	Spring.SendCommands("resbar 0")
 
@@ -1989,8 +1979,7 @@ function widget:Initialize()
 		return showQuitscreen
 	end
 
-	init()
-	widget:ViewResize(vsx,vsy)
+	widget:ViewResize()
 
 	if gameFrame > 0 then
 		widget:GameStart()
@@ -2028,10 +2017,6 @@ function shutdown()
 			dlistResValues['energy'][n] = glDeleteList(dlistResValues['energy'][n])
 		end
 	end
-	--gl.DeleteFont(font)
-	--gl.DeleteFont(font2)
-	--font = nil
-	--font2 = nil
 	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('topbar_energy')
 		WG['guishader'].RemoveDlist('topbar_metal')
@@ -2065,9 +2050,5 @@ end
 function widget:Shutdown()
 	Spring.SendCommands("resbar 1")
 	shutdown()
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
-	font = nil
-	font2 = nil
 	WG['topbar'] = nil
 end

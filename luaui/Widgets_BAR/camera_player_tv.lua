@@ -10,16 +10,9 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 44
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.15
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfileScale2 = fontfileScale * 2
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+
+local vsx,vsy = Spring.GetViewGeometry()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -374,7 +367,7 @@ end
 
 
 function widget:Initialize()
-	widget:ViewResize(Spring.GetViewGeometry())
+	widget:ViewResize()
 
 	isSpec = Spring.GetSpectatingState()
 	if WG['advplayerlist_api'] == nil then
@@ -450,7 +443,7 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize(Spring.GetViewGeometry())
+			widget:ViewResize()
 		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
@@ -555,21 +548,18 @@ function widget:MousePress(mx, my, mb)
 	end
 end
 
-function widget:ViewResize(newX,newY)
+function widget:ViewResize()
+	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.7 + (vsx*vsy / 5000000))
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		gl.DeleteFont(font2)
-		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
 
+	if prevVsx ~= vsx or prevVsy ~= vsy then
 		for i=1,#drawlistsCountdown do
 			gl.DeleteList(drawlistsCountdown[i])
 		end
@@ -586,6 +576,7 @@ function widget:ViewResize(newX,newY)
 			drawlist[i] = gl.DeleteList(drawlist[i])
 		end
 	end
+
 	createCountdownLists()
 end
 
@@ -698,8 +689,6 @@ function widget:Shutdown()
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist = {}
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 	if toggled and WG['advplayerlist_api'] then
 		WG['advplayerlist_api'].SetLockPlayerID()
 	end

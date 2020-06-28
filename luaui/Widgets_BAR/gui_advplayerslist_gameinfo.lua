@@ -28,12 +28,6 @@ end
 --------------------------------------------------------------------------------
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.7 + (vsx*vsy / 7000000))
-local fontfileSize = 36
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -62,7 +56,7 @@ local top, left, bottom, right = 0,0,0,0
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	widget:ViewResize(Spring.GetViewGeometry())
+	widget:ViewResize()
 	updatePosition()
 	WG['displayinfo'] = {}
 	WG['displayinfo'].GetPosition = function()
@@ -181,11 +175,11 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
 end
 
 local function updateValues()
-	
+
 	local textsize = 11*widgetScale
 	local textYPadding = 8*widgetScale
 	local textXPadding = 10*widgetScale
-		
+
 	if drawlist[2] ~= nil then
 		glDeleteList(drawlist[2])
 	end
@@ -235,7 +229,7 @@ local function createList()
 	drawlist[1] = glCreateList( function()
 		--glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, bgpadding*1.6, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
-		
+
 		local borderPadding = bgpadding
 		local borderPaddingRight = borderPadding
 		if right >= vsx-0.2 then
@@ -265,7 +259,6 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
-	gl.DeleteFont(font)
 	Spring.SendCommands("fps 1")
 	Spring.SendCommands("clock 1")
 	Spring.SendCommands("speed 1")
@@ -284,7 +277,7 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize(Spring.GetViewGeometry())
+			widget:ViewResize()
 		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
@@ -331,16 +324,15 @@ function updatePosition(force)
 end
 
 function widget:ViewResize(newX,newY)
-	vsx, vsy = newX, newY
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	local prevVsx, prevVsy = vsx, vsy
+	vsx, vsy = Spring.GetViewGeometry()
+
+	font = WG['fonts'].getFont(fontfile)
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
-	if (fontfileScale ~= newFontfileScale) then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	if prevVsy ~= vsx or prevVsy ~= vsy then
 		updateValues()
 	end
 end

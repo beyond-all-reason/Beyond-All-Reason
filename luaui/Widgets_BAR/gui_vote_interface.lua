@@ -13,19 +13,11 @@ end
 -- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = {'forcestart'}
 
-local vsx, vsy = gl.GetViewSizes()
+local vsx,vsy = Spring.GetViewGeometry()
 local customScale = 1.5
 local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -- being set at gamestart again:
 local myPlayerID = Spring.GetMyPlayerID()
@@ -147,17 +139,12 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-	gl.DeleteFont(font)
-	font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	gl.DeleteFont(font2)
-	font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+
+	font, loadedFontSize = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
 end
 
 function widget:PlayerChanged(playerID)
@@ -174,6 +161,7 @@ end
 --end
 
 function widget:Initialize()
+	widget:ViewResize()
 	if Spring.IsReplay() then
 		widgetHandler:RemoveWidget(self)
 	end
@@ -418,7 +406,6 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	EndVote()
 end
 

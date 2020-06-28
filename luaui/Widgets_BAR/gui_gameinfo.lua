@@ -11,16 +11,8 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
 
 
 local titlecolor = "\255\255\205\100"
@@ -145,7 +137,7 @@ local bgMargin = 6
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 430-bgMargin-bgMargin
 
-local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
+local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines
 
 local customScale = 1.1
 
@@ -192,15 +184,10 @@ function widget:ViewResize()
 	screenY = (vsy*0.5) + (screenHeight/2)
 	widgetScale = ((vsx+vsy) / 2000) * 0.65	--(0.5 + (vsx*vsy / 5700000)) * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-	  gl.DeleteFont(font)
-	  font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	  gl.DeleteFont(font2)
-	  font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	loadedFontSize = fontfileSize*fontfileScale
-  end
+
+	font, loadedFontSize  = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
+
 	if changelogList then gl.DeleteList(changelogList) end
 	changelogList = gl.CreateList(DrawWindow)
 end
@@ -619,8 +606,8 @@ function toggle()
 end
 
 function widget:Initialize()
-	if content then
 
+	if content then
 		widgetHandler:AddAction("customgameinfo", toggle)
 		Spring.SendCommands("unbind any+i gameinfo")
 		Spring.SendCommands("unbind i gameinfo")
@@ -637,7 +624,6 @@ function widget:Initialize()
 				hideWindows()
 			end
 		end
-
 		-- somehow there are a few characters added at the start that we need to remove
 		--content = string.sub(content, 4)
 
@@ -648,7 +634,6 @@ function widget:Initialize()
 			totalChangelogLines = i
 		end
 		widget:ViewResize()
-
 	else
 		--Spring.Echo("Commands info: couldn't load the commandslist file")
 		widgetHandler:RemoveWidget(self)
@@ -672,6 +657,4 @@ function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('gameinfo')
 	end
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 end

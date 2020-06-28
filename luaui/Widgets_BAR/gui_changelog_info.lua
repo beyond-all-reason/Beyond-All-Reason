@@ -12,16 +12,8 @@ end
 
 --local show = true
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
-local fontfileOutlineSize = 9
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
+local vsx,vsy = Spring.GetViewGeometry()
 
 local changelogFile = VFS.LoadFile("changelog.txt")
 
@@ -42,7 +34,7 @@ local centerPosX = 0.5	-- note: dont go too far from 0.5
 local centerPosY = 0.49		-- note: dont go too far from 0.5
 local screenX = (vsx*centerPosX) - (screenWidth/2)
 local screenY = (vsy*centerPosY) + (screenHeight/2)
-  
+
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
 
@@ -81,15 +73,10 @@ function widget:ViewResize()
 	screenY = (vsy*centerPosY) + (screenHeight/2)
     widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	gl.DeleteFont(font2)
-	font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	loadedFontSize = fontfileSize*fontfileScale
-  end
+
+	font, loadedFontSize = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
+
 	if changelogList then gl.DeleteList(changelogList) end
 	changelogList = gl.CreateList(DrawWindow)
 end
@@ -216,11 +203,11 @@ function DrawSidebar(x,y,width,height)
 	local fontSize		= versionFontSize
 	local fontOffsetY	= versionOffsetY
 	local fontOffsetX	= versionOffsetX
-	
+
 	-- background
 	gl.Color(0.7,0.5,0.15,0.14)
 	RectRound(x,y-height,x+width,y,2.5*widgetScale, 1,1,1,1, {0.55,0.4,0.12,0.14}, {0.8,0.57,0.18,0.14})
-	
+
 	-- version links
 	versionQuickLinks = {}
 	if changelogFile then
@@ -230,7 +217,7 @@ function DrawSidebar(x,y,width,height)
 		local lineKey = 1
 		local yOffset = 24
 		local j = 0
-		while j < 22 do	
+		while j < 22 do
 			if ((fontSize+fontOffsetY)*j)+4 > height-yOffset then
 				break;
 			end
@@ -238,19 +225,19 @@ function DrawSidebar(x,y,width,height)
 				break;
 			end
 			local line = changelogLines[versions[lineKey]]
-			
+
 			-- version button title
 			line = " " .. string.match(line, '( %d*%d.?%d+)')
 			local textY = y-((fontSize+fontOffsetY)*j)-20
 			font:Print(line, x+fontOffsetX, textY, fontSize, "ocn")
-			
+
 			versionQuickLinks[j] = {
 				x,
 				textY-(versionFontSize*0.66),
 				x+70,
 				textY+(versionFontSize*1.21)
 			}
-			
+
 			j = j + 1
 			lineKey = lineKey + 1
 		end
@@ -268,20 +255,20 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarPosMinHeight 	= 8
 	local scrollbarBackgroundColor	= {0,0,0,0.24}
 	local scrollbarBarColor			= {1,1,1,0.15}
-	
+
 	local fontSizeTitle				= 18		-- is version number
 	local fontSizeDate				= 14
 	local fontSizeLine				= 16
 	local lineSeparator				= 2
-	
+
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorDate				= {0.66,0.88,0.66,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
 	local fontColorLineBullet		= {0.9,0.6,0.2,1}
-	
+
 	local textRightOffset = scrollbar and scrollbarMargin+scrollbarWidth+scrollbarWidth or 0
 	local maxLines = math.floor((height-5)/fontSizeLine)
-	
+
 	-- textarea scrollbar
 	if scrollbar then
 		if (totalChangelogLines > maxLines or startLine > 1) then	-- only show scroll above X lines
@@ -312,7 +299,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			)
 		end
 	end
-	
+
 	-- draw textarea
 	if changelogFile then
 		font:Begin()
@@ -325,7 +312,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			if changelogLines[lineKey] == nil then
 				break;
 			end
-			
+
 			local line = changelogLines[lineKey]
 			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
 				-- date line
@@ -342,7 +329,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				end
 				font:SetTextColor(fontColorTitle)
 				font:Print(line, x-9, y-(lineSeparator+fontSizeTitle)*j, fontSizeTitle, "n")
-				
+
 			else
 				font:SetTextColor(fontColorLine)
 				if string.find(line, '^(-)') then
@@ -382,7 +369,7 @@ function DrawWindow()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
     local y = screenY --upwards
-	
+
 	-- background
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
@@ -393,7 +380,7 @@ function DrawWindow()
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,5.5, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
-	
+
 	-- title
     local title = "Changelog"
 	local titleFontSize = 18
@@ -409,10 +396,10 @@ function DrawWindow()
 	font2:SetOutlineColor(0,0,0,0.4)
 	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font2:End()
-	
+
 	-- version links
 	DrawSidebar(x, y, 70, screenHeight)
-	
+
 	-- textarea
 	DrawTextarea(x+90, y-10, screenWidth-90, screenHeight-24, 1)
 end
@@ -427,14 +414,14 @@ end
 function widget:DrawScreen()
   if chobbyInterface then return end
   if spIsGUIHidden() then return end
-  
+
   -- draw the help
   if not changelogList then
       changelogList = gl.CreateList(DrawWindow)
   end
-  
+
   if show or showOnceMore then
-    
+
 		-- draw the changelog panel
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
@@ -463,7 +450,7 @@ function widget:DrawScreen()
 			WG['guishader'].InsertDlist(backgroundGuishader, 'changelog')
 		end
 		showOnceMore = false
-		
+
 		-- draw button hover
 		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
@@ -475,7 +462,7 @@ function widget:DrawScreen()
 			local yOffset = 24
 			local yOffsetUp = (((versionFontSize*0.66)+yOffset)*widgetScale)
 			local yOffsetDown = (((versionFontSize*1.21)-yOffset)*widgetScale)
-			while j < 22 do	
+			while j < 22 do
 				if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight-yOffset) then
 					break;
 				end
@@ -485,10 +472,10 @@ function widget:DrawScreen()
 				if versionQuickLinks[j] == nil then
 					break;
 				end
-				
+
 				--local cc = (versionQuickLinks[j][1]/vsx) * vsx/widgetScale
 				--Spring.Echo(usedScreenX..'  '..versionQuickLinks[j][1]..'  '..cc)
-				
+
 				-- version title
 				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
@@ -522,7 +509,7 @@ function widget:KeyPress(key)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-	
+
 	-- check if the mouse is in a rectangle
 	return x >= BLcornerX and x <= TRcornerX
 	                      and y >= BLcornerY
@@ -552,10 +539,10 @@ end
 --end
 
 function widget:MouseWheel(up, value)
-	
-	if show then	
+
+	if show then
 		local addLines = value*-3 -- direction is retarded
-		
+
 		startLine = startLine + addLines
 		if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
 		if startLine < 1 then startLine = 1 end
@@ -563,7 +550,7 @@ function widget:MouseWheel(up, value)
 		if changelogList then
 			glDeleteList(changelogList)
 		end
-		
+
 		changelogList = gl.CreateList(DrawWindow)
 		return true
 	else
@@ -581,8 +568,8 @@ end
 
 function mouseEvent(x, y, button, release)
   if spIsGUIHidden() then return end
-  
-  if show then 
+
+  if show then
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -596,23 +583,23 @@ function mouseEvent(x, y, button, release)
 					if release then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						local addLines = 3
-						
-						if ctrl or shift then 
+
+						if ctrl or shift then
 							addLines = 8
 						end
-						if ctrl and shift then 
+						if ctrl and shift then
 							addLines = 22
 						end
-						if ctrl and shift and alt then 
+						if ctrl and shift and alt then
 							addLines = 66
 						end
-						if button == 3 then 
+						if button == 3 then
 							addLines = -addLines
 						end
 						startLine = startLine + addLines
 						if startLine < 1 then startLine = 1 end
 						if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
-						
+
 						if changelogList then
 							glDeleteList(changelogList)
 						end
@@ -621,29 +608,29 @@ function mouseEvent(x, y, button, release)
 					return true
 				end
 			end]]--
-			
+
 			-- version buttons
 			if button == 1 and release then
 				local yOffset = 24
 				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-				
+
 				local x,y = Spring.GetMouseState()
 				if changelogFile then
 					local lineKey = 1
 					local j = 0
-					while j < 25 do	
+					while j < 25 do
 						if (versionFontSize+versionOffsetY)*j > (screenHeight-yOffset) then
 							break;
 						end
 						if versions[lineKey] == nil then
 							break;
 						end
-						
+
 						-- version title
 						local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-						
+
 						local x1 = usedScreenX
 						local y1 = textY-(((versionFontSize*0.66)+yOffset)*widgetScale)
 						local x2 = usedScreenX+((70*widgetScale))
@@ -659,14 +646,14 @@ function mouseEvent(x, y, button, release)
 							end
 							break;
 						end
-						
+
 						j = j + 1
 						lineKey = lineKey + 1
 					end
 				end
 				return true
 			end
-			
+
 			if button == 1 or button == 3 then
 				return true
 			end
@@ -688,6 +675,7 @@ function lines(str)
 end
 
 function widget:Initialize()
+	widget:ViewResize()
 	if changelogFile then
 
 		WG['changelog'] = {}
@@ -701,17 +689,17 @@ function widget:Initialize()
 		WG['changelog'].isvisible = function()
 			return show
 		end
-	
+
 		-- somehow there are a few characters added at the start that we need to remove
 		changelogFile = string.sub(changelogFile, 4)
-		
+
 		-- store changelog into array
 		changelogLines = lines(changelogFile)
-		
+
 		local versionKey = 0
 		local insertedLatest = false
 		for i, line in ipairs(changelogLines) do
-		
+
 			if insertedLatest == false or string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9]0)$') or  string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9])$') then
 			--if string.find(line, '^(%d*%d.?%d+ [/-]> )') then
 				versionKey = versionKey + 1
@@ -739,6 +727,4 @@ function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('changelog')
 	end
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 end

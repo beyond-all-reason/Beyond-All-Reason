@@ -11,13 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -295,10 +289,6 @@ local backgroundDisplayList
 local teamControllers = {}
 local mousex,mousey = 0,0
 
-for _, data in pairs(headerRemap) do
-	maxColumnTextSize = max(font:GetTextWidth(data[1]),maxColumnTextSize)
-	maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
-end
 
 local sortVar = "damageDealt"
 local sortAscending = false
@@ -310,8 +300,6 @@ function widget:SetConfigData(data)
 	--guiData = data.guiData or guiData -- buggy positioning, so disabled this
 	sortVar = data.sortVar or sortVar
 	sortAscending = data.sortAscending or sortAscending
-	--local vsx,vsy = widgetHandler:GetViewSizes()
-	--widget:ViewResize(vsx,vsy)
 end
 
 function widget:GetConfigData(data)
@@ -324,8 +312,6 @@ end
 
 
 function calcAbsSizes()
-
-	local vsx,vsy = gl.GetViewSizes()
 
 	guiData.mainPanel.absSizes = {
 		x = {
@@ -341,16 +327,17 @@ function calcAbsSizes()
 	}
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+
+	font = WG['fonts'].getFont()
+	for _, data in pairs(headerRemap) do
+		maxColumnTextSize = max(font:GetTextWidth(data[1]),maxColumnTextSize)
+		maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
+	end
+
 	calcAbsSizes()
 	updateFontSize()
 end
@@ -389,7 +376,6 @@ end
 function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
-	gl.DeleteFont(font)
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('teamstats_window')
 	end

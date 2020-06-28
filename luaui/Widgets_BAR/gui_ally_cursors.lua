@@ -24,13 +24,7 @@ end
 
 -- configs
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local cursorSize					= 11
 local drawNamesCursorSize			= 8.5
@@ -123,12 +117,12 @@ function deleteDlists()
     allycursorDrawList = {}
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
     vsx,vsy = Spring.GetViewGeometry()
     widgetScale = (0.5 + (vsx*vsy / 5700000))
-    local fontScale = widgetScale/2
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+
     deleteDlists()
 end
 
@@ -194,6 +188,7 @@ local function GetLights(beamLights, beamLightCount, pointLights, pointLightCoun
 end
 
 function widget:Initialize()
+	widget:ViewResize()
     widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
 
     if showPlayerName then
@@ -276,7 +271,6 @@ end
 function widget:Shutdown()
     widgetHandler:DeregisterGlobal('MouseCursorEvent')
     deleteDlists()
-    gl.DeleteFont(font)
 
     if functionID and WG.DeferredLighting_UnRegisterFunction then
         WG.DeferredLighting_UnRegisterFunction(functionID)

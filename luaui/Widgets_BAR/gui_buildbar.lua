@@ -28,13 +28,7 @@ local OrangeStr  = "\255\255\190\128"
 --
 --  vars
 --
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -171,14 +165,10 @@ local function UpdateIconSizes()
   repIcoSize = math.floor(iconSizeY*0.4)
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (((vsx+vsy) / 2000) * 0.66) * (1+(ui_scale-1)/1.5)
-  local fontScale = widgetScale/2
-  if font then
-    gl.DeleteFont(font)
-  end
-  font = gl.LoadFont(fontfile, 52*fontScale, 15*fontScale, 1.3)
+
+  font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 
   UpdateIconSizes()
   SetupNewScreenAlignment()
@@ -209,18 +199,11 @@ local tan         = math.tan
 -- INITIALIZTION FUNCTIONS
 -------------------------------------------------------------------------------
 function widget:Initialize()
- -- blurFullscreen = ((useBlurShader)and(WG['blur_api'])and(WG['blur_api'].Fullscreen))
- -- if (useBlurShader)and(blurFullscreen==nil) then
- --   Spring.Echo('BuildBar Warning: you deactivated the "blurApi" widget, please reactivate it.')
- -- end
---  blurFullscreen = (blurFullscreen)or(function() return end)
+  widget:ViewResize()
 
   myTeamID = Spring.GetMyTeamID()
 
   UpdateFactoryList()
-
-  local viewSizeX, viewSizeY = widgetHandler:GetViewSizes()
-  self:ViewResize(viewSizeX, viewSizeY)
 
   if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 	widgetHandler:RemoveWidget(self)
@@ -246,8 +229,6 @@ function widget:Shutdown()
     gl.DeleteList(dlists[i])
   end
   dlists = {}
-  gl.DeleteFont(font)
-  font = nil
 end
 
 function widget:GetConfigData()

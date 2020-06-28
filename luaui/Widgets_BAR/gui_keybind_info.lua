@@ -11,15 +11,8 @@ return {
 }
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgMargin = 6
 
@@ -51,34 +44,35 @@ local GL_FILL = GL.FILL
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
-local widgetScale = 1
+local myTeamID = Spring.GetMyTeamID()
+local showOnceMore = false
 
+-- keybind info
+include("configs/BAR_HotkeyInfo.lua")
+local bindColor			= "\255\235\185\070"
+local titleColor		= "\255\254\254\254"
+local descriptionColor	= "\255\192\190\180"
+
+local widgetScale = 1
 local customScale = 1
 local centerPosX = 0.5	-- note: dont go too far from 0.5
 local centerPosY = 0.49		-- note: dont go too far from 0.5
 local screenX = (vsx*centerPosX) - (screenWidth/2)
 local screenY = (vsy*centerPosY) + (screenHeight/2)
-  
+
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	screenX = (vsx*centerPosX) - (screenWidth/2)
 	screenY = (vsy*centerPosY) + (screenHeight/2)
 	widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-	gl.DeleteFont(font)
-	font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	gl.DeleteFont(font2)
-	font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+
+	font, loadedFontSize = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
+
 	if keybinds then gl.DeleteList(keybinds) end
 	keybinds = gl.CreateList(DrawWindow)
 end
-
-local myTeamID = Spring.GetMyTeamID()
-local showOnceMore = false
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	local csyMult = 1 / ((sy-py)/cs)
@@ -186,12 +180,6 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work dif
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
--- keybind info
-
-include("configs/BAR_HotkeyInfo.lua")
-local bindColor			= "\255\235\185\070"
-local titleColor		= "\255\254\254\254"
-local descriptionColor	= "\255\192\190\180"
 
 function DrawTextTable(t,x,y)
     local j = 0
@@ -216,7 +204,7 @@ function DrawTextTable(t,x,y)
 		width = math.max(font:GetTextWidth(line)*11,width)
       end
       height = height + 13
-      
+
 	  j = j + 1
     end
 	font:End()
@@ -229,7 +217,7 @@ function DrawWindow()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
     local y = screenY --upwards
-    
+
 	-- background
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
@@ -240,7 +228,7 @@ function DrawWindow()
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,5.5, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
-	
+
 	-- title background
     local title = "Keybinds"
     local titleFontSize = 18
@@ -257,13 +245,13 @@ function DrawWindow()
 	font2:SetOutlineColor(0,0,0,0.4)
 	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font2:End()
-	
+
     DrawTextTable(General,x,y-24)
     x = x + 350
     DrawTextTable(Units_I_II,x,y-24)
     x = x + 350
     DrawTextTable(Units_III,x,y-24)
-	
+
     gl.Color(1,1,1,1)
 	font:Begin()
     font:Print("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
@@ -280,12 +268,12 @@ end
 function widget:DrawScreen()
   if chobbyInterface then return end
   if spIsGUIHidden() then return end
-  
+
   -- draw the help
   if not keybinds then
       keybinds = gl.CreateList(DrawWindow)
   end
-  
+
   if show or showOnceMore then
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
@@ -327,7 +315,7 @@ function widget:KeyPress(key)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-	
+
 	-- check if the mouse is in a rectangle
 	return x >= BLcornerX and x <= TRcornerX
 	                      and y >= BLcornerY
@@ -344,8 +332,8 @@ end
 
 function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
-  
-  if show then 
+
+  if show then
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -387,6 +375,4 @@ function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('keybindinfo')
 	end
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 end

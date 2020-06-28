@@ -38,16 +38,15 @@ local selecthoverclick = 'LuaUI/Sounds/hover.wav'
 local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile  = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfileScale2 = fontfileScale * 1.2
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 local backwardTex = ":l:LuaUI/Images/backward.dds"
@@ -330,14 +329,15 @@ function widget:ViewResize()
   widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale 	--(0.5 + (vsx*vsy / 5700000)) * customScale
   widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
   WG.uiScale = widgetScale
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
-		fontfileScale = newFontfileScale
-		fontfileScale2 = fontfileScale * 1.2
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
-		setEngineFont()
-	end
+
+  font  = WG['fonts'].getFont(fontfile)
+  font2 = WG['fonts'].getFont(fontfile2)
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+  	fontfileScale = newFontfileScale
+  	setEngineFont()
+  end
+
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
 end
@@ -994,11 +994,6 @@ function widget:DrawScreen()
 
 	  if chobbyInterface then return end
 	  if spIsGUIHidden() then return end
-
-	  -- draw the window
-	  if not windowList then
-		--windowList = gl.CreateList(DrawWindow)
-	  end
 
 	  -- update new slider value
 	  if sliderValueChanged then
@@ -4039,6 +4034,7 @@ end
 
 
 function widget:Initialize()
+	widget:ViewResize()
 
 	if firstlaunchsetupDone == false then
 		firstlaunchsetupDone = true
@@ -4077,8 +4073,6 @@ function widget:Initialize()
 	if not waterDetected then
 		Spring.SendCommands("water 0")
 	end
-
-	widget:ViewResize()
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
 
@@ -4206,8 +4200,6 @@ function widget:Shutdown()
 		glDeleteList(selectOptionsList)
 		selectOptionsList = nil
 	end
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 	WG['options'] = nil
 end
 

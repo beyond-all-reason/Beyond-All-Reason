@@ -25,16 +25,8 @@ end
 
 local show = true	-- gets disabled when it has been loaded before
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
 
 local textFile = VFS.LoadFile("gamedata/scavengers/infotext.txt")
 
@@ -83,10 +75,13 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
-local vsx, vsy = Spring.GetViewGeometry()
 
 local textLines = {}
 local totalTextLines = 0
+
+local myTeamID = Spring.GetMyTeamID()
+
+local showOnceMore = false		-- used because of GUI shader delay
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
@@ -94,22 +89,13 @@ function widget:ViewResize()
 	screenY = (vsy*centerPosY) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	gl.DeleteFont(font2)
-	font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	loadedFontSize = fontfileSize*fontfileScale
-  end
+
+	font, loadedFontSize = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
+
 	if textList then gl.DeleteList(textList) end
 	textList = gl.CreateList(DrawWindow)
 end
-
-local myTeamID = Spring.GetMyTeamID()
-
-local showOnceMore = false		-- used because of GUI shader delay
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	local csyMult = 1 / ((sy-py)/cs)
@@ -509,8 +495,6 @@ function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('text')
 	end
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 end
 
 

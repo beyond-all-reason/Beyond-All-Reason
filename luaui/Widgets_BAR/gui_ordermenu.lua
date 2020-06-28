@@ -61,16 +61,9 @@ local isStateCmd = {}
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
---local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
+
+local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
@@ -290,6 +283,7 @@ function widget:ViewResize()
   width = math.floor(width * vsx) / vsx
   height = math.floor(height * vsy) / vsy
 
+	font2 = WG['fonts'].getFont(fontFile)
 
   if altPosition then
     local widgetSpaceMargin = math.floor(0.0045 * (vsy/vsx) * vsx * ui_scale) / vsx
@@ -329,17 +323,6 @@ function widget:ViewResize()
 
   setupCellGrid(true)
   doUpdate = true
-
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if fontfileScale ~= newFontfileScale then
-    fontfileScale = newFontfileScale
-    --gl.DeleteFont(font)
-    --font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    gl.DeleteFont(font2)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    loadedFontSize = fontfileSize*fontfileScale
-  end
-
 end
 
 
@@ -584,7 +567,7 @@ function drawCell(cell, zoom)
 
     local cellInnerWidth = math_floor(((cellRects[cell][3]-rightMargin) - (cellRects[cell][1]+leftMargin))+0.5)
     local cellInnerHeight = math_floor(((cellRects[cell][4]-topMargin) - (cellRects[cell][2]+bottomMargin))+0.5)
-    
+
     local isActiveCmd = (activeCmd == cmd.name)
     -- order button background
     local color1, color2

@@ -8,17 +8,13 @@ function widget:GetInfo()
 		date = "June 2013",
 		license = "click button magic",
 		layer = 10,
-		enabled = true,		
+		enabled = true,
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 44
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -32,7 +28,6 @@ wPos = {x=0.00, y=0.145}
 local isPaused = false
 local isActive = true --is the widget shown and reacts to clicks?
 local sceduleUpdate = true
-local vsx,vsy = Spring.GetViewGeometry()
 widgetScale = (0.5 + (vsx*vsy / 5700000))
 
 local glBlending = gl.Blending
@@ -41,16 +36,16 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 function widget:Initialize()
-	widget:ViewResize(Spring.GetViewGeometry())
-	if (not Spring.IsReplay()) then
+	widget:ViewResize()
+	if not Spring.IsReplay() then
 		Spring.Echo ("[Replay Control] Replay not detected, Shutting Down.")
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	
+
 	local dy = 0
 	local h = 0.033
-	for i = 1, #speeds do	
+	for i = 1, #speeds do
 		dy=dy+h
 		add_button (speedbuttons, wPos.x, wPos.y+dy, 0.037, 0.033, "  " .. speeds[i].."x", speeds[i], speedButtonColor (i))
 	end
@@ -60,8 +55,8 @@ function widget:Initialize()
 	if Spring.GetGameFrame() > 0 then
 		text = "  ||"
 	end
-	add_button (buttons, wPos.x, wPos.y, 0.037, 0.033, text,"playpauseskip", {0,0,0,0.6})	
-	
+	add_button (buttons, wPos.x, wPos.y, 0.037, 0.033, text,"playpauseskip", {0,0,0,0.6})
+
 end
 
 function widget:Shutdown()
@@ -70,7 +65,6 @@ function widget:Shutdown()
 	end
 	gl.DeleteList(speedButtonsList)
 	gl.DeleteList(buttonsList)
-	gl.DeleteFont(font)
 end
 
 function speedButtonColor (i)
@@ -101,7 +95,7 @@ function widget:DrawScreen()
 			WG['guishader'].DeleteDlist('replaybuttons')
 		end
 	end
-	
+
 	if not isActive then return end
 	if sceduleUpdate then
 		if speedButtonsList then
@@ -247,7 +241,7 @@ function uiY (sY)
 	return sY/vsy
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
 	sceduleUpdate = true
@@ -255,12 +249,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
+	font = WG['fonts'].getFont(fontfile2)
 end
 
 function uiText (text, x,y,s,options)
@@ -492,7 +481,7 @@ function clicked_button (b)
 	local mx, my,click = Spring.GetMouseState()
 	local mousex=uiX(mx)
 	local mousey=uiY(my)
-	for i = 1, #b, 1 do	
+	for i = 1, #b, 1 do
 		if (click == true and point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  mousex, mousey)) then return b[i].name, i end
 		--if (mouse_was_down == false and click == true and point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  mousex, mousey)) then mouse_was_down = true end
 		end

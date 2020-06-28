@@ -13,13 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 50
-local fontfileOutlineSize = 16
-local fontfileOutlineStrength = 1.5
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local vsx, vsy = gl.GetViewSizes()
 local customScale = 1.2
@@ -173,12 +167,9 @@ end
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+
+	font = WG['fonts'].getFont()
+
 	if windowList then gl.DeleteList(windowList) end
 	windowList = gl.CreateList(DrawWindow)
 end
@@ -301,5 +292,4 @@ function widget:Shutdown()
 	end
 	if windowList then gl.DeleteList(windowList) end
 	widgetHandler:DisableWidget(widgetName)
-	gl.DeleteFont(font)
 end

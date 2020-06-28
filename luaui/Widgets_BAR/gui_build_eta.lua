@@ -28,13 +28,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local gl     = gl  --  use a local copy for faster access
 local Spring = Spring
@@ -53,13 +47,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 
-local vsx, vsy = widgetHandler:GetViewSizes()
-
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local fontScale = widgetScale/2
-  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+
+  font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
 
@@ -84,6 +75,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
+  widget:ViewResize()
   local myUnits = Spring.GetTeamUnits(Spring.GetMyTeamID())
   for _,unitID in ipairs(myUnits) do
     local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
@@ -111,7 +103,7 @@ function widget:Update(dt)
     return
   end
   lastGameUpdate = gs
-  
+
   local killTable = {}
   local count = 0
   for unitID,bi in pairs(etaTable) do
@@ -120,7 +112,7 @@ function widget:Update(dt)
       count = count + 1
       killTable[count] = unitID
     else
-      local dp = buildProgress - bi.lastProg 
+      local dp = buildProgress - bi.lastProg
       local dt = gs - bi.lastTime
       if (dt > 2) then
         bi.firstSet = true
@@ -195,9 +187,6 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
   etaTable[unitID] = nil
 end
 
-function widget:Shutdown()
-  gl.DeleteFont(font)
-end
 --------------------------------------------------------------------------------
 
 local function DrawEtaText(timeLeft,yoffset)
@@ -230,7 +219,7 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-	if Spring.IsGUIHidden() == false then 
+	if Spring.IsGUIHidden() == false then
 	  gl.DepthTest(true)
 
 	  gl.Color(1, 1, 1,0.1)
@@ -253,7 +242,7 @@ function widget:DrawWorld()
 	  gl.DepthTest(false)
 	end
 end
-  
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

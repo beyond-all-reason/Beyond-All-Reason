@@ -13,13 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --callin driven
 --"hot" units
@@ -149,6 +143,8 @@ function SetUnitConf()
 end
 
 function widget:Initialize()
+	widget:ViewResize()
+
 	SetUnitConf()
 	circleLinesCoop = calcCircleLines(circleDivsCoop)
 	circleLinesAlly = calcCircleLines(circleDivsAlly)
@@ -191,7 +187,6 @@ function widget:Shutdown()
 	if circleLinesAlly ~= nil then
 		gl.DeleteList(circleLinesAlly)
 	end
-	gl.DeleteFont(font)
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('allyselectedunits')
 	end
@@ -398,15 +393,11 @@ function widget:Update(dt)
 	end
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 
 	xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 	sizeMultiplier = 0.55 + (vsx*vsy / 8000000)
@@ -453,12 +444,6 @@ function widget:DrawWorldPreUnit()
 	DrawHotUnits()
 end
 
---local vsx,vsy = Spring.GetViewGeometry()
---local lineScale = (0.75 + (vsx*vsy / 7500000))
---function widget:ViewResize()
---	local vsx,vsy = Spring.GetViewGeometry()
---	lineScale = (0.75 + (vsx*vsy / 7500000))
---end
 
 function DrawSelectedUnits()
 	glColor(0.0, 1.0, 0.0, 1.0)

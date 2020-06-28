@@ -11,17 +11,7 @@ function widget:GetInfo()
 end
 
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local commands					= {}
 local mapDrawNicknameTime		= {}	-- this table is used to filter out previous map drawing nicknames if user has drawn something new
@@ -37,6 +27,9 @@ local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
+local commandCount = 0
+local glowDlist
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -45,7 +38,7 @@ local nicknameOpacityMultiplier	= 6		-- multiplier applied to the given color op
 local generalSize 				= 28		-- overall size
 local generalOpacity 			= 0.8		-- overall opacity
 local generalDuration			= 1.2		-- overall duration
-	
+
 local ringStartSize				= 9
 local ringScale					= 0.75
 
@@ -78,10 +71,6 @@ local types = {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local commandCount = 0
-local glowDlist
-
-
 local function DrawGroundquad(x,y,z,size)
 	gl.TexCoord(0,0)
 	gl.Vertex(x-size,y,z-size)
@@ -93,6 +82,7 @@ local function DrawGroundquad(x,y,z,size)
 	gl.Vertex(x+size,y,z-size)
 end
 
+
 local function AddEffect(cmdType, x, y, z, osClock, unitID, playerID)
 	if not playerID then
 		playerID = false
@@ -100,7 +90,7 @@ local function AddEffect(cmdType, x, y, z, osClock, unitID, playerID)
 	local nickname,_,spec,teamID = spGetPlayerInfo(playerID,false)
 	local teamcolor = {}
 	teamcolor[1],teamcolor[2],teamcolor[3] = spGetTeamColor(teamID)
-	
+
 	commandCount = commandCount + 1
 	commands[commandCount] = {
 		cmdType		= cmdType,
@@ -116,27 +106,14 @@ local function AddEffect(cmdType, x, y, z, osClock, unitID, playerID)
 end
 
 
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-
---	Engine Triggers
-
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
+
 function widget:Initialize()
-	
+
 	glowDlist = glCreateList(function()
 		gl.Texture(imageDir..'glow.dds')
 		gl.BeginEnd(GL.QUADS,DrawGroundquad,0,0,0,1)
@@ -157,6 +134,8 @@ function widget:Initialize()
 		gl.BeginEnd(GL.QUADS,DrawGroundquad,0,0,0,1)
 		gl.Texture(false)
 	end)
+
+	widget:ViewResize()
 end
 
 
@@ -165,7 +144,6 @@ function widget:Shutdown()
 	glDeleteList(pencilDlist)
 	glDeleteList(eraserDlist)
 	glDeleteList(ringDlist)
-	gl.DeleteFont(font)
 end
 
 
@@ -195,37 +173,38 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
-	
+
 	local osClock = os.clock()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.DepthTest(false)
 	gl.PushMatrix()
-	
+
 	local duration, durationProcess, size, a, glowColor, ringColor, aRing, ringSize, iconSize
 
 	for cmdKey, cmdValue in pairs(commands) do
-		
+
 		duration		= types[cmdValue.cmdType].duration * generalDuration
 		durationProcess = (osClock - cmdValue.osClock) / duration
-		
+
 		-- remove when duration has passed
 		if osClock - cmdValue.osClock > duration  then
-		
+
 			commands[cmdKey] = nil
-			
+
 		-- remove nicknames when user has drawn something new
 		elseif  cmdValue.cmdType == 'map_draw'  and  mapDrawNicknameTime[cmdValue.playerID] ~= nil  and  cmdValue.osClock < mapDrawNicknameTime[cmdValue.playerID] then
-			
+
 			commands[cmdKey] = nil
-			
+
 		-- draw all
 		elseif  types[cmdValue.cmdType].glowColor[4] > 0  or  types[cmdValue.cmdType].ringColor[4] > 0  then
 			size	= generalSize * types[cmdValue.cmdType].size   +   ((generalSize * types[cmdValue.cmdType].endSize - generalSize * types[cmdValue.cmdType].size) * durationProcess)
 			a		= (1 - durationProcess) * generalOpacity
-			
+
 			if cmdValue.spec then
 				glowColor = {1,1,1,types[cmdValue.cmdType].glowColor[4]}
 				ringColor = {1,1,1,types[cmdValue.cmdType].ringColor[4]}
@@ -233,13 +212,13 @@ function widget:DrawWorldPreUnit()
 				glowColor = {cmdValue.color[1],cmdValue.color[2],cmdValue.color[3],types[cmdValue.cmdType].glowColor[4]}
 				ringColor = {cmdValue.color[1],cmdValue.color[2],cmdValue.color[3],types[cmdValue.cmdType].ringColor[4]}
 			end
-			
+
 			aRing	= a * ringColor[4]
 			a		= a * glowColor[4]
-			
-			
+
+
 			gl.Translate(cmdValue.x, cmdValue.y, cmdValue.z)
-			
+
 			-- glow
 			if glowColor[4] > 0 then
 				gl.Color(glowColor[1],glowColor[2],glowColor[3],a)
@@ -255,14 +234,14 @@ function widget:DrawWorldPreUnit()
 				glCallList(ringDlist)
 				gl.Scale(1/ringSize,1,1/ringSize)
 			end
-			
+
 			-- draw + erase:   nickname / draw icon
 			if  cmdValue.playerID  and  cmdValue.playerID ~= ownPlayerID  and   (cmdValue.cmdType == 'map_draw'  or    cmdValue.cmdType == 'map_erase' and  cmdValue.osClock >= mapEraseNicknameTime[cmdValue.playerID]) then
-				
+
 				if (cmdValue.spec) then
 					iconSize = 11
 					gl.Color(glowColor[1],glowColor[2],glowColor[3], a * nicknameOpacityMultiplier)
-					
+
 					if cmdValue.cmdType == 'map_draw' then
 						gl.Scale(iconSize,1,iconSize)
 						glCallList(pencilDlist)
@@ -272,7 +251,7 @@ function widget:DrawWorldPreUnit()
 						glCallList(eraserDlist)
 						gl.Scale(1/iconSize,1,1/iconSize)
 					end
-					
+
 					gl.PushMatrix()
 					gl.Billboard()
 					font:Begin()
@@ -281,11 +260,11 @@ function widget:DrawWorldPreUnit()
 					gl.PopMatrix()
 				end
 			end
-			
+
 			gl.Translate(-cmdValue.x, -cmdValue.y, -cmdValue.z)
 		end
 	end
-	
+
 	gl.PopMatrix()
 	gl.Color(1,1,1,1)
 end

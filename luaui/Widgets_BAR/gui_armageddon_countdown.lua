@@ -11,13 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ----------------------------------------------------------------
 -- Load?
@@ -31,15 +25,14 @@ end
 -- Callins
 ----------------------------------------------------------------
 
-function widget:Shutdown()
-    gl.DeleteFont(font)
+function widget:Initialize()
+	widget:ViewResize()
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
     vsx,vsy = Spring.GetViewGeometry()
-    widgetScale = (0.5 + (vsx*vsy / 5700000))
-    local fontScale = widgetScale/2
-    font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
 local gameStarterd = false

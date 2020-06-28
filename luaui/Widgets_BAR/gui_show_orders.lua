@@ -12,13 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -----------------------------------------------------
 -- Config
@@ -64,19 +58,13 @@ local glRect			= gl.Rect
 -- Code
 -----------------------------------------------------
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
 local function GetAlliedTeams()
-	
+
 	local _, fullView, _ = spGetSpecState()
 	if fullView then
 		return spGetTeamList()
@@ -86,7 +74,7 @@ local function GetAlliedTeams()
 end
 
 function widget:Initialize()
-	
+	widget:ViewResize()
 	for uDefID, uDef in pairs(UnitDefs) do
 		if uDef.isFactory then
 			isFactory[uDefID] = true
@@ -96,10 +84,10 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-	
+
 	local alt, control, meta, shift = spGetModKeyState()
 	if not (shift and meta) then return end
-	
+
 	local alliedTeams = GetAlliedTeams()
 	for t = 1, #alliedTeams do
 		if alliedTeams[t] ~= GaiaTeamID then
@@ -116,29 +104,29 @@ end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
-	
+
 	local alt, control, meta, shift = spGetModKeyState()
 	if not (shift and meta) then return end
-	
+
 	local alliedTeams = GetAlliedTeams()
 	for t = 1, #alliedTeams do
-		
+
 		if alliedTeams[t] ~= GaiaTeamID then
 			local teamUnits = spGetTeamUnits(alliedTeams[t])
 			for u = 1, #teamUnits do
-				
+
 				local uID = teamUnits[u]
 				local uDefID = spGetUnitDefID(uID)
-				
+
 				if uDefID and isFactory[uDefID] then
-					
+
 					local ux, uy, uz = spGetUnitPosition(uID)
 					local sx, sy = spWorldToScreenCoords(ux, uy, uz)
 					local _, _, _, _, buildProg = spGetUnitHealth(uID)
 					local uCmds = spGetFactoryCommands(uID,-1)
-					
+
 					local cells = {}
-					
+
 					if (buildProg < 1.0) then
 						cells[1] = { texture = "#" .. uDefID, text = floor(buildProg * 100) .. "%" }
 					else
@@ -146,16 +134,16 @@ function widget:DrawScreen()
 							cells[1] = { texture = "#" .. uDefID, text = "IDLE" }
 						end
 					end
-					
+
 					if (#uCmds > 0) then
-						
+
 						local uCount = 0
 						local prevID = -1000
-						
+
 						for c = 1, #uCmds do
-							
+
 							local cDefID = -uCmds[c].id
-							
+
 							if (cDefID == prevID) then
 								uCount = uCount + 1
 							else
@@ -164,36 +152,36 @@ function widget:DrawScreen()
 								end
 								uCount = 0
 							end
-							
+
 							prevID = cDefID
 						end
-						
+
 						if (prevID > 0) then
 							cells[#cells + 1] = { texture = "#" .. prevID, text = (uCount ~= 0) and uCount + 1 }
 						end
 					end
-					
+
 					for r = 0, maxRows - 1 do
 						for c = 1, maxColumns do
-							
+
 							local cell = cells[maxColumns * r + c]
 							if not cell then break end
-							
+
 							local cx = sx + (c - 1) * (iconSize + borderWidth)
 							local cy = sy - r * (iconSize + borderWidth)
-							
+
 							if select(4,spGetUnitStates(uID,false,true)) then	-- 4=repeat
 								glColor(0.0, 0.0, 0.5, 1.0)
 							else
 								glColor(0.0, 0.0, 0.0, 1.0)
 							end
 							glRect(cx, cy, cx + iconSize + 2 * borderWidth, cy - iconSize - 2 * borderWidth)
-							
+
 							glColor(1.0, 1.0, 1.0, 1.0)
 							glTexture(cell.texture)
 							glTexRect(cx + borderWidth, cy - iconSize - borderWidth, cx + iconSize + borderWidth, cy - borderWidth)
 							glTexture(false)
-							
+
 							if (cell.text) then
 
 								font:Begin()
@@ -207,7 +195,3 @@ function widget:DrawScreen()
 		end
 	end -- alliedTeams
 end -- DrawScreen
-
-function widget:Shutdown()
-	gl.DeleteFont(font)
-end

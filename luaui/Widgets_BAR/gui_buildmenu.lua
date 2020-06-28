@@ -75,17 +75,9 @@ local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 44
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.55
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
+local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
+local vsx,vsy = Spring.GetViewGeometry()
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 
@@ -874,6 +866,8 @@ end
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
 
+  font2 = WG['fonts'].getFont(fontFile, 1.2, 0.22, 1.5)
+
   if WG['minimap'] then
     minimapEnlarged = WG['minimap'].getEnlarged()
     minimapHeight = WG['minimap'].getHeight()
@@ -921,17 +915,6 @@ function widget:ViewResize()
 
   clear()
   doUpdate = true
-
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000)) * ui_scale
-  if fontfileScale ~= newFontfileScale then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    gl.DeleteFont(font2)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    loadedFontSize = fontfileSize*fontfileScale
-  end
-
 end
 
 

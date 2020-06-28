@@ -12,13 +12,7 @@ function widget:GetInfo()
   }
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ----------------------------------------------------------------
 --config
@@ -92,8 +86,6 @@ local function GetPlayerColor(playerID)
 end
 
 local function StartTime()
-	local viewSizeX, viewSizeY = widgetHandler:GetViewSizes()
-	widget:ViewResize(viewSizeX, viewSizeY)
 	timeNow = 0
 	timePart = 0
 	on = true
@@ -107,6 +99,7 @@ function widget:Initialize()
 	timeNow = false
 	timePart = false
 	myPlayerID = Spring.GetMyPlayerID()
+	widget:ViewResize()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -118,9 +111,9 @@ end
 function widget:DrawScreen()
 	if chobbyInterface then return end
 	if (not on) or (next(mapPoints) == nil) then return end
-		
+
 	glLineWidth(lineWidth)
-	
+
 	for unitID,defs in pairs(mapPoints) do
 		local curr = mapPoints[i]
 		local alpha = maxAlpha * (defs.time - timeNow) / ttl
@@ -128,7 +121,7 @@ function widget:DrawScreen()
 			mapPoints[unitID] = nil
 		else
 		    defs.x, defs.y, defs.z  = Spring.GetUnitPosition(unitID)
-		    if defs.x then 
+		    if defs.x then
 				local sx, sy, sz = WorldToScreenCoords(defs.x, defs.y, defs.z)
 				if blink then
 					glColor(defs.r, defs.g, defs.b, alpha * 0.5)
@@ -223,18 +216,13 @@ function widget:DrawScreen()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
 
-  sMidX = vsx * 0.5
-  sMidY = vsy * 0.5
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+
+	sMidX = vsx * 0.5
+	sMidY = vsy * 0.5
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
@@ -278,10 +266,10 @@ end
 function widget:DrawInMiniMap(sx, sy)
 	if (not on) then return end
 	glLineWidth(lineWidth)
-	
+
 	local ratioX = sx / mapX
 	local ratioY = sy / mapY
-	
+
 	for unitID,defs in pairs(mapPoints) do
 		if defs.x then
 			local x = defs.x * ratioX
@@ -307,7 +295,7 @@ function widget:DrawInMiniMap(sx, sy)
 			end
 		end
 	end
-	
+
 	glColor(1, 1, 1)
 	glLineWidth(1)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)

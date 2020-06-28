@@ -59,16 +59,9 @@ local lockcameraHideEnemies = true 			-- specfullview
 local lockcameraLos = true					-- togglelos
 local collapsable = false
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.7 + (vsx*vsy / 7000000))
-local fontfileSize = 36
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfileScale2 = fontfileScale * 1.25
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -629,7 +622,7 @@ end
 function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 14*font2:GetTextWidth(absentName) + 8 -- 8 is minimal width
+	local maxWidth = 14*(font2 and font2:GetTextWidth(absentName) or 100) + 8 -- 8 is minimal width
 	local name = ''
 	local spec = false
 	local isAI = false
@@ -650,7 +643,7 @@ function SetMaxPlayerNameWidth()
 				name = Spring.GetGameRulesParam('ainame_'..teamID)..' (AI)'
 			end
 		end
-		nextWidth = (spec and 11 or 14) * font2:GetTextWidth(name)+10
+		nextWidth = (spec and 11 or 14) * (font2 and font2:GetTextWidth(name) or 100)+10
 		if nextWidth > maxWidth then
 			maxWidth = nextWidth
 		end
@@ -1013,7 +1006,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	widget:ViewResize(gl.GetViewSizes())
+	widget:ViewResize()
 
 	widgetHandler:RegisterGlobal('getPlayerScoresAdvplayerslist', RecvPlayerScores)
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
@@ -1183,7 +1176,6 @@ function widget:Shutdown()
 	if screenshotDlist then
 		gl_DeleteList(screenshotDlist)
 	end
-	gl.DeleteFont(font)
 	if lockPlayerID then
 		LockCamera()
 	end
@@ -4038,7 +4030,7 @@ function widget:Update(delta) --handles takes & related messages
 		uiOpacitySec = 0
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize(Spring.GetViewGeometry())
+			widget:ViewResize()
 		end
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
@@ -4177,28 +4169,22 @@ function customScaleDown()
 end
 
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize()
+	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 	local dx, dy = vsx - viewSizeX, vsy - viewSizeY
 
 	--local vsxDiff = 1 / (vsx/viewSizeX)
 	--local vsyDiff = 1 / (vsy/viewSizeY)
 
-	vsx, vsy = viewSizeX, viewSizeY
+	vsx, vsy = Spring.GetViewGeometry()
+
+	font  = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
 	updateWidgetScale()
-
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
-		fontfileScale = newFontfileScale
-		fontfileScale2 = newFontfileScale * 1.25
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		gl.DeleteFont(font2)
-		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
-	end
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)

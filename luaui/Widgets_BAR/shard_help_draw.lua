@@ -993,16 +993,16 @@ function widget:Initialize()
 	BindCommand("ShardStartTimer", StartTimer)
 	BindCommand("ShardStopTimer", StopTimer)
 	BindCommand("ShardSaveTable", SaveTable)
-	myFont = glLoadFont('fonts/Xolonium.otf', 16, 4, 5) or glLoadFont('fonts/Xolonium.otf', 16, 4, 5)
+	myFont = glLoadFont('fonts/Exo2-SemiBold.otf', 16, 4, 5)
 	myMonoFont = glLoadFont('fonts/Mesmerize-Bold.ttf', 16, 4, 5) or myFont
 	-- myFont:SetAutoOutlineColor(true)
 end
 
 function widget:GameFrame(frameNum)
-                      
+
 	local buff = io.open('sharddrawbuffer', 'r')
-                      
-                      
+
+
 	if buff then
 		for line in buff:lines() do
 			if line and line ~= '' and line ~= ' ' then
@@ -1200,4 +1200,4 @@ function widget:Shutdown()
 end
 
 
- 
+

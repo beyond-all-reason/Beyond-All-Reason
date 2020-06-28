@@ -27,17 +27,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 45
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.6
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
--- Automatically generated local definitions
-
-local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
 
 local glPopMatrix      = gl.PopMatrix
@@ -48,6 +38,8 @@ local glText           = gl.Text
 local glTranslate      = gl.Translate
 local spGetGameSeconds = Spring.GetGameSeconds
 
+local floor = math.floor
+
 local message = ""
 local message2 = ""
 local message3 = ""
@@ -56,21 +48,16 @@ local message4 = ""
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local floor = math.floor
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.80 + (vsx*vsy / 6000000))
 
-function widget:ViewResize(n_vsx,n_vsy)
-  vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (0.80 + (vsx*vsy / 6000000))
-
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
 function widget:Initialize()
+  widget:ViewResize()
+
   if Spring.GetModOptions().deathmode=="com" then
     message = "Kill all enemy Commanders"
   elseif Spring.GetModOptions().deathmode=="killall" then
@@ -78,11 +65,11 @@ function widget:Initialize()
   elseif Spring.GetModOptions().deathmode=="neverend" then
     widgetHandler:RemoveWidget(self)
   end
-  
+
   if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
 	message2 = "Commanders survive DGuns and commander explosions"
   end
-  
+
   if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
     plural = ""
     if tonumber(Spring.GetModOptions().armageddontime) ~= 1 then
@@ -144,9 +131,4 @@ end
 
 function widget:GameOver()
   widgetHandler:RemoveWidget(self)
-end
-
-
-function widget:Shutdown()
-  gl.DeleteFont(font)
 end

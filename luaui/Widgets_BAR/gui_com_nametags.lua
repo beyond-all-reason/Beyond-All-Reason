@@ -23,8 +23,9 @@ local scaleFontAmount		= 120
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
+
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
 local fontfileOutlineSize = 9
@@ -61,7 +62,7 @@ local glTranslate        		= gl.Translate
 local glBillboard        		= gl.Billboard
 local glDrawFuncAtUnit   		= gl.DrawFuncAtUnit
 local GL_GREATER     	 		= GL.GREATER
-local GL_SRC_ALPHA				= GL.SRC_ALPHA	
+local GL_SRC_ALPHA				= GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
 local glBlending          		= gl.Blending
 local glScale          			= gl.Scale
@@ -127,7 +128,7 @@ local function GetCommAttributes(unitID, unitDefID)
   if (r + g*1.2 + b*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
 	bgColor = {1,1,1,1}
   end
-  
+
   local height = comHeight[unitDefID] + heightOffset
   return {name, {r, g, b, a}, height, bgColor}
 end
@@ -164,7 +165,7 @@ local function createComnameList(attributes)
 			end
 			font:SetTextColor(outlineColor)
 			font:SetOutlineColor(outlineColor)
-			
+
 			font:Print(attributes[1], -(fontSize/38), -(fontSize/33), fontSize, "con")
 			font:Print(attributes[1], (fontSize/38), -(fontSize/33), fontSize, "con")
 		end
@@ -317,7 +318,7 @@ function profileDT()
   end
   return avgTimeUS
 end
-  
+
 function fastDrawName()
   gl.Text("MyComander",0,0,16,"o")
 end
@@ -333,17 +334,17 @@ function widget:DrawWorld()
       CheckAllComs()
 	  end
   end
-  
+
   glDepthTest(true)
   glAlphaTest(GL_GREATER, 0)
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-   
+
   local camX, camY, camZ = GetCameraPosition()
 
   for unitID, attributes in pairs(comms) do
     if IsUnitInView(unitID) then
       local x,y,z = GetUnitPosition(unitID)
-      camDistance = diag(camX-x, camY-y, camZ-z) 
+      camDistance = diag(camX-x, camY-y, camZ-z)
 
       if drawForIcon and IsUnitIcon(unitID) then
         attributes[5] = camDistance
@@ -354,7 +355,7 @@ function widget:DrawWorld()
       end
     end
   end
-  
+
   glAlphaTest(false)
   glColor(1,1,1,1)
   glDepthTest(false)
@@ -404,7 +405,7 @@ function widget:PlayerChanged(playerID)
   comnameList[name] = nil
   CheckAllComs() -- handle substitutions, etc
 end
-    
+
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
   CheckCom(unitID, unitDefID, unitTeam)
 end

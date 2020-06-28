@@ -33,15 +33,9 @@ local iconBorderOpacity = 0.07
 -------------------------------------------------------------------------------
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 44
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
+
+local vsx,vsy = Spring.GetViewGeometry()
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
@@ -441,16 +435,8 @@ function widget:ViewResize()
 
   checkGuishader(true)
 
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if fontfileScale ~= newFontfileScale then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    gl.DeleteFont(font2)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    loadedFontSize = fontfileSize*fontfileScale
-  end
-
+  font, loadedFontSize  = WG['fonts'].getFont(fontfile)
+  font2 = WG['fonts'].getFont(fontfile2)
 end
 
 function GetColor(colormap,slider)
@@ -472,6 +458,8 @@ function GetColor(colormap,slider)
 end
 
 function widget:Initialize()
+  widget:ViewResize()
+
   WG['info'] = {}
   WG['info'].getPosition = function()
     return width,height
@@ -490,7 +478,6 @@ function widget:Initialize()
   end
   Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count
   Spring.SendCommands("tooltip 0")
-  widget:ViewResize()
 
   bfcolormap = {}
   for hp=0,100 do

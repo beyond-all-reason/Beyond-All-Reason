@@ -1,6 +1,3 @@
--- $Id$
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
   return {
@@ -9,7 +6,7 @@ function widget:GetInfo()
     author    = "quantum",
     date      = "May 04, 2008",
     license   = "GNU GPL, v2 or later",
-    layer     = -9, 
+    layer     = -9,
     enabled   = true  --  loaded by default?
   }
 end
@@ -35,7 +32,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if (not Spring.GetGameRulesParam("difficulty")) then
+if not Spring.GetGameRulesParam("difficulty") then
   return false
 end
 
@@ -60,16 +57,8 @@ local panelTexture    = ":n:LuaUI/Images/chickenpanel.tga"
 local panelFontSize = 14
 local waveFontSize   = 36
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 45
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfileScale2 = fontfileScale * 1.2
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 local viewSizeX, viewSizeY = 0,0
 local w               = 300
@@ -116,7 +105,7 @@ local rules = {
   "gracePeriod",
   "queenLife",
   "lagging",
-  "difficulty",  
+  "difficulty",
   "chickenCount",
   "chickenaCount",
   "chickensCount",
@@ -180,7 +169,7 @@ end
 
 function comma_value(amount)
   local formatted = amount
-  while true do  
+  while true do
     formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
     if (k==0) then
       break
@@ -356,12 +345,14 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
+  widget:ViewResize()
+
   displayList = gl.CreateList( function()
     gl.Blending(true)
     gl.Color(1, 1, 1, 1)
     gl.Texture(panelTexture)
     gl.TexRect(0, 0, w, h)
-	end)
+  end)
 
   widgetHandler:RegisterGlobal("ChickenEvent", ChickenEvent)
   UpdateRules()
@@ -376,8 +367,6 @@ function widget:Shutdown()
   if hasChickenEvent then
     Spring.SendCommands({"luarules HasChickenEvent 0"})
   end
-  gl.DeleteFont(font)
-  gl.DeleteFont(font2)
 
   if (guiPanel) then gl.DeleteList(guiPanel); guiPanel=nil end
 
@@ -385,6 +374,7 @@ function widget:Shutdown()
   gl.DeleteTexture(panelTexture)
   widgetHandler:DeregisterGlobal("ChickenEvent")
 end
+
 
 function widget:GameFrame(n)
   if not(hasChickenEvent) and n > 1 then
@@ -397,16 +387,16 @@ function widget:GameFrame(n)
     if (not enabled and n > 1) then
       enabled = true
     end
---	
+--
 --    queenAnger = math.ceil((((GetGameSeconds()-gameInfo.gracePeriod+gameInfo.queenAnger)/(gameInfo.queenTime-gameInfo.gracePeriod))*100) -0.5)
- 
+
   end
   if gotScore then
     local sDif = gotScore - scoreCount
     if sDif > 0 then
       scoreCount = scoreCount + math.ceil(sDif / 7.654321)
-      if scoreCount > gotScore then 
-        scoreCount = gotScore 
+      if scoreCount > gotScore then
+        scoreCount = gotScore
       else
         updatePanel = true
       end
@@ -420,6 +410,7 @@ function widget:RecvLuaMsg(msg, playerID)
     chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
   end
 end
+
 
 function widget:DrawScreen()
   if chobbyInterface then return end
@@ -435,7 +426,7 @@ end
 
 
 function widget:MousePress(x, y, button)
-  if (enabled and 
+  if (enabled and
        x > x1 and x < x1 + (w*widgetScale) and
        y > y1 and y < y1 + (h*widgetScale)) then
     capture = true
@@ -444,7 +435,7 @@ function widget:MousePress(x, y, button)
   return capture
 end
 
- 
+
 function widget:MouseRelease(x, y, button)
   if (not enabled) then
     return
@@ -455,28 +446,17 @@ function widget:MouseRelease(x, y, button)
 end
 
 
-function widget:ViewResize(vsx, vsy)
+function widget:ViewResize()
+  vsx,vsy = Spring.GetViewGeometry()
+
+  font  = WG['fonts'].getFont()
+  font2 = WG['fonts'].getFont(fontfile2)
+
   x1 = math.floor(x1 - viewSizeX)
   y1 = math.floor(y1 - viewSizeY)
   viewSizeX, viewSizeY = vsx, vsy
   widgetScale = (0.75 + (viewSizeX*viewSizeY / 10000000)) * customScale
   x1 = viewSizeX + x1+((x1/2) * (widgetScale-1))
   y1 = viewSizeY + y1+((y1/2) * (widgetScale-1))
-
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
-  end
 end
 
-
-local widgetScale = 1
-local changelogLines = {}
-local totalChangelogLines = 0
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

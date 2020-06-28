@@ -37,16 +37,8 @@ for i, faction in pairs(factions) do
   factionRect[i] = {}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 36
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
@@ -139,16 +131,8 @@ function widget:ViewResize()
 
   checkGuishader(true)
 
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if fontfileScale ~= newFontfileScale then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    gl.DeleteFont(font2)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    loadedFontSize = fontfileSize*fontfileScale
-  end
-
+  font  = WG['fonts'].getFont()
+  font2 = WG['fonts'].getFont(fontfile2)
 end
 
 
@@ -176,8 +160,6 @@ function widget:Shutdown()
     dlistGuishader = nil
   end
   dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
-  gl.DeleteFont(font)
-  gl.DeleteFont(font2)
 end
 
 

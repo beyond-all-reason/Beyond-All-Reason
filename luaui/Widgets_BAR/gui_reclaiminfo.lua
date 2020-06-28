@@ -23,20 +23,14 @@ function widget:GetInfo()
 }
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local start = false  --reclaim area cylinder drawing has been started
 local metal = 0  --metal count from features in cylinder
 local energy = 0  --energy count from features in cylinder
-local nonground = "" --if reclaim order done with right click on a feature or unit 
+local nonground = "" --if reclaim order done with right click on a feature or unit
 local rangestart = {}  --counting start center
 local rangestartinminimap = false --both start and end need to be equaly checked
 local rangeend = {}  --counting radius end point
@@ -58,13 +52,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     unitMetalCost[unitDefID] = unitDef.metalCost
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
-    vsx,vsy = Spring.GetViewGeometry()
-    widgetScale = (0.5 + (vsx*vsy / 5700000))
-    local fontScale = widgetScale/2
-    font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+function widget:Initialize()
+	widget:ViewResize()
+end
 
-  form = math.floor(vsx/87)
+function widget:ViewResize()
+    vsx,vsy = Spring.GetViewGeometry()
+	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	form = math.floor(vsx/87)
 end
 
 local function InMinimap(x,y)
@@ -119,7 +114,7 @@ function widget:DrawScreen()
     else
      b1was = false
     rangestart = {0, _,0}
-  end 
+  end
   --bit more precise showing when mouse is moved by 4 pixels (start)
   if (b1 and (rangestart ~= nil) and (cmd==CMD.RECLAIM) and (start==false)) or ((nonground == "Reclaim") and (rangestart ~= nil) and (start==false) and (b2)) then
    xend, yend = x,y
@@ -129,7 +124,7 @@ function widget:DrawScreen()
   end
   --
    if (b1 and (rangestart ~= nil) and (cmd==CMD.RECLAIM) and start) or ((nonground == "Reclaim") and start and b2 and (rangestart ~= nil)) then
-   
+
      local rx,ry
      inMinimap,rx,ry = InMinimap(x,y)
      if inMinimap and rangestartinminimap then
@@ -137,9 +132,9 @@ function widget:DrawScreen()
      else
      _, rangeend = Spring.TraceScreenRay(x,y,true)
      end
-     
+
       if(rangeend == nil) then
-      return 
+      return
       end
      metal=0
      energy=0
@@ -152,7 +147,7 @@ function widget:DrawScreen()
         local udx, udy = (ux - rangestart[1]), (uy - rangestart[3])
         udist = math_sqrt((udx * udx) + (udy * udy))
         if(udist < dist) then
-          local fm,_,fe  = Spring.GetFeatureResources(unit) 
+          local fm,_,fe  = Spring.GetFeatureResources(unit)
           metal = metal + fm
           energy = energy + fe
         end
@@ -198,6 +193,3 @@ function widget:DrawScreen()
     energy = 0
 end
 
-function widget:Shutdown()
-    gl.DeleteFont(font)
-end

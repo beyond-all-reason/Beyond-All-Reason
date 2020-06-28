@@ -12,15 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.7 + (vsx*vsy / 7000000))
-local fontfileSize = 44
-local fontfileOutlineSize = 8
-local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local useRoundedRectangles = true
 local roundedSizeMultiplier = 1
@@ -48,18 +40,11 @@ if (vsx == 1) then --hax for windowed mode
 	vsx,vsy = Spring.GetWindowGeometry()
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 
-
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
-		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		WG[TN].font = font
-		WG[TN].font2 = font2
-	end
+	font  = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	WG[TN].font = font
 
 	Main.vsx,Main.vsy = vsx,vsy
 	Main.Screen.vsx,Main.Screen.vsy = vsx,vsy
@@ -71,11 +56,7 @@ end
 local type = type
 
 local function getTextWidth(o)
-	if o.font2 then
-		return font2:GetTextWidth(o.caption)*o.fontsize
-	else
-		return font:GetTextWidth(o.caption)*o.fontsize
-	end
+	return font:GetTextWidth(o.caption)*o.fontsize
 end
 
 local function getTextHeight(o)
@@ -116,7 +97,7 @@ local F = {
 		if (o.draw == false) then
 			return
 		end
-		
+
 		local color = o.color
 		local border = o.border	--color
 		local texturecolor = o.texturecolor
@@ -125,10 +106,10 @@ local F = {
 		if o.iconscale ~= nil then
 			iconscale = o.iconscale
 		end
-		
+
 		local texture = o.texture
-		local px,py,sx,sy = o.px,o.py,o.sx,o.sy	
-		
+		local px,py,sx,sy = o.px,o.py,o.sx,o.sy
+
 		local alphamult = o.alphamult
 		if (alphamult~=nil) then
 			if (color) then
@@ -150,24 +131,19 @@ local F = {
 				texturecolor = {1,1,1,alphamult}
 			end
 		end
-		
+
 		if (color) then
 			Rect(px,py,sx,sy,color,iconscale)
 		end
-		
+
 		if (texture) then
 			TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
 		end
-		
+
 		if (o.caption) then
 			local px2,py2 = px,py
 			local text = o.caption
-			local width
-			if o.font2 then
-				width = font2:GetTextWidth(text)
-			else
-				width = font:GetTextWidth(text)
-			end
+			local width = font:GetTextWidth(text)
 			local linecount = getLineCount(text)
 			local fontsize = sx/width
 			local height = linecount*fontsize
@@ -177,10 +153,10 @@ local F = {
 			else
 				py2 = py2 + (sy - height) /2 --center
 			end
-			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor,o.font2)
+			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
 			o.autofontsize = fontsize
 		end
-		
+
 		if (border) then --todo: border styles
 			Border(px,py,sx,sy,o.borderwidth,border)
 		end
@@ -190,10 +166,10 @@ local F = {
 		if (o.draw == false) then
 			return
 		end
-		
+
 		local color = o.color
 		local captioncolor = o.captioncolor
-		
+
 		local alphamult = o.alphamult
 		if (alphamult~=nil) then
 			if (color) then
@@ -204,11 +180,11 @@ local F = {
 				captioncolor[4] = o.captioncolor[4]*alphamult
 			end
 		end
-		
-		local px,py = o.px,o.py	
+
+		local px,py = o.px,o.py
 		local fontsize = o.fontsize
-		
-		Text(px,py,fontsize,o.caption,o.options,color or captioncolor,o.font2)
+
+		Text(px,py,fontsize,o.caption,o.options,color or captioncolor)
 	end,
 
 	[3] = function(o) --area
@@ -219,7 +195,7 @@ local F = {
 		if (o.draw == false) then
 			return
 		end
-		
+
 		local color = o.color
 		local border = o.border	--color
 		local texturecolor = o.texturecolor
@@ -228,10 +204,10 @@ local F = {
 		if o.iconscale ~= nil then
 			iconscale = o.iconscale
 		end
-		
+
 		local texture = o.texture
-		local px,py,sx,sy = o.px,o.py,o.sx,o.sy	
-		
+		local px,py,sx,sy = o.px,o.py,o.sx,o.sy
+
 		local alphamult = o.alphamult
 		if (alphamult~=nil) then
 			if (color) then
@@ -263,20 +239,15 @@ local F = {
 				RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true,(o.guishader ~= nil and o.guishader))
 			end
 		end
-		
+
 		if (texture) then
 			TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
 		end
-		
+
 		if (o.caption) then
 			local px2,py2 = px,py
 			local text = o.caption
-			local width
-			if o.font2 then
-				width = font2:GetTextWidth(text)
-			else
-				width = font:GetTextWidth(text)
-			end
+			local width = font:GetTextWidth(text)
 			local linecount = getLineCount(text)
 			local fontsize = sx/width
 			local height = linecount*fontsize
@@ -286,10 +257,10 @@ local F = {
 			else
 				py2 = py2 + (sy - height) /2 --center
 			end
-			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor,o.font2)
+			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
 			o.autofontsize = fontsize
 		end
-		
+
 		if (border) then --todo: border styles
 			--Border(px,py,sx,sy,o.borderwidth,border)
 		end
@@ -309,7 +280,7 @@ local otypes = {
 
 local function processEffects(o,CurClock)
 	local e = o.effects
-	
+
 	if (o.active ~= false) then
 		if (e.fadein_at_activation) then
 			if (o.justactivated) then
@@ -333,7 +304,7 @@ local function processEffects(o,CurClock)
 	else
 		o.fadein_at_activation_start = nil
 	end
-	
+
 	if (o.active == false) then
 		if (e.fadeout_at_deactivation) then
 			if (o.justdeactivated) then
@@ -369,7 +340,7 @@ local dropWheel = false
 
 local useDefaultMouseCursor = false
 function widget:IsAbove(x,y)
-	if (useDefaultMouseCursor) then 
+	if (useDefaultMouseCursor) then
 		return true
 	end
 	return false
@@ -407,28 +378,28 @@ local function handleMouse()
 	dropWheel = false
 	useDefaultMouseCursor = false
 	----
-	
+
 	local CurMouseState = {sGetMouseState()} --{mx,my,m1,m2,m3}
 	CurMouseState[2] = vsy-CurMouseState[2] --make 0,0 top left
-	
+
 	Mouse.hoverunused = true --used in mouseover
 	Mouse.x = CurMouseState[1]
 	Mouse.y = CurMouseState[2]
-	
+
 	if (WheelState ~= nil) then
 		Mouse.wheel = WheelState
 	else
 		Mouse.wheel = nil
 	end
 	WheelState = nil
-	
+
 	for i=3,5 do
 		local n=i-2
 		Mouse[n][1] = nil
 		Mouse[n][2] = nil
 		Mouse[n][3] = nil
-		
-		if (CurMouseState[i] and LastMouseState[i]) then 
+
+		if (CurMouseState[i] and LastMouseState[i]) then
 			Mouse[n][1] = true --isheld
 		elseif (CurMouseState[i] and (not LastMouseState[i])) then
 			Mouse[n][2] = true --waspressed
@@ -448,12 +419,12 @@ local function mouseEvent(t,e,o)
 			if (m[e]) then
 				if (not o.checkedformouse) then
 					if (isInRect(Mouse.x,Mouse.y,o)) then
-						o.checkedformouse = true 
+						o.checkedformouse = true
 					else
 						return true
 					end
 				end
-				
+
 				if ((e==1) and (not isInRect(m[4][1],m[4][2],o))) then --last click was not in same area
 					--nuthin'
 				else
@@ -467,12 +438,12 @@ end
 
 local function processMouseEvents(o)
 	o.checkedformouse = nil
-	
+
 	if (o[2] == 2) then --text
 		o.sx = o.getwidth()
 		o.sy = o.getheight()
 	end
-	
+
 	if (o.movable) then
 		for i=1,#o.movable do
 			if inTweak or (o.onlyTweakUi ~= nil and o.onlyTweakUi == false) then
@@ -480,7 +451,7 @@ local function processMouseEvents(o)
 					if (Mouse[o.movable[i]][2]) then
 						if (isInRect(Mouse.x,Mouse.y,o)) then
 							o.checkedformouse = true
-							
+
 							o.wasclicked = {o.px - Mouse.x,o.py - Mouse.y}
 							Mouse[o.movable[i]][2] = nil --so only topmost area will get the event
 						end
@@ -488,7 +459,7 @@ local function processMouseEvents(o)
 				else
 					local newpx = Mouse.x + o.wasclicked[1]
 					local newpy = Mouse.y + o.wasclicked[2]
-					
+
 					if (o.obeyscreenedge) then
 						if (newpx<0) then newpx = -0.1 end
 						if (newpy<0) then newpy = -0.1  end
@@ -505,7 +476,7 @@ local function processMouseEvents(o)
 						if (newpx>(o.maxpx-o.sx)) then newpx = o.maxpx-o.sx end
 						if (newpy>(o.maxpy-o.sy)) then newpy = o.maxpy-o.sy end
 					end
-					
+
 					local changex = newpx-o.px
 					local changey = newpy-o.py
 					if (o.movableslaves) then
@@ -513,7 +484,7 @@ local function processMouseEvents(o)
 							local s = o.movableslaves[j]
 							local snewpx = s.px - (o.px - newpx)
 							local snewpy = s.py - (o.py - newpy)
-							
+
 							if (s.obeyscreenedge) then
 								if (snewpx<0) then snewpx = 0 end
 								if (snewpy<0) then snewpy = 0 end
@@ -530,10 +501,10 @@ local function processMouseEvents(o)
 								if (snewpx>(s.maxpx-s.sx)) then snewpx = s.maxpx-s.sx end
 								if (snewpy>(s.maxpy-s.sy)) then snewpy = s.maxpy-s.sy end
 							end
-							
+
 							local schangex = snewpx-s.px
 							local schangey = snewpy-s.py
-							
+
 							if (math.abs(changex)>math.abs(schangex)) then changex = schangex end
 							if (math.abs(changey)>math.abs(schangey)) then changey = schangey end
 						end
@@ -553,7 +524,7 @@ local function processMouseEvents(o)
 			end
 		end
 	end
-	
+
 	if (o.mousenotover) then
 		if (isInRect(Mouse.x,Mouse.y,o)) then
 			o.checkedformouse = true
@@ -562,7 +533,7 @@ local function processMouseEvents(o)
 			return
 		end
 	end
-	
+
 	if (o.overridecursor) then
 		if (not o.checkedformouse) then
 			if (isInRect(Mouse.x,Mouse.y,o)) then o.checkedformouse = true else return end
@@ -581,7 +552,7 @@ local function processMouseEvents(o)
 		end
 		dropWheel = true
 	end
-	
+
 	if (o.mouseover and Mouse.hoverunused) then
 		if (not o.checkedformouse) then
 			if (isInRect(Mouse.x,Mouse.y,o)) then
@@ -593,11 +564,11 @@ local function processMouseEvents(o)
 		Mouse.hoverunused = false
 		o.mouseover(Mouse.x,Mouse.y,o)
 	end
-	
+
 	if mouseEvent(o.mouseclick,2,o)
 	or mouseEvent(o.mouseheld,1,o)
 	or mouseEvent(o.mouserelease,3,o) then return end
-	
+
 	if (o.mousewheel) then
 		if (not o.checkedformouse) then
 			if (isInRect(Mouse.x,Mouse.y,o)) then
@@ -615,17 +586,15 @@ end
 
 local ssub = string.sub
 function widget:Initialize()
-
 	WG[TN] = {{} }
 	Main = WG[TN]
 	Main.Version = version
 	Main.font = font
-	Main.font2 = font2
 	Main.vsx,Main.vsy = vsx,vsy
 	Main.Screen = {vsx=vsx,vsy=vsy}
 	Main.Copytable = copytable
 	Main.Mouse = Mouse
-	
+
 	Main.GetWidgetObjects = function(w)
 		for i=1,#WidgetList do
 			if (WidgetList[i]:GetInfo().name == w:GetInfo().name) then
@@ -633,14 +602,14 @@ function widget:Initialize()
 			end
 		end
 	end
-	
+
 	Main.SetTooltip = function(text)
 		WG[TN].tooltip = text
 	end
 	Main.GetSetTooltip = function()
 		return WG[TN].tooltip
 	end
-	
+
 	Main.New = function(w) --function to create a function dawg
 		for i=1,#WidgetList do --prevents duplicate widget tables
 			if (WidgetList[i]:GetInfo().name == w:GetInfo().name) then
@@ -650,7 +619,7 @@ function widget:Initialize()
 				break
 			end
 		end
-	
+
 		local n = #Main[1]+1
 		WidgetList[n] = w --remember widget
 		Main[1][n] = {}
@@ -663,9 +632,9 @@ function widget:Initialize()
 					break
 				end
 			end
-			
+
 			local r = {}
-			
+
 			local m = #t+1
 			if (duplicate) then
 				--local new = copytable(o,true)
@@ -677,29 +646,29 @@ function widget:Initialize()
 				t[m] = o
 				r = o
 			end
-			
+
 			r.delete = function()
 				r.scheduledfordeletion = true
 			end
-			
+
 			if (r.caption) then
 				r.getwidth = function()
 					return getTextWidth(r)
 				end
-				
+
 				r.getheight = function()
 					return getTextHeight(r)
 				end
 			end
-			
+
 			return r
 		end
 	end
+
+	widget:ViewResize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 	WG[TN] = nil
 	if (LastProcessedWidget ~= "") then
 		Spring.Echo(widget:GetInfo().name..">> last processed widget was \""..LastProcessedWidget.."\"") --for debugging
@@ -716,7 +685,7 @@ end
 local hookedtodrawing = false
 local fc = 0 --framecount
 function widget:Update()
-	
+
 	Main.tooltip = nil
 	handleMouse()
 	--flush deactivated widgets
@@ -729,7 +698,7 @@ function widget:Update()
 			local name = WidgetList[i]:GetInfo().name
 			local order = widgetHandler.orderList[name]
 		    local enabled = order and (order > 0)
-			
+
 			if (enabled) then
 				tempCount = tempCount + 1
 				temp[tempCount] = WidgetList[i]
@@ -739,7 +708,7 @@ function widget:Update()
 		end
 		WidgetList = temp
 	end
-	
+
 	if (not hookedtodrawing) then --so drawing widget can be loaded after this widget
 		if (WG[DrawingTN]) then
 			local X = WG[DrawingTN]
@@ -761,7 +730,7 @@ function widget:Update()
 		for j=#wl,1,-1 do --iterate backwards
 			if (j==0) then break end
 			local CurClock = clock()
-			
+
 			--for debugging
 			WG[DrawingTN].LastWidget = "<failed to get widget name>"
 			local w = WidgetList[j]
@@ -773,7 +742,7 @@ function widget:Update()
 				end
 			end
 			--
-			
+
 			local dellst = {}
 			local dellstCount = 0
 			local objlst = wl[j]
@@ -800,7 +769,7 @@ function widget:Update()
 						end
 					end
 					o.lastactivestate = o.active
-					
+
 					if (o.effects) then
 						processEffects(o,CurClock)
 					end
@@ -808,7 +777,7 @@ function widget:Update()
 						F[o[2]](o) --object draw function
 					end
 				end
-				
+
 				--process mouseevents backwards, so topmost drawn objects get to mouseevents first
 				if not WG['topbar'] or not WG['topbar'].showingQuit() then
 					local ro = objlst[objlstCount-i+1]
@@ -822,7 +791,7 @@ function widget:Update()
 					end
 				end
 			end
-			
+
 			for i=1,dellstCount do
 				objlst[dellst[i]] = nil
 			end

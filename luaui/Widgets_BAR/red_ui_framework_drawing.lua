@@ -65,17 +65,16 @@ local function Color(c)
 	glColor(c[1],c[2],c[3],c[4])
 end
 
-local function Text(px,py,fontsize,text,options,c,usefont2)
+local function Text(px,py,fontsize,text,options,c)
 	glPushMatrix()
-	local f = usefont2 and font2 or font
-	f:Begin()
+	font:Begin()
 	if (c) then
-		f:SetTextColor(c[1],c[2],c[3],c[4])
-		f:SetOutlineColor(0,0,0,1)
+		font:SetTextColor(c[1],c[2],c[3],c[4])
+		font:SetOutlineColor(0,0,0,1)
 		--glColor(c[1],c[2],c[3],c[4])
 	else
-		f:SetTextColor(1,1,1,1)
-		f:SetOutlineColor(0,0,0,1)
+		font:SetTextColor(1,1,1,1)
+		font:SetOutlineColor(0,0,0,1)
 		--glColor(1,1,1,1)
 	end
 	glTranslate(px,py+fontsize,0)
@@ -87,8 +86,8 @@ local function Text(px,py,fontsize,text,options,c,usefont2)
 	glScale(1,-1,1) --flip
 
 	--glText(text,0,0,fontsize,options)
-	f:Print(text,0,0,fontsize,options)
-	f:End()
+	font:Print(text,0,0,fontsize,options)
+	font:End()
 	glPopMatrix()
 end
 
@@ -282,13 +281,11 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = widgetHandler:GetViewSizes()
 	font = WG['Red'].font
-	font2 = WG['Red'].font2
 	CreateStartList()
 end
 
 function widget:Initialize()
 	font = WG['Red'].font
-	font2 = WG['Red'].font2
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
 
@@ -307,8 +304,8 @@ function widget:Initialize()
 	T.Border = function(a,b,c,d,e,f)
 		Todo[#Todo+1] = {4,a,b,c,d,e,f}
 	end
-	T.Text = function(a,b,c,d,e,f,g)
-		Todo[#Todo+1] = {5,a,b,c,d,e,f,g}
+	T.Text = function(a,b,c,d,e,f)
+		Todo[#Todo+1] = {5,a,b,c,d,e,f}
 	end
 	T.RectRound = function(a,b,c,d,e,f,g,h,i)
 		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h,i}
