@@ -720,6 +720,7 @@ RestoreHead()
 	set-signal-mask SIG_HEAD; //sets what signals kill the current thread
 	sleep 3000;
 	turn aimy2 to y-axis <0.000000> speed <110.000000>;
+	turn aimy2 to x-axis <0.000000> speed <110.000000>;
 	wpn2_lasthead = 0;
 }
 
@@ -811,14 +812,12 @@ AimWeapon1(heading, pitch)
 
 	start-script RequestState(0);
 	signal SIG_BODY;
-	
 	set-signal-mask SIG_BODY;
 	
 	if( !HandsUp )
 	{
 		return (0);
 	}
-	
 	//signal SIG_HEAD;
 	//We can do this any time
 	turn lshoulder to x-axis <0.0> - pitch speed <150>;
@@ -873,29 +872,62 @@ AimWeapon1(heading, pitch)
 	start-script RestoreBody();
 	return (1);
 }
-
+/*
+static-var tryme;
+AccelTurn(piecenum, axis, startpos, target,startspeed, accel){ // this wont ever work cause piecenum cant be variable
+	//this is BLOCKING until we go past target
+	//axis can be 0,1,2 for X, Y , Z
+	//startpos is current known position
+	//target is target position
+	//startspeed is the speed we start from
+	//accel is positive for increasing, and negative for decreasing from startspeed
+	//also, you better do your math right to prevent massive overshoots and undershoots!
+	if (startpos > target){
+		while (startpos > target){
+			startpos = startpos - startspeed;
+			startspeed = startspeed + accel;
+			if (axis == 0) turn tryme to x-axis startpos now;
+			if (axis == 1) turn piecenum to y-axis startpos now;
+			if (axis == 2) turn piecenum to z-axis startpos now;
+			sleep 30;
+		}
+	
+	}else{
+		while (startpos < target){
+			startpos = startpos + startspeed;
+			startspeed = startspeed + accel;
+			if (axis == 0) turn piecenum to x-axis startpos now;
+			if (axis == 1) turn piecenum to y-axis startpos now;
+			if (axis == 2) turn piecenum to z-axis startpos now;
+			sleep 30;
+		}
+	
+	}	
+}*/
 
 FireWeapon1()
-{
+{	
+	turn aimy1 to x-axis <-1.2> now;
+	turn aimy1 to x-axis <0> speed <1.5>;
 	if( ShootingArm )
 	{
-		turn luparm to x-axis <15.000000> speed <360.000000>;
-		turn larm to x-axis <-105.000000> speed <360.000000>;
+		turn luparm to x-axis <15.000000> speed <180.000000>;
+		turn larm to x-axis <-105.000000> speed <180.000000>;
 		//show lgunflare;
-		sleep 150;
+		sleep 300;
 		//hide lgunflare;
-		turn larm to x-axis <-86.000000> speed <60.000000>;
-		turn luparm to x-axis <0.000000> speed <60.000000>;
+		turn larm to x-axis <-86.000000> speed <56.000000>;
+		turn luparm to x-axis <0.000000> speed <40.000000>;
 	}
 	else
 	{
-		turn ruparm to x-axis <15.000000> speed <360.000000>;
-		turn rarm to x-axis <-105.000000> speed <360.000000>;
+		turn ruparm to x-axis <15.000000> speed <180.000000>;
+		turn rarm to x-axis <-105.000000> speed <180.000000>;
 		//show rgunflare;
-		sleep 150;
+		sleep 350;
 		//hide rgunflare;
-		turn rarm to x-axis <-86.000000> speed <60.000000>;
-		turn ruparm to x-axis <0.000000> speed <60.000000>;
+		turn rarm to x-axis <-86.000000> speed <56.000000>;
+		turn ruparm to x-axis <0.000000> speed <40.000000>;
 	}
 	ShootingArm = !ShootingArm;
 }
@@ -914,11 +946,12 @@ AimWeapon2(heading, pitch) //headlazor
 {
 	signal SIG_HEAD;
 	//get PRINT(2, heading,wpn1_lasthead,wpn2_lasthead);
-	turn aimy2 to y-axis heading - aimy1position speed <130.000000>;
-	//if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - 5000)))
-	//{
+	turn aimy2 to x-axis <0> - (get MAX(<-12>,pitch)) speed <50>;
+	turn aimy2 to y-axis heading - aimy1position speed <100.000000>;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - 5000)))
+	{
 		wait-for-turn aimy2 around y-axis;
-	//}
+	}
 	wpn2_lasthead = heading;
 	start-script RestoreHead();
 	return (1);
@@ -933,7 +966,7 @@ FireWeapon2()
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = 1;
+	piecenum = head;
 }
 
 QueryWeapon2(piecenum)
