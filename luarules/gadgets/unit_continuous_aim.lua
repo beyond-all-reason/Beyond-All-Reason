@@ -12,6 +12,7 @@ end
 if (not gadgetHandler:IsSyncedCode()) then return end
 
 local convertedUnits = {
+  -- value is reaimtime in frames, engine default is 15
 	--[UnitDefNames.armart.id] = true,
 	--[UnitDefNames.armfav.id] = true,
 	--[UnitDefNames.armflash.id] = true,
@@ -19,12 +20,12 @@ local convertedUnits = {
 	--[UnitDefNames.armpincer.id] = true,
 	--[UnitDefNames.armsam.id] = true,
 	--[UnitDefNames.armstump.id] = true,
-	[UnitDefNames.armpw.id] = true,
-	[UnitDefNames.armflea.id] = true,
-	[UnitDefNames.armrock.id] = true,
-	[UnitDefNames.armham.id] = true,
-	[UnitDefNames.armwar.id] = true,
-	[UnitDefNames.armjeth.id] = true,
+	[UnitDefNames.armpw.id] = 1,
+	[UnitDefNames.armflea.id] = 1,
+	[UnitDefNames.armrock.id] = 1,
+	[UnitDefNames.armham.id] = 1,
+	[UnitDefNames.armwar.id] = 1,
+	[UnitDefNames.armjeth.id] = 1,
 	--[UnitDefNames.corfav.id] = true,
 	--[UnitDefNames.corgarp.id] = true,
 	--[UnitDefNames.corgator.id] = true,
@@ -32,33 +33,33 @@ local convertedUnits = {
 	--[UnitDefNames.cormist.id] = true,
 	--[UnitDefNames.corraid.id] = true,
 	--[UnitDefNames.corwolv.id] = true,
-	[UnitDefNames.corak.id] = true,
-	[UnitDefNames.corthud.id] = true,
-	[UnitDefNames.corstorm.id] = true,
-	[UnitDefNames.corcrash.id] = true,
-	[UnitDefNames.armsnipe.id] = true,
-	[UnitDefNames.armfido.id] = true,
-	[UnitDefNames.armfboy.id] = true,
-	[UnitDefNames.armfast.id] = true,
-	[UnitDefNames.armamph.id] = true,
-	[UnitDefNames.armmav.id] = true,
-	[UnitDefNames.armspid.id] = true,
-	[UnitDefNames.armzeus.id] = true,
-	[UnitDefNames.coramph.id] = true,
-	[UnitDefNames.corcan.id] = true,
-	[UnitDefNames.corhrk.id] = true,
-	[UnitDefNames.cormando.id] = true,
-	[UnitDefNames.cormort.id] = true,
-	[UnitDefNames.corpyro.id] = true,
+	[UnitDefNames.corak.id] = 1,
+	[UnitDefNames.corthud.id] = 1,
+	[UnitDefNames.corstorm.id] = 1,
+	[UnitDefNames.corcrash.id] = 1,
+	[UnitDefNames.armsnipe.id] = 1,
+	[UnitDefNames.armfido.id] = 1,
+	[UnitDefNames.armfboy.id] = 1,
+	[UnitDefNames.armfast.id] = 1,
+	[UnitDefNames.armamph.id] = 1,
+	[UnitDefNames.armmav.id] = 1,
+	[UnitDefNames.armspid.id] = 1,
+	[UnitDefNames.armzeus.id] = 1,
+	[UnitDefNames.coramph.id] = 1,
+	[UnitDefNames.corcan.id] = 1,
+	[UnitDefNames.corhrk.id] = 1,
+	[UnitDefNames.cormando.id] = 1,
+	[UnitDefNames.cormort.id] = 1,
+	[UnitDefNames.corpyro.id] = 1,
 	--[UnitDefNames.corsumo.id] = true,
-	[UnitDefNames.cortermite.id] = true,
-	[UnitDefNames.armraz.id] = true,
-	[UnitDefNames.armmar.id] = true,
-	[UnitDefNames.armbanth.id] = true,
-	[UnitDefNames.corkrog.id] = true,
+	[UnitDefNames.cortermite.id] = 1,
+	[UnitDefNames.armraz.id] = 1,
+	[UnitDefNames.armmar.id] = 1,
+	[UnitDefNames.armbanth.id] = 1,
+	[UnitDefNames.corkrog.id] = 1,
 	--[UnitDefNames.corkarg.id] = true,
 	--[UnitDefNames.corjugg.id] = true,
-	[UnitDefNames.armvang.id] = true,
+	[UnitDefNames.armvang.id] = 1,
 }
 
 for udid, ud in pairs(UnitDefs) do
@@ -118,7 +119,7 @@ function gadget:UnitCreated(unitID,unitDefID)
       -- NOTE: this will prevent unit from firing if it does not IMMEDIATELY return from AimWeapon (no sleeps, not wait for turns!)
       -- So you have to manually check in script if it is at the desired heading
       -- https://springrts.com/phpbb/viewtopic.php?t=36654
-			Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
+			Spring.SetUnitWeaponState(unitID, id, "reaimTime", convertedUnits[unitDefID])
 		end
 	end
 	if not popups[unitDefID] and unitWeapons[unitDefID] then
