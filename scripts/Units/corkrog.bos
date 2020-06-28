@@ -845,7 +845,7 @@ AimWeapon1(heading, pitch)
 			//pos = t * v - (t*(t-1)*a/2)
 			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
 			
-			get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
+			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
 			
 			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
 				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
