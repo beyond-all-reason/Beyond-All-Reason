@@ -64,15 +64,11 @@ end
 
 local advplayerlistPos = {}
 function updatePosition(force)
-	if (WG['advplayerlist_api'] ~= nil) then
+	if WG['advplayerlist_api'] ~= nil then
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		usedImgSize = iconSize * advplayerlistPos[5]
-		if advplayerlistPos[6] == nil or advplayerlistPos[6] then
-			xPos = advplayerlistPos[2] - (5.3*advplayerlistPos[5])
-		else
-			xPos = advplayerlistPos[4] + (5.3*advplayerlistPos[5]) + usedImgSize
-		end
+		xPos = advplayerlistPos[2] - (5.3*advplayerlistPos[5])
 		yPos = advplayerlistPos[3]
 		if advplayerlistPos[3] < 0 then
 			yPos = 0
@@ -85,7 +81,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
-	updatePosition()
+	updatePosition(true)
 end
 
 function widget:Shutdown()

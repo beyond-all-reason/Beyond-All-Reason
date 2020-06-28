@@ -73,13 +73,11 @@ local buildKeys = {
 
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
-local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
+--local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx,vsy = Spring.GetViewGeometry()
-local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
-local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -89,10 +87,11 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
+local teamList = Spring.GetTeamList()
+
 local buildQueue = {}
 local disableInput = isSpec
 local backgroundRect = {0,0,0,0}
-local currentTooltip = ''
 local colls = 5
 local rows = 5
 local minimapHeight = 0.235
@@ -112,13 +111,6 @@ local currentPage = 1
 local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
-local gameStarted = Spring.GetGameFrame() > 0
-
-local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
-
-local teamList = Spring.GetTeamList()
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -129,7 +121,6 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetCurrentTooltip = Spring.GetCurrentTooltip
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam =Spring.GetTeamRulesParam
@@ -138,7 +129,6 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
 local SelectedUnitsCount = spGetSelectedUnitsCount()
-local spGetFullBuildQueue = Spring.GetFullBuildQueue
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 
 local string_sub = string.sub
@@ -173,10 +163,10 @@ local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local glDepthTest = gl.DepthTest
 
-local glCreateTexture = gl.CreateTexture
-local glActiveTexture = gl.ActiveTexture
-local glCopyToTexture = gl.CopyToTexture
-local glRenderToTexture = gl.RenderToTexture
+--local glCreateTexture = gl.CreateTexture
+--local glActiveTexture = gl.ActiveTexture
+--local glCopyToTexture = gl.CopyToTexture
+--local glRenderToTexture = gl.RenderToTexture
 
 function table_invert(t)
   local s={}
@@ -273,7 +263,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   unitMetalCost[unitDefID] = unitDef.metalCost
   unitGroup = {}
   unitBuildPic[unitDefID] = unitDef.buildpicname
-  if VFS.FileExists('unitpics/alternative/'..string.gsub(unitDef.buildpicname, '(.*/)', '')) then
+  if VFS.FileExists('unitpics/alternative/'..string_gsub(unitDef.buildpicname, '(.*/)', '')) then
     hasAlternativeUnitpic[unitDefID] = true
   end
   if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
@@ -1965,7 +1955,7 @@ function widget:KeyPress(key,mods,isRepeat)
         else
           local cellRectID = k + ((rowPressed-1)*colls)
           if cmds[cellRectID] and  cmds[cellRectID].id then
-            Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
+            Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
           end
           rowPressed = nil
           rowPressedClock = nil
@@ -2008,7 +1998,7 @@ function widget:MousePress(x, y, button)
               if preGamestartPlayer then
                 setPreGamestartDefID(cmds[cellRectID].id*-1)
               else
-                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
+                Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id),1,true,false,Spring.GetModKeyState())
               end
             else
               if cmds[cellRectID].params[1] then  -- has queue
@@ -2017,7 +2007,7 @@ function widget:MousePress(x, y, button)
               if preGamestartPlayer then
                 setPreGamestartDefID(cmds[cellRectID].id*-1)
               else
-                Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmds[cellRectID].id),3,false,true,Spring.GetModKeyState())
+                Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id),3,false,true,Spring.GetModKeyState())
               end
             end
             doUpdateClock = os_clock() + 0.01
