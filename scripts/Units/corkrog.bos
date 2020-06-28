@@ -780,23 +780,6 @@ AimWeapon1(heading, pitch)
 
 static-var aimy1delta, timetozero, deceleratethreshold;
 static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
-
-RestoreBody()
-{
-	//dont signal as it will kill self too
-	//signal SIG_BODY; //kills all sleeping threads that overlap the bitmask. 
-	
-	set-signal-mask SIG_BODY; //sets what signals kill the current thread.
-	
-	sleep 3000;
-	
-	start-script RequestState(1);
-	turn aimy1 to y-axis <0.000000> speed <60.000000>;
-	turn lshoulder to x-axis <0.0> speed <150>;
-	turn rshoulder to x-axis <0.0> speed <150>;
-	aimy1position = 0;
-}
-
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
@@ -807,6 +790,34 @@ RestoreBody()
 #define AIMY1_ACCELERATION <0.15>
 #define AIMY1_JERK <0.5>
 #define AIMY1_PRECISION <1.2>
+#define AIMY1_RESTORE_SPEED <1.0>
+
+RestoreBody() // no need to signal, as threads inherit parents signal masks
+{
+
+	sleep 3000;
+	
+	start-script RequestState(1);
+	//turn aimy1 to y-axis <0.000000> speed <60.000000>;
+	turn lshoulder to x-axis <0.0> speed <150>;
+	turn rshoulder to x-axis <0.0> speed <150>;
+	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
+		if (aimy1position > 0 ) {
+			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
+			aimy1velocity = (-1) * AIMY1_RESTORE_SPEED;
+		}
+		else
+		{
+			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
+			aimy1velocity = AIMY1_RESTORE_SPEED;
+		}
+		turn aimy1 to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
+		sleep 30;
+	}
+	aimy1velocity = 0;
+}
+
+
 AimWeapon1(heading, pitch)
 {
 
