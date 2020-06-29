@@ -15,7 +15,9 @@ MotionControl()
 	{
 		if( bMoving )
 		{
-		//step 0 maxvelocity = 1.75
+		turn base to y-axis <-18> speed <60>;
+		move base to x-axis [0] speed [10];
+		
 		turn rfleg to y-axis <0> speed <255.000000>;
 		turn rfleg to z-axis <0> speed <135.000000>;
 		turn rffoot to z-axis <0> speed <285.000000>;
@@ -39,6 +41,9 @@ MotionControl()
 		if( bMoving )
 		{
 		//step 1
+		turn base to y-axis <-12> speed <60>;
+		move base to x-axis [2] speed [10];
+		
 		turn rfleg to y-axis <-27> speed <405.000000>;
 		turn rfleg to z-axis <5> speed <75.000000>;
 		turn rffoot to z-axis <-12> speed <180.000000>;
@@ -60,6 +65,8 @@ MotionControl()
 		}
 		if( bMoving )
 		{
+		turn base to y-axis <12> speed <60>;
+		move base to x-axis [2] speed [10];
 		//step 2 
 		turn rfleg to y-axis <-46> speed <285.000000>;
 		turn rfleg to z-axis <4> speed <15.000000>;
@@ -83,6 +90,8 @@ MotionControl()
 		if( bMoving )
 		{
 		
+		turn base to y-axis <18> speed <60>;
+		move base to x-axis [0] speed [10];
 		//step 3 
 		turn rfleg to y-axis <-19> speed <405.000000>;
 		turn rfleg to z-axis <24> speed <300.000000>;
@@ -106,6 +115,9 @@ MotionControl()
 		}
 		if( bMoving )
 		{
+			
+		turn base to y-axis <12> speed <60>;
+		move base to x-axis [-2] speed [10];
 		//step 4 
 		turn rfleg to y-axis <0> speed <285.000000>;
 		turn rfleg to z-axis <23> speed <15.000000>;
@@ -127,6 +139,9 @@ MotionControl()
 		}
 		if( bMoving )
 		{
+	
+		turn base to y-axis <-12> speed <60>;
+		move base to x-axis [-2] speed [10];
 		//step 5 
 		turn rfleg to y-axis <17> speed <255.000000>;
 		turn rfleg to z-axis <-9> speed <480.000000>;
@@ -146,10 +161,6 @@ MotionControl()
 		turn rbfoot to z-axis <-7> speed <390.000000>;
 		
 		sleep 60;
-		//step 0-6
-
-		//step 0-6
-
 		}
 		if( !bMoving )
 		{
@@ -157,7 +168,6 @@ MotionControl()
 		}
 	}
 	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 Create()
@@ -174,22 +184,25 @@ StartMoving()
 StopMoving()
 {
 	bMoving = FALSE;
-		turn rfleg to y-axis <0> speed <255.000000>;
-		turn rfleg to z-axis <0> speed <135.000000>;
-		turn rffoot to z-axis <0> speed <285.000000>;
-		
-		turn lfleg to y-axis <0> speed <405.000000>;
-		turn lfleg to z-axis <0> speed <300.000000>;
-		turn lffoot to z-axis <0> speed <30.000000>;
-		
-		turn lbleg to y-axis <0> speed <405.000000>;
-		turn lbleg to z-axis <0> speed <75.000000>;
-		turn lbfoot to z-axis <0> speed <180.000000>;
-		
-		
-		turn rbleg to y-axis <0> speed <285.000000>;
-		turn rbleg to z-axis <0> speed <15.000000>;
-		turn rbfoot to z-axis <0> speed <90.000000>;
+	
+	turn rfleg to y-axis <0> speed <255.000000>;
+	turn rfleg to z-axis <0> speed <135.000000>;
+	turn rffoot to z-axis <0> speed <285.000000>;
+	
+	turn lfleg to y-axis <0> speed <405.000000>;
+	turn lfleg to z-axis <0> speed <300.000000>;
+	turn lffoot to z-axis <0> speed <30.000000>;
+	
+	turn lbleg to y-axis <0> speed <405.000000>;
+	turn lbleg to z-axis <0> speed <75.000000>;
+	turn lbfoot to z-axis <0> speed <180.000000>;
+	
+	turn rbleg to y-axis <0> speed <285.000000>;
+	turn rbleg to z-axis <0> speed <15.000000>;
+	turn rbfoot to z-axis <0> speed <90.000000>;
+	
+	turn base to y-axis <0> speed <60>;
+	move base to x-axis [0] speed [10];
 		
 	sleep 150;
 }
