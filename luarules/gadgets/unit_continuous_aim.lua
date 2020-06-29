@@ -60,6 +60,15 @@ local convertedUnits = {
 	--[UnitDefNames.corkarg.id] = true,
 	--[UnitDefNames.corjugg.id] = true,
 	[UnitDefNames.armvang.id] = 1,
+  
+  -- the following units get a faster reaimtime to counteract their turret acceleration
+  [UnitDefNames.corhlt.id] = 5,
+  [UnitDefNames.corfhlt.id] = 5,
+  [UnitDefNames.cordoom.id] = 5,
+  [UnitDefNames.corshiva.id] = 5,
+  [UnitDefNames.corcat.id] = 5,
+  [UnitDefNames.corkarg.id] = 5,
+  
 }
 
 for udid, ud in pairs(UnitDefs) do
