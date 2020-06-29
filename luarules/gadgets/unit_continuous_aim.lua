@@ -68,6 +68,12 @@ local convertedUnits = {
   [UnitDefNames.corshiva.id] = 5,
   [UnitDefNames.corcat.id] = 5,
   [UnitDefNames.corkarg.id] = 5,
+  [UnitDefNames.corbhmth.id] = 5,
+  [UnitDefNames.cortoast.id] = 5,
+  [UnitDefNames.corbats.id] = 5,
+  [UnitDefNames.corblackhy.id] = 5,
+  [UnitDefNames.corscreamer.id] = 5,
+  
   
 }
 

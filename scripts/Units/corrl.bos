@@ -24,88 +24,87 @@ static-var  gun_1;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
-/*     3:*/{
-/*     6:*/	while( get BUILD_PERCENT_LEFT )
-/*     8:*/	{
-/*     a:*/		sleep 400;
-/*     d:*/	}
-/*     f:*/	while( TRUE )
-/*    11:*/	{
-/*    14:*/		healthpercent = get HEALTH;
-/*    1b:*/		if( healthpercent < 66 )
-/*    1d:*/		{
-/*    22:*/			smoketype = 256 | 2;
-/*    2c:*/			if( Rand( 1, 66 ) < healthpercent )
-/*    2e:*/			{
-/*    33:*/				smoketype = 256 | 1;
-/*    35:*/			}
-/*    37:*/			emit-sfx smoketype from base;
-/*    39:*/		}
-/*    3e:*/		sleeptime = healthpercent * 50;
-/*    45:*/		if( sleeptime < 200 )
-/*    47:*/		{
-/*    49:*/			sleeptime = 200;
-/*    4b:*/		}
-/*    4d:*/		sleep sleeptime;
-/*    50:*/	}
-/*    52:*/	return (0);
-/*    53:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-/*    80:*/}
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
 
 Create()
-/*    78:*/{
-/*    8a:*/	gun_1 = flare1;
-/*    8c:*/	start-script SmokeUnit();
-/*    91:*/	return (0);
-/*    92:*/}
+{
+	gun_1 = flare1;
+	start-script SmokeUnit();
+	return (0);
+}
 
 AimPrimary(heading, pitch)
-/*    94:*/{
-/*    98:*/	turn turret to y-axis heading speed <450.000000>;
-/*    a2:*/	turn turret to x-axis <0.000000> - pitch speed <450.000000>;
-/*    a5:*/	wait-for-turn turret around y-axis;
-/*    a8:*/	wait-for-turn turret around x-axis;
-/*    ad:*/	return (1);
-/*    ae:*/}
+{
+	turn turret to y-axis heading speed <450.000000>;
+	turn turret to x-axis <0.000000> - pitch speed <450.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn turret around x-axis;
+	return (1);
+}
 
 FirePrimary()
-/*    ae:*/{
-/*    b3:*/	++gun_1;
-/*    ba:*/	if( gun_1 == 4 )
-/*    bc:*/	{
-/*    be:*/		gun_1 = flare1;
-/*    c0:*/	}
-/*    c2:*/	return (0);
-/*    c3:*/}
+{
+	++gun_1;
+	if( gun_1 == 4 )
+	{
+		gun_1 = flare1;
+	}
+	return (0);
+}
 
 AimFromPrimary(piecenum)
-/*    c4:*/{
-/*    c6:*/	piecenum = turret;
-/*    ca:*/	return (0);
-/*    cb:*/}
+{
+	piecenum = turret;
+	return (0);
+}
 
 QueryPrimary(piecenum)
-/*    cc:*/{
-/*    d1:*/	if( gun_1 == 1 )
-/*    d3:*/	{
-/*    d5:*/		piecenum = flare1;
-/*    d7:*/	}
-/*    dc:*/	if( gun_1 == 2 )
-/*    de:*/	{
-/*    e0:*/		piecenum = flare2;
-/*    e2:*/	}
-/*    e7:*/	if( gun_1 == 3 )
-/*    e9:*/	{
-/*    eb:*/		piecenum = flare3;
-/*    ed:*/	}
-/*    ef:*/	return (0);
-/*    f0:*/}
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = flare2;
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = flare3;
+	}
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*    f1:*/{
-/*    f3:*/	piecenum = base;
-/*    f7:*/	return (0);
-/*    f8:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

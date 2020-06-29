@@ -30,7 +30,7 @@ return {
 		maxwaterdepth = 0,
 		name = "Screamer",
 		objectname = "Units/CORSCREAMER.s3o",
-		script = "Units/CORSCREAMER.lua",
+		script = "Units/CORSCREAMER.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 600,

@@ -1,17 +1,3 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     22
-// NumberOfPieces                      13
-// LengthOfScripts                     57e
-// NumberOfStaticVars                  5
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        1624
-// OffsetToScriptNameOffsetArray       167c
-// OffsetToPieceNameOffsetArray        16d4
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   1708
-
-// OffsetToFirstName                   1708
 
 #define TA			// This is a TA script
 
@@ -20,7 +6,7 @@
 
 piece  base,flare,turret,door1,door2,barrel,bore, aimpoint;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging, Static_Var_5;
+static-var  TurretOpen, restore_delay, statechg_DesiredState, statechg_StateChanging, Reloading;
 
 
 activatescr()
@@ -109,11 +95,11 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Go()
 {
-	if( !Static_Var_1 )
+	if( !TurretOpen )
 	{
 		call-script activatescr();
 	}
-	Static_Var_1 = 1;
+	TurretOpen = 1;
 	set ARMORED to 0;
 	return (0);
 }
@@ -121,7 +107,7 @@ Go()
 Stop()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
+	TurretOpen = 0;
 	call-script deactivatescr();
 	return (0);
 }
@@ -160,6 +146,8 @@ RequestState(requestedstate, currentstate)
 	return (0);
 }
 
+static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
+
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -171,6 +159,9 @@ ExecuteRestoreAfterDelay()
 	turn turret to x-axis <0.000000> speed <50.005495>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
+	
+	aimy1position = 0;
+	aimy1velocity = 0;
 	start-script RequestState(1);
 }
 SetStunned(State)
@@ -190,9 +181,9 @@ Create()
 {
 	hide flare;
 			statechg_DesiredState=1;
-	Static_Var_1 = 0;
-	Static_Var_5 = 0;
-	restore_delay = 3000;
+	TurretOpen = 0;
+	Reloading = 0;
+	restore_delay = 10000;
 	call-script InitState();
 	start-script SmokeUnit();
 	start-script RequestState(1);
@@ -209,47 +200,112 @@ Create()
 Reload1()
 {
 	sleep 2100;
-	Static_Var_5 = 0;
+	Reloading = 0;
 	return (0);
 }
 
 Reload2()
 {
 	sleep 3780;
-	Static_Var_5 = 0;
+	Reloading = 0;
 	return (0);
 }
 
-SetMaxReloadTime(Func_Var_1)
+/*SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = Func_Var_1 * 5;
 	return (0);
+}*/
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// (c) CC BY NC ND Beherith mysterme@gmail.com
+#define MAX_AIMY1_VELOCITY <4.00>
+#define AIMY1_ACCELERATION <0.25>
+#define AIMY1_JERK <1.0>
+#define AIMY1_PRECISION <1.2>
+#define AIMY1_RESTORE_SPEED <1.0>
+
+static-var aimy1delta, timetozero, deceleratethreshold;
+
+AimWeaponBoth(heading, pitch)
+{
+
+	aimy1target = heading;
+	aimy1delta = aimy1target - aimy1position;
+
+	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
+		if (gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
+			gameFrame = get(GAME_FRAME);
+	
+			//Clamp aimy1position and aimy1delta between <-180>;<180>
+			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
+			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
+			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
+			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
+		
+			//number of frames required to decelerate to 0
+			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
+			
+			//distance from target where we should start decelerating, always 'positive'
+			//pos = t * v - (t*(t-1)*a/2)
+			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			
+			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
+			
+			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
+				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+			}	
+			else //we need to accelerate
+			{
+				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
+				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+			}
+			
+			//Apply jerk at very low velocities
+			if (get ABS(aimy1velocity) < AIMY1_JERK){
+				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
+				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
+			}
+			
+			aimy1position = aimy1position + aimy1velocity; 
+			turn turret to y-axis aimy1position now;
+			aimy1delta = aimy1target - aimy1position ; 	
+		}
+		sleep 30;		
+	}
+	aimy1velocity = 0;
+	return (1);
 }
 
-AimWeapon1(Func_Var_1, Func_Var_2)
+
+AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal 2;
 	set-signal-mask 2;
-	if( Func_Var_2 >= 10012 OR Static_Var_5 == 1 )
+	if( pitch >= 10012)
 	{
 		return (0);
 	}
-	while( !Static_Var_1 )
+	while( !TurretOpen )
 	{
 		sleep 250;
 	}
-	turn turret to y-axis Func_Var_1 speed <100.016484>;
-	turn turret to x-axis <0.000000> - Func_Var_2 speed <50.005495>;
-	wait-for-turn turret around y-axis;
+	turn turret to x-axis <0.000000> - pitch speed <50.005495>;
+	call-script AimWeaponBoth(heading, pitch);
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();
+	if (Reloading == 1 ) return (0);
 	return (1);
 }
 
 FireWeapon1()
 {
-	Static_Var_5 = 1;
+	Reloading = 1;
 	start-script Reload1();
 	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-4.000000] speed [500.000000];
@@ -263,36 +319,37 @@ AimFromWeapon1(piecenum)
 	piecenum = aimpoint;
 }
 
-QueryWeapon1(Func_Var_1)
+QueryWeapon1(piecenum)
 {
-	Func_Var_1 = 1;
+	piecenum = 1;
 	return (0);
 }
 
-AimWeapon2(Func_Var_1, Func_Var_2)
+AimWeapon2(heading, pitch)
 {
 	start-script RequestState(0);
 	signal 4;
 	set-signal-mask 4;
-	if( Func_Var_2 < 10012 OR Static_Var_5 == 1 )
+	if( pitch < 10012 )
 	{
 		return (0);
 	}
-	while( !Static_Var_1 )
+	while( !TurretOpen )
 	{
 		sleep 250;
 	}
-	turn turret to y-axis Func_Var_1 speed <100.016484>;
-	turn turret to x-axis <0.000000> - Func_Var_2 speed <50.005495>;
-	wait-for-turn turret around y-axis;
+	turn turret to x-axis <0.000000> - pitch speed <50.005495>;
+	call-script AimWeaponBoth(heading, pitch);
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();
+	
+	if (Reloading == 1 ) return (0);
 	return (1);
 }
 
 FireWeapon2()
 {
-	Static_Var_5 = 1;
+	Reloading = 1;
 	start-script Reload2();
 	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-4.000000] speed [500.000000];
@@ -301,9 +358,9 @@ FireWeapon2()
 	return (0);
 }
 
-AimFromWeapon2(Func_Var_1)
+AimFromWeapon2(piecenum)
 {
-	Func_Var_1 = 2;
+	piecenum = 2;
 	return (0);
 }
 
