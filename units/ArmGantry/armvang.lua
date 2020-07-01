@@ -120,7 +120,7 @@ return {
 			shocker = {
 				areaofeffect = 192,
 				avoidfeature = false,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				cegtag = "arty-huge",
 				collidefriendly = false,
 				craterareaofeffect = 192,
