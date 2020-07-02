@@ -35,7 +35,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-41.757601> speed <1252.728035> / animSpeed; 
 			turn rthigh to z-axis <-3.580398> speed <107.411933> / animSpeed; 
 			turn rthigh to y-axis <-1.415972> speed <42.479156> / animSpeed; 
-			turn ruparm to x-axis <7.795595> speed <298.105485> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <7.795595> speed <298.105485> / animSpeed; 
 			turn ruparm to z-axis <-0.133828> speed <17.467090> / animSpeed; 
 			turn ruparm to y-axis <-3.289177> speed <47.828871> / animSpeed; 
 			turn torso to x-axis <15.000000> speed <450.000013> / animSpeed; 
@@ -68,7 +68,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-43.681659> speed <57.721724> / animSpeed; 
 			turn rthigh to z-axis <-4.415016> speed <25.038558> / animSpeed; 
 			turn rthigh to y-axis <-1.667678> speed <7.551174> / animSpeed; 
-			turn ruparm to x-axis <29.998495> speed <666.086981> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <29.998495> speed <666.086981> / animSpeed; 
 			turn ruparm to z-axis <-1.169575> speed <31.072423> / animSpeed; 
 			turn ruparm to y-axis <-6.597779> speed <99.258064> / animSpeed; 
 			turn torso to x-axis <15.662384> speed <19.871496> / animSpeed; 
@@ -99,7 +99,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-35.483488> speed <245.945106> / animSpeed; 
 			turn rthigh to z-axis <-2.784585> speed <48.912931> / animSpeed; 
 			turn rthigh to y-axis <-0.828899> speed <25.163365> / animSpeed; 
-			turn ruparm to x-axis <19.021254> speed <329.317229> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <19.021254> speed <329.317229> / animSpeed; 
 			turn ruparm to z-axis <-0.832443> speed <10.113974> / animSpeed; 
 			turn ruparm to y-axis <-4.509594> speed <62.645569> / animSpeed; 
 			turn torso to x-axis <17.252100> speed <47.691489> / animSpeed; 
@@ -132,7 +132,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-17.954628> speed <525.865826> / animSpeed; 
 			turn rthigh to z-axis <1.800242> speed <137.544811> / animSpeed; 
 			turn rthigh to y-axis <0.296682> speed <33.767432> / animSpeed; 
-			turn ruparm to x-axis <6.688010> speed <369.997319> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <6.688010> speed <369.997319> / animSpeed; 
 			turn ruparm to z-axis <1.294164> speed <63.798195> / animSpeed; 
 			turn ruparm to y-axis <-3.490846> speed <30.562424> / animSpeed; 
 			turn torso to z-axis <-0.000000> speed <3.802878> / animSpeed; 
@@ -164,7 +164,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <19.178860> speed <1114.004639> / animSpeed; 
 			turn rthigh to z-axis <1.011689> speed <23.656588> / animSpeed; 
 			turn rthigh to y-axis <0.125954> speed <5.121854> / animSpeed; 
-			turn ruparm to x-axis <-8.731436> speed <462.583385> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <-8.731436> speed <462.583385> / animSpeed; 
 			turn ruparm to z-axis <0.912937> speed <11.436804> / animSpeed; 
 			turn ruparm to y-axis <-0.631802> speed <85.771326> / animSpeed; 
 			turn torso to x-axis <15.000000> speed <67.562985> / animSpeed; 
@@ -197,7 +197,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <34.209942> speed <450.932436> / animSpeed; 
 			turn rthigh to z-axis <1.751198> speed <22.185269> / animSpeed; 
 			turn rthigh to y-axis <-7.858465> speed <239.532556> / animSpeed; 
-			turn ruparm to x-axis <-15.124003> speed <191.776984> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <-15.124003> speed <191.776984> / animSpeed; 
 			turn ruparm to z-axis <1.265272> speed <10.570040> / animSpeed; 
 			turn ruparm to y-axis <0.331197> speed <28.889968> / animSpeed; 
 			turn torso to x-axis <17.296259> speed <68.887751> / animSpeed; 
@@ -229,7 +229,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-7.310097> speed <1245.601160> / animSpeed; 
 			turn rthigh to z-axis <-1.019512> speed <83.121284> / animSpeed; 
 			turn rthigh to y-axis <-2.541597> speed <159.506044> / animSpeed; 
-			turn ruparm to x-axis <-21.651474> speed <195.824153> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <-21.651474> speed <195.824153> / animSpeed; 
 			turn ruparm to z-axis <1.658925> speed <11.809607> / animSpeed; 
 			turn ruparm to y-axis <1.969013> speed <49.134476> / animSpeed; 
 		sleep ((33*animSpeed) -1);
@@ -259,7 +259,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-30.319217> speed <690.273585> / animSpeed; 
 			turn rthigh to z-axis <2.010613> speed <90.903742> / animSpeed; 
 			turn rthigh to y-axis <-1.165819> speed <41.273334> / animSpeed; 
-			turn ruparm to x-axis <-6.927940> speed <441.706020> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <-6.927940> speed <441.706020> / animSpeed; 
 			turn ruparm to z-axis <0.762549> speed <26.891288> / animSpeed; 
 			turn ruparm to y-axis <-0.660082> speed <78.872856> / animSpeed; 
 			turn torso to x-axis <15.883176> speed <42.392474> / animSpeed; 
@@ -290,7 +290,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <-41.302991> speed <329.513222> / animSpeed; 
 			turn rthigh to z-axis <-3.526668> speed <166.118420> / animSpeed; 
 			turn rthigh to y-axis <-1.376183> speed <6.310928> / animSpeed; 
-			turn ruparm to x-axis <7.795595> speed <441.706071> / animSpeed; 
+			if (!bAiming) turn ruparm to x-axis <7.795595> speed <441.706071> / animSpeed; 
 			turn ruparm to z-axis <-0.133828> speed <26.891303> / animSpeed; 
 			turn ruparm to y-axis <-3.289177> speed <78.872843> / animSpeed; 
 			turn torso to x-axis <15.000000> speed <26.495277> / animSpeed; 
@@ -326,7 +326,7 @@ StopWalking() {
 	turn rthigh to x-axis <0.000000> speed <626.364018>;
 	turn rthigh to y-axis <0.000000> speed <119.766278>;
 	turn rthigh to z-axis <0.000000> speed <83.059210>;
-	turn ruparm to x-axis <-2.141254> speed <333.043490>;
+	if (!bAiming) turn ruparm to x-axis <-2.141254> speed <333.043490>;
 	turn ruparm to y-axis <-1.694881> speed <49.629032>;
 	turn ruparm to z-axis <0.448409> speed <31.899098>;
 	turn torso to x-axis <0.000000> speed <225.000006>;
@@ -429,7 +429,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn aimy1 to y-axis <0.000000> speed <90.021978>;
-	turn aimx1 to x-axis <0.000000> speed <45.010989>;
+	turn ruparm to x-axis <0.000000> speed <45.010989>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	wpn1_lasthead = 1000000;
@@ -464,9 +464,9 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	bAiming = TRUE;
 	turn aimy1 to y-axis heading speed <400>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <500>;
-	turn ruparm to x-axis <90> - pitch speed <500>;
-	turn 
+	turn ruparm to x-axis <-90.000000> - pitch speed <500>;
+	//turn ruparm to x-axis <90> - pitch speed <500>;
+
 	while( !Static_Var_3 )
 	{
 		return(0);
@@ -476,7 +476,7 @@ AimPrimary(heading, pitch)
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
+		wait-for-turn ruparm around x-axis;
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
