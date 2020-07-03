@@ -894,6 +894,7 @@ local function updateResbar(res)
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
 	local glowSize = barHeight * 7
+	local edgeWidth = math.max(1, math_floor(vsy/1100))
 
 	if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
 		sliderHeightAdd = barHeight / 0.75
@@ -965,12 +966,13 @@ local function updateResbar(res)
 
 		-- Bar background
 		local addedSize = math_floor(((barArea[4]-barArea[2])*0.15)+0.5)
+		RectRound(barArea[1]-addedSize-edgeWidth, barArea[2]-addedSize-edgeWidth, barArea[3]+addedSize+edgeWidth, barArea[4]+addedSize+edgeWidth, barHeight*0.33, 1,1,1,1, {0,0,0,0.06},{0,0,0,0.06})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.07})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize+addedSize, barHeight*0.2, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		end)
+	end)
 
 	dlistResbar[res][2] = glCreateList( function()
 		-- Metalmaker Conversion slider
@@ -989,6 +991,7 @@ local function updateResbar(res)
 			else
 				cornerSize = 1.33*widgetScale
 			end
+			RectRound(conversionIndicatorArea[1]-edgeWidth, conversionIndicatorArea[2]-edgeWidth, conversionIndicatorArea[3]+edgeWidth, conversionIndicatorArea[4]+edgeWidth,cornerSize, 1,1,1,1, {0,0,0, 0.15}, {0,0,0, 0.15})
 			RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],cornerSize, 1,1,1,1, {0.6, 0.6, 0.45, 1}, {0.95, 0.95, 0.7, 1})
 			RectRoundCircle(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), 0, conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2),  (conversionIndicatorArea[4]-conversionIndicatorArea[2])/2, cornerSize, math.ceil(((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)-cornerSize), {1,1,1,0.1}, {1,1,1,0.1})
 		end
@@ -1004,6 +1007,7 @@ local function updateResbar(res)
 		else
 			cornerSize = 1.33*widgetScale
 		end
+		RectRound(shareIndicatorArea[res][1]-edgeWidth, shareIndicatorArea[res][2]-edgeWidth, shareIndicatorArea[res][3]+edgeWidth, shareIndicatorArea[res][4]+edgeWidth, cornerSize, 1,1,1,1, {0,0,0, 0.15}, {0,0,0,0.15})
 		RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1,1,1,1, {0.4, 0, 0, 1}, {0.8, 0, 0, 1})
 		RectRoundCircle(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), 0, shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2),  (shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2, cornerSize, math.ceil(((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)-cornerSize), {1,1,1,0.13}, {1,1,1,0.13})
 
@@ -1050,17 +1054,18 @@ function drawResbarValues(res)
 	local valueWidth = ((cappedCurRes/r[res][2]) * barWidth)
 	local color1,color2
 	if res == 'metal' then
-		color1 = {0.56,0.56,0.55,1}
-		color2 = {1,1,1,1}
+		color1 = {0.51,0.51,0.5,1}
+		color2 = {0.95,0.95,0.95,1}
 	else
-		color1 = {0.65,0.6,0,1}
-		color2 = {1,0.99,0.33,1}
+		color1 = {0.6,0.55,0,1}
+		color2 = {0.95,0.9,0.3,1}
 	end
 	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1, color1,color2)
 
 	-- bar value highlight
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4]-((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1,{1,1,1,0}, {1,1,1,0.07})
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4]-((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1,{1,1,1,0}, {1,1,1,0.13})
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[2]+((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), barHeight*0.2, 1,1,1,1,{1,1,1,0.09}, {1,1,1,0})
 
 	-- Bar value glow
 	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)

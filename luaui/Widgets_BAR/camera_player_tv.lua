@@ -332,7 +332,7 @@ local function createList()
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = gl.CreateList( function()
-			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 4*widgetScale,1,1,1,0)
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding*1.6,1,1,1,0)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
 	end
@@ -445,7 +445,6 @@ function widget:Update(dt)
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
 			widget:ViewResize()
 		end
-		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
 			guishaderEnabled = (WG['guishader'])
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
