@@ -991,7 +991,7 @@ local function updateResbar(res)
 			else
 				cornerSize = 1.33*widgetScale
 			end
-			RectRound(conversionIndicatorArea[1]-edgeWidth, conversionIndicatorArea[2]-edgeWidth, conversionIndicatorArea[3]+edgeWidth, conversionIndicatorArea[4]+edgeWidth,cornerSize, 1,1,1,1, {0,0,0, 0.15}, {0,0,0, 0.15})
+			RectRound(conversionIndicatorArea[1]-edgeWidth, conversionIndicatorArea[2]-edgeWidth, conversionIndicatorArea[3]+edgeWidth, conversionIndicatorArea[4]+edgeWidth,cornerSize, 1,1,1,1, {0,0,0, 0.09}, {0,0,0, 0.09})
 			RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],cornerSize, 1,1,1,1, {0.6, 0.6, 0.45, 1}, {0.95, 0.95, 0.7, 1})
 			RectRoundCircle(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), 0, conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2),  (conversionIndicatorArea[4]-conversionIndicatorArea[2])/2, cornerSize, math.ceil(((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)-cornerSize), {1,1,1,0.1}, {1,1,1,0.1})
 		end
@@ -1007,7 +1007,7 @@ local function updateResbar(res)
 		else
 			cornerSize = 1.33*widgetScale
 		end
-		RectRound(shareIndicatorArea[res][1]-edgeWidth, shareIndicatorArea[res][2]-edgeWidth, shareIndicatorArea[res][3]+edgeWidth, shareIndicatorArea[res][4]+edgeWidth, cornerSize, 1,1,1,1, {0,0,0, 0.15}, {0,0,0,0.15})
+		RectRound(shareIndicatorArea[res][1]-edgeWidth, shareIndicatorArea[res][2]-edgeWidth, shareIndicatorArea[res][3]+edgeWidth, shareIndicatorArea[res][4]+edgeWidth, cornerSize, 1,1,1,1, {0,0,0, 0.09}, {0,0,0,0.09})
 		RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1,1,1,1, {0.4, 0, 0, 1}, {0.8, 0, 0, 1})
 		RectRoundCircle(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), 0, shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2),  (shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2, cornerSize, math.ceil(((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)-cornerSize), {1,1,1,0.13}, {1,1,1,0.13})
 

@@ -528,11 +528,11 @@ local function DrawMText(numberM, vOffset)
 end
 
 local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
-	vOffset = vOffset - (borderPadding*0.5)
+	vOffset = math.floor(vOffset - (borderPadding*0.5))
 	tE = math.max(tE, 0)
 
-	local dx = 15*sizeMultiplier
-	local dy = tH*0.43
+	local dx = math.floor(15*sizeMultiplier)
+	local dy = math.floor(tH*0.43)
 	local maxW = widgetWidth - (30*sizeMultiplier)
 	local barheight = 1 + math.floor(tH * 0.08)
 	if Options["resText"]["On"] then
@@ -621,10 +621,10 @@ end
 
 
 local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
-	vOffset = vOffset - (borderPadding*0.5)
+	vOffset = math.floor(vOffset - (borderPadding*0.5))
 	tM = math.max(tM, 0)
-	local dx = 15*sizeMultiplier
-	local dy = tH*0.67
+	local dx = math.floor(15*sizeMultiplier)
+	local dy = math.floor(tH*0.67)
 	local maxW = widgetWidth - (30*sizeMultiplier)
 	local barheight = 1 + math.floor(tH * 0.08)
 
