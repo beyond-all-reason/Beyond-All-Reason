@@ -110,6 +110,7 @@ function gadget:SetupAI(id)
 	thisAI = VFS.Include("luarules/gadgets/ai/" .. aiInfo .. "/boot.lua")
 	thisAI.loaded = false
 	thisAI.id = id
+	local _,_,_,isAI,side,allyId = spGetTeamInfo(id,false)
 	thisAI.allyId = allyId
 	thisAI.fullname = aiInfo
 
