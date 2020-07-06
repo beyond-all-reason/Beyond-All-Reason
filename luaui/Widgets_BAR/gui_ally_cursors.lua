@@ -72,6 +72,7 @@ local spIsSphereInView		= Spring.IsSphereInView
 local spGetCameraPosition	= Spring.GetCameraPosition
 local spGetCameraDirection	= Spring.GetCameraDirection
 local spIsGUIHidden         = Spring.IsGUIHidden
+local spAreTeamsAllied		= Spring.AreTeamsAllied
 
 local glCreateList			= gl.CreateList
 local glDeleteList			= gl.DeleteList
@@ -92,6 +93,8 @@ local usedCursorSize		= cursorSize
 local prevMouseX,prevMouseY = 0
 local allycursorDrawList	= {}
 local myPlayerID            = Spring.GetMyPlayerID()
+local mySpec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
 
 local allyCursor = ":n:LuaUI/Images/allycursor.dds"
 local cursors = {}
@@ -388,8 +391,8 @@ end
 --    end
 --end
 
-
 function widget:PlayerChanged(playerID)
+	myTeamID = Spring.GetMyTeamID()
     local _, _, isSpec, teamID = spGetPlayerInfo(playerID,false)
     specList[playerID] = isSpec
     local r, g, b = spGetTeamColor(teamID)
@@ -576,14 +579,19 @@ end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
-    if spIsGUIHidden() then return end
+	if spIsGUIHidden() then return end
+
+	fullview = select(2,Spring.GetSpectatingState())
+
     gl.DepthTest(GL.ALWAYS)
     gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
     gl.PolygonOffset(-7,-10)
 
     for playerID,cursor in pairs(cursors) do
         if notIdle[playerID] then
-            DrawCursor(playerID,cursor[1],cursor[2],cursor[3],cursor[4],cursor[5],cursor[6],cursor[7])
+			if fullview or spAreTeamsAllied(myTeamID, select(4, spGetPlayerInfo(playerID))) then
+				DrawCursor(playerID,cursor[1],cursor[2],cursor[3],cursor[4],cursor[5],cursor[6],cursor[7])
+			end
         end
     end
 
