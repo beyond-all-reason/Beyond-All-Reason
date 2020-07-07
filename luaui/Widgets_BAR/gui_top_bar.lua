@@ -1051,7 +1051,10 @@ function drawResbarValues(res)
 	end
 
 	-- Bar value
-	local valueWidth = ((cappedCurRes/r[res][2]) * barWidth)
+	local valueWidth = math_floor(((cappedCurRes/r[res][2]) * barWidth))
+	if valueWidth < math.ceil(barHeight*0.2) then
+		valueWidth = math.ceil(barHeight*0.2)
+	end
 	local color1,color2
 	if res == 'metal' then
 		color1 = {0.51,0.51,0.5,1}

@@ -452,8 +452,8 @@ function widget:DrawScreen()
 		showOnceMore = false
 
 		-- draw button hover
-		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+		local usedScreenX = (vsx*centerPosX) - ((screenWidth/2)*widgetScale)
+		local usedScreenY = (vsy*centerPosY) + ((screenHeight/2)*widgetScale)
 
 		local x,y,pressed = Spring.GetMouseState()
 		if changelogFile then
@@ -612,8 +612,8 @@ function mouseEvent(x, y, button, release)
 			-- version buttons
 			if button == 1 and release then
 				local yOffset = 24
-				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+				local usedScreenX = (vsx*centerPosX) - ((screenWidth/2)*widgetScale)
+				local usedScreenY = (vsy*centerPosY) + ((screenHeight/2)*widgetScale)
 
 				local x,y = Spring.GetMouseState()
 				if changelogFile then
