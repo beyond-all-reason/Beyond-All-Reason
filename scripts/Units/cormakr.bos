@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base;
+piece  base,cover;
 
 static-var  mmState, Active;
 
@@ -14,6 +14,7 @@ ImAMetalMaker()
 	{	
 		if (Active == 1)
 		{
+			move cover to y-axis [-20] speed [20];
 			if (mmState != 1) {
 				set ACTIVATION to 1;
 				mmState = 1;
@@ -21,6 +22,8 @@ ImAMetalMaker()
 		}
 		else
 		{
+		
+			move cover to y-axis [0.0] speed [20];
 			if (mmState != 0) {
 				set ACTIVATION to 0;
 				mmState = 0;
