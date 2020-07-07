@@ -433,8 +433,8 @@ SweetSpot(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	turn loturret to y-axis heading speed <150.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
+	turn aimy1 to y-axis heading speed <150.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <50.000000>;
 	if( Static_Var_2 == 1 OR gun_2 == 1 )
 	{
 		return(0);
@@ -442,8 +442,8 @@ AimPrimary(heading, pitch)
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
-        wait-for-turn loturret around y-axis;
-        wait-for-turn sleeve around x-axis;
+        wait-for-turn aimy1 around y-axis;
+        wait-for-turn aimx1 around x-axis;
 	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
@@ -453,8 +453,8 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
-	turn loturret to y-axis heading speed <150.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
+	turn aimy1 to y-axis heading speed <150.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <50.000000>;
 	if( Static_Var_2 == 0 OR gun_2 == 1 )
 	{
 		return(0);
@@ -462,8 +462,8 @@ AimSecondary(heading, pitch)
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;
-        wait-for-turn loturret around y-axis;
-        wait-for-turn sleeve around x-axis;
+        wait-for-turn aimy1 around y-axis;
+        wait-for-turn aimx1 around x-axis;
 	}
 	start-script RestoreAfterDelay();
 	wpn2_lasthead = heading;
