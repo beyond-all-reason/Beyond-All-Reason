@@ -589,7 +589,7 @@ function widget:DrawWorldPreUnit()
 
     for playerID,cursor in pairs(cursors) do
         if notIdle[playerID] then
-			if fullview or spAreTeamsAllied(myTeamID, select(4, spGetPlayerInfo(playerID))) then
+			if fullview or spAreTeamsAllied(myTeamID, spGetPlayerInfo(playerID) and select(4, spGetPlayerInfo(playerID))) then
 				DrawCursor(playerID,cursor[1],cursor[2],cursor[3],cursor[4],cursor[5],cursor[6],cursor[7])
 			end
         end
