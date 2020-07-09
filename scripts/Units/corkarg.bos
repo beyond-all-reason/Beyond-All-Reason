@@ -485,12 +485,11 @@ UnitSpeed(){
 }
 
 Die(){
-		signal SIG_WALK;
-		signal SIG_AIM;
-		call-script StopWalking();
-		turn aimy1 to y-axis <0> speed <120>;
-		turn aimx1 to x-axis <0> speed <120>;
-		
+	signal SIG_WALK;
+	signal SIG_AIM;
+	call-script StopWalking();
+	turn aimy1 to y-axis <0> speed <120>;
+	turn aimx1 to x-axis <0> speed <120>;
 		if (TRUE) { //Frame:10
 			turn lfoot to x-axis <-7.951412> speed <26.504706> ; //delta=7.95 
 			turn lleg to x-axis <16.387120> speed <54.623732> ; //delta=-16.39 
@@ -671,6 +670,12 @@ Die(){
 			turn pelvis to x-axis <90.401966> speed <66.519451> ; //delta=-4.43 
 			explode rbturret type FALL|SMOKE|FIRE;
 			hide rbturret;
+			explode rbbarrel1 type FALL|SMOKE|FIRE;
+			hide rbbarrel1;
+			explode rbbarrel2 type FALL|SMOKE|FIRE;
+			hide rbbarrel2;
+			explode rbflare type FALL|SMOKE|FIRE;
+			hide rbflare;
 			turn rfoot to x-axis <27.810773> speed <32.427578> ; //delta=-2.16 
 			turn rfoot to z-axis <0.823446> speed <1.601927> ; //delta=-0.11 
 			turn rfoot to y-axis <-3.943304> speed <4.400753> ; //delta=-0.29 
@@ -706,6 +711,12 @@ Die(){
 			move lbturret to x-axis [-72.841965] speed [437.051788] ; //delta=-72.84 
 			explode lbturret type FALL|SMOKE|FIRE;
 			hide lbturret;
+			explode lbbarrel1 type FALL|SMOKE|FIRE;
+			hide lbbarrel1;
+			explode lbbarrel2 type FALL|SMOKE|FIRE;
+			hide lbbarrel2;
+			explode lbflare type FALL|SMOKE|FIRE;
+			hide lbflare;
 			turn lfoot to x-axis <19.488089> speed <23.201091> ; //delta=3.87 
 			turn lleg to x-axis <-5.632170> speed <23.286982> ; //delta=-3.88 
 			turn lleg to z-axis <-6.511956> speed <5.065215> ; //delta=-0.84 
@@ -773,6 +784,7 @@ Die(){
 			turn rthigh to y-axis <-1.588510> speed <3.004261> ; //delta=0.50 
 		sleep 164;
 		}
+
 }
 
 
@@ -825,36 +837,36 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 }
 
 
-	#define BASEPIECE pelvis
-	#define HITSPEED <55.0>
-	//how 'heavy' the unit is, on a scale of 1-10
-	#define UNITSIZE 10
+#define BASEPIECE pelvis
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+
+HitByWeapon(anglex, anglez, damage)
+{
+	// angle[x|z] is always [-500;500]
+	// damage is multiplied by 100
+	//get PRINT(anglex, anglez, get (GAME_FRAME), damage+1);
+	var amount;
+	amount = damage / (100 * UNITSIZE);
 	
-	HitByWeapon(anglex, anglez, damage)
-	{
-		// angle[x|z] is always [-500;500]
-		// damage is multiplied by 100
-		//get PRINT(anglex, anglez, get (GAME_FRAME), damage+1);
-		var amount;
-		amount = damage / (100 * UNITSIZE);
-		
-		if (amount < 2  ) return (0);
-		if (amount > 100) amount = 100;
-		
-		turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-		turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-		wait-for-turn BASEPIECE around z-axis;
-		wait-for-turn BASEPIECE around x-axis;
-		turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-		turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-	}
+	if (amount < 2  ) return (0);
+	if (amount > 100) amount = 100;
 	
-	HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0
-	{
-		//get PRINT(anglex, anglez, get (GAME_FRAME), dmg);
-		start-script HitByWeapon(dmg, anglez,anglez); //I dont know why param order must be switched, and this also runs a frame later :(
-		return (100); //return damage percent
-	}
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
+	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+}
+
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0
+{
+	//get PRINT(anglex, anglez, get (GAME_FRAME), dmg);
+	start-script HitByWeapon(dmg, anglez,anglez); //I dont know why param order must be switched, and this also runs a frame later :(
+	return (100); //return damage percent
+}
 
 
 Create()
@@ -1137,7 +1149,6 @@ Killed(severity, corpsetype)
 		explode rbbarrel1 type BITMAPONLY | NOHEATCLOUD;
 		explode luparm type BITMAPONLY | NOHEATCLOUD;
 		explode llarm type BITMAPONLY | NOHEATCLOUD;
-		explode lfbarrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfflare2 type BITMAPONLY | NOHEATCLOUD;
 		explode lfbarrel1 type BITMAPONLY | NOHEATCLOUD;
 		explode lfflare1 type BITMAPONLY | NOHEATCLOUD;
