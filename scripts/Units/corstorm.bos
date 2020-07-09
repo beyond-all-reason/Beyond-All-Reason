@@ -499,10 +499,152 @@ FirePrimary()
 	gun_1 = !gun_1;
 }
 
+//use call-script DeathAnim(); from Killed()
+DeathAnim() {// For N:\animations\corstorm_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
+	signal SIG_WALK;
+	signal SIG_AIM;
+	call-script StopWalking();
+	turn aimy1 to y-axis <0> speed <180>;
+	turn aimx1 to x-axis <0> speed <180>;
+		if (TRUE) { //Frame:7
+			turn lfoot to x-axis <-6.623904> speed <26.195271> ; //delta=6.11 
+			turn lfoot to y-axis <0.870010> speed <5.056828> ; //delta=1.18 
+			turn lknee to x-axis <12.018607> speed <54.593890> ; //delta=-12.74 
+			turn lknee to z-axis <-2.743644> speed <0.649730> ; //delta=-0.15 
+			turn lknee to y-axis <1.173534> speed <5.787161> ; //delta=1.35 
+			turn lleg to x-axis <8.381724> speed <16.195620> ; //delta=-3.78 
+			turn lleg to y-axis <6.369714> speed <9.223470> ; //delta=2.15 
+			turn lthigh to x-axis <27.934266> speed <110.105082> ; //delta=-25.69 
+			turn lthigh to z-axis <-10.645361> speed <18.389456> ; //delta=4.29 
+			turn lthigh to y-axis <8.832270> speed <25.024289> ; //delta=5.84 
+			move pelvis to z-axis [10.255369] speed [43.951582] ; //delta=10.26 
+			move pelvis to y-axis [-1.186572] speed [5.085307] ; //delta=-1.19 
+			turn pelvis to x-axis <12.291007> speed <74.104311> ; //delta=-17.29 
+			turn pelvis to z-axis <3.949162> speed <16.924978> ; //delta=-3.95 
+			turn pelvis to y-axis <-4.184707> speed <17.934457> ; //delta=-4.18 
+			turn rfoot to x-axis <-2.456444> speed <14.523447> ; //delta=3.39 
+			turn rfoot to y-axis <-0.139872> speed <2.634528> ; //delta=-0.61 
+			turn rknee to x-axis <9.937136> speed <45.632556> ; //delta=-10.65 
+			turn rknee to z-axis <2.060014> speed <3.836720> ; //delta=0.90 
+			turn rknee to y-axis <-0.680039> speed <3.837612> ; //delta=-0.90 
+			turn rleg to x-axis <7.882426> speed <17.527791> ; //delta=-4.09 
+			turn rleg to z-axis <1.856235> speed <2.320279> ; //delta=0.54 
+			turn rleg to y-axis <-4.246454> speed <1.309217> ; //delta=-0.31 
+			turn rthigh to x-axis <22.153299> speed <87.484767> ; //delta=-20.41 
+			turn rthigh to z-axis <6.412585> speed <1.359114> ; //delta=-0.32 
+			turn rthigh to y-axis <-5.442396> speed <11.529143> ; //delta=-2.69 
+		sleep 230;
+		}
+		if (TRUE) { //Frame:13
+			turn lfoot to x-axis <-15.371653> speed <43.738745> ; //delta=8.75 
+			turn lfoot to z-axis <11.286773> speed <1.674826> ; //delta=-0.33 
+			turn lfoot to y-axis <2.617615> speed <8.738025> ; //delta=1.75 
+			turn lknee to x-axis <18.159100> speed <30.702464> ; //delta=-6.14 
+			turn lknee to z-axis <-2.460231> speed <1.417066> ; //delta=-0.28 
+			turn lknee to y-axis <2.325654> speed <5.760601> ; //delta=1.15 
+			turn lleg to x-axis <3.700752> speed <23.404860> ; //delta=4.68 
+			turn lleg to z-axis <-1.749357> speed <3.829020> ; //delta=-0.77 
+			turn lthigh to x-axis <35.002004> speed <35.338690> ; //delta=-7.07 
+			turn lthigh to z-axis <-11.632254> speed <4.934466> ; //delta=0.99 
+			turn lthigh to y-axis <10.983979> speed <10.758547> ; //delta=2.15 
+			move pelvis to z-axis [11.873957] speed [8.092937] ; //delta=1.62 
+			move pelvis to y-axis [-4.178505] speed [14.959669] ; //delta=-2.99 
+			turn pelvis to x-axis <17.638905> speed <26.739495> ; //delta=-5.35 
+			turn pelvis to z-axis <0.000000> speed <19.745808> ; //delta=3.95 
+			turn pelvis to y-axis <-0.000000> speed <20.923533> ; //delta=4.18 
+			turn rfoot to x-axis <-14.027358> speed <57.854568> ; //delta=11.57 
+			turn rfoot to z-axis <-10.616333> speed <1.555319> ; //delta=0.31 
+			turn rfoot to y-axis <-2.293257> speed <10.766926> ; //delta=-2.15 
+			turn rknee to x-axis <19.406888> speed <47.348758> ; //delta=-9.47 
+			turn rknee to z-axis <2.239771> speed <0.898788> ; //delta=-0.18 
+			turn rknee to y-axis <-1.864343> speed <5.921523> ; //delta=-1.18 
+			turn rleg to x-axis <2.744713> speed <25.688562> ; //delta=5.14 
+			turn rleg to y-axis <-6.236654> speed <9.951003> ; //delta=-1.99 
+			turn rthigh to x-axis <34.717701> speed <62.822014> ; //delta=-12.56 
+			turn rthigh to z-axis <11.125424> speed <23.564195> ; //delta=-4.71 
+			turn rthigh to y-axis <-10.613744> speed <25.856742> ; //delta=-5.17 
+		sleep 197;
+		}
+		if (TRUE) { //Frame:17
+			turn lfoot to x-axis <-9.940794> speed <40.731445> ; //delta=-5.43 
+			turn lfoot to z-axis <11.045949> speed <1.806179> ; //delta=0.24 
+			turn lfoot to y-axis <1.520733> speed <8.226615> ; //delta=-1.10 
+			turn lknee to x-axis <15.489114> speed <20.024894> ; //delta=2.67 
+			turn lknee to z-axis <-2.158879> speed <2.260143> ; //delta=-0.30 
+			turn lknee to y-axis <1.611897> speed <5.353182> ; //delta=-0.71 
+			turn lleg to x-axis <8.248666> speed <34.109354> ; //delta=-4.55 
+			turn lleg to z-axis <-1.930729> speed <1.360297> ; //delta=0.18 
+			turn lleg to y-axis <6.541385> speed <1.619882> ; //delta=0.22 
+			turn lthigh to x-axis <35.331766> speed <2.473211> ; //delta=-0.33 
+			turn lthigh to y-axis <10.628166> speed <2.668595> ; //delta=-0.36 
+			move pelvis to z-axis [15.013035] speed [23.543086] ; //delta=3.14 
+			move pelvis to y-axis [-7.023295] speed [21.335921] ; //delta=-2.84 
+			turn pelvis to x-axis <35.429868> speed <133.432219> ; //delta=-17.79 
+			turn rfoot to x-axis <-8.722471> speed <39.786650> ; //delta=-5.30 
+			turn rfoot to z-axis <-10.418129> speed <1.486527> ; //delta=-0.20 
+			turn rfoot to y-axis <-1.290406> speed <7.521382> ; //delta=1.00 
+			turn rknee to x-axis <16.715430> speed <20.185937> ; //delta=2.69 
+			turn rknee to z-axis <2.062782> speed <1.327422> ; //delta=0.18 
+			turn rknee to y-axis <-1.232685> speed <4.737442> ; //delta=0.63 
+			turn rleg to x-axis <7.272724> speed <33.960079> ; //delta=-4.53 
+			turn rleg to z-axis <1.970656> speed <0.833399> ; //delta=-0.11 
+			turn rleg to y-axis <-6.454392> speed <1.633031> ; //delta=-0.22 
+			turn rthigh to x-axis <35.182246> speed <3.484088> ; //delta=-0.46 
+			turn rthigh to y-axis <-10.312337> speed <2.260558> ; //delta=0.30 
+		sleep 131;
+		}
+		if (TRUE) { //Frame:20
+			turn lfoot to x-axis <-6.032373> speed <39.084212> ; //delta=-3.91 
+			turn lfoot to z-axis <10.938662> speed <1.072878> ; //delta=0.11 
+			turn lfoot to y-axis <0.753932> speed <7.668003> ; //delta=-0.77 
+			turn lknee to x-axis <7.692478> speed <77.966353> ; //delta=7.80 
+			turn lknee to z-axis <-2.812749> speed <6.538704> ; //delta=0.65 
+			turn lknee to y-axis <0.736114> speed <8.757824> ; //delta=-0.88 
+			turn lleg to x-axis <3.803770> speed <44.448954> ; //delta=4.44 
+			turn lleg to z-axis <-2.298159> speed <3.674298> ; //delta=0.37 
+			turn lleg to y-axis <4.417562> speed <21.238234> ; //delta=-2.12 
+			turn lthigh to x-axis <14.786052> speed <205.457145> ; //delta=20.55 
+			turn lthigh to z-axis <-7.338326> speed <42.086712> ; //delta=-4.21 
+			turn lthigh to y-axis <5.088558> speed <55.396083> ; //delta=-5.54 
+			turn pelvis to x-axis <61.389371> speed <259.595034> ; //delta=-25.96 
+			turn rfoot to x-axis <67.939215> speed <766.616864> ; //delta=-76.66 
+			turn rfoot to z-axis <6.278843> speed <166.969720> ; //delta=-16.70 
+			turn rfoot to y-axis <-10.416555> speed <91.261486> ; //delta=-9.13 
+			turn rknee to x-axis <-121.000216> speed <1377.156460> ; //delta=137.72 //WARNING: possible gimbal lock issue detected in frame 20 bone rknee
+
+			turn rknee to z-axis <16.952591> speed <148.898092> ; //delta=-14.89 //WARNING: possible gimbal lock issue detected in frame 20 bone rknee
+
+			turn rknee to y-axis <-2.011860> speed <7.791758> ; //delta=-0.78 //WARNING: possible gimbal lock issue detected in frame 20 bone rknee
+
+			turn rleg to x-axis <117.032628> speed <1097.599037> ; //delta=-109.76 
+			turn rleg to z-axis <64.028953> speed <620.582965> ; //delta=-62.06 //WARNING: possible gimbal lock issue detected in frame 20 bone rleg
+
+			turn rleg to y-axis <-61.750258> speed <552.958664> ; //delta=-55.30 //WARNING: possible gimbal lock issue detected in frame 20 bone rleg
+
+			explode rthigh type FALL|SMOKE|FIRE;
+			hide rthigh;
+			explode rknee type FALL|SMOKE|FIRE;
+			hide rknee;
+			explode rleg type FALL|SMOKE|FIRE;
+			hide rleg;
+			explode rfoot type FALL|SMOKE|FIRE;
+			hide rfoot;
+		sleep 98;
+		}
+		if (TRUE) { //Frame:25
+			move turret to x-axis [-0.718227] speed [4.309364] ; //delta=-0.72 
+			move turret to z-axis [5.159312] speed [30.955871] ; //delta=5.16 
+			move turret to y-axis [-0.581115] speed [3.486692] ; //delta=-0.58 
+		sleep 164;
+		}
+}
+
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
+		call-script DeathAnim();
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode aimy1 type BITMAPONLY | NOHEATCLOUD;
