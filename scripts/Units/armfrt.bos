@@ -31,7 +31,7 @@ RockOnWaves()
 		rockAng = rockAng + rockDir + rockDir;
 	}
 }
-
+/*
 #define BASEPIECE base
 #define HITSPEED <30.0>
 //how 'heavy' the unit is, on a scale of 1-10
@@ -57,7 +57,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
-
+*/
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
