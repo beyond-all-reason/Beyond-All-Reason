@@ -30,7 +30,7 @@ return {
 		maxwaterdepth = 0,
 		name = "Beamer",
 		objectname = "Units/ARMBEAMER.s3o",
-		script = "Units/armbeamer_lus.lua",
+		script = "Units/armbeamer.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 475,
