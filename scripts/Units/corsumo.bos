@@ -12,6 +12,7 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1;
 // Generated for N:\animations\corsumo_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+// (c) CC BY NC ND Beherith mysterme@gmail.com
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_WALK 2
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corsumo_anim_walk.blend 
@@ -389,12 +390,104 @@ FirePrimary()
 	return (0);
 }
 
+//use call-script DeathAnim(); from Killed()
+DeathAnim() {// For N:\animations\corsumo_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
+	signal SIG_WALK;
+	signal SIG_AIM;
+	call-script StopWalking();
+	turn aimy1 to y-axis <0> speed <60>;
+		if (TRUE) { //Frame:10
+			turn lbfoot to x-axis <-14.199999> speed <42.599997> ; //delta=14.20 
+			turn lbleg to x-axis <18.299999> speed <54.899998> ; //delta=-18.30 
+			turn lffoot to x-axis <-33.599999> speed <100.799997> ; //delta=33.60 
+			turn lfleg to x-axis <-26.199998> speed <78.599993> ; //delta=26.20 
+			turn lfleg to y-axis <17.599999> speed <37.799999> ; //delta=12.60 
+			turn rbfoot to x-axis <-15.599998> speed <46.799995> ; //delta=15.60 
+			turn rbleg to x-axis <22.899999> speed <68.699996> ; //delta=-22.90 
+			turn rffoot to x-axis <-38.499997> speed <115.499991> ; //delta=38.50 
+			turn rfleg to x-axis <-22.299999> speed <66.899997> ; //delta=22.30 
+			turn rfleg to y-axis <-18.499998> speed <38.999994> ; //delta=-13.00 
+			move torso to y-axis [-2.200000] speed [6.599999] ; //delta=-2.20 
+			turn torso to x-axis <5.300000> speed <15.899999> ; //delta=-5.30 
+		sleep 329;
+		}
+		if (TRUE) { //Frame:18
+			turn lbfoot to x-axis <-24.999998> speed <40.499997> ; //delta=10.80 
+			turn lbleg to x-axis <24.799999> speed <24.374996> ; //delta=-6.50 
+			turn lffoot to x-axis <-41.599998> speed <29.999997> ; //delta=8.00 
+			turn lfleg to x-axis <-39.599996> speed <50.249992> ; //delta=13.40 
+			turn lfleg to y-axis <23.899998> speed <23.624997> ; //delta=6.30 
+			turn rbfoot to x-axis <-25.999998> speed <38.999998> ; //delta=10.40 
+			turn rbleg to x-axis <29.799999> speed <25.875002> ; //delta=-6.90 
+			turn rffoot to x-axis <-49.699994> speed <41.999990> ; //delta=11.20 
+			turn rfleg to x-axis <-29.900000> speed <28.500004> ; //delta=7.60 
+			turn rfleg to y-axis <-22.299997> speed <14.249999> ; //delta=-3.80 
+			move torso to y-axis [-4.630000] speed [9.112499] ; //delta=-2.43 
+			turn torso to x-axis <9.800000> speed <16.875000> ; //delta=-4.50 
+		sleep 263;
+		}
+		if (TRUE) { //Frame:22
+			turn lbfoot to x-axis <-38.499997> speed <101.249990> ; //delta=13.50 
+			turn lbleg to x-axis <35.899997> speed <83.249987> ; //delta=-11.10 
+			turn lffoot to x-axis <-47.699999> speed <45.750007> ; //delta=6.10 
+			turn lfleg to x-axis <-38.235628> speed <10.232759> ; //delta=-1.36 
+			turn rbfoot to x-axis <-38.499997> speed <93.749994> ; //delta=12.50 
+			turn rbleg to x-axis <36.099998> speed <47.249994> ; //delta=-6.30 
+			turn rffoot to x-axis <-67.999997> speed <137.250022> ; //delta=18.30 
+			turn rfleg to x-axis <-28.022110> speed <14.084179> ; //delta=-1.88 
+			move torso to y-axis [-6.610000] speed [14.850000] ; //delta=-1.98 
+			turn torso to x-axis <9.500000> speed <2.249999> ; //delta=0.30 
+		sleep 131;
+		}
+		if (TRUE) { //Frame:27
+			turn lbfoot to x-axis <-29.999997> speed <50.999998> ; //delta=-8.50 
+			turn lbleg to x-axis <23.399998> speed <74.999995> ; //delta=12.50 
+			turn lfleg to x-axis <-32.999998> speed <31.413782> ; //delta=-5.24 
+			turn rbfoot to x-axis <-31.399998> speed <42.599992> ; //delta=-7.10 
+			turn rbleg to x-axis <22.899999> speed <79.199998> ; //delta=13.20 
+			turn rfleg to x-axis <-22.700001> speed <31.932654> ; //delta=-5.32 
+			move torso to y-axis [-4.820000] speed [10.740000] ; //delta=1.79 
+			move turret to x-axis [1.432575] speed [8.595448] ; //delta=1.43 
+			move turret to z-axis [-39.246407] speed [235.478439] ; //delta=-39.25 
+			explode turret type FALL|SMOKE|FIRE;
+			hide turret;
+			explode rbarrel type FALL|SMOKE|FIRE;
+			hide rbarrel;
+			explode rflare type FALL|SMOKE|FIRE;
+			hide rflare;
+			explode lbarrel type FALL|SMOKE|FIRE;
+			hide lbarrel;
+			explode lflare type FALL|SMOKE|FIRE;
+			hide lflare;
+		sleep 164;
+		}
+		if (TRUE) { //Frame:34
+			turn lbfoot to x-axis <-44.499997> speed <62.142856> ; //delta=14.50 
+			turn lbleg to x-axis <31.699997> speed <35.571428> ; //delta=-8.30 
+			turn lffoot to x-axis <-65.430992> speed <75.989972> ; //delta=17.73 
+			turn lfleg to x-axis <-21.983350> speed <47.214205> ; //delta=-11.02 
+			turn rbfoot to x-axis <-42.899995> speed <49.285699> ; //delta=11.50 
+			turn rbleg to x-axis <32.299999> speed <40.285714> ; //delta=-9.40 
+			turn rffoot to x-axis <-77.701864> speed <41.579430> ; //delta=9.70 
+			turn rfleg to x-axis <-15.928187> speed <29.022057> ; //delta=-6.77 
+			move torso to y-axis [-7.250000] speed [10.414285] ; //delta=-2.43 
+		sleep 230;
+		}
+		if (TRUE) { //Frame:40
+			turn lffoot to x-axis <-79.500001> speed <70.345040> ; //delta=14.07 
+			turn lfleg to x-axis <-16.999999> speed <24.916752> ; //delta=-4.98 
+			turn rffoot to x-axis <-85.400000> speed <38.490677> ; //delta=7.70 
+			turn rfleg to x-axis <-13.600001> speed <11.640930> ; //delta=-2.33 
+		sleep 197;
+		}
+}
 Killed(severity, corpsetype)
 {
 	hide lflare;
 	hide rflare;
 	if( severity <= 25 )
 	{
+		call-script DeathAnim();
 		corpsetype = 1;
 		return (corpsetype);
 	}

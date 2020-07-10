@@ -16,7 +16,7 @@ static-var  maxSpeed, animFramesPerKeyframe, bMoving;
 #define SIG_AIM				8
 
 
-walk()
+walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 {
 	set-signal-mask SIG_WALK;	if (bMoving) { //Frame:4
 			turn launcher to x-axis <0.700000> speed <155.999983> / animSpeed; 

@@ -17,6 +17,8 @@ end
 local hasDeathAnim = {
   [UnitDefNames.corkarg.id] = true,
   [UnitDefNames.corthud.id] = true,
+  [UnitDefNames.corstorm.id] = true,
+  [UnitDefNames.corsumo.id] = true,
 }
 
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
