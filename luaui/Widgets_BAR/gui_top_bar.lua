@@ -408,14 +408,22 @@ local function updateRejoin()
 		end
 
 		local barHeight = math_floor((height*widgetScale/7.5)+0.5)
-		local barHeightPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
-		local barLeftPadding = 7* widgetScale
-		local barRightPadding = 7 * widgetScale
+		local barHeightPadding = math_floor((7*widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
+		local barLeftPadding = barHeightPadding
+		local barRightPadding = barHeightPadding
 		local barArea = {area[1]+barLeftPadding, area[2]+barHeightPadding, area[3]-barRightPadding, area[2]+barHeight+barHeightPadding}
 		local barWidth = barArea[3] - barArea[1]
 
-		-- bar background
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[4], barHeight*0.2, 1,1,1,1, {0,0,0,0.25},{0.44,0.44,0.44,0.4})
+		-- Bar background
+		local edgeWidth = math.max(1, math_floor(vsy/1100))
+		local addedSize = math_floor(((barArea[4]-barArea[2])*0.15)+0.5)
+		RectRound(barArea[1]-addedSize-edgeWidth, barArea[2]-addedSize-edgeWidth, barArea[3]+addedSize+edgeWidth, barArea[4]+addedSize+edgeWidth, barHeight*0.33, 1,1,1,1, {0,0,0,0.06},{0,0,0,0.06})
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.07})
+		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize+addedSize, barHeight*0.2, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1], barArea[4]-(barHeight*0.5), barArea[3], barArea[4], barHeight*0.2, 1,1,0,0, {1,1,1,0.},{1,1,1,0.09})
@@ -423,12 +431,17 @@ local function updateRejoin()
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Bar value
+		local valueWidth = catchup * barWidth
 		glColor(0, 1, 0, 1)
-		RectRound(barArea[1], barArea[2], barArea[1]+(catchup * barWidth), barArea[4], barHeight*0.2, 1,1,1,1, {0,0.55,0,1},{0, 1, 0, 1})
+		RectRound(barArea[1], barArea[2], barArea[1]+valueWidth, barArea[4], barHeight*0.2, 1,1,1,1, {0,0.55,0,1},{0, 1, 0, 1})
+
+		-- Bar value highlight
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(barArea[1], barArea[4]-((barArea[4]-barArea[2])/1.5), barArea[1]+valueWidth, barArea[4], barHeight*0.2, 1,1,1,1,{0,0,0,0}, {1,1,1,0.13})
+		RectRound(barArea[1], barArea[2], barArea[1]+valueWidth, barArea[2]+((barArea[4]-barArea[2])/2), barHeight*0.2, 1,1,1,1,{1,1,1,0.13}, {0,0,0,0})
 
 		-- Bar value glow
 		local glowSize = barHeight * 6
-		glBlending(GL_SRC_ALPHA, GL_ONE)
 		glColor(0, 1, 0, 0.085)
 		glTexture(barGlowCenterTexture)
 		DrawRect(barArea[1], barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize, 0.008)
@@ -1067,8 +1080,8 @@ function drawResbarValues(res)
 
 	-- bar value highlight
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4]-((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1,{1,1,1,0}, {1,1,1,0.13})
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[2]+((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), barHeight*0.2, 1,1,1,1,{1,1,1,0.09}, {1,1,1,0})
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4]-((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/1.5), resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight*0.2, 1,1,1,1,{0,0,0,0}, {1,1,1,0.13})
+	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[2]+((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), barHeight*0.2, 1,1,1,1,{1,1,1,0.13}, {0,0,0,0})
 
 	-- Bar value glow
 	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)

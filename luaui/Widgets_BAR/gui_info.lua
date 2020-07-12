@@ -1002,30 +1002,7 @@ local function drawUnitInfo()
       local healthBarPadding = healthBarHeight * 0.15
       local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
       local color = bfcolormap[math_min(math_max(math_floor((health/maxHealth)*100), 0), 100)]
-
-      --valueY3 = convertColor(color[1],color[2],color[3])..math_min(math_max(math_floor((health/maxHealth)*100), 0), 100)..'%'
       valueY3 = convertColor(color[1],color[2],color[3])..math_floor(health)
-
-      ---- bar background
-      --RectRound(
-      --        customInfoArea[3]-healthBarMargin-healthBarWidth,
-      --        customInfoArea[4]+healthBarMargin,
-      --        customInfoArea[3]-healthBarMargin,
-      --        customInfoArea[4]+healthBarMargin+healthBarHeight,
-      --        healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
-      --)
-      ---- bar value
-      --RectRound(
-      --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
-      --        customInfoArea[4]+healthBarMargin+healthBarPadding,
-      --        customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
-      --        customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
-      --        healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
-      --)
-      ---- bar text value
-      --font:Begin()
-      --font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
-      --font:End()
     end
   else
     valueY1 = metalColor..unitMetalCost[displayUnitDefID]
@@ -1061,7 +1038,7 @@ local function drawUnitInfo()
 
   -- draw unit buildoption icons
   if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
-    local gridHeight = math_ceil(height*0.98)
+    local gridHeight = math_ceil(height*0.975)
     local rows = 2
     local colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
     local cellsize = math_floor((math_min(width/colls, gridHeight/rows)) + 0.5)
