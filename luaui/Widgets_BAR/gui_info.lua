@@ -259,7 +259,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     unitWeapons[unitDefID][i] = unitDef.weapons[i].weaponDef
     local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
     if weaponDef.damages then
-      local defaultDPS = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
+      -- get highest damage category
+      local maxDmg = 0
+      for _,v in pairs(weaponDef.damages) do
+        if v > maxDmg then
+          maxDmg = v
+        end
+      end
+      local defaultDPS = maxDmg * weaponDef.salvoSize / weaponDef.reload
       unitDPS[unitDefID] = math_floor(defaultDPS)
     end
     if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
@@ -1160,7 +1167,7 @@ local function drawUnitInfo()
     --  addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
     --end
 
-    if unitArmorType[displayUnitDefID] then
+    if unitArmorType[displayUnitDefID] and unitArmorType[displayUnitDefID] ~= 'standard' then
       addTextInfo('armor', unitArmorType[displayUnitDefID])
     end
 
