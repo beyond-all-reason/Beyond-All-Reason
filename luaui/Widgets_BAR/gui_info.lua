@@ -1088,16 +1088,35 @@ local function drawUnitInfo()
 
 
   else  -- unit/unitdef info (without buildoptions)
+
+
     contentPadding = contentPadding * 0.95
     local contentPaddingLeft = customInfoArea[1] + contentPadding
 
+
+    local text = ''
+    local separator = ''
+    local infoFontsize = fontSize * 0.92
+    -- to determine what to show in what order
+    local function addTextInfo(label, value)
+      text = text..labelColor..separator..string.upper(label:sub(1,1))..label:sub(2) .. (label~='' and ' ' or '') .. valueColor..(value and value or '')
+      separator = ',   '
+    end
+
+
     -- unit specific info
+    local dps
+    if unitDPS[displayUnitDefID] then
+      dps = unitDPS[displayUnitDefID]
+    end
+
+    -- get unit specifc data
     if displayMode == 'unit' then
       -- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
       local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
       local maxRange = spGetUnitMaxRange(displayUnitID)
       local exp = spGetUnitExperience(displayUnitID)
-      local metalExtraction, stockpile, dps
+      local metalExtraction, stockpile
       if isMex[displayUnitDefID] then
         metalExtraction = spGetUnitMetalExtraction(displayUnitID)
       end
@@ -1105,144 +1124,100 @@ local function drawUnitInfo()
       if unitCanStockpile[displayUnitDefID] then
         stockpile = spGetUnitStockpile(displayUnitID)
       end
-      if unitDPS[displayUnitDefID] then
-        dps = unitDPS[displayUnitDefID]
-      end
 
-      -- determine what to show in what order
-      local text = ''
-      local separator = ''
-      local infoFontsize = fontSize * 0.92
+    else  -- get unitdef specific data
 
-      local function addTextInfo(label, value)
-        text = text.. labelColor..separator..label .. (label~='' and ' ' or '') .. valueColor..(value and value or '')
-        separator = ',   '
-      end
 
-      -- add text
-      --addTextInfo('', labelColor..'m +'..valuePlusColor..round(metalMake, 1)..labelColor..' -'..valueMinColor..round(metalUse, 1)..labelColor..',   e +'..valuePlusColor..round(energyMake, 0)..labelColor..' -'..valueMinColor..round(energyUse, 0))
-
-      if unitWeapons[displayUnitDefID] then
-        addTextInfo('weapons', #unitWeapons[displayUnitDefID])
-        if maxRange then
-          addTextInfo('max-range', maxRange)
-        end
-        if dps then
-          addTextInfo('dps', dps)
-        end
-      end
-      --if metalExtraction then
-      --  addTextInfo('metal extraction', round(metalExtraction, 2))
-      --end
-      if unitBuildSpeed[displayUnitDefID] then
-        addTextInfo('buildspeed', unitBuildSpeed[displayUnitDefID])
-      end
-      if unitBuildOptions[displayUnitDefID] then
-        addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
-      end
-      if exp and exp > 0.009 then
-        addTextInfo('xp', round(exp, 2))
-      end
-
-      --if unitWreckMetal[displayUnitDefID] then
-      --  addTextInfo('wreck', round(unitWreckMetal[displayUnitDefID],0))
-      --end
-      --if unitHeapMetal[displayUnitDefID] then
-      --  addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
-      --end
-
-      if unitArmorType[displayUnitDefID] then
-        addTextInfo('armor', unitArmorType[displayUnitDefID])
-      end
-
-      if unitParalyzeMult[displayUnitDefID] then
-        if unitParalyzeMult[displayUnitDefID] == 0 then
-          addTextInfo('unparalyzable')
-        else
-          addTextInfo('paralyzeMult', round(unitParalyzeMult[displayUnitDefID],2))
-        end
-      end
-
-      if unitLosRadius[displayUnitDefID] then
-        addTextInfo('los', round(unitLosRadius[displayUnitDefID],0))
-      end
-      if unitAirLosRadius[displayUnitDefID] and (isAirUnit[displayUnitDefID] or isAaUnit[displayUnitDefID]) then
-        addTextInfo('airlos', round(unitAirLosRadius[displayUnitDefID],0))
-      end
-      if unitRadarRadius[displayUnitDefID] then
-        addTextInfo('radar', round(unitRadarRadius[displayUnitDefID],0))
-      end
-      if unitSonarRadius[displayUnitDefID] then
-        addTextInfo('sonar', round(unitSonarRadius[displayUnitDefID],0))
-      end
-      if unitJammerRadius[displayUnitDefID] then
-        addTextInfo('jammer', round(unitJammerRadius[displayUnitDefID],0))
-      end
-      if unitSonarJamRadius[displayUnitDefID] then
-        addTextInfo('sonarjam', round(unitSonarJamRadius[displayUnitDefID],0))
-      end
-      if unitSeismicRadius[displayUnitDefID] then
-        addTextInfo('seismic', unitSeismicRadius[displayUnitDefID])
-      end
-
-      --addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
-      --addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
-      --addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
-
-      -- wordwrap text
-      --unitInfoText = text   -- can be used to show full text on mouse hover
-      local text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
-
-      -- prune number of lines
-      local lines = lines(text)
-      text = ''
-      for i,line in pairs(lines) do
-        text = text .. line
-        -- only 4 fully fit, but showing 5, so the top part of text shows and indicates there is more to see somehow
-        if i == 5 then
-          break
-        end
-        text = text .. '\n'
-      end
-      lines = nil
-
-      -- unit info
-      font:Begin()
-      font:Print(text, customInfoArea[1]+contentPadding, customInfoArea[4]-contentPadding-(infoFontsize*0.42), infoFontsize, "o")
-      font:End()
-
-      -- display health value/bar
-      --local health,maxHealth,_,_,buildProgress = spGetUnitHealth(displayUnitID)
-      --if health then
-      --  local healthBarWidth = (backgroundRect[3]-backgroundRect[1]) * 0.15
-      --  local healthBarHeight = healthBarWidth * 0.1
-      --  local healthBarMargin = healthBarHeight * 0.7
-      --  local healthBarPadding = healthBarHeight * 0.15
-      --  local healthValueWidth = (healthBarWidth-healthBarPadding) * (health/maxHealth)
-      --  local color = bfcolormap[math_min(math_max(math_floor((health/maxHealth)*100), 0), 100)]
-      --
-      --  -- bar background
-      --  RectRound(
-      --          customInfoArea[3]-healthBarMargin-healthBarWidth,
-      --          customInfoArea[4]+healthBarMargin,
-      --          customInfoArea[3]-healthBarMargin,
-      --          customInfoArea[4]+healthBarMargin+healthBarHeight,
-      --          healthBarHeight*0.15, 1,1,1,1, {0.15,0.15,0.15,0.3}, {0.75,0.75,0.75,0.4}
-      --  )
-      --  -- bar value
-      --  RectRound(
-      --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthBarPadding,
-      --          customInfoArea[4]+healthBarMargin+healthBarPadding,
-      --          customInfoArea[3]-healthBarMargin-healthBarWidth+healthValueWidth,
-      --          customInfoArea[4]+healthBarMargin+healthBarHeight-(healthBarPadding*0.66),
-      --          healthBarHeight*0.11, 1,1,1,1, {color[1]-0.1, color[2]-0.1, color[3]-0.1, color[4]}, {color[1]+0.25, color[2]+0.25, color[3]+0.25, color[4]}
-      --  )
-      --  -- bar text value
-      --  font:Begin()
-      --  font:Print(math_floor(health), customInfoArea[3]+healthBarPadding-healthBarMargin-(healthBarWidth*0.5), customInfoArea[4]+healthBarMargin+healthBarHeight+healthBarHeight-(infoFontsize*0.17), infoFontsize*0.88, "oc")
-      --  font:End()
-      --end
     end
+
+
+    if unitWeapons[displayUnitDefID] then
+      addTextInfo('weapons', #unitWeapons[displayUnitDefID])
+      if maxRange then
+        addTextInfo('max-range', maxRange)
+      end
+      if dps then
+        addTextInfo('dps', dps)
+      end
+    end
+    --if metalExtraction then
+    --  addTextInfo('metal extraction', round(metalExtraction, 2))
+    --end
+    if unitBuildSpeed[displayUnitDefID] then
+      addTextInfo('buildspeed', unitBuildSpeed[displayUnitDefID])
+    end
+    if unitBuildOptions[displayUnitDefID] then
+      addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
+    end
+    if exp and exp > 0.009 then
+      addTextInfo('xp', round(exp, 2))
+    end
+
+    --if unitWreckMetal[displayUnitDefID] then
+    --  addTextInfo('wreck', round(unitWreckMetal[displayUnitDefID],0))
+    --end
+    --if unitHeapMetal[displayUnitDefID] then
+    --  addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
+    --end
+
+    if unitArmorType[displayUnitDefID] then
+      addTextInfo('armor', unitArmorType[displayUnitDefID])
+    end
+
+    if unitParalyzeMult[displayUnitDefID] then
+      if unitParalyzeMult[displayUnitDefID] == 0 then
+        addTextInfo('unparalyzable')
+      else
+        addTextInfo('paralyzeMult', round(unitParalyzeMult[displayUnitDefID],2))
+      end
+    end
+
+    if unitLosRadius[displayUnitDefID] then
+      addTextInfo('los', round(unitLosRadius[displayUnitDefID],0))
+    end
+    if unitAirLosRadius[displayUnitDefID] and (isAirUnit[displayUnitDefID] or isAaUnit[displayUnitDefID]) then
+      addTextInfo('airlos', round(unitAirLosRadius[displayUnitDefID],0))
+    end
+    if unitRadarRadius[displayUnitDefID] then
+      addTextInfo('radar', round(unitRadarRadius[displayUnitDefID],0))
+    end
+    if unitSonarRadius[displayUnitDefID] then
+      addTextInfo('sonar', round(unitSonarRadius[displayUnitDefID],0))
+    end
+    if unitJammerRadius[displayUnitDefID] then
+      addTextInfo('jammer', round(unitJammerRadius[displayUnitDefID],0))
+    end
+    if unitSonarJamRadius[displayUnitDefID] then
+      addTextInfo('sonarjam', round(unitSonarJamRadius[displayUnitDefID],0))
+    end
+    if unitSeismicRadius[displayUnitDefID] then
+      addTextInfo('seismic', unitSeismicRadius[displayUnitDefID])
+    end
+    --addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
+    --addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
+    --addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
+
+
+    local text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
+
+    -- prune number of lines
+    local lines = lines(text)
+    text = ''
+    for i,line in pairs(lines) do
+      text = text .. line
+      -- only 4 fully fit, but showing 5, so the top part of text shows and indicates there is more to see somehow
+      if i == 5 then
+        break
+      end
+      text = text .. '\n'
+    end
+    lines = nil
+
+    -- display unit(def) info text
+    font:Begin()
+    font:Print(text, customInfoArea[1]+contentPadding, customInfoArea[4]-contentPadding-(infoFontsize*0.42), infoFontsize, "o")
+    font:End()
+
   end
 end
 
