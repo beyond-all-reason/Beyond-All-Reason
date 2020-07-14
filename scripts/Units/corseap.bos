@@ -33,7 +33,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if( healthpercent < 66 and healthpercent > 0 )
+		if( (healthpercent < 66) AND (healthpercent > 0 ))
 		{
 			smoketype = 256 | 2;
 			if( Rand( 1, 66 ) < healthpercent )

@@ -1,7 +1,7 @@
 #define TA			// This is a TA script
 
-#include "sfxtype.h";
-#include "exptype.h";
+#include "sfxtype.h"
+#include "exptype.h"
 
 piece  torso, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, emit_spark, lfoot, rfoot, aimy1, aimx1;
 static-var  bMoving, bAiming, Static_Var_2, Static_Var_3, Static_Var_4, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, currentSpeed, animspeed, wpnheading ;
