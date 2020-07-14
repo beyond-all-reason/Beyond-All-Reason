@@ -592,8 +592,8 @@ function drawCell(cell, zoom)
     RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][2]+bottomMargin+padding, cellRects[cell][3]-rightMargin-padding, cellRects[cell][4]-topMargin-padding, cellWidth*0.017 ,2,2,2,2, color1,color2)
 
     -- gloss
-    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][4]-topMargin-((cellRects[cell][4]-cellRects[cell][2])*0.42)-padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][4]-topMargin)-padding, cellWidth*0.017, 2,2,0,0, {1,1,1,0.045}, {1,1,1,0.13})
-    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][2]+bottomMargin+padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][2]-leftMargin)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, cellWidth*0.017, 0,0,2,2, {1,1,1,0.11}, {1,1,1,0})
+    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][4]-topMargin-((cellRects[cell][4]-cellRects[cell][2])*0.42)-padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][4]-topMargin)-padding, cellWidth*0.017, 2,2,0,0, {1,1,1,0.035}, {1,1,1,0.11})
+    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][2]+bottomMargin+padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][2]-leftMargin)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, cellWidth*0.017, 0,0,2,2, {1,1,1,0.1}, {1,1,1,0})
 
     -- icon
     if showIcons then
