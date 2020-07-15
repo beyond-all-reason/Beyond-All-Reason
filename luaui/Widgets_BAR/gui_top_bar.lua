@@ -45,6 +45,7 @@ local comTexture = ":l:LuaUI/Images/comIcon.png"
 local glowTexture = ":l:LuaUI/Images/glow.dds"
 
 local math_floor = math.floor
+local math_min = math.min
 
 
 local vsx, vsy = gl.GetViewSizes()
@@ -1084,7 +1085,7 @@ function drawResbarValues(res)
 	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+valueWidth, resbarDrawinfo[res].barTexRect[2]+((resbarDrawinfo[res].barTexRect[4]-resbarDrawinfo[res].barTexRect[2])/2), barHeight*0.2, 1,1,1,1,{1,1,1,0.13}, {0,0,0,0})
 
 	-- Bar value glow
-	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
+	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09*math_min(1, cappedCurRes/r[res][2]*40))
 	glTexture(barGlowCenterTexture)
 	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4] ,0.008)
 	glTexture(barGlowEdgeTexture)

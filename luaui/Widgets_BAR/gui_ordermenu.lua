@@ -60,6 +60,8 @@ local cmdNameAlternative = {
   ['Repeat on'] = 'Repeat',
   ['Decloaked'] = 'Cloaked',
   ['Passive'] = 'Active',
+  ['UpgMex OFF'] = 'Upgrade Mex',
+  ['UpgMex ON'] = 'Upgrade Mex',
 }
 local isStateCmd = {}
 
