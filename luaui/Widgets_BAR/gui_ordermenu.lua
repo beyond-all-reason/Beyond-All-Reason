@@ -55,7 +55,12 @@ local cmdColor = {
   ['Unload units'] = {0,0.5,1},
   ['Land At Airbase'] = {0.4,0.7,0.4},
 }
-
+local cmdNameAlternative = {
+  ['Repeat off'] = 'Repeat',
+  ['Repeat on'] = 'Repeat',
+  ['Decloaked'] = 'Cloaked',
+  ['Passive'] = 'Active',
+}
 local isStateCmd = {}
 
 -------------------------------------------------------------------------------
@@ -592,8 +597,8 @@ function drawCell(cell, zoom)
     RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][2]+bottomMargin+padding, cellRects[cell][3]-rightMargin-padding, cellRects[cell][4]-topMargin-padding, cellWidth*0.017 ,2,2,2,2, color1,color2)
 
     -- gloss
-    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][4]-topMargin-((cellRects[cell][4]-cellRects[cell][2])*0.42)-padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][4]-topMargin)-padding, cellWidth*0.017, 2,2,0,0, {1,1,1,0.035}, {1,1,1,0.11})
-    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][2]+bottomMargin+padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][2]-leftMargin)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, cellWidth*0.017, 0,0,2,2, {1,1,1,0.1}, {1,1,1,0})
+    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][4]-topMargin-((cellRects[cell][4]-cellRects[cell][2])*0.42)-padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][4]-topMargin)-padding, cellWidth*0.017, 2,2,0,0, {1,1,1,0.03}, {1,1,1,0.11})
+    RectRound(cellRects[cell][1]+leftMargin+padding, cellRects[cell][2]+bottomMargin+padding, cellRects[cell][3]-rightMargin-padding, (cellRects[cell][2]-leftMargin)+((cellRects[cell][4]-cellRects[cell][2])*0.5)-padding, cellWidth*0.017, 0,0,2,2, {1,1,1,0.09}, {1,1,1,0})
 
     -- icon
     if showIcons then
@@ -656,6 +661,9 @@ function drawCell(cell, zoom)
       local text = string_gsub(cmd.name, "\n", " ")
       if cmd.params[1] and cmd.params[cmd.params[1]+2] then
         text = cmd.params[cmd.params[1]+2]
+      end
+      if cmdNameAlternative[text] then
+        text = cmdNameAlternative[text]
       end
       local fontSize = cellInnerWidth / font2:GetTextWidth('  '..text..' ') * math_min(1, (cellInnerHeight/(rows*6)))
       if fontSize > cellInnerWidth / 6.3 then
