@@ -1,9 +1,10 @@
-local base, pad, head1, head2, nano1, nano2, nano3, nano4, center1, center2, side1, side2 = piece("base", "pad", "head1", "head2", "nano1", "nano2", "nano3", "nano4", "center1", "center2", "side1", "side2");
+local base, pad, head1, head2, nano1, nano2, nano3, nano4, center1, center2, side1, side2,mount1,mount2 = piece("base", "pad", "head1", "head2", "nano1", "nano2", "nano3", "nano4", "center1", "center2", "side1", "side2","mount1","mount2");
 
 local spray = 0;
 
 local SIG_ACTIVATE = 2;
 local SIG_OPENCLOSE = 4;
+local SIG_BUILD = 8;
 
 include("include/util.lua");
 
@@ -82,10 +83,40 @@ function script.Deactivate()
 	UnitScript.StartThread(Deactivate_real);
 end
 
-function script.StartBuilding()
+function Build()
+	UnitScript.SetSignalMask(SIG_BUILD);
+	while true do
+		if math.random() > 0.5 then 
+			local t = math.random(0,48);
+			UnitScript.Move(mount1, z_axis, t, 24);
+			UnitScript.Turn(head1 , y_axis, math.rad(-1.6 * t), math.rad(36) );
+			UnitScript.WaitForMove(mount1, z_axis)
+		else
+			local t = math.random(0,48);
+			UnitScript.Move(mount2, z_axis, t, 24);
+			UnitScript.Turn(head2 , y_axis, math.rad(1.6 * t), math.rad(36) );
+			UnitScript.WaitForMove(mount2, z_axis)
+		end
+		
+	end
 end
 
+function script.StartBuilding()
+	UnitScript.Signal(SIG_BUILD);
+	UnitScript.StartThread(Build)
+end
+
+
+
 function script.StopBuilding()
+
+	UnitScript.Signal(SIG_BUILD);
+	
+	UnitScript.Move(mount1, z_axis, 0, 24);
+	UnitScript.Turn(head1 , y_axis, 0, math.rad(36) );
+	UnitScript.Move(mount2, z_axis, 0, 24);
+	UnitScript.Turn(head2 , y_axis, 0, math.rad(36) );
+	
 	UnitScript.Move(center1, z_axis, 0);
 	UnitScript.Move(center1, z_axis, 10, 20);
 	UnitScript.Move(center2, z_axis, 0);
