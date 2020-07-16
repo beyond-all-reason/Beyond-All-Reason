@@ -8,6 +8,7 @@ local UDN = UnitDefNames
 
 -- team locals
 SimpleFactories = {}
+SimpleT1Mexes = {}
 
 for i = 1,#teams do
 	local teamID = teams[i]
@@ -18,7 +19,7 @@ for i = 1,#teams do
 		SimpleAITeamIDs[SimpleAITeamIDsCount] = teamID
 		
 		SimpleFactories[teamID] = 0
-		
+		SimpleT1Mexes[teamID] = 0
 		
 		if string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' then
 			SimpleCheaterAITeamIDsCount = SimpleCheaterAITeamIDsCount + 1
@@ -49,13 +50,76 @@ end
 
 -------- lists
 
--- Arm
+---- Arm
 	local nameCommanderArm = "armcom"
 
--- Core
+-- Constructors
+	local SimpleArmConstructors = {
+	"armck",
+	"armck",
+	}
+	
+	local SimpleArmConstructorsFactory = {
+	UDN.armck.id,
+	UDN.armck.id,
+	}
+	
+-- Army
+	local SimpleArmLandArmy = {
+	"armflea",
+	"armham",
+	"armjeth",
+	"armpw",
+	"armrectr",
+	"armrock",
+	"armwar",
+	
+	}
+	
+	local SimpleArmLandArmyFactory = {
+	UDN.armflea.id,
+	UDN.armham.id,
+	UDN.armjeth.id,
+	UDN.armpw.id,
+	UDN.armrectr.id,
+	UDN.armrock.id,
+	UDN.armwar.id,
+	
+	}
+	
+	
+---- Core
 	local nameCommanderCor = "corcom"
 
--------- functions
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	-------- functions
+
+local function SimpleGetClosestMexSpot(x,z)
+	local bestSpot
+	local bestDist = math.huge
+	local metalSpots = GG.metalSpots
+	for i = 1, #metalSpots do
+		local spot = metalSpots[i]
+		local dx, dz = x - spot.x, z - spot.z
+		local dist = dx*dx + dz*dz
+		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 64)
+		if dist < bestDist and #units == 0 then
+			bestSpot = spot
+			bestDist = dist
+		end
+	end
+	return bestSpot
+end
 
 local function SimpleBuildOrder(cUnitID, building)
 	local team = Spring.GetUnitTeam(cUnitID)
@@ -143,13 +207,17 @@ function gadget:GameFrame(n)
 			local _,_,isDead,_,faction,allyTeamID = Spring.GetTeamInfo(teamID)
 			local mcurrent, mstorage, _, mincome, mexpense = Spring.GetTeamResources(teamID, "metal")
 			local ecurrent, estorage, _, eincome, eexpense = Spring.GetTeamResources(teamID, "energy")
-			--for j = 1,#SimpleCheaterAITeamIDs do
-				--if teamID == SimpleCheaterAITeamIDs[j] then
+			for j = 1,#SimpleCheaterAITeamIDs do
+				if teamID == SimpleCheaterAITeamIDs[j] then
 					-- --cheats
-						Spring.SetTeamResource(teamID, "m", mstorage*0.5)
-						Spring.SetTeamResource(teamID, "e", estorage*0.5)
-				--end
-			--end
+					if mcurrent < mstorage*0.75 then
+						Spring.SetTeamResource(teamID, "m", mstorage*0.75)
+					end
+					if ecurrent < estorage*0.75 then
+						Spring.SetTeamResource(teamID, "e", estorage*0.75)
+					end
+				end
+			end
 			
 			
 			
@@ -185,46 +253,78 @@ function gadget:GameFrame(n)
 				
 				
 				
-				if faction == "arm" then
+				--if faction == "arm" then
 					
 					
 					-- builders
 					if unitCommands == 0 then
+						for u = 1,#SimpleArmConstructors do
+							if unitName == SimpleArmConstructors[u] then
+								if SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
+									SimpleBuildOrder(unitID, UDN.armlab.id)
+								end
+								local r = math.random(0,8)
+								local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
+								
+								
+								if r == 0 then
+									SimpleBuildOrder(unitID, UDN.armllt.id)
+								elseif r >= 1 and r <= 4 then
+									if mexspotpos then
+										Spring.GiveOrderToUnit(unitID, -UDN.armmex.id, {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
+									end
+								else
+									SimpleBuildOrder(unitID, UDN.armsolar.id)
+								end
+								break
+							end
+						end
 						if unitName == "armcom" then
 							--Spring.GiveOrderToUnit(unitID, CMD.MOVE,{unitposx+math.random(-500,500),5000,unitposz+math.random(-500,500)}, {"shift", "alt", "ctrl"})
 							if SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
 								SimpleBuildOrder(unitID, UDN.armlab.id)
 							end
-							local r = math.random(0,3)
+							local r = math.random(0,10)
+							local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
+							if mexspotpos and SimpleT1Mexes[unitTeam] < 3 then
+								Spring.GiveOrderToUnit(unitID, -UDN.armmex.id, {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
+							end
 							if r == 0 then
 								SimpleBuildOrder(unitID, UDN.armllt.id)
 							else
 								SimpleBuildOrder(unitID, UDN.armsolar.id)
 							end
-							
-							break
+							--break
 						end
 						
 						if unitName == "armlab" then
 							if #Spring.GetFullBuildQueue(unitID, 0) == 0 then
+								local r = math.random(0,5)
 								local x,y,z = Spring.GetUnitPosition(unitID)
-								Spring.GiveOrderToUnit(unitID, -UDN.armpw.id, {x, y, z, 0}, 0)
+								Spring.GiveOrderToUnit(unitID, -SimpleArmLandArmyFactory[(math.random(1, #SimpleArmLandArmyFactory))], {x, y, z, 0}, 0)
+								if r == 0 then
+									Spring.GiveOrderToUnit(unitID, -SimpleArmConstructorsFactory[(math.random(1, #SimpleArmConstructorsFactory))], {x, y, z, 0}, 0)
+								end
 							end
+							--break
 						end
 					
 					
 					-- army
 					
+						for u = 1,#SimpleArmLandArmy do
 						
-						if unitName == "armpw" then
-							local targetUnitNear = Spring.GetUnitNearestEnemy(unitID, 2000, false)
-							if targetUnitNear then
-								local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnitNear)
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),5000,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
-							elseif n%3600 == 0 then
-								local targetUnit = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-								local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),5000,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
+							if unitName == SimpleArmLandArmy[u] then
+								local targetUnitNear = Spring.GetUnitNearestEnemy(unitID, 2000, false)
+								if targetUnitNear then
+									local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnitNear)
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),5000,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
+								elseif n%3600 == 0 then
+									local targetUnit = Spring.GetUnitNearestEnemy(unitID, 999999, false)
+									local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),5000,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
+								end
+								break
 							end
 						end
 					end
@@ -233,7 +333,7 @@ function gadget:GameFrame(n)
 				
 				
 				
-				elseif faction == "core" then
+				--elseif faction == "core" then
 					
 					
 					-- builders
@@ -241,7 +341,7 @@ function gadget:GameFrame(n)
 						if unitName == "corcom" then
 							--Spring.GiveOrderToUnit(unitID, CMD.MOVE,{unitposx+math.random(-500,500),5000,unitposz+math.random(-500,500)}, {"shift", "alt", "ctrl"})
 							SimpleBuildOrder(unitID, UDN.corwin.id)
-							break
+							--break
 						end
 					end
 					
@@ -249,7 +349,7 @@ function gadget:GameFrame(n)
 					-- army
 					
 					
-				end
+				--end
 			end
 		end
 	end
@@ -260,12 +360,18 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if unitName == "armlab" then
 		SimpleFactories[unitTeam] = SimpleFactories[unitTeam] + 1
 	end
+	if unitName == "armmex" then
+		SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] + 1
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
 	if unitName == "armlab" then
 		SimpleFactories[unitTeam] = SimpleFactories[unitTeam] - 1
+	end
+	if unitName == "armmex" then
+		SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] - 1
 	end
 end
 
