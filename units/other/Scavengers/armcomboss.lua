@@ -47,7 +47,7 @@ return {
 		radardistance = 1400,
 		radaremitheight = 100,
 		reclaimable = false,
-		script = "Units/ARMCOM.cob",
+		script = "Units/ARMCOMBOSS.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
