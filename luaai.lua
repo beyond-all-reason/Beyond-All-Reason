@@ -9,6 +9,14 @@
 	
 return {
   {
+    name = 'SimpleAI',
+    desc = 'Infinite Games'
+  },
+  {
+    name = 'SimpleCheaterAI',
+    desc = 'Infinite Games'
+  },
+  {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
   },

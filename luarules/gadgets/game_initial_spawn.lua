@@ -784,7 +784,9 @@ function gadget:DrawScreen()
 						"newAI",
 						"ScavengersAI",
 						"STAI",
-						"Shard"
+						"Shard",
+						"SimpleAI",
+						"SimpleCheaterAI",
 					}
 					local hasAI = false
 					for key,ai in ipairs(validAIs) do
