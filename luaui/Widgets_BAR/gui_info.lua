@@ -28,6 +28,7 @@ local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 
 local iconBorderOpacity = 0.07
+local showSelectionTotals = true
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -53,6 +54,14 @@ local currentTooltip = ''
 local lastUpdateClock = 0
 
 local hpcolormap = { {1, 0.0, 0.0, 1},  {0.8, 0.60, 0.0, 1}, {0.0, 0.75, 0.0, 1} }
+
+local tooltipTitleColor = '\255\205\255\205'
+local tooltipTextColor = '\255\255\255\255'
+local tooltipLabelTextColor = '\255\200\200\200'
+local tooltipDarkTextColor = '\255\133\133\133'
+local tooltipValueColor = '\255\255\245\175'
+
+local selectionHowto = tooltipTextColor.."Left click"..tooltipLabelTextColor..": Select\n "..tooltipTextColor.."   + CTRL"..tooltipLabelTextColor..": Select units of this type on map\n "..tooltipTextColor.."   + ALT"..tooltipLabelTextColor..": Select 1 single unit of this unit type\n "..tooltipTextColor.."Right click"..tooltipLabelTextColor..": Remove\n "..tooltipTextColor.."    + CTRL"..tooltipLabelTextColor..": Remove only 1 unit from that unit type\n "..tooltipTextColor.."Middle click"..tooltipLabelTextColor..": Move to center location\n "..tooltipTextColor.."    + CTRL"..tooltipLabelTextColor..": Move to center off whole selection"
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -266,8 +275,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
           maxDmg = v
         end
       end
-      local defaultDPS = maxDmg * weaponDef.salvoSize / weaponDef.reload
-      unitDPS[unitDefID] = math_floor(defaultDPS)
+      unitDPS[unitDefID] = math_floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
     end
     if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
       isAaUnit[unitDefID] = true
@@ -483,7 +491,7 @@ function widget:Initialize()
   if Script.LuaRules('GetIconTypes') then
     iconTypesMap = Script.LuaRules.GetIconTypes()
   end
-  Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count
+  Spring.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
   Spring.SendCommands("tooltip 0")
 
   bfcolormap = {}
@@ -840,6 +848,76 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 end
 
 
+
+local function getSelectionTotals(cells, newlineEveryStat)
+  local statsIndent = '  '
+  local stats = ''
+
+  -- description
+  if cellHovered then
+    local text, numLines = font:WrapText(unitTooltip[selectionCells[cellHovered]], (backgroundRect[3]-backgroundRect[1])*(loadedFontSize/16))
+    stats = stats..statsIndent..tooltipTextColor..text ..'\n\n'
+  end
+  -- metal cost
+  local totalValue = 0
+  for _,unitDefID in pairs(cells) do
+    if unitMetalCost[unitDefID] then
+      totalValue = totalValue + (unitMetalCost[unitDefID]*selUnitsCounts[unitDefID])
+    end
+  end
+  if totalValue > 0 then
+    stats = stats..statsIndent..tooltipLabelTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
+  end
+  -- energy cost
+  totalValue = 0
+  if newlineEveryStat then
+    stats = stats..'\n'..statsIndent
+  end
+  for _,unitDefID in pairs(cells) do
+    if unitEnergyCost[unitDefID] then
+      totalValue = totalValue + (unitEnergyCost[unitDefID]*selUnitsCounts[unitDefID])
+    end
+  end
+  if totalValue > 0 then
+    stats = stats..tooltipLabelTextColor.."energycost: "..tooltipValueColor..totalValue.."   "
+  end
+  -- health
+  totalValue = 0
+  local totalHealth = 0
+  for _,unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
+    local health,maxHealth,_,_,buildProgress = spGetUnitHealth(unitID)
+    if health and maxHealth then
+      totalValue = totalValue + maxHealth
+      totalHealth = totalHealth + health
+    end
+  end
+  totalHealth = math_floor(totalHealth)
+  totalValue = math_floor(totalValue)
+  if totalValue > 0 then
+    local percentage = math_floor((totalHealth/totalValue)*100)
+    stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."health: "..tooltipValueColor..percentage.."%"..tooltipDarkTextColor.."  ( "..tooltipLabelTextColor..totalHealth..tooltipDarkTextColor..' of '..tooltipLabelTextColor..totalValue..tooltipDarkTextColor.." )"
+  end
+  -- DPS
+  totalValue = 0
+  for _,unitDefID in pairs(cells) do
+    if unitDPS[unitDefID] then
+      totalValue = totalValue + (unitDPS[unitDefID]*selUnitsCounts[unitDefID])
+    end
+  end
+  if totalValue > 0 then
+    stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
+  end
+  if stats ~= '' then
+    stats = '\n'..stats
+    if not cellHovered then
+      stats = '\n'..stats
+    end
+  end
+
+  return stats
+end
+
+
 local function drawSelection()
 
   selUnitsCounts = spGetSelectedUnitsCounts()
@@ -856,8 +934,20 @@ local function drawSelection()
     end
   end
 
+  -- draw selection totals
+  if showSelectionTotals then
+    local stats = getSelectionTotals(selectionCells, true)
+    local text = tooltipTextColor..#selectedUnits..tooltipLabelTextColor.." units selected"..stats.."\n "..(stats == '' and '' or '\n')
+    local fontSize = (height*vsy * 0.11) * (0.95-((1-ui_scale)*0.5))
+    text, numLines = font:WrapText(text, contentWidth*(loadedFontSize/fontSize))
+    font:Begin()
+    font:Print(text, backgroundRect[1]+contentPadding, backgroundRect[4]-contentPadding-(fontSize*0.8), fontSize, "o")
+    font:End()
+  end
+
+
   -- selected units grid area
-  local gridWidth = math_floor(backgroundRect[3]-backgroundRect[1]-bgpadding)
+  local gridWidth = math_floor((backgroundRect[3]-backgroundRect[1]-bgpadding)*0.8)  -- leaving some room for the totals
   gridHeight = math_floor((backgroundRect[4]-backgroundRect[2])-bgpadding-bgpadding)
   customInfoArea = {backgroundRect[3]-gridWidth, backgroundRect[2], backgroundRect[3]-bgpadding, backgroundRect[2]+gridHeight}
 
@@ -1230,6 +1320,9 @@ end
 
 
 local function drawEngineTooltip()
+  --local labelColor = '\255\205\205\205'
+  --local valueColor = '\255\255\255\255'
+
   -- display default plaintext engine tooltip
   local fontSize = (height*vsy * 0.11) * (0.95-((1-ui_scale)*0.5))
   local text, numLines = font:WrapText(currentTooltip, contentWidth*(loadedFontSize/fontSize))
@@ -1452,7 +1545,8 @@ function widget:DrawScreen()
   gl.CallList(dlistInfo)
 
 
-    -- widget hovered
+
+  -- widget hovered
   if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
       -- selection grid
@@ -1507,65 +1601,14 @@ function widget:DrawScreen()
             local text, numLines = font:WrapText(unitTooltip[selectionCells[cellHovered]], (backgroundRect[3]-backgroundRect[1])*(loadedFontSize/16))
             stats = stats..statsIndent..tooltipTextColor..text ..'\n\n'
           end
-          -- metal cost
-          local totalValue = 0
-          for _,unitDefID in pairs(cells) do
-            if unitMetalCost[unitDefID] then
-              totalValue = totalValue + (unitMetalCost[unitDefID]*selUnitsCounts[unitDefID])
-            end
-          end
-          if totalValue > 0 then
-            stats = stats..statsIndent..tooltipLabelTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
-          end
-          -- energy cost
-          totalValue = 0
-          for _,unitDefID in pairs(cells) do
-            if unitEnergyCost[unitDefID] then
-              totalValue = totalValue + (unitEnergyCost[unitDefID]*selUnitsCounts[unitDefID])
-            end
-          end
-          if totalValue > 0 then
-            stats = stats..tooltipLabelTextColor.."energycost: "..tooltipValueColor..totalValue.."   "
-          end
-          -- health
-          totalValue = 0
-          local totalHealth = 0
-          for _,unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
-            local health,maxHealth,_,_,buildProgress = spGetUnitHealth(unitID)
-            if health and maxHealth then
-              totalValue = totalValue + maxHealth
-              totalHealth = totalHealth + health
-            end
-          end
-          totalHealth = math_floor(totalHealth)
-          totalValue = math_floor(totalValue)
-          if totalValue > 0 then
-            local percentage = math_floor((totalHealth/totalValue)*100)
-            stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."health: "..tooltipValueColor..percentage.."%"..tooltipDarkTextColor.."  ( "..tooltipLabelTextColor..totalHealth..tooltipDarkTextColor..' of '..tooltipLabelTextColor..totalValue..tooltipDarkTextColor.." )"
-          end
-          -- DPS
-          totalValue = 0
-          for _,unitDefID in pairs(cells) do
-            if unitDPS[unitDefID] then
-              totalValue = totalValue + (unitDPS[unitDefID]*selUnitsCounts[unitDefID])
-            end
-          end
-          if totalValue > 0 then
-            stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
-          end
-          if stats ~= '' then
-            stats = '\n'..stats
-            if not cellHovered then
-              stats = '\n'..stats
-            end
-          end
-
           local text
+          stats = getSelectionTotals(cells)
           if cellHovered then
             text = tooltipTitleColor..unitHumanName[selectionCells[cellHovered]]..tooltipLabelTextColor..(selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x '..tooltipTextColor..selUnitsCounts[selectionCells[cellHovered]] or '')..stats
           else
-            text = tooltipTitleColor.."Selected units: "..tooltipTextColor..#selectedUnits..stats.."\n "..(stats == '' and '' or '\n')..tooltipTextColor.."Left click"..tooltipLabelTextColor..": Select\n "..tooltipTextColor.."   + CTRL"..tooltipLabelTextColor..": Select units of this type on map\n "..tooltipTextColor.."   + ALT"..tooltipLabelTextColor..": Select 1 single unit of this unit type\n "..tooltipTextColor.."Right click"..tooltipLabelTextColor..": Remove\n "..tooltipTextColor.."    + CTRL"..tooltipLabelTextColor..": Remove only 1 unit from that unit type\n "..tooltipTextColor.."Middle click"..tooltipLabelTextColor..": Move to center location\n "..tooltipTextColor.."    + CTRL"..tooltipLabelTextColor..": Move to center off whole selection"
+            text = tooltipTitleColor.."Selected units: "..tooltipTextColor..#selectedUnits..stats.."\n "..(stats == '' and '' or '\n')..selectionHowto
           end
+
           WG['tooltip'].ShowTooltip('info', text)
         end
       end
