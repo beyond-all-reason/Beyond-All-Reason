@@ -445,7 +445,7 @@ function draw_buttons (b)
 		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 0,1,1,0, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+		uiRect(b[i].x, b[i].y+(b[i].h*0.55), b[i].x+b[i].w-(bgpadding/vsx), b[i].y+b[i].h-(bgpadding/vsy), bgpadding, 1,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
 		uiRect(b[i].x, b[i].y, b[i].x+b[i].w-(bgpadding/vsx), b[i].y+(b[i].h*0.4), bgpadding, 0,0,1,1, {1,1,1,0.04*glossMult}, {1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

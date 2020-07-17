@@ -323,8 +323,9 @@ function StartVote(name, owner)
 			end
 			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 3*widgetScale, 1,1,1,1, color1, color2)
 
+			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(noButtonArea[1], noButtonArea[4]-((noButtonArea[4]-noButtonArea[2])*0.5), noButtonArea[3], noButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+			RectRound(noButtonArea[1], noButtonArea[4]-((noButtonArea[4]-noButtonArea[2])*0.5), noButtonArea[3], noButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.035*mult}, {1,1,1,0.2*mult})
 			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])*0.35), 3*widgetScale, 0,0,2,2, {1,1,1,0.11*mult}, {1,1,1,0})
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			--gl.Color(0,0,0,0.075)
@@ -353,8 +354,10 @@ function StartVote(name, owner)
 					mult = 1
 				end
 				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 3*widgetScale, 1,1,1,1, color1, color2)
+
+				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(yesButtonArea[1], yesButtonArea[4]-((yesButtonArea[4]-yesButtonArea[2])*0.5), yesButtonArea[3], yesButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.06*mult}, {1,1,1,0.2*mult})
+				RectRound(yesButtonArea[1], yesButtonArea[4]-((yesButtonArea[4]-yesButtonArea[2])*0.5), yesButtonArea[3], yesButtonArea[4], 3*widgetScale, 2,2,0,0, {1,1,1,0.035*mult}, {1,1,1,0.2*mult})
 				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])*0.35), 3*widgetScale, 0,0,2,2, {1,1,1,0.11*mult}, {1,1,1,0})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				--gl.Color(0,0,0,0.075)

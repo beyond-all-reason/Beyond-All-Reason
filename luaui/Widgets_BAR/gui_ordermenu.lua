@@ -759,7 +759,7 @@ function drawOrders()
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1]+(altPosition and bgpadding or 0),backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, (altPosition and 1 or 0),1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+  RectRound(backgroundRect[1]+(altPosition and bgpadding or 0),backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.16),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, (altPosition and 1 or 0),1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
   RectRound(backgroundRect[1]+(altPosition and bgpadding or 0),backgroundRect[2]+(altPosition and 0 or bgpadding),backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.15), bgpadding, 0,0,(altPosition and 0 or 1),0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

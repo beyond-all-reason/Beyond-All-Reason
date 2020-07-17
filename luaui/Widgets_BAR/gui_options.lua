@@ -603,7 +603,7 @@ function DrawWindow()
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				-- gloss
-				RectRound(groupRect[id][1]+groupMargin, groupRect[id][4]-groupMargin-((groupRect[id][4]-groupRect[id][2])*0.5), groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.025}, {1,0.88,0.66,0.1})
+				RectRound(groupRect[id][1]+groupMargin, groupRect[id][4]-groupMargin-((groupRect[id][4]-groupRect[id][2])*0.5), groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.01}, {1,0.88,0.66,0.1})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font2:Begin()

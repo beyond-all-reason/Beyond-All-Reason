@@ -1094,7 +1094,7 @@ function drawBuildmenuBg()
 
   -- gloss
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  RectRound(backgroundRect[1], backgroundRect[4]-bgpadding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.06*glossMult})
+  RectRound(backgroundRect[1], backgroundRect[4]-bgpadding-((backgroundRect[4]-backgroundRect[2])*0.07), backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 0,1,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
   RectRound(backgroundRect[1], backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[2]+bgpadding+((backgroundRect[4]-backgroundRect[2])*0.045), bgpadding, 0,0,1,0, {1,1,1,0.025*glossMult}, {1,1,1,0})
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
