@@ -435,11 +435,19 @@ l},
 },
 
 ["Talus"] = {
-  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_gull"]=rnd(7,12)} },
-  { spawnCircle = {x=6555, z=4155, r=650}, unitNames = {["critter_gull"]=rnd(2,4)} },
-  { spawnCircle = {x=1600, z=4044, r=650}, unitNames = {["critter_gull"]=rnd(2,4)} },
-  { spawnCircle = {x=1310, z=2065, r=550}, unitNames = {["critter_gull"]=rnd(0,1)} },
-  { spawnCircle = {x=1310, z=2065, r=30}, unitNames = {["critter_goldfish"]=rnd(-2,1)}, nowatercheck=true },
+	{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_gull"]=rnd(7,12)} },
+	{ spawnCircle = {x=6555, z=4155, r=650}, unitNames = {["critter_gull"]=rnd(2,4)} },
+	{ spawnCircle = {x=1600, z=4044, r=650}, unitNames = {["critter_gull"]=rnd(2,4)} },
+	{ spawnCircle = {x=1310, z=2065, r=550}, unitNames = {["critter_gull"]=rnd(0,1)} },
+	{ spawnCircle = {x=1310, z=2065, r=30}, unitNames = {["critter_goldfish"]=rnd(-2,1)}, nowatercheck=true },
+},
+
+["Talus_v2"] = {
+	{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_gull"]=rnd(7,12)} },
+	{ spawnCircle = {x=6555, z=4155, r=650}, unitNames = {["critter_gull"]=rnd(2,4)} },
+	{ spawnCircle = {x=1600, z=4044, r=650}, unitNames = {["critter_gull"]=rnd(2,4)} },
+	{ spawnCircle = {x=1310, z=2065, r=550}, unitNames = {["critter_gull"]=rnd(0,1)} },
+	{ spawnCircle = {x=1310, z=2065, r=30}, unitNames = {["critter_goldfish"]=rnd(-2,1)}, nowatercheck=true },
 },
 
 ["Talus-wet"] = {
@@ -519,7 +527,11 @@ l},
 },
 
 ["Trefoil_v2"] = {
-  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(30,45)} },
+	{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(30,45)} },
+},
+
+["Trefoil Remake 2.19"] = {
+{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(30,45)} },
 },
 
 ["Tropical"] = {

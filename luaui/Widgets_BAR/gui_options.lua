@@ -145,7 +145,6 @@ local presets = {
 		bloom = false,
 		bloomdeferred = false,
 		ssao = 1,
-		water = 1,
 		mapedgeextension = false,
 		lighteffects = false,
 		lups_jetenginefx = false,
@@ -166,7 +165,6 @@ local presets = {
 		bloom = false,
 		bloomdeferred = true,
 		ssao = 2,
-		water = 2,
 		mapedgeextension = false,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -187,7 +185,6 @@ local presets = {
 		bloom = true,
 		bloomdeferred = true,
 		ssao = 2,
-		water = 4,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -208,7 +205,6 @@ local presets = {
 		bloom = true,
 		bloomdeferred = true,
 		ssao = 3,
-		water = 3,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -229,7 +225,6 @@ local presets = {
 		bloom = true,
 		bloomdeferred = true,
 		ssao = 4,
-		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -2059,10 +2054,10 @@ function init()
 		{id="mapedgeextension", group="gfx", basic=true, widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
 
-		{id="water", group="gfx", basic=true, name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=desiredWaterValue,
+		{id="water", group="gfx", basic=true, name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=desiredWaterValue+1,
 		 onload = function(i) end,
 		 onchange=function(i,value)
-			 desiredWaterValue = (value-1)
+			 desiredWaterValue = value-1
 			 if waterDetected then
 			 	Spring.SendCommands("water "..desiredWaterValue)
 			 end
@@ -2661,9 +2656,11 @@ function init()
 		 end,
 		},
 
-		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
+		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
+
+		{id="buildbar", group="ui", basic=true, widget="BuildBar", name="Factory build bar", type="bool", value=GetWidgetToggleValue("BuildBar"), description='Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue'},
 
 		{id="teamplatter", group="ui", basic=true, widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="teamplatter_opacity", basic=true, group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters',
@@ -4295,6 +4292,7 @@ function widget:GetConfigData(data)
 	savedTable.customMapFog = customMapFog
 	savedTable.useNetworkSmoothing = useNetworkSmoothing
 	savedTable.desiredWaterValue = desiredWaterValue
+	savedTable.waterDetected = waterDetected
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},

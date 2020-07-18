@@ -420,16 +420,11 @@ local function updateRejoin()
 		local addedSize = math_floor(((barArea[4]-barArea[2])*0.15)+0.5)
 		RectRound(barArea[1]-addedSize-edgeWidth, barArea[2]-addedSize-edgeWidth, barArea[3]+addedSize+edgeWidth, barArea[4]+addedSize+edgeWidth, barHeight*0.33, 1,1,1,1, {0,0,0,0.06},{0,0,0,0.06})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
+		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.07})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize+addedSize, barHeight*0.2, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-		-- gloss
-		--glBlending(GL_SRC_ALPHA, GL_ONE)
-		--RectRound(barArea[1], barArea[4]-(barHeight*0.5), barArea[3], barArea[4], barHeight*0.2, 1,1,0,0, {1,1,1,0.},{1,1,1,0.09})
-		--RectRound(barArea[1], barArea[2], barArea[3], barArea[2]+(barHeight*0.4), barHeight*0.2, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
-		--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Bar value
 		local valueWidth = catchup * barWidth
@@ -982,6 +977,7 @@ local function updateResbar(res)
 		local addedSize = math_floor(((barArea[4]-barArea[2])*0.15)+0.5)
 		RectRound(barArea[1]-addedSize-edgeWidth, barArea[2]-addedSize-edgeWidth, barArea[3]+addedSize+edgeWidth, barArea[4]+addedSize+edgeWidth, barHeight*0.33, 1,1,1,1, {0,0,0,0.06},{0,0,0,0.06})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
+		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.07})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize+addedSize, barHeight*0.2, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
