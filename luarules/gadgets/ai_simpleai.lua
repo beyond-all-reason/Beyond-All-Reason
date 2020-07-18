@@ -50,22 +50,30 @@ end
 
 -------- lists
 
----- Arm
 	local nameCommanderArm = "armcom"
+	local nameCommanderCor = "corcom"
+	
+-- Factories	
 
+-- Eco
+
+-- Defences
+	
 -- Constructors
-	local SimpleArmConstructors = {
+	local SimpleConstructors = {
 	"armck",
-	"armck",
+	"armdecom",
 	}
 	
-	local SimpleArmConstructorsFactory = {
+	local SimpleConstructorsFactory = {
 	UDN.armck.id,
-	UDN.armck.id,
+	UDN.armdecom.id,
 	}
 	
 -- Army
-	local SimpleArmLandArmy = {
+	local SimpleLandArmy = {
+	----ARM
+	-- t1 kbots
 	"armflea",
 	"armham",
 	"armjeth",
@@ -73,10 +81,27 @@ end
 	"armrectr",
 	"armrock",
 	"armwar",
-	
+	-- t2 kbots
+	"armaak",
+	"armamph",
+	"armaser",
+	"armfark",
+	"armfast",
+	"armfboy",
+	"armfido",
+	"armmark",
+	"armmav",
+	"armscab",
+	"armsnipe",
+	"armspid",
+	"armsptk",
+	"armspy",
+	"armvader",
+	"armzeus",
+	---- CORE
 	}
 	
-	local SimpleArmLandArmyFactory = {
+	local SimpleLandArmyFactory = {
 	UDN.armflea.id,
 	UDN.armham.id,
 	UDN.armjeth.id,
@@ -89,7 +114,7 @@ end
 	
 	
 ---- Core
-	local nameCommanderCor = "corcom"
+	
 
 
 	
@@ -113,7 +138,8 @@ local function SimpleGetClosestMexSpot(x,z)
 		local dx, dz = x - spot.x, z - spot.z
 		local dist = dx*dx + dz*dz
 		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 64)
-		if dist < bestDist and #units == 0 then
+		local height = Spring.GetGroundHeight(spot.x, spot.z)
+		if dist < bestDist and #units == 0 and height > 0 then
 			bestSpot = spot
 			bestDist = dist
 		end
@@ -258,8 +284,8 @@ function gadget:GameFrame(n)
 					
 					-- builders
 					if unitCommands == 0 then
-						for u = 1,#SimpleArmConstructors do
-							if unitName == SimpleArmConstructors[u] then
+						for u = 1,#SimpleConstructors do
+							if unitName == SimpleConstructors[u] then
 								if SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
 									SimpleBuildOrder(unitID, UDN.armlab.id)
 								end
@@ -301,9 +327,9 @@ function gadget:GameFrame(n)
 							if #Spring.GetFullBuildQueue(unitID, 0) == 0 then
 								local r = math.random(0,5)
 								local x,y,z = Spring.GetUnitPosition(unitID)
-								Spring.GiveOrderToUnit(unitID, -SimpleArmLandArmyFactory[(math.random(1, #SimpleArmLandArmyFactory))], {x, y, z, 0}, 0)
+								Spring.GiveOrderToUnit(unitID, -SimpleLandArmyFactory[(math.random(1, #SimpleLandArmyFactory))], {x, y, z, 0}, 0)
 								if r == 0 then
-									Spring.GiveOrderToUnit(unitID, -SimpleArmConstructorsFactory[(math.random(1, #SimpleArmConstructorsFactory))], {x, y, z, 0}, 0)
+									Spring.GiveOrderToUnit(unitID, -SimpleConstructorsFactory[(math.random(1, #SimpleConstructorsFactory))], {x, y, z, 0}, 0)
 								end
 							end
 							--break
@@ -312,9 +338,9 @@ function gadget:GameFrame(n)
 					
 					-- army
 					
-						for u = 1,#SimpleArmLandArmy do
+						for u = 1,#SimpleLandArmy do
 						
-							if unitName == SimpleArmLandArmy[u] then
+							if unitName == SimpleLandArmy[u] then
 								local targetUnitNear = Spring.GetUnitNearestEnemy(unitID, 2000, false)
 								if targetUnitNear then
 									local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnitNear)
@@ -357,21 +383,31 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local unitName = UnitDefs[unitDefID].name
-	if unitName == "armlab" then
-		SimpleFactories[unitTeam] = SimpleFactories[unitTeam] + 1
-	end
-	if unitName == "armmex" then
-		SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] + 1
+	for i = 1,SimpleAITeamIDsCount do
+		if SimpleAITeamIDs == unitTeam then
+			if unitName == "armlab" then
+				SimpleFactories[unitTeam] = SimpleFactories[unitTeam] + 1
+			end
+			if unitName == "armmex" then
+				SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] + 1
+			end
+		end
+	break
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
-	if unitName == "armlab" then
-		SimpleFactories[unitTeam] = SimpleFactories[unitTeam] - 1
-	end
-	if unitName == "armmex" then
-		SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] - 1
+	for i = 1,SimpleAITeamIDsCount do
+		if SimpleAITeamIDs == unitTeam then
+			if unitName == "armlab" then
+				SimpleFactories[unitTeam] = SimpleFactories[unitTeam] - 1
+			end
+			if unitName == "armmex" then
+				SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] - 1
+			end
+		end
+	break
 	end
 end
 
