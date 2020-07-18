@@ -620,7 +620,7 @@ function DrawWindow()
 
 	-- title drawing
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0, WG['guishader'] and {0,0,0,0.8} or {0,0,0,0.85}, WG['guishader'] and {0.05,0.05,0.05,0.8} or {0.05,0.05,0.05,0.85})
-	RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.95,0.85,0.06}, {1,0.95,0.85,0.15})
+	RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.95,0.85,0.03}, {1,0.95,0.85,0.15})
 
 	font2:Begin()
 	font2:SetTextColor(1,1,1,1)
@@ -1088,7 +1088,7 @@ function widget:DrawScreen()
 					local groupMargin = bgMargin/1.7
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0.05}, {1,1,1,0.12})
-					RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.04}, {1,0.88,0.66,0.09})
+					RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.03}, {1,0.88,0.66,0.09})
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
 				if groupRect ~= nil then
@@ -4038,6 +4038,9 @@ function widget:Initialize()
 
 		Spring.Echo('First time setup:  setting air absorption to 0.35')
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
+
+		Spring.SendCommands("water 4")
+		Spring.SetConfigInt("water", 4)
 
 		local turnVsyncOff = true       -- because vsync results in considerable amount of lagginess
 		if turnVsyncOff and tonumber(Spring.GetConfigInt("Vsync",1) or 1) == 1 then
