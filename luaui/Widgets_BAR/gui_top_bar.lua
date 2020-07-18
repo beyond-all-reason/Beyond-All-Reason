@@ -409,7 +409,7 @@ local function updateRejoin()
 		end
 
 		local barHeight = math_floor((height*widgetScale/7.5)+0.5)
-		local barHeightPadding = math_floor((7*widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
+		local barHeightPadding = math_floor((9*widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
 		local barLeftPadding = barHeightPadding
 		local barRightPadding = barHeightPadding
 		local barArea = {area[1]+barLeftPadding, area[2]+barHeightPadding, area[3]-barRightPadding, area[2]+barHeight+barHeightPadding}
@@ -426,10 +426,10 @@ local function updateRejoin()
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1], barArea[4]-(barHeight*0.5), barArea[3], barArea[4], barHeight*0.2, 1,1,0,0, {1,1,1,0.},{1,1,1,0.09})
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[2]+(barHeight*0.4), barHeight*0.2, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		--glBlending(GL_SRC_ALPHA, GL_ONE)
+		--RectRound(barArea[1], barArea[4]-(barHeight*0.5), barArea[3], barArea[4], barHeight*0.2, 1,1,0,0, {1,1,1,0.},{1,1,1,0.09})
+		--RectRound(barArea[1], barArea[2], barArea[3], barArea[2]+(barHeight*0.4), barHeight*0.2, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
+		--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Bar value
 		local valueWidth = catchup * barWidth
