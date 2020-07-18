@@ -693,10 +693,11 @@ StartBuilding(heading, pitch)
 	signal SIG_AIM;
 	//set-signal-mask SIG_AIM;
 	isBuilding		= 1;
+	rightArm = 0;
 	//turn torso to  x-axis <0> speed <395.0000> ; //-- Turn(torso, x-axis, 0, math.rad(395))
 	//turn pelvis to  x-axis <0> speed <395.0000> ; //-- Turn(pelvis, x-axis, 0, math.rad(395))
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn rloarm to  x-axis <-40> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-55> -pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
 
 	wait-for-turn ruparm around x-axis;
@@ -721,6 +722,7 @@ TargetCleared(Func_Var_1)
 
 StopBuilding()
 {
+	rightArm = 1;
 	isBuilding = 0;
 	set INBUILDSTANCE to 0;
 	signal SIG_AIM;
