@@ -13,7 +13,7 @@ function AssistHandler:internalName()
 	return "assisthandler"
 end
 
-AssistHandler.DebugEnabled = false
+AssistHandler.DebugEnabled = true
 
 function AssistHandler:Init()
 	self.free = {}
@@ -23,29 +23,33 @@ function AssistHandler:Init()
 	self.ai.IDByName = {}
 	self.IDByNameTaken = {}
 	self.lastAllocation = self.game:Frame()
-	self.ai.nonAssistantsPerName = 2
 	self.ai.nonAssistant = {}
+	self.ai.dontAssist={}
 end
 
 function AssistHandler:Update()
 	local f = self.game:Frame()
 	if f > self.lastAllocation + 1800 then
 		self.lastAllocation = f
-		if self.ai.Metal.full > 0.33 then
-			self.ai.nonAssistantsPerName = math.max(self.ai.nonAssistantsPerName - 1, 2)
-		elseif self.ai.Metal.tics < 2 or self.ai.Metal.full < 0.1 then
-			self.ai.nonAssistantsPerName = math.min(self.ai.nonAssistantsPerName + 1, self.ai.conUnitPerTypeLimit)
+		if self.ai.Metal.full > 0.5 then
+			for name,builder in pairs(self.ai.dontAssist) do
+				self.ai.dontAssist[name] = math.max(builder - 1, 2)
+			end
+		else
 			for fi = #self.free, 1, -1 do
 				local asstbehaviour = self.free[fi]
+				local unitDef = UnitDefNames[asstbehaviour.name]
+				local counter = Spring.GetTeamUnitDefCount(self.game:GetTeamID(),unitDef.id)
+				self.ai.dontAssist[asstbehaviour.name] = math.max(2,counter/2)
 				if self.ai.IDByName[asstbehaviour.id] == nil then self:AssignIDByName(asstbehaviour) end
-				if self.ai.IDByName[asstbehaviour.id] <= self.ai.nonAssistantsPerName then
+				if self.ai.IDByName[asstbehaviour.id] <= self.ai.dontAssist[asstbehaviour.name] then
 					self.ai.nonAssistant[asstbehaviour.id] = true
 					asstbehaviour.unit:ElectBehaviour()
 					table.remove(self.free, fi)
 				end
+				self:EchoDebug("do not assist count " .. asstbehaviour.name .. ' = '.. self.ai.dontAssist[asstbehaviour.name])
 			end
 		end
-		self:EchoDebug("nonassistants per name: " .. self.ai.nonAssistantsPerName)
 	end
 end
 
@@ -71,7 +75,7 @@ end
 function AssistHandler:Summon(builder, position, number, force)
 	if number == nil or number == 0 then number = #self.free end
 	self:EchoDebug(#self.free .. " assistants free")
-	if #self.free < number then 
+	if #self.free < number then
 		-- self:EchoDebug("total assignments: " .. self.totalAssignments)
 		self:EchoDebug("less than " .. number .. " assistants free")
 		if not force then return false end
@@ -237,7 +241,7 @@ end
 
 -- returns any assistants assigned to a builder to being available
 function AssistHandler:Release(builder, bid, dead)
-	if bid == nil then 
+	if bid == nil then
 		bid = builder:ID()
 	end
 	if self.working[bid] == nil then return false end
@@ -251,7 +255,7 @@ function AssistHandler:Release(builder, bid, dead)
 		if dead then asstbehaviour:Assign(nil) end
 		table.insert(self.free, asstbehaviour)
 		if self.ai.IDByName[asstbehaviour.id] ~= nil then
-			if self.ai.IDByName[asstbehaviour.id] <= self.ai.nonAssistantsPerName then
+			if self.ai.IDByName[asstbehaviour.id] <= self.ai.dontAssist[asstbehaviour.name] then
 				self.ai.nonAssistant[asstbehaviour.id] = true
 			end
 		end
@@ -326,7 +330,11 @@ end
 
 function AssistHandler:AssignIDByName(asstbehaviour)
 	-- game:SendToConsole("assisthandler:assignidbyname", ai, ai.id, self.ai, self.ai.id)
+
 	local uname = asstbehaviour.name
+	if not self.ai.dontAssist[asstbehaviour.name] then
+		self.ai.dontAssist[asstbehaviour.name] = 2
+	end
 	if self.IDByNameTaken[uname] == nil then
 		asstbehaviour.IDByName = 1
 		self.ai.IDByName[asstbehaviour.id] = 1
@@ -345,7 +353,7 @@ function AssistHandler:AssignIDByName(asstbehaviour)
 		self.ai.IDByName[asstbehaviour.id] = id
 		self.IDByNameTaken[uname][id] = asstbehaviour.id
 	end
-	if self.ai.IDByName[asstbehaviour.id] > self.ai.nonAssistantsPerName then
+	if self.ai.IDByName[asstbehaviour.id] > self.ai.dontAssist[asstbehaviour.name] then
 		self.ai.nonAssistant[asstbehaviour.id] = nil
 	else
 		self.ai.nonAssistant[asstbehaviour.id] = true

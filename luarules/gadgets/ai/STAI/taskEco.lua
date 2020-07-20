@@ -227,7 +227,7 @@ local function BuildAdvEnergy(tskqbhvr)
 	end
 	return unitName
 end
-			
+
 
 local function BuildUWFusion()
 	if MyTB.side == CORESideName then
@@ -254,7 +254,7 @@ function buildEstore2()
 	else
 		unitName = "armuwadves"
 	end
-	return unitName	
+	return unitName
 end
 
 function buildMstore1()
@@ -280,7 +280,7 @@ end
 function buildMconv1()
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = "cormakr"	
+		unitName = "cormakr"
 	else
 		unitName = "armmakr"
 	end
@@ -330,7 +330,7 @@ end
 function buildWMconv1()
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = "corfmkr"	
+		unitName = "corfmkr"
 	else
 		unitName = "armfmkr"
 	end
@@ -460,7 +460,7 @@ function EconomySeaplane(tskqbhvr)
 	elseif ai.Energy.full>0.8  then
 		unitName=buildMconv2UW(tskqbhvr)
 	elseif ai.Energy.full>0.5 and ai.Metal.full>0.5 then
-		unitName=Lvl2ShipAssist() 
+		unitName=Lvl2ShipAssist()
 	end
 	EchoDebug('Economy Seaplane '..unitName)
 	return unitName
@@ -472,7 +472,7 @@ function EconomyBattleEngineer(tskqbhvr)
 		unitName= NanoTurret()
 	elseif ai.Energy.full < 0.1 and ai.Metal.full > 0.1 then
 		unitName = Solar()
-	elseif ai.Metal.full < 0.2 then 
+	elseif ai.Metal.full < 0.2 then
 		unitName=BuildMex()
 	else
 		unitName = EngineerAsFactory()

@@ -101,7 +101,7 @@ function ConAdvBot()
 		unitName = "armack"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ai.conUnitAdvPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 3, ai.conUnitAdvPerTypeLimit))
 end
 
 
@@ -125,7 +125,7 @@ function NewCommanders(tskqbhvr)
 	end
 	return unitName
 end
-	
+
 function Decoy(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
