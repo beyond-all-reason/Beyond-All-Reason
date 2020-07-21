@@ -646,7 +646,7 @@ function TaskQueueBehaviour:ProgressQueue()
 				if self.isFactory then
 					if not self.outmodedTechLevel and not self.ai.underReserves then
 						-- factories take up idle assistants
-						ai.assisthandler:TakeUpSlack(builder)
+						--ai.assisthandler:TakeUpSlack(builder)
 					end
 				else
 					self.target = p
