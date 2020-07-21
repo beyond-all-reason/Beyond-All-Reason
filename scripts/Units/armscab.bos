@@ -5,7 +5,7 @@
 
 piece  body, rthigh, lthigh, rbleg, lbleg, rbfoot, lbfoot, rmfoot, lmfoot, rfleg, lfleg, rffoot, lffoot, turret, ldoor, rdoor, flare, rmleg, lmleg, aimy1;
 
-static-var  Static_Var_1, Static_Var_2, bMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  Static_Var_1, Static_Var_2, bMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isAiming;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -48,8 +48,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <52.710947> speed <107.438602> / animSpeed; //delta=-3.58 
 			turn rmleg to x-axis <9.141675> speed <572.687209> / animSpeed; //delta=-19.09 
 			turn rthigh to x-axis <6.275950> speed <31.210720> / animSpeed; //delta=1.04 
-			turn turret to x-axis <-0.000000> speed <81.110861> / animSpeed; //delta=-2.70 
-			turn turret to z-axis <-0.000000> speed <93.617241> / animSpeed; //delta=3.12 
+			
+			if ( !isAiming){
+				turn turret to x-axis <-0.000000> speed <81.110861> / animSpeed; //delta=-2.70 
+				turn turret to z-axis <-0.000000> speed <93.617241> / animSpeed; //delta=3.12 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:13
@@ -69,8 +72,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <47.947877> speed <142.892100> / animSpeed; //delta=4.76 
 			turn rmleg to x-axis <32.608682> speed <704.010206> / animSpeed; //delta=-23.47 
 			turn rthigh to x-axis <4.174644> speed <63.039193> / animSpeed; //delta=2.10 
-			turn turret to x-axis <-2.017011> speed <60.510330> / animSpeed; //delta=2.02 
-			turn turret to z-axis <-1.390131> speed <41.703917> / animSpeed; //delta=1.39 
+			
+			if ( !isAiming){
+				turn turret to x-axis <-2.017011> speed <60.510330> / animSpeed; //delta=2.02 
+				turn turret to z-axis <-1.390131> speed <41.703917> / animSpeed; //delta=1.39 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:17
@@ -89,8 +95,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <56.536928> speed <257.671550> / animSpeed; //delta=-8.59 
 			turn rmleg to x-axis <-15.954352> speed <1456.891030> / animSpeed; //delta=48.56 
 			turn rthigh to x-axis <-1.470755> speed <169.361952> / animSpeed; //delta=5.65 
-			turn turret to x-axis <-4.034022> speed <60.510330> / animSpeed; //delta=2.02 
-			turn turret to z-axis <-2.780261> speed <41.703917> / animSpeed; //delta=1.39 
+
+			if ( !isAiming){
+				turn turret to x-axis <-4.034022> speed <60.510330> / animSpeed; //delta=2.02 
+				turn turret to z-axis <-2.780261> speed <41.703917> / animSpeed; //delta=1.39
+			}				
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:21
@@ -110,8 +119,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <35.053176> speed <644.512564> / animSpeed; //delta=21.48 
 			turn rmleg to x-axis <-18.656665> speed <81.069394> / animSpeed; //delta=2.70 
 			turn rthigh to x-axis <-3.089739> speed <48.569513> / animSpeed; //delta=1.62 
-			turn turret to x-axis <-2.017011> speed <60.510330> / animSpeed; //delta=-2.02 
-			turn turret to z-axis <-1.390131> speed <41.703917> / animSpeed; //delta=-1.39 
+			
+			if ( !isAiming){
+				turn turret to x-axis <-2.017011> speed <60.510330> / animSpeed; //delta=-2.02 
+				turn turret to z-axis <-1.390131> speed <41.703917> / animSpeed; //delta=-1.39 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:25
@@ -131,8 +143,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <-36.279612> speed <2139.983644> / animSpeed; //delta=71.33 
 			turn rmleg to x-axis <17.662758> speed <1089.582700> / animSpeed; //delta=-36.32 
 			turn rthigh to x-axis <-0.000000> speed <92.692156> / animSpeed; //delta=-3.09 
-			turn turret to x-axis <-0.000000> speed <60.510330> / animSpeed; //delta=-2.02 
-			turn turret to z-axis <-0.000000> speed <41.703917> / animSpeed; //delta=-1.39 
+			
+			if ( !isAiming){
+				turn turret to x-axis <-0.000000> speed <60.510330> / animSpeed; //delta=-2.02 
+				turn turret to z-axis <-0.000000> speed <41.703917> / animSpeed; //delta=-1.39 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:29
@@ -152,8 +167,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <2.173875> speed <1153.604614> / animSpeed; //delta=-38.45 
 			turn rmleg to x-axis <-0.747325> speed <552.302502> / animSpeed; //delta=18.41 
 			turn rthigh to x-axis <-1.272229> speed <38.166877> / animSpeed; //delta=1.27 
-			turn turret to x-axis <-2.401554> speed <72.046628> / animSpeed; //delta=2.40 
-			turn turret to z-axis <1.966945> speed <59.008359> / animSpeed; //delta=-1.97 
+			
+			if ( !isAiming){
+				turn turret to x-axis <-2.401554> speed <72.046628> / animSpeed; //delta=2.40 
+				turn turret to z-axis <1.966945> speed <59.008359> / animSpeed; //delta=-1.97 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:33
@@ -173,8 +191,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <23.408349> speed <637.034218> / animSpeed; //delta=-21.23 
 			turn rmleg to x-axis <-12.641930> speed <356.838135> / animSpeed; //delta=11.89 
 			turn rthigh to x-axis <3.235851> speed <135.242407> / animSpeed; //delta=-4.51 
-			turn turret to x-axis <-4.803109> speed <72.046628> / animSpeed; //delta=2.40 
-			turn turret to z-axis <3.933891> speed <59.008359> / animSpeed; //delta=-1.97 
+			
+			if ( !isAiming){
+				turn turret to x-axis <-4.803109> speed <72.046628> / animSpeed; //delta=2.40 
+				turn turret to z-axis <3.933891> speed <59.008359> / animSpeed; //delta=-1.97 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:37
@@ -194,8 +215,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rmfoot to x-axis <49.129660> speed <771.639324> / animSpeed; //delta=-25.72 
 			turn rmleg to x-axis <-9.947898> speed <80.820945> / animSpeed; //delta=-2.69 
 			turn rthigh to x-axis <7.316307> speed <122.413692> / animSpeed; //delta=-4.08 
-			turn turret to x-axis <-2.703695> speed <62.982395> / animSpeed; //delta=-2.10 
-			turn turret to z-axis <3.120575> speed <24.399476> / animSpeed; //delta=0.81 
+			
+			if ( !isAiming){
+				turn turret to x-axis <-2.703695> speed <62.982395> / animSpeed; //delta=-2.10 
+				turn turret to z-axis <3.120575> speed <24.399476> / animSpeed; //delta=0.81 
+			}
 		sleep ((33*animSpeed) -1);
 		}
 	}
@@ -218,8 +242,10 @@ StopWalking() {
 	turn rmfoot to x-axis <42.174386> speed <534.995911>;
 	turn rmleg to x-axis <-13.647429> speed <364.222757>;
 	turn rthigh to x-axis <0.000000> speed <54.872305>;
-	turn turret to x-axis <-2.703695> speed <20.277715>;
-	turn turret to z-axis <3.120575> speed <23.404310>;
+	if ( !isAiming){
+		turn turret to x-axis <-2.703695> speed <20.277715>;
+		turn turret to z-axis <3.120575> speed <23.404310>;
+	}
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -241,8 +267,9 @@ StartMoving(){
 	bMoving=TRUE;
 	start-script Walk();
 }
+
 StopMoving(){
-	\signal SIG_WALK;
+	signal SIG_WALK;
 	bMoving=FALSE;
 	call-script StopWalking();
 }
@@ -278,13 +305,19 @@ activatescr()
 
 	if( TRUE )
 	{
-		turn turret to x-axis <90> speed <180>;
+		turn turret to x-axis <0> speed <200>;
+		turn turret to z-axis <0> speed <200>;
+		turn turret to x-axis <10> speed <30>;
+		turn turret to x-axis <30> speed <60>;
+		turn turret to x-axis <60> speed <100>;
+		turn turret to x-axis <80> speed <60>;	
+		turn turret to x-axis <90> speed <30>;
 		sleep 250;
 	}
 	if( TRUE )
 	{
-		turn ldoor to y-axis <-20> speed <40>;
-		turn rdoor to y-axis <20> speed <40>;
+		turn ldoor to y-axis <-25> speed <30>;
+		turn rdoor to y-axis <25> speed <30>;
 		sleep 250;
 	}
 	return (0);
@@ -297,13 +330,17 @@ deactivatescr()
 
 	if( TRUE )
 	{
-		turn ldoor to y-axis <0> speed <40>;
-		turn rdoor to y-axis <0> speed <40>;
+		turn ldoor to y-axis <0> speed <10>;
+		turn rdoor to y-axis <0> speed <10>;
 		sleep 250;
 	}
 	if( TRUE )
 	{
-		turn turret to x-axis <0> speed <180>;
+		turn turret to x-axis <80> speed <30>;
+		turn turret to x-axis <60> speed <60>;
+		turn turret to x-axis <30> speed <100>;
+		turn turret to x-axis <20> speed <60>;	
+		turn turret to x-axis <0> speed <30>;
 		sleep 250;
 	}
 	sleep 200;
@@ -342,6 +379,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Go()
 {
 	call-script activatescr();
+	wait-for-turn turret around x-axis;
 	Static_Var_1 = 1;
 	return (0);
 }
@@ -350,6 +388,7 @@ Stop()
 {
 	Static_Var_1 = 0;
 	call-script deactivatescr();
+	isAiming = FALSE;
 	return (0);
 }
 
@@ -392,6 +431,7 @@ Create()
 	bMoving = FALSE;
 	Static_Var_1 = 0;
 	Static_Var_2 = 3000;
+	isAiming = FALSE;
 	start-script SmokeUnit();
 	call-script InitState();
 	animspeed = 4;
@@ -426,6 +466,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	isAiming = TRUE;
 	while( !Static_Var_1 )
 	{
 		sleep 100;
