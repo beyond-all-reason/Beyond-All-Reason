@@ -145,7 +145,6 @@ local presets = {
 		bloom = false,
 		bloomdeferred = false,
 		ssao = 1,
-		water = 1,
 		mapedgeextension = false,
 		lighteffects = false,
 		lups_jetenginefx = false,
@@ -166,7 +165,6 @@ local presets = {
 		bloom = false,
 		bloomdeferred = true,
 		ssao = 2,
-		water = 2,
 		mapedgeextension = false,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -187,7 +185,6 @@ local presets = {
 		bloom = true,
 		bloomdeferred = true,
 		ssao = 2,
-		water = 4,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -208,7 +205,6 @@ local presets = {
 		bloom = true,
 		bloomdeferred = true,
 		ssao = 3,
-		water = 3,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -229,7 +225,6 @@ local presets = {
 		bloom = true,
 		bloomdeferred = true,
 		ssao = 4,
-		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
 		lups_jetenginefx = true,
@@ -625,7 +620,7 @@ function DrawWindow()
 
 	-- title drawing
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0, WG['guishader'] and {0,0,0,0.8} or {0,0,0,0.85}, WG['guishader'] and {0.05,0.05,0.05,0.8} or {0.05,0.05,0.05,0.85})
-	RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.95,0.85,0.06}, {1,0.95,0.85,0.15})
+	RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.95,0.85,0.03}, {1,0.95,0.85,0.15})
 
 	font2:Begin()
 	font2:SetTextColor(1,1,1,1)
@@ -1093,7 +1088,7 @@ function widget:DrawScreen()
 					local groupMargin = bgMargin/1.7
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(titleRect[1]+groupMargin, titleRect[2], titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,1,1,0.05}, {1,1,1,0.12})
-					RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.04}, {1,0.88,0.66,0.09})
+					RectRound(titleRect[1]+groupMargin, titleRect[4]-groupMargin-((titleRect[4]-titleRect[2])*0.5), titleRect[3]-groupMargin, titleRect[4]-groupMargin, groupMargin*1.8, 1,1,0,0, {1,0.88,0.66,0.03}, {1,0.88,0.66,0.09})
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
 				if groupRect ~= nil then
@@ -2059,10 +2054,10 @@ function init()
 		{id="mapedgeextension", group="gfx", basic=true, widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
 
-		{id="water", group="gfx", basic=true, name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=desiredWaterValue,
+		{id="water", group="gfx", basic=true, name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=desiredWaterValue+1,
 		 onload = function(i) end,
 		 onchange=function(i,value)
-			 desiredWaterValue = (value-1)
+			 desiredWaterValue = value-1
 			 if waterDetected then
 			 	Spring.SendCommands("water "..desiredWaterValue)
 			 end
@@ -2479,8 +2474,8 @@ function init()
 		 end,
 		},
 
-		{id="teamcolors", group="ui", basic=true, widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
-		{id="sameteamcolors", group="ui", basic=true, name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
+		{id="teamcolors", group="ui", basic=true, widget="Player Color Palette", name="Player colors: auto generated ingame", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby colors with a auto generated color palette based one\n\nNOTE: reloads all widgets because these need to update their colors'},
+		{id="sameteamcolors", group="ui", basic=true, name=widgetOptionColor.."   team colorisation", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', {'useSameTeamColors'}, value) end,
 		},
@@ -2661,9 +2656,11 @@ function init()
 		 end,
 		},
 
-		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
+		{id="idlebuilders", group="ui", basic=true, widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
+
+		{id="buildbar", group="ui", basic=true, widget="BuildBar", name="Factory build bar", type="bool", value=GetWidgetToggleValue("BuildBar"), description='Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue'},
 
 		{id="teamplatter", group="ui", basic=true, widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="teamplatter_opacity", basic=true, group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters',
@@ -4042,6 +4039,9 @@ function widget:Initialize()
 		Spring.Echo('First time setup:  setting air absorption to 0.35')
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
+		Spring.SendCommands("water 4")
+		Spring.SetConfigInt("water", 4)
+
 		local turnVsyncOff = true       -- because vsync results in considerable amount of lagginess
 		if turnVsyncOff and tonumber(Spring.GetConfigInt("Vsync",1) or 1) == 1 then
 			Spring.SendCommands("Vsync 0")
@@ -4295,6 +4295,7 @@ function widget:GetConfigData(data)
 	savedTable.customMapFog = customMapFog
 	savedTable.useNetworkSmoothing = useNetworkSmoothing
 	savedTable.desiredWaterValue = desiredWaterValue
+	savedTable.waterDetected = waterDetected
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},

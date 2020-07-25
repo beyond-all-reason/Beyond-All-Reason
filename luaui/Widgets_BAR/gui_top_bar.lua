@@ -409,7 +409,7 @@ local function updateRejoin()
 		end
 
 		local barHeight = math_floor((height*widgetScale/7.5)+0.5)
-		local barHeightPadding = math_floor((7*widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
+		local barHeightPadding = math_floor((9*widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
 		local barLeftPadding = barHeightPadding
 		local barRightPadding = barHeightPadding
 		local barArea = {area[1]+barLeftPadding, area[2]+barHeightPadding, area[3]-barRightPadding, area[2]+barHeight+barHeightPadding}
@@ -420,15 +420,10 @@ local function updateRejoin()
 		local addedSize = math_floor(((barArea[4]-barArea[2])*0.15)+0.5)
 		RectRound(barArea[1]-addedSize-edgeWidth, barArea[2]-addedSize-edgeWidth, barArea[3]+addedSize+edgeWidth, barArea[4]+addedSize+edgeWidth, barHeight*0.33, 1,1,1,1, {0,0,0,0.06},{0,0,0,0.06})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
+		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.07})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize+addedSize, barHeight*0.2, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1], barArea[4]-(barHeight*0.5), barArea[3], barArea[4], barHeight*0.2, 1,1,0,0, {1,1,1,0.},{1,1,1,0.09})
-		RectRound(barArea[1], barArea[2], barArea[3], barArea[2]+(barHeight*0.4), barHeight*0.2, 0,0,1,1, {1,1,1,0.09},{1,1,1,0.0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Bar value
@@ -982,6 +977,7 @@ local function updateResbar(res)
 		local addedSize = math_floor(((barArea[4]-barArea[2])*0.15)+0.5)
 		RectRound(barArea[1]-addedSize-edgeWidth, barArea[2]-addedSize-edgeWidth, barArea[3]+addedSize+edgeWidth, barArea[4]+addedSize+edgeWidth, barHeight*0.33, 1,1,1,1, {0,0,0,0.06},{0,0,0,0.06})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,1,1, {0.15,0.15,0.15,0.2},{0.8,0.8,0.8,0.16})
+		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1]-addedSize, barArea[2]+addedSize, barArea[3]+addedSize, barArea[4]+addedSize, barHeight*0.33, 1,1,0,0, {1,1,1,0},{1,1,1,0.07})
 		RectRound(barArea[1]-addedSize, barArea[2]-addedSize, barArea[3]+addedSize, barArea[2]+addedSize+addedSize+addedSize, barHeight*0.2, 0,0,1,1, {1,1,1,0.1},{1,1,1,0.0})
@@ -1528,7 +1524,7 @@ function widget:DrawScreen()
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,b and 0.13 or 0.03}, {0.44,0.44,0.44,b and 0.4 or 0.2})
 					local mult = 1
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4]-((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.33), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3*widgetScale, 0,0,0,0, {1,1,1,0.03*mult}, {1,1,1,0.18*mult})
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.25), 3.3*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,0.055*mult}, {1,1,1,0})
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2]+((buttonsArea['buttons'][button][4]-buttonsArea['buttons'][button][2])*0.25), 3.3*widgetScale, 0,0,0,button==firstButton and 1 or 0, {1,1,1,0.045*mult}, {1,1,1,0})
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					break
 				end
@@ -1602,7 +1598,7 @@ function widget:DrawScreen()
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4]-((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], padding*0.5, 2,2,0,0, {1,1,1,0.035*mult}, {1,1,1,0.2*mult})
-				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.35), padding*0.5, 0,0,2,2, {1,1,1,0.15*mult}, {1,1,1,0})
+				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])*0.35), padding*0.5, 0,0,2,2, {1,1,1,0.12*mult}, {1,1,1,0})
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font:End()
@@ -1628,7 +1624,7 @@ function widget:DrawScreen()
 
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[4]-((quitscreenResignArea[4]-quitscreenResignArea[2])*0.5), quitscreenResignArea[3], quitscreenResignArea[4], padding*0.5, 2,2,0,0, {1,1,1,0.035*mult}, {1,1,1,0.2*mult})
-					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])*0.35), padding*0.5, 0,0,2,2, {1,1,1,0.15*mult}, {1,1,1,0})
+					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])*0.35), padding*0.5, 0,0,2,2, {1,1,1,0.12*mult}, {1,1,1,0})
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 					font2:Print("Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")

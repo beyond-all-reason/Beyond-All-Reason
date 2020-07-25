@@ -117,7 +117,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 			-- combat unit
 			self:EchoDebug("  combat unit")
 			if ai.Energy.full < 0.1 or ai.Metal.full < 0.1 then
-				value = DummyUnitName 
+				value = DummyUnitName
 			end
 		elseif value == "armpeep" or value == "corfink" then
 			-- scout planes have no weapons
@@ -135,7 +135,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	return value
 end
 function TaskQueueBehaviour:Init()
-	
+
 
 	if not taskqueues then
 		shard_include("taskqueues")
@@ -248,7 +248,7 @@ function TaskQueueBehaviour:GetHelp(value, position)
 	if value == DummyUnitName then return DummyUnitName end
 	self:EchoDebug(value .. " before getting help")
 	local builder = self.unit:Internal()
-	if assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
+	if assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then
 		return value
 	end
 	if Eco1[value] then
@@ -262,7 +262,7 @@ function TaskQueueBehaviour:GetHelp(value, position)
 		ai.assisthandler:TakeUpSlack(builder)
 		return value
 	end
-	
+
 	if unitTable[value].isBuilding and unitTable[value].buildOptions then
 		if ai.factories - ai.outmodedFactories <= 0 or advFactories[value] then
 			self:EchoDebug("can get help to build factory but don't need it")
@@ -322,7 +322,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		else
 			utype = nil
 		end
-		
+
 	elseif geothermalPlant[value] then
 		-- geothermal
 		p = self.ai.maphandler:ClosestFreeGeo(utype, builder)
@@ -383,22 +383,22 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			end
 		end
 	elseif not unitTable[value].isBuilding then
-		if assistList[self.name] and not nanoTurretList[value] then 
+		if assistList[self.name] and not nanoTurretList[value] then
 		p = ai.buildsitehandler:BuildNearNano(builder, utype)
 		end
 	else
 		if unitTable[value].isWeapon  then
 			if 	utype:Name() == BuildLLT(self) or
 				utype:Name() == BuildLightAA(self) or
-				utype:Name() == BuildLvl2PopUp(self) then 
+				utype:Name() == BuildLvl2PopUp(self) then
 					p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
 					self.ai.buildsitehandler:searchPosInList(self.map:GetMetalSpots(),utype, builder, 'losRadius',20)
 			elseif 	utype:Name() == BuildSpecialLT(self) or
-					utype:Name() == BuildSpecialLTOnly(self) or 
+					utype:Name() == BuildSpecialLTOnly(self) or
 					utype:Name() == BuildMediumAA(self) or
-					utype:Name() == BuildHeavyAA(self)then 
+					utype:Name() == BuildHeavyAA(self)then
 						p =  self.ai.buildsitehandler:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
-			elseif 	utype:Name() == BuildHLT(self) or 
+			elseif 	utype:Name() == BuildHLT(self) or
 					utype:Name() == BuildHeavyishAA(self) or
 					utype:Name() == BuildExtraHeavyAA(self) or
 					utype:Name() == BuildTachyon(self) then
@@ -412,7 +412,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 					p =  self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',nil, 'losRadius',100) or
 					self.ai.buildsitehandler:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
 				end
-			elseif 	nukeList[value] or 
+			elseif 	nukeList[value] or
 					antinukeList[value] then
 				p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',nil,'losRadius',100)
 			else
@@ -428,11 +428,11 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		elseif unitTable[value].radarRadius ~= 0   then
 			p =  self.ai.buildsitehandler:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
 		elseif Eco2[value] == 1 then
-					p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',1000, nil,100) or 
-					self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isFactory',5000, nil,100) or 
+					p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',1000, nil,100) or
+					self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isFactory',5000, nil,100) or
 					self.ai.buildsitehandler:BuildNearLastNano(builder, utype)
 		elseif Eco1[value] == 1 then
-			p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',1000, nil,50) or 
+			p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',1000, nil,50) or
 					self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isFactory',500, nil,50) or
 					self.ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
 		else
@@ -461,10 +461,10 @@ function TaskQueueBehaviour:GetQueue()
 	if self.isFactory and ai.factoryUnderConstruction and ( ai.Metal.full < 0.5 or ai.Energy.full < 0.5) then
 		q = {}
 	end
-	
+
 	self.outmodedTechLevel = false
 	local uT = unitTable
-	if outmodedTaskqueues[self.name] ~= nil and not q then 
+	if outmodedTaskqueues[self.name] ~= nil and not q then
 		local threshold =  1 - (uT[self.name].techLevel / ai.maxFactoryLevel)
 		if self.isFactory  and (ai.Metal.full < threshold or ai.Energy.full < threshold) then
 			local mtype = factoryMobilities[self.name][1]
@@ -481,10 +481,10 @@ function TaskQueueBehaviour:GetQueue()
 				end
 				if q then break end
 			end
-		
+
 		elseif self.outmodedFactory then
 			q = outmodedTaskqueues[self.name]
-			
+
 		end
 	end
 	q = q or taskqueues[self.name]
@@ -521,7 +521,7 @@ function TaskQueueBehaviour:Update()
 	if self.isFactory and f % 311 == 0 and (factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh') then
 		self.AmpOrGroundWeapon = self:GetAmpOrGroundWeapon()
 	end
-		
+
 	-- watchdog check
 	if not self.constructing and not self.isFactory then
 		if (self.lastWatchdogCheck + self.watchdogTimeout < f) or (self.currentProject == nil and (self.lastWatchdogCheck + 1 < f)) then
@@ -552,7 +552,7 @@ function TaskQueueBehaviour:ProgressQueue()
 		ai.buildsitehandler:ClearMyPlans(self)
 		if not self.isCommander and not self.isFactory then
 			if ai.IDByName[self.id] ~= nil then
-				if ai.IDByName[self.id] > ai.nonAssistantsPerName then
+				if ai.IDByName[self.id] > ai.dontAssist[self.name]then
 					ai.nonAssistant[self.id] = nil
 				end
 			end
@@ -567,7 +567,7 @@ function TaskQueueBehaviour:ProgressQueue()
 			self.progress = true
 			return
 		end
-		
+
 		local utype = nil
 		local value = val
 
@@ -646,7 +646,7 @@ function TaskQueueBehaviour:ProgressQueue()
 				if self.isFactory then
 					if not self.outmodedTechLevel and not self.ai.underReserves then
 						-- factories take up idle assistants
-						ai.assisthandler:TakeUpSlack(builder)
+						--ai.assisthandler:TakeUpSlack(builder)
 					end
 				else
 					self.target = p
