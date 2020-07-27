@@ -1,17 +1,18 @@
 ﻿10.24 -> 1.00
 
  • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice
- • Ground scout vehicles/kbot: 10% more LoS
+ • Ground scouts (vehicles/kbot): 10% more LoS
  • Enabled ground deformation
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Removed reverse move
  • Removed air collisions for bombers
- • Increased maxslope for all units 50% (the slope which it allows to be build)
+ • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Decreased cormaw damage 27%
+ • claw/zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
 
 
 10.23 -> 10.24
 24/02/2019
 
-Balanced Annihilation, the game this was based on.
+Balanced Annihilation 10.24, the game this was based on.

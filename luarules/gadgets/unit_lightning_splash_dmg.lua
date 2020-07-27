@@ -16,7 +16,6 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local mRandom = math.random
 local sparkWeapons = {}
 local weapons = {
     lightning = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5,   maxunits=2},

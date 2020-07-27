@@ -16,9 +16,6 @@ end
 local width = 0
 local addonWidth = 0
 local height = 0
-local bgBorderOrg = 0.0035
-local bgBorder = bgBorderOrg
-local bgMargin = 0.005
 local alternativeUnitpics = false
 
 local zoomMult = 1.5

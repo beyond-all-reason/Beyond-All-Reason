@@ -28,7 +28,7 @@ local CMD_STOP = CMD.STOP
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if hasDeathAnim[unitDefID] then
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-    SetUnitNoSelect(unitID,true)
-    GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
+		SetUnitNoSelect(unitID,true)
+		GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
 	end
 end
