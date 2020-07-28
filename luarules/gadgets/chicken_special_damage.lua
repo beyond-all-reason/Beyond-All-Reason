@@ -58,25 +58,25 @@ local CHICKEN_RESISTS = {
 	[UnitDefNames['chickenc1'].id] = {
 		[WeaponDefNames['armclaw_dclaw'].id] = 0.6,
 		[WeaponDefNames['armzeus_lightning'].id] = 0.6,
-		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.6,
+		[WeaponDefNames['armlatnk_lightning'].id] = 0.6,
 		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.6,
 	},
 	[UnitDefNames['chickenc3'].id] = {
 		[WeaponDefNames['armclaw_dclaw'].id] = 0.5,
 		[WeaponDefNames['armzeus_lightning'].id] = 0.5,
-		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
+		[WeaponDefNames['armlatnk_lightning'].id] = 0.5,
 		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
 	},
 	[UnitDefNames['chickenc3b'].id] = {
 		[WeaponDefNames['armclaw_dclaw'].id] = 0.5,
 		[WeaponDefNames['armzeus_lightning'].id] = 0.5,
-		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
+		[WeaponDefNames['armlatnk_lightning'].id] = 0.5,
 		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
 	},
 	[UnitDefNames['chickenc3b'].id] = {
 		[WeaponDefNames['armclaw_dclaw'].id] = 0.5,
 		[WeaponDefNames['armzeus_lightning'].id] = 0.5,
-		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
+		[WeaponDefNames['armlatnk_lightning'].id] = 0.5,
 		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
 	},
 	[UnitDefNames['chickenh5'].id] = {
