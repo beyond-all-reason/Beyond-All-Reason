@@ -12,7 +12,7 @@ Create()
 {
 	turn body to y-axis Rand(0, 65534) now;
 	emit-sfx 1024+2 from body;
-	move body to y-axis [-20] now;
+	move body to y-axis [-50] now;
 	move body to y-axis [0] speed [8];
 }
 

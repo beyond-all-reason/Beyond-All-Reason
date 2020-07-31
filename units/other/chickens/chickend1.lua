@@ -56,6 +56,10 @@ return {
 		workertime = 125,
 		customparams = {
 			subfolder = "other/chickens",
+			model_author = "LathanStanley, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_tube_normals.tga",
+			treeshader = "yes",
 		},
 		featuredefs = {
 			dead = {},
