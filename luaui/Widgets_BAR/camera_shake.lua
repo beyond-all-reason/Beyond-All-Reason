@@ -39,7 +39,6 @@ local exps = 0
 local shake = 0
 
 local powerScale = 80
-local maxOffset = 0.03
 
 local decayFactor = 5
 
@@ -49,14 +48,12 @@ local distAdj  = 100
 
 
 local vsx,vsy = Spring.GetViewGeometry()
-local maxOffsetPx = 0
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	maxOffsetPx = ((vsy+vsx)/2) * maxOffset
 end
 
 function widget:Initialize()
@@ -99,16 +96,17 @@ end
 
 
 function widget:Update(dt)
-  if powerScale <= 0 then return end
-  local t = widgetHandler:GetHourTimer()
-  local pShake = shake * 0.1
-  local tShake = shake * 0.025
-  local px, py, pz, tx, ty, tz =
+	if powerScale <= 0 then return end
+	local t = widgetHandler:GetHourTimer()
+	local pShake = shake * 0.1
+	local tShake = shake * 0.025
+	local px, py, pz, tx, ty, tz =
     birand(pShake),
     birand(pShake),
     birand(pShake),
     birand(tShake),
     birand(tShake)
+	local maxOffsetPx = powerScale / 30000
 	if px >  maxOffsetPx then px =  maxOffsetPx end
 	if px < -maxOffsetPx then px = -maxOffsetPx end
 	if py >  maxOffsetPx then py =  maxOffsetPx end
@@ -119,13 +117,13 @@ function widget:Update(dt)
 	if tx < -maxOffsetPx then tx = -maxOffsetPx end
 	if ty >  maxOffsetPx then ty =  maxOffsetPx end
 	if ty < -maxOffsetPx then ty = -maxOffsetPx end
-  spSetCameraOffset(px, py, pz, tx, ty)
+	spSetCameraOffset(px, py, pz, tx, ty)
 
-  local decay = (1 - (decayFactor * dt))
-  if (decay < 0) then
-    decay = 0
-  end
-  shake = shake * decay
+	local decay = (1 - (decayFactor * dt))
+	if (decay < 0) then
+	decay = 0
+	end
+	shake = shake * decay
 end
 
 
