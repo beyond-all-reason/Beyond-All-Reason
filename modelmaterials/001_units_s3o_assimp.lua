@@ -306,6 +306,7 @@ local materials = {
 			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
+			treewind = true,
 		},
 		deferredOptions = {
 			normalmapping = true,
@@ -313,6 +314,7 @@ local materials = {
 			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
+			treewind = true,
 			materialIndex = 4,
 		},
 
