@@ -303,14 +303,14 @@ local materials = {
 		shaderOptions = {
 			normalmapping = true,
 			flashlights = false,
-			vertex_ao = false,
+			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
 		},
 		deferredOptions = {
 			normalmapping = true,
 			flashlights = false,
-			vertex_ao = false,
+			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
 			materialIndex = 4,
