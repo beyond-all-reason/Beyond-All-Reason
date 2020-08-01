@@ -306,7 +306,6 @@ local materials = {
 			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
-			treewind = true,
 		},
 		deferredOptions = {
 			normalmapping = true,
@@ -314,11 +313,7 @@ local materials = {
 			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
-			treewind = true,
 			materialIndex = 4,
-		},
-		shadowOptions = {
-			treewind = true,
 		},
 
 		-- are these below required?
