@@ -390,7 +390,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 StopWalking() {
 	move pelvis to y-axis [-1.000000] speed [6.944444];
 	if (leftArm) turn biggun to x-axis <-52.006372> speed <28.433941>;
-	turn dish to y-axis <7.500000> speed <-4.326923>;
 	turn head to x-axis <-1.298815> speed <11.896390>;
 	turn head to y-axis <0.000000> speed <28.723844>;
 	turn lfoot to x-axis <2.870126> speed <274.263975>;
