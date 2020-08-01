@@ -317,6 +317,9 @@ local materials = {
 			treewind = true,
 			materialIndex = 4,
 		},
+		shadowOptions = {
+			treewind = true,
+		},
 
 		-- are these below required?
 		--UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
