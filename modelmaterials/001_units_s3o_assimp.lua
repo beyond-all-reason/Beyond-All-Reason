@@ -301,14 +301,14 @@ local materials = {
 	}),
 	unitsNormalMapOthers = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		shaderOptions = {
-			normalmapping = false,
+			normalmapping = true,
 			flashlights = false,
 			vertex_ao = false,
 			health_displace = false,
 			health_texturing = false,
 		},
 		deferredOptions = {
-			normalmapping = false,
+			normalmapping = true,
 			flashlights = false,
 			vertex_ao = false,
 			health_displace = false,
