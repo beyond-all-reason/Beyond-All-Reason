@@ -143,6 +143,13 @@ vertex = [[
 		return fract((p3.x + p3.y) * p3.z);
 	}
 
+	vec3 hash31(float p) {
+		const vec3 HASHSCALE3 = vec3(0.1031, 0.1030, 0.0973);
+		vec3 p3 = fract(vec3(p) * HASHSCALE3);
+		p3 += dot(p3, p3.yzx + 19.19);
+		return fract((p3.xxy + p3.yzz) * p3.zyx);
+	}
+
 	/***********************************************************************/
 	// Auxilary functions
 
@@ -159,8 +166,12 @@ vertex = [[
 		float tweenFactor = smoothstep(0.0f, 1.0f, max(simFrame % 750 - 600, 0) / 150.0f);
 		vec2 wind = mix(curWind, nextWind, tweenFactor);
 
-		// fractional part of model position, clamped to >.4
-		vec4 modelXYZ = gl_ModelViewMatrix[3];
+		#if 0
+			// fractional part of model position, clamped to >.4
+			vec3 modelXYZ = gl_ModelViewMatrix[3].xyz;
+		#else
+			vec3 modelXYZ = 16.0 * hash31(float(intOptions[0]));
+		#endif
 		modelXYZ = fract(modelXYZ);
 		modelXYZ = clamp(modelXYZ, 0.4, 1.0);
 
@@ -171,8 +182,8 @@ vertex = [[
 		float simTime = 0.02 * simFrame;
 		// these determine the speed of the wind"s "cosine" waves.
 		cosVec.w = 0.0;
-		cosVec.x = simTime * modelXYZ[0] + mVP.x;
-		cosVec.y = simTime * modelXYZ[2] / 3.0 + modelXYZ.x;
+		cosVec.x = simTime * modelXYZ.x + mVP.x;
+		cosVec.y = simTime * modelXYZ.z / 3.0 + modelXYZ.x;
 		cosVec.z = simTime * 1.0 + mVP.z;
 
 		// calculate "cosines" in parallel, using a smoothed triangle wave
