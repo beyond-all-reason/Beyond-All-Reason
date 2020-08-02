@@ -585,10 +585,10 @@ function drawCell(cell, zoom)
     else
       if WG['guishader'] then
         color1 = (cmd.type == 5) and {0.4,0.4,0.4,0.6} or {0.6,0.6,0.6,0.6}
-        color2 = {0.8,0.8,0.8,0.6}
+        color2 = {0.7,0.7,0.7,0.6}
       else
         color1 = (cmd.type == 5) and {0.25,0.25,0.25,1} or {0.33,0.33,0.33,1}
-        color2 = {0.55,0.55,0.55,0.95}
+        color2 = {0.6,0.6,0.6,0.8}
       end
       RectRound(cellRects[cell][1]+leftMargin, cellRects[cell][2]+bottomMargin, cellRects[cell][3]-rightMargin, cellRects[cell][4]-topMargin, cellWidth*0.025 ,2,2,2,2, color1,color2)
 
