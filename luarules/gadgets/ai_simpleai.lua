@@ -4,7 +4,7 @@ local SimpleAITeamIDs = {}
 local SimpleAITeamIDsCount = 0
 local SimpleCheaterAITeamIDs = {}
 local SimpleCheaterAITeamIDsCount = 0
-local UDN = UnitDefNames 
+local UDN = UnitDefNames
 
 -- team locals
 SimpleFactories = {}
@@ -17,10 +17,10 @@ for i = 1,#teams do
 		enabled = true
 		SimpleAITeamIDsCount = SimpleAITeamIDsCount + 1
 		SimpleAITeamIDs[SimpleAITeamIDsCount] = teamID
-		
+
 		SimpleFactories[teamID] = 0
 		SimpleT1Mexes[teamID] = 0
-		
+
 		if string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' then
 			SimpleCheaterAITeamIDsCount = SimpleCheaterAITeamIDsCount + 1
 			SimpleCheaterAITeamIDs[SimpleCheaterAITeamIDsCount] = teamID
@@ -52,24 +52,24 @@ end
 
 	local nameCommanderArm = "armcom"
 	local nameCommanderCor = "corcom"
-	
--- Factories	
+
+-- Factories
 
 -- Eco
 
 -- Defences
-	
+
 -- Constructors
 	local SimpleConstructors = {
 	"armck",
 	"armdecom",
 	}
-	
+
 	local SimpleConstructorsFactory = {
 	UDN.armck.id,
 	UDN.armdecom.id,
 	}
-	
+
 -- Army
 	local SimpleLandArmy = {
 	----ARM
@@ -100,7 +100,7 @@ end
 	"armzeus",
 	---- CORE
 	}
-	
+
 	local SimpleLandArmyFactory = {
 	UDN.armflea.id,
 	UDN.armham.id,
@@ -109,24 +109,24 @@ end
 	UDN.armrectr.id,
 	UDN.armrock.id,
 	UDN.armwar.id,
-	
+
 	}
-	
-	
+
+
 ---- Core
-	
 
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
 	-------- functions
 
 local function SimpleGetClosestMexSpot(x,z)
@@ -162,33 +162,33 @@ local function SimpleBuildOrder(cUnitID, building)
 		local buildingDefID = building
 		local r = math.random (0,3)
 		if r == 0 then
-			local bposx = refx 
+			local bposx = refx
 			local bposz = refz + reffootz + spacing
-			local bposy = Spring.GetGroundHeight(bposx, bposz)+100
+			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
 			if testpos == 2 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
 			end
 		elseif r == 1 then
 			local bposx = refx + reffootx + spacing
-			local bposz = refz 
-			local bposy = Spring.GetGroundHeight(bposx, bposz)+100
+			local bposz = refz
+			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
 			if testpos == 2 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
 			end
 		elseif r == 2 then
-			local bposx = refx 
+			local bposx = refx
 			local bposz = refz - reffootz - spacing
-			local bposy = Spring.GetGroundHeight(bposx, bposz)+100
+			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
 			if testpos == 2 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
 			end
 		elseif r == 3 then
 			local bposx = refx - reffootx - spacing
-			local bposz = refz 
-			local bposy = Spring.GetGroundHeight(bposx, bposz)+100
+			local bposz = refz
+			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
 			if testpos == 2 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
@@ -198,8 +198,8 @@ local function SimpleBuildOrder(cUnitID, building)
 		--local buildingDefID = UnitDefNames.building.id
 		--local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, facing)
 end
-	
-	
+
+
 
 
 
@@ -225,7 +225,7 @@ function gadget:GameOver()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	
+
 function gadget:GameFrame(n)
 	if n%30 == 0 then
 		for i = 1,#SimpleAITeamIDs do
@@ -244,22 +244,22 @@ function gadget:GameFrame(n)
 					end
 				end
 			end
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 			local units = Spring.GetTeamUnits(teamID)
 			for k = 1,#units do
 				local unitID = units[k]
@@ -272,16 +272,16 @@ function gadget:GameFrame(n)
 				local unitCommands = Spring.GetCommandQueue(unitID, 0)
 				local unitposx, unitposy, unitposz = Spring.GetUnitPosition(unitID)
 				--Spring.Echo(faction)
-				
-				
-				
-				
-				
-				
-				
+
+
+
+
+
+
+
 				--if faction == "arm" then
-					
-					
+
+
 					-- builders
 					if unitCommands == 0 then
 						for u = 1,#SimpleConstructors do
@@ -291,8 +291,8 @@ function gadget:GameFrame(n)
 								end
 								local r = math.random(0,8)
 								local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
-								
-								
+
+
 								if r == 0 then
 									SimpleBuildOrder(unitID, UDN.armllt.id)
 								elseif r >= 1 and r <= 4 then
@@ -322,7 +322,7 @@ function gadget:GameFrame(n)
 							end
 							--break
 						end
-						
+
 						if unitName == "armlab" then
 							if #Spring.GetFullBuildQueue(unitID, 0) == 0 then
 								local r = math.random(0,5)
@@ -334,12 +334,12 @@ function gadget:GameFrame(n)
 							end
 							--break
 						end
-					
-					
+
+
 					-- army
-					
+
 						for u = 1,#SimpleLandArmy do
-						
+
 							if unitName == SimpleLandArmy[u] then
 								local targetUnitNear = Spring.GetUnitNearestEnemy(unitID, 2000, false)
 								if targetUnitNear then
@@ -354,14 +354,14 @@ function gadget:GameFrame(n)
 							end
 						end
 					end
-				
-				
-				
-				
-				
+
+
+
+
+
 				--elseif faction == "core" then
-					
-					
+
+
 					-- builders
 					if unitCommands == 0 then
 						if unitName == "corcom" then
@@ -370,11 +370,11 @@ function gadget:GameFrame(n)
 							--break
 						end
 					end
-					
-					
+
+
 					-- army
-					
-					
+
+
 				--end
 			end
 		end
