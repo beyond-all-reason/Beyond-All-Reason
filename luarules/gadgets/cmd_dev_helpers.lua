@@ -11,6 +11,8 @@ function gadget:GetInfo()
 end
 
 
+
+
 local authorizedPlayers  = {
 	'Floris',
 	'[teh]Flow',
@@ -93,7 +95,10 @@ if gadgetHandler:IsSyncedCode() then
 		msg = string.sub(msg, PACKET_HEADER_LENGTH)
 
         local words = {}
-        for word in msg:gmatch("%w+") do table.insert(words, word) end
+        for word in msg:gmatch("[_%w]+") do 
+          table.insert(words, word) 
+          --Spring.Echo("word",word)
+          end
         if words[1] == "givecat" then
             GiveCat(words)
         elseif words[1] == "destroyselunits" then
@@ -187,7 +192,6 @@ else
   
     function spawnceg(_,line, words, playerID)
       if not isAuthorized(Spring.GetMyPlayerID()) then return end
-      --Spring.Echo('Spawning CEG:',line, words, playerID)
       local mx,my = Spring.GetMouseState()
       local t,pos = Spring.TraceScreenRay(mx,my, true)
       local n = 0
@@ -195,6 +199,8 @@ else
       local x,y,z = ox,oy,oz
       msg = "spawnceg"
       msg = msg .. " " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
+      
+      Spring.Echo('Spawning CEG:',line, words, playerID, msg)
       Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
     end
 
