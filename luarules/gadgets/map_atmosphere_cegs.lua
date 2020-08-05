@@ -1,9 +1,9 @@
-local mapname = Game.mapName
-local mapsizeX = Game.mapSizeX
-local mapsizeZ = Game.mapSizeZ
-local spSCEG = Spring.SpawnCEG
-local mathrandom = math.random
-local spGroundHeight = Spring.GetGroundHeight
+mapname = Game.mapName
+mapsizeX = Game.mapSizeX
+mapsizeZ = Game.mapSizeZ
+spSCEG = Spring.SpawnCEG
+mathrandom = math.random
+spGroundHeight = Spring.GetGroundHeight
 
 
 function gadget:GetInfo()
@@ -32,7 +32,7 @@ end
 function SpawnCEGInRandomMapPos(cegname, addposy, sound)
 	local posx = mathrandom(0,mapsizeX)
 	local posz = mathrandom(0,mapsizeZ)
-	local posy = spGroundHeight(posx, posz) + addposy
+	local posy = spGroundHeight(posx, posz) + (addposy or 0)
 	spSCEG(cegname, posx, posy, posz)
 end
 
