@@ -5,7 +5,6 @@ function gadget:GameFrame(n)
 
 -- common foggy cliffs	
 	if n%360 == 0 then
-		--SpawnCEGInRandomMapPos("rain", 0)
 		SpawnCEGInPosition("fogdirty", 1490, 79, 4271)
 		SpawnCEGInPosition("fogdirty", 5545, 219, 3359)
 		SpawnCEGInPosition("fogdirty", 3365, 164, 3438)
@@ -18,14 +17,12 @@ function gadget:GameFrame(n)
 
 -- rare foggy cliffs	
 	if n%700 == 0 then
-		--SpawnCEGInRandomMapPos("rain", 0)
 		SpawnCEGInPosition("fogdirty", 624, 145, 565)
 		SpawnCEGInPosition("fogdirty", 7201, 270, 5743)
 	end
 
 -- common fireflies
 	if n%1000 == 0 then
-		--SpawnCEGInRandomMapPos("rain", 0)
 		SpawnCEGInPosition("fireflies", 774, 99, 4289)
 		SpawnCEGInPosition("fireflies", 7299, 184, 3964)
 		SpawnCEGInPosition("fireflies", 2933, 117, 4136)
@@ -33,14 +30,12 @@ function gadget:GameFrame(n)
 
 -- rare fireflies
 	if n%2200 == 0 then
-		--SpawnCEGInRandomMapPos("rain", 0)
 		SpawnCEGInPosition("fireflies", 3362, 146, 3494)
 		SpawnCEGInPosition("fireflies", 943, 81, 3381)
 	end
 
 -- random rain
 	if n%3200 == 1600 then
-		--SpawnCEGInRandomMapPos("rain", 0)
 		SpawnCEGInRandomMapPos("rain", 0)
 	end
 	

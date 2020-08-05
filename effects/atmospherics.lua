@@ -225,19 +225,6 @@ return {
   },
 
   ["firefly"] = {
-    -- groundflash = {
-    --   circlealpha        = 0.9,
-    --   circlegrowth       = -0.05,
-    --   flashalpha         = 0.80,
-    --   flashsize          = 100,
-    --   ttl                = 80,
-    --   color = {
-    --     [1]  = 0.4,
-    --     [2]  = 0.8,
-    --     [3]  = 0.1,
-    --   },
-    --   alwaysvisible      = true,
-    -- },
     lightningballs = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -270,6 +257,55 @@ return {
     },
   },
 
+["powerupwhite"] = {
+    usedefaultexplosions = false,
+    raindrops = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 60,
+      ground             = true,
+      water              = true,
+      underwater         = false,
+      properties = {
+        delay              = [[1 r750]],
+        explosiongenerator = [[custom:powerupspritewhite]],
+        pos                = [[-25 r50, -35 r25, -25 r50]],
+      },
+    },
+  },
+
+["powerupspritewhite"] = {
+    lightningballs = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater     = true,
+      properties = {
+        airdrag            = 0.96,
+        colormap           = [[0 0 0 0.01   0.7 0.7 0.7 0.018   0.9 0.9 0.9 0.035    0.7 0.7 0.7 0.008   0.2 0.2 0.2 0.005   0 0 0 0.01]],
+        directional        = true,
+        emitrot            = 0,
+        emitrotspread      = 0,
+        --emitmul            = [[2, 2, 2]],
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 0.06, 0]],
+        numparticles       = 1,
+        particlelife       = 33,
+        particlelifespread = 66,
+        particlesize       = 6,
+        particlesizespread = 15,
+        particlespeed      = 0.40,
+        particlespeedspread = 0.03,
+        pos                = [[-10 r20, 1, -10 r20]],
+        sizegrowth         = -0.4,
+        sizemod            = 1.0,
+        texture            = [[gunshot]],
+        alwaysvisible      = true,
+      },
+    },
+  },
   ["rain"] = {
     usedefaultexplosions = false,
     raindrops = {
