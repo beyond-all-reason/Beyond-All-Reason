@@ -25,8 +25,22 @@ function SpawnCEGInPosition(cegname, posx, posy, posz, sound)
 	spSCEG(cegname, posx, posy, posz)
 end
 
-function SpawnCEGInArea(cegname, posx, posy, posz, radius, sound)
-	spSCEG(cegname, posx+mathrandom(-radius,radius), posy, posz+mathrandom(-radius,radius))
+function SpawnCEGInPositionGround(cegname, posx, addposy, posz, sound)
+	local posy = spGroundHeight(posx, posz) + (addposy or 0)
+	spSCEG(cegname, posx, posy, posz)
+end
+
+function SpawnCEGInArea(cegname, midposx, posy, midposz, radius, sound)
+	local posx = midposx+mathrandom(-radius,radius)
+	local posz = midposz+mathrandom(-radius,radius)
+	spSCEG(cegname, posx, posy, posz)
+end
+
+function SpawnCEGInAreaGround(cegname, midposx, addposy, midposz, radius, sound)
+	local posx = midposx+mathrandom(-radius,radius)
+	local posz = midposz+mathrandom(-radius,radius)
+	local posy = spGroundHeight(posx, posz) + (addposy or 0)
+	spSCEG(cegname, posx, posy, posz)
 end
 
 function SpawnCEGInRandomMapPos(cegname, addposy, sound)
