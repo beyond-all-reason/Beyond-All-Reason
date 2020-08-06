@@ -1,3 +1,10 @@
+--[[
+local msg = 'luar_uels ihatelua -100 200'
+for word in msg:gmatch("[%-_%w]+") do 
+  print (word)
+end
+]]--
+
 function gadget:GetInfo()
   return {
     name      = "Dev Helper Cmds",
@@ -95,10 +102,9 @@ if gadgetHandler:IsSyncedCode() then
 		msg = string.sub(msg, PACKET_HEADER_LENGTH)
 
         local words = {}
-        for word in msg:gmatch("[_%w]+") do 
+        for word in msg:gmatch("[%-_%w]+") do 
           table.insert(words, word) 
-          --Spring.Echo("word",word)
-          end
+        end
         if words[1] == "givecat" then
             GiveCat(words)
         elseif words[1] == "destroyselunits" then
@@ -191,16 +197,22 @@ else
     end
   
     function spawnceg(_,line, words, playerID)
+      --spawnceg usage:
+      --spawnceg usage:
+      --/luarules spawnceg newnuke --spawns at cursor
+      --/luarules spawnceg newnuke [int] -- spawns at cursor at height
       if not isAuthorized(Spring.GetMyPlayerID()) then return end
+      local height = 32
+      if words[2] and tonumber(words[2]) then height = tonumber(words[2]) end
       local mx,my = Spring.GetMouseState()
       local t,pos = Spring.TraceScreenRay(mx,my, true)
       local n = 0
-      local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2])+32, math.floor(pos[3])
+      local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2] + height), math.floor(pos[3])
       local x,y,z = ox,oy,oz
       msg = "spawnceg"
       msg = msg .. " " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
       
-      Spring.Echo('Spawning CEG:',line, words, playerID, msg)
+      Spring.Echo('Spawning CEG:',line, playerID, msg)
       Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
     end
 
