@@ -207,6 +207,58 @@ return {
     },
   },
 
+  ["dunecloud"] = {
+    usedefaultexplosions = false,
+    raindrops = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 25,
+      ground             = true,
+      water              = true,
+      underwater         = false,
+      properties = {
+        delay              = [[1 r500]],
+        explosiongenerator = [[custom:dunedust]],
+        pos                = [[-25 r350, 100 r20, -25 r350]],
+      },
+    },
+  },
+
+["dunedust"] = {
+    usedefaultexplosions = false,
+    grounddust = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.90,
+        colormap           = [[0 0 0 0.0  0.20 0.25 0.16 0.10   0.10 0.14 0.12 0.07   0 0 0 0.0]],
+        directional        = false,
+        emitrot            = 5,
+        emitrotspread      = 45,
+        emitvector         = [[0, -1, 0]],
+        gravity            = [[0, 0.015, 0]],
+        numparticles       = 3,
+        particlelife       = 120,
+        particlelifespread = 100,
+        particlesize       = 4,
+        particlesizespread = 30,
+        particlespeed      = 14.5,
+        particlespeedspread = 7.5,
+        pos                = [[0 r150, -20 r40, 0 r150]],
+        sizegrowth         = [[0.20 r0.1]],
+        sizemod            = 1,
+        texture            = [[smoke_puff_red]],
+        useairlos          = true,
+        --alwaysvisible      = true,
+      },
+    },
+  },
+
   ["fireflies"] = {
     usedefaultexplosions = false,
     raindrops = {
