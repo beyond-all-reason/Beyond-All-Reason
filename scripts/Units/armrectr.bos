@@ -199,6 +199,41 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rleg to y-axis <-0.051955> speed <3.557226> / animSpeed; //delta=0.12 
 		sleep ((33*animSpeed) -1);
 		}
+		if (bMoving) { //Frame:31
+			turn lfoot to x-axis <-58.568053> speed <1229.651712> / animSpeed; //delta=40.99 
+			turn lhip to x-axis <2.398567> speed <111.349560> / animSpeed; //delta=-3.71 
+			turn lhip to z-axis <-0.290736> speed <7.480378> / animSpeed; //delta=0.25 
+			turn lhip to y-axis <-0.163873> speed <4.969055> / animSpeed; //delta=-0.17 
+			turn lleg to x-axis <56.032959> speed <1047.337041> / animSpeed; //delta=-34.91 
+			turn lleg to z-axis <1.425373> speed <35.689076> / animSpeed; //delta=-1.19 
+			turn lleg to y-axis <-0.740639> speed <23.908689> / animSpeed; //delta=-0.80 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { //Frame:34
+			turn lfoot to x-axis <-18.240766> speed <1209.818584> / animSpeed; //delta=-40.33 
+			turn lhip to x-axis <28.663596> speed <787.950866> / animSpeed; //delta=-26.27 
+			turn lhip to z-axis <-0.041430> speed <7.479155> / animSpeed; //delta=-0.25 
+			turn lleg to x-axis <43.844945> speed <365.640449> / animSpeed; //delta=12.19 
+			turn lleg to z-axis <0.384045> speed <31.239831> / animSpeed; //delta=1.04 
+			turn lleg to y-axis <-0.265248> speed <14.261757> / animSpeed; //delta=0.48 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { //Frame:37
+			turn lfoot to x-axis <-31.517256> speed <398.294678> / animSpeed; //delta=13.28 
+			turn lhip to x-axis <24.384745> speed <128.365517> / animSpeed; //delta=4.28 
+			turn lleg to x-axis <-14.257909> speed <1743.085603> / animSpeed; //delta=58.10 
+			turn lleg to y-axis <0.119064> speed <11.529333> / animSpeed; //delta=0.38 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { //Frame:40
+			turn lfoot to x-axis <6.535332> speed <1141.577618> / animSpeed; //delta=-38.05 
+			turn lhip to x-axis <-41.589753> speed <1979.234937> / animSpeed; //delta=65.97 
+			turn lhip to z-axis <0.393109> speed <12.764537> / animSpeed; //delta=-0.43 
+			turn lhip to y-axis <0.388975> speed <17.195260> / animSpeed; //delta=0.57 
+			turn lleg to x-axis <-8.919102> speed <160.164214> / animSpeed; //delta=-5.34 
+			turn lleg to z-axis <0.055529> speed <11.049351> / animSpeed; //delta=0.37 
+		sleep ((33*animSpeed) -1);
+		}
 	}
 }
 // Call this from MotionControl()!
@@ -212,8 +247,8 @@ StopWalking() {
 	turn lhip to y-axis <0.000000> speed <35.660678>;
 	turn lhip to z-axis <0.000000> speed <33.011732>;
 	turn lleg to x-axis <0.000000> speed <655.103165>;
-	turn lleg to y-axis <0.000000> speed <7.906470>;
-	turn lleg to z-axis <0.000000> speed <11.870845>;
+	turn lleg to y-axis <0.000000> speed <7.969563>;
+	turn lleg to z-axis <0.000000> speed <11.896359>;
 	turn pelvis to x-axis <0.000000> speed <46.937521>;
 	turn rfoot to x-axis <0.000000> speed <444.448162>;
 	turn rhip to x-axis <0.000000> speed <687.937951>;
@@ -285,6 +320,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 500;
 	}
 	start-script UnitSpeed();
+	start-script MotionControl();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -360,6 +396,7 @@ Create()
 	nanoNozzle = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
+	moveSpeed = get MAX_SPEED;
 	animSpeed = 60;
 	start-script SmokeUnit();
 	//turn luparm to x-axis <45.010989> speed <45>;
