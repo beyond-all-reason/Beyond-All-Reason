@@ -38,6 +38,11 @@ local resources = {
             largebeam			= 'default/largelaserfalloff.tga',
             gunshotxl     = 'default/gunshotxl.tga',
 			      null = 'PD/null.tga',
+            
+            fogdirty = 'atmos/fogdirty.tga',
+            rain = 'atmos/rain.tga',
+            sandblast = 'atmos/sandblast.tga',
+            smoke_puff_red = 'atmos/smoke_puff_red.png',
 
             --Animated Explosion effect (test)
             -- barexplo_29 = 'anims/barexplo_29.png',

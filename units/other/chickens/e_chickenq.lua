@@ -62,6 +62,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+			model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_aqua_normals.dds",
+			treeshader = "yes",
 		},
 		featuredefs = {
 			dead = {},

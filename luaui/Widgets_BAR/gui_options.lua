@@ -903,7 +903,7 @@ function widget:Update(dt)
 			local addZ = (coords[2] < coords[4] and 1 or -1)
 			while x ~= coords[3] do
 				while z ~= coords[4] do
-					if spGetGroundHeight(x,z) < 0 then
+					if spGetGroundHeight(x,z) <= 0 then
 						waterDetected = true
 						Spring.SendCommands("water "..desiredWaterValue)
 						break
@@ -2474,8 +2474,8 @@ function init()
 		 end,
 		},
 
-		{id="teamcolors", group="ui", basic=true, widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
-		{id="sameteamcolors", group="ui", basic=true, name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
+		{id="teamcolors", group="ui", basic=true, widget="Player Color Palette", name="Player colors: auto generated ingame", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby colors with a auto generated color palette based one\n\nNOTE: reloads all widgets because these need to update their colors'},
+		{id="sameteamcolors", group="ui", basic=true, name=widgetOptionColor.."   team colorisation", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', {'useSameTeamColors'}, value) end,
 		},
@@ -4058,7 +4058,7 @@ function widget:Initialize()
 	if Spring.GetGameFrame() == 0 then
 		for x=1, Game.mapSizeX do
 			for z=1, Game.mapSizeZ do
-				if spGetGroundHeight(x, z) < 0 then
+				if spGetGroundHeight(x, z) <= 0 then
 					waterDetected = true
 					Spring.SendCommands("water "..desiredWaterValue)
 					break

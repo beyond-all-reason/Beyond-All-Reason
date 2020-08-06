@@ -116,7 +116,7 @@ mexUpgrade = {
 	armuwmex = "armuwmme",
 	armamex = "armmoho",
 	corexp = "cormexp",
-	
+
 }
 
 -- these will be abandoned faster
@@ -580,7 +580,7 @@ Eco2={
 	coruwmme=0,
 	armuwmme=0,
 
-	--magazzini 
+	--magazzini
 	armuwadves=3,
 	armuwadvms=3,
 

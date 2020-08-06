@@ -531,7 +531,21 @@ l},
 },
 
 ["Trefoil Remake 2.19"] = {
-{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(30,45)} },
+{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(15,30)} },
+{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_gull"]=rnd(5,10)} },
+},
+
+["Trefoil Remake 2.20"] = {
+{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(15,30)} },
+{ spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_gull"]=rnd(5,10)} },
+},
+
+["Quicksilver Remake 1.24"] = {
+{ spawnBox = {x1=50, z1=50, x2=7000, z2=7000}, unitNames = {["critter_goldfish"]=rnd(20,30)} },
+{ spawnBox = {x1=3681, z1=3717, x2=3804, z2=3858}, unitNames = {["critter_goldfish"]=rnd(1,2)} },
+{ spawnBox = {x1=1000, z1=500, x2=6500, z2=2400}, unitNames = {["critter_gull"]=rnd(2,4)} },
+{ spawnBox = {x1=500, z1=4300, x2=3500, z2=6700}, unitNames = {["critter_gull"]=rnd(2,4)} },
+{ spawnBox = {x1=50, z1=50, x2=7000, z2=7000}, unitNames = {["critter_duck"]=rnd(1,1)} }
 },
 
 ["Tropical"] = {

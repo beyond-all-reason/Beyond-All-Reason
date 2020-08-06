@@ -1,6 +1,6 @@
 function widget:GetInfo()
    return {
-      name      = "Fancy Selected Units",		--(took 'UnitShapes' widget as a base for this one)
+      name      = "Fancy Selected Units",		-- (took 'UnitShapes' widget as a base)
       desc      = "Shows which units are selected",
       author    = "Floris",
       date      = "04.04.2014",
@@ -37,7 +37,6 @@ local maxSelectTime					= 0				--time at which units "new selection" animation w
 local maxDeselectedTime				= -1			--time at which units deselection animation will end
 
 local checkSelectionChanges			= true
-local limitDetails					= false
 
 local glCallList					= gl.CallList
 local glDrawListAtUnit				= gl.DrawListAtUnit
@@ -48,14 +47,9 @@ local spGetSelectedUnitsSorted		= Spring.GetSelectedUnitsSorted
 local spGetUnitTeam					= Spring.GetUnitTeam
 local spLoadCmdColorsConfig			= Spring.LoadCmdColorsConfig
 local spGetUnitDirection			= Spring.GetUnitDirection
-local spGetCameraPosition			= Spring.GetCameraPosition
-local spGetUnitViewPosition			= Spring.GetUnitViewPosition
 local spGetUnitDefID				= Spring.GetUnitDefID
 local spIsGUIHidden					= Spring.IsGUIHidden
 local spGetTeamColor				= Spring.GetTeamColor
-local spGetUnitHealth 				= Spring.GetUnitHealth
-local spGetUnitIsCloaked			= Spring.GetUnitIsCloaked
-local spUnitInView                  = Spring.IsUnitInView
 local spIsUnitVisible				= Spring.IsUnitVisible
 
 --------------------------------------------------------------------------------
@@ -488,8 +482,8 @@ function GetUsedRotationAngle(unitID, shapeName, opposite)
 end
 
 
-local selectedUnitsSorted = Spring.GetSelectedUnitsSorted()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnitsSorted = spGetSelectedUnitsSorted()
+local selectedUnitsCount = spGetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	checkSelectionChanges = true
 end
@@ -592,8 +586,8 @@ function widget:Update(dt)
 	selChangedSec = selChangedSec + dt
 	if checkSelectionChanges and selChangedSec >= 0.05 then
 		selChangedSec = 0
-		selectedUnitsSorted = Spring.GetSelectedUnitsSorted()
-		selectedUnitsCount = Spring.GetSelectedUnitsCount()
+		selectedUnitsSorted = spGetSelectedUnitsSorted()
+		selectedUnitsCount = spGetSelectedUnitsCount()
 		updateSelectedUnitsData()
 		checkSelectionChanges = false
 	end

@@ -112,6 +112,11 @@ function UnitDef_Post(name, uDef)
          value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
 	processWeapons(name, uDef)
 
+
+	-- make los height a bit more forgiving	(20 is the default)
+	uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 12
+
+
 	if uDef.name and uDef.name ~= "Commander" then
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.dead then

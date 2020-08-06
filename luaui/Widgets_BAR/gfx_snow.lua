@@ -450,7 +450,6 @@ function widget:Shutdown()
 	if drawinfolist ~= nil then
 		gl.DeleteList(drawinfolist)
 	end
-	gl.DeleteFont(font)
 end
 
 function widget:DrawScreen()

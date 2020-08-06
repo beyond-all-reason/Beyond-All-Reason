@@ -301,24 +301,29 @@ local materials = {
 	}),
 	unitsNormalMapOthers = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		shaderOptions = {
-			normalmapping = false,
+			normalmapping = true,
 			flashlights = false,
-			vertex_ao = false,
+			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
+			treewind = true,
 		},
 		deferredOptions = {
-			normalmapping = false,
+			normalmapping = true,
 			flashlights = false,
-			vertex_ao = false,
+			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
+			treewind = true,
 			materialIndex = 4,
+		},
+		shadowOptions = {
+			treewind = true,
 		},
 
 		-- are these below required?
-		--UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
-		--UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
 
 		--GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
 

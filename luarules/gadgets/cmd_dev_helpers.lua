@@ -1,3 +1,10 @@
+--[[
+local msg = 'luar_uels ihatelua -100 200'
+for word in msg:gmatch("[%-_%w]+") do 
+  print (word)
+end
+]]--
+
 function gadget:GetInfo()
   return {
     name      = "Dev Helper Cmds",
@@ -9,6 +16,8 @@ function gadget:GetInfo()
     enabled   = true  --  loaded by default?
   }
 end
+
+
 
 
 local authorizedPlayers  = {
@@ -93,11 +102,15 @@ if gadgetHandler:IsSyncedCode() then
 		msg = string.sub(msg, PACKET_HEADER_LENGTH)
 
         local words = {}
-        for word in msg:gmatch("%w+") do table.insert(words, word) end
+        for word in msg:gmatch("[%-_%w]+") do 
+          table.insert(words, word) 
+        end
         if words[1] == "givecat" then
             GiveCat(words)
         elseif words[1] == "destroyselunits" then
             DestroySelUnits(words,playerID)
+        elseif words[1] == "spawnceg" then
+            spawnceg(words)
         end
     end
 
@@ -144,6 +157,14 @@ if gadgetHandler:IsSyncedCode() then
             Spring.DestroyUnit(unitID)
         end
     end
+    
+    function spawnceg(words)
+      Spring.Echo("SYNCED spawnceg",words[1], words[2],words[3],words[4],words[5])
+      Spring.SpawnCEG( words[2], --cegname
+        tonumber(words[3]), tonumber(words[4]), tonumber(words[5]),--pos
+			0,0,0,  --dir
+			0) --radius
+    end
 
 
 
@@ -155,23 +176,45 @@ else
     function gadget:Initialize()
         gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- doing it via GotChatMsg ensures it will only listen to the caller
         gadgetHandler:AddChatAction('destroyselunits', MakeWreck, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+        gadgetHandler:AddChatAction('spawnceg', spawnceg, "")
     end
 
     function gadget:Shutdown()
         gadgetHandler:RemoveChatAction('givecat')
         gadgetHandler:RemoveChatAction('destroyselunits')
+        gadgetHandler:RemoveChatAction('spawnceg')
     end
 
     function MakeWreck (_,line, words, playerID)
-		if not isAuthorized(Spring.GetMyPlayerID()) then return end
+      if not isAuthorized(Spring.GetMyPlayerID()) then return end
 
-		local selUnits = Spring.GetSelectedUnits()
-		local msg = "destroyselunits"
-		for _,unitID in ipairs(selUnits) do
-			msg = msg .. " " .. tostring(unitID)
-		end
-		Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
-	end
+      local selUnits = Spring.GetSelectedUnits()
+      local msg = "destroyselunits"
+      for _,unitID in ipairs(selUnits) do
+        msg = msg .. " " .. tostring(unitID)
+      end
+      Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
+    end
+  
+    function spawnceg(_,line, words, playerID)
+      --spawnceg usage:
+      --spawnceg usage:
+      --/luarules spawnceg newnuke --spawns at cursor
+      --/luarules spawnceg newnuke [int] -- spawns at cursor at height
+      if not isAuthorized(Spring.GetMyPlayerID()) then return end
+      local height = 32
+      if words[2] and tonumber(words[2]) then height = tonumber(words[2]) end
+      local mx,my = Spring.GetMouseState()
+      local t,pos = Spring.TraceScreenRay(mx,my, true)
+      local n = 0
+      local ox, oy, oz = math.floor(pos[1]), math.floor(pos[2] + height), math.floor(pos[3])
+      local x,y,z = ox,oy,oz
+      msg = "spawnceg"
+      msg = msg .. " " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
+      
+      Spring.Echo('Spawning CEG:',line, playerID, msg)
+      Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
+    end
 
     function GiveCat(_,line, words, playerID)
 		if not isAuthorized(Spring.GetMyPlayerID()) then return end

@@ -146,7 +146,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = sleeve;
 }
 
 QueryPrimary(piecenum)

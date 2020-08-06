@@ -10,6 +10,7 @@ function gadget:GetInfo()
     }
 end
 
+
 local CMD_LAND_AT_AIRBASE = 35430
 local CMD_LAND_AT_SPECIFIC_AIRBASE = 35431
 
@@ -19,10 +20,10 @@ CMD.LAND_AT_SPECIFIC_AIRBASE = CMD_LAND_AT_SPECIFIC_AIRBASE
 CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 
 local tractorDist = 100^2 -- default sqr tractor distance
-local airbaseDefIDs = {}
+local isAirbase = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.customParams and unitDef.customParams.isairbase then
-        airbaseDefIDs[unitDefID] = tractorDist
+        isAirbase[unitDefID] = {tractorDist, unitDef.buildSpeed}
     end
 end
 
@@ -54,12 +55,12 @@ local CMD_MOVE = CMD.MOVE
 local CMD_WAIT = CMD.WAIT
 
 local isAirUnit = {}
-local unitTimeToBuild = {}
+local unitBuildtime = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.isAirUnit then
         isAirUnit[unitDefID] = true
     end
-    unitTimeToBuild[unitDefID] = unitDef.buildTime / unitDef.buildSpeed
+    unitBuildtime[unitDefID] = unitDef.buildTime
 end
 
 ---------------------------
@@ -252,8 +253,7 @@ function HealUnit(unitID, airbaseID, resourceFrames, h, mh)
    if resourceFrames <=0 then return end
    local airbaseDefID = Spring.GetUnitDefID(airbaseID)
    local unitDefID = Spring.GetUnitDefID(unitID)
-   local buildSpeed = UnitDefs[airbaseDefID].buildSpeed
-   local healthGain = unitTimeToBuild[unitDefID] / resourceFrames
+   local healthGain = (mh * (isAirbase[airbaseDefID][2] / unitBuildtime[unitDefID])) * resourceFrames
    local newHealth = h+healthGain
    if mh < newHealth then newHealth = mh end
    Spring.SetUnitHealth(unitID, newHealth)
@@ -287,7 +287,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-   if airbaseDefIDs[unitDefID] then
+   if isAirbase[unitDefID] then
       AddAirBase(unitID)
    end
 end
@@ -454,7 +454,7 @@ function gadget:GameFrame(n)
             -- check if we're close enough, move into tractorPlanes if so
             local r = Spring.GetUnitRadius(unitID)
             local airbaseDefID = Spring.GetUnitDefID(airbaseID)
-            if airbaseDefID and sqrDist < airbaseDefIDs[airbaseDefID] then
+            if airbaseDefID and sqrDist < isAirbase[airbaseDefID][1] then
                -- land onto pad
                landingPlanes[unitID] = nil
                tractorPlanes[unitID] = {airbaseID, padPieceNum}
@@ -608,7 +608,7 @@ function gadget:DefaultCommand()
    end
 
    local targetDefID = spGetUnitDefID(targetID)
-   if not airbaseDefIDs[targetDefID] then
+   if not isAirbase[targetDefID] then
       return false
    end
 

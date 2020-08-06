@@ -124,7 +124,7 @@ local glBillboard        		= gl.Billboard
 local glDrawFuncAtUnit   		= gl.DrawFuncAtUnit
 local glDrawListAtUnit   		= gl.DrawListAtUnit
 local GL_GREATER     	 		= GL.GREATER
-local GL_SRC_ALPHA				= GL.SRC_ALPHA	
+local GL_SRC_ALPHA				= GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
 local glBlending          		= gl.Blending
 local glScale          			= gl.Scale
@@ -208,7 +208,7 @@ local function createComnameList(x, y, name, teamID, color)
             font2:Begin()
 			font2:SetTextColor(outlineColor)
 			font2:SetOutlineColor(outlineColor)
-			
+
 			font2:Print(name, x-(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
 			font2:Print(name, x+(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
             font2:End()
@@ -253,7 +253,7 @@ function widget:Initialize()
   end
 
   createInfotextList()
-  
+
   -- get the gaia teamID and allyTeamID
   gaiaTeamID = Spring.GetGaiaTeamID()
   if (gaiaTeamID) then
@@ -368,7 +368,7 @@ local function GetTeamColor(teamID)
     return color
   end
   local r,g,b = Spring.GetTeamColor(teamID)
-  
+
   color = { r, g, b }
   teamColors[teamID] = color
   return color
@@ -452,6 +452,9 @@ function widget:DrawWorld()
     local _,_,spec = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(teamID,false)),false)
     if ((not spec) and (teamID ~= gaiaTeamID)) then
       local x, y, z = Spring.GetTeamStartPosition(teamID)
+      --if y < 0 then
+      --  y = 0
+      --end
 	  local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
 	  if (x ~= nil and x > 0 and z > 0 and y > -500) and not isNewbie then
         local color = GetTeamColor(teamID)
@@ -486,9 +489,9 @@ function widget:DrawScreenEffects()
       if (x ~= nil and x > 0 and z > 0 and y > -500) then
         local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
         if (sz < 1) then
-          
+
 			DrawName(sx, sy, name, teamID, GetTeamColor(teamID))
-	
+
         end
       end
     end

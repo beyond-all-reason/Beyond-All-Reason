@@ -28,9 +28,9 @@ return {
 		maxvelocity = 0,
 		name = "Roost",
 		noautofire = false,
-		objectname = "Chickens/roost.s3o",
+		objectname = "Chickens/chicken_hive.s3o",
 		radardistance = 900,
-		script = "ChickenDefenseScripts/roost.cob",
+		script = "ChickenDefenseScripts/chicken_hive.cob",
 		seismicsignature = 4,
 		selfdestructas = "ROOST_DEATH",
 		side = "ARM",
@@ -48,6 +48,10 @@ return {
 		customparams = {
 			isairbase = true,
 			subfolder = "other/chickens",
+			model_author = "LathanStanley, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_hive_normals.tga",
+			--treeshader = "yes",
 		},
 		featuredefs = {},
 		sfxtypes = {
