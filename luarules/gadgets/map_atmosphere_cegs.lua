@@ -50,6 +50,25 @@ function SpawnCEGInRandomMapPos(cegname, addposy, sound)
 	spSCEG(cegname, posx, posy, posz)
 end
 
+function SpawnCEGInRandomMapPosBelowY(cegname, addposy, belowposy, sound)
+	for i = 1,100 do
+		local posx = mathrandom(0,mapsizeX)
+		local posz = mathrandom(0,mapsizeZ)
+		local groundposy = spGroundHeight(posx, posz)
+		local posy = spGroundHeight(posx, posz) + (addposy or 0)
+		if groundposy <= belowposy then
+			spSCEG(cegname, posx, posy, posz)
+			break
+		end
+	end
+end
+
+function SpawnCEGInRandomMapPosPresetY(cegname, posy, sound)
+	local posx = mathrandom(0,mapsizeX)
+	local posz = mathrandom(0,mapsizeZ)
+	spSCEG(cegname, posx, posy, posz)
+end
+
 VFS.Include("luarules/gadgets/atmosphereconfigs/" .. mapname .. ".lua")
 
 
