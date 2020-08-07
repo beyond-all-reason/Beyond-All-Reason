@@ -44,6 +44,7 @@ local resources = {
             sandblast         = 'atmos/sandblast.tga',
             smoke_puff_red    = 'atmos/smoke_puff_red.png',
             explowater        = 'projectiletextures/explowater.tga',
+            waterrush         = 'projectiletextures/waterrush.tga',
 
             --Animated Explosion effect (test)
             -- barexplo_29 = 'anims/barexplo_29.png',
