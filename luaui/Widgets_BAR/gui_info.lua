@@ -847,6 +847,16 @@ end
 
 
 local function getSelectionTotals(cells, newlineEveryStat)
+  local descriptionColor = '\255\240\240\240'
+  local metalColor = '\255\245\245\245'
+  local energyColor = '\255\255\255\000'
+  local healthColor = '\255\100\255\100'
+
+  local labelColor = '\255\205\205\205'
+  local valueColor = '\255\255\255\255'
+  local valuePlusColor = '\255\180\255\180'
+  local valueMinColor = '\255\255\180\180'
+
   local statsIndent = '  '
   local stats = ''
 
@@ -855,55 +865,79 @@ local function getSelectionTotals(cells, newlineEveryStat)
     local text, numLines = font:WrapText(unitTooltip[selectionCells[cellHovered]], (backgroundRect[3]-backgroundRect[1])*(loadedFontSize/16))
     stats = stats..statsIndent..tooltipTextColor..text ..'\n\n'
   end
-  -- metal cost
-  local totalValue = 0
+
+  -- loop all unitdefs/cells (but not individual unitID's)
+  local totalMetalValue = 0
+  local totalEnergyValue = 0
+  local totalDpsValue = 0
   for _,unitDefID in pairs(cells) do
+    -- metal cost
     if unitMetalCost[unitDefID] then
-      totalValue = totalValue + (unitMetalCost[unitDefID]*selUnitsCounts[unitDefID])
+      totalMetalValue = totalMetalValue + (unitMetalCost[unitDefID]*selUnitsCounts[unitDefID])
     end
-  end
-  if totalValue > 0 then
-    stats = stats..statsIndent..tooltipLabelTextColor.."metalcost: "..tooltipValueColor..totalValue.."   "
-  end
-  -- energy cost
-  totalValue = 0
-  if newlineEveryStat then
-    stats = stats..'\n'..statsIndent
-  end
-  for _,unitDefID in pairs(cells) do
+    -- energy cost
     if unitEnergyCost[unitDefID] then
-      totalValue = totalValue + (unitEnergyCost[unitDefID]*selUnitsCounts[unitDefID])
+      totalEnergyValue = totalEnergyValue + (unitEnergyCost[unitDefID]*selUnitsCounts[unitDefID])
+    end
+    -- DPS
+    if unitDPS[unitDefID] then
+      totalDpsValue = totalDpsValue + (unitDPS[unitDefID]*selUnitsCounts[unitDefID])
     end
   end
-  if totalValue > 0 then
-    stats = stats..tooltipLabelTextColor.."energycost: "..tooltipValueColor..totalValue.."   "
-  end
-  -- health
-  totalValue = 0
+
+  -- loop all unitID's
+  local totalMaxHealthValue = 0
   local totalHealth = 0
+  local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0,0,0,0
   for _,unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
+    -- resources
+    local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
+    totalMetalMake = totalMetalMake + metalMake
+    totalMetalUse = totalMetalUse + metalUse
+    totalEnergyMake = totalEnergyMake + energyMake
+    totalEnergyUse = totalEnergyUse + energyUse
+    -- health
     local health,maxHealth,_,_,buildProgress = spGetUnitHealth(unitID)
     if health and maxHealth then
-      totalValue = totalValue + maxHealth
+      totalMaxHealthValue = totalMaxHealthValue + maxHealth
       totalHealth = totalHealth + health
     end
   end
-  totalHealth = math_floor(totalHealth)
-  totalValue = math_floor(totalValue)
-  if totalValue > 0 then
-    local percentage = math_floor((totalHealth/totalValue)*100)
-    stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."health: "..tooltipValueColor..percentage.."%"..tooltipDarkTextColor.."  ( "..tooltipLabelTextColor..totalHealth..tooltipDarkTextColor..' of '..tooltipLabelTextColor..totalValue..tooltipDarkTextColor.." )"
+
+  -- resources
+  stats = stats..statsIndent.. tooltipLabelTextColor.."metal: ".. (totalMetalMake > 0 and valuePlusColor..'+'..(totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0))..' ' or '... ')   .. (totalMetalUse > 0 and valueMinColor..'-'..(totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or tooltipLabelTextColor..'... ')
+
+  if newlineEveryStat then
+    stats = stats..'\n'..statsIndent
   end
+  stats = stats..tooltipLabelTextColor.."energy: ".. (totalEnergyMake > 0 and valuePlusColor..'+'..(totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0))..' ' or '... ') .. (totalEnergyUse > 0 and valueMinColor..'-'..(totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or tooltipLabelTextColor..'... ')
+
+  -- metal cost
+  if totalMetalValue > 0 then
+    stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."metalcost: "..tooltipValueColor..totalMetalValue.."   "
+  end
+  if newlineEveryStat then
+    stats = stats..'\n'..statsIndent
+  end
+
+  -- energy cost
+  if totalEnergyValue > 0 then
+    stats = stats..tooltipLabelTextColor.."energycost: "..tooltipValueColor..totalEnergyValue.."   "
+  end
+
+  -- health
+  totalMaxHealthValue = math_floor(totalMaxHealthValue)
+  if totalMaxHealthValue > 0 then
+    totalHealth = math_floor(totalHealth)
+    local percentage = math_floor((totalHealth/totalMaxHealthValue)*100)
+    stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."health: "..tooltipValueColor..percentage.."%"..tooltipDarkTextColor.."  ( "..tooltipLabelTextColor..totalHealth..tooltipDarkTextColor..' of '..tooltipLabelTextColor..totalMaxHealthValue..tooltipDarkTextColor.." )"
+  end
+
   -- DPS
-  totalValue = 0
-  for _,unitDefID in pairs(cells) do
-    if unitDPS[unitDefID] then
-      totalValue = totalValue + (unitDPS[unitDefID]*selUnitsCounts[unitDefID])
-    end
+  if totalDpsValue > 0 then
+    stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."DPS: "..tooltipValueColor..totalDpsValue.."   "
   end
-  if totalValue > 0 then
-    stats = stats..'\n'..statsIndent..tooltipLabelTextColor.."DPS: "..tooltipValueColor..totalValue.."   "
-  end
+
   if stats ~= '' then
     stats = '\n'..stats
     if not cellHovered then
