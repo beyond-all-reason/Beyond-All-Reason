@@ -761,7 +761,9 @@ function RemoveBeamLight(lightID, life)
 	end
 end
 
-function CreateLight(name, x, y, z, radius, rgba)
+function CreateLight(name, x, y, z, radius, rgba, falloffsquared)
+  --Spring.Echo("CreateLight(name, x, y, z, radius, rgba, falloffsquared)",name, x, y, z, radius, rgba, falloffsquared)
+  falloffsquared = falloffsquared or 1.0
 	if name == 'thruster' then
 		if enableThrusters then
 			thrusterLights[#thrusterLights+1] = explosionLightsCount + 1
@@ -782,6 +784,7 @@ function CreateLight(name, x, y, z, radius, rgba)
 			g = rgba[2],
 			b = rgba[3],
 			radius = radius,
+      falloffsquared = falloffsquared,
 		},
 	}
 	explosionLightsCount = explosionLightsCount + 1
@@ -982,8 +985,8 @@ function widget:Initialize()
 
 	WG['lighteffects'] = {}
 	WG['lighteffects'].enableThrusters = enableThrusters
-	WG['lighteffects'].createLight = function(name,x,y,z,radius,rgba)
-		return CreateLight(name,x,y,z,radius,rgba)
+	WG['lighteffects'].createLight = function(name,x,y,z,radius,rgba,falloffsquared)
+		return CreateLight(name,x,y,z,radius,rgba,falloffsquared)
 	end
 	WG['lighteffects'].editLight = function(lightID, params)
 		return EditLight(lightID, params)

@@ -159,7 +159,7 @@ uniform mat4 viewProjectionInv;
 float attenuate(float dist, float radius) {
 	// float raw = constant-linear * dist / radius - squared * dist * dist / (radius * radius);
 	// float att = clamp(raw, 0.0, 0.5);
-	float raw = 0.7 - 0.3 * dist / radius - 1.0 * dist * dist / (radius * radius);
+	float raw = 0.7 - 0.3 * dist / radius - lightcolor.a * dist * dist / (radius * radius);
 	float att = clamp(raw, 0.0, 1.0);
 	return (att * att);
 }
@@ -428,6 +428,7 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 		end
 		if lighttype == 0 then -- point
 			local lightradius = param.radius
+      local falloffsquared = param.falloffsquared or 1.0
 			--Spring.Echo("Drawlighttype position = ", light.px, light.py, light.pz)
 			local sx, sy, sz = spWorldToScreenCoords(light.px, light.py, light.pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
 			sx = sx/vsx
@@ -435,7 +436,7 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			local dist_sq = (light.px-cx)^2 + (light.py-cy)^2 + (light.pz-cz)^2
 			local ratio = lightradius / math_sqrt(dist_sq) * 1.5
 			glUniform(lightposlocPoint, light.px, light.py, light.pz, param.radius) --in world space
-			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, 1) 
+			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, falloffsquared) 
 			glTexRect(
 				math_max(-1 , (sx-0.5)*2-ratio*screenratio),
 				math_max(-1 , (sy-0.5)*2-ratio),
@@ -449,6 +450,8 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 		end 
 		if lighttype == 1 then -- beam
 			local lightradius = 0
+      
+      local falloffsquared = param.falloffsquared or 1.0
 			local px = light.px+light.dx*0.5
 			local py = light.py+light.dy*0.5
 			local pz = light.pz+light.dz*0.5
@@ -463,7 +466,7 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 
 			glUniform(lightposlocBeam, light.px, light.py, light.pz, param.radius) --in world space
 			glUniform(lightpos2locBeam, light.px+light.dx, light.py+light.dy+24, light.pz+light.dz, param.radius) --in world space, the magic constant of +24 in the Y pos is needed because of our beam distance calculator function in GLSL
-			glUniform(lightcolorlocBeam, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, 1) 
+			glUniform(lightcolorlocBeam, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, falloffsquared) 
 			--TODO: use gl.Shape instead, to avoid overdraw
 			glTexRect(
 				math_max(-1 , (sx-0.5)*2-ratio*screenratio),
