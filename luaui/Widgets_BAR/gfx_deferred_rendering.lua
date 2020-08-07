@@ -49,6 +49,7 @@ local glTranslate            = gl.Translate
 local spEcho                 = Spring.Echo
 local spGetCameraPosition    = Spring.GetCameraPosition
 local spWorldToScreenCoords  = Spring.WorldToScreenCoords
+local spGetGroundHeight      = Spring.GetGroundHeight
 
 local math_sqrt = math.sqrt
 local math_min = math.min
@@ -430,10 +431,11 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			local lightradius = param.radius
       local falloffsquared = param.falloffsquared or 1.0
 			--Spring.Echo("Drawlighttype position = ", light.px, light.py, light.pz)
-			local sx, sy, sz = spWorldToScreenCoords(light.px, light.py, light.pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
+      local groundheight = spGetGroundHeight(light.px, light.pz)
+			local sx, sy, sz = spWorldToScreenCoords(light.px, groundheight, light.pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
 			sx = sx/vsx
 			sy = sy/vsy --since FOV is static in the Y direction, the Y ratio is the correct one
-			local dist_sq = (light.px-cx)^2 + (light.py-cy)^2 + (light.pz-cz)^2
+			local dist_sq = (light.px-cx)^2 + (groundheight-cy)^2 + (light.pz-cz)^2
 			local ratio = lightradius / math_sqrt(dist_sq) * 1.5
 			glUniform(lightposlocPoint, light.px, light.py, light.pz, param.radius) --in world space
 			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, falloffsquared) 
