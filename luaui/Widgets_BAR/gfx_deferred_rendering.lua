@@ -435,21 +435,30 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			local sx, sy, sz = spWorldToScreenCoords(light.px, groundheight, light.pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
 			sx = sx/vsx
 			sy = sy/vsy --since FOV is static in the Y direction, the Y ratio is the correct one
-			local dist_sq = (light.px-cx)^2 + (groundheight-cy)^2 + (light.pz-cz)^2
+			--local dist_sq = (light.px-cx)^2 + (groundheight-cy)^2 + (light.pz-cz)^2
+			local dist_sq = (light.px-cx)^2 + (light.pz-cz)^2
 			local ratio = lightradius / math_sqrt(dist_sq) * 1.5
 			glUniform(lightposlocPoint, light.px, light.py, light.pz, param.radius) --in world space
 			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, falloffsquared) 
+      local tx1 = (sx-0.5)*2-ratio*screenratio
+      local ty1 = (sy-0.5)*2-ratio
+      local tx2 = (sx-0.5)*2+ratio*screenratio
+      local ty2 = (sy-0.5)*2+ratio
+      -- PtaQ uncomment this if you want to debug: 
+      --Spring.Echo('sx',sx,'sy',sy,'dist_sq',dist_sq,'ratio', ratio,'sr:',screenratio,'{',tx1,':',ty1,'}-{',tx2,':',ty2,'}')
+
 			glTexRect(
-				math_max(-1 , (sx-0.5)*2-ratio*screenratio),
-				math_max(-1 , (sy-0.5)*2-ratio),
-				math_min( 1 , (sx-0.5)*2+ratio*screenratio),
-				math_min( 1 , (sy-0.5)*2+ratio),
+				math_max(-1 , tx1),
+				math_max(-1 , ty1),
+				math_min( 1 , tx2),
+				math_min( 1 , ty2),
 				math_max( 0 , sx - 0.5*ratio*screenratio),
 				math_max( 0 , sy - 0.5*ratio),
 				math_min( 1 , sx + 0.5*ratio*screenratio),
 				math_min( 1 , sy + 0.5*ratio)
 			) -- screen size goes from -1, -1 to 1, 1; uvs go from 0, 0 to 1, 1
-		end 
+      
+        		end 
 		if lighttype == 1 then -- beam
 			local lightradius = 0
       

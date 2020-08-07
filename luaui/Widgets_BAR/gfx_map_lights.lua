@@ -24,13 +24,13 @@ local maplights = {
     --{lightname = 'maplight2', lightID = nil, pos = {3847, 425, 1596}, rgba = {0.4, 0.15, 0.05, 2}, radius = 1250,falloffsquared = 1.5},
 
     -- altored divide
-    {lightname = 'fireflies-center', lightID = nil, pos = {3000, 250, 4250}, rgba = {0.3, 0.32, 0.07, 2}, radius = 1000,falloffsquared = 1.5},
-    {lightname = 'fireflies-right', lightID = nil, pos = {7370, 300, 4000}, rgba = {0.3, 0.32, 0.07, 2}, radius = 1000,falloffsquared = 1.5},
-    {lightname = 'fireflies-top', lightID = nil, pos = {3410, 250, 3595}, rgba = {0.3, 0.32, 0.07, 1.2}, radius = 600,falloffsquared = 1.0},
-    {lightname = 'statues-low', lightID = nil, pos = {765, 300, 4329}, rgba = {0.32, 0.22, 0.07, 2}, radius = 1150,falloffsquared = 1.5},
-    {lightname = 'statues-high', lightID = nil, pos = {955, 300, 3462}, rgba = {0.32, 0.22, 0.07, 3}, radius = 1150,falloffsquared = 3.0},
-    {lightname = 'mountain', lightID = nil, pos = {5482, 500, 4733}, rgba = {0.49, 0.48, 0.45, 1.5}, radius = 1150,falloffsquared = 1.5},
-    {lightname = 'dark', lightID = nil, pos = {4000, 500, 4800}, rgba = {0.13,0.17,0.05, 2}, radius = 3000,falloffsquared = 1.7},
+  --  {lightname = 'fireflies-center', lightID = nil, pos = {3000, 250, 4250}, rgba = {0.3, 0.32, 0.07, 2}, radius = 1000,falloffsquared = 1.5},
+  --  {lightname = 'fireflies-right', lightID = nil, pos = {7370, 300, 4000}, rgba = {0.3, 0.32, 0.07, 2}, radius = 1000,falloffsquared = 1.5},
+  --  {lightname = 'fireflies-top', lightID = nil, pos = {3410, 250, 3595}, rgba = {0.3, 0.32, 0.07, 1.2}, radius = 600,falloffsquared = 1.0},
+ --   {lightname = 'statues-low', lightID = nil, pos = {765, 300, 4329}, rgba = {0.32, 0.22, 0.07, 2}, radius = 1150,falloffsquared = 1.5},
+    {lightname = 'statues-high', lightID = nil, pos = {955, 300, 3462}, rgba = {0.32, 0.22, 0.07, 30}, radius = 1150,falloffsquared = 0.01},
+--    {lightname = 'mountain', lightID = nil, pos = {5482, 500, 4733}, rgba = {0.49, 0.48, 0.45, 1.5}, radius = 1150,falloffsquared = 1.5},
+  --  {lightname = 'dark', lightID = nil, pos = {4000, 500, 4800}, rgba = {0.13,0.17,0.05, 2}, radius = 3000,falloffsquared = 1.7},
   } 
 
 
