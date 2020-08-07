@@ -22,8 +22,8 @@ local unit = {}
 local unitsCount = 0
 local unitsData = {}
 
-local fold_frames = 7 -- every seventh frame
-local n_folds = 4 -- check every fourth unit
+local fold_frames = 4 -- every seventh frame
+local n_folds = 3 -- check every fourth unit
 local current_fold = 1
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
