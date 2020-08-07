@@ -217,6 +217,8 @@ local numFactoryKbot = 0
 local numFactoryHover = 0
 local numFactoryShip = 0
 
+local hasMadeT2 = false
+
 local isCommander = {}
 local isBuilder = {}
 local isMex = {}
@@ -383,7 +385,7 @@ function widget:GameFrame(gf)
 			if e_income >= 50 and m_income >= 4 then
 				QueueTutorialNotification('t_nowproduce')
 			end
-			if e_income >= 600 and m_income >= 12 then
+			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				QueueTutorialNotification('t_readyfortech2')
 			end
 		end
@@ -516,6 +518,10 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then return end
 
     if unitTeam == myTeamID then
+		if not hasMadeT2 and isT2[unitDefID] then
+			hasMadeT2 = true
+		end
+
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
