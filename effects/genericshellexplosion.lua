@@ -1570,21 +1570,21 @@ local definitions = {
         useairlos          = false,
       },
     },
-    -- shockwave = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 1,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.46,
-    --             ttl             = 7,
-    --             expansionSpeed  = 8,
-    --             color           = [[0.7, 0.60, 0.32]],
-    --             alwaysvisible      = true,
-    --         },
-    -- },
+    shockwave = {
+        class              = [[CSpherePartSpawner]],
+            count              = 0,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            air                = true,
+            properties = {
+                alpha           = 0.46,
+                ttl             = 7,
+                expansionSpeed  = 8,
+                color           = [[0.7, 0.60, 0.32]],
+                alwaysvisible      = true,
+            },
+    },
     dirt = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -2850,9 +2850,10 @@ local colors = {
     explosion2 = {properties={colormap=[[0 0 0 0   1 0.32 0.18 0.09   0.7 0.17 0.05 0.066   0.3 0.08 0.015 0.033   0 0 0 0]]}},
     innersmoke = {properties={colormap=[[1 0.6 0.4 0.4    0.5 0.24 0.14 0.5   0.27 0.17 0.13 0.42    0.21 0.16 0.14 0.35   0.105 0.095 0.088 0.25   0.07 0.064 0.058 0.17    0 0 0 0.01]]}},
     outersmoke = {properties={colormap=[[1 0.58 0.36 0.4    0.48 0.24 0.14 0.45   0.26 0.16 0.13 0.4    0.2 0.16 0.14 0.35   0.1 0.09 0.088 0.25   0.07 0.063 0.058 0.17    0 0 0 0.01]]}},
+    shockwave = {count=1},
     groundflash_small = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
     groundflash_large = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
-    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.45 0.18 0.017   0 0 0 0]]}},
+    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.45 0.18 0.017   0 0 0 0]], numparticles=7}},
   }
 }
 for color, effects in pairs(colors) do
