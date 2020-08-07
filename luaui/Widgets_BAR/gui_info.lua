@@ -171,6 +171,8 @@ local unitBuildOptions = {}
 local unitBuildSpeed = {}
 local unitWeapons = {}
 local unitDPS = {}
+local unitEnergyPerShot = {}
+local unitMetalPerShot = {}
 local unitCanStockpile = {}
 local unitLosRadius = {}
 local unitAirLosRadius = {}
@@ -276,6 +278,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
     if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
       isAaUnit[unitDefID] = true
+    end
+    if weaponDef.energyCost > 0 and (not unitEnergyPerShot[unitDefID] or weaponDef.energyCost > unitEnergyPerShot[unitDefID]) then
+      unitEnergyPerShot[unitDefID] = weaponDef.energyCost
+    end
+    if weaponDef.metalCost > 0 and (not unitMetalPerShot[unitDefID] or weaponDef.metalCost > unitMetalPerShot[unitDefID]) then
+      unitMetalPerShot[unitDefID] = weaponDef.metalCost
     end
   end
 end
@@ -1255,7 +1263,6 @@ local function drawUnitInfo()
 
     end
 
-
     if unitWeapons[displayUnitDefID] then
       addTextInfo('weapons', #unitWeapons[displayUnitDefID])
       if maxRange then
@@ -1264,7 +1271,16 @@ local function drawUnitInfo()
       if dps then
         addTextInfo('dps', dps)
       end
+
+      if unitEnergyPerShot[displayUnitDefID] then
+        addTextInfo('energyPerShot', unitEnergyPerShot[displayUnitDefID])
+      end
+      if unitMetalPerShot[displayUnitDefID] then
+        addTextInfo('metalPerShot', unitMetalPerShot[displayUnitDefID])
+      end
     end
+
+
     --if metalExtraction then
     --  addTextInfo('metal extraction', round(metalExtraction, 2))
     --end
