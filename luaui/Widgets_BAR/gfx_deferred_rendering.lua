@@ -431,12 +431,12 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			local lightradius = param.radius
       local falloffsquared = param.falloffsquared or 1.0
 			--Spring.Echo("Drawlighttype position = ", light.px, light.py, light.pz)
-      local groundheight = spGetGroundHeight(light.px, light.pz)
+      local groundheight = math_max(0, spGetGroundHeight(light.px, light.pz))
 			local sx, sy, sz = spWorldToScreenCoords(light.px, groundheight, light.pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
 			sx = sx/vsx
 			sy = sy/vsy --since FOV is static in the Y direction, the Y ratio is the correct one
 			--local dist_sq = (light.px-cx)^2 + (groundheight-cy)^2 + (light.pz-cz)^2
-			local dist_sq = (light.px-cx)^2 + (light.pz-cz)^2
+			local dist_sq = (light.px-cx)^2 + (groundheight-cy)^2 + (light.pz-cz)^2
 			local ratio = lightradius / math_sqrt(dist_sq) * 1.5
 			glUniform(lightposlocPoint, light.px, light.py, light.pz, param.radius) --in world space
 			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, falloffsquared) 
@@ -444,9 +444,9 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
       local ty1 = (sy-0.5)*2-ratio
       local tx2 = (sx-0.5)*2+ratio*screenratio
       local ty2 = (sy-0.5)*2+ratio
-      -- PtaQ uncomment this if you want to debug: 
-      --Spring.Echo('sx',sx,'sy',sy,'dist_sq',dist_sq,'ratio', ratio,'sr:',screenratio,'{',tx1,':',ty1,'}-{',tx2,':',ty2,'}')
-
+      --PtaQ uncomment this if you want to debug: 
+      --Spring.Echo(string.format("sx=%.4f sy = %.4f dist_sq=%.1f ratio = %.4f, {%.4f : %.4f}-{%.4f :  %.4f}",sx,sy,dist_sq,ratio,tx1,ty1,tx2,ty2))
+      
 			glTexRect(
 				math_max(-1 , tx1),
 				math_max(-1 , ty1),
