@@ -40,16 +40,17 @@ local weaponAoe = {}
 for weaponDefID, def in pairs(WeaponDefs) do
 	weaponType[weaponDefID] = def.type
 	weaponAoe[weaponDefID] = def.damageAreaOfEffect
-	--if def.damages then
-	--	-- get highest damage category
-	--	local maxDmg = 0
-	--	for _,v in pairs(def.damages) do
-	--		if v > maxDmg then
-	--			maxDmg = v
-	--		end
-	--	end
-	--	weaponAoe[weaponDefID] = weaponAoe[weaponDefID] + (maxDmg/40)
-	--end
+	-- add damage bonus, since LRPC dont have a lot of AoE, but do pack a punch
+	if def.damages then
+		-- get highest damage category
+		local maxDmg = 0
+		for _,v in pairs(def.damages) do
+			if v > maxDmg then
+				maxDmg = v
+			end
+		end
+		weaponAoe[weaponDefID] = weaponAoe[weaponDefID] + (maxDmg/20)
+	end
 end
 
 function gadget:Explosion(weaponID, px, py, pz, ownerID)

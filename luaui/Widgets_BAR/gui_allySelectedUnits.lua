@@ -211,7 +211,7 @@ function widget:PlayerAdded(playerID)
 			["todraw"] = DoDrawPlayer(playerID),
 		}
 	end
-	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID), false)
+	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
 	--grab color from color pool for new teammate
 	--no color yet
 	getPlayerColour(playerID,playerTeam)
@@ -247,7 +247,7 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	myTeamID = spGetLocalTeamID()
-	local playerTeam = select(4,spGetPlayerInfo(playerID,false))
+	local playerTeam = select(4, spGetPlayerInfo(playerID, false))
 	local oldCoopStatus = playerSelectedUnits[playerID]["coop"]
 	playerSelectedUnits[playerID]["coop"] = (teamID == myTeamID)
 	playerSelectedUnits[playerID]["todraw"] = DoDrawPlayer(playerID)
@@ -258,7 +258,7 @@ function widget:PlayerChanged(playerID)
 	end
 
 	for i,playerID in pairs(Spring.GetPlayerList()) do
-		playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID), false)
+		playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
 	end
 end
 
