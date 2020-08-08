@@ -61,59 +61,131 @@ end
 
 -- Constructors
 	local SimpleConstructors = {
-	"armck",
-	"armdecom",
+		"armck",
+		"armdecom",
 	}
 
-	local SimpleConstructorsFactory = {
-	UDN.armck.id,
-	UDN.armdecom.id,
+	local SimpleConstructorsBuildOrders = {
+		UDN.armck.id,
+		UDN.armdecom.id,
+	}
+	
+	local SimpleFactories = {
+		"armaap",
+		"armalab",
+		"armap",
+		"armavp",
+		"armhp",
+		"armlab",
+		"armshltx",
+		"armvp",
+		"armamsub",
+		"armasy",
+		"armfhp",
+		"armplat",
+		"armshltxuw",
+		"armsy",
+	}
+	
+	local SimpleFactoriesBuildOrders = {
+		UDN.armaap.id,
+		UDN.armalab.id,
+		UDN.armap.id,
+		UDN.armavp.id,
+		UDN.armhp.id,
+		UDN.armlab.id,
+		UDN.armshltx.id,
+		UDN.armvp.id,
+		UDN.armamsub.id,
+		UDN.armasy.id,
+		UDN.armfhp.id,
+		UDN.armplat.id,
+		UDN.armshltxuw.id,
+		UDN.armsy.id,
+
+	}
+	
+	local SimpleEnergy = {
+		"aaa",
+	}
+	
+	local SimpleEnergyBuildOrders = {
+		"aaa",
+	}
+	
+	local SimpleMetal = {
+		"aaa",
+	}
+	
+	local SimpleMetalBuildOrders = {
+		"aaa",
+	}
+	
+	local SimpleConverter = {
+		"aaa",
+	}
+	
+	local SimpleConverterBuildOrders = {
+		"aaa",
+	}
+	
+	local SimpleDefence = {
+		"aaa",
+	}
+	
+	local SimpleDefenceBuildOrders = {
+		"aaa",
 	}
 
 -- Army
 	local SimpleLandArmy = {
-	----ARM
-	-- t1 kbots
-	"armflea",
-	"armham",
-	"armjeth",
-	"armpw",
-	"armrectr",
-	"armrock",
-	"armwar",
-	-- t2 kbots
-	"armaak",
-	"armamph",
-	"armaser",
-	"armfark",
-	"armfast",
-	"armfboy",
-	"armfido",
-	"armmark",
-	"armmav",
-	"armscab",
-	"armsnipe",
-	"armspid",
-	"armsptk",
-	"armspy",
-	"armvader",
-	"armzeus",
-	---- CORE
+		----ARM
+		-- t1 kbots
+		"armflea",
+		"armham",
+		"armjeth",
+		"armpw",
+		"armrectr",
+		"armrock",
+		"armwar",
+		-- t2 kbots
+		"armaak",
+		"armamph",
+		"armaser",
+		"armfark",
+		"armfast",
+		"armfboy",
+		"armfido",
+		"armmark",
+		"armmav",
+		"armscab",
+		"armsnipe",
+		"armspid",
+		"armsptk",
+		"armspy",
+		"armvader",
+		"armzeus",
+		---- CORE
 	}
 
-	local SimpleLandArmyFactory = {
-	UDN.armflea.id,
-	UDN.armham.id,
-	UDN.armjeth.id,
-	UDN.armpw.id,
-	UDN.armrectr.id,
-	UDN.armrock.id,
-	UDN.armwar.id,
+	local SimpleLandArmyBuildOrders = {
+		UDN.armflea.id,
+		UDN.armham.id,
+		UDN.armjeth.id,
+		UDN.armpw.id,
+		UDN.armrectr.id,
+		UDN.armrock.id,
+		UDN.armwar.id,
 
 	}
+	
+	local SimpleAirArmy = {
+		"aaa",
+	}
 
-
----- Core
+	local SimpleAirArmyBuildOrders = {
+		"aaa",
+	}
 
 
 
@@ -327,9 +399,9 @@ function gadget:GameFrame(n)
 							if #Spring.GetFullBuildQueue(unitID, 0) == 0 then
 								local r = math.random(0,5)
 								local x,y,z = Spring.GetUnitPosition(unitID)
-								Spring.GiveOrderToUnit(unitID, -SimpleLandArmyFactory[(math.random(1, #SimpleLandArmyFactory))], {x, y, z, 0}, 0)
+								Spring.GiveOrderToUnit(unitID, -SimpleLandArmyBuildOrders[(math.random(1, #SimpleLandArmyBuildOrders))], {x, y, z, 0}, 0)
 								if r == 0 then
-									Spring.GiveOrderToUnit(unitID, -SimpleConstructorsFactory[(math.random(1, #SimpleConstructorsFactory))], {x, y, z, 0}, 0)
+									Spring.GiveOrderToUnit(unitID, -SimpleConstructorsBuildOrders[(math.random(1, #SimpleConstructorsBuildOrders))], {x, y, z, 0}, 0)
 								end
 							end
 							--break
