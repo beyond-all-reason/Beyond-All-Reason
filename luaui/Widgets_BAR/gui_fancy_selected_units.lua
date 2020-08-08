@@ -470,7 +470,7 @@ end
 
 
 function GetUsedRotationAngle(unitID, shapeName, opposite)
-	if (shapeName == 'circle') then
+	if shapeName == 'circle' then
 		if opposite then
 			return currentRotationAngleOpposite
 		else
@@ -527,7 +527,7 @@ local function updateSelectedUnitsData()
 				visibleUnitCount = visibleUnitCount + 1
 				-- logs current unit direction	(needs regular updates for air units, and for buildings only once)
 				local dirx, _, dirz = spGetUnitDirection(unitID)
-				if (dirz ~= nil) then
+				if dirz ~= nil then
 					degrot[unitID] = 180 - math_acos(dirz) * rad_con
 					if dirx < 0 then
 						degrot[unitID] = 180 - math_acos(dirz) * rad_con
@@ -584,7 +584,7 @@ function widget:Update(dt)
 	maxDeselectedTime = currentClock - OPTIONS.selectionEndAnimationTime
 
 	selChangedSec = selChangedSec + dt
-	if checkSelectionChanges and selChangedSec >= 0.05 then
+	if (checkSelectionChanges or selectedUnitsCount > 0) and selChangedSec >= 0.025 then
 		selChangedSec = 0
 		selectedUnitsSorted = spGetSelectedUnitsSorted()
 		selectedUnitsCount = spGetSelectedUnitsCount()
