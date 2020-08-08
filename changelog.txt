@@ -10,6 +10,7 @@
  • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Decreased cormaw damage 27%
  • claw/zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
+ • Removed aa missile from Karganeth
 
 
 10.23 -> 10.24
