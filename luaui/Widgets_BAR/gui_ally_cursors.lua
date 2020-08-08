@@ -100,13 +100,11 @@ local allyCursor = ":n:LuaUI/Images/allycursor.dds"
 local cursors = {}
 local teamColors = {}
 local specList = {}
-local color
 local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,wy --keep memory always allocated for these since they are referenced so frequently
 local notIdle = {}
 local sec = 0
 local updateTime = 2
 local playerPos = {}
-local camDistance, glScale
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -274,7 +272,6 @@ end
 function widget:Shutdown()
     widgetHandler:DeregisterGlobal('MouseCursorEvent')
     deleteDlists()
-
     if functionID and WG.DeferredLighting_UnRegisterFunction then
         WG.DeferredLighting_UnRegisterFunction(functionID)
     end
@@ -284,10 +281,9 @@ end
 --------------------------------------------------------------------------------
 
 local function CubicInterpolate2(x0,x1,mix)
-    local mix2 = mix*mix;
-    local mix3 = mix2*mix;
-
-    return x0*(2*mix3-3*mix2+1) + x1*(3*mix2-2*mix3);
+    local mix2 = mix * mix
+    local mix3 = mix2 * mix
+    return x0*(2*mix3-3*mix2+1) + x1*(3*mix2-2*mix3)
 end
 
 --------------------------------------------------------------------------------
@@ -335,19 +331,15 @@ function MouseCursorEvent(playerID,x,z,click)
         acp[(numMousePos+1)*2+3] = select(4,spGetPlayerInfo(playerID,false))
     end
 
-
     -- check if there has been changes
-    wx,wz = alliedCursorsPos[playerID][1*2+1],alliedCursorsPos[playerID][1*2+1]
-
-    if prevCursorPos[playerID] == nil or wx ~= prevCursorPos[playerID].wx or wz ~= prevCursorPos[playerID].wz then
+    if prevCursorPos[playerID] == nil or alliedCursorsPos[playerID][1] ~= prevCursorPos[playerID][1] or alliedCursorsPos[playerID][2] ~= prevCursorPos[playerID][2] then
         alliedCursorsTime[playerID] = clock()
+        if prevCursorPos[playerID] == nil then
+            prevCursorPos[playerID] = {}
+        end
+        prevCursorPos[playerID][1] = alliedCursorsPos[playerID][1]
+        prevCursorPos[playerID][2] = alliedCursorsPos[playerID][2]
     end
-
-    if prevCursorPos[playerID] == nil then
-        prevCursorPos[playerID] = {}
-    end
-    prevCursorPos[playerID].wx = wx
-    prevCursorPos[playerID].wz = wz
 end
 
 --------------------------------------------------------------------------------
@@ -364,7 +356,7 @@ local function DrawGroundquad(wx,wy,wz,size)
 end
 
 local function SetTeamColor(teamID,playerID,a)
-    color = teamColors[playerID]
+    local color = teamColors[playerID]
     if color then
         gl.Color(color[1],color[2],color[3],color[4]*a)
         return
@@ -396,13 +388,11 @@ function widget:PlayerChanged(playerID)
     local _, _, isSpec, teamID = spGetPlayerInfo(playerID,false)
     specList[playerID] = isSpec
     local r, g, b = spGetTeamColor(teamID)
-    local color
     if isSpec then
-        color = {1, 1, 1, 0.6}
+        teamColors[playerID] = {1, 1, 1, 0.6}
     elseif r and g and b then
-        color = {r, g, b, 0.75}
+        teamColors[playerID] = {r, g, b, 0.75}
     end
-    teamColors[playerID] = color
     if allycursorDrawList[playerID] ~= nil then
         for _, dlist in pairs(allycursorDrawList[playerID]) do
             gl.DeleteList(dlist)
@@ -410,6 +400,7 @@ function widget:PlayerChanged(playerID)
         allycursorDrawList[playerID] = nil
     end
 
+    -- update speclist when player becomes spectator
     if isSpec and not specList[playerID] then
         updateSpecList()
     end
@@ -421,6 +412,14 @@ end
 
 function widget:PlayerRemoved(playerID, reason)
     specList[playerID] = nil
+    notIdle[playerID] = nil
+    cursors[playerID] = nil
+    prevCursorPos[playerID] = nil
+    alliedCursorsPos[playerID] = nil
+    for _, dlist in pairs(allycursorDrawList[playerID]) do
+        gl.DeleteList(dlist)
+    end
+    allycursorDrawList[playerID] = nil
 end
 
 
@@ -481,8 +480,8 @@ local function DrawCursor(playerID,wx,wy,wz,camX,camY,camZ,opacity)
 	end
 
 	--calc scale
-	camDistance = diag(camX-wx, camY-wy, camZ-wz)
-	glScale = 0.83 + camDistance / 5000
+	local camDistance = diag(camX-wx, camY-wy, camZ-wz)
+	local glScale = 0.83 + camDistance / 5000
 
 	-- calc opacity
 	local opacityMultiplier = 1
@@ -548,7 +547,7 @@ function widget:Update(dt)
             wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
         end
 
-        if notIdle[playerID] and alliedCursorsTime[playerID] > (time-idleCursorTime) then
+        if notIdle[playerID] then -- and alliedCursorsTime[playerID] > (time-idleCursorTime)
             local opacity = 1
             if specList[playerID] then
                 opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
@@ -562,7 +561,7 @@ function widget:Update(dt)
                 cursors[playerID] = nil
             end
         else
-            --mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
+            -- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
             if wx and wz and wz_old and wz_old and(abs(wx_old-wx)>=1 or abs(wz_old-wz)>=1) then --abs is needed because of floating point used in interpolation
                 notIdle[playerID] = true
                 wx_old = nil
@@ -571,7 +570,6 @@ function widget:Update(dt)
                 wx_old = wx
                 wz_old = wz
             end
-
         end
     end
 
