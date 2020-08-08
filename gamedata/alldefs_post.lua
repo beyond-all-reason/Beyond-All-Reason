@@ -135,6 +135,24 @@ function UnitDef_Post(name, uDef)
 	if uDef.maxslope then
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
+	
+	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0) then
+		
+		if uDef.canFly and (not uDef.isBuilder) then
+			
+			if uDef.buildcostenergy then
+				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*3)
+			end
+
+			if uDef.buildcostmetal then
+				uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*3)
+			end
+			
+			if uDef.maxdamage then
+				uDef.maxdamage = math.ceil(uDef.maxdamage*3)
+			end
+		end
+	end
 
 	-- vehicles
     --if uDef.category and string.find(uDef.category, "TANK") then

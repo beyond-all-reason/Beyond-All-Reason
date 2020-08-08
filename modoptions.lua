@@ -227,6 +227,17 @@ local options={
 		step   = 1,
 	},
 	{
+		key    = 'airrebalance',
+		name   = 'Heavier but more expensive air',
+		desc   = 'placeholder-description',
+		type   = 'number',
+		section= 'options',
+		def    = 0,
+		min    = 0,
+		max    = 1,
+		step   = 1,
+	},
+	{
 		key    = 'night',
 		name   = 'Day-Night Cycle',
 		desc   = 'Hello darkness my old friend',
