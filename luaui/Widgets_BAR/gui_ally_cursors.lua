@@ -416,10 +416,12 @@ function widget:PlayerRemoved(playerID, reason)
     cursors[playerID] = nil
     prevCursorPos[playerID] = nil
     alliedCursorsPos[playerID] = nil
-    for _, dlist in pairs(allycursorDrawList[playerID]) do
-        gl.DeleteList(dlist)
+    if allycursorDrawList[playerID] then
+        for _, dlist in pairs(allycursorDrawList[playerID]) do
+            gl.DeleteList(dlist)
+        end
+        allycursorDrawList[playerID] = nil
     end
-    allycursorDrawList[playerID] = nil
 end
 
 

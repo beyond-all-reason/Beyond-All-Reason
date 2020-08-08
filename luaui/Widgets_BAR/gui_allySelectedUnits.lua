@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = "2.03"
+local versionNumber = "2.04"
 
 function widget:GetInfo()
 	return {
@@ -57,7 +57,6 @@ local glDrawListAtUnit      = gl.DrawListAtUnit
 local GL_LINE_LOOP			= GL.LINE_LOOP
 
 local spec = false
-local showGui = false
 local playerIsSpec = {}
 
 ----------------------------------------------------------------
@@ -65,27 +64,27 @@ local playerIsSpec = {}
 local scaleMultiplier			= 1.05
 local maxAlpha					= 0.45
 local hotFadeTime				= 0.25
-local lockTeamUnits				= false --disallow selection of units selected by teammates
-local showAlly					= true 		--also show allies (besides coop)
-local useHotColor				= false --use RED for all hot units, if false use playerColor starting with transparency
+local lockTeamUnits				= false -- disallow selection of units selected by teammates
+local showAlly					= true -- also show allies (besides coop)
+local useHotColor				= false -- use RED for all hot units, if false use playerColor starting with transparency
 local showAsSpectator			= true
-local circleDivsCoop			= 32  --nice circle
-local circleDivsAlly			= 5  --aka pentagon
+local circleDivsCoop			= 32  -- nice circle
+local circleDivsAlly			= 5  -- aka pentagon
 local selectPlayerUnits			= true
 
-local hotColor = { 1.0, 0.0, 0.0, 1.0 }
+local hotColor = {1.0, 0.0, 0.0, 1.0}
 
 local playerColorPool = {}
-playerColorPool[1] = { 0.0, 1.0, 0.0 }
-playerColorPool[2] = { 1.0, 1.0, 0.0 }
-playerColorPool[3] = { 0.0, 0.0, 1.0 }
-playerColorPool[4] = { 0.6, 0.0, 0.0 } --reserve full-red for hot units
-playerColorPool[5] = { 0.0, 1.0, 1.0 }
-playerColorPool[6] = { 1.0, 0.0, 1.0 }
-playerColorPool[7] = { 1.0, 0.0, 0.0 }
-playerColorPool[8] = { 1.0, 0.0, 0.0 }
+playerColorPool[1] = {0.0, 1.0, 0.0}
+playerColorPool[2] = {1.0, 1.0, 0.0}
+playerColorPool[3] = {0.0, 0.0, 1.0}
+playerColorPool[4] = {0.6, 0.0, 0.0} -- reserve full-red for hot units
+playerColorPool[5] = {0.0, 1.0, 1.0}
+playerColorPool[6] = {1.0, 0.0, 1.0}
+playerColorPool[7] = {1.0, 0.0, 0.0}
+playerColorPool[8] = {1.0, 0.0, 0.0}
 
-local xRelPos, yRelPos		= 0.835, 0.88	-- (only used here for now)
+local xRelPos, yRelPos		= 0.835, 0.88 -- (only used here for now)
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
@@ -105,7 +104,7 @@ local circleLinesCoop
 local circleLinesAlly
 local lockPlayerID
 
-local unitConf ={}
+local unitConf = {}
 ------------------------------------------------------------------
 
 
@@ -192,30 +191,42 @@ function widget:Shutdown()
 	end
 end
 
+function widget:PlayerRemoved(playerID, reason)
+	for unitID, val in pairs( hotUnits ) do
+		hotUnits[unitID] = nil
+		for playerID, selUnits in pairs(playerSelectedUnits) do
+			selUnits["units"][unitID] = nil
+		end
+	end
+	playerIsSpec[playerID] = nil
+	playerSelectedUnits[playerID] = nil
+end
+
 function widget:PlayerAdded(playerID)
-	local playerTeam = select(4,spGetPlayerInfo(playerID,false))
-	if not playerSelectedUnits[ playerID ] then
-		playerSelectedUnits[ playerID ] = {
-			["units"]={},
-			["coop"]=(playerTeam == myTeamID),
+	local playerTeam = select(4, spGetPlayerInfo(playerID, false))
+	if not playerSelectedUnits[playerID] then
+		playerSelectedUnits[playerID] = {
+			["units"] = {},
+			["coop"] = (playerTeam == myTeamID),
 			["todraw"] = DoDrawPlayer(playerID),
 		}
 	end
+	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID), false)
 	--grab color from color pool for new teammate
 	--no color yet
 	getPlayerColour(playerID,playerTeam)
 end
 
 function getPlayerColour(playerID,teamID)
-	if playerSelectedUnits[ playerID ]["coop"] and not spec then
-		if not playerColorPool[ nextPlayerPoolId ] then
-			playerColors[ playerID ] = playerColorPool[ 1 ]  --we have only 8 colors, take color 1 as default
+	if playerSelectedUnits[playerID]["coop"] and not spec then
+		if not playerColorPool[nextPlayerPoolId] then
+			playerColors[playerID] = playerColorPool[1]  --we have only 8 colors, take color 1 as default
 		else
-			playerColors[ playerID ] = playerColorPool[ nextPlayerPoolId ]
+			playerColors[playerID] = playerColorPool[nextPlayerPoolId]
 		end
 		nextPlayerPoolId = nextPlayerPoolId + 1
 	else
-		playerColors[ playerID ] = { spGetTeamColor( teamID ) }--he is only ally, use his color
+		playerColors[playerID] = {spGetTeamColor(teamID)}--he is only ally, use his color
 	end
 end
 
@@ -237,17 +248,17 @@ function widget:PlayerChanged(playerID)
 	end
 	myTeamID = spGetLocalTeamID()
 	local playerTeam = select(4,spGetPlayerInfo(playerID,false))
-	local oldCoopStatus = playerSelectedUnits[ playerID ]["coop"]
-	playerSelectedUnits[ playerID ]["coop"] = (teamID == myTeamID)
-	playerSelectedUnits[ playerID ]["todraw"] = DoDrawPlayer(playerID)
+	local oldCoopStatus = playerSelectedUnits[playerID]["coop"]
+	playerSelectedUnits[playerID]["coop"] = (teamID == myTeamID)
+	playerSelectedUnits[playerID]["todraw"] = DoDrawPlayer(playerID)
 
 	--grab color from color pool for new teammate
-	if oldCoopStatus ~= playerSelectedUnits[ playerID ]["coop"] then
+	if oldCoopStatus ~= playerSelectedUnits[playerID]["coop"] then
 		getPlayerColour(playerID,playerTeam)
 	end
 
 	for i,playerID in pairs(Spring.GetPlayerList()) do
-		playerIsSpec[playerID] = select(3,spGetPlayerInfo(playerID),false)
+		playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID), false)
 	end
 end
 
@@ -267,30 +278,30 @@ function calcCircleLines(divs)
 end
 
 
-function widget:CommandsChanged( id, params, options )
-	if ( lockTeamUnits ) then
+function widget:CommandsChanged(id, params, options)
+	if lockTeamUnits then
 		deselectAllTeamSelected()
 	end
 end
 
 function widget:UnitDestroyed(unitID)
-	hotUnits[ unitID ] = nil
+	hotUnits[unitID] = nil
 
-	for playerID, selUnits in pairs( playerSelectedUnits ) do
-		selUnits["units"][ unitID ] = nil
+	for playerID, selUnits in pairs(playerSelectedUnits) do
+		selUnits["units"][unitID] = nil
 	end
 end
 
-function newHotUnit( unitId, coop, playerID )
+function newHotUnit(unitID, coop, playerID)
 	if not playerSelectedUnits[playerID]["todraw"] then
 		return
 	end
-	local udef = spGetUnitDefID( unitId )
-	if ( udef ~= nil ) then
+	local udef = spGetUnitDefID(unitID)
+	if udef ~= nil then
 		local realDefRadius = unitConf[udef].xscale*1.5
-		if ( realDefRadius ~= nil ) then
+		if realDefRadius ~= nil then
 			local defRadius = realDefRadius * scaleMultiplier
-			hotUnits[ unitId ] = { ts = os.clock(), coop = coop, defRadius = defRadius, playerID = playerID }
+			hotUnits[ unitID ] = {ts = os.clock(), coop = coop, defRadius = defRadius, playerID = playerID}
 		end
 	end
 end
@@ -298,15 +309,15 @@ end
 
 function selectedUnitsClear(playerID)
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		if not playerSelectedUnits[ playerID ] then
+		if not playerSelectedUnits[playerID] then
 			widget:PlayerAdded(playerID)
 		end
 		--make all hot
-		for unitId, defRadius in pairs(playerSelectedUnits[ playerID ]["units"]) do
-			newHotUnit( unitId, playerSelectedUnits[ playerID ]["coop"], playerID )
+		for unitId, defRadius in pairs(playerSelectedUnits[playerID]["units"]) do
+			newHotUnit(unitId, playerSelectedUnits[playerID]["coop"], playerID)
 		end
 		--clear all
-		playerSelectedUnits[ playerID ]["units"] = {}
+		playerSelectedUnits[playerID]["units"] = {}
 	end
 	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
@@ -315,7 +326,7 @@ end
 
 function selectedUnitsAdd(playerID,unitID)
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		if not playerSelectedUnits[ playerID ] then
+		if not playerSelectedUnits[playerID] then
 			widget:PlayerAdded(playerID)
 		end
 		--add unit
@@ -323,9 +334,9 @@ function selectedUnitsAdd(playerID,unitID)
 		if spGetUnitDefID(unitID) ~= nil then
 			local realDefRadius = unitConf[udefID].xscale*1.5
 			if realDefRadius then
-				playerSelectedUnits[ playerID ]["units"][ unitID] = realDefRadius * scaleMultiplier
+				playerSelectedUnits[playerID]["units"][unitID] = realDefRadius * scaleMultiplier
 				--un-hot it
-				hotUnits[  unitID ] = nil
+				hotUnits[unitID] = nil
 			end
 		end
 	end
@@ -336,13 +347,13 @@ end
 
 function selectedUnitsRemove(playerID,unitID)
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		if not playerSelectedUnits[ playerID ] then
+		if not playerSelectedUnits[playerID] then
 			widget:PlayerAdded(playerID)
 		end
 		--remove unit
-		playerSelectedUnits[ playerID ]["units"][unitID] = nil
+		playerSelectedUnits[playerID]["units"][unitID] = nil
 		--make it hot
-		newHotUnit( unitID, playerSelectedUnits[ playerID ]["coop"], playerID )
+		newHotUnit(unitID, playerSelectedUnits[playerID]["coop"], playerID)
 	end
 	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
@@ -357,20 +368,19 @@ function DoDrawPlayer(playerID,teamID)
 		return false
 	end
 	return true
-
 end
 
 function deselectAllTeamSelected()
-	local selectedUnits = array2Table( spGetSelectedUnits() )
-	for playerID, selUnits in pairs( playerSelectedUnits ) do
-		for unitId, defRadius in pairs( selUnits["units"] ) do
+	local selectedUnits = array2Table(spGetSelectedUnits())
+	for playerID, selUnits in pairs(playerSelectedUnits) do
+		for unitId, defRadius in pairs(selUnits["units"]) do
 			selectedUnits[unitId] = nil
 		end
 	end
-	spSelectUnitMap( selectedUnits )
+	spSelectUnitMap(selectedUnits)
 end
 
-function array2Table( arr )
+function array2Table(arr)
 	tab = {}
 	for i,v in ipairs(arr) do
 		tab[v] = true
@@ -381,7 +391,7 @@ end
 local updateTime = 0
 local checkLockPlayerInterval = 1
 function widget:Update(dt)
-	if (WG['advplayerlist_api'] ~= nil) then
+	if WG['advplayerlist_api'] ~= nil then
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
 			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
@@ -399,16 +409,16 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 
-	xPos, yPos            = xRelPos*vsx, yRelPos*vsy
+	xPos, yPos = xRelPos*vsx, yRelPos*vsy
 	sizeMultiplier = 0.55 + (vsx*vsy / 8000000)
 end
 
 function selectPlayerSelectedUnits(playerID)
 	local units = {}
 	local count = 0
-	for pID, selUnits in pairs( playerSelectedUnits ) do
+	for pID, selUnits in pairs(playerSelectedUnits) do
 		if pID == playerID then
-			for unitId, _ in pairs( selUnits["units"] ) do
+			for unitId, _ in pairs(selUnits["units"]) do
 				count = count + 1
 				units[count] = unitId
 			end
@@ -450,28 +460,28 @@ function DrawSelectedUnits()
 	glLineWidth(2)
 	gl.PointSize(1)
 	local now = spGetGameSeconds()
-	for playerID, selUnits in pairs( playerSelectedUnits ) do
-		if (lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits)) and not playerIsSpec[playerID] then
-			if selUnits["todraw"] then
+	for playerID, selUnits in pairs(playerSelectedUnits) do
+		if lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits) then
+			if selUnits["todraw"] and not playerIsSpec[playerID] then
 
-				glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3], maxAlpha)
-				for unitID, defRadius in pairs( selUnits["units"] ) do
+				glColor(playerColors[playerID][1],  playerColors[playerID][2],  playerColors[playerID][3], maxAlpha)
+				for unitID, defRadius in pairs(selUnits["units"]) do
 					local x, y, z = spGetUnitBasePosition(unitID)
 					local inView = false
-					if ( z ~= nil ) then --checking z should be enough insteady of x,y,z
-						inView = spIsSphereInView( x, y, z, defRadius )
+					if z ~= nil then --checking z should be enough insteady of x,y,z
+						inView = spIsSphereInView(x, y, z, defRadius)
 					end
-					if ( inView ) then
+					if inView then
 						--glPushMatrix()
-						--glTranslate( x, y, z)
+						--glTranslate(x, y, z)
 						--glScale( defRadius, 1, defRadius)
-						--if ( selUnits["coop"] == true and not spec) then
+						--if selUnits["coop"] == true and not spec then
 						--	glCallList(circleLinesCoop)
 						--else
 						--	glCallList(circleLinesAlly)
 						--end
 						--glPopMatrix()
-						if ( selUnits["coop"] == true and not spec) then
+						if selUnits["coop"] == true and not spec then
 							glDrawListAtUnit(unitID, circleLinesCoop, false, defRadius,defRadius,defRadius)
 						else
 							glDrawListAtUnit(unitID, circleLinesAlly, false, defRadius,defRadius,defRadius)
@@ -498,34 +508,34 @@ function DrawHotUnits()
 			local x, y, z = spGetUnitBasePosition(unitID)
 			local defRadius = val["defRadius"]
 			local inView = false
-			if ( z ~= nil ) then --checking z should be enough insteady of x,y,z
-				inView = spIsSphereInView( x, y, z, defRadius )
+			if z ~= nil then --checking z should be enough insteady of x,y,z
+				inView = spIsSphereInView(x, y, z, defRadius)
 			end
-			if ( inView ) then
+			if inView then
 				local timeDiff = (os.clock() - val["ts"])
 
-				if ( timeDiff <= hotFadeTime ) then
-					if ( useHotColor ) then
-						hotColor[4] = 1.0 - ( timeDiff / hotFadeTime )
-						glColor( hotColor )
+				if timeDiff <= hotFadeTime then
+					if useHotColor then
+						hotColor[4] = 1.0 - (timeDiff / hotFadeTime)
+						glColor(hotColor)
 					else
-						local cl = playerColors[ val["playerID"] ]
-						cl[4] = maxAlpha - maxAlpha * ( timeDiff / hotFadeTime )
-						glColor( cl )
+						local cl = playerColors[val["playerID"]]
+						cl[4] = maxAlpha - maxAlpha * (timeDiff / hotFadeTime)
+						glColor(cl)
 					end
 				else
 					toDelete[unitID] = true
 				end
 
-				if ( toDelete[unitID] == nil ) then
+				if toDelete[unitID] == nil then
 					local lines = circleLinesAlly
-					if ( val["coop"] == true and not spec) then
+					if val["coop"] == true and not spec then
 						lines = circleLinesCoop
 					end
 
 					glPushMatrix()
 					glTranslate(x,y,z)
-					glScale( defRadius, 1, defRadius)
+					glScale(defRadius, 1, defRadius)
 					glCallList(lines)
 					glPopMatrix()
 				end
@@ -533,13 +543,13 @@ function DrawHotUnits()
 		end
 	end
 
-	for unitID, val in pairs( toDelete ) do
+	for unitID, val in pairs(toDelete) do
 		hotUnits[unitID] = nil
 	end
 
 	glDepthTest(false)
  	glColor(1, 1, 1, 1)
-	glLineWidth( 1 )
+	glLineWidth(1)
 end
 
 
@@ -569,181 +579,4 @@ function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
-end
-
-
-if showGui then
-
-	function widget:DrawScreen()
-		if chobbyInterface then return end
-        if lockPlayerID ~= nil then
-            if not guiList then
-                createGuiList()
-            end
-            glCallList(guiList)
-        else
-            if WG['guishader'] then
-                WG['guishader'].RemoveRect('allyselectedunits')
-            end
-        end
-    end
-
-	local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-		local csyMult = 1 / ((sy-py)/cs)
-
-		if c2 then
-			gl.Color(c1[1],c1[2],c1[3],c1[4])
-		end
-		gl.Vertex(px+cs, py, 0)
-		gl.Vertex(sx-cs, py, 0)
-		if c2 then
-			gl.Color(c2[1],c2[2],c2[3],c2[4])
-		end
-		gl.Vertex(sx-cs, sy, 0)
-		gl.Vertex(px+cs, sy, 0)
-
-		-- left side
-		if c2 then
-			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-		end
-		gl.Vertex(px, py+cs, 0)
-		gl.Vertex(px+cs, py+cs, 0)
-		if c2 then
-			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-		end
-		gl.Vertex(px+cs, sy-cs, 0)
-		gl.Vertex(px, sy-cs, 0)
-
-		-- right side
-		if c2 then
-			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-		end
-		gl.Vertex(sx, py+cs, 0)
-		gl.Vertex(sx-cs, py+cs, 0)
-		if c2 then
-			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-		end
-		gl.Vertex(sx-cs, sy-cs, 0)
-		gl.Vertex(sx, sy-cs, 0)
-
-		local offset = 0.15		-- texture offset, because else gaps could show
-
-		-- bottom left
-		if c2 then
-			gl.Color(c1[1],c1[2],c1[3],c1[4])
-		end
-		if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-			gl.Vertex(px, py, 0)
-		else
-			gl.Vertex(px+cs, py, 0)
-		end
-		gl.Vertex(px+cs, py, 0)
-		if c2 then
-			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-		end
-		gl.Vertex(px+cs, py+cs, 0)
-		gl.Vertex(px, py+cs, 0)
-		-- bottom right
-		if c2 then
-			gl.Color(c1[1],c1[2],c1[3],c1[4])
-		end
-		if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-			gl.Vertex(sx, py, 0)
-		else
-			gl.Vertex(sx-cs, py, 0)
-		end
-		gl.Vertex(sx-cs, py, 0)
-		if c2 then
-			gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-		end
-		gl.Vertex(sx-cs, py+cs, 0)
-		gl.Vertex(sx, py+cs, 0)
-		-- top left
-		if c2 then
-			gl.Color(c2[1],c2[2],c2[3],c2[4])
-		end
-		if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-			gl.Vertex(px, sy, 0)
-		else
-			gl.Vertex(px+cs, sy, 0)
-		end
-		gl.Vertex(px+cs, sy, 0)
-		if c2 then
-			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-		end
-		gl.Vertex(px+cs, sy-cs, 0)
-		gl.Vertex(px, sy-cs, 0)
-		-- top right
-		if c2 then
-			gl.Color(c2[1],c2[2],c2[3],c2[4])
-		end
-		if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-			gl.Vertex(sx, sy, 0)
-		else
-			gl.Vertex(sx-cs, sy, 0)
-		end
-		gl.Vertex(sx-cs, sy, 0)
-		if c2 then
-			gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-		end
-		gl.Vertex(sx-cs, sy-cs, 0)
-		gl.Vertex(sx, sy-cs, 0)
-	end
-	function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-		gl.Texture(false)
-		gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	end
-
-    function drawCheckbox(x, y, state, text)
-        glPushMatrix()
-        glTranslate(x, y, 0)
-        glColor(1, 1, 1, 0.2)
-        RectRound(0, 0, 16*sizeMultiplier, 16*sizeMultiplier, 3*sizeMultiplier)
-        glColor(1, 1, 1, 1)
-        if state then
-            glTexture('LuaUI/Images/tick.png')
-            glTexRect(0, 0, 16*sizeMultiplier, 16*sizeMultiplier)
-            glTexture(false)
-        end
-		font:Begin()
-		font:Print(text, 23*sizeMultiplier, 4*sizeMultiplier, 12*sizeMultiplier, "n")
-		font:End()
-        glPopMatrix()
-    end
-
-    function widget:IsAbove(mx, my)
-        if lockPlayerID == nil then return end
-        return mx > xPos and my > yPos and mx < xPos + (panelWidth*sizeMultiplier) and my < yPos + (panelHeight*sizeMultiplier)
-    end
-
-    function widget:MousePress(mx, my, mb)
-        if lockPlayerID ~= nil then
-            if mb == 1 then
-                if mx > xPos + (12*sizeMultiplier) and my > yPos + (10*sizeMultiplier) and mx < (xPos + ((panelWidth - 12)*sizeMultiplier)) and my < (yPos + ((10 + 16)*sizeMultiplier)) then
-                    selectPlayerUnits = not selectPlayerUnits
-                    createGuiList()
-                end
-                if lockPlayerID ~= nil and widget:IsAbove(mx,my) then
-                    return false
-                end
-            end
-        end
-    end
-
-    function widget:TweakMousePress(mx, my, mb)
-        if lockPlayerID ~= nil and (mb == 2 or mb == 3) and widget:IsAbove(mx,my) then
-            return true
-        end
-    end
-
-    function widget:TweakMouseMove(mx, my, dx, dy)
-        if xPos + dx >= -1 and xPos + (panelWidth*sizeMultiplier) + dx - 1 <= vsx then
-            xRelPos = xRelPos + dx/vsx
-        end
-        if yPos + dy >= -1 and yPos + (panelHeight*sizeMultiplier) + dy - 1<= vsy then
-            yRelPos = yRelPos + dy/vsy
-        end
-        xPos, yPos = xRelPos * vsx,yRelPos * vsy
-        createGuiList()
-    end
 end
