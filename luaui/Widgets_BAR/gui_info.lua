@@ -1119,9 +1119,10 @@ local function drawUnitInfo()
   local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
   local texSize = fontSize * 0.6
 
-  local posY1 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.1)
-  local posY2 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.38)
-  local posY3 = customInfoArea[4]-contentPadding-((customInfoArea[4]-customInfoArea[2])*0.67)
+  local leftSideHeight = (backgroundRect[4]-backgroundRect[2]) * 0.47
+  local posY1 = math_floor(backgroundRect[2]+leftSideHeight)-contentPadding-((math_floor(backgroundRect[2]+leftSideHeight)-math_floor(backgroundRect[2]))*0.1)
+  local posY2 = math_floor(backgroundRect[2]+leftSideHeight)-contentPadding-((math_floor(backgroundRect[2]+leftSideHeight)-math_floor(backgroundRect[2]))*0.38)
+  local posY3 = math_floor(backgroundRect[2]+leftSideHeight)-contentPadding-((math_floor(backgroundRect[2]+leftSideHeight)-math_floor(backgroundRect[2]))*0.67)
 
   local valueY1 = ''
   local valueY2 = ''
@@ -1168,7 +1169,7 @@ local function drawUnitInfo()
   glTexture(false)
 
   -- metal
-  local fontSize2 = fontSize*0.96
+  local fontSize2 = fontSize*0.9
   local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
   font2:Print(valueY1, backgroundRect[1]+contentPaddingLeft, posY1-(fontSize2*0.31), fontSize2, "o")
   -- energy
