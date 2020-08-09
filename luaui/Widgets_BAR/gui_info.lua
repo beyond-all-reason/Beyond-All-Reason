@@ -185,6 +185,7 @@ local unitArmorType = {}
 local unitWreckMetal = {}
 local unitHeapMetal = {}
 local unitParalyzeMult = {}
+local unitMetalmaker = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 
   if unitDef.isAirUnit then
@@ -234,6 +235,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   end
   if unitDef.seismicRadius > 0 then
     unitSeismicRadius[unitDefID] = unitDef.seismicRadius
+  end
+
+  if unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
+    unitMetalmaker[unitDefID] = {tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency)}
   end
 
   unitTooltip[unitDefID] = unitDef.tooltip
@@ -1341,6 +1346,10 @@ local function drawUnitInfo()
     --addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
     --addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
+    if unitMetalmaker[displayUnitDefID] then
+      addTextInfo('convertorEnergyCapacity', unitMetalmaker[displayUnitDefID][1])
+      addTextInfo('convertorMetal', unitMetalmaker[displayUnitDefID][1] / (1/unitMetalmaker[displayUnitDefID][2]))
+    end
 
     local text, numLines = font:WrapText(text,((backgroundRect[3]-bgpadding-bgpadding-bgpadding-bgpadding)-(backgroundRect[1]+contentPaddingLeft))*(loadedFontSize/infoFontsize))
 
