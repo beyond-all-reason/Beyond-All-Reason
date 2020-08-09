@@ -49,30 +49,28 @@ end
 
 
 -------- lists
-
-	local nameCommanderArm = "armcom"
-	local nameCommanderCor = "corcom"
-
--- Factories
-
--- Eco
-
--- Defences
-
--- Constructors
 	
 	local SimpleCommanderDefs = {}
 	local SimpleFactoriesDefs = {}
 	local SimpleConstructorDefs = {}
+	local SimpleExtractorDefs = {}
+	local SimpleGeneratorDefs = {}
+	local SimpleConverterDefs = {}
 	local SimpleUndefinedBuildingDefs = {}
 	local SimpleUndefinedUnitDefs = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-	  if unitDef.name == "armcom" or unitDef.name == "corcom" then
-		SimpleCommanderDefs[#SimpleCommanderDefs+1] = unitDefID
-	  elseif unitDef.isFactory and #unitDef.buildOptions > 0 then
-		SimpleFactoriesDefs[#SimpleFactoriesDefs+1] = unitDefID
-	  elseif unitDef.canMove and unitDef.isBuilder and #unitDef.buildOptions > 0 then
-		SimpleConstructorDefs[#SimpleConstructorDefs+1] = unitDefID
+		if unitDef.name == "armcom" or unitDef.name == "corcom" then
+			SimpleCommanderDefs[#SimpleCommanderDefs+1] = unitDefID
+		elseif unitDef.isFactory and #unitDef.buildOptions > 0 then
+			SimpleFactoriesDefs[#SimpleFactoriesDefs+1] = unitDefID
+		elseif unitDef.canMove and unitDef.isBuilder and #unitDef.buildOptions > 0 then
+			SimpleConstructorDefs[#SimpleConstructorDefs+1] = unitDefID
+		elseif unitDef.extractsMetal > 0 then
+			SimpleExtractorDefs[#SimpleExtractorDefs+1] = unitDefID
+		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0 or (unitDef.customParams and unitDef.customParams.solar) then
+			SimpleGeneratorDefs[#SimpleGeneratorDefs+1] = unitDefID
+		elseif unitDef.customParams and unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
+			SimpleConverterDefs[#SimpleConverterDefs+1] = unitDefID
 	  
 	  
 	  
@@ -82,165 +80,13 @@ end
 	  
 	  
 	  
-	  
-	  elseif not unitDef.canMove then
-		SimpleUndefinedBuildingDefs[#SimpleUndefinedBuildingDefs+1] = unitDefID
-	  else
-		SimpleUndefinedUnitDefs[#SimpleUndefinedUnitDefs+1] = unitDefID
-	  end
+		elseif not unitDef.canMove then
+			SimpleUndefinedBuildingDefs[#SimpleUndefinedBuildingDefs+1] = unitDefID
+		else
+			SimpleUndefinedUnitDefs[#SimpleUndefinedUnitDefs+1] = unitDefID
+		end
 	
 	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	-- local SimpleConstructorsTypes = {
-		-- "armck",
-		-- "armdecom",
-	-- }
-
-	-- local SimpleConstructorsBuildOrders = {
-		-- UDN.armck.id,
-		-- UDN.armdecom.id,
-	-- }
-	
-	local SimpleFactoriesTypes = {
-		"armaap",
-		"armalab",
-		"armap",
-		"armavp",
-		"armhp",
-		"armlab",
-		"armshltx",
-		"armvp",
-		"armamsub",
-		"armasy",
-		"armfhp",
-		"armplat",
-		"armshltxuw",
-		"armsy",
-	}
-	
-	local SimpleFactoriesBuildOrders = {
-		UDN.armaap.id,
-		UDN.armalab.id,
-		UDN.armap.id,
-		UDN.armavp.id,
-		UDN.armhp.id,
-		UDN.armlab.id,
-		UDN.armshltx.id,
-		UDN.armvp.id,
-		UDN.armamsub.id,
-		UDN.armasy.id,
-		UDN.armfhp.id,
-		UDN.armplat.id,
-		UDN.armshltxuw.id,
-		UDN.armsy.id,
-
-	}
-	
-	local SimpleEnergyTypes = {
-		"aaa",
-	}
-	
-	local SimpleEnergyBuildOrders = {
-		"aaa",
-	}
-	
-	local SimpleMetalTypes = {
-		"aaa",
-	}
-	
-	local SimpleMetalBuildOrders = {
-		"aaa",
-	}
-	
-	local SimpleConverterTypes = {
-		"aaa",
-	}
-	
-	local SimpleConverterBuildOrders = {
-		"aaa",
-	}
-	
-	local SimpleDefenceTypes = {
-		"aaa",
-	}
-	
-	local SimpleDefenceBuildOrders = {
-		"aaa",
-	}
-
--- Army
-	local SimpleLandArmyTypes = {
-		----ARM
-		-- t1 kbots
-		"armflea",
-		"armham",
-		"armjeth",
-		"armpw",
-		"armrectr",
-		"armrock",
-		"armwar",
-		-- t2 kbots
-		"armaak",
-		"armamph",
-		"armaser",
-		"armfark",
-		"armfast",
-		"armfboy",
-		"armfido",
-		"armmark",
-		"armmav",
-		"armscab",
-		"armsnipe",
-		"armspid",
-		"armsptk",
-		"armspy",
-		"armvader",
-		"armzeus",
-		---- CORE
-	}
-
-	local SimpleLandArmyBuildOrders = {
-		UDN.armflea.id,
-		UDN.armham.id,
-		UDN.armjeth.id,
-		UDN.armpw.id,
-		UDN.armrectr.id,
-		UDN.armrock.id,
-		UDN.armwar.id,
-
-	}
-	
-	local SimpleAirArmy = {
-		"aaa",
-	}
-
-	local SimpleAirArmyBuildOrders = {
-		"aaa",
-	}
-
-
-
-
-
-
-
-
-
-
-
-
 
 	-------- functions
 
@@ -401,38 +247,51 @@ function gadget:GameFrame(n)
 					if unitCommands == 0 then
 						for u = 1,#SimpleConstructorDefs do
 							if unitDefID == SimpleConstructorDefs[u] then
-								local r = math.random(0,8)
-								if SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
+								local r = math.random(0,4)
+								if ecurrent < estorage*0.50 then
+									for i = 1,10 do
+										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
+									end
+								elseif mcurrent < mstorage*0.50 then
+									if ecurrent > estorage*0.85 then
+										SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
+									else
+										local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
+										if mexspotpos then
+											Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
+										end
+									end
+								elseif SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
 									--Spring.Echo(SimpleFactories[unitTeam])
 									SimpleBuildOrder(unitID, SimpleFactoriesDefs[math.random(1,#SimpleFactoriesDefs)])
-								elseif r == 0 then
-									SimpleBuildOrder(unitID, UDN.armllt.id)
-								elseif r >= 1 and r <= 4 then
-									local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
-									if mexspotpos then
-										Spring.GiveOrderToUnit(unitID, -UDN.armmex.id, {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
-									end
 								else
-									SimpleBuildOrder(unitID, UDN.armsolar.id)
+									SimpleBuildOrder(unitID, SimpleUndefinedBuildingDefs[math.random(1,#SimpleUndefinedBuildingDefs)])
 								end
 								break
 							end
 						end
-						if unitName == "armcom" then
-							--Spring.GiveOrderToUnit(unitID, CMD.MOVE,{unitposx+math.random(-500,500),5000,unitposz+math.random(-500,500)}, {"shift", "alt", "ctrl"})
-							local r = math.random(0,10)
-							local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
-							if SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
-								--Spring.Echo(SimpleFactories[unitTeam])
-								SimpleBuildOrder(unitID, SimpleFactoriesDefs[math.random(1,#SimpleFactoriesDefs)])
-							elseif mexspotpos and SimpleT1Mexes[unitTeam] < 3 then
-								Spring.GiveOrderToUnit(unitID, -UDN.armmex.id, {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
-							elseif r == 0 then
-								SimpleBuildOrder(unitID, UDN.armllt.id)
-							else
-								SimpleBuildOrder(unitID, UDN.armsolar.id)
+						for u = 1,#SimpleCommanderDefs do
+							if unitDefID == SimpleCommanderDefs[u] then
+								--Spring.GiveOrderToUnit(unitID, CMD.MOVE,{unitposx+math.random(-500,500),5000,unitposz+math.random(-500,500)}, {"shift", "alt", "ctrl"})
+								local r = math.random(0,5)
+								local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
+								if mexspotpos and SimpleT1Mexes[unitTeam] < 3 then
+									Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
+								elseif ecurrent < estorage*0.50 then
+									for i = 1,10 do
+										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
+									end
+								elseif ecurrent > estorage*0.85 and mcurrent < mstorage*0.50 then
+									SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
+								elseif SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
+									--Spring.Echo(SimpleFactories[unitTeam])
+									SimpleBuildOrder(unitID, SimpleFactoriesDefs[math.random(1,#SimpleFactoriesDefs)])
+								else
+									SimpleBuildOrder(unitID, SimpleUndefinedBuildingDefs[math.random(1,#SimpleUndefinedBuildingDefs)])
+									
+								end
+								break
 							end
-							--break
 						end
 
 						for u = 1,#SimpleFactoriesDefs do
@@ -447,7 +306,7 @@ function gadget:GameFrame(n)
 										end
 									end
 								end
-								--break
+								break
 							end
 						end
 
@@ -459,38 +318,16 @@ function gadget:GameFrame(n)
 								local targetUnitNear = Spring.GetUnitNearestEnemy(unitID, 2000, false)
 								if targetUnitNear then
 									local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnitNear)
-									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),5000,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),tUnitY,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
 								elseif n%3600 == 0 then
 									local targetUnit = Spring.GetUnitNearestEnemy(unitID, 999999, false)
 									local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
-									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),5000,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{tUnitX+math.random(-100,100),tUnitY,tUnitZ+math.random(-100,100)}, {"shift", "alt", "ctrl"})
 								end
 								break
 							end
 						end
 					end
-
-
-
-
-
-				--elseif faction == "core" then
-
-
-					-- builders
-					if unitCommands == 0 then
-						if unitName == "corcom" then
-							--Spring.GiveOrderToUnit(unitID, CMD.MOVE,{unitposx+math.random(-500,500),5000,unitposz+math.random(-500,500)}, {"shift", "alt", "ctrl"})
-							SimpleBuildOrder(unitID, UDN.corwin.id)
-							--break
-						end
-					end
-
-
-					-- army
-
-
-				--end
 			end
 		end
 	end
@@ -506,12 +343,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 					break
 				end
 			end
-			if unitName == "armmex" then
-				SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] + 1
-				break
+			for u = 1,#SimpleExtractorDefs do
+				if unitDefID == SimpleExtractorDefs[u] then
+					SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] + 1
+					break
+				end
 			end
 		end
-	--break
 	end
 end
 
@@ -525,12 +363,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 					break
 				end
 			end
-			if unitName == "armmex" then
-				SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] - 1
-				break
+			for u = 1,#SimpleExtractorDefs do
+				if unitDefID == SimpleExtractorDefs[u] then
+					SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] - 1
+					break
+				end
 			end
 		end
-	--break
 	end
 end
 
