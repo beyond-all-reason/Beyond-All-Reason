@@ -60,7 +60,7 @@ end
 -- Defences
 
 -- Constructors
-	local SimpleConstructors = {
+	local SimpleConstructorsTypes = {
 		"armck",
 		"armdecom",
 	}
@@ -70,7 +70,7 @@ end
 		UDN.armdecom.id,
 	}
 	
-	local SimpleFactories = {
+	local SimpleFactoriesTypes = {
 		"armaap",
 		"armalab",
 		"armap",
@@ -105,7 +105,7 @@ end
 
 	}
 	
-	local SimpleEnergy = {
+	local SimpleEnergyTypes = {
 		"aaa",
 	}
 	
@@ -113,7 +113,7 @@ end
 		"aaa",
 	}
 	
-	local SimpleMetal = {
+	local SimpleMetalTypes = {
 		"aaa",
 	}
 	
@@ -121,7 +121,7 @@ end
 		"aaa",
 	}
 	
-	local SimpleConverter = {
+	local SimpleConverterTypes = {
 		"aaa",
 	}
 	
@@ -129,7 +129,7 @@ end
 		"aaa",
 	}
 	
-	local SimpleDefence = {
+	local SimpleDefenceTypes = {
 		"aaa",
 	}
 	
@@ -138,7 +138,7 @@ end
 	}
 
 -- Army
-	local SimpleLandArmy = {
+	local SimpleLandArmyTypes = {
 		----ARM
 		-- t1 kbots
 		"armflea",
@@ -356,8 +356,8 @@ function gadget:GameFrame(n)
 
 					-- builders
 					if unitCommands == 0 then
-						for u = 1,#SimpleConstructors do
-							if unitName == SimpleConstructors[u] then
+						for u = 1,#SimpleConstructorsTypes do
+							if unitName == SimpleConstructorsTypes[u] then
 								if SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
 									SimpleBuildOrder(unitID, UDN.armlab.id)
 								end
@@ -410,9 +410,9 @@ function gadget:GameFrame(n)
 
 					-- army
 
-						for u = 1,#SimpleLandArmy do
+						for u = 1,#SimpleLandArmyTypes do
 
-							if unitName == SimpleLandArmy[u] then
+							if unitName == SimpleLandArmyTypes[u] then
 								local targetUnitNear = Spring.GetUnitNearestEnemy(unitID, 2000, false)
 								if targetUnitNear then
 									local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnitNear)
