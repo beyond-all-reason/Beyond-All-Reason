@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "-2 0 0",
 		collisionvolumescales = "50 23 50",
 		collisionvolumetype = "CylY",
-		description = "Converts up to 70 energy into 1 metal per second",
+		description = "Converts 70 energy into 1 metal per sec",
 		explodeas = "metalmaker",
 		footprintx = 3,
 		footprintz = 3,
@@ -36,6 +36,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			energyconv_capacity = 70,
+			energyconv_efficiency = 1/70,
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,

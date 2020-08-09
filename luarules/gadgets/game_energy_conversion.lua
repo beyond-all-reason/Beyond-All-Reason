@@ -21,7 +21,14 @@ end
 ----------------------------------------------------------------
 -- Config
 ----------------------------------------------------------------
-local convertCapacities = include("LuaRules/Configs/maker_defs.lua")
+
+-- gather all metalmaker units
+local convertCapacities = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
+		convertCapacities[unitDefID] = {c = tonumber(unitDef.customParams.energyconv_capacity), e = tonumber(unitDef.customParams.energyconv_efficiency)}
+	end
+end
 
 local alterLevelRegex = '^' .. string.char(137) .. '(%d+)$'
 local mmLevelParamName = 'mmLevel'

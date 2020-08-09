@@ -10,7 +10,7 @@ return {
 		buildtime = 2958,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		description = "Converts 70 Energy into 1.1 Metal",
+		description = "Converts 70 energy into 1.1 metal per sec",
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -29,6 +29,8 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			energyconv_capacity = 70,
+			energyconv_efficiency = 1/64,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

@@ -15,7 +15,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Converts up to 600 energy into 10.3 metal per second",
+		description = "Converts 600 energy into 10.3 metal per sec",
 		explodeas = "advmetalmaker",
 		footprintx = 4,
 		footprintz = 4,
@@ -34,6 +34,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			energyconv_capacity = 600,
+			energyconv_efficiency = 1/58,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
 			flashlightmin = 0.8,

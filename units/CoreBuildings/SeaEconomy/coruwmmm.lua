@@ -14,7 +14,7 @@ return {
 		collisionvolumescales = "120 120 120",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-		description = "Converts 650 Energy into 11 Metal",
+		description = "Converts 650 energy into 11 metal per sec",
 		explodeas = "hugeBuildingExplosionGeneric",
 		floater = true,
 		footprintx = 5,
@@ -35,6 +35,8 @@ return {
 		waterline = 17,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			energyconv_capacity = 650,
+			energyconv_efficiency = 1/58,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
