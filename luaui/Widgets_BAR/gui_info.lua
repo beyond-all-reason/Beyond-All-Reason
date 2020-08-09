@@ -1035,7 +1035,7 @@ end
 
 
 local function drawUnitInfo()
-  local fontSize = (height*vsy * 0.11) * (0.95-((1-ui_scale)*0.5))
+  local fontSize = (height*vsy * 0.123) * (0.95-((1-ui_scale)*0.5))
 
   local iconSize = fontSize*5
   local iconPadding = 0
@@ -1090,22 +1090,25 @@ local function drawUnitInfo()
   local valuePlusColor = '\255\180\255\180'
   local valueMinColor = '\255\255\180\180'
 
-  local text, numLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
+  local text, unitDescriptionLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth-iconSize)*(loadedFontSize/fontSize))
   -- unit tooltip
   font:Begin()
-  font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.4), fontSize, "o")
+  font:Print(descriptionColor..text, backgroundRect[1]+contentPadding+iconSize, backgroundRect[4]-contentPadding-(fontSize*2.22), fontSize*0.94, "o")
   font:End()
 
   -- unit name
   font2:Begin()
-  font2:Print(unitNameColor..unitHumanName[displayUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize), fontSize*1.15, "o")
+  font2:Print(unitNameColor..unitHumanName[displayUnitDefID], backgroundRect[1]+iconSize+iconPadding, backgroundRect[4]-contentPadding-(fontSize*0.91), fontSize*1.12, "o")
   --font2:End()
 
   -- custom unit info background
   local width = contentWidth * 0.8
-  local height = (backgroundRect[4]-backgroundRect[2]) * 0.475
+  local height = (backgroundRect[4]-backgroundRect[2]) * (unitDescriptionLines > 1 and 0.495 or 0.6)
   customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
-  RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
+
+  if not displayMode == 'unitdef' or not unitBuildOptions[displayUnitDefID] or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
+    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
+  end
 
   local contentPaddingLeft = contentPadding * 0.75
   local texPosY = backgroundRect[4]-iconSize-(contentPadding * 0.64)
@@ -1356,7 +1359,7 @@ local function drawUnitInfo()
 
     -- display unit(def) info text
     font:Begin()
-    font:Print(text, customInfoArea[1]+contentPadding, customInfoArea[4]-contentPadding-(infoFontsize*0.42), infoFontsize, "o")
+    font:Print(text, customInfoArea[1]+contentPadding, customInfoArea[4]-contentPadding-(infoFontsize*0.55), infoFontsize, "o")
     font:End()
 
   end
