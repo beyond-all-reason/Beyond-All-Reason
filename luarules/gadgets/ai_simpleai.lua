@@ -256,13 +256,11 @@ function gadget:GameFrame(n)
 										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
 									end
 								elseif mcurrent < mstorage*0.50 then
-									if ecurrent > estorage*0.85 then
+									local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
+									if ecurrent > estorage*0.85 or (not mexspotpos) then
 										SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
-									else
-										local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
-										if mexspotpos then
-											Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
-										end
+									elseif mexspotpos then
+										Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
 									end
 								elseif SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
 									--Spring.Echo(SimpleFactories[unitTeam])
@@ -291,7 +289,7 @@ function gadget:GameFrame(n)
 									for i = 1,10 do
 										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
 									end
-								elseif ecurrent > estorage*0.85 and mcurrent < mstorage*0.50 then
+								elseif (ecurrent > estorage*0.85 or (not mexspotpos)) and mcurrent < mstorage*0.50 then
 									SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
 								elseif SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
 									--Spring.Echo(SimpleFactories[unitTeam])
