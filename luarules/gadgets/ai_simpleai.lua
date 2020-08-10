@@ -102,8 +102,8 @@ local function SimpleGetClosestMexSpot(x,z)
 		local dx, dz = x - spot.x, z - spot.z
 		local dist = dx*dx + dz*dz
 		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 64)
-		local height = Spring.GetGroundHeight(spot.x, spot.z)
-		if dist < bestDist and #units == 0 and height > 0 then
+		--local height = Spring.GetGroundHeight(spot.x, spot.z)
+		if dist < bestDist and #units == 0 then --and height > 0 then
 			bestSpot = spot
 			bestDist = dist
 		end
