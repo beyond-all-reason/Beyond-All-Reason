@@ -1,0 +1,7 @@
+comIcon.png
+energy.png
+info_health.png
+metal.png
+nuke.png
+
+All above textures in this folder were made for Beyond All Reason by IceXuick and Floris, all rights reserved (CC BY NC ND)

@@ -1,0 +1,21 @@
+explo.tga
+explofade.tga
+explowater.tga
+flare2.tga
+flashside2.tga
+glow3.tga
+gunshotxl.tga
+lightb.tga
+lightning.tga
+muzzleside.tga
+muzzlesideflipped.tga
+new_dirta.png
+new_dirtb.png
+smoke.tga
+smoketrail.tga
+trail.tga
+wake.tga
+waterrush.tga
+whitelightb.tga
+
+All Above projectile-textures were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)
