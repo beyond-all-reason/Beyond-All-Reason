@@ -20,7 +20,7 @@ return {
 		decoyfor = "armdrag",
 		description = "Pop-up Lightning Turret",
 		energystorage = 15,
-		explodeas = "tinyBuildingexplosiongeneric",
+		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,

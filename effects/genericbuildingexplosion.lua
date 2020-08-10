@@ -41,9 +41,9 @@ local definitions = {
       water              = true,
       properties = {
         colormap           = [[1 0.9 0.75 0.5   1 0.9 0.75 0.2   0 0 0 0.01]],
-        size               = 75,
-        sizegrowth         = -4.0,
-        ttl                = 13,
+        size               = 85,
+        sizegrowth         = -3.7,
+        ttl                = 14,
         texture            = [[groundflashwhite]],
       },
     },
@@ -479,8 +479,8 @@ local sizes = {
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.33   0 0 0 0.01]],
-        size               = 50,
-        ttl                = 10,
+        size               = 55,
+        ttl                = 11,
       },
     },
 	explosion = {
@@ -622,7 +622,7 @@ local sizes = {
       properties = {
         colormap           = [[1 0.9 0.75 0.6   1 0.9 0.75 0.23   0 0 0 0.01]],
         size               = 150,
-        sizegrowth         = -3.5,
+        sizegrowth         = -3.3,
         ttl                = 16,
       },
     },
