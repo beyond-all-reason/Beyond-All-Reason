@@ -493,7 +493,6 @@ Stop()
 		call-script holstgun();
 	}
 	Static_Var_2 = 0;
-	isAiming = FALSE;
 }
 
 RequestState(requestedstate, currentstate)
@@ -609,6 +608,24 @@ ExecuteRestoreAfterDelay()
     turn aimy1 to y-axis <0.000000> speed <90>;
     turn aimx1 to x-axis <0.000000> speed <45>;
     turn torso to y-axis <0> speed <45>;    
+    
+	isAiming = FALSE;
+    
+    if (!isAiming){
+		turn ruparm to x-axis <0.000000> speed <56.783183>;
+		turn ruparm to y-axis <0.000000> speed <8.459177>;
+		turn ruparm to z-axis <0.000000> speed <3.553645>;	
+		turn rloarm to x-axis <0.000000> speed <94.858781>;
+		turn rloarm to y-axis <0.000000> speed <10.549088>;
+		turn rloarm to z-axis <0.000000> speed <23.470615>;	
+		turn luparm to x-axis <0.000000> speed <118.421794>;
+		turn luparm to y-axis <0.000000> speed <1.069061>;
+		turn luparm to z-axis <0.000000> speed <16.270322>;	
+		move torso to x-axis [0.000000] speed [25.713165];
+		move torso to y-axis [0.000000] speed [25.713620];
+		move torso to z-axis [0.000000] speed [28.538611];			
+	}
+    
     wpnheading = 0;
     bAiming = 0;
 }
