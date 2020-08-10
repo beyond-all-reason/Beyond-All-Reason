@@ -41,8 +41,8 @@ local floor = math.floor
 ----------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------
 
-local ranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {} }
-local PWranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {} }
+local ranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {}, [5] = {}, [6] = {}, [7] = {} }
+local PWranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {}, [5] = {}, [6] = {}, [7] = {} }
 
 local PWUnits = {}
 local unitPowerXpCoeffient = {}
@@ -57,14 +57,20 @@ local rankTextures = {
   [1] = rankTexBase .. 'rank1.png',
   [2] = rankTexBase .. 'rank2.png',
   [3] = rankTexBase .. 'rank3.png',
-  [4] = rankTexBase .. 'star.png',
+  [4] = rankTexBase .. 'rank4.png',
+  [5] = rankTexBase .. 'rank5.png',
+  [6] = rankTexBase .. 'rank6.png',
+  [7] = rankTexBase .. 'star.png',
 }
 local PWrankTextures = {
   [0] = rankTexBase .. 'PWrank0.png',
   [1] = rankTexBase .. 'PWrank1.png',
   [2] = rankTexBase .. 'PWrank2.png',
   [3] = rankTexBase .. 'PWrank3.png',
-  [4] = rankTexBase .. 'PWstar.png',
+  [4] = rankTexBase .. 'PWrank4.png',
+  [5] = rankTexBase .. 'PWrank5.png',
+  [6] = rankTexBase .. 'PWrank6.png',
+  [7] = rankTexBase .. 'PWstar.png',
 }
 
 -------------------------------------------------------------------------------------
@@ -110,7 +116,7 @@ function SetUnitRank(unitID)
   if (not xp) then
     return
   end
-  xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]),4)
+  xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]),7)
 
   if not PWUnits[unitID] then
     if (xp>0) then
@@ -129,8 +135,8 @@ function widget:UnitExperience(unitID,unitDefID,unitTeam, xp, oldXP)
   if xp < 0 then xp = 0 end
   if oldXP < 0 then oldXP = 0 end
   
-  local rank    = min(floor(xp / unitPowerXpCoeffient[unitDefID]),4)
-  local oldRank = min(floor(oldXP / unitPowerXpCoeffient[unitDefID]),4)
+  local rank    = min(floor(xp / unitPowerXpCoeffient[unitDefID]),7)
+  local oldRank = min(floor(oldXP / unitPowerXpCoeffient[unitDefID]),7)
 
   if (rank~=oldRank) then
 	if not PWUnits[unitID] then
@@ -151,13 +157,13 @@ end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  for i=0,4 do ranks[i][unitID] = nil PWranks[i][unitID] = nil end
+  for i=0,7 do ranks[i][unitID] = nil PWranks[i][unitID] = nil end
 end
 
 
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
   if (not IsUnitAllied(unitID))and(not GetSpectatingState())  then
-    for i=0,4 do ranks[i][unitID] = nil PWranks[i][unitID] = nil end
+    for i=0,7 do ranks[i][unitID] = nil PWranks[i][unitID] = nil end
   end
 end
 
@@ -187,7 +193,7 @@ function widget:DrawWorld()
   glDepthTest(true)
   glAlphaTest(GL_GREATER, 0.001)
 
-  for i=1,4 do
+  for i=1,7 do
     if (next(ranks[i])) then
       glTexture( rankTextures[i] )
       for unitID,unitDefID in pairs(ranks[i]) do
@@ -195,7 +201,7 @@ function widget:DrawWorld()
       end
     end
   end
-  for i=0,4 do
+  for i=0,7 do
     if (next(PWranks[i])) then
       glTexture( PWrankTextures[i] )
       for unitID,unitDefID in pairs(PWranks[i]) do
