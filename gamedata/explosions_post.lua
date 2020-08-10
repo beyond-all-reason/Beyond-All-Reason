@@ -13,6 +13,6 @@ for name,ed in pairs(ExplosionDefs) do
   ExplosionDef_Post(name,ed)
   
   if SaveDefsToCustomParams then
-      SaveDefToCustomParams("ExposionDefs", name, ed)    
+      SaveDefToCustomParams("ExplosionDefs", name, ed)    
   end
 end
