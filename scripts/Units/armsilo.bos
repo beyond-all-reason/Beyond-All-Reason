@@ -32,8 +32,7 @@ activatescr()
 /*     4:*/	{
 				turn door1 to x-axis <180> speed <10>;
 				turn door2 to x-axis <-180> speed <10>;
-				wait-for-turn door1 around x-axis;
-/*    12:*/		sleep 3000;
+/*    12:*/		sleep 8500;
 /*    13:*/	}
 /*    81:*/	return (0);
 /*    82:*/}
