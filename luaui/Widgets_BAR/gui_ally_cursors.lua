@@ -31,8 +31,8 @@ local drawNamesCursorSize			= 8.5
 
 local dlistAmount					= 5		-- number of dlists generated for each player (# available opacity levels)
 
-local sendPacketEvery				= 0.5
-local numMousePos					= 2 --//num mouse pos in 1 packet
+local packetInterval			    = 0.25
+local numMousePos					= 1 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
 local showPlayerName       			= true
@@ -102,8 +102,6 @@ local teamColors = {}
 local specList = {}
 local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,wy --keep memory always allocated for these since they are referenced so frequently
 local notIdle = {}
-local sec = 0
-local updateTime = 2
 local playerPos = {}
 
 --------------------------------------------------------------------------------
@@ -128,10 +126,13 @@ function widget:ViewResize()
 end
 
 function widget:TextCommand(command)
-    local mycommand = false
-    if (string.find(command, "allycursorspecname") == 1  and  string.len(command) == 18) then showSpectatorName = not showSpectatorName end
+    if string.find(command, "allycursorspecname") == 1  and  string.len(command) == 18 then
+        showSpectatorName = not showSpectatorName
+    end
 
-    if (string.find(command, "allycursorplayername") == 1  and  string.len(command) == 20) then showPlayerName = not showPlayerName end
+    if string.find(command, "allycursorplayername") == 1  and  string.len(command) == 20 then
+        showPlayerName = not showPlayerName
+    end
 
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
@@ -375,14 +376,6 @@ local function SetTeamColor(teamID,playerID,a)
 end
 
 
---function widget:Update(dt)
---    sec = sec+dt
---    if sec > updateTime then
---        sec = 0
---        updateSpecList()
---    end
---end
-
 function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
     local _, _, isSpec, teamID = spGetPlayerInfo(playerID,false)
@@ -541,8 +534,8 @@ function widget:Update(dt)
         local wx,wz = data[1],data[2]
         local lastUpdatedDiff = time-data[#data-2] + 0.025
 
-        if (lastUpdatedDiff<sendPacketEvery) then
-            local scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
+        if (lastUpdatedDiff<packetInterval) then
+            local scale  = (1-(lastUpdatedDiff/packetInterval))*numMousePos
             local iscale = min(floor(scale),numMousePos-1)
             local fscale = scale-iscale
             wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
