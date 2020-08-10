@@ -56,6 +56,7 @@ end
 	local SimpleExtractorDefs = {}
 	local SimpleGeneratorDefs = {}
 	local SimpleConverterDefs = {}
+	local SimpleTurretDefs = {}
 	local SimpleUndefinedBuildingDefs = {}
 	local SimpleUndefinedUnitDefs = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -71,7 +72,9 @@ end
 			SimpleGeneratorDefs[#SimpleGeneratorDefs+1] = unitDefID
 		elseif unitDef.customParams and unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
 			SimpleConverterDefs[#SimpleConverterDefs+1] = unitDefID
-	  
+		elseif unitDef.isBuilding and #unitDef.weapons > 0 then
+			SimpleTurretDefs[#SimpleTurretDefs+1] = unitDefID
+			
 	  
 	  
 	  
@@ -197,11 +200,11 @@ function gadget:GameFrame(n)
 			for j = 1,#SimpleCheaterAITeamIDs do
 				if teamID == SimpleCheaterAITeamIDs[j] then
 					-- --cheats
-					if mcurrent < mstorage*0.75 then
-						Spring.SetTeamResource(teamID, "m", mstorage*0.75)
+					if mcurrent < mstorage*0.25 then
+						Spring.SetTeamResource(teamID, "m", mstorage*0.25)
 					end
-					if ecurrent < estorage*0.75 then
-						Spring.SetTeamResource(teamID, "e", estorage*0.75)
+					if ecurrent < estorage*0.25 then
+						Spring.SetTeamResource(teamID, "e", estorage*0.25)
 					end
 				end
 			end
@@ -247,7 +250,7 @@ function gadget:GameFrame(n)
 					if unitCommands == 0 then
 						for u = 1,#SimpleConstructorDefs do
 							if unitDefID == SimpleConstructorDefs[u] then
-								local r = math.random(0,4)
+								
 								if ecurrent < estorage*0.50 then
 									for i = 1,10 do
 										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
@@ -265,7 +268,14 @@ function gadget:GameFrame(n)
 									--Spring.Echo(SimpleFactories[unitTeam])
 									SimpleBuildOrder(unitID, SimpleFactoriesDefs[math.random(1,#SimpleFactoriesDefs)])
 								else
-									SimpleBuildOrder(unitID, SimpleUndefinedBuildingDefs[math.random(1,#SimpleUndefinedBuildingDefs)])
+									local r = math.random(0,1)
+									if r == 0 then
+										SimpleBuildOrder(unitID, SimpleUndefinedBuildingDefs[math.random(1,#SimpleUndefinedBuildingDefs)])
+									else
+										for i = 1,5 do
+											SimpleBuildOrder(unitID, SimpleTurretDefs[math.random(1,#SimpleTurretDefs)])
+										end
+									end
 								end
 								break
 							end
@@ -287,8 +297,14 @@ function gadget:GameFrame(n)
 									--Spring.Echo(SimpleFactories[unitTeam])
 									SimpleBuildOrder(unitID, SimpleFactoriesDefs[math.random(1,#SimpleFactoriesDefs)])
 								else
-									SimpleBuildOrder(unitID, SimpleUndefinedBuildingDefs[math.random(1,#SimpleUndefinedBuildingDefs)])
-									
+									local r = math.random(0,1)
+									if r == 0 then
+										SimpleBuildOrder(unitID, SimpleUndefinedBuildingDefs[math.random(1,#SimpleUndefinedBuildingDefs)])
+									else
+										for i = 1,5 do
+											SimpleBuildOrder(unitID, SimpleTurretDefs[math.random(1,#SimpleTurretDefs)])
+										end
+									end
 								end
 								break
 							end
