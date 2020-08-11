@@ -25,8 +25,8 @@ end
 
 -- configs
 
-local sendPacketEvery	= 0.25
-local numMousePos		= 1 --//num mouse pos in 1 packet
+local sendPacketEvery	= 0.33
+local numMousePos		= 2 --//num mouse pos in 1 packet
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

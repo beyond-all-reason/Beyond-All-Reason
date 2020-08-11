@@ -31,8 +31,8 @@ local drawNamesCursorSize			= 8.5
 
 local dlistAmount					= 5		-- number of dlists generated for each player (# available opacity levels)
 
-local packetInterval			    = 0.25
-local numMousePos					= 1 --//num mouse pos in 1 packet
+local packetInterval			    = 0.33
+local numMousePos					= 2 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
 local showPlayerName       			= true
