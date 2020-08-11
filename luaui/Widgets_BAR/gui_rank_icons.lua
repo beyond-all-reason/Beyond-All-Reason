@@ -3,7 +3,7 @@ function widget:GetInfo()
   return {
     name      = "Rank Icons",
     desc      = "Shows a rank icon depending on experience next to units",
-    author    = "trepan (idea quantum,jK)",
+    author    = "trepan (idea quantum,jK), Floris",
     date      = "Feb, 2008",
     license   = "GNU GPL, v2 or later",
     layer     = 5,
@@ -12,12 +12,12 @@ function widget:GetInfo()
 end
 
 
-local iconsize   = 60
+local iconsize   = 100
 local iconoffset = 22
-local scaleIconAmount = 50
+local scaleIconAmount = 80
 
-local falloffDistance = 1600
-local cutoffDistance = 2400
+local falloffDistance = 1800
+local cutoffDistance = 2900
 
 local distanceMult = 1
 local usedFalloffDistance = falloffDistance * distanceMult
@@ -224,8 +224,9 @@ function widget:DrawWorld()
 					local x,y,z = GetUnitPosition(unitID)
 					camDistance = diag(camX-x, camY-y, camZ-z)
 					if camDistance < usedCutoffDistance then
-						unitUsedIconsize = (usedIconsize*0.2) + (camDistance/scaleIconAmount)
-						glColor(1,1,1,min(1, 1 - (camDistance-usedFalloffDistance) / usedCutoffDistance))
+						local opacity = min(1, 1 - (camDistance-usedFalloffDistance) / usedCutoffDistance)
+						unitUsedIconsize = ((usedIconsize*0.2) + (camDistance/scaleIconAmount)) - ((1-opacity)*(usedIconsize))
+						glColor(1,1,1,opacity)
 						glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
 					end
 				end
