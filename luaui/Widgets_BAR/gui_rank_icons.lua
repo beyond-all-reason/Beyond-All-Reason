@@ -12,12 +12,18 @@ function widget:GetInfo()
 end
 
 
-local iconsize   = 50
-local iconoffset = 17
-local scaleIconAmount = 60
+local iconsize   = 60
+local iconoffset = 22
+local scaleIconAmount = 50
 
-local falloffDistance = 1300
-local cutoffDistance = 1800
+local falloffDistance = 1600
+local cutoffDistance = 2400
+
+local distanceMult = 1
+local usedFalloffDistance = falloffDistance * distanceMult
+local usedCutoffDistance = cutoffDistance * distanceMult
+local iconsizeMult = 1
+local usedIconsize = iconsize * iconsizeMult
 
 local rankTexBase = 'LuaUI/Images/ranks/'
 local rankTextures = {
@@ -36,7 +42,7 @@ local ranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {}, [5] = {}, [6] 
 local unitPowerXpCoeffient = {}
 local unitHeights  = {}
 
-local usedIconsize = iconsize
+local unitUsedIconsize = usedIconsize
 
 -- speed-ups
 local GetUnitDefID			= Spring.GetUnitDefID
@@ -71,6 +77,8 @@ local diag	= math.diag
 function widget:GetConfigData()
 	return {
 		ranks = ranks,
+		distanceMult = distanceMult,
+		iconsizeMult = iconsizeMult,
 	}
 end
 
@@ -80,9 +88,35 @@ function widget:SetConfigData(data) --load config
 			ranks = data.ranks
 		end
 	end
+	if data.distanceMult ~= nil then
+		distanceMult = data.distanceMult
+		usedFalloffDistance = falloffDistance * distanceMult
+		usedCutoffDistance = cutoffDistance * distanceMult
+	end
+	if data.iconsizeMult ~= nil then
+		iconsizeMult = data.iconsizeMult
+		usedIconsize = iconsize * iconsizeMult
+	end
 end
 
 function widget:Initialize()
+
+	WG['rankicons'] = {}
+	WG['rankicons'].getDrawDistance = function()
+		return distanceMult
+	end
+	WG['rankicons'].setDrawDistance = function(value)
+		distanceMult = value
+		usedFalloffDistance = falloffDistance * distanceMult
+		usedCutoffDistance = cutoffDistance * distanceMult
+	end
+	WG['rankicons'].getScale = function()
+		return iconsizeMult
+	end
+	WG['rankicons'].setScale = function(value)
+		iconsizeMult = value
+		usedIconsize = iconsize * iconsizeMult
+	end
 
 	for unitDefID, ud in pairs(UnitDefs) do
 		ud.power_xp_coeffient  = ((ud.power / 1000) ^ -0.2) / 6  -- dark magic
@@ -160,7 +194,7 @@ end
 local function DrawUnitFunc(yshift)
 	glTranslate(0,yshift,0)
 	glBillboard()
-	glTexRect(-usedIconsize*0.5, -usedIconsize*0.5, usedIconsize*0.5, usedIconsize*0.5)
+	glTexRect(-unitUsedIconsize*0.5, -unitUsedIconsize*0.5, unitUsedIconsize*0.5, unitUsedIconsize*0.5)
 end
 
 
@@ -189,9 +223,9 @@ function widget:DrawWorld()
 				if IsUnitInView(unitID) then
 					local x,y,z = GetUnitPosition(unitID)
 					camDistance = diag(camX-x, camY-y, camZ-z)
-					if camDistance < cutoffDistance then
-						usedIconsize = (iconsize*0.2) + (camDistance/scaleIconAmount)
-						glColor(1,1,1,min(1, 1 - (camDistance-falloffDistance) / cutoffDistance))
+					if camDistance < usedCutoffDistance then
+						unitUsedIconsize = (usedIconsize*0.2) + (camDistance/scaleIconAmount)
+						glColor(1,1,1,min(1, 1 - (camDistance-usedFalloffDistance) / usedCutoffDistance))
 						glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
 					end
 				end

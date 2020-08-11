@@ -2744,6 +2744,16 @@ function init()
 		 onchange = function(i, value) saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', {'hideHealthbars'}, value) end,
 		},
 
+		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
+		{id="rankicons_distance", group="ui", name=widgetOptionColor.."   draw distance", type="slider", min=0.5, max=2.5, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getDrawDistance~=nil and WG['rankicons'].getDrawDistance()), description='',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', {'distanceMult'}, value) end,
+		},
+		{id="rankicons_scale", group="ui", name=widgetOptionColor.."   scale", type="slider", min=0.5, max=2.5, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getScale~=nil and WG['rankicons'].getScale()), description='',
+		 onload = function(i) end,
+		 onchange = function(i, value) saveOptionValue('Rank Icons', 'rankicons', 'setScale', {'iconsizeMult'}, value) end,
+		},
+
 		{id="allycursors", group="ui", basic=true, widget="AllyCursors", name="Ally cursors", type="bool", value=GetWidgetToggleValue("AllyCursors"), description='Shows the position of ally cursors'},
 		{id="allycursors_playername", group="ui",  name=widgetOptionColor.."   player name", type="bool", value=true, description='Shows the player name next to the cursor',
 		 onload=function(i) loadWidgetData("AllyCursors", "allycursors_playername", {'showPlayerName'}) end,
@@ -2805,8 +2815,6 @@ function init()
 		 onload = function(i) loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'}) end,
 		 onchange = function(i, value) saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', {'opacity'}, value) end,
 		},
-
-		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
 		{id="displaydps", group="ui", basic=true, name="Display DPS", type="bool", value=tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1, description='Display the \'Damage Per Second\' done where target are hit',
 		 onload = function(i)  end,
