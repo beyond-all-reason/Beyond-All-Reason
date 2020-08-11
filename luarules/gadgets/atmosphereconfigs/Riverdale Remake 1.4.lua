@@ -12,6 +12,7 @@ function gadget:GameFrame(n)
 
 --rare foggy cliffs	
 	if n%610 == 305 then
+		SpawnCEGInPositionGround("fogdirty", 208, 79, 6630)
 		SpawnCEGInPositionGround("fogdirty", 2919, 252, 6133)
 		SpawnCEGInPositionGround("fogdirty", 529, 283, 9794)
 		SpawnCEGInPositionGround("fogdirty", 5544, 315, 2730)
@@ -20,7 +21,7 @@ function gadget:GameFrame(n)
 --foggy canyon	
 	if n%300 == 100 then
 		SpawnCEGInPositionGround("fogdirty", 814, 0, 7504)
-		SpawnCEGInPositionGround("fogdirty", 773, 0, 8189)
+		SpawnCEGInPositionGround("fogdirty", 773, 32, 8189)
 		SpawnCEGInPositionGround("fogdirty", 887, 0, 9111)
 	end	
 
