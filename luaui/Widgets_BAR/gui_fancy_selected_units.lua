@@ -603,100 +603,103 @@ do
 		for unitID,unitParams in pairs(selectedUnits[teamID]) do
 
 			unit = UNITCONF[unitParams.udid]
-			changedScale = 1
-			usedAlpha = a
 
-			if (OPTIONS.selectionEndAnimation  or  OPTIONS.selectionStartAnimation) then
-				if changeOpacity then
-					gl.Color(r,g,b,a)
-				end
-				-- check if the unit is deselected
-				if (OPTIONS.selectionEndAnimation and not unitParams.selected) then
-					if (maxDeselectedTime < unitParams.old) then
-						changedScale = OPTIONS.selectionEndAnimationScale + (((unitParams.old - maxDeselectedTime) / OPTIONS.selectionEndAnimationTime)) * (1 - OPTIONS.selectionEndAnimationScale)
+			if unit then
+				changedScale = 1
+				usedAlpha = a
+
+				if (OPTIONS.selectionEndAnimation  or  OPTIONS.selectionStartAnimation) then
+					if changeOpacity then
+						gl.Color(r,g,b,a)
+					end
+					-- check if the unit is deselected
+					if (OPTIONS.selectionEndAnimation and not unitParams.selected) then
+						if (maxDeselectedTime < unitParams.old) then
+							changedScale = OPTIONS.selectionEndAnimationScale + (((unitParams.old - maxDeselectedTime) / OPTIONS.selectionEndAnimationTime)) * (1 - OPTIONS.selectionEndAnimationScale)
+							if (changeOpacity) then
+								usedAlpha = 1 - (((unitParams.old - maxDeselectedTime) / OPTIONS.selectionEndAnimationTime) * (1-a))
+								gl.Color(r,g,b,usedAlpha)
+							end
+						else
+							selectedUnits[teamID][unitID] = nil
+							degrot[unitID] = nil
+						end
+
+						-- check if the unit is newly selected
+					elseif (OPTIONS.selectionStartAnimation and unitParams.new > maxSelectTime) then
+						--spEcho(unitParams.new - maxSelectTime)
+						changedScale = OPTIONS.selectionStartAnimationScale + (((currentClock - unitParams.new) / OPTIONS.selectionStartAnimationTime)) * (1 - OPTIONS.selectionStartAnimationScale)
 						if (changeOpacity) then
-							usedAlpha = 1 - (((unitParams.old - maxDeselectedTime) / OPTIONS.selectionEndAnimationTime) * (1-a))
+							usedAlpha = 1 - (((currentClock - unitParams.new) / OPTIONS.selectionStartAnimationTime) * (1-a))
 							gl.Color(r,g,b,usedAlpha)
 						end
-					else
-						selectedUnits[teamID][unitID] = nil
-						degrot[unitID] = nil
-					end
-
-				-- check if the unit is newly selected
-				elseif (OPTIONS.selectionStartAnimation and unitParams.new > maxSelectTime) then
-					--spEcho(unitParams.new - maxSelectTime)
-					changedScale = OPTIONS.selectionStartAnimationScale + (((currentClock - unitParams.new) / OPTIONS.selectionStartAnimationTime)) * (1 - OPTIONS.selectionStartAnimationScale)
-					if (changeOpacity) then
-						usedAlpha = 1 - (((currentClock - unitParams.new) / OPTIONS.selectionStartAnimationTime) * (1-a))
-						gl.Color(r,g,b,usedAlpha)
-					end
-					if not degrot[unitID] then
-						local dirx, _, dirz = spGetUnitDirection(unitID)
-						if (dirz ~= nil) then
-							degrot[unitID] = 180 - math_acos(dirz) * rad_con
-							if dirx < 0 then
+						if not degrot[unitID] then
+							local dirx, _, dirz = spGetUnitDirection(unitID)
+							if (dirz ~= nil) then
 								degrot[unitID] = 180 - math_acos(dirz) * rad_con
-							else
-								degrot[unitID] = 180 + math_acos(dirz) * rad_con
+								if dirx < 0 then
+									degrot[unitID] = 180 - math_acos(dirz) * rad_con
+								else
+									degrot[unitID] = 180 + math_acos(dirz) * rad_con
+								end
 							end
 						end
 					end
 				end
-			end
 
-			if selectedUnits[teamID][unitID] and unitParams.visible then
-				usedRotationAngle = GetUsedRotationAngle(unitID, unit.shapeName, opposite)
+				if selectedUnits[teamID][unitID] and unitParams.visible then
+					usedRotationAngle = GetUsedRotationAngle(unitID, unit.shapeName, opposite)
 
-				if type == 'normal solid' then
+					if type == 'normal solid' then
 
-					-- special style for coms
-					if drawUnitStyles and OPTIONS.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom') then
-						gl.Color(r,g,b,(usedAlpha*usedAlpha)+0.22)
-						usedScale = scale * 1.25
-						glDrawListAtUnit(unitID, unit.shape.inner, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/10), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/10), currentRotationAngleOpposite, 0, degrot[unitID], 0)
-						usedScale = scale * 1.23
-						gl.Color(r,g,b,(usedAlpha*usedAlpha)+0.08)
-						glDrawListAtUnit(unitID, unit.shape.large, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/10), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/10), 0, 0, degrot[unitID], 0)
-					else
-						-- adding style for buildings with weapons
-						if drawUnitStyles and OPTIONS.showExtraBuildingWeaponLine and unit.shapeName == 'square' then
-							if (unit.weaponcount > 0) then
-								gl.Color(r,g,b,usedAlpha*(usedAlpha+0.2))
-								usedScale = scale * 1.1
-								glDrawListAtUnit(unitID, unit.shape.select, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/7.5), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/7.5), usedRotationAngle, 0, degrot[unitID], 0)
+						-- special style for coms
+						if drawUnitStyles and OPTIONS.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom') then
+							gl.Color(r,g,b,(usedAlpha*usedAlpha)+0.22)
+							usedScale = scale * 1.25
+							glDrawListAtUnit(unitID, unit.shape.inner, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/10), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/10), currentRotationAngleOpposite, 0, degrot[unitID], 0)
+							usedScale = scale * 1.23
+							gl.Color(r,g,b,(usedAlpha*usedAlpha)+0.08)
+							glDrawListAtUnit(unitID, unit.shape.large, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/10), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/10), 0, 0, degrot[unitID], 0)
+						else
+							-- adding style for buildings with weapons
+							if drawUnitStyles and OPTIONS.showExtraBuildingWeaponLine and unit.shapeName == 'square' then
+								if (unit.weaponcount > 0) then
+									gl.Color(r,g,b,usedAlpha*(usedAlpha+0.2))
+									usedScale = scale * 1.1
+									glDrawListAtUnit(unitID, unit.shape.select, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/7.5), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/7.5), usedRotationAngle, 0, degrot[unitID], 0)
+								end
+								gl.Color(r,g,b,usedAlpha)
 							end
-							gl.Color(r,g,b,usedAlpha)
+
+							if relativeScaleSchrinking then
+								glDrawListAtUnit(unitID, unit.shape.select, false, (unit.xscale*scale*changedScale)-((unit.xscale*changedScale-5)/10), 1.0, (unit.zscale*scale*changedScale)-((unit.zscale*changedScale-5)/10), usedRotationAngle, 0, degrot[unitID], 0)
+							else
+								glDrawListAtUnit(unitID, unit.shape.select, false, unit.xscale*scale*changedScale, 1.0, unit.zscale*scale*changedScale, usedRotationAngle, 0, degrot[unitID], 0)
+							end
 						end
+
+					elseif type == 'solid overlap' then
 
 						if relativeScaleSchrinking then
-							glDrawListAtUnit(unitID, unit.shape.select, false, (unit.xscale*scale*changedScale)-((unit.xscale*changedScale-5)/10), 1.0, (unit.zscale*scale*changedScale)-((unit.zscale*changedScale-5)/10), usedRotationAngle, 0, degrot[unitID], 0)
+							glDrawListAtUnit(unitID, unit.shape.large, false, (unit.xscale*scale*changedScale)-((unit.xscale*changedScale-5)/50), 1.0, (unit.zscale*scale*changedScale)-((unit.zscale*changedScale-5)/50), usedRotationAngle, 0, degrot[unitID], 0)
 						else
-							glDrawListAtUnit(unitID, unit.shape.select, false, unit.xscale*scale*changedScale, 1.0, unit.zscale*scale*changedScale, usedRotationAngle, 0, degrot[unitID], 0)
+							glDrawListAtUnit(unitID, unit.shape.large, false, (unit.xscale*scale*changedScale)+((unit.xscale-15)/15), 1.0, (unit.zscale*scale*changedScale)+((unit.zscale-15)/15), usedRotationAngle, 0, degrot[unitID], 0)
 						end
-					end
 
-				elseif type == 'solid overlap' then
-
-					if relativeScaleSchrinking then
-						glDrawListAtUnit(unitID, unit.shape.large, false, (unit.xscale*scale*changedScale)-((unit.xscale*changedScale-5)/50), 1.0, (unit.zscale*scale*changedScale)-((unit.zscale*changedScale-5)/50), usedRotationAngle, 0, degrot[unitID], 0)
-					else
-						glDrawListAtUnit(unitID, unit.shape.large, false, (unit.xscale*scale*changedScale)+((unit.xscale-15)/15), 1.0, (unit.zscale*scale*changedScale)+((unit.zscale-15)/15), usedRotationAngle, 0, degrot[unitID], 0)
-					end
-
-				elseif type == 'base' then
-					usedXScale = unit.xscale
-					usedZScale = unit.zscale
-					if OPTIONS.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom') then
-						usedXScale = usedXScale * 1.23
-						usedZScale = usedZScale * 1.23
-					elseif OPTIONS.showExtraBuildingWeaponLine and unit.shapeName == 'square' then
-						if (unit.weaponcount > 0) then
-							usedXScale = usedXScale * 1.14
-							usedZScale = usedZScale * 1.14
+					elseif type == 'base' then
+						usedXScale = unit.xscale
+						usedZScale = unit.zscale
+						if OPTIONS.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom') then
+							usedXScale = usedXScale * 1.23
+							usedZScale = usedZScale * 1.23
+						elseif OPTIONS.showExtraBuildingWeaponLine and unit.shapeName == 'square' then
+							if (unit.weaponcount > 0) then
+								usedXScale = usedXScale * 1.14
+								usedZScale = usedZScale * 1.14
+							end
 						end
+						glDrawListAtUnit(unitID, unit.shape.large, false, (usedXScale*scale*changedScale)-((usedXScale*changedScale-10)/10), 1.0, (usedZScale*scale*changedScale)-((usedZScale*changedScale-10)/10), usedRotationAngle, 0, degrot[unitID], 0)
 					end
-					glDrawListAtUnit(unitID, unit.shape.large, false, (usedXScale*scale*changedScale)-((usedXScale*changedScale-10)/10), 1.0, (usedZScale*scale*changedScale)-((usedZScale*changedScale-10)/10), usedRotationAngle, 0, degrot[unitID], 0)
 				end
 			end
 		end

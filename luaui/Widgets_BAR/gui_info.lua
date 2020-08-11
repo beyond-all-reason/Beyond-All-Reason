@@ -905,10 +905,12 @@ local function getSelectionTotals(cells, newlineEveryStat)
   for _,unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
     -- resources
     local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
-    totalMetalMake = totalMetalMake + metalMake
-    totalMetalUse = totalMetalUse + metalUse
-    totalEnergyMake = totalEnergyMake + energyMake
-    totalEnergyUse = totalEnergyUse + energyUse
+    if metalMake then
+      totalMetalMake = totalMetalMake + metalMake
+      totalMetalUse = totalMetalUse + metalUse
+      totalEnergyMake = totalEnergyMake + energyMake
+      totalEnergyUse = totalEnergyUse + energyUse
+    end
     -- health
     local health,maxHealth,_,_,buildProgress = spGetUnitHealth(unitID)
     if health and maxHealth then
@@ -1112,7 +1114,7 @@ local function drawUnitInfo()
   customInfoArea = {math_floor(backgroundRect[3]-width-bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3]-bgpadding), math_floor(backgroundRect[2]+height)}
 
   if not displayMode == 'unitdef' or not unitBuildOptions[displayUnitDefID] or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
-    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{1,1,1,0.04}, {1,1,1,0.11})
+    RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1,0,0,0,{0.8,0.8,0.8,0.06}, {0.8,0.8,0.8,0.14})
   end
 
   local contentPaddingLeft = contentPadding * 0.75
