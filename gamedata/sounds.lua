@@ -164,7 +164,7 @@ for i=1,#files do
       pitchmod = 0.22,
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
-      maxconcurrent = 3,
+      maxconcurrent = 8,
       rolloff = 0.2,
   }
 end

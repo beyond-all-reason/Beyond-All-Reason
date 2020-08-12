@@ -40,8 +40,8 @@ function gadget:GameFrame(n)
 	end
 
 -- random lightning
-	if n%1500 == 750 then
-		SpawnCEGInRandomMapPos("lightningstormgreen", 0)
+	if n%3200 == 600 then
+		SpawnCEGInRandomMapPos("lightningstormgreen", 0, "distantthunder", 0.85)
 	end
 	
 -- lightningstorms
@@ -57,17 +57,20 @@ function gadget:GameFrame(n)
 	-- if n%3200 == 1690 then
 	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
 	-- end
-	
+
 	if n%6400 == 4900 then
 		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
-	if n%6400 == 4225 then
+	if n%6400 == 4625 then
 		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
-	if n%6400 == 4750 then
+	if n%6400 == 5150 then
 		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
-	if n%6400 == 400 then
+	if n%6400 == 5210 then
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
+	end
+	if n%6400 == 5610 then
 		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	
