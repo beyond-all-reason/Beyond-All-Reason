@@ -1,16 +1,21 @@
 ﻿10.24 -> 1.00
 
- • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice
- • Ground scouts (vehicles/kbot): 10% more LoS
+General
  • Enabled ground deformation
- • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
- • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Removed reverse move
  • Removed air collisions for bombers
+ • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • Increased maxslope for all units 50% (the slope it allows to be build on)
+
+Units
+ • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice
+ • Ground scouts (vehicles/kbot): 10% more LoS
+ • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Decreased cormaw damage 27%
- • claw/zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
- • Removed aa missile from Karganeth
+ • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
+ • Karganeth: Removed aa missile
+ • Juggernaut: main weapon does 4x old damage/reloadtime + increased range 18%
+ • added experimental ARM T3 unit: Giant Invader, crawling nuclear bomb
 
 
 10.23 -> 10.24
