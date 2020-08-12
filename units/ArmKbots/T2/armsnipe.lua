@@ -31,6 +31,7 @@ return {
 		name = "Sharpshooter",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSNIPE.s3o",
+		power = 750, --compensation for XP rank with super low AoE weapons
 		script = "Units/ARMSNIPE.cob",
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,

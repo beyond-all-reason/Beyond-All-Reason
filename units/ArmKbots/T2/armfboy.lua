@@ -29,6 +29,7 @@ return {
 		name = "Fatboy",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFBOY.s3o",
+		power = 5950, --compensation for XP rank with high AoE weapons
 		pushresistant = true,
 		script = "Units/ARMFBOY.cob",
 		seismicsignature = 0,

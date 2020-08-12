@@ -29,6 +29,7 @@ return {
 		name = "Juggernaut",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORJUGG.s3o",
+		power = 114200, --compensation for XP rank with high AoE weapons
 		pushresistant = true,
 		script = "Units/CORJUGG.cob",
 		seismicsignature = 0,
