@@ -107,15 +107,15 @@ local files = VFS.DirList("sounds/chickens/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
-   fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+   fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2*0.3,
-      pitchmod = 0.14,
+	    gain = 1.2*0.3,
+      pitchmod = 0.18,
       gainmod  = 0.2*0.3,
-	  dopplerscale = 1.0,
+	    dopplerscale = 1.0,
       maxconcurrent = 4,
-	  rolloff = 1.5,
+	    rolloff = 1.5,
    }
 end
 
@@ -126,12 +126,12 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2*0.3,
+	    gain = 1.2*0.3,
       pitchmod = 0.01,
       gainmod  = 0.2*0.3,
-	  dopplerscale = 1.0,
+	    dopplerscale = 1.0,
       maxconcurrent = 4,
-	  rolloff = 0.7,
+	    rolloff = 0.7,
    }
 end
 
@@ -140,20 +140,34 @@ local files = VFS.DirList("sounds/scavengers/")
 local t = Sounds.SoundItems
 for i=1,#files do
 	local fileName = files[i]
-	fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+	fileNames = string.sub(fileName, 19, string.find(fileName, ".wav") -1)
 	t[fileNames] = {
-		file     = fileName;
-		gain = 1.0*0.3,
-		pitchmod = 0.33,
-		gainmod  = 0.1*0.3,
-		dopplerscale = 1.0,
-		maxconcurrent = 8,
-		rolloff = 0.2,
+  		file     = fileName;
+  		gain = 1.0*0.3,
+  		pitchmod = 0.33,
+  		gainmod  = 0.1*0.3,
+  		dopplerscale = 1.0,
+  		maxconcurrent = 8,
+  		rolloff = 0.2,
 	}
 end
 
 -- AMBIENCE
-
+local files = VFS.DirList("sounds/atmos/")
+local t = Sounds.SoundItems
+for i=1,#files do
+  local fileName = files[i]
+  fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
+  t[fileNames] = {
+      file     = fileName;
+      gain = 0.8,
+      pitchmod = 0.22,
+      gainmod  = 0.2*0.3,
+      dopplerscale = 1.0,
+      maxconcurrent = 3,
+      rolloff = 0.2,
+  }
+end
 
 return Sounds
 
