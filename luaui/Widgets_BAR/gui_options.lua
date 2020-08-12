@@ -4082,6 +4082,13 @@ function widget:Initialize()
 		Spring.SendCommands("water 0")
 	end
 
+	-- increase texture atlas size (relevant for the particle atlas)
+	local maxTextureAtlasSize = 4096
+	if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then
+		Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
+		Spring.SetConfigInt("MaxTextureAtlasSizeZ", maxTextureAtlasSize)
+	end
+
 	Spring.SetConfigFloat("CamTimeFactor", 1)
 
 	Spring.SetConfigString("InputTextGeo", "0.35 0.72 0.03 0.04")	-- input chat position posX, posY, ?, ?
