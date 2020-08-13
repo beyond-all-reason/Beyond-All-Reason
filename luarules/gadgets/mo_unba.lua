@@ -1,7 +1,3 @@
-local enablegadget = false
-if Spring.GetModOptions and Spring.GetModOptions().unba then
-	enablegadget = true
-end
 
 function gadget:GetInfo()
    return {
@@ -11,25 +7,95 @@ function gadget:GetInfo()
       date         = "17/04/2018",
       license      = "GPL 2.0 or later", -- should be compatible with Spring
       layer        = 0,
-      enabled      = enablegadget
+      enabled      = (Spring.GetModOptions and Spring.GetModOptions().unba)
    }
 end
 
 
 if (gadgetHandler:IsSyncedCode()) then  --Sync?
 
-	VFS.Include("unbaconfigs/categories.lua")
-	VFS.Include("unbaconfigs/taxvalues.lua")
-	expvalues = {}
-	taxvalue = {}
-	oldteams = {}
+
+	local defaultTaxValue = 1.025
+	local taxvalues = {
+		corcat = 1.1,
+		corjugg = 1.1,
+		corkarg = 1.1,
+		corkrog = 1.1,
+		corshiva = 1.1,
+
+		armlun = 1.1,
+		corsok = 1.1,
+
+		armafus = 1.1,
+		corafus = 1.1,
+
+		armvulc = 1.1,
+		corbuzz = 1.1,
+	}
+
+
+	local oldteams = {}
+	local expvalues = {}
+
+	local categories = {}
+	for unitDefID, uDef in pairs(UnitDefs) do
+
+		if uDef.decoyFor ~= '' and UnitDefNames[uDef.decoyFor] then
+			uDef = UnitDefNames[uDef.decoyFor]
+		end
+
+		if uDef.canFly then
+			if uDef.maxWaterDepth < 0 then
+				categories[unitDefID] = 'seaplane'
+			else
+				categories[unitDefID] = 'aircraft'
+			end
+
+		elseif uDef.modCategories["commander"] ~= nil then
+			categories[unitDefID] = 'kbot'
+		elseif uDef.modCategories["kbot"] ~= nil then
+			categories[unitDefID] = 'kbot'
+
+		elseif uDef.modCategories["tank"] ~= nil then
+			categories[unitDefID] = 'tank'
+
+		elseif uDef.modCategories["ship"] ~= nil then
+			categories[unitDefID] = 'ship'
+		elseif uDef.modCategories["underwater"] ~= nil and uDef.speed > 0 then
+			categories[unitDefID] = 'ship'
+
+		elseif uDef.modCategories["hover"] ~= nil then
+			categories[unitDefID] = 'hover'
+
+		elseif uDef.isBuilding or uDef.speed <= 0  then
+			if uDef.isFactory and #uDef.buildOptions > 0 then
+				categories[unitDefID] = 'factory'
+
+			elseif uDef.weapons[1] ~= nil then
+				categories[unitDefID] = 'defence'
+
+			elseif uDef.customParams.energyconv_capacity and uDef.customParams.energyconv_efficiency then
+				categories[unitDefID] = 'economy'
+			elseif uDef.tidalGenerator > 0 or uDef.windGenerator > 0 then
+				categories[unitDefID] = 'economy'
+			elseif uDef.metalMake > 0.5 or uDef.energyMake > 5 or uDef.energyUpkeep < 0 then
+				categories[unitDefID] = 'economy'
+
+			else
+				categories[unitDefID] = 'util'
+			end
+		else
+			categories[unitDefID] = 'util'
+		end
+	end
+
 
 	for unitDefID, uDef in pairs(UnitDefs) do
-		categories[unitDefID] = categories[UnitDefs[unitDefID].name] or 'other'
-		categories[UnitDefs[unitDefID].name] = nil
-		expvalues[unitDefID] = math.sqrt(uDef.metalCost + uDef.energyCost/60)/500
-		taxvalues[unitDefID] = taxvalues[categories[unitDefID]] or 1.025
-		taxvalues[categories[unitDefID]] = nil
+		if categories[unitDefID] then
+			expvalues[unitDefID] = math.sqrt(uDef.metalCost + uDef.energyCost/60)/500
+			taxvalues[unitDefID] = taxvalues[categories[unitDefID]] or defaultTaxValue
+			taxvalues[categories[unitDefID]] = nil
+		end
 	end
 
 	experiences = {}
@@ -84,29 +150,35 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 
 	function gadget:UnitFinished(unitID,unitDefID,unitTeam)
 		local category = categories[unitDefID]
-		local expvalue = expvalues[unitDefID]
+		if category then
+			local expvalue = expvalues[unitDefID]
 			AddExperienceValue(unitTeam, category, expvalue)
 			SetUnitExp(unitID, unitTeam, category)
+		end
 	end
 
 	function gadget:UnitCreated(unitID,unitDefID,unitTeam)
 		local category = categories[unitDefID]
-		local taxvalue = taxvalues[unitDefID]
+		if category then
+			local taxvalue = taxvalues[unitDefID]
 			AddTax(unitTeam, category, taxvalue)
 			SetUnitTax(unitID, unitTeam, category)
+		end
 	end
 
 	function gadget:UnitDestroyed(unitID,unitDefID,unitTeam)
 		local category = categories[unitDefID]
-		local taxvalue = taxvalues[unitDefID]
-		local invtaxvalue = 1/taxvalue
-		if oldteams[unitID] then
-			team = oldteams[unitID]
-		else
-			team = unitTeam
-		end
+		if category then
+			local taxvalue = taxvalues[unitDefID]
+			local invtaxvalue = 1/taxvalue
+			if oldteams[unitID] then
+				team = oldteams[unitID]
+			else
+				team = unitTeam
+			end
 			AddTax(team, category, invtaxvalue)
 			oldteams[unitID] = nil
+		end
 	end
 
 	function gadget:UnitGiven(unitID,unitDefID,newTeam, oldTeam)

@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMSERP.PNG",
 		buildtime = 22770,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE",
+		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "45 19 57",
 		collisionvolumetype = "box",
