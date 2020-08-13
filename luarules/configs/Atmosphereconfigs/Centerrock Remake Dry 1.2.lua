@@ -20,19 +20,19 @@ function gadget:GameFrame(n)
 	end
 
 -- clouds
-	if n%600 == 100 then
+	if n%660 == 100 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
 	end
-	if n%600 == 130 then
+	if n%660 == 130 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2025)
 	end
-	if n%600 == 165 then
+	if n%660 == 165 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
 	end
-	if n%600 == 225 then
+	if n%660 == 225 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
 	end
-	if n%600 == 255 then
+	if n%660 == 255 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
 	end
 

@@ -3,6 +3,17 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. mapname)
 	end
 
+-- ## Atmosphere Functions
+-- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
+
+-- Use _ for damage, paralyzedamage, damageradius if you want to disable
+
 -- common foggy cliffs	
 	if n%540 == 0 then
 		SpawnCEGInPositionGround("fogdirty", 374, 32, 6318)
@@ -46,8 +57,8 @@ function gadget:GameFrame(n)
 	end
 
 -- random rain
-	if n%3200 == 1600 then
-		SpawnCEGInRandomMapPos("rain", 0, "rainlight", 1)
+	if n%3400 == 1600 then
+		SpawnCEGInRandomMapPos("rain", 0, _, _, _, "rainlight", 1)
 	end
 	
 	

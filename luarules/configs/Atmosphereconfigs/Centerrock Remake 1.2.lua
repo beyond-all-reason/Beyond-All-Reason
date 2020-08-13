@@ -15,25 +15,28 @@ function gadget:GameFrame(n)
 -- Use _ for damage, paralyzedamage, damageradius if you want to disable
 
 -- common foggy canyon	
-	if n%20 == 0 then
-		SpawnCEGInRandomMapPosBelowY("fogdirty-brown", 16, 800)
-	end
+	-- if n%20 == 0 then
+	-- 	SpawnCEGInRandomMapPosBelowY("fogdirty-brown", 16, 100)
+	-- end
 
 -- clouds
-	if n%540 == 100 then
+	if n%630 == 100 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
 	end
-	if n%540 == 130 then
+	if n%630 == 130 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2025)
 	end
-	if n%540 == 165 then
+	if n%630 == 165 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
 	end
-	if n%540 == 225 then
+	if n%630 == 225 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
 	end
-	if n%540 == 255 then
+	if n%630 == 255 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
+	end
+	if n%1260 == 325 then
+		SpawnCEGInRandomMapPosPresetY("thickcloud", 2650)
 	end
 
 -- common foggy cliffs	
@@ -71,6 +74,11 @@ function gadget:GameFrame(n)
 		SpawnCEGInPosition("powerupwhite", 7772, 206, 276)
 		SpawnCEGInPosition("powerupwhite", 588, 156, 7937)
 		SpawnCEGInPosition("powerupwhite", 814, 144, 8011)
+	end
+
+-- light rain
+	if n%6000 == 100 then
+		SpawnCEGInRandomMapPos("rainlight", 0, _, _, _, "rainlight", 0.5)
 	end
 
 -- rare sandclouds
