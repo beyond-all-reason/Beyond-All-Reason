@@ -21,12 +21,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-function SpawnCEGInPosition(cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+function SpawnCEGInPosition(cegname, posx, posy, posz, damage, paralyzetime, damageradius, sound, soundvolume)
 	spSCEG(cegname, posx, posy, posz)
 	if sound then
 		Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
 	end
-	if damage or paralyzedamage then
+	if damage or paralyzetime then
 		local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
 		for i = 1,#units do
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
@@ -38,21 +38,28 @@ function SpawnCEGInPosition(cegname, posx, posy, posz, damage, paralyzedamage, d
 					Spring.DestroyUnit(units[i])
 				end
 			end
-			if paralyzedamage then
+			if paralyzetime then
 				--Spring.Echo("Paralyzed")
-				Spring.SetUnitHealth(units[i], {paralyze = uparalyze+paralyzedamage})
+				local paralyzemult = paralyzetime*0.025
+				if uparalyze <= umaxhealth then
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				else
+					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				end
 			end
 		end
 	end	
 end
 
-function SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+function SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzetime, damageradius, sound, soundvolume)
 	local posy = spGroundHeight(posx, posz) + (groundOffset or 0)
 	spSCEG(cegname, posx, posy, posz)
 	if sound then
 		Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
 	end
-	if damage or paralyzedamage then
+	if damage or paralyzetime then
 		local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
 		for i = 1,#units do
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
@@ -64,22 +71,29 @@ function SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, par
 					Spring.DestroyUnit(units[i])
 				end
 			end
-			if paralyzedamage then
+			if paralyzetime then
 				--Spring.Echo("Paralyzed")
-				Spring.SetUnitHealth(units[i], {paralyze = uparalyze+paralyzedamage})
+				local paralyzemult = paralyzetime*0.025
+				if uparalyze <= umaxhealth then
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				else
+					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				end
 			end
 		end
 	end	
 end
 
-function SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+function SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzetime, damageradius, sound, soundvolume)
 	local posx = midposx+mathrandom(-radius,radius)
 	local posz = midposz+mathrandom(-radius,radius)
 	spSCEG(cegname, posx, posy, posz)
 	if sound then
 		Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
 	end
-	if damage or paralyzedamage then
+	if damage or paralyzetime then
 		local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
 		for i = 1,#units do
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
@@ -91,15 +105,22 @@ function SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyz
 					Spring.DestroyUnit(units[i])
 				end
 			end
-			if paralyzedamage then
+			if paralyzetime then
 				--Spring.Echo("Paralyzed")
-				Spring.SetUnitHealth(units[i], {paralyze = uparalyze+paralyzedamage})
+				local paralyzemult = paralyzetime*0.025
+				if uparalyze <= umaxhealth then
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				else
+					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				end
 			end
 		end
 	end	
 end
 
-function SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+function SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzetime, damageradius, sound, soundvolume)
 	local posx = midposx+mathrandom(-radius,radius)
 	local posz = midposz+mathrandom(-radius,radius)
 	local posy = spGroundHeight(posx, posz) + (groundOffset or 0)
@@ -107,7 +128,7 @@ function SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, d
 	if sound then
 		Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
 	end
-	if damage or paralyzedamage then
+	if damage or paralyzetime then
 		local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
 		for i = 1,#units do
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
@@ -119,15 +140,22 @@ function SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, d
 					Spring.DestroyUnit(units[i])
 				end
 			end
-			if paralyzedamage then
+			if paralyzetime then
 				--Spring.Echo("Paralyzed")
-				Spring.SetUnitHealth(units[i], {paralyze = uparalyze+paralyzedamage})
+				local paralyzemult = paralyzetime*0.025
+				if uparalyze <= umaxhealth then
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				else
+					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				end
 			end
 		end
 	end	
 end
 
-function SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
+function SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzetime, damageradius, sound, soundvolume)
 	local posx = mathrandom(0,mapsizeX)
 	local posz = mathrandom(0,mapsizeZ)
 	local posy = spGroundHeight(posx, posz) + (groundOffset or 0)
@@ -135,7 +163,7 @@ function SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, d
 	if sound then
 		Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
 	end
-	if damage or paralyzedamage then
+	if damage or paralyzetime then
 		local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
 		for i = 1,#units do
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
@@ -147,15 +175,22 @@ function SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, d
 					Spring.DestroyUnit(units[i])
 				end
 			end
-			if paralyzedamage then
+			if paralyzetime then
 				--Spring.Echo("Paralyzed")
-				Spring.SetUnitHealth(units[i], {paralyze = uparalyze+paralyzedamage})
+				local paralyzemult = paralyzetime*0.025
+				if uparalyze <= umaxhealth then
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				else
+					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				end
 			end
 		end
 	end	
 end
 
-function SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
+function SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzetime, damageradius, sound, soundvolume)
 	for i = 1,100 do
 		local posx = mathrandom(0,mapsizeX)
 		local posz = mathrandom(0,mapsizeZ)
@@ -169,7 +204,7 @@ function SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, da
 			break
 		end
 	end
-	if damage or paralyzedamage then
+	if damage or paralyzetime then
 		local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
 		for i = 1,#units do
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
@@ -181,22 +216,29 @@ function SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, da
 					Spring.DestroyUnit(units[i])
 				end
 			end
-			if paralyzedamage then
+			if paralyzetime then
 				--Spring.Echo("Paralyzed")
-				Spring.SetUnitHealth(units[i], {paralyze = uparalyze+paralyzedamage})
+				local paralyzemult = paralyzetime*0.025
+				if uparalyze <= umaxhealth then
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				else
+					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				end
 			end
 		end
 	end	
 end
 
-function SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
+function SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzetime, damageradius, sound, soundvolume)
 	local posx = mathrandom(0,mapsizeX)
 	local posz = mathrandom(0,mapsizeZ)
 	spSCEG(cegname, posx, posy, posz)
 	if sound then
 		Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
 	end
-	if damage or paralyzedamage then
+	if damage or paralyzetime then
 		local units = Spring.GetUnitsInCylinder(posx, posz, damageradius)
 		for i = 1,#units do
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(units[i])
@@ -208,9 +250,16 @@ function SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, da
 					Spring.DestroyUnit(units[i])
 				end
 			end
-			if paralyzedamage then
+			if paralyzetime then
 				--Spring.Echo("Paralyzed")
-				Spring.SetUnitHealth(units[i], {paralyze = uparalyze+paralyzedamage})
+				local paralyzemult = paralyzetime*0.025
+				if uparalyze <= umaxhealth then
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				else
+					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+					Spring.SetUnitHealth(units[i], {paralyze = paralyzedamage})
+				end
 			end
 		end
 	end	
