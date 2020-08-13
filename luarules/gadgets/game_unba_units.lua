@@ -7,7 +7,7 @@ function gadget:GetInfo()
       date         = "17/04/2018",
       license      = "GPL 2.0 or later", -- should be compatible with Spring
       layer        = 0,
-      enabled      = (Spring.GetModOptions and Spring.GetModOptions().unba)
+      enabled      = false
    }
 end
 
