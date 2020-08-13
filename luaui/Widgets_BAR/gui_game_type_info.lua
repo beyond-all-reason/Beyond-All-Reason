@@ -77,6 +77,10 @@ function widget:Initialize()
     end
     message3 = "Armageddon at " .. Spring.GetModOptions().armageddontime .. " minute" .. plural
   end
+
+	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
+		message4 = "Unbalanced Commanders is enabled: Commander levels up and gain upgrades"
+	end
 end
 
 

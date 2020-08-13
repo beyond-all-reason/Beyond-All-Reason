@@ -10,6 +10,8 @@ function gadget:GetInfo()
     }
 end
 
+local modoption_unba = (Spring.GetModOptions and Spring.GetModOptions().unba)
+
 local ignoreWeapons = false --if the only weapon is a shield it is ignored
 local ignoreStealth = false
 
@@ -411,13 +413,13 @@ function assignClosestBuilder(mexID, mex, teamID)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-  if not isCommander[unitDefID] then
+  if not modoption_unba and not isCommander[unitDefID] then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-  if not isCommander[unitDefID] then
+  if not modoption_unba and not isCommander[unitDefID] then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end

@@ -43,6 +43,16 @@ function tableMergeSpecial(t1, t2)
 end
 
 
+-- handle unba modoption
+if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
+	VFS.Include("unbaconfigs/unbacom_post.lua")
+	VFS.Include("unbaconfigs/stats.lua")
+	VFS.Include("unbaconfigs/buildoptions.lua")
+	UnbaCom_Post("armcom")
+	UnbaCom_Post("corcom")
+end
+
+
 -- create scavenger units
 --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
     VFS.Include("gamedata/scavengers/unitdef_changes.lua")
@@ -71,11 +81,11 @@ for name,ud in pairs(UnitDefs) do
 	for wname,wd in pairs(ud.weapondefs) do
 	  WeaponDef_Post(wname,wd)
 	end
-  end 
-  
+  end
+
   --ud.acceleration = 0.75
   --ud.turnrate = 800
-  
+
   if SaveDefsToCustomParams then
       SaveDefToCustomParams("UnitDefs", name, ud)
   end
