@@ -53,6 +53,19 @@ InitState()
 	statechg_StateChanging = FALSE;
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (State) {
+	    call-script Stop();
+	}else{
+	    if (statechg_DesiredState == 0) {
+	        call-script Go();
+	    }
+	}
+}
+
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )
@@ -103,20 +116,24 @@ Deactivate()
 
 SetSpeed(Func_Var_1)
 {
-	Static_Var_1 = 0 - Func_Var_1;
-	if( !get BUILD_PERCENT_LEFT )
-	{
-		spin blades around z-axis speed Static_Var_1;
-		set ACTIVATION to 100;
+    if (!Stunned) {
+        Static_Var_1 = 0 - Func_Var_1;
+        if( !get BUILD_PERCENT_LEFT )
+        {
+            spin blades around z-axis speed Static_Var_1;
+            set ACTIVATION to 100;
+        }
 	}
 }
 
 SetDirection(Func_Var_1)
 {
-	Static_Var_2 = Func_Var_1;
-	if( !get BUILD_PERCENT_LEFT )
-	{
-		turn turbine to y-axis Func_Var_1 speed <20.000000>;
+    if (!Stunned) {
+        Static_Var_2 = Func_Var_1;
+        if( !get BUILD_PERCENT_LEFT )
+        {
+            turn turbine to y-axis Func_Var_1 speed <20.000000>;
+        }
 	}
 }
 

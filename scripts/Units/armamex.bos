@@ -49,6 +49,17 @@ Stop()
 	set ARMORED to 1;
 }
 
+SetStunned(State)
+{
+	if (State) {
+	    call-script Stop();
+	}else{
+	    if (statechg_DesiredState == 0) {
+	        call-script fixGo();
+	    }
+	}
+}
+
 InitState()
 {
 	statechg_DesiredState = TRUE;

@@ -54,6 +54,17 @@ InitState()
 	statechg_StateChanging = FALSE;
 }
 
+SetStunned(State)
+{
+	if (State) {
+	    call-script Stop();
+	}else{
+	    if (statechg_DesiredState == 0) {
+	        call-script fixGo();
+	    }
+	}
+}
+
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )

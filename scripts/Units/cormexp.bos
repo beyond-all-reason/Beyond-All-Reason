@@ -3,13 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-//piece  base, stands, shell, rotary, dingle1, dingle2, turret1, patch,       sleeve1, barrel1, flare1, barrel2, flare2, post, turret2, rocketbox,       rocket1, rocket2, rocket3, rocket4, smoke1, smoke2, smoke3, smoke4,       armor1, armor2, armor3, armor4, armor5, armor6, armor7, armor8,       fakeshell;
-
 piece base, column, top, turret1, turret2, barrel, flare1, flare2, flare3, aimpoint;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, restore_delay,
             gun_1, gun_2, Static_Var_8, Static_Var_9, Static_Var_10,
             Static_Var_11, Static_Var_12, bAiming, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -77,7 +76,7 @@ fixGo()
 triplepenetration(){
 
 	while(TRUE){
-		if(TRUE )
+		if( statechg_DesiredState == 0 AND !Stunned )
 		{
 			move column to y-axis [20] speed (Static_Var_1/2);
 			wait-for-move column along y-axis;
@@ -169,7 +168,6 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -182,9 +180,6 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
 }
 RestoreAfterDelay()
 {
@@ -339,7 +334,7 @@ QuerySecondary(piecenum)
 
 SetSpeed(Func_Var_1)
 {
-	Static_Var_1 = Func_Var_1 * 27;
+	Static_Var_1 = Func_Var_1 * 500;
 	Static_Var_9 = Func_Var_1 * 10;
 	Static_Var_10 = Static_Var_9;
 }

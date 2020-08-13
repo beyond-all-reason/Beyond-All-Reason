@@ -6,7 +6,7 @@
 piece  base, column;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
-
+static-var  Stunned;
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -37,7 +37,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 activatescr()
 {
-	if( TRUE )
+	if( TRUE AND !Stunned )
 	{
 		move column to y-axis [0] speed [32.500000];
 		sleep 772;
@@ -49,7 +49,7 @@ activatescr()
 triplepenetration(){
 
 	while(TRUE){
-		if( statechg_DesiredState == 0 )
+		if( statechg_DesiredState == 0 AND !Stunned )
 		{
 			move column to y-axis [20] speed (Static_Var_1/2);
 			wait-for-move column along y-axis;
@@ -64,10 +64,10 @@ triplepenetration(){
 
 deactivatescr()
 {
-	if( TRUE )
+	if( TRUE AND !Stunned )
 	{
-			move column to y-axis [0] speed Static_Var_1;
-			wait-for-move column along y-axis;
+        move column to y-axis [0] speed Static_Var_1;
+        wait-for-move column along y-axis;
 	}
 
 	set ARMORED to 1;
@@ -75,12 +75,10 @@ deactivatescr()
 	sleep 33;
 }
 
-fixedGo()
+fixGo()
 {
-
 	call-script activatescr();
-	start-script triplepenetration();
-
+	//start-script triplepenetration();
 }
 
 Stop()
@@ -92,6 +90,11 @@ InitState()
 {
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
 }
 
 RequestState(requestedstate, currentstate)
@@ -108,8 +111,8 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script fixedGo();
-			currentstate = 0;	
+			call-script fixGo();
+			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )
 		{
@@ -132,6 +135,7 @@ Create()
 		sleep 250;
 	}
 	start-script SmokeUnit();
+	start-script triplepenetration();
 	set ARMORED to 1;
 }
 

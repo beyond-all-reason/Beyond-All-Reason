@@ -54,6 +54,19 @@ InitState()
 	statechg_StateChanging = FALSE;
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (State) {
+	    call-script Stop();
+	}else{
+	    if (statechg_DesiredState == 0) {
+	        call-script Go();
+	    }
+	}
+}
+
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )
@@ -105,19 +118,23 @@ Deactivate()
 
 SetSpeed(Func_Var_1)
 {
-	if( (get BUILD_PERCENT_LEFT) == 0 )
-	{
-		Static_Var_3 = Func_Var_1;
-		spin fan around z-axis speed Func_Var_1;
-	}
+    if (!Stunned) {
+        if( (get BUILD_PERCENT_LEFT) == 0 )
+        {
+            Static_Var_3 = Func_Var_1;
+            spin fan around z-axis speed Func_Var_1;
+        }
+    }
 }
 
 SetDirection(heading)
 {
-	if( (get BUILD_PERCENT_LEFT) == 0 )
-	{
-		Static_Var_4 = heading;
-		turn cradle to y-axis heading speed Static_Var_1;
+    if (!Stunned) {
+        if( (get BUILD_PERCENT_LEFT) == 0 )
+        {
+            Static_Var_4 = heading;
+            turn cradle to y-axis heading speed Static_Var_1;
+        }
 	}
 }
 

@@ -124,6 +124,13 @@ SetStunned(State)
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
+	if (State) {
+	    call-script Stop();
+	}else{
+	    if (statechg_DesiredState == 0) {
+	        call-script fixGo();
+	    }
+	}
 }
 RestoreAfterDelay()
 {
