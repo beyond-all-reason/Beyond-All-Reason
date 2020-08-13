@@ -27,7 +27,7 @@ local lightningsounds = {
 if n %6400 == 0 then
     local thunderstormcenterx = math.random(0, mapsizeX)
     local thunderstormcenterz = math.random(0, mapsizeZ)
-    local thunderstormradius = 1000
+    local thunderstormradius = 750
     thunderstormxmin = thunderstormcenterx - thunderstormradius
     thunderstormxmax = thunderstormcenterx + thunderstormradius
     thunderstormzmin = thunderstormcenterz - thunderstormradius
@@ -40,7 +40,7 @@ if n%6400 < 1060 then
        if r == 0 then
             local posx = math.random(thunderstormxmin, thunderstormxmax)
             local posz = math.random(thunderstormzmin, thunderstormzmax)
-            SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 1000, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+            SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
        end
 end
 
@@ -89,19 +89,19 @@ end
   
 
 	if n%6400 == 4900 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 1000, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 4625 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 1000, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 5150 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 1000, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 5210 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 1000, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 5610 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 1000, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	
 end
