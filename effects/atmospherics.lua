@@ -69,6 +69,40 @@ return {
     },
   },
 
+  ["fogdirty-brown"] = {
+    usedefaultexplosions = false,
+    grounddust = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.94,
+        colormap           = [[0 0 0 0.0  0.18 0.14 0.10 0.08   0.12 0.08 0.06 0.04   0 0 0 0.01]],
+        directional        = false,
+        emitrot            = 90,
+        emitrotspread      = 60,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 0.030, 0]],
+        numparticles       = 5,
+        particlelife       = 300,
+        particlelifespread = 180,
+        particlesize       = 100,
+        particlesizespread = 450,
+        particlespeed      = 6.5,
+        particlespeedspread = 4.5,
+        pos                = [[-200 r900, -50 r75, 100 r900]],
+        sizegrowth         = [[0.3 r0.2]],
+        sizemod            = 1,
+        texture            = [[fogdirty]],
+        alwaysvisible      = true,
+      },
+    },
+  },
+
   ["fogdirty-green"] = {
     usedefaultexplosions = false,
     grounddust = {
@@ -103,6 +137,40 @@ return {
     },
   },
 
+  ["mistycloud"] = {
+    usedefaultexplosions = false,
+    cloud = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.82,
+        colormap           = [[0 0 0 0.0  0.15 0.14 0.13 0.08   0.1 0.1 0.1 0.04   0 0 0 0.01]],
+        directional        = false,
+        emitrot            = 8,
+        emitrotspread      = 8,
+        emitvector         = [[-0.3 r0.6, 0, -0.3 r0.6]],
+        gravity            = [[0, -0.02 r0.04, 0]],
+        numparticles       = 3,
+        particlelife       = 300,
+        particlelifespread = 200,
+        particlesize       = 160,
+        particlesizespread = 960,
+        particlespeed      = 16,
+        particlespeedspread = 16,
+        pos                = [[-40 r300, -20 r150, -40 r300]],
+        sizegrowth         = [[-0.4 r0.8]],
+        sizemod            = 1,
+        texture            = [[cloudpuff]],
+        alwaysvisible      = true,
+      },
+    },
+  },
+
   ["lightningstorm"] = {
     usedefaultexplosions = false,
     raindrops = {
@@ -115,7 +183,7 @@ return {
       properties = {
         delay              = [[1 r1090]],
         explosiongenerator = [[custom:lightninginair]],
-        pos                = [[-375 r750, 0, -375 r750]],
+        pos                = [[-500 r1000, 128, -500 r1000]],
       },
     },
   },
@@ -131,8 +199,8 @@ return {
       underwater         = false,
       properties = {
         delay              = [[1 r1090]],
-        explosiongenerator = [[custom:lightningstrikegreen]],
-        pos                = [[-375 r750, 0, -375 r750]],
+        explosiongenerator = [[custom:lightninginairgreen]],
+        pos                = [[-500 r1000, 128, -500 r1000]],
       },
     },
   },

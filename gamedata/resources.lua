@@ -41,6 +41,7 @@ local resources = {
             
             fogdirty          = 'atmos/fogdirty.tga',
             rain              = 'atmos/rain.tga',
+            cloudpuff         = 'atmos/cloudpuff.tga',
             sandblast         = 'atmos/sandblast.tga',
             smoke_puff_red    = 'atmos/smoke_puff_red.png',
             explowater        = 'projectiletextures/explowater.tga',

@@ -216,7 +216,7 @@ function SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, da
 	end	
 end
 
-VFS.Include("luarules/gadgets/atmosphereconfigs/" .. mapname .. ".lua")
+VFS.Include("luarules/configs/Atmosphereconfigs/" .. mapname .. ".lua")
 
 
 

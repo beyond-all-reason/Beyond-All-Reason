@@ -3,6 +3,17 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. mapname)
 	end
 
+-- ## Atmosphere Functions
+-- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
+-- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
+
+-- Use _ for damage, paralyzedamage, damageradius if you want to disable
+
 -- common foggy cliffs	
 	if n%540 == 0 then
 		SpawnCEGInPositionGround("fogdirty-red", 3298, 32, 2811)
@@ -51,16 +62,16 @@ function gadget:GameFrame(n)
 	}    
 
 	if n%5000 == 2100 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%5300 == 2540 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%5700 == 2810 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%5900 == 3400 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 
 	
