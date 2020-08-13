@@ -108,7 +108,7 @@ return {
     raindrops = {
       air                = true,
       class              = [[CExpGenSpawner]],
-      count              = 8,
+      count              = 14,
       ground             = true,
       water              = true,
       underwater         = false,
@@ -125,7 +125,7 @@ return {
     raindrops = {
       air                = true,
       class              = [[CExpGenSpawner]],
-      count              = 8,
+      count              = 14,
       ground             = true,
       water              = true,
       underwater         = false,
