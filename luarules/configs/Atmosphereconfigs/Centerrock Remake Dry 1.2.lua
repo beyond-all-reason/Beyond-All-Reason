@@ -32,6 +32,9 @@ function gadget:GameFrame(n)
 	if n%600 == 225 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
 	end
+	if n%600 == 255 then
+		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
+	end
 
 -- common foggy cliffs	
 	if n%360 == 0 then
@@ -53,10 +56,10 @@ function gadget:GameFrame(n)
 	end
 
 -- super rare foggy cliffs	
-	if n%1100 == 0 then
-		SpawnCEGInPositionGround("fogdirty-brown", 4026, 0, 4667)
-		SpawnCEGInPositionGround("fogdirty-brown", 7104, 0, 2290)
-	end
+	-- if n%1100 == 0 then
+	-- 	SpawnCEGInPositionGround("fogdirty-brown", 4026, 0, 4667)
+	-- 	SpawnCEGInPositionGround("fogdirty-brown", 7104, 0, 2290)
+	-- end
 
 -- powerup heavy metal
 	if n%900 == 0 then
@@ -71,9 +74,9 @@ function gadget:GameFrame(n)
 	end
 
 -- rare sandclouds
-	if n%1900 == 800 then
-		SpawnCEGInAreaGround("sandcloud", 154, 0, 165, 200)
-		SpawnCEGInAreaGround("sandcloud", 7200, 0, 7200, 200)
-	end
+	-- if n%1900 == 800 then
+	-- 	SpawnCEGInAreaGround("sandcloud", 610, 0, 470, 200)
+	-- 	SpawnCEGInAreaGround("sandcloud", 7400, 0, 7400, 200)
+	-- end
 		
 end
