@@ -24,10 +24,13 @@ function gadget:GameFrame(n)
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
 	end
 	if n%600 == 130 then
+		SpawnCEGInRandomMapPosPresetY("mistycloud", 2025)
+	end
+	if n%600 == 165 then
 		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
 	end
-		if n%600 == 170 then
-		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
+	if n%600 == 225 then
+		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
 	end
 
 -- common foggy cliffs	
