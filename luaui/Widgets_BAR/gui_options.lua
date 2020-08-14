@@ -2745,11 +2745,11 @@ function init()
 		},
 
 		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
-		{id="rankicons_distance", group="ui", name=widgetOptionColor.."   draw distance", type="slider", min=0.5, max=2.5, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getDrawDistance~=nil and WG['rankicons'].getDrawDistance()), description='',
+		{id="rankicons_distance", group="ui", name=widgetOptionColor.."   draw distance", type="slider", min=0.4, max=2, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getDrawDistance~=nil and WG['rankicons'].getDrawDistance()), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', {'distanceMult'}, value) end,
 		},
-		{id="rankicons_scale", group="ui", name=widgetOptionColor.."   scale", type="slider", min=0.5, max=2.5, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getScale~=nil and WG['rankicons'].getScale()), description='',
+		{id="rankicons_scale", group="ui", name=widgetOptionColor.."   scale", type="slider", min=0.4, max=2, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getScale~=nil and WG['rankicons'].getScale()), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Rank Icons', 'rankicons', 'setScale', {'iconsizeMult'}, value) end,
 		},

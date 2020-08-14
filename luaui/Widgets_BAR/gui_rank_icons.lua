@@ -71,6 +71,12 @@ local min	= math.min
 local floor	= math.floor
 local diag	= math.diag
 
+
+local unitIconMult = {}
+for udid, unitDef in pairs(UnitDefs) do
+	unitIconMult[udid] =  math.min(1.5, math.max(1, Spring.GetUnitDefDimensions(udid).radius / 33))
+end
+
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
@@ -226,6 +232,7 @@ function widget:DrawWorld()
 					if camDistance < usedCutoffDistance then
 						local opacity = min(1, 1 - (camDistance-usedFalloffDistance) / usedCutoffDistance)
 						unitUsedIconsize = ((usedIconsize*0.2) + (camDistance/scaleIconAmount)) - ((1-opacity)*(usedIconsize))
+						unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
 						glColor(1,1,1,opacity)
 						glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
 					end
