@@ -5,10 +5,10 @@ function gadget:GameFrame(n)
 
 	-- DayNight Cycle
 
-	if n%3600 < 1800 then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 1, 1)
+	if n%18000 < 9000 then
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
 	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.8, 1, 0.3)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.15, 2, 0.07)
 	end
 
 -- ## Atmosphere Functions
@@ -28,20 +28,22 @@ function gadget:GameFrame(n)
 	end
 
 -- clouds
-	if n%660 == 100 then
-		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
-	end
-	if n%660 == 130 then
-		SpawnCEGInRandomMapPosPresetY("mistycloud", 2025)
-	end
-	if n%660 == 165 then
-		SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
-	end
-	if n%660 == 225 then
-		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
-	end
-	if n%660 == 255 then
-		SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
+	if n%18000 < 9000 then
+		if n%660 == 100 then
+			SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
+		end
+		if n%660 == 130 then
+			SpawnCEGInRandomMapPosPresetY("mistycloud", 2025)
+		end
+		if n%660 == 165 then
+			SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
+		end
+		if n%660 == 225 then
+			SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
+		end
+		if n%660 == 255 then
+			SpawnCEGInRandomMapPosPresetY("mistycloud", 2150)
+		end
 	end
 
 -- common foggy cliffs	
