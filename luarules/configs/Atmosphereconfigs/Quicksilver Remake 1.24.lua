@@ -40,9 +40,14 @@ function gadget:GameFrame(n)
 		SpawnCEGInRandomMapPos("dustparticles", 50)
 	end
 
--- very rare rain
+-- rare rain
 	if n%7800 == 5000 then
-		SpawnCEGInRandomMapPos("rain", 0, "rainlight", 1)
+		SpawnCEGInRandomMapPos("rain", 0, _, _, _, "rainlight", 1)
+	end
+
+-- very rare rain
+	if n%12800 == 9000 then
+		SpawnCEGInRandomMapPos("rainlight", 0, _, _, _, "rainlight", 1)
 	end
 		
 end
