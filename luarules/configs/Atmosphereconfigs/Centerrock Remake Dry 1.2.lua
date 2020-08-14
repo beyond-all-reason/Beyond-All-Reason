@@ -28,7 +28,7 @@ function gadget:GameFrame(n)
 	end
 
 -- clouds
-	if n%18000 < 9000 then
+	if n%18000 > 500 and n%18000 < 9500 then
 		if n%660 == 100 then
 			SpawnCEGInRandomMapPosPresetY("mistycloud", 2100)
 		end
