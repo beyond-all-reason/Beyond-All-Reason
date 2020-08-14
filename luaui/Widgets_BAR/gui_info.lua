@@ -1249,7 +1249,8 @@ local function drawUnitInfo()
 
 
     -- unit specific info
-    local dps
+    local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
+
     if unitDPS[displayUnitDefID] then
       dps = unitDPS[displayUnitDefID]
     end
@@ -1257,10 +1258,9 @@ local function drawUnitInfo()
     -- get unit specifc data
     if displayMode == 'unit' then
       -- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
-      local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
-      local maxRange = spGetUnitMaxRange(displayUnitID)
-      local exp = spGetUnitExperience(displayUnitID)
-      local metalExtraction, stockpile
+      metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
+      maxRange = spGetUnitMaxRange(displayUnitID)
+      exp = spGetUnitExperience(displayUnitID)
       if isMex[displayUnitDefID] then
         metalExtraction = spGetUnitMetalExtraction(displayUnitID)
       end
@@ -1275,6 +1275,11 @@ local function drawUnitInfo()
     end
 
     if unitWeapons[displayUnitDefID] then
+
+      if exp and exp > 0.009 then
+        addTextInfo('xp', round(exp, 2))
+      end
+
       addTextInfo('weapons', #unitWeapons[displayUnitDefID])
       if maxRange then
         addTextInfo('max-range', maxRange)
@@ -1300,9 +1305,6 @@ local function drawUnitInfo()
     end
     if unitBuildOptions[displayUnitDefID] then
       addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
-    end
-    if exp and exp > 0.009 then
-      addTextInfo('xp', round(exp, 2))
     end
 
     --if unitWreckMetal[displayUnitDefID] then

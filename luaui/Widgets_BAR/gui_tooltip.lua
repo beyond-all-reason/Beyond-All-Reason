@@ -35,7 +35,7 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 local vsx,vsy = Spring.GetViewGeometry()
 
 local defaultDelay = 0.4
-local cfgFontSize = 16.8
+local cfgFontSize = 17
 
 local usedFontSize = cfgFontSize - (3 * ((vsx/vsy) - 1.78))
 local xOffset = 35
