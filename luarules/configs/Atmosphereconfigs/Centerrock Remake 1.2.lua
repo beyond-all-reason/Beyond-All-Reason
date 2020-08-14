@@ -3,6 +3,21 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. mapname)
 	end
 
+	-- if n%25600 < 12800 then
+	-- 	SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
+	-- else
+	-- 	SendToUnsynced("MapAtmosphereConfigSetSun", 0.1, 2, 0.2)
+	-- end
+
+local lightningsounds = {
+	"thunder1",
+	"thunder2",
+	"thunder3",
+	"thunder4",
+	"thunder5",
+	"thunder6",
+	}  
+
 -- ## Atmosphere Functions
 -- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
 -- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
@@ -16,7 +31,7 @@ function gadget:GameFrame(n)
 
 -- common foggy canyon	
 	-- if n%20 == 0 then
-	-- 	SpawnCEGInRandomMapPosBelowY("fogdirty-brown", 16, 100)
+	-- 	SpawnCEGInRandomMapPosBelowY("fogdirty-brown-brown", 16, 100)
 	-- end
 
 -- clouds
@@ -41,27 +56,27 @@ function gadget:GameFrame(n)
 
 -- common foggy cliffs	
 	if n%360 == 0 then
-		--SpawnCEGInPosition("fogdirty", 5437, 212, 3089)
+		--SpawnCEGInPosition("fogdirty-brown", 5437, 212, 3089)
 		SpawnCEGInPosition("fogdirty", 3658, 179, 4861)
-		SpawnCEGInPosition("fogdirty", 6594, 93, 1463)
-		SpawnCEGInPosition("fogdirty", 7414, 317, 1930)
-		SpawnCEGInPosition("fogdirty", 7224, 384, 5786)
-		--SpawnCEGInPosition("fogdirty", 3034, 32, 3736)
+		SpawnCEGInPosition("fogdirty-brown", 6594, 93, 1463)
+		SpawnCEGInPosition("fogdirty-brown", 7414, 317, 1930)
+		SpawnCEGInPosition("fogdirty-brown", 7224, 384, 5786)
+		--SpawnCEGInPosition("fogdirty-brown", 3034, 32, 3736)
 	end
 
 -- rare foggy cliffs	
 	if n%700 == 0 then
-		SpawnCEGInPosition("fogdirty", 2861, 407, 659)
-		SpawnCEGInPosition("fogdirty", 3687, 383, 4067)
-		SpawnCEGInPosition("fogdirty", 248, 150, 7927)
-		SpawnCEGInPosition("fogdirty", 1891, 255, 4373)
-		SpawnCEGInPosition("fogdirty", 1050, 450, 2410)
+		SpawnCEGInPosition("fogdirty-brown", 2861, 407, 659)
+		SpawnCEGInPosition("fogdirty-brown", 3687, 383, 4067)
+		SpawnCEGInPosition("fogdirty-brown", 248, 150, 7927)
+		SpawnCEGInPosition("fogdirty-brown", 1891, 255, 4373)
+		SpawnCEGInPosition("fogdirty-brown", 1050, 450, 2410)
 	end
 
 -- super rare foggy cliffs	
 	--if n%1100 == 0 then
-	--	SpawnCEGInPosition("fogdirty", 4026, 672, 4667)
-	--	SpawnCEGInPosition("fogdirty", 7104, 569, 2290)
+	--	SpawnCEGInPosition("fogdirty-brown", 4026, 672, 4667)
+	--	SpawnCEGInPosition("fogdirty-brown", 7104, 569, 2290)
 	--end
 
 -- powerup heavy metal
@@ -77,9 +92,42 @@ function gadget:GameFrame(n)
 	end
 
 -- light rain
-	if n%6000 == 100 then
+	if n%6400 == 5370 then
 		SpawnCEGInRandomMapPos("rainlight", 0, _, _, _, "rainlight", 0.5)
 	end
+
+-- Thunderstorm Darkness Cycle
+
+	if n%6400 < 4800 then
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
+	else
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, 3, 0.25)
+	end
+
+	if n %6400 == 5400 then
+	    local thunderstormcenterx = math.random(100, (mapsizeX-100))
+	    local thunderstormcenterz = math.random(100, (mapsizeZ-100))
+	    local thunderstormradius = 675
+	    thunderstormxmin = thunderstormcenterx - thunderstormradius
+	    thunderstormxmax = thunderstormcenterx + thunderstormradius
+	    thunderstormzmin = thunderstormcenterz - thunderstormradius
+	    thunderstormzmax = thunderstormcenterz + thunderstormradius
+	    SpawnCEGInPositionGround("rainlight", thunderstormcenterx, 0, thunderstormcenterz, _, _, _, "rainlight", 0.7)
+	    SpawnCEGInPosition("noceg", thunderstormcenterx, 1000, thunderstormcenterz, _, _, _, "distantthunder", 0.4)
+	end
+
+	if n%6400 > 5400 then
+		if n%30 == 0 then
+	       local r = math.random(0,4)
+	       if r == 0 then
+	            local posx = math.random(thunderstormxmin, thunderstormxmax)
+	            local posz = math.random(thunderstormzmin, thunderstormzmax)
+	            SpawnCEGInPositionGround("lightningstrike", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	       end
+	    end 
+	end
+
+
 
 -- rare sandclouds
 	-- if n%1900 == 800 then

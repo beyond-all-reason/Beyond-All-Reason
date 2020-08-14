@@ -6,31 +6,14 @@ function gadget:GameFrame(n)
 	-- DayNight Cycle
 	
 	if n%18000 < 9000 then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 1)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
 	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.15, 1)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.1, 2, 0.2)
 	end
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 -- ## Atmosphere Functions
+-- SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
+
 -- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
 -- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
 -- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
@@ -52,8 +35,8 @@ local lightningsounds = {
 	}  
 
 if n %6400 == 0 then
-    local thunderstormcenterx = math.random(0, mapsizeX)
-    local thunderstormcenterz = math.random(0, mapsizeZ)
+    local thunderstormcenterx = math.random(100, (mapsizeX-100))
+    local thunderstormcenterz = math.random(100, (mapsizeZ-100))
     local thunderstormradius = 750
     thunderstormxmin = thunderstormcenterx - thunderstormradius
     thunderstormxmax = thunderstormcenterx + thunderstormradius
@@ -63,12 +46,14 @@ if n %6400 == 0 then
 end
 
 if n%6400 < 1060 then
-       local r = math.random(0,100)
+	if n%30 == 0 then
+       local r = math.random(0,3)
        if r == 0 then
             local posx = math.random(thunderstormxmin, thunderstormxmax)
             local posz = math.random(thunderstormzmin, thunderstormzmax)
-            SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+            SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
        end
+    end 
 end
 
 -- common foggy cliffs	
@@ -77,6 +62,10 @@ end
 		SpawnCEGInPositionGround("fogdirty-green", 5545, 32, 3359)
 		SpawnCEGInPositionGround("fogdirty-green", 3365, 32, 3438)
 		SpawnCEGInPositionGround("fogdirty-green", 5261, 32, 2582)
+	end
+
+	if n%360 == 180 then
+
 		SpawnCEGInPositionGround("fogdirty-green", 4039, 32, 4245)
 		SpawnCEGInPositionGround("fogdirty-green", 5626, 32, 4687)
 		SpawnCEGInPositionGround("fogdirty-green", 2913, 32, 5769)
@@ -116,19 +105,19 @@ end
   
 
 	if n%6400 == 4900 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 4625 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 5150 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 5210 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	if n%6400 == 5610 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 500, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
 	end
 	
 end
