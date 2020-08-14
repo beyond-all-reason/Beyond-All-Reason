@@ -26,6 +26,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 	local udr, udg, udb = gl.GetSun("diffuse", "unit")
 	local gsr, gsg, gsb = gl.GetSun("specular")
 	local usr, usg, usb = gl.GetSun("specular", "unit")
+	
+	local skycr, skycg, skycb = gl.GetAtmosphere("skyColor")
+	local suncr, suncg, suncb = gl.GetAtmosphere("sunColor")
+	local clocr, clocg, clocb = gl.GetAtmosphere("cloudColor")
+	local fogcr, fogcg, fogcb = gl.GetAtmosphere("fogColor")
+	
 	local shadowdensity = gl.GetSun("shadowDensity")
 	
 	
@@ -81,6 +87,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 		Spring.SetSunLighting({unitDiffuseColor = {transition*udr,transition*udg,transitionblue*udb}})
 		Spring.SetSunLighting({groundSpecularColor = {transition*gsr,transition*gsg,transitionblue*gsb}})
 		Spring.SetSunLighting({unitSpecularColor = {transition*usr,transition*usg,transitionblue*usb}})
+		
+		Spring.SetAtmosphere({skyColor = {transition*skycr, transition*skycg, transitionblue*skycb}})
+		Spring.SetAtmosphere({sunColor = {transition*suncr, transition*suncg, transitionblue*suncb}})
+		Spring.SetAtmosphere({cloudColor = {transition*clocr, transition*clocg, transitionblue*clocb}})
+		Spring.SetAtmosphere({fogColor = {transition*fogcr, transition*fogcg, transitionblue*fogcb}})
+		
 		Spring.SetSunLighting({groundShadowDensity = transition*shadowdensity, modelShadowDensity = transition*shadowdensity})
 	end
 	
