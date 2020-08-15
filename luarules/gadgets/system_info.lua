@@ -100,8 +100,18 @@ else
 					s_resolution = string.sub(string.match(line, 'current=\{[0-9]*x[0-9]*'), 10)
 				end
 
-				if string.find(line, '(display[-]mode set to )') then
-					s_displaymode = string.sub(line, string.find(line, '(display[-]mode set to )') + 20)
+				if line:find('(display%-mode set to )') then
+					s_displaymode = line:sub( line:find('(display%-mode set to )') + 20)
+					if s_displaymode:find('%(') then
+						local basepart = s_displaymode:sub(1, s_displaymode:find('%(')-1)
+						if s_displaymode:find('windowed::borderless') then
+							s_displaymode = basepart..'borderless'
+						elseif s_displaymode:find('windowed::decorated') then
+							s_displaymode = basepart..' windowed'
+						elseif s_displaymode:find('fullscreen::decorated') then
+							s_displaymode = basepart..' fullscreen'
+						end
+					end
 				end
 
 				if s_gpu == nil and string.find(line, '(Supported Video modes on Display )')  then
