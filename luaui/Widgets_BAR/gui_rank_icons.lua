@@ -12,12 +12,12 @@ function widget:GetInfo()
 end
 
 
-local iconsize   = 100
+local iconsize   = 40
 local iconoffset = 22
 local scaleIconAmount = 80
 
 local falloffDistance = 1800
-local cutoffDistance = 2900
+local cutoffDistance = 3000
 
 local distanceMult = 1
 local usedFalloffDistance = falloffDistance * distanceMult
@@ -34,10 +34,26 @@ local rankTextures = {
 	[4] = rankTexBase .. 'rank4.png',
 	[5] = rankTexBase .. 'rank5.png',
 	[6] = rankTexBase .. 'rank6.png',
-	[7] = rankTexBase .. 'star.png',
+	[7] = rankTexBase .. 'rank7.png',
+	[8] = rankTexBase .. 'rank8.png',
+	[9] = rankTexBase .. 'rank9.png',
+	[10] = rankTexBase .. 'rank10.png',
 }
 
-local ranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {}, [5] = {}, [6] = {}, [7] = {} }
+local ranks = {
+	[0] = {},
+	[1] = {},
+	[2] = {},
+	[3] = {},
+	[4] = {},
+	[5] = {},
+	[6] = {},
+	[7] = {},
+	[8] = {},
+	[9] = {},
+	[10] = {},
+}
+local numRanks = #ranks
 
 local unitPowerXpCoeffient = {}
 local unitHeights  = {}
@@ -125,8 +141,8 @@ function widget:Initialize()
 	end
 
 	for unitDefID, ud in pairs(UnitDefs) do
-		ud.power_xp_coeffient  = ((ud.power / 1000) ^ -0.2) / 6  -- dark magic
-		unitPowerXpCoeffient[unitDefID] = ud.power_xp_coeffient
+		-- ud.power -> buildCostMetal + (buildCostEnergy / 60.0) 
+		unitPowerXpCoeffient[unitDefID] = ((ud.power / 1000) ^ -0.2) / numRanks  -- dark magic
 		unitHeights[unitDefID] = ud.height + iconoffset
 	end
 
@@ -150,7 +166,7 @@ function SetUnitRank(unitID)
 	if not xp then
 		return
 	end
-	xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]),7)
+	xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]), numRanks)
 end
 
 -------------------------------------------------------------------------------------
@@ -160,8 +176,8 @@ function widget:UnitExperience(unitID,unitDefID,unitTeam, xp, oldXP)
 	if xp < 0 then xp = 0 end
 	if oldXP < 0 then oldXP = 0 end
 
-	local rank    = min(floor(xp / unitPowerXpCoeffient[unitDefID]),7)
-	local oldRank = min(floor(oldXP / unitPowerXpCoeffient[unitDefID]),7)
+	local rank    = min(floor(xp / unitPowerXpCoeffient[unitDefID]), numRanks)
+	local oldRank = min(floor(oldXP / unitPowerXpCoeffient[unitDefID]), numRanks)
 
 	if rank ~= oldRank then
 		for i=0, rank-1 do
@@ -179,7 +195,7 @@ end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	for i=0,7 do
+	for i=0, numRanks do
 		ranks[i][unitID] = nil
 	end
 end
@@ -187,7 +203,7 @@ end
 
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	if not IsUnitAllied(unitID) and not GetSpectatingState()  then
-		for i=0,7 do
+		for i=0, numRanks do
 			ranks[i][unitID] = nil
 		end
 	end
@@ -222,7 +238,7 @@ function widget:DrawWorld()
 	local camX, camY, camZ = GetCameraPosition()
 	local camDistance
 
-	for i=1, 7 do
+	for i=1, numRanks do
 		if next(ranks[i]) then
 			glTexture(rankTextures[i])
 			for unitID,unitDefID in pairs(ranks[i]) do
@@ -231,7 +247,7 @@ function widget:DrawWorld()
 					camDistance = diag(camX-x, camY-y, camZ-z)
 					if camDistance < usedCutoffDistance then
 						local opacity = min(1, 1 - (camDistance-usedFalloffDistance) / usedCutoffDistance)
-						unitUsedIconsize = ((usedIconsize*0.2) + (camDistance/scaleIconAmount)) - ((1-opacity)*(usedIconsize))
+						unitUsedIconsize = ((usedIconsize*0.2) + (camDistance/scaleIconAmount)) - ((1-opacity)*(usedIconsize*1.4))
 						unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
 						glColor(1,1,1,opacity)
 						glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
