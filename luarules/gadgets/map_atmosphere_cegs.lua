@@ -4,6 +4,7 @@ mapsizeZ = Game.mapSizeZ
 spSCEG = Spring.SpawnCEG
 mathrandom = math.random
 spGroundHeight = Spring.GetGroundHeight
+atmosVoiceNotifsPath = "Sounds/voice/atmosphere/"
 
 
 function gadget:GetInfo()
@@ -20,6 +21,7 @@ end
 
 
 if (not gadgetHandler:IsSyncedCode()) then
+	
 	local gar, gag, gab = gl.GetSun("ambient")
 	local uar, uag, uab = gl.GetSun("ambient", "unit")
 	local gdr, gdg, gdb = gl.GetSun("diffuse")
@@ -66,21 +68,6 @@ if (not gadgetHandler:IsSyncedCode()) then
 			transitionblue = 1
 		end
 		
-		-- if timeoftheday == "Day" then
-			-- if transition < 1 then
-				-- transition = transition + transitionspeedpercented
-			-- end
-			-- if transitionblue < 1 then
-				-- transitionblue = transitionblue + transitionspeedpercented
-			-- end
-		-- elseif timeoftheday == "Night" then
-			-- if transition > 0.15 then
-				-- transition = transition - transitionspeedpercented
-			-- end
-			-- if transitionblue > 0.35 then
-				-- transitionblue = transitionblue - transitionspeedpercented
-			-- end
-		-- end
 		Spring.SetSunLighting({groundAmbientColor = {transition*gar,transition*gag,transitionblue*gab}})
 		Spring.SetSunLighting({unitAmbientColor = {transition*uar,transition*uag,transitionblue*uab}})
 		Spring.SetSunLighting({groundDiffuseColor = {transition*gdr,transition*gdg,transitionblue*gdb}})
@@ -96,6 +83,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 		Spring.SetSunLighting({groundShadowDensity = transition*shadowdensity, modelShadowDensity = transition*shadowdensity})
 	end
 	
+	function gadget:TextCommand(msg)
+		if string.sub(msg,1, 18) == "atmosplaysoundfile" then 
+			Spring.PlaySoundFile(string.sub(msg, 20),0.85,'ui')
+		end
+	end
+	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("MapAtmosphereConfigSetSun", MapAtmosphereConfigSetSun)
 	end
@@ -103,7 +96,20 @@ if (not gadgetHandler:IsSyncedCode()) then
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("MapAtmosphereConfigSetSun")
 	end
+	
+	
 else
+
+	function AtmosSendMessage(_,msg)
+		if Script.LuaUI("GadgetAddMessage") then
+			Script.LuaUI.GadgetAddMessage(msg)
+		end
+	end
+	
+	function AtmosSendVoiceMessage(filedirectory)
+		Spring.SendCommands("atmosplaysoundfile "..filedirectory)
+	end
+	
 	function SpawnCEGInPosition(cegname, posx, posy, posz, damage, paralyzetime, damageradius, sound, soundvolume)
 		spSCEG(cegname, posx, posy, posz)
 		if sound then
