@@ -100,6 +100,10 @@ else
 					s_resolution = string.sub(string.match(line, 'current=\{[0-9]*x[0-9]*'), 10)
 				end
 
+				if string.find(line, '(display[-]mode set to )') then
+					s_displaymode = string.sub(line, string.find(line, '(display[-]mode set to )') + 20)
+				end
+
 				if s_gpu == nil and string.find(line, '(Supported Video modes on Display )')  then
 					if s_displays == nil then
 						s_displays = ''
@@ -177,10 +181,18 @@ else
 			system = system..'\nGPU VRAM:  '..string.gsub(s_gpuVram, "  ", " ")
 		end
 		if s_resolution ~= nil then
-			system = system..'\n'..string.gsub(s_resolution, "  ", " ")
+			system = system..'\nDisplay max: '..string.gsub(s_resolution, "  ", " ")
 		end
+		if s_displaymode ~= nil then
+			system = system..'\n'..s_displaymode
+		end
+
 		if s_os ~= nil then
 			system = system..'\nOS:  '..s_os
+		end
+
+		if Engine.wordSize > 32 then
+			system = system..'\nEngine:  '..Engine.wordSize..' bit'
 		end
 
 		if chobbyLoaded then
