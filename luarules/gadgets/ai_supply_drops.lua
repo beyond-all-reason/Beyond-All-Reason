@@ -1,4 +1,4 @@
-if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0) then
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0 then
     lootboxSpawnEnabled = true
 else
     lootboxSpawnEnabled = false
@@ -15,8 +15,16 @@ function gadget:GetInfo()
     }
 end
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false
+end
+
+
+local isLootbox = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if string.find(unitDef.name, "lootbox", nil, true) then
+		isLootbox[unitDefID] = true
+	end
 end
 
 local lootboxesListLow = {
@@ -134,11 +142,11 @@ function gadget:GameFrame(n)
     if n > 1 then
         SpawnFromQueue(n)
 	end
-    
+
     if n%30 == 0 and n > 2 then
-        
+
         if #aliveLootboxes > 0 then
-            for j = 1,#aliveLootboxes do 
+            for j = 1,#aliveLootboxes do
                 local unitID            = aliveLootboxes[j]
                 local unitTeam          = spGetUnitTeam(unitID)
                 local unitEnemy         = spNearestEnemy(unitID, 128, false)
@@ -175,7 +183,7 @@ function gadget:GameFrame(n)
 						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)], posx, posy, posz, math_random(0,3), spGaiaTeam)
 						--Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					end
-                    
+
                     break
                 end
             end
@@ -183,11 +191,9 @@ function gadget:GameFrame(n)
     end
 end
 
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    local unitName = UnitDefs[unitDefID].name
-    if string.find(unitName, "lootbox") then
-        table.insert(aliveLootboxes,unitID)
+    if isLootbox[unitDefID] then
+		aliveLootboxes[#aliveLootboxes+1] = unitID
 		aliveLootboxesCount = aliveLootboxesCount + 1
         Spring.SetUnitNeutral(unitID, true)
     end
@@ -195,12 +201,11 @@ end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-    local unitName = UnitDefs[unitDefID].name
-    if string.find(unitName, "lootbox") then
+	if isLootbox[unitDefID] then
         for i = 1,#aliveLootboxes do
             if unitID == aliveLootboxes[i] then
 				aliveLootboxesCount = aliveLootboxesCount - 1
-                table.remove(aliveLootboxes,i)
+				aliveLootboxes[i] = nil
                 break
             end
         end

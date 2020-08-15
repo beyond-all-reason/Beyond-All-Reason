@@ -129,8 +129,8 @@ end
 
 
 function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
-	local camDistance = diag(camX-x, camY-y, camZ-z) 
-	
+	local camDistance = diag(camX-x, camY-y, camZ-z)
+
 	local lineWidthMinus = (camDistance/fadeStartDistance)
 	if lineWidthMinus > 2.2 then
 		lineWidthMinus = 2.2
@@ -143,19 +143,19 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 		end
 	end
 	lineOpacityMultiplier = lineOpacityMultiplier * opacityMultiplier
-	
+
 	if lineOpacityMultiplier > 0 then
 		local numStockpiled, numStockpileQued, stockpileBuild = spGetUnitStockpile(uID)
 		local circleColor = emptyStockpileColor
 
 		local _,stunned,inbuild = GetUnitIsStunned(uID)
-		if stunned then 
+		if stunned then
 			if os.clock()%0.66 > 0.33 then
 				circleColor = empdStockpileColor
 			else
 				circleColor = empdStockpileColor2
 			end
-		elseif inbuild then 
+		elseif inbuild then
 			circleColor = unfinishedStockpileColor
 		else
 			if numStockpiled == nil then
@@ -258,7 +258,7 @@ end
 function checkAllUnits()
 	antiInLos				= {}
 	antiOutLos				= {}
-	
+
 	local allUnits = spGetAllUnits()
     for i=1,#allUnits do
         processVisibleUnit(allUnits[i])
@@ -280,7 +280,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "antiranges_glow") == 1  and  string.len(command) == 15) then 
+    if (string.find(command, "antiranges_glow", nil, true) == 1  and  string.len(command) == 15) then
 		showLineGlow2 = not showLineGlow2
 		if showLineGlow2 then
 			Spring.Echo("Anti Ranges:  Glow on")
@@ -288,7 +288,7 @@ function widget:TextCommand(command)
 			Spring.Echo("Anti Ranges:  Glow off")
 		end
 	end
-    if (string.find(command, "antiranges_fade") == 1  and  string.len(command) == 15) then 
+    if (string.find(command, "antiranges_fade", nil, true) == 1  and  string.len(command) == 15) then
 		fadeOnCloseup = not fadeOnCloseup
 		if fadeOnCloseup then
 			Spring.Echo("Anti Ranges:  Fade-out on closeup enabled")

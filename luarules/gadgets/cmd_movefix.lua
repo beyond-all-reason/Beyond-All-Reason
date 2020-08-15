@@ -26,7 +26,7 @@ end
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 
 	if (cmdID == CMD.MOVE or cmdID == CMD.RAWMOVE) and not unitCanFly[unitDefID] then
-		-- if UnitDefs[unitDefID].moveDef and UnitDefs[unitDefID].moveDef.name and string.find(UnitDefs[unitDefID].moveDef.name, "boat") then -- unquote if you want this for ships only
+		-- if UnitDefs[unitDefID].moveDef and UnitDefs[unitDefID].moveDef.name and string.find(UnitDefs[unitDefID].moveDef.name, "boat", nil, true) then -- unquote if you want this for ships only
 			if #cmdParams == 6 then
 				if Spring.TestMoveOrder(unitDefID, cmdParams[4],cmdParams[5],cmdParams[6],0,0,0,true,false,false) then
 				return true

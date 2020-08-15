@@ -194,13 +194,13 @@ function widget:AddConsoleLine(lines, priority)
 		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 			if (string.sub(line,1,1) == ">" and string.sub(line,3,3) ~= "<") then	-- system message
-				if string.find(line," called a vote ") then	-- vote called
-					local title = string.sub(line,string.find(line,' "')+2, string.find(line,'" ')-1)..'?'
+				if string.find(line," called a vote ", nil, true) then	-- vote called
+					local title = string.sub(line,string.find(line,' "')+2, string.find(line,'" ', nil, true)-1)..'?'
 					title = title:sub(1,1):upper()..title:sub(2)
-					if not string.find(line,"\"resign ") or isTeamPlayer(string.sub(line,string.find(line,'"resign ')+8, string.find(line,' TEAM')-1)) then
-						StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote "))
+					if not string.find(line,'"resign ', nil, true) or isTeamPlayer(string.sub(line,string.find(line,'"resign ', nil, true)+8, string.find(line,' TEAM', nil, true)-1)) then
+						StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote ", nil, true))
 					end
-				elseif voteDlist and (string.find(line," passed.") or string.find(line," failed") or string.find(line,"Vote cancelled") or  string.find(line," Cancelling \"")) then
+				elseif voteDlist and (string.find(line," passed.", nil, true) or string.find(line," failed", nil, true) or string.find(line,"Vote cancelled", nil, true) or string.find(line,' Cancelling "', nil, true)) then
 					EndVote()
 				end
 			end
@@ -224,7 +224,7 @@ function StartVote(name, owner)
 	local show = true
 	if mySpec and name then
 		for k,keyword in pairs(specBadKeywords) do
-			if string.find(string.lower(name), keyword) then
+			if string.find(string.lower(name), keyword, nil, true) then
 				show = false
 				break
 			end

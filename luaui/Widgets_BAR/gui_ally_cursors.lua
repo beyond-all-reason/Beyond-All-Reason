@@ -126,11 +126,11 @@ function widget:ViewResize()
 end
 
 function widget:TextCommand(command)
-    if string.find(command, "allycursorspecname") == 1  and  string.len(command) == 18 then
+    if string.find(command, "allycursorspecname", nil, true) == 1  and  string.len(command) == 18 then
         showSpectatorName = not showSpectatorName
     end
 
-    if string.find(command, "allycursorplayername") == 1  and  string.len(command) == 20 then
+    if string.find(command, "allycursorplayername", nil, true) == 1  and  string.len(command) == 20 then
         showPlayerName = not showPlayerName
     end
 

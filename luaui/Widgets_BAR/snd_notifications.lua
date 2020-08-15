@@ -705,10 +705,10 @@ end
 -- function that gadgets can call
 function EventBroadcast(msg)
 	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
-        if string.find(msg, "SoundEvents") then
+        if string.find(msg, "SoundEvents", nil, true) then
             msg = string.sub(msg, 13)
-            local event = string.sub(msg, 1, string.find(msg, " ")-1)
-            local player = string.sub(msg, string.find(msg, " ")+1, string.len(msg))
+            local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
+            local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
             if (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
                 QueueNotification(event)
             end

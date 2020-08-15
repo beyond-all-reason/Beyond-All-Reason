@@ -216,7 +216,7 @@ function widget:DrawWorld()
     gl.UseShader(0)
   end
 
-  gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+  --gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
   gl.PolygonOffset(false)
   gl.DepthTest(false)
 end

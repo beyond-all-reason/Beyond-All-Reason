@@ -35,7 +35,7 @@ function generateSpiral()
 	while attempt < 50 do
 		attempt = attempt + 1
 		for v = -attempt, attempt do
-			for h = -attempt, attempt do	
+			for h = -attempt, attempt do
 				if math.abs(v) == attempt or math.abs(h) == attempt then
 					ct = ct + 1
 					retTable[ct] = {v, h}
@@ -45,8 +45,8 @@ function generateSpiral()
 	end
 	return retTable
 end
-		
-	
+
+
 
 function NewPlacementHandler:UnitIdle(engineunit)
 	if not Spring.GetGameFrame() == 0 then
@@ -72,7 +72,7 @@ end
 function NewPlacementHandler:Init()
 	self.plans = {}
 	self.plansbyunitID = {}
-	self.plansbyunitDefID = {}	
+	self.plansbyunitDefID = {}
 	mapwidth = math.max(Game.mapSizeX, Game.mapSizeZ)
 	if not spiral then
 		spiral = generateSpiral()
@@ -113,7 +113,7 @@ function NewPlacementHandler:UnitDead(unit)
 	local unitDefID = UnitDefNames[unit:Name()].id
 	local defs = UnitDefs[unitDefID]
 	if defs then
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or string.find(defs.name, "nanotc", nil, true) then
 			local pos = unit:GetPosition()
 			local spacing = self:GetMinimalSpacing(unit:Type())
 			local cellsize = math.max(defs.xsize, defs.zsize) * 8
@@ -137,7 +137,7 @@ function NewPlacementHandler:UnitCreated(unit) -- Clear plan but leave position 
 	local unitDefID = UnitDefNames[unit:Name()].id
 	local defs = UnitDefs[unitDefID]
 	if defs then
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or string.find(defs.name, "nanotc", nil, true) then
 			local pos = unit:GetPosition()
 			local spacing = self:GetMinimalSpacing(unit:Type())
 			local cellsize = math.max(defs.xsize, defs.zsize) * 8
@@ -159,7 +159,7 @@ end
 
 function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	local defs = UnitDefs[utype.id]
-	local Building = (defs.isBuilding == true or string.find(defs.name, "nanotc"))
+	local Building = (defs.isBuilding == true or string.find(defs.name, "nanotc", nil, true))
 	local cellsize = math.max(defs.xsize, defs.zsize) * 8
 	local buildtype = "ground"
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
@@ -271,7 +271,7 @@ end
 
 function NewPlacementHandler:GetMinimalSpacing(utype)
 	local r = math.random(0,5)
-	if string.find(UnitDefs[utype.id].name, "nanotc") then
+	if string.find(UnitDefs[utype.id].name, "nanotc", nil, true) then
 		if r <= 1 then
 			return 0
 		elseif r == 2 then
@@ -279,7 +279,7 @@ function NewPlacementHandler:GetMinimalSpacing(utype)
 		else
 			return 20
 		end
-	elseif string.find(UnitDefs[utype.id].name, "solar") then
+	elseif string.find(UnitDefs[utype.id].name, "solar", nil, true) then
 		if r <= 1 then
 			return 0
 		elseif r == 2 then
@@ -287,7 +287,7 @@ function NewPlacementHandler:GetMinimalSpacing(utype)
 		else
 			return 20
 		end
-	elseif string.find(UnitDefs[utype.id].name, "win") then
+	elseif string.find(UnitDefs[utype.id].name, "win", nil, true) then
 		if r <= 1 then
 			return 0
 		elseif r == 2 then
@@ -295,7 +295,7 @@ function NewPlacementHandler:GetMinimalSpacing(utype)
 		else
 			return 20
 		end
-	elseif string.find(UnitDefs[utype.id].name, "makr") then
+	elseif string.find(UnitDefs[utype.id].name, "makr", nil, true) then
 		if r <= 1 then
 			return 0
 		elseif r == 2 then

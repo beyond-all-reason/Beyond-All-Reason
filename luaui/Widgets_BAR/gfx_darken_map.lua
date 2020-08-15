@@ -140,7 +140,7 @@ end
 
 
 function widget:TextCommand(command)
-    if (string.find(command, "resetmapdarkness") == 1  and  string.len(command) == 16) then 
+    if string.find(command, "resetmapdarkness", nil, true) == 1  and  string.len(command) == 16 then
 		maps = {}
 		darknessvalue = 0
 	end

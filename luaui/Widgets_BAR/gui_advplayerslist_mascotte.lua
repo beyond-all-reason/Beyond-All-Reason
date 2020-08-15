@@ -16,7 +16,7 @@ end
 local imageDirectory			= ":l:"..LUAUI_DIRNAME.."Images/advplayerslist_mascotte/"
 
 local OPTIONS = {}
-OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values 
+OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values
 	name				= "Defaults",
 	imageSize			= 55,
 	xOffset				= -1.6,
@@ -74,7 +74,7 @@ end
 function loadOption()
 	local appliedOption = OPTIONS_original[currentOption]
 	OPTIONS[currentOption] = table.shallow_copy(OPTIONS.defaults)
-	
+
 	for option, value in pairs(appliedOption) do
 		OPTIONS[currentOption][option] = value
 	end
@@ -136,7 +136,7 @@ local function createList(size)
 		DrawRect(-(size/2), -(size/2), (size/2), (size/2))
 		gl.Texture(false)
 	end)
-	
+
 	if drawlist[2] ~= nil then
 		glDeleteList(drawlist[2])
 	end
@@ -214,7 +214,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	if playerID == myPlayerID then
-		
+
 	end
 end
 
@@ -227,10 +227,10 @@ local usedDrawlist = 2
 function widget:Update(dt)
 	sec=sec+dt
 	totalTime=totalTime+dt
-	
+
 	rot = 14 + (6* math.sin(math.pi*(totalTime/4)))
 	bob = (1.5*math.sin(math.pi*(totalTime/5.5)))
-	
+
 	if sec > OPTIONS[currentOption]['blinkTimeout'] then
 		usedDrawlist = 3
 	end
@@ -279,7 +279,7 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "mascotte") == 1  and  string.len(command) == 8) then 
+    if string.find(command, "mascotte", nil, true) == 1  and  string.len(command) == 8 then
 		toggleOptions()
 		Spring.Echo("Adv-playerlist mascotte: "..OPTIONS[currentOption].name)
 	end

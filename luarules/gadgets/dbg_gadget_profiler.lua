@@ -29,7 +29,7 @@ local prefixedGnames = {}
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
-	local _pos = baseName:find("_", 1)
+	local _pos = baseName:find("_", 1, true)
 	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
 	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
 
@@ -184,7 +184,7 @@ local function StartHook(a,b,c,d)
 	local CallInsList = {}
 	local CallInsListCount = 0
 	for name,e in pairs(gh) do
-		local i = name:find("List")
+		local i = name:find("List", nil,true)
 		if (i)and(type(e)=="table") then
 			CallInsListCount = CallInsListCount + 1
 			CallInsList[CallInsListCount] = name:sub(1,i-1)
@@ -242,7 +242,7 @@ function KillHook()
 	local CallInsList = {}
 	local CallInsListCount = 0
 	for name,e in pairs(gh) do
-		local i = name:find("List")
+		local i = name:find("List", nil, true)
 		if (i)and(type(e)=="table") then
 			CallInsListCount = CallInsListCount + 1
 			CallInsList[CallInsListCount] = name:sub(1,i-1)

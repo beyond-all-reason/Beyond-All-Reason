@@ -4,13 +4,13 @@ local isSolar = {}
 local isWind = {}
 local isMakr = {}
 for unitDefID, defs in pairs(UnitDefs) do
-	if string.find(defs.name, "nanotc") then
+	if string.find(defs.name, "nanotc", nil, true) then
 		isNanoTC[unitDefID] = true
-	elseif string.find(defs.name, "solar") then
+	elseif string.find(defs.name, "solar", nil, true) then
 		isSolar[unitDefID] = true
-	elseif string.find(defs.name, "win") then
+	elseif string.find(defs.name, "win", nil, true) then
 		isWind[unitDefID] = true
-	elseif string.find(defs.name, "makr") then
+	elseif string.find(defs.name, "makr", nil, true) then
 		isMakr[unitDefID] = true
 	end
 end
@@ -52,7 +52,7 @@ function generateSpiral()
 	while attempt < 50 do
 		attempt = attempt + 1
 		for v = -attempt, attempt do
-			for h = -attempt, attempt do	
+			for h = -attempt, attempt do
 				if math.abs(v) == attempt or math.abs(h) == attempt then
 					ct = ct + 1
 					retTable[ct] = {v, h}
@@ -62,8 +62,8 @@ function generateSpiral()
 	end
 	return retTable
 end
-		
-	
+
+
 
 function NewPlacementHandler:UnitIdle(engineunit)
 	if not Spring.GetGameFrame() == 0 then
@@ -89,7 +89,7 @@ end
 function NewPlacementHandler:Init()
 	self.plans = {}
 	self.plansbyunitID = {}
-	self.plansbyunitDefID = {}	
+	self.plansbyunitDefID = {}
 	mapwidth = math.max(Game.mapSizeX, Game.mapSizeZ)
 	if not spiral then
 		spiral = generateSpiral()

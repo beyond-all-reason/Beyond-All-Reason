@@ -37,7 +37,7 @@ local renderAllTeamsAsPlayer			= false		-- keep this 'false' if you dont want ci
 
 local spotterOpacity					= 0.16
 
-                                        
+
 local defaultColorsForAllyTeams			= 0 		-- (number of teams)   if number <= of total numebr of allyTeams then dont use teamcoloring but default colors
 local keepTeamColorsForSmallAllyTeam	= 3			-- (number of teams)   use teamcolors if number or teams (inside allyTeam)  <=  this value
 local spotterColor = {								-- default color values
@@ -125,16 +125,16 @@ function CreateHighlightShader()
 	  void main()
 	  {
 		vec4 P = gl_ModelViewMatrix * gl_Vertex;
-			  
+
 		eyeVec = P.xyz;
-			  
+
 		normal  = gl_NormalMatrix * gl_Normal;
-			  
+
 		color = gl_Color.rgb;
-			  
+
 		gl_Position = gl_ProjectionMatrix * P;
 	  }
-	]],  
+	]],
 
 	fragment = [[
 	  #version 150 compatibility
@@ -149,7 +149,7 @@ function CreateHighlightShader()
 		float opac = dot(normalize(normal), normalize(eyeVec));
 		opac = 1.0 - abs(opac);
 		opac = pow(opac, edgeExponent);
-		  
+
 		gl_FragColor.rgb = color;
 		gl_FragColor.a = opac;
 	  }
@@ -159,20 +159,20 @@ end
 
 
 function setColors()
-	
+
     if Spring.GetSpectatingState()  and  renderAllTeamsAsSpec then
         skipOwnAllyTeam = false
     elseif not Spring.GetSpectatingState() and renderAllTeamsAsPlayer then
         skipOwnAllyTeam = false
     end
-    
+
 	local allyToSpotterColorCount = 0
 	local allyTeamList = spGetAllyTeamList()
 	local numberOfAllyTeams = #allyTeamList
 	for _, allyID in pairs(allyTeamList) do
 
 		if not skipOwnAllyTeam  or  (skipOwnAllyTeam  and  not (allyID == myAllyID))  then
-		
+
 			allyToSpotterColorCount     = allyToSpotterColorCount+1
 			allyToSpotterColor[allyID]  = allyToSpotterColorCount
 			local usedSpotterColor      = spotterColor[allyToSpotterColorCount]
@@ -204,7 +204,7 @@ function setColors()
 			end
 		end
 	end
-	
+
 end
 
 function SetUnitConf()
@@ -265,7 +265,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-  
+
   WG['enemyspotter'] = {}
   WG['enemyspotter'].getOpacity = function()
   	return spotterOpacity
@@ -280,7 +280,7 @@ function widget:Initialize()
   WG['enemyspotter'].setHighlight = function(value)
   	useXrayHighlight = value
   end
-  
+
 	SetUnitConf()
 	setColors()
 	checkAllUnits()
@@ -310,9 +310,9 @@ function widget:DrawWorldPreUnit()
 	if not drawWithHiddenGUI then
 		if spIsGUIHidden() then return end
 	end
-	
+
 	if drawPlatter then
-		
+
 		gl.DepthTest(true)
 		gl.PolygonOffset(-100, -2)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
@@ -440,57 +440,4 @@ function widget:SetConfigData(data)
     if data.renderAllTeamsAsPlayer ~= nil	then  renderAllTeamsAsPlayer	= data.renderAllTeamsAsPlayer end
     spotterOpacity        = data.spotterOpacity       or spotterOpacity
     highlightOpacity        = data.highlightOpacity       or highlightOpacity
-end
-
-function widget:TextCommand(command)
-	
-    if (string.find(command, "enemyspotter_platter") == 1  and  string.len(command) == 20) then 
-		drawPlatter = not drawPlatter
-		if drawPlatter then
-			Spring.Echo("EnemySpotter: drawing platters on")
-		else
-			Spring.Echo("EnemySpotter: drawing platters off")
-		end
-	end
-    if (string.find(command, "enemyspotter_highlight") == 1  and  string.len(command) == 22) then 
-    
-		if (shader == nil) then
-			Spring.Echo("EnemySpotter: This shader is not supported on your hardware, or you have disabled shaders in Spring settings.")
-		else
-			useXrayHighlight = not useXrayHighlight
-			if useXrayHighlight then
-				Spring.Echo("EnemySpotter: drawing unit highlight on")
-			else
-				Spring.Echo("EnemySpotter: drawing unit highlight off")
-			end
-		end
-	end
-    if (string.find(command, "enemyspotter_self") == 1  and  string.len(command) == 17) then 
-		renderAllTeamsAsPlayer = not renderAllTeamsAsPlayer
-		if not Spring.GetSpectatingState() then 
-			skipOwnAllyTeam = not renderAllTeamsAsPlayer
-			setColors()
-		end
-	end
-    if (string.find(command, "enemyspotter_all") == 1  and  string.len(command) == 16) then 
-		renderAllTeamsAsSpec = not renderAllTeamsAsSpec
-		if Spring.GetSpectatingState() then 
-			skipOwnAllyTeam = not renderAllTeamsAsSpec
-			setColors()
-		end
-	end
-    if (string.find(command, "+enemyspotter_platter") == 1) then spotterOpacity = spotterOpacity + 0.02; Spring.Echo("EnemySpotter: platter opacity: "..spotterOpacity) end
-    if (string.find(command, "-enemyspotter_platter") == 1) then spotterOpacity = spotterOpacity - 0.02; Spring.Echo("EnemySpotter: platter opacity: "..spotterOpacity) end
-    
-    
-    if (string.find(command, "+enemyspotter_highlight") == 1) then 
-		highlightOpacity = highlightOpacity - (0.02 + highlightOpacity / 6) if highlightOpacity < 0.7 then highlightOpacity = 0.7 end
-		Spring.Echo("EnemySpotter: highlight opacity: "..highlightOpacity) 
-		CreateHighlightShader() 
-	end
-    if (string.find(command, "-enemyspotter_highlight") == 1) then 
-		highlightOpacity = highlightOpacity + (0.02 + highlightOpacity / 6) if highlightOpacity > 10 then highlightOpacity = 10 end
-		Spring.Echo("EnemySpotter: highlight opacity: "..highlightOpacity) 
-		CreateHighlightShader()
-	end
 end

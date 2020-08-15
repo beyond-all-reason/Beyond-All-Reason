@@ -29,10 +29,10 @@ local prefixedWnames = {}
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
-	local _pos = baseName:find("_", 1)
+	local _pos = baseName:find("_", 1, true)
 	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
 	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
-	
+
 	prefixedWnames[gadgetName] = prefixedGadgetName
 	return prefixedWnames[gadgetName]
 end
@@ -77,7 +77,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- make a table of the names of user widgets 
+-- make a table of the names of user widgets
 local userWidgets = {}
 function widget:Initialize()
 	for name,wData in pairs(widgetHandler.knownWidgets) do
@@ -119,12 +119,12 @@ local function Hook(w,name) -- name is the callin
 	local t
 
 	local helper_func = function(...)
-		local dt = spDiffTimers(spGetTimer(),t)    
-		local _,_,new_s,_ = spGetLuaMemUsage() 
+		local dt = spDiffTimers(spGetTimer(),t)
+		local _,_,new_s,_ = spGetLuaMemUsage()
 		local ds = new_s - s
 		c[1] = c[1] + dt
 		c[2] = c[2] + dt
-		c[3] = c[3] + ds 
+		c[3] = c[3] + ds
 		c[4] = c[4] + ds
 		inHook = nil
 		return ...
@@ -137,7 +137,7 @@ local function Hook(w,name) -- name is the callin
 
 		inHook = true
 		t = spGetTimer()
-		local _,_,new_s,_ = spGetLuaMemUsage() 		
+		local _,_,new_s,_ = spGetLuaMemUsage()
 		s = new_s
 		return helper_func(realFunc(...))
 	end
@@ -155,7 +155,7 @@ local function StartHook()
 	local CallInsList = {}
 	local CallInsListCount = 0
 	for name,e in pairs(wh) do
-		local i = name:find("List")
+		local i = name:find("List", nil, true)
 		if (i)and(type(e)=="table") then
 			CallInsListCount = CallInsListCount + 1
 			CallInsList[CallInsListCount] = name:sub(1,i-1)
@@ -224,7 +224,7 @@ local function StopHook()
 	local CallInsList = {}
 	local CallInsListCount = 0
 	for name,e in pairs(wh) do
-		local i = name:find("List")
+		local i = name:find("List", nil, true)
 		if (i)and(type(e)=="table") then
 			CallInsListCount = CallInsListCount + 1
 			CallInsList[CallInsListCount] = name:sub(1,i-1)
@@ -285,7 +285,7 @@ local deltaTime
 local redStrength = {}
 
 local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
-local maxPerc = 0.02 -- above this value, we mark a widget as red 
+local maxPerc = 0.02 -- above this value, we mark a widget as red
 local minSpace = 10 -- Kb
 local maxSpace = 100
 
@@ -293,7 +293,7 @@ local title_colour = "\255\160\255\160"
 local totals_colour = "\255\200\200\255"
 
 local function CalcLoad(old_load, new_load, t)
-	return old_load*math.exp(-tick/t) + new_load*(1 - math.exp(-tick/t)) 
+	return old_load*math.exp(-tick/t) + new_load*(1 - math.exp(-tick/t))
 end
 
 function ColourString(R,G,B)
@@ -316,12 +316,12 @@ function GetRedColourStrings(v) --tLoad is %
 	if tTime<minPerc then tTime = minPerc end
 
 	-- time
-	local new_r = ((tTime-minPerc)/(maxPerc-minPerc)) 
+	local new_r = ((tTime-minPerc)/(maxPerc-minPerc))
 	redStrength[name..'_time'] = redStrength[name..'_time'] or 0
 	redStrength[name..'_time'] = u*redStrength[name..'_time'] + (1-u)*new_r
 	local r,g,b = 1, 1-redStrength[name.."_time"]*((255-64)/255), 1-redStrength[name.."_time"]*((255-64)/255)
 	v.timeColourString = ColourString(r,g,b)
-	
+
 	-- space
 	new_r = (sLoad-minSpace) / (maxSpace-minSpace)
 	if new_r > 1 then
@@ -344,7 +344,7 @@ function DrawWidgetList(list,name,x,y,j, fontSize,lineSpace,maxLines,colWidth,da
 
 	for i=1,#list do
 		if j>=maxLines then x = x - colWidth; j = 0; end
-		
+
 		local v = list[i]
 		local name = v.plainname
 		local wname = v.fullname
@@ -378,7 +378,7 @@ function widget:DrawScreen()
 	if not (next(callinStats)) then
 		return --// nothing to do
 	end
-	
+
 	deltaTime = Spring.DiffTimers(Spring.GetTimer(),startTimer)
 
 	-- sort & count timing
@@ -403,9 +403,9 @@ function widget:DrawScreen()
 					cmaxname_t = cname
 				end
 				c[1] = 0
-				
+
 				space = space + c[3]
-				if (c[4]>cmax_space) then 
+				if (c[4]>cmax_space) then
 					cmax_space = c[4]
 					cmaxname_space = cname
 				end
@@ -414,7 +414,7 @@ function widget:DrawScreen()
 
 			local relTime = 100 * t / deltaTime
 			timeLoadAverages[wname] = CalcLoad(timeLoadAverages[wname] or relTime, relTime, averageTime)
-			
+
 			local relSpace = space / deltaTime
 			spaceLoadAverages[wname] = CalcLoad(spaceLoadAverages[wname] or relSpace, relSpace, averageTime)
 
@@ -430,7 +430,7 @@ function widget:DrawScreen()
 		end
 
 		table.sort(sortedList,SortFunc)
-		
+
 		for i=1,#sortedList do
 			GetRedColourStrings(sortedList[i])
 		end
@@ -465,14 +465,14 @@ function widget:DrawScreen()
 	end
 
 	-- draw
-	local vsx, vsy = gl.GetViewSizes()	
-	
+	local vsx, vsy = gl.GetViewSizes()
+
 	local fontSize = math.max(11,math.floor(vsy/90))
 	local lineSpace = fontSize + 2
-	
+
 	local dataColWidth = fontSize*5
 	local colWidth = vsx*0.98/4
-	
+
 	local x,y = vsx-colWidth, vsy*0.77 -- initial coord for writing
 	local maxLines = math.max(20,math.floor(y/lineSpace)-3)
 	local j = -1 --line number
@@ -494,7 +494,7 @@ function widget:DrawScreen()
 	j = j + 1
 	gl.Text(totals_colour.."total rate of mem allocation by luaui callins", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
 	gl.Text(totals_colour..('%.0f'):format(allOverSpace) .. 'kB/s', x+dataColWidth, y-lineSpace*j, fontSize, "no")
-	
+
 	j = j + 2
 	gl.Text(totals_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which:', x, y-lineSpace*j, fontSize, "no")
 	j = j + 1
@@ -503,7 +503,7 @@ function widget:DrawScreen()
 	gl.Text(totals_colour..'  '..('%.0f'):format(100*um/gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x, y-lineSpace*j, fontSize, "no")
 	j = j + 1
 	gl.Text(totals_colour..'  '..('%.0f'):format(100*sm/gm) .. '% is from synced states (luarules+luagaia)', x, y-lineSpace*j, fontSize, "no")
-	
+
 	j = j + 2
 	gl.Text(title_colour.."All data excludes load from garbage collection & executing GL calls", x, y-lineSpace*j, fontSize, "no")
 	j = j + 1
@@ -513,8 +513,8 @@ function widget:DrawScreen()
 	gl.Text(title_colour.."Tick time: " .. tick .. "s", x, y-lineSpace*j, fontSize, "no")
 	j = j + 1
 	gl.Text(title_colour.."Smoothing time: " .. averageTime .. "s", x, y-lineSpace*j, fontSize, "no")
-	
-	gl.EndText()		
+
+	gl.EndText()
 end
 
 

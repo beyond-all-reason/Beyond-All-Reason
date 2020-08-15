@@ -4229,7 +4229,7 @@ end
 
 local lastOptionCommand = 0
 function widget:TextCommand(command)
-	if (string.find(command, "options") == 1  and  string.len(command) == 7) then
+	if string.find(command, "options", nil, true) == 1  and  string.len(command) == 7 then
 		show = not show
 	end
 	if os_clock() > lastOptionCommand+1 and string.sub(command, 1, 7) == "option " then		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)
@@ -4271,7 +4271,7 @@ function widget:TextCommand(command)
 			end
 		end
 	end
-	if (string.find(command, "savepreset") == 1)  then
+	if string.find(command, "savepreset", nil, true) == 1  then
 		local words = Split(command, ' ')
 		if words[2] then
 			savePreset(words[2])

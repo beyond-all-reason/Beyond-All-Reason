@@ -47,7 +47,7 @@ function gadget:RecvLuaMsg(msg, playerID)
             local tsSigma = customtable.skilluncertainty
             ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
             tsSigma = tonumber(tsSigma)
-            local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID])
+            local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")", nil, true)) and (not players[playerID])
             if eligible then
                 substitutes[playerID] = ts
             end

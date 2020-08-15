@@ -211,7 +211,7 @@ function ResourceCheck(tqb, ai, unit, name)
 		return name
 	else
 		return nil
-	end		
+	end
 end
 
 function Builder(tqb, ai, unit)
@@ -219,7 +219,7 @@ function Builder(tqb, ai, unit)
 	if not possibilities[unit:Name()]["builder"] then
 		possibilities[unit:Name()]["builder"] = {}
 		local ct = 0
-		for i, unitName in pairs (builderlist) do	
+		for i, unitName in pairs (builderlist) do
 			if CanBuild(tqb, ai, unit, unitName) then
 				possibilities[unit:Name()]["builder"][ct + 1] = unitName
 				ct = ct + 1
@@ -822,7 +822,7 @@ function KbotOrVeh()
 	else
 		kbot = kbot + 1
 	end
-	if kbot > veh then 
+	if kbot > veh then
 		return 'kbot'
 	elseif veh > kbot then
 		return 'veh'
@@ -846,7 +846,7 @@ function GetAdvancedLabs(tqb,ai,unit)
 	UDN.armavp.id,
 	UDN.coravp.id,
 	UDN.armaap.id,
-	UDN.coraap.id,	
+	UDN.coraap.id,
 	UDN.armasy.id,
 	UDN.corasy.id,
 	}
@@ -861,7 +861,7 @@ function GetLabs(tqb,ai,unit)
 	UDN.armvp.id,
 	UDN.corvp.id,
 	UDN.armap.id,
-	UDN.corap.id,	
+	UDN.corap.id,
 	UDN.armsy.id,
 	UDN.corsy.id,
 	}
@@ -883,7 +883,7 @@ function AllowConT1(tqb,ai,unit,name)
 	UDN.armca.id,
 	UDN.corca.id,
 	UDN.armck.id,
-	UDN.corck.id,	
+	UDN.corck.id,
 	UDN.armch.id,
 	UDN.corch.id,
 	UDN.armcs.id,
@@ -906,7 +906,7 @@ function AllowConT2(tqb,ai,unit,name)
 	UDN.armaca.id,
 	UDN.coraca.id,
 	UDN.armack.id,
-	UDN.corack.id,	
+	UDN.corack.id,
 	UDN.armacsub.id,
 	UDN.coracsub.id,
 	}
@@ -918,7 +918,7 @@ function AllowEngineer(tqb,ai,unit,name)
 	local udid = UDN[name].id
 	local sametypecon = Spring.GetTeamUnitsByDefs(ai.id, udid)
 	local list = {
-	UDN.armconsul.id,	
+	UDN.armconsul.id,
 	UDN.corfast.id,
 	UDN.armfark.id,
 	}
@@ -928,7 +928,7 @@ end
 
 function AllowCon(tqb,ai,unit,name)
 	return name
-	-- if string.find(name, "ac") then
+	-- if string.find(name, "ac", nil, true) then
 		-- return AllowConT2(tqb, ai, unit, name)
 	-- elseif name == "armconsul" or name == "armfark" or name == "corfast" then
 		-- return AllowEngineer(tqb, ai, unit, name)
@@ -938,7 +938,7 @@ function AllowCon(tqb,ai,unit,name)
 		-- return name
 	-- end
 end
-	
+
 function GetFinishedAdvancedLabs(tqb,ai,unit)
 	local list = {
 	UDN.armalab.id,
@@ -946,7 +946,7 @@ function GetFinishedAdvancedLabs(tqb,ai,unit)
 	UDN.armavp.id,
 	UDN.coravp.id,
 	UDN.armaap.id,
-	UDN.coraap.id,	
+	UDN.coraap.id,
 	UDN.armasy.id,
 	UDN.corasy.id,
 	}
@@ -968,7 +968,7 @@ function GetPlannedAdvancedLabs(tqb, ai, unit)
 	UDN.armavp.id,
 	UDN.coravp.id,
 	UDN.armaap.id,
-	UDN.coraap.id,	
+	UDN.coraap.id,
 	UDN.armasy.id,
 	UDN.corasy.id,
 	}
@@ -989,7 +989,7 @@ function GetPlannedLabs(tqb, ai, unit)
 	UDN.armavp.id,
 	UDN.coravp.id,
 	UDN.armaap.id,
-	UDN.coraap.id,	
+	UDN.coraap.id,
 	UDN.armasy.id,
 	UDN.corasy.id,
 	UDN.armvp.id,
@@ -1029,7 +1029,7 @@ function GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit)
 	UDN.armavp.id,
 	UDN.coravp.id,
 	UDN.armaap.id,
-	UDN.coraap.id,	
+	UDN.coraap.id,
 	UDN.armasy.id,
 	UDN.corasy.id,
 	}
@@ -1057,7 +1057,7 @@ function GetPlannedAndUnfinishedLabs(tqb,ai,unit)
 	UDN.armavp.id,
 	UDN.coravp.id,
 	UDN.armaap.id,
-	UDN.coraap.id,	
+	UDN.coraap.id,
 	UDN.armasy.id,
 	UDN.corasy.id,
 	UDN.armvp.id,
@@ -1122,7 +1122,7 @@ function FindBest(unitoptions,ai)
 		if randomization < 1 then
 			return skip
 		end
-		return randomunit[math.random(1,randomization)]	
+		return randomunit[math.random(1,randomization)]
 	else
 		return unitoptions[math.random(1,#unitoptions)]
 	end
@@ -1144,7 +1144,7 @@ function ProcessUnitName(unitName,tqb,ai,unit)
 	local expandhelper = canAssist
 	local expandleader = canBuildExp
 	local commanderhelper = false
-	local commanderleader = defs.name == "armcom" or defs.name == "corcom"	
+	local commanderleader = defs.name == "armcom" or defs.name == "corcom"
 	local canBe = {
 		military = {helper = militaryhelper, leader = militaryleader},
 		commander = {helper = commanderhelper, leader = commanderleader},
@@ -1223,7 +1223,7 @@ function TryRequest(tqb,ai,unit)
 	end
 	return skip
 end
-			
+
 function TechCon(tqb,ai,unit)
 	local curTech = tqb.ai.buildersquadshandler.currentTechLevel
 	if curTech == 1 then
@@ -1245,7 +1245,7 @@ function TechCon(tqb,ai,unit)
 	end
 	return skip
 end
-			
+
 
 -- COMMON QUEUES --
 
@@ -1342,7 +1342,7 @@ function CorWindOrSolar(tqb, ai, unit)
 				end
 			end
 		else
-			return skip	
+			return skip
 		end
 	else
 		return "corsolar"
@@ -1357,7 +1357,7 @@ function CorNanoT(tqb, ai, unit)
 	end
 end
 
-function CorEnT1( tqb, ai, unit )	
+function CorEnT1( tqb, ai, unit )
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
 	if realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 then
         return (CorWindOrSolar(tqb, ai, unit))
@@ -1422,7 +1422,7 @@ function CorTech(tqb, ai, unit)
 				local pos = unit:GetPosition()
 				ai.firstT2 = true
 				return "coravp"
-			else 
+			else
 				return nil
 			end
 		else
@@ -1674,13 +1674,13 @@ assistqueuepatrol = {
 
 assistqueuefreaker = {
 	-- CorNanoT,
-	assistaround,	
+	assistaround,
 	RequestedAction,
 }
 
 assistqueueconsul = {
 	-- ArmNanoT,
-	assistaround,	
+	assistaround,
 	RequestedAction,
 }
 
@@ -1696,8 +1696,8 @@ function ArmWindOrSolar(tqb, ai, unit)
 			if curWind > 7 then
 				return "armwin"
 			else
-				
-				
+
+
 				if income(ai, "energy") > 200 and income(ai, "metal") > 15 and (UUDC("armadvsol", ai.id) + UUDC("coradvsol", ai.id)) < 2 then
 					return "armadvsol"
 				else
@@ -1705,7 +1705,7 @@ function ArmWindOrSolar(tqb, ai, unit)
 				end
 			end
 		else
-			return skip	
+			return skip
 		end
 	else
 		return "armsolar"
@@ -1785,14 +1785,14 @@ function ArmTech(tqb, ai, unit)
 				local pos = unit:GetPosition()
 				ai.firstT2 = true
 				return "armavp"
-			else 
+			else
 				return nil
 			end
 		else
 			return nil
 		end
 	else
-		return nil	
+		return nil
 	end
 end
 
@@ -1986,7 +1986,7 @@ local armdecomqueue = {
 	ArmMexT1,
 	assistaround,
 }
-	
+
 ------------------
 -- QueuePickers --
 ------------------
@@ -2027,7 +2027,7 @@ local function armt1con(tqb, ai, unit)
 		return {skip, skip}
 	end
 	if state.state == "squad" then
-		if state.params.domain == "economy" then	
+		if state.params.domain == "economy" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
 			else
@@ -2042,13 +2042,13 @@ local function armt1con(tqb, ai, unit)
 		elseif state.params.domain == "util" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return util
 			end
 		elseif state.params.domain == "military" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return {skip, skip}
 			end
 		end
@@ -2063,7 +2063,7 @@ local function cort1con(tqb, ai, unit)
 		return {skip, skip}
 	end
 	if state.state == "squad" then
-		if state.params.domain == "economy" then	
+		if state.params.domain == "economy" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
 			else
@@ -2078,13 +2078,13 @@ local function cort1con(tqb, ai, unit)
 		elseif state.params.domain == "util" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return util
 			end
 		elseif state.params.domain == "military" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return {skip, skip}
 			end
 		end
@@ -2099,7 +2099,7 @@ local function armt2con(tqb, ai, unit)
 		return {skip, skip}
 	end
 	if state.state == "squad" then
-		if state.params.domain == "economy" then	
+		if state.params.domain == "economy" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
 			else
@@ -2114,13 +2114,13 @@ local function armt2con(tqb, ai, unit)
 		elseif state.params.domain == "util" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return util
 			end
 		elseif state.params.domain == "military" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return {skip, skip}
 			end
 		end
@@ -2135,7 +2135,7 @@ local function cort2con(tqb, ai, unit)
 		return {skip, skip}
 	end
 	if state.state == "squad" then
-		if state.params.domain == "economy" then	
+		if state.params.domain == "economy" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
 			else
@@ -2150,13 +2150,13 @@ local function cort2con(tqb, ai, unit)
 		elseif state.params.domain == "util" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return util
 			end
 		elseif state.params.domain == "military" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return {skip, skip}
 			end
 		end
@@ -2171,7 +2171,7 @@ local function engineers(tqb, ai, unit)
 		return {skip, skip}
 	end
 	if state.state == "squad" then
-		if state.params.domain == "economy" then	
+		if state.params.domain == "economy" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
 			else
@@ -2186,13 +2186,13 @@ local function engineers(tqb, ai, unit)
 		elseif state.params.domain == "util" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return util
 			end
 		elseif state.params.domain == "military" then
 			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
 				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
-			else		
+			else
 				return {skip, skip}
 			end
 		end

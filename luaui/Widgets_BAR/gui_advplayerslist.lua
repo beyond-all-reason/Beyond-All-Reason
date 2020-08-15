@@ -1293,13 +1293,13 @@ function GetSkill(playerID)
 	if tsMu then
 		tskill = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 0
 		tskill = round(tskill,0)
-		if string.find(tsMu, ")") then
+		if string.find(tsMu, ")", nil, true) then
 			tskill = "\255"..string.char(190)..string.char(140)..string.char(140) .. tskill -- ')' means inferred from lobby rank
 		else
 
 			-- show privacy mode
 			local priv = ""
-			if string.find(tsMu, "~") then -- '~' means privacy mode is on
+			if string.find(tsMu, "~", nil, true) then -- '~' means privacy mode is on
 				priv = "\255"..string.char(200)..string.char(200)..string.char(200) .. "*"
 			end
 
@@ -3841,10 +3841,10 @@ function widget:SetConfigData(data)      -- load
 end
 
 function widget:TextCommand(command)
-	if (string.find(command, "cputext") == 1  and  string.len(command) == 7) then
+	if string.find(command, "cputext", nil, true) == 1  and  string.len(command) == 7 then
 		cpuText = not cpuText
 	end
-	if (string.find(command, "alwayshidespecs") == 1  and  string.len(command) == 15) then
+	if string.find(command, "alwayshidespecs", nil, true) == 1  and  string.len(command) == 15 then
 		alwaysHideSpecs = not alwaysHideSpecs
 		if alwaysHideSpecs then
 			Spring.Echo("AdvPlayersList: always hiding specs")

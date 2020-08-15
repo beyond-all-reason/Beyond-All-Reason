@@ -145,7 +145,7 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 	else
 		units = GetAllUnits()
 	end
-	
+
 	local left, right = sort(x1, x2)
 	local bottom, top = sort(y1, y2)
 
@@ -208,7 +208,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "selectionmode") == 1  and  string.len(command) == 13) then 
+    if string.find(command, "selectionmode", nil, true) == 1  and  string.len(command) == 13 then
 		selectBuildingsWithMobile = not selectBuildingsWithMobile
 		if selectBuildingsWithMobile then
 			Spring.Echo("SmartSelect: Selects whatever comes under selection rectangle.")
@@ -216,7 +216,7 @@ function widget:TextCommand(command)
 			Spring.Echo("SmartSelect: Ignores buildings if it can select mobile units.")
 		end
 	end
-    if (string.find(command, "selectionnanos") == 1  and  string.len(command) == 14) then 
+    if string.find(command, "selectionnanos", nil, true) == 1  and  string.len(command) == 14 then
 		includeNanosAsMobile = not includeNanosAsMobile
 		init()
 		if includeNanosAsMobile then
@@ -451,7 +451,7 @@ function init()
 	builderFilter = {}
 	buildingFilter = {}
 	mobileFilter = {}
-	
+
 	for udid, udef in pairs(UnitDefs) do
 		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc"))
 		local builder = (udef.canReclaim and udef.reclaimSpeed > 0) or
@@ -460,7 +460,7 @@ function init()
 						(udef.canRepair and udef.repairSpeed > 0)
 		local building = (mobile == false)
 		local combat = (builder == false) and (mobile == true) and (#udef.weapons > 0)
-		
+
 		combatFilter[udid] = combat
 		builderFilter[udid] = builder
 		buildingFilter[udid] = building

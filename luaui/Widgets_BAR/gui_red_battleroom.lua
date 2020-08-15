@@ -311,7 +311,7 @@ local function lineColour(prevline) -- search prevline and find the final instan
 	local prevlineReverse = sreverse(prevline)
 	local newlinecolour = ""
 
-	local colourCodePosReverse = sfind(prevlineReverse, "\255") --search string from back to front
+	local colourCodePosReverse = sfind(prevlineReverse, "\255", nil, true) --search string from back to front
 
 	if colourCodePosReverse then
 		for i = 0,2 do
@@ -467,21 +467,21 @@ local function processLine(line,g,cfg,newlinecolor)
 	end
     local playSound = false
 
-	if sfind(line, "My player ID is") and sfind(line, regID) and not nameregistered then
+	if sfind(line, "My player ID is", nil, true) and sfind(line, regID) and not nameregistered then
 	-- Spring.SendCommands("say Registration ID found")
 	registermyname = true
 	ignoreThisMessage = true
 	end
 
-	if sfind(line, "Input grabbing is ") then
+	if sfind(line, "Input grabbing is ", nil, true) then
 		ignoreThisMessage = true
 	end
 
 	if (not newlinecolor) then
-		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
+		if (names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil) then
 				ignoreThisMessage = true
 			linetype = 1 --playermessage
-			name = ssub(line,2,sfind(line,"> ")-1)
+			name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 			text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
@@ -489,10 +489,10 @@ local function processLine(line,g,cfg,newlinecolor)
 				waitbotanswer = true
 				end
 		end
-		elseif (names[ssub(line,2,(sfind(line,"] ") or 1)-1)] ~= nil) then
+		elseif (names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil) then
 				ignoreThisMessage = true
 			linetype = 2 --spectatormessage
-			name = ssub(line,2,sfind(line,"] ")-1)
+			name = ssub(line,2,sfind(line,"] ", nil, true)-1)
 			text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
@@ -502,10 +502,10 @@ local function processLine(line,g,cfg,newlinecolor)
 				waitbotanswer = true
 				end
 		end
-		elseif (names[ssub(line,2,(sfind(line,"(replay)") or 3)-3)] ~= nil) then
+		elseif (names[ssub(line,2,(sfind(line,"(replay)", nil, true) or 3)-3)] ~= nil) then
 				ignoreThisMessage = true
 			linetype = 2 --spectatormessage
-			name = ssub(line,2,sfind(line,"(replay)")-3)
+			name = ssub(line,2,sfind(line,"(replay)", nil, true)-3)
 			text = ssub(line,slen(name)+13)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
@@ -513,31 +513,31 @@ local function processLine(line,g,cfg,newlinecolor)
 				waitbotanswer = true
 				end
 		end
-		elseif (names[ssub(line,1,(sfind(line," added point: ") or 1)-1)] ~= nil) then
+		elseif (names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil) then
 				ignoreThisMessage = true
 			linetype = 3 --playerpoint
-			name = ssub(line,1,sfind(line," added point: ")-1)
+			name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
 			text = ssub(line,slen(name.." added point: ")+1)
 		elseif (ssub(line,1,1) == ">") then
 			linetype = 4 --gamemessage
 			playSound = true
 			text = ssub(line,3)
-			if sfind(text, "Invalid command" )
-			or sfind(line, "not a valid")
-			or sfind(text, "you cannot")
-			or sfind(text, "You are not allowed")
-			or (sfind(text, "Invalid") and sfind(text, "you are not allowed to vote for command"))
-			or sfind(text, "Unable to")
-			or sfind(text, "Could not find")
-			or sfind(text, "Ringing")
-			or sfind(text, " is no one to ring") then
+			if sfind(text, "Invalid command", nil, true)
+			or sfind(line, "not a valid", nil, true)
+			or sfind(text, "you cannot", nil, true)
+			or sfind(text, "You are not allowed", nil, true)
+			or (sfind(text, "Invalid", nil, true) and sfind(text, "you are not allowed to vote for command", nil, true))
+			or sfind(text, "Unable to", nil, true)
+			or sfind(text, "Could not find", nil, true)
+			or sfind(text, "Ringing", nil, true)
+			or sfind(text, " is no one to ring", nil, true) then
 				ignoreThisMessage = true
 				playSound = false
 				if waitbotanswer then
 					playSound = true
 					ignoreThisMessage = false
 					waitbotanswer = nil
-					if sfind(text, myname) then
+					if sfind(text, myname, nil, true) then
 						ignoreThisMessage = false
 						playSound = true
 					end
@@ -549,14 +549,14 @@ local function processLine(line,g,cfg,newlinecolor)
 			--end
 
 			--PROCESSS VOTES HERE--
-			if sfind(text, "called a vote for command") then
+			if sfind(text, "called a vote for command", nil, true) then
 				-- vote start: "Didgeri[doo] called a vote for command "bKick Didgeri[doo]" [!vote y, !vote n, !vote b]"
-				local command = ssub(text, sfind(text,"called a vote for command") + 27, sfind(text, '" ')-1)
+				local command = ssub(text, sfind(text,"called a vote for command", nil, true) + 27, sfind(text, '" ', nil, true)-1)
 				local user = ssub(text, 1, sfind(text,"called a vote for command")-1)
 				text = user.." started vote: "..command
-			elseif sfind(text, "Vote for command") then
+			elseif sfind(text, "Vote for command", nil, true) then
 				-- vote end: "Vote for command "xxx" passed."
-				status = ssub(text, sfind(text, '" ')+2,sfind(text, '" ')+7)
+				status = ssub(text, sfind(text, '" ', nil, true)+2,sfind(text, '" ')+7)
 				text = "Vote "..status.."."
 			-- elseif sfind(text, [[Vote in progress: ]]) then
 				-- vote progress :"Vote in progress: "bKick Didgeri[doo]" [y:0/2, n:1/2] (39s remaining)"
@@ -572,7 +572,7 @@ local function processLine(line,g,cfg,newlinecolor)
 				if ssub(text,1,1) == "!" then
 					ignoreThisMessage = true
 				end
-                local i = sfind(ssub(line,4,slen(line)), ">")
+                local i = sfind(ssub(line,4,slen(line)), ">", nil, true)
 				if (i) then
 					name = ssub(line,4,i+2)
 				else
@@ -591,33 +591,33 @@ local function processLine(line,g,cfg,newlinecolor)
 	end
 
 	-- filter shadows config changes
-	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
+	if sfind(line,'Set "shadows" config-parameter to ', nil, true) then
 		ignoreThisMessage = true
 	end
 
-	if sfind(line,"is using cheats") then
+	if sfind(line,"is using cheats", nil, true) then
 		ignoreThisMessage = true
 	end
 
 	-- filter vsync changes
-	if sfind(line,"VSync::SetInterval") then
+	if sfind(line,"VSync::SetInterval", nil, true) then
 		ignoreThisMessage = true
 	end
 
 	-- filter spectating team change
-	if sfind(line," now spectating team ") then
+	if sfind(line," now spectating team ", nil, true) then
 		ignoreThisMessage = true
 	end
 
 	-- filter lobby on/off message
-	if sfind(line,"TotalHideLobbyInterface, ") then
+	if sfind(line,"TotalHideLobbyInterface, ", nil, true) then
 		ignoreThisMessage = true
 	end
-	if sfind(line,"HandleLobbyOverlay") then
+	if sfind(line,"HandleLobbyOverlay", nil, true) then
 		ignoreThisMessage = true
 	end
 
-	if sfind(line,"->") then
+	if sfind(line,"->", nil, true) then
 		ignoreThisMessage = true
 	end
 
@@ -659,12 +659,12 @@ local function processLine(line,g,cfg,newlinecolor)
 	if linetype==0 then
 		--filter out some engine messages;
 		--2 lines (instead of 4) appears when player connects
-		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') or sfind(line,'Address') then
+		if sfind(line,'-> Version', nil, true) or sfind(line,'ClientReadNet', nil, true) or sfind(line,'Address', nil, true) then
 			ignoreThisMessage = true
 		end
 
-        if sfind(line,"Wrong network version") then
-            local n,_ = sfind(line,"Message")
+        if sfind(line,"Wrong network version", nil, true) then
+            local n,_ = sfind(line,"Message", nil, true)
             if n ~= nil then
 				line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
 			end
@@ -672,7 +672,7 @@ local function processLine(line,g,cfg,newlinecolor)
 
 
 		if gameOver then
-			if sfind(line,'left the game') then
+			if sfind(line,'left the game', nil, true) then
 				ignoreThisMessage = true
 			end
 		end
@@ -692,14 +692,14 @@ local function processLine(line,g,cfg,newlinecolor)
 	if (linetype==1) then --playermessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		if (sfind(text,"Allies: ") == 1) then
+		if (sfind(text,"Allies: ", nil, true) == 1) then
 			text = ssub(text,9)
 			if (names[name][1] == MyAllyTeamID) then
 				c = cfg.callytext
 			else
 				c = cfg.cotherallytext
 			end
-		elseif (sfind(text,"Spectators: ") == 1) then
+		elseif (sfind(text,"Spectators: ", nil, true) == 1) then
 			text = ssub(text,13)
 			c = cfg.cspectext
 		end
@@ -715,10 +715,10 @@ local function processLine(line,g,cfg,newlinecolor)
 	elseif (linetype==2) then --spectatormessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		if (sfind(text,"Allies: ") == 1) then
+		if (sfind(text,"Allies: ", nil, true) == 1) then
 			text = ssub(text,9)
 			c = cfg.cspectext
-		elseif (sfind(text,"Spectators: ") == 1) then
+		elseif (sfind(text,"Spectators: ", nil, true) == 1) then
 			text = ssub(text,13)
 			c = cfg.cspectext
 		end

@@ -266,21 +266,21 @@ function widget:TextCommand(command)
 	--Spring.Echo("DEFRANGE", command, mycommand)
 	local mycommand=false --buttonConfig["enabled"]["enemy"][tag]
 
-	if (string.find(command, "defrange")) then
-		mycommand=true
-		local ally='ally'
-		local rangetype='ground'
-		local enabled=false
-		if (string.find(command, "enemy")) then
-			ally='enemy'
+	if string.find(command, "defrange", nil, true) then
+		mycommand = true
+		local ally = 'ally'
+		local rangetype = 'ground'
+		local enabled = false
+		if string.find(command, "enemy", nil, true) then
+			ally = 'enemy'
 		end
-		if (string.find(command, "air")) then
-			rangetype='air'
-		elseif  (string.find(command, "nuke")) then
-			rangetype='nuke'
+		if string.find(command, "air", nil, true) then
+			rangetype = 'air'
+		elseif  (string.find(command, "nuke", nil, true)) then
+			rangetype = 'nuke'
 		end
-		if (string.find(command, "+")) then
-			enabled=true
+		if string.find(command, "+", nil, true) then
+			enabled = true
 		end
 		buttonConfig["enabled"][ally][rangetype]=enabled
 		Spring.Echo("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)

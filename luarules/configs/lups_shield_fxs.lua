@@ -88,7 +88,7 @@ for unitDefID = 1, #UnitDefs do
 			{class = 'ShieldSphereColor', options = myShield},
 		}
 
-		if string.find(ud.name, "chicken_") then
+		if string.find(ud.name, "chicken_", nil, true) then
 			myShield.colormap1 = {{0.3, 0.9, 0.2, 1.2}, {0.6, 0.4, 0.1, 1.2}} -- Note that alpha is multiplied by 0.26
 			myShield.hitResposeMult = 0
 			myShield.texture = "bitmaps/GPL/bubbleShield.png"

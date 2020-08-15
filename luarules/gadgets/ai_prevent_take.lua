@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return -- No Unsynced
 end
 
@@ -28,7 +28,7 @@ end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
     local UnitName = UnitDefs[unitDefID].name
-	if (aiTeams[oldTeam] and not string.find(UnitName, "_scav")) or aiTeams[newTeam] then
+	if (aiTeams[oldTeam] and not string.find(UnitName, "_scav", nil, true)) or aiTeams[newTeam] then
 		return false
 	else
 		return true

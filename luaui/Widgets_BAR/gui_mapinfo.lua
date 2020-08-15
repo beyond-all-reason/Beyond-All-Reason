@@ -293,7 +293,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "mapinfo_floor") == 1  and  string.len(command) == 13) then
+    if string.find(command, "mapinfo_floor", nil, true) == 1  and  string.len(command) == 13 then
 		stickToFloor = not stickToFloor
 		Init()
 	end

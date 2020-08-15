@@ -258,7 +258,7 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
 					Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
 					local comtype = 'armcom'
-					if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
+					if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
 						comtype = 'corcom'
 					end
 					Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)

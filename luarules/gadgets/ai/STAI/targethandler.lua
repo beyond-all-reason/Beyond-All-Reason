@@ -66,12 +66,12 @@ local function NewCell(px, pz)
 	air = {ground = 0, air = 0, submerged = 0, value = 0},
 	submerged = {ground = 0, air = 0, submerged = 0, value = 0},
 	} -- value to our units first to who can be hurt by those things, then to those who have those kinds of weapons
-	-- [GAS].value is just everything that doesn't hurt that kind of thing 
+	-- [GAS].value is just everything that doesn't hurt that kind of thing
 	local targets = { ground = {}, air = {}, submerged = {}, } -- just one target for each [GAS][hurtGAS]
 	local vulnerables = { ground = {}, air = {}, submerged = {}, } -- just one vulnerable for each [GAS][hurtGAS]
 	local threat = { ground = 0, air = 0, submerged = 0 } -- threats (including buildings) by what they hurt
 	local response = { ground = 0, air = 0, submerged = 0 } -- count mobile threat by what can hurt it
-	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it 
+	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it
 	local x = px * cellElmos - cellElmosHalf
 	local z = pz * cellElmos - cellElmosHalf
 	local position = api.Position()
@@ -213,7 +213,7 @@ function TargetHandler:Plot4(cx, cz, x, z, threatResponse, groundAirSubmerged, v
 	if x ~= 0 and z ~= 0 then
         self:HorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged, val)
     end
-end 
+end
 
 function TargetHandler:FillCircle(cx, cz, radius, threatResponse, groundAirSubmerged, val)
 	local radius = mCeil(radius / cellElmos)
@@ -266,7 +266,7 @@ function TargetHandler:Check4(cx, cz, x, z, threatResponse, groundAirSubmerged)
         threat = threat + t
     end
     return value, threat
-end 
+end
 
 function TargetHandler:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmerged)
 	local radius = mCeil(radius / cellElmos)
@@ -599,7 +599,7 @@ function TargetHandler:UpdateWrecks()
 			end
 		else
 			for findString, metalValue in pairs(baseFeatureMetal) do
-				if string.find(wname, findString) then
+				if string.find(wname, findString, nil, true) then
 					cell.metal = cell.metal + metalValue
 					break
 				end

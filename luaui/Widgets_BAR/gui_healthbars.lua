@@ -1577,16 +1577,16 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "healthbars_percentage") == 1  and  string.len(command) == 21) then
+    if string.find(command, "healthbars_percentage", nil, true) == 1  and  string.len(command) == 21 then
 		drawBarPercentage =  (drawBarPercentage < 100 and 100 or 0)
 	end
-    if (string.find(command, "healthbars_compercentage") == 1  and  string.len(command) == 24) then
+    if string.find(command, "healthbars_compercentage", nil, true) == 1  and  string.len(command) == 24 then
 		alwaysDrawBarPercentageForComs = not alwaysDrawBarPercentageForComs
 	end
-    if (string.find(command, "healthbars_style") == 1  and  string.len(command) == 16) then
+    if string.find(command, "healthbars_style", nil, true) == 1  and  string.len(command) == 16 then
       toggleOption()
     end
-    if (string.find(command, "healthbars_health") == 1  and  string.len(command) == 17) then
+    if string.find(command, "healthbars_health, nil, true") == 1  and  string.len(command) == 17 then
       hideHealthbars = not hideHealthbars
     end
 end

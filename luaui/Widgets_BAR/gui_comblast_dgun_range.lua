@@ -438,7 +438,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "comranges_nearbyenemy") == 1  and  string.len(command) == 21) then
+    if string.find(command, "comranges_nearbyenemy", nil, true) == 1  and  string.len(command) == 21 then
 		hideOnDistantEnemy = not hideOnDistantEnemy
 		if hideOnDistantEnemy then
 			Spring.Echo("Comblast & Dgun Range:  Hides ranges when enemy isnt near")

@@ -1,4 +1,4 @@
-if string.find(string.upper(Game.gameVersion), "$VERSION") then
+if string.find(string.upper(Game.gameVersion), "$VERSION", nil, true) then
 
 	function widget:GetInfo()
 		return {

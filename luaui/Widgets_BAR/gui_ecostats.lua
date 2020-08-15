@@ -388,11 +388,11 @@ local function formatRes(number)
 	if number > 10000 then
 		label = tconcat({floor(round(number/1000)),"k"})
 	elseif number > 1000 then
-		label = tconcat({strsub(round(number/1000,1),1,2+strfind(round(number/1000,1),".")),"k"})
+		label = tconcat({strsub(round(number/1000,1),1,2+strfind(round(number/1000,1),".", nil, true)),"k"})
 	elseif number > 10 then
-		label = strsub(round(number,0),1,3+strfind(round(number,0),"."))
+		label = strsub(round(number,0),1,3+strfind(round(number,0),".", nil, true))
 	else
-		label = strsub(round(number,1),1,2+strfind(round(number,1),"."))
+		label = strsub(round(number,1),1,2+strfind(round(number,1),".", nil, true))
 	end
 	return tostring(label)
 end

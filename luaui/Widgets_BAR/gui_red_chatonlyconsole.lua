@@ -315,7 +315,7 @@ local function lineColour(prevline) -- search prevline and find the final instan
 	local prevlineReverse = sreverse(prevline)
 	local newlinecolour = ""
 
-	local colourCodePosReverse = sfind(prevlineReverse, "\255") --search string from back to front
+	local colourCodePosReverse = sfind(prevlineReverse, "\255", nil, true) --search string from back to front
 
 	if colourCodePosReverse then
 		for i = 0,2 do
@@ -469,41 +469,41 @@ local function processLine(line,g,cfg,newlinecolor)
 	local ignoreThisMessage = false
 	local ignoredText = "(ignored)"
 
-	if sfind(line, "My player ID is") and sfind(line, regID) and not nameregistered then
+	if sfind(line, "My player ID is", nil, true) and sfind(line, regID, nil, true) and not nameregistered then
 		-- Spring.SendCommands("say Registration ID found")
 		registermyname = true
 		bypassThisMessage = true
 	end
 
 	if (not newlinecolor) then
-		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
+		if (names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil) then
 			bypassThisMessage = false
 			linetype = 1 --playermessage
-			name = ssub(line,2,sfind(line,"> ")-1)
+			name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 			text = ssub(line,slen(name)+4)
 			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 				bypassThisMessage = true
 			end
-		elseif (names[ssub(line,2,(sfind(line,"] ") or 1)-1)] ~= nil) then
+		elseif (names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil) then
 			bypassThisMessage = false
 			linetype = 2 --spectatormessage
-			name = ssub(line,2,sfind(line,"] ")-1)
+			name = ssub(line,2,sfind(line,"] ", nil, true)-1)
 			text = ssub(line,slen(name)+4)
 			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 				bypassThisMessage = true
 			end
-		elseif (names[ssub(line,2,(sfind(line,"(replay)") or 3)-3)] ~= nil) then
+		elseif (names[ssub(line,2,(sfind(line,"(replay)", nil, true) or 3)-3)] ~= nil) then
 			bypassThisMessage = false
 			linetype = 2 --spectatormessage
-			name = ssub(line,2,sfind(line,"(replay)")-3)
+			name = ssub(line,2,sfind(line,"(replay)", nil, true)-3)
 			text = ssub(line,slen(name)+13)
 			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 				bypassThisMessage = true
 			end
-		elseif (names[ssub(line,1,(sfind(line," added point: ") or 1)-1)] ~= nil) then
+		elseif (names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil) then
 			bypassThisMessage = false
 			linetype = 3 --playerpoint
-			name = ssub(line,1,sfind(line," added point: ")-1)
+			name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
 			text = ssub(line,slen(name.." added point: ")+1)
 			if text == "" then
 				text = "Look here!"
@@ -517,8 +517,8 @@ local function processLine(line,g,cfg,newlinecolor)
 				if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 					bypassThisMessage = true
 				end
-                local i = sfind(ssub(line,4,slen(line)), ">")
-				if (i) then
+                local i = sfind(ssub(line,4,slen(line)), ">", nil, true)
+				if i then
 					name = ssub(line,4,i+2)
 				else
 					name = "unknown"
@@ -530,12 +530,12 @@ local function processLine(line,g,cfg,newlinecolor)
 
 	-- filter all but chat messages and map-markers
 	bypassThisMessage = true
-	if sfind(line," added point: ") then
+	if sfind(line," added point: ", nil, true) then
 		bypassThisMessage = false
 
 	-- battleroom chat
 	elseif sfind(line,"^(> <.*>)") then
-		local endChar = sfind(line, "> ")
+		local endChar = sfind(line, "> ", nil, true)
 		if endChar then
 			-- will not check for name, user might not have connected before
 			bypassThisMessage = false
@@ -543,9 +543,9 @@ local function processLine(line,g,cfg,newlinecolor)
 
 	-- player chat
 	elseif sfind(line,"^(<.*>)") then
-		local endChar = sfind(line, "> ")
+		local endChar = sfind(line, "> ", nil, true)
 		if endChar then
-			local name = ssub(line, sfind(line, "<")+1, endChar-1)
+			local name = ssub(line, sfind(line, "<", nil, true)+1, endChar-1)
 			if name and names[name] then
 				bypassThisMessage = false
 			end
@@ -553,7 +553,7 @@ local function processLine(line,g,cfg,newlinecolor)
 
 	-- spectator chat
 	elseif sfind(line,"^(\[\[.*\])") then	-- somehow adding space at end doesnt work
-		local endChar = sfind(line, "\] ")
+		local endChar = sfind(line, "] ", nil, true)
 		if endChar then
 			local name = ssub(line, 2, endChar-1)
 			if name and names[name] then
@@ -567,7 +567,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		registermyname = false
 		nameregistered = true
 		bypassThisMessage = true
-	elseif sfind(line, "My player ID is") and sfind(line, regID) then
+	elseif sfind(line, "My player ID is", nil, true) and sfind(line, regID) then
 		bypassThisMessage = true
 	end
 
@@ -647,14 +647,14 @@ local function processLine(line,g,cfg,newlinecolor)
 	if linetype == 1 then --playermessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		if (sfind(text,"Allies: ") == 1) then
+		if (sfind(text,"Allies: ", nil, true) == 1) then
 			text = ssub(text,9)
 			if (names[name][1] == MyAllyTeamID) then
 				c = cfg.callytext
 			else
 				c = cfg.cotherallytext
 			end
-		elseif (sfind(text,"Spectators: ") == 1) then
+		elseif (sfind(text,"Spectators: ", nil, true) == 1) then
 			text = ssub(text,13)
 			c = cfg.cspectext
 		end
@@ -671,10 +671,10 @@ local function processLine(line,g,cfg,newlinecolor)
 	elseif linetype == 2 then --spectatormessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		if (sfind(text,"Allies: ") == 1) then
+		if (sfind(text,"Allies: ", nil, true) == 1) then
 			text = ssub(text,9)
 			c = cfg.cspectext
-		elseif (sfind(text,"Spectators: ") == 1) then
+		elseif (sfind(text,"Spectators: ", nil, true) == 1) then
 			text = ssub(text,13)
 			c = cfg.cspectext
 		end
@@ -932,7 +932,7 @@ function widget:Shutdown()
 end
 
 function widget:TextCommand(command)
-	if (string.find(command, "chatbackground") == 1  and  string.len(command) == 14) then
+	if (string.find(command, "chatbackground", nil, true) == 1  and  string.len(command) == 14) then
 		WG['red_chatonlyconsole'].setShowBackground(not showBackground)
 	end
 end

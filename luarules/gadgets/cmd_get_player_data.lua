@@ -83,12 +83,12 @@ else
 				local skipline = false
 				local fileLines = lines(VFS.LoadFile("infolog.txt"))
 				for i, line in ipairs(fileLines) do
-					if not userconfig and string.find(line, '============== <User Config> ==============') then
+					if not userconfig and string.find(line, '============== <User Config> ==============', nil, true) then
 						userconfig = ''
 					end
 					if not userconfigComplete then
 						if userconfig then
-							if string.find(line, '============== </User Config> ==============') then
+							if string.find(line, '============== </User Config> ==============', nil, true) then
 								userconfig = userconfig .. '============== </User Config> ==============\n'
 								userconfigComplete = true
 							else
@@ -98,13 +98,13 @@ else
 					else
 						skipline = false
 						-- filter paths for privacy reasons
-						if	string.find(line, 'Using read-') or
-							string.find(line, 'Scanning: ') or
-							string.find(line, 'Recording demo to: ') or
-							string.find(line, 'Loading StartScript from: ') or
-							string.find(line, 'Writing demo: ') or
-							string.find(line, 'command-line args: ') or
-							string.find(line, 'Using configuration source: ')
+						if	string.find(line, 'Using read-', nil, true) or
+							string.find(line, 'Scanning: ', nil, true) or
+							string.find(line, 'Recording demo to: ', nil, true) or
+							string.find(line, 'Loading StartScript from: ', nil, true) or
+							string.find(line, 'Writing demo: ', nil, true) or
+							string.find(line, 'command-line args: ', nil, true) or
+							string.find(line, 'Using configuration source: ', nil, true)
 						then
 							skipline = true
 						end

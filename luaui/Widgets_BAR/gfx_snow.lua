@@ -371,7 +371,7 @@ function widget:Initialize()
 	-- check for keywords
 	local keywordFound = false
 	for _,keyword in pairs(snowKeywords) do
-		if string.find(currentMapname, keyword) then
+		if string.find(currentMapname, keyword, nil, true) then
 			enabled = true
 			keywordFound = true
 			break
@@ -572,7 +572,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "snow") == 1  and  string.len(command) == 4) then
+    if string.find(command, "snow", nil, true) == 1  and  string.len(command) == 4 then
 		if snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false then
 			snowMaps[currentMapname] = true
 			enabled = true

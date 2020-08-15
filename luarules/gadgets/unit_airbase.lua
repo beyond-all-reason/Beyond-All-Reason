@@ -97,7 +97,7 @@ function AddAirBase(unitID)
    local airbasePads = {}
    local pieceMap = Spring.GetUnitPieceMap(unitID)
    for pieceName, pieceNum in pairs(pieceMap) do
-      if pieceName:find("pad") then
+      if pieceName:find("pad", nil, true) then
          airbasePads[pieceNum] = false -- value is whether or not the pad is reserved
       end
    end

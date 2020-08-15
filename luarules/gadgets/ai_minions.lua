@@ -70,8 +70,8 @@ function gadget:GameFrame(n)
 					local comPosX,comPosY,comPosZ = Spring.GetUnitPosition(unitID)
 					local comTeam = Spring.GetUnitTeam(unitID)
 					local AIname = Spring.GetTeamLuaAI(comTeam)
-					if AIname and (string.find(AIname, "ScavengersAI") or string.find(AIname, "Chicken")) then
-						
+					if AIname and (string.find(AIname, "ScavengersAI", nil, true) or string.find(AIname, "Chicken", nil, true)) then
+
 					else
 						local r = math.random(0,3)
 						if r == 0 then
@@ -98,9 +98,9 @@ function gadget:GameFrame(n)
 				end
 			end
 		end
-		
+
 		minionSpawnedFirst = false
-		
+
 		if minionSpawned >= minionMax then
 			minionSpawned = 0
 			minionTimer = 0
@@ -124,7 +124,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local unitName = UnitDefs[unitDefID].name
-	if string.find(unitName, "minion") then
+	if string.find(unitName, "minion", nil, true) then
 		aliveMinions[unitID] = true
 		--Spring.SetUnitNoSelect(unitID, true)
 		Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 2 }, 0)
@@ -139,14 +139,14 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	local unitName = UnitDefs[unitDefID].name
-	if string.find(unitName, "minion") then
+	if string.find(unitName, "minion", nil, true) then
 		aliveMinions[unitID] = nil
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
-	if string.find(unitName, "minion") then
+	if string.find(unitName, "minion", nil, true) then
 		aliveMinions[unitID] = nil
 	end
 end
