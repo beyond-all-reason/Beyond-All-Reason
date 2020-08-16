@@ -523,6 +523,10 @@ function widget:Initialize()
 	Spring.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
 	Spring.SendCommands("tooltip 0")
 
+	if WG['rankicons'] then
+		rankTextures = WG['rankicons'].getRankTextures()
+	end
+
 	bfcolormap = {}
 	for hp = 0, 100 do
 		bfcolormap[hp] = { GetColor(hpcolormap, hp * 0.01) }
@@ -571,6 +575,9 @@ function widget:Update(dt)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
 			glossMult = 1 + (2 - (ui_opacity * 2))
 			doUpdate = true
+		end
+		if not rankTextures and WG['rankicons']  then
+			rankTextures = WG['rankicons'].getRankTextures()
 		end
 	end
 
@@ -1082,21 +1089,46 @@ local function drawUnitInfo()
 	end
 	iconSize = iconSize + iconPadding
 
+
+	local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
+	local text, unitDescriptionLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth - iconSize) * (loadedFontSize / fontSize))
+
+
 	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
 	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
-	local showingRadarIcon = false
 	if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
 		glColor(1, 1, 1, 0.88)
 		glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitIconType[displayUnitDefID]])
 		glTexRect(backgroundRect[3] - radarIconMargin - radarIconSize, backgroundRect[4] - radarIconMargin - radarIconSize, backgroundRect[3] - radarIconMargin, backgroundRect[4] - radarIconMargin)
 		glTexture(false)
 		glColor(1, 1, 1, 1)
-		showingRadarIcon = true
+	end
+
+	if displayUnitID then
+		exp = spGetUnitExperience(displayUnitID)
+		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
+			local rankIconSize = math_floor((height * vsy * 0.27) + 0.5)
+			local rankIconMarginX = 0
+			local rankIconMarginY = math_floor((height * vsy * 0.165) + 0.5)
+			if unitDescriptionLines > 1 then
+				rankIconMarginY = math_floor((height * vsy * 0.22) + 0.5)
+			end
+			if displayUnitID then
+				local rank = WG['rankicons'].getRank(displayUnitDefID, exp)
+				if rankTextures[rank] then
+					glColor(1, 1, 1, 0.88)
+					glTexture(':lr' .. (rankIconSize * 2) .. ',' .. (rankIconSize * 2) .. ':' .. rankTextures[rank])
+					glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
+					glTexture(false)
+					glColor(1, 1, 1, 1)
+				end
+			end
+		end
 	end
 
 	-- unitID
 	--if displayUnitID then
-	--  local radarIconSpace = showingRadarIcon and (radarIconMargin+radarIconSize) or 0
+	--  local radarIconSpace = (radarIconMargin+radarIconSize)
 	--  font:Begin()
 	--  font:Print('\255\200\200\200#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
 	--  font:End()
@@ -1119,7 +1151,6 @@ local function drawUnitInfo()
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
 
-	local text, unitDescriptionLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth - iconSize) * (loadedFontSize / fontSize))
 	-- unit tooltip
 	font:Begin()
 	font:Print(descriptionColor .. text, backgroundRect[1] + contentPadding + iconSize, backgroundRect[4] - contentPadding - (fontSize * 2.22), fontSize * 0.94, "o")
@@ -1276,8 +1307,6 @@ local function drawUnitInfo()
 
 
 		-- unit specific info
-		local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
-
 		if unitDPS[displayUnitDefID] then
 			dps = unitDPS[displayUnitDefID]
 		end
@@ -1287,9 +1316,8 @@ local function drawUnitInfo()
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
 			maxRange = spGetUnitMaxRange(displayUnitID)
-			exp = spGetUnitExperience(displayUnitID)
-			if exp and exp > 0 then
-				--dps =
+			if not exp then
+				exp = spGetUnitExperience(displayUnitID)
 			end
 			if isMex[displayUnitDefID] then
 				metalExtraction = spGetUnitMetalExtraction(displayUnitID)
@@ -1306,24 +1334,25 @@ local function drawUnitInfo()
 		end
 
 		if unitWeapons[displayUnitDefID] then
-
+			local reloadTime = 1
 			if exp and exp > 0.009 then
 				addTextInfo('xp', round(exp, 2))
 				addTextInfo('max-health', '+'..round((maxHealth/unitHealth[displayUnitDefID]-1)*100, 0)..'%')
-				local reloadTime = spGetUnitWeaponState(displayUnitID, unitMainWeapon[displayUnitDefID], 'reloadTimeXP')
+				reloadTime = spGetUnitWeaponState(displayUnitID, unitMainWeapon[displayUnitDefID], 'reloadTimeXP')
 				reloadTime = tonumber(round((1-(reloadTime/unitReloadTime[displayUnitDefID]))*100, 0))
 				if reloadTime > 0 then
 					addTextInfo('reload', '-'..reloadTime..'%')
 				end
 			end
-
-			addTextInfo('weapons', #unitWeapons[displayUnitDefID])
+			if dps then
+				dps = round(dps + (dps*(reloadTime/100)), 0)
+				addTextInfo('dps', dps)
+			end
 			if maxRange then
 				addTextInfo('max-range', maxRange)
 			end
-			if dps then
-				addTextInfo('dps', dps)
-			end
+
+			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
 
 			if unitEnergyPerShot[displayUnitDefID] then
 				addTextInfo('energyPerShot', unitEnergyPerShot[displayUnitDefID])

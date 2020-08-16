@@ -139,6 +139,12 @@ function widget:Initialize()
 		iconsizeMult = value
 		usedIconsize = iconsize * iconsizeMult
 	end
+	WG['rankicons'].getRank = function(unitDefID, xp)
+		return min(floor(xp / unitPowerXpCoeffient[unitDefID]), numRanks)
+	end
+	WG['rankicons'].getRankTextures = function(unitDefID, xp)
+		return rankTextures
+	end
 
 	for unitDefID, ud in pairs(UnitDefs) do
 		-- ud.power -> buildCostMetal + (buildCostEnergy / 60.0) 
