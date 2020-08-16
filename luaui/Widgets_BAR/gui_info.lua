@@ -1107,12 +1107,9 @@ local function drawUnitInfo()
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
 		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
-			local rankIconSize = math_floor((height * vsy * 0.27) + 0.5)
-			local rankIconMarginX = 0
-			local rankIconMarginY = math_floor((height * vsy * 0.165) + 0.5)
-			if unitDescriptionLines > 1 then
-				rankIconMarginY = math_floor((height * vsy * 0.22) + 0.5)
-			end
+			local rankIconSize = math_floor((height * vsy * 0.24) + 0.5)
+			local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
+			local rankIconMarginY = math_floor((height * vsy * 0.18) + 0.5)
 			if displayUnitID then
 				local rank = WG['rankicons'].getRank(displayUnitDefID, exp)
 				if rankTextures[rank] then

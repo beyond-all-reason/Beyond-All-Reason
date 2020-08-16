@@ -148,7 +148,7 @@ function widget:Initialize()
 
 	for unitDefID, ud in pairs(UnitDefs) do
 		-- ud.power -> buildCostMetal + (buildCostEnergy / 60.0) 
-		unitPowerXpCoeffient[unitDefID] = ((ud.power / 1000) ^ -0.2) / numRanks  -- dark magic
+		unitPowerXpCoeffient[unitDefID] = ((ud.power / 2000) ^ -0.2) / numRanks  -- dark magic
 		unitHeights[unitDefID] = ud.height + iconoffset
 	end
 
