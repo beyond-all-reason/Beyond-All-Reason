@@ -1309,13 +1309,12 @@ local function drawUnitInfo()
 
 			if exp and exp > 0.009 then
 				addTextInfo('xp', round(exp, 2))
-				addTextInfo('xp health+', round((maxHealth/unitHealth[displayUnitDefID]-1)*100, 0)..'%')
-				-- NOTE: disabled cause it seems there isnt a reloadtime gain after all
-				--local reloadTime = spGetUnitWeaponState(displayUnitID, unitMainWeapon[displayUnitDefID], 'reloadTime')
-				--reloadTime = tonumber(round((1-(reloadTime/unitReloadTime[displayUnitDefID]))*100, 0))
-				--if reloadTime > 0 then
-				--	addTextInfo('xp reload-', reloadTime..'%')
-				--end
+				addTextInfo('max-health', '+'..round((maxHealth/unitHealth[displayUnitDefID]-1)*100, 0)..'%')
+				local reloadTime = spGetUnitWeaponState(displayUnitID, unitMainWeapon[displayUnitDefID], 'reloadTimeXP')
+				reloadTime = tonumber(round((1-(reloadTime/unitReloadTime[displayUnitDefID]))*100, 0))
+				if reloadTime > 0 then
+					addTextInfo('reload', '-'..reloadTime..'%')
+				end
 			end
 
 			addTextInfo('weapons', #unitWeapons[displayUnitDefID])
