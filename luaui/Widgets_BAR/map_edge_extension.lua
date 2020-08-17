@@ -200,12 +200,6 @@ local function SetupShaderTable()
 		#endif
 		
 		gl_FrontColor = vec4(brightness * gl_Color.rgb, alpha);
-		{
-			float fogCoord = length(gl_Position.xyz);
-			fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; //linear
-			fogFactor = clamp(fogFactor, 0.0, 1.0);
-			gl_FrontColor = mix(gl_Fog.color.rgb, gl_FrontColor, fogFactor);
-		}
 
 		color = gl_FrontColor;
 		//vertex = gl_Vertex;
@@ -557,7 +551,7 @@ local function DrawWorldFunc() --is overwritten when not using the shader
         local GamemapSizeZ, GamemapSizeX = Game.mapSizeZ,Game.mapSizeX
 
 		gl.Fog(true)
-		--gl.FogCoord(1)
+		gl.FogCoord(1)
 		gl.UseShader(mirrorShader)
 		gl.PushMatrix()
 		gl.DepthMask(true)
