@@ -34,24 +34,54 @@ local lightningsounds = {
 	"thunder6",
 	}  
 
-if n %6400 == 0 then
-    local thunderstormcenterx = math.random(100, (mapsizeX-100))
-    local thunderstormcenterz = math.random(100, (mapsizeZ-100))
-    local thunderstormradius = 750
-    thunderstormxmin = thunderstormcenterx - thunderstormradius
-    thunderstormxmax = thunderstormcenterx + thunderstormradius
-    thunderstormzmin = thunderstormcenterz - thunderstormradius
-    thunderstormzmax = thunderstormcenterz + thunderstormradius
-    SpawnCEGInPositionGround("rain", thunderstormcenterx, 0, thunderstormcenterz, _, _, _, "rainlight", 1)
+
+if n%30 == 0 and n ~= 0 then
+	if n %6400 == 0 then
+		thunderstormcenterx = math.random(0, (mapsizeX))
+		thunderstormcenterz = math.random(0, (mapsizeZ))
+		if thunderstormcenterx <= mapsizeX*0.5 then
+			thunderstormdirectionx = 1
+		elseif thunderstormcenterx > mapsizeX*0.5 then
+			thunderstormdirectionx = 2
+		end
+		if thunderstormcenterz <= mapsizeZ*0.5 then
+			thunderstormdirectionz = 1
+		elseif thunderstormcenterz > mapsizeZ*0.5 then
+			thunderstormdirectionz = 2
+		end
+		thunderstormradius = 750
+		thunderstormready = true
+	end
+	if thunderstormready then
+		if thunderstormdirectionx == 1 then 
+			thunderstormcenterx = thunderstormcenterx + math.random(8,64)
+		elseif thunderstormdirectionx == 2 then 
+			thunderstormcenterx = thunderstormcenterx - math.random(8,64)
+		end
+		if thunderstormdirectionz == 1 then 
+			thunderstormcenterz = thunderstormcenterz + math.random(8,64)
+		elseif thunderstormdirectionz == 2 then 
+			thunderstormcenterz = thunderstormcenterz - math.random(8,64)
+		end
+		thunderstormxmin = thunderstormcenterx - thunderstormradius
+		thunderstormxmax = thunderstormcenterx + thunderstormradius
+		thunderstormzmin = thunderstormcenterz - thunderstormradius
+		thunderstormzmax = thunderstormcenterz + thunderstormradius
+		if n%300 == 0 and thunderstormcenterx > 0 and thunderstormcenterx < mapsizeX and thunderstormcenterz > 0 and thunderstormcenterz < mapsizeZ then
+			SpawnCEGInPositionGround("rain", thunderstormcenterx, 0, thunderstormcenterz, _, _, _, "rainlight", 1)
+		end
+	end
 end
 
-if n%6400 < 1060 then
-	if n%30 == 0 then
-       local r = math.random(0,3)
+if n%6400 < 3200 then
+	if n%15 == 0 then
+       local r = math.random(0,5)
        if r == 0 then
-            local posx = math.random(thunderstormxmin, thunderstormxmax)
-            local posz = math.random(thunderstormzmin, thunderstormzmax)
-            SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+            if thunderstormready then
+				local posx = math.random(thunderstormxmin, thunderstormxmax)
+				local posz = math.random(thunderstormzmin, thunderstormzmax)
+				SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+			end
        end
     end 
 end
