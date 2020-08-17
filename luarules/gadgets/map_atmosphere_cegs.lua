@@ -121,7 +121,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("MapAtmosphereConfigSetSun", MapAtmosphereConfigSetSun)
-		gadgetHandler:AddSyncAction("MapAtmosphereConfigSetFog", MapAtmosphereConfigSetSun)
+		gadgetHandler:AddSyncAction("MapAtmosphereConfigSetFog", MapAtmosphereConfigSetFog)
 	end
 
 	function gadget:Shutdown()
