@@ -2064,6 +2064,18 @@ function init()
 
 		{id="mapedgeextension", group="gfx", basic=true, widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
+		{id="mapedgeextension_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.2, max=1, step=0.01, type="slider", value=0.3, description='',
+		 onload = function(i) loadWidgetData("Map Edge Extension", "mapedgeextension_brightness", {'brightness'}) end,
+		 onchange = function(i, value)
+			 saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setBrightness', {'brightness'}, value)
+		 end,
+		},
+		{id="mapedgeextension_curvature", group="gfx", name=widgetOptionColor.."   curvature", type="bool", value=true, description='Curve the mirrored edges away into the floor/seabed',
+		 onload = function(i) loadWidgetData("Map Edge Extension", "mapedgeextension_curvature", {'curvature'}) end,
+		 onchange = function(i, value)
+			 saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setCurvature', {'curvature'}, value)
+		 end,
+		},
 
 		{id="water", group="gfx", basic=true, name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=desiredWaterValue+1,
 		 onload = function(i) end,

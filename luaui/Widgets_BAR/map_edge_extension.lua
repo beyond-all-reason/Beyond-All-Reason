@@ -1,5 +1,4 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+
 function widget:GetInfo()
   return {
     name      = "Map Edge Extension",
@@ -13,19 +12,27 @@ function widget:GetInfo()
     --detailsDefault = 3
   }
 end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-if VFS.FileExists("nomapedgewidget.txt") then
-	return
-end
+
+local brightness = 0.3
+local curvature = true
+local fogEffect = true
+local drawForIslands = true
+
+local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
+
+local gridSize = 32
+local useShader = true
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 local spGetGroundHeight = Spring.GetGroundHeight
 local spTraceScreenRay = Spring.TraceScreenRay
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 local gridTex = "LuaUI/Images/vr_grid_large.dds"
---local gridTex = "bitmaps/PD/shield3hex.png"
 local realTex = '$grass'
 
 local dList
@@ -62,78 +69,26 @@ local function ResetWidget()
 	widget:Initialize()
 end
 
-options_path = 'Settings/Graphics/Map Exterior'
-options_order = {'mapBorderStyle', 'drawForIslands', 'gridSize',  'fogEffect', 'curvature', 'textureBrightness', 'useShader'}
-options = {
-	--when using shader the map is stored once in a DL and drawn 8 times with vertex mirroring and bending
-    --when not, the map is drawn mirrored 8 times into a display list
-	mapBorderStyle = {
-		type='radioButton',
-		name='Exterior Effect',
-		items = {
-			{name = 'Texture',  key = 'texture', desc = "Mirror the heightmap and texture.",              hotkey=nil},
-			{name = 'Grid',     key = 'grid',    desc = "Mirror the heightmap with grid texture.",        hotkey=nil},
-			{name = 'Cutaway',  key = 'cutaway', desc = "Draw the edge of the map with a cutaway effect", hotkey=nil},
-			{name = 'Disable',  key = 'disable', desc = "Draw no edge extension",                         hotkey=nil},
-		},
-		value = 'texture',  --default at start of widget is to be disabled!
-		OnChange = function(self)
-			Spring.SendCommands("mapborder " .. ((self.value == 'cutaway') and "1" or "0"))
-			drawingEnabled = (self.value == "texture") or (self.value == "grid")
-			ResetWidget()
-		end,
-	},
-	drawForIslands = {
-		name = "Draw for islands",
-		type = 'bool',
-		value = true,
-		desc = "Draws mirror map when map is an island",
-	},
-	useShader = {
-		name = "Use shader",
-		type = 'bool',
-		value = true,
-		advanced = true,
-		desc = 'Use a shader when mirroring the map',
-		OnChange = ResetWidget,
-	},
-	gridSize = {
-		name = "Heightmap tile size",
-		type = 'number',
-		min = 32,
-		max = 512,
-		step = 32,
-		value = 32,
-		desc = '',
-		OnChange = ResetWidget,
-	},
-	textureBrightness = {
-		name = "Texture Brightness",
-		advanced = true,
-		type = 'number',
-		min = 0,
-		max = 1,
-		step = 0.01,
-		value = 0.27,
-		desc = 'Sets the brightness of the realistic texture (doesn\'t affect the grid)',
-		OnChange = ResetWidget,
-	},
-	fogEffect = {
-		name = "Edge Fog Effect",
-		type = 'bool',
-		value = true,
-		desc = 'Blurs the edges of the map slightly to distinguish it from the extension.',
-		OnChange = ResetWidget,
-	},
-	curvature = {
-		name = "Curvature Effect",
-		type = 'bool',
-		value = true,
-		desc = 'Add a curvature to the extension.',
-		OnChange = ResetWidget,
-	},
-
-}
+--options = {
+--	--when using shader the map is stored once in a DL and drawn 8 times with vertex mirroring and bending
+--    --when not, the map is drawn mirrored 8 times into a display list
+--	mapBorderStyle = {
+--		type='radioButton',
+--		name='Exterior Effect',
+--		items = {
+--			{name = 'Texture',  key = 'texture', desc = "Mirror the heightmap and texture.",              hotkey=nil},
+--			{name = 'Grid',     key = 'grid',    desc = "Mirror the heightmap with grid texture.",        hotkey=nil},
+--			{name = 'Cutaway',  key = 'cutaway', desc = "Draw the edge of the map with a cutaway effect", hotkey=nil},
+--			{name = 'Disable',  key = 'disable', desc = "Draw no edge extension",                         hotkey=nil},
+--		},
+--		value = 'texture',  --default at start of widget is to be disabled!
+--		OnChange = function(self)
+--			Spring.SendCommands("mapborder " .. ((self.value == 'cutaway') and "1" or "0"))
+--			drawingEnabled = (self.value == "texture") or (self.value == "grid")
+--			ResetWidget()
+--		end,
+--	},
+--}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -238,12 +193,12 @@ local function SetupShaderTable()
 			#if 1
 				vec3 yCbCr = RGB2YCBCR * gl_FragColor.rgb;
 				yCbCr.x = clamp(yCbCr.x * brightness, 0.0, 1.0);
-				gl_FragColor.rgb = YCBCR2RGB * yCbCr;				
+				gl_FragColor.rgb = YCBCR2RGB * yCbCr;
 			#else
 				gl_FragColor.rgb *= brightness;
 			#endif
 
-			gl_FragColor = mix(gl_Fog.color, gl_FragColor, fogFactor);			
+			gl_FragColor = mix(gl_Fog.color, gl_FragColor, fogFactor);
 			gl_FragColor.a = alpha;
 		 }
 		]],
@@ -289,7 +244,7 @@ local function DrawMapVertices(useMirrorShader)
 	gl.Color(1,1,1,1)
 
 	local function doMap(dx,dz,sx,sz)
-		local Scale = options.gridSize.value
+		local Scale = gridSize
 		local sggh = Spring.GetGroundHeight
 		local Vertex = gl.Vertex
 		local glColor = gl.Color
@@ -350,7 +305,7 @@ end
 local function DrawOMap(useMirrorShader)
 	gl.Blending(GL.SRC_ALPHA,GL.ONE_MINUS_SRC_ALPHA)
 	gl.DepthTest(GL.LEQUAL)
-        if options.mapBorderStyle.value == "texture" then
+        if mapBorderStyle == "texture" then
 			gl.Texture(realTex)
 		else
 			gl.Texture(gridTex)
@@ -424,12 +379,27 @@ end
 
 function widget:Initialize()
 
+	WG['mapedgeextension'] = {}
+	WG['mapedgeextension'].getBrightness = function()
+		return brightness
+	end
+	WG['mapedgeextension'].setBrightness = function(value)
+		brightness = value
+		ResetWidget()
+	end
+	WG['mapedgeextension'].getCurvature = function()
+		return curvature
+	end
+	WG['mapedgeextension'].setCurvature = function(value)
+		curvature = value
+		ResetWidget()
+	end
+
 	if not drawingEnabled then
 		return
 	end
 
-
-	Spring.SendCommands("mapborder " .. ((options and (options.mapBorderStyle.value == 'cutaway')) and "1" or "0"))
+	Spring.SendCommands("mapborder " .. (mapBorderStyle == 'cutaway' and "1" or "0"))
 
 	if island == nil then
 		island = IsIsland()
@@ -438,12 +408,12 @@ function widget:Initialize()
 
 	SetupShaderTable()
 	Spring.SendCommands("luaui disablewidget External VR Grid")
-	if gl.CreateShader and options.useShader.value then
-		
+	if gl.CreateShader and useShader then
+
 		local defs = {
 			"#version 150 compatibility \n",
-			options.curvature.value and "#define curvature \n",
-			options.fogEffect.value and "#define edgeFog \n",
+			curvature and "#define curvature \n",
+			fogEffect and "#define edgeFog \n",
 		}
 		shaderTable.definitions = defs
 
@@ -454,7 +424,7 @@ function widget:Initialize()
 	end
 	if not mirrorShader then
 		widget.DrawWorldPreUnit = function()
-			if (not island) or options.drawForIslands.value then
+			if (not island) or drawForIslands then
 				gl.DepthMask(true)
 				--gl.Texture(tex)
 				gl.CallList(dList)
@@ -572,7 +542,7 @@ end
 
 
 local function DrawWorldFunc() --is overwritten when not using the shader
-    if (not island) or options.drawForIslands.value then
+    if (not island) or drawForIslands then
         local glTranslate = gl.Translate
         local glUniform = gl.Uniform
         local GamemapSizeZ, GamemapSizeX = Game.mapSizeZ,Game.mapSizeX
@@ -581,9 +551,9 @@ local function DrawWorldFunc() --is overwritten when not using the shader
 		gl.UseShader(mirrorShader)
 		gl.PushMatrix()
 		gl.DepthMask(true)
-		if options.mapBorderStyle.value == "texture" then
+		if mapBorderStyle == "texture" then
 			gl.Texture(realTex)
-			glUniform(ubrightness, options.textureBrightness.value)
+			glUniform(ubrightness, brightness)
 			glUniform(ugrid, 0)
 		else
 			gl.Texture(gridTex)
@@ -663,5 +633,27 @@ end
 function widget:DrawWorldRefraction()
 	if drawingEnabled and isInView then
 		DrawWorldFunc()
+	end
+end
+
+
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.brightness = brightness
+	savedTable.curvature = curvature
+	savedTable.fogEffect = fogEffect
+	return savedTable
+end
+
+
+function widget:SetConfigData(data)
+	if data.brightness ~= nil then
+		brightness = data.brightness
+	end
+	if data.curvature ~= nil then
+		curvature = data.curvature
+	end
+	if data.fogEffect ~= nil then
+		fogEffect = data.fogEffect
 	end
 end
