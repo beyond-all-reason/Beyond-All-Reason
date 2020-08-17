@@ -23,6 +23,8 @@ vertex = [[
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
 
+	#define OPTION_MODELSFOG 9
+
 	#define OPTION_TREEWIND 10
 
 	#define OPTION_AUTONORMAL 21
@@ -86,6 +88,7 @@ vertex = [[
 		// auxilary varyings
 		float aoTerm;
 		float selfIllumMod;
+		float fogFactor;
 	};
 
 	/***********************************************************************/
@@ -311,6 +314,12 @@ vertex = [[
 
 			gl_Position = projectionMatrix * viewMatrix * worldVertexPos;
 
+			if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
+				float fogCoord = length(gl_Position.xyz);
+				fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; //linear
+				fogFactor = clamp(fogFactor, 0.0, 1.0);
+			}
+
 			%%VERTEX_POST_TRANSFORM%%
 
 		#elif (RENDERING_MODE == 2) //shadow pass
@@ -358,6 +367,8 @@ fragment = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
+
+	#define OPTION_MODELSFOG 9
 
 	#define OPTION_TREEWIND 10
 
@@ -499,6 +510,7 @@ fragment = [[
 		// auxilary varyings
 		float aoTerm;
 		float selfIllumMod;
+		float fogFactor;
 	};
 
 	/***********************************************************************/
@@ -1380,6 +1392,10 @@ fragment = [[
 
 		outColor = TONEMAP(outColor);
 
+		if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
+			outColor = mix(gl_Fog.color.rgb, outColor, fogFactor);
+		}
+
 		// debug hook
 		#if 0
 			//outColor = dirContrib + ambientContrib;
@@ -1453,50 +1469,54 @@ local defaultMaterialTemplate = {
 	},
 
 	shaderOptions = {
-		shadowmapping 	= true,
-		normalmapping 	= false,
+		shadowmapping     = true,
+		normalmapping     = false,
 
-		vertex_ao 		= false,
-		flashlights 	= false,
-		normalmap_flip 	= false,
+		vertex_ao         = false,
+		flashlights       = false,
+		normalmap_flip    = false,
 
-		threads_arm 	= false,
-		threads_core 	= false,
+		threads_arm       = false,
+		threads_core      = false,
 
 		health_displace  = false,
 		health_texturing = false,
 
-		treewind 		= false,
-		autonormal 		= false,
+		modelsfog        = true,
 
-		shadowsQuality	= 2,
+		treewind         = false,
+		autonormal       = false,
+
+		shadowsQuality   = 2,
 
 		autoNormalParams = {1.0, 0.00200}, -- Sampling distance, autonormal value
 	},
 
 	deferredOptions = {
-		shadowmapping 	= true,
-		normalmapping 	= false,
+		shadowmapping    = true,
+		normalmapping    = false,
 
-		vertex_ao 		= false,
-		flashlights 	= false,
-		normalmap_flip 	= false,
+		vertex_ao        = false,
+		flashlights      = false,
+		normalmap_flip   = false,
 
-		threads_arm 	= false,
-		threads_core 	= false,
+		threads_arm      = false,
+		threads_core     = false,
+
+		modelsfog        = true,
 
 		health_displace  = false,
 		health_texturing = false,
 
-		treewind 		= false,
-		autonormal 		= false,
+		treewind         = false,
+		autonormal       = false,
 
-		shadowsQuality	= 0,
-		materialIndex	= 0,
+		shadowsQuality   = 0,
+		materialIndex    = 0,
 	},
 
 	shadowOptions = {
-		treewind 		= false,
+		treewind         = false,
 	},
 
 	feature = false,
@@ -1537,6 +1557,8 @@ local shaderPlugins = {
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
 
+	#define OPTION_MODELSFOG 9
+
 	#define OPTION_TREEWIND 10
 
 	#define OPTION_AUTONORMAL 21
@@ -1555,6 +1577,8 @@ local knownBitOptions = {
 
 	["health_texturing"] = 7,
 	["health_displace"] = 8,
+
+	["modelsfog"] = 9,
 
 	["treewind"] = 10,
 	["autonormal"] = 21,
