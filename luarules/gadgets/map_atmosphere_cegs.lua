@@ -91,10 +91,10 @@ if (not gadgetHandler:IsSyncedCode()) then
 		local transitionspeedpercentedstart = transitionspeedstart*0.000333
 		local transitionspeedpercentedend = transitionspeedend*0.000333
 		if not transitionstart then
-			transitionstart = 1
+			transitionstart = fogstartdefault or 1
 		end
 		if not transitionend then
-			transitionend = 1
+			transitionend = fogenddefault or 1
 		end
 		
 		if transitionstart < targetstart then
