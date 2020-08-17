@@ -2749,7 +2749,7 @@ function init()
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', {'distanceMult'}, value) end,
 		},
-		{id="rankicons_scale", group="ui", name=widgetOptionColor.."   scale", type="slider", min=0.4, max=2, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getScale~=nil and WG['rankicons'].getScale()), description='',
+		{id="rankicons_scale", group="ui", name=widgetOptionColor.."   scale", type="slider", min=0.3, max=3, step=0.1, value=(WG['rankicons']~=nil and WG['rankicons'].getScale~=nil and WG['rankicons'].getScale()), description='',
 		 onload = function(i) end,
 		 onchange = function(i, value) saveOptionValue('Rank Icons', 'rankicons', 'setScale', {'iconsizeMult'}, value) end,
 		},
