@@ -75,8 +75,6 @@ for i = 1, #FeatureDefs do
 	drawnFeature[i] = (FeatureDefs[i].drawTypeString=="model")
 end
 
-local drawStunnedOverlay = true
-
 --// this table is used to shows the hp of perimeter defence, and filter it for default wreckages
 local walls = {dragonsteeth=true,dragonsteeth_core=true,fortification=true,fortification_core=true,floatingteeth=true,floatingteeth_core=true}
 
@@ -156,19 +154,17 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local blink = false;
-local gameFrame = 0;
+local blink = false
+local gameFrame = 0
 
-local empDecline =  1/40; --magic
+local empDecline =  1/40 --magic
 
-local cx, cy, cz = 0,0,0;  --// camera pos
+local cx, cy, cz = 0,0,0  --// camera pos
 local smoothheight = 0
 
-local paraUnits   = {};
-
-local barShader;
-local barDList;
-local barFeatureDList;
+local barShader
+local barDList
+local barFeatureDList
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -176,8 +172,8 @@ local barFeatureDList;
 --// speedup (there are a lot more localizations, but they are in limited scope cos we are running out of upvalues)
 local glColor         = gl.Color
 local glMyText        = gl.FogCoord
-local floor     			= math.floor
-local sub 						= string.sub
+local floor     	  = math.floor
+local sub 			  = string.sub
 local GetUnitDefID    = Spring.GetUnitDefID
 local glDepthTest     = gl.DepthTest
 
@@ -1143,7 +1139,6 @@ do
         local stunned = GetUnitIsStunned(unitID)
         local infotext = ''
         if stunned then
-          paraUnits[#paraUnits+1] = unitID
           if fullText then
             infotext = floor((paralyzeDamage-maxHealth) / (maxHealth*empDecline)) .. 's'
           end
@@ -1289,73 +1284,6 @@ end --// end do
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local DrawOverlays
-
-do
-  local GL_TEXTURE_GEN_MODE    = GL.TEXTURE_GEN_MODE
-  local GL_EYE_PLANE           = GL.EYE_PLANE
-  local GL_EYE_LINEAR          = GL.EYE_LINEAR
-  local GL_T                   = GL.T
-  local GL_S                   = GL.S
-  local GL_ONE                 = GL.ONE
-  local GL_SRC_ALPHA           = GL.SRC_ALPHA
-  local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-  local glUnit                 = gl.Unit
-  local glTexGen               = gl.TexGen
-  local glTexCoord             = gl.TexCoord
-  local glPolygonOffset        = gl.PolygonOffset
-  local glBlending             = gl.Blending
-  local glTexture              = gl.Texture
-  local GetCameraVectors       = Spring.GetCameraVectors
-  local abs                    = math.abs
-
-  function DrawOverlays()
-    --// draw an overlay for stunned units
-    if (drawStunnedOverlay)and(#paraUnits>0) then
-      glDepthTest(true)
-      glPolygonOffset(-2, -2)
-      glBlending(GL_SRC_ALPHA, GL_ONE)
-
-
-      glColor(0.25,0.25,1,0.25)
-      for i=1,#paraUnits do
-        glUnit(paraUnits[i],true)
-      end
-      local shift = widgetHandler:GetHourTimer() / 15
-
-      glTexCoord(0,0)
-      glTexGen(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR)
-      local cvs = GetCameraVectors()
-      local v = cvs.right
-      glTexGen(GL_T, GL_EYE_PLANE, v[1]*0.008,v[2]*0.008,v[3]*0.008, shift)
-      glTexGen(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR)
-      v = cvs.forward
-      glTexGen(GL_S, GL_EYE_PLANE, v[1]*0.008,v[2]*0.008,v[3]*0.008, shift)
-      glTexture("LuaUI/Images/paralyzed.png")
-
-      glColor(0.8,0.8,1,0.45)
-      for i=1,#paraUnits do
-        glUnit(paraUnits[i],true)
-      end
-
-      glTexture(false)
-      glTexGen(GL_T, false)
-      glTexGen(GL_S, false)
-      glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-      glPolygonOffset(false)
-      glDepthTest(false)
-
-      paraUnits = {}
-    end
-
-  end
-
-end --//end do
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local visibleFeatures = {}
 local visibleUnits = {}
 
@@ -1451,8 +1379,6 @@ do
       if (barShader) then gl.UseShader(0) end
       glDepthMask(false)
     end
-
-    DrawOverlays()
 
     glColor(1,1,1,1)
     --glDepthTest(false)
