@@ -68,7 +68,7 @@ options = {
 	--when using shader the map is stored once in a DL and drawn 8 times with vertex mirroring and bending
     --when not, the map is drawn mirrored 8 times into a display list
 	mapBorderStyle = {
-		type='radioButton', 
+		type='radioButton',
 		name='Exterior Effect',
 		items = {
 			{name = 'Texture',  key = 'texture', desc = "Mirror the heightmap and texture.",              hotkey=nil},
@@ -79,7 +79,7 @@ options = {
 		value = 'texture',  --default at start of widget is to be disabled!
 		OnChange = function(self)
 			Spring.SendCommands("mapborder " .. ((self.value == 'cutaway') and "1" or "0"))
-			drawingEnabled = (self.value == "texture") or (self.value == "grid") 
+			drawingEnabled = (self.value == "texture") or (self.value == "grid")
 			ResetWidget()
 		end,
 	},
@@ -87,7 +87,7 @@ options = {
 		name = "Draw for islands",
 		type = 'bool',
 		value = true,
-		desc = "Draws mirror map when map is an island",		
+		desc = "Draws mirror map when map is an island",
 	},
 	useShader = {
 		name = "Use shader",
@@ -100,8 +100,8 @@ options = {
 	gridSize = {
 		name = "Heightmap tile size",
 		type = 'number',
-		min = 32, 
-		max = 512, 
+		min = 32,
+		max = 512,
 		step = 32,
 		value = 32,
 		desc = '',
@@ -111,8 +111,8 @@ options = {
 		name = "Texture Brightness",
 		advanced = true,
 		type = 'number',
-		min = 0, 
-		max = 1, 
+		min = 0,
+		max = 1,
 		step = 0.01,
 		value = 0.27,
 		desc = 'Sets the brightness of the realistic texture (doesn\'t affect the grid)',
@@ -121,18 +121,18 @@ options = {
 	fogEffect = {
 		name = "Edge Fog Effect",
 		type = 'bool',
-		value = false,
+		value = true,
 		desc = 'Blurs the edges of the map slightly to distinguish it from the extension.',
 		OnChange = ResetWidget,
 	},
 	curvature = {
 		name = "Curvature Effect",
 		type = 'bool',
-		value = false,
+		value = true,
 		desc = 'Add a curvature to the extension.',
 		OnChange = ResetWidget,
 	},
-	
+
 }
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -151,10 +151,8 @@ local function SetupShaderTable()
 		grid = 0,
 		brightness = 1.0,
 	  },
-	  vertex = (options.curvature.value and "#define curvature \n" or '')
-		.. (options.fogEffect.value and "#define edgeFog \n" or '')
-		.. [[
-		#version 150 compatibility
+	  vertex = [[
+		#line 155
 		// Application to vertex shader
 		uniform float mirrorX;
 		uniform float mirrorZ;
@@ -162,72 +160,93 @@ local function SetupShaderTable()
 		uniform float lengthZ;
 		uniform float left;
 		uniform float up;
-		uniform float brightness;
 
-		varying vec4 vertex;
-		varying vec4 color;
-  
+		out float fogFactor;
+		out float alpha;
+
 		void main()
 		{
 		gl_TexCoord[0]= gl_TextureMatrix[0]*gl_MultiTexCoord0;
-		vec4 vertex = gl_Vertex;
-		vertex.x = abs(mirrorX-vertex.x);
-		vertex.z = abs(mirrorZ-vertex.z);
-		
-		float alpha = 1.0;
+		vec4 worldPos = gl_Vertex;
+		worldPos.x = abs(mirrorX-worldPos.x);
+		worldPos.z = abs(mirrorZ-worldPos.z);
+
+		alpha = 1.0;
 		#ifdef curvature
-		  if(mirrorX != 0.0)vertex.y -= pow(abs(vertex.x-left*mirrorX)/150.0, 2.0);
-		  if(mirrorZ != 0.0)vertex.y -= pow(abs(vertex.z-up*mirrorZ)/150.0, 2.0);
-		  alpha = 0.0;
-			if(mirrorX != 0.0) alpha -= pow(abs(vertex.x-left*mirrorX)/lengthX, 2.0);
-			if(mirrorZ != 0.0) alpha -= pow(abs(vertex.z-up*mirrorZ)/lengthZ, 2.0);
+			if(mirrorX != 0.0) worldPos.y -= pow(abs(worldPos.x-left*mirrorX)/150.0, 2.0);
+			if(mirrorZ != 0.0) worldPos.y -= pow(abs(worldPos.z-up*mirrorZ)/150.0, 2.0);
+			alpha = 0.0;
+			if(mirrorX != 0.0) alpha -= pow(abs(worldPos.x-left*mirrorX)/lengthX, 2.0);
+			if(mirrorZ != 0.0) alpha -= pow(abs(worldPos.z-up*mirrorZ)/lengthZ, 2.0);
 			alpha = 1.0 + (6.0 * (alpha + 0.18));
+			alpha = clamp(alpha, 0.0, 1.0);
 		#endif
-  
+
 		float ff = 20000.0;
 		if((mirrorZ != 0.0 && mirrorX != 0.0))
-		  ff=ff/(pow(abs(vertex.z-up*mirrorZ)/150.0, 2.0)+pow(abs(vertex.x-left*mirrorX)/150.0, 2.0)+2.0);
+		  ff=ff/(pow(abs(worldPos.z-up*mirrorZ)/150.0, 2.0)+pow(abs(worldPos.x-left*mirrorX)/150.0, 2.0)+2.0);
 		else if(mirrorX != 0.0)
-		  ff=ff/(pow(abs(vertex.x-left*mirrorX)/150.0, 2.0)+2.0);
+		  ff=ff/(pow(abs(worldPos.x-left*mirrorX)/150.0, 2.0)+2.0);
 		else if(mirrorZ != 0.0)
-		  ff=ff/(pow(abs(vertex.z-up*mirrorZ)/150.0, 2.0)+2.0);
-  
-		gl_Position  = gl_ModelViewProjectionMatrix*vertex;
-		//gl_Position.z+ff;
-		
-		#ifdef edgeFog
-		  gl_FogFragCoord = length((gl_ModelViewMatrix * vertex).xyz)+ff; //see how Spring shaders do the fog and copy from there to fix this
-		#endif
-		
-		gl_FrontColor = vec4(brightness * gl_Color.rgb, alpha);
+		  ff=ff/(pow(abs(worldPos.z-up*mirrorZ)/150.0, 2.0)+2.0);
 
-		color = gl_FrontColor;
-		//vertex = gl_Vertex;
+		gl_Position = gl_ModelViewProjectionMatrix * worldPos;
+		//gl_Position.z+ff;
+
+		fogFactor = 1.0;
+		#ifdef edgeFog
+			gl_ClipVertex = gl_ModelViewMatrix * worldPos;
+			// emulate linear fog
+			float fogCoord = length(gl_ClipVertex.xyz);
+			fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
+			fogFactor = clamp(fogFactor, 0.0, 1.0);
+		#endif
+
+		worldPos = gl_Vertex;
 		}
 	  ]],
-	 --  fragment = [[
-	 --  #version 150 compatibility
-	 --  uniform float mirrorX;
-	 --  uniform float mirrorZ;
-	 --  uniform float lengthX;
-	 --  uniform float lengthZ;
-		-- uniform float left;
-		-- uniform float up;
-		-- uniform int grid;
-		-- uniform sampler2D tex0;
+	  fragment = [[
+		#line 209
+		uniform float brightness;
+		uniform float mirrorX;
+		uniform float mirrorZ;
+		uniform float lengthX;
+		uniform float lengthZ;
+		uniform float left;
+		uniform float up;
+		uniform int grid;
+		uniform sampler2D tex0;
 
-		-- varying vec4 vertex;
-		-- varying vec4 color;
+		in float fogFactor;
+		in float alpha;
 
-		-- void main()
-		-- {
-		-- 	float alpha = 0.0;
-		-- 	if(mirrorX) alpha -= pow(abs(vertex.x-left*mirrorX)/lengthX, 2);
-		-- 	if(mirrorZ) alpha -= pow(abs(vertex.z-up*mirrorZ)/lengthZ, 2);
-		-- 	alpha = 1.0 + (4.0 * (alpha + 0.28));
-		-- 	gl_FragColor = vec4(mix(gl_Fog.color, color.rgb, clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0)), clamp(alpha, 0.0, 1.0)) * texture2D(tex0, gl_TexCoord[0].xy);
-		-- }
-	 --  ]],
+		const mat3 RGB2YCBCR = mat3(
+			0.2126, -0.114572, 0.5,
+			0.7152, -0.385428, -0.454153,
+			0.0722, 0.5, -0.0458471);
+
+		const mat3 YCBCR2RGB = mat3(
+			1.0, 1.0, 1.0,
+			0.0, -0.187324, 1.8556,
+			1.5748, -0.468124, -5.55112e-17);
+
+
+		void main()
+		{
+			gl_FragColor = texture2D(tex0, gl_TexCoord[0].xy);
+
+			#if 1
+				vec3 yCbCr = RGB2YCBCR * gl_FragColor.rgb;
+				yCbCr.x = clamp(yCbCr.x * brightness, 0.0, 1.0);
+				gl_FragColor.rgb = YCBCR2RGB * yCbCr;				
+			#else
+				gl_FragColor.rgb *= brightness;
+			#endif
+
+			gl_FragColor = mix(gl_Fog.color, gl_FragColor, fogFactor);			
+			gl_FragColor.a = alpha;
+		 }
+		]],
   }
 end
 
@@ -256,7 +275,7 @@ local function IsIsland()
 		-- right edge
 		if GetGroundHeight(Game.mapSizeX, i) > 0 then
 			return false
-		end	
+		end
 	end
 	return true
 end
@@ -278,7 +297,7 @@ local function DrawMapVertices(useMirrorShader)
 		local Normal = gl.Normal
 		local GetGroundNormal = Spring.GetGroundNormal
 		local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-	
+
 		local sten = {0, floor(Game.mapSizeZ/Scale)*Scale, 0}--do every other strip reverse
 		local xm0, xm1 = 0, 0
 		local xv0, xv1 = 0,math.abs(dx)+sx
@@ -290,7 +309,7 @@ local function DrawMapVertices(useMirrorShader)
 		gl.TexCoord(0, sten[2]/Game.mapSizeZ)
 		Vertex(xv1, sggh(0,sten[2]),abs(dz+sten[2])+sz)--start and end with a double vertex
 		end
-	
+
 		for x=0,Game.mapSizeX-Scale,Scale do
 			xv0, xv1 = xv1, abs(dx+x+Scale)+sx
 			xm0, xm1 = xm1, xm1+Scale
@@ -318,10 +337,10 @@ local function DrawMapVertices(useMirrorShader)
 		doMap(-Game.mapSizeX,-Game.mapSizeZ,-Game.mapSizeX,-Game.mapSizeZ)
 		doMap(0,-Game.mapSizeZ,0,-Game.mapSizeZ)
 		doMap(-Game.mapSizeX,-Game.mapSizeZ,Game.mapSizeX,-Game.mapSizeZ)
-	
+
 		doMap(-Game.mapSizeX,0,-Game.mapSizeX,0)
 		doMap(-Game.mapSizeX,0,Game.mapSizeX,0)
-	
+
 		doMap(-Game.mapSizeX,-Game.mapSizeZ,-Game.mapSizeX,Game.mapSizeZ)
 		doMap(0,-Game.mapSizeZ,0,Game.mapSizeZ)
 		doMap(-Game.mapSizeX,-Game.mapSizeZ,Game.mapSizeX,Game.mapSizeZ)
@@ -331,16 +350,16 @@ end
 local function DrawOMap(useMirrorShader)
 	gl.Blending(GL.SRC_ALPHA,GL.ONE_MINUS_SRC_ALPHA)
 	gl.DepthTest(GL.LEQUAL)
-        if options.mapBorderStyle.value == "texture" then 
+        if options.mapBorderStyle.value == "texture" then
 			gl.Texture(realTex)
 		else
-			gl.Texture(gridTex) 
+			gl.Texture(gridTex)
 		end
 	gl.BeginEnd(GL.TRIANGLE_STRIP,DrawMapVertices, useMirrorShader)
 	gl.DepthTest(false)
 	gl.Color(1,1,1,1)
 	gl.Blending(GL.SRC_ALPHA,GL.ONE_MINUS_SRC_ALPHA)
-	
+
 	----draw map compass text
 	gl.PushAttrib(GL.ALL_ATTRIB_BITS)
 	gl.Texture(false)
@@ -348,7 +367,7 @@ local function DrawOMap(useMirrorShader)
 	gl.DepthTest(false)
 	gl.Color(1,1,1,1)
 	gl.PopAttrib()
-	----	
+	----
 end
 
 
@@ -408,10 +427,10 @@ function widget:Initialize()
 	if not drawingEnabled then
 		return
 	end
-	
-	
+
+
 	Spring.SendCommands("mapborder " .. ((options and (options.mapBorderStyle.value == 'cutaway')) and "1" or "0"))
-	
+
 	if island == nil then
 		island = IsIsland()
 	end
@@ -420,6 +439,14 @@ function widget:Initialize()
 	SetupShaderTable()
 	Spring.SendCommands("luaui disablewidget External VR Grid")
 	if gl.CreateShader and options.useShader.value then
+		
+		local defs = {
+			"#version 150 compatibility \n",
+			options.curvature.value and "#define curvature \n",
+			options.fogEffect.value and "#define edgeFog \n",
+		}
+		shaderTable.definitions = defs
+
 		mirrorShader = gl.CreateShader(shaderTable)
 		if (mirrorShader == nil) then
 			Spring.Log(widget:GetInfo().name, LOG.ERROR, "Map Edge Extension widget: mirror shader error: "..gl.GetShaderLog())
@@ -551,7 +578,6 @@ local function DrawWorldFunc() --is overwritten when not using the shader
         local GamemapSizeZ, GamemapSizeX = Game.mapSizeZ,Game.mapSizeX
 
 		gl.Fog(true)
-		gl.FogCoord(1)
 		gl.UseShader(mirrorShader)
 		gl.PushMatrix()
 		gl.DepthMask(true)
