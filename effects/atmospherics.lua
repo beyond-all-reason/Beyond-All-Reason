@@ -1042,6 +1042,23 @@ return {
     },
   },
 
+  ["rainpatch"] = {
+    usedefaultexplosions = false,
+    raindrops = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 900,
+      ground             = true,
+      water              = true,
+      underwater         = false,
+      properties = {
+        delay              = [[1 r300]],
+        explosiongenerator = [[custom:raindrop]],
+        pos                = [[-875 r1750, 1250 r150, -875 r1750]],
+      },
+    },
+  },
+
   ["raindrop"] = {
     usedefaultexplosions = false,
     grounddust = {

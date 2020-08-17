@@ -5,10 +5,12 @@ function gadget:GameFrame(n)
 
 	-- DayNight Cycle
 	
-	if n%18000 < 9000 then
+	if n%9000 > 3900 then
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.4, 2.5, 0.4)
+		SendToUnsynced("MapAtmosphereConfigSetFog", 0.15, 0.7, 2.5, 1.5)
+	else	
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
-	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.3, 2, 0.4)
+		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 2, 2)
 	end
 	
 -- ## Atmosphere Functions
@@ -35,8 +37,8 @@ local lightningsounds = {
 	}  
 
 
-if n%30 == 0 and n ~= 0 then
-	if n %6400 == 0 then
+if n%30 == 0 then
+	if n%9000 == 4500 then
 		thunderstormcenterx = math.random(0, (mapsizeX))
 		thunderstormcenterz = math.random(0, (mapsizeZ))
 		if thunderstormcenterx <= mapsizeX*0.5 then
@@ -67,15 +69,17 @@ if n%30 == 0 and n ~= 0 then
 		thunderstormxmax = thunderstormcenterx + thunderstormradius
 		thunderstormzmin = thunderstormcenterz - thunderstormradius
 		thunderstormzmax = thunderstormcenterz + thunderstormradius
-		if n%300 == 0 and thunderstormcenterx > 0 and thunderstormcenterx < mapsizeX and thunderstormcenterz > 0 and thunderstormcenterz < mapsizeZ then
-			SpawnCEGInPositionGround("rain", thunderstormcenterx, 0, thunderstormcenterz, _, _, _, "rainlight", 1)
+		if n%9000 > 4500 and n%9000 < 8700 then
+			if n%300 == 0 and thunderstormcenterx > 0 and thunderstormcenterx < mapsizeX and thunderstormcenterz > 0 and thunderstormcenterz < mapsizeZ then
+				SpawnCEGInPositionGround("rainpatch", thunderstormcenterx, 0, thunderstormcenterz, _, _, _, "rainlight", 1)
+			end
 		end
 	end
 end
 
-if n%6400 < 3200 then
+if n%9000 > 4500  then
 	if n%15 == 0 then
-       local r = math.random(0,5)
+       local r = math.random(0,4)
        if r == 0 then
             if thunderstormready then
 				local posx = math.random(thunderstormxmin, thunderstormxmax)
@@ -121,33 +125,39 @@ end
 		SpawnCEGInPositionGround("fireflies", 943, 32, 3381)
 	end
 
--- random rain
-	if n%3200 == 1600 then
-		SpawnCEGInRandomMapPos("rain", 0, _, _, _, "rainlight", 1)
-	end
+-- -- random rain
+-- 	if n%3200 == 1600 then
+-- 		SpawnCEGInRandomMapPos("rain", 0, _, _, _, "rainlight", 1)
+-- 	end
 
--- random lightning
-	if n%7000 == 600 then
-		SpawnCEGInRandomMapPos("lightningstormgreen", 0, _, _, _, "distantthunder", 0.85)
-	end
+-- -- random lightning
+-- 	if n%7000 == 600 then
+-- 		SpawnCEGInRandomMapPos("lightningstormgreen", 0, _, _, _, "distantthunder", 0.85)
+-- 	end
 	
 -- lightningstorms
-  
 
-	if n%6400 == 4900 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
-	if n%6400 == 4625 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
-	if n%6400 == 5150 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
-	if n%6400 == 5210 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
-	if n%6400 == 5610 then
-		SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
+	if n%60 == 0 then
+       local r = math.random(0,2)
+       if r == 0 then
+	      SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+       end
+    end 
+
+	-- if n%6400 == 4900 then
+	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	-- end
+	-- if n%6400 == 4625 then
+	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	-- end
+	-- if n%6400 == 5150 then
+	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	-- end
+	-- if n%6400 == 5210 then
+	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	-- end
+	-- if n%6400 == 5610 then
+	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	-- end
 	
 end
