@@ -4389,7 +4389,7 @@ function widget:SetConfigData(data)
 		if data.defaultSunLighting ~= nil then
 			defaultSunLighting = data.defaultSunLighting
 		end
-		if data.defaultFog ~= nil then
+		if data.defaultFog ~= nil and type(data.defaultFog.fogStart) ~= 'table' then
 			defaultFog = data.defaultFog
 		end
 	end
