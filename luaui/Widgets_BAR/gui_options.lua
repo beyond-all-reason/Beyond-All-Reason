@@ -126,8 +126,8 @@ local defaultSunLighting = {
  unitSpecularColor = {gl.GetSun("specular", "unit")},
 }
 local defaultFog = {
-	fogStart = {gl.GetAtmosphere("fogStart")},
-	fogEnd = {gl.GetAtmosphere("fogEnd")},
+	fogStart = gl.GetAtmosphere("fogStart"),
+	fogEnd = gl.GetAtmosphere("fogEnd"),
 	fogColor = {gl.GetAtmosphere("fogColor")},
 }
 local options = {}
@@ -1975,6 +1975,17 @@ function init()
 			 end
 			 Spring.SetAtmosphere({fogEnd = value})
 			 customMapFog[Game.mapName] = {fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogEnd")}
+		 end,
+		},
+		{id="fog_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description='',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 options[getOptionByID('fog_start')].value = defaultFog.fogStart
+			 options[getOptionByID('fog_end')].value = defaultFog.fogEnd
+			 options[getOptionByID('fog_reset')].value = false
+			 Spring.SetAtmosphere({fogStart = defaultFog.fogStart, fogEnd = defaultFog.fogEnd})
+			 Spring.Echo('resetted map fog defaults')
+			 customMapFog[Game.mapName] = nil
 		 end,
 		},
 
