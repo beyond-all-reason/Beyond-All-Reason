@@ -2758,7 +2758,7 @@ function init()
 		 end,
 		},
 
-		{id="healthbarsscale", group="ui", name="Health bars"..widgetOptionColor.."  scale", type="slider", min=0.5, max=1.3, step=0.1, value=1, description='',
+		{id="healthbarsscale", group="ui", name="Health bars"..widgetOptionColor.."  scale", type="slider", min=0.7, max=1.4, step=0.1, value=1, description='',
 		 onload=function(i) loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
 		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
 		},

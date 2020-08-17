@@ -935,10 +935,10 @@ do
           glMyText(1)
         end
 	    glColor(1,1,1,barAlpha)
-	    glText(barInfo.text,barStart,yoffset-outlineSize,4,"r")
-        if (drawBarTitles and barInfo.title ~= "health") then
+	    glText(barInfo.text,barStart,-outlineSize,4,"r")
+        if drawBarTitles and barInfo.title ~= "health" then
           glColor(1,1,1,titlesAlpha)
-          glText(barInfo.title,0,yoffset-outlineSize,2.35,"cd")
+          glText(barInfo.title,0,0,2.35,"cd")
         end
         if (barShader) then glMyText(0) end
         gl.PopMatrix()
