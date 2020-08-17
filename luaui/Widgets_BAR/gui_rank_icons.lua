@@ -16,6 +16,8 @@ local iconsize   = 30
 local iconoffset = 22
 local scaleIconAmount = 90
 
+local rankScopeDivider = 4.5		-- the higher the number the narrower the scope, the higher the assigned rank will be
+
 local falloffDistance = 1500
 local cutoffDistance = 2700
 
@@ -98,18 +100,12 @@ end
 
 function widget:GetConfigData()
 	return {
-		ranks = ranks,
 		distanceMult = distanceMult,
 		iconsizeMult = iconsizeMult,
 	}
 end
 
 function widget:SetConfigData(data) --load config
-	if Spring.GetGameFrame() > 0 then
-		if data.ranks ~= nil then
-			ranks = data.ranks
-		end
-	end
 	if data.distanceMult ~= nil then
 		distanceMult = data.distanceMult
 		usedFalloffDistance = falloffDistance * distanceMult
@@ -119,6 +115,13 @@ function widget:SetConfigData(data) --load config
 		iconsizeMult = data.iconsizeMult
 		usedIconsize = iconsize * iconsizeMult
 	end
+end
+
+local function updateUnitRank(unitID, unitDefID)
+	local xp = GetUnitExperience(unitID)
+	xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]), numRanks)
+	Spring.Echo()
+	ranks[xp][unitID] = unitDefID
 end
 
 function widget:Initialize()
@@ -148,13 +151,14 @@ function widget:Initialize()
 
 	for unitDefID, ud in pairs(UnitDefs) do
 		-- ud.power -> buildCostMetal + (buildCostEnergy / 60.0) 
-		unitPowerXpCoeffient[unitDefID] = ((ud.power / 2000) ^ -0.2) / numRanks  -- dark magic
+		unitPowerXpCoeffient[unitDefID] = ((ud.power / 2000) ^ -0.2) / numRanks / rankScopeDivider -- dark magic
 		unitHeights[unitDefID] = ud.height + iconoffset
 	end
 
 	local allUnits = GetAllUnits()
 	for i=1,#allUnits do
-		SetUnitRank(allUnits[i])
+		local unitID = allUnits[i]
+		updateUnitRank(unitID, GetUnitDefID(unitID))
 	end
 end
 
@@ -162,17 +166,6 @@ function widget:Shutdown()
 	for _,rankTexture in ipairs(rankTextures) do
 		gl.DeleteTexture(rankTexture)
 	end
-end
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
-function SetUnitRank(unitID)
-	local xp = GetUnitExperience(unitID)
-	if not xp then
-		return
-	end
-	xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]), numRanks)
 end
 
 -------------------------------------------------------------------------------------
@@ -195,7 +188,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if IsUnitAllied(unitID) or GetSpectatingState() then
-		SetUnitRank(unitID)
+		updateUnitRank(unitID, GetUnitDefID(unitID))
 	end
 end
 
@@ -253,7 +246,7 @@ function widget:DrawWorld()
 					camDistance = diag(camX-x, camY-y, camZ-z)
 					if camDistance < usedCutoffDistance then
 						local opacity = min(1, 1 - (camDistance-usedFalloffDistance) / usedCutoffDistance)
-						unitUsedIconsize = ((usedIconsize*0.1) + (camDistance/scaleIconAmount)) - ((1-opacity)*(usedIconsize*1.25))
+						unitUsedIconsize = ((usedIconsize*0.12) + (camDistance/scaleIconAmount)) - ((1-opacity)*(usedIconsize*1.25))
 						unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
 						glColor(1,1,1,opacity)
 						glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
