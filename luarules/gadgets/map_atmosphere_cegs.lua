@@ -34,6 +34,10 @@ if (not gadgetHandler:IsSyncedCode()) then
 	local clocr, clocg, clocb = gl.GetAtmosphere("cloudColor")
 	local fogcr, fogcg, fogcb = gl.GetAtmosphere("fogColor")
 	
+	local fogstartdefault = gl.GetAtmosphere("fogStart")
+	local fogenddefault = gl.GetAtmosphere("fogEnd")
+	
+	
 	local shadowdensity = gl.GetSun("shadowDensity")
 	
 	
@@ -83,6 +87,32 @@ if (not gadgetHandler:IsSyncedCode()) then
 		Spring.SetSunLighting({groundShadowDensity = transition*shadowdensity, modelShadowDensity = transition*shadowdensity})
 	end
 	
+	local function MapAtmosphereConfigSetFog(_, targetstart, targetend, transitionspeedstart, transitionspeedend)
+		local transitionspeedpercentedstart = transitionspeedstart*0.000333
+		local transitionspeedpercentedend = transitionspeedend*0.000333
+		if not transitionstart then
+			transitionstart = 1
+		end
+		if not transitionend then
+			transitionend = 1
+		end
+		
+		if transitionstart < targetstart then
+			transitionstart = transitionstart + transitionspeedpercentedstart
+		elseif transitionstart > targetstart then
+			transitionstart = transitionstart - transitionspeedpercentedstart
+		end
+		
+		if transitionend < targetend then
+			transitionend = transitionend + transitionspeedpercentedend
+		elseif transitionend > targetend then
+			transitionend = transitionend - transitionspeedpercentedend
+		end
+		
+		Spring.SetAtmosphere({fogStart = transitionstart*fogstartdefault})
+		Spring.SetAtmosphere({fogEnd = transitionend*fogenddefault})
+	end
+	
 	function gadget:TextCommand(msg)
 		if string.sub(msg,1, 18) == "atmosplaysoundfile" then 
 			Spring.PlaySoundFile(string.sub(msg, 20),0.85,'ui')
@@ -91,10 +121,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("MapAtmosphereConfigSetSun", MapAtmosphereConfigSetSun)
+		gadgetHandler:AddSyncAction("MapAtmosphereConfigSetFog", MapAtmosphereConfigSetSun)
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("MapAtmosphereConfigSetSun")
+		gadgetHandler:RemoveSyncAction("MapAtmosphereConfigSetFog")
 	end
 	
 	
