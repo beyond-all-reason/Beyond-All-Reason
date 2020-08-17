@@ -8,7 +8,7 @@ function gadget:GameFrame(n)
 	if n%18000 < 9000 then
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
 	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.3, 2, 0.35)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.3, 2, 0.4)
 	end
 	
 -- ## Atmosphere Functions
