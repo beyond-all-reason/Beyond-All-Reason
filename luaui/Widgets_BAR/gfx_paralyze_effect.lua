@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local paraTexture = "LuaUI/Images/paralyzed.png"
+
 local GL_TEXTURE_GEN_MODE = GL.TEXTURE_GEN_MODE
 local GL_EYE_PLANE = GL.EYE_PLANE
 local GL_EYE_LINEAR = GL.EYE_LINEAR
@@ -28,16 +30,9 @@ local glColor = gl.Color
 local glDepthTest = gl.DepthTest
 
 local GetCameraVectors = Spring.GetCameraVectors
-local GetCameraPosition = Spring.GetCameraPosition
 local GetGameFrame = Spring.GetGameFrame
-local GetSmoothMeshHeight = Spring.GetSmoothMeshHeight
 local IsGUIHidden = Spring.IsGUIHidden
-local glDepthMask = gl.DepthMask
-local GetFeatureHealth = Spring.GetFeatureHealth
-local GetFeatureResources = Spring.GetFeatureResources
-local GetVisibleUnits = Spring.GetVisibleUnits
 local GetUnitIsStunned = Spring.GetUnitIsStunned
-local ValidUnitID = Spring.ValidUnitID
 local IsUnitInView = Spring.IsUnitInView
 local IsUnitIcon = Spring.IsUnitIcon
 local GetUnitHealth = Spring.GetUnitHealth
@@ -45,19 +40,13 @@ local GetUnitHealth = Spring.GetUnitHealth
 local abs = math.abs
 
 local paraUnits = {}
-local visibleUnits = {}
-local smoothheight = 0
-local cx, cy, cz = GetCameraPosition()
 local gameFrame = GetGameFrame()
 local prevGameFrame = gameFrame
-local sec1 = 0
-local sec2 = 0
-
-local maxDistance = 10000
-local paraTexture = "LuaUI/Images/paralyzed.png"
 local numParaUnits = 0
 
 local function init()
+	paraUnits = {}
+	numParaUnits = 0
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
 		local unitID = allUnits[i]
@@ -71,10 +60,17 @@ local function init()
 	end
 end
 
+
 function widget:Initialize()
 	init()
 end
 
+function widget:PlayerChanged(playerID)
+	local myPlayerID = Spring.GetMyPlayerID()
+	if playerID == myPlayerID then
+		init()
+	end
+end
 
 function widget:Update(dt)
 	local gameFrame = GetGameFrame()
@@ -126,11 +122,14 @@ function widget:DrawWorld()
 
 		glColor(1, 1, 1, 1)
 	end
-end --//end do
+end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	paraUnits[unitID] = nil
+	if paraUnits[unitID] then
+		paraUnits[unitID] = nil
+		numParaUnits = numParaUnits - 1
+	end
 end
 
 
