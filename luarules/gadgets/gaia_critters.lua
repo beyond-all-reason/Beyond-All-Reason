@@ -14,12 +14,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-
-for _,teamID in ipairs(Spring.GetTeamList()) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-		return
-	end
-end
+-- disabling critters when AI is present due to https://springrts.com/mantis/view.php?id=6415
+--for _,teamID in ipairs(Spring.GetTeamList()) do
+--	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+--		return
+--	end
+--end
 
 local isCritter = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -57,7 +57,7 @@ local maxMulti = 5
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
 
-local critterConfig = include("LuaRules/configs/critters_map_config.lua")
+local critterConfig = include("LuaRules/configs/critters.lua")
 local critterUnits = {}	--critter units that are currently alive
 local companionCritters = {}
 local sceduledOrders = {}
