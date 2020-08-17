@@ -315,7 +315,7 @@ vertex = [[
 			gl_Position = projectionMatrix * viewMatrix * worldVertexPos;
 
 			if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
-				gl_ClipVertex = gl_ModelViewMatrix * worldVertexPos;
+				gl_ClipVertex = viewMatrix * worldVertexPos;
 				// emulate linear fog
 				float fogCoord = length(gl_ClipVertex.xyz);
 				fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
