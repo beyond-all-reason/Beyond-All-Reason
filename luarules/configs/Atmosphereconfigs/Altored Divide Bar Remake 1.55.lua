@@ -52,12 +52,12 @@ if n%30 == 0 then
 		end
 		thunderstormradius = 750
 		if math.random(1,3) == 1 then
-			thunderstormready = true
+			thunderstormactive = true
 		else
-			thunderstormready = false
+			thunderstormactive = false
 		end
 	end
-	if thunderstormready and thunderstormready == true then
+	if thunderstormactive and thunderstormactive == true then
 		if thunderstormdirectionx == 1 then 
 			thunderstormcenterx = thunderstormcenterx + math.random(8,64)
 		elseif thunderstormdirectionx == 2 then 
@@ -78,7 +78,7 @@ if n%30 == 0 then
 			end
 		end
 		if thunderstormcenterx <= 0 and thunderstormcenterx >= mapsizeX and thunderstormcenterz <= 0 and thunderstormcenterz >= mapsizeZ then
-			thunderstormready = false
+			thunderstormactive = false
 		end
 	end
 end
@@ -87,7 +87,7 @@ if n%9000 > 4500  then
 	if n%15 == 0 then
        local r = math.random(0,4)
        if r == 0 then
-            if thunderstormready then
+            if thunderstormactive then
 				local posx = math.random(thunderstormxmin, thunderstormxmax)
 				local posz = math.random(thunderstormzmin, thunderstormzmax)
 				SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
