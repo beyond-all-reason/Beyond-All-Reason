@@ -5,7 +5,7 @@ function gadget:GameFrame(n)
 
 	-- DayNight Cycle
 	
-	if n%9000 > 3900 then
+	if n%9000 > 3900 and thunderstormactive == true then
 		SendToUnsynced("MapAtmosphereConfigSetSun", 0.4, 2.5, 0.4)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 0.15, 0.7, 2.5, 1.5)
 	else	
@@ -13,6 +13,11 @@ function gadget:GameFrame(n)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 2, 2)
 	end
 	
+	if thunderstormactive == false then
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
+		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 2, 2)
+	end
+
 -- ## Atmosphere Functions
 -- SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
 
@@ -87,7 +92,7 @@ if n%9000 > 4500  then
 	if n%15 == 0 then
        local r = math.random(0,4)
        if r == 0 then
-            if thunderstormactive then
+            if thunderstormactive == true then
 				local posx = math.random(thunderstormxmin, thunderstormxmax)
 				local posz = math.random(thunderstormzmin, thunderstormzmax)
 				SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
@@ -143,12 +148,12 @@ end
 	
 -- lightningstorms
 
-	if n%60 == 0 then
-       local r = math.random(0,2)
-       if r == 0 then
-	      SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-       end
-    end 
+	-- if n%60 == 0 then
+ --       local r = math.random(0,2)
+ --       if r == 0 then
+	--       SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+ --       end
+ --    end 
 
 	-- if n%6400 == 4900 then
 	-- 	SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
