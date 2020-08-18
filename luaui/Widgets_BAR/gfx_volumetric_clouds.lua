@@ -15,7 +15,7 @@ function widget:GetInfo()
   }
 end
 
-local enabled = true
+local enabled = false
 
 
 --------------------------------------------------------------------------------
