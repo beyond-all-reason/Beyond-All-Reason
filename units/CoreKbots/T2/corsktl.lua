@@ -8,7 +8,7 @@ return {
 		buildtime = 16975,
 		canmove = true,
 		cantbetransported = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 150,
 		cloakcostmoving = 400,
 		collisionvolumeoffsets = "0.5 4 0",
@@ -29,7 +29,7 @@ return {
 		maxvelocity = 2.8,
 		maxwaterdepth = 30,
 		mincloakdistance = 60,
-		movementclass = "AKBOTBOMB2",
+		movementclass = "ABOTBOMB2",
 		name = "Skuttle",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSKTL.s3o",
@@ -46,7 +46,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
-			subfolder = "corekbots/t2",
+			subfolder = "corebots/t2",
 			techlevel = 2,
 		},
 		sfxtypes = {

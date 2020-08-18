@@ -39,7 +39,7 @@ do
 	local smc = Game.speedModClasses
 	local wadingSMC = {
 		[smc.Tank] = true,
-		[smc.KBot] = true,
+		[smc.Bot] = true,
 	}
 	local SFXTYPE_WAKE1 = 2
 	local SFXTYPE_WAKE2 = 3

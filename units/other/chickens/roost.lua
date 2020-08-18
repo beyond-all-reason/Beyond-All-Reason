@@ -11,7 +11,7 @@ return {
 		builder = true,
 		buildpic = "chickens/roost.PNG",
 		buildtime = 10500,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 11 56",
 		collisionvolumetype = "box",

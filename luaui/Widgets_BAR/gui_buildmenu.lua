@@ -370,7 +370,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   --     addOrderImportance(unitDefID, skip, 8000000)
   --   elseif unitDef.modCategories['tank'] then
   --     addOrderImportance(unitDefID, skip, 7000000)
-  --   elseif unitDef.modCategories['kbot'] then
+  --   elseif unitDef.modCategories['bot'] then
   --     addOrderImportance(unitDefID, skip, 6000000)
   --   elseif unitDef.isAirUnit then
   --     addOrderImportance(unitDefID, skip, 5000000)

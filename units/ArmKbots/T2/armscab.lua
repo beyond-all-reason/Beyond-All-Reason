@@ -26,7 +26,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 1.7,
 		maxwaterdepth = 0,
-		movementclass = "TKBOT3",
+		movementclass = "TBOT3",
 		name = "Scarab",
 		noautofire = true,
 		nochasecategory = "ALL",
@@ -43,7 +43,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armkbots/t2",
+			subfolder = "armbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {

@@ -223,7 +223,7 @@ else
         local techLevels = {}
 
         local facSuffix = { --ignore t3
-            ["veh"] = "vp", ["kbot"] = "lab", ["air"] = "ap", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
+            ["veh"] = "vp", ["bot"] = "lab", ["air"] = "ap", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
         }
         local techSuffix = {
             ["t1"] = "", ["t2"] = "a" --t3 added later

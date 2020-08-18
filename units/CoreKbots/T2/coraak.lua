@@ -8,12 +8,12 @@ return {
 		buildpic = "CORAAK.PNG",
 		buildtime = 7600,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -1 -3",
 		collisionvolumescales = "27 29 22",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Heavy Amphibious Anti-Air Kbot",
+		description = "Heavy Amphibious Anti-Air Bot",
 		explodeas = "smallexplosiongeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
@@ -21,7 +21,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1280,
 		maxvelocity = 1.15,
-		movementclass = "AKBOT2",
+		movementclass = "ABOT2",
 		name = "Manticore",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
@@ -38,7 +38,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
 			prioritytarget = "air",
-			subfolder = "corekbots/t2",
+			subfolder = "corebots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -193,7 +193,7 @@ return {
 					default = 0,
 				},
 			},
-			coraakbot_missile1 = {
+			coraabot_missile1 = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				canattackground = false,
@@ -243,7 +243,7 @@ return {
 					vtol = 40,
 				},
 			},
-			coraakbot_missile2 = {
+			coraabot_missile2 = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				canattackground = false,
@@ -293,7 +293,7 @@ return {
 					vtol = 40,
 				},
 			},
-			coraakbot_missile3 = {
+			coraabot_missile3 = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				canattackground = false,
@@ -343,7 +343,7 @@ return {
 					vtol = 40,
 				},
 			},
-			coraakbot_missile4 = {
+			coraabot_missile4 = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				canattackground = false,
@@ -402,49 +402,49 @@ return {
 			},
 			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE3",
+				def = "CORAABOT_MISSILE3",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[3] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE1",
+				def = "CORAABOT_MISSILE1",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[4] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE2",
+				def = "CORAABOT_MISSILE2",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[5] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE1",
+				def = "CORAABOT_MISSILE1",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[6] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE2",
+				def = "CORAABOT_MISSILE2",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[7] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE3",
+				def = "CORAABOT_MISSILE3",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[8] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE4",
+				def = "CORAABOT_MISSILE4",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[9] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORAAKBOT_MISSILE4",
+				def = "CORAABOT_MISSILE4",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},

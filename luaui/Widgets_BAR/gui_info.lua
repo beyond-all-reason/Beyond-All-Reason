@@ -342,7 +342,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			unitOrder[unitDefID] = unitOrder[unitDefID] + 8000000
 		elseif unitDef.modCategories['tank'] then
 			unitOrder[unitDefID] = unitOrder[unitDefID] + 7000000
-		elseif unitDef.modCategories['kbot'] then
+		elseif unitDef.modCategories['bot'] then
 			unitOrder[unitDefID] = unitOrder[unitDefID] + 6000000
 		elseif unitDef.isAirUnit then
 			unitOrder[unitDefID] = unitOrder[unitDefID] + 5000000

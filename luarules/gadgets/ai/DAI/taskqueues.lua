@@ -656,16 +656,16 @@ function realincome(ai, resource)
 end
 
 ---- TECHTREE RELATED ----
-function KbotOrVeh()
+function BotOrVeh()
 	local veh = 0
-	local kbot = 1
+	local bot = 1
 	-- mapsize
 	mapsize = Game.mapX * Game.mapY
 	local randomnumber = math.random(1,mapsize+1)
 	if randomnumber >= 100 then
 		veh = veh + 1
 	else
-		kbot = kbot + 1
+		bot = bot + 1
 	end
 	-- windAvg
 	local avgWind = (Game.windMin + Game.windMax)/2
@@ -673,7 +673,7 @@ function KbotOrVeh()
 	if randomnumber >= 5 then
 		veh = veh + 1
 	else
-		kbot = kbot + 1
+		bot = bot + 1
 	end
 	-- numberPlayers
 	local teamList = Spring.GetTeamList()
@@ -682,7 +682,7 @@ function KbotOrVeh()
 	if randomnumber <= 6 then
 		veh = veh + 1
 	else
-		kbot = kbot + 1
+		bot = bot + 1
 	end
 	-- Height diffs
 	local min, max = Spring.GetGroundExtremes()
@@ -691,16 +691,16 @@ function KbotOrVeh()
 	if randomnumber <= 100 then
 		veh = veh + 1
 	else
-		kbot = kbot + 1
+		bot = bot + 1
 	end
-	if kbot > veh then
-		return 'kbot'
-	elseif veh > kbot then
+	if bot > veh then
+		return 'bot'
+	elseif veh > bot then
 		return 'veh'
 	elseif math.random(1,2) == 2 then
 		return 'veh'
 	else
-		return 'kbot'
+		return 'bot'
 	end
 end
 
@@ -1171,8 +1171,8 @@ function CorStarterLabT1(tqb, ai, unit)
 	if ai.aimodehandler.t2rusht1reclaim == true and AllAdvancedLabs(tqb, ai, unit) > 0 then return RequestedAction(tqb,ai,unit) end
 	local countStarterFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
 	if countStarterFacs < 1 then
-		local labtype = KbotOrVeh()
-		if labtype == "kbot" then
+		local labtype = BotOrVeh()
+		if labtype == "bot" then
 			return "corlab"
 		else
 			return "corvp"
@@ -1576,8 +1576,8 @@ function ArmStarterLabT1(tqb, ai, unit)
 	if ai.aimodehandler.t2rusht1reclaim == true and AllAdvancedLabs(tqb, ai, unit) > 0 then return RequestedAction(tqb, ai, unit) end
 	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
 	if countStarterFacs < 1 then
-		local labtype = KbotOrVeh()
-		if labtype == "kbot" then
+		local labtype = BotOrVeh()
+		if labtype == "bot" then
 			return "armlab"
 		else
 			return "armvp"

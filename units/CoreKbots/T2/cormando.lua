@@ -15,7 +15,7 @@ return {
 		canreclaim = true,
 		canrepair = true,
 		canrestore = false,
-		category = "ALL MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE KBOT EMPABLE",
+		category = "ALL MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE BOT EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "38 45 22",
 		collisionvolumetype = "box",
@@ -30,7 +30,7 @@ return {
 		maxdamage = 1400,
 		maxslope = 20,
 		maxvelocity = 2.5,
-		movementclass = "AKBOT2",
+		movementclass = "ABOT2",
 		name = "Commando",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMANDO.s3o",
@@ -58,7 +58,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Core_normal.dds",
-			subfolder = "corekbots/t2",
+			subfolder = "corebots/t2",
 			techlevel = 2,
 		},
 		sfxtypes = {

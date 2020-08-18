@@ -8,12 +8,12 @@ return {
 		buildpic = "ARMJETH.PNG",
 		buildtime = 1831,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "22.337184906006 33.337184906006 17.337184906006",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Amphibious Anti-air Kbot",
+		description = "Amphibious Anti-air Bot",
 		energymake = 0.4,
 		energyuse = 0.4,
 		explodeas = "smallExplosionGeneric-phib",
@@ -24,7 +24,7 @@ return {
 		maxdamage = 570,
 		maxslope = 15,
 		maxvelocity = 1.875,
-		movementclass = "AKBOT2",
+		movementclass = "ABOT2",
 		name = "Jethro",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMJETH.s3o",
@@ -38,11 +38,11 @@ return {
 		turnrate = 1285.69995,
 		upright = true,
 		customparams = {
-			description_long = "Jethro is a cheap mobile anti air (AA) Kbot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can even prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",
+			description_long = "Jethro is a cheap mobile anti air (AA) Bot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can even prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
-			subfolder = "armkbots",
+			subfolder = "armbots",
 		},
 		featuredefs = {
 			dead = {
@@ -118,7 +118,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armkbot_missile = {
+			armbot_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
@@ -202,7 +202,7 @@ return {
 			},
 			[3] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "ARMKBOT_MISSILE",
+				def = "ARMBOT_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
 		},

@@ -8,12 +8,12 @@ return {
 		buildpic = "ARMAAK.PNG",
 		buildtime = 6958,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "25 32 16",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Advanced Amphibious Anti-Air Kbot",
+		description = "Advanced Amphibious Anti-Air Bot",
 		explodeas = "mediumexplosiongeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
@@ -22,7 +22,7 @@ return {
 		maxdamage = 1020,
 		maxslope = 14,
 		maxvelocity = 1.58,
-		movementclass = "AKBOT2",
+		movementclass = "ABOT2",
 		name = "Archangel",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAK.s3o",
@@ -39,7 +39,7 @@ return {
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
-			subfolder = "armkbots/t2",
+			subfolder = "armbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -167,7 +167,7 @@ return {
 					[3] = 0.7,
 				},
 			},
-			armaakbot_missile1 = {
+			armaabot_missile1 = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				canattackground = false,
@@ -215,7 +215,7 @@ return {
 					vtol = 150,
 				},
 			},
-			armaakbot_missile2 = {
+			armaabot_missile2 = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				canattackground = false,
@@ -301,18 +301,18 @@ return {
 			},
 			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "ARMAAKBOT_MISSILE1",
+				def = "ARMAABOT_MISSILE1",
 				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "ARMAAKBOT_MISSILE2",
+				def = "ARMAABOT_MISSILE2",
 				onlytargetcategory = "VTOL",
 				slaveto = 2,
 			},
 			[4] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "ARMAAKBOT_MISSILE2",
+				def = "ARMAABOT_MISSILE2",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},

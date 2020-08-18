@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMVADER.PNG",
 		buildtime = 555000,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "91 91 91",
 		collisionvolumetype = "sphere",

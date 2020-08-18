@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMVADER.PNG",
 		buildtime = 7901,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "17 13 17",
 		collisionvolumetype = "box",
@@ -27,7 +27,7 @@ return {
 		maxslope = 32,
 		maxvelocity = 2.8,
 		maxwaterdepth = 112,
-		movementclass = "AKBOTBOMB2",
+		movementclass = "ABOTBOMB2",
 		name = "Invader",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVADER.s3o",
@@ -43,7 +43,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armkbots/t2",
+			subfolder = "armbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {

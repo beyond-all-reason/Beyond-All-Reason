@@ -8,12 +8,12 @@ return {
 		buildpic = "CORCRASH.PNG",
 		buildtime = 1900,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30.404109954834 37.404109954834 30.404109954834",
 		collisionvolumetype = "ell",
 		corpse = "DEAD",
-		description = "Amphibious Anti-air Kbot",
+		description = "Amphibious Anti-air Bot",
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallexplosiongeneric-phib",
@@ -24,7 +24,7 @@ return {
 		maxdamage = 580,
 		maxslope = 15,
 		maxvelocity = 1.783,
-		movementclass = "AKBOT2",
+		movementclass = "ABOT2",
 		name = "Crasher",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORCRASH.s3o",
@@ -38,11 +38,11 @@ return {
 		turnrate = 1278.79993,
 		upright = true,
 		customparams = {
-			description_long = "The Crasher is a cheap mobile anti air (AA) Kbot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",
+			description_long = "The Crasher is a cheap mobile anti air (AA) Bot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
 			prioritytarget = "air",
-			subfolder = "corekbots",
+			subfolder = "corebots",
 		},
 		featuredefs = {
 			dead = {
@@ -142,7 +142,7 @@ return {
 					default = 0,
 				},
 			},
-			corekbot_missile = {
+			corebot_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
@@ -199,7 +199,7 @@ return {
 			},
 			[3] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "COREKBOT_MISSILE",
+				def = "COREBOT_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
 		},

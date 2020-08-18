@@ -8,7 +8,7 @@ return {
 		buildpic = "CORROACH.PNG",
 		buildtime = 7899,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "18 14 18",
 		collisionvolumetype = "CylY",
@@ -26,7 +26,7 @@ return {
 		maxslope = 32,
 		maxvelocity = 2.7,
 		maxwaterdepth = 112,
-		movementclass = "AKBOTBOMB2",
+		movementclass = "ABOTBOMB2",
 		name = "Roach",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORROACH.s3o",
@@ -42,7 +42,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
-			subfolder = "corekbots/t2",
+			subfolder = "corebots/t2",
 			techlevel = 2,
 		},
 		sfxtypes = {

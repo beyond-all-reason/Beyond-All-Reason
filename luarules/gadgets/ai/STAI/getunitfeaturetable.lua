@@ -200,7 +200,7 @@ local function GetUnitTable()
 					utable.mtype = 'sub'
 				elseif	utable.isBuilding and not utable.needsWater then
 					utable.mtype = 'veh'
-				elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'akbot') or string.find(unitDef.moveDef.name, 'vkbot')  or string.find(unitDef.moveDef.name,'atank'))  then
+				elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
 					utable.mtype = 'amp'
 				elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then 
 					utable.mtype = 'sub'

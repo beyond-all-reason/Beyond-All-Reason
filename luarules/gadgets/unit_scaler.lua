@@ -31,7 +31,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 		--t1 = 0.95,
 		--t2 = 1.1,
 		--t3 = 1.4,
-		--kbot = 0.9,
+		--bot = 0.9,
 		--vehicle = 1,
 		--ship = 1,
 		--air = 1,
@@ -73,8 +73,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 					elseif scales.t1 then
 						scale = scale * scales.t1
 					end
-					if scales.kbot and ud.modCategories.kbot then
-						scale = scale * scales.kbot
+					if scales.bot and ud.modCategories.bot then
+						scale = scale * scales.bot
 					end
 					if scales.vehicle and ud.modCategories.tank then
 						scale = scale * scales.vehicle

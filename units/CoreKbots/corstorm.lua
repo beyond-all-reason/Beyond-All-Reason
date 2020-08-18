@@ -7,12 +7,12 @@ return {
 		buildpic = "CORSTORM.PNG",
 		buildtime = 1949,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "26.637012481689 28.637012481689 17.637012481689",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Rocket Kbot - good vs. static defenses",
+		description = "Rocket Bot - good vs. static defenses",
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallexplosiongeneric",
@@ -24,7 +24,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 1.59,
 		maxwaterdepth = 21,
-		movementclass = "KBOT3",
+		movementclass = "BOT3",
 		name = "Storm",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSTORM.s3o",
@@ -38,10 +38,10 @@ return {
 		turnrate = 1268.44995,
 		upright = true,
 		customparams = {
-			description_long = "Storm is a light rocket Kbot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Storms can force him to retreat. In bigger numbers and with repairing support of resurrection Kbots they are able to take down more advanced defensive structures. Very ineffective against fast mobile units, watch out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing defense. In comparison to their ARM counterpart (Rockos) they are a bit slower, but stonger at the same time",
+			description_long = "Storm is a light rocket Bot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Storms can force him to retreat. In bigger numbers and with repairing support of resurrection Bots they are able to take down more advanced defensive structures. Very ineffective against fast mobile units, watch out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing defense. In comparison to their ARM counterpart (Rockos) they are a bit slower, but stonger at the same time",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
-			subfolder = "corekbots",
+			subfolder = "corebots",
 		},
 		featuredefs = {
 			dead = {
@@ -117,7 +117,7 @@ return {
 			},
 		},
 		weapondefs = {
-			core_kbot_rocket = {
+			core_bot_rocket = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall",
@@ -157,7 +157,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORE_KBOT_ROCKET",
+				def = "CORE_BOT_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -10,7 +10,7 @@ General
 
 Units
  • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice
- • Ground scouts (vehicles/kbot): 10% more LoS
+ • Ground scouts (vehicles/bot): 10% more LoS
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Decreased cormaw damage 27%
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)

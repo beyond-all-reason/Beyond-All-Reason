@@ -39,7 +39,7 @@ return {
 		maxwaterdepth = 200,
 		metalmake = 5,
 		--mincloakdistance = 120,
-		movementclass = "COMMANDERKBOT",
+		movementclass = "COMMANDERBOT",
 		name = "Commander Boss",
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/ARMCOMBOSS.s3o",

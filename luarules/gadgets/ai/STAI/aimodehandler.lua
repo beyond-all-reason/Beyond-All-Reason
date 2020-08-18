@@ -114,7 +114,7 @@ function AiModeHandler:PickASide(i)
 	end
 end
 
-function corkbot(tqb,ai,unit)
+function corbot(tqb,ai,unit)
 	if UDC(ai.id, UDN.corlab.id) < 1 then
 		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
 			return {action = "nexttask"}
@@ -164,7 +164,7 @@ function cort3(tqb,ai,unit)
 	return nil
 end
 
-function armkbot(tqb,ai,unit)
+function armbot(tqb,ai,unit)
 	if UDC(ai.id, UDN.armlab.id) < 1 then
 		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
 			return {action = "nexttask"}
@@ -216,13 +216,13 @@ end
 
 function AiModeHandler:CreateWantedTechTree(i,j)
 	self.corexpfunctions = {
-		corkbot,
+		corbot,
 		corvehicle,
 		corair,
 		cort3,
 		}
 	self.armexpfunctions = {
-		armkbot,
+		armbot,
 		armvehicle,
 		armair,
 		armt3,

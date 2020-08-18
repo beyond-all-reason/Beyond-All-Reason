@@ -7,12 +7,12 @@ return {
 		buildpic = "ARMAMPH.PNG",
 		buildtime = 5182,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE PHIB EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE PHIB EMPABLE",
 		collisionvolumeoffsets = "0 0 -8",
 		collisionvolumescales = "27 27 33",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Amphibious Kbot",
+		description = "Amphibious Bot",
 		energymake = 0.4,
 		energyuse = 0.4,
 		explodeas = "smallExplosionGeneric-phib",
@@ -40,7 +40,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armkbots/t2",
+			subfolder = "armbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {

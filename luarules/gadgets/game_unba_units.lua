@@ -52,9 +52,9 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 			end
 
 		elseif uDef.modCategories["commander"] ~= nil then
-			categories[unitDefID] = 'kbot'
-		elseif uDef.modCategories["kbot"] ~= nil then
-			categories[unitDefID] = 'kbot'
+			categories[unitDefID] = 'bot'
+		elseif uDef.modCategories["bot"] ~= nil then
+			categories[unitDefID] = 'bot'
 
 		elseif uDef.modCategories["tank"] ~= nil then
 			categories[unitDefID] = 'tank'

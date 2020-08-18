@@ -39,7 +39,7 @@ return {
 		metalmake = 0.5,
 		metalstorage = 50,
 		mincloakdistance = 50,
-		movementclass = "COMMANDERKBOT",
+		movementclass = "COMMANDERBOT",
 		name = "Commander",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCOM.s3o",
@@ -81,7 +81,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "corekbots/t2",
+			subfolder = "corebots/t2",
 			techlevel = 2,
 		},
 		sfxtypes = {

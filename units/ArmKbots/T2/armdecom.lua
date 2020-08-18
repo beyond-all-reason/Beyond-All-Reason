@@ -39,7 +39,7 @@ return {
 		metalmake = 0.5,
 		metalstorage = 50,
 		mincloakdistance = 50,
-		movementclass = "COMMANDERKBOT",
+		movementclass = "COMMANDERBOT",
 		name = "Commander",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMCOM.s3o",
@@ -81,7 +81,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "armkbots/t2",
+			subfolder = "armbots/t2",
 			techlevel = 2,
 		},
 		sfxtypes = {

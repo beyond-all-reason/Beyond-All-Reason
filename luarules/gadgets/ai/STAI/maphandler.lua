@@ -186,7 +186,7 @@ end
 
 function MapHandler:MapMobility()
 	-- check for water map works like this:
-	-- the map is divided into sectors, then center of each sector is tested if specific unit can be built there (water, kbot, vehicle)
+	-- the map is divided into sectors, then center of each sector is tested if specific unit can be built there (water, bot, vehicle)
 	local mapSize = self.map:MapDimensions()
 	mobilityGridSize = math.floor(math.max(mapSize.x * 8, mapSize.z * 8) / 128)
 	mobilityGridSize = math.max(mobilityGridSize, 32) -- don't make grids smaller than 32

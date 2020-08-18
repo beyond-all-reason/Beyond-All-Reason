@@ -131,7 +131,7 @@ local icons = {
     {"krogoth.user", "mech",3.3},
     {"bantha.user", "bantha",2.6},
     {"juggernaut.user", "juggernaut",3.2},
-    {"juggernaut2.user", "kbot",2.75},
+    {"juggernaut2.user", "bot",2.75},
     {"commando.user", "commando",1.35},
     {"commando2.user", "mech",1.3},  -- old
 
@@ -166,21 +166,21 @@ local icons = {
     {"allterrain_t3.user", "allterrain",1.95},
     {"allterrain_vanguard.user", "allterrain",2.3},
 
-    {"kbot_t1_flea.user", "kbot",0.51},
-    {"kbot_t1_tinyworker.user", "worker",0.66},
-    {"kbot_t1_raid.user", "kbot",0.7},
-    {"kbot_t1.user", "kbot",0.95},
-    {"kbot_t1_big.user", "kbot",1.1},
-    {"kbot_t1_worker.user", "kbot_worker",0.95},
-    {"kbot_t1_aa.user", "kbot_aa",0.95},
-    {"kbot_t2_raid.user", "kbot",1.1},
-    {"kbot_t2.user", "kbot",1.28},
-    {"kbot_t2_radar.user", "kbot_radar",1.28},
-    {"kbot_t2_jammer.user", "kbot_jammer",1.28},
-    {"kbot_t2_big.user", "kbot",1.47},
-    {"kbot_t2_worker.user", "kbot_worker", 1.33},
-    {"kbot_t2_aa.user", "kbot_aa",1.28},
-    {"kbot_t3.user", "kbot",1.9},
+    {"bot_t1_flea.user", "bot",0.51},
+    {"bot_t1_tinyworker.user", "worker",0.66},
+    {"bot_t1_raid.user", "bot",0.7},
+    {"bot_t1.user", "bot",0.95},
+    {"bot_t1_big.user", "bot",1.1},
+    {"bot_t1_worker.user", "bot_worker",0.95},
+    {"bot_t1_aa.user", "bot_aa",0.95},
+    {"bot_t2_raid.user", "bot",1.1},
+    {"bot_t2.user", "bot",1.28},
+    {"bot_t2_radar.user", "bot_radar",1.28},
+    {"bot_t2_jammer.user", "bot_jammer",1.28},
+    {"bot_t2_big.user", "bot",1.47},
+    {"bot_t2_worker.user", "bot_worker", 1.33},
+    {"bot_t2_aa.user", "bot_aa",1.28},
+    {"bot_t3.user", "bot",1.9},
 
     {"vehicle_t1_flea.user", "vehicle",0.55},
     {"vehicle_t1_raid.user", "vehicle",0.85},
@@ -208,8 +208,8 @@ local icons = {
     {"factory_t3.user", "factory",2.4},
     {"factory_t1_vehicle.user", "factory_vehicle",1.45},
     {"factory_t2_vehicle.user", "factory_vehicle_t2",1.85},
-    {"factory_t1_kbot.user", "factory_kbot",1.45},
-    {"factory_t2_kbot.user", "factory_kbot_t2",1.85},
+    {"factory_t1_bot.user", "factory_bot",1.45},
+    {"factory_t2_bot.user", "factory_bot_t2",1.85},
     {"factory_t1_ship.user", "factory_ship",1.45},
     {"factory_t2_ship.user", "factory_ship_t2",1.85},
     {"factory_t1_air.user", "factory_air",1.45},
@@ -527,10 +527,10 @@ function loadUnitIcons()
 				Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_air.user")
 			elseif (name=="armaap" or name =="coraap") and getIconID(iconPrefix..'factory_t1_air') then
 				Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2_air.user")
-			elseif (name=="armlab" or name =="corlab") and getIconID(iconPrefix..'factory_t1_kbot') then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_kbot.user")
-			elseif (name=="armalab" or name =="coralab") and getIconID(iconPrefix..'factory_t2_kbot') then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2_kbot.user")
+			elseif (name=="armlab" or name =="corlab") and getIconID(iconPrefix..'factory_t1_bot') then
+				Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_bot.user")
+			elseif (name=="armalab" or name =="coralab") and getIconID(iconPrefix..'factory_t2_bot') then
+				Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2_bot.user")
 			elseif (name=="armvp" or name =="corvp") and getIconID(iconPrefix..'factory_t1_vehicle') then
 				Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_vehicle.user")
 			elseif (name=="armavp" or name =="coravp") and getIconID(iconPrefix..'factory_t2_vehicle') then
@@ -873,7 +873,7 @@ function loadUnitIcons()
 			end
 
 			-- all terrain
-		elseif ud.moveDef.name == "tkbot2" or ud.moveDef.name == "tkbot3" or ud.moveDef.name == "htkbot4" then
+		elseif ud.moveDef.name == "tbot2" or ud.moveDef.name == "tbot3" or ud.moveDef.name == "htbot4" then
 
 			if name=="armvang" then
 				Spring.SetUnitDefIcon(udid, iconPrefix.."allterrain_vanguard.user")
@@ -887,46 +887,46 @@ function loadUnitIcons()
 				Spring.SetUnitDefIcon(udid, iconPrefix.."allterrain_t1.user")
 			end
 
-			-- kbots
-		elseif ud.modCategories["kbot"] ~= nil then
+			-- bots
+		elseif ud.modCategories["bot"] ~= nil then
 
 			if (name=="corsumo") then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_big.user")
+				Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t2_big.user")
 			elseif name=="armflea" then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_flea.user")
+				Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t1_flea.user")
 			elseif name=="corak" or name=="armpw" then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_raid.user")
+				Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t1_raid.user")
 			elseif name=="armfast" then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_raid.user")
+				Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t2_raid.user")
 			elseif name=="corvoyr" or name=="armmark" then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_radar.user")
+				Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t2_radar.user")
 			elseif name=="corspec" or name=="armaser" then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_jammer.user")
+				Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t2_jammer.user")
 			elseif name=="armham" or name=="armwar" or name=="corthud" then
-				Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_big.user")
+				Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t1_big.user")
 			elseif ud.isBuilder then
 				if (name=="cornecro" or name=="armrectr") then
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_tinyworker.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t1_tinyworker.user")
 				elseif (name=="armfark" or name=="corfast") then
 					Spring.SetUnitDefIcon(udid, iconPrefix.."engineer_small.user")
 				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_worker.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t2_worker.user")
 				else
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_worker.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t1_worker.user")
 				end
 			elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
 				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_aa.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t2_aa.user")
 				else
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_aa.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_aa.user")
 				end
 			else
 				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t3.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t3.user")
 				elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t2.user")
 				else
-					Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1.user")
+					Spring.SetUnitDefIcon(udid, iconPrefix.."bot_t1.user")
 				end
 			end
 

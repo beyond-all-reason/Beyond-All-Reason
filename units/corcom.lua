@@ -39,7 +39,7 @@ return {
 		maxwaterdepth = 35,
 		metalmake = 1.5,
 		mincloakdistance = 50,
-		movementclass = "COMMANDERKBOT",
+		movementclass = "COMMANDERBOT",
 		name = "Commander",
 		nochasecategory = "ALL",
 		objectname = "Units/CORCOM.s3o",

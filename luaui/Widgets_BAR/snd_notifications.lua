@@ -207,13 +207,13 @@ local buzzsawDefID = UnitDefNames['corbuzz'].id
 local isFactoryAir = {[UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true}
 local isFactoryAirSea = {[UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true}
 local isFactoryVeh = {[UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].id] = true}
-local isFactoryKbot = {[UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true}
+local isFactoryBot = {[UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true}
 local isFactoryHover = {[UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true}
 local isFactoryShip = {[UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true}
 local numFactoryAir = 0
 local numFactoryAirSea = 0
 local numFactoryVeh = 0
-local numFactoryKbot = 0
+local numFactoryBot = 0
 local numFactoryHover = 0
 local numFactoryShip = 0
 
@@ -455,7 +455,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 				QueueTutorialNotification('t_factoryair')
 			elseif isFactoryAirSea[unitDefID] then
 				QueueTutorialNotification('t_factoryairsea')
-			elseif isFactoryKbot[unitDefID] then
+			elseif isFactoryBot[unitDefID] then
 				QueueTutorialNotification('t_factorybots')
 			elseif isFactoryHover[unitDefID] then
 				QueueTutorialNotification('t_factoryhovercraft')
@@ -549,9 +549,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 						QueueNotification('t_duplicatefactory')
 					end
 				end
-				if isFactoryKbot[unitDefID] then
-					numFactoryKbot = numFactoryKbot + 1
-					if numFactoryKbot > 1 then
+				if isFactoryBot[unitDefID] then
+					numFactoryBot = numFactoryBot + 1
+					if numFactoryBot > 1 then
 						QueueNotification('t_duplicatefactory')
 					end
 				end
@@ -621,8 +621,8 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 		if isFactoryVeh[unitDefID] then
 			numFactoryVeh = numFactoryVeh - 1
 		end
-		if isFactoryKbot[unitDefID] then
-			numFactoryKbot = numFactoryKbot - 1
+		if isFactoryBot[unitDefID] then
+			numFactoryBot = numFactoryBot - 1
 		end
 		if isFactoryHover[unitDefID] then
 			numFactoryHover = numFactoryHover - 1

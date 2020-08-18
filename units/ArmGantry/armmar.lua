@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMMAR.PNG",
 		buildtime = 26061,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -2 -2",
 		collisionvolumescales = "29 31 45",
 		collisionvolumetype = "Box",
