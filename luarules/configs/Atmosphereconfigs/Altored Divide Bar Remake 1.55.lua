@@ -35,8 +35,7 @@ local lightningsounds = {
 	"thunder5",
 	"thunder6",
 	}  
-
-
+	
 if n%30 == 0 then
 	if n%9000 == 4500 then
 		thunderstormcenterx = math.random(0, (mapsizeX))
@@ -52,9 +51,13 @@ if n%30 == 0 then
 			thunderstormdirectionz = 2
 		end
 		thunderstormradius = 750
-		thunderstormready = true
+		if math.random(1,3) == 1 then
+			thunderstormready = true
+		else
+			thunderstormready = false
+		end
 	end
-	if thunderstormready then
+	if thunderstormready and thunderstormready == true then
 		if thunderstormdirectionx == 1 then 
 			thunderstormcenterx = thunderstormcenterx + math.random(8,64)
 		elseif thunderstormdirectionx == 2 then 
@@ -73,6 +76,9 @@ if n%30 == 0 then
 			if n%300 == 0 and thunderstormcenterx > 0 and thunderstormcenterx < mapsizeX and thunderstormcenterz > 0 and thunderstormcenterz < mapsizeZ then
 				SpawnCEGInPositionGround("rainpatch", thunderstormcenterx, 0, thunderstormcenterz, _, _, _, "rainlight", 1)
 			end
+		end
+		if thunderstormcenterx <= 0 and thunderstormcenterx >= mapsizeX and thunderstormcenterz <= 0 and thunderstormcenterz >= mapsizeZ then
+			thunderstormready = false
 		end
 	end
 end
