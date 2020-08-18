@@ -247,8 +247,12 @@ fragSrc = fragSrc:format(
   fade_alt, opacity, sunPenetration
 )
 
+if Platform.glSupportClipSpaceControl then
+	fragSrc = '#define DEPTH_CLIP01\n' .. fragSrc
+end
+
 if(cloudsClamp) then
-  fragSrc = '#define CLAMP_TO_MAP\n' .. fragSrc
+	fragSrc = '#define CLAMP_TO_MAP\n' .. fragSrc
 end
 
 --fragSrc = '#version 150 compatibility\n'..fragSrc

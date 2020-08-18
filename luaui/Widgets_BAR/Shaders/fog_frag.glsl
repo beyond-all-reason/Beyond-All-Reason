@@ -1,3 +1,4 @@
+#line 10001
 const float noiseScale = 1. / float(%f);
 const float fogHeight = float(%f);
 const float fogBottom = float(%f);
@@ -8,7 +9,7 @@ const float mapZ = float(%f);
 const float fadeAltitude = float(%f);
 const float opacity = float(%f);
 
-const float sunPenetrationDepth = float(%f); 
+const float sunPenetrationDepth = float(%f);
 const float sunDiffuseStrength = float(6.0);
 const float noiseTexSizeInv = 1.0 / 256.0;
 const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
@@ -31,7 +32,7 @@ uniform vec3 sundir;
 uniform vec3 suncolor;
 uniform float time;
 
-/*const*/ float sunSpecularColor = suncolor; //FIXME
+//float sunSpecularColor = suncolor; //FIXME
 const float sunSpecularExponent = float(100.0);
 
 float noise(in vec3 x)
@@ -136,12 +137,17 @@ vec4 RaymarchClouds(in vec3 start, in vec3 end)
 	return col;
 }
 
-
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
 vec3 GetWorldPos(in vec2 screenpos)
 {
 	float z = texture2D(tex0, screenpos).x;
 	vec4 ppos;
-	ppos.xyz = vec3(screenpos, z) * 2. - 1.;
+	#ifdef DEPTH_CLIP01
+		ppos.xyz = vec3(NORM2SNORM(screenpos), z);
+	#else
+		ppos.xyz = NORM2SNORM(vec3(screenpos, z));
+	#endif
+
 	ppos.a   = 1.;
 	vec4 worldPos4 = viewProjectionInv * ppos;
 	worldPos4.xyz /= worldPos4.w;
@@ -169,7 +175,7 @@ void main()
 	box.Min = vAA;
 	box.Max = vBB;
 	float t1, t2;
-	
+
 	// TODO: find a way to do this when eye is inside volume
 	if (!IntersectBox(r, box, t1, t2)) {
 		gl_FragColor = vec4(0.);
