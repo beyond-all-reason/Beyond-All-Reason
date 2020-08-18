@@ -26,6 +26,8 @@ local barScale                  = 1
 
 local barHeightOffset           = 34		 -- set value that healthbars for units that can unfold and become larger than its unitdef.height are still visible
 
+local drawDistanceMult          = 1
+
 local barHeight                 = 2.55
 local barWidth                  = 12         --// (barWidth)x2 total width!!!
 local barAlpha                  = 0.86
@@ -67,6 +69,7 @@ local maxFeatureDistance        = 570000    --max squared distance at which any 
 local maxUnitDistance           = 12000000  --max squared distance at which any info is drawn for units  MUST BE LARGER THAN FOR FEATURES!
 
 local minReloadTime             = 4 --// in seconds
+
 
 local destructableFeature = {}
 local drawnFeature = {}
@@ -767,12 +770,18 @@ function widget:Initialize()
     barScale = value
     init()
   end
-  WG['healthbars'].getHideHealth = function()
-    return hideHealthbars
-  end
-  WG['healthbars'].setHideHealth = function(value)
-    hideHealthbars = value
-  end
+	WG['healthbars'].getHideHealth = function()
+		return hideHealthbars
+	end
+	WG['healthbars'].setHideHealth = function(value)
+		hideHealthbars = value
+	end
+	WG['healthbars'].getDrawDistance = function()
+		return drawDistanceMult
+	end
+	WG['healthbars'].setDrawDistance = function(value)
+		drawDistanceMult = value
+	end
 
   init()
 end
@@ -1048,8 +1057,8 @@ do
     fullText = true
     dx, dy, dz = ux-cx, uy-cy, uz-cz
     dist = dx*dx + dy*dy + dz*dz
-    if dist > infoDistance then
-      if dist > maxUnitDistance then
+    if dist > infoDistance*drawDistanceMult then
+      if dist > maxUnitDistance*drawDistanceMult then
         return
       end
       fullText = false
@@ -1099,7 +1108,7 @@ do
         if hp100<0 then hp100=0 elseif hp100>100 then hp100=100 end
         if drawFullHealthBars or hp100<100 and not (hp<0) then
           local infotext = ''
-          if fullText and (hp100 and hp100 <= drawBarPercentage and hp100 > 0) or dist < minPercentageDistance then
+          if fullText and (hp100 and hp100 <= drawBarPercentage and hp100 > 0) or dist < minPercentageDistance*drawDistanceMult then
             infotext = hp100..'%'
           end
           if alwaysDrawBarPercentageForComs then
@@ -1114,7 +1123,7 @@ do
       --// BUILD
       if build < 1 then
         local infotext = ''
-        if fullText and (drawBarPercentage > 0 or dist < minPercentageDistance) then
+        if fullText and (drawBarPercentage > 0 or dist < minPercentageDistance*drawDistanceMult) then
           infotext = floor(build * 100)..'%'
         end
         AddBar("building", build, "build", infotext or '')
@@ -1314,7 +1323,7 @@ do
 
     --if the camera is too far up, higher than maxDistance on smoothmesh, dont even call any visibility checks or nothing
     local smoothheight=GetSmoothMeshHeight(cx,cz) --clamps x and z
-    if ((cy-smoothheight)^2 < maxUnitDistance) then
+    if ((cy-smoothheight)^2 < maxUnitDistance*drawDistanceMult) then
 
 	  glDepthTest(true)	-- enabling this will make healthbars opague to other healthbars
       glDepthMask(true)
@@ -1347,7 +1356,7 @@ do
 
       --// draw bars for features
       local drawFeatureInfo = false
-      if ((cy-smoothheight)^2 < maxFeatureDistance) then
+      if ((cy-smoothheight)^2 < maxFeatureDistance*drawDistanceMult) then
         drawFeatureInfo = true
       end
       local wx, wy, wz, dx, dy, dz, dist, featureInfo, resurrect, reclaimLeft
@@ -1365,8 +1374,8 @@ do
             wx, wy, wz = featureInfo[1],featureInfo[2],featureInfo[3]
             dx, dy, dz = wx-cx, wy-cy, wz-cz
             dist = dx*dx + dy*dy + dz*dz
-            if (dist < maxFeatureDistance or (((featureResurrectVisibility and resurrect and resurrect > 0) or (featureReclaimVisibility and reclaimLeft and reclaimLeft < 1)) and dist <= maxUnitDistance)) then
-              if (dist < maxFeatureInfoDistance) then
+            if (dist < maxFeatureDistance*drawDistanceMult or (((featureResurrectVisibility and resurrect and resurrect > 0) or (featureReclaimVisibility and reclaimLeft and reclaimLeft < 1)) and dist <= maxUnitDistance*drawDistanceMult)) then
+              if (dist < maxFeatureInfoDistance*drawDistanceMult) then
                 DrawFeatureInfos(featureInfo[4], featureInfo[5], true, wx,wy,wz)
               else
                 DrawFeatureInfos(featureInfo[4], featureInfo[5], false, wx,wy,wz)
@@ -1406,7 +1415,7 @@ do
     blink = (sec%1)<0.5
 
     sec1=sec1+dt
-    if (sec1>1/4) and ((cy-smoothheight)^2 < maxUnitDistance) then
+    if (sec1>1/4) and ((cy-smoothheight)^2 < maxUnitDistance*drawDistanceMult) then
       sec1 = 0
       visibleUnits = GetVisibleUnits(-1,nil,false)	-- expensive
     end
@@ -1431,7 +1440,7 @@ do
     end
 
     sec2=sec2+dt
-    if (sec2>1/2) and  ((cy-smoothheight)^2 < maxFeatureDistance)  then
+    if (sec2>1/2) and  ((cy-smoothheight)^2 < maxFeatureDistance*drawDistanceMult)  then
       sec2 = 0
       visibleFeatures = GetVisibleFeatures(-1,nil,false,false)
       local cnt = #visibleFeatures
@@ -1488,7 +1497,8 @@ function widget:GetConfigData(data)
     savedTable.drawBarPercentage				= drawBarPercentage
     savedTable.alwaysDrawBarPercentageForComs	= alwaysDrawBarPercentageForComs
     savedTable.currentOption					= currentOption
-    savedTable.hideHealthbars                   = hideHealthbars
+	savedTable.hideHealthbars                   = hideHealthbars
+	savedTable.drawDistanceMult                 = drawDistanceMult
     return savedTable
 end
 
@@ -1497,9 +1507,12 @@ function widget:SetConfigData(data)
   drawBarPercentage = data.drawBarPercentage or drawBarPercentage
   alwaysDrawBarPercentageForComs = data.alwaysDrawBarPercentageForComs or alwaysDrawBarPercentageForComs
   currentOption = data.currentOption or currentOption
-  if data.hideHealthbars ~= nil then
-    hideHealthbars = data.hideHealthbars
-  end
+	if data.hideHealthbars ~= nil then
+		hideHealthbars = data.hideHealthbars
+	end
+	if data.drawDistanceMult ~= nil then
+		drawDistanceMult = data.drawDistanceMult
+	end
 end
 
 function widget:TextCommand(command)
