@@ -15,7 +15,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
-		collisionvolumescales = "46 22 35",
+		collisionvolumescales = "32 25 32",
 		collisionvolumetype = "Box",
 		description = "Converts 70 energy into 1 metal per sec",
 		explodeas = "metalmaker",
