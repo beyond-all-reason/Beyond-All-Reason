@@ -14,7 +14,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 5 0",
-		collisionvolumescales = "32 70 32",
+		collisionvolumescales = "32 77 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Light Laser Tower",
