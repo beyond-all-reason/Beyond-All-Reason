@@ -10,6 +10,8 @@ const float fadeAltitude = float(%f);
 const float opacity = float(%f);
 
 const float sunPenetrationDepth = float(%f);
+
+const float shadowOpacity = 0.4;
 const float sunDiffuseStrength = float(6.0);
 const float noiseTexSizeInv = 1.0 / 256.0;
 const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
@@ -31,6 +33,10 @@ uniform vec3 offset;
 uniform vec3 sundir;
 uniform vec3 suncolor;
 uniform float time;
+
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
 
 //float sunSpecularColor = suncolor; //FIXME
 const float sunSpecularExponent = float(100.0);
@@ -72,33 +78,33 @@ bool IntersectBox(in Ray r, in AABB aabb, out float t0, out float t1)
 }
 
 
+
 const mat3 m = mat3( 0.00,  0.80,  0.60,
                     -0.80,  0.36, -0.48,
-                    -0.60, -0.48,  0.64 ) * 2.02;
+                    -0.60, -0.48,  0.64 ) * 2.01;
+
 
 float MapClouds(in vec3 p)
 {
-	float factor = 1.0-smoothstep(fadeAltitude,fogHeight,p.y);
+	float factor = 1.0 - smoothstep(fadeAltitude, fogHeight, p.y);
 
 	p += offset;
 	p *= noiseScale;
+
 	p += time * 0.07;
 
 	float f = noise( p );
-	p = m*p - time * 0.3;
-	f += 0.25 * noise( p );
-	p = m*p - time * 0.07;
-	f += 0.1250 * noise( p );
-	p = m*p + time * 0.8;
-	f += 0.0625 * noise( p );
+	p = m * p + time * 0.3;
+	f += 0.4 * noise( 1.01 * p );
+	p = m * p - time * 0.6;
+	f += 0.2 * noise( 1.03 * p );
 
-    f = mix(0.0,f,factor);
+    f = mix(0.0, f, factor);
 
 	return f;
 }
 
-
-vec4 RaymarchClouds(in vec3 start, in vec3 end)
+vec4 RaymarchClouds(in vec3 start, in vec3 end, float op)
 {
 	float l = length(end - start);
 	const float numsteps = 20.0;
@@ -125,7 +131,7 @@ vec4 RaymarchClouds(in vec3 start, in vec3 end)
 
 	fogContrib *= tstep;
 	sunContrib *= tstep;
-	alpha      *= tstep * opacity * depth;
+	alpha      *= tstep * op * depth;
 
 	vec3 ndir = (end - start) / l;
 	float sun = pow( clamp( dot(sundir, ndir), 0.0, 1.0 ), sunSpecularExponent );
@@ -137,10 +143,8 @@ vec4 RaymarchClouds(in vec3 start, in vec3 end)
 	return col;
 }
 
-#define NORM2SNORM(value) (value * 2.0 - 1.0)
-vec3 GetWorldPos(in vec2 screenpos)
+vec3 GetWorldPos(in float z, in vec2 screenpos)
 {
-	float z = texture2D(tex0, screenpos).x;
 	vec4 ppos;
 	#ifdef DEPTH_CLIP01
 		ppos.xyz = vec3(NORM2SNORM(screenpos), z);
@@ -148,7 +152,7 @@ vec3 GetWorldPos(in vec2 screenpos)
 		ppos.xyz = NORM2SNORM(vec3(screenpos, z));
 	#endif
 
-	ppos.a   = 1.;
+	ppos.a = 1.;
 	vec4 worldPos4 = viewProjectionInv * ppos;
 	worldPos4.xyz /= worldPos4.w;
 
@@ -161,36 +165,87 @@ vec3 GetWorldPos(in vec2 screenpos)
 	return worldPos4.xyz;
 }
 
+vec4 Blend(in vec4 Src, in vec4 Dst)
+{
+	//alpha blending
+	//vec4 Out = Src * Src.a + Dst * (1.0 - Src.a);
+	//Out.a = max(Src.a, Dst.a);
+	vec4 Out;
+
+	//alpha blending - shit
+	//Out = Src * Src.a + Dst * (1.0 - Src.a);
+
+	Out.rgb = Src.rgb * Src.a + Dst.rgb * Dst.a;
+	//Out.a = max(Src.a, Dst.a);
+	Out.a = Src.a + Dst.a;
+
+	return Out;
+}
+
 
 void main()
 {
 	// reconstruct worldpos from depthbuffer
-	vec3 worldPos = GetWorldPos(gl_TexCoord[0].st);
+	float z = texture2D(tex0, gl_TexCoord[0].st).x;
+	vec3 worldPos = GetWorldPos(z, gl_TexCoord[0].st);
 
-	// clamp ray in boundary box
-	Ray r;
-	r.Origin = eyePos;
-	r.Dir = worldPos - eyePos;
-	AABB box;
-	box.Min = vAA;
-	box.Max = vBB;
-	float t1, t2;
+	gl_FragColor = vec4(0.0);
 
-	// TODO: find a way to do this when eye is inside volume
-	if (!IntersectBox(r, box, t1, t2)) {
-		gl_FragColor = vec4(0.);
-		return;
+	#if 1
+	{
+		if (z != 1.0) {
+			//vec4 sunPos = vec4(sundir * fogHeight / dot(sundir, vec3(0, 1, 0)), 1.0);
+			vec3 sunPos = sundir * 50000.0;
+
+			// clamp ray in boundary box
+			Ray r;
+			r.Origin = worldPos;
+			r.Dir = sunPos - worldPos;
+			AABB box;
+			box.Min = vAA;
+			box.Max = vBB;
+			float t1, t2;
+
+			// TODO: find a way to do this when eye is inside volume
+			if (IntersectBox(r, box, t1, t2)) {
+				t1 = clamp(t1, 0.0, 1.0);
+				t2 = clamp(t2, 0.0, 1.0);
+				vec3 startPos = r.Dir * t1 + r.Origin;
+				vec3 endPos   = r.Dir * t2 + r.Origin;
+
+				// finally raymarch the volume
+				vec4 rmColor = RaymarchClouds(startPos, endPos, shadowOpacity);
+				gl_FragColor.a = pow(1.5 * rmColor.a, 3.0);
+			}
+		}
 	}
-	t1 = clamp(t1, 0.0, 1.0);
-	t2 = clamp(t2, 0.0, 1.0);
-	vec3 startPos = r.Dir * t1 + r.Origin;
-	vec3 endPos   = r.Dir * t2 + r.Origin;
+	#endif
+	{
+		// clamp ray in boundary box
+		Ray r;
+		r.Origin = eyePos;
+		r.Dir = worldPos - eyePos;
+		AABB box;
+		box.Min = vAA;
+		box.Max = vBB;
+		float t1, t2;
 
-	// finally raymarch the volume
-	gl_FragColor = RaymarchClouds(startPos, endPos);
+		// TODO: find a way to do this when eye is inside volume
+		if (IntersectBox(r, box, t1, t2)) {
+			t1 = clamp(t1, 0.0, 1.0);
+			t2 = clamp(t2, 0.0, 1.0);
+			vec3 startPos = r.Dir * t1 + r.Origin;
+			vec3 endPos   = r.Dir * t2 + r.Origin;
 
-#ifndef CLAMP_TO_MAP
-	// blend with distance to make endless fog have smooth horizon
-	gl_FragColor.a *= smoothstep(gl_Fog.end * 10.0, gl_Fog.start, length(worldPos - eyePos));
-#endif
+			// finally raymarch the volume
+			vec4 rmColor = RaymarchClouds(startPos, endPos, opacity);
+			gl_FragColor = Blend(gl_FragColor, rmColor);
+			#ifndef CLAMP_TO_MAP
+				// blend with distance to make endless fog have smooth horizon
+				gl_FragColor.a *= smoothstep(gl_Fog.end * 10.0, gl_Fog.start, length(worldPos - eyePos));
+			#endif
+		}
+	}
+
+
 }

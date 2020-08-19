@@ -10,7 +10,7 @@ function widget:GetInfo()
     author    = "Anarchid, consulted and optimized by jK",
     date      = "november 2014",
     license   = "GNU GPL, v2 or later",
-    layer     = -1000,
+    layer     = 1000,
     enabled   = true
   }
 end
@@ -24,19 +24,22 @@ local enabled = false
 
 --local mapcfg = VFS.Include("mapinfo.lua")
 
+local noiseTex = ":l:LuaUI/Images/rgbnoise.png"
 local mapcfg = {
 	custom = {
 		clouds = {
-		speed = 1, -- multiplier for speed of scrolling with wind
-		color    = {0.46, 0.32, 0.2}, -- diffuse color of the fog
+		speed = 0.5, -- multiplier for speed of scrolling with wind
+		--color    = {0.46, 0.32, 0.2}, -- diffuse color of the fog
+		color    = {0.6,0.7,0.8}, -- diffuse color of the fog
+
 		-- all altitude values can be either absolute, in percent, or "auto"
-		height   = "90%", -- opacity of fog above and at this altitude will be zero
-		bottom = 0, -- no fog below this altitude
-		fade_alt = "70%", -- fog will linearly fade away between this and "height", should be between height and bottom
-		scale = 255, -- how large will the clouds be
-		opacity = 0.84, -- what it says
-		clamp_to_map = true, -- whether fog volume is sliced to fit map, or spreads to horizon
-		sun_penetration = 10, -- how much does the sun penetrate the fog
+		height   = 3000, -- opacity of fog above and at this altitude will be zero
+		bottom = 2000, -- no fog below this altitude
+		fade_alt = 2500, -- fog will linearly fade away between this and "height", should be between height and bottom
+		scale = 600, -- how large will the clouds be
+		opacity = 0.65, -- what it says
+		clamp_to_map = false, -- whether fog volume is sliced to fit map, or spreads to horizon
+		sun_penetration = 20, -- how much does the sun penetrate the fog
 		},
 	},
 }
@@ -50,15 +53,15 @@ local CloudDefs = mapcfg.custom.clouds
 local gnd_min, gnd_max = Spring.GetGroundExtremes()
 
 local function convertAltitude(input, default)
+	local result = input
 	if (input == nil or input == "auto") then
-		return default
-	elseif type(input) == "number" then
-		return input
+		result = default
 	elseif (type(input) == "string" and input:match("(%d+)%%")) then
 		local percent = input:match("(%d+)%%")
-		return gnd_max * (percent / 100)
+		result = gnd_max * (percent / 100)
 	end
-	return input
+	--Spring.Echo(result)
+	return result
 end
 
 CloudDefs.height = convertAltitude(CloudDefs.height, gnd_max*0.9)
@@ -208,7 +211,7 @@ function widget:ViewResize()
 		mag_filter = GL_NEAREST,
 	})
 
-	fogTexture = glCreateTexture(vsx/3, vsy/3, {
+	fogTexture = glCreateTexture(vsx / 4, vsy / 4, {
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE,
@@ -310,7 +313,7 @@ function widget:Shutdown()
 	if (glDeleteShader) then
 		glDeleteShader(depthShader)
 	end
-	glDeleteTexture(":l:LuaUI/Images/rgbnoise.png")
+	glDeleteTexture(noiseTex)
 end
 
 
@@ -318,7 +321,7 @@ local function renderToTextureFunc()
 	-- render a full screen quad
 	glTexture(0, depthTexture)
 	glTexture(0, false)
-	glTexture(1,":l:LuaUI/Images/rgbnoise.png")
+	glTexture(1, noiseTex)
 	glTexture(1, false)
 
 	gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
@@ -365,17 +368,41 @@ function widget:GameFrame()
 	sunCol = {gl.GetSun('specular')}
 end
 
-widget:GameFrame()
+local function DrawClouds()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	gl.MatrixMode(GL.MODELVIEW)
+	gl.PushMatrix()
+	gl.LoadIdentity()
 
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PushMatrix()
+		gl.LoadIdentity();
 
-function widget:DrawScreenEffects()
+			glTexture(fogTexture)
+			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+			glTexture(false)
+
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PopMatrix()
+
+	gl.MatrixMode(GL.MODELVIEW)
+	gl.PopMatrix()
+end
+
+--[[
+function widget:DrawScreen()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) -- in theory not needed but sometimes evil widgets disable it w/o reenabling it
 	glTexture(fogTexture)
 	gl.TexRect(0,0,vsx,vsy,0,0,1,1)
 	glTexture(false)
 end
+]]--
 
 function widget:DrawWorld()
+	DrawClouds()
+end
+
+function widget:DrawWorldPreUnit()
 	glBlending(false)
 	DrawFogNew()
 	glBlending(true)
