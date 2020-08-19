@@ -2270,6 +2270,7 @@ function init()
 		--	 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
 		-- end,
 		--},
+		{id="clouds", group="gfx", basic=true, widget="Volumetric Clouds", name="Clouds", type="bool", value=GetWidgetToggleValue("Volumetric Clouds"), description=''},
 
 		{id="snow", group="gfx", basic=true, widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)',
