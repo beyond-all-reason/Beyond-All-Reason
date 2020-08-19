@@ -16,7 +16,7 @@ local iconsize   = 30
 local iconoffset = 22
 local scaleIconAmount = 90
 
-local rankScopeDivider = 3.5		-- the higher the number the narrower the scope, the higher the assigned rank will be
+local rankScopeDivider = 5		-- the higher the number the narrower the scope, the higher the assigned rank will be
 
 local falloffDistance = 1500
 local cutoffDistance = 2700
