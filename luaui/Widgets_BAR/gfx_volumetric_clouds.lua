@@ -15,7 +15,7 @@ function widget:GetInfo()
   }
 end
 
-local enabled = false
+local enabled = true
 
 
 --------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ local mapcfg = {
 		scale = 600, -- how large will the clouds be
 		opacity = 0.65, -- what it says
 		clamp_to_map = false, -- whether fog volume is sliced to fit map, or spreads to horizon
-		sun_penetration = 20, -- how much does the sun penetrate the fog
+		sun_penetration = 50, -- how much does the sun penetrate the fog
 		},
 	},
 }
