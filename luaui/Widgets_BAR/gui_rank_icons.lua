@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 
-local iconsize   = 30
+local iconsize   = 40
 local iconoffset = 22
 local scaleIconAmount = 90
 
