@@ -12,7 +12,7 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER LIGHTAIRSCOUT",
 		collide = false,
 		cruisealt = 180,
-		description = "Scout Plane",
+		description = "Scout",
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "tinyExplosionGeneric",

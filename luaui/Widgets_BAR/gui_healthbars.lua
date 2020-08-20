@@ -856,12 +856,8 @@ do
 	end
 
 	local brightClr = {}
-	function DrawUnitBar(offsetY, percent, color, scale)
+	function DrawUnitBar(offsetY, percent, color)
 		if (barShader) then
-			if scale ~= 1 then
-				gl.Scale(scale, scale, scale)
-				--color[4] = scale    -- not working
-			end
 			glMultiTexCoord(1, color)
 			glMultiTexCoord(2, percent, offsetY)
 			glCallList(barDList, progress)
@@ -923,8 +919,11 @@ local barsN = 0
 
 do
 	--//speedup
-	local glColor = gl.Color
-	local glText = gl.Text
+    local glColor = gl.Color
+    local glText = gl.Text
+    local glPushMatrix = gl.PushMatrix
+    local glPopMatrix = gl.PopMatrix
+    local glScale = gl.Scale
 
 	local maxBars = 20
 	local bars = {}
@@ -938,25 +937,23 @@ do
 		bars[i] = {}
 	end
 
-	function AddBar(title, progress, color_index, text, color, scale)
+	function AddBar(title, progress, color_index, text, color)
 		barsN = barsN + 1
 		local barInfo = bars[barsN]
 		barInfo.title = title
 		barInfo.progress = progress
 		barInfo.color = color or barColors[color_index]
 		barInfo.text = text
-		barInfo.scale = scale or 1
 	end
 
-	function DrawBars(fullText)
-		local yoffset = 0
+	function DrawBars(fullText, scale)
+        glPushMatrix()
+        glScale(barScale * scale, barScale * scale, barScale * scale)
+        local yoffset = 0
 		for i = 1, barsN do
 			local barInfo = bars[i]
-			DrawUnitBar(yoffset, barInfo.progress, barInfo.color, barInfo.scale)
+			DrawUnitBar(yoffset, barInfo.progress, barInfo.color)
 			if fullText then
-
-				gl.PushMatrix()
-				gl.Scale(barScale * barInfo.scale, barScale * barInfo.scale, barScale * barInfo.scale)
 				if barShader then
 					glMyText(1)
 				end
@@ -969,11 +966,10 @@ do
 				if barShader then
 					glMyText(0)
 				end
-				gl.PopMatrix()
 			end
 			yoffset = yoffset - barHeightL
 		end
-
+        glPopMatrix()
 		barsN = 0 --//reset!
 	end
 
@@ -1092,7 +1088,7 @@ do
               if shieldOn ~= 0 and build == 1 and shieldPower < ci.maxShield then
                 ci.maxShield = WeaponDefs[UnitDefs[unitDefID].weapons[i].weaponDef].shieldPower
                 shieldPower = shieldPower / ci.maxShield
-                AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '', nil, scale)
+                AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
               end
             end
           end
@@ -1100,7 +1096,7 @@ do
           local shieldOn, shieldPower = GetUnitShieldState(unitID)
           if shieldOn and build == 1 and shieldPower < ci.maxShield then
             shieldPower = shieldPower / ci.maxShield
-            AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '', nil, scale)
+            AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
           end
         end
       end
@@ -1124,7 +1120,7 @@ do
               infotext = hp100 .. '%'
             end
           end
-          AddBar("health", hp, nil, infotext or '', bfcolormap[hp100], scale)
+          AddBar("health", hp, nil, infotext or '', bfcolormap[hp100])
         end
       end
 
@@ -1134,7 +1130,7 @@ do
         if fullText and (drawBarPercentage > 0 or dist < minPercentageDistance * drawDistanceMult) then
           infotext = floor(build * 100) .. '%'
         end
-        AddBar("building", build, "build", infotext or '', nil, scale)
+        AddBar("building", build, "build", infotext or '')
       end
 
       --// STOCKPILE
@@ -1144,7 +1140,7 @@ do
         if numStockpiled then
           stockpileBuild = stockpileBuild or 0
           if stockpileBuild > 0 then
-            AddBar("stockpile", stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100) .. '%') or '', nil, scale)
+            AddBar("stockpile", stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100) .. '%') or '')
           end
         end
       else
@@ -1169,7 +1165,7 @@ do
           end
         end
         local empcolor_index = (stunned and ((blink and "emp_b") or "emp_p")) or ("emp")
-        AddBar("paralyze", emp, empcolor_index, infotext, nil, scale)
+        AddBar("paralyze", emp, empcolor_index, infotext)
       end
 
       --// CAPTURE
@@ -1178,7 +1174,7 @@ do
         if fullText and drawBarPercentage > 0 then
           infotext = floor(capture * 100) .. '%'
         end
-        AddBar("capture", capture, "capture", infotext or '', nil, scale)
+        AddBar("capture", capture, "capture", infotext or '')
       end
 
       --// RELOAD
@@ -1194,7 +1190,7 @@ do
           if fullText and drawBarPercentage > 0 then
             infotext = reload .. '%'
           end
-          AddBar("reload", reload, "reload", infoText or '', nil, scale)
+          AddBar("reload", reload, "reload", infoText or '')
         end
       end
 
@@ -1204,7 +1200,7 @@ do
         glBillboard()
 
         --// DRAW BARS
-        DrawBars(fullText)
+        DrawBars(fullText, scale)
 
         --// STOCKPILE ICON
         if numStockpiled then
@@ -1344,7 +1340,7 @@ do
 			return
 		end
 
-		if (#visibleUnits + #visibleFeatures == 0) then
+		if #visibleUnits + #visibleFeatures == 0 then
 			return
 		end
 
@@ -1352,12 +1348,12 @@ do
 
 		--if the camera is too far up, higher than maxDistance on smoothmesh, dont even call any visibility checks or nothing
 		local smoothheight = GetSmoothMeshHeight(cx, cz) --clamps x and z
-		if ((cy - smoothheight) ^ 2 < maxUnitDistance * drawDistanceMult) then
+		if (cy - smoothheight) ^ 2 < maxUnitDistance * drawDistanceMult then
 
 			glDepthTest(true)    -- enabling this will make healthbars opague to other healthbars
 			glDepthMask(true)
 
-			if (barShader) then
+			if barShader then
 				gl.UseShader(barShader)
 				glMyText(0)
 			end
@@ -1396,7 +1392,7 @@ do
 
 			--// draw bars for features
 			local drawFeatureInfo = false
-			if ((cy - smoothheight) ^ 2 < maxFeatureDistance * drawDistanceMult) then
+			if (cy - smoothheight) ^ 2 < maxFeatureDistance * drawDistanceMult then
 				drawFeatureInfo = true
 			end
 			local wx, wy, wz, dx, dy, dz, dist, featureInfo, resurrect, reclaimLeft
@@ -1423,7 +1419,7 @@ do
 				end
 			end
 
-			if (barShader) then
+			if barShader then
 				gl.UseShader(0)
 			end
 			glDepthMask(false)
@@ -1455,7 +1451,7 @@ do
 		blink = (sec % 1) < 0.5
 
 		sec1 = sec1 + dt
-		if (sec1 > 1 / 4) and ((cy - smoothheight) ^ 2 < maxUnitDistance * drawDistanceMult) then
+		if sec1 > 1 / 4 and (cy - smoothheight) ^ 2 < maxUnitDistance * drawDistanceMult then
 			sec1 = 0
 			visibleUnits = GetVisibleUnits(-1, nil, false)    -- expensive
 		end
@@ -1481,7 +1477,7 @@ do
 		end
 
 		sec2 = sec2 + dt
-		if (sec2 > 1 / 2) and ((cy - smoothheight) ^ 2 < maxFeatureDistance * drawDistanceMult) then
+		if sec2 > 1 / 2 and (cy - smoothheight) ^ 2 < maxFeatureDistance * drawDistanceMult then
 			sec2 = 0
 			visibleFeatures = GetVisibleFeatures(-1, nil, false, false)
 			local cnt = #visibleFeatures
@@ -1491,7 +1487,7 @@ do
 				featureID = visibleFeatures[i]
 				featureDefID = GetFeatureDefID(featureID) or -1
 				--// filter trees and none destructable features
-				if destructableFeature[featureDefID] and (drawnFeature[featureDefID] or (select(5, GetFeatureResources(featureID)) < 1)) then
+				if destructableFeature[featureDefID] and (drawnFeature[featureDefID] or select(5, GetFeatureResources(featureID)) < 1) then
 					local fx, fy, fz = GetFeaturePosition(featureID)
 					visibleFeatures[i] = { fx, fy, fz, featureID, featureDefID }
 				else

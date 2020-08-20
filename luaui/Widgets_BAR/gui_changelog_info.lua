@@ -206,7 +206,7 @@ function DrawSidebar(x,y,width,height)
 
 	-- background
 	gl.Color(0.7,0.5,0.15,0.14)
-	RectRound(x,y-height,x+width,y,2.5*widgetScale, 1,1,1,1, {0.55,0.4,0.12,0.14}, {0.8,0.57,0.18,0.14})
+	RectRound(x,y-height,x+width,y,5.5, 1,0,0,1, {0.55,0.4,0.12,0.14}, {0.8,0.57,0.18,0.14})
 
 	-- version links
 	versionQuickLinks = {}

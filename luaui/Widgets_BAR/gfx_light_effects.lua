@@ -964,6 +964,10 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetCreateBeamLight')
 	widgetHandler:DeregisterGlobal('GadgetEditBeamLight')
 	widgetHandler:DeregisterGlobal('GadgetRemoveBeamLight')
+
+	if deferredFunctionID and WG.DeferredLighting_UnregisterFunction then
+		WG.DeferredLighting_UnregisterFunction(deferredFunctionID)
+	end
 end
 
 function widget:Initialize()
@@ -979,7 +983,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('GadgetRemoveBeamLight', RemoveBeamLight)
 
 	if WG.DeferredLighting_RegisterFunction then
-		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
+		deferredFunctionID = WG.DeferredLighting_RegisterFunction(GetProjectileLights)
 		projectileLightTypes = GetLightsFromUnitDefs()
 	end
 
