@@ -854,13 +854,17 @@ do
   end
 
   local brightClr = {}
-  function DrawUnitBar(offsetY,percent,color)
+  function DrawUnitBar(offsetY,percent,color,scale)
     if (barShader) then
+      if scale ~= 1 then
+        gl.Scale(scale,scale,scale)
+        color[4] = scale
+      end
       glMultiTexCoord(1,color)
       glMultiTexCoord(2,percent,offsetY)
       glCallList(barDList,progress)
       return;
-    end
+      end
 
     brightClr[1] = color[1]*1.5; brightClr[2] = color[2]*1.5; brightClr[3] = color[3]*1.5; brightClr[4] = color[4]
     local progress_pos= -barWidth+barWidth*2*percent-1
@@ -922,24 +926,25 @@ do
 
   for i=1,maxBars do bars[i] = {} end
 
-  function AddBar(title,progress,color_index,text,color)
+  function AddBar(title,progress,color_index,text,color,scale)
     barsN = barsN + 1
     local barInfo    = bars[barsN]
     barInfo.title    = title
     barInfo.progress = progress
     barInfo.color    = color or barColors[color_index]
     barInfo.text     = text
+    barInfo.scale    = scale or 1
   end
 
   function DrawBars(fullText)
     local yoffset = 0
     for i=1,barsN do
       local barInfo = bars[i]
-      DrawUnitBar(yoffset,barInfo.progress,barInfo.color)
+      DrawUnitBar(yoffset,barInfo.progress,barInfo.color,barInfo.scale)
       if (fullText) then
 
         gl.PushMatrix()
-        gl.Scale(barScale,barScale,barScale)
+        gl.Scale(barScale*barInfo.scale,barScale*barInfo.scale,barScale*barInfo.scale)
         if (barShader) then
           glMyText(1)
         end
@@ -1064,6 +1069,12 @@ do
       fullText = false
     end
 
+    -- fade out when zooming out
+    local scale = 1 - ((dist-(maxUnitDistance*drawDistanceMult*0.2)) / (maxUnitDistance*drawDistanceMult-(maxUnitDistance*drawDistanceMult*0.2)))
+    if scale > 1 then
+      scale = 1
+    end
+
     --// GET UNIT INFORMATION
     health,maxHealth,paralyzeDamage,capture,build = GetUnitHealth(unitID)
     if hideHealth then
@@ -1089,7 +1100,7 @@ do
 					  if (shieldOn ~= 0)and(build==1)and(shieldPower<ci.maxShield) then
 						  ci.maxShield = WeaponDefs[UnitDefs[UnitDefID].weapons[i].weaponDef].shieldPower
 						  shieldPower = shieldPower / ci.maxShield
-						  AddBar("shield",shieldPower,"shield",(fullText and floor(shieldPower*100)..'%') or '')
+						  AddBar("shield",shieldPower,"shield",(fullText and floor(shieldPower*100)..'%') or '', nil, scale)
 					  end
 				  end
 			  end
@@ -1097,7 +1108,7 @@ do
 			  local shieldOn,shieldPower = GetUnitShieldState(unitID)
 			  if (shieldOn)and(build==1)and(shieldPower<ci.maxShield) then
 				  shieldPower = shieldPower / ci.maxShield
-				  AddBar("shield",shieldPower,"shield",(fullText and floor(shieldPower*100)..'%') or '')
+				  AddBar("shield",shieldPower,"shield",(fullText and floor(shieldPower*100)..'%') or '', nil, scale)
 			  end
 		  end
 	  end
@@ -1116,7 +1127,7 @@ do
 				infotext = hp100..'%'
 			  end
           end
-          AddBar("health", hp, nil, infotext or '', bfcolormap[hp100])
+          AddBar("health", hp, nil, infotext or '', bfcolormap[hp100], scale)
         end
       end
 
@@ -1126,7 +1137,7 @@ do
         if fullText and (drawBarPercentage > 0 or dist < minPercentageDistance*drawDistanceMult) then
           infotext = floor(build * 100)..'%'
         end
-        AddBar("building", build, "build", infotext or '')
+        AddBar("building", build, "build", infotext or '', nil, scale)
       end
 
       --// STOCKPILE
@@ -1136,7 +1147,7 @@ do
         if numStockpiled then
           stockpileBuild = stockpileBuild or 0
           if stockpileBuild > 0 then
-            AddBar("stockpile", stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100)..'%') or '')
+            AddBar("stockpile", stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100)..'%') or '', nil, scale)
           end
         end
       else
@@ -1159,7 +1170,7 @@ do
           end
         end
         local empcolor_index = (stunned and ((blink and "emp_b") or "emp_p")) or ("emp")
-        AddBar("paralyze", emp, empcolor_index, infotext)
+        AddBar("paralyze", emp, empcolor_index, infotext, nil, scale)
       end
 
       --// CAPTURE
@@ -1168,7 +1179,7 @@ do
         if fullText and drawBarPercentage > 0 then
             infotext = floor(capture*100)..'%'
         end
-        AddBar("capture", capture, "capture", infotext or '')
+        AddBar("capture", capture, "capture", infotext or '', nil, scale)
       end
 
       --// RELOAD
@@ -1182,7 +1193,7 @@ do
           if fullText and drawBarPercentage > 0 then
             infotext = reload..'%'
           end
-          AddBar("reload", reload, "reload", infoText or '')
+          AddBar("reload", reload, "reload", infoText or '', nil, scale)
         end
       end
 

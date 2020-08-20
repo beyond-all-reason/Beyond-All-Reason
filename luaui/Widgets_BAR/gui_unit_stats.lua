@@ -56,7 +56,7 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 local customFontSize = 14
 local fontSize = customFontSize
 
-local bgcornerSize = fontSize*0.35
+local bgcornerSize = fontSize*0.25
 local bgpadding = fontSize*1.15
 
 local cX, cY, cYstart
@@ -349,8 +349,8 @@ function init()
 	widgetScale = (1+((vsy-850)/900)) * (0.95+(ui_scale-1)/2.5)
 	fontSize = customFontSize * widgetScale
 
-	bgcornerSize = fontSize*0.35
-	bgpadding = fontSize*1.05
+	bgcornerSize = fontSize*0.25
+	bgpadding = fontSize*1.04
 
 	xOffset = (32 + bgpadding)*widgetScale
 	yOffset = -((32 + bgpadding)*widgetScale)
@@ -766,8 +766,8 @@ function widget:DrawScreen()
 		end), 'unit_stats_title')
 	end
 
-	cornersize = ceil(bgpadding*0.2)
-	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize*0.88, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
+	cornersize = ceil(bgpadding*0.15)
+	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
 
 
 	-- icon
@@ -805,8 +805,8 @@ function widget:DrawScreen()
 		end), 'unit_stats_data')
 	end
 
-	cornersize = ceil(bgpadding*0.15)
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.88, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
+	cornersize = ceil(bgpadding*0.12)
+	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
 
 	DrawTextBuffer()
 

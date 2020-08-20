@@ -2767,7 +2767,7 @@ function init()
 		 onload=function(i) loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
 		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
 		},
-		{id="healthbarsdistance", group="ui", name=widgetOptionColor.."   draw distance", type="slider", min=0.3, max=10, step=0.1, value=1, description='',
+		{id="healthbarsdistance", group="ui", name=widgetOptionColor.."   draw distance", type="slider", min=0.4, max=6, step=0.1, value=1, description='',
 		 onload=function(i) loadWidgetData("Health Bars", "healthbarsdistance", {'drawDistanceMult'}) end,
 		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setDrawDistance', {'drawDistanceMult'}, value) end,
 		},

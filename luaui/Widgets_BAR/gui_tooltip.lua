@@ -303,7 +303,7 @@ function drawTooltip(name, x, y)
 			RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 3.3*widgetScale)
 		end), 'tooltip_'..name)
 	end
-	cornersize = math_floor(2.56*widgetScale)
+	cornersize = math_floor(2.4*widgetScale)
 	--glColor(0,0,0,(WG['guishader'] and 0.22 or 0.26))
 	RectRound(posX-paddingW+cornersize,
 		posY-maxHeight-paddingH+cornersize,
