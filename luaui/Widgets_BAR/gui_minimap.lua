@@ -324,3 +324,20 @@ function widget:SetConfigData(data) --load config
     end
 end
 
+
+
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
+function widget:MousePress(x, y, button)
+	if Spring.IsGUIHidden() then
+		return
+	end
+	local padding = math.floor(bgBorder*vsy)
+	if IsOnRect(x, y, backgroundRect[1],backgroundRect[2]-padding,backgroundRect[3]+padding,backgroundRect[4]) then
+		if not IsOnRect(x, y, backgroundRect[1], backgroundRect[2]+1, backgroundRect[3]-1, backgroundRect[4]) then
+			return true
+		end
+	end
+end

@@ -1593,7 +1593,6 @@ function mouseEvent(x, y, button, release)
 		end
 
 		if IsOnRect(cx,cy, windowRect[1],windowRect[2],windowRect[3],windowRect[4]) then
-			Spring.Echo(Spring.GetGameFrame())
 			return true
 		end
 	end
