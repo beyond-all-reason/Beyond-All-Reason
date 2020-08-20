@@ -621,13 +621,13 @@ DeathAnim() {// For N:\animations\corstorm_anim_death.blend Created by https://g
 
 			turn rleg to y-axis <-61.750258> speed <552.958664> ; //delta=-55.30 //WARNING: possible gimbal lock issue detected in frame 20 bone rleg
 
-			explode rthigh type FALL|SMOKE|FIRE;
+			explode rthigh type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rthigh;
-			explode rknee type FALL|SMOKE|FIRE;
+			explode rknee type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rknee;
-			explode rleg type FALL|SMOKE|FIRE;
+			explode rleg type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rleg;
-			explode rfoot type FALL|SMOKE|FIRE;
+			explode rfoot type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rfoot;
 		sleep 98;
 		}

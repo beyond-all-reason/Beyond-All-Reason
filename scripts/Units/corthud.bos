@@ -585,9 +585,9 @@ DeathAnim() {// For N:\animations\corthud_anim_death.blend Created by https://gi
 			turn pelvis to x-axis <48.586663> speed <30.908484> ; //delta=-5.15 
 			turn rfoot to x-axis <3.556655> speed <62.645738> ; //delta=-10.44 
 			turn rfoot to y-axis <-0.213011> speed <7.398653> ; //delta=-1.23 
-			explode rgun type FALL|SMOKE|FIRE;
+			explode rgun type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rgun;
-			explode rfirept type FALL|SMOKE|FIRE;
+			explode rfirept type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rfirept;
 			turn rleg to x-axis <11.227784> speed <21.431141> ; //delta=-3.57 
 			turn rleg to z-axis <1.919777> speed <16.925090> ; //delta=-2.82 
@@ -602,9 +602,9 @@ DeathAnim() {// For N:\animations\corthud_anim_death.blend Created by https://gi
 			turn lfoot to x-axis <11.522802> speed <51.200566> ; //delta=-8.53 
 			turn lfoot to z-axis <-6.209884> speed <0.704138> ; //delta=0.12 
 			turn lfoot to y-axis <1.123340> speed <5.544340> ; //delta=0.92 
-			explode lgun type FALL|SMOKE|FIRE;
+			explode lgun type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lgun;
-			explode lfirept type FALL|SMOKE|FIRE;
+			explode lfirept type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lfirept;
 			turn lleg to x-axis <-1.742445> speed <80.930980> ; //delta=13.49 
 			turn lleg to z-axis <0.933257> speed <15.749897> ; //delta=-2.62 

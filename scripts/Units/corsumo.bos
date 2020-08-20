@@ -449,15 +449,15 @@ DeathAnim() {// For N:\animations\corsumo_anim_death.blend Created by https://gi
 			move torso to y-axis [-4.820000] speed [10.740000] ; //delta=1.79 
 			move turret to x-axis [1.432575] speed [8.595448] ; //delta=1.43 
 			move turret to z-axis [-39.246407] speed [235.478439] ; //delta=-39.25 
-			explode turret type FALL|SMOKE|FIRE;
+			explode turret type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide turret;
-			explode rbarrel type FALL|SMOKE|FIRE;
+			explode rbarrel type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbarrel;
-			explode rflare type FALL|SMOKE|FIRE;
+			explode rflare type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rflare;
-			explode lbarrel type FALL|SMOKE|FIRE;
+			explode lbarrel type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lbarrel;
-			explode lflare type FALL|SMOKE|FIRE;
+			explode lflare type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lflare;
 		sleep 164;
 		}
