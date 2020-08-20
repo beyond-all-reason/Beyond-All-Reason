@@ -82,10 +82,10 @@ end
 function widget:ShockFront(power, dx, dy, dz)
   if powerScale <= 0 then return end
   exps = exps + 1
-  power = power * powerScale
-  if (power > 10) then
-    power = 10
+  if power > 0.0004 then
+    power = 0.0004
   end
+  power = power * powerScale
   shake = shake + power
 end
 
@@ -106,7 +106,7 @@ function widget:Update(dt)
     birand(pShake),
     birand(tShake),
     birand(tShake)
-	local maxOffsetPx = powerScale / 30000
+	local maxOffsetPx = powerScale / 40000
 	if px >  maxOffsetPx then px =  maxOffsetPx end
 	if px < -maxOffsetPx then px = -maxOffsetPx end
 	if py >  maxOffsetPx then py =  maxOffsetPx end
