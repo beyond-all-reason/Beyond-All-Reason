@@ -5,21 +5,17 @@ function gadget:GameFrame(n)
 
 	-- DayNight Cycle
 	
-	if n%9000 > 3900 and thunderstormactive == true then
+	if n%9000 > 3600 and thunderstormactive == true then
 		SendToUnsynced("MapAtmosphereConfigSetSun", 0.4, 2.5, 0.4)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 0.15, 0.7, 2.5, 1.5)
 	else	
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
-		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 2, 2)
-	end
-	
-	if thunderstormactive == false then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
-		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 2, 2)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 3, 1)
+		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 3.5, 3)
 	end
 
 -- ## Atmosphere Functions
--- SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
+-- SendToUnsynced("MapAtmosphereConfigSetSun", red&green, transitionspeed, blue)
+-- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
 
 -- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
 -- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
@@ -41,7 +37,7 @@ local lightningsounds = {
 	"thunder6",
 	}  
 	
-if n%30 == 0 then
+if n%150 == 0 then
 	if n%9000 == 4500 then
 		thunderstormcenterx = math.random(0, (mapsizeX))
 		thunderstormcenterz = math.random(0, (mapsizeZ))
@@ -56,7 +52,7 @@ if n%30 == 0 then
 			thunderstormdirectionz = 2
 		end
 		thunderstormradius = 750
-		if math.random(1,3) == 1 then
+		if math.random(1,2) == 1 then
 			thunderstormactive = true
 		else
 			thunderstormactive = false

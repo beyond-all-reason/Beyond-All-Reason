@@ -3,6 +3,14 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. mapname)
 	end
 
+-- DayNight Cycle
+
+	if n%18000 < 12000 then
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 1, 1)
+	else
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, 1, 0.6)
+	end
+
 -- common foggy cliffs	
 	if n%360 == 0 then
 		SpawnCEGInPositionGround("fogdirty", 6249, 0, 2938)
