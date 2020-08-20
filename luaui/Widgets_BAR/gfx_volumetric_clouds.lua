@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 
 function widget:GetInfo()
   return {
@@ -17,10 +14,10 @@ end
 
 local enabled = true
 
+local opacityMult = 1
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
--- Config
 
 --local mapcfg = VFS.Include("mapinfo.lua")
 
@@ -33,10 +30,10 @@ local mapcfg = {
 		color    = {0.6,0.7,0.8}, -- diffuse color of the fog
 
 		-- all altitude values can be either absolute, in percent, or "auto"
-		height   = 3000, -- opacity of fog above and at this altitude will be zero
-		bottom = 2000, -- no fog below this altitude
+		height   = 4800, -- opacity of fog above and at this altitude will be zero
+		bottom = 1200, -- no fog below this altitude
 		fade_alt = 2500, -- fog will linearly fade away between this and "height", should be between height and bottom
-		scale = 600, -- how large will the clouds be
+		scale = 700, -- how large will the clouds be
 		opacity = 0.65, -- what it says
 		clamp_to_map = false, -- whether fog volume is sliced to fit map, or spreads to horizon
 		sun_penetration = 50, -- how much does the sun penetrate the fog
@@ -44,7 +41,7 @@ local mapcfg = {
 	},
 }
 
-if (not mapcfg)or(not mapcfg.custom)or(not mapcfg.custom.clouds) then
+if not mapcfg or not mapcfg.custom or not mapcfg.custom.clouds then
 	error("<Volumetric Clouds>: Can't find settings in mapinfo.lua!")
 end
 
@@ -243,37 +240,43 @@ local vertSrc = [[
 
 local fragSrc = VFS.LoadFile("LuaUI/Widgets_BAR/Shaders/fog_frag.glsl")
 
-fragSrc = fragSrc:format(
-  cloudsScale, cloudsHeight, cloudsBottom,
-  cloudsColor[1], cloudsColor[2], cloudsColor[3],
-  Game.mapSizeX, Game.mapSizeZ,
-  fade_alt, opacity, sunPenetration
-)
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
-if Platform.glSupportClipSpaceControl then
-	fragSrc = '#define DEPTH_CLIP01\n' .. fragSrc
+
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.opacityMult	= opacityMult
+	return savedTable
 end
 
-if(cloudsClamp) then
-	fragSrc = '#define CLAMP_TO_MAP\n' .. fragSrc
+function widget:SetConfigData(data)
+	if data.opacityMult ~= nil 	then
+		opacityMult = data.opacityMult
+	end
 end
 
---fragSrc = '#version 150 compatibility\n'..fragSrc
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local function init()
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-function widget:Initialize()
-	if (Spring.GetMiniMapDualScreen() == 'left') then --FIXME dualscreen
-		enabled = false
+	if depthShader then
+		glDeleteShader(depthShader)
 	end
 
-	if (not glCreateShader) then
-		enabled = false
+	fragSrc = VFS.LoadFile("LuaUI/Widgets_BAR/Shaders/fog_frag.glsl")
+	fragSrc = fragSrc:format(
+		cloudsScale, cloudsHeight, cloudsBottom,
+		cloudsColor[1], cloudsColor[2], cloudsColor[3],
+		Game.mapSizeX, Game.mapSizeZ,
+		fade_alt, opacity*opacityMult, sunPenetration
+	)
+
+	if Platform.glSupportClipSpaceControl then
+		fragSrc = '#define DEPTH_CLIP01\n' .. fragSrc
+	end
+
+	if cloudsClamp then
+		fragSrc = '#define CLAMP_TO_MAP\n' .. fragSrc
 	end
 
 	if enabled then
@@ -287,7 +290,7 @@ function widget:Initialize()
 		})
 
 		spEcho(glGetShaderLog())
-		if (not depthShader) then
+		if not depthShader then
 			spEcho("Bad shader, reverting to non-GLSL widget.")
 			enabled = false
 		else
@@ -299,6 +302,29 @@ function widget:Initialize()
 			uniformTime         = glGetUniformLocation(depthShader, 'time')
 		end
 	end
+end
+
+
+function widget:Initialize()
+
+	WG['clouds'] = {}
+	WG['clouds'].getOpacity = function()
+		return opacityMult
+	end
+	WG['clouds'].setOpacity = function(value)
+		opacityMult = value
+		init()
+	end
+
+	if (Spring.GetMiniMapDualScreen() == 'left') then --FIXME dualscreen
+		enabled = false
+	end
+
+	if (not glCreateShader) then
+		enabled = false
+	end
+
+	init()
 
 	if not(enabled) then
 		widgetHandler:RemoveWidget()
@@ -407,6 +433,3 @@ function widget:DrawWorldPreUnit()
 	DrawFogNew()
 	glBlending(true)
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

@@ -2271,6 +2271,10 @@ function init()
 		-- end,
 		--},
 		{id="clouds", group="gfx", basic=true, widget="Volumetric Clouds", name="Clouds", type="bool", value=GetWidgetToggleValue("Volumetric Clouds"), description=''},
+		{id="clouds_opacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.2, max=1.4, step=0.05, value=1, description='',
+		 onload = function(i) loadWidgetData("Volumetric Clouds", "clouds_opacity", {'opacityMult'}) end,
+		 onchange = function(i, value) saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', {'opacityMult'}, value) end,
+		},
 
 		{id="snow", group="gfx", basic=true, widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)',
