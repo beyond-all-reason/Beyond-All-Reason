@@ -192,7 +192,7 @@ function widget:Shutdown()
 end
 
 function init()
-	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
+	widgetScale = (1+((vsy-850)/900)) * (0.95+(ui_scale-1)/2.5)
 	usedFontSize = cfgFontSize * widgetScale
 	yOffset = -xOffset-usedFontSize
 
@@ -242,7 +242,7 @@ end
 function widget:ViewResize(x,y)
 	vsx,vsy = Spring.GetViewGeometry()
 
-	font  = WG['fonts'].getFont(fontfile)
+	font = WG['fonts'].getFont(fontfile)
 
 	init()
 end
@@ -269,7 +269,7 @@ function drawTooltip(name, x, y)
 	local posX = math_floor(x + paddingW)
 	local posY = math_floor(y + paddingH)
 
-	local fontSize = math_floor(usedFontSize*widgetScale)
+	local fontSize = math_floor(usedFontSize)
 	local maxWidth = 0
 	local maxHeight = 0
 	local lineHeight = fontSize + (fontSize/4.5)

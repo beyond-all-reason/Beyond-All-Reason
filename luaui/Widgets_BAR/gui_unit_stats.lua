@@ -52,14 +52,8 @@ local useSelection = true
 
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.7 + (vsx*vsy / 7000000))
-local fontfileSize = 40
-local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.1
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local customFontSize = 15
+local customFontSize = 14
 local fontSize = customFontSize
 
 local bgcornerSize = fontSize*0.35
@@ -330,6 +324,7 @@ end
 ------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	font = WG['fonts'].getFont(fontfile)
 	WG['unitstats'] = {}
 	WG['unitstats'].getAlternativeIcons = function()
 		return alternativeUnitpics
@@ -341,7 +336,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	WG['unitstats'] = nil
 	RemoveGuishader()
 end
@@ -352,7 +346,7 @@ end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
+	widgetScale = (1+((vsy-850)/900)) * (0.95+(ui_scale-1)/2.5)
 	fontSize = customFontSize * widgetScale
 
 	bgcornerSize = fontSize*0.35
@@ -376,13 +370,10 @@ end
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = ((vsx+vsy) / 2000) * 0.66 * (1+(ui_scale-1)/2)
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
+
+	font = WG['fonts'].getFont(fontfile)
+
 	init()
 end
 
@@ -476,7 +467,7 @@ function widget:DrawScreen()
 
 	cY = cY - (bgpadding/2)
 
-	local titleFontSize = fontSize*1.1
+	local titleFontSize = fontSize*1.07
 	local cornersize = ceil(bgpadding*0.2)
 	cY = cY - 2 * titleFontSize
 	textBuffer = {}
