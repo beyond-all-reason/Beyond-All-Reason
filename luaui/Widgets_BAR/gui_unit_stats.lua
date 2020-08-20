@@ -48,8 +48,8 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 -- Globals
 ------------------------------------------------------------------------------------
-local fontSize = 15.5
 local useSelection = true
+
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -59,7 +59,8 @@ local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.1
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local customFontSize = 15.5
+local customFontSize = 15
+local fontSize = customFontSize
 
 local bgcornerSize = fontSize*0.35
 local bgpadding = fontSize*1.15
@@ -67,7 +68,7 @@ local bgpadding = fontSize*1.15
 local cX, cY, cYstart
 
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = (0.60 + (vsx*vsy / 5000000))
+local widgetScale = 1
 local xOffset = (32 + (fontSize*0.9))*widgetScale
 local yOffset = -((32 - (fontSize*0.9))*widgetScale)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -351,7 +352,7 @@ end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = ((vsx+vsy) / 2000) * 0.66 * (1+(ui_scale-1)/2)
+	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
 	fontSize = customFontSize * widgetScale
 
 	bgcornerSize = fontSize*0.35

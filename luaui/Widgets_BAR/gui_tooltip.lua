@@ -35,14 +35,15 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 local vsx,vsy = Spring.GetViewGeometry()
 
 local defaultDelay = 0.4
-local cfgFontSize = 17.5
+local cfgFontSize = 14
 
-local usedFontSize = cfgFontSize - (3 * ((vsx/vsy) - 1.78))
 local xOffset = 35
-local yOffset = -xOffset-usedFontSize
+local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 
+local widgetScale = 1
+local usedFontSize = cfgFontSize
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -191,7 +192,9 @@ function widget:Shutdown()
 end
 
 function init()
-	widgetScale = (((vsx+vsy) / 2000) * 0.66) * (0.95+(ui_scale-1)/2.5)
+	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
+	usedFontSize = cfgFontSize * widgetScale
+	yOffset = -xOffset-usedFontSize
 
     if WG['tooltip'] == nil then
         WG['tooltip'] = {}
@@ -238,8 +241,6 @@ end
 
 function widget:ViewResize(x,y)
 	vsx,vsy = Spring.GetViewGeometry()
-	usedFontSize = (cfgFontSize - (3 * ((vsx/vsy) - 1.78))) * (1+(ui_scale-1)/2.5)
-	yOffset = -xOffset-usedFontSize
 
 	font  = WG['fonts'].getFont(fontfile)
 
@@ -263,8 +264,8 @@ end
 function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
 
-	local paddingH = math_floor(10 * widgetScale)
-	local paddingW = math_floor(paddingH * 1.45)
+	local paddingH = math_floor(9.5 * widgetScale)
+	local paddingW = math_floor(paddingH * 1.42)
 	local posX = math_floor(x + paddingW)
 	local posY = math_floor(y + paddingH)
 
@@ -378,4 +379,4 @@ function widget:DrawScreen()
 	end
 end
 
-------------------------------------------------------------------------------------
+
