@@ -2285,7 +2285,7 @@ function init()
 		 onload = function(i) loadWidgetData("Snow", "snowautoreduce", {'autoReduce'}) end,
 		 onchange = function(i, value) saveOptionValue('Snow', 'snow', 'setAutoReduce', {'autoReduce'}, value) end,
 		},
-		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='disable "auto reduce" option to see the max snow amount you have set',
+		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=3, step=0.2, value=1, description='disable "auto reduce" option to see the max snow amount you have set',
 		 onload = function(i) loadWidgetData("Snow", "snowamount", {'customParticleMultiplier'}) end,
 		 onchange = function(i, value) saveOptionValue('Snow', 'snow', 'setMultiplier', {'customParticleMultiplier'}, value) end,
 		},
