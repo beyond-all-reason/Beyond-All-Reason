@@ -15,7 +15,7 @@ end
 
 local barScale = 1
 
-local barHeightOffset = 34         -- set value that healthbars for units that can unfold and become larger than its unitdef.height are still visible
+local barHeightOffset = 36         -- set value that healthbars for units that can unfold and become larger than its unitdef.height are still visible
 
 local drawDistanceMult = 1
 
