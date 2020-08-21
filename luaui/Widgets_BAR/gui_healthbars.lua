@@ -53,11 +53,11 @@ local featureHpThreshold = 0.85
 local featureResurrectVisibility = true      -- draw feature bars for resurrected features on same distance as normal unit bars
 local featureReclaimVisibility = true      -- draw feature bars for reclaimed features on same distance as normal unit bars
 
-local minPercentageDistance = 130000     -- always show health percentage text below this distance
-local infoDistance = 900000
-local maxFeatureInfoDistance = 330000    --max squared distance at which text it drawn for features
-local maxFeatureDistance = 570000    --max squared distance at which any info is drawn for features
-local maxUnitDistance = 12000000  --max squared distance at which any info is drawn for units  MUST BE LARGER THAN FOR FEATURES!
+local minPercentageDistance     = 130000     -- always show health percentage text below this distance
+local infoDistance              = 900000
+local maxFeatureInfoDistance    = 330000    --max squared distance at which text it drawn for features
+local maxFeatureDistance        = 700000    --max squared distance at which any info is drawn for features
+local maxUnitDistance           = 12000000  --max squared distance at which any info is drawn for units
 
 local minReloadTime = 4 --// in seconds
 
@@ -1330,7 +1330,10 @@ do
 					    	wx, wy, wz = featureInfo[1], featureInfo[2], featureInfo[3]
 					    	dx, dy, dz = wx - cx, wy - cy, wz - cz
 					    	dist = dx * dx + dy * dy + dz * dz
-					    	if (dist < maxFeatureDistance * drawDistanceMult or (((featureResurrectVisibility and resurrect and resurrect > 0) or (featureReclaimVisibility and reclaimLeft and reclaimLeft < 1)) and dist <= maxUnitDistance * drawDistanceMult)) then
+					    	if dist < maxFeatureDistance * drawDistanceMult
+                               --or (((featureResurrectVisibility and resurrect and resurrect > 0)
+                               --or (featureReclaimVisibility and reclaimLeft and reclaimLeft < 1)) and dist <= maxUnitDistance * drawDistanceMult)
+                            then
                                 DrawFeatureInfos(featureInfo[4], featureInfo[5], wx, wy, wz, dist)
 					    	end
 					    end
