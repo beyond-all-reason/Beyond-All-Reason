@@ -960,7 +960,7 @@ do
 			canStockpile = unitDef.canStockpile,
 			reloadTime = unitDef.reloadTime and unitDef.reloadTime or 0,
 			primaryWeapon = unitDef.primaryWeapon,
-			scale = math.min(1.45, math.max(0.6, (Spring.GetUnitDefDimensions(unitDefID).radius / 150) + math.min(0.6, unitDef.power / 4000))) + math.min(0.6, unitDef.health / 25000),
+			scale = math.min(1.45, math.max(0.85, (Spring.GetUnitDefDimensions(unitDefID).radius / 150) + math.min(0.6, unitDef.power / 4000))) + math.min(0.6, unitDef.health / 22000),
 		}
 	end
 
