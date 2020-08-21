@@ -11,14 +11,6 @@ function widget:GetInfo()
 end
 
 --------------------------------------------------------------------------------
--- Console commands
---------------------------------------------------------------------------------
-
--- /healthbars_percentage			-- toggles rendering of the textual percentage beside each bar
--- /healthbars_compercentage		-- toggles always rendering health precentagees for coms
--- /healthbars_style				-- toggles different styles
-
---------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local barScale = 1
@@ -87,18 +79,9 @@ local stockpileW = 12
 local unitHealthChangeTime = {}
 local unitHealthLog = {}
 
-local OPTIONS = {}
-OPTIONS[1] = {
-	choppedCorners = false,
-	showOutline = false,
-	showInnerBg = false,
-}
-OPTIONS[2] = {
-	choppedCorners = true,
-	showOutline = true,
-	showInnerBg = true,
-}
-local currentOption = 2
+local choppedCorners = true
+local showOutline = true
+local showInnerBg = true
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -109,6 +92,8 @@ end
 
 local selectedUnits = {}
 local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
+
+local unba_enabled = (Spring.GetModOptions() and Spring.GetModOptions().unba == "enabled")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -215,196 +200,166 @@ end --//end do
 function drawBarGl()
 
 	local cs = choppedCornerSize
-	local heightAddition = 0
-	if OPTIONS[currentOption].showOutline then
-		heightAddition = outlineSize
-	end
+	local heightAddition = outlineSize
+
 	gl.PushMatrix()
 	gl.Scale(barScale, barScale, barScale)
 
-	if (OPTIONS[currentOption].choppedCorners) then
-		gl.BeginEnd(GL.QUADS, function()
+    gl.BeginEnd(GL.QUADS, function()
 
 
-			-- center background piece
-			gl.Color((OPTIONS[currentOption].showOutline and bkOutlineBottom or bkBottom))
-			gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
-			gl.Vertex(barWidth - cs, 0 - heightAddition, (barWidth * 2) - cs * 2, 1)
-			gl.Color((OPTIONS[currentOption].showOutline and bkOutlineTop or bkTop))
-			gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
-			gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
+        -- center background piece
+        gl.Color(bkOutlineBottom)
+        gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
+        gl.Vertex(barWidth - cs, 0 - heightAddition, (barWidth * 2) - cs * 2, 1)
+        gl.Color(bkOutlineTop)
+        gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
+        gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
 
-			if OPTIONS[currentOption].showOutline and OPTIONS[currentOption].showInnerBg then
-				cs = choppedCornerSize
-				-- inner center background piece
-				gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
-				gl.Vertex(barWidth - cs - cs, 0, 0, 2)
-				gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 2)
-				gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
-				gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 2)
-				gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
+        cs = choppedCornerSize
+        -- inner center background piece
+        gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
+        gl.Vertex(barWidth - cs - cs, 0, 0, 2)
+        gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 2)
+        gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
+        gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 2)
+        gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
 
-				-- inner background right piece
-				local cs2 = cs
-				gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
-				gl.Vertex(barWidth - cs - cs + cs2, cs2, 0, 2)
-				gl.Vertex(barWidth - cs - cs, 0, 0, 2)
-				gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
-				gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
-				gl.Vertex(barWidth - cs - cs + cs2, barHeight - cs2, 0, 2)
-			end
+        -- inner background right piece
+        local cs2 = cs
+        gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
+        gl.Vertex(barWidth - cs - cs + cs2, cs2, 0, 2)
+        gl.Vertex(barWidth - cs - cs, 0, 0, 2)
+        gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
+        gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
+        gl.Vertex(barWidth - cs - cs + cs2, barHeight - cs2, 0, 2)
 
-			-- background right piece
-			if OPTIONS[currentOption].choppedCorners or OPTIONS[currentOption].showOutline then
-				local cs2 = cs
-				if OPTIONS[currentOption].showOutline then
-					cs2 = outlineSize
-				end
-				gl.Color((OPTIONS[currentOption].showOutline and bkOutlineBottom or bkBottom))
-				gl.Vertex(barWidth - cs + cs2, cs2 - heightAddition, 0, 1)
-				gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
-				gl.Color((OPTIONS[currentOption].showOutline and bkOutlineTop or bkTop))
-				gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
-				gl.Vertex(barWidth - cs + cs2, barHeight + heightAddition - cs2, 0, 1)
+        -- background right piece
+        local cs2 = outlineSize
+        gl.Color(bkOutlineBottom)
+        gl.Vertex(barWidth - cs + cs2, cs2 - heightAddition, 0, 1)
+        gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
+        gl.Color(bkOutlineTop)
+        gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
+        gl.Vertex(barWidth - cs + cs2, barHeight + heightAddition - cs2, 0, 1)
 
-				if heightAddition > 0 then
-					cs = outlineSize
-					-- background left piece
-					gl.Color((OPTIONS[currentOption].showOutline and bkOutlineBottom or bkBottom))
-					gl.Vertex(-barWidth - cs, cs - heightAddition, 0, 1)
-					gl.Vertex(-barWidth, -heightAddition, 0, 1)
-					gl.Color((OPTIONS[currentOption].showOutline and bkOutlineTop or bkTop))
-					gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
-					gl.Vertex(-barWidth - cs, barHeight + heightAddition - cs, 0, 1)
+        if heightAddition > 0 then
+            cs = outlineSize
+            -- background left piece
+            gl.Color(bkOutlineBottom)
+            gl.Vertex(-barWidth - cs, cs - heightAddition, 0, 1)
+            gl.Vertex(-barWidth, -heightAddition, 0, 1)
+            gl.Color(bkOutlineTop)
+            gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
+            gl.Vertex(-barWidth - cs, barHeight + heightAddition - cs, 0, 1)
 
-					cs = choppedCornerSize
-					-- top middle piece
-					local usedColor = bkOutlineTop[1] + ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-					gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
-					gl.Vertex(-barWidth, barHeight, 0, 1)
-					gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
-					gl.Color(bkOutlineTop)
-					gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
-					gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
+            cs = choppedCornerSize
+            -- top middle piece
+            local usedColor = bkOutlineTop[1] + ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
+            gl.Vertex(-barWidth, barHeight, 0, 1)
+            gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
+            gl.Color(bkOutlineTop)
+            gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
+            gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
 
-					-- bottom middle piece
-					usedColor = bkOutlineBottom[1] - ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-					gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
-					gl.Vertex(-barWidth, 0, 0, 1)
-					gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
-					gl.Color(bkOutlineBottom)
-					gl.Vertex(barWidth - cs, -heightAddition, (barWidth * 2) - cs * 2, 1)
-					gl.Vertex(-barWidth, -heightAddition, 0, 1)
-				end
-			end
+            -- bottom middle piece
+            usedColor = bkOutlineBottom[1] - ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
+            gl.Vertex(-barWidth, 0, 0, 1)
+            gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
+            gl.Color(bkOutlineBottom)
+            gl.Vertex(barWidth - cs, -heightAddition, (barWidth * 2) - cs * 2, 1)
+            gl.Vertex(-barWidth, -heightAddition, 0, 1)
+        end
 
-			-- color (value part) mid piece
-			gl.Vertex(-barWidth + cs, 0, 0, 0)
-			gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth + cs, barHeight, 0, 0)
+        -- color (value part) mid piece
+        gl.Vertex(-barWidth + cs, 0, 0, 0)
+        gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth + cs, barHeight, 0, 0)
 
-			-- color (value part) left piece
-			gl.Vertex(-barWidth, cs, 0, 0)
-			gl.Vertex(-barWidth + cs, 0, 0, 0)
-			gl.Vertex(-barWidth + cs, barHeight, 0, 0)
-			gl.Vertex(-barWidth, barHeight - cs, 0, 0)
+        -- color (value part) left piece
+        gl.Vertex(-barWidth, cs, 0, 0)
+        gl.Vertex(-barWidth + cs, 0, 0, 0)
+        gl.Vertex(-barWidth + cs, barHeight, 0, 0)
+        gl.Vertex(-barWidth, barHeight - cs, 0, 0)
 
-			-- color (value part) right piece
-			gl.Vertex(-barWidth + cs, cs, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth + cs, barHeight - cs, (barWidth * 2) - cs * 2, 0)
+        -- color (value part) right piece
+        gl.Vertex(-barWidth + cs, cs, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth + cs, barHeight - cs, (barWidth * 2) - cs * 2, 0)
 
-		end)
-		-- corner fillers
-		gl.BeginEnd(GL.TRIANGLES, function()
-			cs = choppedCornerSize
+    end)
+    -- corner fillers
+    gl.BeginEnd(GL.TRIANGLES, function()
+        cs = choppedCornerSize
 
-			local inputBottomColor = bkBottom
-			local inputTopColor = bkTop
-			if OPTIONS[currentOption].showOutline then
-				inputBottomColor = bkOutlineBottom
-				inputTopColor = bkOutlineTop
-			end
-			-- top right
-			local usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-			gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1)
+        local inputBottomColor = bkOutlineBottom
+        local inputTopColor = bkOutlineTop
 
-			usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-			gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
-			gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1)
+        -- top right
+        local usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+        gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1)
 
-			-- bottom right
-			usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-			gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1)
+        usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+        gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
+        gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1)
 
-			usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-			gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
-			gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1)
+        -- bottom right
+        usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+        gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1)
 
-			-- inner background corners
-			if OPTIONS[currentOption].showOutline and OPTIONS[currentOption].showInnerBg then
-				-- top right
-				usedColor = bkInnerTop[1] - ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
-				gl.Color(usedColor, usedColor, usedColor, bkInnerTop[4])
-				gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1.0000001)
+        usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+        gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
+        gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1)
 
-				gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
-				gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
-				gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
+        -- inner background corners
+        -- top right
+        usedColor = bkInnerTop[1] - ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
+        gl.Color(usedColor, usedColor, usedColor, bkInnerTop[4])
+        gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1.0000001)
 
-				-- bottom right
-				usedColor = bkInnerBottom[1] + ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
-				gl.Color(usedColor, usedColor, usedColor, bkInnerBottom[4])
-				gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1.0000001)
+        gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
+        gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
+        gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
 
-				gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
-				gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
-				gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
-			end
+        -- bottom right
+        usedColor = bkInnerBottom[1] + ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
+        gl.Color(usedColor, usedColor, usedColor, bkInnerBottom[4])
+        gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1.0000001)
 
-			if heightAddition > 0 then
-				-- top left
-				usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-				gl.Vertex(-barWidth, barHeight - cs, 0, 1)
+        gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
+        gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
+        gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
 
-				usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-				gl.Vertex(-barWidth, barHeight, 0, 1)
-				gl.Vertex(-barWidth + cs, barHeight, 0, 1)
+        if heightAddition > 0 then
+            -- top left
+            usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+            gl.Vertex(-barWidth, barHeight - cs, 0, 1)
 
-				-- bottom left
-				usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-				gl.Vertex(-barWidth, cs, 0, 1)
+            usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+            gl.Vertex(-barWidth, barHeight, 0, 1)
+            gl.Vertex(-barWidth + cs, barHeight, 0, 1)
 
-				usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-				gl.Vertex(-barWidth, 0, 0, 1)
-				gl.Vertex(-barWidth + cs, 0, 0, 1)
-			end
-		end)
-	else
-		gl.BeginEnd(GL.QUADS, function()
-			gl.Vertex(-barWidth, 0, 0, 0)
-			gl.Vertex(-barWidth, 0, barWidth * 2, 0)
-			gl.Vertex(-barWidth, barHeight, barWidth * 2, 0)
-			gl.Vertex(-barWidth, barHeight, 0, 0)
+            -- bottom left
+            usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+            gl.Vertex(-barWidth, cs, 0, 1)
 
-			gl.Color(bkBottom)
-			gl.Vertex(barWidth, 0, 0, 1)
-			gl.Vertex(barWidth, 0, barWidth * 2, 1)
-			gl.Color(bkTop)
-			gl.Vertex(barWidth, barHeight, barWidth * 2, 1)
-			gl.Vertex(barWidth, barHeight, 0, 1)
-		end)
-	end
+            usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+            gl.Vertex(-barWidth, 0, 0, 1)
+            gl.Vertex(-barWidth + cs, 0, 0, 1)
+        end
+    end)
 	gl.PopMatrix()
 
 end
@@ -418,195 +373,163 @@ function drawFeatureBarGl()
 	local bkTop = fbkTop
 
 	local cs = choppedCornerSize
-	local heightAddition = 0
+	local heightAddition = outlineSize
 
-	if OPTIONS[currentOption].showOutline then
-		heightAddition = outlineSize
-	end
-
-	if (OPTIONS[currentOption].choppedCorners) then
-		gl.BeginEnd(GL.QUADS, function()
+    gl.BeginEnd(GL.QUADS, function()
 
 
-			-- center background piece
-			gl.Color((OPTIONS[currentOption].showOutline and bkOutlineBottom or bkBottom))
-			gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
-			gl.Vertex(barWidth - cs, 0 - heightAddition, (barWidth * 2) - cs * 2, 1)
-			gl.Color((OPTIONS[currentOption].showOutline and bkOutlineTop or bkTop))
-			gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
-			gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
+        -- center background piece
+        gl.Color(bkOutlineBottom)
+        gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
+        gl.Vertex(barWidth - cs, 0 - heightAddition, (barWidth * 2) - cs * 2, 1)
+        gl.Color(bkOutlineTop)
+        gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
+        gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
 
-			if OPTIONS[currentOption].showOutline and OPTIONS[currentOption].showInnerBg then
-				cs = choppedCornerSize
-				-- inner center background piece
-				gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
-				gl.Vertex(barWidth - cs - cs, 0, 0, 2)
-				gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 2)
-				gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
-				gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 2)
-				gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
+        cs = choppedCornerSize
+        -- inner center background piece
+        gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
+        gl.Vertex(barWidth - cs - cs, 0, 0, 2)
+        gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 2)
+        gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
+        gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 2)
+        gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
 
-				-- inner background right piece
-				local cs2 = cs
-				gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
-				gl.Vertex(barWidth - cs - cs + cs2, cs2, 0, 2)
-				gl.Vertex(barWidth - cs - cs, 0, 0, 2)
-				gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
-				gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
-				gl.Vertex(barWidth - cs - cs + cs2, barHeight - cs2, 0, 2)
-			end
+        -- inner background right piece
+        local cs2 = cs
+        gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
+        gl.Vertex(barWidth - cs - cs + cs2, cs2, 0, 2)
+        gl.Vertex(barWidth - cs - cs, 0, 0, 2)
+        gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
+        gl.Vertex(barWidth - cs - cs, barHeight, 0, 2)
+        gl.Vertex(barWidth - cs - cs + cs2, barHeight - cs2, 0, 2)
 
-			-- background right piece
-			if OPTIONS[currentOption].choppedCorners or OPTIONS[currentOption].showOutline then
-				local cs2 = cs
-				if OPTIONS[currentOption].showOutline then
-					cs2 = outlineSize
-				end
-				gl.Color((OPTIONS[currentOption].showOutline and bkOutlineBottom or bkBottom))
-				gl.Vertex(barWidth - cs + cs2, cs2 - heightAddition, 0, 1)
-				gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
-				gl.Color((OPTIONS[currentOption].showOutline and bkOutlineTop or bkTop))
-				gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
-				gl.Vertex(barWidth - cs + cs2, barHeight + heightAddition - cs2, 0, 1)
+        -- background right piece
+        local cs2 = outlineSize
+        gl.Color(bkOutlineBottom)
+        gl.Vertex(barWidth - cs + cs2, cs2 - heightAddition, 0, 1)
+        gl.Vertex(barWidth - cs, 0 - heightAddition, 0, 1)
+        gl.Color(bkOutlineTop)
+        gl.Vertex(barWidth - cs, barHeight + heightAddition, 0, 1)
+        gl.Vertex(barWidth - cs + cs2, barHeight + heightAddition - cs2, 0, 1)
 
-				if heightAddition > 0 then
-					cs = outlineSize
-					-- background left piece
-					gl.Color((OPTIONS[currentOption].showOutline and bkOutlineBottom or bkBottom))
-					gl.Vertex(-barWidth - cs, cs - heightAddition, 0, 1)
-					gl.Vertex(-barWidth, -heightAddition, 0, 1)
-					gl.Color((OPTIONS[currentOption].showOutline and bkOutlineTop or bkTop))
-					gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
-					gl.Vertex(-barWidth - cs, barHeight + heightAddition - cs, 0, 1)
+        if heightAddition > 0 then
+            cs = outlineSize
+            -- background left piece
+            gl.Color(bkOutlineBottom)
+            gl.Vertex(-barWidth - cs, cs - heightAddition, 0, 1)
+            gl.Vertex(-barWidth, -heightAddition, 0, 1)
+            gl.Color(bkOutlineTop)
+            gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
+            gl.Vertex(-barWidth - cs, barHeight + heightAddition - cs, 0, 1)
 
-					cs = choppedCornerSize
-					-- top middle piece
-					local usedColor = bkOutlineTop[1] + ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-					gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
-					gl.Vertex(-barWidth, barHeight, 0, 1)
-					gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
-					gl.Color(bkOutlineTop)
-					gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
-					gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
+            cs = choppedCornerSize
+            -- top middle piece
+            local usedColor = bkOutlineTop[1] + ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
+            gl.Vertex(-barWidth, barHeight, 0, 1)
+            gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
+            gl.Color(bkOutlineTop)
+            gl.Vertex(barWidth - cs, barHeight + heightAddition, (barWidth * 2) - cs * 2, 1)
+            gl.Vertex(-barWidth, barHeight + heightAddition, 0, 1)
 
-					-- bottom middle piece
-					usedColor = bkOutlineBottom[1] - ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-					gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
-					gl.Vertex(-barWidth, 0, 0, 1)
-					gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
-					gl.Color(bkOutlineBottom)
-					gl.Vertex(barWidth - cs, -heightAddition, (barWidth * 2) - cs * 2, 1)
-					gl.Vertex(-barWidth, -heightAddition, 0, 1)
-				end
-			end
+            -- bottom middle piece
+            usedColor = bkOutlineBottom[1] - ((bkOutlineBottom[1] - bkOutlineTop[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, bkOutlineTop[4])
+            gl.Vertex(-barWidth, 0, 0, 1)
+            gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
+            gl.Color(bkOutlineBottom)
+            gl.Vertex(barWidth - cs, -heightAddition, (barWidth * 2) - cs * 2, 1)
+            gl.Vertex(-barWidth, -heightAddition, 0, 1)
+        end
 
-			-- color (value part) mid piece
-			gl.Vertex(-barWidth + cs, 0, 0, 0)
-			gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth + cs, barHeight, 0, 0)
+        -- color (value part) mid piece
+        gl.Vertex(-barWidth + cs, 0, 0, 0)
+        gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth + cs, barHeight, 0, 0)
 
-			-- color (value part) left piece
-			gl.Vertex(-barWidth, cs, 0, 0)
-			gl.Vertex(-barWidth + cs, 0, 0, 0)
-			gl.Vertex(-barWidth + cs, barHeight, 0, 0)
-			gl.Vertex(-barWidth, barHeight - cs, 0, 0)
+        -- color (value part) left piece
+        gl.Vertex(-barWidth, cs, 0, 0)
+        gl.Vertex(-barWidth + cs, 0, 0, 0)
+        gl.Vertex(-barWidth + cs, barHeight, 0, 0)
+        gl.Vertex(-barWidth, barHeight - cs, 0, 0)
 
-			-- color (value part) right piece
-			gl.Vertex(-barWidth + cs, cs, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
-			gl.Vertex(-barWidth + cs, barHeight - cs, (barWidth * 2) - cs * 2, 0)
+        -- color (value part) right piece
+        gl.Vertex(-barWidth + cs, cs, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth, 0, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth, barHeight, (barWidth * 2) - cs * 2, 0)
+        gl.Vertex(-barWidth + cs, barHeight - cs, (barWidth * 2) - cs * 2, 0)
 
-		end)
-		-- corner fillers
-		gl.BeginEnd(GL.TRIANGLES, function()
-			cs = choppedCornerSize
+    end)
+    -- corner fillers
+    gl.BeginEnd(GL.TRIANGLES, function()
+        cs = choppedCornerSize
 
-			local inputBottomColor = bkBottom
-			local inputTopColor = bkTop
-			if OPTIONS[currentOption].showOutline then
-				inputBottomColor = bkOutlineBottom
-				inputTopColor = bkOutlineTop
-			end
-			-- top right
-			local usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-			gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1)
+        local inputBottomColor = bkOutlineBottom
+        local inputTopColor = bkOutlineTop
 
-			usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-			gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
-			gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1)
+        -- top right
+        local usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+        gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1)
 
-			-- bottom right
-			usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-			gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1)
+        usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+        gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1)
+        gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1)
 
-			usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-			gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-			gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
-			gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1)
+        -- bottom right
+        usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+        gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1)
 
-			-- inner background corners
-			if OPTIONS[currentOption].showOutline and OPTIONS[currentOption].showInnerBg then
-				-- top right
-				usedColor = bkInnerTop[1] - ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
-				gl.Color(usedColor, usedColor, usedColor, bkInnerTop[4])
-				gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1.0000001)
+        usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+        gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+        gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1)
+        gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1)
 
-				gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
-				gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
-				gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
+        -- inner background corners
+        -- top right
+        usedColor = bkInnerTop[1] - ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
+        gl.Color(usedColor, usedColor, usedColor, bkInnerTop[4])
+        gl.Vertex(barWidth - cs, barHeight - cs, (barWidth * 2) - cs * 2, 1.0000001)
 
-				-- bottom right
-				usedColor = bkInnerBottom[1] + ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
-				gl.Color(usedColor, usedColor, usedColor, bkInnerBottom[4])
-				gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1.0000001)
+        gl.Color(bkInnerTop[1], bkInnerTop[2], bkInnerTop[3], bkInnerTop[4])
+        gl.Vertex(barWidth - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
+        gl.Vertex(barWidth - cs - cs, barHeight, (barWidth * 2) - cs * 2, 1.0000001)
 
-				gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
-				gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
-				gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
-			end
+        -- bottom right
+        usedColor = bkInnerBottom[1] + ((bkInnerTop[1] - bkInnerBottom[1]) * ((cs) / (barHeight)))
+        gl.Color(usedColor, usedColor, usedColor, bkInnerBottom[4])
+        gl.Vertex(barWidth - cs, cs, (barWidth * 2) - cs * 2, 1.0000001)
 
-			if heightAddition > 0 then
-				-- top left
-				usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-				gl.Vertex(-barWidth, barHeight - cs, 0, 1)
+        gl.Color(bkInnerBottom[1], bkInnerBottom[2], bkInnerBottom[3], bkInnerBottom[4])
+        gl.Vertex(barWidth - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
+        gl.Vertex(barWidth - cs - cs, 0, (barWidth * 2) - cs * 2, 1.0000001)
 
-				usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
-				gl.Vertex(-barWidth, barHeight, 0, 1)
-				gl.Vertex(-barWidth + cs, barHeight, 0, 1)
+        if heightAddition > 0 then
+            -- top left
+            usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+            gl.Vertex(-barWidth, barHeight - cs, 0, 1)
 
-				-- bottom left
-				usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-				gl.Vertex(-barWidth, cs, 0, 1)
+            usedColor = inputTopColor[1] + ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputTopColor[4])
+            gl.Vertex(-barWidth, barHeight, 0, 1)
+            gl.Vertex(-barWidth + cs, barHeight, 0, 1)
 
-				usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
-				gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
-				gl.Vertex(-barWidth, 0, 0, 1)
-				gl.Vertex(-barWidth + cs, 0, 0, 1)
-			end
-		end)
-	else
-		gl.BeginEnd(GL.QUADS, function()
-			gl.Vertex(-barWidth, 0, 0, 0)
-			gl.Vertex(-barWidth, 0, barWidth * 2, 0)
-			gl.Vertex(-barWidth, barHeight, barWidth * 2, 0)
-			gl.Vertex(-barWidth, barHeight, 0, 0)
+            -- bottom left
+            usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * ((heightAddition + cs) / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+            gl.Vertex(-barWidth, cs, 0, 1)
 
-			gl.Color(bkBottom)
-			gl.Vertex(barWidth, 0, 0, 1)
-			gl.Vertex(barWidth, 0, barWidth * 2, 1)
-			gl.Color(bkTop)
-			gl.Vertex(barWidth, barHeight, barWidth * 2, 1)
-			gl.Vertex(barWidth, barHeight, 0, 1)
-		end)
-	end
+            usedColor = inputBottomColor[1] - ((inputBottomColor[1] - inputTopColor[1]) * (heightAddition / (barHeight + heightAddition + heightAddition)))
+            gl.Color(usedColor, usedColor, usedColor, inputBottomColor[4])
+            gl.Vertex(-barWidth, 0, 0, 1)
+            gl.Vertex(-barWidth + cs, 0, 0, 1)
+        end
+    end)
 
 end
 
@@ -738,13 +661,6 @@ function init()
 	end
 end
 
-local function toggleOption()
-	currentOption = currentOption + 1
-	if not OPTIONS[currentOption] then
-		currentOption = 1
-	end
-	init()
-end
 
 function widget:Initialize()
 	--// catch f9
@@ -927,11 +843,11 @@ do
 
 	local maxBars = 20
 	local bars = {}
-	local barHeightL = barHeight + 1.5 + (OPTIONS[currentOption].showOutline and outlineSize or 0)
+	local barHeightL = barHeight + 1.5 + outlineSize
 
-	local barStart = -(barWidth + 1.5) - (OPTIONS[currentOption].showOutline and outlineSize or 0)
-	local fBarHeightL = featureBarHeight + 1.5 + (OPTIONS[currentOption].showOutline and outlineSize or 0)
-	local fBarStart = -(featureBarWidth + 1.5) - (OPTIONS[currentOption].showOutline and outlineSize or 0)
+	local barStart = -(barWidth + 1.5) - outlineSize
+	local fBarHeightL = featureBarHeight + 1.5 + outlineSize
+	local fBarStart = -(featureBarWidth + 1.5) - outlineSize
 
 	for i = 1, maxBars do
 		bars[i] = {}
@@ -973,7 +889,9 @@ do
 		barsN = 0 --//reset!
 	end
 
-	function DrawBarsFeature(fullText)
+	function DrawBarsFeature(fullText, scale)
+        glPushMatrix()
+        glScale(barScale * scale, barScale * scale, barScale * scale)
 		local yoffset = 0
 		for i = 1, barsN do
 			local barInfo = bars[i]
@@ -996,6 +914,7 @@ do
 			end
 			yoffset = yoffset - fBarHeightL
 		end
+        glPopMatrix()
 
 		barsN = 0 --//reset!
 	end
@@ -1081,7 +1000,7 @@ do
       --// BARS //-----------------------------------------------------------------------------
       --// Shield
       if ci.maxShield > 0 then
-        if isCommander[unitDefID] and Spring.GetModOptions() and Spring.GetModOptions().unba == "enabled" then
+        if isCommander[unitDefID] and unba_enabled then
           for i = 23, 29 do
             if GetUnitShieldState(unitID, i) then
               local shieldOn, shieldPower = GetUnitShieldState(unitID, i)
@@ -1273,17 +1192,17 @@ do
 		--// HEALTH
 		if hp < featureHpThreshold and drawFeatureHealth then
 			local color = { GetColor(fhpcolormap, hp) }
-			AddBar("health", hp, nil, (floor(hp * 100) <= drawFeatureBarPercentage and floor(hp * 100) .. '%') or '', color, scale)
+			AddBar("health", hp, nil, (floor(hp * 100) <= drawFeatureBarPercentage and floor(hp * 100) .. '%') or '', color)
 		end
 
 		--// RESURRECT
 		if resurrect > 0 then
-			AddBar("resurrect", resurrect, "resurrect", (fullText and floor(resurrect * 100) .. '%') or '', nil, scale)
+			AddBar("resurrect", resurrect, "resurrect", (fullText and floor(resurrect * 100) .. '%') or '')
 		end
 
 		--// RECLAIMING
 		if reclaimLeft > 0 and reclaimLeft < 1 then
-			AddBar("reclaim", reclaimLeft, "reclaim", (fullText and floor(reclaimLeft * 100) .. '%') or '', nil, scale)
+			AddBar("reclaim", reclaimLeft, "reclaim", (fullText and floor(reclaimLeft * 100) .. '%') or '')
 		end
 
 		if barsN > 0 then
@@ -1302,7 +1221,7 @@ do
 			glBillboard()
 
 			--// DRAW BARS
-			DrawBarsFeature(fullText)
+			DrawBarsFeature(fullText, scale)
 
 			glPopMatrix()
 		end
@@ -1552,20 +1471,5 @@ function widget:SetConfigData(data)
 	end
 	if data.variableBarSizes ~= nil then
 		variableBarSizes = data.variableBarSizes
-	end
-end
-
-function widget:TextCommand(command)
-	if string.find(command, "healthbars_percentage", nil, true) == 1 and string.len(command) == 21 then
-		drawBarPercentage = (drawBarPercentage < 100 and 100 or 0)
-	end
-	if string.find(command, "healthbars_compercentage", nil, true) == 1 and string.len(command) == 24 then
-		alwaysDrawBarPercentageForComs = not alwaysDrawBarPercentageForComs
-	end
-	if string.find(command, "healthbars_style", nil, true) == 1 and string.len(command) == 16 then
-		toggleOption()
-	end
-	if string.find(command, "healthbars_health, nil, true") == 1 and string.len(command) == 17 then
-		hideHealthbars = not hideHealthbars
 	end
 end
