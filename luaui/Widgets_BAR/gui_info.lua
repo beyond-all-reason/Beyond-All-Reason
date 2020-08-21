@@ -1417,7 +1417,7 @@ local function drawUnitInfo()
 
 		if unitMetalmaker[displayUnitDefID] then
 			addTextInfo('convertorEnergyCapacity', unitMetalmaker[displayUnitDefID][1])
-			addTextInfo('convertorMetal', round(unitMetalmaker[displayUnitDefID][1] / (1 / unitMetalmaker[displayUnitDefID][2])), 1)
+			addTextInfo('convertorMetal', round(unitMetalmaker[displayUnitDefID][1] / (1 / unitMetalmaker[displayUnitDefID][2]), 1))
 		end
 
 		local text, numLines = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
