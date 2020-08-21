@@ -840,6 +840,7 @@ do
     local glPushMatrix = gl.PushMatrix
     local glPopMatrix = gl.PopMatrix
     local glScale = gl.Scale
+    local glTranslate = gl.Translate
 
 	local maxBars = 20
 	local bars = {}
@@ -865,6 +866,9 @@ do
 	function DrawBars(fullText, scale)
         glPushMatrix()
         glScale(barScale * scale, barScale * scale, barScale * scale)
+        if barsN > 1 then
+            glTranslate(0,(barsN-1)*barHeightL,0)
+        end
         local yoffset = 0
 		for i = 1, barsN do
 			local barInfo = bars[i]
