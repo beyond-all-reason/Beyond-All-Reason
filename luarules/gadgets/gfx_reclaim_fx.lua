@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name      = "Reclaim effect",
-		desc      = "Nice unit reclaim effect",
+		desc      = "Unit/feature reclaim effect",
 		author    = "Floris",
 		date      = "December 2016",
 		license   = "PD",
@@ -29,8 +29,8 @@ end
 
 local featureList = {}
 for featureDefID, fdef in pairs(FeatureDefs) do
-   if fdef.model and fdef.model.minx then
-	   featureList[featureDefID] = {minx=fdef.model.minx, maxx=fdef.model.maxx, miny=fdef.model.miny, maxy=fdef.model.maxy, minz=fdef.model.minz, maxz=fdef.model.maxz}
+   if fdef.model and fdef.model.minx and fdef.model.maxx then
+	   featureList[featureDefID] = {minx=fdef.model.minx, maxx=fdef.model.maxx+1, miny=fdef.model.miny, maxy=fdef.model.maxy+1, minz=fdef.model.minz, maxz=fdef.model.maxz+1}
    end
 end
 
@@ -76,7 +76,7 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 		local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 		if fx ~= nil then
 			local fdef = featureList[featureDefID]
-			if fdef and fdef.minx then
+			if fdef then
 				local x,y,z = fx,fy,fz
 				local _, mm, _, me, _ = Spring.GetFeatureResources(featureID)
 				if me ~= nil and me > 0 then

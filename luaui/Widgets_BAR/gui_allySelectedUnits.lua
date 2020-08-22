@@ -193,13 +193,11 @@ end
 
 function widget:PlayerRemoved(playerID, reason)
 	for unitID, val in pairs( hotUnits ) do
-		hotUnits[unitID] = nil
-		for playerID, selUnits in pairs(playerSelectedUnits) do
-			selUnits["units"][unitID] = nil
+		if val.playerID == playerID then
+			hotUnits[unitID] = nil
 		end
 	end
-	playerIsSpec[playerID] = nil
-	playerSelectedUnits[playerID] = nil
+	playerSelectedUnits[playerID]["units"] = {}
 end
 
 function widget:PlayerAdded(playerID)
