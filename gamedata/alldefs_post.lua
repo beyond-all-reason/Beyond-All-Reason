@@ -141,7 +141,7 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.01	-- default 0.005
 
-			local airmult = 1.5
+			local airmult = 1.3
 			if uDef.buildcostenergy then
 				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
 			end
@@ -171,22 +171,22 @@ function UnitDef_Post(name, uDef)
 			end
 
 			if uDef.customparams.fighter then
-				uDef.maxvelocity = uDef.maxvelocity*1.20
+				uDef.maxvelocity = uDef.maxvelocity*1.15
 
-				uDef.maxacc = uDef.maxacc*1.5
+				uDef.maxacc = uDef.maxacc*1.3
 
 				-- turn speeds x,y,z
-				uDef.maxelevator = uDef.maxelevator*1.20
-				uDef.maxrudder  = uDef.maxrudder*1.20
-				uDef.maxaileron = uDef.maxaileron*1.20
+				uDef.maxelevator = uDef.maxelevator*1.15
+				uDef.maxrudder  = uDef.maxrudder*1.15
+				uDef.maxaileron = uDef.maxaileron*1.15
 
-				uDef.turnradius = uDef.turnradius*0.8
+				uDef.turnradius = uDef.turnradius*0.85
 
-				uDef.maxbank = uDef.maxbank*1.20
-				uDef.maxpitch = uDef.maxpitch*1.20
+				uDef.maxbank = uDef.maxbank*1.15
+				uDef.maxpitch = uDef.maxpitch*1.15
 
-				uDef.maxbank = uDef.maxbank*1.20
-				uDef.maxpitch = uDef.maxpitch*1.20
+				uDef.maxbank = uDef.maxbank*1.15
+				uDef.maxpitch = uDef.maxpitch*1.15
 			end
 		end
 	--end
