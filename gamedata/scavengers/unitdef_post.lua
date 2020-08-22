@@ -104,27 +104,27 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.buildcostenergy then
-		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.5)
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*2)
 	end
 
 	if uDef.buildcostmetal then
-		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
+		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*2)
 	end
 
 	if uDef.energymake then
-		uDef.energymake = math.ceil(uDef.energymake*0.5)
+		uDef.energymake = math.ceil(uDef.energymake*2)
 	end
 
 	if uDef.metalmake then
-		uDef.metalmake = math.ceil(uDef.metalmake*0.5)
+		uDef.metalmake = math.ceil(uDef.metalmake*2)
 	end
 
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
+		uDef.maxdamage = math.ceil(uDef.maxdamage*2)
 	end
 
 	if uDef.maxvelocity then
-		uDef.maxvelocity = uDef.maxvelocity*0.9
+		uDef.maxvelocity = uDef.maxvelocity*0.8
 	end
 
 	if uDef.radardistancejam then
@@ -132,15 +132,15 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
-		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
+		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage/30))
+		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage/30))
 	else
 		uDef.autoheal = 3
 		uDef.idleautoheal = 3
 	end
 
 	if uDef.turnrate then
-		uDef.turnrate = uDef.turnrate*0.8
+		uDef.turnrate = uDef.turnrate*0.7
 	end
 
 	if uDef.turninplaceanglelimit then
