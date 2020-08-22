@@ -842,6 +842,7 @@ function widget:DrawWorld()
         if lineLength > 0 then  --don't try and draw if the command was cancelled by having two mouse buttons pressed at once
             DrawFormationDots(tVerts, zoomY)
         end
+		glColor(1,1,1,1)
     end
 end
 
