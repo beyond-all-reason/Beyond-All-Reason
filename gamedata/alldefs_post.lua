@@ -138,6 +138,9 @@ function UnitDef_Post(name, uDef)
 
 	--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0 then
 		if uDef.canfly then
+
+			uDef.crashdrag = 0.01	-- default 0.005
+
 			local airmult = 1.5
 			if uDef.buildcostenergy then
 				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
@@ -169,6 +172,21 @@ function UnitDef_Post(name, uDef)
 
 			if uDef.customparams.fighter then
 				uDef.maxvelocity = uDef.maxvelocity*1.20
+
+				uDef.maxacc = uDef.maxacc*1.5
+
+				-- turn speeds x,y,z
+				uDef.maxelevator = uDef.maxelevator*1.20
+				uDef.maxrudder  = uDef.maxrudder*1.20
+				uDef.maxaileron = uDef.maxaileron*1.20
+
+				uDef.turnradius = uDef.turnradius*0.8
+
+				uDef.maxbank = uDef.maxbank*1.20
+				uDef.maxpitch = uDef.maxpitch*1.20
+
+				uDef.maxbank = uDef.maxbank*1.20
+				uDef.maxpitch = uDef.maxpitch*1.20
 			end
 		end
 	--end
