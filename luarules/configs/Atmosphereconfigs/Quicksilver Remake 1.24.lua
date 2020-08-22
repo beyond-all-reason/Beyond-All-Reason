@@ -5,10 +5,10 @@ function gadget:GameFrame(n)
 
 -- DayNight Cycle
 
-	if n%18000 < 12000 then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 1, 1)
+	if n%18000 < 14000 then
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 0.8, 1)
 	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, 1, 0.6)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, 0.8, 0.6)
 	end
 
 -- common foggy cliffs	

@@ -3,19 +3,21 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. mapname)
 	end
 
+-- ## Atmosphere Functions
+-- SendToUnsynced("MapAtmosphereConfigSetSun", red&green, transitionspeed, blue)
+-- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
+
 	-- DayNight Cycle
 	
 	if n%9000 > 3600 and thunderstormactive == true then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.4, 2.5, 0.4)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.55, 2.5, 0.55)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 0.15, 0.7, 2.5, 1.5)
 	else	
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 3, 1)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 3.5, 3)
 	end
 
--- ## Atmosphere Functions
--- SendToUnsynced("MapAtmosphereConfigSetSun", red&green, transitionspeed, blue)
--- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
+-- ## Atmosphere CEG Functions
 
 -- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
 -- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
@@ -37,7 +39,7 @@ local lightningsounds = {
 	"thunder6",
 	}  
 	
-if n%150 == 0 then
+if n%60 == 0 then
 	if n%9000 == 4500 then
 		thunderstormcenterx = math.random(0, (mapsizeX))
 		thunderstormcenterz = math.random(0, (mapsizeZ))
@@ -60,14 +62,14 @@ if n%150 == 0 then
 	end
 	if thunderstormactive and thunderstormactive == true then
 		if thunderstormdirectionx == 1 then 
-			thunderstormcenterx = thunderstormcenterx + math.random(8,64)
+			thunderstormcenterx = thunderstormcenterx + math.random(16,128)
 		elseif thunderstormdirectionx == 2 then 
-			thunderstormcenterx = thunderstormcenterx - math.random(8,64)
+			thunderstormcenterx = thunderstormcenterx - math.random(16,128)
 		end
 		if thunderstormdirectionz == 1 then 
-			thunderstormcenterz = thunderstormcenterz + math.random(8,64)
+			thunderstormcenterz = thunderstormcenterz + math.random(16,128)
 		elseif thunderstormdirectionz == 2 then 
-			thunderstormcenterz = thunderstormcenterz - math.random(8,64)
+			thunderstormcenterz = thunderstormcenterz - math.random(16,128)
 		end
 		thunderstormxmin = thunderstormcenterx - thunderstormradius
 		thunderstormxmax = thunderstormcenterx + thunderstormradius
