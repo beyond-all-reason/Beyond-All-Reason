@@ -120,7 +120,6 @@ end
 local function updateUnitRank(unitID, unitDefID)
 	local xp = GetUnitExperience(unitID)
 	xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]), numRanks)
-	Spring.Echo()
 	ranks[xp][unitID] = unitDefID
 end
 
