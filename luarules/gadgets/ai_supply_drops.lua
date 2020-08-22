@@ -62,11 +62,6 @@ local lootboxesListTop = {
 }
 
 
-
-
-
-
-
 -- locals
 local spGetUnitTeam         = Spring.GetUnitTeam
 local spNearestEnemy        = Spring.GetUnitNearestEnemy
@@ -89,10 +84,6 @@ local aliveLootboxesCount   = 0
 
 local QueuedSpawns = {}
 local QueuedSpawnsFrames = {}
-
-
-
-
 
 
 -- functions
@@ -132,10 +123,6 @@ local function SpawnFromQueue(n)
 end
 
 
-
-
-
-
 -- callins
 
 function gadget:GameFrame(n)
@@ -145,11 +132,10 @@ function gadget:GameFrame(n)
 
     if n%30 == 0 and n > 2 then
 
-        if #aliveLootboxes > 0 then
-            for j = 1,#aliveLootboxes do
-                local unitID            = aliveLootboxes[j]
-                local unitTeam          = spGetUnitTeam(unitID)
-                local unitEnemy         = spNearestEnemy(unitID, 128, false)
+        if aliveLootboxesCount > 0 then
+            for unitID,_ in pairs(aliveLootboxes) do
+                local unitTeam = spGetUnitTeam(unitID)
+                local unitEnemy = spNearestEnemy(unitID, 128, false)
                 if unitEnemy then
                     local enemyTeam = spGetUnitTeam(unitEnemy)
                     --if enemyTeam ~= spGaiaTeam then
@@ -191,9 +177,10 @@ function gadget:GameFrame(n)
     end
 end
 
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if isLootbox[unitDefID] then
-		aliveLootboxes[#aliveLootboxes+1] = unitID
+		aliveLootboxes[unitID] = true
 		aliveLootboxesCount = aliveLootboxesCount + 1
         Spring.SetUnitNeutral(unitID, true)
     end
@@ -201,13 +188,8 @@ end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if isLootbox[unitDefID] then
-        for i = 1,#aliveLootboxes do
-            if unitID == aliveLootboxes[i] then
-				aliveLootboxesCount = aliveLootboxesCount - 1
-				aliveLootboxes[i] = nil
-                break
-            end
-        end
-    end
+	if aliveLootboxes[unitID] then
+		aliveLootboxes[unitID] = nil
+		aliveLootboxesCount = aliveLootboxesCount - 1
+	end
 end
