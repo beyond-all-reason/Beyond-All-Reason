@@ -18,8 +18,8 @@ local scaleIconAmount = 90
 
 local rankScopeDivider = 5		-- the higher the number the narrower the scope, the higher the assigned rank will be
 
-local falloffDistance = 1500
-local cutoffDistance = 2700
+local falloffDistance = 1300
+local cutoffDistance = 2300
 
 local distanceMult = 1
 local usedFalloffDistance = falloffDistance * distanceMult
@@ -117,10 +117,12 @@ function widget:SetConfigData(data) --load config
 	end
 end
 
+local function getRank(unitDefID, xp)
+	return min(floor(xp / unitPowerXpCoeffient[unitDefID]), numRanks)
+end
+
 local function updateUnitRank(unitID, unitDefID)
-	local xp = GetUnitExperience(unitID)
-	xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]), numRanks)
-	ranks[xp][unitID] = unitDefID
+	ranks[ getRank(unitDefID, GetUnitExperience(unitID)) ][unitID] = unitDefID
 end
 
 function widget:Initialize()
@@ -142,7 +144,7 @@ function widget:Initialize()
 		usedIconsize = iconsize * iconsizeMult
 	end
 	WG['rankicons'].getRank = function(unitDefID, xp)
-		return min(floor(xp / unitPowerXpCoeffient[unitDefID]), numRanks)
+		return getRank(unitDefID, xp)
 	end
 	WG['rankicons'].getRankTextures = function(unitDefID, xp)
 		return rankTextures

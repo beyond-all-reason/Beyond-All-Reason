@@ -57,7 +57,7 @@ local minPercentageDistance     = 130000     -- always show health percentage te
 local infoDistance              = 900000
 local maxFeatureInfoDistance    = 330000    --max squared distance at which text it drawn for features
 local maxFeatureDistance        = 700000    --max squared distance at which any info is drawn for features
-local maxUnitDistance           = 12000000  --max squared distance at which any info is drawn for units
+local maxUnitDistance           = 7000000  --max squared distance at which any info is drawn for units
 
 local minReloadTime = 4 --// in seconds
 

@@ -36,10 +36,10 @@ local spusEmitSfx    = Spring.UnitScript.EmitSfx
 local wadeDepth = {}
 local wadeSfxID = {}
 do
-	local smc = Game.speedModClasses
+	local smc = Game.speedModClasses		-- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
 	local wadingSMC = {
 		[smc.Tank] = true,
-		[smc.Bot] = true,
+		[smc.KBot] = true,
 	}
 	local SFXTYPE_WAKE1 = 2
 	local SFXTYPE_WAKE2 = 3
