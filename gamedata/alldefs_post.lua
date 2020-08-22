@@ -141,19 +141,19 @@ function UnitDef_Post(name, uDef)
 		if uDef.canfly and (not uDef.builder) then
 			
 			if uDef.buildcostenergy then
-				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*1.5)
+				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*2)
 			end
 
 			if uDef.buildtime then
-				uDef.buildtime = math.ceil(uDef.buildtime*1.4)
+				uDef.buildtime = math.ceil(uDef.buildtime*2)
 			end
 
 			if uDef.buildcostmetal then
-				uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*1.5)
+				uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*2)
 			end
 			
 			if uDef.maxdamage then
-				uDef.maxdamage = math.ceil(uDef.maxdamage*1.5)
+				uDef.maxdamage = math.ceil(uDef.maxdamage*2)
 			end
 		end
 	end
