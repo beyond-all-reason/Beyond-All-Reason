@@ -4097,7 +4097,7 @@ function widget:Initialize()
 		end
 	end
 
-	if Spring.GetGameFrame() == 0 then
+	if Spring.GetGameFrame() <= 10 then
 		for x=1, Game.mapSizeX do
 			for z=1, Game.mapSizeZ do
 				if spGetGroundHeight(x, z) <= 0 then
