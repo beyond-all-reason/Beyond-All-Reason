@@ -135,28 +135,43 @@ function UnitDef_Post(name, uDef)
 	if uDef.maxslope then
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
-	
-	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0) then
-		
-		if uDef.canfly and (not uDef.builder) then
-			
+
+	--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0 then
+		if uDef.canfly then
+			local airmult = 1.5
 			if uDef.buildcostenergy then
-				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*2)
+				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
 			end
 
 			if uDef.buildtime then
-				uDef.buildtime = math.ceil(uDef.buildtime*2)
+				uDef.buildtime = math.ceil(uDef.buildtime*airmult)
 			end
 
 			if uDef.buildcostmetal then
-				uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*2)
+				uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*airmult)
 			end
-			
+
 			if uDef.maxdamage then
-				uDef.maxdamage = math.ceil(uDef.maxdamage*2)
+				uDef.maxdamage = math.ceil(uDef.maxdamage*airmult)
+			end
+
+			if uDef.builder then
+				uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
+			end
+
+			if uDef.weapondefs then
+				for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+					for category, damage in pairs (weaponDef.damage) do
+						uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
+					end
+				end
+			end
+
+			if uDef.customparams.fighter then
+				uDef.maxvelocity = uDef.maxvelocity*1.20
 			end
 		end
-	end
+	--end
 
 	-- vehicles
     --if uDef.category and string.find(uDef.category, "TANK") then

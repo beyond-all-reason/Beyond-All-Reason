@@ -45,6 +45,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreaircraft",
+			fighter = 1,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

@@ -46,6 +46,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreseaplanes",
+			fighter = 1,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

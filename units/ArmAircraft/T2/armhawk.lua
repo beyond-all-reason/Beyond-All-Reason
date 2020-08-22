@@ -47,6 +47,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			fighter = 1,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
