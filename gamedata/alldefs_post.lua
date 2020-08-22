@@ -114,7 +114,7 @@ function UnitDef_Post(name, uDef)
 
 
 	-- make los height a bit more forgiving	(20 is the default)
-	uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 12
+	uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
 
 
 	if uDef.name and uDef.name ~= "Commander" then
