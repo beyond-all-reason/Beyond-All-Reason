@@ -898,9 +898,9 @@ function widget:Update(dt)
 	if not waterDetected and heightmapChangeClock and heightmapChangeClock+1 > os_clock() then
 		for k,coords in pairs(heightmapChangeBuffer) do
 			local x = coords[1]
-			local addX = (coords[1] < coords[3] and 1 or -1)
+			local addX = (coords[1] < coords[3] and 8 or -8)
 			local z = coords[2]
-			local addZ = (coords[2] < coords[4] and 1 or -1)
+			local addZ = (coords[2] < coords[4] and 8 or -8)
 			while x ~= coords[3] do
 				while z ~= coords[4] do
 					if spGetGroundHeight(x,z) <= 0 then
@@ -4062,13 +4062,12 @@ function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 end
 
-
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	if not waterDetected then
 		if not heightmapChangeClock then
 			heightmapChangeClock = os_clock()
 		end
-		heightmapChangeBuffer[#heightmapChangeBuffer+1] = {x1, z1, x2, z2}
+		heightmapChangeBuffer[#heightmapChangeBuffer+1] = {x1*8, z1*8, x2*8, z2*8}
 	end
 end
 
