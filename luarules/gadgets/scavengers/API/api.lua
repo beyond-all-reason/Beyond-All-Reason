@@ -62,6 +62,7 @@ ConstructorNumberOfRetries = {}
 CaptureProgressForBeacons = {}
 AliveEnemyCommanders = {}
 AliveEnemyCommandersCount = 0
+FinalBossKilled = false
 
 if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
