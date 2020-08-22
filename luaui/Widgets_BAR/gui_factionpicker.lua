@@ -124,7 +124,7 @@ function widget:ViewResize()
     posX = 0
   end
 
-  backgroundRect = {posX*vsx, (posY-height)*vsy, (posX+width)*vsx, posY*vsy}
+  backgroundRect = {math.floor(posX*vsx), math.floor((posY-height)*vsy), math.floor((posX+width)*vsx), math.floor(posY*vsy)}
   activeRect = {(posX*vsx)+(bgMargin*vsy), ((posY-height)+bgMargin)*vsy, ((posX+width)*vsx)-(bgMargin*vsy), (posY-bgMargin)*vsy}
 
   dlistFactionpicker = gl.DeleteList(dlistFactionpicker)

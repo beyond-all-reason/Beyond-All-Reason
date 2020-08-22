@@ -26,7 +26,7 @@ local myTeamID = Spring.GetMyTeamID()
 
 local isFighter = {}
 for udid, ud in pairs(UnitDefs) do
-    if ud.isFighterAirUnit and not string.find(ud.name, 'liche') then       -- liche is classified as one somehow
+    if ud.customParams.fighter then
         isFighter[udid] = true
     end
 end
