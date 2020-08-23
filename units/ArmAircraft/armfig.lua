@@ -77,7 +77,7 @@ return {
 		},
 		weapondefs = {
 			armvtol_missile = {
-				areaofeffect = 48,
+				areaofeffect = 8,
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,

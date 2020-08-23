@@ -81,7 +81,7 @@ return {
 		},
 		weapondefs = {
 			corsfig_weapon = {
-				areaofeffect = 48,
+				areaofeffect = 8,
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
