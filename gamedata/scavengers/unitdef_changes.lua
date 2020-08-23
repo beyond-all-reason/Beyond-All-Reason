@@ -848,11 +848,11 @@ customDefs.cortoast = {
 -- }
 
 customDefs.armrectr = {
-	workertime = 400, 	-- can get multiplied in unitdef_post 
+	workertime = 100, 	-- can get multiplied in unitdef_post 
 }
 
 customDefs.cornecro = {
-	workertime = 400,		-- can get multiplied in unitdef_post 
+	workertime = 100,		-- can get multiplied in unitdef_post 
 }
 
 -- LOOTBOXES
