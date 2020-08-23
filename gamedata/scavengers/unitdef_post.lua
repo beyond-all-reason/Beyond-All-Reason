@@ -164,13 +164,13 @@ function scav_Udef_Post(name, uDef)
 		end
 	end
 	
-	if uDef.weapondefs then
-		for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-			for category, damage in pairs (weaponDef.damage) do
-				uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * 2))
-			end
-		end
-	end
+	-- if uDef.weapondefs then
+		-- for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+			-- for category, damage in pairs (weaponDef.damage) do
+				-- uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * 2))
+			-- end
+		-- end
+	-- end
 
 	if uDef.customparams.fighter then
 		uDef.maxvelocity = uDef.maxvelocity*2
