@@ -22,15 +22,15 @@ local opacity = 1
 local always, LOS, radar, jam, radar2
 
 local losColorsWithRadarsGray = {
-    fog =    {0.10, 0.10, 0.10},
-    los =    {0.30, 0.30, 0.30},
+    fog =    {0.14, 0.14, 0.14},
+    los =    {0.26, 0.26, 0.26},
     radar =  {0.17, 0.17, 0.17},
     jam =    {0.12, 0.00, 0.00},
     radar2 = {0.17, 0.17, 0.17},
 }
 
 local losColorsWithRadarsColor = {
-    fog =    {0.15, 0.15, 0.15},
+    fog =    {0.17, 0.17, 0.17},
     los =    {0.22, 0.14, 0.30},
     radar2 = {0.08, 0.16, 0.00},
     jam =    {0.20, 0.00, 0.00},
@@ -71,18 +71,27 @@ function withoutRadars()
 end
 
 
-function applyOpacity(colors)
-	for i,c in pairs(colors.fog) do
-		colors['fog'][i] = c * opacity
+function deepcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[deepcopy(orig_key)] = deepcopy(orig_value)
+		end
+		setmetatable(copy, deepcopy(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
 	end
-	--local newColors = {}
-	--for type,color in pairs(colors) do
-	--	newColors[type] = {}
-	--	for i,c in pairs(color) do
-	--		newColors[type][i] = c * opacity
-	--	end
-	--end
-	return colors
+	return copy
+end
+
+function applyOpacity(colors)
+	local newColors = deepcopy(colors)
+	for i,c in pairs(newColors.fog) do
+		newColors.fog[i] = c * opacity
+	end
+	return newColors
 end
 
 function updateLOS(colors)

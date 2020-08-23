@@ -16,7 +16,7 @@ end
 
 local OPTIONS = {
 	haloSize				= 0.8,
-	haloDistance			= 2.8,
+	haloDistance			= 3.3,
 	skipBuildings			= true,
 	fadeOnCameraDistance	= true,
 	sizeVariation			= 0.09,
