@@ -18,6 +18,7 @@ Units
  • Karganeth: Removed aa missile
  • Juggernaut: main weapon does 4x old damage/reloadtime + increased range 18%
  • added experimental ARM T3 unit: Giant Invader, crawling nuclear bomb
+ • EMP launcher: reduced range 10%
 
 
 10.23 -> 10.24
