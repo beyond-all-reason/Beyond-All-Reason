@@ -91,8 +91,8 @@ return {
 				[5] = "crashing-small3",
 			},
 			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
+				[1] = "airdeathceg2-builder",
+				[2] = "airdeathceg3-builder",
 			},
 		},
 		sounds = {

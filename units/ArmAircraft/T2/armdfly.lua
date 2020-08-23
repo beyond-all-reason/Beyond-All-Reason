@@ -63,8 +63,8 @@ return {
 				[1] = "custom:blacksmoke",
 			},
 			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
+				[1] = "airdeathceg3",
+				[2] = "airdeathceg4",
 			},
 		},
 		sounds = {

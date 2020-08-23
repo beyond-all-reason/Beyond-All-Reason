@@ -4,7 +4,7 @@ local defs = {
     fire = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
-      count              = 2,
+      count              = 1,
       ground             = true,
       properties = {
         airdrag            = 0.66,
@@ -84,14 +84,14 @@ local defs = {
       },
     },
   },
-  
-  
-  
+
+
+
   ["deathceg3"] = {
     fire = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
-      count              = 2,
+      count              = 1,
       ground             = true,
       properties = {
         airdrag            = 0.66,
@@ -199,14 +199,14 @@ local defs = {
       },
     },
   },
-  
-  
-  
+
+
+
   ["deathceg4"] = {
     fire = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
-      count              = 2,
+      count              = 1,
       ground             = true,
       properties = {
         airdrag            = 0.66,
@@ -493,10 +493,18 @@ defs["deathceg4-builder"].dustparticles.properties.colormap = deepcopy(defs["dea
 --defs["deathceg3-air"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
 
 
+local airDefs = {}
+for k,v in pairs(defs) do
+	airDefs['air'..k] = deepcopy(defs[k])
+	airDefs['air'..k].fireandsmoke.properties.particlelife = v.fireandsmoke.properties.particlelife * 0.6
+	airDefs['air'..k].fireandsmoke.properties.colormap = [[0.05 0.034 0.028 0.62   0.044 0.033 0.027 0.57   0.04 0.031 0.026 0.48   0.025 0.023 0.023 0.3   0.014 0.013 0.013 0.15    0.006 0.006 0.006 0.06   0 0 0 0.01]]
+end
+defs = tableMerge(defs, airDefs)
+
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(defs) do
-  scavengerDefs[k..'-purple'] = deepcopy(defs[k])
+	scavengerDefs[k..'-purple'] = deepcopy(defs[k])
 end
 
 local purpleEffects = {
