@@ -34,17 +34,18 @@ if (gadgetHandler:IsSyncedCode()) then
 		return arr
 	end
 
-	local function adjustFeatureHeight()
-		featuretable = Spring.GetAllFeatures()
+	function adjustFeatureHeight()
+		local featuretable = Spring.GetAllFeatures()
+		local x,y,z,featureDefID
 		for i = 1,#featuretable do
 			if not orgFeaturePosY[i] then
 				orgFeaturePosY[i] = select(2, Spring.GetFeaturePosition(featuretable[i]))
 			end
 			featureDefID = Spring.GetFeatureDefID(featuretable[i])
-			x,_,z = Spring.GetFeaturePosition(featuretable[i])
+			x,y,z = Spring.GetFeaturePosition(featuretable[i])
 			Spring.DestroyFeature(featuretable[i])
-			if (Spring.GetGroundHeight(x,z) >= 0) or (FeatureDefs[featureDefID].geoThermal == true) or (FeatureDefs[featureDefID].metal > 0) then -- Keep features (> 0 height) or (geovents) or (contains metal)
-				local y = orgFeaturePosY[i] - waterlevel --Spring.GetGroundHeight(x,z)
+			if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or FeatureDefs[featureDefID].metal > 0 then -- Keep features (> 0 height) or (geovents) or (contains metal)
+				y = orgFeaturePosY[i] - waterlevel --Spring.GetGroundHeight(x,z)
 				Spring.CreateFeature(featureDefID, x,y,z)
 			end
 		end
@@ -62,6 +63,11 @@ if (gadgetHandler:IsSyncedCode()) then
 			waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)))
 			adjustWaterlevel()
 		end
+	end
+
+	function gadget:GameFrame(gf)
+		adjustFeatureHeight()
+		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 
 	function gadget:GamePreload()
