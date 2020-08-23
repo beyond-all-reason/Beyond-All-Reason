@@ -258,6 +258,7 @@ return {
 					commanders = 1800,
 					default = 6000,
 					subs = 5,
+					vtol = 3000,
 				},
 			},
 		},
