@@ -141,52 +141,55 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.01	-- default 0.005
 
-			local airmult = 1.3
-			if uDef.buildcostenergy then
-				uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
-			end
+			if not string.find(uDef.name, "liche") and not string.find(uDef.name, "krow") then
 
-			if uDef.buildtime then
-				uDef.buildtime = math.ceil(uDef.buildtime*airmult)
-			end
+				local airmult = 1.3
+				if uDef.buildcostenergy then
+					uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
+				end
 
-			if uDef.buildcostmetal then
-				uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*airmult)
-			end
+				if uDef.buildtime then
+					uDef.buildtime = math.ceil(uDef.buildtime*airmult)
+				end
 
-			if uDef.maxdamage then
-				uDef.maxdamage = math.ceil(uDef.maxdamage*airmult)
-			end
+				if uDef.buildcostmetal then
+					uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*airmult)
+				end
 
-			if uDef.builder then
-				uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
-			end
+				if uDef.maxdamage then
+					uDef.maxdamage = math.ceil(uDef.maxdamage*airmult)
+				end
 
-			if uDef.weapondefs then
-				for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-					for category, damage in pairs (weaponDef.damage) do
-						uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
+				if uDef.builder then
+					uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
+				end
+
+				if uDef.weapondefs then
+					for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+						for category, damage in pairs (weaponDef.damage) do
+							uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
+						end
 					end
 				end
-			end
 
-			if uDef.customparams.fighter then
-				uDef.maxvelocity = uDef.maxvelocity*1.15
+				if uDef.customparams.fighter then
+					uDef.maxvelocity = uDef.maxvelocity*1.15
 
-				uDef.maxacc = uDef.maxacc*1.3
+					uDef.maxacc = uDef.maxacc*1.3
 
-				-- turn speeds x,y,z
-				uDef.maxelevator = uDef.maxelevator*1.15
-				uDef.maxrudder  = uDef.maxrudder*1.15
-				uDef.maxaileron = uDef.maxaileron*1.15
+					-- turn speeds x,y,z
+					uDef.maxelevator = uDef.maxelevator*1.15
+					uDef.maxrudder  = uDef.maxrudder*1.15
+					uDef.maxaileron = uDef.maxaileron*1.15
 
-				uDef.turnradius = uDef.turnradius*0.85
+					uDef.turnradius = uDef.turnradius*0.85
 
-				uDef.maxbank = uDef.maxbank*1.15
-				uDef.maxpitch = uDef.maxpitch*1.15
+					uDef.maxbank = uDef.maxbank*1.15
+					uDef.maxpitch = uDef.maxpitch*1.15
 
-				uDef.maxbank = uDef.maxbank*1.15
-				uDef.maxpitch = uDef.maxpitch*1.15
+					uDef.maxbank = uDef.maxbank*1.15
+					uDef.maxpitch = uDef.maxpitch*1.15
+				end
 			end
 		end
 	--end

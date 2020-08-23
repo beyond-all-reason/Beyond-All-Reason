@@ -895,29 +895,36 @@ function widget:Update(dt)
 	--end
 
 	-- check if there is water shown
-	if not waterDetected and heightmapChangeClock and heightmapChangeClock+1 > os_clock() then
-		for k,coords in pairs(heightmapChangeBuffer) do
-			local x = coords[1]
-			local addX = (coords[1] < coords[3] and 8 or -8)
-			local z = coords[2]
-			local addZ = (coords[2] < coords[4] and 8 or -8)
-			while x ~= coords[3] do
-				while z ~= coords[4] do
-					if spGetGroundHeight(x,z) <= 0 then
-						waterDetected = true
-						Spring.SendCommands("water "..desiredWaterValue)
+	if not waterDetected then
+		-- in case of modoption waterlevel has been made to show water
+		if not checkedForWaterAfterGamestart and Spring.GetGameFrame() <= 30 then
+			detectWater()
+			checkedForWaterAfterGamestart = true
+		end
+		if heightmapChangeClock and heightmapChangeClock+1 > os_clock() then
+			for k,coords in pairs(heightmapChangeBuffer) do
+				local x = coords[1]
+				local addX = (coords[1] < coords[3] and 8 or -8)
+				local z = coords[2]
+				local addZ = (coords[2] < coords[4] and 8 or -8)
+				while x ~= coords[3] do
+					while z ~= coords[4] do
+						if spGetGroundHeight(x,z) <= 0 then
+							waterDetected = true
+							Spring.SendCommands("water "..desiredWaterValue)
+							break
+						end
+						z = z + addZ
+					end
+					if waterDetected then
 						break
 					end
-					z = z + addZ
+					x = x + addX
 				end
-				if waterDetected then
-					break
-				end
-				x = x + addX
 			end
+			heightmapChangeClock = nil
+			heightmapChangeBuffer = {}
 		end
-		heightmapChangeClock = nil
-		heightmapChangeBuffer = {}
 	end
 
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
@@ -4071,6 +4078,20 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 end
 
+function detectWater()
+	for x=1, Game.mapSizeX do
+		for z=1, Game.mapSizeZ do
+			if spGetGroundHeight(x, z) <= 0 then
+				waterDetected = true
+				Spring.SendCommands("water "..desiredWaterValue)
+				break
+			end
+		end
+		if waterDetected then
+			break
+		end
+	end
+end
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -4097,19 +4118,8 @@ function widget:Initialize()
 		end
 	end
 
-	if Spring.GetGameFrame() <= 15 then
-		for x=1, Game.mapSizeX do
-			for z=1, Game.mapSizeZ do
-				if spGetGroundHeight(x, z) <= 0 then
-					waterDetected = true
-					Spring.SendCommands("water "..desiredWaterValue)
-					break
-				end
-			end
-			if waterDetected then
-				break
-			end
-		end
+	if Spring.GetGameFrame() == 0 then
+		detectWater()
 	end
 
 	if not waterDetected then

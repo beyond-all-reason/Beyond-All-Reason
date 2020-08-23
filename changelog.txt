@@ -7,7 +7,7 @@ General
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp
- • Air units: +30%: cost, health, damage, buildpower. Fighters +15% speed
+ • Air units (liche/krow exluded): +30%: cost, health, damage, buildpower. Fighters +15% speed
 
 Units
  • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice
