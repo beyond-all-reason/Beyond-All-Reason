@@ -229,17 +229,6 @@ local options={
 		max    = 1,
 		step   = 1,
 	},
-	{
-		key    = 'minions',
-		name   = 'Enable Minions',
-		desc   = 'placeholder-description',
-		type   = 'number',
-		section= 'options',
-		def    = 0,
-		min    = 0,
-		max    = 1,
-		step   = 1,
-	},
 	--{
 	--	key    = 'airrebalance',
 	--	name   = 'Heavier but more expensive air',
