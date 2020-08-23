@@ -104,31 +104,31 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.buildcostenergy then
-		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*2)
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.85)
 	end
 
 	if uDef.buildcostmetal then
-		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*2)
+		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.85)
 	end
 
 	if uDef.buildtime then
-		uDef.buildtime = math.ceil(uDef.buildtime*2)
+		uDef.buildtime = math.ceil(uDef.buildtime*0.85)
 	end
 	
 	if uDef.energymake then
-		uDef.energymake = math.ceil(uDef.energymake*2)
+		uDef.energymake = math.ceil(uDef.energymake*0.85)
 	end
 
 	if uDef.metalmake then
-		uDef.metalmake = math.ceil(uDef.metalmake*2)
+		uDef.metalmake = math.ceil(uDef.metalmake*0.85)
 	end
 
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*2)
+		uDef.maxdamage = math.ceil(uDef.maxdamage*0.85)
 	end
 
 	if uDef.maxvelocity then
-		uDef.maxvelocity = uDef.maxvelocity*0.7
+		uDef.maxvelocity = uDef.maxvelocity*1.1
 	end
 
 	if uDef.radardistancejam then
@@ -136,15 +136,15 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
-		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage/60))
+		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage))
+		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage))
 	else
 		uDef.autoheal = 3
 		uDef.idleautoheal = 3
 	end
 
 	if uDef.turnrate then
-		uDef.turnrate = uDef.turnrate*0.6
+		uDef.turnrate = uDef.turnrate*1.1
 	end
 
 	if uDef.turninplaceanglelimit then
@@ -167,7 +167,7 @@ function scav_Udef_Post(name, uDef)
 	if uDef.weapondefs then
 		for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
 			for category, damage in pairs (weaponDef.damage) do
-				uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * 1.5))
+				uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * 2))
 			end
 		end
 	end
