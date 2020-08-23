@@ -2612,10 +2612,10 @@ function init()
 		 end,
 		},
 
-		{id="los_opacity", group="ui", basic=true, name="LoS "..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line of Sight opacity',
-		 onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
-		 onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,
-		},
+		--{id="los_opacity", group="ui", basic=true, name="LoS "..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
+		-- onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
+		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,
+		--},
 		--{id="los_colorize", group="ui", basic=true, name=widgetOptionColor.."   colorize", type="bool", value=(WG['los']~=nil and WG['los'].getColorize~=nil and WG['los'].getColorize()), description='',
 		-- onload = function(i) end,
 		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setColorize', {'colorize'}, value) end,
@@ -4097,7 +4097,7 @@ function widget:Initialize()
 		end
 	end
 
-	if Spring.GetGameFrame() <= 10 then
+	if Spring.GetGameFrame() <= 15 then
 		for x=1, Game.mapSizeX do
 			for z=1, Game.mapSizeZ do
 				if spGetGroundHeight(x, z) <= 0 then
