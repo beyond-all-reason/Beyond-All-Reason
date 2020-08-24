@@ -50,6 +50,10 @@ return {
 			fighter = 1,
 		},
 		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-tiny",
+				[2] = "crashing-tiny2",
+			},
 			pieceexplosiongenerators = {
 				[1] = "airdeathceg3",
 				[2] = "airdeathceg4",

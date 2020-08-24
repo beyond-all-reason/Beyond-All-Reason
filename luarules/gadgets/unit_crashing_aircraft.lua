@@ -33,7 +33,7 @@ local crashing = {}
 local crashingCount = 0
 
 local totalUnitsTime = 0
-local percentage = 0.5	-- is reset somewhere else
+local percentage = 0.6	-- is reset somewhere else
 
 function gadget:Initialize()
 	--set up table to check against
@@ -46,7 +46,8 @@ function gadget:Initialize()
 		end
 	end
 
-	local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
+	--local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
+	local nonCrashable = {'armpeep', 'corfink', 'corbw'}
 	for udid, ud in pairs(UnitDefs) do
 		for _, unitname in pairs(nonCrashable) do
 			if string.find(ud.name, unitname) then
@@ -66,9 +67,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
 			local totalUnits = #Spring.GetAllUnits()
-			percentage = 0.88 * (1 - (totalUnits/6000))
-			if percentage < 0.44 then
-				percentage = 0.44
+			percentage = (1 - (totalUnits/7000))
+			if percentage < 0.4 then
+				percentage = 0.4
 			end
 		end
 		if random() < percentage or alwaysCrash[unitDefID] then

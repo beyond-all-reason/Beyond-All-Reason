@@ -144,7 +144,37 @@ function deepcopy(orig)
     return copy
 end
 
-local sizeMult = 1.2
+local sizeMult = 0.4
+definitions['crashing-tiny'] = deepcopy(definitions["crashing-small"])
+definitions['crashing-tiny'].smoke.properties.particlelife = definitions['crashing-tiny'].smoke.properties.particlelife * sizeMult
+definitions['crashing-tiny'].smoke.properties.particlelifespread = definitions['crashing-tiny'].smoke.properties.particlelifespread * sizeMult
+definitions['crashing-tiny'].dustparticles.properties.particlelife = definitions['crashing-tiny'].dustparticles.properties.particlelife * sizeMult
+definitions['crashing-tiny'].dustparticles.properties.particlelifespread = definitions['crashing-tiny'].dustparticles.properties.particlelifespread * sizeMult
+definitions['crashing-tiny'].flame.properties.particlelife = definitions['crashing-tiny'].flame.properties.particlelife * sizeMult
+definitions['crashing-tiny'].flame.properties.particlelifespread = definitions['crashing-tiny'].flame.properties.particlelifespread * sizeMult
+definitions['crashing-tiny'].smoke.properties.particlesize = definitions['crashing-tiny'].smoke.properties.particlesize * sizeMult
+definitions['crashing-tiny'].smoke.properties.particlesizespread = definitions['crashing-tiny'].smoke.properties.particlesizespread * sizeMult
+definitions['crashing-tiny'].dustparticles.properties.particlesize = definitions['crashing-tiny'].dustparticles.properties.particlesize * sizeMult
+definitions['crashing-tiny'].dustparticles.properties.particlesizespread = definitions['crashing-tiny'].dustparticles.properties.particlesizespread * sizeMult
+definitions['crashing-tiny'].flame.properties.particlesize = definitions['crashing-tiny'].flame.properties.particlesize * sizeMult
+definitions['crashing-tiny'].flame.properties.particlesizespread = definitions['crashing-tiny'].flame.properties.particlesizespread * sizeMult
+
+sizeMult = 0.6
+definitions['crashing-tiny2'] = deepcopy(definitions["crashing-small"])
+definitions['crashing-tiny2'].smoke.properties.particlelife = definitions['crashing-tiny2'].smoke.properties.particlelife * sizeMult
+definitions['crashing-tiny2'].smoke.properties.particlelifespread = definitions['crashing-tiny2'].smoke.properties.particlelifespread * sizeMult
+definitions['crashing-tiny2'].dustparticles.properties.particlelife = definitions['crashing-tiny2'].dustparticles.properties.particlelife * sizeMult
+definitions['crashing-tiny2'].dustparticles.properties.particlelifespread = definitions['crashing-tiny2'].dustparticles.properties.particlelifespread * sizeMult
+definitions['crashing-tiny2'].flame.properties.particlelife = definitions['crashing-tiny2'].flame.properties.particlelife * sizeMult
+definitions['crashing-tiny2'].flame.properties.particlelifespread = definitions['crashing-tiny2'].flame.properties.particlelifespread * sizeMult
+definitions['crashing-tiny2'].smoke.properties.particlesize = definitions['crashing-tiny2'].smoke.properties.particlesize * sizeMult
+definitions['crashing-tiny2'].smoke.properties.particlesizespread = definitions['crashing-tiny2'].smoke.properties.particlesizespread * sizeMult
+definitions['crashing-tiny2'].dustparticles.properties.particlesize = definitions['crashing-tiny2'].dustparticles.properties.particlesize * sizeMult
+definitions['crashing-tiny2'].dustparticles.properties.particlesizespread = definitions['crashing-tiny2'].dustparticles.properties.particlesizespread * sizeMult
+definitions['crashing-tiny2'].flame.properties.particlesize = definitions['crashing-tiny2'].flame.properties.particlesize * sizeMult
+definitions['crashing-tiny2'].flame.properties.particlesizespread = definitions['crashing-tiny2'].flame.properties.particlesizespread * sizeMult
+
+sizeMult = 1.2
 definitions['crashing-small2'] = deepcopy(definitions["crashing-small"])
 definitions['crashing-small2'].smoke.properties.particlelife = definitions['crashing-small2'].smoke.properties.particlelife * 1.3
 definitions['crashing-small2'].smoke.properties.particlelifespread = definitions['crashing-small2'].smoke.properties.particlelifespread * 1.3

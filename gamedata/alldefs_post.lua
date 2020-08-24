@@ -156,7 +156,7 @@ function UnitDef_Post(name, uDef)
 
 		if uDef.canfly then
 
-			uDef.crashdrag = 0.01	-- default 0.005
+			uDef.crashdrag = 0.013	-- default 0.005
 
 			if not string.find(uDef.name, "liche") and not string.find(uDef.name, "krow") then
 
