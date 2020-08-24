@@ -26,9 +26,9 @@ if gadgetHandler:IsSyncedCode() then
 	local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
-		if UnitID and isStockpilingAA[UnitDefID] then
+		if unitID and isStockpilingAA[unitDefID] then
 			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2]==CMD_STOCKPILE) then
-				local pile,pileQ = Spring.GetUnitStockpile(UnitID)
+				local pile,pileQ = Spring.GetUnitStockpile(unitID)
 				local addQ = 1
 				if cmdOptions.shift then
 					if cmdOptions.ctrl then
@@ -53,7 +53,7 @@ if gadgetHandler:IsSyncedCode() then
 						local added = 0
 						local needed = pilelimit - pile - pileQ
 						while added < needed do
-							SpGiveOrderToUnit(UnitID, CMD_STOCKPILE, {}, 0) -- because SetUnitStockpile can't set the queue!
+							SpGiveOrderToUnit(unitID, CMD_STOCKPILE, {}, 0) -- because SetUnitStockpile can't set the queue!
 							added = added + 1
 						end
 						return false
