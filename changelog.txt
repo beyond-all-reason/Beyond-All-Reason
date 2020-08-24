@@ -8,6 +8,7 @@ General
  • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp
  • Air units (liche/krow exluded): +30%: cost, health, damage, buildpower. Fighters +15% speed
+ • AA range increased 6%
 
 Units
  • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice

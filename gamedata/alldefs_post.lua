@@ -137,6 +137,20 @@ function UnitDef_Post(name, uDef)
 	end
 
 	--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0 then
+
+
+		if uDef.weapons then
+			local aaMult = 1.06
+			for weaponID, w in pairs(uDef.weapons) do
+				if w.onlytargetcategory == 'VTOL' then
+					local wdef = string.lower(w.def)
+					if uDef.weapondefs[wdef] then
+						uDef.weapondefs[wdef].range = math.floor((uDef.weapondefs[wdef].range * aaMult) + 0.5)
+					end
+				end
+			end
+		end
+
 		if uDef.canfly then
 
 			uDef.crashdrag = 0.01	-- default 0.005
