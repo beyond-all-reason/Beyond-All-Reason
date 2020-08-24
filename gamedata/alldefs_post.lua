@@ -144,7 +144,7 @@ function UnitDef_Post(name, uDef)
 			for weaponID, w in pairs(uDef.weapons) do
 				if w.onlytargetcategory == 'VTOL' then
 					local wdef = string.lower(w.def)
-					if uDef.weapondefs[wdef] then
+					if uDef.weapondefs[wdef] and uDef.weapondefs[wdef].range < 2000 then -- excluding mercury/screamer
 						uDef.weapondefs[wdef].range = math.floor((uDef.weapondefs[wdef].range * aaMult) + 0.5)
 						if uDef.weapondefs[wdef].flighttime then
 							uDef.weapondefs[wdef].flighttime = uDef.weapondefs[wdef].flighttime * (aaMult-((aaMult-1)/3))

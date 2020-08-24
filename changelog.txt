@@ -8,9 +8,9 @@ General
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp
 
 Air/AA: Goal: fewer units, longer lasting
- • Air units (fighters/liche/krow exluded): +30%: cost, health, damage, buildpower.
+ • Air units: +30%: cost, health, damage, buildpower. (fighters/liche/krow exluded)
  • Fighters cost: +30%, health: +60%, damage: -25%, speed: +15%, manouverability: +15%
- • AA range increased 6%
+ • AA range increased 6%. (mercury/screamer excluded)
  • Removed air collisions for bombers
 
 Units
