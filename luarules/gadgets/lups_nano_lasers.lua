@@ -10,7 +10,7 @@ function gadget:GetInfo()
         date      = "2008-2012",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
-        enabled   = true
+        enabled   = false
     }
 end
 
@@ -146,7 +146,7 @@ else
             end
         end
     end
-    
+
     function gadget:PlayerChanged(playerID)
         myAllyTeamID = Spring.GetMyAllyTeamID()
         myTeamID = Spring.GetMyTeamID()
@@ -388,7 +388,7 @@ else
                     --Spring.Echo(strength,spGetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID][1])
                     if (strength > 0) then
                         local targetType, target, isFeature = getUnitNanoTarget(unitID)
-                        
+
                         if (target) then
                             local endpos
                             if type(target) == 'table' then
