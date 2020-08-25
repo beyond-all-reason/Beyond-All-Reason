@@ -1675,6 +1675,8 @@ function widget:DrawScreen()
 	-- widget hovered
 	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
+		Spring.SetMouseCursor('cursornormal')
+
 		-- selection grid
 		if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
 
