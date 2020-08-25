@@ -4,9 +4,9 @@ function gadget:GetInfo()
 		desc = "Makes units preaim their weapons before its actually in range'",
 		author = "Doo, Floris",
 		date = "April 2018",
-		license = "Whatever works",
+		license = "",
 		layer = 0,
-		enabled = true, -- When we will move on 105 :)
+		enabled = true,
 	}
 end
 
@@ -60,7 +60,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID)
 	if isPreaimUnit[unitDefID] then
 		for id, wdefID in pairs(isPreaimUnit[unitDefID]) do
-			Spring.SetisPreaimUnittate(unitID, id, "autoTargetRangeBoost", (0.1 * weaponRange[wdefID]) or 20)
+			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1 * weaponRange[wdefID]) or 20)
 		end
 	end
 end
