@@ -20,7 +20,7 @@ Units
  • Decreased cormaw damage 27%
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
  • Karganeth: Removed aa missile
- • Juggernaut: main weapon does 4x old damage/reloadtime + increased range 18%
+ • Juggernaut: main weapon does 4x old damage/reloadtime
  • added experimental ARM T3 unit: Giant Invader, crawling nuclear bomb
  • EMP launcher: reduced range 10%
 
