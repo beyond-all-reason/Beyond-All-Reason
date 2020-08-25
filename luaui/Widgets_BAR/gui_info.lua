@@ -206,10 +206,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
 	end
 	if unitDef.speed > 0 then
-		unitSpeed[unitDefID] = round(unitDef.speed, 2)
+		unitSpeed[unitDefID] = round(unitDef.speed, 0)
 	end
 	if unitDef.rSpeed > 0 then
-		unitReverseSpeed[unitDefID] = round(unitDef.rSpeed, 2)
+		unitReverseSpeed[unitDefID] = round(unitDef.rSpeed, 0)
 	end
 	if unitDef.customParams.description_long then
 		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
