@@ -1,0 +1,2 @@
+hotspot center
+frame anims/uiresizev_0.png 5 
