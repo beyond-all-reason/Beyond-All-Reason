@@ -2,7 +2,6 @@
 
 General
  • Enabled ground deformation
- • Removed reverse move
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp

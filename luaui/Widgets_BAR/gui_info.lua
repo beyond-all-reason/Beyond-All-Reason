@@ -193,6 +193,8 @@ local unitWreckMetal = {}
 local unitHeapMetal = {}
 local unitParalyzeMult = {}
 local unitMetalmaker = {}
+local unitSpeed = {}
+local unitReverseSpeed = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.isAirUnit then
@@ -202,6 +204,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.humanName
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
+	end
+	if unitDef.speed > 0 then
+		unitSpeed[unitDefID] = round(unitDef.speed, 2)
+	end
+	if unitDef.rSpeed > 0 then
+		unitReverseSpeed[unitDefID] = round(unitDef.rSpeed, 2)
 	end
 	if unitDef.customParams.description_long then
 		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
@@ -1345,6 +1353,7 @@ local function drawUnitInfo()
 				dps = round(dps + (dps*(reloadTime/100)), 0)
 				addTextInfo('dps', dps)
 			end
+
 			if maxRange then
 				addTextInfo('max-range', maxRange)
 			end
@@ -1359,6 +1368,13 @@ local function drawUnitInfo()
 			end
 		end
 
+
+		if unitSpeed[displayUnitDefID] then
+			addTextInfo('speed', unitSpeed[displayUnitDefID])
+		end
+		if unitReverseSpeed[displayUnitDefID] then
+			addTextInfo('reverse speed', unitReverseSpeed[displayUnitDefID])
+		end
 
 		--if metalExtraction then
 		--  addTextInfo('metal extraction', round(metalExtraction, 2))
