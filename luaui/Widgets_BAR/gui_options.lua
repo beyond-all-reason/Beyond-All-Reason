@@ -2235,6 +2235,27 @@ function init()
 		},
 		{id="airjets", group="gfx", widget="Airjets", name="Jet engine fx", type="bool", value=GetWidgetToggleValue("Airjets"), description='Jet engine thrusters, additional lighting.'},
 
+		{id="airjets_limitfps", group="gfx", name=widgetOptionColor.."   no fighters/scouts below fps", type="slider", min=5, max=60, step=1, value=22, description='disable for fighters and scouts when average FPS gets below this amount',
+		 onload = function(i) loadWidgetData("Airjets", "airjets_limitfps", {'limitAtAvgFps'}) end,
+		 onchange = function(i, value)
+			 if value-5 <= options[getOptionByID('airjets_disablefps')].value then
+				 options[getOptionByID('airjets_disablefps')].value = value-6
+				 applyOptionValue(getOptionByID('airjets_disablefps'))
+			 end
+			 saveOptionValue('Airjets', 'airjets', 'setLimitFps', {'limitAtAvgFps'}, value)
+		 end,
+		},
+		{id="airjets_disablefps", group="gfx", name=widgetOptionColor.."   disable below fps", type="slider", min=0, max=30, step=1, value=11, description='disable when average FPS gets below this amount',
+		 onload = function(i) loadWidgetData("Airjets", "airjets_disablefps", {'disableAtAvgFps'}) end,
+		 onchange = function(i, value)
+			 if value+5 >= options[getOptionByID('airjets_limitfps')].value then
+				 options[getOptionByID('airjets_limitfps')].value = value+6
+				 applyOptionValue(getOptionByID('airjets_limitfps'))
+			 end
+			 saveOptionValue('Airjets', 'airjets', 'setDisableFps', {'disableAtAvgFps'}, value)
+		 end,
+		},
+
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game',
 		--		 onload = function(i) end,
 		--		 onchange = function(i, value) Spring.SetConfigInt("TreeRadius",value) end,

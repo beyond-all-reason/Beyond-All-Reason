@@ -4,7 +4,7 @@
 function widget:GetInfo()
 	return {
 		name = "Airjets",
-		desc = "Thruster effects on air jet exhausts",
+		desc = "Thruster effects on air jet exhausts (auto limits and disables when low fps)",
 		author = "GoogleFrog, jK, Floris",
 		date = "9 May 2020",
 		license = "GNU GPL, v2 or later",
@@ -22,6 +22,7 @@ local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local spGetFPS = Spring.GetFPS
 
 local glUseShader = gl.UseShader
 local glUniform = gl.Uniform
@@ -55,26 +56,55 @@ local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
 -- Configuration
 --------------------------------------------------------------------------------
 
+local disableAtAvgFps = 12
+local limitAtAvgFps = 25	-- filter spammy units: fighters/scouts
+local avgFpsThreshold = 7   -- have this more fps than disableAtAvgFps to re-enable
+
 local effectDefs = {
 
-	--T1 ARM AIR
+	-- scouts
+	["armpeep"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1", limit = true },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
+	},
+	["corfink"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrustb", limit = true  },
+	},
+
+	-- fighters
+	["armfig"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust", limit = true },
+	},
+	["corveng"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust1", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust2", limit = true  },
+	},
+	["armsfig"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", limit = true },
+	},
+	["corsfig"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", limit = true },
+	},
+	["armhawk"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust", limit = true },
+	},
+	["corvamp"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", limit = true },
+	},
+
+	-- transports
 	["armatlas"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 12, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 12, piece = "thrustr", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 15, piece = "thrustm", xzVelocity = 1.5, light = 1 },
 	},
-	["armfepoch"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustl1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustr1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustl2", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustr2", light = 0.62 },
+	["corvalk"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 1 },
 	},
-	["corfblackhy"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustl1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustr1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustr2", light = 0.62 },
-	},
+
 	["armkam"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 28, piece = "thrusta", xzVelocity = 1.5, light = 1, emitVector = { 0, 1, 0 } },
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 28, piece = "thrustb", xzVelocity = 1.5, light = 1, emitVector = { 0, 1, 0 } },
@@ -86,13 +116,6 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust4", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrustc", light = 1.3 },
 	},
-	["armpeep"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2" },
-	},
-	["armfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
-	},
 	["armca"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 24, piece = "thrust", xzVelocity = 1.2 },
 	},
@@ -102,19 +125,6 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 24, piece = "thrusta1", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 24, piece = "thrusta2", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 33, piece = "thrustb", light = 1 },
-	},
-	["corvalk"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 1 },
-	},
-	["corfink"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrustb" },
-	},
-	["corveng"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust1" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust2" },
 	},
 
 	--T2 ARM
@@ -151,9 +161,6 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrusta", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrustb", light = 1 },
 	},
-	["armhawk"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust" },
-	},
 
 	--T2 CORE
 
@@ -161,9 +168,6 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 8, length = 50, piece = "thrustb", light = 2.2 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1" },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
-	},
-	["corvamp"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta" },
 	},
 	["cortitan"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1", light = 1 },
@@ -209,9 +213,6 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 7, length = 25, piece = "thrusta" },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrustb" },
 	},
-	["armsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust" },
-	},
 	["armseap"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 35, piece = "thrustm", light = 1 },
 	},
@@ -224,9 +225,6 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrustb", light = 1 },
 	},
 	--SEAPLANE CORE
-	["corsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust" },
-	},
 	["corseap"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
@@ -239,6 +237,20 @@ local effectDefs = {
 	["corsb"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
+	},
+
+	-- flying ships
+	["armfepoch"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustl1", light = 0.62 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustr1", light = 0.62 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustl2", light = 0.62 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustr2", light = 0.62 },
+	},
+	["corfblackhy"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustl1", light = 0.62 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustr1", light = 0.62 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustr2", light = 0.62 },
 	},
 }
 
@@ -253,6 +265,7 @@ local texture3 = ":c:bitmaps/GPL/Lups/jet.bmp"        -- jitter shape
 
 local xzVelocityUnits = {}
 local defs = {}
+local limitDefs = {}
 for name, effects in pairs(effectDefs) do
 	for fx, data in pairs(effects) do
 		if not effectDefs[name][fx].emitVector then
@@ -260,6 +273,9 @@ for name, effects in pairs(effectDefs) do
 		end
 		if effectDefs[name][fx].xzVelocity then
 			xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
+		end
+		if effectDefs[name][fx].limit then
+			limitDefs[UnitDefNames[name].id] = true
 		end
 	end
 	defs[UnitDefNames[name].id] = effectDefs[name]
@@ -276,7 +292,12 @@ local inactivePlanes = {}
 
 local shaders
 local lastGameFrame = Spring.GetGameFrame()
+local sceduledFpsCheckGf = lastGameFrame + 30
 local updateSec = 0
+
+local enabled = true
+local limit = false
+local averageFps = 100
 
 --------------------------------------------------------------------------------
 -- Drawing
@@ -354,6 +375,7 @@ end
 --end
 
 local function DrawParticles()
+	if not enabled then return false end
 
 	glDepthTest(true)
 	glAlphaTest(false)
@@ -379,6 +401,8 @@ local function DrawParticles()
 end
 
 local function DrawParticlesWater()
+	if not enabled then return false end
+
 	glDepthTest(true)
 	glDepthMask(false)
 
@@ -415,7 +439,7 @@ local function AddUnit(unitID, unitDefID)
 	if not effectDefs[unitDefID].finishedInit then
 		FinishInitialization(unitID, effectDefs[unitDefID])
 	end
-	if spGetUnitIsActive(unitID) then
+	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) and (not limit or not limitDefs[unitDefID]) then
 		activePlanes[unitID] = unitDefID
 	else
 		inactivePlanes[unitID] = unitDefID
@@ -433,7 +457,7 @@ end
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
-
+---
 function widget:Update(dt)
 	updateSec = updateSec + dt
 	local gf = Spring.GetGameFrame()
@@ -441,24 +465,57 @@ function widget:Update(dt)
 		lastGameFrame = gf
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
-			if spGetUnitIsActive(unitID) then
-				activePlanes[unitID] = unitDefID
-				inactivePlanes[unitID] = nil
+			if not limit or not limitDefs[unitDefID] then
+				if spGetUnitIsActive(unitID) then
+					activePlanes[unitID] = unitDefID
+					inactivePlanes[unitID] = nil
+				end
 			end
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
-			if not spGetUnitIsActive(unitID) then
-				activePlanes[unitID] = nil
-				inactivePlanes[unitID] = unitDefID
-			elseif xzVelocityUnits[unitDefID] then
-				local uvx,_,uvz = Spring.GetUnitVelocity(unitID)
-				if math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
+			if not limit or not limitDefs[unitDefID] then
+				if not spGetUnitIsActive(unitID) then
+					activePlanes[unitID] = nil
+					inactivePlanes[unitID] = unitDefID
+				elseif xzVelocityUnits[unitDefID] then
+					local uvx,_,uvz = Spring.GetUnitVelocity(unitID)
+					if math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
+						activePlanes[unitID] = nil
+						inactivePlanes[unitID] = unitDefID
+					end
+				elseif spGetUnitIsStunned(unitID) then
 					activePlanes[unitID] = nil
 					inactivePlanes[unitID] = unitDefID
 				end
-			elseif spGetUnitIsStunned(unitID) then
-				activePlanes[unitID] = nil
-				inactivePlanes[unitID] = unitDefID
+			end
+		end
+	end
+
+	if gf >= sceduledFpsCheckGf then
+		sceduledFpsCheckGf = gf + 30
+		averageFps = ((averageFps * 19) + spGetFPS()) / 20
+		if enabled then
+			if averageFps < disableAtAvgFps then
+				enabled = false
+			end
+			if not limit then
+				if averageFps < limitAtAvgFps then
+					limit = true
+					for unitID, unitDefID in pairs(activePlanes) do
+						if limitDefs[unitDefID] then
+							activePlanes[unitID] = nil
+							inactivePlanes[unitID] = unitDefID
+						end
+					end
+				end
+			else
+				if averageFps >= limitAtAvgFps + avgFpsThreshold then
+					limit = false
+				end
+			end
+		else
+			if averageFps >= disableAtAvgFps + avgFpsThreshold then
+				enabled = true
 			end
 		end
 	end
@@ -673,5 +730,43 @@ function widget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		widget:UnitCreated(unitID, unitDefID, myTeamID)
+	end
+
+	WG['airjets'] = {}
+	WG['airjets'].getLimitFps = function()
+		return limitAtAvgFps
+	end
+	WG['airjets'].setLimitFps = function(value)
+		limitAtAvgFps = value
+	end
+	WG['airjets'].getDisableFps = function()
+		return disableAtAvgFps
+	end
+	WG['airjets'].setDisableFps = function(value)
+		disableAtAvgFps = value
+	end
+end
+
+
+
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.averageFps = math.floor(averageFps)
+	savedTable.disableAtAvgFps = disableAtAvgFps
+	savedTable.limitAtAvgFps = limitAtAvgFps
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.disableAtAvgFps ~= nil then
+		disableAtAvgFps = data.disableAtAvgFps
+	end
+	if data.disableAtAvgFps ~= nil then
+		limitAtAvgFps = data.limitAtAvgFps
+	end
+	if Spring.GetGameFrame() > 0 then
+		if data.averageFps ~= nil then
+			averageFps = data.averageFps
+		end
 	end
 end
