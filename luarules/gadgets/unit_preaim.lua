@@ -31,7 +31,7 @@ for weaponDefID, def in pairs(WeaponDefs) do
 	weaponRange[weaponDefID] = def.range
 end
 
-local popups = {    -- exclude auto target range boost for popup units
+local exludedUnits = {    -- exclude auto target range boost for popup units
 	[UnitDefNames.armclaw.id] = true,
 	[UnitDefNames.armpb.id] = true,
 	[UnitDefNames.armamb.id] = true,
@@ -43,17 +43,23 @@ local popups = {    -- exclude auto target range boost for popup units
 	[UnitDefNames.corllt.id] = true,
 	[UnitDefNames.armllt.id] = true,
 }
+
 local scavengerPopups = {}
-for k, v in pairs(popups) do
+for k, v in pairs(exludedUnits) do
 	scavengerPopups[k .. '_scav'] = v
 end
 for k, v in pairs(scavengerPopups) do
-	popups[k] = v
+	exludedUnits[k] = v
 end
 scavengerPopups = nil
 
--- exclude popups here
-for k, v in pairs(popups) do
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canFly then
+		exludedUnits[unitDefID] = true
+	end
+end
+
+for k, v in pairs(exludedUnits) do
 	isPreaimUnit[k] = nil
 end
 
