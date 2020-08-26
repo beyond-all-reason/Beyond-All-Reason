@@ -147,8 +147,7 @@ local presets = {
 		ssao = 1,
 		mapedgeextension = false,
 		lighteffects = false,
-		lups_jetenginefx = false,
-		lups_jetenginefx_lights = false,
+		airjets = false,
 		snow = false,
 		particles = 15000,
 		nanoparticles = 1500,
@@ -167,8 +166,7 @@ local presets = {
 		ssao = 2,
 		mapedgeextension = false,
 		lighteffects = true,
-		lups_jetenginefx = true,
-		lups_jetenginefx_lights = false,
+		airjets = true,
 		snow = false,
 		particles = 20000,
 		nanoparticles = 3000,
@@ -187,8 +185,7 @@ local presets = {
 		ssao = 2,
 		mapedgeextension = true,
 		lighteffects = true,
-		lups_jetenginefx = true,
-		lups_jetenginefx_lights = true,
+		airjets = true,
 		snow = true,
 		particles = 25000,
 		nanoparticles = 5000,
@@ -207,8 +204,7 @@ local presets = {
 		ssao = 3,
 		mapedgeextension = true,
 		lighteffects = true,
-		lups_jetenginefx = true,
-		lups_jetenginefx_lights = true,
+		airjets = true,
 		snow = true,
 		particles = 30000,
 		nanoparticles = 9000,
@@ -227,8 +223,7 @@ local presets = {
 		ssao = 4,
 		mapedgeextension = true,
 		lighteffects = true,
-		lups_jetenginefx = true,
-		lups_jetenginefx_lights = true,
+		airjets = true,
 		snow = true,
 		particles = 40000,
 		nanoparticles = 15000,
@@ -2238,33 +2233,7 @@ function init()
 			 end
 		 end,
 		},
-
-		{id="lups_jetenginefx", group="gfx", widget="Jet engine fx", name="Jet engine fx", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Jet engine thrusters, additional lighting.'},
-		--{id="lupsdistortedshields", group="gfx", name=widgetOptionColor.."   distorted shields", type="bool", value=tonumber(Spring.GetConfigInt("lupsdistortedshields",0) or 0) == 1, description='Make the shields distorted, like water',
-		-- onload = function(i) end,
-		-- onchange = function(i, value)
-		--	 Spring.SetConfigInt("lupsdistortedshields",(value and 1 or 0))
-		--	 local widgetname = "LupsManager"
-		--	 if GetWidgetToggleValue(widgetname) then
-		--		 widgetHandler:DisableWidget(widgetname)
-		--		 widgetHandler:EnableWidget(widgetname)
-		--	 end
-		-- end,
-		--},
-		--{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",0) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) Spring.SetConfigInt("lupsreflectionrefraction",(value and 1 or 0)) end,
-		--},
-		{id="lups_jetenginefx_lights", group="gfx", name=widgetOptionColor.."   add lights  (needs 'Lights')", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)',
-		 onload = function(i) loadWidgetData("Light Effects", "lups_jetenginefx_lights", {'enableThrusters'}) end,
-		 onchange = function(i, value)
-			 saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', {'enableThrusters'}, value)
-		 end,
-		},
-		{id="lups_jetenginefx_disablefps", group="gfx", name=widgetOptionColor.."   disable below fps", type="slider", min=0, max=80, step=1, value=25, description='disable when average FPS gets below this amount',
-		 onload = function(i) loadWidgetData("LupsManager", "lups_jetenginefx_disablefps", {'disableAtAvgFps'}) end,
-		 onchange = function(i, value) saveOptionValue('LupsManager', 'lups_jetenginefx', 'setDisableFps', {'disableAtAvgFps'}, value) end,
-		},
+		{id="airjets", group="gfx", widget="Airjets", name="Jet engine fx", type="bool", value=GetWidgetToggleValue("Airjets"), description='Jet engine thrusters, additional lighting.'},
 
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game',
 		--		 onload = function(i) end,
@@ -3967,7 +3936,6 @@ function init()
 		options[getOptionByID("lighteffects_radius")] = nil
 		options[getOptionByID("lighteffects_laserradius")] = nil
 		options[getOptionByID("lighteffects_nanolaser")] = nil
-		options[getOptionByID("lups_jetenginefx_lights")] = nil
 	end
 
 	if widgetHandler.knownWidgets["TeamPlatter"] == nil then
