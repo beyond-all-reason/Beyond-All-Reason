@@ -178,14 +178,21 @@ function UnitDef_Post(name, uDef)
 				end
 
 				if not uDef.customparams.fighter then
+
+					local rangeMult = 0.65
+					if uDef.airsightdistance then
+						uDef.airsightdistance = math.floor((uDef.airsightdistance*rangeMult) + 0.5)
+					end
+
 					if uDef.maxdamage then
-						uDef.maxdamage = math.ceil(uDef.maxdamage*airmult)
+						uDef.maxdamage = math.floor((uDef.maxdamage*airmult) + 0.5)
 					end
 
 					if uDef.weapondefs then
 						for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
 							for category, damage in pairs (weaponDef.damage) do
 								uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
+								uDef.weapondefs[weaponDefName].range = math.floor((damage * rangeMult) + 0.5)
 							end
 						end
 					end

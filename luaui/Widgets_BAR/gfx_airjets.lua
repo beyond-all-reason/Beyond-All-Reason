@@ -440,7 +440,12 @@ local function AddUnit(unitID, unitDefID)
 		FinishInitialization(unitID, effectDefs[unitDefID])
 	end
 	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) and (not limit or not limitDefs[unitDefID]) then
-		activePlanes[unitID] = unitDefID
+		local uvx,_,uvz = Spring.GetUnitVelocity(unitID)
+		if xzVelocityUnits[unitDefID] and math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
+			inactivePlanes[unitID] = unitDefID
+		else
+			activePlanes[unitID] = unitDefID
+		end
 	else
 		inactivePlanes[unitID] = unitDefID
 	end
