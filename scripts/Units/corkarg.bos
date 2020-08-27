@@ -16,7 +16,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_WALK		4
 
 
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkarg_anim_walk.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkarg_anim_walk.blend
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:7
 			turn lbturret to x-axis <-2.000000> speed <60.000000> / animSpeed; 
@@ -668,13 +668,13 @@ Die(){
 			move pelvis to z-axis [35.367222] speed [4.163303] ; //delta=0.28 
 			move pelvis to y-axis [-23.109104] speed [8.218775] ; //delta=-0.55 
 			turn pelvis to x-axis <90.401966> speed <66.519451> ; //delta=-4.43 
-			explode rbturret type FALL|SMOKE|FIRE;
+			explode rbturret type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbturret;
-			explode rbbarrel1 type FALL|SMOKE|FIRE;
+			explode rbbarrel1 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbbarrel1;
-			explode rbbarrel2 type FALL|SMOKE|FIRE;
+			explode rbbarrel2 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbbarrel2;
-			explode rbflare type FALL|SMOKE|FIRE;
+			explode rbflare type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbflare;
 			turn rfoot to x-axis <27.810773> speed <32.427578> ; //delta=-2.16 
 			turn rfoot to z-axis <0.823446> speed <1.601927> ; //delta=-0.11 
@@ -709,13 +709,13 @@ Die(){
 		}
 		if (TRUE) { //Frame:45
 			move lbturret to x-axis [-72.841965] speed [437.051788] ; //delta=-72.84 
-			explode lbturret type FALL|SMOKE|FIRE;
+			explode lbturret type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lbturret;
-			explode lbbarrel1 type FALL|SMOKE|FIRE;
+			explode lbbarrel1 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lbbarrel1;
-			explode lbbarrel2 type FALL|SMOKE|FIRE;
+			explode lbbarrel2 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lbbarrel2;
-			explode lbflare type FALL|SMOKE|FIRE;
+			explode lbflare type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lbflare;
 			turn lfoot to x-axis <19.488089> speed <23.201091> ; //delta=3.87 
 			turn lleg to x-axis <-5.632170> speed <23.286982> ; //delta=-3.88 
@@ -761,7 +761,7 @@ Die(){
 		sleep 164;
 		}
 		if (TRUE) { //Frame:55
-			explode head type FALL|SMOKE|FIRE;
+			explode head type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide head;
 			turn lfoot to x-axis <24.066836> speed <15.121650> ; //delta=-2.52 
 			turn lleg to x-axis <-11.201945> speed <17.017201> ; //delta=2.84 
