@@ -777,16 +777,6 @@ customDefs.armemp = {
 	}
 }
 
-customDefs.armemp = {
-	weapondefs = {
-		armemp_weapon = {
-			commandfire = false,
-			range = 1800,
-			stockpiletime = 25,
-		}
-	}
-}
-
 customDefs.cortron = {
 	weapondefs = {
 		cortron_weapon = {
