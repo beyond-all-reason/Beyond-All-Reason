@@ -68,7 +68,7 @@ vertex = [[
 		#endif
 
 		modelUV.xy = gl_MultiTexCoord0.xy;
-		#ifdef use_treadoffset_core
+		#ifdef use_treadoffset_cor
 		{
 			const float atlasSize = 2048.0;
 			// note, invert we invert Y axis

@@ -39,7 +39,6 @@ return {
 		seismicsignature = 4,
 		selfdestructcountdown = 1,
 		--selfdestructas = "ROOST_DEATH",
-		side = "ARM",
 		sightdistance = 510,
 		smoothanim = true,
 		tedclass = "ENERGY",

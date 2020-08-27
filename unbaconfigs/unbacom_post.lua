@@ -105,7 +105,7 @@ function UnbaCom_Post(name)
 	if name == "armcom" then
 		tablecom.buildoptions = ArmDefsBuildOptions
 	else
-		tablecom.buildoptions = CoreDefsBuildOptions
+		tablecom.buildoptions = CorDefsBuildOptions
 	end
 	for i = 1,11 do
 		tablecom.featuredefs["dead"..tostring(i)] = deepcopy(tablecom.featuredefs.dead)

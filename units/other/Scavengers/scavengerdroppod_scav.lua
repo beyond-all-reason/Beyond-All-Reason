@@ -37,7 +37,6 @@ return {
 		seismicsignature = 4,
 		selfdestructcountdown = 0,
 		selfdestructas = "",
-		side = "ARM",
 		sightdistance = 450,
 		smoothanim = true,
 		tedclass = "ENERGY",

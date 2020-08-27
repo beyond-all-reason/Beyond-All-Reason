@@ -11,7 +11,7 @@
 if (info) then
   local ratios      = {[""]=(1/1)} -- {["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
   local resolutions = {{256,256}} -- {{128,128},{64,64}}
-  local schemes     = {""}  --, "core"}
+  local schemes     = {""}  --, "cor"}
 
   return schemes,resolutions,ratios
 end
@@ -27,8 +27,8 @@ renderScale = 4
 
 --// faction colors (check (and needs) LuaRules/factions.lua)
 factionTeams = {
-  arm     = 1,   --// arm
-  core    = 1,   --// core
+  arm     = 1,   --// armada
+  cor    = 1,   --// cortex
   chicken = 2,   --// chicken
   unknown = 2,   --// unknown
 }
@@ -37,8 +37,8 @@ factionTeams = {
 factionColors = function(faction)
 
   color = {
-    arm     = {0.08, 0.17, 1.0},   --// arm
-    core    = {1.0, 0.03, 0.0},   --// core
+    arm     = {0.08, 0.17, 1.0},   --// armada
+    cor    = {1.0, 0.03, 0.0},   --// cortex
     chicken = {1.0,0.8,0.2},   --// chicken
     unknown = {0.03, 1, 0.03},   --// unknown
     Blue   = {0,0,0},

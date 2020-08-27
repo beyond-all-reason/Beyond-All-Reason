@@ -34,8 +34,8 @@ local modConfig = {}
 --table initialized and unitList is needed!
 modConfig["BYAR"] = {}
 modConfig["BYAR"]["unitList"] = {
+	-- ARMADA
 	armclaw = { weapons = { 1 } },
-	cormaw = { weapons = { 1 } },
 	armllt = { weapons = { 1 } },
 	armbeamer = { weapons = { 1 } },
 	armhlt = { weapons = { 1 } },
@@ -62,7 +62,8 @@ modConfig["BYAR"]["unitList"] = {
 	armbrtha = { weapons = { 1 } },
 	armvulc = { weapons = { 1 } },
 
-	--CORE
+	-- CORTEX
+	cormaw = { weapons = { 1 } },
 	corexp = { weapons = { 1 } },
 	cormaw = { weapons = { 1 } },
 	corllt = { weapons = { 1 } },
@@ -91,7 +92,7 @@ modConfig["BYAR"]["unitList"] = {
 	corint = { weapons = { 1 } },
 	corbuzz = { weapons = { 1 } },
 
-	--SCAVENGERS
+	-- SCAVENGERS
 	scavengerdroppodbeacon_scav = { weapons = { 1 } }
 }
 

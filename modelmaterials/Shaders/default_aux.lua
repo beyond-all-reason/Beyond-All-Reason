@@ -117,10 +117,10 @@ local treeDisplacementPlugun = {
 local movingThreadsPlugin = {
 	GLOBAL_OPTIONS = [[
 		#define OPTION_MOVING_THREADS_ARM
-		#define OPTION_MOVING_THREADS_CORE
+		#define OPTION_MOVING_THREADS_COR
 	]],
 	VERTEX_UV_TRANSFORM = [[
-		if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_CORE)) {
+		if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_ARM) || BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_COR)) {
 			#define trackTexOffset floatOptions[0]
 			vec4 treadBoundaries;
 			if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_ARM) {
@@ -129,7 +129,7 @@ local movingThreadsPlugin = {
 				vec4 treadBoundaries = vec4(2572.0, 3070.0, 1548.0, 1761.0) / atlasSize; //(x, X, y, Y);
 			}
 
-			if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_CORE) {
+			if (BITMASK_FIELD(bitOptions, OPTION_MOVING_THREADS_COR) {
 				const float atlasSize = 2048.0;
 				// note, invert we invert Y axis
 				vec4 treadBoundaries = vec4(1536.0, 2048.0, 1792.0, 2048.0) / atlasSize; //(x, X, y, Y);

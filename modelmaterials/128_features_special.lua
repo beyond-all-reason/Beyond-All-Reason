@@ -252,7 +252,7 @@ local materials = {
 			materialIndex = 128,
 		},
 		FeatureCreated = FeatureCreated,
-		FeatureDestroyed = FeatureDestroyed,		
+		FeatureDestroyed = FeatureDestroyed,
 	}),
 
 	featuresTreeAutoNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
@@ -264,7 +264,7 @@ local materials = {
 			materialIndex = 129,
 		},
 		FeatureCreated = FeatureCreated,
-		FeatureDestroyed = FeatureDestroyed,		
+		FeatureDestroyed = FeatureDestroyed,
 	}),
 
 	featuresTreeAutoNormalNoSway = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {

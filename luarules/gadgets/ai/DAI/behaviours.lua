@@ -15,7 +15,7 @@ shard_include(  "nukebehaviour")
 shard_include(  "fighterbehaviour")
 
 return {
-	--CoreNanoTurret
+	--CorNanoTurret
 	cornanotc = {
 		TaskQueueBehaviour,
 	},

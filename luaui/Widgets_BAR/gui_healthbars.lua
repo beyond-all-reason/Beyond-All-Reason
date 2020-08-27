@@ -71,7 +71,7 @@ for i = 1, #FeatureDefs do
 end
 
 --// this table is used to shows the hp of perimeter defence, and filter it for default wreckages
-local walls = { dragonsteeth = true, dragonsteeth_core = true, fortification = true, fortification_core = true, floatingteeth = true, floatingteeth_core = true }
+local walls = { dragonsteeth = true, dragonsteeth_cor = true, fortification = true, fortification_cor = true, floatingteeth = true, floatingteeth_cor = true }
 
 local stockpileH = 24
 local stockpileW = 12

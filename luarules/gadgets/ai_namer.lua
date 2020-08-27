@@ -15,7 +15,7 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local namelist = {
-		--ARM names
+		--ARMADA names
 		"Atlas",
 		"Freedom Fighter",
 		"Banshee",
@@ -145,8 +145,8 @@ if gadgetHandler:IsSyncedCode() then
 		"Seer",
 		"Phalanx",
 		"Gremlin",
-		
-		--CORE names
+
+		--CORTEX names
 		"Bladewing",
 		"Fink",
 		"Shadow",
@@ -265,7 +265,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Tremor",
 		"Informer",
 		"Diplomat",
-		
+
 	}
 	local namelistChicken = {'Attila the Hen', 'Big Bird', 'Chicken Little', 'Cluck Norris', 'Chick Norris', 'Dixie Chick', 'Egghead',
 							 'Hen Solo', 'Donald Cluck'

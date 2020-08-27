@@ -33,7 +33,6 @@ return {
 		script = "ChickenDefenseScripts/chicken_hive.cob",
 		seismicsignature = 4,
 		selfdestructas = "ROOST_DEATH",
-		side = "ARM",
 		sightdistance = 450,
 		smoothanim = true,
 		tedclass = "ENERGY",

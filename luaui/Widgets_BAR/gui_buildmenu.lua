@@ -177,7 +177,7 @@ function table_invert(t)
 end
 
 -- used for pregame build queue, for switch faction buildings
-local armToCore = {
+local armToCor = {
   [UnitDefNames["armmex"].id] = UnitDefNames["cormex"].id,
   [UnitDefNames["armuwmex"].id] = UnitDefNames["coruwmex"].id,
   [UnitDefNames["armsolar"].id] = UnitDefNames["corsolar"].id,
@@ -206,7 +206,7 @@ local armToCore = {
   [UnitDefNames["armfdrag"].id] = UnitDefNames["corfdrag"].id,
   [UnitDefNames["armptl"].id] = UnitDefNames["corptl"].id,
 }
-local coreToArm = table_invert(armToCore)
+local corToArm = table_invert(armToCor)
 
 local function convertColor(r,g,b)
   return string.char(255, (r*255), (g*255), (b*255))
@@ -1733,13 +1733,13 @@ function widget:DrawWorld()
         local buildData = buildQueue[b]
         local buildDataId = buildData[1]
         if startDefID == UnitDefNames["armcom"].id then
-          if coreToArm[buildDataId] ~= nil then
-            buildData[1] = coreToArm[buildDataId]
+          if corToArm[buildDataId] ~= nil then
+            buildData[1] = corToArm[buildDataId]
             buildQueue[b] = buildData
           end
         elseif startDefID == UnitDefNames["corcom"].id then
-          if armToCore[buildDataId] ~= nil then
-            buildData[1] = armToCore[buildDataId]
+          if armToCor[buildDataId] ~= nil then
+            buildData[1] = armToCor[buildDataId]
             buildQueue[b] = buildData
           end
         end

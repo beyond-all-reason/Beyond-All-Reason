@@ -18,11 +18,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local storageDefs = {
-  --Arm
+  --Armada
   [ UnitDefNames.armestor.id ] = true,
   [ UnitDefNames.armuwadves.id ] = true,
   [ UnitDefNames.armuwes.id ] = true,
-  --Core
+  --Cortex
   [ UnitDefNames.corestor.id ] = true,
   [ UnitDefNames.coruwadves.id ] = true,
   [ UnitDefNames.coruwes.id ] = true,

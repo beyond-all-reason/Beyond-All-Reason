@@ -30,7 +30,6 @@ return {
 		sightdistance = 250,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
-			faction = "none",
 			removestop = true,
 			removewait = true,
 			subfolder = "other",

@@ -75,14 +75,14 @@ local myClearMaterialUniform = {
 }
 
 local armTanks = {}
-local coreTanks = {}
+local corTanks = {}
 local otherUnits = {}
 
 local spGetUnitHealth = Spring.GetUnitHealth
 
 local unitsHealth = {} --cache
 local healthArray = {[1] = 0.0}
-local unitDefSide = {} -- 1 - arm, 2 - core, 0 - hell know what
+local unitDefSide = {} -- 1 - arm, 2 - cor, 0 - hell know what
 local function SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 	local h, mh = spGetUnitHealth(unitID)
 	if h and mh then
@@ -112,7 +112,7 @@ local function SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 		local healthMixMult = 0.80
 		-- if unitDefSide[unitDefID] == 1 then --arm
 		-- 	healthMixMult = 0.90
-		-- elseif unitDefSide[unitDefID] == 2 then --core
+		-- elseif unitDefSide[unitDefID] == 2 then --cor
 		-- 	healthMixMult = 0.90
 		-- end
 
@@ -262,26 +262,26 @@ local materials = {
 
 		UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapCoreTanks = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+	unitsNormalMapCorTanks = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		texUnits  = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
 			[5] = "%NORMALTEX2",
 		},
 		shaderOptions = {
-			threads_core = true,
+			threads_cor = true,
 		},
 		deferredOptions = {
 			materialIndex = 2,
 		},
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(coreTanks, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(coreTanks, unitID, unitDefID) end,
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(corTanks, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(corTanks, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat) GameFrame(true, coreTanks, gf, mat) end,
+		GameFrame = function (gf, mat) GameFrame(true, corTanks, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapOthersArmCore = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+	unitsNormalMapOthersArmCor = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
 		texUnits  = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
@@ -391,11 +391,11 @@ for id = 1, #UnitDefs do
 			if facName == "arm" then
 				unitMaterials[id] = {"unitsNormalMapArmTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			elseif facName == "cor" then
-				unitMaterials[id] = {"unitsNormalMapCoreTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
+				unitMaterials[id] = {"unitsNormalMapCorTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			end
 		else
 			if wreckAtlas then
-				unitMaterials[id] = {"unitsNormalMapOthersArmCore", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
+				unitMaterials[id] = {"unitsNormalMapOthersArmCor", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			else
 				unitMaterials[id] = {"unitsNormalMapOthers", NORMALTEX = normalTex}
 			end

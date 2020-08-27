@@ -35,7 +35,6 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		customparams = {
-			faction = "arm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,

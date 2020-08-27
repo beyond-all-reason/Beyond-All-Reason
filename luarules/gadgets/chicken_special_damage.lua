@@ -52,7 +52,7 @@ local CHICKEN_RESISTS = {
 		[WeaponDefNames['cormaw_dmaw'].id] = 0.4,
 		[WeaponDefNames['corpyro_flamethrower'].id] = 0.4,
 		[WeaponDefNames['corhurc_coradvbomb'].id] = 0.75,
-		[WeaponDefNames['cortermite_core_termite_laser'].id] = 0.75,
+		[WeaponDefNames['cortermite_cor_termite_laser'].id] = 0.75,
 		[WeaponDefNames['corkrog_corkrog_laser'].id] = 0.75,
 	},
 	[UnitDefNames['chickenc1'].id] = {

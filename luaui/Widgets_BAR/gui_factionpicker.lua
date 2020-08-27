@@ -13,8 +13,8 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 local factions = {
-	{ UnitDefNames.corcom.id, 'CORE', 'unitpics/alternative/corcom.png' },
-	{ UnitDefNames.armcom.id, 'ARM', 'unitpics/alternative/armcom.png' },
+	{ UnitDefNames.corcom.id, 'Cortex', 'unitpics/alternative/corcom.png' },
+	{ UnitDefNames.armcom.id, 'Armada', 'unitpics/alternative/armcom.png' },
 }
 local altPosition = false
 local playSounds = true

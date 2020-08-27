@@ -115,7 +115,7 @@ ArmBuildOptionsStop =
 			armtl= 5,
 			armfrt= 5,
 }
-CoreDefsBuildOptions = 
+CorDefsBuildOptions = 
 {
 			"corsolar",
 			"coradvsol",
@@ -167,7 +167,7 @@ CoreDefsBuildOptions =
 			"corhrk",
 			"corsumo",
 }
-CoreBuildOptions = 
+CorBuildOptions = 
 {
 			corsolar = 1 ,
 			coradvsol = 3 ,
@@ -219,7 +219,7 @@ CoreBuildOptions =
 			corhrk = 6,
 			corsumo = 6,
 }
-CoreBuildOptionsStop = 
+CorBuildOptionsStop = 
 {
 			corsolar = 3 ,
 			cormex = 4,

@@ -49,7 +49,7 @@ end
 function AiModeHandler:Mode(i)
 		self.perraider = 50
 		self.perskirmer = 40
-		self.t1ratepret2 = math.random(3,20)*0.1							
+		self.t1ratepret2 = math.random(3,20)*0.1
 		self.t1ratepostt2 = math.random(5,100)*0.01
 		self.eincomelimiterpretech2 = math.random(950,2550)
 		self.eincomelimiterposttech2 = math.random(950,2550)
@@ -107,10 +107,10 @@ end
 function AiModeHandler:PickASide(i)
 	if i == 1 then
 		Spring.SetTeamRulesParam(self.ai.id, "startUnit", UnitDefNames.armcom.id)
-		self.faction = "ARM"
+		self.faction = "ARMADA"
 	else
 		Spring.SetTeamRulesParam(self.ai.id, "startUnit", UnitDefNames.corcom.id)
-		self.faction = "CORE"
+		self.faction = "CORTEX"
 	end
 end
 
@@ -245,7 +245,7 @@ function AiModeHandler:CreateWantedTechTree(i,j)
 			end
 		end
 		return FindBest({"corlab", "coralab", "corvp", "coravp", "corap", "coraap", "corgant"}, ai)
-	end		
+	end
 end
 
 function AiModeHandler:ArmExpandRandomLab(tqb,ai,unit)

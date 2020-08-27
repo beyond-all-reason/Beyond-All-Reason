@@ -1,6 +1,6 @@
 --[[
 local msg = 'luar_uels ihatelua -100 200'
-for word in msg:gmatch("[%-_%w]+") do 
+for word in msg:gmatch("[%-_%w]+") do
   print (word)
 end
 ]]--
@@ -102,8 +102,8 @@ if gadgetHandler:IsSyncedCode() then
 		msg = string.sub(msg, PACKET_HEADER_LENGTH)
 
         local words = {}
-        for word in msg:gmatch("[%-_%w]+") do 
-          table.insert(words, word) 
+        for word in msg:gmatch("[%-_%w]+") do
+          table.insert(words, word)
         end
         if words[1] == "givecat" then
             GiveCat(words)
@@ -157,7 +157,7 @@ if gadgetHandler:IsSyncedCode() then
             Spring.DestroyUnit(unitID)
         end
     end
-    
+
     function spawnceg(words)
       Spring.Echo("SYNCED spawnceg",words[1], words[2],words[3],words[4],words[5])
       Spring.SpawnCEG( words[2], --cegname
@@ -195,7 +195,7 @@ else
       end
       Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
     end
-  
+
     function spawnceg(_,line, words, playerID)
       --spawnceg usage:
       --spawnceg usage:
@@ -211,7 +211,7 @@ else
       local x,y,z = ox,oy,oz
       msg = "spawnceg"
       msg = msg .. " " .. tostring(words[1]) .. ' ' .. tostring(x) .. ' ' .. tostring(y) .. ' ' .. tostring(z)
-      
+
       Spring.Echo('Spawning CEG:',line, playerID, msg)
       Spring.SendLuaRulesMsg(PACKET_HEADER..':'..msg)
     end
@@ -278,7 +278,7 @@ else
             local Condition = function (ud) return ud.name:sub(1,3)=="arm" and not string.find(ud.name, '_scav') end
             Accept[#Accept+1] = Condition
         end
-        if string.find(line, "core") then
+        if string.find(line, "cor") then
             local Condition  = function (ud) return ud.name:sub(1,3)=="cor" and not string.find(ud.name, '_scav') end
             Accept[#Accept+1] = Condition
         end

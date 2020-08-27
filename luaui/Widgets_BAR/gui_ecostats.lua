@@ -138,8 +138,8 @@ Options["removeDead"]["On"] = false
 ---------------------------------------------------------------------------------------------------
 
 local images			= {
-	["arm"]					= "LuaUI/Images/ecostats/arm_default.png",
-	["core"]     			= "LuaUI/Images/ecostats/core_default.png",
+	["armada"]					= "LuaUI/Images/ecostats/arm_default.png",
+	["cortex"]     			= "LuaUI/Images/ecostats/cor_default.png",
 	["checkboxon"]			= "LuaUI/Images/ecostats/chkBoxOn.png",
 	["checkboxoff"]			= "LuaUI/Images/ecostats/chkBoxOff.png",
 	["default"]				= "LuaUI/Images/ecostats/default.png",
@@ -1168,9 +1168,9 @@ function setTeamTable(teamID)
 	if Spring.GetTeamRulesParam(teamID, 'startUnit') then
 		local startunit = Spring.GetTeamRulesParam(teamID, 'startUnit')
 		if startunit == armcomDefID then
-			teamside = "arm"
+			teamside = "armada"
 		else
-			teamside = "core"
+			teamside = "cortex"
 		end
 	else
 		teamside = select(5,Spring.GetTeamInfo(teamID,false))

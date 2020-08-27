@@ -31,7 +31,6 @@ return {
 		script = "scavs/droppod.cob",
 		seismicsignature = 4,
 		selfdestructas = "custom:armnuke",
-		side = "ARM",
 		sightdistance = 450,
 		smoothanim = true,
 		turninplace = true,

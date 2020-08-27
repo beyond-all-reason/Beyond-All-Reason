@@ -39,7 +39,7 @@ local spGetMyPlayerID   = Spring.GetMyPlayerID
 local spGetPlayerInfo   = Spring.GetPlayerInfo
 
 local armCommanderDefId  = UnitDefNames["armcom"].id
-local coreCommanderDefId = UnitDefNames["corcom"].id
+local corCommanderDefId = UnitDefNames["corcom"].id
 
 -- widget global settings and assigned defaults
 local passiveLabs  = true
@@ -92,7 +92,7 @@ local function classifyUnit(unitId, unitDef)
     end
 
     local is_armcom = unitDef.id == armCommanderDefId
-    local is_corcom = unitDef.id == coreCommanderDefId
+    local is_corcom = unitDef.id == corCommanderDefId
 
     if is_armcom or is_corcom then
         -- spEcho("[passiveunits] Classified unit is a commander. Skipping.")  -- DEBUG
@@ -133,7 +133,7 @@ local function declassifyUnit(unitId, unitDef)
     end
 
     local is_armcom = unitDef.id == armCommanderDefId
-    local is_corcom = unitDef.id == coreCommanderDefId
+    local is_corcom = unitDef.id == corCommanderDefId
 
     if is_armcom or is_corcom then
         -- spEcho("[passiveunits] Declassified unit is a commander. Skipping.")  -- DEBUG

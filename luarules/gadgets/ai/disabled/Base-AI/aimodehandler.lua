@@ -132,10 +132,10 @@ end
 function AiModeHandler:PickASide(i)
 	if i == 1 then
 		Spring.SetTeamRulesParam(self.ai.id, "startUnit", UnitDefNames.armcom.id)
-		self.faction = "ARM"
+		self.faction = "ARMADA"
 	else
 		Spring.SetTeamRulesParam(self.ai.id, "startUnit", UnitDefNames.corcom.id)
-		self.faction = "CORE"
+		self.faction = "CORTEX"
 	end
 end
 

@@ -43,7 +43,7 @@ local copyLightDefs = {
 		["cortron_cortron_weapon"    ] = "tron_weapon",
 
 		--Brthas
-		["corint_core_intimidator"   ] = "berthacannon",
+		["corint_cor_intimidator"   ] = "berthacannon",
 		["armbrtha_arm_berthacannon" ] = "berthacannon",
 
 		--Juno
@@ -56,7 +56,7 @@ local copyLightDefs = {
 local dynLightDefs = {
 	["BAR"] = {
 		weaponLightDefs = {
-			-- Arm & Core Commander (dgun) projectiles
+			-- Armada & Cortex Commander (dgun) projectiles
 			-- NOTE:
 			--   no explosion light defs, because a dgun
 			--   projectile triggers a new explosion for
@@ -111,7 +111,7 @@ local dynLightDefs = {
 				},
 			},
 
-			-- Arm Retaliator / Core Silencer (large nuke) projectiles
+			-- Armada Retaliator / Cortex Silencer (large nuke) projectiles
 			-- NOTE:
 			--   uses a vertical offset to simulate an
 			--   airburst, since the actual projectile
@@ -159,7 +159,7 @@ local dynLightDefs = {
 				},
 			},
 
-			-- Arm Stunner / Core Neutron (small nuke) projectiles
+			-- Armada Stunner / Cortex Neutron (small nuke) projectiles
 			["emp_weapon"] = {
 				projectileLightDef = {
 					diffuseColor      = {0.7,                  0.4,                   0.4                  },
@@ -199,7 +199,7 @@ local dynLightDefs = {
 					altitudeOffset    = 125.0,
 				},
 			},
-			-- Arm Bertha / Core Intimidator (main barrel) projectiles
+			-- Armada Bertha / Cortex Intimidator (main barrel) projectiles
 			-- NOTE:
 			--   No lol cannon here way to many lights needed
 			["berthacannon"] = {
