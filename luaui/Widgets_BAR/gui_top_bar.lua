@@ -1470,19 +1470,20 @@ function widget:DrawScreen()
 			end
 			glCallList(dlistWindText[currentWind])
 		else
-			if now < 60 and WG['tooltip'] ~= nil then
+			if now < 90 and WG['tooltip'] ~= nil then
+				local minh = height*0.5
 				if (minWind + maxWind)/2 < 5.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind isnt worth', windArea[1], windArea[2]-13*widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind isnt worth', windArea[1], windArea[2]-minh*widgetScale)
 				elseif (minWind + maxWind)/2 >= 5.5 and (minWind + maxWind)/2 < 7 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is viable', windArea[1], windArea[2]-13*widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is viable', windArea[1], windArea[2]-minh*widgetScale)
 				elseif (minWind + maxWind)/2 >= 7 and (minWind + maxWind)/2 < 8.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is okay', windArea[1], windArea[2]-13*widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is okay', windArea[1], windArea[2]-minh*widgetScale)
 				elseif (minWind + maxWind)/2 >= 8.5 and (minWind + maxWind)/2 < 10 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is good', windArea[1], windArea[2]-13*widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is good', windArea[1], windArea[2]-minh*widgetScale)
 				elseif (minWind + maxWind)/2 >= 10  and (minWind + maxWind)/2 < 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is really good', windArea[1], windArea[2]-13*widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is really good', windArea[1], windArea[2]-minh*widgetScale)
 				elseif (minWind + maxWind)/2 >= 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is insanely good', windArea[1], windArea[2]-13*widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is insanely good', windArea[1], windArea[2]-minh*widgetScale)
 				end
 			end
 		end
