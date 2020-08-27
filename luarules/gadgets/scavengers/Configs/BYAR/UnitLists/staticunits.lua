@@ -175,6 +175,7 @@ StartboxDefenceStructuresT0 = {
 	--"armamd",
 	--"corfmd",
 	"armemp",
+	"cortron",
 	"corflak",
 	"armanni",
 	"cordoom",
@@ -188,6 +189,7 @@ StartboxDefenceStructuresT0 = {
 	--"armamd",
 	--"corfmd",
 	"armemp",
+	"cortron",
 }
 
 StartboxDefenceStructuresT1 = {
@@ -219,6 +221,7 @@ StartboxDefenceStructuresT1 = {
 	--"armamd",
 	--"corfmd",
 	"armemp",
+	"cortron",
 	"corflak",
 	"armanni",
 	"cordoom",
@@ -232,6 +235,7 @@ StartboxDefenceStructuresT1 = {
 	--"armamd",
 	--"corfmd",
 	"armemp",
+	"cortron",
 }
 
 StartboxDefenceStructuresT2 = {
@@ -258,6 +262,7 @@ StartboxDefenceStructuresT2 = {
 	"armamd",
 	"corfmd",
 	"armemp",
+	"cortron",
 	"corflak",
 	"armanni",
 	"cordoom",
@@ -271,6 +276,7 @@ StartboxDefenceStructuresT2 = {
 	"armamd",
 	"corfmd",
 	"armemp",
+	"cortron",
 }
 
 StartboxDefenceStructuresT3 = {
@@ -286,6 +292,7 @@ StartboxDefenceStructuresT3 = {
 	"armamd",
 	"corfmd",
 	"armemp",
+	"cortron",
 	"corflak",
 	"armanni",
 	"cordoom",
@@ -299,6 +306,7 @@ StartboxDefenceStructuresT3 = {
 	"armamd",
 	"corfmd",
 	"armemp",
+	"cortron",
 }
 
 StartboxDefenceStructuresT4 = {
@@ -315,6 +323,7 @@ StartboxDefenceStructuresT4 = {
 	"armamd",
 	"corfmd",
 	"armemp",
+	"cortron",
 }
 
 
