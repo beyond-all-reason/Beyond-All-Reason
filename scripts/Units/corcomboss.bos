@@ -517,9 +517,9 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	turn aimy1 to y-axis heading speed <30.000000>;
-	turn aimx1 to x-axis <-5.000000> - pitch speed <25.000000>;
-	//turn nanolathe to x-axis <000000> speed <250.000000>;
+	turn aimy1 to y-axis heading speed <300.000000>;
+	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
+	//turn nanolathe to x-axis <000000> speed <2500.000000>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	gun_2 = lfirept;
@@ -558,9 +558,9 @@ AimTertiary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	gun_3 = lfirept;
 	bAiming = TRUE;
-	turn aimy1 to y-axis heading speed <36.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <36.000000>;
-	//turn ruparm to x-axis <0> speed <360>;
+	turn aimy1 to y-axis heading speed <360.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <360.000000>;
+	//turn ruparm to x-axis <0> speed <3600>;
 	wait-for-turn aimy1 around y-axis;
 	//wait-for-turn biggun around x-axis;
 	return (1);
@@ -603,9 +603,9 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	turn aimy1 to y-axis heading speed <30.000000>;
-	turn aimx1 to x-axis <-5.000000> - pitch speed <25.000000>;
-	//turn nanolathe to x-axis <000000> speed <250.000000>;
+	turn aimy1 to y-axis heading speed <300.000000>;
+	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
+	//turn nanolathe to x-axis <000000> speed <2500.000000>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	gun_2 = lfirept;
