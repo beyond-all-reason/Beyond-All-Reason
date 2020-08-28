@@ -20,6 +20,7 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
+local spIsUnitIcon = Spring.IsUnitIcon
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
@@ -505,7 +506,7 @@ function widget:Update(dt)
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
 			if not limit or not limitDefs[unitDefID] then
-				if not spGetUnitIsActive(unitID) then
+				if not spGetUnitIsActive(unitID) or spIsUnitIcon(unitID) then
 					activePlanes[unitID] = nil
 					inactivePlanes[unitID] = unitDefID
 				elseif xzVelocityUnits[unitDefID] then
