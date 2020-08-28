@@ -403,7 +403,7 @@ local moveDatas = {
 	
 	-- Scavenger Boss units
 	SCAVCOMMANDERBOT = {
-		crushstrength = 50,
+		crushstrength = 9999,
 		depthModParams = {
 			minHeight = 0,
 			maxScale = 1.5,
@@ -411,8 +411,8 @@ local moveDatas = {
 			linearCoeff = (0.1/470)/2,
 			constantCoeff = 1,
 			},
-		footprintx = 0,
-		footprintz = 0,
+		footprintx = 4,
+		footprintz = 4,
 		maxslope = 100,
 		maxwaterdepth = 5000,
 		maxwaterslope = 55,
