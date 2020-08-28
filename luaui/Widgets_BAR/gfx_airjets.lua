@@ -22,6 +22,7 @@ local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetFPS = Spring.GetFPS
 
 local glUseShader = gl.UseShader
@@ -56,9 +57,9 @@ local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
 -- Configuration
 --------------------------------------------------------------------------------
 
-local disableAtAvgFps = 12
-local limitAtAvgFps = 25	-- filter spammy units: fighters/scouts
-local avgFpsThreshold = 7   -- have this more fps than disableAtAvgFps to re-enable
+local disableAtAvgFps = 8
+local limitAtAvgFps = 16	-- filter spammy units: fighters/scouts
+local avgFpsThreshold = 6   -- have this more fps than disableAtAvgFps to re-enable
 
 local effectDefs = {
 
@@ -162,6 +163,10 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 18, length = 36, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.33 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 16, length = 32, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.33 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 16, length = 32, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.33 },
+	},
+	["corcut"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
 	},
 	--["armbrawl"] = {
 	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust1", light = 1 },
@@ -562,6 +567,13 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID)
 end
+
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if effectDefs[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+		RemoveUnit(unitID, unitDefID)
+	end
+end
+
 
 widget.DrawWorld = DrawParticles
 widget.DrawWorldReflection = DrawParticlesWater
