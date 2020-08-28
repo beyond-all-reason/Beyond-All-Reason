@@ -158,7 +158,7 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.013	-- default 0.005
 
-			if not string.find(uDef.name, "liche") and not string.find(uDef.name, "krow") then
+			if not (string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 
 				local airmult = 1.3
 				if uDef.buildcostenergy then
