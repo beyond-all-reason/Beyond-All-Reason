@@ -44,7 +44,7 @@ return {
 		wingdrag = 0.235,
 		customparams = {
 			model_author = "Beherith",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",
 			fighter = 1,
 		},

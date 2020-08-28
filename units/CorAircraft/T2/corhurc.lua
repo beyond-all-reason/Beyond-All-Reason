@@ -47,7 +47,7 @@ return {
 		wingdrag = 0.125,
 		customparams = {
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",
 			techlevel = 2,
 		},

@@ -447,7 +447,7 @@ for id = 1, #FeatureDefs do
 				--Spring.Echo("featureDef.model.textures", featureDef.model.textures)
 				local wreckNormalTex = featureDef.model.textures.tex1  and
 					((featureDef.model.textures.tex1:find("Arm_wreck") and "unittextures/Arm_wreck_color_normal.dds") or
-					(featureDef.model.textures.tex1:find("Core_color_wreck") and "unittextures/Core_color_wreck_normal.dds"))
+					(featureDef.model.textures.tex1:find("cor_color_wreck") and "unittextures/cor_color_wreck_normal.dds"))
 
 				if not wreckNormalTex then
 					Spring.Echo("Failed to find normal map for unit wreck: ", featureDef.name)

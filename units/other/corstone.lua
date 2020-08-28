@@ -38,7 +38,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			nohealthbars = true,
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other",
 		},
 	},

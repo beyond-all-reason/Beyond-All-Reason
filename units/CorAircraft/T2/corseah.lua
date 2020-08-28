@@ -44,7 +44,7 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "coraircraft/t2",
 			techlevel = 2,

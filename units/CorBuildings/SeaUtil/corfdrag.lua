@@ -33,7 +33,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			objectify = true,
 			removestop = true,
 			removewait = true,

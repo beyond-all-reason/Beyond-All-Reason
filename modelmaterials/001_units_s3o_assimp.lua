@@ -349,9 +349,9 @@ local unitAtlases = {
 		"unittextures/Arm_normal.dds",
 	},
 	["cor"] = {
-		"unittextures/Core_color.dds",
-		"unittextures/Core_other.dds",
-		"unittextures/Core_normal.dds",
+		"unittextures/cor_color.dds",
+		"unittextures/cor_other.dds",
+		"unittextures/cor_normal.dds",
 	},
 }
 ]]--
@@ -363,9 +363,9 @@ local wreckAtlases = {
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
 	["cor"] = {
-		"unittextures/Core_color_wreck.dds",
-		"unittextures/Core_other_wreck.dds",
-		"unittextures/Core_color_wreck_normal.dds",
+		"unittextures/cor_color_wreck.dds",
+		"unittextures/cor_other_wreck.dds",
+		"unittextures/cor_color_wreck_normal.dds",
 	},
 }
 

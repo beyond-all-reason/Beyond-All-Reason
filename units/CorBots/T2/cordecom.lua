@@ -79,7 +79,7 @@ return {
 			decoyfor = "corcom",
 			area_mex_def = "cormex",
 			model_author = "Beherith",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "corbots/t2",
 			techlevel = 2,

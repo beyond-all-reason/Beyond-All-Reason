@@ -50,7 +50,7 @@ return {
 		unloadspread = 3,
 		customparams = {
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
 			trackwidth = 32,

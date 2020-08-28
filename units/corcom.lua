@@ -91,7 +91,7 @@ return {
 			area_mex_def = "cormex",
 			iscommander = true,
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			techlevel = 2,

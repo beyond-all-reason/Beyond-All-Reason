@@ -44,7 +44,7 @@ return {
 		customparams = {
 			decoyfor = "cormaw",
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
 		},

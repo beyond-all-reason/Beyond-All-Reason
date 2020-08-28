@@ -57,7 +57,7 @@ return {
 		},
 		customparams = {
 			model_author = "FireStorm",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",
 			techlevel = 2,
 		},

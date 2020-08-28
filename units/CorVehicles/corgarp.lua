@@ -52,7 +52,7 @@ return {
 			flare1name = "emit",
 			kickback = "-2.4",
 			model_author = "Flaka",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
 			restoretime = "3000",
 			rockstrength = "5",

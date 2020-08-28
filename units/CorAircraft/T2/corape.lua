@@ -37,7 +37,7 @@ return {
 		turnrate = 600,
 		customparams = {
 			model_author = "Flaka",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",
 			techlevel = 2,
 		},

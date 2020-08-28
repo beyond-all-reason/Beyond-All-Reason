@@ -44,7 +44,7 @@ return {
 		customparams = {
 			maxrange = "260",
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.1,
 			prioritytarget = "air",
 			subfolder = "corships",

@@ -52,7 +52,7 @@ return {
 		workertime = 200,
 		customparams = {
 			model_author = "Beherith",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seautil",
 		},
 		sfxtypes = {

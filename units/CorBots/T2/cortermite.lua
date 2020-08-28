@@ -40,7 +40,7 @@ return {
 		turnrate = 1214.40002,
 		customparams = {
 			model_author = "Beherith",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "corbots/t2",
 			techlevel = 2,

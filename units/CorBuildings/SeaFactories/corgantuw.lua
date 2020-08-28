@@ -50,7 +50,7 @@ return {
 		},
 		customparams = {
 			model_author = "Cremuss",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seafactories",
 			techlevel = 3,
 		},

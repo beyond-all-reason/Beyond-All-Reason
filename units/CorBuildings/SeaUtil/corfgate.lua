@@ -47,7 +47,7 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
 			shield_color_mult = 0.8,

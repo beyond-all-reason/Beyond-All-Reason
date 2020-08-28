@@ -51,7 +51,7 @@ return {
 			flare1name = "flare",
 			kickback = "-6",
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			restoretime = "3000",
 			rockstrength = "7",
 			sleevename = "sleeve",

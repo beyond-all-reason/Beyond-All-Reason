@@ -46,7 +46,7 @@ return {
 		waterline = 0,
 		customparams = {
 			model_author = "Beherith",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "corships/t2",
 			techlevel = 2,

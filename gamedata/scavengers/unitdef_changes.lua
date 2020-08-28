@@ -164,7 +164,7 @@ customDefs.armestor = {
 			resurrectable = 0,
 			smokeTime = 0,
 			-- customparams = {
-			-- 	normaltex = "unittextures/Core_normal.dds",
+			-- 	normaltex = "unittextures/cor_normal.dds",
 			-- },
 		},
 		heap = {
@@ -178,7 +178,7 @@ customDefs.armestor = {
 			resurrectable = 0,
 			smokeTime = 0,
 			-- customparams = {
-			-- 	normaltex = "unittextures/Core_normal.dds",
+			-- 	normaltex = "unittextures/cor_normal.dds",
 			-- },
 		},
 	},	

@@ -48,7 +48,7 @@ return {
 		yardmap = "",
 		customparams = {
 			isairbase = true,
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/scavengers",
 		},
 		featuredefs = {},

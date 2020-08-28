@@ -37,7 +37,7 @@ return {
 			energyconv_capacity = 600,
 			energyconv_efficiency = 1/58,
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			flashlightmin = 0.8,
 			removestop = true,
 			removewait = true,

@@ -42,7 +42,7 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
 			shield_color_mult = 0.8,

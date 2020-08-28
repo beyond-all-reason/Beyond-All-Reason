@@ -45,7 +45,7 @@ return {
 		turnrate = 290,
 		waterline = 7,
 		customparams = {
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corhovercraft",
 		},
 		featuredefs = {

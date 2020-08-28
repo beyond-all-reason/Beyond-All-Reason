@@ -42,7 +42,7 @@ return {
 		customparams = {
 			customrange = 435,
 			model_author = "FireStorm",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "corgantry",
 			techlevel = 3,

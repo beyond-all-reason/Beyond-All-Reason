@@ -32,7 +32,7 @@ return {
 			energyconv_capacity = 70,
 			energyconv_efficiency = 1/64,
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/seaeconomy",

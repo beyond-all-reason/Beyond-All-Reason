@@ -51,7 +51,7 @@ return {
 		},
 		customparams = {
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",
 			--midposoffset = [[0 0 21]],
 			techlevel = 3,

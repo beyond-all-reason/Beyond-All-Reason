@@ -57,7 +57,7 @@ return {
 		--waterline = 0,
 		yardmap = "oooo",
 		customparams = {
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
 		},
 		featuredefs = {

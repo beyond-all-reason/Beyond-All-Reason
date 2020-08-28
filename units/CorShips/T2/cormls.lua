@@ -58,7 +58,7 @@ return {
 		customparams = {
 			area_mex_def = "coruwmex",
 			model_author = "Beherith",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
 			techlevel = 2,
 		},

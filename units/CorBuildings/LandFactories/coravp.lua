@@ -60,7 +60,7 @@ return {
 		},
 		customparams = {
 			model_author = "Mr Bob",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",
 			techlevel = 2,
 		},

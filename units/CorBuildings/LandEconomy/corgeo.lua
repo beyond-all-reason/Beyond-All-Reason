@@ -41,7 +41,7 @@ return {
 		customparams = {
 			cvbuildable = true,
 			model_author = "Cremuss",
-			normaltex = "unittextures/Core_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landeconomy",
