@@ -20,10 +20,11 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spIsUnitIcon = Spring.IsUnitIcon
+local spIsUnitVisible = Spring.IsUnitVisible
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetFPS = Spring.GetFPS
 
 local glUseShader = gl.UseShader
@@ -467,7 +468,7 @@ local function AddUnit(unitID, unitDefID)
 		FinishInitialization(unitID, effectDefs[unitDefID])
 	end
 	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) and (not limit or not limitDefs[unitDefID]) then
-		local uvx,_,uvz = Spring.GetUnitVelocity(unitID)
+		local uvx,_,uvz = spGetUnitVelocity(unitID)
 		if xzVelocityUnits[unitDefID] and math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
 			inactivePlanes[unitID] = unitDefID
 		else
@@ -506,18 +507,15 @@ function widget:Update(dt)
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
 			if not limit or not limitDefs[unitDefID] then
-				if not spGetUnitIsActive(unitID) or spIsUnitIcon(unitID) then
+				if not spGetUnitIsActive(unitID) or not spIsUnitVisible(unitID, 50, true) or spGetUnitIsStunned(unitID) then
 					activePlanes[unitID] = nil
 					inactivePlanes[unitID] = unitDefID
 				elseif xzVelocityUnits[unitDefID] then
-					local uvx,_,uvz = Spring.GetUnitVelocity(unitID)
+					local uvx,_,uvz = spGetUnitVelocity(unitID)
 					if math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
 						activePlanes[unitID] = nil
 						inactivePlanes[unitID] = unitDefID
 					end
-				elseif spGetUnitIsStunned(unitID) then
-					activePlanes[unitID] = nil
-					inactivePlanes[unitID] = unitDefID
 				end
 			end
 		end
