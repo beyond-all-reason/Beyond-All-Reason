@@ -16,7 +16,7 @@ local iconsize   = 40
 local iconoffset = 22
 local scaleIconAmount = 90
 
-local rankScopeDivider = 5		-- the higher the number the narrower the scope, the higher the assigned rank will be
+local rankScopeDivider = 2.25	-- the higher the number the narrower the scope, the higher the assigned rank will be
 
 local falloffDistance = 1300
 local cutoffDistance = 2300
@@ -118,11 +118,14 @@ function widget:SetConfigData(data) --load config
 end
 
 local function getRank(unitDefID, xp)
-	return min(floor(xp / unitPowerXpCoeffient[unitDefID]), numRanks)
+	return min(floor(xp*(1.44-xp) / unitPowerXpCoeffient[unitDefID]), numRanks)
 end
 
 local function updateUnitRank(unitID, unitDefID)
-	ranks[ getRank(unitDefID, GetUnitExperience(unitID)) ][unitID] = unitDefID
+	local xp = GetUnitExperience(unitID)
+	if xp then
+		ranks[ getRank(unitDefID, xp) ][unitID] = unitDefID
+	end
 end
 
 function widget:Initialize()
@@ -151,7 +154,6 @@ function widget:Initialize()
 	end
 
 	for unitDefID, ud in pairs(UnitDefs) do
-		-- ud.power -> buildCostMetal + (buildCostEnergy / 60.0) 
 		unitPowerXpCoeffient[unitDefID] = ((ud.power / 2000) ^ -0.2) / numRanks / rankScopeDivider -- dark magic
 		unitHeights[unitDefID] = ud.height + iconoffset
 	end

@@ -156,28 +156,28 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode wing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode jet1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode jet2 type FALL | NOHEATCLOUD;
+		explode jet1 type BITMAPONLY | NOHEATCLOUD;
+		explode wing2 type BITMAPONLY | NOHEATCLOUD;
+		explode jet2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode wing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode jet1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode jet2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode jet1 type BITMAPONLY | NOHEATCLOUD;
+		explode wing2 type BITMAPONLY | NOHEATCLOUD;
+		explode jet2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode wing1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode jet1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode wing2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode jet2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode jet1 type BITMAPONLY | NOHEATCLOUD;
+		explode wing2 type BITMAPONLY | NOHEATCLOUD;
+		explode jet2 type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }
