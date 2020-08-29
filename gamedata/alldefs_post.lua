@@ -190,9 +190,9 @@ function UnitDef_Post(name, uDef)
 
 					if uDef.weapondefs then
 						for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+							uDef.weapondefs[weaponDefName].range = math.floor((uDef.weapondefs[weaponDefName].range * rangeMult) + 0.5)
 							for category, damage in pairs (weaponDef.damage) do
 								uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
-								uDef.weapondefs[weaponDefName].range = math.floor((uDef.weapondefs[weaponDefName].range * rangeMult) + 0.5)
 							end
 						end
 					end
