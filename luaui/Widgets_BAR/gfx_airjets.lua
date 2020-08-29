@@ -378,13 +378,15 @@ local function Draw(unitID, unitDefID)
 	glUnitMultMatrix(unitID)
 	for i = 1, #unitEffects do
 		local fx = unitEffects[i]
-		--Spring.Echo(UnitDefs[unitDefID].name)		-- echo to find out which unit is has wrongly configured piecenames
-		--// enter piece space
-		glPushMatrix()
-		glUnitPieceMultMatrix(unitID, fx.piecenum)
-		glScale(1, 1, -1)
-		AirJet_Draw(fx)
-		glPopMatrix()
+		if fx.piecenum then
+			--Spring.Echo(UnitDefs[unitDefID].name)		-- echo to find out which unit is has wrongly configured piecenames
+			--// enter piece space
+			glPushMatrix()
+			glUnitPieceMultMatrix(unitID, fx.piecenum)
+			glScale(1, 1, -1)
+			AirJet_Draw(fx)
+			glPopMatrix()
+		end
 		--// leave piece space
 	end
 
