@@ -494,7 +494,7 @@ end
 function widget:Update(dt)
 	updateSec = updateSec + dt
 	local gf = Spring.GetGameFrame()
-	if gf ~= lastGameFrame and updateSec > 0.2 then		-- to limit the number of unit status checks
+	if gf ~= lastGameFrame and updateSec > 0.22 then		-- to limit the number of unit status checks
 		lastGameFrame = gf
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
@@ -567,6 +567,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID)
 end
 
+-- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if effectDefs[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 		RemoveUnit(unitID, unitDefID)

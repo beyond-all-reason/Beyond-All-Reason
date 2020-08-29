@@ -203,38 +203,41 @@ local function GetModKeys()
 
     return alt, ctrl, meta, shift
 end
+
 local function GetUnitFinalPosition(uID)
 
     local ux, uy, uz = spGetUnitPosition(uID)
 
     local cmds = spGetCommandQueue(uID,5000)
-    for i = #cmds, 1, -1 do
+	if cmds then
+		for i = #cmds, 1, -1 do
 
-        local cmd = cmds[i]
-        if (cmd.id < 0) or positionCmds[cmd.id] then
+			local cmd = cmds[i]
+			if (cmd.id < 0) or positionCmds[cmd.id] then
 
-            local params = cmd.params
-            if #params >= 3 then
-                return params[1], params[2], params[3]
-            else
-                if #params == 1 then
+				local params = cmd.params
+				if #params >= 3 then
+					return params[1], params[2], params[3]
+				else
+					if #params == 1 then
 
-                    local pID = params[1]
-                    local px, py, pz
+						local pID = params[1]
+						local px, py, pz
 
-                    if pID > maxUnits then
-                        px, py, pz = spGetFeaturePosition(pID - maxUnits)
-                    else
-                        px, py, pz = spGetUnitPosition(pID)
-                    end
+						if pID > maxUnits then
+							px, py, pz = spGetFeaturePosition(pID - maxUnits)
+						else
+							px, py, pz = spGetUnitPosition(pID)
+						end
 
-                    if px then
-                        return px, py, pz
-                    end
-                end
-            end
-        end
-    end
+						if px then
+							return px, py, pz
+						end
+					end
+				end
+			end
+		end
+	end
 
     return ux, uy, uz
 end
@@ -906,21 +909,23 @@ function GetOrdersNoX(nodes, units, unitCount, shifted)
         else
             ux, _, uz = spGetUnitPosition(units[u])
         end
-        unitSet[u] = {ux, units[u], uz, -1} -- Such that x/z are in same place as in nodes (So we can use same sort function)
+		if ux then
+			unitSet[u] = {ux, units[u], uz, -1} -- Such that x/z are in same place as in nodes (So we can use same sort function)
 
-        -- Work on finding furthest points (As we have ux/uz already)
-        for i = u - 1, 1, -1 do
+			-- Work on finding furthest points (As we have ux/uz already)
+			for i = u - 1, 1, -1 do
 
-            local up = unitSet[i]
-            local vx, vz = up[1], up[3]
-            local dx, dz = vx - ux, vz - uz
-            local dist = dx*dx + dz*dz
+				local up = unitSet[i]
+				local vx, vz = up[1], up[3]
+				local dx, dz = vx - ux, vz - uz
+				local dist = dx*dx + dz*dz
 
-            if (dist > fdist) then
-                fdist = dist
-                fm = (vz - uz) / (vx - ux)
-            end
-        end
+				if (dist > fdist) then
+					fdist = dist
+					fm = (vz - uz) / (vx - ux)
+				end
+			end
+		end
     end
 
     -- Maybe nodes are further apart than the units
@@ -1084,16 +1089,17 @@ function GetOrdersHungarian(nodes, units, unitCount, shifted)
         else
             ux, _, uz = spGetUnitPosition(uID)
         end
+		if ux then
+			distances[i] = {}
+			local dists = distances[i]
+			for j = 1, unitCount do
 
-        distances[i] = {}
-        local dists = distances[i]
-        for j = 1, unitCount do
-
-            local nodePos = nodes[j]
-            local dx, dz = nodePos[1] - ux, nodePos[3] - uz
-            dists[j] = floor(sqrt(dx*dx + dz*dz) + 0.5)
-            -- Integer distances = greatly improved algorithm speed
-        end
+				local nodePos = nodes[j]
+				local dx, dz = nodePos[1] - ux, nodePos[3] - uz
+				dists[j] = floor(sqrt(dx*dx + dz*dz) + 0.5)
+				-- Integer distances = greatly improved algorithm speed
+			end
+		end
     end
 
     --------------------------------------------------------------------------------------------

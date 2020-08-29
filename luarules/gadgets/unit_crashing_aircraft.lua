@@ -73,6 +73,11 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			end
 		end
 		if random() < percentage or alwaysCrash[unitDefID] then
+			-- increase gravity so it crashes faster
+			local moveTypeData = Spring.GetUnitMoveTypeData(unitID)
+			if moveTypeData['myGravity'] then
+				Spring.MoveCtrl.SetAirMoveTypeData(unitID, 'myGravity', moveTypeData['myGravity'] * 2.2)
+			end
 			-- make it crash
 			crashingCount = crashingCount + 1
 			crashing[unitID] = Spring.GetGameFrame() + 300

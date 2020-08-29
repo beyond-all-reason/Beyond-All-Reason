@@ -29,13 +29,12 @@ local builders = {}
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local spec,fullView,_ = Spring.GetSpectatingState()
-local dlists = {}
-local prevCam = {Spring.GetCameraPosition()}
 
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGroundHeight = Spring.GetGroundHeight
+local spIsAABBInView = Spring.IsAABBInView
 
 local builderUnitDefs = {}
 
@@ -67,13 +66,6 @@ local function checkBuilder(unitID)
 					teamid = spGetUnitTeam(unitID),
 					params = cmd.params
 				}
-				--local y = cmd.params[2]
-				--if UnitDefs[math.abs(cmd.id)].minWaterDepth < 0 then	-- AI bots queue very high y pos so this corrects that
-				--	y = spGetGroundHeight(cmd.params[1],cmd.params[3])
-				--else
-				--	y = - UnitDefs[math.abs(cmd.id)].waterline
-				--end
-				--myCmd.params[2] = y
 				local id = myCmd.teamid..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..cmd.params[3]
 				if showForCreatedUnits or commandCreatedUnits[id] == nil then
 					if command[id] == nil then
@@ -145,7 +137,7 @@ local sec = 0
 local lastUpdate = 0
 function widget:Update(dt)
 	sec = sec + dt
-	if sec > lastUpdate + 0.1 then
+	if sec > lastUpdate + 0.12 then
 		lastUpdate = sec
 
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
@@ -157,15 +149,6 @@ function widget:Update(dt)
 			end
 		end
 	end
-
-	--camX, camY, camZ = Spring.GetCameraPosition()
-	--if camX ~= prevCam[1]  or  camY ~= prevCam[2]  or  camZ ~= prevCam[3] then
-	--	for _,dlist in pairs(dlists) do
-	--		gl.DeleteList(dlist)
-	--	end
-	--	dlists = {}
-	--end
-	--prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -177,11 +160,6 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	--if UnitDefs[unitDefID].minWaterDepth < 0 then	-- skipping y cause this can change with terrain deformation
-	--	y = Spring.GetGroundHeight(x,z)
-	--else
-	--	y = - UnitDefs[unitDefID].waterline
-	--end
 	if command[unitTeam..'_'..unitDefID..'_'..x..'_'..z] then
 		command[unitTeam..'_'..unitDefID..'_'..x..'_'..z] = nil
 		commandCreatedUnitsIDs[unitID] = unitTeam..'_'..unitDefID..'_'..x..'_'..z
@@ -213,42 +191,27 @@ function widget:DrawWorld()
 	if chobbyInterface then return end
 
 	if Spring.IsGUIHidden() then return end
+	--gl.DepthTest(true)
 
 	local commandVisible = 0
 	for _, units in pairs(command) do
 		local myCmd = units.id
 		local params = myCmd.params
 		local x, y, z = params[1], params[2], params[3]
-		-- using dlist will result in glitches, making features invisible(briefly)
-		--if not dlists[x..'_'..y..'_'..z] then
-			if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
-				local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
-				--dlists[x..'_'..y..'_'..z] = gl.CreateList(function()
-					gl.PushMatrix()
-					gl.LoadIdentity()
-					gl.Translate( x, y, z )
-					gl.Rotate( degrees, 0, 1.0, 0 )
-					gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
-					gl.PopMatrix()
-				--end)
-				commandVisible = commandVisible + 1
-				if commandVisible > maxDisplayed then
-					break
-				end
+		if spIsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
+			local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
+			gl.PushMatrix()
+			gl.LoadIdentity()
+			gl.Translate( x, y, z )
+			gl.Rotate( degrees, 0, 1.0, 0 )
+			gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
+			gl.PopMatrix()
+			commandVisible = commandVisible + 1
+			if commandVisible > maxDisplayed then
+				break
 			end
-		--end
+		end
 	end
 
-	--gl.DepthTest(true)
-	--for _,dlist in pairs(dlists) do
-	--	gl.CallList(dlist)
-	--end
 	--gl.DepthTest(false)
-	--gl.Color(1, 1, 1, 1)
-end
-
-function widget:Shutdown()
-	for k,dlist in pairs(dlists) do
-		gl.DeleteList(dlist)
-	end
 end
