@@ -177,7 +177,42 @@ function UnitDef_Post(name, uDef)
 					uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
 				end
 
-				if not uDef.customparams.fighter then
+
+				if uDef.customparams.fighter then
+
+					if uDef.maxdamage then
+						uDef.maxdamage = math.ceil(uDef.maxdamage*1.8)
+					end
+
+					if uDef.weapondefs then
+						local reloadtimeMult = 1.8
+						for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+							uDef.weapondefs[weaponDefName].reloadtime = uDef.weapondefs[weaponDefName].reloadtime * reloadtimeMult
+							for category, damage in pairs (weaponDef.damage) do
+								uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * reloadtimeMult) + 0.5)
+							end
+						end
+					end
+
+					uDef.maxvelocity = uDef.maxvelocity*1.15
+
+					uDef.maxacc = uDef.maxacc*1.3
+
+					-- turn speeds x,y,z
+					local movementMult = 1.1
+					uDef.maxelevator = uDef.maxelevator*movementMult
+					uDef.maxrudder  = uDef.maxrudder*movementMult
+					uDef.maxaileron = uDef.maxaileron*movementMult
+
+					uDef.turnradius = uDef.turnradius*0.9
+
+					uDef.maxbank = uDef.maxbank*movementMult
+					uDef.maxpitch = uDef.maxpitch*movementMult
+
+					uDef.maxbank = uDef.maxbank*movementMult
+					uDef.maxpitch = uDef.maxpitch*movementMult
+
+				else 	-- not fighters
 
 					local rangeMult = 0.65
 					if uDef.airsightdistance then
@@ -196,36 +231,6 @@ function UnitDef_Post(name, uDef)
 							end
 						end
 					end
-				else
-					if uDef.maxdamage then
-						uDef.maxdamage = math.ceil(uDef.maxdamage*1.6)
-					end
-
-					if uDef.weapondefs then
-						for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-							for category, damage in pairs (weaponDef.damage) do
-								uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * 0.75) + 0.5)
-							end
-						end
-					end
-
-					uDef.maxvelocity = uDef.maxvelocity*1.15
-
-					uDef.maxacc = uDef.maxacc*1.3
-
-					-- turn speeds x,y,z
-					local movementMult = 1.15
-					uDef.maxelevator = uDef.maxelevator*movementMult
-					uDef.maxrudder  = uDef.maxrudder*movementMult
-					uDef.maxaileron = uDef.maxaileron*movementMult
-
-					uDef.turnradius = uDef.turnradius*0.85
-
-					uDef.maxbank = uDef.maxbank*movementMult
-					uDef.maxpitch = uDef.maxpitch*movementMult
-
-					uDef.maxbank = uDef.maxbank*movementMult
-					uDef.maxpitch = uDef.maxpitch*movementMult
 				end
 			end
 		end

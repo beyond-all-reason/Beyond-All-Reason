@@ -7,10 +7,10 @@ General
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp
 
 Air/AA: Goal: fewer units, longer lasting
- • Air units: +30%: cost, health, damage, buildpower. (fighters/liche/krow exluded)
- • Fighters cost: +30%, health: +60%, damage: -25%, range: -35%, speed: +15%, manouverability: +15%
+ • Air: +30%: cost, health, damage, buildpower. (fighters/liche/krow exluded)
+ • Fighters: cost: +30%, health: +80%, damage: +80%, reloadtime: +80%, range: -35%, speed: +15%, manouverability: +10%
  • AA range increased 6%. (mercury/screamer excluded)
- • Removed air collisions for bombers
+ • Air collisions for bombers removed
 
 Units
  • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice
