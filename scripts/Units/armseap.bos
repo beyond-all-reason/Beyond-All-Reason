@@ -192,22 +192,22 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustm type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode lwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustm type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode lwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rwing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustm type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

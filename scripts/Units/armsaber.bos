@@ -270,10 +270,10 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode finr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode finr type BITMAPONLY | NOHEATCLOUD;
 		explode finl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode wingr type FALL | NOHEATCLOUD;
 		explode wingl type FALL | NOHEATCLOUD;
@@ -282,22 +282,22 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode finr type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode finr type BITMAPONLY | NOHEATCLOUD;
 		explode finl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode wingr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode wingl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode finr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode finr type BITMAPONLY | NOHEATCLOUD;
 		explode finl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode wingr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode wingl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

@@ -152,9 +152,9 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode bombs type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta2 type FALL | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -162,16 +162,16 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode bombs type SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta1 type SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta2 type SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode bombs type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

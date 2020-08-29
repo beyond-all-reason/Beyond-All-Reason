@@ -180,38 +180,38 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode circle type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wingr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wingl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type FALL | NOHEATCLOUD;
-		explode drop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type FALL | NOHEATCLOUD;
+		explode wingr type BITMAPONLY | NOHEATCLOUD;
+		explode doorr type BITMAPONLY | NOHEATCLOUD;
+		explode wingl type BITMAPONLY | NOHEATCLOUD;
+		explode doorl type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
+		explode drop type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode circle type SMOKE | FALL | NOHEATCLOUD;
-		explode wingr type SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode wingl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode circle type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wingr type BITMAPONLY | NOHEATCLOUD;
+		explode doorr type BITMAPONLY | NOHEATCLOUD;
+		explode wingl type BITMAPONLY | NOHEATCLOUD;
 		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode drop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
+		explode drop type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode circle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wingr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wingl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode circle type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wingr type BITMAPONLY | NOHEATCLOUD;
+		explode doorr type BITMAPONLY | NOHEATCLOUD;
+		explode wingl type BITMAPONLY | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
 		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

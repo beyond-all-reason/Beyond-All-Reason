@@ -186,10 +186,10 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
+	explode base type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

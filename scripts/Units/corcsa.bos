@@ -172,11 +172,11 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode duct1 type FALL | NOHEATCLOUD;
 		explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode duct2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode duct2 type BITMAPONLY | NOHEATCLOUD;
 		explode fan2 type FALL | NOHEATCLOUD;
-		explode thrust1 type FALL | NOHEATCLOUD;
-		explode thrust2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrust2 type BITMAPONLY | NOHEATCLOUD;
+		explode nano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -185,21 +185,21 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode duct1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode duct2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode duct2 type BITMAPONLY | NOHEATCLOUD;
 		explode fan2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrust2 type BITMAPONLY | NOHEATCLOUD;
+		explode nano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode duct1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode fan1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode duct2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode duct2 type BITMAPONLY | NOHEATCLOUD;
 		explode fan2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode thrust1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode thrust2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrust1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrust2 type BITMAPONLY | NOHEATCLOUD;
+		explode nano type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

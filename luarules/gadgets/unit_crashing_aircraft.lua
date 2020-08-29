@@ -80,7 +80,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			end
 			-- make it crash
 			crashingCount = crashingCount + 1
-			crashing[unitID] = Spring.GetGameFrame() + 300
+			crashing[unitID] = Spring.GetGameFrame() + 230
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			SetUnitNoSelect(unitID,true)
 			SetUnitNoMinimap(unitID,true)

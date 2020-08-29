@@ -257,37 +257,37 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode duct1 type FALL | NOHEATCLOUD;
 		explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode duct2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode duct2 type BITMAPONLY | NOHEATCLOUD;
 		explode fan2 type FALL | NOHEATCLOUD;
-		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode duct1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode fan1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode duct2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode duct2 type BITMAPONLY | NOHEATCLOUD;
 		explode fan2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode duct1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode fan1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode duct2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode duct2 type BITMAPONLY | NOHEATCLOUD;
 		explode fan2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

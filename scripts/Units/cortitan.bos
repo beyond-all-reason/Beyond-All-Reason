@@ -155,10 +155,10 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode flare1 type FALL | NOHEATCLOUD;
 		explode flare2 type FALL | NOHEATCLOUD;
-		explode thrustb1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb2 type FALL | NOHEATCLOUD;
-		explode thrusta1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -167,19 +167,19 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb1 type SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustb1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode thrustb2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode thrusta1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrusta2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrustb1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

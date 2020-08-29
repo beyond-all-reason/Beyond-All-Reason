@@ -173,32 +173,32 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rwing1 type FALL | NOHEATCLOUD;
-		explode rflare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lflare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode backbone type FALL | NOHEATCLOUD;
-		explode rjet type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
+		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
+		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rwing1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lflare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode backbone type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rjet type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
+		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
+		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rwing1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lflare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
+		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
 		explode backbone type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rjet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

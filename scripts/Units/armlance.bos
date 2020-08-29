@@ -174,9 +174,9 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode cockpit type BITMAPONLY | NOHEATCLOUD;
-		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type BITMAPONLY | NOHEATCLOUD;
 		explode lbwing type BITMAPONLY | NOHEATCLOUD;
-		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing type BITMAPONLY | NOHEATCLOUD;
 		explode rbwing type BITMAPONLY | NOHEATCLOUD;
 		explode bombdrop type SMOKE | FALL | NOHEATCLOUD;
 		explode lventblade type BITMAPONLY | NOHEATCLOUD;
@@ -189,12 +189,12 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode cockpit type BITMAPONLY | NOHEATCLOUD;
 		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbwing type BITMAPONLY | NOHEATCLOUD;
 		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bombdrop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lventblade type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rventblade type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbwing type BITMAPONLY | NOHEATCLOUD;
+		explode bombdrop type BITMAPONLY | NOHEATCLOUD;
+		explode lventblade type BITMAPONLY | NOHEATCLOUD;
+		explode rventblade type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -202,24 +202,24 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode cockpit type BITMAPONLY | NOHEATCLOUD;
-		explode lwing type SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type BITMAPONLY | NOHEATCLOUD;
 		explode lbwing type SMOKE | FALL | NOHEATCLOUD;
-		explode rwing type SMOKE | FALL | NOHEATCLOUD;
+		explode rwing type BITMAPONLY | NOHEATCLOUD;
 		explode rbwing type SMOKE | FALL | NOHEATCLOUD;
 		explode bombdrop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lventblade type SMOKE | FALL | NOHEATCLOUD;
-		explode rventblade type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lventblade type BITMAPONLY | NOHEATCLOUD;
+		explode rventblade type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode cockpit type BITMAPONLY | NOHEATCLOUD;
 		explode lwing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rwing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbwing type BITMAPONLY | NOHEATCLOUD;
+		explode rwing type BITMAPONLY | NOHEATCLOUD;
 		explode rbwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode bombdrop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lventblade type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bombdrop type BITMAPONLY | NOHEATCLOUD;
+		explode lventblade type BITMAPONLY | NOHEATCLOUD;
 		explode rventblade type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
