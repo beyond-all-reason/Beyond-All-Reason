@@ -4118,13 +4118,13 @@ function widget:Initialize()
 		end
 	end
 
+	-- Sets necessary spring configuration parameters, so shaded units look the way they should
 	Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 	Spring.SetConfigInt("CubeTexSizeReflection", 2048)
 
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 	end
-
 	if not waterDetected then
 		Spring.SendCommands("water 0")
 	end

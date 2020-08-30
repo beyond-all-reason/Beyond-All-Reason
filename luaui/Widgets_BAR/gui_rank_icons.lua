@@ -63,6 +63,8 @@ local unitHeights  = {}
 local unitUsedIconsize = usedIconsize
 
 -- speed-ups
+
+local spGetUnitMoveTypeData	= Spring.GetUnitMoveTypeData
 local GetUnitDefID			= Spring.GetUnitDefID
 local GetUnitExperience		= Spring.GetUnitExperience
 local GetAllUnits			= Spring.GetAllUnits
@@ -92,8 +94,12 @@ local diag	= math.diag
 
 
 local unitIconMult = {}
+local isAirUnit = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitIconMult[udid] = math.min(1.4, math.max(1.25, (Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power/400, 2)))
+	if unitDef.canFly then
+		isAirUnit[udid] = true
+	end
 end
 
 -------------------------------------------------------------------------------------
@@ -204,6 +210,13 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if isAirUnit[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+		widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	end
+end
+
+
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	if not IsUnitAllied(unitID) and not GetSpectatingState()  then
 		for i=0, numRanks do
@@ -211,7 +224,6 @@ function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 		end
 	end
 end
-
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
