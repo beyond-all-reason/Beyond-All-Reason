@@ -132,12 +132,12 @@ canDistortions = false --// check Initialize()
 
 local reflectionrefractionEnabled = false
 
---// widget/gadget handling
-local handler = (widget and widgetHandler)or(gadgetHandler)
-local GG      = (widget and WG)or(GG)
-local VFSMODE = (widget and VFS.RAW_FIRST)or(VFS.ZIP_ONLY)
+--// gadget handling
+local handler = gadgetHandler
+local GG      = GG
+local VFSMODE = VFS.ZIP_ONLY
 
-local this = widget or gadget
+local this = gadget
 
 --// locations
 local LUPS_LOCATION    = 'lups/'
@@ -181,7 +181,7 @@ end
 --------------------------------------------------------------------------------
 
 --// some global vars (so the effects can use them)
-vsx, vsy, vpx, vpy = Spring.GetViewGeometry() --// screen pos & view pos (view pos only unequal zero if dualscreen+minimapOnTheLeft) 
+vsx, vsy, vpx, vpy = Spring.GetViewGeometry() --// screen pos & view pos (view pos only unequal zero if dualscreen+minimapOnTheLeft)
 LocalAllyTeamID = 0
 thisGameFrame   = 0
 frameOffset     = 0
@@ -380,12 +380,8 @@ function RemoveParticles(particlesID)
 		end
 		fx:Destroy()
 	    if fx.lightID then
-	      if (WG and WG['lighteffects']) or Script.LuaUI("GadgetRemoveLight") then
-			if WG then
-			  WG['lighteffects'].removeLight(fx.lightID)
-			else
-			  Script.LuaUI.GadgetRemoveLight(fx.lightID)
-			end
+	      if Script.LuaUI("GadgetRemoveLight") then
+			Script.LuaUI.GadgetRemoveLight(fx.lightID)
 			fx.lightID = nil
 	      end
 	    end
@@ -499,7 +495,7 @@ local function IsUnitPositionKnown(unitID)
 	if LocalAllyTeamID < 0 then
 		return true
 	end
-	local targetVisiblityState = Spring.GetUnitLosState(unitID, LocalAllyTeamID, true) 
+	local targetVisiblityState = Spring.GetUnitLosState(unitID, LocalAllyTeamID, true)
 	if not targetVisiblityState then
 		return false
 	end
@@ -508,7 +504,7 @@ local function IsUnitPositionKnown(unitID)
 		return true
 	end
 	local identified = (targetVisiblityState > 2)
-	
+
 	if not identified then
 		return false
 	end
@@ -542,7 +538,7 @@ local function Draw(extension,layer,water)
 				FxLayer[partClass]=nil
 			else
 				for unitID,UnitEffects in pairs(Units) do
-					if (not UnitEffects[1]) then 
+					if (not UnitEffects[1]) then
 						Units[unitID]=nil
 					else
 
@@ -563,7 +559,7 @@ local function Draw(extension,layer,water)
 							else
 								glUnitMultMatrix(unitID)
 							end
-							
+
 
 							--// render effects
 							for i=1,#UnitEffects do
@@ -710,7 +706,7 @@ local function GetUnitIsActive(unitID)
 	if activeUnitCheckTime[unitID] and activeUnitCheckTime[unitID] > thisGameFrame then
 		return activeUnit[unitID]
 	end
-	
+
 	activeUnitCheckTime[unitID] = thisGameFrame + ACTIVE_CHECK_PERIOD
 	activeUnit[unitID] = (spGetUnitIsActive(unitID) or spGetUnitRulesParam(unitID, "unitActiveOverride") == 1)
 		and	(spGetUnitRulesParam(unitID, "disarmed") ~= 1)
