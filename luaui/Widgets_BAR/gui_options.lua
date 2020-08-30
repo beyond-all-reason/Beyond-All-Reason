@@ -2234,8 +2234,13 @@ function init()
 		 end,
 		},
 		{id="airjets", group="gfx", widget="Airjets", name="Jet engine fx", type="bool", value=GetWidgetToggleValue("Airjets"), description='Jet engine thrusters, additional lighting.'},
-
-		{id="airjets_limitfps", group="gfx", name=widgetOptionColor.."   no fighters/scouts below fps", type="slider", min=5, max=60, step=1, value=22, description='disable for fighters and scouts when average FPS gets below this amount',
+		{id="jetenginefx_lights", group="gfx", name=widgetOptionColor.."   add lights  (needs 'Lights')", type="bool", value=true, description='Adds a light to air engine thrusters (fighters and scouts excluded)',
+		 onload = function(i) loadWidgetData("Light Effects", "lups_jetenginefx_lights", {'enableThrusters'}) end,
+		 onchange = function(i, value)
+			 saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', {'enableThrusters'}, value)
+		 end,
+		},
+		{id="airjets_limitfps", group="gfx", name=widgetOptionColor.."   no fighters/scouts below fps", type="slider", min=5, max=30, step=1, value=22, description='disable for fighters and scouts when average FPS gets below this amount',
 		 onload = function(i) loadWidgetData("Airjets", "airjets_limitfps", {'limitAtAvgFps'}) end,
 		 onchange = function(i, value)
 			 if value-5 <= options[getOptionByID('airjets_disablefps')].value then
@@ -2245,7 +2250,7 @@ function init()
 			 saveOptionValue('Airjets', 'airjets', 'setLimitFps', {'limitAtAvgFps'}, value)
 		 end,
 		},
-		{id="airjets_disablefps", group="gfx", name=widgetOptionColor.."   disable below fps", type="slider", min=0, max=30, step=1, value=11, description='disable when average FPS gets below this amount',
+		{id="airjets_disablefps", group="gfx", name=widgetOptionColor.."   disable below fps", type="slider", min=0, max=15, step=1, value=11, description='disable when average FPS gets below this amount',
 		 onload = function(i) loadWidgetData("Airjets", "airjets_disablefps", {'disableAtAvgFps'}) end,
 		 onchange = function(i, value)
 			 if value+5 >= options[getOptionByID('airjets_limitfps')].value then

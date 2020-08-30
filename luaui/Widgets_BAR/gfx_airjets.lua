@@ -16,6 +16,14 @@ end
 --------------------------------------------------------------------------------
 -- 'Speedups'
 --------------------------------------------------------------------------------
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitRotation = Spring.GetUnitRotation
+local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
+
+local math_cos = math.cos
+local math_sin = math.sin
+local math_rad = math.rad
+local math_random = math.random
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -59,9 +67,13 @@ local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
 -- Configuration
 --------------------------------------------------------------------------------
 
+local enableLights = true
+
 local disableAtAvgFps = 8
 local limitAtAvgFps = 16	-- filter spammy units: fighters/scouts
 local avgFpsThreshold = 6   -- have this more fps than disableAtAvgFps to re-enable
+
+local lightMult = 1.4
 
 local effectDefs = {
 
@@ -155,16 +167,16 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
 	["corcrw"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 11, length = 28, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.4 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 11, length = 28, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.4 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.4 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.4 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["corcrwboss"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 18, length = 36, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.33 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 18, length = 36, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.33 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 16, length = 32, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.33 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 16, length = 32, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.33 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["corcut"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
@@ -211,7 +223,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 40, piece = "thrust1", light = 1 },
 	},
 	["corhurc"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 8, length = 50, piece = "thrustb", light = 2.2 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 8, length = 50, piece = "thrustb", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1" },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
 	},
@@ -257,6 +269,7 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustr2", light = 0.62 },
 	},
 }
+
 
 local function deepcopy(orig)
 	local orig_type = type(orig)
@@ -311,12 +324,23 @@ end
 effectDefs = defs
 defs = nil
 
+local lightDefs = {}
+for name, effects in pairs(effectDefs) do
+	for fx, data in pairs(effects) do
+		if data.light then
+			lightDefs[name] = true
+			effectDefs[name][fx].light = data.light * lightMult
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Variables
 --------------------------------------------------------------------------------
 
 local activePlanes = {}
 local inactivePlanes = {}
+local lights = {}
 
 local shaders
 local lastGameFrame = Spring.GetGameFrame()
@@ -326,46 +350,7 @@ local updateSec = 0
 local enabled = true
 local limit = false
 local averageFps = 100
-
---------------------------------------------------------------------------------
--- Drawing
---------------------------------------------------------------------------------
-
-function AirJet_BeginDraw()
-	glUseShader(shaders.jet)
-	glUniform(shaders.timerUniform, spGetGameSeconds())
-	glBlending(GL_ONE, GL_ONE)
-end
-
-function AirJet_EndDraw()
-	glUseShader(0)
-	glTexture(1, false)
-	glTexture(2, false)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-end
-
-function AirJet_Draw(self)
-	glTexture(1, texture1)
-	glTexture(2, texture2)
-	glCallList(self.dList)
-end
-
-function AirJet_BeginDrawDistortion()
-	glUseShader(shaders.jitter)
-	glUniform(shaders.timer2Uniform, spGetGameSeconds())
-end
-
-function AirJet_EndDrawDistortion()
-	glUseShader(0)
-	glTexture(1, false)
-	glTexture(2, false)
-end
-
-function AirJet_DrawDistortion(self)
-	glTexture(1, texture1)
-	glTexture(2, texture3)
-	glCallList(self.dList)
-end
+local lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
 
 --------------------------------------------------------------------------------
 -- Draw Iteration
@@ -384,8 +369,41 @@ local function Draw(unitID, unitDefID)
 			glPushMatrix()
 			glUnitPieceMultMatrix(unitID, fx.piecenum)
 			glScale(1, 1, -1)
-			AirJet_Draw(fx)
+			glTexture(1, texture1)
+			glTexture(2, texture2)
+			glCallList(fx.dList)
 			glPopMatrix()
+
+			-- add deferred light
+			if lighteffectsEnabled and lightDefs[unitDefID] then
+				local unitPos = {spGetUnitPosition(unitID)}
+				local pitch, yaw = spGetUnitRotation(unitID)
+				local lightOffset = spGetUnitPieceInfo(unitID, fx.piecenum).offset
+
+				-- still just only Y thus inacurate
+				local lightOffsetRotYx = lightOffset[1]*math_cos(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math_sin(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
+				local lightOffsetRotYz = lightOffset[1]*math_sin(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math_cos(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
+
+				local offsetX = lightOffsetRotYx
+				local offsetY = lightOffset[2] --+ 7  -- add some height to make the light shine a bit more on top (for debugging)
+				local offsetZ = lightOffsetRotYz
+
+				local radius = 0.8 * ((fx.width*fx.length) * (0.8+(math_random()/10)))  -- add a bit of flickering
+
+				if not lights[unitID] then
+					if not fx.color[4] then
+						fx.color[4] = fx.light * 0.66
+					end
+					if not lights[unitID] then
+						lights[unitID] = {}
+					end
+					lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, radius, fx.color)
+				elseif lights[unitID][i] then
+					if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ, param={radius=radius}}) then
+						fx.lightID = nil
+					end
+				end
+			end
 		end
 		--// leave piece space
 	end
@@ -394,62 +412,61 @@ local function Draw(unitID, unitDefID)
 	glPopMatrix()
 end
 
---local function DrawDistortionLayers()
---	glBlending(GL_ONE,GL_ONE)
---
---	for i=-50,50 do
---		Draw("Distortion",i)
---	end
---
---	glBlending(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
---end
-
 local function DrawParticles()
 	if not enabled then return false end
 
 	glDepthTest(true)
 	glAlphaTest(false)
 
-	--// DrawDistortion()
-	--if (anyDistortionsVisible)and(DistortionClass) then
-	--	DistortionClass.BeginDraw()
-	--	gl.ActiveFBO(DistortionClass.fbo,DrawDistortionLayers)
-	--	DistortionClass.EndDraw()
-	--end
-
-	--// Draw() (layers: 1 upto 50)
 	glAlphaTest(GL_GREATER, 0)
 
-	AirJet_BeginDraw()
+	glUseShader(shaders.jet)
+	glUniform(shaders.timerUniform, spGetGameSeconds())
+	glBlending(GL_ONE, GL_ONE)
 	for unitID, unitDefID in pairs(activePlanes) do
 		Draw(unitID, unitDefID)
 	end
-	AirJet_EndDraw()
+	glUseShader(0)
+	glTexture(1, false)
+	glTexture(2, false)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	glAlphaTest(false)
 	glDepthTest(false)
 end
 
-local function DrawParticlesWater()
-	if not enabled then return false end
-
-	glDepthTest(true)
-	glDepthMask(false)
-
-	glAlphaTest(GL_GREATER, 0)
-
-	AirJet_BeginDraw()
-	for unitID, unitDefID in pairs(activePlanes) do
-		Draw(unitID, unitDefID)
-	end
-	AirJet_EndDraw()
-
-	glAlphaTest(false)
-end
 
 --------------------------------------------------------------------------------
 -- Unit Handling
 --------------------------------------------------------------------------------
+
+local function RemoveLights(unitID)
+	if lighteffectsEnabled and lights[unitID] then
+		for i,v in pairs(lights[unitID]) do
+			WG['lighteffects'].removeLight(lights[unitID][i], 3)
+		end
+		lights[unitID] = nil
+	end
+end
+
+local function Activate(unitID, unitDefID)
+	activePlanes[unitID] = unitDefID
+	inactivePlanes[unitID] = nil
+end
+
+local function Deactivate(unitID, unitDefID)
+	activePlanes[unitID] = nil
+	inactivePlanes[unitID] = unitDefID
+	RemoveLights(unitID)
+end
+
+local function RemoveUnit(unitID, unitDefID)
+	if effectDefs[unitDefID] then
+		activePlanes[unitID] = nil
+		inactivePlanes[unitID] = nil
+		RemoveLights(unitID)
+	end
+end
 
 local function FinishInitialization(unitID, effectDef)
 	local pieceMap = spGetUnitPieceMap(unitID)
@@ -472,27 +489,19 @@ local function AddUnit(unitID, unitDefID)
 	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) and (not limit or not limitDefs[unitDefID]) then
 		local uvx,_,uvz = spGetUnitVelocity(unitID)
 		if xzVelocityUnits[unitDefID] and math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
-			inactivePlanes[unitID] = unitDefID
+			Deactivate(unitID, unitDefID)
 		else
-			activePlanes[unitID] = unitDefID
+			Activate(unitID, unitDefID)
 		end
 	else
-		inactivePlanes[unitID] = unitDefID
+		Deactivate(unitID, unitDefID)
 	end
 end
-
-local function RemoveUnit(unitID, unitDefID)
-	if effectDefs[unitDefID] then
-		activePlanes[unitID] = nil
-		inactivePlanes[unitID] = nil
-	end
-end
-
 
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
----
+
 function widget:Update(dt)
 	updateSec = updateSec + dt
 	local gf = Spring.GetGameFrame()
@@ -502,24 +511,29 @@ function widget:Update(dt)
 		for unitID, unitDefID in pairs(inactivePlanes) do
 			if not limit or not limitDefs[unitDefID] then
 				if spGetUnitIsActive(unitID) then
-					activePlanes[unitID] = unitDefID
-					inactivePlanes[unitID] = nil
+					Activate(unitID, unitDefID)
 				end
 			end
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
 			if not limit or not limitDefs[unitDefID] then
 				if not spGetUnitIsActive(unitID) or not spIsUnitVisible(unitID, 50, true) or spGetUnitIsStunned(unitID) then
-					activePlanes[unitID] = nil
-					inactivePlanes[unitID] = unitDefID
+					Deactivate(unitID, unitDefID)
 				elseif xzVelocityUnits[unitDefID] then
 					local uvx,_,uvz = spGetUnitVelocity(unitID)
 					if math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
-						activePlanes[unitID] = nil
-						inactivePlanes[unitID] = unitDefID
+						Deactivate(unitID, unitDefID)
 					end
 				end
 			end
+		end
+	end
+
+	local prevLighteffectsEnabled = lighteffectsEnabled
+	lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
+	if prevLighteffectsEnabled and lighteffectsEnabled ~= prevLighteffectsEnabled then
+		for unitID,_ in pairs(lights) do
+			RemoveLights(unitID)
 		end
 	end
 
@@ -535,8 +549,7 @@ function widget:Update(dt)
 					limit = true
 					for unitID, unitDefID in pairs(activePlanes) do
 						if limitDefs[unitDefID] then
-							activePlanes[unitID] = nil
-							inactivePlanes[unitID] = unitDefID
+							Deactivate(unitID, unitDefID)
 						end
 					end
 				end
@@ -578,8 +591,8 @@ end
 
 
 widget.DrawWorld = DrawParticles
-widget.DrawWorldReflection = DrawParticlesWater
-widget.DrawWorldRefraction = DrawParticlesWater
+widget.DrawWorldReflection = DrawParticles
+widget.DrawWorldRefraction = DrawParticles
 
 --------------------------------------------------------------------------------
 -- Initialization
@@ -787,6 +800,21 @@ function widget:Initialize()
 	end
 end
 
+
+function widget:Shutdown()
+	for unitID, unitDefID in pairs(activePlanes) do
+		RemoveUnit(unitID, unitDefID)
+	end
+	for unitDefID, data in pairs(effectDefs) do
+		for i = 1, #data do
+			gl.DeleteList(data[i].dList)
+		end
+	end
+	if shaders then
+		gl.DeleteShader(shaders.jet)
+		gl.DeleteShader(shaders.jitter)
+	end
+end
 
 
 function widget:GetConfigData(data)
