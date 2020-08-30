@@ -86,6 +86,7 @@ local glDrawFuncAtUnit	= gl.DrawFuncAtUnit
 local GL_GREATER = GL.GREATER
 
 local min	= math.min
+local max	= math.max
 local floor	= math.floor
 local diag	= math.diag
 
@@ -118,7 +119,7 @@ function widget:SetConfigData(data) --load config
 end
 
 local function getRank(unitDefID, xp)
-	return min(floor(xp*(1.44-xp) / unitPowerXpCoeffient[unitDefID]), numRanks)
+	return max(0, min(floor(xp*(1.44-xp) / unitPowerXpCoeffient[unitDefID]), numRanks))
 end
 
 local function updateUnitRank(unitID, unitDefID)
