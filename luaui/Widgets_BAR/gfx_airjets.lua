@@ -16,6 +16,7 @@ end
 --------------------------------------------------------------------------------
 -- 'Speedups'
 --------------------------------------------------------------------------------
+
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitRotation = Spring.GetUnitRotation
 local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
@@ -270,7 +271,6 @@ local effectDefs = {
 	},
 }
 
-
 local function deepcopy(orig)
 	local orig_type = type(orig)
 	local copy
@@ -299,6 +299,7 @@ local distortion = 0.008
 local animSpeed = 3
 local jitterWidthScale = 3
 local jitterLengthScale = 3
+local drawReflectionPass = false	-- eats quite a bit extra perf
 
 local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
 local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
@@ -591,8 +592,11 @@ end
 
 
 widget.DrawWorld = DrawParticles
-widget.DrawWorldReflection = DrawParticles
-widget.DrawWorldRefraction = DrawParticles
+
+if drawReflectionPass then
+	widget.DrawWorldReflection = DrawParticles
+	widget.DrawWorldRefraction = DrawParticles
+end
 
 --------------------------------------------------------------------------------
 -- Initialization
