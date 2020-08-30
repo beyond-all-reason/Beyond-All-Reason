@@ -4118,6 +4118,9 @@ function widget:Initialize()
 		end
 	end
 
+	Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
+	Spring.SetConfigInt("CubeTexSizeReflection", 2048)
+
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 	end
