@@ -495,153 +495,6 @@ customDefs.corshroud = {
 	sightdistance = 310,
 }
 
--- Cloaked Constructors
-
--- customDefs.correcl = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armrecl = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.corck = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.corcv = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.cormuskrat = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.corack = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.coracv = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.corca = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.coraca = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armck = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armcv = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armbeaver = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armack = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armacv = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armca = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armaca = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- Cloaked Radar/Jammer Units
-
--- customDefs.armaser = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armmark = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armjam = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armseer = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.corspec = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.corvoyr = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.coreter = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.corvrad = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
-
--- Cloaked Combat Units
-
--- customDefs.corcrash = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.coraak = {
--- 	cloakcost = 6,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armjeth = {
--- 	cloakcost = 3,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armaak = {
--- 	cloakcost = 6,
--- 	mincloakdistance = 144,
--- }
-
 customDefs.corgator = {
 	cloakcost = 6,
 	mincloakdistance = 144,
@@ -656,11 +509,6 @@ customDefs.cormando = {
 	cloakcost = 12,
 	mincloakdistance = 144,
 }
-
--- customDefs.corhrk = {
--- 	cloakcost = 12,
--- 	mincloakdistance = 160,
--- }
 
 customDefs.armzeus = {
 	cloakcost = 12,
@@ -784,17 +632,6 @@ customDefs.cortron = {
 		}
 	}
 }
- 
-
--- customDefs.corhlt = {
--- 	cloakcost = 18,
--- 	mincloakdistance = 288,
--- }
-
--- customDefs.armhlt = {
--- 	cloakcost = 18,
--- 	mincloakdistance = 288,
--- }
 
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.armllt = {
@@ -818,33 +655,6 @@ customDefs.armllt = {
 	},
 }
 
---Custom Nanoturrets - 25% more range
--- customDefs.armnanotc = {
--- 	cloakcost = 6,
--- 	mincloakdistance = 144,
--- 	builddistance = 500,
--- }
-
--- customDefs.cornanotc = {
--- 	cloakcost = 6,
--- 	mincloakdistance = 144,
--- 	builddistance = 500,
--- }
-
--- customDefs.corsilo = {
--- 	cloakcost = 100,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armsilo = {
--- 	cloakcost = 100,
--- 	mincloakdistance = 144,
--- }
-
--- customDefs.armbeamer = {
--- 	cloakcost = 6,
--- 	mincloakdistance = 144,
--- }
 
 customDefs.corvipe = {
 	cloakcost = 20,
@@ -855,16 +665,6 @@ customDefs.cortoast = {
 	cloakcost = 20,
 	mincloakdistance = 288,
 }
-
--- customDefs.corint = {
--- 	cloakcost = 75,
--- 	mincloakdistance = 432,
--- }
-
--- customDefs.cordoom = {
--- 	cloakcost = 50,
--- 	mincloakdistance = 432,
--- }
 
 customDefs.armrectr = {
 	workertime = 150, 	-- can get multiplied in unitdef_post 

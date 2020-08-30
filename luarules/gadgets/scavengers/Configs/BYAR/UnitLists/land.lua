@@ -6,6 +6,14 @@ T0LandUnits = {
 	--vechicles
 	"armfav",
 	"corfav",
+	--constructors
+	"armck",
+	"armcv",
+	"armbeaver",
+	"armch",
+	"corck",
+	"corcv",
+	"cormuskrat",
 }
 
 T1LandUnits = {
@@ -43,6 +51,13 @@ T1LandUnits = {
 	"corah",
 	"corsnap",
 	--constructors
+	"armck",
+	"armcv",
+	"armbeaver",
+	"armch",
+	"corck",
+	"corcv",
+	"cormuskrat",
 }
 
 T2LandUnits = {
@@ -124,6 +139,21 @@ T3LandUnits = {
 	"armlun",
 	"corsok",
 	"armsptkboss",
+	--constructors
+	"armck",
+	"armcv",
+	"armbeaver",
+	"armch",
+	"corck",
+	"corcv",
+	"cormuskrat",
+	"armack",
+	"armdecom",
+	"armacv",
+	"armconsul",
+	"corack",
+	"cordecom",
+	"coracv",
 }
 
 T4LandUnits = {
