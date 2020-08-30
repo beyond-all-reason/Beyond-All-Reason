@@ -152,7 +152,7 @@ return {
 				soundhit = "flakhit",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
-				stages = 8,
+				stages = 2,
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
