@@ -178,8 +178,8 @@ function widget:UnitExperience(unitID,unitDefID,unitTeam, xp, oldXP)
 	if xp < 0 then xp = 0 end
 	if oldXP < 0 then oldXP = 0 end
 
-	local rank    = min(floor(xp / unitPowerXpCoeffient[unitDefID]), numRanks)
-	local oldRank = min(floor(oldXP / unitPowerXpCoeffient[unitDefID]), numRanks)
+	local rank    = getRank(unitDefID, xp)
+	local oldRank = getRank(unitDefID, oldXP)
 
 	if rank ~= oldRank then
 		for i=0, rank-1 do
