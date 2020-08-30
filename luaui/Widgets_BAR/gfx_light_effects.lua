@@ -566,14 +566,14 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						if projectileDrawParams then
 							projectileDrawParams[#projectileDrawParams + 1] = drawParams
 						end
-						if enableHeatDistortion and WG['Lups'] then
+						if enableHeatDistortion and WG['jitter'] then
 							local weaponDefID = spGetProjectileDefID(pID)
 							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and spIsSphereInView(x,y,z,100) then
 								if weaponConf[weaponDefID].wtype == 'DGun' then
 									local distance = math_diag(x-cx, y-cy, z-cz)
 									local strengthMult = 1 / (distance*0.001)
 
-									WG['Lups'].AddParticles('JitterParticles2', {
+									WG['jitter'].AddParticle({
 										layer = -35,
 										life = weaponConf[weaponDefID].heatlife/4,
 										pos = {x,y,z},
@@ -840,7 +840,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
-		if py > 0 and enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and spIsSphereInView(px,py,pz,100) then
+		if py > 0 and enableHeatDistortion and WG['jitter'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and spIsSphereInView(px,py,pz,100) then
 
 			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
@@ -874,7 +874,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				end
 			end
 			if size*strengthMult > 5 then
-				WG['Lups'].AddParticles('JitterParticles2', {
+				WG['jitter'].AddParticle({
 					layer = -35,
 					life = life,
 					pos = {px,py+10,pz},
@@ -887,45 +887,6 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				})
 			end
 		end
-
-
-		-- a test to replace stumpy weapon ceg 'explosion' effect, so when maxparticles is reached, there is still this lups shown, only thing missing is the directional=true options :(
-		--if WG['Lups'] then
-		--	WG['Lups'].AddParticles('SimpleParticles2', {
-		--		emitVector     = {0,1,0},
-		--		pos            = {px,py+2,pz}, --// start pos
-		--		partpos        = "0,0,0",  --//particle relative start pos (can contain lua code!)
-		--		layer          = 0,
-		--
-		--		--// visibility check
-		--		los            = true,
-		--		airLos         = true,
-		--		radar          = false,
-		--
-		--		count          = 8,
-		--		force          = {0,0,0}, --// global effect force
-		--		forceExp       = 1,
-		--		speed          = 0.3,
-		--		speedSpread    = 2.5,
-		--		speedExp       = 0.3, --// >1 : first decrease slow, then fast;  <1 : decrease fast, then slow
-		--		life           = 6,
-		--		lifeSpread     = 5,
-		--		delaySpread    = 0,
-		--		rotSpeed       = 0,
-		--		rotSpeedSpread = 0,
-		--		rotSpread      = 0,
-		--		rotExp         = 1, --// >1 : first decrease slow, then fast;  <1 : decrease fast, then slow;  <0 : invert x-axis (start large become smaller)
-		--		emitRot        = 45,
-		--		emitRotSpread  = 32,
-		--		size           = 2,
-		--		sizeSpread     = 3.2,
-		--		sizeGrowth     = 0.4,
-		--		sizeExp        = 1, --// >1 : first decrease slow, then fast;  <1 : decrease fast, then slow;  <0 : invert x-axis (start large become smaller)
-		--		colormap       = { {0,0,0,0}, {1,0.9,0.6,0.09}, {0.9,0.5,0.2,0.066}, {0.66,0.28,0.04,0.033}, {0,0,0,0} }, --//max 16 entries
-		--		texture        = 'bitmaps/projectiletextures/flashside2.tga',
-		--		repeatEffect   = false, --can be a number,too
-		--	})
-		--end
 	end
 end
 
