@@ -58,11 +58,31 @@ local defaults = {
 -- Variables
 --------------------------------------------------------------------------------
 
+local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+
 local particles = {}
+local particleIdCount = 0
 local time
 local billShader
 local nullVector = { 0, 0, 0 }
 local currentGameFrame = Spring.GetGameFrame()
+
+local PostDistortion = {}
+local pd = PostDistortion
+PostDistortion.__index = PostDistortion
+
+local fbo
+local depthTex, screenCopyTex, jitterTex
+local jitterShader
+
+local enterIdentity,postDrawAndLeaveIdentity
+
+PostDistortion.jitterformat     = GL_RGBA16F_ARB
+PostDistortion.depthformat      = GL_DEPTH_COMPONENT
+
+PostDistortion.layer = 1
+PostDistortion.dieGameFrame = math.huge
+PostDistortion.repeatEffect = true
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -110,6 +130,35 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local glBeginEnd = gl.BeginEnd
 local glMultiTexCoord = gl.MultiTexCoord
 local glVertex = gl.Vertex
+
+local GL_TEXTURE_RECTANGLE = 0x84F5
+
+local GL_RGBA16F_ARB = 0x881A
+local GL_RGBA32F_ARB = 0x8814
+
+local GL_RGBA12 = 0x805A
+local GL_RGBA16 = 0x805B
+
+local GL_DEPTH_BITS        = 0x0D56
+local GL_DEPTH_COMPONENT   = 0x1902
+local GL_DEPTH_COMPONENT16 = 0x81A5
+local GL_DEPTH_COMPONENT24 = 0x81A6
+local GL_DEPTH_COMPONENT32 = 0x81A7
+
+local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
+local GL_COLOR_ATTACHMENT1_EXT = 0x8CE1
+local GL_COLOR_ATTACHMENT2_EXT = 0x8CE2
+local GL_COLOR_ATTACHMENT3_EXT = 0x8CE3
+
+local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
+local TEXRECT          = gl.HasExtension("GL_ARB_texture_rectangle")
+local FLOAT_TEXTURES   = gl.HasExtension("GL_ARB_texture_float")
+
+local GL_COLOR_BUFFER_BIT = GL.COLOR_BUFFER_BIT
+local GL_DEPTH_BUFFER_BIT = GL.DEPTH_BUFFER_BIT
+local GL_DEPTH_COLOR_BUFFER_BIT = math.bit_or(GL_DEPTH_BUFFER_BIT,GL_COLOR_BUFFER_BIT)
+local glActiveFBO     = gl.ActiveFBO
+local glCopyToTexture = gl.CopyToTexture
 
 --------------------------------------------------------------------------------
 -- Vector functions
@@ -443,7 +492,8 @@ function CreateDList(particleID)
 end
 
 local function CreateParticle(options)
-	local particleID = #particles + 1
+	particleIdCount = particleIdCount + 1
+	local particleID = particleIdCount
 	options = tableMerge(defaults, options)
 	options.id = particleID
 	particles[particleID] = options
@@ -597,6 +647,107 @@ function widget:Initialize()
 	WG['jitter'].RemoveParticle = function(particleID)
 		RemoveParticle(particleID)
 	end
+
+	------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------
+	-- CREATE SHADER
+	--
+
+	local defines = "#define depthtexture\n"
+
+	jitterShader = gl.CreateShader({
+		fragment = defines .. [[
+      #ifdef texrect
+        #extension GL_ARB_texture_rectangle : enable
+
+        #define sampler2D sampler2DRect
+        #define texture2D texture2DRect
+        uniform vec2 ScreenSize;
+      #endif
+
+        uniform sampler2D infoTex;
+        uniform sampler2D screenTex;
+
+      #ifdef depthtexture
+        uniform sampler2D depthTex;
+      #endif
+
+        void main(void)
+        {
+
+      #ifdef texrect
+          vec2 texcoord  = gl_FragCoord.xy;
+      #else
+          vec2 texcoord  = gl_TexCoord[0].st;
+      #endif
+
+          vec4 offset  = texture2D(infoTex, texcoord );
+          if (offset.a>0.001) {
+
+      #ifdef texrect
+            vec2 texcoord2 = gl_FragCoord.xy+offset.st*ScreenSize;
+      #else
+            vec2 texcoord2 = gl_TexCoord[0].st+offset.st;
+      #endif
+
+            gl_FragColor = texture2D(screenTex, texcoord2 );
+            gl_FragColor.rgb += offset.b;
+
+      #ifdef depthtexture
+           gl_FragDepth = texture2D(depthTex, texcoord ).z;
+      #endif
+
+          }else{
+            discard;
+          }
+        }
+    ]],
+		uniformInt = {
+			infoTex   = 0,
+			screenTex = 1,
+			depthTex  = 2,
+			ScreenSize = {vsx,vsy},
+		},
+	})
+
+	if jitterShader == nil then
+		print(PRIO_MAJOR,"LUPS->Distortion: Critical Shader Error: " ..gl.GetShaderLog())
+		return false
+	end
+
+	------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------
+	-- FBO + some OpenGL stuff
+	--
+
+	enterIdentity = gl.CreateList(function()
+		gl.DepthTest(false);
+		gl.UseShader(jitterShader);
+		gl.Blending(GL.ONE,GL.ZERO);
+
+		gl.MatrixMode(GL.PROJECTION); gl.PushMatrix(); gl.LoadIdentity();
+		gl.MatrixMode(GL.MODELVIEW);  gl.PushMatrix(); gl.LoadIdentity();
+	end)
+
+	postDrawAndLeaveIdentity = gl.CreateList(function()
+		gl.TexRect(-1,1,1,-1);
+		gl.Texture(0,false);
+		gl.Texture(1,false);
+		gl.Texture(2,false);
+
+		gl.MatrixMode(GL.PROJECTION); gl.PopMatrix();
+		gl.MatrixMode(GL.MODELVIEW);  gl.PopMatrix();
+
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
+		gl.UseShader(0);
+		gl.DepthTest(true);
+	end)
+
+	fbo = gl.CreateFBO()
+	fbo.drawbuffers = GL_COLOR_ATTACHMENT0_EXT
+	pd.fbo = fbo
+
+	widget:ViewResize(vsx,vsy)
 end
 
 function widget:Shutdown()
@@ -605,6 +756,22 @@ function widget:Shutdown()
 	end
 	gl.DeleteShader(billShader)
 	WG['jitter'] = nil
+
+
+	gl.DeleteTexture(depthTex or 0)
+	if (gl.DeleteTextureFBO) then
+		gl.DeleteTextureFBO(screenCopyTex or 0)
+		gl.DeleteTextureFBO(jitterTex or 0)
+	end
+	if (gl.DeleteFBO) then
+		gl.DeleteFBO(fbo or 0)
+	end
+	if (gl.DeleteShader) then
+		gl.DeleteShader(jitterShader or 0)
+	end
+
+	gl.DeleteList(enterIdentity or 0)
+	gl.DeleteList(postDrawAndLeaveIdentity or 0)
 end
 
 function widget:GameFrame(gf)
@@ -617,28 +784,90 @@ function widget:Update(dt)
 	end
 end
 
-function widget:DrawWorld()
-	glDepthTest(true)
+local function DrawDistortion()
+	glBlending(GL_ONE,GL_ONE)
 
-	--glAlphaTest(GL_GREATER, 0)
-
-	glUseShader(billShader)
-	glTexture(0, texture)
-	time = currentGameFrame * 0.01
 	for particleID, options in pairs(particles) do
 		-- visible?
 		if currentGameFrame >= options.dieGameFrame then
 			RemoveParticle(particleID)
-			--Spring.Echo('removed particle', particleID, gf, options.dieGameFrame)
 		elseif spIsSphereInView(options.pos[1], options.pos[2], options.pos[3], options.radius) then
 			glMultiTexCoord(5, options.frame / 200, time * options.animSpeed)
 			glCallList(options.dlist)
 		end
 	end
-	--glAlphaTest(false)
+
+	glBlending(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
+end
+
+function widget:DrawWorld()
+	glDepthTest(true)
+
+	glUseShader(billShader)
+	glTexture(0, texture)
+	time = currentGameFrame * 0.01
+
+	if depthTex then
+		glActiveFBO(fbo, gl.Clear, GL_COLOR_BUFFER_BIT, 0,0,0,0) --//clear jitterTex
+
+		--// copy depthbuffer to a seperated depth texture, so we can use it in the MRT
+		glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy)
+
+		--// update screen copy
+		glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
+	end
+
+	glActiveFBO(fbo, DrawDistortion)
+
+	glCallList(enterIdentity)
+	glTexture(0,jitterTex)
+	glTexture(1,screenCopyTex)
+	glCallList(postDrawAndLeaveIdentity)
+
 
 	glTexture(0, false)
 	glUseShader(0)
-
 	glDepthTest(false)
+end
+
+
+function widget:ViewResize(x,y)
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+
+	gl.DeleteTexture(depthTex)
+	if gl.DeleteTextureFBO then
+		gl.DeleteTextureFBO(screenCopyTex)
+		gl.DeleteTextureFBO(jitterTex)
+	end
+
+	local target = false
+
+	depthTex = gl.CreateTexture(vsx,vsy, {
+		target = target,
+		format = PostDistortion.depthformat,
+		min_filter = GL.NEAREST,
+		mag_filter = GL.NEAREST,
+		wrap_s   = GL.CLAMP_TO_EDGE,
+		wrap_t   = GL.CLAMP_TO_EDGE,
+	})
+
+	screenCopyTex = gl.CreateTexture(vsx,vsy, {
+		target = target,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s   = GL.CLAMP_TO_EDGE,
+		wrap_t   = GL.CLAMP_TO_EDGE,
+	})
+
+	jitterTex = gl.CreateTexture(vsx,vsy, {
+		target = target,
+		format = PostDistortion.jitterformat,
+		min_filter = GL.NEAREST,
+		mag_filter = GL.NEAREST,
+		wrap_s   = GL.CLAMP_TO_EDGE,
+		wrap_t   = GL.CLAMP_TO_EDGE,
+	})
+
+	fbo.depth  = depthTex
+	fbo.color0 = jitterTex
 end
