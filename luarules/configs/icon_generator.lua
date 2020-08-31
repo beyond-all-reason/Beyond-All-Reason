@@ -210,7 +210,7 @@ defaults = Default[1]
     [UnitDefNames.armpb.id] = {
       unfold = false,
     },
-    [UnitDefNames.armpacko.id] = {
+    [UnitDefNames.armferret.id] = {
       unfold = false,
     },
     [UnitDefNames.armptl.id] = {

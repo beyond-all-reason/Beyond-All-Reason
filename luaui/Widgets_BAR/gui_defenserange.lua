@@ -41,7 +41,7 @@ modConfig["BYAR"]["unitList"] = {
 	armhlt = { weapons = { 1 } },
 	armguard = { weapons = { 1, 1 } },
 	armrl = { weapons = { 2 } }, --light aa
-	armpacko = { weapons = { 2 } },
+	armferret = { weapons = { 2 } },
 	armcir = { weapons = { 2 } }, --chainsaw
 	armdl = { weapons = { 1 } }, --depthcharge
 	armjuno = { weapons = { 1 } },

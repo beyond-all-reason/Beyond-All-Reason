@@ -48,7 +48,7 @@ return {
 			paralyzemultiplier = 0.9,
 			subfolder = "armgantry",
 			techlevel = 3,
-			legacyname = "Cyclops",
+			legacyname = "Bantha",
 		},
 		featuredefs = {
 			dead = {

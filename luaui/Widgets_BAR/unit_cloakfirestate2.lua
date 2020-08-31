@@ -48,7 +48,7 @@ local exceptionList = { --add exempt units here
 	"corsktl",
 	"armpb",
 	"armamb",
-	"armpacko",
+	"armferret",
 	"armsnipe",
 }
 

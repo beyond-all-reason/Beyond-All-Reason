@@ -171,7 +171,7 @@ function BuildMediumAA(tskqbhvr)
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("cormadsam")
 	else
-		unitName = BuildAAIfNeeded("armpacko")
+		unitName = BuildAAIfNeeded("armferret")
 	end
 	return unitName
 end

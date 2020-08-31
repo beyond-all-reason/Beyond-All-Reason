@@ -791,7 +791,7 @@ function loadUnitIcons()
 						Spring.SetUnitDefIcon(udid, iconPrefix.."aa_longrange.user")
 					elseif WeaponDefs[ud.weapons[1].weaponDef].cegTag == '' then
 						Spring.SetUnitDefIcon(udid, iconPrefix.."aa_flak.user")
-					elseif name=="corerad" or name=="armcir" or name=="armpacko" or name=="cormadsam" then
+					elseif name=="corerad" or name=="armcir" or name=="armferret" or name=="cormadsam" then
 						Spring.SetUnitDefIcon(udid, iconPrefix.."aa2.user")
 					else
 						Spring.SetUnitDefIcon(udid, iconPrefix.."aa1.user")

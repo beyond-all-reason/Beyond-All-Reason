@@ -1,5 +1,5 @@
 return {
-	armpacko = {
+	armferret = {
 		acceleration = 0,
 		airsightdistance = 850,
 		brakerate = 0,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "decals/armpacko_aoplane.dds",
-		buildpic = "ARMPACKO.PNG",
+		buildinggrounddecaltype = "decals/armferret_aoplane.dds",
+		buildpic = "ARMFERRET.PNG",
 		buildtime = 5810,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -28,10 +28,10 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 72,
-		name = "Pack0",
+		name = "Ferret",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMPACKO.s3o",
-		script = "Units/ARMPACKO.cob",
+		objectname = "Units/ARMFERRET.s3o",
+		script = "Units/ARMFERRET.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,
@@ -43,6 +43,7 @@ return {
 			prioritytarget = "air",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
+			legacyname = "Pack0"
 		},
 		featuredefs = {
 			dead = {
@@ -52,7 +53,7 @@ return {
 				collisionvolumescales = "48.1152496338 19.0 48.1152496338",
 				collisionvolumetype = "Box",
 				damage = 720,
-				description = "Pack0 Wreckage",
+				description = "Ferret Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -61,7 +62,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 233,
-				object = "Units/armpacko_dead.s3o",
+				object = "Units/armferret_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -72,7 +73,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 360,
-				description = "Pack0 Heap",
+				description = "Ferret Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
@@ -118,7 +119,7 @@ return {
 			},
 		},
 		weapondefs = {
-			packo_missile = {
+			ferret_missile = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 2,
@@ -174,7 +175,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR",
-				def = "PACKO_MISSILE",
+				def = "FERRET_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
 		},

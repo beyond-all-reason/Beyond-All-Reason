@@ -44,7 +44,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Sentinel",
 		"Juno",
 		"Mercury",
-		"Pack0",
+		"Ferret",
 		"Pit Bull",
 		"Defender",
 		"Retaliator",

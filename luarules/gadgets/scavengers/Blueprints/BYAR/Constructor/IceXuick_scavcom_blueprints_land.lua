@@ -645,7 +645,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavaaoutpostred)
 
 local function scavheavyoutpostcloak(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 64
-local unitoptions = {UDN.corvipe_scav.id, UDN.armpacko_scav.id,}
+local unitoptions = {UDN.corvipe_scav.id, UDN.armferret_scav.id,}
 	if radiusCheck then
 		return posradius
 	else

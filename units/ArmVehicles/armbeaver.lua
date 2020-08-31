@@ -71,7 +71,7 @@ return {
 			[22] = "armhlt",
 			[23] = "armguard",
 			[24] = "armrl",
-			[25] = "armpacko",
+			[25] = "armferret",
 			[26] = "armcir",
 			[27] = "armdl",
 			[28] = "armjamt",

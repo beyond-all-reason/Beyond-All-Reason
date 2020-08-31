@@ -233,7 +233,7 @@ table.insert(ScavengerBlueprintsT3,radaroutpostheavyred2)
 -- Heavy Defense Outpost ARM Cloaked
 
 local function outpostheavybluesmall(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armpb", "armpacko",}
+local unitpool = {"armpb", "armferret",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -249,14 +249,14 @@ table.insert(ScavengerBlueprintsT3,outpostheavybluesmall)
 -- Heavy Stealthy Base ARM
 
 local function heavybaseblue(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armpb", "armamb", "armpacko",}
+local unitpool = {"armpb", "armamb", "armferret",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
 		Spring.CreateUnit("armckfus"..nameSuffix, posx, posy, posz, "east",GaiaTeamID)
-		Spring.CreateUnit("armpacko"..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
-		Spring.CreateUnit("armpacko"..nameSuffix, posx+120, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("armferret"..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("armferret"..nameSuffix, posx+120, posy, posz, "east",GaiaTeamID)
 		Spring.CreateUnit("armeyes"..nameSuffix, posx, posy, posz+170, "south",GaiaTeamID)
 		Spring.CreateUnit("armeyes"..nameSuffix, posx, posy, posz-170, "north",GaiaTeamID)
 		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+70, "west",GaiaTeamID)
@@ -273,8 +273,8 @@ local posradius = 100
 		return posradius
 	else
 		Spring.CreateUnit("armckfus"..nameSuffix, posx, posy, posz, "east",GaiaTeamID)
-		Spring.CreateUnit("armpacko"..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
-		Spring.CreateUnit("armpacko"..nameSuffix, posx+120, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("armferret"..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("armferret"..nameSuffix, posx+120, posy, posz, "east",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,heavybasebluesimple)

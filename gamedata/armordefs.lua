@@ -202,7 +202,7 @@ local armorDefs = {
 		"armmar",
 		"corshiva",
         "cormadsam",
-		"armpacko",
+		"armferret",
         "armwar",
 		"corexp",
 		"corlevlr",

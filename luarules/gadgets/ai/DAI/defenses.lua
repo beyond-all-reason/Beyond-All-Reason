@@ -50,7 +50,7 @@ antiairlist = {
 	"armcir",
 	"armflak",
 	"armmercury",
-	"armpacko",
+	"armferret",
 	"armrl",
 	"corerad",
 	"corflak",
