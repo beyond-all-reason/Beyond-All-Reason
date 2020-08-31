@@ -18,6 +18,10 @@ Units
  • added experimental ARM T3 unit: Giant Invader, crawling nuclear bomb
  • EMP launcher: reduced range 10%
 
+Renamed units:
+ • Bantha -> Cyclops
+ • Pack0 -> Ferret
+
 
 10.23 -> 10.24
 24/02/2019
