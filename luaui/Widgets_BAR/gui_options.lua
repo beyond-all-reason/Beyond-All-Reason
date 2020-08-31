@@ -2693,7 +2693,7 @@ function init()
 		{id="buildbar", group="ui", basic=true, widget="BuildBar", name="Factory build bar", type="bool", value=GetWidgetToggleValue("BuildBar"), description='Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue'},
 
 		{id="teamplatter", group="ui", basic=true, widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
-		{id="teamplatter_opacity", basic=true, group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters',
+		{id="teamplatter_opacity", basic=true, group="ui", name=widgetOptionColor.."   opacity", min=0.05, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters',
 		 onload = function(i) loadWidgetData("TeamPlatter", "teamplatter_opacity", {'spotterOpacity'}) end,
 		 onchange = function(i, value) saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', {'spotterOpacity'}, value) end,
 		},
