@@ -159,7 +159,7 @@ T3LandUnits = {
 T4LandUnits = {
 	"corkrog",
 	"corjugg",
-	"armbanth",
+	"armcyclops",
 	--superboss
 	"armpwboss",
 	"armstumpboss",

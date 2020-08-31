@@ -48,7 +48,7 @@ function Lvl3Breakthrough(tskqbhvr)
 			unitName = "corkarg"
 		end
 	else
-		unitName = BuildWithLimitedNumber("armbanth", 5)
+		unitName = BuildWithLimitedNumber("armcyclops", 5)
 		if unitName == DummyUnitName then
 			unitName = "armraz"
 		end
@@ -61,7 +61,7 @@ function lv3bigamp(tskqbhvr)
 	if MyTB.side == CORESideName then
 		unitName = 'corkrog'
 	else
-		unitName = 'armbanth'
+		unitName = 'armcyclops'
 	end
 	return unitName
 end

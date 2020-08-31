@@ -128,7 +128,7 @@ T3ReinforcementLandUnits = {
 T4ReinforcementLandUnits = {
 	"corkrog",
 	"corjugg",
-	"armbanth",
+	"armcyclops",
 	--superboss
 	"armpwboss",
 	"armstumpboss",

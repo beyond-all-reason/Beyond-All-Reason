@@ -59,7 +59,7 @@ unitList["BAR"] = {
 --[UnitDefNames["corgant"].id] = 	{["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Exprimentale" },
 
 --[UnitDefNames["corkrog"].id] = 	{["en"]="Krogoth", ["de"]="Krogoth", ["fr"]="Krogoth" },
---[UnitDefNames["armbanth"].id] = 	{["en"]="Bantha", ["de"]="Bantha", ["fr"]="Bantha" },
+--[UnitDefNames["armcyclops"].id] = 	{["en"]="Cyclops", ["de"]="Cyclops", ["fr"]="Cyclops" },
 
 --[UnitDefNames["corshroud"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstrsender", ["fr"]="" },
 --[UnitDefNames["armveil"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstrsender", ["fr"]="" },

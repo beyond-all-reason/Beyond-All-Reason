@@ -638,7 +638,7 @@ unitDeaths = {
         },
     },
 
-    bantha = {
+    cyclops = {
         weaponType = "Cannon",
         areaofeffect = 500,
         camerashake = 500,
@@ -659,7 +659,7 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.2,
         },
     },
-    banthaSelfd = {
+    cyclopsSelfd = {
         weaponType = "Cannon",
         areaofeffect = 800,
         camerashake = 800,

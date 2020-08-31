@@ -69,7 +69,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Sentry",
 		"Harpoon",
 		"Aurora",
-		"Bantha",
+		"Cyclops",
 		"Marauder",
 		"Razorback",
 		"Vanguard",

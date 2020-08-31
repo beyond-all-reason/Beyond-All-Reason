@@ -61,7 +61,7 @@ return {
 		upright = true,
 		workertime = 15000,
 		buildoptions = {
-			[1] = "armbanth",
+			[1] = "armcyclops",
 			[2] = "corkrog",
 		},
 		customparams = {
