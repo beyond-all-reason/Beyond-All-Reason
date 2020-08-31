@@ -139,20 +139,20 @@ function UnitDef_Post(name, uDef)
 	--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0 then
 
 
-		if uDef.weapons then
-			local aaMult = 1.06
-			for weaponID, w in pairs(uDef.weapons) do
-				if w.onlytargetcategory == 'VTOL' then
-					local wdef = string.lower(w.def)
-					if uDef.weapondefs[wdef] and uDef.weapondefs[wdef].range < 2000 then -- excluding mercury/screamer
-						uDef.weapondefs[wdef].range = math.floor((uDef.weapondefs[wdef].range * aaMult) + 0.5)
-						if uDef.weapondefs[wdef].flighttime then
-							uDef.weapondefs[wdef].flighttime = uDef.weapondefs[wdef].flighttime * (aaMult-((aaMult-1)/3))
-						end
-					end
-				end
-			end
-		end
+		--if uDef.weapons then
+		--	local aaMult = 1.05
+		--	for weaponID, w in pairs(uDef.weapons) do
+		--		if w.onlytargetcategory == 'VTOL' then
+		--			local wdef = string.lower(w.def)
+		--			if uDef.weapondefs[wdef] and uDef.weapondefs[wdef].range < 2000 then -- excluding mercury/screamer
+		--				uDef.weapondefs[wdef].range = math.floor((uDef.weapondefs[wdef].range * aaMult) + 0.5)
+		--				if uDef.weapondefs[wdef].flighttime then
+		--					uDef.weapondefs[wdef].flighttime = uDef.weapondefs[wdef].flighttime * (aaMult-((aaMult-1)/3))
+		--				end
+		--			end
+		--		end
+		--	end
+		--end
 
 		if uDef.canfly then
 
@@ -160,77 +160,77 @@ function UnitDef_Post(name, uDef)
 
 			if not (string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 
-				local airmult = 1.3
-				if uDef.buildcostenergy then
-					uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
-				end
-
-				if uDef.buildtime then
-					uDef.buildtime = math.ceil(uDef.buildtime*airmult)
-				end
-
-				if uDef.buildcostmetal then
-					uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*airmult)
-				end
-
-				if uDef.builder then
-					uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
-				end
+				--local airmult = 1.3
+				--if uDef.buildcostenergy then
+				--	uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
+				--end
+				--
+				--if uDef.buildtime then
+				--	uDef.buildtime = math.ceil(uDef.buildtime*airmult)
+				--end
+				--
+				--if uDef.buildcostmetal then
+				--	uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*airmult)
+				--end
+				--
+				--if uDef.builder then
+				--	uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
+				--end
 
 
 				if uDef.customparams.fighter then
 
-					if uDef.maxdamage then
-						uDef.maxdamage = math.ceil(uDef.maxdamage*1.8)
-					end
-
-					if uDef.weapondefs then
-						local reloadtimeMult = 1.8
-						for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-							uDef.weapondefs[weaponDefName].reloadtime = uDef.weapondefs[weaponDefName].reloadtime * reloadtimeMult
-							for category, damage in pairs (weaponDef.damage) do
-								uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * reloadtimeMult) + 0.5)
-							end
-						end
-					end
-
-					uDef.maxvelocity = uDef.maxvelocity*1.15
-
-					uDef.maxacc = uDef.maxacc*1.3
-
-					-- turn speeds x,y,z
-					local movementMult = 1.1
-					uDef.maxelevator = uDef.maxelevator*movementMult
-					uDef.maxrudder  = uDef.maxrudder*movementMult
-					uDef.maxaileron = uDef.maxaileron*movementMult
-
-					uDef.turnradius = uDef.turnradius*0.9
-
-					uDef.maxbank = uDef.maxbank*movementMult
-					uDef.maxpitch = uDef.maxpitch*movementMult
-
-					uDef.maxbank = uDef.maxbank*movementMult
-					uDef.maxpitch = uDef.maxpitch*movementMult
+					--if uDef.maxdamage then
+					--	uDef.maxdamage = math.ceil(uDef.maxdamage*1.8)
+					--end
+--
+					--if uDef.weapondefs then
+					--	local reloadtimeMult = 1.8
+					--	for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+					--		uDef.weapondefs[weaponDefName].reloadtime = uDef.weapondefs[weaponDefName].reloadtime * reloadtimeMult
+					--		for category, damage in pairs (weaponDef.damage) do
+					--			uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * reloadtimeMult) + 0.5)
+					--		end
+					--	end
+					--end
+					--
+					--uDef.maxvelocity = uDef.maxvelocity*1.15
+					--
+					--uDef.maxacc = uDef.maxacc*1.3
+					--
+					---- turn speeds x,y,z
+					--local movementMult = 1.1
+					--uDef.maxelevator = uDef.maxelevator*movementMult
+					--uDef.maxrudder  = uDef.maxrudder*movementMult
+					--uDef.maxaileron = uDef.maxaileron*movementMult
+					--
+					--uDef.turnradius = uDef.turnradius*0.9
+					--
+					--uDef.maxbank = uDef.maxbank*movementMult
+					--uDef.maxpitch = uDef.maxpitch*movementMult
+					--
+					--uDef.maxbank = uDef.maxbank*movementMult
+					--uDef.maxpitch = uDef.maxpitch*movementMult
 
 				else 	-- not fighters
 
-					local rangeMult = 0.65
-					if uDef.airsightdistance then
-						uDef.airsightdistance = math.floor((uDef.airsightdistance*rangeMult) + 0.5)
-					end
-
-					if uDef.maxdamage then
-						uDef.maxdamage = math.floor((uDef.maxdamage*airmult) + 0.5)
-					end
-
-					if uDef.weapondefs then
-						for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-							uDef.weapondefs[weaponDefName].range = math.floor((uDef.weapondefs[weaponDefName].range * rangeMult) + 0.5)
-							for category, damage in pairs (weaponDef.damage) do
-								uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
-							end
-						end
-					end
+					--local rangeMult = 0.65
+					--if uDef.airsightdistance then
+					--	uDef.airsightdistance = math.floor((uDef.airsightdistance*rangeMult) + 0.5)
+					--end
+					--
+					--if uDef.maxdamage then
+					--	uDef.maxdamage = math.floor((uDef.maxdamage*airmult) + 0.5)
+					--end
+					--
+					--if uDef.weapondefs then
+					--	for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+					--		uDef.weapondefs[weaponDefName].range = math.floor((uDef.weapondefs[weaponDefName].range * rangeMult) + 0.5)
+					--		for category, damage in pairs (weaponDef.damage) do
+					--			uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * airmult) + 0.5)
+					--		end
+					--	end
+					--end
 				end
 			end
 		end

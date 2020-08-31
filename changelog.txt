@@ -5,11 +5,6 @@ General
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp
-
-Air/AA: Goal: fewer units, longer lasting
- • Air: +30%: cost, health, damage, buildpower. (fighters/liche/krow exluded)
- • Fighters: cost: +30%, health: +80%, damage: +80%, reloadtime: +80%, range: -35%, speed: +15%, manouverability: +10%
- • AA range increased 6%. (mercury/screamer excluded)
  • Air collisions for bombers removed
 
 Units
