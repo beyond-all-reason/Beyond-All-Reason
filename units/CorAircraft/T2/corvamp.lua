@@ -122,22 +122,17 @@ return {
 					light_skip = true,
 				},
 				damage = {
-					bombers = 300,
-					commanders = 4,
-					default = 12,
-					fighters = 400,
-					subs = 4,
-					vtol = 250,
+					bombers = 600,
+					commanders = 8,
+					default = 24,
+					fighters = 800,
+					subs = 8,
+					vtol = 500,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTAIR",
-				def = "CORVTOL_ADVMISSILE",
-				onlytargetcategory = "NOTSUB",
-			},
-			[2] = {
 				badtargetcategory = "NOTAIR",
 				def = "CORVTOL_ADVMISSILE",
 				onlytargetcategory = "NOTSUB",
