@@ -378,7 +378,7 @@ local function Draw(unitID, unitDefID)
 			-- add deferred light
 			if lighteffectsEnabled and lightDefs[unitDefID] then
 				local unitPos = {spGetUnitPosition(unitID)}
-				if unitPos and unitPos[1] then
+				if unitPos[1] then
 					local pitch, yaw = spGetUnitRotation(unitID)
 					local lightOffset = spGetUnitPieceInfo(unitID, fx.piecenum).offset
 

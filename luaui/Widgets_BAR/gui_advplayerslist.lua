@@ -892,7 +892,7 @@ end
 
 local function LockCamera(playerID)
 
-	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID then
+	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and Spring_GetPlayerInfo(playerID) then
 		if lockcameraHideEnemies and not select(3,Spring_GetPlayerInfo(playerID)) then
 			Spring.SendCommands("specteam "..select(4,Spring_GetPlayerInfo(playerID)))
 			if not fullView then
