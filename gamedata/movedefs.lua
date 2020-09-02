@@ -1,7 +1,7 @@
 -- the commented out slopemod were there to compensate for modoption betterunitmovement
 
 local moveDatas = {
-
+	
 	COMMANDERBOT = {
 		crushstrength = 50,
 		depthModParams = {
@@ -217,7 +217,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		}	
 	},
 	BOT2 = {
 		crushstrength = 10,
@@ -305,7 +305,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- cyclops
+	-- bantha
 	VBOT3 = {
 		crushstrength = 1400,
 		depthmod = 0,
@@ -400,7 +400,7 @@ local moveDatas = {
 		crushStrength = 0,
 		speedModClass = 1, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
 	},
-
+	
 	-- Scavenger Boss units
 	SCAVCOMMANDERBOT = {
 		crushstrength = 9999,
@@ -417,7 +417,7 @@ local moveDatas = {
 		maxwaterdepth = 5000,
 		maxwaterslope = 55,
 	},
-
+	
 	BOSSPEEWEE4 = {
 		crushstrength = 9999,
 		footprintx = 4,
@@ -430,7 +430,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-
+	
 	BOSSSTUMPY7 = {
 		crushstrength = 9999,
 		footprintx = 7,
@@ -458,7 +458,7 @@ for moveName, moveData in pairs(moveDatas) do
 	--	moveData.IsAllTerrain = true
 	--	moveData.maxslope = 60
 	--end
-
+	
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true

@@ -19,7 +19,6 @@ Units
  • EMP launcher: reduced range 10%
 
 Renamed units:
- • Bantha -> Cyclops
  • Pack0 -> Ferret
 
 

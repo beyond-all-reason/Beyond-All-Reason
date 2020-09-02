@@ -12,7 +12,7 @@ skirmisherlist = {
 	"armjanus",	--	Janus			/	Rocket Tank
 	"armsam",	-- 	Samson			/	Missile Truck
 	"armcroc",	--	Triton			/	Heavy Amphibious Tank
-	"armcyclops",	--	Cyclops			/	Assault Mech
+	"armbanth",	--	Bantha			/	Assault Mech
 	"corthud",	--	Thud			/	Light Plasma
 	"corstorm",	--	Storm			/	Rocket Bot
 	"cormando",	--	Commando		/	Sealthy Paratrooper Bot

@@ -15,12 +15,12 @@ static-var  gun_1, gun_3, bAiming, Static_Var_5,
 #define SIG_AIM_2			4
 #define SIG_AIM_3			8
 
-// Generated for D:\spring\animation\armcyclops_anim_walk_v2.blend
+// Generated for D:\spring\animation\armbanth_anim_walk_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, arms;
 #define SIG_WALK 16
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armcyclops_anim_walk_v2.blend
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armbanth_anim_walk_v2.blend
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:5
 			turn antenna to x-axis <0.777777> speed <53.333339> / animSpeed; //delta=1.78

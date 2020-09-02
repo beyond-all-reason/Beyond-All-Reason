@@ -243,7 +243,7 @@ breakthroughList = {
 	armbats = 2,
 	corkrog = 3,
 	corjugg = 3,
-	armcyclops = 3,
+	armbanth = 3,
 	corblackhy = 3,
 	armepoch = 3,
 	corcrw = 3,
@@ -314,7 +314,7 @@ attackerlist = {
 	-- experimentals
 	armraz = 1 ,
 	armvang = 1 ,
-	armcyclops = 1 ,
+	armbanth = 1 ,
 	armshiva = 1 ,
 	corcat = 1 ,
 	corkarg = 1 ,

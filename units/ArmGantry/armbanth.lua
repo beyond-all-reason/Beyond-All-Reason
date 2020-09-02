@@ -1,11 +1,11 @@
 return {
-	armcyclops = {
+	armbanth = {
 		acceleration = 0.11845,
 		airsightdistance = 1100,
 		brakerate = 0.7521,
 		buildcostenergy = 286000,
 		buildcostmetal = 13500,
-		buildpic = "ARMCYCLOPS.PNG",
+		buildpic = "ARMBANTH.PNG",
 		buildtime = 276000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -16,7 +16,7 @@ return {
 		description = "Assault Mech",
 		energymake = 12,
 		energystorage = 120,
-		explodeas = "cyclops",
+		explodeas = "bantha",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 25,
@@ -27,13 +27,13 @@ return {
 		maxvelocity = 1.52,
 		maxwaterdepth = 12,
 		movementclass = "VBOT3",
-		name = "Cyclops",
+		name = "Bantha",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMCYCLOPS.s3o",
+		objectname = "Units/ARMBANTH.s3o",
 		pushresistant = true,
-		script = "Units/ARMCYCLOPS.cob",
+		script = "Units/ARMBANTH.cob",
 		seismicsignature = 0,
-		selfdestructas = "cyclopsSelfd",
+		selfdestructas = "banthaSelfd",
 		selfdestructcountdown = 10,
 		sightdistance = 617,
 		turninplace = true,
@@ -48,7 +48,6 @@ return {
 			paralyzemultiplier = 0.9,
 			subfolder = "armgantry",
 			techlevel = 3,
-			legacyname = "Bantha",
 		},
 		featuredefs = {
 			dead = {
@@ -58,7 +57,7 @@ return {
 				collisionvolumescales = "66.5059539795 21.8749981689 69.125361816406",
 				collisionvolumetype = "Box",
 				damage = 21000,
-				description = "Cyclops Wreckage",
+				description = "Bantha Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -67,7 +66,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 8249,
-				object = "Units/armcyclops_dead.s3o",
+				object = "Units/armbanth_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -78,7 +77,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 10500,
-				description = "Cyclops Heap",
+				description = "Bantha Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
@@ -124,7 +123,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armcyclops_fire = {
+			armbantha_fire = {
 				accuracy = 100,
 				areaofeffect = 64,
 				avoidfeature = false,
@@ -169,7 +168,7 @@ return {
 					subs = 5,
 				},
 			},
-			cyclops_rocket = {
+			bantha_rocket = {
 				areaofeffect = 96,
 				avoidfeature = false,
 				canattackground = false,
@@ -266,7 +265,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMCYCLOPS_FIRE",
+				def = "ARMBANTHA_FIRE",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
@@ -276,7 +275,7 @@ return {
 			},
 			[3] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "CYCLOPS_ROCKET",
+				def = "BANTHA_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
