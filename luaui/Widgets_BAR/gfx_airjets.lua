@@ -380,29 +380,31 @@ local function Draw(unitID, unitDefID)
 				local unitPos = {spGetUnitPosition(unitID)}
 				if unitPos[1] then
 					local pitch, yaw = spGetUnitRotation(unitID)
-					local lightOffset = spGetUnitPieceInfo(unitID, fx.piecenum).offset
+					if yaw then
+						local lightOffset = spGetUnitPieceInfo(unitID, fx.piecenum).offset
 
-					-- still just only Y thus inacurate
-					local lightOffsetRotYx = lightOffset[1]*math_cos(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math_sin(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
-					local lightOffsetRotYz = lightOffset[1]*math_sin(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math_cos(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
+						-- still just only Y thus inacurate
+						local lightOffsetRotYx = lightOffset[1]*math_cos(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math_sin(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
+						local lightOffsetRotYz = lightOffset[1]*math_sin(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math_cos(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
 
-					local offsetX = lightOffsetRotYx
-					local offsetY = lightOffset[2] --+ 7  -- add some height to make the light shine a bit more on top (for debugging)
-					local offsetZ = lightOffsetRotYz
+						local offsetX = lightOffsetRotYx
+						local offsetY = lightOffset[2] --+ 7  -- add some height to make the light shine a bit more on top (for debugging)
+						local offsetZ = lightOffsetRotYz
 
-					local radius = 0.8 * ((fx.width*fx.length) * (0.8+(math_random()/10)))  -- add a bit of flickering
+						local radius = 0.8 * ((fx.width*fx.length) * (0.8+(math_random()/10)))  -- add a bit of flickering
 
-					if not lights[unitID] then
-						if not fx.color[4] then
-							fx.color[4] = fx.light * 0.66
-						end
 						if not lights[unitID] then
-							lights[unitID] = {}
-						end
-						lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, radius, fx.color)
-					elseif lights[unitID][i] then
-						if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ, param={radius=radius}}) then
-							fx.lightID = nil
+							if not fx.color[4] then
+								fx.color[4] = fx.light * 0.66
+							end
+							if not lights[unitID] then
+								lights[unitID] = {}
+							end
+							lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, radius, fx.color)
+						elseif lights[unitID][i] then
+							if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ, param={radius=radius}}) then
+								fx.lightID = nil
+							end
 						end
 					end
 				end
