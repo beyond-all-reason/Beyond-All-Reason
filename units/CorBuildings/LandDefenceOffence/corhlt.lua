@@ -28,7 +28,7 @@ return {
 		maxdamage = 2475,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Gatling",
+		name = "Warden",
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORHLT.s3o",
 		script = "Units/CORHLT.cob",
