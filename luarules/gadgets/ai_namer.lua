@@ -166,7 +166,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Exploiter",
 		"Cobra",
 		"Fortitude",
-		"Gaat Gun",
+		"Gatling",
 		"Intimidator",
 		"Dragon's Maw",
 		"Punisher",

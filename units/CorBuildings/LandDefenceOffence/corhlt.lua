@@ -28,7 +28,7 @@ return {
 		maxdamage = 2475,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Gaat Gun",
+		name = "Gatling",
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORHLT.s3o",
 		script = "Units/CORHLT.cob",
@@ -42,6 +42,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
+			legacyname = "Gaat Gun",
 		},
 		featuredefs = {
 			dead = {
