@@ -855,7 +855,7 @@ function widget:Update(dt)
 	end
 	sec = sec + dt
 
-	Spring.SetConfigInt("MaxDynamicModelLights", 0)
+	--Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
 	Spring.SetConfigInt("ROAM", 1)
 	Spring.SendCommands("mapmeshdrawer 2")
@@ -4119,21 +4119,14 @@ function widget:Initialize()
 	end
 
 	-- Sets necessary spring configuration parameters, so shaded units look the way they should
-	Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
-	Spring.SetConfigInt("CubeTexSizeReflection", 2048)
+	--Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
+	--Spring.SetConfigInt("CubeTexSizeReflection", 2048)
 
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
-	end
-
-	-- increase texture atlas size (relevant for the particle atlas)
-	local maxTextureAtlasSize = 4096
-	if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then
-		Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
-		Spring.SetConfigInt("MaxTextureAtlasSizeZ", maxTextureAtlasSize)
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
@@ -4144,11 +4137,6 @@ function widget:Initialize()
 		-- set minimum particle amount
 		if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
 			Spring.SetConfigInt("MaxParticles",10000)
-		end
-
-		-- enable lua shaders
-		if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
-			Spring.SetConfigInt("LuaShaders", 1)
 		end
 
 		-- limit music volume
@@ -4183,9 +4171,9 @@ function widget:Initialize()
 		--if Spring.GetConfigInt("UsePBO",0) == 0 then
 		--	Spring.SetConfigInt("UsePBO",1)
 		--end
-		if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' then
-			Spring.SetConfigInt("UsePBO",0)
-		end
+		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' then
+		--	Spring.SetConfigInt("UsePBO",0)
+		--end
 
 		-- enable shadows at gamestart
 		--if Spring.GetConfigInt("Shadows",0) ~= 1 then
