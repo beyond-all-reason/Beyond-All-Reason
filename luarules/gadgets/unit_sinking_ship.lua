@@ -23,9 +23,9 @@ local spGetFeatureVelocity = Spring.GetFeatureVelocity
 local spGetFeatureRotation = Spring.GetFeatureRotation
 local spSetFeaturePhysics = Spring.SetFeaturePhysics
 
-function gadget:FeatureCreated (featureID)
+function gadget:FeatureCreated(featureID)
 	local x, y, z = spGetFeaturePosition(featureID)
-	if spGetGroundHeight(x, z) < 15 then
+	if spGetGroundHeight(x, z) < -25 then
 		local vx, vy, vz = spGetFeatureVelocity(featureID)
 		local rx, ry, rz = spGetFeatureRotation(featureID) --> nil | number pitch, number yaw, number roll
 		spSetFeaturePhysics(featureID, x, y, z, vx * damping, vy * sinkingMult, vz * damping,
