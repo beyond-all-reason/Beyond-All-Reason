@@ -15,7 +15,7 @@ end
 
 -- Scav Commanders
 
-customDefs.corcom = {		
+customDefs.corcom = {
 	autoheal = 15,
 	blocking = false,
 	buildoptions = scavUnit,
@@ -35,7 +35,7 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 400,				-- can get multiplied in unitdef_post 
+	workertime = 400,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -68,7 +68,7 @@ customDefs.corcom = {
 	-- 	},
 }
 
-customDefs.armcom = {		
+customDefs.armcom = {
 	autoheal = 15,
 	buildoptions = scavUnit,
 	builddistance = 175,
@@ -87,7 +87,7 @@ customDefs.armcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 400,				-- can get multiplied in unitdef_post 
+	workertime = 400,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -122,7 +122,7 @@ customDefs.armcom = {
 
 -- M/E storages T1 give rewarding amounts of metal / energy for reclaim
 
-customDefs.armmstor = {		
+customDefs.armmstor = {
 	explodeas = "decoycommander",
 	--buildcostmetal = 1500,
 	featuredefs = {
@@ -146,10 +146,10 @@ customDefs.armmstor = {
 			resurrectable = 0,
 			smokeTime = 0,
 		},
-	},	
+	},
 }
 
-customDefs.armestor = {		
+customDefs.armestor = {
 	explodeas = "decoycommander",
 	--buildcostenergy = 3000,
 	featuredefs = {
@@ -181,10 +181,10 @@ customDefs.armestor = {
 			-- 	normaltex = "unittextures/cor_normal.dds",
 			-- },
 		},
-	},	
+	},
 }
 
-customDefs.cormstor = {		
+customDefs.cormstor = {
 	explodeas = "decoycommander",
 	--buildcostmetal = 1500,
 	featuredefs = {
@@ -208,10 +208,10 @@ customDefs.cormstor = {
 			resurrectable = 0,
 			smokeTime = 0,
 		},
-	},	
+	},
 }
 
-customDefs.corestor = {		
+customDefs.corestor = {
 	explodeas = "decoycommander",
 	--buildcostenergy = 3000,
 	featuredefs = {
@@ -234,12 +234,12 @@ customDefs.corestor = {
 			object = "scavs/scavcrate.s3o",
 			resurrectable = 0,
 		},
-	},	
+	},
 }
 
 -- M/E storages T2 give rewarding amounts of metal / energy for reclaim
 
-customDefs.armuwadvms = {		
+customDefs.armuwadvms = {
 	explodeas = "decoycommander",
 	--buildcostmetal = 5000,
 	featuredefs = {
@@ -263,10 +263,10 @@ customDefs.armuwadvms = {
 			resurrectable = 0,
 			smokeTime = 0,
 		},
-	},	
+	},
 }
 
-customDefs.armuwadves = {		
+customDefs.armuwadves = {
 	explodeas = "decoycommander",
 	--buildcostenergy = 20000,
 	featuredefs = {
@@ -293,7 +293,7 @@ customDefs.armuwadves = {
 	},
 }
 
-customDefs.coruwadvms = {		
+customDefs.coruwadvms = {
 	explodeas = "decoycommander",
 	--buildcostmetal = 5000,
 	featuredefs = {
@@ -317,10 +317,10 @@ customDefs.coruwadvms = {
 			resurrectable = 0,
 			smokeTime = 0,
 		},
-	},	
+	},
 }
 
-customDefs.coruwadves = {		
+customDefs.coruwadves = {
 	explodeas = "decoycommander",
 	--buildcostenergy = 20000,
 	featuredefs = {
@@ -344,7 +344,7 @@ customDefs.coruwadves = {
 			resurrectable = 0,
 			smokeTime = 0,
 		},
-	},	
+	},
 }
 
 
@@ -438,36 +438,40 @@ customDefs.armwar = {
 				subs = 48,
 				vtol = 36,
 			},
-			},
+		},
 	},
 }
 
+local numBuildoptions = #UnitDefs.armshltx.buildoptions
 customDefs.armshltx = {
 	buildoptions = {
-		[7] = "armstumpboss",
-		[8] = "armsptkboss",
-		[9] = "armpwboss",
+		[numBuildoptions+1] = "armstumpboss",
+		[numBuildoptions+2] = "armsptkboss",
+		[numBuildoptions+3] = "armpwboss",
 	},
 }
 
+numBuildoptions = #UnitDefs.armshltxuw.buildoptions
 customDefs.armshltxuw = {
 	buildoptions = {
-		[4] = "armstumpboss",
-		[5] = "armpwboss",
+		[numBuildoptions+1] = "armstumpboss",
+		[numBuildoptions+2] = "armpwboss",
 	},
-}	
+}
 
+numBuildoptions = #UnitDefs.corgant.buildoptions
 customDefs.corgant = {
 	buildoptions = {
-		[7] = "corcrwboss",
+		[numBuildoptions+1] = "corcrwboss",
 	},
-}	
+}
 
+numBuildoptions = #UnitDefs.corgantuw.buildoptions
 customDefs.corgantuw = {
 	buildoptions = {
-		[5] = "corcrwboss",
+		[numBuildoptions+1] = "corcrwboss",
 	},
-}	
+}
 
 
 -- Cloaked Radar
@@ -642,7 +646,7 @@ customDefs.corhllt = {
 		},
 	},
  }
- 
+
 customDefs.armemp = {
 	weapondefs = {
 		armemp_weapon = {
@@ -695,11 +699,11 @@ customDefs.cortoast = {
 }
 
 customDefs.armrectr = {
-	workertime = 150, 	-- can get multiplied in unitdef_post 
+	workertime = 150, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
-	workertime = 150,		-- can get multiplied in unitdef_post 
+	workertime = 150,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES
