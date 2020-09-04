@@ -167,4 +167,5 @@ T4LandUnits = {
 	"armfepoch",
 	"corfblackhy",
 	"corcrwboss",
+	"coracaboss",
 }

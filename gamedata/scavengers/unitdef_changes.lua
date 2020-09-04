@@ -463,6 +463,7 @@ numBuildoptions = #UnitDefs.corgant.buildoptions
 customDefs.corgant = {
 	buildoptions = {
 		[numBuildoptions+1] = "corcrwboss",
+		[numBuildoptions+2] = "coracaboss",
 	},
 }
 
@@ -470,6 +471,7 @@ numBuildoptions = #UnitDefs.corgantuw.buildoptions
 customDefs.corgantuw = {
 	buildoptions = {
 		[numBuildoptions+1] = "corcrwboss",
+		[numBuildoptions+2] = "coracaboss",
 	},
 }
 
