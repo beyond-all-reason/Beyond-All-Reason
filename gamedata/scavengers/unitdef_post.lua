@@ -153,18 +153,21 @@ function scav_Udef_Post(name, uDef)
 
 	-- don't let players get scav constructors
 	if uDef.buildoptions then
-		uDef.capturable = false
+		--uDef.capturable = false
+		if uDef.maxvelocity then
+			uDef.maxvelocity = uDef.maxvelocity*2
+		end
 		if uDef.featuredefs then
 			if uDef.featuredefs.dead then
 				--uDef.featuredefs.dead.resurrectable = 0
 				if uDef.featuredefs.dead.metal then
-					uDef.featuredefs.dead.metal = uDef.featuredefs.dead.metal * 2.5
+					uDef.featuredefs.dead.metal = uDef.featuredefs.dead.metal * 5
 				end
 			end
 			if uDef.featuredefs.heap then
 				--uDef.featuredefs.heap.resurrectable = 0
 				if uDef.featuredefs.heap.metal then
-					uDef.featuredefs.heap.metal = uDef.featuredefs.heap.metal * 2.5
+					uDef.featuredefs.heap.metal = uDef.featuredefs.heap.metal * 5
 				end
 			end
 		end

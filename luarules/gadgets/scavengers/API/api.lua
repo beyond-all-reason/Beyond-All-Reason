@@ -47,6 +47,7 @@ scavAssistant = {}
 scavResurrector = {}
 scavFactory = {}
 scavCollector = {}
+scavReclaimer = {}
 scavSpawnBeacon = {}
 scavStockpiler = {}
 scavNuke = {}

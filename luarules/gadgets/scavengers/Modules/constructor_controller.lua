@@ -34,6 +34,13 @@ function CollectorOrders(n, scav)
 	Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, 0)
 end
 
+function ReclaimerOrders(n, scav)
+	local nearestenemy = Spring.GetUnitNearestEnemy(scav, 999999, false)
+	Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{nearestenemy}, 0)
+	local x,y,z = Spring.GetUnitPosition(nearestenemy)
+	Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+end
+
 function SpawnConstructor(n)
 	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 4 then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
