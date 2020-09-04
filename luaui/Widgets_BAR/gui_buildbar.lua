@@ -3,7 +3,7 @@
 function widget:GetInfo()
 	return {
 		name = "BuildBar",
-		desc = "An extended BuildMenu to access the BuildOptions of factories\neverywhere on the map without selecting them before",
+		desc = "An extended buildbar to access the BuildOptions of factories\neverywhere on the map without selecting them before",
 		author = "jK",
 		date = "Jul 11, 2007",
 		license = "GNU GPL, v2 or later",
@@ -29,14 +29,15 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local glossMult = 1 + (2-(ui_opacity*2))
 
 -- saved values
 local bar_side = 1     --left:0,top:2,right:1,bottom:3
 local bar_horizontal = false --(not saved) if sides==top v bottom -> horizontal:=true  else-> horizontal:=false
 local bar_offset = 0     --relative offset side middle (i.e., bar_pos := vsx*0.5+bar_offset)
 local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/bottom=-1
-local bar_openByClick = false --needs a click to open the buildmenu or is a hover enough?
-local bar_autoclose = true  --autoclose buildmenu on mouseleave?
+local bar_openByClick = false --needs a click to open the buildbar or is a hover enough?
+local bar_autoclose = true  --autoclose buildbar on mouseleave?
 
 -- list and interface vars
 local facs = {}
@@ -81,7 +82,6 @@ local repeatPic = ":l:LuaUI/Images/repeat.png"
 
 local iconSizeY = 75		-- reset in ViewResize
 local iconSizeX = iconSizeY
-local iconImgMult = 0.66
 local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
 local fontSize = iconSizeY * 0.31
 local maxVisibleBuilds = 3
@@ -162,12 +162,43 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local function checkGuishader(force)
+	if WG['guishader'] and backgroundRect then
+		if force then
+			if dlistGuishader then
+				dlistGuishader = gl.DeleteList(dlistGuishader)
+			end
+			if dlistGuishader2 then
+				dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+			end
+		end
+		if not dlistGuishader then
+			dlistGuishader = gl.CreateList( function()
+				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale)
+			end)
+		end
+		if not dlistGuishader2 then
+			dlistGuishader2 = gl.CreateList( function()
+				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
+			end)
+		end
+	elseif dlistGuishader then
+		dlistGuishader = gl.DeleteList(dlistGuishader)
+		dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+	end
+end
+
 -------------------------------------------------------------------------------
 -- SCREENSIZE FUNCTIONS
 -------------------------------------------------------------------------------
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
+
+	widgetSpaceMargin = math_floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+
+	glossMult = 1 + (2-(ui_opacity*2))
 
 	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
 
@@ -195,6 +226,8 @@ function widget:ViewResize()
 		fac_inext = { iconSizeX, 0 }
 		bopt_inext = { 0, iconSizeY }
 	end
+
+	checkGuishader(true)
 end
 
 -------------------------------------------------------------------------------
@@ -232,6 +265,16 @@ function widget:Shutdown()
 		gl.DeleteList(dlists[i])
 	end
 	dlists = {}
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('buildbar')
+		WG['guishader'].RemoveDlist('buildbar2')
+		if dlistGuishader then
+			dlistGuishader = gl.DeleteList(dlistGuishader)
+		end
+		if dlistGuishader2 then
+			dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+		end
+	end
 end
 
 function widget:GetConfigData()
@@ -654,7 +697,6 @@ local function drawIcon(rect, tex, color, zoom)
 	-- extra darken gradually
 	RectRound(rect[1], rect[2], rect[3], rect[4], cornerSize, 0,0,2,2,{0,0,0,0.13}, {0,0,0,0})
 
-
 	local halfSize = (rect[3] - rect[1])*0.5
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	RectRoundCircle(
@@ -668,36 +710,55 @@ local function drawIcon(rect, tex, color, zoom)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
-local function DrawButton(rect, unitDefID, options, iconResize, isFac)
+local function DrawOptionsBackground()
+	local addDist = math_floor(widgetSpaceMargin*0.4)
+	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3], boptRect[2]+addDist}
+
+	-- background
+	RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+	RectRound(backgroundOptionsRect[1]+bgpadding, backgroundOptionsRect[2]+bgpadding, backgroundOptionsRect[3]-bgpadding, backgroundOptionsRect[4]-bgpadding, bgpadding*1, 1,1,1,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+
+	-- gloss
+	glBlending(GL_SRC_ALPHA, GL_ONE)
+	RectRound(backgroundOptionsRect[1]+bgpadding,backgroundOptionsRect[4]-((backgroundOptionsRect[4]-backgroundOptionsRect[2])*0.33),backgroundOptionsRect[3]-bgpadding,backgroundOptionsRect[4]-bgpadding, bgpadding, 1,0,0,1, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
+	RectRound(backgroundOptionsRect[1]+bgpadding,backgroundOptionsRect[2], backgroundOptionsRect[3]-bgpadding,backgroundOptionsRect[2]+((backgroundOptionsRect[4]-backgroundOptionsRect[2])*0.3), bgpadding, 1,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+end
+
+local function DrawBackground()
+	local addDist = math_floor(widgetSpaceMargin*0.4)
+	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
+
+	-- background
+	RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+	RectRound(backgroundRect[1]+bgpadding, backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 1,0,0,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+
+	-- gloss
+	glBlending(GL_SRC_ALPHA, GL_ONE)
+	RectRound(backgroundRect[1]+bgpadding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.33),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 1,0,0,1, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
+	RectRound(backgroundRect[1]+bgpadding,backgroundRect[2], backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.3), bgpadding, 1,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+end
+
+local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
 	cornerSize = (rect[3] - rect[1]) * 0.03
 
-	-- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
-
-	if #rect < 4 then
-		Spring.Echo('Incorrect arguments to DrawButton(rect={left,top,right,bottom}, unitDefID, options)')
-		return
-	end
-
 	-- hover or pressed?
-	local hoverPadding = math_floor(-iconSizeX / 27)
+	local zoom = 0.04
+	local hoverPadding = widgetSpaceMargin*0.5
 	local iconAlpha = (options.alpha or 1)
 	if options.pressed then
-		hoverPadding = math_floor(-iconSizeX / 16)
+		--hoverPadding = math_floor(widgetSpaceMargin*0.6)
 		iconAlpha = 1
-	elseif (options.hovered) then
-		hoverPadding = math_floor(-iconSizeX / 13)
+		zoom = 0.17
+	elseif options.hovered then
+		--hoverPadding = math_floor(widgetSpaceMargin*0.25)
 		iconAlpha = 1
+		zoom = 0.12
 	end
 
 	-- draw icon
-	local imgRect = { rect[1] + hoverPadding, rect[2] - hoverPadding, rect[3] - hoverPadding, rect[4] + hoverPadding }
-	if iconResize then
-		--local yPad = (iconSizeY*(1-iconImgMult)) / 2  -- used with transparant uniticons
-		--local xPad = (iconSizeX*(1-iconImgMult)) / 2  -- used with transparant uniticons
-		local yPad = (iconSizeY * (1 - iconImgMult)) / 3.3
-		local xPad = (iconSizeX * (1 - iconImgMult)) / 3.3
-		imgRect = { imgRect[1] + xPad, imgRect[2] - yPad, imgRect[3] - xPad, imgRect[4] + yPad }
-	end
+	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
 
 	local tex
 	if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
@@ -705,8 +766,7 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 	else
 		tex = ':lr128,128:unitpics/' .. unitBuildPic[unitDefID]
 	end
-	drawIcon({imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, 0.05)
-
+	drawIcon({imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom)
 
 	-- Progress
 	if (options.progress or -1) > -1 then
@@ -806,8 +866,9 @@ function widget:Update(dt)
 		for i = 1, #dlists do
 			gl.DeleteList(dlists[i])
 		end
+		checkGuishader(true)
 		dlists = {}
-		local dlistsCount = 0
+		local dlistsCount = 1
 
 		factoriesArea = nil
 
@@ -823,13 +884,11 @@ function widget:Update(dt)
 
 			-- determine options -------------------------------------------------------------------
 			-- building?
-			local iconResize = true
 			unitBuildID = GetUnitIsBuilding(facInfo.unitID)
 			if unitBuildID then
 				unitBuildDefID = GetUnitDefID(unitBuildID)
 				_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
 				unitDefID = unitBuildDefID
-				iconResize = true
 			elseif (unfinished_facs[facInfo.unitID]) then
 				_, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
 				if (options.progress >= 1) then
@@ -852,20 +911,20 @@ function widget:Update(dt)
 			-- border
 			options.waypoint = (waypointMode > 1) and (i == waypointFac + 1)
 			options.selected = (i == openedMenu + 1)
-			-----------------------------------------------------------------------------------------
-			--DrawButton(fac_rec,unitDefID,options, iconResize, true)
+
 			dlistsCount = dlistsCount + 1
-			dlists[dlistsCount] = gl.CreateList(DrawButton, fac_rec, unitDefID, options, iconResize, true)
+			dlists[dlistsCount] = gl.CreateList(DrawButton, fac_rec, unitDefID, options, true)
 			if factoriesArea == nil then
 				factoriesArea = { fac_rec[1], fac_rec[2], fac_rec[3], fac_rec[4] }
 			else
 				factoriesArea[4] = fac_rec[4]
 			end
 
-
 			-- setup next icon pos
 			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
+		dlists[1] = gl.CreateList(DrawBackground)
+		dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
 	end
 end
 
@@ -887,6 +946,21 @@ function widget:DrawScreen()
 
 	local icon
 	local mx, my, lb, mb, rb = GetMouseState()
+
+
+	if #dlists == 0 then
+		if dlistGuishader and WG['guishader'] then
+			WG['guishader'].RemoveDlist('buildbar')
+			WG['guishader'].RemoveDlist('buildbar2')
+		end
+	elseif WG['guishader'] then
+		if dlistGuishader then
+			WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
+		end
+		if dlistGuishader2 then
+			WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+		end
+	end
 
 	for i = 1, #dlists do
 		gl.CallList(dlists[i])
@@ -931,7 +1005,7 @@ function widget:DrawScreen()
 					end
 					options.alpha = 0.85
 					-----------------------------------------------------------------------------------------
-					DrawButton(bopt_rec, unitDefID, options, true)
+					DrawButton(bopt_rec, unitDefID, options)
 					if buildoptionsArea == nil then
 						buildoptionsArea = { bopt_rec[1], bopt_rec[2], bopt_rec[3], bopt_rec[4] }
 					else
@@ -948,26 +1022,26 @@ function widget:DrawScreen()
 			else
 				-- draw buildqueue
 				local buildQueue = Spring.GetFullBuildQueue(facInfo.unitID, maxVisibleBuilds + 1)
-				if (buildQueue ~= nil) then
+				if buildQueue ~= nil then
 					local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 
 					local n, j = 1, maxVisibleBuilds
-					while (buildQueue[n]) do
+					while buildQueue[n] do
 						local unitBuildDefID, count = next(buildQueue[n], nil)
 						if (n == 1) then
 							count = count - 1
 						end -- cause we show the actual in building unit instead of the factory icon
 
 						if count > 0 then
-							local yPad = (iconSizeY * (1 - iconImgMult)) / 2
-							local xPad = (iconSizeX * (1 - iconImgMult)) / 2
-
-							drawIcon({bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, 0.05)
-							TexRectRound(bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad, (bopt_rec[3] - bopt_rec[1]) * 0.05)
+							local yPad = math_floor(iconSizeY * 0.88)
+							local xPad = yPad
+							local zoom = 0.04
+							drawIcon({bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
+							--TexRectRound(bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad, (bopt_rec[3] - bopt_rec[1]) * 0.05)
 							if count > 1 then
 								font:Begin()
 								font:SetTextColor(1, 1, 1, 0.66)
-								font:Print(count, bopt_rec[1] + ((bopt_rec[3] - bopt_rec[1]) * 0.22), bopt_rec[4] - ((bopt_rec[4] - bopt_rec[2]) * 0.22), fontSize, "")
+								font:Print(count, bopt_rec[1] + ((bopt_rec[3] - bopt_rec[1]) * 0.22), bopt_rec[4] - ((bopt_rec[4] - bopt_rec[2]) * 0.22), fontSize, "o")
 								font:End()
 							end
 
@@ -1231,7 +1305,7 @@ function widget:MousePress(x, y, button)
 	pressedFac = hoveredFac
 	pressedBOpt = hoveredBOpt
 
-	if (hoveredFac + hoveredBOpt >= -1) then
+	if hoveredFac + hoveredBOpt >= -1 then
 		if waypointMode > 1 then
 			Spring.Echo("BuildBar: Exited greedy waypoint mode")
 			Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
@@ -1267,16 +1341,16 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	if (pressedFac == hoveredFac) and
-		(pressedBOpt == hoveredBOpt) and
-		(waypointMode < 1)
+	if pressedFac == hoveredFac and
+		pressedBOpt == hoveredBOpt and
+		waypointMode < 1
 	then
-		if (hoveredFac >= 0) and (waypointMode < 1) then
+		if hoveredFac >= 0 and waypointMode < 1 then
 			MenuHandler(x, y, button)
 		else
 			BuildHandler(button)
 		end
-	elseif (waypointMode > 0) and (waypointFac >= 0) then
+	elseif waypointMode > 0 and waypointFac >= 0 then
 		WaypointHandler(x, y, button)
 	end
 	return -1
