@@ -37,8 +37,23 @@ function SelfDestructionControls(n, scav, scavDef)
 				if not scavConstructor[scav] or Constructing[scav] == false then
 					local posx = math.random(selfdx[scav] - 400, selfdx[scav] + 400)
 					local posz = math.random(selfdz[scav] - 400, selfdz[scav] + 400)
-					Spring.SetUnitPosition(scav, posx, posz)
-					Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
+					local telstartposy = Spring.GetGroundHeight(selfdx[scav], selfdz[scav])
+					local telendposy = Spring.GetGroundHeight(posx, posz)
+					for q = 1,5 do
+						if telstartposy < 0 then
+							if telendposy < 0 then
+								Spring.SetUnitPosition(scav, posx, posz)
+								Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
+								break
+							end
+						elseif telstartposy >= 0 then
+							if telendposy >= 0 then
+								Spring.SetUnitPosition(scav, posx, posz)
+								Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
+								break
+							end
+						end
+					end
 				end
 			end
 			--Spring.DestroyUnit(scav, false, true)
