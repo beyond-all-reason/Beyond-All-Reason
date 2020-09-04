@@ -152,7 +152,6 @@ local iconSizeX = iconSizeY
 local iconImgMult = 0.66
 local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
 local fontSize = iconSizeY * 0.31
-local borderSize = 1.5
 local maxVisibleBuilds = 3
 local vsx, vsy = widgetHandler:GetViewSizes()
 
@@ -429,16 +428,6 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
-local function DrawLineRect(rect, color, width)
-	glColor(color)
-	glLineWidth(width or borderSize)
-	glShape(GL.LINE_LOOP, {
-		{ v = { rect[3] + 0.5, rect[2] + 0.5 } }, { v = { rect[1] + 0.5, rect[2] + 0.5 } },
-		{ v = { rect[1] + 0.5, rect[4] + 0.5 } }, { v = { rect[3] + 0.5, rect[4] + 0.5 } },
-	})
-	glLineWidth(1)
-	glColor(1, 1, 1, 1)
-end
 
 
 -- cs (corner size) is not implemented yet
@@ -712,29 +701,29 @@ local function drawIcon(rect, tex, color, zoom)
 end
 
 local function DrawButton(rect, unitDefID, options, iconResize, isFac)
-	cornerSize = (rect[3] - rect[1]) * 0.04
+	cornerSize = (rect[3] - rect[1]) * 0.03
 
 	-- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
 
-	if (#rect < 4) then
+	if #rect < 4 then
 		Spring.Echo('Incorrect arguments to DrawButton(rect={left,top,right,bottom}, unitDefID, options)')
 		return
 	end
 
 	-- hover or pressed?
-	local hoverPadding = 0
+	local hoverPadding = math_floor(-iconSizeX / 27)
 	local iconAlpha = (options.alpha or 1)
-	if (options.pressed) then
-		if options.pressed == 2 then
-			DrawRect(rect, { 1, 0.8, 0.8, 0.5 })  -- pressed
-		else
-			DrawRect(rect, { 1, 1, 1, 0.5 })  -- pressed
-		end
-		hoverPadding = -iconSizeX / 20
+	if options.pressed then
+		--if options.pressed == 2 then
+		--	DrawRect(rect, { 1, 0.8, 0.8, 0.5 })  -- pressed
+		--else
+		--	DrawRect(rect, { 1, 1, 1, 0.5 })  -- pressed
+		--end
+		hoverPadding = math_floor(-iconSizeX / 16)
 		iconAlpha = 1
 	elseif (options.hovered) then
 		--DrawRect(rect, { 1, 1, 1, 0.45})  -- hover
-		hoverPadding = -iconSizeX / 15
+		hoverPadding = math_floor(-iconSizeX / 13)
 		iconAlpha = 1
 	end
 
@@ -755,7 +744,6 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 		tex = ':lr128,128:unitpics/' .. unitBuildPic[unitDefID]
 	end
 	drawIcon({imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, 0.05)
-	--DrawTexRect(imgRect, tex, {1,1,1,iconAlpha})
 
 
 	-- Progress
@@ -790,17 +778,6 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 		font:Print(options.amount, rect[1] + ((rect[3] - rect[1]) * 0.22), rect[4] - ((rect[4] - rect[2]) * 0.22), fontSize, "o")
 		font:End()
 	end
-
-	-- draw border
-	--[[if (options.waypoint) then
-	  DrawRect(rect, { 0.5,1.0,0.5,0.45 })
-	  DrawLineRect(rect, { 0, 0, 0, 1 },borderSize+2)
-	elseif (options.selected)and(not options.pressed) then
-	  DrawRect(rect, { 1, 1, 1, 0.35 })
-	  DrawLineRect(rect, { 0, 0, 0, 1 },borderSize+2)
-	else
-	  DrawLineRect(rect, { 0, 0, 0, 1 })
-	end]]--
 	glTexture(false)
 	glColor(1,1,1,1)
 end
@@ -870,7 +847,7 @@ function widget:Update(dt)
 		factoriesArea = nil
 
 		-- draw factory list
-		local fac_rec = RectWH(facRect[1], facRect[2], iconSizeX, iconSizeY)
+		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		for i, facInfo in ipairs(facs) do
 
 			local unitDefID = facInfo.unitDefID
@@ -954,7 +931,7 @@ function widget:DrawScreen()
 	-- draw factory list
 	if (factoriesArea ~= nil and IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
 		(buildoptionsArea ~= nil and IsInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
-		local fac_rec = RectWH(facRect[1], facRect[2], iconSizeX, iconSizeY)
+		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		buildoptionsArea = nil
 		for i, facInfo in ipairs(facs) do
 
@@ -962,7 +939,7 @@ function widget:DrawScreen()
 			-- draw build list
 			if i == openedMenu + 1 then
 				-- draw buildoptions
-				local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
+				local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1],fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 
 				local buildList = facInfo.buildList
 				local buildQueue = GetBuildQueue(facInfo.unitID)
@@ -1017,15 +994,14 @@ function widget:DrawScreen()
 							count = count - 1
 						end -- cause we show the actual in building unit instead of the factory icon
 
-						if (count > 0) then
+						if count > 0 then
 
 							local yPad = (iconSizeY * (1 - iconImgMult)) / 2
 							local xPad = (iconSizeX * (1 - iconImgMult)) / 2
 
 							drawIcon({bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, 0.05)
 							TexRectRound(bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad, (bopt_rec[3] - bopt_rec[1]) * 0.05)
-							--DrawTexRect({ bopt_rec[1] + xPad, bopt_rec[2] - yPad, bopt_rec[3] - xPad, bopt_rec[4] + yPad }, "#" .. unitBuildDefID, { 1, 1, 1, 0.5 })
-							if (count > 1) then
+							if count > 1 then
 								font:Begin()
 								font:SetTextColor(1, 1, 1, 0.66)
 								font:Print(count, bopt_rec[1] + ((bopt_rec[3] - bopt_rec[1]) * 0.22), bopt_rec[4] - ((bopt_rec[4] - bopt_rec[2]) * 0.22), fontSize, "")
@@ -1049,15 +1025,6 @@ function widget:DrawScreen()
 	else
 		buildoptionsArea = nil
 	end
-	-- draw border around factory list
-	--if (#facs>0) then DrawLineRect(facRect, { 0, 0, 0, 1 },borderSize+2) end
-	--local deltat = Spring.DiffTimers(Spring.GetTimer(),t0)
-	--gl.PushMatrix()
-	--gl.Color(1.0,1.0,1.0,1.0)
-	--gl.Text(deltat*1000000.0 .. " us deltat", 50,10,16,"d")
-	--gl.PopMatrix()
-	--Spring.Echo(deltat)
-
 end
 
 function widget:DrawWorld()
