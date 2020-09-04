@@ -513,6 +513,12 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG['info'] = {}
+	WG['info'].displayUnitID = function(unitID)
+		cfgDisplayUnitID = unitID
+	end
+	WG['info'].clearDisplayUnitID = function()
+		cfgDisplayUnitID = nil
+	end
 	WG['info'].getPosition = function()
 		return width, height
 	end
@@ -1784,6 +1790,15 @@ function checkChanges()
 	if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
 		displayMode = 'unitdef'
 		displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
+
+	elseif cfgDisplayUnitID and Spring.ValidUnitID(cfgDisplayUnitID) then
+		displayMode = 'unit'
+		displayUnitID = cfgDisplayUnitID
+		displayUnitDefID = spGetUnitDefID(displayUnitID)
+		if lastUpdateClock + 0.6 < os_clock() then
+			-- unit stats could have changed meanwhile
+			doUpdate = true
+		end
 
 		-- hovered unit
 	elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock() - lastHoverDataClock > 0.08 then

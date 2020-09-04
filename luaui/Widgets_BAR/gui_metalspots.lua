@@ -84,13 +84,13 @@ local function DrawCircleLine(innersize, outersize)
 		local radstep = (2.0 * math.pi) / pieces
 		for i = 1, pieces do
 			for d = 1, detail do
-				
+
 				detailPartWidth = ((width / detail) * d)
 				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
 				a2 = ((i+detailPartWidth) * radstep)
 				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
 				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
-				
+
 				--outer (fadein)
 				gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
 				gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
@@ -201,7 +201,7 @@ function checkMetalspots()
 	for i=1, #metalSpots do
 		metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
 		local spot = metalSpots[i]
-		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 100*spot[5])
+		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*spot[5])
 		local occupied = false
 		local prevOccupied = metalSpots[i][6]
 		for j=1, #units do
@@ -242,7 +242,7 @@ function widget:DrawWorldPreUnit()
 	if metalViewOnly and Spring.GetMapDrawMode() ~= 'metal' then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
-	
+
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
 

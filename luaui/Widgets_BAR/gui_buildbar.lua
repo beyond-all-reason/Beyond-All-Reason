@@ -23,12 +23,6 @@ local BlueStr = "\255\170\170\255"
 local YellowStr = "\255\255\255\152"
 local OrangeStr = "\255\255\190\128"
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
---
---  vars
---
-
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -41,7 +35,6 @@ local bar_side = 1     --left:0,top:2,right:1,bottom:3
 local bar_horizontal = false --(not saved) if sides==top v bottom -> horizontal:=true  else-> horizontal:=false
 local bar_offset = 0     --relative offset side middle (i.e., bar_pos := vsx*0.5+bar_offset)
 local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/bottom=-1
-local bar_iconSizeBase = 28    --iconSize o_O
 local bar_openByClick = false --needs a click to open the buildmenu or is a hover enough?
 local bar_autoclose = true  --autoclose buildmenu on mouseleave?
 
@@ -71,7 +64,6 @@ local fac_inext = { 0, 0 }
 local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
-local inTweak = 0
 
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
@@ -83,14 +75,25 @@ for id, def in pairs(UnitDefs) do
 	end
 end
 
--- a nice blur shader
-local useBlurShader = false   -- it has a fallback, if the gfx don't support glsl
 local blured = false
-local blurFullscreen = function()
-	return
-end
 
-local repeatPic = ":lr64,64:LuaUI/Images/repeat.png"
+local repeatPic = ":l:LuaUI/Images/repeat.png"
+
+local iconSizeY = 75		-- reset in ViewResize
+local iconSizeX = iconSizeY
+local iconImgMult = 0.66
+local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
+local fontSize = iconSizeY * 0.31
+local maxVisibleBuilds = 3
+local vsx, vsy = widgetHandler:GetViewSizes()
+
+local startTimer = Spring.GetTimer()
+local msx = Game.mapX * 512
+local msz = Game.mapY * 512
+
+-------------------------------------------------------------------------------
+-- Speed Up
+-------------------------------------------------------------------------------
 
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -107,6 +110,24 @@ local math_min = math.min
 local glVertex = gl.Vertex
 local glBeginEnd = gl.BeginEnd
 
+local GetUnitDefID = Spring.GetUnitDefID
+local GetMouseState = Spring.GetMouseState
+local GetUnitHealth = Spring.GetUnitHealth
+local GetUnitStates = Spring.GetUnitStates
+local DrawUnitCommands = Spring.DrawUnitCommands
+local GetSelectedUnits = Spring.GetSelectedUnits
+local GetFullBuildQueue = Spring.GetFullBuildQueue
+local GetUnitIsBuilding = Spring.GetUnitIsBuilding
+local glText = gl.Text
+local glRect = gl.Rect
+local glShape = gl.Shape
+local glColor = gl.Color
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glLineWidth = gl.LineWidth
+local tan = math.tan
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+
 -------------------------------------------------------------------------------
 -- SOUNDS
 -------------------------------------------------------------------------------
@@ -120,10 +141,6 @@ local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 -------------------------------------------------------------------------------
 -- SOME THINGS NEEDED IN DRAWINMINIMAP
 -------------------------------------------------------------------------------
-
-local startTimer = Spring.GetTimer()
-local msx = Game.mapX * 512
-local msz = Game.mapY * 512
 
 local teamColors = {}
 local GetTeamColor = Spring.GetTeamColor or function(teamID)
@@ -144,18 +161,22 @@ for udid, unitDef in pairs(UnitDefs) do
 		unitBuildOptions[udid] = unitDef.buildOptions
 	end
 end
+
 -------------------------------------------------------------------------------
 -- SCREENSIZE FUNCTIONS
 -------------------------------------------------------------------------------
-local iconSizeY = 75
-local iconSizeX = iconSizeY
-local iconImgMult = 0.66
-local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
-local fontSize = iconSizeY * 0.31
-local maxVisibleBuilds = 3
-local vsx, vsy = widgetHandler:GetViewSizes()
 
-local function SetupNewScreenAlignment()
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+
+	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
+
+	iconSizeY = math.floor((vsy / 18) * (1 + (ui_scale - 1) / 1.5))
+	iconSizeX = iconSizeY
+	fontSize = iconSizeY * 0.31
+	repIcoSize = math.floor(iconSizeY * 0.4)
+
+	-- Setup New Screen Alignment
 	bar_horizontal = (bar_side > 1)
 	if bar_side == 0 then
 		-- left
@@ -176,47 +197,10 @@ local function SetupNewScreenAlignment()
 	end
 end
 
-local function UpdateIconSizes()
-	iconSizeY = math.floor((vsy / 18) * (1 + (ui_scale - 1) / 1.5))
-	iconSizeX = iconSizeY
-	fontSize = iconSizeY * 0.31
-	repIcoSize = math.floor(iconSizeY * 0.4)
-end
-
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-
-	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
-
-	UpdateIconSizes()
-	SetupNewScreenAlignment()
-end
-
-
--------------------------------------------------------------------------------
--- Speed Up
--------------------------------------------------------------------------------
-local GetUnitDefID = Spring.GetUnitDefID
-local GetMouseState = Spring.GetMouseState
-local GetUnitHealth = Spring.GetUnitHealth
-local GetUnitStates = Spring.GetUnitStates
-local DrawUnitCommands = Spring.DrawUnitCommands
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetFullBuildQueue = Spring.GetFullBuildQueue
-local GetUnitIsBuilding = Spring.GetUnitIsBuilding
-local glText = gl.Text
-local glRect = gl.Rect
-local glShape = gl.Shape
-local glColor = gl.Color
-local glTexture = gl.Texture
-local glTexRect = gl.TexRect
-local glLineWidth = gl.LineWidth
-local tan = math.tan
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-
 -------------------------------------------------------------------------------
 -- INITIALIZTION FUNCTIONS
 -------------------------------------------------------------------------------
+
 function widget:Initialize()
 	widget:ViewResize()
 
@@ -255,31 +239,24 @@ function widget:GetConfigData()
 		side = bar_side,
 		offset = bar_offset,
 		align = bar_align,
-		iconSizeBase = bar_iconSizeBase,
 		openByClick = bar_openByClick,
 		autoclose = bar_autoclose,
 		alternativeUnitpics = alternativeUnitpics,
-		-- useBlurShader= useBlurShader
 	}
 end
 
 function widget:SetConfigData(data)
-	-- geometric
 	bar_side = data.side or 2
 	bar_offset = data.offset or 0
 	bar_align = data.align or 0
-	bar_iconSizeBase = data.iconSizeBase or 28
 	bar_openByClick = data.openByClick or false
 	bar_autoclose = data.autoclose or (not bar_openByClick)
 
 	bar_side = math.min(math.max(bar_side, 0), 3)
 	bar_align = math.min(math.max(bar_align, -1), 1)
-	--SetupNewScreenAlignment()
 	if data.alternativeUnitpics ~= nil then
 		alternativeUnitpics = data.alternativeUnitpics
 	end
-	-- shader
-	--useBlurShader    = data.useBlurShader or true
 end
 
 
@@ -307,21 +284,12 @@ local function GetFacIconRect(i)
 end
 
 local function IsInRect(left, top, rect)
-	return (left >= rect[1]) and (left <= rect[3]) and
-		(top <= rect[2]) and (top >= rect[4])
+	return left >= rect[1] and left <= rect[3] and top <= rect[2] and top >= rect[4]
 end
-
-
 
 -------------------------------------------------------------------------------
 -- DRAW FUNCTIONS
 -------------------------------------------------------------------------------
-local function DrawRect(rect, color)
-	glColor(color)
-	--glRect(rect[1],rect[2],rect[3],rect[4])
-	RectRound(rect[1], rect[4], rect[3], rect[2], (rect[3] - rect[1]) / 9)
-	glColor(1, 1, 1, 1)
-end
 
 local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	local csyMult = 1 / ((sy - py) / cs)
@@ -714,15 +682,9 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 	local hoverPadding = math_floor(-iconSizeX / 27)
 	local iconAlpha = (options.alpha or 1)
 	if options.pressed then
-		--if options.pressed == 2 then
-		--	DrawRect(rect, { 1, 0.8, 0.8, 0.5 })  -- pressed
-		--else
-		--	DrawRect(rect, { 1, 1, 1, 0.5 })  -- pressed
-		--end
 		hoverPadding = math_floor(-iconSizeX / 16)
 		iconAlpha = 1
 	elseif (options.hovered) then
-		--DrawRect(rect, { 1, 1, 1, 0.45})  -- hover
 		hoverPadding = math_floor(-iconSizeX / 13)
 		iconAlpha = 1
 	end
@@ -773,7 +735,7 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 	end
 
 	-- amount
-	if ((options.amount or 0) > 0) then
+	if (options.amount or 0) > 0 then
 		font:Begin()
 		font:Print(options.amount, rect[1] + ((rect[3] - rect[1]) * 0.22), rect[4] - ((rect[4] - rect[2]) * 0.22), fontSize, "o")
 		font:End()
@@ -813,12 +775,9 @@ function widget:Update(dt)
 		myTeamID = Spring.GetMyTeamID()
 		UpdateFactoryList()
 	end
-	inTweak = widgetHandler:InTweakMode()
 
-	local icon, mx, my, lb, mb, rb = -1, -1, -1, false, false, false
-	if (not inTweak) then
-		mx, my, lb, mb, rb = GetMouseState()
-	end
+	local icon
+	local mx, my, lb, mb, rb = GetMouseState()
 
 	sec = sec + dt
 	local doupdate = false
@@ -832,6 +791,12 @@ function widget:Update(dt)
 		elseif factoriesAreaHovered then
 			factoriesAreaHovered = nil
 			doupdate = true
+		end
+	end
+	if setInfoDisplayUnitID then
+		setInfoDisplayUnitID = nil
+		if WG['info'] then
+			WG['info'].clearDisplayUnitID()
 		end
 	end
 	if doupdate then
@@ -897,6 +862,7 @@ function widget:Update(dt)
 				factoriesArea[4] = fac_rec[4]
 			end
 
+
 			-- setup next icon pos
 			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
@@ -919,10 +885,8 @@ function widget:DrawScreen()
 		return
 	end
 
-	local icon, mx, my, lb, mb, rb = -1, -1, -1, false, false, false
-	if (not inTweak) then
-		mx, my, lb, mb, rb = GetMouseState()
-	end
+	local icon
+	local mx, my, lb, mb, rb = GetMouseState()
 
 	for i = 1, #dlists do
 		gl.CallList(dlists[i])
@@ -995,7 +959,6 @@ function widget:DrawScreen()
 						end -- cause we show the actual in building unit instead of the factory icon
 
 						if count > 0 then
-
 							local yPad = (iconSizeY * (1 - iconImgMult)) / 2
 							local xPad = (iconSizeX * (1 - iconImgMult)) / 2
 
@@ -1262,10 +1225,8 @@ end
 -------------------------------------------------------------------------------
 -- MOUSE PRESS FUNCTIONS
 -------------------------------------------------------------------------------
+
 function widget:MousePress(x, y, button)
-	if (inTweak) then
-		return false
-	end
 
 	pressedFac = hoveredFac
 	pressedBOpt = hoveredBOpt
@@ -1308,8 +1269,7 @@ end
 function widget:MouseRelease(x, y, button)
 	if (pressedFac == hoveredFac) and
 		(pressedBOpt == hoveredBOpt) and
-		(waypointMode < 1) and
-		(not inTweak)
+		(waypointMode < 1)
 	then
 		if (hoveredFac >= 0) and (waypointMode < 1) then
 			MenuHandler(x, y, button)
@@ -1324,6 +1284,7 @@ end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
 function MenuHandler(x, y, button)
 	if button > 3 then
 		return
@@ -1364,7 +1325,6 @@ function MenuHandler(x, y, button)
 		openedMenu = -1
 		pressedFac = -1
 		hoveredFac = -1
-		-- blurFullscreen(false)
 		blured = false
 	end
 	return
@@ -1397,7 +1357,7 @@ function BuildHandler(button)
 end
 
 function WaypointHandler(x, y, button)
-	if (button == 1) or (button > 3) then
+	if button == 1 or button > 3 then
 		Spring.Echo("BuildBar: Exited greedy waypoint mode")
 		Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
 		menuHovered = false
@@ -1432,16 +1392,11 @@ function WaypointHandler(x, y, button)
 		type, param = Spring.TraceScreenRay(x, y, true)
 		Spring.GiveOrderToUnit(facs[waypointFac + 1].unitID, CMD.MOVE, param, opt)
 	end
-
-	--if not shift then waypointMode = 0; return true end
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+
 function MouseOverIcon(x, y)
-	if (x >= facRect[1]) and (x <= facRect[3]) and
-		(y >= facRect[4]) and (y <= facRect[2])
-	then
+	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
 		local icon
 		if bar_horizontal then
 			icon = math.floor((x - facRect[1]) / fac_inext[1])
@@ -1449,9 +1404,9 @@ function MouseOverIcon(x, y)
 			icon = math.floor((y - facRect[2]) / fac_inext[2])
 		end
 
-		if (icon >= #facs) then
+		if icon >= #facs then
 			icon = (#facs - 1)
-		elseif (icon < 0) then
+		elseif icon < 0 then
 			icon = 0
 		end
 
@@ -1461,7 +1416,7 @@ function MouseOverIcon(x, y)
 end
 
 function MouseOverSubIcon(x, y)
-	if (openedMenu >= 0) and
+	if openedMenu >= 0 and
 		(x >= boptRect[1]) and (x <= boptRect[3]) and
 		(y >= boptRect[4]) and (y <= boptRect[2])
 	then
@@ -1477,7 +1432,7 @@ function MouseOverSubIcon(x, y)
 			icon = math.floor((y - boptRect[4]) / bopt_inext[2])
 		end
 
-		if (icon > #facs[openedMenu + 1].buildList - 1) then
+		if icon > #facs[openedMenu + 1].buildList - 1 then
 			icon = #facs[openedMenu + 1].buildList - 1
 		elseif (icon < 0) then
 			icon = 0
@@ -1490,75 +1445,55 @@ end
 
 
 
--------------------------------------------------------------------------------
--- HOVER FUNCTIONS
--------------------------------------------------------------------------------
-function widget:GetTooltip(x, y)
-	if hoveredFac >= 0 then
-		--local unitID    = facs[hoveredFac+1].unitID
-		local unitDef = UnitDefs[facs[hoveredFac + 1].unitDefID]
-		return unitDef.humanName .. "\n" ..
-			--GreyStr .. "Left mouse: show build options\n" ..
-			GreyStr .. "Middle mouse: set camera target\n"
-		--GreyStr .. "Right mouse: show build options"
-	elseif (hoveredBOpt >= 0) then
-		if hoveredBOpt >= 0 then
-			local unitDef = UnitDefs[facs[openedMenu + 1].buildList[hoveredBOpt + 1]]
-			return " " .. unitDef.humanName .. " (" .. unitDef.tooltip .. ")\n" ..
-				GreyStr .. "Health " .. GreenStr .. unitDef.health .. "\n" ..
-				GreyStr .. "Metal cost " .. OrangeStr .. unitDef.metalCost .. "\n" ..
-				GreyStr .. "Energy cost " .. YellowStr .. unitDef.energyCost .. GreyStr .. " Build time " .. BlueStr .. unitDef.buildTime
-		end
-	end
-	return ""
-end
-
 function widget:IsAbove(x, y)
-	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if WG['topbar'] and WG['topbar'].showingQuit() then
 		menuHovered = false
 		openedMenu = -1
 		return false
 	end
 
-	if (not inTweak) then
-		local _, _, lb, mb, rb = GetMouseState()
-		if ((lb or mb or rb) and (openedMenu == -1)) or (waypointMode == 2) then
-			return false
-		end
+	local _, _, lb, mb, rb = GetMouseState()
+	if ((lb or mb or rb) and openedMenu == -1) or waypointMode == 2 then
+		return false
 	end
 
 	hoveredFac = MouseOverIcon(x, y)
 	hoveredBOpt = MouseOverSubIcon(x, y)
 
+	-- set hover unitdef id for buildmenu so info widget can show it
+	if WG['buildmenu'] then
+		if hoveredFac >= 0 then
+			if WG['info'] then
+				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
+				WG['info'].displayUnitID(setInfoDisplayUnitID)
+			end
+		elseif hoveredBOpt >= 0 then
+			if hoveredBOpt >= 0 then
+				WG['buildmenu'].hoverID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
+			end
+		end
+	end
+
 	if hoveredFac >= 0 then
 		--factory icon
-		if (not bar_openByClick) and
-			((openedMenu < 0) or (menuHovered)) and
-			(not inTweak)
-		then
+		if not bar_openByClick and (openedMenu < 0 or menuHovered) then
 			menuHovered = true
 			openedMenu = hoveredFac
 		end
 		if not blured then
 			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			--blurFullscreen(true)
 			blured = true
 		end
 		return true
-	elseif (openedMenu >= 0) and IsInRect(x, y, boptRect) then
+	elseif openedMenu >= 0 and IsInRect(x, y, boptRect) then
 		--buildoption icon
 		if not blured then
 			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			--blurFullscreen(true)
 			blured = true
 		end
 		return true
 	else
-		if (bar_autoclose) and (
-			(bar_openByClick) or
-				(not bar_openByClick) and (menuHovered)
-		)
-		then
+		if bar_autoclose and (bar_openByClick or not bar_openByClick and menuHovered) then
 			menuHovered = false
 			openedMenu = -1
 		end
@@ -1566,157 +1501,7 @@ function widget:IsAbove(x, y)
 
 	if blured then
 		Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-		--blurFullscreen(false)
 		blured = false
-	end
-	return false
-end
-
-
--------------------------------------------------------------------------------
--- TWEAK MODE
--------------------------------------------------------------------------------
-local TweakMousePressed = false
-local TweakMouseMoved = false
-local TweakPressedPos_X, TweakPressedPos_Y = 0, 0
-local TweakAbove = false
-
-function widget:TweakDrawScreen()
-	local mx, my, lb, mb, rb = GetMouseState()
-	if IsInRect(mx, my, facRect) then
-		DrawRect(facRect, { 0, 0, 1, 0.35 })  -- hover
-	else
-		DrawRect(facRect, { 0, 0, 0, 0.45 })
-		DrawRect(facRect, { 0, 0, 1, 0.2 })
-		DrawLineRect(facRect, { 0.4, 0.4, 1, 0.5 })
-	end
-
-	-- draw alignment line (red)
-	local rect = {}
-	if bar_horizontal then
-		if bar_align == 0 then
-			-- centered line
-			rect = { (facRect[1] + facRect[3]) / 2, facRect[2], (facRect[1] + facRect[3]) / 2, facRect[4] }
-		elseif (bar_align > 0) then
-			-- left line
-			rect = { facRect[1], facRect[2], facRect[1], facRect[4] }
-		else
-			--if (bar_align<0) then -- right line
-			rect = { facRect[3], facRect[2], facRect[3], facRect[4] }
-		end
-	else
-		if bar_align == 0 then
-			-- centered line
-			rect = { facRect[1], (facRect[2] + facRect[4]) / 2, facRect[3], (facRect[2] + facRect[4]) / 2 }
-		elseif (bar_align > 0) then
-			-- bottom line
-			rect = { facRect[1], facRect[4], facRect[3], facRect[4] }
-		else
-			--if (bar_align<0) then -- top line
-			rect = { facRect[1], facRect[2], facRect[3], facRect[2] }
-		end
-	end
-	DrawLineRect(rect, { 1, 0, 0, 0.5 })
-end
-
-function widget:TweakIsAbove(x, y)
-	TweakAbove = self:IsAbove(x, y)
-	return TweakAbove
-end
-
-function widget:TweakGetTooltip(x, y)
-	return 'Click + Drag:  move\n\n' ..
-		'Mouse wheel:  in-/decrease iconsize\n' ..
-		'Single Middle Click:  change alignment\n' ..
-		'Single Left\\Right  Click:  raise\\lower\n'
-end
-
-function widget:TweakMousePress(x, y, button)
-	if (TweakAbove) then
-		TweakMousePressed = true
-		TweakPressedPos_X, TweakPressedPos_Y = x, y
-		return true
-	end
-	return false
-end
-
-function widget:TweakMouseRelease(x, y, button)
-	TweakPressedPos_X, TweakPressedPos_Y = 0, 0
-	if (TweakMousePressed) and (TweakAbove) then
-		TweakMousePressed = false
-		if not TweakMouseMoved then
-			TweakMouseMoved = false
-			if (button == 1) then
-				widgetHandler:RaiseWidget()
-				Spring.Echo("widget raised")
-				return true
-			elseif (button == 3) then
-				widgetHandler:LowerWidget()
-				Spring.Echo("widget lowered")
-				return true
-			elseif (button == 2) then
-				bar_align = bar_align + 1
-				if bar_align > 1 then
-					bar_align = -1
-				end
-			end
-		else
-		end
-	end
-	TweakMousePressed = false
-	TweakMouseMoved = false
-	return false
-end
-
-function widget:TweakMouseMove(x, y, dx, dy, button)
-	if TweakMousePressed then
-		TweakMouseMoved = true
-		if bar_horizontal then
-			bar_offset = bar_offset + dx
-
-			if math.abs(TweakPressedPos_Y - y) > 100 then
-				local bar_center = (facRect[1] + facRect[3]) / 2
-				if bar_center > 0.5 * vsx then
-					bar_side = 1
-				else
-					bar_side = 0
-				end
-				TweakPressedPos_X = x
-				TweakPressedPos_Y = 0
-				bar_offset = y - 0.5 * vsy
-				SetupNewScreenAlignment()
-			end
-		else
-			bar_offset = bar_offset + dy
-			if math.abs(TweakPressedPos_X - x) > 100 then
-				local bar_center = (facRect[2] + facRect[4]) / 2
-				if bar_center > 0.5 * vsy then
-					bar_side = 3
-				else
-					bar_side = 2
-				end
-				TweakPressedPos_X = 0
-				TweakPressedPos_Y = y
-				bar_offset = x - 0.5 * vsx
-				SetupNewScreenAlignment()
-			end
-		end
-	end
-end
-
-function widget:TweakMouseWheel(up, value)
-	-- you can resize the icons with the mousewheel
-	if (hoveredFac + hoveredBOpt >= -1) then
-		if up then
-			bar_iconSizeBase = math.max(bar_iconSizeBase + 3, 40)
-		else
-			bar_iconSizeBase = math.max(bar_iconSizeBase - 3, 40)
-		end
-
-		UpdateIconSizes()
-		SetupNewScreenAlignment()
-
-		return true
 	end
 	return false
 end
