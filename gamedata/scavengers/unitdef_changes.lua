@@ -442,6 +442,34 @@ customDefs.armwar = {
 	},
 }
 
+customDefs.armshltx = {
+	buildoptions = {
+		[7] = "armstumpboss",
+		[8] = "armsptkboss",
+		[9] = "armpwboss",
+	},
+}
+
+customDefs.armshltxuw = {
+	buildoptions = {
+		[4] = "armstumpboss",
+		[5] = "armpwboss",
+	},
+}	
+
+customDefs.corgant = {
+	buildoptions = {
+		[7] = "corcrwboss",
+	},
+}	
+
+customDefs.corgantuw = {
+	buildoptions = {
+		[5] = "corcrwboss",
+	},
+}	
+
+
 -- Cloaked Radar
 
 customDefs.armrad = {
