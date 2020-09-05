@@ -41,8 +41,8 @@ return {
 		turnrate = 382.5,
 		waterline = 0,
 		customparams = {
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships",
+			normaltex = "unittextures/Core_normal.dds",
+			subfolder = "coreships",
 		},
 		featuredefs = {
 			dead = {
@@ -132,7 +132,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0.4,
 				range = 480,
-				reloadtime = 0.93333,
+				reloadtime = 0.8,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
 				soundstart = "cannon1",
@@ -141,7 +141,7 @@ return {
 				weaponvelocity = 340,
 				damage = {
 					bombers = 31,
-					default = 100,
+					default = 96,
 					fighters = 31,
 					subs = 7,
 					vtol = 31,

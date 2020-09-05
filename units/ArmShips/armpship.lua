@@ -131,7 +131,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0.4,
 				range = 470,
-				reloadtime = 1.8,
+				reloadtime = 1.2,
 				size = 2,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
@@ -141,7 +141,7 @@ return {
 				weaponvelocity = 290,
 				damage = {
 					bombers = 37,
-					default = 100,
+					default =  70,
 					fighters = 37,
 					subs = 7,
 					vtol = 37,
