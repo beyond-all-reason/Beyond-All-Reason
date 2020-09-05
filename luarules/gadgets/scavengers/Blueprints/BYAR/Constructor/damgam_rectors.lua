@@ -19,7 +19,7 @@ local nameSuffix = '_scav'
 --table.insert(ScavengerConstructorBlueprintsT0,CopyPasteFunction)
 
 local function DamIceRezzersSmall(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 32
+    local posradius = 64
     local r = math_random(0,1)
         if radiusCheck then
             return posradius
@@ -43,7 +43,7 @@ table.insert(ScavengerConstructorBlueprintsT2,DamIceRezzersSmall)
 --table.insert(ScavengerConstructorBlueprintsT3,DamIceRezzersSmall)
 
 local function DamIceRezzersBig(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 64
+    local posradius = 128
     local r = math_random(0,1)
         if radiusCheck then
             return posradius
@@ -91,7 +91,7 @@ table.insert(ScavengerConstructorBlueprintsT3,DamIceRezzersBig)
 -- table.insert(ScavengerConstructorBlueprintsT3,DamArmRectorsSmall)
 
 local function DamArmRectorsBig(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 80
+    local posradius = 160
     if radiusCheck then
         return posradius
     else
@@ -126,7 +126,7 @@ table.insert(ScavengerConstructorBlueprintsT3,DamArmRectorsBig)
 -- table.insert(ScavengerConstructorBlueprintsT3,DamCorNecrosSmall)
 
 local function DamCorNecrosBig(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 80
+    local posradius = 160
     if radiusCheck then
         return posradius
     else

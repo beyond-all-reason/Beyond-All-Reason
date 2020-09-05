@@ -448,6 +448,8 @@ customDefs.armshltx = {
 		[numBuildoptions+1] = "armstumpboss",
 		[numBuildoptions+2] = "armsptkboss",
 		[numBuildoptions+3] = "armpwboss",
+		[numBuildoptions+4] = "armvaderboss",
+		[numBuildoptions+5] = "armfepoch",
 	},
 }
 
@@ -456,6 +458,8 @@ customDefs.armshltxuw = {
 	buildoptions = {
 		[numBuildoptions+1] = "armstumpboss",
 		[numBuildoptions+2] = "armpwboss",
+		[numBuildoptions+3] = "armvaderboss",
+		[numBuildoptions+4] = "armfepoch",
 	},
 }
 
@@ -464,6 +468,7 @@ customDefs.corgant = {
 	buildoptions = {
 		[numBuildoptions+1] = "corcrwboss",
 		[numBuildoptions+2] = "coracaboss",
+		[numBuildoptions+3] = "corfblackhy",
 	},
 }
 
@@ -472,6 +477,7 @@ customDefs.corgantuw = {
 	buildoptions = {
 		[numBuildoptions+1] = "corcrwboss",
 		[numBuildoptions+2] = "coracaboss",
+		[numBuildoptions+3] = "corfblackhy",
 	},
 }
 

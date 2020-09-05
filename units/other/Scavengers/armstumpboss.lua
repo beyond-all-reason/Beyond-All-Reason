@@ -2,8 +2,8 @@ return {
 	armstumpboss = {
 		acceleration = 0.0138,
 		brakerate = 0.08759,
-		buildcostenergy = 2000000,
-		buildcostmetal = 225000,
+		buildcostenergy = 350000,
+		buildcostmetal = 35000,
 		buildpic = "scavengers/ARMSTUMPBOSS.PNG",
 		buildtime = 2904000,
 		canmove = true,

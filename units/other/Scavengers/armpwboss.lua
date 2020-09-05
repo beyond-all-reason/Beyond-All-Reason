@@ -2,8 +2,8 @@ return {
 	armpwboss = {
 		acceleration = 0.414,
 		brakerate = 0.69,
-		buildcostenergy = 4500000,
-		buildcostmetal = 240000,
+		buildcostenergy = 150000,
+		buildcostmetal = 15000,
 		buildpic = "scavengers/ARMPWBOSS.PNG",
 		buildtime = 700000,
 		canmove = true,

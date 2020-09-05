@@ -2,8 +2,8 @@ return {
 	armsptkboss = {
 		acceleration = 0.207,
 		brakerate = 0.6486,
-		buildcostenergy = 2250000,
-		buildcostmetal = 120000,
+		buildcostenergy = 120000,
+		buildcostmetal = 12000,
 		buildpic = "scavengers/ARMSPTKBOSS.PNG",
 		buildtime = 8775,
 		canmove = true,
