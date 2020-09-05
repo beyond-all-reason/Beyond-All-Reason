@@ -485,7 +485,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 				if constructorControllerModuleConfig.usecollectors then
 					for i = 1,#Collectors do
 						if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Collectors[i] then
-							if math_random(0,100) <= 90 then
+							if math_random(0,100) <= 10 then
 								scavCollector[unitID] = true
 							else
 								scavReclaimer[unitID] = true
@@ -617,7 +617,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if constructorControllerModuleConfig.usecollectors then
 				for i = 1,#Collectors do
 					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Collectors[i] then
-						if math_random(0,100) <= 90 then
+						if math_random(0,100) <= 10 then
 							scavCollector[unitID] = true
 						else
 							scavReclaimer[unitID] = true
