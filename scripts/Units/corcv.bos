@@ -200,46 +200,46 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rdoor type BITMAPONLY | NOHEATCLOUD;
-		explode container type BITMAPONLY | NOHEATCLOUD;
+		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rdoor type BITMAPONLY | NOHEATCLOUD;
+		//explode container type BITMAPONLY | NOHEATCLOUD;
 		explode cabin type BITMAPONLY | NOHEATCLOUD;
 		explode ltyre type BITMAPONLY | NOHEATCLOUD;
-		explode rtyre type BITMAPONLY | NOHEATCLOUD;
+		//explode rtyre type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode container type FALL | NOHEATCLOUD;
 		explode cabin type FALL | NOHEATCLOUD;
 		explode ltyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode container type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode cabin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ltyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rdoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rdoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode container type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode cabin type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode ltyre type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rtyre type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rtyre type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
 

@@ -157,10 +157,10 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode gun type BITMAPONLY | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
+		//explode gun type BITMAPONLY | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		explode lfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfwheel type BITMAPONLY | NOHEATCLOUD;
+		//explode rfwheel type BITMAPONLY | NOHEATCLOUD;
 		explode bwheels type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -168,10 +168,10 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode gun type FALL | NOHEATCLOUD;
-		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode gun type FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode bwheels type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -179,19 +179,19 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode gun type SMOKE | FALL | NOHEATCLOUD;
-		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode gun type SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bwheels type SMOKE | FALL | NOHEATCLOUD;
+		//explode bwheels type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lfwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode bwheels type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

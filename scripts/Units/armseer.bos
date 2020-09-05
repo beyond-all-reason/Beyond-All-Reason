@@ -127,9 +127,9 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode fwheel type BITMAPONLY | NOHEATCLOUD;
-		explode rwheel type BITMAPONLY | NOHEATCLOUD;
+		//explode rwheel type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode eye type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode eye type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -140,7 +140,7 @@ Killed(severity, corpsetype)
 		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode eye type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode eye type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -151,7 +151,7 @@ Killed(severity, corpsetype)
 		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode eye type SMOKE | FALL | NOHEATCLOUD;
+		//explode eye type SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -160,7 +160,7 @@ Killed(severity, corpsetype)
 		explode fwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode eye type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode eye type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

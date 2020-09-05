@@ -304,15 +304,15 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode lforeleg type BITMAPONLY | NOHEATCLOUD;
 		explode lhindleg type BITMAPONLY | NOHEATCLOUD;
-		explode rforeleg type BITMAPONLY | NOHEATCLOUD;
-		explode rhindleg type BITMAPONLY | NOHEATCLOUD;
+		//explode rforeleg type BITMAPONLY | NOHEATCLOUD;
+		//explode rhindleg type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		explode lbeamhinge type BITMAPONLY | NOHEATCLOUD;
-		explode lbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lnano type BITMAPONLY | NOHEATCLOUD;
-		explode rbeamhinge type BITMAPONLY | NOHEATCLOUD;
-		explode rbeamcase type BITMAPONLY | NOHEATCLOUD;
-		explode rnano type BITMAPONLY | NOHEATCLOUD;
+		//explode lbeamhinge type BITMAPONLY | NOHEATCLOUD;
+		//explode lbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lnano type BITMAPONLY | NOHEATCLOUD;
+		//explode rbeamhinge type BITMAPONLY | NOHEATCLOUD;
+		//explode rbeamcase type BITMAPONLY | NOHEATCLOUD;
+		//explode rnano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -320,16 +320,16 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode pelvis type FALL | NOHEATCLOUD;
 		explode lforeleg type FALL | NOHEATCLOUD;
-		explode lhindleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rforeleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lhindleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rforeleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rhindleg type FALL | NOHEATCLOUD;
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbeamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lnano type FALL | NOHEATCLOUD;
-		explode rbeamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rnano type FALL | NOHEATCLOUD;
+		//explode lbeamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lnano type FALL | NOHEATCLOUD;
+		//explode rbeamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rnano type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -338,29 +338,29 @@ Killed(severity, corpsetype)
 		explode pelvis type SMOKE | FALL | NOHEATCLOUD;
 		explode lforeleg type SMOKE | FALL | NOHEATCLOUD;
 		explode lhindleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rforeleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rforeleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rhindleg type SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbeamhinge type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode lbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbeamhinge type SMOKE | FALL | NOHEATCLOUD;
-		explode rbeamcase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode rnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode lbeamhinge type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode lbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rbeamhinge type SMOKE | FALL | NOHEATCLOUD;
+		//explode rbeamcase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode rnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lforeleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lhindleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rforeleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rforeleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rhindleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lbeamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbeamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rnano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lbeamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rbeamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rnano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -497,7 +497,7 @@ Killed(severity, corpsetype)
 		explode Lbarrel type FALL | BITMAP4 | NOHEATCLOUD;
 		explode lflare type FALL | BITMAP1 | NOHEATCLOUD;
 		explode Rbarrel type FALL | BITMAP3 | NOHEATCLOUD;
-		explode rflare type FALL | BITMAP4 | NOHEATCLOUD;
+		//explode rflare type FALL | BITMAP4 | NOHEATCLOUD;
 		explode turret type FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
@@ -507,7 +507,7 @@ Killed(severity, corpsetype)
 		explode Lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode lflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode Rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode rflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		//explode rflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
@@ -515,7 +515,7 @@ Killed(severity, corpsetype)
 	explode Lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode lflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode Rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode rflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	//explode rflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return (corpsetype);
 }
