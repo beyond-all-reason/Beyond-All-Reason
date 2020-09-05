@@ -252,8 +252,8 @@ Killed(severity, corpsetype)
 		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nanoturret type BITMAPONLY | NOHEATCLOUD;
-		explode nanoemit type BITMAPONLY | NOHEATCLOUD;
+		//explode nanoturret type BITMAPONLY | NOHEATCLOUD;
+		//explode nanoemit type BITMAPONLY | NOHEATCLOUD;
 		explode door2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -263,8 +263,8 @@ Killed(severity, corpsetype)
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nanoturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nanoemit type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoemit type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -275,7 +275,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nanoturret type SMOKE | FALL | NOHEATCLOUD;
-		explode nanoemit type SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoemit type SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -284,7 +284,7 @@ Killed(severity, corpsetype)
 		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nanoturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nanoemit type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode nanoemit type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
