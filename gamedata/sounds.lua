@@ -75,6 +75,9 @@ for i=1,#files do
    if string.sub(fileNames, 1, 4) == "lasr" then
     t[fileNames].pitchmod = 0
     end
+   if string.sub(fileNames, 1, 4) == "mgun" then
+    t[fileNames].pitchmod = 0.08
+    end 
    if string.sub(fileNames, 1, 7) == "xplolrg" then
     t[fileNames].pitchmod = 0.3
     end
