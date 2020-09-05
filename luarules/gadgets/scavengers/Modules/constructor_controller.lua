@@ -38,7 +38,7 @@ function ReclaimerOrders(n, scav)
 	local nearestenemy = Spring.GetUnitNearestEnemy(scav, 999999, false)
 	Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{nearestenemy}, 0)
 	local x,y,z = Spring.GetUnitPosition(nearestenemy)
-	Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+	Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"meta", "shift", "alt"})
 end
 
 function SpawnConstructor(n)

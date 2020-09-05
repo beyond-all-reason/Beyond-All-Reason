@@ -255,7 +255,7 @@ function gadget:GameFrame(n)
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
 				local scavDef = Spring.GetUnitDefID(scav)
-				local collectorRNG = math_random(0,5)
+				local collectorRNG = math_random(0,2)
 
 				if n%300 == 0 and scavconfig.modules.stockpilers == true then
 					if scavStockpiler[scav] == true then
