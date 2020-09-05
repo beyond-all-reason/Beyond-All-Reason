@@ -909,8 +909,10 @@ function widget:Update(dt)
 			-- setup next icon pos
 			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
-		dlists[1] = gl.CreateList(DrawBackground)
-		dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
+		if factoriesArea then
+			dlists[1] = gl.CreateList(DrawBackground)
+			dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
+		end
 	end
 end
 

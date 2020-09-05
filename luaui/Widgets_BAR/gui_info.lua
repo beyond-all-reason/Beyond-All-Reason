@@ -180,6 +180,7 @@ local unitReloadTime = {}
 local unitEnergyPerShot = {}
 local unitMetalPerShot = {}
 local unitCanStockpile = {}
+local unitStealth = {}
 local unitLosRadius = {}
 local unitAirLosRadius = {}
 local unitRadarRadius = {}
@@ -209,6 +210,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.rSpeed > 0 then
 		unitReverseSpeed[unitDefID] = round(unitDef.rSpeed, 0)
+	end
+	if unitDef.stealth then
+		unitStealth[unitDefID] = true
 	end
 	if unitDef.customParams.description_long then
 		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
@@ -1083,6 +1087,7 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
+
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.95 - ((1 - ui_scale) * 0.5))
 
@@ -1371,6 +1376,10 @@ local function drawUnitInfo()
 			end
 		end
 
+		--if unitStealth[displayUnitDefID] then
+		--	addTextInfo('stealthy', '')
+		--end
+
 		if unitSpeed[displayUnitDefID] then
 			addTextInfo('speed', unitSpeed[displayUnitDefID])
 		end
@@ -1438,7 +1447,7 @@ local function drawUnitInfo()
 			addTextInfo('convertorMetal', round(unitMetalmaker[displayUnitDefID][1] / (1 / unitMetalmaker[displayUnitDefID][2]), 1))
 		end
 
-		local text, numLines = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
+		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
 		local lines = lines(text)
@@ -1459,6 +1468,10 @@ local function drawUnitInfo()
 		font:End()
 
 	end
+end
+
+local function pruneLines()
+
 end
 
 local function drawEngineTooltip()
