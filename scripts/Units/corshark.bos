@@ -96,7 +96,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode torp2 type FALL | NOHEATCLOUD;
 		explode torp1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -105,13 +105,13 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torp2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torp2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

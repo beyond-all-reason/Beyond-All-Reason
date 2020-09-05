@@ -266,15 +266,15 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | NOHEATCLOUD;
 		explode door3 type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode arm1 type BITMAPONLY | NOHEATCLOUD;
-		explode arm2 type BITMAPONLY | NOHEATCLOUD;
-		explode arm3 type BITMAPONLY | NOHEATCLOUD;
-		explode arm4 type BITMAPONLY | NOHEATCLOUD;
-		explode arm5 type BITMAPONLY | NOHEATCLOUD;
-		explode arm6 type BITMAPONLY | NOHEATCLOUD;
-		explode arm7 type BITMAPONLY | NOHEATCLOUD;
-		explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode link type BITMAPONLY | NOHEATCLOUD;
+		//explode arm1 type BITMAPONLY | NOHEATCLOUD;
+		//explode arm2 type BITMAPONLY | NOHEATCLOUD;
+		//explode arm3 type BITMAPONLY | NOHEATCLOUD;
+		//explode arm4 type BITMAPONLY | NOHEATCLOUD;
+		//explode arm5 type BITMAPONLY | NOHEATCLOUD;
+		//explode arm6 type BITMAPONLY | NOHEATCLOUD;
+		//explode arm7 type BITMAPONLY | NOHEATCLOUD;
+		//explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode link type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -285,15 +285,15 @@ Killed(severity, corpsetype)
 		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm1 type FALL | NOHEATCLOUD;
-		explode arm2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm3 type FALL | NOHEATCLOUD;
-		explode arm4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm5 type FALL | NOHEATCLOUD;
-		explode arm6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm7 type FALL | NOHEATCLOUD;
-		explode magnet type FALL | NOHEATCLOUD;
-		explode link type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm1 type FALL | NOHEATCLOUD;
+		//explode arm2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm3 type FALL | NOHEATCLOUD;
+		//explode arm4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm5 type FALL | NOHEATCLOUD;
+		//explode arm6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm7 type FALL | NOHEATCLOUD;
+		//explode magnet type FALL | NOHEATCLOUD;
+		//explode link type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -305,15 +305,15 @@ Killed(severity, corpsetype)
 		explode door2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode door3 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode arm2 type SMOKE | FALL | NOHEATCLOUD;
-		explode arm3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm4 type SMOKE | FALL | NOHEATCLOUD;
-		explode arm5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm6 type SMOKE | FALL | NOHEATCLOUD;
-		explode arm7 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode link type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm2 type SMOKE | FALL | NOHEATCLOUD;
+		//explode arm3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm4 type SMOKE | FALL | NOHEATCLOUD;
+		//explode arm5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm6 type SMOKE | FALL | NOHEATCLOUD;
+		//explode arm7 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode magnet type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode link type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -323,14 +323,14 @@ Killed(severity, corpsetype)
 		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode arm1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode arm2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode arm3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode arm4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm5 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode arm6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode arm7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode magnet type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode link type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode arm1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode arm2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode arm3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode arm4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm5 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode arm6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode arm7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode magnet type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode link type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

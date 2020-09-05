@@ -42,7 +42,7 @@ local unitMaxZ = {}
 local unitMaxY = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if not ignoreUnits[unitDef.name] then
-		unitNumFx[unitDefID] = math.floor(unitDef.metalCost/170)
+		unitNumFx[unitDefID] = math.min(1 + math.ceil(unitDef.metalCost/250), 30)
 		unitMinX[unitDefID] = unitDef.model.minx
 		unitMaxX[unitDefID] = unitDef.model.maxx
 		unitMinZ[unitDefID] = unitDef.model.minz
@@ -120,7 +120,7 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 			local x,y,z = fx,fy,fz
 			local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
 			if me ~= nil and me > 0 then
-				local numFx = math.floor(me/250)
+				local numFx = math.max(math.floor(me/250), 15)
 				local posMultiplier = 0.5
 				Spring.SpawnCEG("energyshards1", x, y, z)
 				for i=1, numFx, 1 do
@@ -132,7 +132,7 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 			end
 			if mm ~= nil and mm > 0 then
-				local numFx = math.floor(mm/90)
+				local numFx = math.max(math.floor(mm/90), 15)
 				local posMultiplier = 0.5
 				Spring.SpawnCEG("metalshards1", x, y, z)
 				for i=1, numFx, 1 do

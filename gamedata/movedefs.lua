@@ -414,7 +414,7 @@ local moveDatas = {
 		footprintx = 0,
 		footprintz = 0,
 		maxslope = 100,
-		maxwaterdepth = 5000,
+		maxwaterdepth = 9999,
 		maxwaterslope = 55,
 	},
 	

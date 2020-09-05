@@ -159,10 +159,10 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode tail type BITMAPONLY | NOHEATCLOUD;
+		//explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		//explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		//explode tail type BITMAPONLY | NOHEATCLOUD;
 		explode head type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -171,10 +171,10 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
-		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tail type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode tail type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -183,10 +183,10 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type SMOKE | FALL | NOHEATCLOUD;
-		explode sleeve type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode sleeve type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tail type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode tail type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -195,8 +195,8 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tail type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode tail type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

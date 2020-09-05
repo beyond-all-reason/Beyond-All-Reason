@@ -326,13 +326,13 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret2 type BITMAPONLY | NOHEATCLOUD;
 		explode launcher2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare21 type BITMAPONLY | NOHEATCLOUD;
-		explode flare22 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare21 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare22 type BITMAPONLY | NOHEATCLOUD;
 		explode door2 type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode flare11 type BITMAPONLY | NOHEATCLOUD;
-		explode flare12 type BITMAPONLY | NOHEATCLOUD;
-		explode flare13 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare11 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare12 type BITMAPONLY | NOHEATCLOUD;
+		//explode flare13 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -342,13 +342,13 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode launcher2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare21 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare22 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare21 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare22 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type FALL | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare11 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare12 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare13 type FALL | NOHEATCLOUD;
+		//explode flare11 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare12 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare13 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -358,13 +358,13 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret2 type SMOKE | FALL | NOHEATCLOUD;
 		explode launcher2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode flare21 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode flare22 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare21 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare22 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type SMOKE | FALL | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare11 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare12 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare13 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare11 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare12 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare13 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -372,12 +372,12 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode launcher2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare21 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare22 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare21 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare22 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare11 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare12 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare13 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare11 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare12 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare13 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

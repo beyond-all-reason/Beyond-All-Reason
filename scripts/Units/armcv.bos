@@ -189,11 +189,11 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type BITMAPONLY | NOHEATCLOUD;
+		//explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode doorr type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode nano1 type BITMAPONLY | NOHEATCLOUD;
-		explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		//explode nano2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -201,10 +201,10 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode nano1 type FALL | NOHEATCLOUD;
-		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -212,18 +212,18 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode doorl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode doorr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

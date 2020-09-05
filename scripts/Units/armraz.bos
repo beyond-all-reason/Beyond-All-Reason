@@ -418,31 +418,14 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	return (0);
 }
 
-
-#define BASEPIECE torso
-#define HITSPEED <45.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 10
-#define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+HitByWeapon(anglex, anglez)
 {
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
+	turn pelvis to z-axis anglez speed <55.000000>;
+	turn pelvis to x-axis <0> - anglex speed <55.000000>;
+	wait-for-turn pelvis around z-axis;
+	wait-for-turn pelvis around x-axis;
+	turn pelvis to z-axis <0.000000> speed <15.000000>;
+	turn pelvis to x-axis <0.000000> speed <15.000000>;
 }
 
 Create()
@@ -586,25 +569,25 @@ Killed(severity, corpsetype)
 		explode rrfinger type BITMAPONLY | NOHEATCLOUD;
 		explode rlfinger type BITMAPONLY | NOHEATCLOUD;
 		explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		explode lleg type BITMAPONLY | NOHEATCLOUD;
-		explode lfoot type BITMAPONLY | NOHEATCLOUD;
-		explode llfinger type BITMAPONLY | NOHEATCLOUD;
-		explode lrfinger type BITMAPONLY | NOHEATCLOUD;
+		//explode lleg type BITMAPONLY | NOHEATCLOUD;
+		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
+		//explode llfinger type BITMAPONLY | NOHEATCLOUD;
+		//explode lrfinger type BITMAPONLY | NOHEATCLOUD;
 		explode aimy1 type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		explode aimx1 type BITMAPONLY | NOHEATCLOUD;
-		explode ruparm type BITMAPONLY | NOHEATCLOUD;
-		explode rblimb type BITMAPONLY | NOHEATCLOUD;
-		explode rflimb type BITMAPONLY | NOHEATCLOUD;
-		explode rcannon type BITMAPONLY | NOHEATCLOUD;
-		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare type BITMAPONLY | NOHEATCLOUD;
-		explode luparm type BITMAPONLY | NOHEATCLOUD;
-		explode lblimb type BITMAPONLY | NOHEATCLOUD;
-		explode lflimb type BITMAPONLY | NOHEATCLOUD;
-		explode lcannon type BITMAPONLY | NOHEATCLOUD;
-		explode lbarrel type BITMAPONLY | NOHEATCLOUD;
-		explode lflare type BITMAPONLY | NOHEATCLOUD;
+		//explode aimx1 type BITMAPONLY | NOHEATCLOUD;
+		//explode ruparm type BITMAPONLY | NOHEATCLOUD;
+		//explode rblimb type BITMAPONLY | NOHEATCLOUD;
+		//explode rflimb type BITMAPONLY | NOHEATCLOUD;
+		//explode rcannon type BITMAPONLY | NOHEATCLOUD;
+		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rflare type BITMAPONLY | NOHEATCLOUD;
+		//explode luparm type BITMAPONLY | NOHEATCLOUD;
+		//explode lblimb type BITMAPONLY | NOHEATCLOUD;
+		//explode lflimb type BITMAPONLY | NOHEATCLOUD;
+		//explode lcannon type BITMAPONLY | NOHEATCLOUD;
+		//explode lbarrel type BITMAPONLY | NOHEATCLOUD;
+		//explode lflare type BITMAPONLY | NOHEATCLOUD;
 		return(0);
 	}
 	if( severity <= 50 )
@@ -619,22 +602,22 @@ Killed(severity, corpsetype)
 		explode lthigh type FALL | NOHEATCLOUD;
 		explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode llfinger type FALL | NOHEATCLOUD;
-		explode lrfinger type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode aimy1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode aimx1 type FALL | NOHEATCLOUD;
-		explode ruparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rblimb type FALL | NOHEATCLOUD;
-		explode rflimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rcannon type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare type FALL | NOHEATCLOUD;
-		explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lblimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lflimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lcannon type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode llfinger type FALL | NOHEATCLOUD;
+		//explode lrfinger type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode aimy1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode aimx1 type FALL | NOHEATCLOUD;
+		//explode ruparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rblimb type FALL | NOHEATCLOUD;
+		//explode rflimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rcannon type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rflare type FALL | NOHEATCLOUD;
+		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lblimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lflimb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lcannon type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(0);
 	}
 	if( severity <= 99 )
@@ -653,19 +636,19 @@ Killed(severity, corpsetype)
 		explode lrfinger type SHATTER;
 		explode aimy1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode torso type BITMAPONLY;
-		explode aimx1 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode ruparm type FIRE | SMOKE | FALL;
-		explode rblimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rflimb type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode rcannon type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode luparm type FIRE | SMOKE | FALL;
-		explode lblimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lflimb type FIRE | SMOKE | FALL;
-		explode lcannon type FIRE | SMOKE | FALL;
-		explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		//explode aimx1 type EXPLODE_ON_HIT | SMOKE | FALL;
+		//explode ruparm type FIRE | SMOKE | FALL;
+		//explode rblimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		//explode rflimb type EXPLODE_ON_HIT | SMOKE | FALL;
+		//explode rcannon type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		//explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		//explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		//explode luparm type FIRE | SMOKE | FALL;
+		//explode lblimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		//explode lflimb type FIRE | SMOKE | FALL;
+		//explode lcannon type FIRE | SMOKE | FALL;
+		//explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		return(0);
 	}
 	corpsetype = 3 ;
@@ -682,17 +665,17 @@ Killed(severity, corpsetype)
 		explode lrfinger type SHATTER | NOHEATCLOUD;
 		explode aimy1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode aimx1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rblimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rflimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rcannon type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lblimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lflimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lcannon type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode aimx1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rblimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rflimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rcannon type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lblimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lflimb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lcannon type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 }

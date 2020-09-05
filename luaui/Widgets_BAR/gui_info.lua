@@ -86,7 +86,6 @@ local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
 
-
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_min = math.min
@@ -181,6 +180,7 @@ local unitReloadTime = {}
 local unitEnergyPerShot = {}
 local unitMetalPerShot = {}
 local unitCanStockpile = {}
+local unitStealth = {}
 local unitLosRadius = {}
 local unitAirLosRadius = {}
 local unitRadarRadius = {}
@@ -210,6 +210,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.rSpeed > 0 then
 		unitReverseSpeed[unitDefID] = round(unitDef.rSpeed, 0)
+	end
+	if unitDef.stealth then
+		unitStealth[unitDefID] = true
 	end
 	if unitDef.customParams.description_long then
 		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
@@ -513,6 +516,12 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG['info'] = {}
+	WG['info'].displayUnitID = function(unitID)
+		cfgDisplayUnitID = unitID
+	end
+	WG['info'].clearDisplayUnitID = function()
+		cfgDisplayUnitID = nil
+	end
 	WG['info'].getPosition = function()
 		return width, height
 	end
@@ -584,7 +593,7 @@ function widget:Update(dt)
 			glossMult = 1 + (2 - (ui_opacity * 2))
 			doUpdate = true
 		end
-		if not rankTextures and WG['rankicons']  then
+		if not rankTextures and WG['rankicons'] then
 			rankTextures = WG['rankicons'].getRankTextures()
 		end
 	end
@@ -1078,6 +1087,7 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
+
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.95 - ((1 - ui_scale) * 0.5))
 
@@ -1097,10 +1107,8 @@ local function drawUnitInfo()
 	end
 	iconSize = iconSize + iconPadding
 
-
 	local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
 	local text, unitDescriptionLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth - iconSize) * (loadedFontSize / fontSize))
-
 
 	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
 	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
@@ -1342,15 +1350,15 @@ local function drawUnitInfo()
 			local reloadTime = 1
 			if exp and exp > 0.009 then
 				addTextInfo('xp', round(exp, 2))
-				addTextInfo('max-health', '+'..round((maxHealth/unitHealth[displayUnitDefID]-1)*100, 0)..'%')
+				addTextInfo('max-health', '+' .. round((maxHealth / unitHealth[displayUnitDefID] - 1) * 100, 0) .. '%')
 				reloadTime = spGetUnitWeaponState(displayUnitID, unitMainWeapon[displayUnitDefID], 'reloadTimeXP')
-				reloadTime = tonumber(round((1-(reloadTime/unitReloadTime[displayUnitDefID]))*100, 0))
+				reloadTime = tonumber(round((1 - (reloadTime / unitReloadTime[displayUnitDefID])) * 100, 0))
 				if reloadTime > 0 then
-					addTextInfo('reload', '-'..reloadTime..'%')
+					addTextInfo('reload', '-' .. reloadTime .. '%')
 				end
 			end
 			if dps then
-				dps = round(dps + (dps*(reloadTime/100)), 0)
+				dps = round(dps + (dps * (reloadTime / 100)), 0)
 				addTextInfo('dps', dps)
 			end
 
@@ -1368,6 +1376,9 @@ local function drawUnitInfo()
 			end
 		end
 
+		--if unitStealth[displayUnitDefID] then
+		--	addTextInfo('stealthy', '')
+		--end
 
 		if unitSpeed[displayUnitDefID] then
 			addTextInfo('speed', unitSpeed[displayUnitDefID])
@@ -1436,7 +1447,7 @@ local function drawUnitInfo()
 			addTextInfo('convertorMetal', round(unitMetalmaker[displayUnitDefID][1] / (1 / unitMetalmaker[displayUnitDefID][2]), 1))
 		end
 
-		local text, numLines = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
+		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
 		local lines = lines(text)
@@ -1457,6 +1468,10 @@ local function drawUnitInfo()
 		font:End()
 
 	end
+end
+
+local function pruneLines()
+
 end
 
 local function drawEngineTooltip()
@@ -1784,6 +1799,15 @@ function checkChanges()
 	if WG['buildmenu'] and (WG['buildmenu'].hoverID or WG['buildmenu'].selectedID) then
 		displayMode = 'unitdef'
 		displayUnitDefID = WG['buildmenu'].hoverID or WG['buildmenu'].selectedID
+
+	elseif cfgDisplayUnitID and Spring.ValidUnitID(cfgDisplayUnitID) then
+		displayMode = 'unit'
+		displayUnitID = cfgDisplayUnitID
+		displayUnitDefID = spGetUnitDefID(displayUnitID)
+		if lastUpdateClock + 0.6 < os_clock() then
+			-- unit stats could have changed meanwhile
+			doUpdate = true
+		end
 
 		-- hovered unit
 	elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock() - lastHoverDataClock > 0.08 then

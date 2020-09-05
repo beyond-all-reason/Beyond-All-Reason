@@ -242,11 +242,11 @@ Killed(severity, corpsetype)
 		explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turretr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flarer type BITMAPONLY | NOHEATCLOUD;
+		//explode flarer type BITMAPONLY | NOHEATCLOUD;
 		explode turretaa type BITMAPONLY | NOHEATCLOUD;
-		explode flareaa type BITMAPONLY | NOHEATCLOUD;
+		//explode flareaa type BITMAPONLY | NOHEATCLOUD;
 		explode turretl type BITMAPONLY | NOHEATCLOUD;
-		explode flarel type BITMAPONLY | NOHEATCLOUD;
+		//explode flarel type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -255,11 +255,11 @@ Killed(severity, corpsetype)
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flarer type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flarer type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretaa type FALL | NOHEATCLOUD;
-		explode flareaa type FALL | NOHEATCLOUD;
+		//explode flareaa type FALL | NOHEATCLOUD;
 		explode turretl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flarel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flarel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -268,21 +268,21 @@ Killed(severity, corpsetype)
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type SMOKE | FALL | NOHEATCLOUD;
 		explode turretr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flarer type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flarer type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretaa type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flareaa type SMOKE | FALL | NOHEATCLOUD;
+		//explode flareaa type SMOKE | FALL | NOHEATCLOUD;
 		explode turretl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flarel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flarel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flarer type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flarer type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretaa type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flareaa type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flareaa type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flarel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flarel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

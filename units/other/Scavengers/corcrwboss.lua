@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		blocking = false,
 		brakerate = 0.275,
-		buildcostenergy = 100000,
+		buildcostenergy = 1000000,
 		buildcostmetal = 100000,
 		buildpic = "scavengers/CORCRWBOSS.PNG",
 		buildtime = 84229,

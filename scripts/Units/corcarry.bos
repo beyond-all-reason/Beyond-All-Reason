@@ -226,14 +226,14 @@ Killed(severity, corpsetype)
 		explode beam2 type BITMAPONLY | NOHEATCLOUD;
 		explode nano2 type BITMAPONLY | NOHEATCLOUD;
 		explode dish type BITMAPONLY | NOHEATCLOUD;
-		explode wake type BITMAPONLY | NOHEATCLOUD;
-		explode pad1 type BITMAPONLY | NOHEATCLOUD;
-		explode pad0 type BITMAPONLY | NOHEATCLOUD;
-		explode anti type BITMAPONLY | NOHEATCLOUD;
-		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dbr type BITMAPONLY | NOHEATCLOUD;
-		explode dtl type BITMAPONLY | NOHEATCLOUD;
-		explode dtr type BITMAPONLY | NOHEATCLOUD;
+		//explode wake type BITMAPONLY | NOHEATCLOUD;
+		//explode pad1 type BITMAPONLY | NOHEATCLOUD;
+		//explode pad0 type BITMAPONLY | NOHEATCLOUD;
+		//explode anti type BITMAPONLY | NOHEATCLOUD;
+		//explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type BITMAPONLY | NOHEATCLOUD;
+		//explode dtl type BITMAPONLY | NOHEATCLOUD;
+		//explode dtr type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -245,14 +245,14 @@ Killed(severity, corpsetype)
 		explode beam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wake type FALL | NOHEATCLOUD;
-		explode pad1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode pad0 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode anti type FALL | NOHEATCLOUD;
-		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dtl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dtr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type FALL | NOHEATCLOUD;
+		//explode pad1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode pad0 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode anti type FALL | NOHEATCLOUD;
+		//explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -264,14 +264,14 @@ Killed(severity, corpsetype)
 		explode beam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type SMOKE | FALL | NOHEATCLOUD;
-		explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode pad1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode pad0 type SMOKE | FALL | NOHEATCLOUD;
-		explode anti type SMOKE | FALL | NOHEATCLOUD;
-		explode dbl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dtl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode pad1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode pad0 type SMOKE | FALL | NOHEATCLOUD;
+		//explode anti type SMOKE | FALL | NOHEATCLOUD;
+		//explode dbl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -281,13 +281,13 @@ Killed(severity, corpsetype)
 		explode beam2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode pad1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode pad0 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode anti type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode dbl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode dbr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dtl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dtr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode pad1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode pad0 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode anti type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode dbl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode dbr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode dtr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

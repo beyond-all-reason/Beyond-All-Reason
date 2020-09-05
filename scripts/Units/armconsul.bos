@@ -215,17 +215,17 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode ltracks type BITMAPONLY | NOHEATCLOUD;
-		explode larm1 type BITMAPONLY | NOHEATCLOUD;
-		explode larm2 type BITMAPONLY | NOHEATCLOUD;
+		//explode larm1 type BITMAPONLY | NOHEATCLOUD;
+		//explode larm2 type BITMAPONLY | NOHEATCLOUD;
 		explode larm3 type BITMAPONLY | NOHEATCLOUD;
 		explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lnano type BITMAPONLY | NOHEATCLOUD;
-		explode rtracks type BITMAPONLY | NOHEATCLOUD;
-		explode rarm1 type BITMAPONLY | NOHEATCLOUD;
-		explode rarm2 type BITMAPONLY | NOHEATCLOUD;
-		explode rarm3 type BITMAPONLY | NOHEATCLOUD;
-		explode rturret type BITMAPONLY | NOHEATCLOUD;
-		explode rnano type BITMAPONLY | NOHEATCLOUD;
+		//explode lnano type BITMAPONLY | NOHEATCLOUD;
+		//explode rtracks type BITMAPONLY | NOHEATCLOUD;
+		//explode rarm1 type BITMAPONLY | NOHEATCLOUD;
+		//explode rarm2 type BITMAPONLY | NOHEATCLOUD;
+		//explode rarm3 type BITMAPONLY | NOHEATCLOUD;
+		//explode rturret type BITMAPONLY | NOHEATCLOUD;
+		//explode rnano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -233,17 +233,17 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode ltracks type FALL | NOHEATCLOUD;
-		explode larm1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode larm2 type FALL | NOHEATCLOUD;
+		//explode larm1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode larm2 type FALL | NOHEATCLOUD;
 		explode larm3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rtracks type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rnano type FALL | NOHEATCLOUD;
+		//explode lnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rtracks type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rnano type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -251,17 +251,17 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ltracks type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode larm1 type SMOKE | FALL | NOHEATCLOUD;
+		//explode larm1 type SMOKE | FALL | NOHEATCLOUD;
 		explode larm2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode larm3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lturret type SMOKE | FALL | NOHEATCLOUD;
-		explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rtracks type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rnano type SMOKE | FALL | NOHEATCLOUD;
+		//explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rtracks type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rnano type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -271,12 +271,12 @@ Killed(severity, corpsetype)
 		explode larm2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode larm3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rtracks type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rarm3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rtracks type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rarm3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

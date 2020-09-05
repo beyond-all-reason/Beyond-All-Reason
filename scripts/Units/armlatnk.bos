@@ -218,11 +218,11 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode mturret type BITMAPONLY | NOHEATCLOUD;
 		explode mbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode mflare type BITMAPONLY | NOHEATCLOUD;
-		explode wheels type BITMAPONLY | NOHEATCLOUD;
-		explode lturret type BITMAPONLY | NOHEATCLOUD;
-		explode lflare type BITMAPONLY | NOHEATCLOUD;
-		explode emit_spark type BITMAPONLY | NOHEATCLOUD;
+		//explode mflare type BITMAPONLY | NOHEATCLOUD;
+		//explode wheels type BITMAPONLY | NOHEATCLOUD;
+		//explode lturret type BITMAPONLY | NOHEATCLOUD;
+		//explode lflare type BITMAPONLY | NOHEATCLOUD;
+		//explode emit_spark type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -231,11 +231,11 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode mturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode mbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode mflare type FALL | NOHEATCLOUD;
+		//explode mflare type FALL | NOHEATCLOUD;
 		explode wheels type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lflare type FALL | NOHEATCLOUD;
-		explode emit_spark type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lflare type FALL | NOHEATCLOUD;
+		//explode emit_spark type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -244,21 +244,21 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode mturret type SMOKE | FALL | NOHEATCLOUD;
 		explode mbarrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode mflare type SMOKE | FALL | NOHEATCLOUD;
+		//explode mflare type SMOKE | FALL | NOHEATCLOUD;
 		explode wheels type SMOKE | FALL | NOHEATCLOUD;
-		explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode emit_spark type SMOKE | FALL | NOHEATCLOUD;
+		//explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode emit_spark type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode mturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode mbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode mflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode mflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode wheels type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode emit_spark type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode emit_spark type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -272,46 +272,46 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfleg type BITMAPONLY | NOHEATCLOUD;
-		explode rfleg type BITMAPONLY | NOHEATCLOUD;
-		explode rrleg type BITMAPONLY | NOHEATCLOUD;
+		//explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lfleg type BITMAPONLY | NOHEATCLOUD;
+		//explode rfleg type BITMAPONLY | NOHEATCLOUD;
+		//explode rrleg type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode flare type FALL | NOHEATCLOUD;
-		explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfleg type FALL | NOHEATCLOUD;
-		explode rrleg type FALL | NOHEATCLOUD;
+		//explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rfleg type FALL | NOHEATCLOUD;
+		//explode rrleg type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lrleg type SHATTER | NOHEATCLOUD;
-		explode lfleg type SHATTER | NOHEATCLOUD;
-		explode rfleg type SHATTER | NOHEATCLOUD;
-		explode rrleg type SHATTER | NOHEATCLOUD;
+		//explode lrleg type SHATTER | NOHEATCLOUD;
+		//explode lfleg type SHATTER | NOHEATCLOUD;
+		//explode rfleg type SHATTER | NOHEATCLOUD;
+		//explode rrleg type SHATTER | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lrleg type SHATTER | NOHEATCLOUD;
-		explode lfleg type SHATTER | NOHEATCLOUD;
-		explode rfleg type SHATTER | NOHEATCLOUD;
-		explode rrleg type SHATTER | NOHEATCLOUD;
+		//explode lrleg type SHATTER | NOHEATCLOUD;
+		//explode lfleg type SHATTER | NOHEATCLOUD;
+		//explode rfleg type SHATTER | NOHEATCLOUD;
+		//explode rrleg type SHATTER | NOHEATCLOUD;
 	return corpsetype;
 }

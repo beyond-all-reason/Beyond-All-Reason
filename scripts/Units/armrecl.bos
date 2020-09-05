@@ -183,11 +183,11 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rdoor type BITMAPONLY | NOHEATCLOUD;
-		explode lfin type BITMAPONLY | NOHEATCLOUD;
+		//explode rdoor type BITMAPONLY | NOHEATCLOUD;
+		//explode lfin type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode ldoor type BITMAPONLY | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		//explode ldoor type BITMAPONLY | NOHEATCLOUD;
 		explode screw type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -197,10 +197,10 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
-		explode flare type FALL | NOHEATCLOUD;
-		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FALL | NOHEATCLOUD;
+		//explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode screw type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -212,8 +212,8 @@ Killed(severity, corpsetype)
 		explode rdoor type SMOKE | FALL | NOHEATCLOUD;
 		explode lfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ldoor type SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode ldoor type SMOKE | FALL | NOHEATCLOUD;
 		explode screw type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -223,8 +223,8 @@ Killed(severity, corpsetype)
 		explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode ldoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode ldoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode screw type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
