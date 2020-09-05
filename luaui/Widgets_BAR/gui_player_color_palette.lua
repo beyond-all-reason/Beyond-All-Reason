@@ -11,17 +11,17 @@ function widget:GetInfo()
 	}
 end
 
-local randomize = false					-- randomize player colors
-local offsetstartcolor = true		-- when false it will always use red as start color, when true it starts with an offset towards center of rgb hue palette more in effect with small playernumbers
+local randomize = false                    -- randomize player colors
+local offsetstartcolor = true        -- when false it will always use red as start color, when true it starts with an offset towards center of rgb hue palette more in effect with small playernumbers
 local useSameTeamColors = false
 
 local GaiaTeam = Spring.GetGaiaTeamID()
-local GaiaTeamColor = {0.3,0.3,0.3}
+local GaiaTeamColor = { 0.3, 0.3, 0.3 }
 
 local myTeamID = Spring.GetMyTeamID()
 
 local singleTeams = false
-if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+if #Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1 then
 	singleTeams = true
 end
 
@@ -29,31 +29,41 @@ end
 --------------------------------------------------------------------------------
 
 local function hue2rgb(p, q, t)
-  if (t < 0) then t = t + 1 end
-  if (t > 1) then t = t - 1 end
-  if (t < 1/6) then return p + (q - p) * 6 * t end
-  if (t < 1/2) then return q end
-  if (t < 2/3) then return p + (q - p) * (2/3 - t) * 6 end
-  return p
+	if (t < 0) then
+		t = t + 1
+	end
+	if (t > 1) then
+		t = t - 1
+	end
+	if (t < 1 / 6) then
+		return p + (q - p) * 6 * t
+	end
+	if (t < 1 / 2) then
+		return q
+	end
+	if (t < 2 / 3) then
+		return p + (q - p) * (2 / 3 - t) * 6
+	end
+	return p
 end
 
 local function hslToRgb(h, s, l)
-  local r, g, b
-  if s == 0 then
-      r = l
-      g = l
-      b = l
-  else
-    local q = l + s - l * s
-    if l < 0.5 then
-    	q = l * (1 + s)
-    end
-    local p = 2 * l - q
-    r = hue2rgb(p, q, h + 1/3)
-    g = hue2rgb(p, q, h)
-    b = hue2rgb(p, q, h - 1/3)
-  end
-  return r,g,b
+	local r, g, b
+	if s == 0 then
+		r = l
+		g = l
+		b = l
+	else
+		local q = l + s - l * s
+		if l < 0.5 then
+			q = l * (1 + s)
+		end
+		local p = 2 * l - q
+		r = hue2rgb(p, q, h + 1 / 3)
+		g = hue2rgb(p, q, h)
+		b = hue2rgb(p, q, h - 1 / 3)
+	end
+	return r, g, b
 end
 
 local function GetColor(i, teams)
@@ -63,64 +73,64 @@ local function GetColor(i, teams)
 	--if i > (teams * 0.33) then l = 0.7 end
 	--if i > (teams * 0.66) then l = 0.3 end
 	if teams > 16 then
-		if i%4==0 then
+		if i % 4 == 0 then
 			l = 0.88
 		end
-		if i%4==1 then
+		if i % 4 == 1 then
 			l = 0.46
 		end
 
-		if i%4==2 then
+		if i % 4 == 2 then
 			l = 0.7
 		end
-		if i%4==3 then
+		if i % 4 == 3 then
 			l = 0.32
 		end
 	elseif teams > 10 then
-		if i%2==0 then
+		if i % 2 == 0 then
 			l = 0.78
 		end
-		if i%2==1 then
+		if i % 2 == 1 then
 			l = 0.44
 		end
 	else
 		if teams > 6 then
-			if i%2==0 then
+			if i % 2 == 0 then
 				l = 0.77
 			end
-			if i%2==1 then
+			if i % 2 == 1 then
 				l = 0.42
 			end
 		end
 	end
-	
-	local r,g,b = 0,0,0
+
+	local r, g, b = 0, 0, 0
 	local hueteams = teams
 	local useHueRGB = true
 	if teams > 7 then
 		hueteams = hueteams - 1
 		if i == teams then
-			r,g,b = 0.85, 0.85, 0.85
+			r, g, b = 0.85, 0.85, 0.85
 			useHueRGB = false
 		end
 	end
 	if teams > 13 then
 		hueteams = hueteams - 1
-		if i == teams-2 then
-			r,g,b = 0.5, 0.5, 0.5
+		if i == teams - 2 then
+			r, g, b = 0.5, 0.5, 0.5
 			useHueRGB = false
 		end
 	end
-	
+
 	if useHueRGB then
 		local offset = 0
 		if offsetstartcolor then
-			offset = 1 / (hueteams*6)
+			offset = 1 / (hueteams * 6)
 		end
-		h = ((i-1)/(hueteams*(1.035+offset))) + offset
-		r,g,b = hslToRgb(h, s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
+		h = ((i - 1) / (hueteams * (1.035 + offset))) + offset
+		r, g, b = hslToRgb(h, s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
 	end
-	return r,g,b
+	return r, g, b
 end
 
 local colorOrder = {}
@@ -135,14 +145,14 @@ local function GetShuffledNumber(i, numteams)
 	end
 end
 
-local function SetNewTeamColors() 
+local function SetNewTeamColors()
 	local allyTeamList = Spring.GetAllyTeamList()
 	local numteams = #Spring.GetTeamList() - 1 -- minus gaia
 	local numallyteams = #Spring.GetAllyTeamList() - 1 -- minus gaia
-	
+
 	colorOrder = {}
 	local i = 0
-	local r,g,b
+	local r, g, b
 	for _, allyID in ipairs(allyTeamList) do
 		if useSameTeamColors then
 			i = i + 1
@@ -158,34 +168,34 @@ local function SetNewTeamColors()
 					else
 						i = i + 1
 					end
-					r,g,b = GetColor(i, numteams)
+					r, g, b = GetColor(i, numteams)
 				else
 					if singleTeams then
-						r,g,b = GetColor(i, numallyteams)
+						r, g, b = GetColor(i, numallyteams)
 					elseif teamID == myTeamID then
-						r,g,b = GetColor(i, numallyteams)
+						r, g, b = GetColor(i, numallyteams)
 						r = (r * 1.25) + 0.3
 						g = (g * 1.25) + 0.3
 						b = (b * 1.25) + 0.3
 					else
-						r,g,b = GetColor(i, numallyteams)
+						r, g, b = GetColor(i, numallyteams)
 						r = r * 0.9
 						g = g * 0.9
 						b = b * 0.9
 					end
 				end
 
-				local playerID = select(2,Spring.GetTeamInfo(teamID,false))
-				local name = playerID and Spring.GetPlayerInfo(playerID,false) or 'noname'
-				Spring.SetTeamColor(teamID, r,g,b)
+				local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+				local name = playerID and Spring.GetPlayerInfo(playerID, false) or 'noname'
+				Spring.SetTeamColor(teamID, r, g, b)
 			end
 		end
 	end
 end
 
 local function ResetOldTeamColors()
-	for _,team in ipairs(Spring.GetTeamList()) do
-		Spring.SetTeamColor(team,Spring.GetTeamOrigColor(team))
+	for _, team in ipairs(Spring.GetTeamList()) do
+		Spring.SetTeamColor(team, Spring.GetTeamOrigColor(team))
 	end
 end
 
@@ -199,7 +209,7 @@ function reloadWidgets()
 	end
 end
 
-function ordercolors(_,_,params)
+function ordercolors(_, _, params)
 	local oldRandomize = randomize
 	randomize = false
 	if oldRandomize == randomize then
@@ -210,12 +220,11 @@ function ordercolors(_,_,params)
 	end
 end
 
-function shufflecolors(_,_,params)
+function shufflecolors(_, _, params)
 	randomize = true
 	SetNewTeamColors()
 	reloadWidgets()
 end
-
 
 function widget:Update(dt)
 	if useSameTeamColors and myTeamID ~= Spring.GetMyTeamID() then
@@ -224,7 +233,6 @@ function widget:Update(dt)
 		reloadWidgets()
 	end
 end
-
 
 function widget:Initialize()
 	WG['playercolorpalette'] = {}
@@ -252,12 +260,11 @@ function widget:Shutdown()
 	WG['playercolorpalette'] = nil
 end
 
-
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.randomize = randomize
+	savedTable = {}
+	savedTable.randomize = randomize
 	savedTable.useSameTeamColors = useSameTeamColors
-    return savedTable
+	return savedTable
 end
 
 function widget:SetConfigData(data)

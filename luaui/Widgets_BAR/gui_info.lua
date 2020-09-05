@@ -86,7 +86,6 @@ local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
 
-
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_min = math.min
@@ -590,7 +589,7 @@ function widget:Update(dt)
 			glossMult = 1 + (2 - (ui_opacity * 2))
 			doUpdate = true
 		end
-		if not rankTextures and WG['rankicons']  then
+		if not rankTextures and WG['rankicons'] then
 			rankTextures = WG['rankicons'].getRankTextures()
 		end
 	end
@@ -1103,10 +1102,8 @@ local function drawUnitInfo()
 	end
 	iconSize = iconSize + iconPadding
 
-
 	local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
 	local text, unitDescriptionLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth - iconSize) * (loadedFontSize / fontSize))
-
 
 	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
 	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
@@ -1348,15 +1345,15 @@ local function drawUnitInfo()
 			local reloadTime = 1
 			if exp and exp > 0.009 then
 				addTextInfo('xp', round(exp, 2))
-				addTextInfo('max-health', '+'..round((maxHealth/unitHealth[displayUnitDefID]-1)*100, 0)..'%')
+				addTextInfo('max-health', '+' .. round((maxHealth / unitHealth[displayUnitDefID] - 1) * 100, 0) .. '%')
 				reloadTime = spGetUnitWeaponState(displayUnitID, unitMainWeapon[displayUnitDefID], 'reloadTimeXP')
-				reloadTime = tonumber(round((1-(reloadTime/unitReloadTime[displayUnitDefID]))*100, 0))
+				reloadTime = tonumber(round((1 - (reloadTime / unitReloadTime[displayUnitDefID])) * 100, 0))
 				if reloadTime > 0 then
-					addTextInfo('reload', '-'..reloadTime..'%')
+					addTextInfo('reload', '-' .. reloadTime .. '%')
 				end
 			end
 			if dps then
-				dps = round(dps + (dps*(reloadTime/100)), 0)
+				dps = round(dps + (dps * (reloadTime / 100)), 0)
 				addTextInfo('dps', dps)
 			end
 
@@ -1373,7 +1370,6 @@ local function drawUnitInfo()
 				addTextInfo('metalPerShot', unitMetalPerShot[displayUnitDefID])
 			end
 		end
-
 
 		if unitSpeed[displayUnitDefID] then
 			addTextInfo('speed', unitSpeed[displayUnitDefID])

@@ -13,16 +13,6 @@ function widget:GetInfo()
 end
 
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-local WhiteStr = "\255\255\255\255"
-local GreyStr = "\255\210\210\210"
-local GreenStr = "\255\092\255\092"
-local BlueStr = "\255\170\170\255"
-local YellowStr = "\255\255\255\152"
-local OrangeStr = "\255\255\190\128"
-
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -69,10 +59,16 @@ local myTeamID = 0
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
-for id, def in pairs(UnitDefs) do
-	unitBuildPic[id] = def.buildpicname
-	if VFS.FileExists('unitpics/alternative/' .. string.gsub(def.buildpicname, '(.*/)', '')) then
-		hasAlternativeUnitpic[id] = true
+local unitName = {}
+local unitBuildOptions = {}
+for udid, unitDef in pairs(UnitDefs) do
+	unitBuildPic[udid] = unitDef.buildpicname
+	if VFS.FileExists('unitpics/alternative/' .. string.gsub(unitDef.buildpicname, '(.*/)', '')) then
+		hasAlternativeUnitpic[udid] = true
+	end
+	unitName[udid] = unitDef.name
+	if unitDef.isFactory and #unitDef.buildOptions > 0 then
+		unitBuildOptions[udid] = unitDef.buildOptions
 	end
 end
 
@@ -85,7 +81,6 @@ local iconSizeX = iconSizeY
 local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
 local fontSize = iconSizeY * 0.31
 local maxVisibleBuilds = 3
-local vsx, vsy = widgetHandler:GetViewSizes()
 
 local startTimer = Spring.GetTimer()
 local msx = Game.mapX * 512
@@ -151,15 +146,6 @@ local GetTeamColor = Spring.GetTeamColor or function(teamID)
 	local _, _, _, _, _, _, r, g, b = Spring.GetTeamInfo(teamID)  ---?
 	teamColors[teamID] = { r, g, b }
 	return r, g, b
-end
-
-local unitName = {}
-local unitBuildOptions = {}
-for udid, unitDef in pairs(UnitDefs) do
-	unitName[udid] = unitDef.name
-	if unitDef.isFactory and #unitDef.buildOptions > 0 then
-		unitBuildOptions[udid] = unitDef.buildOptions
-	end
 end
 
 local function checkGuishader(force)
@@ -992,7 +978,7 @@ function widget:DrawScreen()
 					-- amount
 					options.amount = buildQueue[unitDefID]
 					-- hover or pressed?
-					if (j == hoveredBOpt + 1) then
+					if j == hoveredBOpt + 1 then
 						options.pressed = (lb or mb or rb)
 						if lb then
 							options.pressed = 1
@@ -1028,7 +1014,7 @@ function widget:DrawScreen()
 					local n, j = 1, maxVisibleBuilds
 					while buildQueue[n] do
 						local unitBuildDefID, count = next(buildQueue[n], nil)
-						if (n == 1) then
+						if n == 1 then
 							count = count - 1
 						end -- cause we show the actual in building unit instead of the factory icon
 
@@ -1118,10 +1104,11 @@ end
 -------------------------------------------------------------------------------
 -- GEOMETRIC FUNCTIONS
 -------------------------------------------------------------------------------
+
 local function _clampScreen(mid, half, vsd)
-	if (mid - half < 0) then
+	if mid - half < 0 then
 		return 0, half * 2
-	elseif (mid + half > vsd) then
+	elseif mid + half > vsd then
 		return vsd - half * 2, vsd
 	else
 		local val = math.floor(mid - half)
@@ -1490,10 +1477,7 @@ function MouseOverIcon(x, y)
 end
 
 function MouseOverSubIcon(x, y)
-	if openedMenu >= 0 and
-		(x >= boptRect[1]) and (x <= boptRect[3]) and
-		(y >= boptRect[4]) and (y <= boptRect[2])
-	then
+	if openedMenu >= 0 and x >= boptRect[1] and x <= boptRect[3] and y >= boptRect[4] and y <= boptRect[2] then
 		local icon
 		if bar_side == 0 then
 			icon = math.floor((x - boptRect[1]) / bopt_inext[1])
@@ -1508,7 +1492,7 @@ function MouseOverSubIcon(x, y)
 
 		if icon > #facs[openedMenu + 1].buildList - 1 then
 			icon = #facs[openedMenu + 1].buildList - 1
-		elseif (icon < 0) then
+		elseif icon < 0 then
 			icon = 0
 		end
 

@@ -1,22 +1,20 @@
-
 function widget:GetInfo()
-  return {
-    name      = "Rank Icons",
-    desc      = "Shows a rank icon depending on experience next to units",
-    author    = "trepan (idea quantum,jK), Floris",
-    date      = "Feb, 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = 5,
-    enabled   = true  -- loaded by default?
-  }
+	return {
+		name = "Rank Icons",
+		desc = "Shows a rank icon depending on experience next to units",
+		author = "trepan (idea quantum,jK), Floris",
+		date = "Feb, 2008",
+		license = "GNU GPL, v2 or later",
+		layer = 5,
+		enabled = true  -- loaded by default?
+	}
 end
 
-
-local iconsize   = 40
+local iconsize = 40
 local iconoffset = 22
 local scaleIconAmount = 90
 
-local rankScopeDivider = 2.25	-- the higher the number the narrower the scope, the higher the assigned rank will be
+local rankScopeDivider = 2.25    -- the higher the number the narrower the scope, the higher the assigned rank will be
 
 local falloffDistance = 1300
 local cutoffDistance = 2300
@@ -58,45 +56,44 @@ local ranks = {
 local numRanks = #ranks
 
 local unitPowerXpCoeffient = {}
-local unitHeights  = {}
+local unitHeights = {}
 
 local unitUsedIconsize = usedIconsize
 
 -- speed-ups
 
-local spGetUnitMoveTypeData	= Spring.GetUnitMoveTypeData
-local GetUnitDefID			= Spring.GetUnitDefID
-local GetUnitExperience		= Spring.GetUnitExperience
-local GetAllUnits			= Spring.GetAllUnits
-local IsUnitAllied			= Spring.IsUnitAllied
-local IsUnitInView			= Spring.IsUnitInView
-local IsUnitIcon			= Spring.IsUnitIcon
-local GetSpectatingState	= Spring.GetSpectatingState
-local GetCameraPosition		= Spring.GetCameraPosition
-local GetUnitPosition		= Spring.GetUnitPosition
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitExperience = Spring.GetUnitExperience
+local GetAllUnits = Spring.GetAllUnits
+local IsUnitAllied = Spring.IsUnitAllied
+local IsUnitInView = Spring.IsUnitInView
+local IsUnitIcon = Spring.IsUnitIcon
+local GetSpectatingState = Spring.GetSpectatingState
+local GetCameraPosition = Spring.GetCameraPosition
+local GetUnitPosition = Spring.GetUnitPosition
 
-local glDepthTest		= gl.DepthTest
-local glDepthMask		= gl.DepthMask
-local glAlphaTest		= gl.AlphaTest
-local glTexture	 		= gl.Texture
-local glTexRect	 		= gl.TexRect
-local glTranslate		= gl.Translate
-local glBillboard		= gl.Billboard
-local glColor			= gl.Color
-local glDrawFuncAtUnit	= gl.DrawFuncAtUnit
+local glDepthTest = gl.DepthTest
+local glDepthMask = gl.DepthMask
+local glAlphaTest = gl.AlphaTest
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glTranslate = gl.Translate
+local glBillboard = gl.Billboard
+local glColor = gl.Color
+local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 
 local GL_GREATER = GL.GREATER
 
-local min	= math.min
-local max	= math.max
-local floor	= math.floor
-local diag	= math.diag
-
+local min = math.min
+local max = math.max
+local floor = math.floor
+local diag = math.diag
 
 local unitIconMult = {}
 local isAirUnit = {}
 for udid, unitDef in pairs(UnitDefs) do
-	unitIconMult[udid] = math.min(1.4, math.max(1.25, (Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power/400, 2)))
+	unitIconMult[udid] = math.min(1.4, math.max(1.25, (Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power / 400, 2)))
 	if unitDef.canFly then
 		isAirUnit[udid] = true
 	end
@@ -112,7 +109,8 @@ function widget:GetConfigData()
 	}
 end
 
-function widget:SetConfigData(data) --load config
+function widget:SetConfigData(data)
+	--load config
 	if data.distanceMult ~= nil then
 		distanceMult = data.distanceMult
 		usedFalloffDistance = falloffDistance * distanceMult
@@ -125,13 +123,13 @@ function widget:SetConfigData(data) --load config
 end
 
 local function getRank(unitDefID, xp)
-	return max(0, min(floor(xp*(1.44-xp) / unitPowerXpCoeffient[unitDefID]), numRanks))
+	return max(0, min(floor(xp * (1.44 - xp) / unitPowerXpCoeffient[unitDefID]), numRanks))
 end
 
 local function updateUnitRank(unitID, unitDefID)
 	local xp = GetUnitExperience(unitID)
 	if xp then
-		ranks[ getRank(unitDefID, xp) ][unitID] = unitDefID
+		ranks[getRank(unitDefID, xp)][unitID] = unitDefID
 	end
 end
 
@@ -166,14 +164,14 @@ function widget:Initialize()
 	end
 
 	local allUnits = GetAllUnits()
-	for i=1,#allUnits do
+	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		updateUnitRank(unitID, GetUnitDefID(unitID))
 	end
 end
 
 function widget:Shutdown()
-	for _,rankTexture in ipairs(rankTextures) do
+	for _, rankTexture in ipairs(rankTextures) do
 		gl.DeleteTexture(rankTexture)
 	end
 end
@@ -181,15 +179,19 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-function widget:UnitExperience(unitID,unitDefID,unitTeam, xp, oldXP)
-	if xp < 0 then xp = 0 end
-	if oldXP < 0 then oldXP = 0 end
+function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
+	if xp < 0 then
+		xp = 0
+	end
+	if oldXP < 0 then
+		oldXP = 0
+	end
 
-	local rank    = getRank(unitDefID, xp)
+	local rank = getRank(unitDefID, xp)
 	local oldRank = getRank(unitDefID, oldXP)
 
 	if rank ~= oldRank then
-		for i=0, rank-1 do
+		for i = 0, rank - 1 do
 			ranks[i][unitID] = nil
 		end
 		ranks[rank][unitID] = unitDefID
@@ -202,13 +204,11 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	for i=0, numRanks do
+	for i = 0, numRanks do
 		ranks[i][unitID] = nil
 	end
 end
-
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if isAirUnit[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
@@ -216,10 +216,9 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 end
 
-
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-	if not IsUnitAllied(unitID) and not GetSpectatingState()  then
-		for i=0, numRanks do
+	if not IsUnitAllied(unitID) and not GetSpectatingState() then
+		for i = 0, numRanks do
 			ranks[i][unitID] = nil
 		end
 	end
@@ -229,23 +228,26 @@ end
 -------------------------------------------------------------------------------------
 
 local function DrawUnitFunc(yshift)
-	glTranslate(0,yshift,0)
+	glTranslate(0, yshift, 0)
 	glBillboard()
-	glTexRect(-unitUsedIconsize*0.5, -unitUsedIconsize*0.5, unitUsedIconsize*0.5, unitUsedIconsize*0.5)
+	glTexRect(-unitUsedIconsize * 0.5, -unitUsedIconsize * 0.5, unitUsedIconsize * 0.5, unitUsedIconsize * 0.5)
 end
 
-
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
+	if chobbyInterface then
+		return
+	end
+	if Spring.IsGUIHidden() then
+		return
+	end
 
-	glColor(1,1,1,1)
+	glColor(1, 1, 1, 1)
 	glDepthMask(true)
 	glDepthTest(true)
 	glAlphaTest(GL_GREATER, 0.001)
@@ -253,18 +255,18 @@ function widget:DrawWorld()
 	local camX, camY, camZ = GetCameraPosition()
 	local camDistance
 
-	for i=1, numRanks do
+	for i = 1, numRanks do
 		if next(ranks[i]) then
 			glTexture(rankTextures[i])
-			for unitID,unitDefID in pairs(ranks[i]) do
+			for unitID, unitDefID in pairs(ranks[i]) do
 				if IsUnitInView(unitID) then
-					local x,y,z = GetUnitPosition(unitID)
-					camDistance = diag(camX-x, camY-y, camZ-z)
+					local x, y, z = GetUnitPosition(unitID)
+					camDistance = diag(camX - x, camY - y, camZ - z)
 					if camDistance < usedCutoffDistance then
-						local opacity = min(1, 1 - (camDistance-usedFalloffDistance) / usedCutoffDistance)
-						unitUsedIconsize = ((usedIconsize*0.12) + (camDistance/scaleIconAmount)) - ((1-opacity)*(usedIconsize*1.25))
+						local opacity = min(1, 1 - (camDistance - usedFalloffDistance) / usedCutoffDistance)
+						unitUsedIconsize = ((usedIconsize * 0.12) + (camDistance / scaleIconAmount)) - ((1 - opacity) * (usedIconsize * 1.25))
 						unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
-						glColor(1,1,1,opacity)
+						glColor(1, 1, 1, opacity)
 						glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
 					end
 				end
@@ -272,7 +274,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	glColor(1,1,1,1)
+	glColor(1, 1, 1, 1)
 	glTexture(false)
 	glAlphaTest(false)
 	glDepthTest(false)
