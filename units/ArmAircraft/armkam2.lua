@@ -77,7 +77,7 @@ return {
 		},
 		weapondefs = {
 			med_emg = {
-				accuracy = 10,
+				accuracy = 12,
 				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 5,
@@ -102,7 +102,7 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun3",
-				sprayangle = 512,
+				sprayangle = 768,
 				thickness = 0.8,
 				tolerance = 6000,
 				turret = false,
