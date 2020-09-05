@@ -41,7 +41,7 @@ return {
 		terraformspeed = 6500,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 5000,
+		workertime = 2000,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "corageo",
