@@ -327,6 +327,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		-- handle our two custom commands
+		if not isAirUnit[unitDefID] then
+			return false
+		end
 
 		if cmdID == CMD_LAND_AT_SPECIFIC_AIRBASE then
 			if landedPlanes[unitID] then
@@ -609,10 +612,10 @@ else
 
 	local strUnit = "unit"
 
-	local unitConf = {}
+	local unitCanFly = {}
 	for udid, unitDef in pairs(UnitDefs) do
 		if unitDef.canFly then
-			unitConf[udid] = true
+			unitCanFly[udid] = true
 		end
 	end
 
@@ -640,7 +643,7 @@ else
 		local sUnits = spGetSelectedUnits()
 		for i = 1, #sUnits do
 			local unitID = sUnits[i]
-			if unitConf[spGetUnitDefID(unitID)] then
+			if unitCanFly[spGetUnitDefID(unitID)] then
 				return CMD_LAND_AT_SPECIFIC_AIRBASE
 			end
 		end
