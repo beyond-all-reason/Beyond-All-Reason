@@ -119,6 +119,7 @@ T3ReinforcementLandUnits = {
 	"armvang",
 	"corshiva",
 	"corkarg",
+	"corkargclassic",
 	"corcat",
 	--hovercraft
 	-- "armlun",
