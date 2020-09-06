@@ -313,12 +313,19 @@ function widget:ViewResize()
 			posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
 		end
 		if WG['buildmenu'] then
-			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + widgetSpaceMargin
-			--height = (posY - posY2) - widgetSpaceMargin
-			posY = posY2 + height
+			bottomPosition = WG['buildmenu'].getBottomPosition()
+			if bottomPosition then
+				posX = width + widgetSpaceMargin
+				posY2 = 0
+				posY = height
+				altPosition = true
+			else
+				posY2, _ = WG['buildmenu'].getSize()
+				posY2 = posY2 + widgetSpaceMargin
+				posY = posY2 + height
+				posX = 0
+			end
 		end
-		posX = 0
 	end
 
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
@@ -366,6 +373,7 @@ function widget:Shutdown()
 	WG['ordermenu'] = nil
 end
 
+local bottomPosition = false
 local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
@@ -381,6 +389,13 @@ function widget:Update(dt)
 		elseif buildpowerWidgetEnabled then
 			buildpowerWidgetEnabled = false
 			widget:ViewResize()
+		end
+		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
+			local prevBottomPosition = bottomPosition
+			bottomPosition = WG['buildmenu'].getBottomPosition()
+			if bottomPosition ~= prevBottomPosition then
+				widget:ViewResize()
+			end
 		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)

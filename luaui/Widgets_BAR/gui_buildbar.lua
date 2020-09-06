@@ -960,23 +960,25 @@ function widget:Update(dt)
 		end
 		if factoriesArea then
 			dlists[1] = gl.CreateList(DrawBackground)
-			if openedMenu >= 0 then
-				dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
+			if WG['guishader'] then
+				if openedMenu >= 0 then
+					dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
 
-				if dlistGuishader2 then
-					dlistGuishader2 = gl.DeleteList(dlistGuishader2)
-				end
-				dlistGuishader2 = gl.CreateList( function()
-					RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
-				end)
+					if dlistGuishader2 then
+						dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+					end
+					dlistGuishader2 = gl.CreateList( function()
+						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
+					end)
 
-				if dlistGuishader2 then
+					if dlistGuishader2 then
+						WG['guishader'].RemoveDlist('buildbar2')
+						WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+					end
+				else
+					backgroundOptionsRect = nil
 					WG['guishader'].RemoveDlist('buildbar2')
-					WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
 				end
-			else
-				backgroundOptionsRect = nil
-				WG['guishader'].RemoveDlist('buildbar2')
 			end
 		end
 	end
