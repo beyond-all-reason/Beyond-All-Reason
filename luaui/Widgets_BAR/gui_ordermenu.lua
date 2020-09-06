@@ -305,7 +305,6 @@ function widget:ViewResize()
 				widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
 				bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
 				posX = width + widgetSpaceMargin
-				Spring.Echo(posX)
 				posY = height
 				altPosition = true
 			else

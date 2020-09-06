@@ -134,6 +134,7 @@ return {
 					commanders = 3150,
 					default = 5625,
 					subs = 5,
+					vtol = 562,
 				},
 			},
 			arm_pidrbomb = {
