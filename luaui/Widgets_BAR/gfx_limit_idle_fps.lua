@@ -18,6 +18,36 @@ if vsyncValueActive > 1 then
 end
 local vsyncValueIdle = 4    -- sometimes somehow vsync 6 results in higher fps than 4
 
+-- detect display frequency > 60 and set vsyncValueIdle to 6
+local infolog = VFS.LoadFile("infolog.txt")
+if infolog then
+	function lines(str)
+		local t = {}
+		local function helper(line) table.insert(t, line) return "" end
+		helper((str:gsub("(.-)\r?\n", helper)))
+		return t
+	end
+
+	-- store changelog into table
+	local fileLines = lines(infolog)
+
+	for i, line in ipairs(fileLines) do
+		if string.sub(line, 1, 3) == '[F='  then
+			break
+		end
+
+		if line:find('(display%-mode set to )') then
+			local s_displaymode = line:sub( line:find('(display%-mode set to )') + 20)
+			if s_displaymode:find('%@') then
+				local frequency = s_displaymode:sub(s_displaymode:find('%@')+1, s_displaymode:find('Hz ')-1)
+				if tonumber(frequency) > 60 then
+					vsyncValueIdle = 6
+				end
+			end
+		end
+	end
+end
+
 local isIdle = false
 local lastUserInputTime = os.clock()
 local lastMouseX, lastMouseY = Spring.GetMouseState()

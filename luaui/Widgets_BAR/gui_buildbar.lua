@@ -12,6 +12,7 @@ function widget:GetInfo()
 	}
 end
 
+local removeWhenSpec = true		-- for debug purpose
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -227,7 +228,7 @@ function widget:Initialize()
 
 	UpdateFactoryList()
 
-	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 
@@ -241,7 +242,7 @@ function widget:Initialize()
 end
 
 function widget:GameStart()
-	if Spring.GetSpectatingState() then
+	if removeWhenSpec and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 end
@@ -813,7 +814,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 
@@ -1279,7 +1280,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if removeWhenSpec and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 end
