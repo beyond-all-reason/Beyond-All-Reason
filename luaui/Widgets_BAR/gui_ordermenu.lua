@@ -293,34 +293,29 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(fontFile)
 
 	if altPosition then
-		local widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
+		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
 		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
 
 		posY = height
 		posX = width + widgetSpaceMargin
-		if WG['buildpower'] then
-			buildpowerWidgetEnabled = true
-			bpWidth, bpHeight = WG['buildpower'].getPosition()
-			if bpWidth then
-				posX = bpWidth + widgetSpaceMargin
-			end
-		end
 	else
-		local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
-		posY = 0.75
-		if WG['minimap'] then
-			posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
-		end
 		if WG['buildmenu'] then
 			bottomPosition = WG['buildmenu'].getBottomPosition()
 			if bottomPosition then
+				widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
+				bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
 				posX = width + widgetSpaceMargin
-				posY2 = 0
+				Spring.Echo(posX)
 				posY = height
 				altPosition = true
 			else
-				posY2, _ = WG['buildmenu'].getSize()
+				widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+				bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+				posY = 0.75
+				if WG['minimap'] then
+					posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+				end
+				local posY2, _ = WG['buildmenu'].getSize()
 				posY2 = posY2 + widgetSpaceMargin
 				posY = posY2 + height
 				posX = 0

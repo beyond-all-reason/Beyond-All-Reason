@@ -2921,37 +2921,37 @@ function init()
 		-- onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
 		--},
 
-		{ id = "buildmenu_defaultcolls", group = "ui", name = widgetOptionColor .. "   columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = 'Number of columns when "dynamic columns" is disabled',
-		  onload = function(i)
-			  loadWidgetData("Build menu", "buildmenu_defaultcolls", { 'defaultColls' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', { 'defaultColls' }, value)
-		  end,
-		},
-		{ id = "buildmenu_dynamic", group = "ui", name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions availible',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setDynamicIconsize', { 'dynamicIconsize' }, value)
-		  end,
-		},
-		{ id = "buildmenu_mincolls", group = "ui", name = widgetOptionColor .. "      min columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = '',
-		  onload = function(i)
-			  loadWidgetData("Build menu", "buildmenu_mincolls", { 'minColls' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setMinColls', { 'minColls' }, value)
-		  end,
-		},
-		{ id = "buildmenu_maxcolls", group = "ui", name = widgetOptionColor .. "      max columns", type = "slider", min = 4, max = 7, step = 1, value = 6, description = '',
-		  onload = function(i)
-			  loadWidgetData("Build menu", "buildmenu_maxcolls", { 'maxColls' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setMaxColls', { 'maxColls' }, value)
-		  end,
-		},
+		--{ id = "buildmenu_defaultcolls", group = "ui", name = widgetOptionColor .. "   columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = 'Number of columns when "dynamic columns" is disabled',
+		--  onload = function(i)
+		--	  loadWidgetData("Build menu", "buildmenu_defaultcolls", { 'defaultColls' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', { 'defaultColls' }, value)
+		--  end,
+		--},
+		--{ id = "buildmenu_dynamic", group = "ui", name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions availible',
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setDynamicIconsize', { 'dynamicIconsize' }, value)
+		--  end,
+		--},
+		--{ id = "buildmenu_mincolls", group = "ui", name = widgetOptionColor .. "      min columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("Build menu", "buildmenu_mincolls", { 'minColls' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setMinColls', { 'minColls' }, value)
+		--  end,
+		--},
+		--{ id = "buildmenu_maxcolls", group = "ui", name = widgetOptionColor .. "      max columns", type = "slider", min = 4, max = 7, step = 1, value = 6, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("Build menu", "buildmenu_maxcolls", { 'maxColls' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setMaxColls', { 'maxColls' }, value)
+		--  end,
+		--},
 
 		{ id = "ordermenu_colorize", group = "ui", basic = true, name = "Ordermenu" .. widgetOptionColor .. "  colorize", type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
 		  onload = function(i)

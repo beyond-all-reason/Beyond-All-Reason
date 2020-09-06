@@ -889,7 +889,7 @@ function widget:ViewResize()
 	if stickToBottom then
 		posY = math_floor(0.14 * vsy) / vsy
 		posY2 = 0
-		posX = math_floor(ordermenuLeft * vsx) + (widgetSpaceMargin*vsx)
+		posX = math_floor((ordermenuLeft+widgetSpaceMargin)*vsx)
 		posX2 = advplayerlistLeft - (widgetSpaceMargin*vsx)
 		width = posX2 - posX
 		height = posY
