@@ -39,8 +39,8 @@ if gadgetHandler:IsSyncedCode() then
 	local toRemove = {} -- planes waiting to be removed (but which have to wait because we are in the middle of a pairs() interation over their info tables)
 	local previousHealFrame = 0
 
-	local tractorSpeed = 2
-	local rotTractorSpeed = 0.05
+	local tractorSpeed = 3
+	local rotTractorSpeed = 0.07
 	local math_sqrt = math.sqrt
 	local math_pi = math.pi
 	local math_sin = math.sin
