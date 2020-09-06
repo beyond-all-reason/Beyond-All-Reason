@@ -469,6 +469,7 @@ customDefs.corgant = {
 		[numBuildoptions+1] = "corcrwboss",
 		[numBuildoptions+2] = "coracaboss",
 		[numBuildoptions+3] = "corfblackhy",
+		[numBuildoptions+4] = "corkargclassic",
 	},
 }
 

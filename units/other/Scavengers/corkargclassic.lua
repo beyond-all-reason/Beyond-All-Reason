@@ -12,7 +12,7 @@ return {
 		collisionvolumescales = "56.0 60.0 40.0",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "All-Terrain Assault Mech",
+		description = "All-Terrain Assault Mech (Classic Version)",
 		explodeas = "explosiont3med",
 		footprintx = 4,
 		footprintz = 4,
