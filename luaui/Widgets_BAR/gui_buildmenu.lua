@@ -809,7 +809,9 @@ local function checkGuishader(force)
 			dlistGuishader = gl.CreateList(function()
 				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6)
 			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+			if selectedBuilderCount > 0 then
+				WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+			end
 		end
 	elseif dlistGuishader then
 		dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -871,7 +873,6 @@ local function RefreshCommands()
 end
 
 function widget:ViewResize()
-	firstViewResize = true
 	vsx, vsy = Spring.GetViewGeometry()
 
 	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.22, 1.5)
@@ -1140,7 +1141,7 @@ function widget:Update(dt)
 				local prevOrdermenuHeight = ordermenuHeight
 				ordermenuHeight = oheight
 			end
-			if not firstViewResize and not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
+			if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
 				widget:ViewResize()
 			end
 		end
