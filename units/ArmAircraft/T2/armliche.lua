@@ -180,6 +180,7 @@ return {
 					commanders = 3350,
 					default = 5625,
 					subs = 5,
+					vtol = 562,
 				},
 			},
 		},

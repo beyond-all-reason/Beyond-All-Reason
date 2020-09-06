@@ -893,8 +893,8 @@ function widget:ViewResize()
 		posX2 = advplayerlistLeft - (widgetSpaceMargin*vsx)
 		width = posX2 - posX
 		height = posY
-		minColls = math_max(10, math_floor((vsx/width)*6))
-		maxColls = 30--math_max(12, math_floor((vsx/width)*9))
+		minColls = math_max(10, math_floor((width/vsx)*20))
+		maxColls = 30
 	else
 		posY = 0.606
 		posY2 = math_floor(0.14 * vsy) / vsy
@@ -1363,7 +1363,7 @@ function drawBuildmenu()
 
 	-- these are globals so it can be re-used (hover highlight)
 	cellPadding = math_floor(cellSize * cfgCellPadding)
-	iconPadding = math_floor(cellSize * cfgIconPadding)
+	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
 	radariconSize = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
