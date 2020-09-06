@@ -159,19 +159,23 @@ local function checkGuishader(force)
 				dlistGuishader2 = gl.DeleteList(dlistGuishader2)
 			end
 		end
-		if not dlistGuishader then
+		if not dlistGuishader and backgroundRect then
 			dlistGuishader = gl.CreateList( function()
 				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale)
 			end)
 		end
-		if not dlistGuishader2 then
+		if not dlistGuishader2 and backgroundOptionsRect then
 			dlistGuishader2 = gl.CreateList( function()
 				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
 			end)
 		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
-		dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+	else
+		if dlistGuishader then
+			dlistGuishader = gl.DeleteList(dlistGuishader)
+		end
+		if dlistGuishader2 then
+			dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+		end
 	end
 end
 
@@ -687,12 +691,20 @@ local function drawIcon(rect, tex, color, zoom)
 	local halfSize = (rect[3] - rect[1])*0.5
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	RectRoundCircle(
-		rect[1]+halfSize,
-		0,
-		rect[2]+halfSize,
-		halfSize, cornerSize*0.6,
-		halfSize-math_max(1,math_floor(halfSize*0.08)),
-		{1,1,1,0.07}, {1,1,1,0.07}
+			rect[1]+halfSize,
+			0,
+			rect[2]+halfSize,
+			halfSize, cornerSize*0.6,
+			halfSize-math_max(1,math_floor(halfSize*0.08)),
+			{1,1,1,0.09}, {1,1,1,0.09}
+	)
+	RectRoundCircle(
+			rect[1]+halfSize,
+			0,
+			rect[2]+halfSize,
+			halfSize, cornerSize*0.6,
+			halfSize*0.4,
+			{1,1,1,0}, {1,1,1,0.07}
 	)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
@@ -781,6 +793,33 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
 	end
 
+	-- pressed / hovered
+	local color1, color2
+	if options.pressed then
+		if options.pressed == 1 then
+			color1, color2 = {0,1,0,0}, {0,1,0,0.25}
+		elseif options.pressed == 2 then
+			color1, color2 = {1,0,0,0}, {1,0,0,0.25}
+		elseif options.pressed == 3 then
+			color1, color2 = {1,1,1,0}, {1,1,1,0.22}
+		end
+	elseif options.hovered then
+		color1, color2 = {1,1,1,0}, {1,1,1,0.16}
+	end
+	if color2 then
+		local halfSize = (imgRect[3] - imgRect[1])*0.5
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRoundCircle(
+				imgRect[1]+halfSize,
+				0,
+				imgRect[2]-halfSize,
+				halfSize, cornerSize*0.6,
+				halfSize*0.2,
+				color1, color2
+		)
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+
 	-- amount
 	if (options.amount or 0) > 0 then
 		font:Begin()
@@ -839,7 +878,14 @@ function widget:Update(dt)
 			factoriesAreaHovered = nil
 			doupdate = true
 		end
+
+		if not(IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) or (backgroundOptionsRect and
+			IsInRect(mx, my, { backgroundOptionsRect[1], backgroundOptionsRect[4], backgroundOptionsRect[3], backgroundOptionsRect[2] })))
+		then
+			openedMenu = -1
+		end
 	end
+
 	if setInfoDisplayUnitID then
 		setInfoDisplayUnitID = nil
 		if WG['info'] then
@@ -853,8 +899,10 @@ function widget:Update(dt)
 		for i = 1, #dlists do
 			gl.DeleteList(dlists[i])
 		end
-		checkGuishader(true)
 		dlists = {}
+
+		checkGuishader()
+
 		local dlistsCount = 1
 
 		factoriesArea = nil
@@ -912,7 +960,24 @@ function widget:Update(dt)
 		end
 		if factoriesArea then
 			dlists[1] = gl.CreateList(DrawBackground)
-			dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
+			if openedMenu >= 0 then
+				dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
+
+				if dlistGuishader2 then
+					dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+				end
+				dlistGuishader2 = gl.CreateList( function()
+					RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
+				end)
+
+				if dlistGuishader2 then
+					WG['guishader'].RemoveDlist('buildbar2')
+					WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+				end
+			else
+				backgroundOptionsRect = nil
+				WG['guishader'].RemoveDlist('buildbar2')
+			end
 		end
 	end
 end
@@ -936,18 +1001,21 @@ function widget:DrawScreen()
 	local icon
 	local mx, my, lb, mb, rb = GetMouseState()
 
-
-	if #dlists == 0 then
-		if dlistGuishader and WG['guishader'] then
-			WG['guishader'].RemoveDlist('buildbar')
-			WG['guishader'].RemoveDlist('buildbar2')
-		end
-	elseif WG['guishader'] then
-		if dlistGuishader then
-			WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
-		end
-		if dlistGuishader2 then
-			WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+	if WG['guishader'] then
+		if #dlists == 0 then
+			if dlistGuishader then
+				WG['guishader'].RemoveDlist('buildbar')
+			end
+			--if dlistGuishader2 then
+			--	WG['guishader'].RemoveDlist('buildbar2')
+			--end
+		else
+			if dlistGuishader then
+				WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
+			end
+			--if dlistGuishader2 and openedMenu >= 0 then
+			--	WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+			--end
 		end
 	end
 
@@ -961,7 +1029,6 @@ function widget:DrawScreen()
 		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		buildoptionsArea = nil
 		for i, facInfo in ipairs(facs) do
-
 
 			-- draw build list
 			if i == openedMenu + 1 then

@@ -24,7 +24,7 @@ local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 
-local iconBorderOpacity = 0.07
+local iconBorderOpacity = 0.09
 local showSelectionTotals = true
 
 -------------------------------------------------------------------------------

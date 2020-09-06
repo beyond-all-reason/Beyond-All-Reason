@@ -41,7 +41,7 @@ local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
 
-local iconBorderOpacity = 0.07  -- lighten the icon edges
+local iconBorderOpacity = 0.09  -- lighten the icon edges
 
 local texDetailMult = 1.25   -- dont go too high, will get pixely
 local radartexDetailMult = 2   -- dont go too high, will get pixely
