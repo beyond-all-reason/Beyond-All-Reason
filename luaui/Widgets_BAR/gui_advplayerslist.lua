@@ -2036,7 +2036,7 @@ function CreateBackground()
 		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,bgpadding, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.15}, {0.6,0.6,0.6,ui_opacity*0.15})
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.4),absRight-paddingRight,absTop-paddingTop,bgpadding, 1,1,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.035*glossMult})
+		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.4),absRight-paddingRight,absTop-paddingTop,bgpadding, 1,1,0,0, {1,1,1,0.003*glossMult}, {1,1,1,0.035*glossMult})
 		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-(height*0.15),bgpadding, 0,0,1,1, {1,1,1,0.04*glossMult},{1,1,1,0})
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

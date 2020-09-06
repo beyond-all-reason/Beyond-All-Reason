@@ -729,7 +729,7 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding+((y2-y1)*0.6), widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,0, {1,1,1,0.01*glossMult}, {1,1,1,0.05*glossMult})
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding+((y2-y1)*0.6), widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.05*glossMult})
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y1+borderPadding+((y2-y1)*0.35), borderPadding*0.8, 0,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

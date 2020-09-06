@@ -2888,6 +2888,13 @@ function init()
 			  saveOptionValue('Build menu', 'buildmenu', 'setMakeFancy', { 'showMakeFancy' }, value)
 		  end,
 		},
+		{ id = "buildmenu_bottompos", group = "ui", basic = true, name = widgetOptionColor .. "   bottom position", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = 'Relocate the buildmenu to the bottom of the screen',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
+		  end,
+		},
 		{ id = "buildmenu_prices", group = "ui", basic = true, name = widgetOptionColor .. "   prices", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = 'Unit prices in the buildmenu\n\n(when disabled: still show when hovering icon)',
 		  onload = function(i)
 		  end,

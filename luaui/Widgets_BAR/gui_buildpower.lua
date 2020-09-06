@@ -312,7 +312,7 @@ function drawBuildpower()
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 1, 1, 1, 0.01 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
+	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
 	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

@@ -14,6 +14,8 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local stickToBottom = false
+
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.019 -- space between icons
 local cfgIconCornerSize = 0.025
@@ -79,6 +81,9 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local vsx, vsy = Spring.GetViewGeometry()
 
+local ordermenuLeft = vsx / 5
+local advplayerlistLeft = vsx * 0.8
+
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
@@ -98,6 +103,8 @@ local minimapHeight = 0.235
 local minimapEnlarged = false
 local posY = 0
 local posY2 = 0
+local posX = 0
+local posX2 = 0.2
 local width = 0
 local height = 0
 local selectedBuilders = {}
@@ -864,6 +871,7 @@ local function RefreshCommands()
 end
 
 function widget:ViewResize()
+	firstViewResize = true
 	vsx, vsy = Spring.GetViewGeometry()
 
 	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.22, 1.5)
@@ -873,43 +881,62 @@ function widget:ViewResize()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
-	local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
+	local widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
+
 	activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
-	posY = 0.606
-	posY2 = math_floor(0.14 * vsy) / vsy
-	posY2 = posY2 + widgetSpaceMargin
-
-	if minimapEnlarged then
-		posY = math_max(0.4615, (vsy - minimapHeight) / vsy) - 0.0064
-		if WG['minimap'] then
-			posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
-			if posY > maxPosY then
-				posY = maxPosY
-			end
-		end
+	if stickToBottom then
+		posY = math_floor(0.14 * vsy) / vsy
+		posY2 = 0
+		posX = math_floor(ordermenuLeft * vsx) + (widgetSpaceMargin*vsx)
+		posX2 = advplayerlistLeft - (widgetSpaceMargin*vsx)
+		width = posX2 - posX
+		height = posY
+		minColls = math_max(10, math_floor((vsx/width)*6))
+		maxColls = 30--math_max(12, math_floor((vsx/width)*9))
 	else
-		if WG['ordermenu'] then
-			local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
-			if oposY > 0.5 then
-				posY = oposY - oheight - widgetSpaceMargin
+		posY = 0.606
+		posY2 = math_floor(0.14 * vsy) / vsy
+		posY2 = posY2 + widgetSpaceMargin
+		posX = 0
+		minColls = 4
+		maxColls = 5
+
+		if minimapEnlarged then
+			posY = math_max(0.4615, (vsy - minimapHeight) / vsy) - 0.0064
+			if WG['minimap'] then
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+				if posY > maxPosY then
+					posY = maxPosY
+				end
+			end
+		else
+			if WG['ordermenu'] then
+				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+				if oposY > 0.5 then
+					posY = oposY - oheight - widgetSpaceMargin
+				end
 			end
 		end
+
+		posY = math_floor(posY * vsy) / vsy
+		posX = math_floor(posX * vsx) / vsx
+
+		height = (posY - posY2)
+		width = 0.212
+
+		width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
+		width = width * ui_scale
+
+		posX2 = math_floor(width * vsx)
+
+		-- make pixel aligned
+		width = math_floor(width * vsx) / vsx
+		height = math_floor(height * vsy) / vsy
 	end
-	posY = math_floor(posY * vsy) / vsy
 
-	height = (posY - posY2)
-	width = 0.212
-
-	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
-	width = width * ui_scale
-
-	-- make pixel aligned
-	width = math_floor(width * vsx) / vsx
-	height = math_floor(height * vsy) / vsy
-
-	backgroundRect = { 0, (posY - height) * vsy, width * vsx, posY * vsy }
+	backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 
 	checkGuishader(true)
 
@@ -1031,9 +1058,19 @@ function widget:Initialize()
 		startDefID = unitDefID
 		doUpdate = true
 	end
+	WG['buildmenu'].getBottomPosition = function()
+		return stickToBottom
+	end
+	WG['buildmenu'].setBottomPosition = function(value)
+		stickToBottom = value
+		widget:Update(1000)
+		widget:ViewResize()
+		doUpdate = true
+	end
 	WG['buildmenu'].getSize = function()
 		return posY, posY2
 	end
+
 	refreshUnitIconCache()
 end
 
@@ -1065,11 +1102,11 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	end
 end
 
-local uiOpacitySec = 0
+local sec = 0
 function widget:Update(dt)
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.33 then
-		uiOpacitySec = 0
+	sec = sec + dt
+	if sec > 0.33 then
+		sec = 0
 		checkGuishader()
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
@@ -1089,6 +1126,25 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 
+		if stickToBottom then
+			if WG['advplayerlist_api'] ~= nil then
+				local prevPos = advplayerlistPos
+				local advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+				local prevAdvplayerlistLeft = advplayerlistLeft
+				advplayerlistLeft = advplayerlistPos[2]
+			end
+			if WG['ordermenu'] then
+				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+				local prevOrdermenuLeft = ordermenuLeft
+				ordermenuLeft = oposX + owidth
+				local prevOrdermenuHeight = ordermenuHeight
+				ordermenuHeight = oheight
+			end
+			if not firstViewResize and not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
+				widget:ViewResize()
+			end
+		end
+
 		disableInput = isSpec
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
@@ -1100,13 +1156,13 @@ function drawBuildmenuBg()
 	WG['buildmenu'].selectedID = nil
 
 	-- background
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 0, 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
+	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, (posX > 0 and 1 or 0), 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
+	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY2 > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, (posY2 > 0 and 1 or 0), 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1], backgroundRect[4] - bgpadding - ((backgroundRect[4] - backgroundRect[2]) * 0.07), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 1, 1, 1, 0.01 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-	RectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[2] + bgpadding + ((backgroundRect[4] - backgroundRect[2]) * 0.045), bgpadding, 0, 0, 1, 0, { 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 })
+	RectRound(backgroundRect[1]+ (posX > 0 and bgpadding or 0), backgroundRect[4] - bgpadding - ((backgroundRect[4] - backgroundRect[2]) * (stickToBottom and 0.15 or 0.07)), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
+	RectRound(backgroundRect[1]+ (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY2 > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[2] + bgpadding + ((backgroundRect[4] - backgroundRect[2]) * 0.045), bgpadding, 0, 0, 1, 0, { 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 })
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
@@ -2106,6 +2162,7 @@ function widget:GetConfigData()
 		makeFancy = makeFancy,
 		alternativeUnitpics = alternativeUnitpics,
 		buildQueue = buildQueue,
+		stickToBottom = stickToBottom,
 		gameID = Game.gameID,
 	}
 end
@@ -2138,6 +2195,9 @@ function widget:SetConfigData(data)
 	end
 	if data.alternativeUnitpics ~= nil then
 		alternativeUnitpics = data.alternativeUnitpics
+	end
+	if data.stickToBottom ~= nil then
+		stickToBottom = data.stickToBottom
 	end
 	if data.buildQueue and Spring.GetGameFrame() == 0 then
 		buildQueue = data.buildQueue
