@@ -135,6 +135,7 @@ return {
 					default = 5625,
 					subs = 5,
 					vtol = 562,
+					bombers = 562,
 				},
 			},
 			arm_pidrbomb = {
@@ -182,6 +183,7 @@ return {
 					default = 5625,
 					subs = 5,
 					vtol = 562,
+					bombers = 562,
 				},
 			},
 		},
