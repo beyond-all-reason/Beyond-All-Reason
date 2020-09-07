@@ -5,11 +5,11 @@ function gadget:GameFrame(n)
 
 	-- DayNight Cycle
 
-	if n%18000 < 9000 then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 1, 1)
-	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.45, 1, 0.1)
-	end
+	-- if n%18000 < 9000 then
+	-- 	SendToUnsynced("MapAtmosphereConfigSetSun", 1, 1, 1)
+	-- else
+	-- 	SendToUnsynced("MapAtmosphereConfigSetSun", 0.45, 1, 0.1)
+	-- end
 
 -- ## Atmosphere Functions
 -- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)

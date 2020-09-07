@@ -8,12 +8,12 @@ function gadget:GameFrame(n)
 		SpawnCEGInArea("sandcloud", 3200, 235, 1900, 1500)
 	end
 	
-	if n%2000 == 1000 then
-		SpawnCEGInArea("sandclouddense", 3200, 235, 1900, 1900)
-	end
+	-- if n%2000 == 1000 then
+	-- 	SpawnCEGInArea("sandclouddense", 3200, 235, 1900, 1900)
+	-- end
 	
-	if n%6000 == 3000 then
-		SpawnCEGInArea("sandclouddensexl", 3200, 235, 1900, 500)
-	end
+	-- if n%6000 == 3000 then
+	-- 	SpawnCEGInArea("sandclouddensexl", 3200, 235, 1900, 500)
+	-- end
 	
 end

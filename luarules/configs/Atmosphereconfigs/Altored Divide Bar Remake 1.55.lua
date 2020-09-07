@@ -87,6 +87,12 @@ if n%60 == 0 then
 end
 
 if n%9000 > 4500  then
+	if n%60 == 0 then
+       local r = math.random(0,2)
+       if r == 0 then
+	      SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+       end
+    end 
 	if n%15 == 0 then
        local r = math.random(0,4)
        if r == 0 then

@@ -54,7 +54,7 @@ return {
 		turnrate = 0,
 		unitname = "lootboxgold",
 		upright = true,
-		usebuildinggrounddecal = true,
+		usebuildinggrounddecal = false,
 		--waterline = 0,
 		yardmap = "oooo",
 		customparams = {
