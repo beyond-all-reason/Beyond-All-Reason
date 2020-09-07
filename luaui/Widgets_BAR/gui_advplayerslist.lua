@@ -2993,7 +2993,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
 		elseif pingLvl >= 60000 then
 			pingLvl = round(pingLvl/60000,0).." min"
 		end
-		tipText = "Ping: "..pingLvl
+		tipText = "\255\190\190\190Total command delay:  \255\255\255\255"..pingLvl
 	elseif mouseX >= widgetPosX + (m_cpuping.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 11) * widgetScale then
 		tipText = "Cpu: "..cpuLvl.."%"
 		if fps ~= nil then

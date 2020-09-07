@@ -894,7 +894,7 @@ function widget:ViewResize()
 		posX2 = advplayerlistLeft - (widgetSpaceMargin*vsx)
 		width = posX2 - posX
 		height = posY
-		minColls = math_max(10, math_floor((width/vsx)*20))
+		minColls = math_max(8, math_floor((width/vsx)*25))
 		maxColls = 30
 	else
 		posY = 0.606
