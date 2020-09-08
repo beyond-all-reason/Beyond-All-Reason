@@ -24,8 +24,8 @@ if scavengersAIEnabled then
 		
 		scoreConfig = {
 			-- set to 0 to disable
-			scorePerMetal 					= 1, 	-- thisvalue*metalproduction
-			scorePerEnergy 					= 1,	-- thisvalue*energyproduction
+			scorePerMetal 					= 10, 	-- thisvalue*metalproduction
+			scorePerEnergy 					= 0.5,	-- thisvalue*energyproduction
 			scorePerSecond 					= 1,	-- thisvalue*secondspassed
 			scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
 			-----------------------------------------
