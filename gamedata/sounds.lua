@@ -33,7 +33,7 @@ for i=1,#files do
 		gainmod  = 0,
 		dopplerscale = 0,
 		maxconcurrent = 1,
-		priority = 1,
+		--priority = 1,
 		rolloff = 0,
 	}
 end
