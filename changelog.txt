@@ -17,6 +17,7 @@ Units
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • added experimental ARM T3 unit: Giant Invader, crawling nuclear bomb
  • EMP launcher: reduced range 10%
+ • Banshee: changed weapon to machine gun with more accuracy, 5 burst (instead of 3) but little less average dps (-10%)
 
 Renamed units:
  • Pack0 -> Ferret
