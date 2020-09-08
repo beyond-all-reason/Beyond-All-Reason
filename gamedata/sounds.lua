@@ -39,22 +39,22 @@ for i=1,#files do
 end
 
 --VOICE MESSAGES
-local files = VFS.DirList("sounds/voice/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 0.8,
-		pitchmod = 0.1,
-		gainmod  = 0,
-		dopplerscale = 0,
-		maxconcurrent = 1,
-		--priority = 2,
-		rolloff = 0,
-	}
-end
+-- local files = VFS.DirList("sounds/voice/")
+-- local t = Sounds.SoundItems
+-- for i=1,#files do
+	-- local fileName = files[i]
+	-- fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
+	-- t[fileNames] = {
+		-- file     = fileName;
+		-- gain = 0.8,
+		-- pitchmod = 0.1,
+		-- gainmod  = 0,
+		-- dopplerscale = 0,
+		-- maxconcurrent = 1,
+		-- priority = 2,
+		-- rolloff = 0,
+	-- }
+-- end
 
 -- local files = VFS.DirList("sounds/voice/scavengers/")
 -- local t = Sounds.SoundItems
