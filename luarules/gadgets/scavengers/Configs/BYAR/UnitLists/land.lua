@@ -134,7 +134,6 @@ T3LandUnits = {
 	"armraz",
 	"corshiva",
 	"corkarg",
-	"corkargclassic",
 	"corcat",
 	--hovercraft
 	"armlun",
@@ -169,4 +168,5 @@ T4LandUnits = {
 	"corfblackhy",
 	"corcrwboss",
 	"coracaboss",
+	"corkargclassic",
 }
