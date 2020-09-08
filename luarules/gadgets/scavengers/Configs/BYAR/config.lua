@@ -130,126 +130,147 @@ if scavengersAIEnabled then
 			TierSpawnChances.T2 = 10
 			TierSpawnChances.T3 = 30
 			TierSpawnChances.T4 = 60
+			TierSpawnChances.Message = "Current tier: T4 Top"
 		elseif globalScore > scavconfig.timers.T4high then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
 			TierSpawnChances.T2 = 20
 			TierSpawnChances.T3 = 50
 			TierSpawnChances.T4 = 30
+			TierSpawnChances.Message = "Current tier: T4 High"
 		elseif globalScore > scavconfig.timers.T4med then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
 			TierSpawnChances.T2 = 30
 			TierSpawnChances.T3 = 50
 			TierSpawnChances.T4 = 20
+			TierSpawnChances.Message = "Current tier: T4 Medium"
 		elseif globalScore > scavconfig.timers.T4low then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
 			TierSpawnChances.T2 = 40
 			TierSpawnChances.T3 = 50
 			TierSpawnChances.T4 = 10
+			TierSpawnChances.Message = "Current tier: T4 Low"
 		elseif globalScore > scavconfig.timers.T4start then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 0
 			TierSpawnChances.T2 = 40
 			TierSpawnChances.T3 = 55
 			TierSpawnChances.T4 = 5
+			TierSpawnChances.Message = "Current tier: T4 Start"
 		elseif globalScore > scavconfig.timers.T3top then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 20
 			TierSpawnChances.T3 = 70
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T3 Top"
 		elseif globalScore > scavconfig.timers.T3high then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 50
 			TierSpawnChances.T3 = 40
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T3 High"
 		elseif globalScore > scavconfig.timers.T3med then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 60
 			TierSpawnChances.T3 = 30
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T3 Medium"
 		elseif globalScore > scavconfig.timers.T3low then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 65
 			TierSpawnChances.T3 = 25
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T3 Low"
 		elseif globalScore > scavconfig.timers.T3start then
 			TierSpawnChances.T0 = 0
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 70
 			TierSpawnChances.T3 = 10
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T3 Start"
 		elseif globalScore > scavconfig.timers.T2top then
 			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 80
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T2 Top"
 		elseif globalScore > scavconfig.timers.T2high then
 			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 30
 			TierSpawnChances.T2 = 60
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T2 High"
 		elseif globalScore > scavconfig.timers.T2med then
 			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 40
 			TierSpawnChances.T2 = 50
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T2 Medium"
 		elseif globalScore > scavconfig.timers.T2low then
 			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 60
 			TierSpawnChances.T2 = 30
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T2 Low"
 		elseif globalScore > scavconfig.timers.T2start then
 			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 70
 			TierSpawnChances.T2 = 20
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T2 Start"
 		elseif globalScore > scavconfig.timers.T1top then
 			TierSpawnChances.T0 = 10
 			TierSpawnChances.T1 = 90
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T1 Top"
 		elseif globalScore > scavconfig.timers.T1high then
 			TierSpawnChances.T0 = 40
 			TierSpawnChances.T1 = 60
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T1 High"
 		elseif globalScore > scavconfig.timers.T1med then
 			TierSpawnChances.T0 = 60
 			TierSpawnChances.T1 = 40
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T1 Medium"
 		elseif globalScore > scavconfig.timers.T1low then
 			TierSpawnChances.T0 = 80
 			TierSpawnChances.T1 = 20
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T1 Low"
 		elseif globalScore > scavconfig.timers.T1start then
 			TierSpawnChances.T0 = 90
 			TierSpawnChances.T1 = 10
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T1 Start"
 		else
 			TierSpawnChances.T0 = 100
 			TierSpawnChances.T1 = 0
 			TierSpawnChances.T2 = 0
 			TierSpawnChances.T3 = 0
 			TierSpawnChances.T4 = 0
+			TierSpawnChances.Message = "Current tier: T0"
 		end
 	end
 

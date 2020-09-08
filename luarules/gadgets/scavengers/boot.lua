@@ -232,8 +232,10 @@ function gadget:GameFrame(n)
 				if scavconfig.timers.BossFight == 0 then scavconfig.timers.BossFight = 1 end
 				if globalScore/scavconfig.timers.BossFight < 1 then
 					ScavSendMessage("Scavengers Tech Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
+					ScavSendMessage(TierSpawnChances.Message)
 				else
 					ScavSendMessage("Scavengers Tech Progress: 100%")
+					ScavSendMessage(TierSpawnChances.Message)
 				end
 			end
 		end
