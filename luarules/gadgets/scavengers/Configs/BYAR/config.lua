@@ -31,9 +31,9 @@ if scavengersAIEnabled then
 			-----------------------------------------
 			baseScorePerKill 				= 1, -- How much score EVERY KILL and CAPTURE adds
 				-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
-				scorePerKilledBuilding 			= 4,
+				scorePerKilledBuilding 			= 9,
 				scorePerKilledConstructor 		= 99,
-				scorePerKilledSpawner 			= -1,
+				scorePerKilledSpawner 			= 99,
 				scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
 		},
 		timers = {
