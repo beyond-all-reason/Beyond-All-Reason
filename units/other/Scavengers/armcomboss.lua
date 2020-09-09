@@ -301,7 +301,7 @@ return {
 			},
 			[3] = {
 				def = "DISINTEGRATORXL",
-				onlytargetcategory = "NOTSUB NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},
