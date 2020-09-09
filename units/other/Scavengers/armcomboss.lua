@@ -263,7 +263,7 @@ return {
 				name = "Darkmatter Photon-Disruptor",
 				noexplode = true,
 				noselfdamage = true,
-				range = 890,
+				range = 700,
 				reloadtime = 5,
 				rgbcolor = "0.7 0.3 1.0",
 				size = 8.5,
