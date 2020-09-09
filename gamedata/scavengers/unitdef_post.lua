@@ -127,17 +127,17 @@ function scav_Udef_Post(name, uDef)
 		uDef.maxdamage = math.ceil(uDef.maxdamage*0.85)
 	end
 
-	if uDef.maxvelocity then
-		uDef.maxvelocity = uDef.maxvelocity*1.1
-	end
+	-- if uDef.maxvelocity then
+		-- uDef.maxvelocity = uDef.maxvelocity*1.1
+	-- end
 
 	if uDef.radardistancejam then
 		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.5)
 	end
 
 	if uDef.maxdamage then
-		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage))
-		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage))
+		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
+		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
 	else
 		uDef.autoheal = 3
 		uDef.idleautoheal = 3
@@ -160,26 +160,25 @@ function scav_Udef_Post(name, uDef)
 			if uDef.workertime then
 				uDef.workertime = uDef.workertime*2.5
 			end
-			if uDef.featuredefs then
-				if uDef.featuredefs.dead then
-					if uDef.featuredefs.dead.damage then
-						uDef.featuredefs.dead.damage = 10
-					end
+			if uDef.turnrate then
+				uDef.turnrate = uDef.turnrate*2.5
+			end
+			if uDef.brakerate then
+				uDef.brakerate = uDef.brakerate*2.5
+			end
+		end
+		if uDef.featuredefs then
+			if uDef.featuredefs.dead then
+				if uDef.featuredefs.dead.damage then
+					uDef.featuredefs.dead.damage = 1
 				end
 			end
-		end
-	end
-	
-	if uDef.featuredefs then
-		if uDef.featuredefs.dead then
-			if uDef.featuredefs.dead.metal then
-				uDef.featuredefs.dead.metal = uDef.featuredefs.dead.metal * 5
-			end
-		end
-		if uDef.featuredefs.heap then
-			if uDef.featuredefs.heap.metal then
-				uDef.featuredefs.heap.metal = uDef.featuredefs.heap.metal * 5
-			end
+			-- if uDef.featuredefs.dead then
+				-- uDef.featuredefs.dead.resurrectable = 0
+			-- end
+			-- if uDef.featuredefs.heap then
+				-- uDef.featuredefs.heap.resurrectable = 0
+			-- end
 		end
 	end
 	

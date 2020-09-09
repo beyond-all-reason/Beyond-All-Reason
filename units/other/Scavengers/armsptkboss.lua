@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 120000,
 		buildcostmetal = 12000,
 		buildpic = "scavengers/ARMSPTKBOSS.PNG",
-		buildtime = 8775,
+		buildtime = 120000,
 		canmove = true,
 		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
