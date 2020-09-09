@@ -24,6 +24,7 @@ local showIcons = false
 local colorize = 0
 local playSounds = true
 local posY = 0.75
+
 local posX = 0
 local width = 0
 local height = 0
@@ -280,7 +281,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	width = 0.212
+	width = 0.2125
 	height = 0.14
 
 	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
@@ -311,12 +312,12 @@ function widget:ViewResize()
 				widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 				bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 				posY = 0.75
-				if WG['minimap'] then
-					posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
-				end
 				local posY2, _ = WG['buildmenu'].getSize()
 				posY2 = posY2 + widgetSpaceMargin
 				posY = posY2 + height
+				if WG['minimap'] then
+					posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+				end
 				posX = 0
 			end
 		end

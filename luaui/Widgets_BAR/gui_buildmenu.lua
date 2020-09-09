@@ -438,7 +438,7 @@ local function cacheUnitIcons()
 		maxC = minC
 	end -- just to be sure
 
-	local activeArea = { backgroundRect[1] + activeAreaMargin, backgroundRect[2] + bgpadding + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
+	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + bgpadding + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
 	local contentWidth = activeArea[3] - activeArea[1]
 	local colls = minC
 	while colls <= maxC do
@@ -899,7 +899,7 @@ function widget:ViewResize()
 	else
 		posY = 0.606
 		posY2 = math_floor(0.14 * vsy) / vsy
-		posY2 = posY2 + widgetSpaceMargin
+		posY2 = posY2 + ((widgetSpaceMargin*vsx)/vsy)
 		posX = 0
 		minColls = 4
 		maxColls = 5
@@ -907,7 +907,7 @@ function widget:ViewResize()
 		if minimapEnlarged then
 			posY = math_max(0.4615, (vsy - minimapHeight) / vsy) - 0.0064
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - ((widgetSpaceMargin*vsx)/vsy)
 				if posY > maxPosY then
 					posY = maxPosY
 				end
@@ -916,7 +916,7 @@ function widget:ViewResize()
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if oposY > 0.5 then
-					posY = oposY - oheight - widgetSpaceMargin
+					posY = oposY - oheight - ((widgetSpaceMargin*vsx)/vsy)
 				end
 			end
 		end
@@ -1315,7 +1315,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 end
 
 function drawBuildmenu()
-	local activeArea = { backgroundRect[1] + activeAreaMargin, backgroundRect[2] + bgpadding + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
+	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + bgpadding + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
 	local contentHeight = activeArea[4] - activeArea[2]
 	local contentWidth = activeArea[3] - activeArea[1]
 

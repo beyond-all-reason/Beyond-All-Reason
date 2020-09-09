@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------------------
---- Load spring settings before the game/enging is really loaded yet
+--- set some spring settings before the game/engine is really loaded yet
 --------------------------------------------------------------------------------------------
 
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
