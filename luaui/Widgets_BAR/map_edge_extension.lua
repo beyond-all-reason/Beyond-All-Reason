@@ -52,9 +52,11 @@ local mapSizeZ = Game.mapSizeZ
 local isInView = true
 
 local island = nil -- Later it will be checked and set to true of false
+local voidGround = nil
 local drawingEnabled = true
 local borderMargin = 40
 local checkInView = true
+local restoreMapBorder = true
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -434,6 +436,7 @@ function widget:Initialize()
 		voidGround = IsVoidGround()
 	end
 	if island and voidGround then
+		restoreMapBorder = false
 		widgetHandler:RemoveWidget(self)
 	end
 
@@ -479,7 +482,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("mapborder " .. "1")
+	if restoreMapBorder then
+		Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
+	end
 
 	--Spring.SetDrawGround(true)
 	gl.DeleteList(dList)
