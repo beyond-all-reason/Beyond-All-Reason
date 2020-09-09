@@ -24,16 +24,16 @@ if scavengersAIEnabled then
 		
 		scoreConfig = {
 			-- set to 0 to disable
-			scorePerMetal 					= 10, 	-- thisvalue*metalproduction
+			scorePerMetal 					= 20, 	-- thisvalue*metalproduction
 			scorePerEnergy 					= 1,	-- thisvalue*energyproduction
 			scorePerSecond 					= 1,	-- thisvalue*secondspassed
 			scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
 			-----------------------------------------
-			baseScorePerKill 				= 1, -- How much score EVERY KILL and CAPTURE adds
+			baseScorePerKill 				= 10, -- How much score EVERY KILL and CAPTURE adds
 				-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
 				scorePerKilledBuilding 			= 9,
-				scorePerKilledConstructor 		= 99,
-				scorePerKilledSpawner 			= 99,
+				scorePerKilledConstructor 		= 189,
+				scorePerKilledSpawner 			= 189,
 				scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
 		},
 		timers = {
@@ -80,7 +80,7 @@ if scavengersAIEnabled then
 		FinalBossUnit						= true,
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 6, -- higher number = lower chance
-		globalscoreperoneunit 				= 1200,
+		globalscoreperoneunit 				= 800,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
 		minimumspawnbeacons					= 3,
@@ -89,10 +89,10 @@ if scavengersAIEnabled then
 		seamultiplier 						= 0.2,
 		chanceforaircraftonsea				= 2, -- higher number = lower chance
 
-		t0multiplier						= 3,
-		t1multiplier						= 3,
-		t2multiplier						= 1,
-		t3multiplier						= 0.15,
+		t0multiplier						= 5,
+		t1multiplier						= 4,
+		t2multiplier						= 1.5,
+		t3multiplier						= 0.30,
 		t4multiplier						= 0.05,
 	}
 
