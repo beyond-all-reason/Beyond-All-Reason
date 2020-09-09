@@ -210,6 +210,32 @@ local function GetGroundHeight(x, z)
 	return spGetGroundHeight(x,z)
 end
 
+
+local function IsVoidGround()
+	local sampleDist = 512
+	for i=1,Game.mapSizeX,sampleDist do
+		-- top edge
+		if select(2, Spring.GetGroundInfo(i,0)) == 'Space' then
+			return true
+		end
+		-- bottom edge
+		if select(2, Spring.GetGroundInfo(i,Game.mapSizeZ)) == 'Space' then
+			return true
+		end
+	end
+	for i=1,Game.mapSizeZ,sampleDist do
+		-- left edge
+		if select(2, Spring.GetGroundInfo(0,i)) == 'Space' then
+			return true
+		end
+		-- right edge
+		if select(2, Spring.GetGroundInfo(Game.mapSizeX,i)) == 'Space' then
+			return true
+		end
+	end
+	return false
+end
+
 local function IsIsland()
 	local sampleDist = 512
 	for i=1,Game.mapSizeX,sampleDist do
@@ -404,6 +430,13 @@ function widget:Initialize()
 	if island == nil then
 		island = IsIsland()
 	end
+	if voidGround == nil then
+		voidGround = IsVoidGround()
+	end
+	if island and voidGround then
+		widgetHandler:RemoveWidget(self)
+	end
+
 	GetMaxGroundHeights()
 
 	SetupShaderTable()
