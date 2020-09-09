@@ -20,15 +20,14 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 		'IceXuick',
 	}
 
-
 	-- usage: /luarules give 1 armcom 0
 
 	local cmdname = 'give'
-
 	local PACKET_HEADER = "$g$"
 	local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 	local isSilentUnitGift = {armstone=true, corstone=true, chip=true, dice=true, xmasball=true, xmasball2=true}
+	local givenSomethingAtFrame = -1	-- used to fix double spawns when multiple authorized users are present
 
 	if gadgetHandler:IsSyncedCode() then
 
@@ -92,11 +91,16 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 				return
 			end
 
+			if givenSomethingAtFrame == Spring.GetGameFrame() then
+				return
+			end
+
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
 			for _,name in ipairs(authorizedPlayers) do
 				if playername == name then
 					authorized = true
+					givenSomethingAtFrame = Spring.GetGameFrame()
 					break
 				end
 			end
