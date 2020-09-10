@@ -24,16 +24,16 @@ if scavengersAIEnabled then
 		
 		scoreConfig = {
 			-- set to 0 to disable
-			scorePerMetal 					= 20, 	-- thisvalue*metalproduction
+			scorePerMetal 					= 5, 	-- thisvalue*metalproduction
 			scorePerEnergy 					= 1,	-- thisvalue*energyproduction
 			scorePerSecond 					= 1,	-- thisvalue*secondspassed
 			scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
 			-----------------------------------------
-			baseScorePerKill 				= 4, -- How much score EVERY KILL and CAPTURE adds
+			baseScorePerKill 				= 1, -- How much score EVERY KILL and CAPTURE adds
 				-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
-				scorePerKilledBuilding 			= 16,
-				scorePerKilledConstructor 		= 146,
-				scorePerKilledSpawner 			= 146,
+				scorePerKilledBuilding 			= 9,
+				scorePerKilledConstructor 		= 49,
+				scorePerKilledSpawner 			= 99,
 				scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
 		},
 		timers = {
@@ -49,17 +49,17 @@ if scavengersAIEnabled then
 			T2med								= 3750,
 			T2high								= 4500,
 			T2top								= 6000,
-			T3start								= 8250,
-			T3low								= 9900,
-			T3med								= 12600,
-			T3high								= 14400,
-			T3top								= 17500,
-			T4start								= 19500,
-			T4low								= 25200,
-			T4med								= 29400,
-			T4high								= 36000,
-			T4top								= 42000,
-			BossFight							= 42001,
+			T3start								= 7500,
+			T3low								= 9000,
+			T3med								= 10500,
+			T3high								= 12000,
+			T3top								= 13500,
+			T4start								= 15000,
+			T4low								= 18000,
+			T4med								= 21000,
+			T4high								= 24000,
+			T4top								= 28000,
+			BossFight							= 28001,
 			-- don't delete
 			NoRadar								= 7500,
 		},
@@ -89,11 +89,11 @@ if scavengersAIEnabled then
 		seamultiplier 						= 0.2,
 		chanceforaircraftonsea				= 2, -- higher number = lower chance
 
-		t0multiplier						= 5,
-		t1multiplier						= 3,
-		t2multiplier						= 1.2,
+		t0multiplier						= 3,
+		t1multiplier						= 2.5,
+		t2multiplier						= 1,
 		t3multiplier						= 0.20,
-		t4multiplier						= 0.04,
+		t4multiplier						= 0.05,
 	}
 
 	constructorControllerModuleConfig = {

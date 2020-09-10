@@ -158,13 +158,13 @@ function scav_Udef_Post(name, uDef)
 		end
 		if uDef.canmove == true then
 			if uDef.workertime then
-				uDef.workertime = uDef.workertime*2.5
+				uDef.workertime = uDef.workertime*1.5
 			end
 			if uDef.turnrate then
-				uDef.turnrate = uDef.turnrate*2.5
+				uDef.turnrate = uDef.turnrate*1.5
 			end
 			if uDef.brakerate then
-				uDef.brakerate = uDef.brakerate*2.5
+				uDef.brakerate = uDef.brakerate*1.5
 			end
 		end
 		if uDef.featuredefs then
