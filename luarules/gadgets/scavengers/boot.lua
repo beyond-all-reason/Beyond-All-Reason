@@ -351,7 +351,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledSpawner
 		end
 		if UnitName == "scavengerdroppod_scav" then
-			killedscavengers = killedscavengers - 1
+			killedscavengers = killedscavengers - scavconfig.scoreConfig.baseScorePerKill
 		end
 		selfdx[unitID] = nil
 		selfdy[unitID] = nil
