@@ -2,11 +2,11 @@ T0SeaUnits = {
 	"armpt",
 	"corpt",
 	--constructors
-	"armbeaver",
-	"armch",
-	"armcs",
-	"cormuskrat",
-	"corcs",
+	-- "armbeaver",
+	-- "armch",
+	-- "armcs",
+	-- "cormuskrat",
+	-- "corcs",
 }
 
 T1SeaUnits = {

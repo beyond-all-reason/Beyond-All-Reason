@@ -7,13 +7,13 @@ T0LandUnits = {
 	"armfav",
 	"corfav",
 	--constructors
-	"armck",
-	"armcv",
-	"armbeaver",
-	"armch",
-	"corck",
-	"corcv",
-	"cormuskrat",
+	-- "armck",
+	-- "armcv",
+	-- "armbeaver",
+	-- "armch",
+	-- "corck",
+	-- "corcv",
+	-- "cormuskrat",
 }
 
 T1LandUnits = {

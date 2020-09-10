@@ -29,11 +29,11 @@ if scavengersAIEnabled then
 			scorePerSecond 					= 1,	-- thisvalue*secondspassed
 			scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
 			-----------------------------------------
-			baseScorePerKill 				= 10, -- How much score EVERY KILL and CAPTURE adds
+			baseScorePerKill 				= 4, -- How much score EVERY KILL and CAPTURE adds
 				-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
-				scorePerKilledBuilding 			= 10,
-				scorePerKilledConstructor 		= 190,
-				scorePerKilledSpawner 			= 190,
+				scorePerKilledBuilding 			= 11,
+				scorePerKilledConstructor 		= 196,
+				scorePerKilledSpawner 			= 196,
 				scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
 		},
 		timers = {
@@ -80,7 +80,7 @@ if scavengersAIEnabled then
 		FinalBossUnit						= true,
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 6, -- higher number = lower chance
-		globalscoreperoneunit 				= 800,
+		globalscoreperoneunit 				= 1200,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
 		minimumspawnbeacons					= 3,
@@ -90,10 +90,10 @@ if scavengersAIEnabled then
 		chanceforaircraftonsea				= 2, -- higher number = lower chance
 
 		t0multiplier						= 5,
-		t1multiplier						= 4,
-		t2multiplier						= 1.5,
-		t3multiplier						= 0.30,
-		t4multiplier						= 0.05,
+		t1multiplier						= 3,
+		t2multiplier						= 1.2,
+		t3multiplier						= 0.20,
+		t4multiplier						= 0.04,
 	}
 
 	constructorControllerModuleConfig = {

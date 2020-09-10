@@ -3,9 +3,9 @@ T0AirUnits = {
 	"corbw",
 	"corveng",
 	--constructors
-	"armca",
-	"armcsa",
-	"corca",
+	-- "armca",
+	-- "armcsa",
+	-- "corca",
 }
 
 T1AirUnits = {
