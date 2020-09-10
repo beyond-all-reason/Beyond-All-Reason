@@ -59,7 +59,7 @@ if scavengersAIEnabled then
 			T4med								= 21000,
 			T4high								= 24000,
 			T4top								= 28000,
-			BossFight							= 28001,
+			BossFight							= 32001,
 			-- don't delete
 			NoRadar								= 7500,
 		},
@@ -80,17 +80,17 @@ if scavengersAIEnabled then
 		FinalBossUnit						= true,
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 6, -- higher number = lower chance
-		globalscoreperoneunit 				= 1200,
+		globalscoreperoneunit 				= 1000,
 		spawnchance							= 120,
 		beaconspawnchance					= 120,
 		minimumspawnbeacons					= 3,
 		landmultiplier 						= 0.75,
 		airmultiplier 						= 2.0,
-		seamultiplier 						= 0.2,
-		chanceforaircraftonsea				= 2, -- higher number = lower chance
+		seamultiplier 						= 0.75,
+		chanceforaircraftonsea				= 5, -- higher number = lower chance
 
-		t0multiplier						= 3,
-		t1multiplier						= 2.5,
+		t0multiplier						= 3.5,
+		t1multiplier						= 3,
 		t2multiplier						= 1,
 		t3multiplier						= 0.20,
 		t4multiplier						= 0.05,

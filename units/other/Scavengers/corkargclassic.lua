@@ -145,9 +145,9 @@ return {
 			machinegun                   = {
 				accuracy				 = 50,
 				AreaOfEffect             = 25,
-				avoidFriendly            = true,
+				avoidFriendly            = false,
 				avoidFeature             = false,
-				collideFriendly          = true,
+				collideFriendly          = false,
 				collideFeature           = true,
 				beamTime                 = 0.1,
 				coreThickness            = 0.5,
@@ -159,7 +159,7 @@ return {
 				interceptedByShieldType  = 4,
 				minintensity             = "1",
 				name                     = "Machine Gun",
-				range                    = 500,
+				range                    = 750,
 				reloadtime               = 0.1,
 				WeaponType               = "LaserCannon",
 				rgbColor                 = "0.95 0.32 1",
@@ -177,7 +177,10 @@ return {
 					--damagetype		     = "ehbotkarganneth", 
 				}, 
 				damage                   = {
-					default              = 100,
+					default              = 500,
+					bombers				 = 2000,
+					fighters 			 = 2000,
+					vtol				 = 2000,
 				},
 			},
 			
