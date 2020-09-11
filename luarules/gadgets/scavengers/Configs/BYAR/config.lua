@@ -17,7 +17,7 @@ if scavengersAIEnabled then
 			factoryControllerModule 		= true,
 			unitSpawnerModule 				= true,
 			startBoxProtection				= true,
-			reinforcementsModule			= true,
+			reinforcementsModule			= false, --disabled for now for weird victory conditions and too much hp
 			stockpilers						= true,
 			nukes							= true,
 		},
