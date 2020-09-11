@@ -2693,51 +2693,15 @@ function init()
 		},
 
 		-- INTERFACE
-		{ id = "tweakui", group = "ui", name = "Toggle tweak UI mode", type = "bool", value = false, description = 'Some UI elements have legacy/additional settings availible\n\n(ESC to cancel)',
-		  onchange = function(i, value)
-			  if widgetHandler.tweakMode then
-				  -- cancel with ESC
-			  else
-				  Spring.SendCommands("luaui tweakgui")
-			  end
-		  end,
-		},
-
-		{ id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = "Player colors: auto generated ingame", type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = 'Replaces lobby colors with a auto generated color palette based one\n\nNOTE: reloads all widgets because these need to update their colors' },
-		{ id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   team colorisation", type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = 'Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
-		  end,
-		},
-		{ id = "simpleminimapcolors", group = "ui", name = "Minimap" .. widgetOptionColor .. "  simple colors", type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = "Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!",
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("minimap simplecolors  " .. (value and 1 or 0))
-			  Spring.SetConfigInt("SimpleMiniMapColors", (value and 1 or 0))
-		  end,
-		},
-		{ id = "minimapiconsize", group = "ui", name = widgetOptionColor .. "   icon scale", type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  minimapIconsize = value
-			  Spring.SetConfigFloat("MinimapIconScale", value)
-			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
-		  end,
-		},
-
-		{ id = "minimap_enlarged", group = "ui", basic = true, name = "Enlarged minimap", type = "bool", value = false, description = 'Relocates the order-menu to make room for the minimap',
-		  onload = function(i)
-			  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
-		  end,
-		},
-
+		--{ id = "tweakui", group = "ui", name = "Toggle tweak UI mode", type = "bool", value = false, description = 'Some UI elements have legacy/additional settings availible\n\n(ESC to cancel)',
+		--  onchange = function(i, value)
+		--	  if widgetHandler.tweakMode then
+		--		  -- cancel with ESC
+		--	  else
+		--		  Spring.SendCommands("luaui tweakgui")
+		--	  end
+		--  end,
+		--},
 		{ id = "uiscale", group = "ui", basic = true, name = "Interface" .. widgetOptionColor .. "  scale", type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
@@ -2783,6 +2747,152 @@ function init()
 			  end
 		  end,
 		},
+
+
+		{ id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = "Player colors: auto generated ingame", type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = 'Replaces lobby colors with a auto generated color palette based one\n\nNOTE: reloads all widgets because these need to update their colors' },
+		{ id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   team colorisation", type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = 'Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
+		  end,
+		},
+		{ id = "simpleminimapcolors", group = "ui", name = "Minimap" .. widgetOptionColor .. "  simple colors", type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = "Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("minimap simplecolors  " .. (value and 1 or 0))
+			  Spring.SetConfigInt("SimpleMiniMapColors", (value and 1 or 0))
+		  end,
+		},
+		{ id = "minimapiconsize", group = "ui", name = widgetOptionColor .. "   icon scale", type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  minimapIconsize = value
+			  Spring.SetConfigFloat("MinimapIconScale", value)
+			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
+		  end,
+		},
+
+		{ id = "minimap_enlarged", group = "ui", basic = true, name = "Enlarged minimap", type = "bool", value = false, description = 'Relocates the order-menu to make room for the minimap',
+		  onload = function(i)
+			  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
+		  end,
+		},
+
+		{ id = "buildmenualternativeicons", group = "ui", name = "Alternative unit icons", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlternativeIcons()), description = 'Switch to a different unit icon set',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
+			  saveOptionValue('Info', 'info', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
+			  saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
+			  saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
+			  saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
+		  end,
+		},
+
+		--{id="los_opacity", group="ui", basic=true, name="LoS "..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
+		-- onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
+		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,
+		--},
+		--{id="los_colorize", group="ui", basic=true, name=widgetOptionColor.."   colorize", type="bool", value=(WG['los']~=nil and WG['los'].getColorize~=nil and WG['los'].getColorize()), description='',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setColorize', {'colorize'}, value) end,
+		--},
+
+		{ id = "buildmenu_makefancy", group = "ui", basic = true, name = "Build menu" .. widgetOptionColor .. "  fancy", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getMakeFancy ~= nil and WG['buildmenu'].getMakeFancy()), description = 'Adds extra gradients and highlights',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setMakeFancy', { 'showMakeFancy' }, value)
+		  end,
+		},
+		{ id = "buildmenu_bottom", group = "ui", basic = true, name = widgetOptionColor .. "   bottom position", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = 'Relocate the buildmenu to the bottom of the screen',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
+		  end,
+		},
+		{ id = "buildmenu_prices", group = "ui", basic = true, name = widgetOptionColor .. "   prices", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = 'Unit prices in the buildmenu\n\n(when disabled: still show when hovering icon)',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setShowPrice', { 'showPrice' }, value)
+		  end,
+		},
+		{ id = "buildmenu_radaricon", group = "ui", basic = true, name = widgetOptionColor .. "   radar icon", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowRadarIcon ~= nil and WG['buildmenu'].getShowRadarIcon()), description = 'Radar icons in the buildmenu',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setShowRadarIcon', { 'showRadarIcon' }, value)
+		  end,
+		},
+		{ id = "buildmenu_tooltip", group = "ui", name = widgetOptionColor .. "   tooltips", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowTooltip ~= nil and WG['buildmenu'].getShowTooltip()), description = 'Tooltip when hovering over a unit in the buildmenu',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', { 'showTooltip' }, value)
+		  end,
+		},
+		--{id="buildmenu_shortcuts", group="ui", basic=true, name=widgetOptionColor.."   shortcuts", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowShortcuts~=nil and WG['buildmenu'].getShowShortcuts()), description='Shortcuts prices in the buildmenu',
+		-- onload = function(i) end,
+		-- onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
+		--},
+
+		--{ id = "buildmenu_defaultcolls", group = "ui", name = widgetOptionColor .. "   columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = 'Number of columns when "dynamic columns" is disabled',
+		--  onload = function(i)
+		--	  loadWidgetData("Build menu", "buildmenu_defaultcolls", { 'defaultColls' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', { 'defaultColls' }, value)
+		--  end,
+		--},
+		--{ id = "buildmenu_dynamic", group = "ui", name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions availible',
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setDynamicIconsize', { 'dynamicIconsize' }, value)
+		--  end,
+		--},
+		--{ id = "buildmenu_mincolls", group = "ui", name = widgetOptionColor .. "      min columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("Build menu", "buildmenu_mincolls", { 'minColls' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setMinColls', { 'minColls' }, value)
+		--  end,
+		--},
+		--{ id = "buildmenu_maxcolls", group = "ui", name = widgetOptionColor .. "      max columns", type = "slider", min = 4, max = 7, step = 1, value = 6, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("Build menu", "buildmenu_maxcolls", { 'maxColls' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Build menu', 'buildmenu', 'setMaxColls', { 'maxColls' }, value)
+		--  end,
+		--},
+
+		{ id = "ordermenu_colorize", group = "ui", basic = true, name = "Ordermenu" .. widgetOptionColor .. "  colorize", type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
+		  onload = function(i)
+			  loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Order menu', 'ordermenu', 'setColorize', { 'colorize' }, value)
+		  end,
+		},
+		{ id = "ordermenu_bottompos", group = "ui", basic = true, name = widgetOptionColor .. "   bottom position", type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = 'Relocate the ordermenu to the bottom of the screen',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
+		  end,
+		},
+
 
 		{ id = "advplayerlist_scale", group = "ui", basic = true, name = "Playerlist" .. widgetOptionColor .. "  scale", min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = 'Resize the playerlist (and its addons)',
 		  onload = function(i)
@@ -2858,108 +2968,6 @@ function init()
 				  Spring.StopSoundStream()
 			  end
 		  end
-		},
-
-		{ id = "buildmenualternativeicons", group = "ui", name = "Alternative unit icons", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlternativeIcons()), description = 'Switch to a different unit icon set',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('Info', 'info', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-		  end,
-		},
-
-		--{id="los_opacity", group="ui", basic=true, name="LoS "..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
-		-- onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
-		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,
-		--},
-		--{id="los_colorize", group="ui", basic=true, name=widgetOptionColor.."   colorize", type="bool", value=(WG['los']~=nil and WG['los'].getColorize~=nil and WG['los'].getColorize()), description='',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setColorize', {'colorize'}, value) end,
-		--},
-
-		{ id = "buildmenu_makefancy", group = "ui", basic = true, name = "Build menu" .. widgetOptionColor .. "  fancy", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getMakeFancy ~= nil and WG['buildmenu'].getMakeFancy()), description = 'Adds extra gradients and highlights',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setMakeFancy', { 'showMakeFancy' }, value)
-		  end,
-		},
-		{ id = "buildmenu_bottompos", group = "ui", basic = true, name = widgetOptionColor .. "   bottom position", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = 'Relocate the buildmenu to the bottom of the screen',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
-		  end,
-		},
-		{ id = "buildmenu_prices", group = "ui", basic = true, name = widgetOptionColor .. "   prices", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = 'Unit prices in the buildmenu\n\n(when disabled: still show when hovering icon)',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setShowPrice', { 'showPrice' }, value)
-		  end,
-		},
-		{ id = "buildmenu_radaricon", group = "ui", basic = true, name = widgetOptionColor .. "   radar icon", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowRadarIcon ~= nil and WG['buildmenu'].getShowRadarIcon()), description = 'Radar icons in the buildmenu',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setShowRadarIcon', { 'showRadarIcon' }, value)
-		  end,
-		},
-		{ id = "buildmenu_tooltip", group = "ui", name = widgetOptionColor .. "   tooltips", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowTooltip ~= nil and WG['buildmenu'].getShowTooltip()), description = 'Tooltip when hovering over a unit in the buildmenu',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', { 'showTooltip' }, value)
-		  end,
-		},
-		--{id="buildmenu_shortcuts", group="ui", basic=true, name=widgetOptionColor.."   shortcuts", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowShortcuts~=nil and WG['buildmenu'].getShowShortcuts()), description='Shortcuts prices in the buildmenu',
-		-- onload = function(i) end,
-		-- onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
-		--},
-
-		--{ id = "buildmenu_defaultcolls", group = "ui", name = widgetOptionColor .. "   columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = 'Number of columns when "dynamic columns" is disabled',
-		--  onload = function(i)
-		--	  loadWidgetData("Build menu", "buildmenu_defaultcolls", { 'defaultColls' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', { 'defaultColls' }, value)
-		--  end,
-		--},
-		--{ id = "buildmenu_dynamic", group = "ui", name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions availible',
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Build menu', 'buildmenu', 'setDynamicIconsize', { 'dynamicIconsize' }, value)
-		--  end,
-		--},
-		--{ id = "buildmenu_mincolls", group = "ui", name = widgetOptionColor .. "      min columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("Build menu", "buildmenu_mincolls", { 'minColls' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Build menu', 'buildmenu', 'setMinColls', { 'minColls' }, value)
-		--  end,
-		--},
-		--{ id = "buildmenu_maxcolls", group = "ui", name = widgetOptionColor .. "      max columns", type = "slider", min = 4, max = 7, step = 1, value = 6, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("Build menu", "buildmenu_maxcolls", { 'maxColls' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Build menu', 'buildmenu', 'setMaxColls', { 'maxColls' }, value)
-		--  end,
-		--},
-
-		{ id = "ordermenu_colorize", group = "ui", basic = true, name = "Ordermenu" .. widgetOptionColor .. "  colorize", type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
-		  onload = function(i)
-			  loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Order menu', 'ordermenu', 'setColorize', { 'colorize' }, value)
-		  end,
 		},
 
 		{ id = "consolemaxlines", group = "ui", name = "Console" .. widgetOptionColor .. "  max lines", type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',

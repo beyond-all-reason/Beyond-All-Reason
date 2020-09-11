@@ -24,6 +24,7 @@ local showIcons = false
 local colorize = 0
 local playSounds = true
 local posY = 0.75
+local stickToBottom = false
 
 local posX = 0
 local width = 0
@@ -291,35 +292,34 @@ function widget:ViewResize()
 	width = math.floor(width * vsx) / vsx
 	height = math.floor(height * vsy) / vsy
 
+	if WG['buildmenu'] then
+		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+	end
+	
 	font2 = WG['fonts'].getFont(fontFile)
-
-	if altPosition then
+	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
 		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
 
 		posY = height
 		posX = width + widgetSpaceMargin
 	else
-		if WG['buildmenu'] then
-			bottomPosition = WG['buildmenu'].getBottomPosition()
-			if bottomPosition then
-				widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
-				bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
-				posX = width + widgetSpaceMargin
-				posY = height
-				altPosition = true
-			else
-				widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-				bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
-				posY = 0.75
-				local posY2, _ = WG['buildmenu'].getSize()
-				posY2 = posY2 + widgetSpaceMargin
-				posY = posY2 + height
-				if WG['minimap'] then
-					posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
-				end
-				posX = 0
+		if buildmenuBottomPos then
+			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			posX = 0
+			posY = height + height + widgetSpaceMargin
+		else
+			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			posY = 0.75
+			local posY2, _ = WG['buildmenu'].getSize()
+			posY2 = posY2 + widgetSpaceMargin
+			posY = posY2 + height
+			if WG['minimap'] then
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
 			end
+			posX = 0
 		end
 	end
 
@@ -347,6 +347,13 @@ function widget:Initialize()
 	WG['ordermenu'].getPosition = function()
 		return posX, posY, width, height
 	end
+	WG['ordermenu'].setBottomPosition = function(value)
+		stickToBottom = value
+		widget:ViewResize()
+	end
+	WG['ordermenu'].getBottomPosition = function()
+		return stickToBottom
+	end
 	WG['ordermenu'].getColorize = function()
 		return colorize
 	end
@@ -368,7 +375,7 @@ function widget:Shutdown()
 	WG['ordermenu'] = nil
 end
 
-local bottomPosition = false
+local buildmenuBottomPos = false
 local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
@@ -386,9 +393,9 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
-			local prevBottomPosition = bottomPosition
-			bottomPosition = WG['buildmenu'].getBottomPosition()
-			if bottomPosition ~= prevBottomPosition then
+			local prevbuildmenuBottomPos = buildmenuBottomPos
+			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 			end
 		end
@@ -989,12 +996,15 @@ end
 
 function widget:GetConfigData()
 	--save config
-	return { colorize = colorize }
+	return { colorize = colorize, stickToBottom = stickToBottom }
 end
 
 function widget:SetConfigData(data)
 	--load config
 	if data.colorize ~= nil then
 		colorize = data.colorize
+	end
+	if data.stickToBottom ~= nil then
+		stickToBottom = data.stickToBottom
 	end
 end
