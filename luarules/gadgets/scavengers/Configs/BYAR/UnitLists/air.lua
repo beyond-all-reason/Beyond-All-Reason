@@ -18,6 +18,7 @@ T1AirUnits = {
 	"armca",
 	"armcsa",
 	"corca",
+	"corcsa",
 }
 
 T2AirUnits = {

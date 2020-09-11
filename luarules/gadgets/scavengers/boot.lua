@@ -400,7 +400,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 				Spring.SetUnitHealth(unitID, 10000)
 				Spring.SetUnitMaxHealth(unitID, 10000)
 			end
-			SpawnDefencesAfterCapture(unitID, unitNewTeam)
+			--SpawnDefencesAfterCapture(unitID, unitNewTeam)
 		end
 		selfdx[unitID] = nil
 		selfdy[unitID] = nil
