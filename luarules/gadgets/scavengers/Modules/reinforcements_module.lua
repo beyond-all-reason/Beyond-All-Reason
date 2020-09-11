@@ -217,52 +217,52 @@ function spawnPlayerReinforcements(n)
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
     for _,teamID in ipairs(Spring.GetTeamList()) do
-        local LuaAI = Spring.GetTeamLuaAI(teamID)
-        local _,teamLeader,isDead,isAI,_,allyTeamID = Spring.GetTeamInfo(teamID)
+		local LuaAI = Spring.GetTeamLuaAI(teamID)
+		local _,teamLeader,isDead,isAI,_,allyTeamID = Spring.GetTeamInfo(teamID)
 
-        if (not LuaAI) and teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-            local playerName = Spring.GetPlayerInfo(teamLeader)
-            if not numOfSpawnBeaconsTeams[teamID] then
-                numOfSpawnBeaconsTeams[teamID] = 0
-            end
-            if not numOfSpawnBeaconsTeamsForSpawn[teamID] or numOfSpawnBeaconsTeamsForSpawn[teamID] == 0 then
-                numOfSpawnBeaconsTeamsForSpawn[teamID] = 2
-            else
-                numOfSpawnBeaconsTeamsForSpawn[teamID] = numOfSpawnBeaconsTeams[teamID] + 2
-            end
+		if (not LuaAI) and teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+			local playerName = Spring.GetPlayerInfo(teamLeader)
+			if not numOfSpawnBeaconsTeams[teamID] then
+				numOfSpawnBeaconsTeams[teamID] = 0
+			end
+			if not numOfSpawnBeaconsTeamsForSpawn[teamID] or numOfSpawnBeaconsTeamsForSpawn[teamID] == 0 then
+				numOfSpawnBeaconsTeamsForSpawn[teamID] = 2
+			else
+				numOfSpawnBeaconsTeamsForSpawn[teamID] = numOfSpawnBeaconsTeams[teamID] + 2
+			end
 
 
-            if not ReinforcementsCountPerTeam[teamID] then
-                ReinforcementsCountPerTeam[teamID] = 0
-            end
-            if not ReinforcementsChancePerTeam[teamID] then
-                ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
-            end
+			if not ReinforcementsCountPerTeam[teamID] then
+				ReinforcementsCountPerTeam[teamID] = 0
+			end
+			if not ReinforcementsChancePerTeam[teamID] then
+				ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+			end
 
-            if not isDead then
-                if TryingToSpawnReinforcements[teamID] == true then
-                    local playerunits = Spring.GetTeamUnits(teamID)
-                    PlayerSpawnBeacons = {}
-                    for i = 1,#playerunits do
-                        local playerbeacon = playerunits[i]
-                        local playerbeaconDef = Spring.GetUnitDefID(playerbeacon)
-                        local UnitName = UnitDefs[playerbeaconDef].name
-                        if UnitName == "scavengerdroppodbeacon_scav" then
-                            table.insert(PlayerSpawnBeacons,playerbeacon)
-                        end
-                    end
-                    --numOfSpawnBeaconsTeams[teamID] = 10
-                    if numOfSpawnBeaconsTeams[teamID] == 1 then
-                        pickedBeacon = PlayerSpawnBeacons[1]
-                    elseif numOfSpawnBeaconsTeams[teamID] > 1 then
-                        pickedBeacon = PlayerSpawnBeacons[math_random(1,#PlayerSpawnBeacons)]
-                    else
-                        pickedBeacon = nil
-                        TryingToSpawnReinforcements[teamID] = false
-                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
-                    end
-                    PlayerSpawnBeacons = nil
-                    if pickedBeacon then
+			if not isDead then
+				if TryingToSpawnReinforcements[teamID] == true then
+					local playerunits = Spring.GetTeamUnits(teamID)
+					PlayerSpawnBeacons = {}
+					for i = 1,#playerunits do
+						local playerbeacon = playerunits[i]
+						local playerbeaconDef = Spring.GetUnitDefID(playerbeacon)
+						local UnitName = UnitDefs[playerbeaconDef].name
+						if UnitName == "scavengerdroppodbeacon_scav" then
+							table.insert(PlayerSpawnBeacons,playerbeacon)
+						end
+					end
+					--numOfSpawnBeaconsTeams[teamID] = 10
+					if numOfSpawnBeaconsTeams[teamID] == 1 then
+						pickedBeacon = PlayerSpawnBeacons[1]
+					elseif numOfSpawnBeaconsTeams[teamID] > 1 then
+						pickedBeacon = PlayerSpawnBeacons[math_random(1,#PlayerSpawnBeacons)]
+					else
+						pickedBeacon = nil
+						TryingToSpawnReinforcements[teamID] = false
+						ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+					end
+					PlayerSpawnBeacons = nil
+					if pickedBeacon then
 						if not globalScore then
 							teamsCheck()
 						end
@@ -318,7 +318,6 @@ function spawnPlayerReinforcements(n)
 								groupunit1 = T4ReinforcementSeaUnits[math_random(1,#T4ReinforcementSeaUnits)]
 								groupsize = 2
 							end
-						end
 							ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. UDN[groupunit1].humanName .. "s.")
 						end
 						for i = 1,groupsize do
@@ -348,23 +347,20 @@ function spawnPlayerReinforcements(n)
 						groupunit2 = nil
 						TryingToSpawnReinforcements[teamID] = false
 						ReinforcementsCountPerTeam[teamID] = ReinforcementsCountPerTeam[teamID] + 1
-                    end
-                else
-                    local r = math_random(0,ReinforcementsChancePerTeam[teamID])
-                    if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
-                        TryingToSpawnReinforcements[teamID] = true
-                        ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
-                    else
-                        TryingToSpawnReinforcements[teamID] = false
-                        ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
-                    end
-
-                end
-
-            end
-
-        end
-        pickedBeacon = nil
-    end
-
+					end
+				else
+					local r = math_random(0,ReinforcementsChancePerTeam[teamID])
+					if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
+						TryingToSpawnReinforcements[teamID] = true
+						ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+					else
+						TryingToSpawnReinforcements[teamID] = false
+						ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
+					end
+				end
+			end
+		end
+	end
+	pickedBeacon = nil
 end
+
