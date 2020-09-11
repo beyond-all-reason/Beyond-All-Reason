@@ -121,6 +121,8 @@ Create()
 	dont-shade flare;
 	gun_1 = flare;
 	start-script SmokeUnit();
+	turn launcher to x-axis <-25> speed <50.00000>;
+	spin turret around y-axis speed <25.0>;
 }
 
 AimPrimary(heading, pitch)
@@ -154,6 +156,9 @@ FirePrimary()
 	{
 		gun_1 = flare;
 	}
+	sleep 3000;
+	turn launcher to x-axis <-25> speed <50.00000>;
+	spin turret around y-axis speed <25.0>;
 }
 
 AimFromPrimary(piecenum)

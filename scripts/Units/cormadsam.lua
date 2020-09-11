@@ -133,6 +133,7 @@
 
 			Sleep (3000)
 			StartThread (animSpin, unitID, turret, y_axis, math.rad(25.000000))
+			Turn(launcher, x_axis, math.rad(-35.000000), math.rad(60.000000))
         end
 
 	function script.Killed(recentDamage, maxHealth)
