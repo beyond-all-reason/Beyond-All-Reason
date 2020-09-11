@@ -83,6 +83,8 @@ Create()
 	gun_1 = flare1;
 	start-script SmokeUnit();
 	start-script RockOnWaves();
+
+	spin turret around y-axis speed <25.0>;
 	return (0);
 }
 
@@ -104,6 +106,9 @@ FirePrimary()
 	{
 		gun_1 = flare1;
 	}
+
+	sleep 3000;
+	spin turret around y-axis speed <25.0>;
 	return (0);
 }
 
