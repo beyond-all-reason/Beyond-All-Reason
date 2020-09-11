@@ -37,7 +37,30 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	start-script SmokeUnit();
-	return (0);
+    turn barrel to x-axis <-13> speed <25.00000>;
+    spin turret around y-axis speed <20.0>;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+    turn barrel to x-axis <-13> speed <25.00000>;
+    spin turret around y-axis speed <20.0>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 5000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -108,6 +131,7 @@ AimWeapon1(heading, pitch)
 		sleep 30;		
 	}
 	aimy1velocity = 0;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 

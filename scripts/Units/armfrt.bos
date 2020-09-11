@@ -121,8 +121,30 @@ Create()
 	dont-shade flare;
 	gun_1 = flare;
 	start-script SmokeUnit();
-	turn launcher to x-axis <-25> speed <50.00000>;
+	turn launcher to x-axis <-25> speed <25.00000>;
 	spin turret around y-axis speed <25.0>;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn launcher to x-axis <-25> speed <25.00000>;
+	spin turret around y-axis speed <25.0>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep 5000;
+	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
@@ -146,6 +168,7 @@ AimPrimary(heading, pitch)
 	wait-for-turn sleeve around z-axis;
 	wait-for-turn turret around y-axis;
 	wait-for-turn launcher around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -157,7 +180,7 @@ FirePrimary()
 		gun_1 = flare;
 	}
 	sleep 3000;
-	turn launcher to x-axis <-25> speed <50.00000>;
+	turn launcher to x-axis <-25> speed <25.00000>;
 	spin turret around y-axis speed <25.0>;
 }
 

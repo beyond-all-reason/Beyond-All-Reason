@@ -112,6 +112,8 @@ Create()
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	gun_1 = flare1;
+    turn guns to x-axis <-30> speed <25.00000>;
+    spin turret around y-axis speed <25.0>;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -125,8 +127,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <600.137363>;
-	turn guns to x-axis <0.000000> speed <550.126374>;
+    turn guns to x-axis <-30> speed <25.00000>;
+    spin turret around y-axis speed <25.0>;
 }
 SetStunned(State)
 {

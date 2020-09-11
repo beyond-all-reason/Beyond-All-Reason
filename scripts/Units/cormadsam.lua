@@ -131,7 +131,7 @@
 
                 if currBarrel == 9 then currBarrel = 1 end
 
-			Sleep (3000)
+			Sleep (5000)
 			StartThread (animSpin, unitID, turret, y_axis, math.rad(25.000000))
 			Turn(launcher, x_axis, math.rad(-35.000000), math.rad(60.000000))
         end
