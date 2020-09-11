@@ -285,10 +285,10 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit1 = T3ReinforcementAirUnits[math_random(1,#T3ReinforcementAirUnits)]
-								groupsize = 2
+								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit1 = T4ReinforcementAirUnits[math_random(1,#T4ReinforcementAirUnits)]
-								groupsize = 1
+								groupsize = 2
 							end
 						elseif posy > -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -299,10 +299,10 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit1 = T3ReinforcementLandUnits[math_random(1,#T3ReinforcementLandUnits)]
-								groupsize = 2
+								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit1 = T4ReinforcementLandUnits[math_random(1,#T4ReinforcementLandUnits)]
-								groupsize = 1
+								groupsize = 2
 							end
 						elseif posy <= -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -313,16 +313,13 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit1 = T3ReinforcementSeaUnits[math_random(1,#T3ReinforcementSeaUnits)]
-								groupsize = 2
+								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit1 = T4ReinforcementSeaUnits[math_random(1,#T4ReinforcementSeaUnits)]
-								groupsize = 1
+								groupsize = 2
 							end
 						end
-						if groupsize == 1 then
-							ScavSendMessage(playerName .."'s reinforcements detected. Unit: ".. UDN[groupunit1].humanName .. ".")
-						else
-							ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. groupsize .." ".. UDN[groupunit1].humanName .."s and ".. UDN[groupunit2].humanName .."s.")
+							ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. UDN[groupunit1].humanName .. "s.")
 						end
 						for i = 1,groupsize do
 							local posx = posx+(math_random(-posradius,posradius))
@@ -330,16 +327,16 @@ function spawnPlayerReinforcements(n)
 							local newposy = Spring.GetGroundHeight(posx, posz)
 							if posy >= -20 and newposy >= -20 then
 								if i then
-									QueueSpawn("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*15))
-									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
+									QueueSpawn("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*60))
+									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*60))
 								else
 									QueueSpawn("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
 									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 								end
 							elseif posy < -20 and newposy < -20 then
 								if i then
-									QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*15))
-									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
+									QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*60))
+									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*60))
 								else
 									QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
 									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
