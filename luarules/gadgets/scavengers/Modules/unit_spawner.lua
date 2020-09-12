@@ -165,54 +165,54 @@ function UnitGroupSpawn(n)
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						if spawnTier < 50 then
-							groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
+							groupunit = T4AirUnits
 						else
-							groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
+							groupunit = T3AirUnits
 						end
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
-						groupunit = T0AirUnits[math_random(1,#T0AirUnits)]
+						groupunit = T0AirUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						groupunit = T1AirUnits[math_random(1,#T1AirUnits)]
+						groupunit = T1AirUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t1multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						groupunit = T2AirUnits[math_random(1,#T2AirUnits)]
+						groupunit = T2AirUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
+						groupunit = T3AirUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier
 						-- ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 						-- if math_random(0,2) == 0 then
 							-- ScavSendNotification("scav_scavheavyairdetected")
 						-- end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
+						groupunit = T4AirUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
 						-- ScavSendNotification("scav_scavbossdetected")
 					else
-						groupunit = T0AirUnits[math_random(1,#T0AirUnits)]
+						groupunit = T0AirUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy > -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						if spawnTier < 50 then
-							groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
+							groupunit = T4LandUnits
 						else
-							groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
+							groupunit = T3LandUnits
 						end
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
-						groupunit = T0LandUnits[math_random(1,#T0LandUnits)]
+						groupunit = T0LandUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						groupunit = T1LandUnits[math_random(1,#T1LandUnits)]
+						groupunit = T1LandUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t1multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						groupunit = T2LandUnits[math_random(1,#T2LandUnits)]
+						groupunit = T2LandUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
+						groupunit = T3LandUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier
 							-- local c = math_random(0,2)
 							-- if c == 0 then
@@ -234,43 +234,43 @@ function UnitGroupSpawn(n)
 							-- end
 
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
+						groupunit = T4LandUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
 						-- ScavSendNotification("scav_scavbossdetected")
 					else
-						groupunit = T0LandUnits[math_random(1,#T0LandUnits)]
+						groupunit = T0LandUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				elseif posy <= -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						if spawnTier < 50 then
-							groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
+							groupunit = T4SeaUnits
 						else
-							groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
+							groupunit = T3SeaUnits
 						end
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
 					elseif spawnTier <= TierSpawnChances.T0 then
-						groupunit = T0SeaUnits[math_random(1,#T0SeaUnits)]
+						groupunit = T0SeaUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						groupunit = T1SeaUnits[math_random(1,#T1SeaUnits)]
+						groupunit = T1SeaUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t1multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						groupunit = T2SeaUnits[math_random(1,#T2SeaUnits)]
+						groupunit = T2SeaUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
+						groupunit = T3SeaUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier
 						-- ScavSendMessage("Warning! Scavengers dropped group of ".. UDN[groupunit].humanName .."s")
 						-- if math_random(0,2) == 0 then
 							-- ScavSendNotification("scav_scavheavyshipsdetected")
 						-- end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
+						groupunit = T4SeaUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
 						-- ScavSendNotification("scav_scavbossdetected")
 					else
-						groupunit = T0SeaUnits[math_random(1,#T0SeaUnits)]
+						groupunit = T0SeaUnits
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier
 					end
 				end
@@ -283,18 +283,18 @@ function UnitGroupSpawn(n)
 					if posy >= -20 and newposy >= -20 then
 						if i then
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*15))
-							QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
+							QueueSpawn(groupunit[math_random(1,#groupunit)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+							QueueSpawn(groupunit[math_random(1,#groupunit)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*15))
-							QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
+							QueueSpawn(groupunit[math_random(1,#groupunit)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+							QueueSpawn(groupunit[math_random(1,#groupunit)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 						end
 					end
 					--Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)

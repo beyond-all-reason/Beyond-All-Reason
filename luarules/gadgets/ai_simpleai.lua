@@ -118,7 +118,8 @@ local function SimpleBuildOrder(cUnitID, building)
 	local refDefID = Spring.GetUnitDefID(buildnear)
 	local isBuilding = UnitDefs[refDefID].isBuilding
 	local isCommander = (UnitDefs[refDefID].name == "armcom" or UnitDefs[refDefID].name == "corcom")
-	if isBuilding or isCommander then
+	local isExtractor = UnitDefs[refDefID].extractsMetal > 0
+	if (isBuilding or isCommander) and (not isExtractor)  then
 		local refx, refy, refz = Spring.GetUnitPosition(buildnear)
 		local reffootx = UnitDefs[refDefID].xsize*8
 		local reffootz = UnitDefs[refDefID].zsize*8

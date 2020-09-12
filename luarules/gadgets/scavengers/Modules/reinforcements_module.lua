@@ -37,7 +37,7 @@ function CaptureBeacons(n)
 				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 					captureraiTeam = false
 				else
-					captureraiTeam = true
+					captureraiTeam = false -- true
 				end
 				if not CapturingUnitsTeamTest[unitAllyTeam] then
 					CapturingUnitsTeamTest[unitAllyTeam] = true
@@ -64,7 +64,7 @@ function CaptureBeacons(n)
 				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 					captureraiTeam = false
 				else
-					captureraiTeam = true
+					captureraiTeam = false -- true
 				end
 
 				if not CapturingUnitsTeam[unitTeamID] then
@@ -278,44 +278,44 @@ function spawnPlayerReinforcements(n)
 						local aircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance)
 						if aircraftchance == 0 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit1 = T1ReinforcementAirUnits[math_random(1,#T1ReinforcementAirUnits)]
+								groupunit = T1ReinforcementAirUnits[math_random(1,#T1ReinforcementAirUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit1 = T2ReinforcementAirUnits[math_random(1,#T2ReinforcementAirUnits)]
+								groupunit = T2ReinforcementAirUnits[math_random(1,#T2ReinforcementAirUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit1 = T3ReinforcementAirUnits[math_random(1,#T3ReinforcementAirUnits)]
+								groupunit = T3ReinforcementAirUnits[math_random(1,#T3ReinforcementAirUnits)]
 								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit1 = T4ReinforcementAirUnits[math_random(1,#T4ReinforcementAirUnits)]
+								groupunit = T4ReinforcementAirUnits[math_random(1,#T4ReinforcementAirUnits)]
 								groupsize = 2
 							end
 						elseif posy > -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit1 = T1ReinforcementLandUnits[math_random(1,#T1ReinforcementLandUnits)]
+								groupunit = T1ReinforcementLandUnits[math_random(1,#T1ReinforcementLandUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit1 = T2ReinforcementLandUnits[math_random(1,#T2ReinforcementLandUnits)]
+								groupunit = T2ReinforcementLandUnits[math_random(1,#T2ReinforcementLandUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit1 = T3ReinforcementLandUnits[math_random(1,#T3ReinforcementLandUnits)]
+								groupunit = T3ReinforcementLandUnits[math_random(1,#T3ReinforcementLandUnits)]
 								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit1 = T4ReinforcementLandUnits[math_random(1,#T4ReinforcementLandUnits)]
+								groupunit = T4ReinforcementLandUnits[math_random(1,#T4ReinforcementLandUnits)]
 								groupsize = 2
 							end
 						elseif posy <= -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit1 = T1ReinforcementSeaUnits[math_random(1,#T1ReinforcementSeaUnits)]
+								groupunit = T1ReinforcementSeaUnits[math_random(1,#T1ReinforcementSeaUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit1 = T2ReinforcementSeaUnits[math_random(1,#T2ReinforcementSeaUnits)]
+								groupunit = T2ReinforcementSeaUnits[math_random(1,#T2ReinforcementSeaUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit1 = T3ReinforcementSeaUnits[math_random(1,#T3ReinforcementSeaUnits)]
+								groupunit = T3ReinforcementSeaUnits[math_random(1,#T3ReinforcementSeaUnits)]
 								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit1 = T4ReinforcementSeaUnits[math_random(1,#T4ReinforcementSeaUnits)]
+								groupunit = T4ReinforcementSeaUnits[math_random(1,#T4ReinforcementSeaUnits)]
 								groupsize = 2
 							end
 							ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. UDN[groupunit1].humanName .. "s.")
