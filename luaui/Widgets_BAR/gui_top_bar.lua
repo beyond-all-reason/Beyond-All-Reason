@@ -838,7 +838,7 @@ local function updateResbarText(res)
 								if numTeamsInAllyTeam > 1 then
 									WG['notifications'].addEvent('WholeTeamWastingMetal')
 								else
-									WG['notifications'].addEvent('YouAreWastingMetal')
+									--WG['notifications'].addEvent('YouAreWastingMetal')
 								end
 							else
 								WG['notifications'].addEvent('YouAreOverflowingMetal')
@@ -851,7 +851,7 @@ local function updateResbarText(res)
 								if numTeamsInAllyTeam > 1 then
 									WG['notifications'].addEvent('WholeTeamWastingEnergy')
 								else
-									WG['notifications'].addEvent('YouAreWastingEnergy')
+									--WG['notifications'].addEvent('YouAreWastingEnergy')
 								end
 							else
 								WG['notifications'].addEvent('YouAreOverflowingEnergy')
