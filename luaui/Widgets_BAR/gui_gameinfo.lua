@@ -639,6 +639,9 @@ function widget:Initialize()
 				hideWindows()
 			end
 		end
+		WG['gameinfo'].isvisible = function()
+			return show
+		end
 		-- somehow there are a few characters added at the start that we need to remove
 		--content = string.sub(content, 4)
 

@@ -23,6 +23,8 @@ local vsx, vsy = Spring.GetViewGeometry()
 local orgHeight = 46
 local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 
+local escapeKeyPressesQuit = true
+
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
@@ -1722,31 +1724,39 @@ function widget:MouseMove(x, y)
 end
 
 local function hideWindows()
-	if (WG['options'] ~= nil) then
+	local closedWindow = false
+	if WG['options'] ~= nil and WG['options'].isvisible() then
 		WG['options'].toggle(false)
+		closedWindow = true
 	end
-	if (WG['scavengerinfo'] ~= nil) then
+	if WG['scavengerinfo'] ~= nil and WG['scavengerinfo'].isvisible() then
 		WG['scavengerinfo'].toggle(false)
+		closedWindow = true
 	end
-	if (WG['changelog'] ~= nil) then
+	if WG['changelog'] ~= nil and WG['changelog'].isvisible() then
 		WG['changelog'].toggle(false)
+		closedWindow = true
 	end
-	if (WG['keybinds'] ~= nil) then
+	if WG['keybinds'] ~= nil and WG['keybinds'].isvisible() then
 		WG['keybinds'].toggle(false)
+		closedWindow = true
 	end
-	if (WG['commands'] ~= nil) then
-		WG['commands'].toggle(false)
-	end
-	if (WG['gameinfo'] ~= nil) then
+	if WG['gameinfo'] ~= nil and WG['gameinfo'].isvisible() then
 		WG['gameinfo'].toggle(false)
+		closedWindow = true
 	end
-	if (WG['teamstats'] ~= nil) then
+	if WG['teamstats'] ~= nil and WG['teamstats'].isvisible() then
 		WG['teamstats'].toggle(false)
+		closedWindow = true
+	end
+	if showQuitscreen then
+		closedWindow = true
 	end
 	showQuitscreen = nil
 	if WG['guishader'] then
 		WG['guishader'].setScreenBlur(false)
 	end
+	return closedWindow
 end
 
 local function applyButtonAction(button)
@@ -1839,7 +1849,10 @@ function widget:KeyPress(key)
 	if key == 27 then
 		-- ESC
 		if not WG['options'] or (WG['options'].disallowEsc and not WG['options'].disallowEsc()) then
-			hideWindows()
+			local escDidSomething = hideWindows()
+			if escapeKeyPressesQuit and not escDidSomething then
+				applyButtonAction('quit')
+			end
 		end
 	end
 	if showQuitscreen ~= nil and quitscreenArea ~= nil then
