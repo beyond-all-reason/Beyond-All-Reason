@@ -189,6 +189,7 @@ Create()
 	Static_Var_8 = 0;
 	start-script SmokeUnit();
 	spin fan around z-axis speed <300>;
+	turn sleeve to x-axis <-20.000000> speed <25.000000>;
 }
 
 static-var  Stunned;
@@ -199,7 +200,7 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.000000> speed <250.000000>;
 	wait-for-turn turret around y-axis;
-	turn sleeve to x-axis <0.000000> speed <150.000000>;
+	turn sleeve to x-axis <-20.000000> speed <25.000000>;
 	wait-for-turn sleeve around x-axis;
 	Static_Var_8 = 0;
 }
