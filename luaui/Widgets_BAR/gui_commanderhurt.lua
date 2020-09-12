@@ -57,7 +57,7 @@ end
 
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if unitTeam == myTeamID and comUnitDefIDs[unitDefID] and not Spring.IsUnitVisible(unitID) then
+	if damage > 3 and unitTeam == myTeamID and comUnitDefIDs[unitDefID] and not Spring.IsUnitVisible(unitID) then
 		if Spring.GetSpectatingState() then
 			widgetHandler:RemoveWidget(self)
 			return
