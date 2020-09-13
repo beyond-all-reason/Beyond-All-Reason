@@ -123,7 +123,7 @@ local function SimpleBuildOrder(cUnitID, building)
 		local refx, refy, refz = Spring.GetUnitPosition(buildnear)
 		local reffootx = UnitDefs[refDefID].xsize*8
 		local reffootz = UnitDefs[refDefID].zsize*8
-		local spacing = math.random(96,128)
+		local spacing = 128
 		local buildingDefID = building
 		local r = math.random (0,3)
 		if r == 0 then
@@ -192,7 +192,7 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 function gadget:GameFrame(n)
-	if n%30 == 0 then
+	if n%15 == 0 then
 		for i = 1,#SimpleAITeamIDs do
 			local teamID = SimpleAITeamIDs[i]
 			local _,_,isDead,_,faction,allyTeamID = Spring.GetTeamInfo(teamID)
