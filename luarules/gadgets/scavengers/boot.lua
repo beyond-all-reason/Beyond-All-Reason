@@ -181,6 +181,9 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 
+	if n%30 == 15 and FinalBossUnitID then
+		BossMinionsSpawn(n)
+	end
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true and FinalBossKilled == false then
 		if n%30 == 0 then
@@ -243,15 +246,15 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then
+	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule and (not FinalBossUnitSpawned) then
 		SpawnBlueprint(n)
 	end
 	if n%30 == 0 then
-		if scavconfig.modules.unitSpawnerModule then
+		if scavconfig.modules.unitSpawnerModule and (not FinalBossUnitSpawned) then
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > 9000 then
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > 9000 and (not FinalBossUnitSpawned) then
 			SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -335,6 +338,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 				if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
 					Spring.Echo("GG")
 					FinalBossKilled = true
+					FinalBossUnitID = nil
 				end
 			end
 		end
@@ -551,6 +555,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
 				end
 				return
+			end
+		end
+		for i = 1,#BossUnits do
+			if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
+				Spring.Echo("Got boss commander ID, attempting to spawn minions")
+				FinalBossUnitID = unitID
 			end
 		end
 		if UnitName == "scavengerdroppod_scav" then

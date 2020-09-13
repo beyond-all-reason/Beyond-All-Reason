@@ -86,6 +86,55 @@ function BossWaveTimer(n)
 	end
 end
 
+function BossMinionsSpawn(n)
+	local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
+	local posx = x + math_random(-256,256)
+	local posz = z + math_random(-256,256)
+	local posy = Spring.GetGroundHeight(posx, posz)
+	local r = math_random(0,100)
+	local rair = math_random(0, unitSpawnerModuleConfig.aircraftchance)
+
+	if rair == 0 then
+		if r <= 40 then
+			minionUnit = T1AirUnits[math_random(1,#T1AirUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 80 then
+			minionUnit = T2AirUnits[math_random(1,#T2AirUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 95 then
+			minionUnit = T3AirUnits[math_random(1,#T3AirUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 100 then
+			minionUnit = T4AirUnits[math_random(1,#T4AirUnits)]..scavconfig.unitnamesuffix
+		else
+			minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
+		end
+	elseif posy > -20 then
+		if r <= 40 then
+			minionUnit = T1LandUnits[math_random(1,#T1LandUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 80 then
+			minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 95 then
+			minionUnit = T3LandUnits[math_random(1,#T3LandUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 100 then
+			minionUnit = T4LandUnits[math_random(1,#T4LandUnits)]..scavconfig.unitnamesuffix
+		else
+			minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
+		end
+	elseif posy <= -20 then
+		if r <= 40 then
+			minionUnit = T1SeaUnits[math_random(1,#T1SeaUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 80 then
+			minionUnit = T2SeaUnits[math_random(1,#T2SeaUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 95 then
+			minionUnit = T3SeaUnits[math_random(1,#T3SeaUnits)]..scavconfig.unitnamesuffix
+		elseif r <= 100 then
+			minionUnit = T4SeaUnits[math_random(1,#T4SeaUnits)]..scavconfig.unitnamesuffix
+		else
+			minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
+		end
+	end
+	Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+end
+
+
 function UnitGroupSpawn(n)
 	if n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
@@ -312,3 +361,4 @@ function UnitGroupSpawn(n)
 		end
 	end
 end
+
