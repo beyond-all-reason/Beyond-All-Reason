@@ -853,7 +853,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 end
 
-local function getSelectionTotals(cells, newlineEveryStat)
+local function getSelectionTotals(cells)
 	local descriptionColor = '\255\240\240\240'
 	local metalColor = '\255\245\245\245'
 	local energyColor = '\255\255\255\000'
@@ -914,24 +914,19 @@ local function getSelectionTotals(cells, newlineEveryStat)
 	end
 
 	-- resources
-	stats = stats .. statsIndent .. tooltipLabelTextColor .. "metal: " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. ' ' or '... ') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or tooltipLabelTextColor .. '... ')
-
-	if newlineEveryStat then
-		stats = stats .. '\n' .. statsIndent
-	end
-	stats = stats .. tooltipLabelTextColor .. "energy: " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. ' ' or '... ') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or tooltipLabelTextColor .. '... ')
+	stats = stats .. statsIndent .. tooltipLabelTextColor .. "M: " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. ' ' or '... ') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or tooltipLabelTextColor .. '... ')
+	stats = stats .. '\n' .. statsIndent
+	stats = stats .. tooltipLabelTextColor .. "E: " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. ' ' or '... ') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or tooltipLabelTextColor .. '... ')
 
 	-- metal cost
 	if totalMetalValue > 0 then
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "metalcost: " .. tooltipValueColor .. totalMetalValue .. "   "
+		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "M cost: " .. tooltipValueColor .. totalMetalValue .. "   "
 	end
-	if newlineEveryStat then
-		stats = stats .. '\n' .. statsIndent
-	end
+	stats = stats .. '\n' .. statsIndent
 
 	-- energy cost
 	if totalEnergyValue > 0 then
-		stats = stats .. tooltipLabelTextColor .. "energycost: " .. tooltipValueColor .. totalEnergyValue .. "   "
+		stats = stats .. tooltipLabelTextColor .. "E cost: " .. tooltipValueColor .. totalEnergyValue .. "   "
 	end
 
 	-- health
@@ -939,7 +934,8 @@ local function getSelectionTotals(cells, newlineEveryStat)
 	if totalMaxHealthValue > 0 then
 		totalHealth = math_floor(totalHealth)
 		local percentage = math_floor((totalHealth / totalMaxHealthValue) * 100)
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "health: " .. tooltipValueColor .. percentage .. "%" .. tooltipDarkTextColor .. "  ( " .. tooltipLabelTextColor .. totalHealth .. tooltipDarkTextColor .. ' of ' .. tooltipLabelTextColor .. totalMaxHealthValue .. tooltipDarkTextColor .. " )"
+		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "Health: " .. tooltipValueColor .. percentage .. "%"
+		stats = stats .. "\n" .. tooltipDarkTextColor .. " (" ..tooltipLabelTextColor .. totalHealth .. tooltipDarkTextColor .. ' of ' .. tooltipLabelTextColor .. totalMaxHealthValue .. tooltipDarkTextColor .. ")"
 	end
 
 	-- DPS
@@ -975,7 +971,7 @@ local function drawSelection()
 
 	-- draw selection totals
 	if showSelectionTotals then
-		local stats = getSelectionTotals(selectionCells, true)
+		local stats = getSelectionTotals(selectionCells)
 		local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " units selected" .. stats .. "\n " .. (stats == '' and '' or '\n')
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 		text, numLines = font:WrapText(text, contentWidth * (loadedFontSize / fontSize))
@@ -985,7 +981,7 @@ local function drawSelection()
 	end
 
 	-- selected units grid area
-	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.8)  -- leaving some room for the totals
+	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.65)  -- leaving some room for the totals
 	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding - bgpadding)
 	customInfoArea = { backgroundRect[3] - gridWidth, backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + gridHeight }
 
@@ -1005,7 +1001,7 @@ local function drawSelection()
 
 	-- adjust grid size to add some padding at the top and right side
 	cellsize = math_floor((cellsize * (1 - (0.04 / rows))) + 0.5)  -- leave some space at the top
-	cellPadding = math_max(1, math_floor(cellsize * 0.04))
+	cellPadding = math_max(1, math_floor(cellsize * 0.03))
 	customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
 
 	-- draw grid (bottom right to top left)
