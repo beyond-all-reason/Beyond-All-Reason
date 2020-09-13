@@ -154,142 +154,100 @@ local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
 
-local hasAlternativeUnitpic = {}
-local unitBuildPic = {}
-local unitEnergyCost = {}
-local unitMetalCost = {}
-local unitBuildTime = {}
-local unitGroup = {}
-local isBuilder = {}
-local unitHumanName = {}
-local unitDescriptionLong = {}
-local unitTooltip = {}
-local unitIconType = {}
-local isMex = {}
-local isTransport = {}
-local isAaUnit = {}
-local isAirUnit = {}
-local unitMaxWeaponRange = {}
-local unitHealth = {}
-local unitBuildOptions = {}
-local unitBuildSpeed = {}
-local unitWeapons = {}
-local unitDPS = {}
-local unitMainWeapon = {}
-local unitReloadTime = {}
-local unitEnergyPerShot = {}
-local unitMetalPerShot = {}
-local unitCanStockpile = {}
-local unitStealth = {}
-local unitLosRadius = {}
-local unitAirLosRadius = {}
-local unitRadarRadius = {}
-local unitSonarRadius = {}
-local unitJammerRadius = {}
-local unitSonarJamRadius = {}
-local unitSeismicRadius = {}
-local unitArmorType = {}
-local unitWreckMetal = {}
-local unitHeapMetal = {}
-local unitParalyzeMult = {}
-local unitMetalmaker = {}
-local unitSpeed = {}
-local unitReverseSpeed = {}
+local unitDefInfo = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitDefInfo[unitDefID] = {}
 
 	if unitDef.isAirUnit then
-		isAirUnit[unitDefID] = true
+		unitDefInfo[unitDefID].airUnit = true
 	end
 
-	unitHumanName[unitDefID] = unitDef.humanName
+	unitDefInfo[unitDefID].humanName = unitDef.humanName
 	if unitDef.maxWeaponRange > 16 then
-		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
+		unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
 	end
 	if unitDef.speed > 0 then
-		unitSpeed[unitDefID] = round(unitDef.speed, 0)
+		unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
 	end
 	if unitDef.rSpeed > 0 then
-		unitReverseSpeed[unitDefID] = round(unitDef.rSpeed, 0)
+		unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
 	end
 	if unitDef.stealth then
-		unitStealth[unitDefID] = true
-	end
-	if unitDef.customParams.description_long then
-		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
+		unitDefInfo[unitDefID].stealth = true
 	end
 	if unitDef.isTransport then
-		isTransport[unitDefID] = { unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity }
+		unitDefInfo[unitDefID].transport = { unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity }
 	end
 	if unitDef.customParams.paralyzemultiplier then
-		unitParalyzeMult[unitDefID] = tonumber(unitDef.customParams.paralyzemultiplier)
+		unitDefInfo[unitDefID].paralyzeMult = tonumber(unitDef.customParams.paralyzemultiplier)
 	end
-	if unitDef.wreckName then
-		if FeatureDefNames[unitDef.wreckName] then
-			unitWreckMetal[unitDefID] = FeatureDefNames[unitDef.wreckName].metal
-			if FeatureDefNames[unitDef.wreckName].deathFeatureID and FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID] then
-				unitHeapMetal[unitDefID] = FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID].metal
-			end
-		end
-	end
-	unitArmorType[unitDefID] = Game.armorTypes[unitDef.armorType or 0] or '???'
+	--if unitDef.wreckName then
+	--	if FeatureDefNames[unitDef.wreckName] then
+	--		unitDefInfo[unitDefID].unitWreckMetal = FeatureDefNames[unitDef.wreckName].metal
+	--		if FeatureDefNames[unitDef.wreckName].deathFeatureID and FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID] then
+	--			unitDefInfo[unitDefID].unitHeapMetal = FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID].metal
+	--		end
+	--	end
+	--end
+	unitDefInfo[unitDefID].armorType = Game.armorTypes[unitDef.armorType or 0] or '???'
 
 	if unitDef.losRadius > 0 then
-		unitLosRadius[unitDefID] = unitDef.losRadius
+		unitDefInfo[unitDefID].losRadius = unitDef.losRadius
 	end
 	if unitDef.airLosRadius > 0 then
-		unitAirLosRadius[unitDefID] = unitDef.airLosRadius
+		unitDefInfo[unitDefID].airLosRadius = unitDef.airLosRadius
 	end
 	if unitDef.radarRadius > 0 then
-		unitRadarRadius[unitDefID] = unitDef.radarRadius
+		unitDefInfo[unitDefID].radarRadius = unitDef.radarRadius
 	end
 	if unitDef.sonarRadius > 0 then
-		unitSonarRadius[unitDefID] = unitDef.sonarRadius
+		unitDefInfo[unitDefID].sonarRadius = unitDef.sonarRadius
 	end
 	if unitDef.jammerRadius > 0 then
-		unitJammerRadius[unitDefID] = unitDef.jammerRadius
+		unitDefInfo[unitDefID].jammerRadius = unitDef.jammerRadius
 	end
 	if unitDef.sonarJamRadius > 0 then
-		unitSonarJamRadius[unitDefID] = unitDef.sonarJamRadius
+		unitDefInfo[unitDefID].sonarJamRadius = unitDef.sonarJamRadius
 	end
 	if unitDef.seismicRadius > 0 then
-		unitSeismicRadius[unitDefID] = unitDef.seismicRadius
+		unitDefInfo[unitDefID].seismicRadius = unitDef.seismicRadius
 	end
 
 	if unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
-		unitMetalmaker[unitDefID] = { tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency) }
+		unitDefInfo[unitDefID].metalmaker = { tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency) }
 	end
 
-	unitTooltip[unitDefID] = unitDef.tooltip
-	unitIconType[unitDefID] = unitDef.iconType
-	unitEnergyCost[unitDefID] = unitDef.energyCost
-	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitHealth[unitDefID] = unitDef.health
-	unitBuildTime[unitDefID] = unitDef.buildTime
-	unitBuildPic[unitDefID] = unitDef.buildpicname
+	unitDefInfo[unitDefID].tooltip = unitDef.tooltip
+	unitDefInfo[unitDefID].iconType= unitDef.iconType
+	unitDefInfo[unitDefID].energyCost = unitDef.energyCost
+	unitDefInfo[unitDefID].metalCost = unitDef.metalCost
+	unitDefInfo[unitDefID].health = unitDef.health
+	unitDefInfo[unitDefID].buildTime = unitDef.buildTime
+	unitDefInfo[unitDefID].buildPic = unitDef.buildpicname
 	if unitDef.canStockpile then
-		unitCanStockpile[unitDefID] = true
+		unitDefInfo[unitDefID].canStockpile = true
 	end
 	if VFS.FileExists('unitpics/alternative/' .. string.gsub(unitDef.buildpicname, '(.*/)', '')) then
-		hasAlternativeUnitpic[unitDefID] = true
+		unitDefInfo[unitDefID].hasAlternativeUnitpic = true
 	end
 	if unitDef.buildSpeed > 0 then
-		unitBuildSpeed[unitDefID] = unitDef.buildSpeed
+		unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 	end
 	if unitDef.buildOptions[1] then
-		unitBuildOptions[unitDefID] = unitDef.buildOptions
+		unitDefInfo[unitDefID].buildOptions = unitDef.buildOptions
 	end
 	if unitDef.extractsMetal > 0 then
-		isMex[unitDefID] = true
+		unitDefInfo[unitDefID].mex = true
 	end
 
 	for i = 1, #unitDef.weapons do
-		if not unitWeapons[unitDefID] then
-			unitWeapons[unitDefID] = {}
-			unitDPS[unitDefID] = 0
-			unitReloadTime[unitDefID] = 0
-			unitMainWeapon[unitDefID] = i
+		if not unitDefInfo[unitDefID].weapons then
+			unitDefInfo[unitDefID].weapons = {}
+			unitDefInfo[unitDefID].dps = 0
+			unitDefInfo[unitDefID].reloadTime = 0
+			unitDefInfo[unitDefID].mainWeapon = i
 		end
-		unitWeapons[unitDefID][i] = unitDef.weapons[i].weaponDef
+		unitDefInfo[unitDefID].weapons[i] = unitDef.weapons[i].weaponDef
 		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
 		if weaponDef.damages then
 			-- get highest damage category
@@ -302,20 +260,20 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				end
 			end
 			local dps = math_floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
-			if dps > unitDPS[unitDefID] then
-				unitDPS[unitDefID] = dps
-				unitReloadTime[unitDefID] = reloadTime
-				unitMainWeapon[unitDefID] = i
+			if dps > unitDefInfo[unitDefID].dps then
+				unitDefInfo[unitDefID].dps = dps
+				unitDefInfo[unitDefID].reloadTime = reloadTime
+				unitDefInfo[unitDefID].mainWeapon = i
 			end
 		end
 		if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
-			isAaUnit[unitDefID] = true
+			unitDefInfo[unitDefID].isAaUnit = true
 		end
-		if weaponDef.energyCost > 0 and (not unitEnergyPerShot[unitDefID] or weaponDef.energyCost > unitEnergyPerShot[unitDefID]) then
-			unitEnergyPerShot[unitDefID] = weaponDef.energyCost
+		if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
+			unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
 		end
-		if weaponDef.metalCost > 0 and (not unitMetalPerShot[unitDefID] or weaponDef.metalCost > unitMetalPerShot[unitDefID]) then
-			unitMetalPerShot[unitDefID] = weaponDef.metalCost
+		if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
+			unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
 		end
 	end
 end
@@ -367,11 +325,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.metalCost then
 		unitOrder[unitDefID] = unitOrder[unitDefID] + unitDef.metalCost
 	end
-	if unitDPS[unitDefID] then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + unitDPS[unitDefID]
+	if unitDefInfo[unitDefID].dps then
+		unitOrder[unitDefID] = unitOrder[unitDefID] + unitDefInfo[unitDefID].dps
 	end
 	unitOrder[unitDefID] = math_floor(unitOrder[unitDefID])
-	--Spring.Echo(unitHumanName[unitDefID]..' = '..unitOrder[unitDefID])
 end
 
 local function getHighestOrderedUnit()
@@ -394,39 +351,34 @@ end
 unitOrder = unitsOrdered
 unitsOrdered = nil
 
---for k, unitDefID in pairs(unitOrder) do
---  Spring.Echo(k..'  '..unitHumanName[unitDefID])
---end
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
 
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
 	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)   -- when changine this also update radarIconSize formula at other place in code
 	for id, unit in pairs(UnitDefs) do
-		if hasAlternativeUnitpic[id] then
-			gl.Texture(':lr200,200:unitpics/alternative/' .. unitBuildPic[id])
+		if unitDefInfo[id].hasAlternativeUnitpic then
+			gl.Texture(':lr200,200:unitpics/alternative/' .. unitDefInfo[id].buildPic)
 		else
-			gl.Texture(':lr200,200:unitpics/' .. unitBuildPic[id])
+			gl.Texture(':lr200,200:unitpics/' .. unitDefInfo[id].buildPic)
 		end
 		gl.TexRect(-1, -1, 0, 0)
-		if alternativeUnitpics and hasAlternativeUnitpic[id] then
-			gl.Texture(':lr100,100:unitpics/alternative/' .. unitBuildPic[id])
+		if alternativeUnitpics and unitDefInfo[id].hasAlternativeUnitpic then
+			gl.Texture(':lr100,100:unitpics/alternative/' .. unitDefInfo[id].buildPic)
 		else
-			gl.Texture(':lr100,100:unitpics/' .. unitBuildPic[id])
+			gl.Texture(':lr100,100:unitpics/' .. unitDefInfo[id].buildPic)
 		end
 		gl.TexRect(-1, -1, 0, 0)
-		if alternativeUnitpics and hasAlternativeUnitpic[id] then
-			gl.Texture(':lr160,160:unitpics/alternative/' .. unitBuildPic[id])
+		if alternativeUnitpics and unitDefInfo[id].hasAlternativeUnitpic then
+			gl.Texture(':lr160,160:unitpics/alternative/' .. unitDefInfo[id].buildPic)
 		else
-			gl.Texture(':lr160,160:unitpics/' .. unitBuildPic[id])
+			gl.Texture(':lr160,160:unitpics/' .. unitDefInfo[id].buildPic)
 		end
-		if iconTypesMap[unitIconType[id]] then
+		if iconTypesMap[unitDefInfo[id].unitIconType] then
 			gl.TexRect(-1, -1, 0, 0)
-			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitIconType[id]])
+			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].unitIconType])
 			gl.TexRect(-1, -1, 0, 0)
 		end
 		gl.Texture(false)
@@ -846,7 +798,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 
 	glColor(1, 1, 1, 1)
-	glTexture(texSetting .. "unitpics/" .. ((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '') .. unitBuildPic[uDefID])
+	glTexture(texSetting .. "unitpics/" .. ((alternativeUnitpics and unitDefInfo[uDefID].hasAlternativeUnitpic) and 'alternative/' or '') .. unitDefInfo[uDefID].buildPic)
 	--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
 	--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
 	TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 1, 1, usedZoom)
@@ -917,7 +869,7 @@ local function getSelectionTotals(cells, newlineEveryStat)
 
 	-- description
 	if cellHovered then
-		local text, numLines = font:WrapText(unitTooltip[selectionCells[cellHovered]], (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
+		local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].tooltip, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
 		stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
 	end
 
@@ -927,16 +879,16 @@ local function getSelectionTotals(cells, newlineEveryStat)
 	local totalDpsValue = 0
 	for _, unitDefID in pairs(cells) do
 		-- metal cost
-		if unitMetalCost[unitDefID] then
-			totalMetalValue = totalMetalValue + (unitMetalCost[unitDefID] * selUnitsCounts[unitDefID])
+		if unitDefInfo[unitDefID].metalCost then
+			totalMetalValue = totalMetalValue + (unitDefInfo[unitDefID].metalCost * selUnitsCounts[unitDefID])
 		end
 		-- energy cost
-		if unitEnergyCost[unitDefID] then
-			totalEnergyValue = totalEnergyValue + (unitEnergyCost[unitDefID] * selUnitsCounts[unitDefID])
+		if unitDefInfo[unitDefID].energyCost then
+			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
 		end
 		-- DPS
-		if unitDPS[unitDefID] then
-			totalDpsValue = totalDpsValue + (unitDPS[unitDefID] * selUnitsCounts[unitDefID])
+		if unitDefInfo[unitDefID].dps then
+			totalDpsValue = totalDpsValue + (unitDefInfo[unitDefID].dps * selUnitsCounts[unitDefID])
 		end
 	end
 
@@ -1094,27 +1046,27 @@ local function drawUnitInfo()
 	local iconSize = fontSize * 5
 	local iconPadding = 0
 	local alternative = ''
-	if hasAlternativeUnitpic[displayUnitDefID] then
+	if unitDefInfo[displayUnitDefID].hasAlternativeUnitpic then
 		alternative = 'alternative/'
 		iconPadding = bgpadding
 	end
 
 	glColor(1, 1, 1, 1)
-	if unitBuildPic[displayUnitDefID] then
-		glTexture(":lr200,200:unitpics/" .. alternative .. unitBuildPic[displayUnitDefID])
+	if unitDefInfo[displayUnitDefID].buildPic then
+		glTexture(":lr200,200:unitpics/" .. alternative .. unitDefInfo[displayUnitDefID].buildPic)
 		glTexRect(backgroundRect[1] + iconPadding, backgroundRect[4] - iconPadding - iconSize - bgpadding, backgroundRect[1] + iconPadding + iconSize, backgroundRect[4] - iconPadding - bgpadding)
 		glTexture(false)
 	end
 	iconSize = iconSize + iconPadding
 
 	local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
-	local text, unitDescriptionLines = font:WrapText(unitTooltip[displayUnitDefID], (contentWidth - iconSize) * (loadedFontSize / fontSize))
+	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].tooltip, (contentWidth - iconSize) * (loadedFontSize / fontSize))
 
 	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
 	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
-	if unitIconType[displayUnitDefID] and iconTypesMap[unitIconType[displayUnitDefID]] then
+	if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].unitIconType] then
 		glColor(1, 1, 1, 0.88)
-		glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitIconType[displayUnitDefID]])
+		glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].unitIconType])
 		glTexRect(backgroundRect[3] - radarIconMargin - radarIconSize, backgroundRect[4] - radarIconMargin - radarIconSize, backgroundRect[3] - radarIconMargin, backgroundRect[4] - radarIconMargin)
 		glTexture(false)
 		glColor(1, 1, 1, 1)
@@ -1171,7 +1123,7 @@ local function drawUnitInfo()
 
 	-- unit name
 	font2:Begin()
-	font2:Print(unitNameColor .. unitHumanName[displayUnitDefID], backgroundRect[1] + iconSize + iconPadding, backgroundRect[4] - contentPadding - (fontSize * 0.91), fontSize * 1.12, "o")
+	font2:Print(unitNameColor .. unitDefInfo[displayUnitDefID].humanName, backgroundRect[1] + iconSize + iconPadding, backgroundRect[4] - contentPadding - (fontSize * 0.91), fontSize * 1.12, "o")
 	--font2:End()
 
 	-- custom unit info background
@@ -1179,7 +1131,7 @@ local function drawUnitInfo()
 	local height = (backgroundRect[4] - backgroundRect[2]) * (unitDescriptionLines > 1 and 0.495 or 0.6)
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
-	if not displayMode == 'unitdef' or not unitBuildOptions[displayUnitDefID] or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
+	if not displayMode == 'unitdef' or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.06 }, { 0.8, 0.8, 0.8, 0.14 })
 	end
 
@@ -1216,9 +1168,9 @@ local function drawUnitInfo()
 			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
 		end
 	else
-		valueY1 = metalColor .. unitMetalCost[displayUnitDefID]
-		valueY2 = energyColor .. unitEnergyCost[displayUnitDefID]
-		valueY3 = healthColor .. unitHealth[displayUnitDefID]
+		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
+		valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
+		valueY3 = healthColor .. unitDefInfo[displayUnitDefID].health
 	end
 
 	glColor(1, 1, 1, 1)
@@ -1248,27 +1200,27 @@ local function drawUnitInfo()
 	font2:End()
 
 	-- draw unit buildoption icons
-	if displayMode == 'unitdef' and unitBuildOptions[displayUnitDefID] then
+	if displayMode == 'unitdef' and unitDefInfo[displayUnitDefID].buildOptions then
 		local gridHeight = math_ceil(height * 0.975)
 		local rows = 2
-		local colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
+		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
 		local cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
 		if cellsize < gridHeight / 3 then
 			rows = 3
-			colls = math_ceil(#unitBuildOptions[displayUnitDefID] / rows)
+			colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
 			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
 		end
 		-- draw grid (bottom right to top left)
-		local cellID = #unitBuildOptions[displayUnitDefID]
+		local cellID = #unitDefInfo[displayUnitDefID].buildOptions
 		cellPadding = math_floor((cellsize * 0.022) + 0.5)
 		cellRect = {}
 		for row = 1, rows do
 			for coll = 1, colls do
-				if unitBuildOptions[displayUnitDefID][cellID] then
-					local uDefID = unitBuildOptions[displayUnitDefID][cellID]
+				if unitDefInfo[displayUnitDefID].buildOptions[cellID] then
+					local uDefID = unitDefInfo[displayUnitDefID].buildOptions[cellID]
 					cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
 					glColor(0.9, 0.9, 0.9, 1)
-					glTexture(":lr100,100:unitpics/" .. ((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '') .. unitBuildPic[uDefID])
+					glTexture(":lr100,100:unitpics/" .. ((alternativeUnitpics and unitDefInfo[uDefID].hasAlternativeUnitpic) and 'alternative/' or '') .. unitDefInfo[uDefID].buildPic)
 					--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
 					--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
 					TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 1, 1, 0.11)
@@ -1314,14 +1266,14 @@ local function drawUnitInfo()
 		local infoFontsize = fontSize * 0.92
 		-- to determine what to show in what order
 		local function addTextInfo(label, value)
-			text = text .. labelColor .. separator .. string.upper(label:sub(1, 1)) .. label:sub(2) .. (label ~= '' and ' ' or '') .. valueColor .. (value and value or '')
+			text = text .. labelColor .. separator .. string.upper(label:sub(1, 1)) .. label:sub(2)  .. valueColor .. (value and (label ~= '' and ' ' or '')..value or '')
 			separator = ',   '
 		end
 
 
 		-- unit specific info
-		if unitDPS[displayUnitDefID] then
-			dps = unitDPS[displayUnitDefID]
+		if unitDefInfo[displayUnitDefID].dps then
+			dps = unitDefInfo[displayUnitDefID].dps
 		end
 
 		-- get unit specifc data
@@ -1332,11 +1284,11 @@ local function drawUnitInfo()
 			if not exp then
 				exp = spGetUnitExperience(displayUnitID)
 			end
-			if isMex[displayUnitDefID] then
+			if unitDefInfo[displayUnitDefID].mex then
 				metalExtraction = spGetUnitMetalExtraction(displayUnitID)
 			end
 			local unitStates = spGetUnitStates(displayUnitID)
-			if unitCanStockpile[displayUnitDefID] then
+			if unitDefInfo[displayUnitDefID].canStockpile then
 				stockpile = spGetUnitStockpile(displayUnitID)
 			end
 
@@ -1346,13 +1298,13 @@ local function drawUnitInfo()
 
 		end
 
-		if unitWeapons[displayUnitDefID] then
+		if unitDefInfo[displayUnitDefID].weapons then
 			local reloadTime = 1
 			if exp and exp > 0.009 then
 				addTextInfo('xp', round(exp, 2))
-				addTextInfo('max-health', '+' .. round((maxHealth / unitHealth[displayUnitDefID] - 1) * 100, 0) .. '%')
-				reloadTime = spGetUnitWeaponState(displayUnitID, unitMainWeapon[displayUnitDefID], 'reloadTimeXP')
-				reloadTime = tonumber(round((1 - (reloadTime / unitReloadTime[displayUnitDefID])) * 100, 0))
+				addTextInfo('max-health', '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
+				reloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
+				reloadTime = tonumber(round((1 - (reloadTime / unitDefInfo[displayUnitDefID].reloadTime)) * 100, 0))
 				if reloadTime > 0 then
 					addTextInfo('reload', '-' .. reloadTime .. '%')
 				end
@@ -1368,83 +1320,82 @@ local function drawUnitInfo()
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
 
-			if unitEnergyPerShot[displayUnitDefID] then
-				addTextInfo('energyPerShot', unitEnergyPerShot[displayUnitDefID])
+			if unitDefInfo[displayUnitDefID].energyPerShot then
+				addTextInfo('energyPerShot', unitDefInfo[displayUnitDefID].energyPerShot)
 			end
-			if unitMetalPerShot[displayUnitDefID] then
-				addTextInfo('metalPerShot', unitMetalPerShot[displayUnitDefID])
+			if unitDefInfo[displayUnitDefID].metalPerShot then
+				addTextInfo('metalPerShot', unitDefInfo[displayUnitDefID].metalPerShot)
 			end
 		end
 
-		--if unitStealth[displayUnitDefID] then
-		--	addTextInfo('stealthy', '')
-		--end
-
-		if unitSpeed[displayUnitDefID] then
-			addTextInfo('speed', unitSpeed[displayUnitDefID])
+		if unitDefInfo[displayUnitDefID].stealth then
+			addTextInfo('stealthy', nil)
 		end
-		if unitReverseSpeed[displayUnitDefID] then
-			addTextInfo('reverse speed', unitReverseSpeed[displayUnitDefID])
+
+		if unitDefInfo[displayUnitDefID].transport then
+			addTextInfo('transMass', unitDefInfo[displayUnitDefID].transport[1])
+			addTextInfo('transSize', unitDefInfo[displayUnitDefID].transport[2])
+			addTextInfo('transCapacity', unitDefInfo[displayUnitDefID].transport[3])
+		end
+
+		if unitDefInfo[displayUnitDefID].speed then
+			addTextInfo('speed', unitDefInfo[displayUnitDefID].speed)
+		end
+		if unitDefInfo[displayUnitDefID].reverseSpeed then
+			addTextInfo('reverse speed', unitDefInfo[displayUnitDefID].reverseSpeed)
 		end
 
 		--if metalExtraction then
 		--  addTextInfo('metal extraction', round(metalExtraction, 2))
 		--end
-		if unitBuildSpeed[displayUnitDefID] then
-			addTextInfo('buildspeed', unitBuildSpeed[displayUnitDefID])
+		if unitDefInfo[displayUnitDefID].buildSpeed then
+			addTextInfo('buildspeed', unitDefInfo[displayUnitDefID].buildSpeed)
 		end
-		if unitBuildOptions[displayUnitDefID] then
-			addTextInfo('buildoptions', #unitBuildOptions[displayUnitDefID])
+		if unitDefInfo[displayUnitDefID].buildOptions then
+			addTextInfo('buildoptions', #unitDefInfo[displayUnitDefID].buildOptions)
 		end
 
-		--if unitWreckMetal[displayUnitDefID] then
-		--  addTextInfo('wreck', round(unitWreckMetal[displayUnitDefID],0))
-		--end
-		--if unitHeapMetal[displayUnitDefID] then
-		--  addTextInfo('heap', round(unitHeapMetal[displayUnitDefID],0))
+		--if unitDefInfo[displayUnitDefID].armorType and unitDefInfo[displayUnitDefID].armorType ~= 'standard' then
+		--	addTextInfo('armor', unitDefInfo[displayUnitDefID].armorType)
 		--end
 
-		if unitArmorType[displayUnitDefID] and unitArmorType[displayUnitDefID] ~= 'standard' then
-			addTextInfo('armor', unitArmorType[displayUnitDefID])
-		end
-
-		if unitParalyzeMult[displayUnitDefID] then
-			if unitParalyzeMult[displayUnitDefID] == 0 then
+		if unitDefInfo[displayUnitDefID].paralyzeMult then
+			if unitDefInfo[displayUnitDefID].paralyzeMult == 0 then
 				addTextInfo('unparalyzable')
 			else
-				addTextInfo('paralyzeMult', round(unitParalyzeMult[displayUnitDefID], 2))
+				addTextInfo('paralyzeMult', round(unitDefInfo[displayUnitDefID].paralyzeMult, 2))
 			end
 		end
 
-		if unitLosRadius[displayUnitDefID] then
-			addTextInfo('los', round(unitLosRadius[displayUnitDefID], 0))
+		if unitDefInfo[displayUnitDefID].losRadius then
+			addTextInfo('los', round(unitDefInfo[displayUnitDefID].losRadius, 0))
 		end
-		if unitAirLosRadius[displayUnitDefID] and (isAirUnit[displayUnitDefID] or isAaUnit[displayUnitDefID]) then
+		if unitDefInfo[displayUnitDefID].airLosRadius and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
 
-			addTextInfo('airlos', round(unitAirLosRadius[displayUnitDefID], 0))
+			addTextInfo('airlos', round(unitDefInfo[displayUnitDefID].airLosRadius, 0))
 		end
-		if unitRadarRadius[displayUnitDefID] then
-			addTextInfo('radar', round(unitRadarRadius[displayUnitDefID], 0))
+		if unitDefInfo[displayUnitDefID].radarRadius then
+			addTextInfo('radar', round(unitDefInfo[displayUnitDefID].radarRadius, 0))
 		end
-		if unitSonarRadius[displayUnitDefID] then
-			addTextInfo('sonar', round(unitSonarRadius[displayUnitDefID], 0))
+		if unitDefInfo[displayUnitDefID].sonarRadius then
+			addTextInfo('sonar', round(unitDefInfo[displayUnitDefID].sonarRadius, 0))
 		end
-		if unitJammerRadius[displayUnitDefID] then
-			addTextInfo('jammer', round(unitJammerRadius[displayUnitDefID], 0))
+		if unitDefInfo[displayUnitDefID].jammerRadius then
+			addTextInfo('jammer', round(unitDefInfo[displayUnitDefID].jammerRadius, 0))
 		end
-		if unitSonarJamRadius[displayUnitDefID] then
-			addTextInfo('sonarjam', round(unitSonarJamRadius[displayUnitDefID], 0))
+		if unitDefInfo[displayUnitDefID].sonarJamRadius then
+			addTextInfo('sonarjam', round(unitDefInfo[displayUnitDefID].sonarJamRadius, 0))
 		end
-		if unitSeismicRadius[displayUnitDefID] then
-			addTextInfo('seismic', unitSeismicRadius[displayUnitDefID])
+		if unitDefInfo[displayUnitDefID].seismicRadius then
+			addTextInfo('seismic', unitDefInfo[displayUnitDefID].seismicRadius)
 		end
 		--addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
 		--addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
 		--addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
-		if unitMetalmaker[displayUnitDefID] then
-			addTextInfo('convertorEnergyCapacity', unitMetalmaker[displayUnitDefID][1])
-			addTextInfo('convertorMetal', round(unitMetalmaker[displayUnitDefID][1] / (1 / unitMetalmaker[displayUnitDefID][2]), 1))
+		if unitDefInfo[displayUnitDefID].metalmaker then
+			addTextInfo('convertorEnergyCapacity', unitDefInfo[displayUnitDefID].metalmaker[1])
+			addTextInfo('convertorMetal', round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
 		end
 
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
@@ -1757,13 +1708,13 @@ function widget:DrawScreen()
 				local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
 				-- description
 				if cellHovered then
-					local text, numLines = font:WrapText(unitTooltip[selectionCells[cellHovered]], (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
+					local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].tooltip, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
 					stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
 				end
 				local text
 				stats = getSelectionTotals(cells)
 				if cellHovered then
-					text = tooltipTitleColor .. unitHumanName[selectionCells[cellHovered]] .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '') .. stats
+					text = tooltipTitleColor .. unitDefInfo[selectionCells[cellHovered]].humanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '') .. stats
 				else
 					text = tooltipTitleColor .. "Selected units: " .. tooltipTextColor .. #selectedUnits .. stats .. "\n " .. (stats == '' and '' or '\n') .. selectionHowto
 				end
