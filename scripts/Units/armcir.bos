@@ -44,6 +44,7 @@ Create()
 	firstaim = 1;
 	start-script SmokeUnit();
 	spin spindle around z-axis speed <15>;
+	spin turret around y-axis speed <22.0>;
 }
 
 static-var  Stunned;
@@ -53,6 +54,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
     firstaim = 1;
+	spin turret around y-axis speed <22.0>;
 }
 SetStunned(State)
 {

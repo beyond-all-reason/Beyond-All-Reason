@@ -39,7 +39,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-
 	hide flare1;
 	hide flare2;
 	hide flare3;
@@ -49,6 +48,7 @@ Create()
 	hide flare7;
 	gun_1 = flare1;
 	firstaim = 1;
+	spin turret around y-axis speed <22.0>;
 	start-script SmokeUnit();
 }
 
@@ -59,6 +59,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
     firstaim = 1;
+	spin turret around y-axis speed <22.0>;
 }
 SetStunned(State)
 {
