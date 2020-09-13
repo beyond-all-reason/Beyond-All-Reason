@@ -325,7 +325,7 @@ function widget:ViewResize()
 
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
-	activeRect = { (posX * vsx) + activeBgpadding, ((posY - height) * vsy) + (altPosition and math_floor(activeBgpadding / 3) or activeBgpadding), ((posX + width) * vsx) - activeBgpadding, (posY * vsy) - activeBgpadding }
+	activeRect = { (posX * vsx) + (posX > 0 and activeBgpadding or bgpadding), ((posY - height) * vsy) + (posY-height > 0 and activeBgpadding or math_floor(activeBgpadding / 3)), ((posX + width) * vsx) - activeBgpadding, (posY * vsy) - activeBgpadding }
 	dlistOrders = gl.DeleteList(dlistOrders)
 
 	checkGuishader(true)
@@ -780,8 +780,8 @@ function drawOrders()
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1] + (altPosition and bgpadding or 0), backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (altPosition and 1 or 0), 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-	RectRound(backgroundRect[1] + (altPosition and bgpadding or 0), backgroundRect[2] + (altPosition and 0 or bgpadding), backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, (altPosition and 0 or 1), 0, { 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 })
+	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (altPosition and 1 or 0), 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
+	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY-height > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, (posY > 0 and 1 or 0), 0, { 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 })
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	--RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,1,1,0.2}, {1,1,1,0.2})
