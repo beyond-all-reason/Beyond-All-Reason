@@ -248,24 +248,23 @@ function setupCellGrid(force)
 		local i = 0
 		cellWidth = math_floor((activeRect[3] - activeRect[1]) / cols)
 		cellHeight = math_floor((activeRect[4] - activeRect[2]) / rows)
-		local leftOverWidth = ((activeRect[3] - activeRect[1]) - (cellWidth * cols))
+		local leftOverWidth = ((activeRect[3] - activeRect[1]) - (cellWidth * cols))-1
 		local leftOverHeight = ((activeRect[4] - activeRect[2]) - (cellHeight * rows))
 		cellMarginPx = math_max(1, math_ceil(cellHeight * 0.5 * cellMargin))
 		cellMarginPx2 = math_max(0, math_ceil(cellHeight * 0.18 * cellMargin))
 
 		--cellWidth = math_floor(cellWidth)
 		--cellHeight = math_floor(cellHeight)
-
 		local addedWidth = 0
 		local addedHeight = 0
 		local prevAddedWidth = 0
 		local prevAddedHeight = 0
 		for row = 1, rows do
 			prevAddedHeight = addedHeight
-			addedHeight = (math_floor((leftOverHeight / (row)) + 0.5))
+			addedHeight = math_floor((leftOverHeight / row) + 0.5)
 			prevAddedWidth = 0
 			for col = 1, cols do
-				addedWidth = (math_floor((leftOverWidth / (col)) + 0.5))
+				addedWidth = math_floor((leftOverWidth / (cols-(col-1))) + 0.5)
 				i = i + 1
 				cellRects[i] = {
 					math_floor(activeRect[1] + prevAddedWidth + (cellWidth * (col - 1)) + 0.5),
@@ -295,7 +294,7 @@ function widget:ViewResize()
 	if WG['buildmenu'] then
 		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
 	end
-	
+
 	font2 = WG['fonts'].getFont(fontFile)
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
@@ -325,7 +324,12 @@ function widget:ViewResize()
 
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
-	activeRect = { (posX * vsx) + (posX > 0 and activeBgpadding or bgpadding), ((posY - height) * vsy) + (posY-height > 0 and activeBgpadding or math_floor(activeBgpadding / 3)), ((posX + width) * vsx) - activeBgpadding, (posY * vsy) - activeBgpadding }
+	activeRect = {
+		(posX * vsx) + (posX > 0 and activeBgpadding or bgpadding),
+		((posY - height) * vsy) + (posY-height > 0 and activeBgpadding or math_floor(activeBgpadding / 3)),
+		((posX + width) * vsx) - activeBgpadding,
+		(posY * vsy) - activeBgpadding
+	}
 	dlistOrders = gl.DeleteList(dlistOrders)
 
 	checkGuishader(true)
@@ -584,9 +588,9 @@ function drawCell(cell, zoom)
 		if cell % cols == 0 then
 			rightMargin = cellMarginPx2
 		end
-		--if cols/cell >= 1  then
-		--  topMargin = cellMarginPx2
-		--end
+		if cols/cell >= 1  then
+		  topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+		end
 		--if cols/cell < 1/(cols-1) then
 		--  bottomMargin = cellMarginPx2
 		--end
@@ -784,7 +788,7 @@ function drawOrders()
 	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY-height > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, (posY > 0 and 1 or 0), 0, { 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 })
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-	--RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,1,1,0.2}, {1,1,1,0.2})
+	--RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,0,1,0.5}, {1,0,1,0.5})
 
 	font2:Begin()
 	for cell = 1, #cmds do
@@ -890,9 +894,9 @@ function widget:DrawScreen()
 				if cell % cols == 0 then
 					rightMargin = cellMarginPx2
 				end
-				--if cols/cell >= 1  then
-				--  topMargin = cellMarginPx2
-				--end
+				if cols/cell >= 1  then
+					topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+				end
 				--if cols/cell < 1/(cols-1) then
 				--  bottomMargin = cellMarginPx2
 				--end
