@@ -561,6 +561,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
 				Spring.Echo("Got boss commander ID, attempting to spawn minions")
 				FinalBossUnitID = unitID
+				local _,basehealth = Spring.GetUnitHealth(unitID)
+				local bosshealthmultiplier = basehealth*((teamcount*0.5)+0.5)*spawnmultiplier
+				Spring.SetUnitHealth(unitID, bosshealthmultiplier)
+				Spring.SetMaxUnitHealth(unitID, bosshealthmultiplier)
 			end
 		end
 		if UnitName == "scavengerdroppod_scav" then
