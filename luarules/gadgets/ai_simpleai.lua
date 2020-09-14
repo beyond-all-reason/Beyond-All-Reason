@@ -101,7 +101,7 @@ local function SimpleGetClosestMexSpot(x,z)
 		local spot = metalSpots[i]
 		local dx, dz = x - spot.x, z - spot.z
 		local dist = dx*dx + dz*dz
-		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 64)
+		local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 128)
 		--local height = Spring.GetGroundHeight(spot.x, spot.z)
 		if dist < bestDist and #units == 0 then --and height > 0 then
 			bestSpot = spot
@@ -123,7 +123,8 @@ local function SimpleBuildOrder(cUnitID, building)
 		local refx, refy, refz = Spring.GetUnitPosition(buildnear)
 		local reffootx = UnitDefs[refDefID].xsize*8
 		local reffootz = UnitDefs[refDefID].zsize*8
-		local spacing = 128
+		local spacing = math.random(96,256)
+		local testspacing = spacing*0.75
 		local buildingDefID = building
 		local r = math.random (0,3)
 		if r == 0 then
@@ -131,7 +132,8 @@ local function SimpleBuildOrder(cUnitID, building)
 			local bposz = refz + reffootz + spacing
 			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
-			if testpos == 2 then
+			local nearbyunits = Spring.GetUnitsInRectangle(bposx-testspacing, bposz-testspacing, bposx+testspacing, bposz+testspacing)
+			if testpos == 2 and #nearbyunits <= 0 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
 			end
 		elseif r == 1 then
@@ -139,7 +141,8 @@ local function SimpleBuildOrder(cUnitID, building)
 			local bposz = refz
 			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
-			if testpos == 2 then
+			local nearbyunits = Spring.GetUnitsInRectangle(bposx-testspacing, bposz-testspacing, bposx+testspacing, bposz+testspacing)
+			if testpos == 2 and #nearbyunits <= 0 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
 			end
 		elseif r == 2 then
@@ -147,7 +150,8 @@ local function SimpleBuildOrder(cUnitID, building)
 			local bposz = refz - reffootz - spacing
 			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
-			if testpos == 2 then
+			local nearbyunits = Spring.GetUnitsInRectangle(bposx-testspacing, bposz-testspacing, bposx+testspacing, bposz+testspacing)
+			if testpos == 2 and #nearbyunits <= 0 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
 			end
 		elseif r == 3 then
@@ -155,7 +159,8 @@ local function SimpleBuildOrder(cUnitID, building)
 			local bposz = refz
 			local bposy = Spring.GetGroundHeight(bposx, bposz)--+100
 			local testpos = Spring.TestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
-			if testpos == 2 then
+			local nearbyunits = Spring.GetUnitsInRectangle(bposx-testspacing, bposz-testspacing, bposx+testspacing, bposz+testspacing)
+			if testpos == 2 and #nearbyunits <= 0 then
 				Spring.GiveOrderToUnit(cUnitID, -buildingDefID,{bposx,bposy,bposz,r}, {"shift"})
 			end
 		end
@@ -192,7 +197,7 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 function gadget:GameFrame(n)
-	if n%15 == 0 then
+	if n%5 == 0 then
 		for i = 1,#SimpleAITeamIDs do
 			local teamID = SimpleAITeamIDs[i]
 			local _,_,isDead,_,faction,allyTeamID = Spring.GetTeamInfo(teamID)
