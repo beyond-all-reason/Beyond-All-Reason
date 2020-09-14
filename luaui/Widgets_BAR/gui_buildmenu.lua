@@ -438,7 +438,7 @@ local function cacheUnitIcons()
 		maxC = minC
 	end -- just to be sure
 
-	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + bgpadding + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
+	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
 	local contentWidth = activeArea[3] - activeArea[1]
 	local colls = minC
 	while colls <= maxC do
@@ -1226,16 +1226,16 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		-- glossy half
 		--RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.66), cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 2, 2, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.13 })
+		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.66), cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 2, 2, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- extra darken gradually
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 0, 0, 2, 2, { 0, 0, 0, 0.13 }, { 0, 0, 0, 0 })
+		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 0, 0, 2, 2, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
 	end
 
 	-- darken price background gradually
 	if showPrice and (not alternativeUnitpics or makeFancy) then
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding + (cellInnerSize * 0.415), cornerSize, 0, 0, 2, 2, { 0, 0, 0, (makeFancy and 0.22 or 0.3) }, { 0, 0, 0, 0 })
+		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding + (cellInnerSize * 0.415), cornerSize, 0, 0, 2, 2, { 0, 0, 0, (makeFancy and 0.2 or 0.27) }, { 0, 0, 0, 0 })
 	end
 
 	-- lighten cell edges
@@ -1315,51 +1315,75 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 end
 
 function drawBuildmenu()
-	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + bgpadding + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
+	local activeArea = {
+		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
+		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
+		backgroundRect[3] - bgpadding - activeAreaMargin,
+		backgroundRect[4] - bgpadding - activeAreaMargin
+	}
 	local contentHeight = activeArea[4] - activeArea[2]
 	local contentWidth = activeArea[3] - activeArea[1]
+
 
 	-- determine grid size
 	if not dynamicIconsize then
 		colls = defaultColls
-		cellSize = math_floor((contentWidth / colls) + 0.33)
+		cellSize = math_floor((contentWidth / colls) + 0.5)
 		rows = math_floor(contentHeight / cellSize)
 	else
 		colls = minColls
-		cellSize = math_floor((contentWidth / colls) + 0.33)
+		cellSize = math_floor((contentWidth / colls) + 0.5)
 		rows = math_floor(contentHeight / cellSize)
 		if minColls < maxColls then
 			while cmdsCount > rows * colls do
 				colls = colls + 1
-				cellSize = math_floor((contentWidth / colls) + 0.33)
+				cellSize = math_floor((contentWidth / colls) + 0.5)
 				rows = math_floor(contentHeight / cellSize)
 				if colls == maxColls then
 					break
 				end
 			end
 		end
+		if stickToBottom then
+			--cellSize = math_min(contentHeight*0.6, math_floor((contentHeight / rows) + 0.5))
+			--colls = math_min(minColls, math_floor(contentWidth / cellSize))
+			--if contentWidth / colls < contentWidth / cellSize then
+			--	rows = rows + 1
+			--	cellSize = math_min(contentHeight*0.6, math_floor((contentHeight / rows) + 0.5))
+			--	colls = math_min(minColls, math_floor(contentWidth / cellSize))
+			--end
+		end
 	end
 
 	-- adjust grid size when pages are needed
-	local paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
-	if cmdsCount > colls * rows then
-		pages = math_ceil(cmdsCount / (colls * rows))
-		-- when more than 1 page: reserve bottom row for paginator and calc again
-		if pages > 1 then
-			pages = math_ceil(cmdsCount / (colls * (rows - 1)))
-		end
-		if currentPage > pages then
-			currentPage = pages
-		end
+	if not stickToBottom then
+		local paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
+		if cmdsCount > colls * rows then
+			pages = math_ceil(cmdsCount / (colls * rows))
+			-- when more than 1 page: reserve bottom row for paginator and calc again
+			if pages > 1 then
+				pages = math_ceil(cmdsCount / (colls * (rows - 1)))
+			end
+			if currentPage > pages then
+				currentPage = pages
+			end
 
-		-- remove a row if there isnt enough room for the paginator UI
-		if paginatorCellHeight < (0.06 * (1 - ((colls / 4) * 0.25))) * vsy then
-			rows = rows - 1
-			paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
+			-- remove a row if there isnt enough room for the paginator UI
+			if not stickToBottom then
+				if paginatorCellHeight < (0.06 * (1 - ((colls / 4) * 0.25))) * vsy then
+					rows = rows - 1
+					paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
+				end
+			else
+				if paginatorCellHeight < (0.06 * (1 - ((rows / 4) * 0.25))) * vsx then
+					colls = colls - 1
+					paginatorCellHeight = math_floor(contentHeight - (colls * cellSize))
+				end
+			end
+		else
+			currentPage = 1
+			pages = 1
 		end
-	else
-		currentPage = 1
-		pages = 1
 	end
 
 	-- these are globals so it can be re-used (hover highlight)
@@ -1394,13 +1418,21 @@ function drawBuildmenu()
 			cellRectID = cellRectID + 1
 
 			local uDefID = cmds[cellRectID].id * -1
-			cellRects[cellRectID] = {
-				activeArea[3] - ((colls - coll + 1) * cellSize),
-				activeArea[4] - ((row) * cellSize),
-				activeArea[3] - (((colls - coll)) * cellSize),
-				activeArea[4] - ((row - 1) * cellSize)
-			}
-
+			if stickToBottom then
+				cellRects[cellRectID] = {
+					activeArea[1] + ((coll - 1) * cellSize),
+					activeArea[4] - ((row) * cellSize),
+					activeArea[1] + (((coll)) * cellSize),
+					activeArea[4] - ((row - 1) * cellSize)
+				}
+			else
+				cellRects[cellRectID] = {
+					activeArea[3] - ((colls - coll + 1) * cellSize),
+					activeArea[4] - ((row) * cellSize),
+					activeArea[3] - (((colls - coll)) * cellSize),
+					activeArea[4] - ((row - 1) * cellSize)
+				}
+			end
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
@@ -1413,32 +1445,34 @@ function drawBuildmenu()
 	end
 
 	-- paginator
-	if pages == 1 then
-		paginatorRects = {}
-	else
-		local paginatorFontSize = math_max(0.016 * vsy, paginatorCellHeight * 0.2)
-		local paginatorCellWidth = math_floor(contentWidth * 0.3)
-		local paginatorBorderSize = math_floor(cellSize * ((cfgIconPadding + cfgCellPadding) * 0.8))
+	if not stickToBottom then
+		if pages == 1 then
+			paginatorRects = {}
+		else
+			local paginatorFontSize = math_max(0.016 * vsy, paginatorCellHeight * 0.2)
+			local paginatorCellWidth = math_floor(contentWidth * 0.3)
+			local paginatorBorderSize = math_floor(cellSize * ((cfgIconPadding + cfgCellPadding) * 0.8))
 
-		paginatorRects[1] = { activeArea[1], activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
-		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
+			paginatorRects[1] = { activeArea[1], activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
+			paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
-		RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
-		RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
+			RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
+			RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
+			RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
+			RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 
-		-- glossy half
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][4] - cellPadding - ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.5), paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.15 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][4] - cellPadding - ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.5), paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.15 })
+			-- glossy half
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][4] - cellPadding - ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.5), paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.15 })
+			RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][4] - cellPadding - ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.5), paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.15 })
 
-		-- glossy bottom
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][2] + cellPadding + ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][2] + cellPadding + ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			-- glossy bottom
+			RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][2] + cellPadding + ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
+			RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][2] + cellPadding + ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-		font2:Print("\255\245\245\245" .. currentPage .. "  \\  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
+			font2:Print("\255\245\245\245" .. currentPage .. "  \\  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
+		end
 	end
 
 	font2:End()
@@ -1615,22 +1649,24 @@ function widget:DrawScreen()
 			if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 				-- paginator buttons
-				local paginatorHovered = false
-				if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-					paginatorHovered = 1
-				end
-				if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-					paginatorHovered = 2
-				end
-				if paginatorHovered then
-					if WG['tooltip'] then
-						local text = "\255\240\240\240" .. (paginatorHovered == 1 and "previous page" or "next page")
-						WG['tooltip'].ShowTooltip('buildmenu', text)
+				if not stickToBottom then
+					local paginatorHovered = false
+					if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+						paginatorHovered = 1
 					end
-					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
-					-- gloss
-					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.13 })
-					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.045 }, { 1, 1, 1, 0 })
+					if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+						paginatorHovered = 2
+					end
+					if paginatorHovered then
+						if WG['tooltip'] then
+							local text = "\255\240\240\240" .. (paginatorHovered == 1 and "previous page" or "next page")
+							WG['tooltip'].ShowTooltip('buildmenu', text)
+						end
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
+						-- gloss
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.13 })
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.045 }, { 1, 1, 1, 0 })
+					end
 				end
 
 				-- cells

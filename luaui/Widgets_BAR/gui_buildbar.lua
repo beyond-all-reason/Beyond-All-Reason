@@ -686,7 +686,7 @@ local function drawIcon(rect, tex, color, zoom)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	-- extra darken gradually
-	RectRound(rect[1], rect[2], rect[3], rect[4], cornerSize, 0,0,2,2,{0,0,0,0.13}, {0,0,0,0})
+	RectRound(rect[1], rect[2], rect[3], rect[4], cornerSize, 0,0,2,2,{0,0,0,0.11}, {0,0,0,0})
 
 	local halfSize = (rect[3] - rect[1])*0.5
 	glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -695,7 +695,7 @@ local function drawIcon(rect, tex, color, zoom)
 			0,
 			rect[2]+halfSize,
 			halfSize, cornerSize*0.6,
-			halfSize-math_max(1,math_floor(halfSize*0.08)),
+			halfSize-math_max(1,math_floor(halfSize*0.066)),
 			{1,1,1,0.09}, {1,1,1,0.09}
 	)
 	RectRoundCircle(
