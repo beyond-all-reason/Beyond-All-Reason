@@ -564,7 +564,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				local _,basehealth = Spring.GetUnitHealth(unitID)
 				local bosshealthmultiplier = basehealth*((teamcount*0.5)+0.5)*spawnmultiplier
 				Spring.SetUnitHealth(unitID, bosshealthmultiplier)
-				Spring.SetMaxUnitHealth(unitID, bosshealthmultiplier)
+				Spring.SetUnitMaxHealth(unitID, bosshealthmultiplier)
 			end
 		end
 		if UnitName == "scavengerdroppod_scav" then
