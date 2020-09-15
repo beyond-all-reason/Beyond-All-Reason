@@ -547,8 +547,8 @@ function mouseoverGroupTab(id)
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
 	-- gloss
-	RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.1 })
-	RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][2] + groupMargin + ((groupRect[id][4] - groupRect[id][2]) * 0.35), groupMargin * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.06 }, { 0, 0, 0, 0 })
+	RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
+	RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][2] + groupMargin + ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupMargin * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.05 }, { 0, 0, 0, 0 })
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	font2:Begin()
@@ -597,7 +597,7 @@ function DrawWindow()
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				-- gloss
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.88, 0.66, 0.01 }, { 1, 0.88, 0.66, 0.1 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font2:Begin()
@@ -1103,9 +1103,10 @@ function widget:DrawScreen()
 			--local cx, cy = correctMouseForScaling(x,y)
 			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				local groupMargin = bgMargin / 1.7
+				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(titleRect[1] + groupMargin, titleRect[2], titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0.05 }, { 1, 1, 1, 0.12 })
-				RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.88, 0.66, 0.03 }, { 1, 0.88, 0.66, 0.09 })
+				RectRound(titleRect[1] + groupMargin, titleRect[2], titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.12 })
+				RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.09 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end
 			if groupRect ~= nil then
