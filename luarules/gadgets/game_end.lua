@@ -92,7 +92,6 @@ end
 
 function gadget:Initialize()
 	if tostring(Spring.GetModOptions().deathmode) == "neverend" then
-		Spring.Echo('-=-=-=- game end: neverend')
 		gadgetHandler:RemoveGadget(self)
         return
 	end
@@ -106,7 +105,6 @@ function gadget:Initialize()
 	end
 
 	if teamCount < 2 then -- sandbox mode ( possibly gaia + possibly one player)
-		Spring.Echo('-=-=-=- game end: teamcount < 2')
 		gadgetHandler:RemoveGadget(self)
 		return
 	elseif teamCount == 2 then

@@ -183,7 +183,6 @@ function gadget:Initialize()
 
 		local gaiaTeamID = Spring.GetGaiaTeamID()
 		local teamList = Spring.GetTeamList()
-		Spring.Echo('-=-=-=- initial spawn: #teamlist = '..#teamList)
 		for i = 1, #teamList do
 			local teamID = teamList[i]
 			if teamID ~= gaiaTeamID then
