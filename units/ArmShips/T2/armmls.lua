@@ -42,7 +42,7 @@ return {
 		workertime = 200,
 		buildoptions = {
 			[1] = "armtide",
-			[2] = "armuwmex",
+			[2] = "armmex",
 			[3] = "armfrad",
 			[4] = "armnanotcplat",
 			[5] = "armsy",
@@ -57,7 +57,7 @@ return {
 			[14] = "armfmine3",
 		},
 		customparams = {
-			area_mex_def = "armuwmex",
+			area_mex_def = "armmex",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",

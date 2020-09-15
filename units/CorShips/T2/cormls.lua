@@ -42,7 +42,7 @@ return {
 		workertime = 200,
 		buildoptions = {
 			[1] = "cortide",
-			[2] = "coruwmex",
+			[2] = "cormex",
 			[3] = "corfrad",
 			[4] = "cornanotcplat",
 			[5] = "corsy",
@@ -56,7 +56,7 @@ return {
 			[13] = "corfmine3",
 		},
 		customparams = {
-			area_mex_def = "coruwmex",
+			area_mex_def = "cormex",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
