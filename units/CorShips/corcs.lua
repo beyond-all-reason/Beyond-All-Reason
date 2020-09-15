@@ -43,7 +43,7 @@ return {
 		waterline = 0,
 		workertime = 125,
 		buildoptions = {
-			"armmex",
+			"cormex",
 			"corvp",
 			"corap",
 			"corlab",
@@ -70,7 +70,7 @@ return {
 			"corfhlt",
 		},
 		customparams = {
-			area_mex_def = "coruwmex",
+			area_mex_def = "cormex",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",
