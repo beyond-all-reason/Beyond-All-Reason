@@ -710,12 +710,12 @@ local function drawIcon(rect, tex, color, zoom)
 end
 
 local function DrawOptionsBackground()
-	local addDist = math_floor(widgetSpaceMargin*0.4)
-	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3], boptRect[2]+addDist}
+	local addDist = math_floor(bgpadding*0.5)
+	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
 
 	-- background
-	RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-	RectRound(backgroundOptionsRect[1]+bgpadding, backgroundOptionsRect[2]+bgpadding, backgroundOptionsRect[3]-bgpadding, backgroundOptionsRect[4]-bgpadding, bgpadding*1, 1,1,1,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
+	RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6, 1,0,0,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
+	RectRound(backgroundOptionsRect[1]+bgpadding, backgroundOptionsRect[2]+bgpadding, backgroundOptionsRect[3]-bgpadding, backgroundOptionsRect[4]-bgpadding, bgpadding*1, 1,0,0,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -725,7 +725,7 @@ local function DrawOptionsBackground()
 end
 
 local function DrawBackground()
-	local addDist = math_floor(widgetSpaceMargin*0.4)
+	local addDist = math_floor(bgpadding*0.5)
 	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
 
 	-- background
@@ -744,7 +744,7 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 
 	-- hover or pressed?
 	local zoom = 0.04
-	local hoverPadding = widgetSpaceMargin*0.5
+	local hoverPadding = bgpadding*0.5
 	local iconAlpha = (options.alpha or 1)
 	if options.pressed then
 		--hoverPadding = math_floor(widgetSpaceMargin*0.6)
