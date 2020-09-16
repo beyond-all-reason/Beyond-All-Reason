@@ -16,6 +16,8 @@ end
 
 local stickToBottom = false
 
+local alwaysShow = false
+
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.019 -- space between icons
 local cfgIconCornerSize = 0.025
@@ -995,6 +997,13 @@ function widget:Initialize()
 		showPrice = value
 		doUpdate = true
 	end
+	WG['buildmenu'].getAlwaysShow = function()
+		return alwaysShow
+	end
+	WG['buildmenu'].setAlwaysShow = function(value)
+		alwaysShow = value
+		doUpdate = true
+	end
 	WG['buildmenu'].getShowRadarIcon = function()
 		return showRadarIcon
 	end
@@ -1576,7 +1585,7 @@ function widget:DrawScreen()
 	end
 
 	WG['buildmenu'].hoverID = nil
-	if not preGamestartPlayer and selectedBuilderCount == 0 then
+	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].RemoveDlist('buildmenu')
 		end
@@ -1608,155 +1617,156 @@ function widget:DrawScreen()
 
 		-- draw buildmenu background
 		gl.CallList(dlistBuildmenuBg)
+		if selectedBuilderCount ~= 0 then
+			-- pre process + 'highlight' under the icons
+			local hoveredCellID = nil
+			if not WG['topbar'] or not WG['topbar'].showingQuit() then
+				if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+					Spring.SetMouseCursor('cursornormal')
 
-		-- pre process + 'highlight' under the icons
-		local hoveredCellID = nil
-		if not WG['topbar'] or not WG['topbar'].showingQuit() then
-			if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-				Spring.SetMouseCursor('cursornormal')
+					for cellRectID, cellRect in pairs(cellRects) do
+						if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+							hoveredCellID = cellRectID
+							local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+							local uDefID = cmds[cellRectID].id * -1
+							WG['buildmenu'].hoverID = uDefID
+							gl.Color(1, 1, 1, 1)
+							local alt, ctrl, meta, shift = Spring.GetModKeyState()
+							if showTooltip and WG['tooltip'] and not meta then
+								-- when meta: unitstats does the tooltip
+								local text = "\255\215\255\215" .. unitHumanName[uDefID] .. "\n\255\240\240\240" .. unitTooltip[uDefID]
+								WG['tooltip'].ShowTooltip('buildmenu', text)
+							end
 
-				for cellRectID, cellRect in pairs(cellRects) do
-					if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
-						hoveredCellID = cellRectID
-						local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-						local uDefID = cmds[cellRectID].id * -1
-						WG['buildmenu'].hoverID = uDefID
-						gl.Color(1, 1, 1, 1)
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
-						if showTooltip and WG['tooltip'] and not meta then
-							-- when meta: unitstats does the tooltip
-							local text = "\255\215\255\215" .. unitHumanName[uDefID] .. "\n\255\240\240\240" .. unitTooltip[uDefID]
+							-- highlight --if b and not disableInput then
+							glBlending(GL_SRC_ALPHA, GL_ONE)
+							RectRound(cellRects[cellRectID][1] + cellPadding, cellRects[cellRectID][2] + cellPadding, cellRects[cellRectID][3] - cellPadding, cellRects[cellRectID][4] - cellPadding, cellSize * 0.03, 1, 1, 1, 1, { 0, 0, 0, 0.1 * ui_opacity }, { 0, 0, 0, 0.1 * ui_opacity })
+							glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+							break
+						end
+					end
+				end
+			end
+
+			-- draw buildmenu content
+			gl.CallList(dlistBuildmenu)
+
+			-- draw highlight
+			local usedZoom
+			local cellColor
+			if not WG['topbar'] or not WG['topbar'].showingQuit() then
+				if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+
+					-- paginator buttons
+					local paginatorHovered = false
+					if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+						paginatorHovered = 1
+					end
+					if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+						paginatorHovered = 2
+					end
+					if paginatorHovered then
+						if WG['tooltip'] then
+							local text = "\255\240\240\240" .. (paginatorHovered == 1 and "previous page" or "next page")
 							WG['tooltip'].ShowTooltip('buildmenu', text)
 						end
-
-						-- highlight --if b and not disableInput then
-						glBlending(GL_SRC_ALPHA, GL_ONE)
-						RectRound(cellRects[cellRectID][1] + cellPadding, cellRects[cellRectID][2] + cellPadding, cellRects[cellRectID][3] - cellPadding, cellRects[cellRectID][4] - cellPadding, cellSize * 0.03, 1, 1, 1, 1, { 0, 0, 0, 0.1 * ui_opacity }, { 0, 0, 0, 0.1 * ui_opacity })
-						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-						break
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
+						-- gloss
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.13 })
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.045 }, { 1, 1, 1, 0 })
 					end
-				end
-			end
-		end
 
-		-- draw buildmenu content
-		gl.CallList(dlistBuildmenu)
+					-- cells
+					if hoveredCellID then
+						local cellRectID = hoveredCellID
+						local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+						local uDefID = cmds[cellRectID].id * -1
 
-		-- draw highlight
-		local usedZoom
-		local cellColor
-		if not WG['topbar'] or not WG['topbar'].showingQuit() then
-			if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-
-				-- paginator buttons
-				local paginatorHovered = false
-				if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-					paginatorHovered = 1
-				end
-				if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-					paginatorHovered = 2
-				end
-				if paginatorHovered then
-					if WG['tooltip'] then
-						local text = "\255\240\240\240" .. (paginatorHovered == 1 and "previous page" or "next page")
-						WG['tooltip'].ShowTooltip('buildmenu', text)
-					end
-					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
-					-- gloss
-					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.13 })
-					RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.045 }, { 1, 1, 1, 0 })
-				end
-
-				-- cells
-				if hoveredCellID then
-					local cellRectID = hoveredCellID
-					local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-					local uDefID = cmds[cellRectID].id * -1
-
-					-- determine zoom amount and cell color
-					usedZoom = hoverCellZoom
-					if not cellIsSelected then
-						if (b or b2) and cellIsSelected then
-							usedZoom = clickSelectedCellZoom
-						elseif cellIsSelected then
-							usedZoom = selectedCellZoom
-						elseif (b or b2) and not disableInput then
-							usedZoom = clickCellZoom
-						elseif b3 and not disableInput and cmds[cellRectID].params[1] then
-							-- has queue
-							usedZoom = rightclickCellZoom
-						end
-						-- determine color
-						if (b or b2) and not disableInput then
-							cellColor = { 0.3, 0.8, 0.25, alternativeUnitpics and 0.7 or 0.2 }
-						elseif b3 and not disableInput then
-							cellColor = { 1, 0.35, 0.3, alternativeUnitpics and 0.7 or 0.2 }
-						else
-							cellColor = { 0.63, 0.63, 0.63, alternativeUnitpics and 0.25 or 0 }
-						end
-					else
-						-- selected cell
-						if (b or b2 or b3) then
-							usedZoom = clickSelectedCellZoom
-						else
-							usedZoom = selectedCellZoom
-						end
-						cellColor = { 1, 0.85, alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25 }
-					end
-					if not showPrice then
-						unsetShowPrice = true
-						showPrice = true
-					end
-					-- re-draw cell with hover zoom (and price shown)
-					drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) })
-					if unsetShowPrice then
-						showPrice = false
-						unsetShowPrice = nil
-					end
-					-- gloss highlight
-					--glBlending(GL_SRC_ALPHA, GL_ONE)
-					--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.16 or 0.09})
-					--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,alternativeUnitpics and 0.11 or 0.07}, {1,1,1,0})
-					--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-				end
-			end
-		end
-
-		-- draw builders buildoption progress
-		if showBuildProgress then
-			local numCellsPerPage = rows * colls
-			local cellRectID = numCellsPerPage * (currentPage - 1)
-			local maxCellRectID = numCellsPerPage * currentPage
-			if maxCellRectID > cmdsCount then
-				maxCellRectID = cmdsCount
-			end
-			-- loop selected builders
-			for builderUnitID, _ in pairs(selectedBuilders) do
-				local unitBuildID = spGetUnitIsBuilding(builderUnitID)
-				if unitBuildID then
-					local unitBuildDefID = spGetUnitDefID(unitBuildID)
-					if unitBuildDefID then
-						-- loop all shown cells
-						for cellRectID, cellRect in pairs(cellRects) do
-							if cellRectID > maxCellRectID then
-								break
+						-- determine zoom amount and cell color
+						usedZoom = hoverCellZoom
+						if not cellIsSelected then
+							if (b or b2) and cellIsSelected then
+								usedZoom = clickSelectedCellZoom
+							elseif cellIsSelected then
+								usedZoom = selectedCellZoom
+							elseif (b or b2) and not disableInput then
+								usedZoom = clickCellZoom
+							elseif b3 and not disableInput and cmds[cellRectID].params[1] then
+								-- has queue
+								usedZoom = rightclickCellZoom
 							end
-							local cellUnitDefID = cmds[cellRectID].id * -1
-							if unitBuildDefID == cellUnitDefID then
-								local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
-								if not usedZoom then
-									if cellRectID == hoveredCellID and (b or b2 or b3) then
-										usedZoom = clickSelectedCellZoom
-									else
-										local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+							-- determine color
+							if (b or b2) and not disableInput then
+								cellColor = { 0.3, 0.8, 0.25, alternativeUnitpics and 0.7 or 0.2 }
+							elseif b3 and not disableInput then
+								cellColor = { 1, 0.35, 0.3, alternativeUnitpics and 0.7 or 0.2 }
+							else
+								cellColor = { 0.63, 0.63, 0.63, alternativeUnitpics and 0.25 or 0 }
+							end
+						else
+							-- selected cell
+							if (b or b2 or b3) then
+								usedZoom = clickSelectedCellZoom
+							else
+								usedZoom = selectedCellZoom
+							end
+							cellColor = { 1, 0.85, alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25 }
+						end
+						if not showPrice then
+							unsetShowPrice = true
+							showPrice = true
+						end
+						-- re-draw cell with hover zoom (and price shown)
+						drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) })
+						if unsetShowPrice then
+							showPrice = false
+							unsetShowPrice = nil
+						end
+						-- gloss highlight
+						--glBlending(GL_SRC_ALPHA, GL_ONE)
+						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.16 or 0.09})
+						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,alternativeUnitpics and 0.11 or 0.07}, {1,1,1,0})
+						--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+					end
+				end
+			end
+
+			-- draw builders buildoption progress
+			if showBuildProgress then
+				local numCellsPerPage = rows * colls
+				local cellRectID = numCellsPerPage * (currentPage - 1)
+				local maxCellRectID = numCellsPerPage * currentPage
+				if maxCellRectID > cmdsCount then
+					maxCellRectID = cmdsCount
+				end
+				-- loop selected builders
+				for builderUnitID, _ in pairs(selectedBuilders) do
+					local unitBuildID = spGetUnitIsBuilding(builderUnitID)
+					if unitBuildID then
+						local unitBuildDefID = spGetUnitDefID(unitBuildID)
+						if unitBuildDefID then
+							-- loop all shown cells
+							for cellRectID, cellRect in pairs(cellRects) do
+								if cellRectID > maxCellRectID then
+									break
+								end
+								local cellUnitDefID = cmds[cellRectID].id * -1
+								if unitBuildDefID == cellUnitDefID then
+									local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+									if not usedZoom then
+										if cellRectID == hoveredCellID and (b or b2 or b3) then
+											usedZoom = clickSelectedCellZoom
+										else
+											local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+											usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
+										end
+									end
+									if cellColor and cellRectID ~= hoveredCellID then
+										cellColor = nil
 										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 									end
+									drawCell(cellRectID, usedZoom, cellColor, progress)
 								end
-								if cellColor and cellRectID ~= hoveredCellID then
-									cellColor = nil
-									usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-								end
-								drawCell(cellRectID, usedZoom, cellColor, progress)
 							end
 						end
 					end
@@ -2199,6 +2209,7 @@ function widget:GetConfigData()
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID,
+		alwaysShow = alwaysShow,
 	}
 end
 
@@ -2236,5 +2247,8 @@ function widget:SetConfigData(data)
 	end
 	if data.buildQueue and Spring.GetGameFrame() == 0 then
 		buildQueue = data.buildQueue
+	end
+	if data.alwaysShow ~= nil then
+		alwaysShow = data.alwaysShow
 	end
 end

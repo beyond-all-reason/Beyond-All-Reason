@@ -2820,6 +2820,13 @@ function init()
 			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
+		{ id = "buildmenu_alwaysshow", group = "ui", basic = true, name = widgetOptionColor .. "   always show", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlwaysShow ~= nil and WG['buildmenu'].getAlwaysShow()), description = 'Not hiding when no builders are selected',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setAlwaysShow', { 'alwaysShow' }, value)
+		  end,
+		},
 		{ id = "buildmenu_prices", group = "ui", basic = true, name = widgetOptionColor .. "   prices", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = 'Unit prices in the buildmenu\n\n(when disabled: still show when hovering icon)',
 		  onload = function(i)
 		  end,
@@ -2891,6 +2898,13 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
+		  end,
+		},
+		{ id = "ordermenu_alwaysshow", group = "ui", basic = true, name = widgetOptionColor .. "   always show", type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = 'Not hiding when no buttons are availible',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Order menu', 'ordermenu', 'setAlwaysShow', { 'alwaysShow' }, value)
 		  end,
 		},
 
