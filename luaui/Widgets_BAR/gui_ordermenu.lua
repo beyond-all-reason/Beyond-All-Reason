@@ -967,46 +967,50 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if #cmds > 0 and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		if not disableInput then
-			for cell = 1, #cellRects do
-				local cmd = cmds[cell]
-				if cmd then
-					if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
-						clickCountDown = 2
-						clickedCell = cell
-						clickedCellTime = os_clock()
+	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if #cmds > 0 then
+			if not disableInput then
+				for cell = 1, #cellRects do
+					local cmd = cmds[cell]
+					if cmd then
+						if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+							clickCountDown = 2
+							clickedCell = cell
+							clickedCellTime = os_clock()
 
-						-- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
-						if cmd.type == 5 then
-							if button == 1 then
-								clickedCellDesiredState = cmd.params[1] + 1
-								if clickedCellDesiredState >= #cmd.params - 1 then
-									clickedCellDesiredState = 0
+							-- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
+							if cmd.type == 5 then
+								if button == 1 then
+									clickedCellDesiredState = cmd.params[1] + 1
+									if clickedCellDesiredState >= #cmd.params - 1 then
+										clickedCellDesiredState = 0
+									end
+								else
+									clickedCellDesiredState = cmd.params[1] - 1
+									if clickedCellDesiredState < 0 then
+										clickedCellDesiredState = #cmd.params - 1
+									end
 								end
-							else
-								clickedCellDesiredState = cmd.params[1] - 1
-								if clickedCellDesiredState < 0 then
-									clickedCellDesiredState = #cmd.params - 1
-								end
+								doUpdate = true
 							end
-							doUpdate = true
-						end
 
-						if playSounds then
-							Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+							if playSounds then
+								Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+							end
+							if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
+								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
+							end
+							break
 						end
-						if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
-							Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
-						end
+					else
 						break
 					end
-				else
-					break
 				end
 			end
+			return true
+		elseif alwaysShow then
+			return true
 		end
-		return true
 	end
 end
 

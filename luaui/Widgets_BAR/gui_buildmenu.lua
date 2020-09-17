@@ -1616,15 +1616,18 @@ function widget:DrawScreen()
 			end)
 		end
 
+		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+			Spring.SetMouseCursor('cursornormal')
+			hovering = true
+		end
+
 		-- draw buildmenu background
 		gl.CallList(dlistBuildmenuBg)
 		if preGamestartPlayer or selectedBuilderCount ~= 0 then
 			-- pre process + 'highlight' under the icons
 			local hoveredCellID = nil
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-					Spring.SetMouseCursor('cursornormal')
-
+				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
 						if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 							hoveredCellID = cellRectID
@@ -2140,6 +2143,8 @@ function widget:MousePress(x, y, button)
 					end
 				end
 			end
+			return true
+		elseif alwaysShow then
 			return true
 		end
 
