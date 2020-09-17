@@ -1333,20 +1333,20 @@ function drawBuildmenu()
 	local contentHeight = activeArea[4] - activeArea[2]
 	local contentWidth = activeArea[3] - activeArea[1]
 	local maxCellSize = contentHeight/2
-
 	-- determine grid size
 	if not dynamicIconsize then
 		colls = defaultColls
-		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls) + 0.5))
+		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
 		rows = math_floor(contentHeight / cellSize)
 	else
 		colls = minColls
-		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls) + 0.5))
+		cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
+
 		rows = math_floor(contentHeight / cellSize)
 		if minColls < maxColls then
 			while cmdsCount > rows * colls do
 				colls = colls + 1
-				cellSize = math_min(maxCellSize, math_floor((contentWidth / colls) + 0.5))
+				cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
 				rows = math_floor(contentHeight / cellSize)
 				if colls == maxColls then
 					break
@@ -1356,7 +1356,7 @@ function drawBuildmenu()
 		if stickToBottom then
 			if rows > 1 and cmdsCount <= (colls-1) * rows then
 				colls = colls - 1
-				cellSize = math_min(maxCellSize, math_floor((contentHeight / rows) + 0.5))
+				cellSize = math_min(maxCellSize, math_floor((contentHeight / rows)))
 			end
 			--cellSize = math_min(contentHeight*0.6, math_floor((contentHeight / rows) + 0.5))
 			--colls = math_min(minColls, math_floor(contentWidth / cellSize))
