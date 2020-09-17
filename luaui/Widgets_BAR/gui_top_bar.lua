@@ -101,7 +101,6 @@ local windRotation = 0
 local startComs = 0
 local lastFrame = -1
 local topbarArea = {}
-local barContentArea = {}
 local resbarArea = { metal = {}, energy = {} }
 local resbarDrawinfo = { metal = {}, energy = {} }
 local shareIndicatorArea = { metal = {}, energy = {} }
@@ -1134,65 +1133,48 @@ function init()
 
 	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 
-	topbarArea = { xPos, math_floor(vsy - (borderPadding * widgetScale) - (height * widgetScale)), vsx, vsy }
-	barContentArea = { math_floor(xPos + (borderPadding * widgetScale)), math_floor(vsy - (height * widgetScale)), vsx, vsy }
-
-	--Spring.Echo((borderPadding*widgetScale)-(height*widgetScale))
-	--Spring.Echo(ui_scale..'   '..topbarArea[2])
+	topbarArea = { math_floor(xPos + (borderPadding * widgetScale)), math_floor(vsy - (height * widgetScale)), vsx, vsy }
 
 	local filledWidth = 0
-	local totalWidth = barContentArea[3] - barContentArea[1]
-
-	if dlistBackground then
-		glDeleteList(dlistBackground)
-	end
-	dlistBackground = glCreateList(function()
-
-		--glColor(0, 0, 0, 0.66)
-		--RectRound(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], 6*widgetScale)
-		--
-		--glColor(1,1,1,0.025)
-		--RectRound(barContentArea[1], barContentArea[2], barContentArea[3], barContentArea[4]+(10*widgetScale), 5*widgetScale)
-
-	end)
+	local totalWidth = topbarArea[3] - topbarArea[1]
 
 	-- metal
 	local width = math_floor(totalWidth / 4)
-	resbarArea['metal'] = { barContentArea[1] + filledWidth, barContentArea[2], barContentArea[1] + filledWidth + width, barContentArea[4] }
+	resbarArea['metal'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('metal')
 
 	--energy
-	resbarArea['energy'] = { barContentArea[1] + filledWidth, barContentArea[2], barContentArea[1] + filledWidth + width, barContentArea[4] }
+	resbarArea['energy'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('energy')
 
 	-- wind
 	width = math_floor((height * 1.18) * widgetScale)
-	windArea = { barContentArea[1] + filledWidth, barContentArea[2], barContentArea[1] + filledWidth + width, barContentArea[4] }
+	windArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateWind()
 
 	-- coms
 	if displayComCounter then
-		comsArea = { barContentArea[1] + filledWidth, barContentArea[2], barContentArea[1] + filledWidth + width, barContentArea[4] }
+		comsArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 		filledWidth = filledWidth + width + widgetSpaceMargin
 		updateComs()
 	end
 
 	-- rejoin
 	width = math_floor(totalWidth / 4) / 3.3
-	rejoinArea = { barContentArea[1] + filledWidth, barContentArea[2], barContentArea[1] + filledWidth + width, barContentArea[4] }
+	rejoinArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 
 	-- buttons
 	width = math_floor(totalWidth / 4)
-	buttonsArea = { barContentArea[3] - width, barContentArea[2], barContentArea[3], barContentArea[4] }
+	buttonsArea = { topbarArea[3] - width, topbarArea[2], topbarArea[3], topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateButtons()
 
 	WG['topbar'].GetPosition = function()
-		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, barContentArea[2] }
+		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
 	end
 
 	updateResbarText('metal')
@@ -1421,18 +1403,45 @@ function updateAllyTeamOverflowing()
 	end
 end
 
+function hoveringElement(x, y)
+	if IsOnRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
+		if resbarArea.metal[1] and IsOnRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
+			return true
+		end
+		if resbarArea.energy[1] and IsOnRect(x, y, resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4]) then
+			return true
+		end
+		if windArea[1] and IsOnRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then
+			return true
+		end
+		if displayComCounter and comsArea[1] and IsOnRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
+			return true
+		end
+		if showRejoinUI and rejoinArea[1] and IsOnRect(x, y, rejoinArea[1], rejoinArea[2], rejoinArea[3], rejoinArea[4]) then
+			return true
+		end
+		if buttonsArea[1] and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+			return true
+		end
+		return false
+	end
+	return false
+end
+
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
 
 	glPushMatrix()
-	if dlistBackground then
-		glCallList(dlistBackground)
-	end
 
 	local now = os.clock()
 	local x, y, b = spGetMouseState()
+	hoveringTopbar = hoveringElement(x, y)
+
+	if hoveringTopbar then
+		Spring.SetMouseCursor('cursornormal')
+	end
 
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
@@ -1861,7 +1870,6 @@ function widget:KeyPress(key)
 end
 
 function widget:MousePress(x, y, button)
-
 	if button == 1 then
 		if showQuitscreen ~= nil and quitscreenArea ~= nil then
 
@@ -1937,6 +1945,10 @@ function widget:MousePress(x, y, button)
 		if showQuitscreen ~= nil and quitscreenArea ~= nil then
 			return true
 		end
+	end
+
+	if hoveringTopbar then
+		return true
 	end
 end
 
@@ -2065,7 +2077,7 @@ function widget:Initialize()
 end
 
 function shutdown()
-	if dlistBackground ~= nil then
+	if dlistButtons1 ~= nil then
 		dlistWindGuishader = glDeleteList(dlistWindGuishader)
 		dlistWind1 = glDeleteList(dlistWind1)
 		dlistWind2 = glDeleteList(dlistWind2)

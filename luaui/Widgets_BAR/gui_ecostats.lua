@@ -1381,7 +1381,7 @@ function updateButtons()
 	if Options["sticktotopbar"]["On"] and WG['topbar'] ~= nil then
 		local topbarArea = WG['topbar'].GetPosition()
 		widgetPosX = topbarArea[3] - widgetWidth
-		widgetPosY = topbarArea[6] - widgetHeight
+		widgetPosY = topbarArea[2] - widgetHeight
 	end
 
 	widgetRight = widgetPosX + widgetWidth
