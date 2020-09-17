@@ -421,7 +421,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	width = 0.2125
-	height = 0.14
+	height = 0.14 * ui_scale
 	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
 	width = width * ui_scale
 	-- make pixel aligned

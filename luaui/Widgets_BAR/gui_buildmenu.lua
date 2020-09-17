@@ -890,7 +890,7 @@ function widget:ViewResize()
 	activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
 	if stickToBottom then
-		posY = math_floor(0.14 * vsy) / vsy
+		posY = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = 0
 		posX = math_floor((ordermenuLeft+widgetSpaceMargin)*vsx)
 		posX2 = advplayerlistLeft - (widgetSpaceMargin*vsx)
@@ -900,7 +900,7 @@ function widget:ViewResize()
 		maxColls = 30
 	else
 		posY = 0.606
-		posY2 = math_floor(0.14 * vsy) / vsy
+		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + ((widgetSpaceMargin*vsx)/vsy)
 		posX = 0
 		minColls = 4
