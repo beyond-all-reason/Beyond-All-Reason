@@ -1616,6 +1616,7 @@ function widget:DrawScreen()
 			end)
 		end
 
+		local hovering = false
 		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
