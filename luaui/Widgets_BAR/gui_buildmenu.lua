@@ -829,6 +829,7 @@ end
 local function RefreshCommands()
 	cmds = {}
 	cmdsCount = 0
+
 	if preGamestartPlayer then
 		if startDefID then
 			-- mimmick output of spGetActiveCmdDescs
@@ -975,7 +976,7 @@ function widget:Initialize()
 		local mySide = select(5, Spring.GetTeamInfo(myTeamID, false))
 		if mySide and mySide ~= '' then
 			-- Don't run unless we know what faction the player is
-			startDefID = UnitDefNames[Spring.GetSideData(mySide)].id
+			startDefID = UnitDefNames[select(1, Spring.GetSideData(mySide))].id
 		end
 	end
 
@@ -1617,7 +1618,7 @@ function widget:DrawScreen()
 
 		-- draw buildmenu background
 		gl.CallList(dlistBuildmenuBg)
-		if selectedBuilderCount ~= 0 then
+		if preGamestartPlayer or selectedBuilderCount ~= 0 then
 			-- pre process + 'highlight' under the icons
 			local hoveredCellID = nil
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
