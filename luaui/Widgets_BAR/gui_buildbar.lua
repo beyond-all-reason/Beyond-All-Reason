@@ -77,7 +77,7 @@ local blured = false
 
 local repeatPic = ":l:LuaUI/Images/repeat.png"
 
-local iconSizeY = 75		-- reset in ViewResize
+local iconSizeY = 65		-- reset in ViewResize
 local iconSizeX = iconSizeY
 local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
 local fontSize = iconSizeY * 0.31
@@ -193,7 +193,7 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
 
-	iconSizeY = math.floor((vsy / 18) * (1 + (ui_scale - 1) / 1.5))
+	iconSizeY = math.floor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
 	iconSizeX = iconSizeY
 	fontSize = iconSizeY * 0.31
 	repIcoSize = math.floor(iconSizeY * 0.4)
@@ -218,7 +218,7 @@ function widget:ViewResize()
 		bopt_inext = { 0, iconSizeY }
 	end
 
-	checkGuishader(true)
+	forceGuishader = true
 end
 
 -------------------------------------------------------------------------------
@@ -901,8 +901,6 @@ function widget:Update(dt)
 		end
 		dlists = {}
 
-		checkGuishader()
-
 		local dlistsCount = 1
 
 		factoriesArea = nil
@@ -958,6 +956,7 @@ function widget:Update(dt)
 			-- setup next icon pos
 			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
+
 		if factoriesArea then
 			dlists[1] = gl.CreateList(DrawBackground)
 			if WG['guishader'] then
@@ -981,6 +980,9 @@ function widget:Update(dt)
 				end
 			end
 		end
+
+		checkGuishader(forceGuishader)
+		forceGuishader = nil
 	end
 end
 
