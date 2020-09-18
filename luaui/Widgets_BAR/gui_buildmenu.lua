@@ -19,7 +19,7 @@ local stickToBottom = false
 local alwaysShow = false
 
 local cfgCellPadding = 0.007
-local cfgIconPadding = 0.019 -- space between icons
+local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
 local cfgRadaiconSize = 0.29
 local cfgRadariconOffset = 0.027
@@ -443,40 +443,44 @@ local function cacheUnitIcons()
 	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
 	local contentWidth = activeArea[3] - activeArea[1]
 	local colls = minC
-	while colls <= maxC do
-		-- these are globals so it can be re-used (hover highlight)
-		local cellSize = math_floor((contentWidth / colls) + 0.33)
-		local cellPadding = math_floor(cellSize * cfgCellPadding)
-		local cellInnerSize = cellSize - cellPadding - cellPadding
-		local textureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * texDetailMult)
-		local radariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadaiconSize) + 0.5) * radartexDetailMult)
-		gl.Color(1, 1, 1, 0.001)
-		for id, unit in pairs(UnitDefs) do
-			-- only caching for defaultCellZoom
-			if alternativeUnitpics and hasAlternativeUnitpic[id] then
-				gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
-			else
-				gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
+	local cellSize = math_floor((contentWidth / colls) + 0.33)
+	local cellPadding = math_floor(cellSize * cfgCellPadding)
+	local cellInnerSize = cellSize - cellPadding - cellPadding
+	local newTextureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * texDetailMult)
+	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadaiconSize) + 0.5) * radartexDetailMult)
+	if not textureDetail or textureDetail ~= newTextureDetail then
+		textureDetail = newTextureDetail
+		radariconTextureDetail = newRadariconTextureDetail
+		while colls <= maxC do
+			-- these are globals so it can be re-used (hover highlight)
+			gl.Color(1, 1, 1, 0.001)
+			for id, unit in pairs(UnitDefs) do
+				-- only caching for defaultCellZoom
+				if alternativeUnitpics and hasAlternativeUnitpic[id] then
+					gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
+				else
+					gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
+				end
+				if iconTypesMap[unitIconType[id]] then
+					gl.TexRect(-1, -1, 0, 0)
+					gl.Texture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
+					gl.TexRect(-1, -1, 0, 0)
+				end
+				gl.Texture(false)
 			end
-			if iconTypesMap[unitIconType[id]] then
-				gl.TexRect(-1, -1, 0, 0)
-				gl.Texture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
-				gl.TexRect(-1, -1, 0, 0)
-			end
-			gl.Texture(false)
+			gl.Color(1, 1, 1, 1)
+			colls = colls + 1
 		end
-		gl.Color(1, 1, 1, 1)
-		colls = colls + 1
 	end
 end
 
 local function refreshUnitIconCache()
-	--if dlistCache then
-	--	dlistCache = gl.DeleteList(dlistCache)
-	--end
-	--dlistCache = gl.CreateList(function()
-	--	cacheUnitIcons()
-	--end)
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
+	end
+	dlistCache = gl.CreateList(function()
+		cacheUnitIcons()
+	end)
 end
 
 -------------------------------------------------------------------------------
@@ -943,7 +947,7 @@ function widget:ViewResize()
 	backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 
 	checkGuishader(true)
-
+	refreshUnitIconCache()
 	clear()
 	doUpdate = true
 end
@@ -1185,7 +1189,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 
 	-- unit icon
 	glColor(1, 1, 1, 1)
-	local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
+	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
 	glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. ((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '') .. unitBuildPic[uDefID])
 	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
 	TexRectRound(
@@ -1275,7 +1279,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
 			0,
 			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize - math_max(1, math_floor(halfSize * 0.06)), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
+			halfSize, cornerSize, halfSize - math_max(1, math_floor(halfSize * 0.045)), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
 		)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
@@ -1283,7 +1287,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	-- radar icon
 	if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
 		glColor(1, 1, 1, 0.9)
-		glTexture(':lr' .. radarIconDetail .. ',' .. radarIconDetail .. ':' .. iconTypesMap[unitIconType[uDefID]])
+		glTexture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]])
 		glTexRect(cellRects[cellRectID][3] - radariconOffset - radariconSize, cellRects[cellRectID][2] + radariconOffset, cellRects[cellRectID][3] - radariconOffset, cellRects[cellRectID][2] + radariconOffset + radariconSize)
 		glTexture(false)
 	end
@@ -1404,7 +1408,6 @@ function drawBuildmenu()
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
 	radariconSize = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
-	radarIconDetail = math_floor(radariconSize * radartexDetailMult)
 	radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding + iconPadding) + 0.5)
 	priceFontSize = math_floor((cellInnerSize * cfgPriceFontSize) + 0.5)
 
