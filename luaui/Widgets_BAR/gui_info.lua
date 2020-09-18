@@ -239,7 +239,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 then
 		unitDefInfo[unitDefID].mex = true
 	end
-
+	local totalDps = 0
 	for i = 1, #unitDef.weapons do
 		if not unitDefInfo[unitDefID].weapons then
 			unitDefInfo[unitDefID].weapons = {}
@@ -261,10 +261,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 			local dps = math_floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
 			if dps > unitDefInfo[unitDefID].dps then
-				unitDefInfo[unitDefID].dps = dps
-				unitDefInfo[unitDefID].reloadTime = reloadTime
+				--unitDefInfo[unitDefID].dps = dps
+				unitDefInfo[unitDefID].reloadTime = reloadTime	-- only main weapon is relevant
 				unitDefInfo[unitDefID].mainWeapon = i
 			end
+			totalDps = totalDps + dps
+			unitDefInfo[unitDefID].dps = totalDps
 		end
 		if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
 			unitDefInfo[unitDefID].isAaUnit = true
@@ -1308,10 +1310,12 @@ local function drawUnitInfo()
 			if dps then
 				dps = round(dps + (dps * (reloadTime / 100)), 0)
 				addTextInfo('dps', dps)
-			end
 
-			if maxRange then
-				addTextInfo('max-range', maxRange)
+				if maxRange then
+					addTextInfo('max-range', maxRange)
+				end
+
+				addTextInfo('reload(main)', round(unitDefInfo[displayUnitDefID].reloadTime*reloadTime, 2))
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
