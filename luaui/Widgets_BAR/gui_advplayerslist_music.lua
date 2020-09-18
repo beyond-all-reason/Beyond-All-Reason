@@ -530,39 +530,39 @@ end
 function mouseEvent(x, y, button, release)
 
 	if Spring.IsGUIHidden() then return false end
-	if button ~= 1 then return end
-
-	if not release then
-		local sliderWidth = (3.3*widgetScale) -- should be same as in createlist()
-		local button = 'musicvolume'
-		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
-			draggingSlider = button
-			maxMusicVolume = math.floor(getSliderValue(button, x) * 50)
-			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
-			createList()
+	if button == 1 then
+		if not release then
+			local sliderWidth = (3.3*widgetScale) -- should be same as in createlist()
+			local button = 'musicvolume'
+			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
+				draggingSlider = button
+				maxMusicVolume = math.floor(getSliderValue(button, x) * 50)
+				Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+				createList()
+			end
+			button = 'volume'
+			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
+				draggingSlider = button
+				volume = math.floor(getSliderValue(button, x) * 200)
+				Spring.SetConfigInt("snd_volmaster", volume)
+				createList()
+			end
 		end
-		button = 'volume'
-		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
-			draggingSlider = button
-			volume = math.floor(getSliderValue(button, x) * 200)
-			Spring.SetConfigInt("snd_volmaster", volume)
-			createList()
+		if release and draggingSlider ~= nil then
+			draggingSlider = nil
 		end
-	end
-	if release and draggingSlider ~= nil then
-		draggingSlider = nil
-	end
-	if button == 1 and not release and isInBox(x, y, {left, bottom, right, top}) then
-		if buttons['playpause'] ~= nil and isInBox(x, y, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
-			playing = not playing
-			Spring.PauseSoundStream()
-			createList()
+		if button == 1 and not release and isInBox(x, y, {left, bottom, right, top}) then
+			if buttons['playpause'] ~= nil and isInBox(x, y, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
+				playing = not playing
+				Spring.PauseSoundStream()
+				createList()
+				return true
+			elseif buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
+				PlayNewTrack()
+				return true
+			end
 			return true
-		elseif buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
-			PlayNewTrack()
-			return true
 		end
-		return true
 	end
 
 	if mouseover and isInBox(x, y, {left, bottom, right, top}) then
