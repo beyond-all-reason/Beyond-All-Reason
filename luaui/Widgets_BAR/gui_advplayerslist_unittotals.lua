@@ -56,6 +56,10 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+function isInBox(mx, my, box)
+	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
@@ -316,10 +320,22 @@ end
 function widget:DrawScreen()
 	if chobbyInterface then return end
 
+	hovering = false
 	if drawlist[1] ~= nil then
+		local mx, my, mb = Spring.GetMouseState()
+		if isInBox(mx, my, {left, bottom, right, top}) then
+			Spring.SetMouseCursor('cursornormal')
+			hovering = true
+		end
 		glPushMatrix()
 			glCallList(drawlist[1])
 			glCallList(drawlist[2])
 		glPopMatrix()
+	end
+end
+
+function widget:MousePress(mx, my, mb)
+	if hovering then
+		return true
 	end
 end

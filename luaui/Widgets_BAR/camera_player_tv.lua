@@ -1,22 +1,22 @@
 function widget:GetInfo()
 	return {
-		name		= "Player-TV",
-		desc		= "Automaticly tracks players camera, (shows player-switch countdown on top of advplayerlist)",
-		author		= "Floris",
-		date		= "January 2018",
-		license		= "GNU GPL, v2 or later",
-		layer		= -2,
-		enabled		= true,
+		name = "Player-TV",
+		desc = "Automaticly tracks players camera, (shows player-switch countdown on top of advplayerlist)",
+		author = "Floris",
+		date = "January 2018",
+		license = "GNU GPL, v2 or later",
+		layer = -2,
+		enabled = true,
 	}
 end
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local vsx,vsy = Spring.GetViewGeometry()
+local vsx, vsy = Spring.GetViewGeometry()
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local displayPlayername = true
 
@@ -26,8 +26,8 @@ local parentPos = {}
 local prevPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
-local fontSize = 12	-- 14 to be alike with advplayerslist_lockcamera widget
-local top, left, bottom, right, widgetScale = 0,0,0,0,1
+local fontSize = 12    -- 14 to be alike with advplayerslist_lockcamera widget
+local top, left, bottom, right, widgetScale = 0, 0, 0, 0, 1
 local rejoining = false
 local initGameframe = Spring.GetGameFrame()
 local prevOrderID = 1
@@ -41,7 +41,7 @@ local tsOrderedPlayers = {}
 
 local isSpec = Spring.GetSpectatingState()
 local vsx, vsy = Spring.GetViewGeometry()
-local widgetScale = (0.7 + (vsx*vsy / 5000000))
+local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
 
@@ -60,7 +60,8 @@ function deepcopy(orig)
 			copy[deepcopy(orig_key)] = deepcopy(orig_value)
 		end
 		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else -- number, string, boolean, etc
+	else
+		-- number, string, boolean, etc
 		copy = orig
 	end
 	return copy
@@ -70,10 +71,10 @@ function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	local inserted = false
 	local newTsOrderedPlayers = {}
 	tsOrderedPlayerCount = 0
-	for _,params in ipairs(tsOrderedPlayers) do
+	for _, params in ipairs(tsOrderedPlayers) do
 		if not inserted and ts > params[1] then
 			tsOrderedPlayerCount = tsOrderedPlayerCount + 1
-			newTsOrderedPlayers[tsOrderedPlayerCount] = {ts, playerID, teamID, spec}
+			newTsOrderedPlayers[tsOrderedPlayerCount] = { ts, playerID, teamID, spec }
 			inserted = true
 		end
 		tsOrderedPlayerCount = tsOrderedPlayerCount + 1
@@ -81,15 +82,15 @@ function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	end
 	if not inserted then
 		tsOrderedPlayerCount = tsOrderedPlayerCount + 1
-		newTsOrderedPlayers[tsOrderedPlayerCount] = {ts, playerID, teamID, spec }
+		newTsOrderedPlayers[tsOrderedPlayerCount] = { ts, playerID, teamID, spec }
 	end
 	tsOrderedPlayers = deepcopy(newTsOrderedPlayers)
 end
 
 function tsOrderPlayers()
 	local playersList = Spring.GetPlayerList()
-	for _,playerID in ipairs(playersList) do
-		local _,_,spec,teamID = Spring.GetPlayerInfo(playerID,false)
+	for _, playerID in ipairs(playersList) do
+		local _, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
 		if playersTS[playerID] ~= nil then
 			addPlayerTsOrdered(playersTS[playerID], playerID, teamID, spec)
 		end
@@ -97,7 +98,7 @@ function tsOrderPlayers()
 end
 
 function GetSkill(playerID)
-	local customtable = select(11,Spring.GetPlayerInfo(playerID)) -- player custom table
+	local customtable = select(11, Spring.GetPlayerInfo(playerID)) -- player custom table
 	local tsMu = customtable.skill
 	local tskill = ""
 	if tsMu then
@@ -106,7 +107,6 @@ function GetSkill(playerID)
 	return tskill
 end
 
-
 function SelectTrackingPlayer(playerID)
 	local newTrackedPlayer
 	if playerID then
@@ -114,8 +114,8 @@ function SelectTrackingPlayer(playerID)
 	else
 		local highestTs = 0
 		local playersList = Spring.GetPlayerList()
-		for _,playerID in ipairs(playersList) do
-			local _,active,spec = Spring.GetPlayerInfo(playerID,false)
+		for _, playerID in ipairs(playersList) do
+			local _, active, spec = Spring.GetPlayerInfo(playerID, false)
 			if not spec and active then
 				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs then
 					highestTs = playersTS[playerID]
@@ -135,184 +135,184 @@ end
 
 function createCountdownLists()
 	--if parentPos ~= nil then
-		for i=1,#drawlistsCountdown do
-			gl.DeleteList(drawlistsCountdown[i])
-		end
-		drawlistsCountdown = {}
-		local i = 0
-		local leftPadding = 7.5*widgetScale
-		while i < playerChangeDelay do
-			drawlistsCountdown[i] = gl.CreateList(function()
-				font:Begin()
-				font:SetTextColor(0,0,0,0.6)
-				font:Print(i, leftPadding+left-(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
-				font:Print(i, leftPadding+left+(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
-				font:SetTextColor(0.88,0.88,0.88,1)
-				font:Print(i, leftPadding+left, bottom+(8*widgetScale), fontSize*widgetScale, 'n')
-				font:End()
-			end)
-			i = i + 1
-		end
+	for i = 1, #drawlistsCountdown do
+		gl.DeleteList(drawlistsCountdown[i])
+	end
+	drawlistsCountdown = {}
+	local i = 0
+	local leftPadding = 7.5 * widgetScale
+	while i < playerChangeDelay do
+		drawlistsCountdown[i] = gl.CreateList(function()
+			font:Begin()
+			font:SetTextColor(0, 0, 0, 0.6)
+			font:Print(i, leftPadding + left - (0.7 * widgetScale), bottom + (7 * widgetScale), fontSize * widgetScale, 'n')
+			font:Print(i, leftPadding + left + (0.7 * widgetScale), bottom + (7 * widgetScale), fontSize * widgetScale, 'n')
+			font:SetTextColor(0.88, 0.88, 0.88, 1)
+			font:Print(i, leftPadding + left, bottom + (8 * widgetScale), fontSize * widgetScale, 'n')
+			font:End()
+		end)
+		i = i + 1
+	end
 	--end
 end
 
-
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
+local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
+	local csyMult = 1 / ((sy - py) / cs)
 
 	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+		gl.Color(c1[1], c1[2], c1[3], c1[4])
 	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(px + cs, py, 0)
+	gl.Vertex(sx - cs, py, 0)
 	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
+		gl.Color(c2[1], c2[2], c2[3], c2[4])
 	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
+	gl.Vertex(sx - cs, sy, 0)
+	gl.Vertex(px + cs, sy, 0)
 
 	-- left side
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px, py + cs, 0)
+	gl.Vertex(px + cs, py + cs, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
+	gl.Vertex(px + cs, sy - cs, 0)
+	gl.Vertex(px, sy - cs, 0)
 
 	-- right side
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx, py + cs, 0)
+	gl.Vertex(sx - cs, py + cs, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
+	gl.Vertex(sx - cs, sy - cs, 0)
+	gl.Vertex(sx, sy - cs, 0)
 
-	local offset = 0.15		-- texture offset, because else gaps could show
+	local offset = 0.15        -- texture offset, because else gaps could show
 
 	-- bottom left
 	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+		gl.Color(c1[1], c1[2], c1[3], c1[4])
 	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
 		gl.Vertex(px, py, 0)
 	else
-		gl.Vertex(px+cs, py, 0)
+		gl.Vertex(px + cs, py, 0)
 	end
-	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(px + cs, py, 0)
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px + cs, py + cs, 0)
+	gl.Vertex(px, py + cs, 0)
 	-- bottom right
 	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+		gl.Color(c1[1], c1[2], c1[3], c1[4])
 	end
 	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
 		gl.Vertex(sx, py, 0)
 	else
-		gl.Vertex(sx-cs, py, 0)
+		gl.Vertex(sx - cs, py, 0)
 	end
-	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx - cs, py, 0)
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx - cs, py + cs, 0)
+	gl.Vertex(sx, py + cs, 0)
 	-- top left
 	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
+		gl.Color(c2[1], c2[2], c2[3], c2[4])
 	end
 	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
 		gl.Vertex(px, sy, 0)
 	else
-		gl.Vertex(px+cs, sy, 0)
+		gl.Vertex(px + cs, sy, 0)
 	end
-	gl.Vertex(px+cs, sy, 0)
+	gl.Vertex(px + cs, sy, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
+	gl.Vertex(px + cs, sy - cs, 0)
+	gl.Vertex(px, sy - cs, 0)
 	-- top right
 	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
+		gl.Color(c2[1], c2[2], c2[3], c2[4])
 	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
 		gl.Vertex(sx, sy, 0)
 	else
-		gl.Vertex(sx-cs, sy, 0)
+		gl.Vertex(sx - cs, sy, 0)
 	end
-	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(sx - cs, sy, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
+	gl.Vertex(sx - cs, sy - cs, 0)
+	gl.Vertex(sx, sy - cs, 0)
 end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
+function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
+	-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
 local function createList()
-	for i=1,#drawlist do
+	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist = {}
-	drawlist[1] = gl.CreateList( function()
-		local fontSize = (widgetHeight*widgetScale) * 0.5
+	drawlist[1] = gl.CreateList(function()
+		local fontSize = (widgetHeight * widgetScale) * 0.5
 		local text = '   cancel camera   '
 		local color = '\255\255\222\222'
 		local color1, color2
 		if not toggled and not lockPlayerID then
 			text = '   Player TV   '
 			color = '\255\222\255\222'
-			color1 = {0, 0.8, 0, 0.66}
-			color2 = {0, 0.55, 0, 0.66}
+			color1 = { 0, 0.8, 0, 0.66 }
+			color2 = { 0, 0.55, 0, 0.66 }
 		else
-			color1 = {0.88, 0.1, 0.1, 0.66}
-			color2 = {0.6, 0.05, 0.05, 0.66}
+			color1 = { 0.88, 0.1, 0.1, 0.66 }
+			color2 = { 0.6, 0.05, 0.05, 0.66 }
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		RectRound(right-textWidth, bottom, right, top, bgpadding*1.6, 1,1,1,0, color1, color2)
-		toggleButton = {right-textWidth, bottom, right, top }
+		RectRound(right - textWidth, bottom, right, top, bgpadding * 1.6, 1, 1, 1, 0, color1, color2)
+		toggleButton = { right - textWidth, bottom, right, top }
 
-		RectRound(right-textWidth+bgpadding, bottom, right, top-bgpadding, bgpadding, 1,1,1,0, {0.3,0.3,0.3,0.25}, {0.05,0.05,0.05,0.25})
+		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 
 		font:Begin()
-        font:Print(color..text, right-(textWidth/2), toggleButton[2]+(7*widgetScale), fontSize, 'oc')
+		font:Print(color .. text, right - (textWidth / 2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
 
 		if toggled then
 			local name = 'Player TV  '
-			local fontSize = (widgetHeight*widgetScale) * 0.6
-			local vpos = toggleButton[2]+(0.25*widgetHeight*widgetScale)
-			font:SetTextColor(0,0,0,0.6)
-			font:Print(name, right-textWidth-(0.4*widgetScale), vpos, fontSize, 'rn')
-			font:Print(name, right-textWidth+(0.4*widgetScale), vpos, fontSize, 'rn')
-			font:SetTextColor(1,1,1,1)
-			font:Print(name, right-textWidth, vpos+(0.7*widgetScale), fontSize, 'r0n')
+			local fontSize = (widgetHeight * widgetScale) * 0.6
+			local vpos = toggleButton[2] + (0.25 * widgetHeight * widgetScale)
+			font:SetTextColor(0, 0, 0, 0.6)
+			font:Print(name, right - textWidth - (0.4 * widgetScale), vpos, fontSize, 'rn')
+			font:Print(name, right - textWidth + (0.4 * widgetScale), vpos, fontSize, 'rn')
+			font:SetTextColor(1, 1, 1, 1)
+			font:Print(name, right - textWidth, vpos + (0.7 * widgetScale), fontSize, 'r0n')
 		end
 		font:End()
 	end)
-	drawlist[2] = gl.CreateList( function()
-		if toggled or lockPlayerID  then
+	drawlist[2] = gl.CreateList(function()
+		if toggled or lockPlayerID then
 			gl.Color(1, 0.2, 0.2, 0.4)
 		else
 			gl.Color(0.2, 1, 0.2, 0.4)
 		end
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding*1.6, 1,1,1,0)
+		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding * 1.6, 1, 1, 1, 0)
 
-		gl.Color(0,0,0,0.14)
-		RectRound(toggleButton[1]+bgpadding, toggleButton[2], toggleButton[3], toggleButton[4]-bgpadding, bgpadding, 1,1,1,0)
+		gl.Color(0, 0, 0, 0.14)
+		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, bgpadding, 1, 1, 1, 0)
 
 		local text = '   cancel camera   '
 		local color = '\255\255\225\225'
@@ -320,10 +320,10 @@ local function createList()
 			text = '   Player TV   '
 			color = '\255\225\255\225'
 		end
-		local fontSize = (widgetHeight*widgetScale) * 0.5
+		local fontSize = (widgetHeight * widgetScale) * 0.5
 		local textWidth = font:GetTextWidth(text) * fontSize
 		font:Begin()
-		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(0.3*widgetHeight*widgetScale), fontSize, 'oc')
+		font:Print(color .. text, toggleButton[3] - (textWidth / 2), toggleButton[2] + (0.3 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
 
@@ -331,31 +331,29 @@ local function createList()
 		if backgroundGuishader then
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
-		backgroundGuishader = gl.CreateList( function()
-			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding*1.6,1,1,1,0)
+		backgroundGuishader = gl.CreateList(function()
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding * 1.6, 1, 1, 1, 0)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
 	end
 end
 
-
-
 function updatePosition(force)
 	local prevPos = parentPos
 	if WG['displayinfo'] ~= nil then
-		parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		parentPos = WG['displayinfo'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
 	elseif WG['unittotals'] ~= nil then
-		parentPos = WG['unittotals'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		parentPos = WG['unittotals'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
 	elseif WG['music'] ~= nil then
-		parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		parentPos = WG['music'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
 	elseif WG['advplayerlist_api'] ~= nil then
-		parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		parentPos = WG['advplayerlist_api'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
 	end
 	if parentPos[5] ~= nil then
 		left = parentPos[2]
 		bottom = parentPos[1]
 		right = parentPos[4]
-		top = parentPos[1]+math.floor(widgetHeight*parentPos[5])
+		top = parentPos[1] + math.floor(widgetHeight * parentPos[5])
 		widgetScale = parentPos[5]
 
 		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
@@ -365,7 +363,6 @@ function updatePosition(force)
 	end
 end
 
-
 function widget:Initialize()
 	widget:ViewResize()
 
@@ -374,30 +371,30 @@ function widget:Initialize()
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
 		widgetHandler:RemoveWidget(self)
 		return
-    end
+	end
 
-    local humanPlayers = 0
+	local humanPlayers = 0
 	local playersList = Spring.GetPlayerList()
-	for _,playerID in ipairs(playersList) do
-		local _,active,spec,team = Spring.GetPlayerInfo(playerID,false)
+	for _, playerID in ipairs(playersList) do
+		local _, active, spec, team = Spring.GetPlayerInfo(playerID, false)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
-            if not select(3,Spring.GetTeamInfo(team,false)) and not select(4,Spring.GetTeamInfo(team,false)) then
-                humanPlayers = humanPlayers + 1
-            end
+			if not select(3, Spring.GetTeamInfo(team, false)) and not select(4, Spring.GetTeamInfo(team, false)) then
+				humanPlayers = humanPlayers + 1
+			end
 		end
-    end
-    if humanPlayers == 0 then
-        widgetHandler:RemoveWidget(self)
+	end
+	if humanPlayers == 0 then
+		widgetHandler:RemoveWidget(self)
 		return
-    end
+	end
 
 	tsOrderPlayers()
 
 	updatePosition()
 	WG['playertv'] = {}
 	WG['playertv'].GetPosition = function()
-		return {top,left,bottom,right,widgetScale}
+		return { top, left, bottom, right, widgetScale }
 	end
 	WG['playertv'].isActive = function()
 		return (toggled and isSpec)
@@ -411,7 +408,6 @@ function widget:Initialize()
 	end
 end
 
-
 function widget:GameStart()
 	isSpec = Spring.GetSpectatingState()
 	nextTrackingPlayerChange = os.clock()
@@ -420,7 +416,6 @@ function widget:GameStart()
 		SelectTrackingPlayer()
 	end
 end
-
 
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
@@ -441,14 +436,14 @@ function widget:Update(dt)
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec > 0.5 then
 		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
 		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) or guishaderEnabled ~= (WG['guishader']) then
 			guishaderEnabled = (WG['guishader'])
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			glossMult = 1 + (2-(ui_opacity*2))
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
+			glossMult = 1 + (2 - (ui_opacity * 2))
 			createList()
 		end
 	end
@@ -460,27 +455,30 @@ function widget:Update(dt)
 	end
 	if isSpec and Spring.GetGameFrame() > 0 and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
-			mx,my,mb = Spring.GetMouseState()
+			mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
-				WG['tooltip'].ShowTooltip('playertv', 'Auto camera-track of mostly top TS players\n(switches player every '..playerChangeDelay..' seconds)')
+				Spring.SetMouseCursor('cursornormal')
+				WG['tooltip'].ShowTooltip('playertv', 'Auto camera-track of mostly top TS players\n(switches player every ' .. playerChangeDelay .. ' seconds)')
 			end
 		end
 		if (not rejoining and toggled) then
-			if Spring.GetGameFrame() > initGameframe+70 and os.clock() > nextTrackingPlayerChange then	--delay some gameframes so we know if we're rejoining or not
+			if Spring.GetGameFrame() > initGameframe + 70 and os.clock() > nextTrackingPlayerChange then
+				--delay some gameframes so we know if we're rejoining or not
 				nextTrackingPlayerChange = os.clock() + playerChangeDelay
-				local scope = 1 + math.floor(1 + tsOrderedPlayerCount/2)
+				local scope = 1 + math.floor(1 + tsOrderedPlayerCount / 2)
 				if tsOrderedPlayerCount <= 2 then
 					scope = 2
 				elseif tsOrderedPlayerCount <= 6 then
-					scope = 1 + math.floor(1 + tsOrderedPlayerCount/1.5)
+					scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.5)
 				elseif tsOrderedPlayerCount <= 10 then
-					scope = 1 + math.floor(1 + tsOrderedPlayerCount/1.75)
+					scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.75)
 				end
-				local orderID = math.random(1,scope)
+				local orderID = math.random(1, scope)
 
 				local r = math.random()
-				orderID = 1 + math.floor((r * (r*r)) * scope)
-				if orderID == prevOrderID then	-- prevent same player POV again
+				orderID = 1 + math.floor((r * (r * r)) * scope)
+				if orderID == prevOrderID then
+					-- prevent same player POV again
 					orderID = orderID - 1
 					if orderID < 1 then
 						orderID = 2
@@ -509,7 +507,7 @@ function widget:GameFrame(n)
 		prevGameframeClock = os.clock()
 
 		if currentTrackedPlayer ~= nil and not rejoining then
-			local _,active,spec = Spring.GetPlayerInfo(currentTrackedPlayer,false)
+			local _, active, spec = Spring.GetPlayerInfo(currentTrackedPlayer, false)
 			if not active or spec then
 				SelectTrackingPlayer()
 			end
@@ -518,31 +516,30 @@ function widget:GameFrame(n)
 end
 
 function isInBox(mx, my, box)
-    if (WG['topbar'] and WG['topbar'].showingQuit()) then
-        return false
-    else
-	    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-    end
+	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
 
 function widget:MousePress(mx, my, mb)
-	if isSpec and mb == 1 and (Spring.GetGameFrame() > 0 or lockPlayerID) then
+	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
 		if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
-			prevorderID = nil
-			currentTrackedPlayer = nil
-			if toggled or lockPlayerID then
-				toggled = false
-				if WG['advplayerlist_api'] then
-					WG['advplayerlist_api'].SetLockPlayerID()
+			if mb == 1 then
+				prevorderID = nil
+				currentTrackedPlayer = nil
+				if toggled or lockPlayerID then
+					toggled = false
+					if WG['advplayerlist_api'] then
+						WG['advplayerlist_api'].SetLockPlayerID()
+					end
+					lockPlayerID = nil
+					prevLockPlayerID = nil
+					createList()
+				elseif not rejoining then
+					toggled = true
+					nextTrackingPlayerChange = os.clock() - 1
+					createList()
 				end
-				lockPlayerID = nil
-				prevLockPlayerID = nil
-				createList()
-			elseif not rejoining then
-				toggled = true
-				nextTrackingPlayerChange = os.clock()-1
-				createList()
 			end
+			return true
 		end
 	end
 end
@@ -550,7 +547,7 @@ end
 function widget:ViewResize()
 	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.7 + (vsx*vsy / 5000000))
+	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
@@ -559,10 +556,10 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
 
 	if prevVsx ~= vsx or prevVsy ~= vsy then
-		for i=1,#drawlistsCountdown do
+		for i = 1, #drawlistsCountdown do
 			gl.DeleteList(drawlistsCountdown[i])
 		end
-		for i,v in pairs(drawlistsPlayername) do
+		for i, v in pairs(drawlistsPlayername) do
 			gl.DeleteList(drawlistsPlayername[i])
 		end
 		drawlistsCountdown = {}
@@ -571,7 +568,7 @@ function widget:ViewResize()
 			WG['guishader'].DeleteDlist('playertv')
 			backgroundGuishader = nil
 		end
-		for i=1,#drawlist do
+		for i = 1, #drawlist do
 			drawlist[i] = gl.DeleteList(drawlist[i])
 		end
 	end
@@ -579,17 +576,19 @@ function widget:ViewResize()
 	createCountdownLists()
 end
 
-
-
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
-	if not isSpec then return end
+	if chobbyInterface then
+		return
+	end
+	if not isSpec then
+		return
+	end
 
 	local gameFrame = Spring.GetGameFrame()
 
@@ -605,7 +604,7 @@ function widget:DrawScreen()
 			gl.PushMatrix()
 			gl.CallList(drawlist[1])
 			gl.PopMatrix()
-			mx,my,mb = Spring.GetMouseState()
+			mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 				gl.CallList(drawlist[2])
 			end
@@ -629,12 +628,12 @@ function widget:DrawScreen()
 					prevLockPlayerID = lockPlayerID
 				end
 				if lockPlayerID and not drawlistsPlayername[lockPlayerID] then
-					drawlistsPlayername[lockPlayerID] = gl.CreateList( function()
-						local name,_,spec,teamID,_,_,_,_,_ = Spring.GetPlayerInfo(lockPlayerID,false)
+					drawlistsPlayername[lockPlayerID] = gl.CreateList(function()
+						local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(lockPlayerID, false)
 						local fontSize = 26 * widgetScale
-						local nameColourR,nameColourG,nameColourB = 1,1,1
+						local nameColourR, nameColourG, nameColourB = 1, 1, 1
 						if not spec then
-							nameColourR,nameColourG,nameColourB,_ = Spring.GetTeamColor(teamID)
+							nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
 						end
 						--local posX = vsx * 0.5
 						--local posY = vsy * 0.17
@@ -651,11 +650,11 @@ function widget:DrawScreen()
 						local posX = vsx * 0.985
 						local posY = top + (vsy * 0.0215)
 						font2:Begin()
-						font2:SetTextColor(nameColourR,nameColourG,nameColourB,1)
-						if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-							font2:SetOutlineColor(1,1,1,1)
+						font2:SetTextColor(nameColourR, nameColourG, nameColourB, 1)
+						if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.8 then
+							font2:SetOutlineColor(1, 1, 1, 1)
 						else
-							font2:SetOutlineColor(0,0,0,1)
+							font2:SetOutlineColor(0, 0, 0, 1)
 						end
 						font2:Print(name, posX, posY, fontSize, "ron")
 						font2:End()
@@ -671,12 +670,11 @@ function widget:DrawScreen()
 	end
 end
 
-
 function widget:Shutdown()
-	for i=1,#drawlistsCountdown do
+	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
 	end
-	for i,v in pairs(drawlistsPlayername) do
+	for i, v in pairs(drawlistsPlayername) do
 		gl.DeleteList(drawlistsPlayername[i])
 	end
 	drawlistsCountdown = {}
@@ -684,7 +682,7 @@ function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('playertv')
 	end
-	for i=1,#drawlist do
+	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist = {}
@@ -692,7 +690,6 @@ function widget:Shutdown()
 		WG['advplayerlist_api'].SetLockPlayerID()
 	end
 end
-
 
 function widget:GetConfigData(data)
 	savedTable = {}

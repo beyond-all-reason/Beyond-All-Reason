@@ -197,6 +197,11 @@ function toggleTrack(track, value)
 	applyTracksConfig()
 end
 
+
+function isInBox(mx, my, box)
+	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 	updateMusicVolume()
@@ -498,10 +503,6 @@ function getSliderValue(draggingSlider, x)
 	return value
 end
 
-function isInBox(mx, my, box)
-  return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
-
 
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
@@ -561,6 +562,10 @@ function mouseEvent(x, y, button, release)
 			PlayNewTrack()
 			return true
 		end
+		return true
+	end
+
+	if mouseover and isInBox(x, y, {left, bottom, right, top}) then
 		return true
 	end
 end
@@ -825,6 +830,7 @@ function widget:DrawScreen()
 	if chobbyInterface then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()
+	mouseover = false
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		mouseover = false
 	else
@@ -871,7 +877,10 @@ function widget:DrawScreen()
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end
 		glPopMatrix()
-		mouseover = false
+	end
+
+	if mouseover then
+		Spring.SetMouseCursor('cursornormal')
 	end
 end
 
@@ -913,6 +922,3 @@ function widget:SetConfigData(data)
 		end
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

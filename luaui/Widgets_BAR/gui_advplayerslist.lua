@@ -204,6 +204,13 @@ local now             = 0
 local lastRequestTime = -1
 local interRequestTime = 1 -- seconds
 
+local timeCounter = 0
+local updateRate = 0.75
+local updateRatePreStart = 0.25
+local lastTakeMsg = -120
+local uiOpacitySec = 0.5
+local hoverPlayerlist = false
+
 --------------------------------------------------------------------------------
 -- LockCamera variables
 --------------------------------------------------------------------------------
@@ -3370,6 +3377,9 @@ function widget:MousePress(x,y,button) --super ugly code here
 		end
 	end
 	prevClickTime = clickTime
+	if hoverPlayerlist then
+		return true
+	end
 end
 
 local mouseX, mouseY = 0,0
@@ -4006,13 +4016,7 @@ function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
 
---timers
-local timeCounter = 0
-local updateRate = 0.75
-local updateRatePreStart = 0.25
-local lastTakeMsg = -120
-local uiOpacitySec = 0.5
-local hoverPlayerlist = false
+
 function widget:Update(delta) --handles takes & related messages
 
 	local mx,my = Spring.GetMouseState()
@@ -4022,6 +4026,7 @@ function widget:Update(delta) --handles takes & related messages
 		if tipText and WG['tooltip'] then
 			WG['tooltip'].ShowTooltip('advplayerlist', tipText)
 		end
+		Spring.SetMouseCursor('cursornormal')
 	end
 
 

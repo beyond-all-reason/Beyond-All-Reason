@@ -75,7 +75,7 @@ local aliveAllyTeams				= 0
 local lastDrawUpdate
 
 local right							= true
-local widgetHeight
+local widgetHeight					= 0
 local widgetWidth                	= 130
 local tH						 	= 40 -- team row height
 local WBadge					 	= 14 -- width of player badge (side icon)
@@ -1461,73 +1461,6 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, labeltext)
 	end
 end
 
-function widget:TweakMouseMove(x,y,dx,dy,button)
-	if pressedToMove ~= nil then
-		if moveStartX == nil then                                                      -- move widget on y axis
-			moveStartX = x - widgetPosX
-		end
-		if moveStartY == nil then                                                      -- move widget on y axis
-			moveStartY = y - widgetPosY
-		end
-		xRelPos = xRelPos + (dx/vsx)
-		yRelPos = yRelPos + (dy/vsy)
-		if xRelPos < 0 then xRelPos = 0 end
-		if yRelPos < 0 then yRelPos = 0 end
-		if xRelPos > 1 then xRelPos = 1 end
-		if yRelPos > 1 then yRelPos = 1 end
-
-		widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
-
-		if widgetPosX < 0 then widgetPosX = 0 end
-		if widgetPosY < 0 then yRelPos = 0 end
-		if widgetPosX > vsx-widgetWidth then widgetPosY = vsx-widgetWidth end
-		if widgetPosY > vsy-widgetHeight then widgetPosY = vsy-widgetHeight end
-
-		updateButtons()
-		makeSideImageList()
-	end
-end
-
-function widget:TweakMousePress(x, y, button)
-	if button == 2 or button == 3 then
-		if Options["sticktotopbar"]["On"] == false and IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight) then
-			pressedToMove = true
-			return true
-		end
-	elseif button == 1 then
-		local x0, x1
-
-		if right then
-			x0 = widgetPosX-(200*sizeMultiplier)
-		else
-			x0 = widgetPosX
-		end
-		x1 = x0 + (200*sizeMultiplier) + widgetWidth
-		if IsOnButton(x, y, Options["resText"]["x1"],Options["resText"]["y1"],Options["resText"]["x2"],Options["resText"]["y2"]) then
-			Options["resText"]["On"] = not Options["resText"]["On"]
-			return true
-		elseif IsOnButton(x, y, Options["sticktotopbar"]["x1"],Options["sticktotopbar"]["y1"],Options["sticktotopbar"]["x2"],Options["sticktotopbar"]["y2"]) then
-			Options["sticktotopbar"]["On"] = not Options["sticktotopbar"]["On"]
-			return true
-		elseif IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) or
-		IsOnButton(x, y, x0, widgetPosY - (300*sizeMultiplier), x1, widgetPosY)
-		then
-			--pressedToMove = true
-			--return true
-		end -- end Button == 1
-	else
-		return false
-	end
-end
-
-function widget:TweakMouseRelease(x,y,button)
-	pressedToMove = nil
-	pressedHPlus = false
-	pressedHMinus = false
-	pressedWPlus = false
-	pressedWMinus = false
-end
-
 function widget:KeyPress(key, mods, isRepeat)
 	if (key == 0x132) and (not isRepeat) and not (mods.shift) and (not mods.alt) then -- ctrl
 		ctrlDown = true
@@ -1601,10 +1534,9 @@ function widget:MousePress(x, y, button)
 				end
 			end
 		end
-
-		return false
-	else
-		return false
+	end
+	if IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight) then
+		return true
 	end
 end
 
@@ -1672,13 +1604,6 @@ function makeSideImageList()
 	end
 end
 
-function widget:TweakDrawScreen()
-	if not inSpecMode then return end
-
-	DrawOptionRibbon()
-	updateButtons()
-end
-
 local uiOpacitySec = 0.5
 function widget:Update(dt)
 
@@ -1730,7 +1655,10 @@ function widget:DrawScreen()
 	gl.CallList(sideImageList)
 	drawListStandard()
 	gl.PopMatrix()
+
+	local mx, my, mb = Spring.GetMouseState()
+	widgetHeight = getNbTeams()*tH+(2*sizeMultiplier)	-- not sure why i have to redefine this again, height was just 2 px
+	if IsOnButton(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight) then
+		Spring.SetMouseCursor('cursornormal')
+	end
 end
-
-
--- end
