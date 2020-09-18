@@ -252,7 +252,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
 	},
 	["armcsa"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 7, length = 25, piece = "thrusta" },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrusta" },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrustb" },
 	},
 

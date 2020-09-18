@@ -86,7 +86,7 @@ end
 function Build()
 	UnitScript.SetSignalMask(SIG_BUILD);
 	while true do
-		if math.random() > 0.5 then 
+		if math.random() > 0.5 then
 			local t = math.random(0,48);
 			UnitScript.Move(mount1, z_axis, t, 24);
 			UnitScript.Turn(head1 , y_axis, math.rad(-1.6 * t), math.rad(36) );
@@ -97,7 +97,7 @@ function Build()
 			UnitScript.Turn(head2 , y_axis, math.rad(1.6 * t), math.rad(36) );
 			UnitScript.WaitForMove(mount2, z_axis)
 		end
-		
+
 	end
 end
 
@@ -111,17 +111,17 @@ end
 function script.StopBuilding()
 
 	UnitScript.Signal(SIG_BUILD);
-	
+
 	UnitScript.Move(mount1, z_axis, 0, 24);
 	UnitScript.Turn(head1 , y_axis, 0, math.rad(36) );
 	UnitScript.Move(mount2, z_axis, 0, 24);
 	UnitScript.Turn(head2 , y_axis, 0, math.rad(36) );
-	
+
 	UnitScript.Move(center1, z_axis, 0);
 	UnitScript.Move(center1, z_axis, 10, 20);
 	UnitScript.Move(center2, z_axis, 0);
 	UnitScript.WaitForMove(center1, z_axis);
-	
+
 	UnitScript.Move(center2, z_axis, 10, 20);
 	UnitScript.Move(center1, z_axis, 0, 20);
 	UnitScript.WaitForMove(center2, z_axis);
@@ -136,20 +136,20 @@ end
 function script.Killed(recentDamage, maxHealth)
 	local severity = (recentDamage / maxHealth) * 100;
 	local corpsetype;
-	
+
 	if (severity <= 25) then
 		corpsetype = 1;
-		UnitScript.Explode(base, SFX.NONE);
-		UnitScript.Explode(head1, SFX.NONE);
-		UnitScript.Explode(head2, SFX.NONE);
-		UnitScript.Explode(side1, SFX.NONE);
-		UnitScript.Explode(side2, SFX.NONE);
-		UnitScript.Explode(nano1, SFX.NONE);
-		UnitScript.Explode(nano2, SFX.NONE);
-		UnitScript.Explode(nano3, SFX.NONE);
-		UnitScript.Explode(nano4, SFX.NONE);
-		UnitScript.Explode(center1, SFX.NONE);
-		UnitScript.Explode(center2, SFX.NONE);
+		UnitScript.Explode(base, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(head1, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(head2, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(side1, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(side2, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(nano1, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(nano2, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(nano3, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(nano4, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(center1, SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(center2, SFX.NONE + SFX.NO_HEATCLOUD);
 		return corpsetype;
 	end
 	if (severity <= 50) then
