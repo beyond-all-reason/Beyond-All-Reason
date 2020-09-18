@@ -25,9 +25,10 @@ local unbinds={
 
     "bind , prevmenu",
     "bind . nextmenu",
-    
+
     "bind any+i gameinfo",
     "bind i gameinfo",
+	"bind shift+esc quitmenu",
 }
 
 -- table of stuff that we bind on load
@@ -37,7 +38,7 @@ function MakeBindsTable (swapYZ)
     if swapYZ==nil then swapYZ=false end
     local Y = swapYZ and "z" or "y"
     local Z = swapYZ and "y" or "z"
-    
+
     local _binds = {
         -- building hotkeys
 		"bind k wantcloak",
@@ -158,16 +159,16 @@ function MakeBindsTable (swapYZ)
         "bind shift+v buildunit_armsy",
         "bind v buildunit_corsy",
         "bind shift+v buildunit_corsy",
-        
+
         -- build spacing
         "bind alt+"..Z.." buildspacing inc",
-        "bind shift+alt+"..Z.." buildspacing inc",		
+        "bind shift+alt+"..Z.." buildspacing inc",
         "bind any+alt+x buildspacing dec",
         "bind shift+alt+x buildspacing dec",
-		
+
 		-- area mex
 		"bind ctrl+alt+z areamex",
-        
+
         -- numpad movement
         "bind numpad2 moveback",
         "bind numpad6 moveright",
@@ -176,18 +177,18 @@ function MakeBindsTable (swapYZ)
         "bind numpad9 moveup",
         "bind numpad3 movedown",
         "bind numpad1 movefast",
-        
+
         -- set target
         "bind "..Y.." settargetnoground",
         "bind alt+"..Y.." settarget",
         "bind j canceltarget",
-        
+
         "bind q drawinmap", --some keyboards don't have ` or \
         "bind ,	buildfacing inc", --because some keyboards don't have [ and ] ke"..Y.."s
         "bind .	buildfacing dec",
         "bind o buildfacing inc", --apparently some keyboards don't have , and . either...
     }
-    
+
     binds = _binds
 end
 
@@ -197,9 +198,9 @@ function LoadBindings()
 	for k,v in ipairs(unbinds) do
 		Spring.SendCommands("un"..v)
 	end
-    
+
     MakeBindsTable(WG.swapYZbinds) -- in case Y/Z swap has changed since last load
-    
+
 	for k,v in ipairs(binds) do
 		Spring.SendCommands(v)
 	end
@@ -221,9 +222,9 @@ function ReloadBindings()
 end
 
 function widget:Initialize()
-    MakeBindsTable(WG.swapYZbinds)    
+    MakeBindsTable(WG.swapYZbinds)
     LoadBindings()
-    
+
     WG.Reload_BAR_Hotkeys = ReloadBindings
 end
 

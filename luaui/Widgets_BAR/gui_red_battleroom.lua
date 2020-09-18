@@ -599,6 +599,10 @@ local function processLine(line,g,cfg,newlinecolor)
 		ignoreThisMessage = true
 	end
 
+	if sfind(line," to access the quit menu", nil, true) then
+		ignoreThisMessage = true
+	end
+
 	-- filter vsync changes
 	if sfind(line,"VSync::SetInterval", nil, true) then
 		ignoreThisMessage = true

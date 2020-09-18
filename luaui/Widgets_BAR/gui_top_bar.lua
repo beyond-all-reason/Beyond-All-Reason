@@ -23,7 +23,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local orgHeight = 46
 local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 
-local escapeKeyPressesQuit = true
+local escapeKeyPressesQuit = false
 
 local relXpos = 0.3
 local borderPadding = 5
