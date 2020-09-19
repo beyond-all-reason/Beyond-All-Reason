@@ -47,7 +47,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	and not unitCategories[Spring.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]] then
 		return false
 	else
-		if cmdParams[2] and unitDontAttackGround[unitDefID] then
+		if cmdID == CMD.ATTACK and cmdParams[2] and unitDontAttackGround[unitDefID] then
 			return false
 		else
 			return true
