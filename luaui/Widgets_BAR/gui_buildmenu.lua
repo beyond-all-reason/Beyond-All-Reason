@@ -456,12 +456,14 @@ local function cacheUnitIcons()
 			gl.Color(1, 1, 1, 0.001)
 			for id, unit in pairs(UnitDefs) do
 				-- only caching for defaultCellZoom
-				if alternativeUnitpics and hasAlternativeUnitpic[id] then
-					gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
-				else
-					gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
+				if unitBuildPic[id] then
+					if alternativeUnitpics and hasAlternativeUnitpic[id] then
+						gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
+					else
+						gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
+					end
 				end
-				if iconTypesMap[unitIconType[id]] then
+				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
 					gl.TexRect(-1, -1, 0, 0)
 					gl.Texture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
 					gl.TexRect(-1, -1, 0, 0)
