@@ -134,7 +134,7 @@ end
 
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if paralyzer and GetUnitIsStunned(unitID) then
+	if GetUnitIsStunned(unitID) then
 		paraUnits[unitID] = true
 		numParaUnits = numParaUnits + 1
 	end
