@@ -104,19 +104,17 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 					break
 				end
 			end
-			if playername ~= "UnnamedPlayer" then
-				if authorized == nil then
-					Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
-					return
-				end
-				if not spec then
-					Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when playing")
-					return
-				end
-				if startPlayers[playername] ~= nil then
-					Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when you have been a player")
-					return
-				end
+			if authorized == nil then
+				Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
+				return
+			end
+			if not spec then
+				Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when playing")
+				return
+			end
+			if startPlayers[playername] ~= nil then
+				Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when you have been a player")
+				return
 			end
 			local params = explode(':', msg)
 			giveunits(tonumber(params[2]), params[3], tonumber(params[4]), tonumber(params[5]), tonumber(params[6]), playerID)
@@ -165,7 +163,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 			local playername = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 			local authorized = false
 			for _,name in ipairs(authorizedPlayers) do
-				if playername == name or playername == "UnnamedPlayer" then
+				if playername == name then
 					authorized = true
 					break
 				end
