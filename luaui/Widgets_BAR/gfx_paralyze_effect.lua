@@ -52,7 +52,7 @@ local function init()
 		local unitID = allUnits[i]
 		if GetUnitIsStunned(unitID) then
 			local health,maxHealth,paralyzeDamage,capture,build = GetUnitHealth(unitID)
-			if paralyzeDamage > 0 then
+			if paralyzeDamage and paralyzeDamage > 0 then
 				paraUnits[unitID] = true
 				numParaUnits = numParaUnits + 1
 			end

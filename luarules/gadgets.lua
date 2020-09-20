@@ -86,9 +86,127 @@ gadgetHandler = {
 }
 
 
+local callInList = {
+	"Shutdown",
+	"CommandNotify",
+
+	"GamePreload",
+	"GameStart",
+	"GameOver",
+	"GameID",
+
+	"TeamDied",
+	"TeamChanged",
+
+	"PlayerAdded",
+	"PlayerChanged",
+	"PlayerRemoved",
+
+	"UnitCreated",
+	"UnitFinished",
+	"UnitFromFactory",
+	"UnitDestroyed",
+	"UnitTaken",
+	"UnitGiven",
+	"UnitCommand",
+	"UnitIdle",
+	"UnitSeismicPing",
+	"UnitEnteredWater",
+	"UnitEnteredAir",
+	"UnitLeftWater",
+	"UnitLeftAir",
+	"UnitEnteredRadar",
+	"UnitEnteredLos",
+	"UnitLeftRadar",
+	"UnitLeftLos",
+	"UnitLoaded",
+	"UnitUnloaded",
+	"UnitCloaked",
+	"UnitDecloaked",
+
+	"ShieldPreDamaged",
+
+	"FeatureCreated",
+	"FeatureDestroyed",
+
+	"ProjectileCreated",
+	"ProjectileDestroyed",
+
+	-- Unsynced CallIns
+	"ViewResize",
+	"Update",
+	"DefaultCommand",
+	"DrawGenesis",
+	"DrawWorld",
+	"DrawWorldPreUnit",
+	"DrawWorldShadow",
+	"DrawWorldReflection",
+	"DrawWorldRefraction",
+	"DrawScreenEffects",
+	"DrawScreenPost",
+	"DrawScreen",
+	"DrawInMiniMap",
+	"DrawUnit",
+	"DrawFeature",
+	"DrawShield",
+	"DrawProjectile",
+
+	"RecvSkirmishAIMessage",
+	"RecvFromSynced",
+	"RecvLuaMsg",
+	"TextCommand",
+	"GotChatMsg",
+
+	"SunChanged",
+
+	-- moved from LuaUI
+	"KeyPress",
+	"KeyRelease",
+	"MousePress",
+	"MouseRelease",
+	"MouseMove",
+	"MouseWheel",
+	"IsAbove",
+	"GetTooltip",
+	"AddConsoleLine",
+	"GroupChanged",
+
+	"Explosion",
+	"ShockFront",
+
+	"GameFrame",
+	"CobCallback",
+	"AllowCommand",
+	"CommandFallback",
+	"AllowUnitCreation",
+	"AllowUnitTransfer",
+	"AllowUnitTransport",
+	"AllowUnitTransportLoad",
+	"AllowUnitTransportUnload",
+	"AllowUnitBuildStep",
+	"AllowUnitCloak",
+	"AllowUnitDecloak",
+	"AllowFeatureCreation",
+	"AllowFeatureBuildStep",
+	"AllowResourceLevel",
+	"AllowResourceTransfer",
+	"MoveCtrlNotify",
+	"TerraformComplete",
+	"UnsyncedHeightMapUpdate",
+
+}
+
+
+-- make the map
+CallInsMap = {}
+for _, callin in ipairs(callInList) do
+	CallInsMap[callin] = true
+end
+callInList = callInList
+
 -- initialize the call-in lists
 do
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInList) do
 		gadgetHandler[listname .. 'List'] = {}
 	end
 end
@@ -435,7 +553,7 @@ local function SafeWrapGadget(gadget)
 		end
 	end
 
-	for _, ciName in ipairs(CALLIN_LIST) do
+	for _, ciName in ipairs(callInList) do
 		if (gadget[ciName]) then
 			gadget[ciName] = SafeWrap(gadget[ciName], ciName)
 		end
@@ -479,7 +597,7 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 
 	ArrayInsert(self.gadgets, true, gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInList) do
 		local func = gadget[listname]
 		if (type(func) == 'function') then
 			ArrayInsert(self[listname .. 'List'], func, gadget)
@@ -507,7 +625,7 @@ function gadgetHandler:RemoveGadget(gadget)
 	ArrayRemove(self.gadgets, gadget)
 	self:RemoveGadgetGlobals(gadget)
 	actionHandler.RemoveGadgetActions(gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInList) do
 		ArrayRemove(self[listname .. 'List'], gadget)
 	end
 
@@ -572,7 +690,7 @@ function gadgetHandler:RemoveGadgetCallIn(name, g)
 end
 
 function gadgetHandler:UpdateCallIns()
-	for _, name in ipairs(CALLIN_LIST) do
+	for _, name in ipairs(callInList) do
 		self:UpdateCallIn(name)
 	end
 end
@@ -677,7 +795,7 @@ function gadgetHandler:RaiseGadget(gadget)
 		end
 	end
 	Raise(self.gadgets, true, gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInList) do
 		Raise(self[listname .. 'List'], gadget[listname], gadget)
 	end
 end
@@ -711,7 +829,7 @@ function gadgetHandler:LowerGadget(gadget)
 		end
 	end
 	Lower(self.gadgets, true, gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInList) do
 		Lower(self[listname .. 'List'], gadget[listname], gadget)
 	end
 end
