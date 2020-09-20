@@ -329,6 +329,28 @@ function gadget:PlayerRemoved(playerID, reason)
 	end
 end
 
+function gadget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() == 0 then
+		Spring.Echo('PlayerChanged: '..playerID..'   '..reason)
+		local activeTeams = 0
+		for _,teamID in ipairs(GetTeamList()) do
+			if teamID ~= gaiaTeamID then
+				local leaderPlayerID, isDead, isAiTeam, side, allyTeamID = Spring.GetTeamInfo(teamID)
+				if not isDead and not isAiTeam then
+					local name,active,spec,playerTeamID,allyTeamID = Spring.GetPlayerInfo(leaderPlayerID,false)
+					if active and not spec then
+						activeTeams = activeTeams + 1
+					end
+				end
+			end
+		end
+		Spring.Echo('PlayerChanged: active teams: '..activeTeams)
+		if activeTeams == 0 then
+			GameOver()
+		end
+	end
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
 	local allyTeamID = teamToAllyTeam[unitTeamID]
 	local allyTeamInfo = allyTeamInfos[allyTeamID]
