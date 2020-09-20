@@ -183,7 +183,7 @@ T3ReinforcementLandUnits = {
 }
 
 T4ReinforcementLandUnits = {
-	"corkrog",
+	"corkorg",
 	"corjugg",
 	"armbanth",
 	--superboss
@@ -339,6 +339,6 @@ T4ReinforcementSeaUnits = {
 	"armfepoch",
 	"corfblackhy",
 	"armvaderboss",
-	"corkrog",
+	"corkorg",
 	"armbanth",
 }

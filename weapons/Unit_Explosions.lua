@@ -680,7 +680,7 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.25,
         },
     },
-    krogExplosion = {
+    korgExplosion = {
         weaponType = "Cannon",
         AreaOfEffect = 1280,
         cameraShake = 1280,
@@ -701,7 +701,7 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.3,
         },
     },
-    krogExplosionSelfd = {
+    korgExplosionSelfd = {
         weaponType = "Cannon",
         AreaOfEffect = 1920,
         cameraShake = 1920,

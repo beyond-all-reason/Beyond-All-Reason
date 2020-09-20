@@ -128,7 +128,7 @@ local icons = {
     {"radar_t2.user", "radar", 1.2},
     {"jammer_t2.user", "jammer", 1.2},
 
-    {"krogoth.user", "mech",3.3},
+    {"korgoth.user", "mech",3.3},
     {"bantha.user", "bantha",2.6},
     {"juggernaut.user", "juggernaut",3.2},
     {"juggernaut2.user", "bot",2.75},
@@ -432,8 +432,8 @@ function loadUnitIcons()
 			Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
 		elseif (name=="mission_command_tower") then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."commandtower.user")
-		elseif (name=="corkrog") then
-			Spring.SetUnitDefIcon(udid, iconPrefix.."krogoth.user")
+		elseif (name=="corkorg") then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."korgoth.user")
 		elseif (name=="armbanth") then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."bantha.user")
 		elseif (name=="corjugg") and getIconID(iconPrefix..'juggernaut') then

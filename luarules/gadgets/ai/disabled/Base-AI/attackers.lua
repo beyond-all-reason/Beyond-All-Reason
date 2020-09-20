@@ -22,7 +22,7 @@ skirmisherlist = {
 	"corgol",	--	Goliath			/	Very heavy Assault Tank
 	"corparrow",--	Posion Arrow	/	Very Heavy Amphibious Tank
 	"corshiva",	--	Shiva			/	Amphibious Siege Mech
-	"corkrog",	--	Krogoth			/	Experimental Assault Bot
+	"corkorg",	--	Korgoth			/	Experimental Assault Bot
 	--"cordecom",	--	Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
 	--"armdecom", --  Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
 }

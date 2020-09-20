@@ -40,7 +40,7 @@ end
 function Lvl3Breakthrough(tskqbhvr)
 	local unitName = ""
 	if MyTB.side == CORESideName then
-		unitName = BuildWithLimitedNumber("corkrog", 1)
+		unitName = BuildWithLimitedNumber("corkorg", 1)
 		if unitName == DummyUnitName then
 			unitName = BuildWithLimitedNumber("corjugg", 2)
 		end
@@ -59,7 +59,7 @@ end
 function lv3bigamp(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = 'corkrog'
+		unitName = 'corkorg'
 	else
 		unitName = 'armbanth'
 	end

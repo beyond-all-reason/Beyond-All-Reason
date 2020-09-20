@@ -94,6 +94,6 @@ T4SeaUnits = {
 	"armfepoch",
 	"corfblackhy",
 	"armvaderboss",
-	"corkrog",
+	"corkorg",
 	"armbanth",
 }

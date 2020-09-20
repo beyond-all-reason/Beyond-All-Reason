@@ -20,7 +20,7 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 		corcat = 1.1,
 		corjugg = 1.1,
 		corkarg = 1.1,
-		corkrog = 1.1,
+		corkorg = 1.1,
 		corshiva = 1.1,
 
 		armlun = 1.1,

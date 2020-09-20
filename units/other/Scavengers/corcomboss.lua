@@ -62,7 +62,7 @@ return {
 		workertime = 15000,
 		buildoptions = {
 			[1] = "armbanth",
-			[2] = "corkrog",
+			[2] = "corkorg",
 		},
 		customparams = {
 			area_mex_def = "cormex",

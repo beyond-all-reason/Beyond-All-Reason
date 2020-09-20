@@ -241,7 +241,7 @@ breakthroughList = {
 	corhal = 2,
 	corbats = 2,
 	armbats = 2,
-	corkrog = 3,
+	corkorg = 3,
 	corjugg = 3,
 	armbanth = 3,
 	corblackhy = 3,
@@ -319,7 +319,7 @@ attackerlist = {
 	corcat = 1 ,
 	corkarg = 1 ,
 	corjugg = 1 ,
-	corkrog = 1 ,
+	corkorg = 1 ,
 	-- ships
 	coresupp = 1 ,
 	armdecade = 1 ,

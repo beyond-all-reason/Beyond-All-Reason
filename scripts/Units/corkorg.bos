@@ -19,7 +19,7 @@ static-var  ShootingArm, WhichShoulderRocket, bMoving, InMotion, Aim_while_movin
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_WALK 32
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkrog_anim_walk_noik_v4.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkorg_anim_walk_noik_v4.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:8
 			turn head to x-axis <0.788000> speed <23.640006> / animSpeed; //delta=-0.79 

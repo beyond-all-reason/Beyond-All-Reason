@@ -109,7 +109,7 @@ addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 2, 'Tactical
 addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.7, 'Nuclear silo detected')
 addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.6, 'Nuclear bomber detected')
 addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.4, 'Juggernaut detected')
-addSound('KrogothDetected', 'KrogothDetected.wav', 9999999, 1.25, 'Krogoth detected')
+addSound('KorgothDetected', 'KorgothDetected.wav', 9999999, 1.25, 'Korgoth detected')
 addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.25, 'Bantha detected')
 addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.4, 'Flagship detected')
 addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.28, 'Commando detected')
@@ -145,7 +145,7 @@ unitsOfInterest[UnitDefNames['corbuzz'].id] = 'LrpcDetected'
 unitsOfInterest[UnitDefNames['armvulc'].id] = 'LrpcDetected'
 unitsOfInterest[UnitDefNames['armliche'].id] = 'NuclearBomberDetected'
 unitsOfInterest[UnitDefNames['corjugg'].id] = 'JuggernautDetected'
-unitsOfInterest[UnitDefNames['corkrog'].id] = 'KrogothDetected'
+unitsOfInterest[UnitDefNames['corkorg'].id] = 'KorgothDetected'
 unitsOfInterest[UnitDefNames['armbanth'].id] = 'BanthaDetected'
 unitsOfInterest[UnitDefNames['armepoch'].id] = 'FlagshipDetected'
 unitsOfInterest[UnitDefNames['corblackhy'].id] = 'FlagshipDetected'

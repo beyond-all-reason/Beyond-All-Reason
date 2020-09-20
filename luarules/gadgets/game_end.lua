@@ -332,7 +332,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			Spring.Echo('active teams: '..activeTeams)
 			if activeTeams == 0 then
 				GameOver()
 			end

@@ -191,7 +191,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Catapult",
 		"Juggernaut",
 		"Karganeth",
-		"Krogoth",
+		"Korgoth",
 		"Slinger",
 		"Halberd",
 		"Nixer",

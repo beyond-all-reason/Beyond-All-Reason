@@ -22,6 +22,7 @@ Units
 Renamed units:
  • Pack0 -> Ferret
  • Gaat Gun -> Warden
+ • Krogoth -> Korgoth
 
 
 10.23 -> 10.24

@@ -1,10 +1,10 @@
 return {
-	corkrog = {
+	corkorg = {
 		acceleration = 0.1242,
 		brakerate = 0.8211,
 		buildcostenergy = 615000,
 		buildcostmetal = 29000,
-		buildpic = "CORKROG.PNG",
+		buildpic = "corkorg.PNG",
 		buildtime = 555000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
@@ -15,10 +15,10 @@ return {
 		description = "Experimental Assault Bot",
 		energymake = 35,
 		energystorage = 350,
-		explodeas = "krogExplosion",
+		explodeas = "korgExplosion",
 		footprintx = 5,
 		footprintz = 5,
-		icontype = "krogoth",
+		icontype = "korgoth",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
@@ -27,13 +27,13 @@ return {
 		maxvelocity = 1.12,
 		maxwaterdepth = 12,
 		movementclass = "VBOT5",
-		name = "Krogoth",
+		name = "Korgoth",
 		nochasecategory = "VTOL GROUNDSCOUT",
-		objectname = "Units/CORKROG.s3o",
+		objectname = "Units/corkorg.s3o",
 		pushresistant = true,
-		script = "Units/CORKROG.cob",
+		script = "Units/corkorg.cob",
 		seismicsignature = 0,
-		selfdestructas = "krogExplosionSelfd",
+		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
 		sightdistance = 845,
 		turninplace = true,
@@ -57,7 +57,7 @@ return {
 				collisionvolumescales = "96 88 134",
 				collisionvolumetype = "box",
 				damage = 57600,
-				description = "Krogoth Wreckage",
+				description = "Korgoth Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -66,7 +66,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 17668,
-				object = "Units/corkrog_dead.s3o",
+				object = "Units/corkorg_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -77,7 +77,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 28800,
-				description = "Krogoth Heap",
+				description = "Korgoth Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
@@ -121,7 +121,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corkrog_fire = {
+			corkorg_fire = {
 				areaofeffect = 112,
 				avoidfeature = false,
 				craterboost = 0,
@@ -156,7 +156,7 @@ return {
 					subs = 5,
 				},
 			},
-			corkrog_laser = {
+			corkorg_laser = {
 				areaofeffect = 72,
 				avoidfeature = false,
 				beamtime = 0.6,
@@ -201,7 +201,7 @@ return {
 					vtol = 2750,
 				},
 			},
-			corkrog_rocket = {
+			corkorg_rocket = {
 				areaofeffect = 200,
 				avoidfeature = false,
 				cegtag = "missiletrailmedium-starburst",
@@ -290,17 +290,17 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORKROG_FIRE",
+				def = "corkorg_FIRE",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "CORKROG_LASER",
+				def = "corkorg_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "CORKROG_ROCKET",
+				def = "corkorg_ROCKET",
 				onlytargetcategory = "SURFACE",
 			},
 			[4] = {
