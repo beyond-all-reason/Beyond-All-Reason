@@ -138,8 +138,6 @@ local callInList = {
 	"ProjectileCreated",
 	"ProjectileDestroyed",
 
-	"TextCommand",
-
 	-- Unsynced CallIns
 	"ViewResize",
 	"Update",
@@ -1824,6 +1822,13 @@ function gadgetHandler:DefaultCommand(type, id, cmd)
 		if (id) then
 			return id
 		end
+	end
+	return
+end
+
+function gadgetHandler:TextCommand(command)
+	for _,g in ipairs(self.TextCommandList) do
+		g:TextCommand(command)
 	end
 	return
 end
