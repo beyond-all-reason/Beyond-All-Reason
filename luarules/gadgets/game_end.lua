@@ -285,7 +285,7 @@ function gadget:TeamDied(teamID)
 	Script.LuaRules.TeamDeathMessage(teamID)
 end
 
-function gadgetHandler:TeamChanged(teamID)
+function gadget:TeamChanged(teamID)
 	if Spring.GetGameFrame() == 0 then
 		Spring.Echo('TeamChanged: '..teamID)
 		local activeTeams = 0
