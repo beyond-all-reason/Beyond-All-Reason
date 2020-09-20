@@ -286,8 +286,8 @@ function gadget:TeamDied(teamID)
 end
 
 function gadget:TeamChanged(teamID)
+	Spring.Echo('TeamChanged: '..teamID)
 	if Spring.GetGameFrame() == 0 then
-		Spring.Echo('TeamChanged: '..teamID)
 		local activeTeams = 0
 		for _,teamID in ipairs(GetTeamList()) do
 			if teamID ~= gaiaTeamID then
@@ -308,8 +308,8 @@ function gadget:TeamChanged(teamID)
 end
 
 function gadget:PlayerRemoved(playerID, reason)
+	Spring.Echo('PlayerRemoved: '..playerID..'   '..reason)
 	if Spring.GetGameFrame() == 0 then
-		Spring.Echo('PlayerRemoved: '..playerID..'   '..reason)
 		local activeTeams = 0
 		for _,teamID in ipairs(GetTeamList()) do
 			if teamID ~= gaiaTeamID then
@@ -330,8 +330,8 @@ function gadget:PlayerRemoved(playerID, reason)
 end
 
 function gadget:PlayerChanged(playerID)
+	Spring.Echo('PlayerChanged: '..playerID)
 	if Spring.GetGameFrame() == 0 then
-		Spring.Echo('PlayerChanged: '..playerID..'   '..reason)
 		local activeTeams = 0
 		for _,teamID in ipairs(GetTeamList()) do
 			if teamID ~= gaiaTeamID then
