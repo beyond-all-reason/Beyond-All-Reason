@@ -285,26 +285,24 @@ function gadget:TeamDied(teamID)
 	Script.LuaRules.TeamDeathMessage(teamID)
 end
 
-function gadget:PlayerRemoved(playerID, reason)
+function gadgetHandler:TeamChanged(teamID)
 	if Spring.GetGameFrame() == 0 then
-		Spring.Echo('PlayerRemoved: '..playerID..'  '..reason)
-		local name,active,spec,teamID,allyTeamID = Spring.GetPlayerInfo(playerID,false)
-		if not spec then
-			local activeTeams = 0
-			for _,teamID in ipairs(GetTeamList()) do
-				if teamID ~= gaiaTeamID then
-					local leaderPlayerID, isDead, isAiTeam, side, allyTeamID = Spring.GetTeamInfo(teamID)
-					if not isDead and not isAiTeam then
-						name,active,spec,playerTeamID,allyTeamID = Spring.GetPlayerInfo(leaderPlayerID,false)
-						if active and not spec then
-							activeTeams = activeTeams + 1
-						end
+		Spring.Echo('TeamChanged: '..teamID)
+		local activeTeams = 0
+		for _,teamID in ipairs(GetTeamList()) do
+			if teamID ~= gaiaTeamID then
+				local leaderPlayerID, isDead, isAiTeam, side, allyTeamID = Spring.GetTeamInfo(teamID)
+				if not isDead and not isAiTeam then
+					local name,active,spec,playerTeamID,allyTeamID = Spring.GetPlayerInfo(leaderPlayerID,false)
+					if active and not spec then
+						activeTeams = activeTeams + 1
 					end
 				end
 			end
-			if activeTeams < 2 then
-				GameOver()
-			end
+		end
+		Spring.Echo('TeamChanged: active teams: '..activeTeams)
+		if activeTeams == 0 then
+			GameOver()
 		end
 	end
 end
