@@ -95,6 +95,8 @@ local callInList = {
 	"GameOver",
 	"GameID",
 
+	"GameFrame",
+
 	"TeamDied",
 	"TeamChanged",
 
@@ -125,6 +127,9 @@ local callInList = {
 	"UnitDecloaked",
 
 	"ShieldPreDamaged",
+	"Explosion",
+
+	"CobCallback",
 
 	"FeatureCreated",
 	"FeatureDestroyed",
@@ -171,25 +176,25 @@ local callInList = {
 	"AddConsoleLine",
 	"GroupChanged",
 
-	"Explosion",
-	"ShockFront",
-
-	"GameFrame",
-	"CobCallback",
-	"AllowCommand",
 	"CommandFallback",
+	"AllowCommand",
+	"AllowStartPosition",
 	"AllowUnitCreation",
 	"AllowUnitTransfer",
+	"AllowUnitBuildStep",
 	"AllowUnitTransport",
 	"AllowUnitTransportLoad",
 	"AllowUnitTransportUnload",
-	"AllowUnitBuildStep",
 	"AllowUnitCloak",
 	"AllowUnitDecloak",
-	"AllowFeatureCreation",
+	"AllowUnitTargetRange",
 	"AllowFeatureBuildStep",
+	"AllowFeatureCreation",
 	"AllowResourceLevel",
 	"AllowResourceTransfer",
+	"AllowDirectUnitControl",
+	"AllowBuilderHoldFire",
+
 	"MoveCtrlNotify",
 	"TerraformComplete",
 	"UnsyncedHeightMapUpdate",
