@@ -318,6 +318,8 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:RecvLuaMsg(msg, playerID)
+
+		-- detect when no players are ingame (thus only specs remain) and shutdown the game
 		if Spring.GetGameFrame() == 0 and string.sub(msg, 1, 2) == 'pc' then
 			local activeTeams = 0
 			local leaderPlayerID, isDead, isAiTeam, isLuaAI, active, spec
@@ -332,6 +334,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+			Spring.Echo('active teams: '..activeTeams)
 			if activeTeams == 0 then
 				GameOver()
 			end
@@ -340,9 +343,14 @@ if gadgetHandler:IsSyncedCode() then
 
 else
 
-	function gadget:PlayerChanged(playerID)
+	local sec = 0
+	function gadget:Update(dt)
 		if Spring.GetGameFrame() == 0 then
-			Spring.SendLuaRulesMsg("pc")
+			sec = sec + Spring.GetLastUpdateSeconds()
+			if sec > 2 then
+				sec = 0
+				Spring.SendLuaRulesMsg("pc")
+			end
 		end
 	end
 end
