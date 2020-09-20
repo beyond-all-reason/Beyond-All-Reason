@@ -287,6 +287,7 @@ end
 
 function gadget:PlayerRemoved(playerID, reason)
 	if Spring.GetGameFrame() == 0 then
+		Spring.Echo('PlayerRemoved: '..playerID..'  '..reason)
 		local name,active,spec,teamID,allyTeamID = Spring.GetPlayerInfo(playerID,false)
 		if not spec then
 			local activeTeams = 0
