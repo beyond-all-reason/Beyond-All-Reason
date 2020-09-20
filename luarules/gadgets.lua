@@ -138,7 +138,7 @@ local callInList = {
 	"ProjectileCreated",
 	"ProjectileDestroyed",
 
-	"TextCommand ",
+	"TextCommand",
 
 	-- Unsynced CallIns
 	"ViewResize",
