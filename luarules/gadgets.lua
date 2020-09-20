@@ -90,6 +90,7 @@ local callInList = {
 	"Shutdown",
 	"CommandNotify",
 
+	"GameSetup",
 	"GamePreload",
 	"GameStart",
 	"GameOver",
