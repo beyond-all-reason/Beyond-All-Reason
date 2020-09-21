@@ -14,7 +14,7 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 300,
-		description = "Tech Level 4",
+		description = "Are you serious?",
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,

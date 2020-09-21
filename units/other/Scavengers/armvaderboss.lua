@@ -12,7 +12,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "91 91 91",
 		collisionvolumetype = "sphere",
-		description = "Gigantic Amphibious Crawling Strategic Bomb",
+		description = "So it's a ball with nuke warhead inside",
 		energymake = 0.1,
 		energyuse = 0.1,
 		explodeas = "crawl_blastsmlscavboss",
