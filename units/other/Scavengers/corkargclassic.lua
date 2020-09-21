@@ -50,7 +50,7 @@ return {
 				collisionvolumescales = "77.9624938965 23.0893859863 76.4105682373",
 				collisionvolumetype = "Box",
 				damage = 1200,
-				description = "Karganeth Wreckage",
+				description = "Demon Wreckage",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
