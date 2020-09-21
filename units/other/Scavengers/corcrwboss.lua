@@ -29,7 +29,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 1.65,
 		maxwaterdepth = 0,
-		name = "Enlarged Krow",
+		name = "Epic Krow",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/corcrwboss.s3o",
 		script = "Units/scavboss/corcrwboss.cob",

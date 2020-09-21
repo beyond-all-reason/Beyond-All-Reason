@@ -31,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		metalmake = 0.1,
 		metalstorage = 50,
-		name = "Mega Construction Aircraft",
+		name = "Epic Construction Aircraft",
 		objectname = "Units/scavboss/CORACABOSS.s3o",
 		radardistance = 50,
 		script = "Units/scavboss/CORACABOSS.cob",

@@ -27,7 +27,7 @@ return {
 		maxvelocity = 0.67,
 		maxwaterdepth = 112,
 		movementclass = "BOSSPEEWEE4",
-		name = "Giant Invader",
+		name = "Epic Invader",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armvaderboss.s3o",
 		pushresistant = true,

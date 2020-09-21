@@ -40,7 +40,7 @@ return {
 		metalmake = 5,
 		--mincloakdistance = 120,
 		movementclass = "SCAVCOMMANDERBOT",
-		name = "Gigantic Commander - Final Boss",
+		name = "Epic Commander - Final Boss",
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/CORCOMBOSS.s3o",
 		pushresistant = true,

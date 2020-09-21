@@ -2,8 +2,8 @@ return {
 	corkargclassic = {
 		acceleration = 0.2208,
 		brakerate = 1,
-		buildcostenergy = 80000,
-		buildcostmetal = 4125,
+		buildcostenergy = 1600000,
+		buildcostmetal = 16000,
 		buildpic = "CORKARG.PNG",
 		buildtime = 100609,
 		canmove = true,
@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 20000,
+		maxdamage = 50000,
 		maxslope = 160,
 		maxvelocity = 3,
 		maxwaterdepth = 12,
@@ -177,10 +177,10 @@ return {
 					--damagetype		     = "ehbotkarganneth", 
 				}, 
 				damage                   = {
-					default              = 500,
-					bombers				 = 2000,
-					fighters 			 = 2000,
-					vtol				 = 2000,
+					default              = 200,
+					bombers				 = 1000,
+					fighters 			 = 1000,
+					vtol				 = 1000,
 				},
 			},
 			
@@ -313,7 +313,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "GROUNDSCOUT",
+				badtargetcategory = "GROUNDSCOUT NOTAIR",
 				def = "MACHINEGUN",
 				onlytargetcategory = "NOTSUB",
 			},

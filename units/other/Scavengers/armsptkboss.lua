@@ -25,7 +25,7 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TBOT3",
 		mygravity = 10000,
-		name = "Enlarged Recluse",
+		name = "Epic Recluse",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/ARMSPTKBOSS.s3o",
 		script = "Units/ARMSPTK.cob",
