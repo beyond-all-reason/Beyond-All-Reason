@@ -27,7 +27,7 @@ return {
 		maxvelocity = 0.8,
 		maxwaterdepth = 12,
 		movementclass = "BOSSSTUMPY7",
-		name = "Gigantic Stumpy",
+		name = "Ratte",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armstumpboss.s3o",
 		script = "Units/scavboss/armstumpboss.cob",
