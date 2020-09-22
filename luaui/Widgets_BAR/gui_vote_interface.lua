@@ -268,7 +268,7 @@ function StartVote(name, owner)
 				local topbarArea = WG['topbar'].GetPosition()
 				--xpos = vsx-(width/2)
 				xpos = topbarArea[1] + (width / 2) + ((vsx - topbarArea[1]) / 1.95)
-				ypos = topbarArea[6] - (5 * topbarArea[5]) - (height / 2)
+				ypos = topbarArea[2] - (5 * topbarArea[5]) - (height / 2)
 			end
 
 			hovered = nil
