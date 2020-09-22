@@ -979,10 +979,9 @@ function widget:Initialize()
 	-- Get our starting unit
 	if preGamestartPlayer then
 		SetBuildFacing()
-		local mySide = select(5, Spring.GetTeamInfo(myTeamID, false))
-		if mySide and mySide ~= '' then
-			-- Don't run unless we know what faction the player is
-			startDefID = UnitDefNames[select(1, Spring.GetSideData(mySide))].id
+		if not startDefID or startDefID ~= spGetTeamRulesParam(myTeamID, 'startUnit') then
+			startDefID = spGetTeamRulesParam(myTeamID, 'startUnit')
+			doUpdate = true
 		end
 	end
 
@@ -1799,17 +1798,11 @@ function widget:DrawWorld()
 			local teamID = teamList[i]
 			local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
 			if tsx and tsx > 0 then
-				if spGetTeamRulesParam(teamID, 'startUnit') == UnitDefNames.armcom.id then
-					--glTexture('unitpics/alternative/armcom.png')
-					--glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
-					startDefID = UnitDefNames.armcom.id
-					DrawUnitDef(UnitDefNames.armcom.id, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
-				else
-					--glTexture('unitpics/alternative/corcom.png')
-					--glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
-					startDefID = UnitDefNames.corcom.id
-					DrawUnitDef(UnitDefNames.corcom.id, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
+				if not startDefID or startDefID ~= spGetTeamRulesParam(teamID, 'startUnit') then
+					startDefID = spGetTeamRulesParam(teamID, 'startUnit')
+					doUpdate = true
 				end
+				DrawUnitDef(startDefID, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
 			end
 		end
 		glColor(1, 1, 1, 1)
