@@ -271,7 +271,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "GROUNDSCOUT",
+				badtargetcategory = "GROUNDSCOUT VTOL",
 				def = "SUPER_MISSILE",
 				onlytargetcategory = "NOTSUB",
 			},
