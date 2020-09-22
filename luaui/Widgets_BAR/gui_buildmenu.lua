@@ -1802,10 +1802,12 @@ function widget:DrawWorld()
 				if spGetTeamRulesParam(teamID, 'startUnit') == UnitDefNames.armcom.id then
 					--glTexture('unitpics/alternative/armcom.png')
 					--glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+					startDefID = UnitDefNames.armcom.id
 					DrawUnitDef(UnitDefNames.armcom.id, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
 				else
 					--glTexture('unitpics/alternative/corcom.png')
 					--glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+					startDefID = UnitDefNames.corcom.id
 					DrawUnitDef(UnitDefNames.corcom.id, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
 				end
 			end
