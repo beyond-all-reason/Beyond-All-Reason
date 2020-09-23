@@ -1,4 +1,4 @@
-UnitHandler = class(Module)
+STUnitHandler = class(Module)
 
 local inactive = {
 	armsolar = true,
@@ -146,15 +146,15 @@ local inactive = {
 	corsonar = true
 	}
 
-function UnitHandler:Name()
+function STUnitHandler:Name()
 	return "UnitHandler"
 end
 
-function UnitHandler:internalName()
+function STUnitHandler:internalName()
 	return "unithandler"
 end
 
-function UnitHandler:Init()
+function STUnitHandler:Init()
 	self.units = {}
 	self.myActiveUnits = {}
 	self.myInactiveUnits = {}
@@ -164,7 +164,7 @@ function UnitHandler:Init()
 	self.behaviourFactory:Init()
 end
 
-function UnitHandler:Update()
+function STUnitHandler:Update()
 	for k,v in pairs(self.myActiveUnits) do
 		if ShardSpringLua then
 			local ux, uy, uz = Spring.GetUnitPosition(v:Internal():ID())
@@ -185,20 +185,20 @@ function UnitHandler:Update()
 	end
 end
 
-function UnitHandler:GameEnd()
+function STUnitHandler:GameEnd()
 	for k,v in pairs(self.myActiveUnits) do
 		v:GameEnd()
 	end
 end
 
-function UnitHandler:UnitCreated(engineUnit)
+function STUnitHandler:UnitCreated(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	for k,v in pairs(self.myActiveUnits) do
 		v:UnitCreated(u)
 	end
 end
 
-function UnitHandler:UnitBuilt(engineUnit)
+function STUnitHandler:UnitBuilt(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
 		for k,v in pairs(self.myActiveUnits) do
@@ -207,21 +207,21 @@ function UnitHandler:UnitBuilt(engineUnit)
 	end
 end
 
-function UnitHandler:UnitDead(engineUnit)
+function STUnitHandler:UnitDead(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
 		for k,v in pairs(self.myActiveUnits) do
 			v:UnitDead(u)
 		end
 	end
-	-- game:SendToConsole(self.ai.id, "removing unit from unithandler tables", engineUnit:ID(), engineUnit:Name())
+	-- game:SendToConsole(self.ai.id, "removing unit from stunithandler tables", engineUnit:ID(), engineUnit:Name())
 	self.units[engineUnit:ID()] = nil
 	self.myActiveUnits[engineUnit:ID()] = nil
 	self.myInactiveUnits[engineUnit:ID()] = nil
 	self.reallyActuallyDead[engineUnit:ID()] = self.game:Frame()
 end
 
-function UnitHandler:UnitDamaged(engineUnit,engineAttacker,damage)
+function STUnitHandler:UnitDamaged(engineUnit,engineAttacker,damage)
 	local u = self:AIRepresentation(engineUnit)
 	-- local a = self:AIRepresentation(engineAttacker)
 	for k,v in pairs(self.myActiveUnits) do
@@ -229,7 +229,7 @@ function UnitHandler:UnitDamaged(engineUnit,engineAttacker,damage)
 	end
 end
 
-function UnitHandler:AIRepresentation(engineUnit)
+function STUnitHandler:AIRepresentation(engineUnit)
 	if engineUnit == nil then
 		return nil
 	end
@@ -245,7 +245,7 @@ function UnitHandler:AIRepresentation(engineUnit)
 	local unittable = self.units
 	local u = unittable[engineUnit:ID()]
 	if u == nil then
-		-- self.game:SendToConsole(self.ai.id, "adding unit to unithandler tables", engineUnit:ID(), engineUnit:Name())
+		-- self.game:SendToConsole(self.ai.id, "adding unit to stunithandler tables", engineUnit:ID(), engineUnit:Name())
 		u = Unit()
 		u:SetAI( self.ai )
 		self.units[engineUnit:ID()] = u
@@ -264,7 +264,7 @@ function UnitHandler:AIRepresentation(engineUnit)
 	return u
 end
 
-function UnitHandler:UnitIdle(engineUnit)
+function STUnitHandler:UnitIdle(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
 		for k,v in pairs(self.units) do

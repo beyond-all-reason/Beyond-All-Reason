@@ -43,5 +43,5 @@ return {
 	CleanHandler,
 	NanoHandler,
 	OverviewHandler,
-	UnitHandler
+	STUnitHandler
 }
