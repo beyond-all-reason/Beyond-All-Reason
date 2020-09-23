@@ -23,7 +23,7 @@ shard_include ("nanohandler")
 shard_include ("overviewhandler")
 
 return {
-	Sleep,
+	STSleep,
 	MapHandler,
 	EconHandler,
 	AttackHandler,
