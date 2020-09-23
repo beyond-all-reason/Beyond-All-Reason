@@ -306,6 +306,31 @@ local materials = {
 			vertex_ao = true,
 			health_displace = false,
 			health_texturing = false,
+		},
+		deferredOptions = {
+			normalmapping = true,
+			flashlights = false,
+			vertex_ao = true,
+			health_displace = false,
+			health_texturing = false,
+			materialIndex = 4,
+		},
+
+		-- are these below required?
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
+
+		--GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
+
+		--UnitDamaged = UnitDamaged,
+	}),
+	unitsNormalMapChickens = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+		shaderOptions = {
+			normalmapping = true,
+			flashlights = false,
+			vertex_ao = true,
+			health_displace = false,
+			health_texturing = false,
 			treewind = true,
 		},
 		deferredOptions = {
@@ -397,7 +422,11 @@ for id = 1, #UnitDefs do
 			if wreckAtlas then
 				unitMaterials[id] = {"unitsNormalMapOthersArmCor", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			else
-				unitMaterials[id] = {"unitsNormalMapOthers", NORMALTEX = normalTex}
+				if facName == "chi" then
+					unitMaterials[id] = {"unitsNormalMapChickens", NORMALTEX = normalTex}
+				else
+					unitMaterials[id] = {"unitsNormalMapOthers", NORMALTEX = normalTex}
+				end
 			end
 		end
 	end
