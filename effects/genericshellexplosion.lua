@@ -957,7 +957,7 @@ local definitions = {
       },
     },
     pop1 = {
-      --class=[[explo]],
+      class = [[heatcloud]],
       air=1,
       water=1,
       ground=1,
@@ -1440,7 +1440,7 @@ local definitions = {
       },
     },
     pop1 = {
-      --class=[[explo]],
+      class = [[heatcloud]],
       air=1,
       water=1,
       ground=1,
@@ -1920,7 +1920,7 @@ local definitions = {
       },
     },
     pop1 = {
-      --class=[[explo]],
+      class = [[heatcloud]],
       air=1,
       water=1,
       ground=1,
