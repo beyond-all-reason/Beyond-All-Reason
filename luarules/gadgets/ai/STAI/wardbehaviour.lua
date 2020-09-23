@@ -1,15 +1,15 @@
 
 
 
-WardBehaviour = class(Behaviour)
+STWardBehaviour = class(Behaviour)
 
-function WardBehaviour:Name()
+function STSTWardBehaviour:Name()
 	return "WardBehaviour"
 end
 
-WardBehaviour.DebugEnabled = false
+STWardBehaviour.DebugEnabled = false
 
-function WardBehaviour:Init()
+function STWardBehaviour:Init()
 	self.minFleeDistance = 500
 	self.lastAttackedFrame = self.game:Frame()
 	self.initialLocation = self.unit:Internal():GetPosition()
@@ -28,29 +28,29 @@ function WardBehaviour:Init()
 		self.threshold = 0.5
 	end
 	-- any threat whatsoever will trigger for buildings
-	self:EchoDebug("WardBehaviour: added to unit "..self.name)
+	self:EchoDebug("STWardBehaviour: added to unit "..self.name)
 end
 
-function WardBehaviour:OwnerBuilt()
+function STWardBehaviour:OwnerBuilt()
 	if self.mobile and not self.isScout then
 		self.ai.defendhandler:AddWard(self) -- just testing 
 	end
 end
 
-function WardBehaviour:OwnerDead()
+function STWardBehaviour:OwnerDead()
 	if self.mobile and not self.isScout then
 		self.ai.defendhandler:RemoveWard(self) -- just testing 
 	end
 end
 
-function WardBehaviour:OwnerIdle()
+function STWardBehaviour:OwnerIdle()
 	if self:IsActive() then
 		self.underFire = false
 		self.unit:ElectBehaviour()
 	end
 end
 
-function WardBehaviour:Update()
+function STWardBehaviour:Update()
 	local f = self.game:Frame()
 
 	-- timeout on underFire condition
@@ -85,7 +85,7 @@ function WardBehaviour:Update()
 	end
 end
 
-function WardBehaviour:Activate()
+function STWardBehaviour:Activate()
 	self:EchoDebug("activated on unit "..self.name)
 
 	-- can we move at all?
@@ -107,7 +107,7 @@ function WardBehaviour:Activate()
 	end
 end
 
-function WardBehaviour:NearestCombat()
+function STWardBehaviour:NearestCombat()
 	local best
 	local ownUnits = self.game:GetFriendlies()
 	local fleeing = self.unit:Internal()
@@ -134,13 +134,13 @@ function WardBehaviour:NearestCombat()
 	return best
 end
 
-function WardBehaviour:Deactivate()
-	self:EchoDebug("WardBehaviour: deactivated on unit "..self.name)
+function STWardBehaviour:Deactivate()
+	self:EchoDebug("STWardBehaviour: deactivated on unit "..self.name)
 	self.active = false
 	self.underFire = false
 end
 
-function WardBehaviour:Priority()
+function STWardBehaviour:Priority()
 	if self.underFire and self.mobile and not self.withinTurtle and not self.noSalvation then
 		return 110
 	else
@@ -148,7 +148,7 @@ function WardBehaviour:Priority()
 	end
 end
 
-function WardBehaviour:OwnerDamaged(attacker,damage)
+function STWardBehaviour:OwnerDamaged(attacker,damage)
 	if not self.underFire then
 		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.8 then
 			self.underFire = true

@@ -42,12 +42,12 @@ function BehaviourFactory:defaultBehaviours(unit)
 
 	if nanoTurretList[un] then
 		table.insert(b, STAssistBehaviour)
-		table.insert(b, WardBehaviour)
+		table.insert(b, STWardBehaviour)
 		table.insert(b, CleanerBehaviour)
 	end
 
 	if unitTable[un].isBuilding then
-		table.insert(b, WardBehaviour) --tells defending units to rush to threatened buildings
+		table.insert(b, STWardBehaviour) --tells defending units to rush to threatened buildings
 		if nukeList[un] then
 			table.insert(b, NukeBehaviour)
 		elseif antinukeList[un] then
@@ -83,10 +83,10 @@ function BehaviourFactory:defaultBehaviours(unit)
 				table.insert(b, CleanerBehaviour)
 			end
 		end
-		table.insert(b, WardBehaviour)
+		table.insert(b, STWardBehaviour)
 	elseif IsReclaimer(unit) then
 		table.insert(b, ReclaimBehaviour)
-		table.insert(b, WardBehaviour)
+		table.insert(b, STWardBehaviour)
 	else
 		if IsAttacker(unit) then
 			table.insert(b, AttackerBehaviour)
@@ -105,7 +105,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		end
 		if IsScout(unit, self.scoutlist) then
 			table.insert(b, ScoutBehaviour)
-			table.insert(b, WardBehaviour)
+			table.insert(b, STWardBehaviour)
 		end
 		if IsDefender(unit) then
 			table.insert(b, DefendBehaviour)
