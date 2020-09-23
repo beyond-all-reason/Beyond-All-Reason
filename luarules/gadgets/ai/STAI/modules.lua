@@ -38,7 +38,7 @@ return {
 	TargetHandler,
 	DamageHandler,
 	ScoutHandler,
-	AssistHandler,
+	STAssistHandler,
 	DefendHandler,
 	CleanHandler,
 	NanoHandler,

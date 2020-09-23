@@ -1,20 +1,15 @@
-
-
-
-
-
 local CMD_GUARD = 25
 local CMD_PATROL = 15
 
-AssistBehaviour = class(Behaviour)
+STAssistBehaviour = class(Behaviour)
 
-function AssistBehaviour:Name()
+function STAssistBehaviour:Name()
 	return "AssistBehaviour"
 end
 
-AssistBehaviour.DebugEnabled = false
+STAssistBehaviour.DebugEnabled = false
 
-function AssistBehaviour:DoIAssist()
+function STAssistBehaviour:DoIAssist()
 	if self.ai.nonAssistant[self.id] ~= true or self.isNanoTurret then
 		return true
 	else
@@ -22,7 +17,7 @@ function AssistBehaviour:DoIAssist()
 	end
 end
 
-function AssistBehaviour:Init()
+function STAssistBehaviour:Init()
 	self.active = false
 	self.target = nil
 	-- keeping track of how many of each type of unit
@@ -37,12 +32,12 @@ function AssistBehaviour:Init()
 	self:EchoDebug("added to unit "..uname)
 end
 
-function AssistBehaviour:OwnerIdle()
+function STAssistBehaviour:OwnerIdle()
 	self.patroling = false
 	self.assisting = nil
 end
 
-function AssistBehaviour:Update()
+function STAssistBehaviour:Update()
 	-- nano turrets don't need updating, they already have a patrol order
 	if self.isNanoTurret then return end
 
@@ -105,7 +100,7 @@ function AssistBehaviour:Update()
 	end
 end
 
-function AssistBehaviour:Activate()
+function STAssistBehaviour:Activate()
 	self:EchoDebug("activated on unit "..self.name)
 	if self:DoIAssist() then
 		ai.assisthandler:Release(self.unit:Internal())
@@ -125,7 +120,7 @@ function AssistBehaviour:Activate()
 	self.target = nil
 end
 
-function AssistBehaviour:Deactivate()
+function STAssistBehaviour:Deactivate()
 	self:EchoDebug("deactivated on unit "..self.name)
 	ai.assisthandler:RemoveWorking(self)
 	ai.assisthandler:RemoveFree(self)
@@ -134,7 +129,7 @@ function AssistBehaviour:Deactivate()
 	self.assisting = nil
 end
 
-function AssistBehaviour:Priority()
+function STAssistBehaviour:Priority()
 	if self:DoIAssist() then
 		return 100
 	else
@@ -142,21 +137,21 @@ function AssistBehaviour:Priority()
 	end
 end
 
-function AssistBehaviour:OwnerDead()
+function STAssistBehaviour:OwnerDead()
 	ai.assisthandler:RemoveAssistant(self)
 end
 
-function AssistBehaviour:Assign(builderID)
+function STAssistBehaviour:Assign(builderID)
 	self.target = builderID
 	self.lastAssignFrame = self.game:Frame()
 end
 
-function AssistBehaviour:SetFallback(position)
+function STAssistBehaviour:SetFallback(position)
 	self.fallbackPos = position
 end
 
 -- assign if not busy (used by factories to occupy idle assistants)
-function AssistBehaviour:SoftAssign(builderID)
+function STAssistBehaviour:SoftAssign(builderID)
 	if self.target == nil then
 		self.target = builderID
 	else
