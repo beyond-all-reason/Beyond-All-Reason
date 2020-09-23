@@ -41,12 +41,16 @@ function SelfDestructionControls(n, scav, scavDef)
 						local telendposy = Spring.GetGroundHeight(posx, posz)
 						if telstartposy < 0 then
 							if telendposy < 0 then
+								Spring.SpawnCEG("scav-spawnexplo",selfdx[scav],telstartposy,selfdz[scav],0,0,0)
+								Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
 								Spring.SetUnitPosition(scav, posx, posz)
 								Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
 								break
 							end
 						elseif telstartposy >= 0 then
 							if telendposy >= 0 then
+								Spring.SpawnCEG("scav-spawnexplo",selfdx[scav],telstartposy,selfdz[scav],0,0,0)
+								Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
 								Spring.SetUnitPosition(scav, posx, posz)
 								Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
 								break

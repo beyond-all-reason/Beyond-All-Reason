@@ -132,6 +132,7 @@ function BossMinionsSpawn(n)
 		end
 	end
 	Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+	Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
 end
 
 
