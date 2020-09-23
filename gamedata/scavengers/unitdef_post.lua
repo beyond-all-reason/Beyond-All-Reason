@@ -16,6 +16,19 @@ function scav_Udef_Post(name, uDef)
 
 	-- add unit category
 	uDef.category = uDef.category..' SCAVENGER'
+	
+	-- replaced uniticons
+	if uDef.buildpic then
+		--local nonScavName = string.sub(uDef.unitname, 1, string.len(uDef.unitname)-5)
+		if (not string.find(uDef.buildpic, "scavengers"))
+		and (not string.find(uDef.buildpic, "chicken"))
+		and (not string.find(uDef.buildpic, "critters"))
+		and (not string.find(uDef.buildpic, "lootboxes"))
+		and (not string.find(uDef.buildpic, "other"))
+		and (not string.find(uDef.buildpic, "alternative")) then
+			uDef.buildpic = "scavengers/"..uDef.buildpic
+		end
+	end
 
 	-- add model vertex displacement
 
