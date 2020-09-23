@@ -381,6 +381,14 @@ local moveDatas = {
 		maxslope = 18,
 		maxwaterdepth = 0,
 	},
+	
+	NANOLOOTBOX = {
+		crushstrength = 0,
+		--footprintx = 3,
+		--footprintz = 3,
+		--maxslope = 18,
+		--maxwaterdepth = 0,
+	},
 
 	-- penguins/ducks
 	CRITTERH = {

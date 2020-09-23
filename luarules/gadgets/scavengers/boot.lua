@@ -172,7 +172,7 @@ function gadget:GameFrame(n)
 		SpawnFromQueue(n)
 	end
 
-	if n == 1 then
+	if n == 300 then
 		--Spring.Echo("New Scavenger Spawner initialized")
 		Spring.SetTeamColor(GaiaTeamID, 0.38, 0.14, 0.38)
 	end
