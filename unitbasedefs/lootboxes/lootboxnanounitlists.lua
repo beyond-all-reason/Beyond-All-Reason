@@ -32,14 +32,6 @@ buildPossibleOptionsT1 = {
 	"cormh",
 	"corah",
 	"corsnap",
-	--constructors
-	"armck",
-	"armcv",
-	"armbeaver",
-	"armch",
-	"corck",
-	"corcv",
-	"cormuskrat",
 	
 	-- air
 	"armthund",
@@ -47,11 +39,6 @@ buildPossibleOptionsT1 = {
 	"corshad",
 	"corbw",
 	"corveng",
-	--constructors
-	"armca",
-	"armcsa",
-	"corca",
-	"corcsa",
 	
 	-- sea
 	"armpt",
@@ -66,12 +53,6 @@ buildPossibleOptionsT1 = {
 	"corpship",
 	"corsub",
 	"corgarp",
-	--constructors
-	"armbeaver",
-	"armch",
-	"armcs",
-	"cormuskrat",
-	"corcs",
 }
 
 buildPossibleOptionsT2 = {
@@ -117,21 +98,6 @@ buildPossibleOptionsT2 = {
 	"corparrow",
 	--hovercraft
 	"corhal",
-	--constructors
-	"armck",
-	"armcv",
-	"armbeaver",
-	"armch",
-	"corck",
-	"corcv",
-	"cormuskrat",
-	"armack",
-	"armdecom",
-	"armacv",
-	"armconsul",
-	"corack",
-	"cordecom",
-	"coracv",
 	
 	--air
 	"armsb",
@@ -142,13 +108,6 @@ buildPossibleOptionsT2 = {
 	"corsb",
 	"corsfig",
 	"corcut",
-	--constructors
-	"armca",
-	"armcsa",
-	"corca",
-	"corcsa",
-	"armaca",
-	"coraca",
 	
 	--sea
 	"armroy",
@@ -173,12 +132,6 @@ buildPossibleOptionsT2 = {
 	"corseal",
 	--hovercraft
 	"corhal",
-	--constructors
-	"armbeaver",
-	"armch",
-	"armcs",
-	"cormuskrat",
-	"corcs",
 }
 
 buildPossibleOptionsT3 = {
@@ -200,21 +153,6 @@ buildPossibleOptionsT3 = {
 	"armlun",
 	"corsok",
 	"armsptkboss",
-	--constructors
-	"armck",
-	"armcv",
-	"armbeaver",
-	"armch",
-	"corck",
-	"corcv",
-	"cormuskrat",
-	"armack",
-	"armdecom",
-	"armacv",
-	"armconsul",
-	"corack",
-	"cordecom",
-	"coracv",
 	
 	--air
 	"armhawk",
@@ -228,13 +166,6 @@ buildPossibleOptionsT3 = {
 	"corhurc",
 	"corape",
 	"corcrw",
-	--constructors
-	"armca",
-	"armcsa",
-	"corca",
-	"corcsa",
-	"armaca",
-	"coraca",
 	
 	--sea
 	"armbats",
@@ -244,12 +175,6 @@ buildPossibleOptionsT3 = {
 	--hovercraft
 	"armlun",
 	"corsok",
-	--constructors
-	"armbeaver",
-	"armch",
-	"armcs",
-	"cormuskrat",
-	"corcs",
 }
 
 buildPossibleOptionsT4 = {

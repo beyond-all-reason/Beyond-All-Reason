@@ -15,7 +15,7 @@ end
 VFS.Include("unitbasedefs/lootboxes/lootboxnanounitlists.lua")
 
 buildlistRNG = {}
-for a = 1,6 do
+for a = 1,4 do
 	local choosenOne = buildPossibleOptionsT4[math.ceil(#buildPossibleOptionsT4*math.random())]
 	buildlistRNG[a] = choosenOne
 end
