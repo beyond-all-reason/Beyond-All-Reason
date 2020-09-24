@@ -247,7 +247,7 @@ function LosHST:UpdateEnemies(enemyList)
 		end
 	end
 	-- send blips off for analysis
-	self.ai.tacticalhandler:NewEnemyPositions(blips)
+	self.ai.tacticalhst:NewEnemyPositions(blips)
 end
 
 function LosHST:UpdateWrecks()
