@@ -586,7 +586,7 @@ local anyOutmodedLvl2VehPlant = {
 }
 
 -- fall back to these when a level 2 factory exists
-outmodedTaskqueues = {
+ai.data.outmodedTaskqueues = {
 	corlab = anyOutmodedLvl1BotLab,
 	armlab = anyOutmodedLvl1BotLab,
 	corvp = anyOutmodedLvl1VehPlant,
@@ -602,7 +602,7 @@ outmodedTaskqueues = {
 }
 
 -- finally, the taskqueue definitions
-taskqueues = {
+ai.data.taskqueues = {
 	corcom = anyCommander,
 	armcom = anyCommander,
 	armdecom = anyCommander,
