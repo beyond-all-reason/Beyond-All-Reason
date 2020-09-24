@@ -23,7 +23,7 @@ shard_include ("nanohst")
 shard_include ("overviewhst")
 
 return {
-	STSleep,
+	SleepST,
 	MapHST,
 	EcoHST,
 	AttackHST,
