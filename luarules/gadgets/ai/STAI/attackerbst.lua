@@ -117,7 +117,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.attacking = true
 	if reverseAttackAngle then
 		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
-		if not self.sturdy or self.ai.loshandler:IsInLos(pos) then
+		if not self.sturdy or self.ai.loshst:IsInLos(pos) then
 			awayDistance = self.weaponDistance
 		end
 		local myAngle = AngleAdd(reverseAttackAngle, self.formationAngle)

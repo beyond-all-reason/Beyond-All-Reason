@@ -538,7 +538,7 @@ function TargetHandler:UpdateMetalGeoSpots()
 	local toGAS = {"ground", "submerged"}
 	for i = 1, #spots do
 		local spot = spots[i]
-		if not self.ai.loshandler:IsInLos(spot) then
+		if not self.ai.loshst:IsInLos(spot) then
 			local cell = self:GetOrCreateCellHere(spot)
 			-- cell.value = cell.value + unseenMetalGeoValue
 			local underwater = self.ai.maphandler:IsUnderWater(spot)
@@ -681,7 +681,7 @@ end
 function TargetHandler:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
 	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
-	if attacker ~= nil and self.ai.loshandler:IsKnownEnemy(attacker) ~= 2 then
+	if attacker ~= nil and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
 		self:DangerCheck(attacker:Name(), attacker:ID())
 		local mtype
 		local ut = unitTable[unit:Name()]
@@ -690,7 +690,7 @@ function TargetHandler:UnitDamaged(unit, attacker, damage)
 			local aut = unitTable[attacker:Name()]
 			if aut then
 				if aut.isBuilding then
-					self.ai.loshandler:KnowEnemy(attacker)
+					self.ai.loshst:KnowEnemy(attacker)
 					return
 				end
 				threat = aut.metalCost

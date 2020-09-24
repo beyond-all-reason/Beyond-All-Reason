@@ -22,14 +22,14 @@ function ScoutHandler:ScoutLos(scoutbehaviour, position)
 	local los
 	if ai.maphandler:IsUnderWater(position) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
 		-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
-		local lt = ai.loshandler:AllLos(position)
+		local lt = ai.loshst:AllLos(position)
 		if lt[2] then
 			los = 2
 		else
 			los = 0
 		end
 	else
-		los = ai.loshandler:GroundLos(position)
+		los = ai.loshst:GroundLos(position)
 	end
 	return los
 end
@@ -51,7 +51,7 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 	if self.sameCount[mtype][network] == nil then self.sameCount[mtype][network] = 0 end
 	-- filling table of spots to scout if empty
 	if #self.spotsToScout[mtype][network] == 0 then
-		if not self.usingStarts[mtype][network] then 
+		if not self.usingStarts[mtype][network] then
 			if ai.startLocations[mtype] ~= nil then
 				if ai.startLocations[mtype][network] ~= nil then
 					-- scout all probable start locations first
@@ -82,14 +82,14 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 		local los
 		if ai.maphandler:IsUnderWater(p) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
 			-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
-			local lt = ai.loshandler:AllLos(p)
+			local lt = ai.loshst:AllLos(p)
 			if lt[2] then
 				los = 2
 			else
 				los = 0
 			end
 		else
-			los = ai.loshandler:GroundLos(p)
+			los = ai.loshst:GroundLos(p)
 		end
 		if los == 2 or los == 3 or not ai.targethandler:IsSafePosition(p, unit, 1) then
 			table.remove(self.spotsToScout[mtype][network], i)

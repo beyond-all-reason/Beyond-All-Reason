@@ -54,7 +54,7 @@ stack traceback:
 [Game::ClientReadNet][LOGMSG] sender="Player" string="[Internal Lua error: Call failure] [string "luarules/gadgets/ai/preload/spring_lua/unit..."]:92: attempt to compare nil with number
 stack traceback:
         [string "luarules/gadgets/ai/preload/spring_lua/unit..."]:92: in function 'IsBeingBuilt'
-        [string "luarules/gadgets/ai/BYAR/stai/loshandler.lu..."]:107: in function 'Update'
+        [string "luarules/gadgets/ai/BYAR/stai/loshst.lu..."]:107: in function 'Update'
         [string "luarules/gadgets/ai/ai.lua"]:40: in function 'Update'
         [string "LuaRules/Gadgets/ailoader.lua"]:183: in function 'GameFrame'
         [string "LuaRules/gadgets.lua"]:845: in function <[string "LuaRules/gadgets.lua"]:843>
