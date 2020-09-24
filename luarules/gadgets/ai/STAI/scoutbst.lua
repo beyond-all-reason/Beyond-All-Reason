@@ -65,8 +65,8 @@ function ScoutBST:Update()
 			local attackTarget
 			if self.armed then
 				-- game:SendToConsole(unit:GetPosition(), unit)
-				if ai.targethandler:IsSafePosition(unit:GetPosition(), unit, 1) then
-					attackTarget = ai.targethandler:NearbyVulnerable(unit)
+				if ai.targethst:IsSafePosition(unit:GetPosition(), unit, 1) then
+					attackTarget = ai.targethst:NearbyVulnerable(unit)
 				end
 			end
 			if attackTarget and not self.attacking then
@@ -76,7 +76,7 @@ function ScoutBST:Update()
 				self.attacking = true
 			elseif self.target ~= nil then
 				-- evade enemies along the way if possible
-				local newPos, arrived = ai.targethandler:BestAdjacentPosition(unit, self.target)
+				local newPos, arrived = ai.targethst:BestAdjacentPosition(unit, self.target)
 				if newPos then
 					unit:Move(newPos)
 					self.evading = true

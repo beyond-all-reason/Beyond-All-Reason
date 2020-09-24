@@ -512,7 +512,7 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 					okay = self.ai.maphst:UnitCanGoHere(builder, limb.position)
 				end
 				if okay and bombard and unitName ~= nil then
-					okay = self.ai.targethandler:IsBombardPosition(limb.position, unitName)
+					okay = self.ai.targethst:IsBombardPosition(limb.position, unitName)
 				end
 				if okay then
 					local mod
@@ -573,7 +573,7 @@ function TurtleHandler:GetIsBombardPosition(turtle, unitName)
 	local f = self.game:Frame()
 	if not turtle.bombardForFrame[unitName]
 	or (turtle.bombardForFrame[unitName] and f > turtle.bombardForFrame[unitName] + 450) then
-		turtle.bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)
+		turtle.bombardFor[unitName] = self.ai.targethst:IsBombardPosition(turtle.position, unitName)
 		turtle.bombardForFrame[unitName] = f
 	end
 	return turtle.bombardFor[unitName]

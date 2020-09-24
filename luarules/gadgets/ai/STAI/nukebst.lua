@@ -43,11 +43,11 @@ function NukeBST:Update()
 			if ai.needNukes and ai.canNuke then
 				local bestCell
 				if self.tactical then
-					bestCell = ai.targethandler:GetBestBombardCell(self.position, self.range, 2500)
+					bestCell = ai.targethst:GetBestBombardCell(self.position, self.range, 2500)
 				elseif self.stunning then
-					bestCell = ai.targethandler:GetBestBombardCell(self.position, self.range, 3000, true) -- only targets threats
+					bestCell = ai.targethst:GetBestBombardCell(self.position, self.range, 3000, true) -- only targets threats
 				else
-					bestCell = ai.targethandler:GetBestNukeCell()
+					bestCell = ai.targethst:GetBestNukeCell()
 				end
 				if bestCell ~= nil then
 					local position = bestCell.pos

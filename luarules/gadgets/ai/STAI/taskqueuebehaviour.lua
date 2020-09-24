@@ -236,7 +236,7 @@ function TaskQueueBehaviour:OwnerDead()
 		-- game:SendToConsole("taskqueue-er " .. self.name .. " died")
 		if self.outmodedFactory then ai.outmodedFactories = ai.outmodedFactories - 1 end
 		-- self.unit = nil
-		if self.target then ai.targethandler:AddBadPosition(self.target, self.mtype) end
+		if self.target then ai.targethst:AddBadPosition(self.target, self.mtype) end
 		ai.assisthandler:Release(nil, self.id, true)
 		ai.buildsitehst:ClearMyPlans(self)
 		ai.buildsitehst:ClearMyConstruction(self)
@@ -332,7 +332,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 				-- don't build moho geos next to factories
 				if ai.buildsitehst:ClosestHighestLevelFactory(p, 500) ~= nil then
 					if value == "corageo" then
-						if ai.targethandler:IsBombardPosition(p, "corbhmth") then
+						if ai.targethst:IsBombardPosition(p, "corbhmth") then
 							-- instead build geothermal plasma battery if it's a good spot for it
 							value = "corbhmth"
 							utype = game:GetTypeByName(value)

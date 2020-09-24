@@ -68,7 +68,7 @@ function STWardBehaviour:Update()
 			else
 				position = unit:GetPosition()
 			end
-			local safe, response = self.ai.targethandler:IsSafePosition(position, unit, self.threshold)
+			local safe, response = self.ai.targethst:IsSafePosition(position, unit, self.threshold)
 			if safe then
 				self.underFire = false
 				self.response = nil
@@ -120,7 +120,7 @@ function STWardBehaviour:NearestCombat()
 		if unit:ID() ~= fid and un ~= "corcom" and un ~= "armcom" and not self.ai.defendhst:IsDefendingMe(unit, self) then
 			if unitTable[un].isWeapon and (battleList[un] or breakthroughList[un]) then
 				local upos = unit:GetPosition()
-				if self.ai.targethandler:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphst:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
+				if self.ai.targethst:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphst:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
 					local dist = Distance(fpos, upos) - unitTable[un].metalCost
 					if dist < bestDistance then
 						bestDistance = dist

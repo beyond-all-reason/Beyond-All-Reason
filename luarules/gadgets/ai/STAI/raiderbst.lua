@@ -41,7 +41,7 @@ function RaiderBST:Init()
 	-- for pathfinding
 	self.graph = self.ai.maphst:GetPathGraph(self.mtype)
 	self.validFunc = self.ai.raidhst:GetPathValidFunc(self.name)
-	self.modifierFunc = self.ai.targethandler:GetPathModifierFunc(self.name)
+	self.modifierFunc = self.ai.targethst:GetPathModifierFunc(self.name)
 	local nodeSize = self.graph.positionUnitsPerNodeUnits
 	self.nearDistance = nodeSize * 0.1 -- move this far away from path nodes
 	self.nearAttackDistance = nodeSize * 0.3 -- move this far away from targets before arriving
@@ -62,7 +62,7 @@ function RaiderBST:OwnerDead()
 		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 	if self.target then
-		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
+		self.ai.targethst:AddBadPosition(self.target, self.mtype)
 	end
 	self.ai.raidhst:NeedLess(self.mtype)
 	self.ai.raiderCount[self.mtype] = self.ai.raiderCount[self.mtype] - 1
@@ -108,7 +108,7 @@ function RaiderBST:Update()
 			self.unit:Internal():Move(self.moveNextUpdate)
 			self.moveNextUpdate = nil
 		elseif f > self.lastMovementFrame + 30 then
-			self.ai.targethandler:RaiderHere(self)
+			self.ai.targethst:RaiderHere(self)
 			self.lastMovementFrame = f
 			-- attack nearby targets immediately
 			local attackThisUnit = self:GetImmediateTargetUnit()
@@ -148,7 +148,7 @@ function RaiderBST:GetImmediateTargetUnit()
 	local unit = self.unit:Internal()
 	local position
 	if self.arrived then position = self.target end
-	local safeCell = self.ai.targethandler:RaidableCell(unit, position)
+	local safeCell = self.ai.targethst:RaidableCell(unit, position)
 	if safeCell then
 		if self.disarmer then
 			if safeCell.disarmTarget then
@@ -164,7 +164,7 @@ function RaiderBST:GetImmediateTargetUnit()
 				end
 			end
 		end
-		local vulnerable = self.ai.targethandler:NearbyVulnerable(unit)
+		local vulnerable = self.ai.targethst:NearbyVulnerable(unit)
 		if vulnerable then
 			return vulnerable.unit
 		end
@@ -220,8 +220,8 @@ function RaiderBST:GetTarget()
 		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 	local unit = self.unit:Internal()
-	local bestCell = self.ai.targethandler:GetBestRaidCell(unit)
-	self.ai.targethandler:RaiderHere(self)
+	local bestCell = self.ai.targethst:GetBestRaidCell(unit)
+	self.ai.targethst:RaiderHere(self)
 	if bestCell then
 		self:EchoDebug("got target")
 		self:RaidCell(bestCell)
@@ -400,7 +400,7 @@ function RaiderBST:CheckPath()
 	if type(self.path) == 'boolean' then return end
 	for i = self.pathStep, #self.path do
 		local node = self.path[i]
-		if not self.ai.targethandler:IsSafePosition(node.position, self.name, 1) then
+		if not self.ai.targethst:IsSafePosition(node.position, self.name, 1) then
 			self:EchoDebug("unsafe path, get a new one")
 			self:GetTarget()
 			self:MoveToSafety()

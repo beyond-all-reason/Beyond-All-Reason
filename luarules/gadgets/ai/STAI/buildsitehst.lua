@@ -175,7 +175,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 			end
 		elseif bigPlasmaList[uname] or littlePlasmaList[uname] or nukeList[uname] then
 			-- don't build bombarding units outside of bombard positions
-			local b = self.ai.targethandler:IsBombardPosition(pos, uname)
+			local b = self.ai.targethst:IsBombardPosition(pos, uname)
 			if not b then
 				self:EchoDebug("bombard not in bombard position")
 				pos = nil

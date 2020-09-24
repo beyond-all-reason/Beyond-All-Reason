@@ -48,7 +48,7 @@ function BomberBST:OwnerDead()
 	if self.target then
 		local tpos = self.target:GetPosition()
 		if tpos and tpos.x then
-			ai.targethandler:AddBadPosition(tpos, 'air')
+			ai.targethst:AddBadPosition(tpos, 'air')
 		end
 	end
 end

@@ -73,7 +73,7 @@ function BomberHST:DoTargetting()
 		-- find somewhere to attack
 		self:EchoDebug("getting target for " .. weapon)
 		local torpedo = weapon == 'torpedo'
-		local targetUnit = self.ai.targethandler:GetBestBomberTarget(torpedo)
+		local targetUnit = self.ai.targethst:GetBestBomberTarget(torpedo)
 		if targetUnit ~= nil then
 			local tupos = targetUnit:GetPosition()
 			if tupos and tupos.x then
@@ -165,7 +165,7 @@ function BomberHST:GetPathValidFunc(unitName)
 		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
-		return self.ai.targethandler:IsSafePosition(node.position, unitName, nil, true)
+		return self.ai.targethst:IsSafePosition(node.position, unitName, nil, true)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func

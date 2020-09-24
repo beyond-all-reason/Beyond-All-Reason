@@ -40,7 +40,7 @@ function ReclaimBST:OwnerDead()
 	-- notify the command that area is too hot
 	-- self:EchoDebug("reclaimer " .. self.name .. " died")
 	if self.target then
-		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
+		self.ai.targethst:AddBadPosition(self.target, self.mtype)
 	end
 	self.ai.buildsitehst:ClearMyPlans(self)
 end
@@ -48,7 +48,7 @@ end
 function ReclaimBST:OwnerIdle()
 	if self.active then
 		if self.myFeature then
-			self.ai.targethandler:RemoveFeature(self.myFeature, self.myFeaturePos)
+			self.ai.targethst:RemoveFeature(self.myFeature, self.myFeaturePos)
 			self.myFeature = nil
 			self.myFeaturePos = nil
 		end
@@ -129,14 +129,14 @@ function ReclaimBST:Retarget()
 	self:EchoDebug("needs target")
 	self:EraseTargets()
 	local unit = self.unit:Internal()
-	local tcell, tunit = self.ai.targethandler:GetBestReclaimCell(unit)
+	local tcell, tunit = self.ai.targethst:GetBestReclaimCell(unit)
 	self:EchoDebug(tcell, tunit)
 	if tunit then
 		self:EchoDebug("got unit to reclaim from GetBestReclaimCell")
 		self.targetUnit = tunit.unit
 	end
 	if not self.targetUnit and self.dedicated and self.ai.Metal.full > 0.5 and self.ai.Energy.full > 0.75 then
-		local bestThing, bestCell = self.ai.targethandler:WreckToResurrect(unit, true)
+		local bestThing, bestCell = self.ai.targethst:WreckToResurrect(unit, true)
 		if bestThing then
 			if bestThing.className == 'unit' then
 				self:EchoDebug("got damaged to repair from WreckToResurect cell")

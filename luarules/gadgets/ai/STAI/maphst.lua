@@ -1105,7 +1105,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 				if self.map:CanBuildHere(unittype, p) or uwcheck then
 					-- self:EchoDebug("can build mex at" .. p.x .. " " .. p.z)
 					-- game:SendToConsole("before builder gets safe position", self.self.ai.id, self.ai.id, builder:Team())
-					if self.ai.targethandler:IsSafePosition(p, builder) then
+					if self.ai.targethst:IsSafePosition(p, builder) then
 						bestDistance = dist
 						pos = p
 						reclaimEnemyMex = false
@@ -1116,7 +1116,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 							uw = nil
 						end
 					end
-				elseif self.ai.targethandler:IsSafePosition(p, builder, 200) then
+				elseif self.ai.targethst:IsSafePosition(p, builder, 200) then
 					-- is it an enemy mex that's blocking a safe position (or an unknown radar blip)?
 					for i, enemySpot in pairs(self.ai.enemyMexSpots) do
 						local epos = enemySpot.position
@@ -1151,7 +1151,7 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)
 	local bestDistance, bestPos
 	for i,p in pairs(geoSpots) do
 		-- dont use this spot if we're already building there
-		if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethandler:IsSafePosition(p, builder) then
+		if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafePosition(p, builder) then
 			local dist = Distance(position, p)
 			if not bestDistance or dist < bestDistance then
 				bestDistance = dist

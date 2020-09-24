@@ -91,7 +91,7 @@ function ScoutHST:ClosestSpot(scoutbst)
 		else
 			los = ai.loshst:GroundLos(p)
 		end
-		if los == 2 or los == 3 or not ai.targethandler:IsSafePosition(p, unit, 1) then
+		if los == 2 or los == 3 or not ai.targethst:IsSafePosition(p, unit, 1) then
 			table.remove(self.spotsToScout[mtype][network], i)
 		else
 			local dist = Distance(position, p)

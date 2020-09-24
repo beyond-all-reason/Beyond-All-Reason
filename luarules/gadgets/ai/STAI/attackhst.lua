@@ -41,8 +41,8 @@ function AttackHST:Update()
 			if squad.arrived then
 				squad.arrived = nil
 				if squad.pathStep < #squad.path - 1 then
-					local value = self.ai.targethandler:ValueHere(squad.target, squad.members[1].name)
-					local threat = self.ai.targethandler:ThreatHere(squad.target, squad.members[1].name)
+					local value = self.ai.targethst:ValueHere(squad.target, squad.members[1].name)
+					local threat = self.ai.targethst:ThreatHere(squad.target, squad.members[1].name)
 					if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
 						self:SquadReTarget(squad) -- get a new target, this one isn't valuable
 					else
@@ -100,7 +100,7 @@ function AttackHST:DraftSquads()
 				self.potentialAttackCounted[mtype] = true
 			end
 			-- don't actually draft the squad unless there's something to attack
-			local bestCell = self.ai.targethandler:GetNearestAttackCell(representative) or self.ai.targethandler:GetBestAttackCell(representative)
+			local bestCell = self.ai.targethst:GetNearestAttackCell(representative) or self.ai.targethst:GetBestAttackCell(representative)
 			if bestCell ~= nil then
 				self:EchoDebug(mtype, "has target, recruiting squad...")
 				squad.target = bestCell.pos
@@ -148,7 +148,7 @@ function AttackHST:SquadReTarget(squad, squadIndex)
 			local step = math.min(squad.pathStep+1, #squad.path)
 			position = squad.path[step].position
 		end
-		local bestCell = self.ai.targethandler:GetNearestAttackCell(representative, position, squad.totalThreat) or self.ai.targethandler:GetBestAttackCell(representative, position, squad.totalThreat)
+		local bestCell = self.ai.targethst:GetNearestAttackCell(representative, position, squad.totalThreat) or self.ai.targethst:GetBestAttackCell(representative, position, squad.totalThreat)
 		if bestCell then
 			squad.target = bestCell.pos
 			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
@@ -251,8 +251,8 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 	else
 		startPos = representative:GetPosition()
 	end
-	squad.modifierFunc = squad.modifierFunc or self.ai.targethandler:GetPathModifierFunc(representative:Name(), true)
-	local targetModFunc = self.ai.targethandler:GetPathModifierFunc(representative:Name(), true)
+	squad.modifierFunc = squad.modifierFunc or self.ai.targethst:GetPathModifierFunc(representative:Name(), true)
+	local targetModFunc = self.ai.targethst:GetPathModifierFunc(representative:Name(), true)
 	local startHeight = Spring.GetGroundHeight(startPos.x, startPos.z)
 	squad.modifierFunc = function(node, distanceToGoal, distanceStartToGoal)
 		local hMod = math.max(0, Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 100

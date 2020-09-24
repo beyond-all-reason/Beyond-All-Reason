@@ -48,7 +48,7 @@ function BombardBST:Update()
 		local f = self.game:Frame()
 		if self.lastTargetFrame == 0 or f > self.lastTargetFrame + 300 then
 			self:EchoDebug("retarget")
-			local bestCell, valueThreat, buildingID = ai.targethandler:GetBestBombardCell(self.position, self.range, valueThreatThreshold)
+			local bestCell, valueThreat, buildingID = ai.targethst:GetBestBombardCell(self.position, self.range, valueThreatThreshold)
 			if bestCell then
 				local newTarget
 				if buildingID then
