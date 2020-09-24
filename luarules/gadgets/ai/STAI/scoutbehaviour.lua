@@ -23,7 +23,7 @@ ScoutBehaviour.DebugEnabled = false
 function ScoutBehaviour:Init()
 	self.evading = false
 	self.active = false
-	local mtype, network = ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	self.armed = unitTable[self.name].isWeapon
@@ -60,7 +60,7 @@ function ScoutBehaviour:Update()
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
-				local los = ai.scouthandler:ScoutLos(self, self.target)
+				local los = ai.scouthst:ScoutLos(self, self.target)
 				self:EchoDebug("target los: " .. los)
 				if los == 2 or los == 3 then
 					self.target = nil
@@ -79,7 +79,7 @@ function ScoutBehaviour:Update()
 				self.target = nil
 				self.evading = false
 				self.attacking = true
-			elseif self.target ~= nil then	
+			elseif self.target ~= nil then
 				-- evade enemies along the way if possible
 				local newPos, arrived = ai.targethandler:BestAdjacentPosition(unit, self.target)
 				if newPos then
@@ -99,7 +99,7 @@ function ScoutBehaviour:Update()
 			end
 			-- find new scout spot if none and not attacking
 			if self.target == nil and attackTarget == nil then
-				local topos = ai.scouthandler:ClosestSpot(self) -- first look for closest metal/geo spot that hasn't been seen recently
+				local topos = ai.scouthst:ClosestSpot(self) -- first look for closest metal/geo spot that hasn't been seen recently
 				if topos ~= nil then
 					self:EchoDebug("scouting spot at " .. topos.x .. "," .. topos.z)
 					self.target = RandomAway(topos, self.keepYourDistance) -- don't move directly onto the spot
@@ -112,7 +112,7 @@ function ScoutBehaviour:Update()
 			self.lastUpdateFrame = f
 		end
 	end
-	
+
 	-- keep air units circling
 	if self.mtype == "air" and self.active then
 		local f = self.game:Frame()

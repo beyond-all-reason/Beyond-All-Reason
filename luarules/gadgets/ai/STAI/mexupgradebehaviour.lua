@@ -87,7 +87,7 @@ end
 
 function MexUpgradeBehaviour:Activate()
 	self:EchoDebug("MexUpgradeBehaviour: active on unit ".. self.name)
-	
+
 	self:StartUpgradeProcess()
 end
 
@@ -112,17 +112,17 @@ function MexUpgradeBehaviour:StartUpgradeProcess()
 	local selfPos = selfUnit:GetPosition()
 	local mexUnit = nil
 	local closestDistance = 999999
-	
+
 	local mexCount = 0
 	for _, unit in pairs(ownUnits) do
-		local un = unit:Name()	
+		local un = unit:Name()
 		if mexUpgrade[un] then
 			self:EchoDebug(un .. " " .. mexUpgrade[un])
 			-- make sure you can build the upgrade
 			local upgradetype = game:GetTypeByName(mexUpgrade[un])
 			if selfUnit:CanBuild(upgradetype) then
 				-- make sure you can reach it
-				if self.ai.maphandler:UnitCanGetToUnit(selfUnit, unit) then
+				if self.ai.maphst:UnitCanGetToUnit(selfUnit, unit) then
 					local distMod = 0
 					-- if it's not 100% HP, then don't touch it (unless there's REALLY no better choice)
 					-- this prevents a situation when engineer reclaims a mex that is still being built by someone else
@@ -157,7 +157,7 @@ function MexUpgradeBehaviour:StartUpgradeProcess()
 			self.mexPos = mexUnit:GetPosition()
 		end
 	end
-	
+
 	if s then
 		self.active = true
 		self:EchoDebug("MexUpgradeBehaviour: unit ".. self.name .." goes to reclaim a mex")

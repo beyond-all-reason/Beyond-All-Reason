@@ -206,7 +206,7 @@ local function BuildFusion()
 	else
 		return "armfus"
 	end
-	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBehaviour if energy income is higher than 4000
+	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
 end
 
 local function BuildAdvFusion()
@@ -215,7 +215,7 @@ local function BuildAdvFusion()
 	else
 		return "armafus"
 	end
-	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBehaviour if energy income is higher than 4000
+	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
 end
 
 local function BuildAdvEnergy(tskqbhvr)

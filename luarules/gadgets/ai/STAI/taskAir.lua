@@ -87,7 +87,7 @@ function Lvl2AirRaider(tskqbhvr)
 		unitName = "corape"
 	else
 		-- spedical case: arm has an ubergunship
-		local raidCounter = ai.raidhandler:GetCounter("air")
+		local raidCounter = ai.raidhst:GetCounter("air")
 		if raidCounter < baseRaidCounter and raidCounter > minRaidCounter then
 			return "armblade"
 		else
@@ -211,6 +211,6 @@ function AirRepairPadIfNeeded()
 			tmpUnitName = "armasp"
 		end
 	end
-	
+
 	return BuildWithLimitedNumber(tmpUnitName, ai.conUnitPerTypeLimit)
 end

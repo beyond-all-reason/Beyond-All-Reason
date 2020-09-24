@@ -29,7 +29,7 @@ function FactoryRegisterBehaviour:OwnerBuilt()
 	self.finished = true
 	self:Register()
 	self.ai.overviewhandler:EvaluateSituation()
-	self.ai.factorybuildershandler:UpdateFactories()
+	self.ai.labbuildhst:UpdateFactories()
 end
 
 function FactoryRegisterBehaviour:Priority()
@@ -42,7 +42,7 @@ function FactoryRegisterBehaviour:OwnerDead()
 	if self.finished then
 		self:Unregister()
 		self.ai.overviewhandler:EvaluateSituation()
-		ai.factorybuildershandler:UpdateFactories()
+		ai.labbuildhst:UpdateFactories()
 	end
 end
 
@@ -66,7 +66,7 @@ function FactoryRegisterBehaviour:Unregister()
     end
     self.ai.maxFactoryLevel = maxLevel
 	-- game:SendToConsole(self.ai.factories .. " factories")
-	
+
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
 	local network = self.ai.maphandler:MobilityNetworkHere(mtype,self.position)
@@ -93,15 +93,15 @@ function FactoryRegisterBehaviour:Register()
 	table.insert(self.ai.factoriesAtLevel[level], self)
 	if level > self.ai.maxFactoryLevel then
 		-- so that it will start producing combat units
-		self.ai.attackhandler:NeedLess(nil, 2)
-		self.ai.bomberhandler:NeedLess()
-		self.ai.bomberhandler:NeedLess()
+		self.ai.attackhst:NeedLess(nil, 2)
+		self.ai.bomberhst:NeedLess()
+		self.ai.bomberhst:NeedLess()
 		self.ai.raidhandler:NeedMore(nil, 2)
 		-- set the current maximum factory level
 		self.ai.maxFactoryLevel = level
 	end
 	-- game:SendToConsole(self.ai.factories .. " factories")
-	
+
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
 	local network = self.ai.maphandler:MobilityNetworkHere(mtype,self.position) or 0

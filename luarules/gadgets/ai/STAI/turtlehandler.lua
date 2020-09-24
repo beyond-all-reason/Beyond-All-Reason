@@ -108,7 +108,7 @@ function TurtleHandler:UnitDead(unit)
 	end
 end
 
--- received from buildsitehandler
+-- received from buildsitehst
 -- also applies to plans, in which case the plan is the unitID
 function TurtleHandler:NewUnit(unitName, position, unitID)
 	local ut = unitTable[unitName]
@@ -132,7 +132,7 @@ function TurtleHandler:NewUnit(unitName, position, unitID)
 	end
 end
 
--- received from buildsitehandler
+-- received from buildsitehst
 function TurtleHandler:PlanCreated(plan, unitID)
 	local found = false
 	local unitName = plan.unitName
@@ -162,7 +162,7 @@ function TurtleHandler:PlanCreated(plan, unitID)
 	return found
 end
 
--- received from buildsitehandler
+-- received from buildsitehst
 function TurtleHandler:PlanCancelled(plan)
 	local unitName = plan.unitName
 	local ut = unitTable[unitName]
@@ -225,7 +225,7 @@ function TurtleHandler:RemoveOrgan(unitID)
 				table.remove(turtle.organs, oi)
 				if #turtle.organs == 0 then
 					emptyTurtle = turtle
-					self.ai.defendhandler:RemoveWard(nil, turtle)
+					self.ai.defendhst:RemoveWard(nil, turtle)
 					table.remove(self.turtles, ti)
 				end
 				foundOrgan = true
@@ -374,7 +374,7 @@ function TurtleHandler:AddTurtle(position, water, priority)
 	end
 	table.insert(self.turtles, turtle)
 	self.totalPriority = self.totalPriority + priority
-	self.ai.defendhandler:AddWard(nil, turtle)
+	self.ai.defendhst:AddWard(nil, turtle)
 	return turtle
 end
 
@@ -509,10 +509,10 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 				end
 				local okay = false
 				if not enough then
-					okay = self.ai.maphandler:UnitCanGoHere(builder, limb.position) 
+					okay = self.ai.maphst:UnitCanGoHere(builder, limb.position)
 				end
-				if okay and bombard and unitName ~= nil then 
-					okay = self.ai.targethandler:IsBombardPosition(limb.position, unitName)
+				if okay and bombard and unitName ~= nil then
+					okay = self.ai.targethst:IsBombardPosition(limb.position, unitName)
 				end
 				if okay then
 					local mod
@@ -573,7 +573,7 @@ function TurtleHandler:GetIsBombardPosition(turtle, unitName)
 	local f = self.game:Frame()
 	if not turtle.bombardForFrame[unitName]
 	or (turtle.bombardForFrame[unitName] and f > turtle.bombardForFrame[unitName] + 450) then
-		turtle.bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)
+		turtle.bombardFor[unitName] = self.ai.targethst:IsBombardPosition(turtle.position, unitName)
 		turtle.bombardForFrame[unitName] = f
 	end
 	return turtle.bombardFor[unitName]
@@ -590,7 +590,7 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDi
 	local bydistance = {}
 	for i, turtle in pairs(self.turtles) do
 		if (not unitName or turtle.organVolume < turtle.maxOrganVolume)
-		and self.ai.maphandler:UnitCanGoHere(builder, turtle.position)
+		and self.ai.maphst:UnitCanGoHere(builder, turtle.position)
 		and (not bombard or self:GetIsBombardPosition(turtle, unitName)) then
 			local mod = turtle.ground + turtle.air + turtle.submerged + (turtle.shield * layerMod["shield"]) + (turtle.jam * layerMod["jam"])
 			self:EchoDebug("turtled: " .. mod .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)

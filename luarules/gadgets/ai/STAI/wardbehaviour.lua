@@ -33,13 +33,13 @@ end
 
 function STWardBehaviour:OwnerBuilt()
 	if self.mobile and not self.isScout then
-		self.ai.defendhandler:AddWard(self) -- just testing 
+		self.ai.defendhst:AddWard(self) -- just testing
 	end
 end
 
 function STWardBehaviour:OwnerDead()
 	if self.mobile and not self.isScout then
-		self.ai.defendhandler:RemoveWard(self) -- just testing 
+		self.ai.defendhst:RemoveWard(self) -- just testing
 	end
 end
 
@@ -68,7 +68,7 @@ function STWardBehaviour:Update()
 			else
 				position = unit:GetPosition()
 			end
-			local safe, response = self.ai.targethandler:IsSafePosition(position, unit, self.threshold)
+			local safe, response = self.ai.targethst:IsSafePosition(position, unit, self.threshold)
 			if safe then
 				self.underFire = false
 				self.response = nil
@@ -77,9 +77,9 @@ function STWardBehaviour:Update()
 				self.underFire = true
 				self.response = response
 				self.lastAttackedFrame = self.game:Frame()
-				if not self.mobile then self.ai.defendhandler:Danger(self) end
+				if not self.mobile then self.ai.defendhst:Danger(self) end
 			end
-			if self.mobile then self.withinTurtle = self.ai.turtlehandler:SafeWithinTurtle(position, self.name) end
+			if self.mobile then self.withinTurtle = self.ai.turtlehst:SafeWithinTurtle(position, self.name) end
 			self.unit:ElectBehaviour()
 		end
 	end
@@ -91,7 +91,7 @@ function STWardBehaviour:Activate()
 	-- can we move at all?
 	if self.mobile then
 		-- run to the most defended base location
-		local salvation = self.ai.turtlehandler:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
+		local salvation = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
 		self:EchoDebug(tostring(salvation), "salvation")
 		if salvation and Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
 			self.unit:Internal():Move(RandomAway(salvation,150))
@@ -117,10 +117,10 @@ function STWardBehaviour:NearestCombat()
 	local bestDistance = 10000
 	for i,unit in pairs(ownUnits) do
 		local un = unit:Name()
-		if unit:ID() ~= fid and un ~= "corcom" and un ~= "armcom" and not self.ai.defendhandler:IsDefendingMe(unit, self) then
+		if unit:ID() ~= fid and un ~= "corcom" and un ~= "armcom" and not self.ai.defendhst:IsDefendingMe(unit, self) then
 			if unitTable[un].isWeapon and (battleList[un] or breakthroughList[un]) then
 				local upos = unit:GetPosition()
-				if self.ai.targethandler:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphandler:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
+				if self.ai.targethst:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphst:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
 					local dist = Distance(fpos, upos) - unitTable[un].metalCost
 					if dist < bestDistance then
 						bestDistance = dist
@@ -153,7 +153,7 @@ function STWardBehaviour:OwnerDamaged(attacker,damage)
 		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.8 then
 			self.underFire = true
 			self.lastAttackedFrame = self.game:Frame()
-			if not self.mobile then self.ai.defendhandler:Danger(self) end
+			if not self.mobile then self.ai.defendhst:Danger(self) end
 			self.unit:ElectBehaviour()
 		end
 	end

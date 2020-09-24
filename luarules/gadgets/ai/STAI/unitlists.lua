@@ -146,7 +146,7 @@ helpList = {
 	armuwmme = 2,
 }
 
--- priorities of things to defend that can't be accounted for by the formula in turtlehandler
+-- priorities of things to defend that can't be accounted for by the formula in turtlehst
 turtleList = {
 	cormakr = 0.5,
 	armmakr = 0.5,

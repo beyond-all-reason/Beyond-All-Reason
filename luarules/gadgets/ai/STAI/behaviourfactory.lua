@@ -33,27 +33,27 @@ function BehaviourFactory:defaultBehaviours(unit)
 	-- game:SendToConsole(un, "getting default behaviours")
 
 	-- keep track of how many of each kind of unit we have
-	table.insert(b, CountBehaviour)
-	table.insert(b, BootBehaviour)
+	table.insert(b, CountBST)
+	table.insert(b, BootBST)
 
 	if commanderList[un] then
-		table.insert(b, CommanderBehaviour)
+		table.insert(b, CommanderBST)
 	end
 
 	if nanoTurretList[un] then
-		table.insert(b, STAssistBehaviour)
-		table.insert(b, STWardBehaviour)
-		table.insert(b, CleanerBehaviour)
+		table.insert(b, AssistBST)
+		table.insert(b, WardBST)
+		table.insert(b, CleanerBST)
 	end
 
 	if unitTable[un].isBuilding then
-		table.insert(b, STWardBehaviour) --tells defending units to rush to threatened buildings
+		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
 		if nukeList[un] then
-			table.insert(b, NukeBehaviour)
+			table.insert(b, NukeBST)
 		elseif antinukeList[un] then
-			table.insert(b, AntinukeBehaviour)
+			table.insert(b, AntinukeBST)
 		elseif bigPlasmaList[un] then
-			table.insert(b, BombardBehaviour)
+			table.insert(b, BombardBST)
 		end
 	end
 
@@ -72,43 +72,43 @@ function BehaviourFactory:defaultBehaviours(unit)
 				-- game:SendToConsole(u:Name() .. " mexupgrading")
 				ai.advCons = 0
 			end
-			table.insert(b,TaskQueueBehaviour)
+			table.insert(b,TaskQueueBST)
 		else
-			table.insert(b,TaskQueueBehaviour)
+			table.insert(b,TaskQueueBST)
 			if unitTable[un].isBuilding then
-				table.insert(b, FactoryRegisterBehaviour)
+				table.insert(b, LabRegisterBST)
 			else
-				table.insert(b, STAssistBehaviour)
-				table.insert(b, ReclaimBehaviour)
-				table.insert(b, CleanerBehaviour)
+				table.insert(b, AssistBST)
+				table.insert(b, ReclaimBST)
+				table.insert(b, CleanerBST)
 			end
 		end
-		table.insert(b, STWardBehaviour)
+		table.insert(b, WardBST)
 	elseif IsReclaimer(unit) then
-		table.insert(b, ReclaimBehaviour)
-		table.insert(b, STWardBehaviour)
+		table.insert(b, ReclaimBST)
+		table.insert(b, WardBST)
 	else
 		if IsAttacker(unit) then
 			table.insert(b, AttackerBST)
 			-- if battleList[un] or breakthroughList[un] then
 				-- arty and merl don't make good defense
-				table.insert(b, DefendBehaviour)
+				table.insert(b, DefendBST)
 			-- end
 		end
 		if IsRaider(unit) then
-			table.insert(b, RaiderBehaviour)
-			table.insert(b, ScoutBehaviour)
-			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBehaviour) end -- will only defend when scrambled by danger
+			table.insert(b, RaiderBST)
+			table.insert(b, ScoutBST)
+			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBST) end -- will only defend when scrambled by danger
 		end
 		if IsBomber(unit) then
-			table.insert(b, BomberBehaviour)
+			table.insert(b, BomberBST)
 		end
 		if IsScout(unit, self.scoutlist) then
-			table.insert(b, ScoutBehaviour)
-			table.insert(b, STWardBehaviour)
+			table.insert(b, ScoutBST)
+			table.insert(b, WardBST)
 		end
 		if IsDefender(unit) then
-			table.insert(b, DefendBehaviour)
+			table.insert(b, DefendBST)
 		end
 	end
 

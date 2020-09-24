@@ -1,17 +1,17 @@
-AttackHandler = class(Module)
+AttackHST = class(Module)
 
-function AttackHandler:Name()
-	return "AttackHandler"
+function AttackHST:Name()
+	return "AttackHST"
 end
 
-function AttackHandler:internalName()
-	return "attackhandler"
+function AttackHST:internalName()
+	return "attackhst"
 end
 
 local floor = math.floor
 local ceil = math.ceil
 
-function AttackHandler:Init()
+function AttackHST:Init()
 	self.DebugEnabled = false
 
 	self.recruits = {}
@@ -26,7 +26,7 @@ function AttackHandler:Init()
 	self.ai.IDsWeAreAttacking = {}
 end
 
-function AttackHandler:Update()
+function AttackHST:Update()
 	local f = self.game:Frame()
 	if f % 150 == 0 then
 		self:DraftSquads()
@@ -41,8 +41,8 @@ function AttackHandler:Update()
 			if squad.arrived then
 				squad.arrived = nil
 				if squad.pathStep < #squad.path - 1 then
-					local value = self.ai.targethandler:ValueHere(squad.target, squad.members[1].name)
-					local threat = self.ai.targethandler:ThreatHere(squad.target, squad.members[1].name)
+					local value = self.ai.targethst:ValueHere(squad.target, squad.members[1].name)
+					local threat = self.ai.targethst:ThreatHere(squad.target, squad.members[1].name)
 					if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
 						self:SquadReTarget(squad) -- get a new target, this one isn't valuable
 					else
@@ -60,7 +60,7 @@ function AttackHandler:Update()
 	end
 end
 
-function AttackHandler:DraftSquads()
+function AttackHST:DraftSquads()
 	-- if self.ai.incomingThreat > 0 then game:SendToConsole(self.ai.incomingThreat .. " " .. (self.ai.battleCount + self.ai.breakthroughCount) * 75) end
 	-- if self.ai.incomingThreat > (self.ai.battleCount + self.ai.breakthroughCount) * 75 then
 		-- do not attack if we're in trouble
@@ -100,7 +100,7 @@ function AttackHandler:DraftSquads()
 				self.potentialAttackCounted[mtype] = true
 			end
 			-- don't actually draft the squad unless there's something to attack
-			local bestCell = self.ai.targethandler:GetNearestAttackCell(representative) or self.ai.targethandler:GetBestAttackCell(representative)
+			local bestCell = self.ai.targethst:GetNearestAttackCell(representative) or self.ai.targethst:GetBestAttackCell(representative)
 			if bestCell ~= nil then
 				self:EchoDebug(mtype, "has target, recruiting squad...")
 				squad.target = bestCell.pos
@@ -121,7 +121,7 @@ function AttackHandler:DraftSquads()
 	end
 end
 
-function AttackHandler:SquadReTarget(squad, squadIndex)
+function AttackHST:SquadReTarget(squad, squadIndex)
 	local f = self.game:Frame()
 	local representativeBehaviour
 	local representative
@@ -148,7 +148,7 @@ function AttackHandler:SquadReTarget(squad, squadIndex)
 			local step = math.min(squad.pathStep+1, #squad.path)
 			position = squad.path[step].position
 		end
-		local bestCell = self.ai.targethandler:GetNearestAttackCell(representative, position, squad.totalThreat) or self.ai.targethandler:GetBestAttackCell(representative, position, squad.totalThreat)
+		local bestCell = self.ai.targethst:GetNearestAttackCell(representative, position, squad.totalThreat) or self.ai.targethst:GetBestAttackCell(representative, position, squad.totalThreat)
 		if bestCell then
 			squad.target = bestCell.pos
 			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
@@ -162,7 +162,7 @@ function AttackHandler:SquadReTarget(squad, squadIndex)
 	end
 end
 
-function AttackHandler:SquadDisband(squad, squadIndex)
+function AttackHST:SquadDisband(squad, squadIndex)
 	self:EchoDebug("disband squad")
 	squad.disbanding = true
 	for iu, member in pairs(squad.members) do
@@ -180,7 +180,7 @@ function AttackHandler:SquadDisband(squad, squadIndex)
 	table.remove(self.squads, squadIndex)
 end
 
-function AttackHandler:SquadFormation(squad)
+function AttackHST:SquadFormation(squad)
 	local members = squad.members
 	local maxMemberSize
 	local lowestSpeed
@@ -229,7 +229,7 @@ function AttackHandler:SquadFormation(squad)
 	squad.totalThreat = totalThreat
 end
 
-function AttackHandler:SquadNewPath(squad, representativeBehaviour)
+function AttackHST:SquadNewPath(squad, representativeBehaviour)
 	if not squad.target then return end
 	representativeBehaviour = representativeBehaviour or squad.members[#squad.members]
 	local representative = representativeBehaviour.unit:Internal()
@@ -251,8 +251,8 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 	else
 		startPos = representative:GetPosition()
 	end
-	squad.modifierFunc = squad.modifierFunc or self.ai.targethandler:GetPathModifierFunc(representative:Name(), true)
-	local targetModFunc = self.ai.targethandler:GetPathModifierFunc(representative:Name(), true)
+	squad.modifierFunc = squad.modifierFunc or self.ai.targethst:GetPathModifierFunc(representative:Name(), true)
+	local targetModFunc = self.ai.targethst:GetPathModifierFunc(representative:Name(), true)
 	local startHeight = Spring.GetGroundHeight(startPos.x, startPos.z)
 	squad.modifierFunc = function(node, distanceToGoal, distanceStartToGoal)
 		local hMod = math.max(0, Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 100
@@ -263,11 +263,11 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 			return targetModFunc(node, distanceToGoal, distanceStartToGoal) + hMod
 		end
 	end
-	squad.graph = squad.graph or self.ai.maphandler:GetPathGraph(squad.mtype)
+	squad.graph = squad.graph or self.ai.maphst:GetPathGraph(squad.mtype)
 	squad.pathfinder = squad.graph:PathfinderPosPos(startPos, squad.target, nil, nil, nil, squad.modifierFunc)
 end
 
-function AttackHandler:SquadPathfind(squad, squadIndex)
+function AttackHST:SquadPathfind(squad, squadIndex)
 	if not squad.pathfinder then return end
 	local path, remaining, maxInvalid = squad.pathfinder:Find(2)
 	if path then
@@ -294,7 +294,7 @@ function AttackHandler:SquadPathfind(squad, squadIndex)
 	end
 end
 
-function AttackHandler:MemberIdle(attkbhvr, squad)
+function AttackHST:MemberIdle(attkbhvr, squad)
 	if attkbhvr then
 		squad = attkbhvr.squad
 		if not squad then return end
@@ -306,7 +306,7 @@ function AttackHandler:MemberIdle(attkbhvr, squad)
 	end
 end
 
-function AttackHandler:SquadAdvance(squad)
+function AttackHST:SquadAdvance(squad)
 	self:EchoDebug("advance")
 	squad.idleCount = 0
 	if squad.pathStep == #squad.path then
@@ -348,24 +348,24 @@ function AttackHandler:SquadAdvance(squad)
 	squad.hasMovedOnce = true
 end
 
-function AttackHandler:IDsWeAreAttacking(unitIDs, mtype)
+function AttackHST:IDsWeAreAttacking(unitIDs, mtype)
 	for i, unitID in pairs(unitIDs) do
 		self.ai.IDsWeAreAttacking[unitID] = mtype
 	end
 end
 
-function AttackHandler:IDsWeAreNotAttacking(unitIDs)
+function AttackHST:IDsWeAreNotAttacking(unitIDs)
 	for i, unitID in pairs(unitIDs) do
 		self.ai.IDsWeAreAttacking[unitID] = nil
 	end
 end
 
-function AttackHandler:TargetDied(mtype)
+function AttackHST:TargetDied(mtype)
 	self:EchoDebug("target died")
 	self:NeedLess(mtype, 0.75)
 end
 
-function AttackHandler:RemoveMember(attkbhvr)
+function AttackHST:RemoveMember(attkbhvr)
 	if attkbhvr == nil then return end
 	if not attkbhvr.squad then return end
 	local squad = attkbhvr.squad
@@ -385,9 +385,9 @@ function AttackHandler:RemoveMember(attkbhvr)
 	end
 end
 
-function AttackHandler:IsRecruit(attkbhvr)
+function AttackHST:IsRecruit(attkbhvr)
 	if attkbhvr.unit == nil then return false end
-	local mtype = self.ai.maphandler:MobilityOfUnit(attkbhvr.unit:Internal())
+	local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 	if self.recruits[mtype] ~= nil then
 		for i,v in pairs(self.recruits[mtype]) do
 			if v == attkbhvr then
@@ -398,11 +398,11 @@ function AttackHandler:IsRecruit(attkbhvr)
 	return false
 end
 
-function AttackHandler:AddRecruit(attkbhvr)
+function AttackHST:AddRecruit(attkbhvr)
 	if not self:IsRecruit(attkbhvr) then
 		if attkbhvr.unit ~= nil then
 			-- self:EchoDebug("adding attack recruit")
-			local mtype = self.ai.maphandler:MobilityOfUnit(attkbhvr.unit:Internal())
+			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
 			if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
 			if self.attackSent[mtype] == nil then self.attackSent[mtype] = 0 end
@@ -418,7 +418,7 @@ function AttackHandler:AddRecruit(attkbhvr)
 	end
 end
 
-function AttackHandler:RemoveRecruit(attkbhvr)
+function AttackHST:RemoveRecruit(attkbhvr)
 	for mtype, recruits in pairs(self.recruits) do
 		for i,v in ipairs(recruits) do
 			if v == attkbhvr then
@@ -432,14 +432,14 @@ function AttackHandler:RemoveRecruit(attkbhvr)
 	return false
 end
 
-function AttackHandler:NeedMore(attkbhvr)
+function AttackHST:NeedMore(attkbhvr)
 	local mtype = attkbhvr.mtype
 	local level = attkbhvr.level
 	self.counter[mtype] = math.min(maxAttackCounter, self.counter[mtype] + (level * 0.7) ) -- 0.75
 	self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 end
 
-function AttackHandler:NeedLess(mtype, subtract)
+function AttackHST:NeedLess(mtype, subtract)
 	if subtract == nil then subtract = 0.1 end
 	if mtype == nil then
 		for mtype, count in pairs(self.counter) do
@@ -454,7 +454,7 @@ function AttackHandler:NeedLess(mtype, subtract)
 	end
 end
 
-function AttackHandler:GetCounter(mtype)
+function AttackHST:GetCounter(mtype)
 	if mtype == nil then
 		local highestCounter = 0
 		for mtype, counter in pairs(self.counter) do

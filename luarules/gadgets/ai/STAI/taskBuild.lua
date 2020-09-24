@@ -316,7 +316,7 @@ function BuildNuke()
 	else
 		unitName = "armsilo"
 	end
-	return BuildWithLimitedNumber(unitName, 1)--ai.overviewhandler.nukeLimit)
+	return BuildWithLimitedNumber(unitName, 1)--ai.overviewhst.nukeLimit)
 end
 
 function BuildNukeIfNeeded()
@@ -332,7 +332,7 @@ function BuildTacticalNuke()
 	else
 		unitName = "armemp"
 	end
-	return BuildWithLimitedNumber(unitName, ai.overviewhandler.tacticalNukeLimit)
+	return BuildWithLimitedNumber(unitName, ai.overviewhst.tacticalNukeLimit)
 end
 
 --PLASMA
@@ -364,7 +364,7 @@ function BuildHeavyPlasma()
 	else
 		unitName = "armbrtha"
 	end
-	return BuildWithLimitedNumber(unitName, ai.overviewhandler.heavyPlasmaLimit)
+	return BuildWithLimitedNumber(unitName, ai.overviewhst.heavyPlasmaLimit)
 end
 
 function BuildLol()
@@ -392,7 +392,7 @@ function BuildShield()
 	return DummyUnitName
 end
 
---anti intrusion 
+--anti intrusion
 
 function BuildAntiIntr()
 	local unitName = DummyUnitName
@@ -433,7 +433,7 @@ end
 local function CommanderAA(tskqbhvr)
 	local unitName = DummyUnitName
 	if IsAANeeded() then
-		if ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition()) then
+		if ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition()) then
 			unitName = BuildFloatLightAA(tskqbhvr)
 		else
 			unitName = BuildLightAA(tskqbhvr)

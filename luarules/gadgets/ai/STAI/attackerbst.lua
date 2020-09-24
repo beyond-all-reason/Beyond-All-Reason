@@ -15,7 +15,7 @@ end
 AttackerBST.DebugEnabled = false
 
 function AttackerBST:Init()
-	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	local ut = unitTable[self.name]
@@ -40,7 +40,7 @@ end
 
 function AttackerBST:OwnerBuilt()
 	self.attacking = false
-	self.ai.attackhandler:AddRecruit(self)
+	self.ai.attackhst:AddRecruit(self)
 end
 
 function AttackerBST:OwnerDamaged(attacker,damage)
@@ -51,16 +51,16 @@ function AttackerBST:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
-	self.ai.attackhandler:NeedMore(self)
-	self.ai.attackhandler:RemoveRecruit(self)
-	self.ai.attackhandler:RemoveMember(self)
+	self.ai.attackhst:NeedMore(self)
+	self.ai.attackhst:RemoveRecruit(self)
+	self.ai.attackhst:RemoveMember(self)
 end
 
 function AttackerBST:OwnerIdle()
 	self.idle = true
 	self.timeout = nil
 	if self.active then
-		self.ai.attackhandler:MemberIdle(self)
+		self.ai.attackhst:MemberIdle(self)
 	end
 end
 
@@ -99,8 +99,8 @@ function AttackerBST:Update()
 		if self.game:Frame() >= self.timeout	then
 			game:SendToConsole("timeout triggered")
 			self.timeout = nil
-			-- self.ai.attackhandler:RemoveMember(self)
-			self.ai.attackhandler:AddRecruit(self)
+			-- self.ai.attackhst:RemoveMember(self)
+			self.ai.attackhst:AddRecruit(self)
 		end
 	end
 	if self.active and not self.movestateSet then
@@ -117,7 +117,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.attacking = true
 	if reverseAttackAngle then
 		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
-		if not self.sturdy or self.ai.loshandler:IsInLos(pos) then
+		if not self.sturdy or self.ai.loshst:IsInLos(pos) then
 			awayDistance = self.weaponDistance
 		end
 		local myAngle = AngleAdd(reverseAttackAngle, self.formationAngle)
@@ -125,12 +125,12 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	else
 		self.target = RandomAway(pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
-	local canMoveThere = self.ai.maphandler:UnitCanGoHere(self.unit:Internal(), self.target)
+	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	if canMoveThere then
 		self.squad.lastValidMove = self.target
 	elseif self.squad.lastValidMove then
 		self.target = RandomAway(self.squad.lastValidMove, self.congSize)
-		canMoveThere = self.ai.maphandler:UnitCanGoHere(self.unit:Internal(), self.target)
+		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
 	if self.active and canMoveThere then
 		-- local framesToArrive = 30 * (Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
@@ -149,7 +149,7 @@ function AttackerBST:Free()
 	if self.squad and self.squad.disbanding then
 		self.squad = nil
 	else
-		self.ai.attackhandler:RemoveMember(self)
+		self.ai.attackhst:RemoveMember(self)
 	end
 	-- self.squad = nil
 	self.unit:ElectBehaviour()
