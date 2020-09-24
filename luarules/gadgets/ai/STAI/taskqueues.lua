@@ -114,7 +114,7 @@ function BuildBreakthroughIfNeeded(unitName)
 	if IsSiegeEquipmentNeeded() then return unitName end
 	local mtype = unitTable[unitName].mtype
 	if mtype == "air" then
-		local bomberCounter = ai.bomberhandler:GetCounter()
+		local bomberCounter = ai.bomberhst:GetCounter()
 		if bomberCounter >= breakthroughBomberCounter and bomberCounter < maxBomberCounter then
 			return unitName
 		else
@@ -212,7 +212,7 @@ end
 function BuildBomberIfNeeded(unitName)
 	if not IsLandAttackNeeded() then return DummyUnitName end
 	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
-	if ai.bomberhandler:GetCounter() == maxBomberCounter then
+	if ai.bomberhst:GetCounter() == maxBomberCounter then
 		return DummyUnitName
 	else
 		return unitName
@@ -222,7 +222,7 @@ end
 function BuildTorpedoBomberIfNeeded(unitName)
 	if not IsWaterAttackNeeded() then return DummyUnitName end
 	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
-	if ai.bomberhandler:GetCounter() == maxBomberCounter then
+	if ai.bomberhst:GetCounter() == maxBomberCounter then
 		return DummyUnitName
 	else
 		return unitName

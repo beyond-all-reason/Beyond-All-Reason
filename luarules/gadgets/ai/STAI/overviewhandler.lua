@@ -51,7 +51,7 @@ function OverviewHandler:EvaluateSituation()
 
 	local attackCounter = self.ai.attackhst:GetCounter()
 	local couldAttack = self.ai.couldAttack >= 1 or self.ai.couldBomb >= 1
-	local bombingTooExpensive = self.ai.bomberhandler:GetCounter() == maxBomberCounter
+	local bombingTooExpensive = self.ai.bomberhst:GetCounter() == maxBomberCounter
 	local attackTooExpensive = attackCounter == maxAttackCounter
 	local controlMetalSpots = self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive

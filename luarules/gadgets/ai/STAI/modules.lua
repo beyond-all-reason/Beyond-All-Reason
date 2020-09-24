@@ -6,7 +6,7 @@ shard_include ("counthandler")
 shard_include ("unithandler")
 shard_include ("factorybuildershandler")
 shard_include ("attackhst")
-shard_include ("bomberhandler")
+shard_include ("bomberhst")
 shard_include ("sleep")
 shard_include ("raidhandler")
 shard_include ("loshandler")
@@ -27,7 +27,7 @@ return {
 	MapHandler,
 	EconHandler,
 	AttackHST,
-	BomberHandler,
+	BomberHST,
 	RaidHandler,
 	BuildSiteHandler,
 	FactoryBuildersHandler,

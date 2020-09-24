@@ -36,14 +36,14 @@ end
 
 function BomberBST:OwnerBuilt()
 	self:EchoDebug("built")
-	ai.bomberhandler:AddRecruit(self)
+	ai.bomberhst:AddRecruit(self)
 end
 
 function BomberBST:OwnerDead()
 	self:EchoDebug("dead")
 	-- game:SendToConsole("bomber " .. self.name .. " died")
-	ai.bomberhandler:RemoveRecruit(self)
-	ai.bomberhandler:NeedMore()
+	ai.bomberhst:RemoveRecruit(self)
+	ai.bomberhst:NeedMore()
 	-- notify the command that area is too hot
 	if self.target then
 		local tpos = self.target:GetPosition()
@@ -56,7 +56,7 @@ end
 function BomberBST:OwnerIdle()
 	self:EchoDebug("idle")
 	self.target = nil
-	self.ai.bomberhandler:AddRecruit(self)
+	self.ai.bomberhst:AddRecruit(self)
 end
 
 function BomberBST:Priority()
@@ -78,7 +78,7 @@ function BomberBST:Activate()
 			self:BombUnit(self.target)
 		end
 	else
-		ai.bomberhandler:AddRecruit(self)
+		ai.bomberhst:AddRecruit(self)
 	end
 end
 
@@ -165,7 +165,7 @@ function BomberBST:BombTarget(targetUnit, path)
 	end
 	if not targetUnit then
 		self:EchoDebug("no target given to :BombTarget")
-		self.ai.bomberhandler:AddRecruit(self)
+		self.ai.bomberhst:AddRecruit(self)
 		return
 	end
 	self.target = targetUnit

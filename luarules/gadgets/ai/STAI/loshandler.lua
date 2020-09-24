@@ -204,7 +204,7 @@ function LosHandler:UpdateEnemies(enemyList)
 			for i, mtype in pairs(mtypes) do
 				self.ai.raidhandler:NeedMore(mtype)
 				self.ai.attackhst:NeedLess(mtype)
-				if mtype == "air" then self.ai.bomberhandler:NeedLess() end
+				if mtype == "air" then self.ai.bomberhst:NeedLess() end
 			end
 			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 			self.ai.knownEnemies[id] = nil

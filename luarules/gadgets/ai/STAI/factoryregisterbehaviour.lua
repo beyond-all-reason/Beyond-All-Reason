@@ -94,8 +94,8 @@ function FactoryRegisterBehaviour:Register()
 	if level > self.ai.maxFactoryLevel then
 		-- so that it will start producing combat units
 		self.ai.attackhst:NeedLess(nil, 2)
-		self.ai.bomberhandler:NeedLess()
-		self.ai.bomberhandler:NeedLess()
+		self.ai.bomberhst:NeedLess()
+		self.ai.bomberhst:NeedLess()
 		self.ai.raidhandler:NeedMore(nil, 2)
 		-- set the current maximum factory level
 		self.ai.maxFactoryLevel = level
