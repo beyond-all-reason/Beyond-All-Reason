@@ -18,9 +18,9 @@ function ScoutHST:Init()
 	self.usingStarts = {}
 end
 
-function ScoutHST:ScoutLos(scoutbehaviour, position)
+function ScoutHST:ScoutLos(scoutbst, position)
 	local los
-	if ai.maphst:IsUnderWater(position) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
+	if ai.maphst:IsUnderWater(position) and unitTable[scoutbst.name].sonarRadius == 0 then
 		-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
 		local lt = ai.loshst:AllLos(position)
 		if lt[2] then
@@ -34,10 +34,10 @@ function ScoutHST:ScoutLos(scoutbehaviour, position)
 	return los
 end
 
-function ScoutHST:ClosestSpot(scoutbehaviour)
-	local unit = scoutbehaviour.unit:Internal()
+function ScoutHST:ClosestSpot(scoutbst)
+	local unit = scoutbst.unit:Internal()
 	local position = unit:GetPosition()
-	local mtype = scoutbehaviour.mtype
+	local mtype = scoutbst.mtype
 	if mtype == nil then mtype = "air" end
 	if network == nil then network = 1 end
 	-- initializing the necessary tables if they're not yet
@@ -80,7 +80,7 @@ function ScoutHST:ClosestSpot(scoutbehaviour)
 	for i = #self.spotsToScout[mtype][network], 1, -1 do
 		local p = self.spotsToScout[mtype][network][i]
 		local los
-		if ai.maphst:IsUnderWater(p) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
+		if ai.maphst:IsUnderWater(p) and unitTable[scoutbst.name].sonarRadius == 0 then
 			-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
 			local lt = ai.loshst:AllLos(p)
 			if lt[2] then
