@@ -89,7 +89,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, STWardBehaviour)
 	else
 		if IsAttacker(unit) then
-			table.insert(b, AttackerBehaviour)
+			table.insert(b, AttackerBST)
 			-- if battleList[un] or breakthroughList[un] then
 				-- arty and merl don't make good defense
 				table.insert(b, DefendBehaviour)
@@ -123,7 +123,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		end
 	end
 	-- game:SendToConsole(ai.id, #b, "behaviours", u:ID(), u:Name())
-	
+
 	return b
 end
 

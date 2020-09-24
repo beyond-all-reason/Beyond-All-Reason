@@ -6,15 +6,15 @@ function IsAttacker(unit)
 	return attackerlist[unit:Internal():Name()] or false
 end
 
-AttackerBehaviour = class(Behaviour)
+AttackerBST = class(Behaviour)
 
-function AttackerBehaviour:Name()
-	return "AttackerBehaviour"
+function AttackerBST:Name()
+	return "AttackerBST"
 end
 
-AttackerBehaviour.DebugEnabled = false
+AttackerBST.DebugEnabled = false
 
-function AttackerBehaviour:Init()
+function AttackerBST:Init()
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
@@ -38,16 +38,16 @@ function AttackerBehaviour:Init()
 	self.threat = ut.metalCost
 end
 
-function AttackerBehaviour:OwnerBuilt()
+function AttackerBST:OwnerBuilt()
 	self.attacking = false
 	self.ai.attackhandler:AddRecruit(self)
 end
 
-function AttackerBehaviour:OwnerDamaged(attacker,damage)
+function AttackerBST:OwnerDamaged(attacker,damage)
 	self.damaged = self.game:Frame()
 end
 
-function AttackerBehaviour:OwnerDead()
+function AttackerBST:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
@@ -56,7 +56,7 @@ function AttackerBehaviour:OwnerDead()
 	self.ai.attackhandler:RemoveMember(self)
 end
 
-function AttackerBehaviour:OwnerIdle()
+function AttackerBST:OwnerIdle()
 	self.idle = true
 	self.timeout = nil
 	if self.active then
@@ -64,11 +64,11 @@ function AttackerBehaviour:OwnerIdle()
 	end
 end
 
-function AttackerBehaviour:OwnerMoveFailed()
+function AttackerBST:OwnerMoveFailed()
 	self:OwnerIdle()
 end
 
-function AttackerBehaviour:Priority()
+function AttackerBST:Priority()
 	if not self.attacking then
 		return 0
 	else
@@ -76,7 +76,7 @@ function AttackerBehaviour:Priority()
 	end
 end
 
-function AttackerBehaviour:Activate()
+function AttackerBST:Activate()
 	self.active = true
 	self.movestateSet = false
 	if self.target then
@@ -84,11 +84,11 @@ function AttackerBehaviour:Activate()
 	end
 end
 
-function AttackerBehaviour:Deactivate()
+function AttackerBST:Deactivate()
 	self.active = false
 end
 
-function AttackerBehaviour:Update()
+function AttackerBST:Update()
 	if self.damaged then
 		local f = self.game:Frame()
 		if f > self.damaged + 450 then
@@ -112,7 +112,7 @@ function AttackerBehaviour:Update()
 	end
 end
 
-function AttackerBehaviour:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
+function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true
 	if reverseAttackAngle then
@@ -141,7 +141,7 @@ function AttackerBehaviour:Advance(pos, perpendicularAttackAngle, reverseAttackA
 	return canMoveThere
 end
 
-function AttackerBehaviour:Free()
+function AttackerBST:Free()
 	self.attacking = false
 	self.target = nil
 	self.idle = nil
@@ -156,7 +156,7 @@ function AttackerBehaviour:Free()
 end
 
 -- this will issue the correct move state to all units
-function AttackerBehaviour:SetMoveState()
+function AttackerBST:SetMoveState()
 	self.movestateSet = true
 	local thisUnit = self.unit
 	if thisUnit then
