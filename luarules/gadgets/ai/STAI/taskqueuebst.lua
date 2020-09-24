@@ -232,7 +232,7 @@ function TaskQueueBST:OwnerDead()
 		if self.outmodedFactory then ai.outmodedFactories = ai.outmodedFactories - 1 end
 		-- self.unit = nil
 		if self.target then ai.targethst:AddBadPosition(self.target, self.mtype) end
-		ai.assisthandler:Release(nil, self.id, true)
+		ai.assisthst:Release(nil, self.id, true)
 		ai.buildsitehst:ClearMyPlans(self)
 		ai.buildsitehst:ClearMyConstruction(self)
 	end
@@ -248,29 +248,29 @@ function TaskQueueBST:GetHelp(value, position)
 	end
 	if Eco1[value] then
 		if not ai.haveAdvFactory and ai.underReserves then
-			ai.assisthandler:TakeUpSlack(builder)
+			ai.assisthst:TakeUpSlack(builder)
 		end
 		return value
 	end
 	if Eco2[value] then
-		local hashelp = ai.assisthandler:PersistantSummon(builder, position, math.ceil(unitTable[value].buildTime/10000), 0)
-		ai.assisthandler:TakeUpSlack(builder)
+		local hashelp = ai.assisthst:PersistantSummon(builder, position, math.ceil(unitTable[value].buildTime/10000), 0)
+		ai.assisthst:TakeUpSlack(builder)
 		return value
 	end
 
 	if unitTable[value].isBuilding and unitTable[value].buildOptions then
 		if ai.factories - ai.outmodedFactories <= 0 or advFactories[value] then
 			self:EchoDebug("can get help to build factory but don't need it")
-			ai.assisthandler:Summon(builder, position)
-			ai.assisthandler:Magnetize(builder, position)
-			ai.assisthandler:TakeUpSlack(builder)
+			ai.assisthst:Summon(builder, position)
+			ai.assisthst:Magnetize(builder, position)
+			ai.assisthst:TakeUpSlack(builder)
 			return value
 		else
 			self:EchoDebug("help for factory that need help")
-			local hashelp = ai.assisthandler:Summon(builder, position, unitTable[value].techLevel)
+			local hashelp = ai.assisthst:Summon(builder, position, unitTable[value].techLevel)
 			if hashelp then
-				ai.assisthandler:Magnetize(builder, position)
-				ai.assisthandler:TakeUpSlack(builder)
+				ai.assisthst:Magnetize(builder, position)
+				ai.assisthst:TakeUpSlack(builder)
 				return value
 			end
 		end
@@ -288,7 +288,7 @@ function TaskQueueBST:GetHelp(value, position)
 			number = math.floor(unitTable[value].buildTime/10000)
 		end
 		if number == 0 then return value end
-		local hashelp = ai.assisthandler:Summon(builder, position, number)
+		local hashelp = ai.assisthst:Summon(builder, position, number)
 		if hashelp or self.isFactory then return value end
 	end
 	return DummyUnitName
@@ -543,7 +543,7 @@ function TaskQueueBST:ProgressQueue()
 	self.progress = false
 	local builder = self.unit:Internal()
 	if not self.released then
-		ai.assisthandler:Release(builder)
+		ai.assisthst:Release(builder)
 		ai.buildsitehst:ClearMyPlans(self)
 		if not self.isCommander and not self.isFactory then
 			if ai.IDByName[self.id] ~= nil then
@@ -641,7 +641,7 @@ function TaskQueueBST:ProgressQueue()
 				if self.isFactory then
 					if not self.outmodedTechLevel and not self.ai.underReserves then
 						-- factories take up idle assistants
-						--ai.assisthandler:TakeUpSlack(builder)
+						--ai.assisthst:TakeUpSlack(builder)
 					end
 				else
 					self.target = p

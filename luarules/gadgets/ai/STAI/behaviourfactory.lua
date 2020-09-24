@@ -41,7 +41,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 
 	if nanoTurretList[un] then
-		table.insert(b, STAssistBehaviour)
+		table.insert(b, AssistBST)
 		table.insert(b, WardBST)
 		table.insert(b, CleanerBST)
 	end
@@ -78,7 +78,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			if unitTable[un].isBuilding then
 				table.insert(b, LabRegisterBST)
 			else
-				table.insert(b, STAssistBehaviour)
+				table.insert(b, AssistBST)
 				table.insert(b, ReclaimBST)
 				table.insert(b, CleanerBST)
 			end

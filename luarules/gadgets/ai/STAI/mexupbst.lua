@@ -18,7 +18,7 @@ function MexUpBST:OwnerIdle()
 		self:EchoDebug("MexUpBST: unit ".. self.name .." is idle")
 		-- release assistants
 		if not self.released then
-			self.ai.assisthandler:Release(builder)
+			self.ai.assisthst:Release(builder)
 			self.released = true
 		end
 		-- maybe we've just finished a moho?
@@ -51,7 +51,7 @@ function MexUpBST:OwnerIdle()
 			end
 			if s then
 				-- get assistance and magnetize
-				self.ai.assisthandler:PersistantSummon(builder, self.mexPos, helpList[mohoName])
+				self.ai.assisthst:PersistantSummon(builder, self.mexPos, helpList[mohoName])
 				self.released = false
 				self.active = true
 				self.mohoStarted = true
