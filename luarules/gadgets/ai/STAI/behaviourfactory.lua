@@ -92,13 +92,13 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b, AttackerBST)
 			-- if battleList[un] or breakthroughList[un] then
 				-- arty and merl don't make good defense
-				table.insert(b, DefendBehaviour)
+				table.insert(b, DefendBST)
 			-- end
 		end
 		if IsRaider(unit) then
 			table.insert(b, RaiderBehaviour)
 			table.insert(b, ScoutBehaviour)
-			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBehaviour) end -- will only defend when scrambled by danger
+			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBST) end -- will only defend when scrambled by danger
 		end
 		if IsBomber(unit) then
 			table.insert(b, BomberBST)
@@ -108,7 +108,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b, STWardBehaviour)
 		end
 		if IsDefender(unit) then
-			table.insert(b, DefendBehaviour)
+			table.insert(b, DefendBST)
 		end
 	end
 
