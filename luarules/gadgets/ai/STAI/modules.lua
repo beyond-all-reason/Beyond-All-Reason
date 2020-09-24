@@ -19,7 +19,7 @@ shard_include ("ecohst")
 shard_include ("tacticalhandler")
 shard_include ("damagehst")
 shard_include ("cleanhst")
-shard_include ("nanohandler")
+shard_include ("nanohst")
 shard_include ("overviewhandler")
 
 return {
@@ -41,7 +41,7 @@ return {
 	STAssistHandler,
 	DefendHST,
 	CleanHST,
-	NanoHandler,
+	NanoHST,
 	OverviewHandler,
 	STUnitHandler
 }

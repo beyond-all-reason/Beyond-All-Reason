@@ -391,10 +391,10 @@ end
 
 function BuildSiteHST:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
-	local nanoHots = self.ai.nanohandler:GetHotSpots()
+	local nanoHots = self.ai.nanohst:GetHotSpots()
 	if nanoHots then
 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
-		local hotRadius = self.ai.nanohandler:HotBuildRadius()
+		local hotRadius = self.ai.nanohst:HotBuildRadius()
 		for i = 1, #nanoHots do
 			local hotPos = nanoHots[i]
 			-- find somewhere within hotspot
