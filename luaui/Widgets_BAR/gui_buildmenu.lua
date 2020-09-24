@@ -1182,7 +1182,7 @@ function drawBuildmenuBg()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor)
+local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha)
 	local uDefID = cmds[cellRectID].id * -1
 
 	-- encapsulating cell background
@@ -1280,7 +1280,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
 			0,
 			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize - math_max(1, math_floor(halfSize * 0.045)), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
+			halfSize, cornerSize, halfSize - math_max(1, math_floor(halfSize * 0.045)), { 1, 1, 1, edgeAlpha and edgeAlpha or iconBorderOpacity }, { 1, 1, 1, edgeAlpha and edgeAlpha or iconBorderOpacity }
 		)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
@@ -1726,7 +1726,7 @@ function widget:DrawScreen()
 							showPrice = true
 						end
 						-- re-draw cell with hover zoom (and price shown)
-						drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) })
+						drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15)
 						if unsetShowPrice then
 							showPrice = false
 							unsetShowPrice = nil

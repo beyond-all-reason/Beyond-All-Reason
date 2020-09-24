@@ -155,6 +155,7 @@ Create()
 		sleep 250;
 	}
 	start-script SmokeUnit();
+	spin dish around y-axis speed <90>;
 }
 
 Activate()
