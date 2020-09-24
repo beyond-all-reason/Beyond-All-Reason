@@ -135,23 +135,23 @@ function LosHST:UpdateEnemies(enemyList)
 
 			local los = 0
 			local persist = false
-			local underWater = (unitTable[ename].mtype == "sub")
+			local underWater = (self.ai.data.unitTable[ename].mtype == "sub")
 			if underWater then
 				if lt[3] then
 					-- sonar
 					los = 2
 				end
 			else
-				if lt[1] and not lt[2] and not unitTable[ename].stealth then
+				if lt[1] and not lt[2] and not self.ai.data.unitTable[ename].stealth then
 					los = 1
 				elseif lt[2] then
 					los = 2
-				elseif lt[4] and unitTable[ename].mtype == "air" then
+				elseif lt[4] and self.ai.data.unitTable[ename].mtype == "air" then
 					-- air los
 					los = 2
 				end
 			end
-			if los == 0 and unitTable[ename].isBuilding then
+			if los == 0 and self.ai.data.unitTable[ename].isBuilding then
 				-- don't remove from knownenemies if it's a building that was once seen
 				persist = true
 			elseif los == 1 then
@@ -230,7 +230,7 @@ function LosHST:UpdateEnemies(enemyList)
 				e.ghost = { frame = f, position = e.position }
 			end
 		else
-			if not unitTable[e.unitName].isBuilding then
+			if not self.ai.data.unitTable[e.unitName].isBuilding then
 				local count = true
 				if e.los == 2 then
 					-- if we know what kind of unit it is, only count as a potential threat blip if it's a hurty unit

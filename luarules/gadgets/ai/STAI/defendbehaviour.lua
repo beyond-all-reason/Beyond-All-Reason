@@ -30,10 +30,10 @@ function DefendBehaviour:Init()
 	self.active = false
 	self.id = self.unit:Internal():ID()
 	self.name = self.unit:Internal():Name()
-	local ut = unitTable[self.name]
+	local ut = self.ai.data.unitTable[self.name]
 	self.tough = battleList[self.name] or breakthroughList[self.name]
 	self.isDefender = IsDefender(self.unit)
-	self.mtype = unitTable[self.name].mtype
+	self.mtype = self.ai.data.unitTable[self.name].mtype
 	-- defenders need to be sorted into only one type of weapon
 	if ut.groundRange > 0 then
 		self.hits = "ground"

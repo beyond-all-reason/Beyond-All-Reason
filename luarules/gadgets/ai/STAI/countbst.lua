@@ -9,7 +9,7 @@ function CountBST:Init()
 	self.finished = false
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
-	local uTn = unitTable[self.name]
+	local uTn = self.ai.data.unitTable[self.name]
 	-- game:SendToConsole(self.name .. " " .. self.id .. " init")
 	if uTn.isBuilding then
 		self.position = self.unit:Internal():GetPosition() -- buildings don't move

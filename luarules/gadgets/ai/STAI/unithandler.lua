@@ -242,8 +242,8 @@ function STUnitHandler:AIRepresentation(engineUnit)
 		-- self.game:SendToConsole(self.ai.id, "nil engineUnit position, not representing unit", engineUnit:ID(), engineUnit:Name())
 		return nil
 	end
-	local unittable = self.units
-	local u = unittable[engineUnit:ID()]
+
+	local u = self.units[engineUnit:ID()]
 	if u == nil then
 		-- self.game:SendToConsole(self.ai.id, "adding unit to stunithandler tables", engineUnit:ID(), engineUnit:Name())
 		u = Unit()

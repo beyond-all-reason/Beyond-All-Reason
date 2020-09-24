@@ -19,7 +19,7 @@ function BehaviourFactory:AddBehaviours(unit)
 	end
 	for i,behaviour in ipairs(b) do
 		t = behaviour()
-		t:SetAI(ai)
+		t:SetAI(self.ai)
 		t:SetUnit(unit)
 		t:Init()
 		unit:AddBehaviour(t)
@@ -46,7 +46,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, CleanerBST)
 	end
 
-	if unitTable[un].isBuilding then
+	if self.ai.data.unitTable[un].isBuilding then
 		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
 		if nukeList[un] then
 			table.insert(b, NukeBST)
@@ -63,19 +63,19 @@ function BehaviourFactory:defaultBehaviours(unit)
 		if advConList[un] then
 			-- game:SendToConsole(u:Name() .. " is advanced construction unit")
 			-- half advanced engineers upgrade mexes instead of building things
-			if ai.advCons == nil then ai.advCons = 0 end
-			if ai.advCons == 0 then
+			if self.ai.advCons == nil then ai.advCons = 0 end
+			if self.ai.advCons == 0 then
 				-- game:SendToConsole(u:Name() .. " taskqueuing")
 				table.insert(b, MexUpgradeBehaviour)
-				ai.advCons = 1
+				self.ai.advCons = 1
 			else
 				-- game:SendToConsole(u:Name() .. " mexupgrading")
-				ai.advCons = 0
+				self.ai.advCons = 0
 			end
 			table.insert(b,TaskQueueBST)
 		else
 			table.insert(b,TaskQueueBST)
-			if unitTable[un].isBuilding then
+			if self.ai.data.unitTable[un].isBuilding then
 				table.insert(b, LabRegisterBST)
 			else
 				table.insert(b, AssistBST)
@@ -98,7 +98,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 		if IsRaider(unit) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
-			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBST) end -- will only defend when scrambled by danger
+			if self.ai.data.unitTable[un].mtype ~= "air" then
+				table.insert(b, DefendBST)
+			end -- will only defend when scrambled by danger
 		end
 		if IsBomber(unit) then
 			table.insert(b, BomberBST)

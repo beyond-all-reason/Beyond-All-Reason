@@ -20,7 +20,7 @@ end
 
 function FactoryBuildersHandler:UnitBuilt(engineUnit)
 	local uname = engineUnit:Name()
-	local ut = unitTable[uname]
+	local ut = self.ai.data.unitTable[uname]
 	if ut.isBuilding or not ut.buildOptions then
 		-- it's not a construction unit
 		return
@@ -83,7 +83,7 @@ function FactoryBuildersHandler:PrePositionFilter()
 	for rank = 1, #self.ai.factoriesRanking do
 		local factoryName = self.ai.factoriesRanking[rank]
 		local buildMe = true
-		local utn=unitTable[factoryName]
+		local utn = self.ai.data.unitTable[factoryName]
 		local level = utn.techLevel
 		local isAdvanced = advFactories[factoryName]
 		local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]
@@ -143,7 +143,7 @@ function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 	local canDoFactory = false
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
-		local uTn = unitTable[factoryName]
+		local uTn = self.ai.data.unitTable[factoryName]
 		--if self.ai.scaledMetal > uTn.metalCost * order and self.ai.scaledEnergy > uTn.energyCost * order and self.ai.combatCount >= self.ai.factories * 20 then
 		local factoryCountSq = self.ai.factories * self.ai.factories
 		local sameFactoryCount = self.ai.nameCountFinished[factoryName] or 0
@@ -283,8 +283,8 @@ function FactoryBuildersHandler:PostPositionalFilter(factoryName,p)
 	end
 	local mtype = factoryMobilities[factoryName][1]
 	-- below is commented out because sometimes you need a lower level factory to build things the higher level cannot, when the previous low level factory has been destroyed
-	-- if unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
-	-- 	self:EchoDebug('tech level ' .. unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
+	-- if self.ai.data.unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
+	-- 	self:EchoDebug('tech level ' .. self.ai.data.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
 	-- 	return false
 	-- end
 	if mtype == 'bot' then

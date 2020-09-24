@@ -21,7 +21,7 @@ function NukeBehaviour:Init()
 	end
 	self.stockpileTime = nukeList[uname]
 	self.position = self.unit:Internal():GetPosition()
-	self.range = unitTable[uname].groundRange
+	self.range = self.ai.data.unitTable[uname].groundRange
     self.lastStockpileFrame = 0
     self.lastLaunchFrame = 0
     self.gotTarget = false

@@ -1,8 +1,3 @@
-
-
-
-
-
 TaskQueueBehaviour = class(Behaviour)
 
 function TaskQueueBehaviour:Name()
@@ -20,7 +15,7 @@ local maxBuildSpeedDists = {}
 local function MaxBuildDist(unitName, speed)
 	local dist = maxBuildDists[unitName]
 	if not dist then
-		local ut = unitTable[unitName]
+		local ut = ai.data.unitTable[unitName]
 		if not ut then return 0 end
 		dist = math.sqrt(ut.metalCost)
 		maxBuildDists[unitName] = dist
@@ -66,14 +61,14 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		if overview.metalAboveHalf or overview.energyTooLow or overview.farTooFewCombats then
 			value = DummyUnitName
 		end
-	elseif unitTable[value].isBuilding then
+	elseif self.ai.data.unitTable[value].isBuilding then
 		-- buildings
 		self:EchoDebug(" building")
-		if unitTable[value].buildOptions ~= nil then
+		if self.ai.data.unitTable[value].buildOptions ~= nil then
 			-- factory
 			self:EchoDebug("  factory")
 			return value
-		elseif unitTable[value].isWeapon then
+		elseif self.ai.data.unitTable[value].isWeapon then
 			-- defense
 			self:EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
@@ -87,11 +82,11 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 					value = DummyUnitName
 				end
 			else
-				if overview.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or ai.factories == 0 then
+				if overview.metalTooLow or ai.Metal.income < (self.ai.data.unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or ai.factories == 0 then
 					value = DummyUnitName
 				end
 			end
-		elseif unitTable[value].radarRadius > 0 then
+		elseif self.ai.data.unitTable[value].radarRadius > 0 then
 			-- radar
 			self:EchoDebug("  radar")
 			if overview.metalTooLow or overview.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
@@ -107,13 +102,13 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	else
 		-- moving units
 		self:EchoDebug(" moving unit")
-		if unitTable[value].buildOptions ~= nil then
+		if self.ai.data.unitTable[value].buildOptions ~= nil then
 			-- construction unit
 			self:EchoDebug("  construction unit")
 			if ai.Energy.full < 0.05 or ai.Metal.full < 0.05 then
 				value = DummyUnitName
 			end
-		elseif unitTable[value].isWeapon then
+		elseif self.ai.data.unitTable[value].isWeapon then
 			-- combat unit
 			self:EchoDebug("  combat unit")
 			if ai.Energy.full < 0.1 or ai.Metal.full < 0.1 then
@@ -150,8 +145,8 @@ function TaskQueueBehaviour:Init()
 	local mtype, network = ai.maphst:MobilityOfUnit(u)
 	self.mtype = mtype
 	self.name = u:Name()
-	self.side = unitTable[self.name].side
-	self.speed = unitTable[self.name].speed
+	self.side = self.ai.data.unitTable[self.name].side
+	self.speed = self.ai.data.unitTable[self.name].speed
 	if commanderList[self.name] then self.isCommander = true end
 	self.id = u:ID()
 	self:EchoDebug(self.name .. " " .. self.id .. " initializing...")
@@ -248,7 +243,7 @@ function TaskQueueBehaviour:GetHelp(value, position)
 	if value == DummyUnitName then return DummyUnitName end
 	self:EchoDebug(value .. " before getting help")
 	local builder = self.unit:Internal()
-	if assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then
+	if assistList[self.name] and not self.ai.data.unitTable[value].isBuilding and not nanoTurretList[value] then
 		return value
 	end
 	if Eco1[value] then
@@ -258,12 +253,12 @@ function TaskQueueBehaviour:GetHelp(value, position)
 		return value
 	end
 	if Eco2[value] then
-		local hashelp = ai.assisthandler:PersistantSummon(builder, position, math.ceil(unitTable[value].buildTime/10000), 0)
+		local hashelp = ai.assisthandler:PersistantSummon(builder, position, math.ceil(self.ai.data.unitTable[value].buildTime/10000), 0)
 		ai.assisthandler:TakeUpSlack(builder)
 		return value
 	end
 
-	if unitTable[value].isBuilding and unitTable[value].buildOptions then
+	if self.ai.data.unitTable[value].isBuilding and self.ai.data.unitTable[value].buildOptions then
 		if ai.factories - ai.outmodedFactories <= 0 or advFactories[value] then
 			self:EchoDebug("can get help to build factory but don't need it")
 			ai.assisthandler:Summon(builder, position)
@@ -272,7 +267,7 @@ function TaskQueueBehaviour:GetHelp(value, position)
 			return value
 		else
 			self:EchoDebug("help for factory that need help")
-			local hashelp = ai.assisthandler:Summon(builder, position, unitTable[value].techLevel)
+			local hashelp = ai.assisthandler:Summon(builder, position, self.ai.data.unitTable[value].techLevel)
 			if hashelp then
 				ai.assisthandler:Magnetize(builder, position)
 				ai.assisthandler:TakeUpSlack(builder)
@@ -281,16 +276,16 @@ function TaskQueueBehaviour:GetHelp(value, position)
 		end
 	else
 		local number
-		if self.isFactory and not unitTable[value].needsWater then
+		if self.isFactory and not self.ai.data.unitTable[value].needsWater then
 			-- factories have more nano output
-			--number = math.floor((unitTable[value].metalCost + 1000) / 1500)
+			--number = math.floor((self.ai.data.unitTable[value].metalCost + 1000) / 1500)
 			number = 0 -- dont ask for help, build nano instead
-		elseif self.isFactory and unitTable[value].needsWater then
-			--number = math.floor((unitTable[value].metalCost + 1000) / 500)
-			number = math.floor(unitTable[value].buildTime/5000) --try to use build time instead metal(more sense for me)
+		elseif self.isFactory and self.ai.data.unitTable[value].needsWater then
+			--number = math.floor((self.ai.data.unitTable[value].metalCost + 1000) / 500)
+			number = math.floor(self.ai.data.unitTable[value].buildTime/5000) --try to use build time instead metal(more sense for me)
 		else
-			--number = math.floor((unitTable[value].metalCost + 750) / 1000)
-			number = math.floor(unitTable[value].buildTime/10000)
+			--number = math.floor((self.ai.data.unitTable[value].metalCost + 750) / 1000)
+			number = math.floor(self.ai.data.unitTable[value].buildTime/10000)
 		end
 		if number == 0 then return value end
 		local hashelp = ai.assisthandler:Summon(builder, position, number)
@@ -304,7 +299,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	if self.isFactory then return utype, value end -- factories don't need to look for build locations
 	local builder = self.unit:Internal()
 	local builderPos = builder:GetPosition()
-	if unitTable[value].extractsMetal > 0 then
+	if self.ai.data.unitTable[value].extractsMetal > 0 then
 		-- metal extractor
 		local uw
 		p, uw, reclaimEnemyMex = ai.maphst:ClosestFreeSpot(utype, builder)
@@ -351,7 +346,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		self:EchoDebug("looking for factory for nano")
 		local currentLevel = 0
 		local target = nil
-		local mtype = unitTable[self.name].mtype
+		local mtype = self.ai.data.unitTable[self.name].mtype
 		for level, factories in pairs (ai.factoriesAtLevel)  do
 			self:EchoDebug( ' analysis for level ' .. level)
 			for index, factory in pairs(factories) do
@@ -382,12 +377,12 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 				utype = nil
 			end
 		end
-	elseif not unitTable[value].isBuilding then
+	elseif not self.ai.data.unitTable[value].isBuilding then
 		if assistList[self.name] and not nanoTurretList[value] then
 		p = ai.buildsitehst:BuildNearNano(builder, utype)
 		end
 	else
-		if unitTable[value].isWeapon  then
+		if self.ai.data.unitTable[value].isWeapon  then
 			if 	utype:Name() == BuildLLT(self) or
 				utype:Name() == BuildLightAA(self) or
 				utype:Name() == BuildLvl2PopUp(self) then
@@ -403,12 +398,12 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 					utype:Name() == BuildExtraHeavyAA(self) or
 					utype:Name() == BuildTachyon(self) then
 				p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'isFactory',nil, 'losRadius',100)  or self.ai.buildsitehst:searchPosInList(self.ai.turtlehandler:LeastTurtled(builder, utype:Name()),utype, builder, 'losRadius',0)
-			elseif 	unitTable[value].isPlasmaCannon then
-				if unitTable[value].isPlasmaCannon < 4 then
+			elseif 	self.ai.data.unitTable[value].isPlasmaCannon then
+				if self.ai.data.unitTable[value].isPlasmaCannon < 4 then
 					local turtlePosList = ai.turtlehandler:MostTurtled(builder, value, value)
 					p =  self.ai.buildsitehst:searchPosInList(turtlePosList,utype, builder, 'losRadius',0) or
 							self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
-				elseif unitTable[value].isPlasmaCannon > 4 then
+				elseif self.ai.data.unitTable[value].isPlasmaCannon > 4 then
 					p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'isNano',nil, 'losRadius',100) or
 					self.ai.buildsitehst:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
 				end
@@ -418,14 +413,14 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			else
 				self:EchoDebug('turret value not handled ' .. value)
 			end
-		elseif shieldList[value] or unitTable[value].jammerRadius ~= 0 then
+		elseif shieldList[value] or self.ai.data.unitTable[value].jammerRadius ~= 0 then
 			self:EchoDebug("looking for least turtled positions")
 			local turtlePosList = ai.turtlehandler:LeastTurtled(builder, value)
 			p =  self.ai.buildsitehst:searchPosInList(turtlePosList,utype, builder, 'losRadius',0)
-		elseif unitTable[value].sonarRadius ~= 0  then
+		elseif self.ai.data.unitTable[value].sonarRadius ~= 0  then
 			--local turtlePosList = ai.turtlehandler:MostTurtled(builder, value)
 			p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'sonarRadius',20)
-		elseif unitTable[value].radarRadius ~= 0   then
+		elseif self.ai.data.unitTable[value].radarRadius ~= 0   then
 			p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
 		elseif Eco2[value] == 1 then
 					p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'isNano',1000, nil,100) or
@@ -463,7 +458,7 @@ function TaskQueueBehaviour:GetQueue()
 	end
 
 	self.outmodedTechLevel = false
-	local uT = unitTable
+	local uT = self.ai.data.unitTable
 	if ai.data.outmodedTaskqueues[self.name] ~= nil and not q then
 		local threshold =  1 - (uT[self.name].techLevel / ai.maxFactoryLevel)
 		if self.isFactory  and (ai.Metal.full < threshold or ai.Energy.full < threshold) then

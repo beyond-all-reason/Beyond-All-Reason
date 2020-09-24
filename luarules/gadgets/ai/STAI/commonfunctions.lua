@@ -206,7 +206,7 @@ function ThreatRange(unitName, groundAirSubmerged)
 	if antinukeList[unitName] or nukeList[unitName] or bigPlasmaList[unitName] or shieldList[unitName] then
 		return 0, 0
 	end
-	local utable = unitTable[unitName]
+	local utable = ai.data.unitTable[unitName]
 	if groundAirSubmerged == nil then
 		if utable.groundRange > utable.airRange and utable.groundRange > utable.submergedRange then
 			groundAirSubmerged = "ground"
@@ -262,7 +262,7 @@ function UnitWeaponLayerList(unitName)
 	local weaponLayers = unitWeaponLayers[unitName]
 	if weaponLayers then return weaponLayers end
 	weaponLayers = {}
-	local ut = unitTable[unitName]
+	local ut = ai.data.unitTable[unitName]
 	if not ut then
 		return weaponLayers
 	end
@@ -283,8 +283,10 @@ function UnitWeaponMtypeList(unitName)
 	if unitName == nil then return {} end
 	if unitName == DummyUnitName then return {} end
 	local mtypes = unitWeaponMtypes[unitName]
-	if mtypes then return mtypes end
-	local utable = unitTable[unitName]
+	if mtypes then
+		return mtypes
+	end
+	local utable = ai.data.unitTable[unitName]
 	mtypes = {}
 	if utable.groundRange > 0 then
 		table.insert(mtypes, "veh")
@@ -308,8 +310,8 @@ end
 function WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
-	if unitName then 
-		local ut = unitTable[unitName]
+	if unitName then
+		local ut = ai.data.unitTable[unitName]
 		if ut then
 			mtype = ut.mtype
 		end
@@ -431,7 +433,7 @@ function SimplifyPath(path)
 		if removeIds[node.id] then
 			table.remove(path, i)
 		end
-	end 
+	end
 	return path
 end
 
@@ -472,7 +474,7 @@ function serialize (o, keylist,reset)
 	end
 	return output
 end
-		
-			
+
+
 
 CommonFunctionsLoaded = true -- so that SpringShardLua doesn't load them multiple times

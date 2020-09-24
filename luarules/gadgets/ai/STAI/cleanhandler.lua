@@ -79,7 +79,7 @@ function CleanHandler:IsCleanable(unit)
 end
 
 function CleanHandler:IsBigEnergy(unit)
-	local ut = unitTable[unit:Name()]
+	local ut = self.ai.data.unitTable[unit:Name()]
 	if ut then
 		return (ut.totalEnergyOut > 750)
 	end
@@ -98,7 +98,7 @@ function CleanHandler:FilterCleanable(cleanable, clnrbhvr)
 	if who and who ~= clnrbhvr then return end
 	local priority = self.priorities[cleanable:ID()] or 0
 	if priority < 2 and (self.bigEnergyCount < 2 or self.ai.Metal.full > 0.1) then return end
-	if unitTable[cleanable:Name()].totalEnergyOut > 0 and (self.bigEnergyCount < 2 - priority or self.ai.Energy.full < 0.3) then
+	if self.ai.data.unitTable[cleanable:Name()].totalEnergyOut > 0 and (self.bigEnergyCount < 2 - priority or self.ai.Energy.full < 0.3) then
 		return
 	end
 	return cleanable

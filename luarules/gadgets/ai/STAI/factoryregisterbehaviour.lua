@@ -18,7 +18,7 @@ function FactoryRegisterBehaviour:Init()
     	z2 = self.position.z + 40,
 	}
 	self.sides = factoryExitSides[self.name]
-    self.level = unitTable[self.name].techLevel
+    self.level = self.ai.data.unitTable[self.name].techLevel
 
     self.ai.factoryUnderConstruction = self.id
 	self:EchoDebug('starting building of ' ..self.name)
@@ -70,7 +70,7 @@ function FactoryRegisterBehaviour:Unregister()
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
 	local network = self.ai.maphandler:MobilityNetworkHere(mtype,self.position)
-	-- self:EchoDebug(mtype, network, self.ai.factoryBuilded[mtype], self.ai.factoryBuilded[mtype][network], self.name, unitTable[self.name], unitTable[self.name].techLevel)
+	-- self:EchoDebug(mtype, network, self.ai.factoryBuilded[mtype], self.ai.factoryBuilded[mtype][network], self.name, self.ai.data.unitTable[self.name], self.ai.data.unitTable[self.name].techLevel)
 	if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
 		self.ai.factoryBuilded[mtype][network] = self.ai.factoryBuilded[mtype][network] - self.level
 	end

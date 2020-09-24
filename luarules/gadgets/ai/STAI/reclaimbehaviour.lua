@@ -197,7 +197,7 @@ function ReclaimBehaviour:Act()
 				local rfpos = reclaimFeature:GetPosition()
 				if rfpos and rfpos.x then
 					local unitName = reclaimables[i].unitName
-					if self.dedicated and unitName and unitTable[unitName] and unitTable[unitName].extractsMetal > 0 then
+					if self.dedicated and unitName and self.ai.data.unitTable[unitName] and self.ai.data.unitTable[unitName].extractsMetal > 0 then
 						-- always resurrect metal extractors
 						self:EchoDebug("resurrect mex", reclaimFeature, reclaimFeature:ID())
 						self.unit:Internal():AreaRESURRECT({rfpos.x, rfpos.y, rfpos.z}, 15)

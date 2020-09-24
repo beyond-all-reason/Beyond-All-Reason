@@ -23,7 +23,7 @@ function RaiderBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
-	local utable = unitTable[self.name]
+	local utable = self.ai.data.unitTable[self.name]
 	if self.mtype == "sub" then
 		self.range = utable.submergedRange
 	else

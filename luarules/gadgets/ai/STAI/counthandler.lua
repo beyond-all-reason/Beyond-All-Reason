@@ -34,15 +34,15 @@ function CountHandler:Init()
 	self.ai.cleanable = {}
 	self.ai.assistCount = 0
 	self.ai.nanoList = {}
-	
+
 	self.ai.mtypeLvCount = {}
 	self.ai.mtypeCount = {veh = 0, bot = 0, air = 0, shp = 0, sub = 0, amp = 0, hov = 0 }
-	
+
 	self:InitializeNameCounts()
 end
 
 function CountHandler:InitializeNameCounts()
-	for name, t in pairs(unitTable) do
+	for name, t in pairs(self.ai.data.unitTable) do
 		self.ai.nameCount[name] = 0
 	end
 end
@@ -52,7 +52,7 @@ function CountHandler:UnitDamaged(unit, attacker,damage)
 		self:EchoDebug("unit damaged", unit:Team(), unit:Name(), unit:ID())
 	end
 	local aname = "nil"
-	if attacker then 
+	if attacker then
 		if attacker:Team() ~= game:GetTeamID() then
 			self:EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " damaged by " .. attacker:Name() .. " on team " .. attacker:Team())
 		end

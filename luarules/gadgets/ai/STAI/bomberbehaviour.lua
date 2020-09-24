@@ -22,7 +22,7 @@ function BomberBehaviour:Init()
 
 	self.lastOrderFrame = self.game:Frame()
 	self.name = self.unit:Internal():Name()
-	if unitTable[self.name].submergedRange > 0 then
+	if self.ai.data.unitTable[self.name].submergedRange > 0 then
 		self.weapon = "torpedo"
 		self.hurts = "submerged"
 	else
@@ -36,19 +36,19 @@ end
 
 function BomberBehaviour:OwnerBuilt()
 	self:EchoDebug("built")
-	ai.bomberhandler:AddRecruit(self)
+	self.ai.bomberhandler:AddRecruit(self)
 end
 
 function BomberBehaviour:OwnerDead()
 	self:EchoDebug("dead")
 	-- game:SendToConsole("bomber " .. self.name .. " died")
-	ai.bomberhandler:RemoveRecruit(self)
-	ai.bomberhandler:NeedMore()
+	self.ai.bomberhandler:RemoveRecruit(self)
+	self.ai.bomberhandler:NeedMore()
 	-- notify the command that area is too hot
 	if self.target then
 		local tpos = self.target:GetPosition()
 		if tpos and tpos.x then
-			ai.targethandler:AddBadPosition(tpos, 'air')
+			self.ai.targethandler:AddBadPosition(tpos, 'air')
 		end
 	end
 end
@@ -78,7 +78,7 @@ function BomberBehaviour:Activate()
 			self:BombUnit(self.target)
 		end
 	else
-		ai.bomberhandler:AddRecruit(self)
+		self.ai.bomberhandler:AddRecruit(self)
 	end
 end
 

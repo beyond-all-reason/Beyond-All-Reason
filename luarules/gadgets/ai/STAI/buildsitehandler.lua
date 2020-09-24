@@ -69,13 +69,13 @@ end
 -- keeps amphibious/hover cons from zigzagging from the water to the land too far
 function BuildSiteHandler:LandWaterFilter(pos, unitTypeToBuild, builder)
 	local builderName = builder:Name()
-	local mtype = unitTable[builderName].mtype
+	local mtype = self.ai.data.unitTable[builderName].mtype
 	if mtype ~= "amp" and  mtype ~= "hov" and not commanderList[builderName] then
 		-- don't bother with units that aren't amphibious
 		return true
 	end
 	local unitName = unitTypeToBuild:Name()
-	if unitTable[unitName].extractsMetal > 0 or unitTable[unitName].buildOptions then
+	if self.ai.data.unitTable[unitName].extractsMetal > 0 or self.ai.data.unitTable[unitName].buildOptions then
 		-- leave mexes and factories alone
 		return true
 	end
@@ -83,7 +83,7 @@ function BuildSiteHandler:LandWaterFilter(pos, unitTypeToBuild, builder)
 	local builderPos = builder:GetPosition()
 	local water = self.ai.maphandler:MobilityNetworkHere("shp", builderPos)
 	-- is this a land or a water unit we're building?
-	local waterBuildOrder = unitTable[unitName].needsWater
+	local waterBuildOrder = self.ai.data.unitTable[unitName].needsWater
 	-- if this is a movement from land to water or water to land, check the distance
 	if water then self:EchoDebug(builderName .. " is in water") else self:EchoDebug(builderName .. " is on land") end
 	if waterBuildOrder then self:EchoDebug(unitName .. " would be in water") else self:EchoDebug(unitName .. " would be on land") end
@@ -104,7 +104,7 @@ end
 function BuildSiteHandler:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition)
 	-- make sure it's on the map
 	if pos ~= nil then
-		if unitTable[unitTypeToBuild:Name()].buildOptions then
+		if self.ai.data.unitTable[unitTypeToBuild:Name()].buildOptions then
 			-- don't build factories too close to south map edge because they face south
 			-- Spring.Echo(pos.x, pos.z, self.ai.maxElmosX, self.ai.maxElmosZ)
 			if (pos.x <= 0) or (pos.x > self.ai.maxElmosX) or (pos.z <= 0) or (pos.z > self.ai.maxElmosZ - 240) then
@@ -189,9 +189,9 @@ function BuildSiteHandler:GetBuildSpacing(unitTypeToBuild)
 	local spacing = 1
 	local name = unitTypeToBuild:Name()
 	if Eco1[name] then spacing = 2 end--TODO removing this sistem
-	if unitTable[name].isWeapon then spacing = 8 end
-	if unitTable[name].bigExplosion then spacing = 20 end
-	if unitTable[name].buildOptions then spacing = 4 end
+	if self.ai.data.unitTable[name].isWeapon then spacing = 8 end
+	if self.ai.data.unitTable[name].bigExplosion then spacing = 20 end
+	if self.ai.data.unitTable[name].buildOptions then spacing = 4 end
 	return spacing
 end
 
@@ -213,7 +213,7 @@ end
 -- function BuildSiteHandler:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, dist, segmentSize, direction, i)
 -- 	local pos = nil
 -- 	if dist == nil then
--- 		local ut = unitTable[unitTypeToBuild:Name()]
+-- 		local ut = self.ai.data.unitTable[unitTypeToBuild:Name()]
 -- 		dist = math.max(ut.xsize, ut.zsize) * 8
 -- 		-- dist = 64
 -- 	end
@@ -225,7 +225,7 @@ end
 -- 	searchPos.x = position.x + 0
 -- 	searchPos.y = position.y + 0
 -- 	searchPos.z = position.z + 0
--- 
+--
 -- 	self:EchoDebug("new spiral search")
 -- 	while segmentSize < 8 do
 -- 		-- self:EchoDebug(i .. " " .. direction .. " " .. segmentSize .. " : " .. math.ceil(position.x) .. " " .. math.ceil(position.z))
@@ -252,7 +252,7 @@ end
 -- 			end
 -- 		end
 -- 	end
--- 
+--
 -- 	return pos
 -- end
 
@@ -275,7 +275,7 @@ function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 		end
 	end
 	if factorybhvr then
-		
+
 		local factoryPos = factorybhvr.position
 		local newpos = api.Position()
 		newpos.x = factoryPos.x
@@ -312,12 +312,12 @@ function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end
 	self:PlotAllDebug()
-	
+
 end
 
 function BuildSiteHandler:unitNearCheck(utype,pos,range)
 	if type(range) ~= 'number' then
-		range = unitTable[utype:Name()][range]
+		range = self.ai.data.unitTable[utype:Name()][range]
 	end
 	--local target = Spring.GetUnitsInCylinder(p.x,p.z,range,self.game:GetTeamID())
 	local unitsNear = self.game:getUnitsInCylinder(pos, range)
@@ -331,15 +331,15 @@ function BuildSiteHandler:unitNearCheck(utype,pos,range)
 	end
 	return false
 end
-		                            
+
 function BuildSiteHandler:searchPosNearThing(utype,builder,thing,range,spaceEquals,minDist)
 	self:EchoDebug(thing)
 	local pos = builder:GetPosition()
 	local builderName = builder:Name()
 	if not range then
-		range = unitTable[builderName].losRadius
+		range = self.ai.data.unitTable[builderName].losRadius
 		if type(spaceEquals) == 'string' then
-			range = unitTable[builderName][spaceEquals]
+			range = self.ai.data.unitTable[builderName][spaceEquals]
 		elseif type(spaceEquals) == 'number' then
 			range = spaceEquals
 		end
@@ -350,21 +350,37 @@ function BuildSiteHandler:searchPosNearThing(utype,builder,thing,range,spaceEqua
 		local unitNear = self.game:GetUnitByID(typeDef)
 		local unitNearName = unitNear:Name()
 		self:EchoDebug('around there ', unitNearName)
-		local tg = unitTable[unitNearName][thing]
+		local tg = self.ai.data.unitTable[unitNearName][thing]
 		if tg then
 			self:EchoDebug()
 			local tgPos = unitNear:GetPosition()
 			if  spaceEquals then
 				if not self:unitNearCheck(utype,tgPos,spaceEquals)then
 					self:EchoDebug('no same unit near: pass')
-					local p = ai.buildsitehandler:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, unitTable[builderName].losRadius)
+					local p = ai.buildsitehandler:ClosestBuildSpot(
+						builder,
+						tgPos,
+						utype,
+						minDist,
+						nil,
+						nil,
+						self.ai.data.unitTable[builderName].losRadius
+					)
 					self:EchoDebug('is ok')
 					if p then return p end
 				else
 					self:EchoDebug('same unit near: skip')
 				end
 			else
-				local p = ai.buildsitehandler:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, unitTable[builderName].losRadius)
+				local p = ai.buildsitehandler:ClosestBuildSpot(
+					builder,
+					tgPos,
+					utype,
+					minDist,
+					nil,
+					nil,
+					self.ai.data.unitTable[builderName].losRadius
+				)
 				if p then return p end
 			end
 		end
@@ -376,15 +392,22 @@ function BuildSiteHandler:searchPosInList(list,utype, builder, spaceEquals,minDi
 	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
 	if list and #list > 0 then
 		for index, pos in pairs(list) do
-			if Distance(pos,builder:GetPosition()) < unitTable[builder:Name()].losRadius then
+			if Distance(pos,builder:GetPosition()) < self.ai.data.unitTable[builder:Name()].losRadius then
 				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
-					local p = ai.buildsitehandler:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, unitTable[utype:Name()][spaceEquals])
+					local p = self.ai.buildsitehandler:ClosestBuildSpot(
+						builder,
+						pos,
+						utype,
+						minDist,
+						nil, nil,
+						self.ai.data.unitTable[utype:Name()][spaceEquals]
+					)
 					if p then return p end
 				end
 			end
 		end
 	end
-		                            
+
 	return nil
 end
 
@@ -399,14 +422,14 @@ function BuildSiteHandler:BuildNearNano(builder, utype)
 			local hotPos = nanoHots[i]
 			-- find somewhere within hotspot
 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
-			if p then 
+			if p then
 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
 				return p
 			end
 		end
 	end
 	return self:BuildNearLastNano(builder, utype)
-	
+
 end
 
 function BuildSiteHandler:BuildNearLastNano(builder, utype)
@@ -434,7 +457,7 @@ function BuildSiteHandler:UnitCreated(unit)
 				self.resurrectionRepair[unitID] = plan.behaviour
 			else
 				self:EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
-				if unitTable[unitName].isBuilding or nanoTurretList[unitName] then
+				if self.ai.data.unitTable[unitName].isBuilding or nanoTurretList[unitName] then
 					-- so that oversized factory lane rectangles will overlap with existing buildings
 					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
 					self.ai.turtlehandler:PlanCreated(plan, unitID)
@@ -450,7 +473,7 @@ function BuildSiteHandler:UnitCreated(unit)
 			break
 		end
 	end
-	if not planned and (unitTable[unitName].isBuilding or nanoTurretList[unitName]) then
+	if not planned and (self.ai.data.unitTable[unitName].isBuilding or nanoTurretList[unitName]) then
 		-- for when we're restarting the AI, or other contingency
 		-- game:SendToConsole("unplanned building creation " .. unitName .. " " .. unitID .. " " .. position.x .. ", " .. position.z)
 		local rect = { position = position, unitName = unitName }
@@ -466,13 +489,13 @@ end
 function BuildSiteHandler:CheckForDuplicates(unitName)
 	if unitName == nil then return true end
 	if unitName == DummyUnitName then return true end
-	local utable = unitTable[unitName]
+	local utable = self.ai.data.unitTable[unitName]
 	local isFactory = utable.isBuilding and utable.buildOptions
 	local isExpensive = utable.metalCost > 300
 	if not isFactory and not isExpensive then return false end
 	EchoDebugPlans("looking for duplicate plan for " .. unitName)
 	for i, plan in pairs(self.plans) do
-		local thisIsFactory = unitTable[plan.unitName].isBuilding and unitTable[plan.unitName].buildOptions
+		local thisIsFactory = self.ai.data.unitTable[plan.unitName].isBuilding and self.ai.data.unitTable[plan.unitName].buildOptions
 		if isFactory and thisIsFactory then return true end
 		if isExpensive and plan.unitName == unitName then return true end
 	end
@@ -512,8 +535,8 @@ function BuildSiteHandler:CalculateRect(rect)
 		return
 	end
 	local position = rect.position
-	local outX = unitTable[unitName].xsize * 4
-	local outZ = unitTable[unitName].zsize * 4
+	local outX = unitTself.ai.data.unitTableable[unitName].xsize * 4
+	local outZ = self.ai.data.unitTable[unitName].zsize * 4
 	rect.x1 = position.x - outX
 	rect.z1 = position.z - outZ
 	rect.x2 = position.x + outX
@@ -523,8 +546,8 @@ end
 function BuildSiteHandler:CalculateFactoryLane(rect)
 	local unitName = rect.unitName
 	local position = rect.position
-	local outX = unitTable[unitName].xsize * 4
-	local outZ = unitTable[unitName].zsize * 4
+	local outX = self.ai.data.unitTable[unitName].xsize * 4
+	local outZ = self.ai.data.unitTable[unitName].zsize * 4
 	local tall = outZ * 10
 	local facing = self:GetFacing(position)
 	if facing == 0 then
@@ -558,7 +581,7 @@ function BuildSiteHandler:NewPlan(unitName, position, behaviour, resurrect)
 	end
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
-	if unitTable[unitName].isBuilding or nanoTurretList[unitName] then
+	if self.ai.data.unitTable[unitName].isBuilding or nanoTurretList[unitName] then
 		self.ai.turtlehandler:NewUnit(unitName, position, plan)
 	end
 	table.insert(self.plans, plan)
@@ -569,7 +592,7 @@ function BuildSiteHandler:ClearMyPlans(behaviour)
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
-			if not plan.resurrect and (unitTable[plan.unitName].isBuilding or nanoTurretList[unitName]) then
+			if not plan.resurrect and (self.ai.data.unitTable[plan.unitName].isBuilding or nanoTurretList[unitName]) then
 				self.ai.turtlehandler:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)

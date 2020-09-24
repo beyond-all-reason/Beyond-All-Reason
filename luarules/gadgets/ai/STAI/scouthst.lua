@@ -20,16 +20,16 @@ end
 
 function ScoutHST:ScoutLos(scoutbst, position)
 	local los
-	if ai.maphst:IsUnderWater(position) and unitTable[scoutbst.name].sonarRadius == 0 then
+	if self.ai.maphst:IsUnderWater(position) and self.ai.data.unitTable[scoutbst.name].sonarRadius == 0 then
 		-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
-		local lt = ai.loshst:AllLos(position)
+		local lt = self.ai.loshst:AllLos(position)
 		if lt[2] then
 			los = 2
 		else
 			los = 0
 		end
 	else
-		los = ai.loshst:GroundLos(position)
+		los = self.ai.loshst:GroundLos(position)
 	end
 	return los
 end
@@ -52,8 +52,8 @@ function ScoutHST:ClosestSpot(scoutbst)
 	-- filling table of spots to scout if empty
 	if #self.spotsToScout[mtype][network] == 0 then
 		if not self.usingStarts[mtype][network] then
-			if ai.startLocations[mtype] ~= nil then
-				if ai.startLocations[mtype][network] ~= nil then
+			if self.ai.startLocations[mtype] ~= nil then
+				if self.ai.startLocations[mtype][network] ~= nil then
 					-- scout all probable start locations first
 					self:EchoDebug(unit:Name() .. " got starts")
 					for i, p in pairs(ai.startLocations[mtype][network]) do
@@ -80,18 +80,18 @@ function ScoutHST:ClosestSpot(scoutbst)
 	for i = #self.spotsToScout[mtype][network], 1, -1 do
 		local p = self.spotsToScout[mtype][network][i]
 		local los
-		if ai.maphst:IsUnderWater(p) and unitTable[scoutbst.name].sonarRadius == 0 then
+		if self.ai.maphst:IsUnderWater(p) and self.ai.data.unitTable[scoutbst.name].sonarRadius == 0 then
 			-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
-			local lt = ai.loshst:AllLos(p)
+			local lt = self.ai.loshst:AllLos(p)
 			if lt[2] then
 				los = 2
 			else
 				los = 0
 			end
 		else
-			los = ai.loshst:GroundLos(p)
+			los = self.ai.loshst:GroundLos(p)
 		end
-		if los == 2 or los == 3 or not ai.targethst:IsSafePosition(p, unit, 1) then
+		if los == 2 or los == 3 or not self.ai.targethst:IsSafePosition(p, unit, 1) then
 			table.remove(self.spotsToScout[mtype][network], i)
 		else
 			local dist = Distance(position, p)

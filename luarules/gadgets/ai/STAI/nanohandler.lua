@@ -20,7 +20,7 @@ function NanoHandler:Init()
 end
 
 function NanoHandler:UnitBuilt(engineUnit)
-	local ut = unitTable[engineUnit:Name()]
+	local ut = self.ai.data.unitTable[engineUnit:Name()]
 	if not ut then return end
 	if nanoTurretList[engineUnit:Name()] then
 		self:AddNano(engineUnit)
@@ -28,7 +28,7 @@ function NanoHandler:UnitBuilt(engineUnit)
 end
 
 function NanoHandler:UnitDead(engineUnit)
-	local ut = unitTable[engineUnit:Name()]
+	local ut = self.ai.data.unitTable[engineUnit:Name()]
 	if not ut then return end
 	if nanoTurretList[engineUnit:Name()] then
 		self:RemoveNano(engineUnit)

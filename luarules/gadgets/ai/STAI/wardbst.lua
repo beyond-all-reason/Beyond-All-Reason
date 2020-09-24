@@ -12,10 +12,10 @@ function WardBST:Init()
 	self.initialLocation = self.unit:Internal():GetPosition()
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
-	self.mtype = unitTable[self.name].mtype
+	self.mtype = self.ai.data.unitTable[self.name].mtype
 	self.water = self.mtype == "sub" or self.mtype == "shp" or self.mtype == "amp" -- can be hurt by submerged weapons
 	self.isCommander = commanderList[self.name]
-	self.mobile = not unitTable[self.name].isBuilding and not nanoTurretList[self.name] -- for some reason nano turrets are not buildings
+	self.mobile = not self.ai.data.unitTable[self.name].isBuilding and not nanoTurretList[self.name] -- for some reason nano turrets are not buildings
 	self.isScout = scoutList[self.name]
 	if self.isCommander then
 		self.threshold = 0.2
@@ -115,10 +115,10 @@ function WardBST:NearestCombat()
 	for i,unit in pairs(ownUnits) do
 		local un = unit:Name()
 		if unit:ID() ~= fid and un ~= "corcom" and un ~= "armcom" and not self.ai.defendhst:IsDefendingMe(unit, self) then
-			if unitTable[un].isWeapon and (battleList[un] or breakthroughList[un]) then
+			if self.ai.data.unitTable[un].isWeapon and (battleList[un] or breakthroughList[un]) then
 				local upos = unit:GetPosition()
 				if self.ai.targethst:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphst:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
-					local dist = Distance(fpos, upos) - unitTable[un].metalCost
+					local dist = Distance(fpos, upos) - self.ai.data.unitTable[un].metalCost
 					if dist < bestDistance then
 						bestDistance = dist
 						best = upos
