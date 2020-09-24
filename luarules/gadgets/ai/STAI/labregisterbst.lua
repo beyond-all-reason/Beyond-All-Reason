@@ -96,7 +96,7 @@ function LabRegisterBST:Register()
 		self.ai.attackhst:NeedLess(nil, 2)
 		self.ai.bomberhst:NeedLess()
 		self.ai.bomberhst:NeedLess()
-		self.ai.raidhandler:NeedMore(nil, 2)
+		self.ai.raidhst:NeedMore(nil, 2)
 		-- set the current maximum factory level
 		self.ai.maxFactoryLevel = level
 	end

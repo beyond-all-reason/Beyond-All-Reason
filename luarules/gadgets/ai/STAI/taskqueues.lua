@@ -144,7 +144,7 @@ function BuildRaiderIfNeeded(unitName)
 			return DummyUnitName
 		end
 	end
-	local counter = ai.raidhandler:GetCounter(mtype)
+	local counter = ai.raidhst:GetCounter(mtype)
 	if counter == minRaidCounter then return DummyUnitName end
 	if ai.raiderCount[mtype] == nil then
 		-- fine
@@ -168,7 +168,7 @@ function BuildBattleIfNeeded(unitName)
 		-- if we have a level 2 factory, don't wait to build raiders first
 		return unitName
 	end
-	local raidCounter = ai.raidhandler:GetCounter(mtype)
+	local raidCounter = ai.raidhst:GetCounter(mtype)
 	EchoDebug(mtype .. " " .. raidCounter .. " " .. maxRaidCounter)
 	if raidCounter == minRaidCounter then return unitName end
 	EchoDebug(ai.raiderCount[mtype])

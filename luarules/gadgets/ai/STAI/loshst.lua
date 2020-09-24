@@ -197,12 +197,12 @@ function LosHST:UpdateEnemies(enemyList)
 				self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
 			end
 			if self.ai.IDsWeAreRaiding[id] then
-				self.ai.raidhandler:TargetDied(self.ai.IDsWeAreRaiding[id])
+				self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
 			end
 			self:EchoDebug("enemy " .. e.unitName .. " died!")
 			local mtypes = UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
-				self.ai.raidhandler:NeedMore(mtype)
+				self.ai.raidhst:NeedMore(mtype)
 				self.ai.attackhst:NeedLess(mtype)
 				if mtype == "air" then self.ai.bomberhst:NeedLess() end
 			end

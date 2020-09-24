@@ -40,7 +40,7 @@ function RaiderBST:Init()
 
 	-- for pathfinding
 	self.graph = self.ai.maphst:GetPathGraph(self.mtype)
-	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
+	self.validFunc = self.ai.raidhst:GetPathValidFunc(self.name)
 	self.modifierFunc = self.ai.targethandler:GetPathModifierFunc(self.name)
 	local nodeSize = self.graph.positionUnitsPerNodeUnits
 	self.nearDistance = nodeSize * 0.1 -- move this far away from path nodes
@@ -64,7 +64,7 @@ function RaiderBST:OwnerDead()
 	if self.target then
 		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
 	end
-	self.ai.raidhandler:NeedLess(self.mtype)
+	self.ai.raidhst:NeedLess(self.mtype)
 	self.ai.raiderCount[self.mtype] = self.ai.raiderCount[self.mtype] - 1
 end
 
@@ -175,15 +175,15 @@ function RaiderBST:RaidCell(cell)
 	self:EchoDebug(self.name .. " raiding cell...")
 	if self.unit == nil then
 		self:EchoDebug("no raider unit to raid cell with!")
-		-- self.ai.raidhandler:RemoveRecruit(self)
+		-- self.ai.raidhst:RemoveRecruit(self)
 	elseif self.unit:Internal() == nil then
 		self:EchoDebug("no raider unit internal to raid cell with!")
-		-- self.ai.raidhandler:RemoveRecruit(self)
+		-- self.ai.raidhst:RemoveRecruit(self)
 	else
 		if self.buildingIDs ~= nil then
-			self.ai.raidhandler:IDsWeAreNotRaiding(self.buildingIDs)
+			self.ai.raidhst:IDsWeAreNotRaiding(self.buildingIDs)
 		end
-		self.ai.raidhandler:IDsWeAreRaiding(cell.buildingIDs, self.mtype)
+		self.ai.raidhst:IDsWeAreRaiding(cell.buildingIDs, self.mtype)
 		self.buildingIDs = cell.buildingIDs
 		self.target = cell.pos
 		self:BeginPath(self.target)
