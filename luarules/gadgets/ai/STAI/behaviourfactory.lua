@@ -53,7 +53,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		elseif antinukeList[un] then
 			table.insert(b, AntinukeBST)
 		elseif bigPlasmaList[un] then
-			table.insert(b, BombardBehaviour)
+			table.insert(b, BombardBST)
 		end
 	end
 
@@ -101,7 +101,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBehaviour) end -- will only defend when scrambled by danger
 		end
 		if IsBomber(unit) then
-			table.insert(b, BomberBehaviour)
+			table.insert(b, BomberBST)
 		end
 		if IsScout(unit, self.scoutlist) then
 			table.insert(b, ScoutBehaviour)
