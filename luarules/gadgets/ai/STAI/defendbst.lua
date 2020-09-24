@@ -40,7 +40,7 @@ function DefendBST:Init()
 			self:EchoDebug(self.name .. " is scramble")
 			self.scramble = true
 			if self.mtype ~= "air" then
-				self.ai.defendhandler:AddScramble(self)
+				self.ai.defendhst:AddScramble(self)
 			end
 			break
 		end
@@ -52,12 +52,12 @@ end
 function DefendBST:OwnerDead()
 	-- game:SendToConsole("defender " .. self.name .. " died")
 	if self.scramble then
-		self.ai.defendhandler:RemoveScramble(self)
+		self.ai.defendhst:RemoveScramble(self)
 		if self.scrambled then
-			self.ai.defendhandler:RemoveDefender(self)
+			self.ai.defendhst:RemoveDefender(self)
 		end
 	else
-		self.ai.defendhandler:RemoveDefender(self)
+		self.ai.defendhst:RemoveDefender(self)
 	end
 end
 
@@ -83,7 +83,7 @@ function DefendBST:Update()
 			local guardDistance = self.target.guardDistance
 			if not self.tough then guardDistance = guardDistance * 0.33 end
 			local guardPos = RandomAway(targetPos, guardDistance, false, self.guardAngle)
-			local safe = self.ai.defendhandler:WardSafe(self.target)
+			local safe = self.ai.defendhst:WardSafe(self.target)
 			-- if targetPos.y > 100 then game:SendToConsole(targetPos.y .. " " .. type(self.target.behaviour)) end
 			local unitPos = unit:GetPosition()
 			local dist = Distance(unitPos, guardPos)
@@ -163,7 +163,7 @@ function DefendBST:Activate()
 	self.target = nil
 	self.targetPos = nil
 	self.guarding = nil
-	self.ai.defendhandler:AddDefender(self)
+	self.ai.defendhst:AddDefender(self)
 	self:SetMoveState()
 end
 
@@ -173,7 +173,7 @@ function DefendBST:Deactivate()
 	self.target = nil
 	self.targetPos = nil
 	self.guarding = nil
-	self.ai.defendhandler:RemoveDefender(self)
+	self.ai.defendhst:RemoveDefender(self)
 end
 
 function DefendBST:Priority()

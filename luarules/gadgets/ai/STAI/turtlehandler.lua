@@ -225,7 +225,7 @@ function TurtleHandler:RemoveOrgan(unitID)
 				table.remove(turtle.organs, oi)
 				if #turtle.organs == 0 then
 					emptyTurtle = turtle
-					self.ai.defendhandler:RemoveWard(nil, turtle)
+					self.ai.defendhst:RemoveWard(nil, turtle)
 					table.remove(self.turtles, ti)
 				end
 				foundOrgan = true
@@ -374,7 +374,7 @@ function TurtleHandler:AddTurtle(position, water, priority)
 	end
 	table.insert(self.turtles, turtle)
 	self.totalPriority = self.totalPriority + priority
-	self.ai.defendhandler:AddWard(nil, turtle)
+	self.ai.defendhst:AddWard(nil, turtle)
 	return turtle
 end
 

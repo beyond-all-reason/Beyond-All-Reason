@@ -643,7 +643,7 @@ function TargetHandler:UpdateFronts(number)
 		highestResponses[n] = highestResponse
 		highestCells[n] = highestCell
 	end
-	self.ai.defendhandler:FindFronts(highestCells)
+	self.ai.defendhst:FindFronts(highestCells)
 end
 
 function TargetHandler:UpdateDebug()
