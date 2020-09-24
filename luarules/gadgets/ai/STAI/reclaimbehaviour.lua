@@ -14,7 +14,7 @@ local CMD_RESURRECT = 125
 function ReclaimBehaviour:Init()
 	self.DebugEnabled = false
 
-	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.canReclaimGAS = {}
 	if self.mtype == "veh" or self.mtype == "bot" or self.mtype == "amp" or self.mtype == "hov" then

@@ -23,7 +23,7 @@ ScoutBehaviour.DebugEnabled = false
 function ScoutBehaviour:Init()
 	self.evading = false
 	self.active = false
-	local mtype, network = ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	self.armed = unitTable[self.name].isWeapon
@@ -79,7 +79,7 @@ function ScoutBehaviour:Update()
 				self.target = nil
 				self.evading = false
 				self.attacking = true
-			elseif self.target ~= nil then	
+			elseif self.target ~= nil then
 				-- evade enemies along the way if possible
 				local newPos, arrived = ai.targethandler:BestAdjacentPosition(unit, self.target)
 				if newPos then
@@ -112,7 +112,7 @@ function ScoutBehaviour:Update()
 			self.lastUpdateFrame = f
 		end
 	end
-	
+
 	-- keep air units circling
 	if self.mtype == "air" and self.active then
 		local f = self.game:Frame()

@@ -15,7 +15,7 @@ end
 AttackerBST.DebugEnabled = false
 
 function AttackerBST:Init()
-	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	local ut = unitTable[self.name]
@@ -125,12 +125,12 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	else
 		self.target = RandomAway(pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
-	local canMoveThere = self.ai.maphandler:UnitCanGoHere(self.unit:Internal(), self.target)
+	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	if canMoveThere then
 		self.squad.lastValidMove = self.target
 	elseif self.squad.lastValidMove then
 		self.target = RandomAway(self.squad.lastValidMove, self.congSize)
-		canMoveThere = self.ai.maphandler:UnitCanGoHere(self.unit:Internal(), self.target)
+		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
 	if self.active and canMoveThere then
 		-- local framesToArrive = 30 * (Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2

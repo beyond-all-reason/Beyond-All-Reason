@@ -27,7 +27,7 @@ function MapHasWater()
 	return (ai.waterMap or ai.hasUWSpots) or false
 end
 
--- this is initialized in maphandler
+-- this is initialized in maphst
 function MapHasUnderwaterMetal()
 	return ai.hasUWSpots or false
 end
@@ -233,7 +233,7 @@ end
 function LandOrWater(tskqbhvr, landName, waterName)
 	local builder = tskqbhvr.unit:Internal()
 	local bpos = builder:GetPosition()
-	local waterNet = ai.maphandler:MobilityNetworkSizeHere("shp", bpos)
+	local waterNet = ai.maphst:MobilityNetworkSizeHere("shp", bpos)
 	if waterNet ~= nil then
 		return waterName
 	else
@@ -300,7 +300,7 @@ function EngineerAsFactory(tskqbhvr)
 end
 
 local function CommanderEconomy(tskqbhvr)
-	local underwater = ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
+	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = DummyUnitName
 	if not underwater then
 		unitName = Economy0()
@@ -313,7 +313,7 @@ local function CommanderEconomy(tskqbhvr)
 end
 
 local function AmphibiousEconomy(tskqbhvr)
-	local underwater = ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
+	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = DummyUnitName
 	if underwater then
 		unitName = EconomyUnderWater(tskqbhvr)

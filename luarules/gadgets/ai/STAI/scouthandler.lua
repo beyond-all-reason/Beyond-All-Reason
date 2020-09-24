@@ -20,7 +20,7 @@ end
 
 function ScoutHandler:ScoutLos(scoutbehaviour, position)
 	local los
-	if ai.maphandler:IsUnderWater(position) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
+	if ai.maphst:IsUnderWater(position) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
 		-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
 		local lt = ai.loshst:AllLos(position)
 		if lt[2] then
@@ -80,7 +80,7 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 	for i = #self.spotsToScout[mtype][network], 1, -1 do
 		local p = self.spotsToScout[mtype][network][i]
 		local los
-		if ai.maphandler:IsUnderWater(p) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
+		if ai.maphst:IsUnderWater(p) and unitTable[scoutbehaviour.name].sonarRadius == 0 then
 			-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
 			local lt = ai.loshst:AllLos(p)
 			if lt[2] then

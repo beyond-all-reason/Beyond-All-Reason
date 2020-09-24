@@ -20,7 +20,7 @@ function RaiderBehaviour:Init()
 	self.DebugEnabled = false
 
 	self:EchoDebug("init")
-	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	local utable = unitTable[self.name]
@@ -39,7 +39,7 @@ function RaiderBehaviour:Init()
 	self.sightRange = utable.losRadius
 
 	-- for pathfinding
-	self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
+	self.graph = self.ai.maphst:GetPathGraph(self.mtype)
 	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
 	self.modifierFunc = self.ai.targethandler:GetPathModifierFunc(self.name)
 	local nodeSize = self.graph.positionUnitsPerNodeUnits
@@ -176,7 +176,7 @@ function RaiderBehaviour:RaidCell(cell)
 	if self.unit == nil then
 		self:EchoDebug("no raider unit to raid cell with!")
 		-- self.ai.raidhandler:RemoveRecruit(self)
-	elseif self.unit:Internal() == nil then 
+	elseif self.unit:Internal() == nil then
 		self:EchoDebug("no raider unit internal to raid cell with!")
 		-- self.ai.raidhandler:RemoveRecruit(self)
 	else
@@ -263,7 +263,7 @@ function RaiderBehaviour:BeginPath(position)
 	end
 	self:EchoDebug("getting new path")
 	local upos = self.unit:Internal():GetPosition()
-	self.graph = self.graph or self.ai.maphandler:GetPathGraph(self.mtype)
+	self.graph = self.graph or self.ai.maphst:GetPathGraph(self.mtype)
 	self.pathfinder = self.graph:PathfinderPosPos(upos, position, nil, self.validFunc, nil, self.modifierFunc)
 	self:FindPath() -- try once
 end
@@ -411,7 +411,7 @@ end
 
 function RaiderBehaviour:MoveToSafety()
 	local upos = self.unit:Internal():GetPosition()
-	self.graph = self.graph or self.ai.maphandler:GetPathGraph(self.mtype)
+	self.graph = self.graph or self.ai.maphst:GetPathGraph(self.mtype)
 	local node = self.graph:NearestNodePosition(upos, self.validFunc)
 	if node then
 		self:MoveNear(node.position)

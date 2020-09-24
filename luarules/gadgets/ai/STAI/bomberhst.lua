@@ -92,7 +92,7 @@ function BomberHST:DoTargetting()
 				midPos.x = sumX / #recruits
 				midPos.z = sumZ / #recruits
 				midPos.y = 0
-				self.graph = self.graph or self.ai.maphandler:GetPathGraph('air', 512)
+				self.graph = self.graph or self.ai.maphst:GetPathGraph('air', 512)
 				local pathfinder = self.graph:PathfinderPosPos(midPos, targetUnit:GetPosition(), nil, validFunc)
 				local bombers = {}
 				local bombersCount = 0

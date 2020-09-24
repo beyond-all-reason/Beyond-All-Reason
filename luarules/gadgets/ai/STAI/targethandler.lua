@@ -541,7 +541,7 @@ function TargetHandler:UpdateMetalGeoSpots()
 		if not self.ai.loshst:IsInLos(spot) then
 			local cell = self:GetOrCreateCellHere(spot)
 			-- cell.value = cell.value + unseenMetalGeoValue
-			local underwater = self.ai.maphandler:IsUnderWater(spot)
+			local underwater = self.ai.maphst:IsUnderWater(spot)
 			for i = 1, #fromGAS do
 				local fgas = fromGAS[i]
 				if not underwater or fgas ~= 'submerged' then
@@ -831,7 +831,7 @@ function TargetHandler:GetBestRaidCell(representative)
 		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
 		threat = threat - threatReduction
 		if value > 0 and threat <= maxThreat then
-			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
+			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				local mod = value - (threat * 3)
 				local dist = Distance(rpos, cell.pos) - mod
 				if dist < bestDist then
@@ -883,7 +883,7 @@ function TargetHandler:GetBestAttackCell(representative, position, ourThreat)
 	local lowestDist = 100000
 	for i, cell in pairs(self.cellList) do
 		if cell.pos then
-			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
+			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
 				local value, threat = CellValueThreat(name, cell)
 				local dist = Distance(position, cell.pos)
 				if dist > highestDist then highestDist = dist end
@@ -947,7 +947,7 @@ function TargetHandler:GetNearestAttackCell(representative, position, ourThreat)
 	local closestThreateningCell
 	for i, cell in pairs(self.cellList) do
 		if cell.pos then
-			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
+			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
 				local value, threat = CellValueThreat(name, cell)
 				if threat <= ourThreat * 0.67 then
 					if value > 0 then
@@ -1084,13 +1084,13 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 	for i, cell in pairs(self.cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
-			local canGo = self.ai.maphandler:UnitCanGoHere(representative, cell.pos)
+			local canGo = self.ai.maphst:UnitCanGoHere(representative, cell.pos)
 			if not canGo then
 				self:EchoDebug("can't get to reclaim cell, trying nearby")
 				-- check nearby positions, because sometimes the commander is underwater in a crater but can still be reclaimed
 				for angle = halfPi, twicePi, halfPi do
 					local nearPos = RandomAway(cell.pos, 110, nil, angle)
-					canGo = self.ai.maphandler:UnitCanGoHere(representative, nearPos)
+					canGo = self.ai.maphst:UnitCanGoHere(representative, nearPos)
 					if canGo then
 						self:EchoDebug("found accessible position near reclaim cell")
 						break
@@ -1133,7 +1133,7 @@ function TargetHandler:WreckToResurrect(representative, alsoDamagedUnits)
 		if #cell.resurrectables ~= 0 or (alsoDamagedUnits and cell.damagedUnits and #cell.damagedUnits > 0) then
 			local value, threat, gas = CellValueThreat(rname, cell)
 			if threat == 0 and cell.pos then
-				if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
+				if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 					local dist = Distance(rpos, cell.pos)
 					if dist < bestDist then
 						best = cell
@@ -1198,7 +1198,7 @@ function TargetHandler:NearestVulnerableCell(representative)
 	for i, cell in pairs(self.cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
-			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
+			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				if CellVulnerable(cell, gas, weapons) ~= nil then
 					local dist = Distance(rpos, cell.pos)
 					if dist < bestDist then
@@ -1380,7 +1380,7 @@ function TargetHandler:BestAdjacentPosition(unit, targetPosition)
 						self.cells[x][z].pos.z = z * cellElmos - cellElmosHalf
 						self.cells[x][z].pos.y = 0
 					end
-					if self.ai.maphandler:UnitCanGoHere(unit, self.cells[x][z].pos) then
+					if self.ai.maphst:UnitCanGoHere(unit, self.cells[x][z].pos) then
 						best = self.cells[x][z]
 					end
 				end

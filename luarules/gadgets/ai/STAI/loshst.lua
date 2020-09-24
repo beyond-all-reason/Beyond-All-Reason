@@ -407,7 +407,7 @@ function LosHST:GroundLos(upos)
 	elseif self.losGrid[gx][gz] == nil then
 		return 0
 	else
-		if self.ai.maphandler:IsUnderWater(upos) then
+		if self.ai.maphst:IsUnderWater(upos) then
 			if self.losGrid[gx][gz][3] then
 				return 3
 			else

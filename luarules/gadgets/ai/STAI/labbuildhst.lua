@@ -232,7 +232,7 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 		local distance = 99999
 		if factoryPos then
 			for index, hotSpot in pairs(self.ai.hotSpot) do
-				if self.ai.maphandler:MobilityNetworkHere(mtype,hotSpot) then
+				if self.ai.maphst:MobilityNetworkHere(mtype,hotSpot) then
 
 					dist = math.min(distance, Distance(hotSpot,factoryPos))
 					if dist < distance then
@@ -271,7 +271,7 @@ end
 function LabBuildHST:PostPositionalFilter(factoryName,p)
 	local mobNetOkay = false
 	for i, mtype in pairs(factoryMobilities[factoryName]) do
-		local network = self.ai.maphandler:MobilityNetworkHere(mtype, p)
+		local network = self.ai.maphst:MobilityNetworkHere(mtype, p)
 		if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
 			mobNetOkay = true
 			break
@@ -288,13 +288,13 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 	-- 	return false
 	-- end
 	if mtype == 'bot' then
-		local vehNetwork = self.ai.factoryBuilded['veh'][self.ai.maphandler:MobilityNetworkHere('veh',p)]
+		local vehNetwork = self.ai.factoryBuilded['veh'][self.ai.maphst:MobilityNetworkHere('veh',p)]
 		if (vehNetwork and vehNetwork > 0) and (vehNetwork < 4 or self.ai.factoryBuilded['air'][1] < 1) then
 			self:EchoDebug('dont build bot where are already veh not on top of tech level')
 			return false
 		end
 	elseif mtype == 'veh' then
-		local botNetwork = self.ai.factoryBuilded['bot'][self.ai.maphandler:MobilityNetworkHere('bot',p)]
+		local botNetwork = self.ai.factoryBuilded['bot'][self.ai.maphst:MobilityNetworkHere('bot',p)]
 		if (botNetwork and botNetwork > 0) and (botNetwork < 9 or self.ai.factoryBuilded['air'][1] < 1) then
 			self:EchoDebug('dont build veh where are already bot not on top of tech level')
 			return false

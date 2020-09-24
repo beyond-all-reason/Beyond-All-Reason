@@ -36,13 +36,13 @@ end
 
 function TaskQueueBehaviour:GetAmpOrGroundWeapon()
 	if ai.enemyBasePosition then
-		if ai.maphandler:MobilityNetworkHere('veh', self.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', self.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
+		if ai.maphst:MobilityNetworkHere('veh', self.position) ~= ai.maphst:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphst:MobilityNetworkHere('amp', self.position) == ai.maphst:MobilityNetworkHere('amp', ai.enemyBasePosition) then
 			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
 			return true
 		end
 	end
 	local mtype = factoryMobilities[self.name][1]
-	local network = ai.maphandler:MobilityNetworkHere(mtype, self.position)
+	local network = ai.maphst:MobilityNetworkHere(mtype, self.position)
 	if not network or not ai.factoryBuilded[mtype] or not ai.factoryBuilded[mtype][network] then
 		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
 		return true
@@ -147,7 +147,7 @@ function TaskQueueBehaviour:Init()
 	self.lastWatchdogCheck = self.game:Frame()
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
-	local mtype, network = ai.maphandler:MobilityOfUnit(u)
+	local mtype, network = ai.maphst:MobilityOfUnit(u)
 	self.mtype = mtype
 	self.name = u:Name()
 	self.side = unitTable[self.name].side
@@ -163,7 +163,7 @@ function TaskQueueBehaviour:Init()
 		self.position = upos
 		local outmoded = true
 		for i, mtype in pairs(factoryMobilities[self.name]) do
-			if not ai.maphandler:OutmodedFactoryHere(mtype, upos) then
+			if not ai.maphst:OutmodedFactoryHere(mtype, upos) then
 				-- just one non-outmoded mtype will cause the factory to act normally
 				outmoded = false
 			end
@@ -180,8 +180,8 @@ function TaskQueueBehaviour:Init()
 
 	if self.isFactory then
 		-- precalculate amphibious rank
-		local ampSpots = ai.maphandler:AccessibleMetalGeoSpotsHere('amp', self.unit:Internal():GetPosition())
-		local vehSpots = ai.maphandler:AccessibleMetalGeoSpotsHere('veh', self.unit:Internal():GetPosition())
+		local ampSpots = ai.maphst:AccessibleMetalGeoSpotsHere('amp', self.unit:Internal():GetPosition())
+		local vehSpots = ai.maphst:AccessibleMetalGeoSpotsHere('veh', self.unit:Internal():GetPosition())
 		local amphRank = 0
 		if #ampSpots > 0 and #vehSpots > 0 then
 		    amphRank = 1 - (#vehSpots / #ampSpots)
@@ -307,7 +307,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	if unitTable[value].extractsMetal > 0 then
 		-- metal extractor
 		local uw
-		p, uw, reclaimEnemyMex = ai.maphandler:ClosestFreeSpot(utype, builder)
+		p, uw, reclaimEnemyMex = ai.maphst:ClosestFreeSpot(utype, builder)
 		if p ~= nil then
 			if reclaimEnemyMex then
 				value = {"ReclaimEnemyMex", reclaimEnemyMex}
@@ -325,7 +325,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 
 	elseif geothermalPlant[value] then
 		-- geothermal
-		p = self.ai.maphandler:ClosestFreeGeo(utype, builder)
+		p = self.ai.maphst:ClosestFreeGeo(utype, builder)
 		if p then
 			self:EchoDebug("geo spot", p.x, p.y, p.z)
 			if value == "corageo" or value == "armageo" then

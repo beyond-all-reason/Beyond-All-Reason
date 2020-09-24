@@ -69,7 +69,7 @@ function LabRegisterBST:Unregister()
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
-	local network = self.ai.maphandler:MobilityNetworkHere(mtype,self.position)
+	local network = self.ai.maphst:MobilityNetworkHere(mtype,self.position)
 	-- self:EchoDebug(mtype, network, self.ai.factoryBuilded[mtype], self.ai.factoryBuilded[mtype][network], self.name, unitTable[self.name], unitTable[self.name].techLevel)
 	if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
 		self.ai.factoryBuilded[mtype][network] = self.ai.factoryBuilded[mtype][network] - self.level
@@ -104,7 +104,7 @@ function LabRegisterBST:Register()
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
-	local network = self.ai.maphandler:MobilityNetworkHere(mtype,self.position) or 0
+	local network = self.ai.maphst:MobilityNetworkHere(mtype,self.position) or 0
 	self.ai.factoryBuilded[mtype][network] = (self.ai.factoryBuilded[mtype][network] or 0) + self.level
 	self:EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.factoryBuilded[mtype][network] .. ' adding tech '.. self.level)
 end

@@ -80,8 +80,8 @@ function OverviewHandler:EvaluateSituation()
 			for i, factory in pairs(self.ai.factoriesAtLevel[self.ai.maxFactoryLevel]) do
 				for expFactName, _ in pairs(expFactories) do
 					for _, mtype in pairs(factoryMobilities[expFactName]) do
-						local myNet = self.ai.maphandler:MobilityNetworkHere(mtype, factory.position)
-						local enemyNet = self.ai.maphandler:MobilityNetworkHere(mtype, self.ai.enemyBasePosition)
+						local myNet = self.ai.maphst:MobilityNetworkHere(mtype, factory.position)
+						local enemyNet = self.ai.maphst:MobilityNetworkHere(mtype, self.ai.enemyBasePosition)
 						if myNet and enemyNet and myNet == enemyNet then
 							needExperimental = true
 							break

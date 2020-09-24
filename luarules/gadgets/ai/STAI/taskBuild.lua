@@ -392,7 +392,7 @@ function BuildShield()
 	return DummyUnitName
 end
 
---anti intrusion 
+--anti intrusion
 
 function BuildAntiIntr()
 	local unitName = DummyUnitName
@@ -433,7 +433,7 @@ end
 local function CommanderAA(tskqbhvr)
 	local unitName = DummyUnitName
 	if IsAANeeded() then
-		if ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition()) then
+		if ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition()) then
 			unitName = BuildFloatLightAA(tskqbhvr)
 		else
 			unitName = BuildLightAA(tskqbhvr)

@@ -58,7 +58,7 @@ function STAssistHandler:IsLocal(assistbehaviour, position)
 			return false
 		end
 	else
-		if not self.ai.maphandler:UnitCanGoHere(aunit, position) then
+		if not self.ai.maphst:UnitCanGoHere(aunit, position) then
 			return false
 		end
 	end

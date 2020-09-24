@@ -272,7 +272,7 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 					local defender = dfndbehaviour.unit:Internal()
 					local ux, uy, uz = defender:GetPosition()
 					if ux then
-						if self.ai.maphandler:UnitCanGoHere(defender, wardPos) then
+						if self.ai.maphst:UnitCanGoHere(defender, wardPos) then
 							local defenderPos = defender:GetPosition()
 							local dist = Distance(defenderPos, wardPos)
 							bydistance[dist] = dfndbehaviour -- the probability of the same distance is near zero

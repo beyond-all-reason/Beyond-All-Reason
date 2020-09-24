@@ -81,7 +81,7 @@ function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	end
 	-- where is the con?
 	local builderPos = builder:GetPosition()
-	local water = self.ai.maphandler:MobilityNetworkHere("shp", builderPos)
+	local water = self.ai.maphst:MobilityNetworkHere("shp", builderPos)
 	-- is this a land or a water unit we're building?
 	local waterBuildOrder = unitTable[unitName].needsWater
 	-- if this is a movement from land to water or water to land, check the distance
@@ -158,7 +158,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	end
 	-- don't build where the builder can't go
 	if pos ~= nil then
-		if not self.ai.maphandler:UnitCanGoHere(builder, pos) then
+		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
 			self:EchoDebug(builder:Name() .. " can't go there: " .. pos.x .. "," .. pos.z)
 			pos = nil
 		end

@@ -1,6 +1,6 @@
 -- shard_include ("unitlists")
 shard_include ("common")
-shard_include ("maphandler")
+shard_include ("maphst")
 shard_include ("buildsitehst")
 shard_include ("counthst")
 shard_include ("unithandler")
@@ -24,7 +24,7 @@ shard_include ("overviewhandler")
 
 return {
 	STSleep,
-	MapHandler,
+	MapHST,
 	EcoHST,
 	AttackHST,
 	BomberHST,

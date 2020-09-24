@@ -263,7 +263,7 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 			return targetModFunc(node, distanceToGoal, distanceStartToGoal) + hMod
 		end
 	end
-	squad.graph = squad.graph or self.ai.maphandler:GetPathGraph(squad.mtype)
+	squad.graph = squad.graph or self.ai.maphst:GetPathGraph(squad.mtype)
 	squad.pathfinder = squad.graph:PathfinderPosPos(startPos, squad.target, nil, nil, nil, squad.modifierFunc)
 end
 
@@ -387,7 +387,7 @@ end
 
 function AttackHST:IsRecruit(attkbhvr)
 	if attkbhvr.unit == nil then return false end
-	local mtype = self.ai.maphandler:MobilityOfUnit(attkbhvr.unit:Internal())
+	local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 	if self.recruits[mtype] ~= nil then
 		for i,v in pairs(self.recruits[mtype]) do
 			if v == attkbhvr then
@@ -402,7 +402,7 @@ function AttackHST:AddRecruit(attkbhvr)
 	if not self:IsRecruit(attkbhvr) then
 		if attkbhvr.unit ~= nil then
 			-- self:EchoDebug("adding attack recruit")
-			local mtype = self.ai.maphandler:MobilityOfUnit(attkbhvr.unit:Internal())
+			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
 			if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
 			if self.attackSent[mtype] == nil then self.attackSent[mtype] = 0 end
