@@ -1,6 +1,6 @@
 shard_include ("taskqueuebehaviour")
 shard_include ("attackerbst")
-shard_include ("raiderbehaviour")
+shard_include ("raiderbst")
 shard_include ("bomberbst")
 shard_include ("wardbehaviour")
 shard_include ("mexupbst")

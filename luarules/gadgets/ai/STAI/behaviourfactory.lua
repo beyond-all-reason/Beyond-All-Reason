@@ -96,7 +96,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			-- end
 		end
 		if IsRaider(unit) then
-			table.insert(b, RaiderBehaviour)
+			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBehaviour)
 			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBST) end -- will only defend when scrambled by danger
 		end
