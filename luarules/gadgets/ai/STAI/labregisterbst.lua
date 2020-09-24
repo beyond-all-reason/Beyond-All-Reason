@@ -28,7 +28,7 @@ function LabRegisterBST:OwnerBuilt()
 	-- don't add factories to factory location table until they're done
 	self.finished = true
 	self:Register()
-	self.ai.overviewhandler:EvaluateSituation()
+	self.ai.overviewhst:EvaluateSituation()
 	self.ai.labbuildhst:UpdateFactories()
 end
 
@@ -41,7 +41,7 @@ function LabRegisterBST:OwnerDead()
 	-- game:SendToConsole("factory " .. self.name .. " died")
 	if self.finished then
 		self:Unregister()
-		self.ai.overviewhandler:EvaluateSituation()
+		self.ai.overviewhst:EvaluateSituation()
 		ai.labbuildhst:UpdateFactories()
 	end
 end

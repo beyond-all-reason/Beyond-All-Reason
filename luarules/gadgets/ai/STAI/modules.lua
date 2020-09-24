@@ -20,7 +20,7 @@ shard_include ("tacticalhandler")
 shard_include ("damagehst")
 shard_include ("cleanhst")
 shard_include ("nanohst")
-shard_include ("overviewhandler")
+shard_include ("overviewhst")
 
 return {
 	STSleep,
@@ -42,6 +42,6 @@ return {
 	DefendHST,
 	CleanHST,
 	NanoHST,
-	OverviewHandler,
+	OverviewHST,
 	STUnitHandler
 }

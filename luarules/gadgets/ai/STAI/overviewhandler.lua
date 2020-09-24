@@ -1,14 +1,14 @@
-OverviewHandler = class(Module)
+OverviewHST = class(Module)
 
-function OverviewHandler:Name()
-	return "OverviewHandler"
+function OverviewHST:Name()
+	return "OverviewHST"
 end
 
-function OverviewHandler:internalName()
-	return "overviewhandler"
+function OverviewHST:internalName()
+	return "overviewhst"
 end
 
-function OverviewHandler:Init()
+function OverviewHST:Init()
 	self.DebugEnabled = false
 
 	self.heavyPlasmaLimit = 3
@@ -23,11 +23,11 @@ function OverviewHandler:Init()
 	self:Evaluate()
 end
 
-function OverviewHandler:Update()
+function OverviewHST:Update()
 	self:Evaluate()
 end
 
-function OverviewHandler:Evaluate()
+function OverviewHST:Evaluate()
 	local f = self.game:Frame()
 	if f > self.lastCheckFrame + 240 then
 		self:EvaluateSituation()
@@ -39,7 +39,7 @@ function OverviewHandler:Evaluate()
 	end
 end
 
-function OverviewHandler:EvaluateSituation()
+function OverviewHST:EvaluateSituation()
 	self.ai.haveAdvFactory = self.ai.factoriesAtLevel[3] and #self.ai.factoriesAtLevel[3] ~= 0
 	self.ai.haveExpFactory = self.ai.factoriesAtLevel[5] and #self.ai.factoriesAtLevel[5] ~= 0
 
@@ -103,7 +103,7 @@ function OverviewHandler:EvaluateSituation()
 	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have attacked enough? " .. tostring(couldAttack) .. " (" .. self.ai.couldAttack .. "), have " .. self.ai.factories .. " factories, " .. math.floor(self.ai.Metal.income) .. " metal income")
 end
 
-function OverviewHandler:SetEconomyAliases()
+function OverviewHST:SetEconomyAliases()
 	self.ai.realMetal = self.ai.Metal.income / self.ai.Metal.usage
 	self.ai.realEnergy = self.ai.Energy.income / self.ai.Energy.usage
 	self.ai.scaledMetal = self.ai.Metal.reserves * self.ai.realMetal
@@ -133,6 +133,6 @@ function OverviewHandler:SetEconomyAliases()
 	self.ai.lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.5
 end
 
-function OverviewHandler:StaticEvaluate()
+function OverviewHST:StaticEvaluate()
 	self.needAmphibiousCons = self.ai.hasUWSpots and self.ai.mobRating["sub"] > self.ai.mobRating["bot"] * 0.75
 end

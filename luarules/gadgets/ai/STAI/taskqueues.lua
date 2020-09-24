@@ -33,7 +33,7 @@ function MapHasUnderwaterMetal()
 end
 
 function IsSiegeEquipmentNeeded()
-	return ai.overviewhandler.needSiege
+	return ai.overviewhst.needSiege
 end
 
 function IsAANeeded()
@@ -82,7 +82,7 @@ end
 function BuildAAIfNeeded(unitName)
 	if IsAANeeded() then
 		if not unitTable[unitName].isBuilding then
-			return BuildWithLimitedNumber(unitName, ai.overviewhandler.AAUnitPerTypeLimit)
+			return BuildWithLimitedNumber(unitName, ai.overviewhst.AAUnitPerTypeLimit)
 		else
 			return unitName
 		end
