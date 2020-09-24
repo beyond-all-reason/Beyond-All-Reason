@@ -71,13 +71,14 @@ local spPosition            = Spring.GetUnitPosition
 local spTransfer            = Spring.TransferUnit
 local mapsizeX              = Game.mapSizeX
 local mapsizeZ              = Game.mapSizeZ
-local xBorder               = math.floor(mapsizeX/5)
-local zBorder               = math.floor(mapsizeZ/5)
+local xBorder               = math.floor(mapsizeX/10)
+local zBorder               = math.floor(mapsizeZ/10)
 local math_random           = math.random
 local spGroundHeight        = Spring.GetGroundHeight
 local spGaiaTeam            = Spring.GetGaiaTeamID()
 local spCreateUnit          = Spring.CreateUnit
 local spGetCylinder			= Spring.GetUnitsInCylinder
+local spGetUnitPosition 	= Spring.GetUnitPosition
 
 local aliveLootboxes        = {}
 local aliveLootboxesCount   = 0
@@ -158,16 +159,12 @@ function gadget:GameFrame(n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
                     if aliveLootboxesCount < 2 then
 						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)], posx, posy, posz, math_random(0,3), spGaiaTeam)
-						--Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					elseif aliveLootboxesCount < 4 then
 						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)], posx, posy, posz, math_random(0,3), spGaiaTeam)
-						--Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					elseif aliveLootboxesCount < 6 then
 						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)], posx, posy, posz, math_random(0,3), spGaiaTeam)
-						--Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					else
 						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)], posx, posy, posz, math_random(0,3), spGaiaTeam)
-						--Spring.MarkerAddPoint(posx, posy, posz, "Resource Generator Detected", true)
 					end
 
                     break
@@ -179,11 +176,17 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if isLootbox[unitDefID] then
+    local UnitName = UnitDefs[unitDefID].name
+	if isLootbox[unitDefID] then
+		local uposx, uposy, uposz = spGetUnitPosition(unitID)
+		spCreateUnit("lootdroppod_gold", uposx, uposy, uposz, math_random(0,3), spGaiaTeam)
 		aliveLootboxes[unitID] = true
 		aliveLootboxesCount = aliveLootboxesCount + 1
         Spring.SetUnitNeutral(unitID, true)
-    end
+	end
+	if UnitName == "lootdroppod_gold" then
+		Spring.SetUnitNeutral(unitID, true)
+	end
 end
 
 

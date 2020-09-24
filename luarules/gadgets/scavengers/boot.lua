@@ -530,6 +530,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if UnitName == "scavengerdroppodfriendly" then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
+	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
+		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
+	end
 	if unitTeam == GaiaTeamID then
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)

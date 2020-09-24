@@ -33,7 +33,7 @@ return {
 		script = "scavs/droppod.cob",
 		seismicsignature = 4,
 		selfdestructas = "",
-		selfdestructcountdown = 0,
+		selfdestructcountdown = 5,
 		sightdistance = 450,
 		smoothanim = true,
 		tedclass = "ENERGY",

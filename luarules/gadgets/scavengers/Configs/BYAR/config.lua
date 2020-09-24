@@ -112,7 +112,7 @@ if scavengersAIEnabled then
 	}
 
 	spawnProtectionConfig = {
-		spread				= 192,
+		spread				= 100,
 	}
 
 
