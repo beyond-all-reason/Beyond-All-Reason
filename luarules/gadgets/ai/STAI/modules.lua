@@ -17,7 +17,7 @@ shard_include ("defendhandler")
 shard_include ("turtlehandler")
 shard_include ("econhandler")
 shard_include ("tacticalhandler")
-shard_include ("damagehandler")
+shard_include ("damagehst")
 shard_include ("cleanhst")
 shard_include ("nanohandler")
 shard_include ("overviewhandler")
@@ -36,7 +36,7 @@ return {
 	TacticalHandler,
 	LosHandler,
 	TargetHandler,
-	DamageHandler,
+	DamageHST,
 	ScoutHandler,
 	STAssistHandler,
 	DefendHandler,
