@@ -37,7 +37,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	table.insert(b, BootBST)
 
 	if commanderList[un] then
-		table.insert(b, CommanderBehaviour)
+		table.insert(b, CommanderBST)
 	end
 
 	if nanoTurretList[un] then

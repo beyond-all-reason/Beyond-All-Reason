@@ -13,7 +13,7 @@ shard_include ("scoutbehaviour")
 shard_include ("antinukebst")
 shard_include ("nukebehaviour")
 shard_include ("bombardbst")
-shard_include ("commanderbehaviour")
+shard_include ("commanderbst")
 shard_include ("bootbst")
 shard_include ("countbehaviour")
 
