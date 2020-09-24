@@ -15,7 +15,7 @@ shard_include ("nukebehaviour")
 shard_include ("bombardbst")
 shard_include ("commanderbst")
 shard_include ("bootbst")
-shard_include ("countbehaviour")
+shard_include ("countbst")
 
 
 return {

@@ -33,7 +33,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	-- game:SendToConsole(un, "getting default behaviours")
 
 	-- keep track of how many of each kind of unit we have
-	table.insert(b, CountBehaviour)
+	table.insert(b, CountBST)
 	table.insert(b, BootBST)
 
 	if commanderList[un] then
