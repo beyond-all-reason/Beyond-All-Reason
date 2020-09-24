@@ -979,7 +979,7 @@ fragment = [[
 	}
 
 	float ComputeSpecularAOBlender(float NoV, float diffuseAO, float roughness2) {
-		#if defined(SPECULAR_AO) && defined(use_vertex_ao)
+		#if defined(SPECULAR_AO)
 			return clamp(pow(NoV + diffuseAO, roughness2) - 1.0 + diffuseAO, 0.0, 1.0);
 		#else
 			return diffuseAO;
@@ -987,7 +987,7 @@ fragment = [[
 	}
 
 	float ComputeSpecularAOFilament(float NoV, float diffuseAO, float roughness2) {
-	#if defined(SPECULAR_AO) && defined(use_vertex_ao)
+	#if defined(SPECULAR_AO)
 		return clamp(pow(NoV + diffuseAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + diffuseAO, 0.0, 1.0);
 	#else
 		return diffuseAO;
@@ -1182,8 +1182,8 @@ fragment = [[
 			float roughness = texColor2.b;
 		#endif
 
-		//roughness = SNORM2NORM( sin(simFrame * 0.025) );
-		//roughness = 0.0;
+		//roughness = SNORM2NORM( sin(simFrame * 0.25) );
+		//roughness = 0.5;
 
 		// this is great to remove specular aliasing on the edges.
 		#ifdef ROUGHNESS_AA
@@ -1272,7 +1272,7 @@ fragment = [[
 			vec3 F = FresnelSchlick(F0, F90, VdotH);
 			float Vis = VisibilityOcclusion(NdotL, NdotV, roughness2, roughness4);
 			float D = MicrofacetDistribution(NdotH, roughness4);
-			outSpecularColor = F * Vis * D;
+			outSpecularColor = F * Vis * D * PI;
 
 			vec3 maxSun = mix(sunSpecular, sunDiffuse, step(dot(sunSpecular, LUMA), dot(sunDiffuse, LUMA)));
 			#ifdef SUNMULT
@@ -1305,7 +1305,7 @@ fragment = [[
         }
 
 		// getSpecularDominantDirection (Filament)
-		//Rv = mix(Rv, N, roughness4);
+		Rv = mix(Rv, N, roughness4);
 
 
 		// Indirect and ambient lighting
