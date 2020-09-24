@@ -11,7 +11,7 @@ shard_include ("sleep")
 shard_include ("raidhst")
 shard_include ("loshst")
 shard_include ("targethandler")
-shard_include ("scouthandler")
+shard_include ("scouthst")
 shard_include ("assisthandler")
 shard_include ("defendhst")
 shard_include ("turtlehandler")
@@ -37,7 +37,7 @@ return {
 	LosHST,
 	TargetHandler,
 	DamageHST,
-	ScoutHandler,
+	ScoutHST,
 	STAssistHandler,
 	DefendHST,
 	CleanHST,
