@@ -26,10 +26,10 @@ stack traceback:
         (tail call): ?"
 
         
-        [Game::ClientReadNet][LOGMSG] sender="Player" string="[Internal Lua error: Call failure] [string "luarules/gadgets/ai/BYAR/stai/attackhandler..."]:269: attempt to index local 'squad' (a nil value)
+        [Game::ClientReadNet][LOGMSG] sender="Player" string="[Internal Lua error: Call failure] [string "luarules/gadgets/ai/BYAR/stai/attackhst..."]:269: attempt to index local 'squad' (a nil value)
 stack traceback:
-        [string "luarules/gadgets/ai/BYAR/stai/attackhandler..."]:269: in function 'SquadPathfind'
-        [string "luarules/gadgets/ai/BYAR/stai/attackhandler..."]:58: in function 'Update'
+        [string "luarules/gadgets/ai/BYAR/stai/attackhst..."]:269: in function 'SquadPathfind'
+        [string "luarules/gadgets/ai/BYAR/stai/attackhst..."]:58: in function 'Update'
         [string "luarules/gadgets/ai/ai.lua"]:40: in function 'Update'
         [string "LuaRules/Gadgets/ailoader.lua"]:183: in function 'GameFrame'
         [string "LuaRules/gadgets.lua"]:845: in function <[string "LuaRules/gadgets.lua"]:843>

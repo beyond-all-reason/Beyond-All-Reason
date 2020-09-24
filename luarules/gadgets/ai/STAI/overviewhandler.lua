@@ -42,14 +42,14 @@ end
 function OverviewHandler:EvaluateSituation()
 	self.ai.haveAdvFactory = self.ai.factoriesAtLevel[3] and #self.ai.factoriesAtLevel[3] ~= 0
 	self.ai.haveExpFactory = self.ai.factoriesAtLevel[5] and #self.ai.factoriesAtLevel[5] ~= 0
-	
+
 	self.ai.needToReclaim = self.ai.Metal.full < 0.5 and self.ai.wreckCount > 0
 	self.AAUnitPerTypeLimit = math.ceil(self.ai.turtlehandler:GetTotalPriority() / 4)
 	self.heavyPlasmaLimit = math.ceil(self.ai.combatCount / 10)
 	self.nukeLimit = math.ceil(self.ai.combatCount / 50)
 	self.tacticalNukeLimit = math.ceil(self.ai.combatCount / 40)
 
-	local attackCounter = self.ai.attackhandler:GetCounter()
+	local attackCounter = self.ai.attackhst:GetCounter()
 	local couldAttack = self.ai.couldAttack >= 1 or self.ai.couldBomb >= 1
 	local bombingTooExpensive = self.ai.bomberhandler:GetCounter() == maxBomberCounter
 	local attackTooExpensive = attackCounter == maxAttackCounter
@@ -120,14 +120,14 @@ function OverviewHandler:SetEconomyAliases()
 	self.metalOkay = self.ai.Metal.reserves >= enoughMetalReserves
 	self.metalBelowHalf = self.ai.Metal.reserves < lotsMetalReserves
 	self.metalAboveHalf = self.ai.Metal.reserves >= lotsMetalReserves
-	local attackCounter = self.ai.attackhandler:GetCounter()
+	local attackCounter = self.ai.attackhst:GetCounter()
 	self.notEnoughCombats = self.ai.combatCount < attackCounter * 0.6
 	self.farTooFewCombats = self.ai.combatCount < attackCounter * 0.2
-	
+
 	self.ai.underReserves = self.ai.Metal.full < 0.3 or self.ai.Energy.full < 0.3
 	self.ai.aboveReserves = self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
 	self.ai.normalReserves = self.ai.Metal.full > 0.5 and self.ai.Energy.full > 0.5
-	
+
 	self.ai.LittleEco = self.ai.Energy.income < 1000 and self.ai.Metal.income < 30
 	self.ai.BigEco = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.combatCount > 40
 	self.ai.lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.5

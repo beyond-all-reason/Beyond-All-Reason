@@ -122,7 +122,7 @@ function BuildBreakthroughIfNeeded(unitName)
 		end
 	else
 		if ai.battleCount <= minBattleCount then return DummyUnitName end
-		local attackCounter = ai.attackhandler:GetCounter(mtype)
+		local attackCounter = ai.attackhst:GetCounter(mtype)
 		if attackCounter == maxAttackCounter then
 			return unitName
 		elseif attackCounter >= breakthroughAttackCounter then
@@ -139,7 +139,7 @@ function BuildRaiderIfNeeded(unitName)
 	local mtype = unitTable[unitName].mtype
 	if ai.factoriesAtLevel[3] ~= nil and ai.factoriesAtLevel[3] ~= {} then
 		-- if we have a level 2 factory, don't build raiders until we have some battle units
-		local attackCounter = ai.attackhandler:GetCounter(mtype)
+		local attackCounter = ai.attackhst:GetCounter(mtype)
 		if ai.battleCount + ai.breakthroughCount < attackCounter / 2 then
 			return DummyUnitName
 		end
@@ -157,7 +157,7 @@ end
 function BuildBattleIfNeeded(unitName)
 	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
 	local mtype = unitTable[unitName].mtype
-	local attackCounter = ai.attackhandler:GetCounter(mtype)
+	local attackCounter = ai.attackhst:GetCounter(mtype)
 	EchoDebug(mtype .. " " .. attackCounter .. " " .. maxAttackCounter)
 	if attackCounter == maxAttackCounter and ai.battleCount > minBattleCount then return DummyUnitName end
 	if mtype == "veh" and MyTB.side == CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
@@ -245,10 +245,10 @@ end
 local function ConsulAsFactory(tskqbhvr)
 	local unitName = DummyUnitName
 	local rnd = math.random(1,8)
-	if 	rnd == 1 then unitName=ConVehicle(tskqbhvr) 
-	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr) 
-	elseif 	rnd == 3 then unitName=Lvl1BotRaider(tskqbhvr) 
-	elseif 	rnd == 4 then unitName=Lvl1AABot(tskqbhvr) 
+	if 	rnd == 1 then unitName=ConVehicle(tskqbhvr)
+	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
+	elseif 	rnd == 3 then unitName=Lvl1BotRaider(tskqbhvr)
+	elseif 	rnd == 4 then unitName=Lvl1AABot(tskqbhvr)
 	elseif 	rnd == 5 then unitName=Lvl2BotArty(tskqbhvr)
 	elseif 	rnd == 6 then unitName=Lvl2BotAllTerrain(tskqbhvr)
 	elseif 	rnd == 7 then unitName=Lvl2BotMedium(tskqbhvr)
@@ -297,31 +297,31 @@ function EngineerAsFactory(tskqbhvr)
 		unitName = ConsulAsFactory(tskqbhvr)
 	end
 	return unitName
-end	
+end
 
 local function CommanderEconomy(tskqbhvr)
 	local underwater = ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = DummyUnitName
-	if not underwater then 
+	if not underwater then
 		unitName = Economy0()
 	else
 		unitName = Economy0uw()
 	end
 	return unitName
-	
-	
+
+
 end
 
 local function AmphibiousEconomy(tskqbhvr)
 	local underwater = ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = DummyUnitName
-	if underwater then 
+	if underwater then
 		unitName = EconomyUnderWater(tskqbhvr)
 	else
 		unitName = Economy1(tskqbhvr)
 	end
 	return unitName
-	
+
 end
 
 -- mobile construction units:

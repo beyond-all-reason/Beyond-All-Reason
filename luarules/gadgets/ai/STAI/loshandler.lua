@@ -141,7 +141,7 @@ function LosHandler:UpdateEnemies(enemyList)
 					-- sonar
 					los = 2
 				end
-			else 
+			else
 				if lt[1] and not lt[2] and not unitTable[ename].stealth then
 					los = 1
 				elseif lt[2] then
@@ -194,16 +194,16 @@ function LosHandler:UpdateEnemies(enemyList)
 		if not exists[id] then
 			-- enemy died
 			if self.ai.IDsWeAreAttacking[id] then
-				self.ai.attackhandler:TargetDied(self.ai.IDsWeAreAttacking[id])
+				self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
 			end
 			if self.ai.IDsWeAreRaiding[id] then
 				self.ai.raidhandler:TargetDied(self.ai.IDsWeAreRaiding[id])
 			end
-			self:EchoDebug("enemy " .. e.unitName .. " died!")	
+			self:EchoDebug("enemy " .. e.unitName .. " died!")
 			local mtypes = UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
 				self.ai.raidhandler:NeedMore(mtype)
-				self.ai.attackhandler:NeedLess(mtype)
+				self.ai.attackhst:NeedLess(mtype)
 				if mtype == "air" then self.ai.bomberhandler:NeedLess() end
 			end
 			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end

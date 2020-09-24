@@ -876,7 +876,7 @@ function TargetHandler:GetBestAttackCell(representative, position, ourThreat)
 	local name = representative:Name()
 	local longrange = unitTable[name].groundRange > 1000
 	local mtype = unitTable[name].mtype
-	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhandler:GetCounter(mtype)
+	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local possibilities = {}
 	local highestDist = 0
@@ -939,7 +939,7 @@ function TargetHandler:GetNearestAttackCell(representative, position, ourThreat)
 	local name = representative:Name()
 	local longrange = unitTable[name].groundRange > 1000
 	local mtype = unitTable[name].mtype
-	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhandler:GetCounter(mtype)
+	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local lowestDistValueable
 	local lowestDistThreatening
