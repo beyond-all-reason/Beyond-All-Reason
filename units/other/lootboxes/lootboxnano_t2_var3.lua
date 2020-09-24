@@ -1,7 +1,9 @@
 unitName = "lootboxnano_t2_var3"
-humanName = "Specialist NanoTurret T2"
+humanName = "Printer T2"
 sizeMultiplier = 1.875
 collisionVolumeScales = "59 60 59"
+footprintx = 3
+footprintz = 3
 
 local Rmodel = math.random()
 if Rmodel < 0.5 then
