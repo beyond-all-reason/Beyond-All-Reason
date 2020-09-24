@@ -79,13 +79,13 @@ function BehaviourFactory:defaultBehaviours(unit)
 				table.insert(b, LabRegisterBST)
 			else
 				table.insert(b, STAssistBehaviour)
-				table.insert(b, ReclaimBehaviour)
+				table.insert(b, ReclaimBST)
 				table.insert(b, CleanerBST)
 			end
 		end
 		table.insert(b, STWardBehaviour)
 	elseif IsReclaimer(unit) then
-		table.insert(b, ReclaimBehaviour)
+		table.insert(b, ReclaimBST)
 		table.insert(b, STWardBehaviour)
 	else
 		if IsAttacker(unit) then
