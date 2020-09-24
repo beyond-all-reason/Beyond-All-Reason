@@ -10,6 +10,7 @@ function ShardAI:Init()
 	self.map = self.api.map
 	self.game.ai = self
 	self.map.ai = self
+	self.data = {}
 	self.game:SendToConsole(self.fullname.." - playing: "..self.game:GameName().." on: "..self.map:MapName())
 
 	self.api.shard_include("behaviourfactory")
