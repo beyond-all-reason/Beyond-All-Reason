@@ -1,5 +1,5 @@
 shard_include ("taskqueuebehaviour")
-shard_include ("attackerbehaviour")
+shard_include ("attackerbst")
 shard_include ("raiderbehaviour")
 shard_include ("bomberbehaviour")
 shard_include ("wardbehaviour")
