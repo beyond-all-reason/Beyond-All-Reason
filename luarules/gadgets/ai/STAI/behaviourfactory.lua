@@ -49,7 +49,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	if unitTable[un].isBuilding then
 		table.insert(b, STWardBehaviour) --tells defending units to rush to threatened buildings
 		if nukeList[un] then
-			table.insert(b, NukeBehaviour)
+			table.insert(b, NukeBST)
 		elseif antinukeList[un] then
 			table.insert(b, AntinukeBST)
 		elseif bigPlasmaList[un] then
