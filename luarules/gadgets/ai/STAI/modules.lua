@@ -1,7 +1,7 @@
 -- shard_include ("unitlists")
 shard_include ("common")
 shard_include ("maphandler")
-shard_include ("buildsitehandler")
+shard_include ("buildsitehst")
 shard_include ("counthandler")
 shard_include ("unithandler")
 shard_include ("factorybuildershandler")
@@ -29,7 +29,7 @@ return {
 	AttackHST,
 	BomberHST,
 	RaidHandler,
-	BuildSiteHandler,
+	BuildSiteHST,
 	FactoryBuildersHandler,
 	CountHandler,
 	TurtleHandler,

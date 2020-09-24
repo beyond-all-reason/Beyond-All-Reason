@@ -34,7 +34,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 
 	-- keep track of how many of each kind of unit we have
 	table.insert(b, CountBehaviour)
-	table.insert(b, BootBehaviour)
+	table.insert(b, BootBST)
 
 	if commanderList[un] then
 		table.insert(b, CommanderBehaviour)

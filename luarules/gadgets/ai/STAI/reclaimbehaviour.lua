@@ -42,7 +42,7 @@ function ReclaimBehaviour:OwnerDead()
 	if self.target then
 		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
 	end
-	self.ai.buildsitehandler:ClearMyPlans(self)
+	self.ai.buildsitehst:ClearMyPlans(self)
 end
 
 function ReclaimBehaviour:OwnerIdle()
@@ -185,7 +185,7 @@ function ReclaimBehaviour:Act()
 			local unitName = featureTable[self.targetResurrection.featureName].unitName
 			self:EchoDebug(unitName)
 			self.unit:Internal():AreaRESURRECT({resPosition.x, resPosition.y, resPosition.z}, 15)
-			self.ai.buildsitehandler:NewPlan(unitName, resPosition, self, true)
+			self.ai.buildsitehst:NewPlan(unitName, resPosition, self, true)
 			self.resurrecting = true
 			return true
 		else
@@ -225,5 +225,5 @@ end
 
 function ReclaimBehaviour:ResurrectionComplete()
 	self.resurrecting = false
-	self.ai.buildsitehandler:ClearMyPlans(self)
+	self.ai.buildsitehst:ClearMyPlans(self)
 end

@@ -108,7 +108,7 @@ function TurtleHandler:UnitDead(unit)
 	end
 end
 
--- received from buildsitehandler
+-- received from buildsitehst
 -- also applies to plans, in which case the plan is the unitID
 function TurtleHandler:NewUnit(unitName, position, unitID)
 	local ut = unitTable[unitName]
@@ -132,7 +132,7 @@ function TurtleHandler:NewUnit(unitName, position, unitID)
 	end
 end
 
--- received from buildsitehandler
+-- received from buildsitehst
 function TurtleHandler:PlanCreated(plan, unitID)
 	local found = false
 	local unitName = plan.unitName
@@ -162,7 +162,7 @@ function TurtleHandler:PlanCreated(plan, unitID)
 	return found
 end
 
--- received from buildsitehandler
+-- received from buildsitehst
 function TurtleHandler:PlanCancelled(plan)
 	local unitName = plan.unitName
 	local ut = unitTable[unitName]
@@ -509,9 +509,9 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 				end
 				local okay = false
 				if not enough then
-					okay = self.ai.maphandler:UnitCanGoHere(builder, limb.position) 
+					okay = self.ai.maphandler:UnitCanGoHere(builder, limb.position)
 				end
-				if okay and bombard and unitName ~= nil then 
+				if okay and bombard and unitName ~= nil then
 					okay = self.ai.targethandler:IsBombardPosition(limb.position, unitName)
 				end
 				if okay then

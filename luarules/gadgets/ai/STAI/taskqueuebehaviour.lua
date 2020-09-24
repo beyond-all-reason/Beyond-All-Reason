@@ -222,7 +222,7 @@ function TaskQueueBehaviour:OwnerIdle()
 	if self.unit == nil then return end
 	self.progress = true
 	self.currentProject = nil
-	ai.buildsitehandler:ClearMyPlans(self)
+	ai.buildsitehst:ClearMyPlans(self)
 	self.unit:ElectBehaviour()
 end
 
@@ -238,8 +238,8 @@ function TaskQueueBehaviour:OwnerDead()
 		-- self.unit = nil
 		if self.target then ai.targethandler:AddBadPosition(self.target, self.mtype) end
 		ai.assisthandler:Release(nil, self.id, true)
-		ai.buildsitehandler:ClearMyPlans(self)
-		ai.buildsitehandler:ClearMyConstruction(self)
+		ai.buildsitehst:ClearMyPlans(self)
+		ai.buildsitehst:ClearMyConstruction(self)
 	end
 end
 
@@ -330,7 +330,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			self:EchoDebug("geo spot", p.x, p.y, p.z)
 			if value == "corageo" or value == "armageo" then
 				-- don't build moho geos next to factories
-				if ai.buildsitehandler:ClosestHighestLevelFactory(p, 500) ~= nil then
+				if ai.buildsitehst:ClosestHighestLevelFactory(p, 500) ~= nil then
 					if value == "corageo" then
 						if ai.targethandler:IsBombardPosition(p, "corbhmth") then
 							-- instead build geothermal plasma battery if it's a good spot for it
@@ -366,13 +366,13 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		if target then
 			self:EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
 			local factoryPos = target.unit:Internal():GetPosition()
-			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
+			p = ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 		if not p then
-			local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
+			local factoryPos = ai.buildsitehst:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
 			if factoryPos then
 				self:EchoDebug("searching for top level factory")
-				p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
+				p = ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 				if p == nil then
 					self:EchoDebug("no spot near factory found")
 					utype = nil
@@ -384,60 +384,60 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		end
 	elseif not unitTable[value].isBuilding then
 		if assistList[self.name] and not nanoTurretList[value] then
-		p = ai.buildsitehandler:BuildNearNano(builder, utype)
+		p = ai.buildsitehst:BuildNearNano(builder, utype)
 		end
 	else
 		if unitTable[value].isWeapon  then
 			if 	utype:Name() == BuildLLT(self) or
 				utype:Name() == BuildLightAA(self) or
 				utype:Name() == BuildLvl2PopUp(self) then
-					p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
-					self.ai.buildsitehandler:searchPosInList(self.map:GetMetalSpots(),utype, builder, 'losRadius',20)
+					p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+					self.ai.buildsitehst:searchPosInList(self.map:GetMetalSpots(),utype, builder, 'losRadius',20)
 			elseif 	utype:Name() == BuildSpecialLT(self) or
 					utype:Name() == BuildSpecialLTOnly(self) or
 					utype:Name() == BuildMediumAA(self) or
 					utype:Name() == BuildHeavyAA(self)then
-						p =  self.ai.buildsitehandler:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
+						p =  self.ai.buildsitehst:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
 			elseif 	utype:Name() == BuildHLT(self) or
 					utype:Name() == BuildHeavyishAA(self) or
 					utype:Name() == BuildExtraHeavyAA(self) or
 					utype:Name() == BuildTachyon(self) then
-				p =  self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isFactory',nil, 'losRadius',100)  or self.ai.buildsitehandler:searchPosInList(self.ai.turtlehandler:LeastTurtled(builder, utype:Name()),utype, builder, 'losRadius',0)
+				p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'isFactory',nil, 'losRadius',100)  or self.ai.buildsitehst:searchPosInList(self.ai.turtlehandler:LeastTurtled(builder, utype:Name()),utype, builder, 'losRadius',0)
 			elseif 	unitTable[value].isPlasmaCannon then
 				if unitTable[value].isPlasmaCannon < 4 then
 					local turtlePosList = ai.turtlehandler:MostTurtled(builder, value, value)
-					p =  self.ai.buildsitehandler:searchPosInList(turtlePosList,utype, builder, 'losRadius',0) or
-							self.ai.buildsitehandler:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+					p =  self.ai.buildsitehst:searchPosInList(turtlePosList,utype, builder, 'losRadius',0) or
+							self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
 				elseif unitTable[value].isPlasmaCannon > 4 then
-					p =  self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',nil, 'losRadius',100) or
-					self.ai.buildsitehandler:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
+					p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'isNano',nil, 'losRadius',100) or
+					self.ai.buildsitehst:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
 				end
 			elseif 	nukeList[value] or
 					antinukeList[value] then
-				p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',nil,'losRadius',100)
+				p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'isNano',nil,'losRadius',100)
 			else
 				self:EchoDebug('turret value not handled ' .. value)
 			end
 		elseif shieldList[value] or unitTable[value].jammerRadius ~= 0 then
 			self:EchoDebug("looking for least turtled positions")
 			local turtlePosList = ai.turtlehandler:LeastTurtled(builder, value)
-			p =  self.ai.buildsitehandler:searchPosInList(turtlePosList,utype, builder, 'losRadius',0)
+			p =  self.ai.buildsitehst:searchPosInList(turtlePosList,utype, builder, 'losRadius',0)
 		elseif unitTable[value].sonarRadius ~= 0  then
 			--local turtlePosList = ai.turtlehandler:MostTurtled(builder, value)
-			p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'extractsMetal',nil, 'sonarRadius',20)
+			p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'sonarRadius',20)
 		elseif unitTable[value].radarRadius ~= 0   then
-			p =  self.ai.buildsitehandler:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
+			p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
 		elseif Eco2[value] == 1 then
-					p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',1000, nil,100) or
-					self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isFactory',5000, nil,100) or
-					self.ai.buildsitehandler:BuildNearLastNano(builder, utype)
+					p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'isNano',1000, nil,100) or
+					self.ai.buildsitehst:searchPosNearThing(utype, builder,'isFactory',5000, nil,100) or
+					self.ai.buildsitehst:BuildNearLastNano(builder, utype)
 		elseif Eco1[value] == 1 then
-			p = self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isNano',1000, nil,50) or
-					self.ai.buildsitehandler:searchPosNearThing(utype, builder,'isFactory',500, nil,50) or
-					self.ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+			p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'isNano',1000, nil,50) or
+					self.ai.buildsitehst:searchPosNearThing(utype, builder,'isFactory',500, nil,50) or
+					self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype)
 		else
 			self.game:SendToConsole('value not handled '.. value)
-			p = self.ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+			p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype)
 		end
 	end
 	if not p then
@@ -448,7 +448,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	-- last ditch placement
 -- 	if utype ~= nil and p == nil then
 -- 		local builderPos = builder:GetPosition()
--- 		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+-- 		p = ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype)
 -- 	end
 	return utype, value, p
 end
@@ -549,7 +549,7 @@ function TaskQueueBehaviour:ProgressQueue()
 	local builder = self.unit:Internal()
 	if not self.released then
 		ai.assisthandler:Release(builder)
-		ai.buildsitehandler:ClearMyPlans(self)
+		ai.buildsitehst:ClearMyPlans(self)
 		if not self.isCommander and not self.isFactory then
 			if ai.IDByName[self.id] ~= nil then
 				if ai.IDByName[self.id] > ai.dontAssist[self.name]then
@@ -593,7 +593,7 @@ function TaskQueueBehaviour:ProgressQueue()
 				value = self:CategoryEconFilter(value)
 				if value ~= DummyUnitName then
 					self:EchoDebug("before duplicate filter " .. value)
-					local duplicate = ai.buildsitehandler:CheckForDuplicates(value)
+					local duplicate = ai.buildsitehst:CheckForDuplicates(value)
 					if duplicate then value = DummyUnitName end
 				end
 				self:EchoDebug(value .. " after filters")
@@ -626,8 +626,8 @@ function TaskQueueBehaviour:ProgressQueue()
 									local helpValue = self:GetHelp(value, p)
 									if helpValue ~= nil and helpValue ~= DummyUnitName then
 										self:EchoDebug(utype:Name() .. " has help")
-										ai.buildsitehandler:NewPlan(value, p, self)
-										local facing = ai.buildsitehandler:GetFacing(p)
+										ai.buildsitehst:NewPlan(value, p, self)
+										local facing = ai.buildsitehst:GetFacing(p)
 										success = self.unit:Internal():Build(utype, p, facing)
 									end
 								end
@@ -696,7 +696,7 @@ end
 
 function TaskQueueBehaviour:Deactivate()
 	self.active = false
-	ai.buildsitehandler:ClearMyPlans(self)
+	ai.buildsitehst:ClearMyPlans(self)
 end
 
 function TaskQueueBehaviour:Priority()

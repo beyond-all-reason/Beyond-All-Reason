@@ -90,10 +90,10 @@ function CommanderBehaviour:FindSafeHouse()
 	local factoryPos, factoryUnit
 	local safePos = self.ai.turtlehandler:MostTurtled(self.unit:Internal(), nil, false, true, true)
 	if safePos then
-		factoryPos, factoryUnit = self.ai.buildsitehandler:ClosestHighestLevelFactory(safePos, 500)
+		factoryPos, factoryUnit = self.ai.buildsitehst:ClosestHighestLevelFactory(safePos, 500)
 	end
 	if not factoryUnit then
-		factoryPos, factoryUnit = self.ai.buildsitehandler:ClosestHighestLevelFactory(self.unit:Internal():GetPosition(), 9999)
+		factoryPos, factoryUnit = self.ai.buildsitehst:ClosestHighestLevelFactory(self.unit:Internal():GetPosition(), 9999)
 	end
 	self.safeHouse = safePos or factoryPos
 	local helpNew

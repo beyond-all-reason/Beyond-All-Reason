@@ -6,7 +6,7 @@ end
 
 function FactoryBuildersHandler:internalName()
 	return "factorybuildershandler"
-end 
+end
 
 function FactoryBuildersHandler:Init()
 	self.DebugEnabled = false
@@ -75,7 +75,7 @@ function FactoryBuildersHandler:AvailableFactories(factoriesPreCleaned)
 			self:EchoDebug(i .. ' ' .. v  .. ' is available Factories' )
 		end
 	end
-end	
+end
 
 function FactoryBuildersHandler:PrePositionFilter()
 	self:EchoDebug('pre positional filtering...')
@@ -90,11 +90,11 @@ function FactoryBuildersHandler:PrePositionFilter()
 		local mtype = factoryMobilities[factoryName][1]
 		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
-			buildMe = false 
+			buildMe = false
 		end
 		if buildMe and self.ai.needExperimental and not self.ai.haveExpFactory and not isExperimental then
 			self:EchoDebug(factoryName ..' not Experimental when i need it')
-			buildMe = false 
+			buildMe = false
 		end
 		if buildMe and not self.ai.needAdvanced and not self.ai.haveAdvFactory and isAdvanced then
 			self:EchoDebug(factoryName .. ' Advanced when i dont need it')
@@ -102,11 +102,11 @@ function FactoryBuildersHandler:PrePositionFilter()
 		end
 		if buildMe and (not self.ai.needExperimental or self.ai.haveExpFactory) and expFactories[factoryName] then
 			self:EchoDebug(factoryName .. ' Experimental when i dont need it')
-			buildMe = false 
+			buildMe = false
 		end
 		if buildMe and mtype == 'air' and self.ai.factoryBuilded['air'][1] >= 1 and utn.needsWater then
 			self:EchoDebug(factoryName .. ' dont build seaplane if i have normal planes')
-			buildMe = false 
+			buildMe = false
 		end
 		if not buildMe and mtype == 'air' and self.ai.haveAdvFactory and self.ai.factoryBuilded['air'][1] > 0 and self.ai.factoryBuilded['air'][1] < 3 and isAdvanced then
 			self:EchoDebug(factoryName .. ' force build t2 air if you have t1 air and a t2 of another type')
@@ -130,7 +130,7 @@ function FactoryBuildersHandler:PrePositionFilter()
 	end
 	return factoriesPreCleaned
 end
-	
+
 function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 	local factories = {}
 	local factoriesCount = 0
@@ -194,7 +194,7 @@ function FactoryBuildersHandler:GetBuilderFactory(builder)
 	if not factories then return false end
 	for order = 1, #factories do
 		local factoryName = factories[order]
-		if not self.ai.buildsitehandler:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
+		if not self.ai.buildsitehst:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
 			self:EchoDebug(factoryName .. ' not duplicated')
 			self:EchoDebug(builder:Name())
 			local p = self:FactoryPosition(factoryName,builder)
@@ -217,13 +217,13 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	local p
 	if p == nil then
 		self:EchoDebug("looking next to nano turrets for " .. factoryName)
-		p = self.ai.buildsitehandler:BuildNearNano(builder, utype)
+		p = self.ai.buildsitehst:BuildNearNano(builder, utype)
 	end
 	if p == nil then
 		self:EchoDebug("looking next to factory for " .. factoryName)
-		factoryPos = self.ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
+		factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos, 10000)
 		if factoryPos then
-			p = self.ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
+			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 	end
 	if p == nil then
@@ -233,9 +233,9 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 		if factoryPos then
 			for index, hotSpot in pairs(self.ai.hotSpot) do
 				if self.ai.maphandler:MobilityNetworkHere(mtype,hotSpot) then
-					
+
 					dist = math.min(distance, Distance(hotSpot,factoryPos))
-					if dist < distance then 
+					if dist < distance then
 						place = hotSpot
 						distance  = dist
 					end
@@ -243,7 +243,7 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 			end
 		end
 		if place then
-			p = self.ai.buildsitehandler:ClosestBuildSpot(builder, place, utype)
+			p = self.ai.buildsitehst:ClosestBuildSpot(builder, place, utype)
 		end
 	end
 	if p == nil then
@@ -252,7 +252,7 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 		if turtlePosList then
 			if #turtlePosList ~= 0 then
 				for i, turtlePos in ipairs(turtlePosList) do
-					p = self.ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
+					p = self.ai.buildsitehst:ClosestBuildSpot(builder, turtlePos, utype)
 					if p ~= nil then break end
 				end
 			end
@@ -260,7 +260,7 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	end
 	if p == nil then
 		self:EchoDebug("trying near builder for " .. factoryName)
-		p = self.ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500) -- check at most 1500 elmos away
+		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500) -- check at most 1500 elmos away
 	end
 	if p then
 		self:EchoDebug("position found for " .. factoryName)

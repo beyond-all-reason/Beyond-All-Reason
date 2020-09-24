@@ -63,7 +63,7 @@ local mCeil = math.ceil
 function MapHandler:basicMapInfo()
 	MapHandler.mapSize = self.map:MapDimensions()
 	MapHandler.elmoMapSizeX = MapHandler.mapSize.x * 8
-	MapHandler.elmoMapSizeZ = MapHandler.mapSize.z * 8    
+	MapHandler.elmoMapSizeZ = MapHandler.mapSize.z * 8
 	MapHandler.mobilityGridSize = math.max( math.floor(math.max(MapHandler.mapSize.x * 8, MapHandler.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
 	MapHandler.mobilityGridSizeHalf = MapHandler.mobilityGridSize/ 2
 	MapHandler.maxX = math.ceil((MapHandler.mapSize.x * 8) / MapHandler.mobilityGridSize)
@@ -566,21 +566,21 @@ function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 	local mirrorspots = {}
 	local limit = (self.map:MapDimensions())
 	local limit = limit.x/2  + limit.z/2
-	for i,v in pairs(metalSpots) do 
+	for i,v in pairs(metalSpots) do
 		table.insert(spots,v)
 	end
-	for i,v in pairs(geoSpots) do 
+	for i,v in pairs(geoSpots) do
 		table.insert(spots,v)
 	end
 	local spotscleaned={ }
 	self:EchoDebug('limit',tostring(limit))
-	for index1,pos1 in pairs(spots) do 
+	for index1,pos1 in pairs(spots) do
 		if spots[index1] ~= false then
 			mirrorspots[index1] = {}
 			mirrorspots[index1][index1] = pos1
 			spots[index1] = false
 			--Spring.MarkerAddPoint(pos1.x,pos1.y,pos1.z, tostring(i))--uncomment this to draw the hotspot reducing system
-			for index2,pos2 in pairs(spots) do 
+			for index2,pos2 in pairs(spots) do
 				if spots[index2] ~= false then
 					local dist = Distance(pos1,pos2)
 					if dist < limit and dist > 0 and ((pos1.y > 0 and pos2.y > 0) or (pos1.y < 0 and pos2.y < 0)) then
@@ -639,8 +639,8 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 		while #mySpots > 0 do
 			local pos2 = table.remove(mySpots)
 			if Spring.TestMoveOrder(number,pos1.x,pos1.y,pos1.z) == true and Spring.TestMoveOrder(number,pos2.x,pos2.y,pos2.z) == true then
-				local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z) 
-				if metapath then 
+				local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+				if metapath then
 					local waypoints, pathStartIdx = metapath:GetPathWayPoints()
 					local dist  = Distance3d(pos1,pos2)
 					if waypoints and #waypoints > 0 and dist > 0 then
@@ -659,7 +659,7 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 								local dy = wp2[2] - wp1[2]
 								local dz = wp2[3] - wp1[3]
 								local segDist = math.sqrt(dx*dx + dy*dy + dz*dz) + 1
-								totalPathDist = totalPathDist + segDist 
+								totalPathDist = totalPathDist + segDist
 --                                 self:EchoDebug(segDist)
 -- 								if mclass == 'tank2' then
 -- 									self.map:DrawLine({x=wp1[1], y=wp1[2], z=wp1[3]}, {x=wp2[1], y=wp2[2], z=wp2[3]}, {1,1,1,1}, nil, true, 1)
@@ -761,7 +761,7 @@ function MapHandler:factoriesRating()
 			spots = #spots
 			if size > mobilityGridArea * 0.20 and spots > (#landMetalSpots + #UWMetalSpots) * 0.4 then
 				-- area large enough and enough metal spots
-				self.ai.factoryBuilded[mtype][network] = 0 
+				self.ai.factoryBuilded[mtype][network] = 0
 			end
 		end
 	end
@@ -782,9 +782,9 @@ function MapHandler:factoriesRating()
 			end
 			realMetals = spots / (#landMetalSpots + #UWMetalSpots)--relative metals occupable
 		end
-		if #geoSpots ~= 0 and mtype ~= ('shp' or 'sub') then 
+		if #geoSpots ~= 0 and mtype ~= ('shp' or 'sub') then
 			realGeos = math.min(0.1 * #geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
-		end 
+		end
 		mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
 		mtypesMapRatings[mtype] = (self.ai.mobRating[mtype] / self.ai.mobRating['air']) * mobilityEffeciencyMultiplier[mtype]
 		-- area is not as important as number of metal and geo
@@ -829,7 +829,7 @@ function MapHandler:factoriesRating()
 					end
 				end
 			end
-			if count == 0 then 
+			if count == 0 then
 				factoryMtypeRating = 0
 			else
 				factoryMtypeRating = factoryMtypeRating / count
@@ -859,9 +859,9 @@ function MapHandler:factoriesRating()
 		if factoryMobilities[factory][1] == ('hov') then
 			Rating = Rating * (self.ai.mobCount['shp'] /mobilityGridArea)
 		end
-		if factory == 'armfhp' or factory == 'corfhp' then 
+		if factory == 'armfhp' or factory == 'corfhp' then
 			Rating = Rating * 0.999 -- better a ground one, nanos around
-		end 
+		end
 		Rating = Rating * -1--reverse the value to get the right order
 		if Rating ~= 0 then --useless add factory totally out of mode
 			factoryRating[factory] = Rating
@@ -879,7 +879,7 @@ function MapHandler:factoriesRating()
 			table.insert(rank[rating],name)
 		end
 		table.insert(sorting, rating)
-	end 
+	end
 	table.sort(sorting)
 	local factoriesRanking = {}
 	local ranksByFactories = {}
@@ -1019,7 +1019,7 @@ function MapHandler:SimplifyMetalSpots(metalSpots, number)
 	end
 	return spots
 end
- 
+
 function MapHandler:ClosestFreeSpot(unittype, builder, position)
 	-- local kbytes, threshold = gcinfo()
 	-- game:SendToConsole("maphandler gcinfo: " .. kbytes .. " (before ClosestFreeSpot)")
@@ -1053,7 +1053,7 @@ function MapHandler:ClosestFreeSpot(unittype, builder, position)
 			spots = self.ai.mobNetworkMetals[mtype][network]
 		end
 	end
-	if spots == nil then 
+	if spots == nil then
 		self:EchoDebug(builder:Name() .. " has nil spots")
 		return end
 	if #spots == 0 then
@@ -1091,7 +1091,7 @@ function MapHandler:ClosestFreeSpot(unittype, builder, position)
 	local f = self.game:Frame()
 	for i,p in pairs(spots) do
 		-- dont use this spot if we're already building there
-		local alreadyPlanned = self.ai.buildsitehandler:PlansOverlap(p, uname)
+		local alreadyPlanned = self.ai.buildsitehst:PlansOverlap(p, uname)
 		if not alreadyPlanned then
 			local dist = Distance(position, p)
 			-- don't add if it's already too high
@@ -1151,7 +1151,7 @@ function MapHandler:ClosestFreeGeo(unittype, builder, position)
 	local bestDistance, bestPos
 	for i,p in pairs(geoSpots) do
 		-- dont use this spot if we're already building there
-		if not self.ai.buildsitehandler:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethandler:IsSafePosition(p, builder) then
+		if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethandler:IsSafePosition(p, builder) then
 			local dist = Distance(position, p)
 			if not bestDistance or dist < bestDistance then
 				bestDistance = dist
@@ -1345,7 +1345,7 @@ function MapHandler:GetPathGraph(mtype, targetNodeSize)
 					position.x = bestX
 					position.z = bestZ
 				end
-				
+
 				position.y = Spring.GetGroundHeight(x, z)
 				local nodeX = mCeil(cx / cellsPerNodeSide)
 				local nodeY = mCeil(cz / cellsPerNodeSide)
