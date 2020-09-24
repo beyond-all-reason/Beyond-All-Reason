@@ -1,18 +1,18 @@
-STSleep = class(Module)
+SleepST = class(Module)
 
-function STSleep:Name()
-	return "Sleep"
+function SleepST:Name()
+	return "SleepST"
 end
 
-function STSleep:internalName()
-	return "sleep"
+function SleepST:internalName()
+	return "sleepst"
 end
 
-function STSleep:Init()
+function SleepST:Init()
 	self.sleeping = {}
 end
 
-function STSleep:GetSleeper(key)
+function SleepST:GetSleeper(key)
 	for i = 1, #self.sleeping do
 		local sleeper = self.sleeping[i]
 		if sleeper.key == key then
@@ -24,7 +24,7 @@ function STSleep:GetSleeper(key)
 	return sleeper
 end
 
-function STSleep:Update()
+function SleepST:Update()
 	local done = {}
 	local count = 0
 	for i = 1, #self.sleeping do
@@ -49,18 +49,18 @@ end
 -- Pass in a function to be called in the future,
 -- and how many frames to wait. Note that if the AI is busy,
 -- there may be minor delays of several frames
-function STSleep:Wait(functor, frames)
+function SleepST:Wait(functor, frames)
 	if functor == nil then
-		self.game:SendToConsole("error: functor == nil in STSleep:Wait ")
+		self.game:SendToConsole("error: functor == nil in SleepST:Wait ")
 	else
 		local sleeper = self:GetSleeper(functor)
 		sleeper.frames = frames
 	end
 end
 
-function STSleep:Wakeup(sleeper)
+function SleepST:Wakeup(sleeper)
 	if sleeper == nil then
-		self.game:SendToConsole("key == nil in STSleep:Wakeup()")
+		self.game:SendToConsole("key == nil in SleepST:Wakeup()")
 		return
 	end
 	local key = sleeper.key
@@ -68,14 +68,14 @@ function STSleep:Wakeup(sleeper)
 		if key.wakeup ~= nil then
 			key:wakeup()
 		else
-			self.game:SendToConsole("key:wakeup == nil in STSleep:Wakeup")
+			self.game:SendToConsole("key:wakeup == nil in SleepST:Wakeup")
 		end
 	else
 		key()
 	end
 end
 
-function STSleep:Kill(key)
+function SleepST:Kill(key)
 	for i = #self.sleeping, 1, -1 do
 		local sleeper = self.sleeping[i]
 		if sleeper.key == key then
