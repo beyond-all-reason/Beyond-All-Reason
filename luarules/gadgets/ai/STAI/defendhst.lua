@@ -577,7 +577,7 @@ end
 -- receive a signal that a building is threatened or a turtle is on the front
 function DefendHST:Danger(behaviour, turtle, GAS)
 	local f = self.game:Frame()
-	if turtle == nil and behaviour ~= nil then turtle = self.ai.turtlehandler:GetUnitTurtle(behaviour.id) end
+	if turtle == nil and behaviour ~= nil then turtle = self.ai.turtlehst:GetUnitTurtle(behaviour.id) end
 	if turtle ~= nil then
 		for i, ward in pairs(self.wards) do
 			if ward.turtle == turtle then

@@ -83,7 +83,7 @@ function TacticalHST:AverageSamples()
 	local f = self.game:Frame()
 	local since = f - self.lastAverageFrame
 	if since < 300 then return end
-	-- self.ai.turtlehandler:ResetThreatForecast()
+	-- self.ai.turtlehst:ResetThreatForecast()
 	if DebugDrawEnabled then
 		self.map:EraseAll(9)
 	end
@@ -93,10 +93,10 @@ function TacticalHST:AverageSamples()
 			local vx, vz = self:AverageUnitSamples(samples)
 			self.lastKnownVectors[unitID] = { vx = vx, vz = vz } -- so that anyone using this unit table as a target will be able to lead a little
 			self:PlotDebug(e.position.x, e.position.z, vx, vz)
-			-- self.ai.turtlehandler:AddThreatVector(e, vx, vz)
+			-- self.ai.turtlehst:AddThreatVector(e, vx, vz)
 		end
 	end
-	-- self.ai.turtlehandler:AlertDangers()
+	-- self.ai.turtlehst:AlertDangers()
 	self.unitSamples = {}
 	self.lastAverageFrame = f
 end

@@ -88,7 +88,7 @@ end
 
 function CommanderBST:FindSafeHouse()
 	local factoryPos, factoryUnit
-	local safePos = self.ai.turtlehandler:MostTurtled(self.unit:Internal(), nil, false, true, true)
+	local safePos = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, false, true, true)
 	if safePos then
 		factoryPos, factoryUnit = self.ai.buildsitehst:ClosestHighestLevelFactory(safePos, 500)
 	end

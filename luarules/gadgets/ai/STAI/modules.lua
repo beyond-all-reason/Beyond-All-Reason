@@ -14,7 +14,7 @@ shard_include ("targethst")
 shard_include ("scouthst")
 shard_include ("assisthandler")
 shard_include ("defendhst")
-shard_include ("turtlehandler")
+shard_include ("turtlehst")
 shard_include ("ecohst")
 shard_include ("tacticalhst")
 shard_include ("damagehst")
@@ -32,7 +32,7 @@ return {
 	BuildSiteHST,
 	LabBuildHST,
 	CountHST,
-	TurtleHandler,
+	TurtleHST,
 	TacticalHST,
 	LosHST,
 	TargetHST,

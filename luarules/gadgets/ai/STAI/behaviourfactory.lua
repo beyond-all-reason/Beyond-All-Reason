@@ -72,9 +72,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 				-- game:SendToConsole(u:Name() .. " mexupgrading")
 				ai.advCons = 0
 			end
-			table.insert(b,TaskQueueBehaviour)
+			table.insert(b,TaskQueueBST)
 		else
-			table.insert(b,TaskQueueBehaviour)
+			table.insert(b,TaskQueueBST)
 			if unitTable[un].isBuilding then
 				table.insert(b, LabRegisterBST)
 			else

@@ -79,7 +79,7 @@ function STWardBehaviour:Update()
 				self.lastAttackedFrame = self.game:Frame()
 				if not self.mobile then self.ai.defendhst:Danger(self) end
 			end
-			if self.mobile then self.withinTurtle = self.ai.turtlehandler:SafeWithinTurtle(position, self.name) end
+			if self.mobile then self.withinTurtle = self.ai.turtlehst:SafeWithinTurtle(position, self.name) end
 			self.unit:ElectBehaviour()
 		end
 	end
@@ -91,7 +91,7 @@ function STWardBehaviour:Activate()
 	-- can we move at all?
 	if self.mobile then
 		-- run to the most defended base location
-		local salvation = self.ai.turtlehandler:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
+		local salvation = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
 		self:EchoDebug(tostring(salvation), "salvation")
 		if salvation and Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
 			self.unit:Internal():Move(RandomAway(salvation,150))

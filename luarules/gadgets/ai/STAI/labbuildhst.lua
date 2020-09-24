@@ -248,7 +248,7 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 	end
 	if p == nil then
 		self:EchoDebug("looking for most turtled position for " .. factoryName)
-		local turtlePosList = self.ai.turtlehandler:MostTurtled(builder, factoryName)
+		local turtlePosList = self.ai.turtlehst:MostTurtled(builder, factoryName)
 		if turtlePosList then
 			if #turtlePosList ~= 0 then
 				for i, turtlePos in ipairs(turtlePosList) do

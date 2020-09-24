@@ -437,7 +437,7 @@ function BuildSiteHST:UnitCreated(unit)
 				if unitTable[unitName].isBuilding or nanoTurretList[unitName] then
 					-- so that oversized factory lane rectangles will overlap with existing buildings
 					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
-					self.ai.turtlehandler:PlanCreated(plan, unitID)
+					self.ai.turtlehst:PlanCreated(plan, unitID)
 				end
 				-- tell the builder behaviour that construction has begun
 				plan.behaviour:ConstructionBegun(unitID, plan.unitName, plan.position)
@@ -456,7 +456,7 @@ function BuildSiteHST:UnitCreated(unit)
 		local rect = { position = position, unitName = unitName }
 		self:CalculateRect(rect)
 		self:DontBuildRectangle(rect.x1, rect.z1, rect.x2, rect.z2, unitID)
-		self.ai.turtlehandler:NewUnit(unitName, position, unitID)
+		self.ai.turtlehst:NewUnit(unitName, position, unitID)
 	end
 	self:PlotAllDebug()
 end
@@ -559,7 +559,7 @@ function BuildSiteHST:NewPlan(unitName, position, behaviour, resurrect)
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
 	if unitTable[unitName].isBuilding or nanoTurretList[unitName] then
-		self.ai.turtlehandler:NewUnit(unitName, position, plan)
+		self.ai.turtlehst:NewUnit(unitName, position, plan)
 	end
 	table.insert(self.plans, plan)
 	self:PlotAllDebug()
@@ -570,7 +570,7 @@ function BuildSiteHST:ClearMyPlans(behaviour)
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
 			if not plan.resurrect and (unitTable[plan.unitName].isBuilding or nanoTurretList[unitName]) then
-				self.ai.turtlehandler:PlanCancelled(plan)
+				self.ai.turtlehst:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)
 		end
