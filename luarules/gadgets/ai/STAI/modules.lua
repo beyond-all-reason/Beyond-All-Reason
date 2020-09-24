@@ -3,7 +3,7 @@ shard_include ("common")
 shard_include ("maphst")
 shard_include ("buildsitehst")
 shard_include ("counthst")
-shard_include ("unithandler")
+shard_include ("unithst")
 shard_include ("labbuildhst")
 shard_include ("attackhst")
 shard_include ("bomberhst")
@@ -43,5 +43,5 @@ return {
 	CleanHST,
 	NanoHST,
 	OverviewHST,
-	STUnitHandler
+	UnitHST
 }
