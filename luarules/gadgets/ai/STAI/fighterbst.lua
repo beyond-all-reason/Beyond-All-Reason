@@ -26,20 +26,20 @@ function FighterBST:DoPatrol(positions)
 end
 
 function FighterBST:OwnerBuilt()
-	self.ai.fighterhandler:AddRecruit(self)
+	self.ai.fighterhst:AddRecruit(self)
 end
 
 
 function FighterBST:OwnerDead()
-	self.ai.fighterhandler:RemoveRecruit(self)
+	self.ai.fighterhst:RemoveRecruit(self)
 end
 
 function FighterBST:OwnerIdle()
-	self.ai.fighterhandler:AddRecruit(self)
+	self.ai.fighterhst:AddRecruit(self)
 end
 
 function FighterBST:FightCell(pos)
-	self.ai.fighterhandler:RemoveRecruit(self)
+	self.ai.fighterhst:RemoveRecruit(self)
 	self.unit:Internal():MoveAndFire(pos)
 end
 
@@ -49,12 +49,12 @@ end
 
 function FighterBST:Activate()
 	self.active = true
-	self.ai.fighterhandler:AddRecruit(self)
+	self.ai.fighterhst:AddRecruit(self)
 end
 
 
 function FighterBST:OwnerDied()
-	self.ai.fighterhandler:RemoveRecruit(self)
+	self.ai.fighterhst:RemoveRecruit(self)
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
