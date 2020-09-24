@@ -88,24 +88,24 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else
-		if IsAttacker(unit) then
+		if unit:InList(attackerlist) then
 			table.insert(b, AttackerBST)
 			-- if battleList[un] or breakthroughList[un] then
 				-- arty and merl don't make good defense
 				table.insert(b, DefendBST)
 			-- end
 		end
-		if IsRaider(unit) then
+		if unit:InList(raiderList) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
 			if self.ai.data.unitTable[un].mtype ~= "air" then
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end
-		if IsBomber(unit) then
+		if unit:InList(bomberlist) then
 			table.insert(b, BomberBST)
 		end
-		if IsScout(unit, self.scoutlist) then
+		if unit:Inlist(self.scoutslist) then
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end
@@ -127,14 +127,4 @@ function BehaviourFactory:defaultBehaviours(unit)
 	-- game:SendToConsole(ai.id, #b, "behaviours", u:ID(), u:Name())
 
 	return b
-end
-
-
-function IsScouts(unit, scoutslist)
-	for i,name in ipairs(scoutslist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
 end

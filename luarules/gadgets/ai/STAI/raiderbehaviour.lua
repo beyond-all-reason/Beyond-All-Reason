@@ -1,7 +1,3 @@
-function IsRaider(unit)
-	return raiderList[unit:Internal():Name()] or false
-end
-
 RaiderBehaviour = class(Behaviour)
 
 function RaiderBehaviour:Name()

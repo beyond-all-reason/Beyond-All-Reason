@@ -1,6 +1,5 @@
 MetalSpotHandler = class(Module)
 
-
 function MetalSpotHandler:Name()
 	return "MetalSpotHandler"
 end

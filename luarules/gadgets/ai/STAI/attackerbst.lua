@@ -1,7 +1,3 @@
-
-
-
-
 function IsAttacker(unit)
 	return attackerlist[unit:Internal():Name()] or false
 end

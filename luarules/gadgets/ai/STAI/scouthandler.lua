@@ -1,4 +1,3 @@
-
 ScoutHandler = class(Module)
 
 function ScoutHandler:Name()
@@ -73,6 +72,7 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 		end
 	end
 	self:EchoDebug(mtype .. " " .. network .. " has " .. #self.spotsToScout[mtype][network] .. " spots")
+
 	-- find the closest spot
 	local pos = nil
 	local index = nil

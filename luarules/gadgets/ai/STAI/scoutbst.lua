@@ -1,12 +1,3 @@
-function IsScout(unit)
-	local unitName = unit:Internal():Name()
-	if scoutList[unitName] then
-		return true
-	else
-		return false
-	end
-end
-
 ScoutBST = class(Behaviour)
 
 function ScoutBST:Name()
