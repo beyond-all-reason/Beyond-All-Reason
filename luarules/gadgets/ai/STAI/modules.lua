@@ -4,7 +4,7 @@ shard_include ("maphandler")
 shard_include ("buildsitehst")
 shard_include ("counthst")
 shard_include ("unithandler")
-shard_include ("factorybuildershandler")
+shard_include ("labbuildhst")
 shard_include ("attackhst")
 shard_include ("bomberhst")
 shard_include ("sleep")
@@ -30,7 +30,7 @@ return {
 	BomberHST,
 	RaidHandler,
 	BuildSiteHST,
-	FactoryBuildersHandler,
+	LabBuildHST,
 	CountHST,
 	TurtleHandler,
 	TacticalHandler,

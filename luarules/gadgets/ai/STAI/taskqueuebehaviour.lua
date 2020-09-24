@@ -584,7 +584,7 @@ function TaskQueueBehaviour:ProgressQueue()
 			local p
 			if value == FactoryUnitName then --searching for factory conditions
 				value = DummyUnitName
-				p, value = self.ai.factorybuildershandler:GetBuilderFactory(builder)
+				p, value = self.ai.labbuildhst:GetBuilderFactory(builder)
 			end
 
 			local success = false

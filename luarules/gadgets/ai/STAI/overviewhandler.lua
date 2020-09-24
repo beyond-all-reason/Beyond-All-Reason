@@ -70,7 +70,7 @@ function OverviewHandler:EvaluateSituation()
 	local needAdvanced = (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or self.ai.lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
-		self.ai.factorybuildershandler:UpdateFactories()
+		self.ai.labbuildhst:UpdateFactories()
 	end
 	self.ai.needAdvanced = needAdvanced
 	local needExperimental
@@ -93,7 +93,7 @@ function OverviewHandler:EvaluateSituation()
 		self.ai.needNukes = true
 	end
 	if needExperimental ~= self.ai.needExperimental then
-		self.ai.factorybuildershandler:UpdateFactories()
+		self.ai.labbuildhst:UpdateFactories()
 	end
 	self.ai.needExperimental = needExperimental
 	self:EchoDebug("need experimental? " .. tostring(self.ai.needExperimental) .. ", need nukes? " .. tostring(self.ai.needNukes) .. ", have advanced? " .. tostring(self.ai.haveAdvFactory) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have enemy base position? " .. tostring(self.ai.enemyBasePosition))

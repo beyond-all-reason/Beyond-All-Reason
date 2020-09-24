@@ -29,7 +29,7 @@ function FactoryRegisterBehaviour:OwnerBuilt()
 	self.finished = true
 	self:Register()
 	self.ai.overviewhandler:EvaluateSituation()
-	self.ai.factorybuildershandler:UpdateFactories()
+	self.ai.labbuildhst:UpdateFactories()
 end
 
 function FactoryRegisterBehaviour:Priority()
@@ -42,7 +42,7 @@ function FactoryRegisterBehaviour:OwnerDead()
 	if self.finished then
 		self:Unregister()
 		self.ai.overviewhandler:EvaluateSituation()
-		ai.factorybuildershandler:UpdateFactories()
+		ai.labbuildhst:UpdateFactories()
 	end
 end
 
