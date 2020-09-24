@@ -79,13 +79,13 @@ end
 function CleanerBST:Clean(unit)
 	self:EchoDebug("clean this", unit:ID())
 	self.cleanThis = unit
-	self.ai.cleanhandler:AmCleaning(self, unit)
+	self.ai.cleanhst:AmCleaning(self, unit)
 	self.unit:ElectBehaviour()
 end
 
 function CleanerBST:Search()
 	if self.cleanThis then return end
-	local cleanables = self.ai.cleanhandler:GetCleanables(self)
+	local cleanables = self.ai.cleanhst:GetCleanables(self)
 	if not cleanables or #cleanables == 0 then return end
 	local myPos = self.unit:Internal():GetPosition()
 	for i = #cleanables, 1, -1 do
@@ -102,7 +102,7 @@ function CleanerBST:Search()
 				end
 			else
 				self.ignore[cleanable:ID()] = nil
-				self.ai.cleanhandler:RemoveCleanable(cleanable)
+				self.ai.cleanhst:RemoveCleanable(cleanable)
 			end
 		end
 	end

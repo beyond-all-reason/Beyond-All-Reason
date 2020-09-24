@@ -155,7 +155,7 @@ function ReclaimBehaviour:Retarget()
 		end
 		if not self.targetCell and self.ai.Metal.full < 0.75 then
 			self:EchoDebug("looking for closest cleanable to reclaim")
-			self.targetUnit = self.ai.cleanhandler:ClosestCleanable(unit)
+			self.targetUnit = self.ai.cleanhst:ClosestCleanable(unit)
 		end
 	end
 	self.unit:ElectBehaviour()
