@@ -51,7 +51,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		if nukeList[un] then
 			table.insert(b, NukeBehaviour)
 		elseif antinukeList[un] then
-			table.insert(b, AntinukeBehaviour)
+			table.insert(b, AntinukeBST)
 		elseif bigPlasmaList[un] then
 			table.insert(b, BombardBehaviour)
 		end
