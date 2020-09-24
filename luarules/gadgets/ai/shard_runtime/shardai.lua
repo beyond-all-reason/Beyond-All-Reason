@@ -33,13 +33,13 @@ function ShardAI:Init()
 end
 
 function ShardAI:Prepare()
-	if self.loaded ~= true then
-		self:Init()
-	end
 	ai = self
 	game = self.api.game
 	map = self.api.map
 	shard_include = self.api.shard_include
+	if self.loaded ~= true then
+		self:Init()
+	end
 end
 
 function ShardAI:Update()
