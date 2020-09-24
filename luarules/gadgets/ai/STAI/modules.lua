@@ -15,7 +15,7 @@ shard_include ("scouthandler")
 shard_include ("assisthandler")
 shard_include ("defendhst")
 shard_include ("turtlehandler")
-shard_include ("econhandler")
+shard_include ("ecohst")
 shard_include ("tacticalhandler")
 shard_include ("damagehst")
 shard_include ("cleanhst")
@@ -25,7 +25,7 @@ shard_include ("overviewhandler")
 return {
 	STSleep,
 	MapHandler,
-	EconHandler,
+	EcoHST,
 	AttackHST,
 	BomberHST,
 	RaidHandler,
