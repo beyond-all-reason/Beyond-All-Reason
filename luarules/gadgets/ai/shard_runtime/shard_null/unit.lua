@@ -51,6 +51,20 @@ function ShardUnit:IsAlive()
 	return true
 end
 
+function ShardUnit:InList( unitTypeNames )
+	for i,name in ipairs(unitTypeNames) do
+		if name == self:Name() then
+			return true
+		end
+		if name == self:ID() then
+			return true
+		end
+		if name == self:Type() then
+			return true
+		end
+	end
+	return false
+end
 
 function ShardUnit:IsCloaked()
 	return self:Cloaked()
