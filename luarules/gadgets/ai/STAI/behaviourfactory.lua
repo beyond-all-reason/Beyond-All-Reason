@@ -76,7 +76,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		else
 			table.insert(b,TaskQueueBehaviour)
 			if unitTable[un].isBuilding then
-				table.insert(b, FactoryRegisterBehaviour)
+				table.insert(b, LabRegisterBST)
 			else
 				table.insert(b, STAssistBehaviour)
 				table.insert(b, ReclaimBehaviour)
