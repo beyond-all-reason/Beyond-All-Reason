@@ -40,7 +40,6 @@ return {
 		pushresistant = true,
 		radardistance = 1510,
 		radaremitheight = 64,
-		script = "Units/cort4fblackhy.cob",
 		seismicsignature = 0,
 		selfdestructas = "FlagshipExplosionSelfd",
 		sightdistance = 650,
