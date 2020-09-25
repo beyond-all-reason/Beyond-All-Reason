@@ -1,11 +1,11 @@
 return {
-	armt4invader = {
+	armvadert4 = {
 		acceleration = 0.1518,
 		activatewhenbuilt = true,
 		brakerate = 0.5589,
 		buildcostenergy = 300000,
 		buildcostmetal = 30000,
-		buildpic = "scavengers/armt4invader.PNG",
+		buildpic = "scavengers/armvadert4.PNG",
 		buildtime = 55307,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -29,9 +29,9 @@ return {
 		movementclass = "BOSSPEEWEE4",
 		name = "Epic Invader",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armt4invader.s3o",
+		objectname = "Units/scavboss/armvadert4.s3o",
 		pushresistant = true,
-		script = "Units/scavboss/armt4invader.cob",
+		script = "Units/scavboss/armvadert4.cob",
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
 		selfdestructcountdown = 10,

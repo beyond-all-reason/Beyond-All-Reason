@@ -1,5 +1,5 @@
 return {
-	cort4krow = {
+	corcrwt4 = {
 		acceleration = 0.08,
 		activatewhenbuilt = true,
 		blocking = false,
@@ -7,7 +7,7 @@ return {
 		brakerate = 0.275,
 		buildcostenergy = 200000,
 		buildcostmetal = 20000,
-		buildpic = "scavengers/cort4krow.PNG",
+		buildpic = "scavengers/corcrwt4.PNG",
 		buildtime = 84229,
 		canfly = true,
 		canmove = true,
@@ -32,8 +32,8 @@ return {
 		maxwaterdepth = 0,
 		name = "Epic Krow",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/cort4krow.s3o",
-		script = "Units/scavboss/cort4krow.cob",
+		objectname = "Units/scavboss/corcrwt4.s3o",
+		script = "Units/scavboss/corcrwt4.cob",
 		seismicsignature = 0,
 		selfdestructas = "bantha",
 		sightdistance = 675,

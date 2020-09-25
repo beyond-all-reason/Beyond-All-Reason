@@ -1,5 +1,5 @@
 return {
-	cort4demon = {
+	cordemont4 = {
 		acceleration = 0.2208,
 		brakerate = 1,
 		buildcostenergy = 1600000,
@@ -26,8 +26,8 @@ return {
 		movementclass = "HTBOT4",
 		name = "Demon",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/cort4demon.s3o",
-		script = "Units/scavboss/cort4demon.COB",
+		objectname = "Units/scavboss/cordemont4.s3o",
+		script = "Units/scavboss/cordemont4.COB",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 500,
@@ -58,7 +58,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 1014,
-				object = "Units/scavboss/cort4demon_dead.s3o",
+				object = "Units/scavboss/cordemont4_dead.s3o",
 				reclaimable = true,
 				world = "All Worlds",
 			},
