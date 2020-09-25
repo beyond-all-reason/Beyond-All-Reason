@@ -2,6 +2,7 @@ return {
 	armfepoch = {
 		acceleration = 0.015,
 		activatewhenbuilt = true,
+		bankingallowed = false,
 		brakerate = 0.05,
 		buildangle = 16384,
 		buildcostenergy = 316000,
