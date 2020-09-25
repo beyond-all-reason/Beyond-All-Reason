@@ -129,7 +129,7 @@ local icons = {
     {"jammer_t2.user", "jammer", 1.2},
 
     {"korgoth.user", "mech",3.3},
-    {"bantha.user", "bantha",2.6},
+    {"bantha.user", "bantha",2.7},
     {"juggernaut.user", "juggernaut",3.0},
     {"juggernaut2.user", "bot",2.75},
     {"commando.user", "commando",1.35},
@@ -278,7 +278,7 @@ local icons = {
 	{"t4_peewee.user", "armt4peewee", 2.2},
 	{"t4_fepoch.user", "air_t4_flagship", 3.2},
 	{"t4_fblackhy.user", "air_t4_flagship", 3.2},
-	{"t4_krow.user", "cort4krow", 2.5},
+	{"t4_krow.user", "cort4krow", 3.2},
 	{"t4_armcomboss.user", "armcomboss", 4},
 	{"t4_corcomboss.user", "corcomboss", 4},
 	
