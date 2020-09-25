@@ -184,8 +184,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		aliveLootboxesCount = aliveLootboxesCount + 1
         Spring.SetUnitNeutral(unitID, true)
 	end
-	if UnitName == "lootdroppod_gold" then
+	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		Spring.SetUnitNeutral(unitID, true)
+		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 end
 
