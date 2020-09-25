@@ -276,8 +276,8 @@ local icons = {
 	{"t4_ratte.user", "armstumpboss", 3.0},
 	{"t4_recluse.user", "armsptkboss", 2.4},
 	{"t4_peewee.user", "armpwboss", 2.2},
-	{"t4_fepoch.user", "air_t4_flagship", 3.4},
-	{"t4_fblackhy.user", "air_t4_flagship", 3.4},
+	{"t4_fepoch.user", "air_t4_flagship", 3.2},
+	{"t4_fblackhy.user", "air_t4_flagship", 3.2},
 	{"t4_armcomboss.user", "armcomboss", 4},
 	{"t4_corcomboss.user", "corcomboss", 4},
 	
