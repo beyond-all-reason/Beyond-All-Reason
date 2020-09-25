@@ -130,7 +130,7 @@ local icons = {
 
     {"korgoth.user", "mech",3.3},
     {"bantha.user", "bantha",2.6},
-    {"juggernaut.user", "juggernaut",3.2},
+    {"juggernaut.user", "juggernaut",3.0},
     {"juggernaut2.user", "bot",2.75},
     {"commando.user", "commando",1.35},
     {"commando2.user", "mech",1.3},  -- old
