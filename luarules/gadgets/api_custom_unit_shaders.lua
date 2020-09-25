@@ -702,7 +702,10 @@ local function _CleanupEverything(rendering)
 	end
 
 	for tex, _ in pairs(rendering.loadedTextures) do
-		gl.DeleteTexture(tex)
+		local prefix = tex:sub(1, 1)
+		if not validTexturePrefixes[prefix] then
+			gl.DeleteTexture(tex)
+		end
 	end
 
 	for _, dl in pairs(rendering.shadowsPreDLs) do

@@ -251,6 +251,7 @@ local materials = {
 			threads_arm = true,
 		},
 		deferredOptions = {
+			threads_arm = true,
 			materialIndex = 1,
 		},
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(armTanks, unitID, unitDefID, mat) end,
@@ -270,6 +271,7 @@ local materials = {
 			threads_cor = true,
 		},
 		deferredOptions = {
+			threads_cor = true,
 			materialIndex = 2,
 		},
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(corTanks, unitID, unitDefID, mat) end,
