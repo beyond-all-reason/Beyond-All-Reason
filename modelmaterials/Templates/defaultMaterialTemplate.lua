@@ -1158,7 +1158,7 @@ fragment = [[
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 			vec4 texColor1w = texture(texture1w, myUV);
 			vec4 texColor2w = texture(texture2w, myUV);
-			healthMix *= 0.9 * (1.0 - texColor2.r); //emissive parts don't get too damaged
+			healthMix *= (1.0 - 0.9 * texColor2.r); //emissive parts don't get too damaged
 			texColor1 = mix(texColor1, texColor1w, healthMix);
 			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
 			texColor2.z += 0.5 * healthMix;
