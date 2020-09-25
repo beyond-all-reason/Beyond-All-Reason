@@ -294,9 +294,9 @@ local armorDefs = {
 		"coruwadves",
 		"coruwadvms",
 
-		"armpwboss",
-		"armstumpboss",
-		"armvaderboss",
+		"armt4peewee",
+		"armt4ratte",
+		"armt4invader",
 	},
 	bombers = {
 		"chickenf1",
@@ -372,10 +372,9 @@ local armorDefs = {
 		"corape",
 		"corcrw",
 		"corcut",
-		"corcrwboss",
-		"armfepoch",
-		"corfblackhy",
-		"coracaboss",
+		"cort4krow",
+		"armt4fepoch",
+		"cort4fblackhy",
 	},
 	shields = {
 		"armgate",

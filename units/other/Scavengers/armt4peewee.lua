@@ -1,10 +1,10 @@
 return {
-	armpwboss = {
+	armt4peewee = {
 		acceleration = 0.414,
 		brakerate = 0.69,
 		buildcostenergy = 300000,
 		buildcostmetal = 30000,
-		buildpic = "scavengers/ARMPWBOSS.PNG",
+		buildpic = "scavengers/armt4peewee.PNG",
 		buildtime = 700000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -28,8 +28,8 @@ return {
 		movementclass = "BOSSPEEWEE4",
 		name = "Epic Peewee",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armpwboss.s3o",
-		script = "Units/scavboss/armpwboss.cob",
+		objectname = "Units/scavboss/armt4peewee.s3o",
+		script = "Units/scavboss/armt4peewee.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 1500,
@@ -62,7 +62,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 10000,
-				object = "Units/scavboss/armpwboss_dead.s3o",
+				object = "Units/scavboss/armt4peewee_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

@@ -72,6 +72,5 @@ Collectors = {
 	"corcs",
 	"coracsub",
 	"corch",
-	"coracaboss",
 	"corfast",
 }

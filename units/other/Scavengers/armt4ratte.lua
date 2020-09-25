@@ -1,10 +1,10 @@
 return {
-	armstumpboss = {
+	armt4ratte = {
 		acceleration = 0.0138,
 		brakerate = 0.08759,
 		buildcostenergy = 350000,
 		buildcostmetal = 35000,
-		buildpic = "scavengers/ARMSTUMPBOSS.PNG",
+		buildpic = "scavengers/armt4ratte.PNG",
 		buildtime = 2904000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -30,8 +30,8 @@ return {
 		movementclass = "BOSSSTUMPY7",
 		name = "Ratte",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/armstumpboss.s3o",
-		script = "Units/scavboss/armstumpboss.cob",
+		objectname = "Units/scavboss/armt4ratte.s3o",
+		script = "Units/scavboss/armt4ratte.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 600,
@@ -78,7 +78,7 @@ return {
 				height = 60,
 				hitdensity = 100,
 				metal = 17200,
-				object = "Units/scavboss/armstumpboss_dead.s3o",
+				object = "Units/scavboss/armt4ratte_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

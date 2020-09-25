@@ -164,7 +164,7 @@ T3ReinforcementLandUnits = {
 	--hovercraft
 	"armlun",
 	"corsok",
-	"armsptkboss",
+	"armt4recluse",
 	--constructors
 	-- "armck",
 	-- "armcv",
@@ -187,14 +187,13 @@ T4ReinforcementLandUnits = {
 	"corjugg",
 	"armbanth",
 	--superboss
-	"armpwboss",
-	"armstumpboss",
-	"armvaderboss",
-	"armfepoch",
-	"corfblackhy",
-	"corcrwboss",
-	--"coracaboss",
-	"corkargclassic",
+	"armt4peewee",
+	"armt4ratte",
+	"armt4invader",
+	"armt4fepoch",
+	"cort4fblackhy",
+	"cort4krow",
+	"cort4demon",
 }
 
 T1ReinforcementAirUnits = {
@@ -250,9 +249,9 @@ T3ReinforcementAirUnits = {
 }
 
 T4ReinforcementAirUnits = {
-	"corcrwboss",
-	"armfepoch",
-	"corfblackhy",
+	"cort4krow",
+	"armt4fepoch",
+	"cort4fblackhy",
 }
 
 T1ReinforcementSeaUnits = {
@@ -335,10 +334,10 @@ T3ReinforcementSeaUnits = {
 T4ReinforcementSeaUnits = {
 	"armepoch",
 	"corblackhy",
-	"corcrwboss",
-	"armfepoch",
-	"corfblackhy",
-	"armvaderboss",
+	"cort4krow",
+	"armt4fepoch",
+	"cort4fblackhy",
+	"armt4invader",
 	"corkorg",
 	"armbanth",
 }

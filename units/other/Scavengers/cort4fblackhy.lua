@@ -1,5 +1,5 @@
 return {
-	corfblackhy = {
+	cort4fblackhy = {
 		acceleration = 0.015,
 		activatewhenbuilt = true,
 		bankingallowed = false,
@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 316000,
 		buildcostmetal = 37800,
-		buildpic = "corfblackhy.PNG",
+		buildpic = "cort4fblackhy.PNG",
 		buildtime = 350600,
 		canfly = true,
 		canmove = true,
@@ -35,11 +35,12 @@ return {
 		maxwaterdepth = 15,
 		metalstorage = 100,
 		name = "Flying Black Hydra",
-		objectname = "Units/corfblackhy.s3o",
+		objectname = "Units/scavboss/cort4fblackhy.s3o",
+		script = "Units/scavboss/cort4fblackhy.cob",
 		pushresistant = true,
 		radardistance = 1510,
 		radaremitheight = 64,
-		script = "Units/corfblackhy.cob",
+		script = "Units/cort4fblackhy.cob",
 		seismicsignature = 0,
 		selfdestructas = "FlagshipExplosionSelfd",
 		sightdistance = 650,
@@ -56,7 +57,7 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				blocking = false,
+				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "17.3217697144 -6.85541303711 2.43087005615",
 				collisionvolumescales = "88.47706604 56.7307739258 178.029220581",
@@ -71,7 +72,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 9450,
-				object = "Units/corblackhy_dead.s3o",
+				object = "Units/scavboss/cort4fblackhy_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

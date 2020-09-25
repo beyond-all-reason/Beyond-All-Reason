@@ -445,40 +445,38 @@ customDefs.armwar = {
 local numBuildoptions = #UnitDefs.armshltx.buildoptions
 customDefs.armshltx = {
 	buildoptions = {
-		[numBuildoptions+1] = "armstumpboss",
-		[numBuildoptions+2] = "armsptkboss",
-		[numBuildoptions+3] = "armpwboss",
-		[numBuildoptions+4] = "armvaderboss",
-		[numBuildoptions+5] = "armfepoch",
+		[numBuildoptions+1] = "armt4ratte",
+		[numBuildoptions+2] = "armt4recluse",
+		[numBuildoptions+3] = "armt4peewee",
+		[numBuildoptions+4] = "armt4invader",
+		[numBuildoptions+5] = "armt4fepoch",
 	},
 }
 
 numBuildoptions = #UnitDefs.armshltxuw.buildoptions
 customDefs.armshltxuw = {
 	buildoptions = {
-		[numBuildoptions+1] = "armstumpboss",
-		[numBuildoptions+2] = "armpwboss",
-		[numBuildoptions+3] = "armvaderboss",
-		[numBuildoptions+4] = "armfepoch",
+		[numBuildoptions+1] = "armt4ratte",
+		[numBuildoptions+2] = "armt4peewee",
+		[numBuildoptions+3] = "armt4invader",
+		[numBuildoptions+4] = "armt4fepoch",
 	},
 }
 
 numBuildoptions = #UnitDefs.corgant.buildoptions
 customDefs.corgant = {
 	buildoptions = {
-		[numBuildoptions+1] = "corcrwboss",
-		[numBuildoptions+2] = "coracaboss",
-		[numBuildoptions+3] = "corfblackhy",
-		[numBuildoptions+4] = "corkargclassic",
+		[numBuildoptions+1] = "cort4krow",
+		[numBuildoptions+2] = "cort4fblackhy",
+		[numBuildoptions+3] = "cort4demon",
 	},
 }
 
 numBuildoptions = #UnitDefs.corgantuw.buildoptions
 customDefs.corgantuw = {
 	buildoptions = {
-		[numBuildoptions+1] = "corcrwboss",
-		[numBuildoptions+2] = "coracaboss",
-		[numBuildoptions+3] = "corfblackhy",
+		[numBuildoptions+1] = "cort4krow",
+		[numBuildoptions+2] = "cort4fblackhy",
 	},
 }
 

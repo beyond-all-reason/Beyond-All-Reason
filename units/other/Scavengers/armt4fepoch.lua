@@ -1,5 +1,5 @@
 return {
-	armfepoch = {
+	armt4fepoch = {
 		acceleration = 0.015,
 		activatewhenbuilt = true,
 		bankingallowed = false,
@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 316000,
 		buildcostmetal = 34000,
-		buildpic = "ARMFEPOCH.PNG",
+		buildpic = "armt4fepoch.PNG",
 		buildtime = 339600,
 		canfly = true,
 		canmove = true,
@@ -37,10 +37,10 @@ return {
 		metalstorage = 100,
 		name = "Flying Epoch",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMFEPOCH.s3o",
+		objectname = "Units/scavboss/armt4fepoch.s3o",
 		radardistance = 1530,
 		radaremitheight = 52,
-		script = "Units/ARMFEPOCH.cob",
+		script = "Units/scavboss/armt4fepoch.s3o",
 		seismicsignature = 0,
 		selfdestructas = "flagshipExplosionSelfd",
 		sightdistance = 689,
@@ -57,7 +57,7 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				blocking = false,
+				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0.439918518066 -4.07348632798e-05 0.367340087891",
 				collisionvolumescales = "75.0081939697 51.5621185303 178.425750732",
@@ -72,7 +72,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 8500,
-				object = "Units/armepoch_dead.s3o",
+				object = "Units/scavboss/armt4fepoch_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

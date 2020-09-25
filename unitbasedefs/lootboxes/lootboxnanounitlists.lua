@@ -152,7 +152,7 @@ buildPossibleOptionsT3 = {
 	--hovercraft
 	"armlun",
 	"corsok",
-	"armsptkboss",
+	"armt4recluse",
 	
 	--air
 	"armhawk",
@@ -182,29 +182,26 @@ buildPossibleOptionsT4 = {
 	"corjugg",
 	"armbanth",
 	--superboss
-	"armpwboss",
-	"armstumpboss",
-	"armvaderboss",
-	"armfepoch",
-	"corfblackhy",
-	"corcrwboss",
-	--"coracaboss",
-	"corkargclassic",
+	"armt4peewee",
+	"armt4ratte",
+	"armt4invader",
+	"armt4fepoch",
+	"cort4fblackhy",
+	"cort4krow",
+	"cort4demon",
 	
 	--air
-	"corcrwboss",
-	"armfepoch",
-	"corfblackhy",
-	--"coracaboss",
+	"cort4krow",
+	"armt4fepoch",
+	"cort4fblackhy",
 	
 	--sea
 	"armepoch",
 	"corblackhy",
-	"corcrwboss",
-	--"coracaboss",
-	"armfepoch",
-	"corfblackhy",
-	"armvaderboss",
+	"cort4krow",
+	"armt4fepoch",
+	"cort4fblackhy",
+	"armt4invader",
 	"corkorg",
 	"armbanth",
 }

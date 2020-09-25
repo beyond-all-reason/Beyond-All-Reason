@@ -1,10 +1,10 @@
 return {
-	armsptkboss = {
+	armt4recluse = {
 		acceleration = 0.207,
 		brakerate = 0.6486,
 		buildcostenergy = 120000,
 		buildcostmetal = 12000,
-		buildpic = "scavengers/ARMSPTKBOSS.PNG",
+		buildpic = "scavengers/armt4recluse.PNG",
 		buildtime = 120000,
 		canmove = true,
 		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -27,8 +27,8 @@ return {
 		mygravity = 10000,
 		name = "Epic Recluse",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/ARMSPTKBOSS.s3o",
-		script = "Units/ARMSPTK.cob",
+		objectname = "Units/scavboss/armt4recluse.s3o",
+		script = "Units/scavboss/armt4recluse.cob",
 		seismicsignature = 0,
 		selfdestructas = "empblast",
 		sightdistance = 600,
@@ -60,7 +60,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 244,
-				object = "Units/armsptk_dead.s3o",
+				object = "Units/scavboss/armt4recluse_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

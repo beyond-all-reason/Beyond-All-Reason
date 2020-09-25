@@ -61,8 +61,7 @@ T3AirUnits = {
 }
 
 T4AirUnits = {
-	"corcrwboss",
-	"armfepoch",
-	"corfblackhy",
-	--"coracaboss",
+	"cort4krow",
+	"armt4fepoch",
+	"cort4fblackhy",
 }
