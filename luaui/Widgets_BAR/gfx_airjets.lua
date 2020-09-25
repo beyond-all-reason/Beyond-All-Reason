@@ -173,7 +173,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
-	["cort4krow"] = {
+	["corcrwt4"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
@@ -257,13 +257,13 @@ local effectDefs = {
 	},
 
 	-- flying ships
-	["armt4fepoch"] = {
+	["armfepocht4"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustl1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustr1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustl2", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustr2", light = 0.62 },
 	},
-	["cort4fblackhy"] = {
+	["corfblackhyt4"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustl1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustr1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },
@@ -320,7 +320,11 @@ for name, effects in pairs(effectDefs) do
 			limitDefs[UnitDefNames[name].id] = true
 		end
 	end
-	defs[UnitDefNames[name].id] = effectDefs[name]
+	if UnitDefNames[name] then
+		defs[UnitDefNames[name].id] = effectDefs[name]
+	else
+		Spring.Echo("Airjets: Error: unitdef name '"..name.."' doesnt exist")
+	end
 end
 effectDefs = defs
 defs = nil
