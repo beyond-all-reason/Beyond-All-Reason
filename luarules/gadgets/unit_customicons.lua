@@ -268,8 +268,26 @@ local icons = {
     {"defence_3.user", "defence", 1.95},
     {"defence_1_naval.user", "defence", 1.05},
     {"defence_2_naval.user", "defence", 1.4},
+	
+	{"boss.user", "skull", 2.5},
 
-    {"boss.user", "skull", 2.5},
+    {"t4_demon.user", "t4demon", 2.5},
+	{"t4_invader.user", "t4invader", 2.5},
+	{"t4_ratte.user", "t4ratte", 2.5},
+	{"t4_recluse.user", "t4recluse", 2.5},
+	{"t4_peewee.user", "t4peewee", 2.5},
+	{"t4_fepoch.user", "t4fepoch", 2.5},
+	{"t4_fblackhy.user", "t4fblackhy", 2.5},
+	{"t4_armcomboss.user", "armcomboss", 5},
+	{"t4_corcomboss.user", "corcomboss", 5},
+	
+	{"lootboxnanot1.user", "scavnanotc_t1", 1.5},
+	{"lootboxnanot2.user", "scavnanotc_t2", 1.875},
+	{"lootboxnanot3.user", "scavnanotc_t3", 2.35},
+	{"lootboxnanot4.user", "scavnanotc_t4", 2.95},
+	
+	
+	
 
     {"blank.user", "blank", 1},
     {"unknown.user", "unknown", 2},
@@ -418,6 +436,36 @@ function loadUnitIcons()
 			Spring.SetUnitDefIcon(udid, iconPrefix.."armcom.user")
 		elseif (name=="corcom") or (name=="cordecom") then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."corcom.user")
+		-- T4 scav units
+		elseif name == "armcomboss" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_armcomboss.user")
+		elseif name == "corcomboss" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_corcomboss.user")
+		elseif name == "corkargclassic" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_demon.user")
+		elseif name == "armvaderboss" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_invader.user")
+		elseif name == "armstumpboss" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_ratte.user")
+		elseif name == "armsptkboss" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_recluse.user")
+		elseif name == "armpwboss" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_peewee.user")
+		elseif name == "armfepoch" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_fepoch.user")
+		elseif name == "corfblackhy" then
+			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_fblackhy.user")
+		-- lootboxes
+		elseif string.find(name, 'lootboxnano') then
+			if string.find(name, 't1') then
+				Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxnanot1.user")
+			elseif string.find(name, 't2') then
+				Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxnanot2.user")
+			elseif string.find(name, 't3') then
+				Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxnanot3.user")
+			elseif string.find(name, 't4') then
+				Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxnanot4.user")
+			end
 		elseif string.find(name, 'lootbox') then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."corlootboxgold.user")
 		elseif string.find(name, 'boss') then
@@ -444,8 +492,6 @@ function loadUnitIcons()
 			Spring.SetUnitDefIcon(udid, iconPrefix.."commando.user")
 		elseif (name=="cormando") then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."commando2.user")
-		elseif (name=="armfepoch" or name=="corfblackhy") then
-			Spring.SetUnitDefIcon(udid, iconPrefix.."air_flagship.user")
 
 			-- chickens
 		elseif (name=="chickenr3") then
