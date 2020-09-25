@@ -3,6 +3,7 @@ return {
 		acceleration = 0.08,
 		activatewhenbuilt = true,
 		blocking = false,
+		bankingallowed = false,
 		brakerate = 0.275,
 		buildcostenergy = 200000,
 		buildcostmetal = 20000,
