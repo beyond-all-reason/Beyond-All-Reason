@@ -169,8 +169,7 @@ local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		--"#define USE_ENVIRONMENT_DIFFUSE",
 		--"#define USE_ENVIRONMENT_SPECULAR",
 
-		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) ACESFilmicTM(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
@@ -186,8 +185,7 @@ local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		--"#define USE_ENVIRONMENT_DIFFUSE",
 		--"#define USE_ENVIRONMENT_SPECULAR",
 
-		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) SteveMTM1(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	shaderOptions = {
 		treewind = true,
@@ -217,8 +215,7 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		--"#define USE_ENVIRONMENT_DIFFUSE",
 		--"#define USE_ENVIRONMENT_SPECULAR",
 
-		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) SteveMTM1(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
@@ -231,8 +228,7 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		--"#define USE_ENVIRONMENT_DIFFUSE",
 		--"#define USE_ENVIRONMENT_SPECULAR",
 
-		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) SteveMTM1(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	--Initialize	= Initialize,
 	--Finalize	= Finalize,

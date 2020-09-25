@@ -18,8 +18,7 @@ local materials = {
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			--"#define GAMMA 2.2",
-			--"#define TONEMAP(c) SteveMTM1(c)",
+			"#define TONEMAP(c) CustomTM(c)",
 		},
 		deferredDefinitions = {
 			"#define RENDERING_MODE 1",
@@ -32,8 +31,7 @@ local materials = {
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			--"#define GAMMA 2.2",
-			--"#define TONEMAP(c) SteveMTM1(c)",
+			"#define TONEMAP(c) CustomTM(c)",
 		},
 		shaderOptions = {
 			autonormal = true,

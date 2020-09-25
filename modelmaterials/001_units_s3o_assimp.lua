@@ -19,7 +19,6 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
-		--"#define GAMMA 2.2",
 		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
@@ -35,7 +34,6 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
-		--"#define GAMMA 2.2",
 		"#define TONEMAP(c) CustomTM(c)",
 	},
 	shadowOptions = {

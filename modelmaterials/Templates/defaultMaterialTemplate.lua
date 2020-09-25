@@ -399,16 +399,6 @@ fragment = [[
 		#define GBUFFER_COUNT 5
 	#endif
 
-	// gamma correction & tonemapping
-	#ifdef GAMMA
-		#define INV_GAMMA 1.0 / GAMMA
-		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
-		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
-	#else
-		#define SRGBtoLINEAR(c) ( c )
-		#define LINEARtoSRGB(c) ( c )
-	#endif
-
 	#line 20270
 
 
@@ -459,6 +449,7 @@ fragment = [[
 	uniform sampler2D envLUT;			//10
 
 	uniform float pbrParams[8];
+	uniform float gamma;
 
 	/***********************************************************************/
 	// Unit/Feature uniforms
@@ -811,6 +802,95 @@ fragment = [[
 		return rgbColor;
 	}
 
+	/***********************************************************************/
+	// Tonemapping and helper functions
+
+	/***********************************************************************/
+	// Gamma Correction
+	vec3 LINEARtoSRGB(vec3 c) {
+		if (gamma == 1.0)
+			return c;
+
+		float invGamma = 1.0 / gamma;
+		return pow(c, vec3(invGamma));
+	}
+
+	vec3 SRGBtoLINEAR(vec3 c) {
+		if (gamma == 1.0)
+			return c;
+
+		return pow(c, vec3(gamma));
+	}
+
+	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
+	vec3 SteveMTM1(in vec3 x) {
+		const float a = 15.0; /// Mid
+		const float b = 0.3; /// Toe
+		const float c = 0.5; /// Shoulder
+		const float d = 1.5; /// Mid
+
+		return LINEARtoSRGB((x * (a * x + b)) / (x * (a * x + c) + d));
+	}
+
+	vec3 SteveMTM2(in vec3 x) {
+		const float a = 1.8; /// Mid
+		const float b = 1.4; /// Toe
+		const float c = 0.5; /// Shoulder
+		const float d = 1.5; /// Mid
+
+		return LINEARtoSRGB((x * (a * x + b)) / (x * (a * x + c) + d));
+	}
+
+	vec3 FilmicTM(in vec3 x) {
+		vec3 outColor = max(vec3(0.0), x - vec3(0.004));
+		return (outColor * (6.2 * outColor + 0.5)) / (outColor * (6.2 * outColor + 1.7) + 0.06);
+	}
+
+	vec3 Reinhard(const vec3 x) {
+		// Reinhard et al. 2002, "Photographic Tone Reproduction for Digital Images", Eq. 3
+		return LINEARtoSRGB(x / (1.0 + dot(LUMA, x)));
+	}
+
+	vec3 JodieReinhard(vec3 c){
+		float l = dot(c, LUMA);
+		vec3 tc = c / (c + 1.0);
+
+		return LINEARtoSRGB(mix(c / (l + 1.0), tc, tc));
+	}
+
+	vec3 ACESFilmicTM(in vec3 x) {
+		float a = 2.51;
+		float b = 0.03;
+		float c = 2.43;
+		float d = 0.59;
+		float e = 0.14;
+		return LINEARtoSRGB((x * (a * x + b)) / (x * (c * x + d) + e));
+	}
+
+	vec3 Unreal(const vec3 x) {
+		// Unreal, Documentation: "Color Grading"
+		// Adapted to be close to Tonemap_ACES, with similar range
+		// Gamma 2.2 correction is baked in, don't use with sRGB conversion!
+		return x / (x + 0.155) * 1.019;
+	}
+
+	vec3 ACESRec2020(const vec3 x) {
+		// Narkowicz 2016, "HDR Display вЂ“ First Steps"
+		const float a = 15.8;
+		const float b = 2.12;
+		const float c = 1.2;
+		const float d = 5.92;
+		const float e = 1.9;
+		return LINEARtoSRGB((x * (a * x + b)) / (x * (c * x + d) + e));
+	}
+
+	vec3 CustomTM(const vec3 x) {
+		return LINEARtoSRGB((x * (pbrParams[0] * x + pbrParams[1])) / (x * (pbrParams[2] * x + pbrParams[3]) + pbrParams[4]));
+	}
+
+	#ifndef TONEMAP
+		#define TONEMAP(c) LINEARtoSRGB(c)
+	#endif
 
 	/***********************************************************************/
 	// Environment sampling functions
@@ -1007,79 +1087,6 @@ fragment = [[
 		}
 		return roughness;
 	}
-
-	/***********************************************************************/
-	// Tonemapping and helper functions
-
-	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
-	vec3 SteveMTM1(in vec3 x) {
-		const float a = 15.0; /// Mid
-		const float b = 0.3; /// Toe
-		const float c = 0.5; /// Shoulder
-		const float d = 1.5; /// Mid
-
-		return LINEARtoSRGB((x * (a * x + b)) / (x * (a * x + c) + d));
-	}
-
-	vec3 SteveMTM2(in vec3 x) {
-		const float a = 1.8; /// Mid
-		const float b = 1.4; /// Toe
-		const float c = 0.5; /// Shoulder
-		const float d = 1.5; /// Mid
-
-		return LINEARtoSRGB((x * (a * x + b)) / (x * (a * x + c) + d));
-	}
-
-	vec3 FilmicTM(in vec3 x) {
-		vec3 outColor = max(vec3(0.0), x - vec3(0.004));
-		return (outColor * (6.2 * outColor + 0.5)) / (outColor * (6.2 * outColor + 1.7) + 0.06);
-	}
-
-	vec3 Reinhard(const vec3 x) {
-		// Reinhard et al. 2002, "Photographic Tone Reproduction for Digital Images", Eq. 3
-		return LINEARtoSRGB(x / (1.0 + dot(LUMA, x)));
-	}
-
-	vec3 JodieReinhard(vec3 c){
-		float l = dot(c, LUMA);
-		vec3 tc = c / (c + 1.0);
-
-		return LINEARtoSRGB(mix(c / (l + 1.0), tc, tc));
-	}
-
-	vec3 ACESFilmicTM(in vec3 x) {
-		float a = 2.51;
-		float b = 0.03;
-		float c = 2.43;
-		float d = 0.59;
-		float e = 0.14;
-		return LINEARtoSRGB((x * (a * x + b)) / (x * (c * x + d) + e));
-	}
-
-	vec3 Unreal(const vec3 x) {
-		// Unreal, Documentation: "Color Grading"
-		// Adapted to be close to Tonemap_ACES, with similar range
-		// Gamma 2.2 correction is baked in, don't use with sRGB conversion!
-		return x / (x + 0.155) * 1.019;
-	}
-
-	vec3 ACESRec2020(const vec3 x) {
-		// Narkowicz 2016, "HDR Display вЂ“ First Steps"
-		const float a = 15.8;
-		const float b = 2.12;
-		const float c = 1.2;
-		const float d = 5.92;
-		const float e = 1.9;
-		return LINEARtoSRGB((x * (a * x + b)) / (x * (c * x + d) + e));
-	}
-
-	vec3 CustomTM(const vec3 x) {
-		return LINEARtoSRGB((x * (pbrParams[0] * x + pbrParams[1])) / (x * (pbrParams[2] * x + pbrParams[3]) + pbrParams[4]));
-	}
-
-	#ifndef TONEMAP
-		#define TONEMAP(c) LINEARtoSRGB(c)
-	#endif
 
 	/***********************************************************************/
 	// Rendering related functions
@@ -1722,6 +1729,7 @@ local function SunChanged(luaShader)
         Spring.GetConfigFloat("unitSunMult", 1.35),
         Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
+	luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0))
 end
 
 defaultMaterialTemplate.ProcessOptions = ProcessOptions
