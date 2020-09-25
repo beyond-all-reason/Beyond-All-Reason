@@ -138,7 +138,7 @@ T3LandUnits = {
 	--hovercraft
 	"armlun",
 	"corsok",
-	"armt4recluse",
+	"armsptkt4",
 	--constructors
 	"armck",
 	"armcv",
@@ -161,11 +161,11 @@ T4LandUnits = {
 	"corjugg",
 	"armbanth",
 	--superboss
-	"armt4peewee",
-	"armt4ratte",
-	"armt4invader",
-	"armt4fepoch",
-	"cort4fblackhy",
-	"cort4krow",
-	"cort4demon",
+	"armpwt4",
+	"armrattet4",
+	"armvadert4",
+	"armfepocht4",
+	"corfblackhyt4",
+	"corcrwt4",
+	"cordemont4",
 }

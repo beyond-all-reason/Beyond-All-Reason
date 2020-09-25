@@ -28,13 +28,13 @@ local nameSuffix = '_scav'
 -- LIGHT RADAR OUTPOSTS
 -- Outpost CORE
 
-local function armt4peewee_scav(posx, posy, posz, GaiaTeamID, radiusCheck)
+local function armpwt4_scav(posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitpool = {}
 local posradius = 200
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armt4peewee"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+		Spring.CreateUnit("armpwt4"..nameSuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
 	end
 end
-table.insert(ScavengerBlueprintsT3,armt4peewee_scav)
+table.insert(ScavengerBlueprintsT3,armpwt4_scav)

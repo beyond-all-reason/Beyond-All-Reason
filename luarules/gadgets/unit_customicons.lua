@@ -271,14 +271,14 @@ local icons = {
 	
 	{"boss.user", "skull", 2.5},
 
-    {"t4_demon.user", "cort4demon", 2.5},
-	{"t4_invader.user", "armt4invader", 2.5},
-	{"t4_ratte.user", "armt4ratte", 3.0},
-	{"t4_recluse.user", "armt4recluse", 2.4},
-	{"t4_peewee.user", "armt4peewee", 2.2},
+    {"t4_demon.user", "cordemont4", 2.5},
+	{"t4_invader.user", "armvadert4", 2.5},
+	{"t4_ratte.user", "armrattet4", 3.0},
+	{"t4_recluse.user", "armsptkt4", 2.4},
+	{"t4_peewee.user", "armpwt4", 2.2},
 	{"t4_fepoch.user", "air_t4_flagship", 3.2},
 	{"t4_fblackhy.user", "air_t4_flagship", 3.2},
-	{"t4_krow.user", "cort4krow", 3.2},
+	{"t4_krow.user", "corcrwt4", 3.2},
 	{"t4_armcomboss.user", "armcomboss", 4},
 	{"t4_corcomboss.user", "corcomboss", 4},
 	
@@ -442,21 +442,21 @@ function loadUnitIcons()
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_armcomboss.user")
 		elseif name == "corcomboss" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_corcomboss.user")
-		elseif name == "cort4demon" then
+		elseif name == "cordemont4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_demon.user")
-		elseif name == "armt4invader" then
+		elseif name == "armvadert4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_invader.user")
-		elseif name == "armt4ratte" then
+		elseif name == "armrattet4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_ratte.user")
-		elseif name == "armt4recluse" then
+		elseif name == "armsptkt4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_recluse.user")
-		elseif name == "armt4peewee" then
+		elseif name == "armpwt4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_peewee.user")
-		elseif name == "armt4fepoch" then
+		elseif name == "armfepocht4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_fepoch.user")
-		elseif name == "cort4fblackhy" then
+		elseif name == "corfblackhyt4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_fblackhy.user")
-		elseif name == "cort4krow" then
+		elseif name == "corcrwt4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_krow.user")
 		-- lootboxes
 		elseif string.find(name, 'lootboxnano') then
