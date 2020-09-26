@@ -124,6 +124,7 @@ T2LandUnits = {
 	"corsent",
 	"corseal",
 	"correap",
+	"corgatreap",
 	"corvroc",
 	"corban",
 	"corparrow",

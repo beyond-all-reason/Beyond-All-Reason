@@ -53,6 +53,32 @@ buildPossibleOptionsT1 = {
 	"corpship",
 	"corsub",
 	"corgarp",
+	
+	-- turrets
+	"corllt",
+	"armllt",
+	"corrl",
+	"armrl",
+	"corhlt",
+	"armhlt",
+	"corhllt",
+	"armbeamer",
+	"cormaw",
+	"armclaw",
+	
+	-- turrets
+	"armllt",
+	"corllt",
+	"armbeamer",
+	"corhllt",
+	"armrl",
+	"corrl",
+	"armhlt",
+	"corhlt",
+	"armguard",
+	"corpun",
+	"armcir",
+	"corerad",
 }
 
 buildPossibleOptionsT2 = {
@@ -93,6 +119,7 @@ buildPossibleOptionsT2 = {
 	"corsent",
 	"corseal",
 	"correap",
+	"corgatreap",
 	"corvroc",
 	"corban",
 	"corparrow",
@@ -132,6 +159,20 @@ buildPossibleOptionsT2 = {
 	"corseal",
 	--hovercraft
 	"corhal",
+	
+	-- turrets
+	"armanni",
+	"cordoom",
+	"armamb",
+	"cortoast",
+	"armpb",
+	"corvipe",
+	"armbrtha",
+	"corint",
+	"armflak",
+	"corflak",
+	"armamd",
+	"corfmd",
 }
 
 buildPossibleOptionsT3 = {
@@ -175,6 +216,20 @@ buildPossibleOptionsT3 = {
 	--hovercraft
 	"armlun",
 	"corsok",
+	
+	-- turrets
+	"armanni",
+	"cordoom",
+	"armbrtha",
+	"corint",
+	"armvulc",
+	"corbuzz",
+	"corscreamer",
+	"armmercury",
+	"armsilo",
+	"corsilo",
+	"armamd",
+	"corfmd",
 }
 
 buildPossibleOptionsT4 = {
@@ -204,4 +259,8 @@ buildPossibleOptionsT4 = {
 	"armvadert4",
 	"corkorg",
 	"armbanth",
+	
+	--turrets
+	"armvulc",
+	"corbuzz",
 }

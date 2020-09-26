@@ -1,5 +1,5 @@
 unitName = "lootboxnano_t4_var4"
-humanName = "Printer T3"
+humanName = "Printer T4"
 sizeMultiplier = 2.95
 collisionVolumeScales = "93 94 93"
 footprintx = 4
