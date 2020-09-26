@@ -480,6 +480,13 @@ customDefs.corgantuw = {
 	},
 }
 
+numBuildoptions = #UnitDefs.coravp.buildoptions
+customDefs.coravp = {
+	buildoptions = {
+		[numBuildoptions+1] = "corgatreap",
+	},
+}
+
 
 -- Cloaked Radar
 
