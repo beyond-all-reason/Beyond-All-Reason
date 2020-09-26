@@ -127,6 +127,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
+				interceptedbyshieldtype = 4,
 				model = "airbombt2.s3o",
 				name = "Heavy ballistic underwater cannon",
 				noselfdamage = true,
