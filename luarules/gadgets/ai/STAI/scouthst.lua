@@ -55,7 +55,7 @@ function ScoutHST:ClosestSpot(scoutbst)
 				if self.ai.startLocations[mtype][network] ~= nil then
 					-- scout all probable start locations first
 					self:EchoDebug(unit:Name() .. " got starts")
-					for i, p in pairs(ai.startLocations[mtype][network]) do
+					for i, p in pairs(self.ai.startLocations[mtype][network]) do
 						table.insert(self.spotsToScout[mtype][network], p)
 					end
 				end
@@ -65,7 +65,7 @@ function ScoutHST:ClosestSpot(scoutbst)
 		elseif self.usingStarts[mtype][network] then
 			-- then use metal and geo spots
 			self:EchoDebug(unit:Name() .. " got metals and geos")
-			for i, p in pairs(ai.scoutSpots[mtype][network]) do
+			for i, p in pairs(self.ai.scoutSpots[mtype][network]) do
 				table.insert(self.spotsToScout[mtype][network], p)
 			end
 			self.usingStarts[mtype][network] = false

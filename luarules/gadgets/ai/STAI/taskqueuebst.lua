@@ -353,7 +353,7 @@ function TaskQueueBST:LocationFilter(utype, value)
 		local currentLevel = 0
 		local target = nil
 		local mtype = self.ai.data.unitTable[self.name].mtype
-		for level, factories in pairs (ai.factoriesAtLevel)  do
+		for level, factories in pairs (self.ai.factoriesAtLevel)  do
 			self:EchoDebug( ' analysis for level ' .. level)
 			for index, factory in pairs(factories) do
 				local factoryName = factory.unit:Internal():Name()
@@ -467,9 +467,9 @@ function TaskQueueBST:GetQueue()
 	local uT = self.ai.data.unitTable
 	if self.ai.data.outmodedTaskqueues[self.name] ~= nil and not q then
 		local threshold =  1 - (uT[self.name].techLevel / self.ai.maxFactoryLevel)
-		if self.isFactory  and (ai.Metal.full < threshold or self.ai.Energy.full < threshold) then
+		if self.isFactory  and (self.ai.Metal.full < threshold or self.ai.Energy.full < threshold) then
 			local mtype = factoryMobilities[self.name][1]
-			for level, factories in pairs (ai.factoriesAtLevel)  do
+			for level, factories in pairs (self.ai.factoriesAtLevel)  do
 				for index, factory in pairs(factories) do
 					local factoryName = factory.unit:Internal():Name()
 					if mtype == factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
