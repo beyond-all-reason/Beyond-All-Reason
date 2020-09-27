@@ -91,7 +91,7 @@ function WardBST:Activate()
 		local salvation = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
 		self:EchoDebug(tostring(salvation), "salvation")
 		if salvation and Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
-			self.unit:Internal():Move(RandomAway(salvation,150))
+			self.unit:Internal():Move(self.ai, RandomAway(salvation,150))
 			self.noSalvation = false
 			self.active = true
 			self:EchoDebug("unit ".. self.name .." runs away from danger")

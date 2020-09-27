@@ -80,7 +80,7 @@ end
 function BomberBST:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
-	self.unit:Internal():Move(RandomAway(self.homepos, math.random(100,300))) -- you're drunk go home
+	self.unit:Internal():Move(RandomAway(self.ai, self.homepos, math.random(100,300))) -- you're drunk go home
 end
 
 function BomberBST:Update()

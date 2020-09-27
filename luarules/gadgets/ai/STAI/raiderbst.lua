@@ -199,7 +199,7 @@ end
 
 function RaiderBST:MoveNear(position, distance)
 	distance = distance or self.nearDistance
-	self.unit:Internal():Move(RandomAway(position, distance))
+	self.unit:Internal():Move(RandomAway(self.ai, position, distance))
 end
 
 function RaiderBST:GetTarget()

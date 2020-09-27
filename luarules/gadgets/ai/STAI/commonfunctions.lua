@@ -42,9 +42,11 @@ function ConstrainToMap(x, z)
 	return x, z
 end
 
-function RandomAway(pos, dist, opposite, angle)
-	if angle == nil then angle = random() * twicePi end
-	local away = api.Position()
+function RandomAway( ai, pos, dist, opposite, angle)
+	if angle == nil then
+		angle = random() * twicePi
+	end
+	local away = ai.api.Position()
 	away.x = pos.x + dist * cos(angle)
 	away.z = pos.z - dist * sin(angle)
 	away.y = pos.y + 0
@@ -60,7 +62,7 @@ function RandomAway(pos, dist, opposite, angle)
 	end
 	if opposite then
 		angle = twicePi - angle
-		return away, RandomAway(pos, dist, false, angle)
+		return away, RandomAway( ai, pos, dist, false, angle)
 	else
 		return away
 	end

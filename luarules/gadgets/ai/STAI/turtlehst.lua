@@ -325,9 +325,9 @@ function TurtleHST:Base(turtle, size, limbs)
 		local limb = { turtle = turtle, nameCounts = {}, ground = 0, submerged = 0 }
 		-- make sure the limb is in an acceptable position (not near the map edge, and not inside another turtle)
 		for aroundTheClock = 1, 12 do
-			local offMapCheck = RandomAway(turtle.position, size * 1.33, false, angle)
+			local offMapCheck = RandomAway(self.ai, turtle.position, size * 1.33, false, angle)
 			if offMapCheck.x ~= 1 and offMapCheck.x ~= self.ai.maxElmosX - 1 and offMapCheck.z ~= 1 and offMapCheck.z ~= self.ai.maxElmosZ - 1 then
-				limb.position = RandomAway(turtle.position, size, false, angle)
+				limb.position = RandomAway(self.ai, turtle.position, size, false, angle)
 				local inAnotherTurtle = false
 				for ti, turt in pairs(self.turtles) do
 					if turt ~= turtle then

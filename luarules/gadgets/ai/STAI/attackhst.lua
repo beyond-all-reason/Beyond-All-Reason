@@ -244,7 +244,7 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 		startPos = self.ai.frontPosition[representativeBehaviour.hits]
 		if startPos then
 			local angle = AnglePosPos(startPos, squad.target)
-			startPos = RandomAway(startPos, 150, nil, angle)
+			startPos = RandomAway(self.ai, startPos, 150, nil, angle)
 		else
 			startPos = representative:GetPosition()
 		end
@@ -333,7 +333,7 @@ function AttackHST:SquadAdvance(squad)
 		local member = members[i]
 		local pos = nextPos
 		if member.formationBack and squad.pathStep ~= #squad.path then
-			pos = RandomAway(nextPos, -member.formationBack, nil, nextAngle)
+			pos = RandomAway(self.ai, nextPos, -member.formationBack, nil, nextAngle)
 		end
 		local reverseAttackAngle
 		if squad.pathStep == #squad.path then
