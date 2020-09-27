@@ -6,12 +6,19 @@ function BehaviourFactory:Init()
 	self.scoutslist = {}
 end
 
-
+--[[
 local function HasKey( value, list )
 	for k,v in pairs(list) do
 		if k == value then
 			return true
 		end
+	end
+	return false
+end]]
+
+local function HasKey( value, list )
+	if list[value] then
+		return true
 	end
 	return false
 end
@@ -112,7 +119,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end
-		if HasKey(un,bomberlist) then
+		if HasKey(un,bomberList) then
 			table.insert(b, BomberBST)
 		end
 		if HasKey(un,scoutList)then
