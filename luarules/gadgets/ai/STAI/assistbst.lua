@@ -26,7 +26,7 @@ function AssistBST:Init()
 	if nanoTurretList[uname] then self.isNanoTurret = true end
 	if commanderList[uname] then self.isCommander = true end
 	self.id = self.unit:Internal():ID()
-	ai.assisthst:AssignIDByName(self)
+	self.ai.assisthst:AssignIDByName(self)
 	-- game:SendToConsole("assistbst:init", ai, ai.id, self.ai, self.ai.id)
 	self:EchoDebug(uname .. " " .. self.ai.IDByName[self.id])
 	self:EchoDebug("added to unit "..uname)
@@ -93,7 +93,7 @@ function AssistBST:Update()
 				floats:push_back(pos.y)
 				floats:push_back(pos.z)
 				self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
-				ai.assisthst:AddFree(self)
+				self.ai.assisthst:AddFree(self)
 				self.patroling = true
 			end
 		end
@@ -103,8 +103,8 @@ end
 function AssistBST:Activate()
 	self:EchoDebug("activated on unit "..self.name)
 	if self:DoIAssist() then
-		ai.assisthst:Release(self.unit:Internal())
-		ai.assisthst:AddFree(self)
+		self.ai.assisthst:Release(self.unit:Internal())
+		self.ai.assisthst:AddFree(self)
 	end
 	if self.isNanoTurret then
 		-- set nano turrets to patrol
@@ -122,8 +122,8 @@ end
 
 function AssistBST:Deactivate()
 	self:EchoDebug("deactivated on unit "..self.name)
-	ai.assisthst:RemoveWorking(self)
-	ai.assisthst:RemoveFree(self)
+	self.ai.assisthst:RemoveWorking(self)
+	self.ai.assisthst:RemoveFree(self)
 	self.active = false
 	self.target = nil
 	self.assisting = nil
@@ -138,7 +138,7 @@ function AssistBST:Priority()
 end
 
 function AssistBST:OwnerDead()
-	ai.assisthst:RemoveAssistant(self)
+	self.ai.assisthst:RemoveAssistant(self)
 end
 
 function AssistBST:Assign(builderID)
