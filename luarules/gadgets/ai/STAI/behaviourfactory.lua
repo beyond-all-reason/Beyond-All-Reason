@@ -63,7 +63,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		if advConList[un] then
 			-- game:SendToConsole(u:Name() .. " is advanced construction unit")
 			-- half advanced engineers upgrade mexes instead of building things
-			if self.ai.advCons == nil then ai.advCons = 0 end
+			if self.ai.advCons == nil then self.ai.advCons = 0 end
 			if self.ai.advCons == 0 then
 				-- game:SendToConsole(u:Name() .. " taskqueuing")
 				table.insert(b, MexUpgradeBehaviour)
