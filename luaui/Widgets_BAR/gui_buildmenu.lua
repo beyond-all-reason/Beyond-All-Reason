@@ -2252,7 +2252,7 @@ function widget:SetConfigData(data)
 	if data.stickToBottom ~= nil then
 		stickToBottom = data.stickToBottom
 	end
-	if data.buildQueue and Spring.GetGameFrame() == 0 then
+	if data.buildQueue and Spring.GetGameFrame() == 0 and data.gameID and data.gameID == Game.gameID then
 		buildQueue = data.buildQueue
 	end
 	if data.alwaysShow ~= nil then
