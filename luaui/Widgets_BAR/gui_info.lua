@@ -227,9 +227,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canStockpile then
 		unitDefInfo[unitDefID].canStockpile = true
 	end
-	-- if VFS.FileExists('unitpics/alternative/' .. string.gsub(unitDef.buildpicname, '(.*/)', '')) then
-		-- unitDefInfo[unitDefID].hasAlternativeUnitpic = true
-	-- end
+	if VFS.FileExists('unitpics/alternative/' .. unitDef.buildpicname) then
+		unitDefInfo[unitDefID].hasAlternativeUnitpic = true
+	end
 	if unitDef.buildSpeed > 0 then
 		unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 	end
