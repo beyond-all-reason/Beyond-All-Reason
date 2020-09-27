@@ -318,7 +318,7 @@ function TurtleHST:Base(turtle, size, limbs)
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
 	local oldY = turtle.position.y+0
-	turtle.position = api.Position()
+	turtle.position = self.ai.api.Position()
 	turtle.position.y = oldY
 	turtle.position.x = totalX / #turtle.organs
 	turtle.position.z = totalZ / #turtle.organs
