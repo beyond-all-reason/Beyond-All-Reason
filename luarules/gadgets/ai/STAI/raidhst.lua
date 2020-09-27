@@ -91,7 +91,7 @@ function RaidHST:GetPathValidFunc(unitName)
 		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
-		return ai.targethst:IsSafePosition(node.position, unitName, 1)
+		return self.ai.targethst:IsSafePosition(node.position, unitName, 1)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func

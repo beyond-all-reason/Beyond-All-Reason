@@ -84,7 +84,7 @@ end
 local function Value(unitName)
 	local v = unitValue[unitName]
 	if v then return v end
-	local utable = ai.data.unitTable[unitName]
+	local utable = self.ai.data.unitTable[unitName]
 	if not utable then return 0 end
 	local val = utable.metalCost + (utable.techLevel * techValue)
 	if utable.buildOptions ~= nil then

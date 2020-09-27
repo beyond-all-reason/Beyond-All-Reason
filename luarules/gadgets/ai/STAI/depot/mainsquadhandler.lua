@@ -19,12 +19,12 @@ function MainSquadHandler:Update()
 
 	--Commander position for atk behaviour
 	local frame = Spring.GetGameFrame()
-	
+
 	-- commpos stuff was here
-	
+
 	--TargetPoolThread
 	if frame%300 == 75+(self.ai.id*7) then
-		self:TargetPoolThread()	
+		self:TargetPoolThread()
 	end
 	if self.myUnitCount == nil or mainAttackRefreshRate == nil or mainRegroupRefreshRate == nil or (frame+self.myUnitCount)%2000 == 0 then
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
@@ -53,8 +53,8 @@ function MainSquadHandler:Update()
 				self.squads[i].target = self.targetPool[3]
 			else
 				local target = GG.AiHelpers.TargetsOfInterest.GetTarget(self.ai.id)
-				if ai.triggerhandler.CommInDanger and ai.triggerhandler.CommAttackerPos and ai.triggerhandler.CommAttackerPos.x then
-					self.squads[i].target = ai.triggerhandler.CommAttackerPos
+				if self.ai.triggerhandler.CommInDanger and self.ai.triggerhandler.CommAttackerPos and self.ai.triggerhandler.CommAttackerPos.x then
+					self.squads[i].target = self.ai.triggerhandler.CommAttackerPos
 				elseif target and squad.role == "attacker" then
 					self.squads[i].target = target
 				else
@@ -62,7 +62,7 @@ function MainSquadHandler:Update()
 						self.squads[i].target = self.ai.metalspothandler:ClosestEnemySpot(self.game:GetTypeByName("armmex") , self.squads[i].position )
 						self:SetSquadAggressiveness(i, 2)
 					else
-						if Spring.GetGameSeconds() < ai.aimodehandler.nodefenderscounter then
+						if Spring.GetGameSeconds() < self.ai.aimodehandler.nodefenderscounter then
 							if self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position) then
 								self.squads[i].target = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position)
 								self:SetSquadAggressiveness(i, 2)

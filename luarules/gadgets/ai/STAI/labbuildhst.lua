@@ -283,8 +283,8 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 	end
 	local mtype = factoryMobilities[factoryName][1]
 	-- below is commented out because sometimes you need a lower level factory to build things the higher level cannot, when the previous low level factory has been destroyed
-	-- if self.ai.data.unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
-	-- 	self:EchoDebug('tech level ' .. self.ai.data.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
+	-- if self.ai.data.unitTable[factoryName].techLevel <= self.ai.factoryBuilded[mtype][network] then
+	-- 	self:EchoDebug('tech level ' .. self.ai.data.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. self.ai.factoryBuilded[mtype][network])
 	-- 	return false
 	-- end
 	if mtype == 'bot' then

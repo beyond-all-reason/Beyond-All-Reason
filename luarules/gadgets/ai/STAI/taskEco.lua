@@ -419,15 +419,15 @@ end
 
 function AdvEconomy(tskqbhvr)
 	local unitName=DummyUnitName
-	if ai.Energy.full > 0.9 and ai.Energy.income > 3000 and ai.Metal.reserves > 1000 and ai.Energy.capacity < 40000 then
+	if tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Energy.income > 3000 and tskqbhvr.ai.Metal.reserves > 1000 and tskqbhvr.ai.Energy.capacity < 40000 then
 		unitName = buildEstore2()
-	elseif ai.Metal.full > 0.8 and ai.Metal.income > 100 and ai.Metal.capacity < 20000 and ai.Energy.full > 0.3 then
+	elseif tskqbhvr.ai.Metal.full > 0.8 and tskqbhvr.ai.Metal.income > 100 and tskqbhvr.ai.Metal.capacity < 20000 and tskqbhvr.ai.Energy.full > 0.3 then
 		unitName = buildMstore2()
-	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.7 and ai.Energy.income > 2000 and ai.Metal.full < 0.5 then
+	elseif tskqbhvr.ai.Energy.income > tskqbhvr.ai.Energy.usage and tskqbhvr.ai.Energy.full > 0.7 and tskqbhvr.ai.Energy.income > 2000 and tskqbhvr.ai.Metal.full < 0.5 then
 		unitName = buildMconv2()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.full > 0.1 and ai.Metal.income > 18 then
+	elseif (tskqbhvr.ai.Energy.full < 0.3 or tskqbhvr.ai.Energy.income < tskqbhvr.ai.Energy.usage * 1.25) and tskqbhvr.ai.Metal.full > 0.1 and tskqbhvr.ai.Metal.income > 18 then
 		unitName = BuildAdvEnergy(tskqbhvr)
-	else--if ai.Metal.full < 0.2 and ai.Energy.full > 0.1 then
+	else--if tskqbhvr.ai.Metal.full < 0.2 and tskqbhvr.ai.Energy.full > 0.1 then
 		unitName = BuildMohoMex()
 	end
 	EchoDebug('Economy level 3 '..unitName)
@@ -436,13 +436,13 @@ end
 
 function AdvEconomyUnderWater(tskqbhvr)
 	local unitName = DummyUnitName
-	if 	ai.Energy.full>0.8 and ai.Energy.income > 2500 and ai.Metal.reserves > 800 and ai.Energy.capacity < 50000  then
+	if tskqbhvr.ai.Energy.full>0.8 and tskqbhvr.ai.Energy.income > 2500 and tskqbhvr.ai.Metal.reserves > 800 and tskqbhvr.ai.Energy.capacity < 50000  then
 		unitName=buildEstore2(tskqbhvr)
-	elseif ai.Metal.full>0.7 and ai.Metal.income>30 and ai.Metal.capacity < 20000 and ai.Energy.full > 0.4 then
+	elseif tskqbhvr.ai.Metal.full>0.7 and tskqbhvr.ai.Metal.income>30 and tskqbhvr.ai.Metal.capacity < 20000 and tskqbhvr.ai.Energy.full > 0.4 then
 		unitName=buildMstore2(tskqbhvr)
-	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
+	elseif tskqbhvr.ai.Energy.income > tskqbhvr.ai.Energy.usage and tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Energy.income > 2000 and tskqbhvr.ai.Metal.full < 0.3 then
 		unitName = buildMconv2UW(tskqbhvr)
-	elseif (ai.Energy.full<0.3 or ai.Energy.income < ai.Energy.usage * 1.5) and ai.Metal.full>0.1 then
+	elseif (tskqbhvr.ai.Energy.full<0.3 or tskqbhvr.ai.Energy.income < tskqbhvr.ai.Energy.usage * 1.5) and tskqbhvr.ai.Metal.full>0.1 then
 		unitName = BuildUWFusion(tskqbhvr)
 	else
 		unitName = BuildUWMohoMex()
@@ -453,13 +453,13 @@ end
 
 function EconomySeaplane(tskqbhvr)
 	local unitName=DummyUnitName
-	if 	ai.Energy.full>0.7 and ai.Energy.income > 2000 and ai.Metal.income>ai.Metal.usage and ai.Energy.capacity < 60000  then
+	if tskqbhvr.ai.Energy.full>0.7 and tskqbhvr.ai.Energy.income > 2000 and tskqbhvr.ai.Metal.income>tskqbhvr.ai.Metal.usage and tskqbhvr.ai.Energy.capacity < 60000  then
 		unitName=buildEstore2(tskqbhvr)
-	elseif ai.Metal.full>0.9 and ai.Metal.income>30 and ai.Metal.capacity < 30000 and ai.Energy.full > 0.3 then
+	elseif tskqbhvr.ai.Metal.full>0.9 and tskqbhvr.ai.Metal.income>30 and tskqbhvr.ai.Metal.capacity < 30000 and tskqbhvr.ai.Energy.full > 0.3 then
 		unitName=buildMstore2(tskqbhvr)
-	elseif ai.Energy.full>0.8  then
+	elseif tskqbhvr.ai.Energy.full>0.8  then
 		unitName=buildMconv2UW(tskqbhvr)
-	elseif ai.Energy.full>0.5 and ai.Metal.full>0.5 then
+	elseif tskqbhvr.ai.Energy.full>0.5 and tskqbhvr.ai.Metal.full>0.5 then
 		unitName=Lvl2ShipAssist()
 	end
 	EchoDebug('Economy Seaplane '..unitName)
@@ -468,11 +468,11 @@ end
 
 function EconomyBattleEngineer(tskqbhvr)
         local unitName=DummyUnitName
-	if ai.realEnergy > 1.25 and ai.realMetal > 1.1 then
+	if tskqbhvr.ai.realEnergy > 1.25 and tskqbhvr.ai.realMetal > 1.1 then
 		unitName= NanoTurret()
-	elseif ai.Energy.full < 0.1 and ai.Metal.full > 0.1 then
+	elseif tskqbhvr.ai.Energy.full < 0.1 and tskqbhvr.ai.Metal.full > 0.1 then
 		unitName = Solar()
-	elseif ai.Metal.full < 0.2 then
+	elseif tskqbhvr.ai.Metal.full < 0.2 then
 		unitName=BuildMex()
 	else
 		unitName = EngineerAsFactory()
@@ -483,9 +483,9 @@ end
 
 function EconomyNavalEngineer(tskqbhvr)
         local unitName=DummyUnitName
-	if ai.Energy.full < 0.2 and realMetal > 1 then
+	if tskqbhvr.ai.Energy.full < 0.2 and realMetal > 1 then
 		unitName = TidalIfTidal()
-	elseif ai.Metal.full < 0.2 and ai.Energy.income > ai.Metal.usage then
+	elseif tskqbhvr.ai.Metal.full < 0.2 and tskqbhvr.ai.Energy.income > tskqbhvr.ai.Metal.usage then
 		unitName = BuildUWMex()
 	else
 		unitName = NavalEngineerAsFactory()
@@ -496,9 +496,9 @@ end
 
 function EconomyFark(tskqbhvr)
 	local unitName = DummyUnitName
-	if (ai.Energy.full < 0.3 or ai.realEnergy < 1.1)   then
+	if (tskqbhvr.ai.Energy.full < 0.3 or tskqbhvr.ai.realEnergy < 1.1)   then
 		unitName = WindSolar()
-	elseif ai.Energy.full > 0.9 and ai.Metal.capacity < 4000 then
+	elseif tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Metal.capacity < 4000 then
 		unitName = buildEstore1()
 	else
 		unitName = BuildMex()

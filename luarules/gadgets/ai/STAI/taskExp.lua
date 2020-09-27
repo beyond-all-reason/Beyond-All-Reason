@@ -96,11 +96,11 @@ function Lvl3Hov(tskqbhvr)
 	end
 	return BuildBattleIfNeeded(unitName)
 end
-	
+
 function Lv3VehAmp(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		if ai.Metal.full < 0.5 then
+		if tskqbhvr.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
 			unitName = "corparrow"
@@ -110,8 +110,8 @@ function Lv3VehAmp(tskqbhvr)
 	end
 	return BuildSiegeIfNeeded(unitName)
 end
-	
-	
+
+
 function Lv3Special(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
@@ -121,4 +121,3 @@ function Lv3Special(tskqbhvr)
 	end
 	return BuildBattleIfNeeded(unitName)
 end
-	

@@ -55,7 +55,7 @@ function DamageHST:UnitDamaged(unit, attacker, damage)
 	-- if attacker ~= nil then game:SendToConsole("by " .. attacker:Team() .. " (" .. game:GetTeamID() .. ")") end
 	local friendlyFire = false
 	if attacker ~= nil then
-		if ai.friendlyTeamID[attacker:Team()] then friendlyFire = true end
+		if self.ai.friendlyTeamID[attacker:Team()] then friendlyFire = true end
 	end
 	if unit ~= nil and not friendlyFire then
 		local unitID = unit:ID()

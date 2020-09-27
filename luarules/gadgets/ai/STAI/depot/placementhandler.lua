@@ -36,7 +36,7 @@ local job = {
 	unittype=unittype,
 	cleanup_on_unit_death=builderID
 }
-local success = ai.placementhandler.NewJob( job )
+local success = self.ai.placementhandler.NewJob( job )
 if success then
 	-- the job has been schedule, do whatever else we need to do in parallel
 	-- when a position has been found, it will call the callback function we passed it

@@ -38,11 +38,13 @@ local hurtyLayer = { ground = 1, submerged = 1, air = 1 }
 
 local unitPriorities = {}
 
-local function Priority(unitName)
+TurtleHST = class(Module)
+
+function TurtleHST:Priority(unitName)
 	local p = unitPriorities[unitName]
 	if p then return p end
 	local priority = 0
-	local ut = ai.data.unitTable[unitName]
+	local ut = self.ai.data.unitTable[unitName]
 	if turtleList[unitName] then
 		priority = turtleList[unitName]
 	elseif antinukeList[unitName] then
@@ -74,7 +76,6 @@ local function Priority(unitName)
 	return priority
 end
 
-TurtleHST = class(Module)
 
 function TurtleHST:Name()
 	return "TurtleHST"
@@ -178,7 +179,7 @@ end
 
 function TurtleHST:AddOrgan(position, unitID, unitName)
 	-- calculate priority
-	local priority = Priority(unitName)
+	local priority = self:Priority(unitName)
 	local ut = self.ai.data.unitTable[unitName]
 	local volume = ut.xsize * ut.zsize * 64
 	-- create the organ
@@ -584,7 +585,7 @@ end
 
 function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistance)
 	local modDist = modDistance
-	if unitName then modDist = modDist * Priority(unitName) end
+	if unitName then modDist = modDist * self:Priority(unitName) end
 	if builder == nil then return end
 	self:EchoDebug("checking for most turtled from " .. builder:Name() .. ", bombard: " .. tostring(bombard))
 	local position = builder:GetPosition()

@@ -67,7 +67,7 @@ function ScoutBST:Update()
 				self.attacking = true
 			elseif self.target ~= nil then
 				-- evade enemies along the way if possible
-				local newPos, arrived = ai.targethst:BestAdjacentPosition(unit, self.target)
+				local newPos, arrived = self.ai.targethst:BestAdjacentPosition(unit, self.target)
 				if newPos then
 					unit:Move(newPos)
 					self.evading = true

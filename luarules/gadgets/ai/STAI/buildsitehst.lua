@@ -360,14 +360,14 @@ function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,m
 			if  spaceEquals then
 				if not self:unitNearCheck(utype,tgPos,spaceEquals)then
 					self:EchoDebug('no same unit near: pass')
-					local p = ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.data.unitTable[builderName].losRadius)
+					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.data.unitTable[builderName].losRadius)
 					self:EchoDebug('is ok')
 					if p then return p end
 				else
 					self:EchoDebug('same unit near: skip')
 				end
 			else
-				local p = ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.data.unitTable[builderName].losRadius)
+				local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.data.unitTable[builderName].losRadius)
 				if p then return p end
 			end
 		end
@@ -381,7 +381,7 @@ function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
 		for index, pos in pairs(list) do
 			if Distance(pos,builder:GetPosition()) < self.ai.data.unitTable[builder:Name()].losRadius then
 				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
-					local p = ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, self.ai.data.unitTable[utype:Name()][spaceEquals])
+					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, self.ai.data.unitTable[utype:Name()][spaceEquals])
 					if p then return p end
 				end
 			end

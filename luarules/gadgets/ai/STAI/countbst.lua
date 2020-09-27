@@ -72,7 +72,7 @@ function CountBST:OwnerBuilt()
 	self:EchoDebug(self.ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 	self.finished = true
 	--mtyped leveled counters
-	if self.mobileMtyped then ai.mtypeCount[self.mobileMtyped] = ai.mtypeCount[self.mobileMtyped] + 1 end
+	if self.mobileMtyped then self.ai.mtypeCount[self.mobileMtyped] = self.ai.mtypeCount[self.mobileMtyped] + 1 end
 	if self.mtypedLv then
 		if self.ai.mtypeLvCount[self.mtypedLv] == nil then
 			self.ai.mtypeLvCount[self.mtypedLv] = 1
@@ -107,7 +107,7 @@ function CountBST:OwnerDead()
 			self.ai.nanoList[self.id] = nil
 			if self.ai.lastNanoBuild == self.unit:Internal():GetPosition() then self.ai.lastNanoBuild = nil end
 		end
-		if self.mobileMtyped then ai.mtypeCount[self.mobileMtyped] = ai.mtypeCount[self.mobileMtyped] - 1 end
+		if self.mobileMtyped then self.ai.mtypeCount[self.mobileMtyped] = self.ai.mtypeCount[self.mobileMtyped] - 1 end
 		if self.mtypedLv then
 			self.ai.mtypeLvCount[self.mtypedLv] = self.ai.mtypeLvCount[self.mtypedLv] - 1
 		end

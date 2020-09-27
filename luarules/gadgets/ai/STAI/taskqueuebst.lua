@@ -30,15 +30,15 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:GetAmpOrGroundWeapon()
-	if ai.enemyBasePosition then
-		if ai.maphst:MobilityNetworkHere('veh', self.position) ~= ai.maphst:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphst:MobilityNetworkHere('amp', self.position) == ai.maphst:MobilityNetworkHere('amp', ai.enemyBasePosition) then
+	if self.ai.enemyBasePosition then
+		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
 			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
 			return true
 		end
 	end
 	local mtype = factoryMobilities[self.name][1]
-	local network = ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not ai.factoryBuilded[mtype] or not ai.factoryBuilded[mtype][network] then
+	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
+	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
 		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
 		return true
 	end
@@ -50,8 +50,8 @@ function TaskQueueBST:CategoryEconFilter(value)
 	if value == DummyUnitName then return DummyUnitName end
 	local overview =self.ai.overviewhst
 	self:EchoDebug(value .. " (before econ filter)")
-	-- self:EchoDebug("ai.Energy: " .. ai.Energy.reserves .. " " .. ai.Energy.capacity .. " " .. ai.Energy.income .. " " .. ai.Energy.usage)
-	-- self:EchoDebug("ai.Metal: " .. ai.Metal.reserves .. " " .. ai.Metal.capacity .. " " .. ai.Metal.income .. " " .. ai.Metal.usage)
+	-- self:EchoDebug("ai.Energy: " .. self.ai.Energy.reserves .. " " .. self.ai.Energy.capacity .. " " .. self.ai.Energy.income .. " " .. self.ai.Energy.usage)
+	-- self:EchoDebug("ai.Metal: " .. self.ai.Metal.reserves .. " " .. self.ai.Metal.capacity .. " " .. self.ai.Metal.income .. " " .. self.ai.Metal.usage)
 	if Eco1[value] or Eco2[value] then
 		return value
 	end
@@ -73,29 +73,29 @@ function TaskQueueBST:CategoryEconFilter(value)
 			self:EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
-				if overview.metalTooLow or overview.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or overview.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow orself.Metal.income < 35 or self.ai.factories == 0 or overview.notEnoughCombats then
 					value = DummyUnitName
 				end
 			elseif littlePlasmaList[value] then
 				-- plasma turrets need units to back them up
-				if overview.metalTooLow or overview.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or overview.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow or self.ai.Metal.income < 10 or self.ai.factories == 0 or overview.notEnoughCombats then
 					value = DummyUnitName
 				end
 			else
-				if overview.metalTooLow or ai.Metal.income < (self.ai.data.unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or ai.factories == 0 then
+				if overview.metalTooLow or self.ai.Metal.income < (self.ai.data.unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or self.ai.factories == 0 then
 					value = DummyUnitName
 				end
 			end
 		elseif self.ai.data.unitTable[value].radarRadius > 0 then
 			-- radar
 			self:EchoDebug("  radar")
-			if overview.metalTooLow or overview.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
+			if overview.metalTooLow or overview.energyTooLow or self.ai.factories == 0 or self.ai.Energy.full < 0.5 then
 				value = DummyUnitName
 			end
 		else
 			-- other building
 			self:EchoDebug("  other building")
-			if overview.notEnoughCombats or overview.metalTooLow or overview.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
+			if overview.notEnoughCombats or overview.metalTooLow or overview.energyTooLow or self.ai.Energy.income < 200 or self.ai.Metal.income < 8 or self.ai.factories == 0 then
 				value = DummyUnitName
 			end
 		end
@@ -105,24 +105,24 @@ function TaskQueueBST:CategoryEconFilter(value)
 		if self.ai.data.unitTable[value].buildOptions ~= nil then
 			-- construction unit
 			self:EchoDebug("  construction unit")
-			if ai.Energy.full < 0.05 or ai.Metal.full < 0.05 then
+			if self.ai.Energy.full < 0.05 or self.ai.Metal.full < 0.05 then
 				value = DummyUnitName
 			end
 		elseif self.ai.data.unitTable[value].isWeapon then
 			-- combat unit
 			self:EchoDebug("  combat unit")
-			if ai.Energy.full < 0.1 or ai.Metal.full < 0.1 then
+			if self.ai.Energy.full < 0.1 or self.ai.Metal.full < 0.1 then
 				value = DummyUnitName
 			end
 		elseif value == "armpeep" or value == "corfink" then
 			-- scout planes have no weapons
-			if ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
+			if self.ai.Energy.full < 0.3 or self.ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		else
 			-- other unit
 			self:EchoDebug("  other unit")
-			if overview.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
+			if overview.notEnoughCombats or self.ai.Energy.full < 0.3 or self.ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		end
@@ -231,9 +231,9 @@ end
 function TaskQueueBST:OwnerDead()
 	if self.unit ~= nil then
 		-- game:SendToConsole("taskqueue-er " .. self.name .. " died")
-		if self.outmodedFactory then ai.outmodedFactories = ai.outmodedFactories - 1 end
+		if self.outmodedFactory then self.ai.outmodedFactories = self.ai.outmodedFactories - 1 end
 		-- self.unit = nil
-		if self.target then ai.targethst:AddBadPosition(self.target, self.mtype) end
+		if self.target then self.ai.targethst:AddBadPosition(self.target, self.mtype) end
 		ai.assisthst:Release(nil, self.id, true)
 		ai.buildsitehst:ClearMyPlans(self)
 		ai.buildsitehst:ClearMyConstruction(self)
@@ -249,30 +249,30 @@ function TaskQueueBST:GetHelp(value, position)
 		return value
 	end
 	if Eco1[value] then
-		if not ai.haveAdvFactory and ai.underReserves then
-			ai.assisthst:TakeUpSlack(builder)
+		if not self.ai.haveAdvFactory and self.ai.underReserves then
+			self.ai.assisthst:TakeUpSlack(builder)
 		end
 		return value
 	end
 	if Eco2[value] then
-		local hashelp = ai.assisthst:PersistantSummon(builder, position, math.ceil(self.ai.data.unitTable[value].buildTime/10000), 0)
-		ai.assisthst:TakeUpSlack(builder)
+		local hashelp = self.ai.assisthst:PersistantSummon(builder, position, math.ceil(self.ai.data.unitTable[value].buildTime/10000), 0)
+		self.ai.assisthst:TakeUpSlack(builder)
 		return value
 	end
 
 	if self.ai.data.unitTable[value].isBuilding and self.ai.data.unitTable[value].buildOptions then
-		if ai.factories - ai.outmodedFactories <= 0 or advFactories[value] then
+		if self.ai.factories - self.ai.outmodedFactories <= 0 or advFactories[value] then
 			self:EchoDebug("can get help to build factory but don't need it")
-			ai.assisthst:Summon(builder, position)
-			ai.assisthst:Magnetize(builder, position)
-			ai.assisthst:TakeUpSlack(builder)
+			self.ai.assisthst:Summon(builder, position)
+			self.ai.assisthst:Magnetize(builder, position)
+			self.ai.assisthst:TakeUpSlack(builder)
 			return value
 		else
 			self:EchoDebug("help for factory that need help")
-			local hashelp = ai.assisthst:Summon(builder, position, self.ai.data.unitTable[value].techLevel)
+			local hashelp = self.ai.assisthst:Summon(builder, position, self.ai.data.unitTable[value].techLevel)
 			if hashelp then
-				ai.assisthst:Magnetize(builder, position)
-				ai.assisthst:TakeUpSlack(builder)
+				self.ai.assisthst:Magnetize(builder, position)
+				self.ai.assisthst:TakeUpSlack(builder)
 				return value
 			end
 		end
@@ -290,7 +290,7 @@ function TaskQueueBST:GetHelp(value, position)
 			number = math.floor(self.ai.data.unitTable[value].buildTime/10000)
 		end
 		if number == 0 then return value end
-		local hashelp = ai.assisthst:Summon(builder, position, number)
+		local hashelp = self.ai.assisthst:Summon(builder, position, number)
 		if hashelp or self.isFactory then return value end
 	end
 	return DummyUnitName
@@ -304,7 +304,7 @@ function TaskQueueBST:LocationFilter(utype, value)
 	if self.ai.data.unitTable[value].extractsMetal > 0 then
 		-- metal extractor
 		local uw
-		p, uw, reclaimEnemyMex = ai.maphst:ClosestFreeSpot(utype, builder)
+		p, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeSpot(utype, builder)
 		if p ~= nil then
 			if reclaimEnemyMex then
 				value = {"ReclaimEnemyMex", reclaimEnemyMex}
@@ -327,9 +327,9 @@ function TaskQueueBST:LocationFilter(utype, value)
 			self:EchoDebug("geo spot", p.x, p.y, p.z)
 			if value == "corageo" or value == "armageo" then
 				-- don't build moho geos next to factories
-				if ai.buildsitehst:ClosestHighestLevelFactory(p, 500) ~= nil then
+				if self.ai.buildsitehst:ClosestHighestLevelFactory(p, 500) ~= nil then
 					if value == "corageo" then
-						if ai.targethst:IsBombardPosition(p, "corbhmth") then
+						if self.ai.targethst:IsBombardPosition(p, "corbhmth") then
 							-- instead build geothermal plasma battery if it's a good spot for it
 							value = "corbhmth"
 							utype = game:GetTypeByName(value)
@@ -363,13 +363,13 @@ function TaskQueueBST:LocationFilter(utype, value)
 		if target then
 			self:EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
 			local factoryPos = target.unit:Internal():GetPosition()
-			p = ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
+			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 		if not p then
-			local factoryPos = ai.buildsitehst:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
+			local factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
 			if factoryPos then
 				self:EchoDebug("searching for top level factory")
-				p = ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
+				p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 				if p == nil then
 					self:EchoDebug("no spot near factory found")
 					utype = nil
@@ -381,7 +381,7 @@ function TaskQueueBST:LocationFilter(utype, value)
 		end
 	elseif not self.ai.data.unitTable[value].isBuilding then
 		if assistList[self.name] and not nanoTurretList[value] then
-		p = ai.buildsitehst:BuildNearNano(builder, utype)
+		p = self.ai.buildsitehst:BuildNearNano(builder, utype)
 		end
 	else
 		if self.ai.data.unitTable[value].isWeapon  then
@@ -402,7 +402,7 @@ function TaskQueueBST:LocationFilter(utype, value)
 				p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'isFactory',nil, 'losRadius',100)  or self.ai.buildsitehst:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, utype:Name()),utype, builder, 'losRadius',0)
 			elseif 	self.ai.data.unitTable[value].isPlasmaCannon then
 				if self.ai.data.unitTable[value].isPlasmaCannon < 4 then
-					local turtlePosList = ai.turtlehst:MostTurtled(builder, value, value)
+					local turtlePosList = self.ai.turtlehst:MostTurtled(builder, value, value)
 					p =  self.ai.buildsitehst:searchPosInList(turtlePosList,utype, builder, 'losRadius',0) or
 							self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
 				elseif self.ai.data.unitTable[value].isPlasmaCannon > 4 then
@@ -417,10 +417,10 @@ function TaskQueueBST:LocationFilter(utype, value)
 			end
 		elseif shieldList[value] or self.ai.data.unitTable[value].jammerRadius ~= 0 then
 			self:EchoDebug("looking for least turtled positions")
-			local turtlePosList = ai.turtlehst:LeastTurtled(builder, value)
+			local turtlePosList = self.ai.turtlehst:LeastTurtled(builder, value)
 			p =  self.ai.buildsitehst:searchPosInList(turtlePosList,utype, builder, 'losRadius',0)
 		elseif self.ai.data.unitTable[value].sonarRadius ~= 0  then
-			--local turtlePosList = ai.turtlehst:MostTurtled(builder, value)
+			--local turtlePosList = self.ai.turtlehst:MostTurtled(builder, value)
 			p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'sonarRadius',20)
 		elseif self.ai.data.unitTable[value].radarRadius ~= 0   then
 			p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
@@ -445,7 +445,7 @@ function TaskQueueBST:LocationFilter(utype, value)
 	-- last ditch placement
 -- 	if utype ~= nil and p == nil then
 -- 		local builderPos = builder:GetPosition()
--- 		p = ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype)
+-- 		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype)
 -- 	end
 	return utype, value, p
 end
@@ -455,15 +455,15 @@ function TaskQueueBST:GetQueue()
 	self.unit:ElectBehaviour()
 	-- fall back to only making enough construction units if a level 2 factory exists
 	local q
-	if self.isFactory and ai.factoryUnderConstruction and ( ai.Metal.full < 0.5 or ai.Energy.full < 0.5) then
+	if self.isFactory and self.ai.factoryUnderConstruction and ( self.ai.Metal.full < 0.5 or self.ai.Energy.full < 0.5) then
 		q = {}
 	end
 
 	self.outmodedTechLevel = false
 	local uT = self.ai.data.unitTable
-	if ai.data.outmodedTaskqueues[self.name] ~= nil and not q then
-		local threshold =  1 - (uT[self.name].techLevel / ai.maxFactoryLevel)
-		if self.isFactory  and (ai.Metal.full < threshold or ai.Energy.full < threshold) then
+	if self.ai.data.outmodedTaskqueues[self.name] ~= nil and not q then
+		local threshold =  1 - (uT[self.name].techLevel / self.ai.maxFactoryLevel)
+		if self.isFactory  and (ai.Metal.full < threshold or self.ai.Energy.full < threshold) then
 			local mtype = factoryMobilities[self.name][1]
 			for level, factories in pairs (ai.factoriesAtLevel)  do
 				for index, factory in pairs(factories) do
@@ -471,7 +471,7 @@ function TaskQueueBST:GetQueue()
 					if mtype == factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
 						self:EchoDebug( self.name .. ' have major factory ' .. factoryName)
 						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
-						q = ai.data.outmodedTaskqueues[self.name]
+						q = self.ai.data.outmodedTaskqueues[self.name]
 						self.outmodedTechLevel = true
 						break
 					end
@@ -480,10 +480,10 @@ function TaskQueueBST:GetQueue()
 			end
 
 		elseif self.outmodedFactory then
-			q = ai.data.outmodedTaskqueues[self.name]
+			q = self.ai.data.outmodedTaskqueues[self.name]
 		end
 	end
-	q = q or ai.data.taskqueues[self.name]
+	q = q or self.ai.data.taskqueues[self.name]
 	if type(q) == "function" then
 		-- game:SendToConsole("function table found!")
 		q = q(self)
@@ -544,12 +544,12 @@ function TaskQueueBST:ProgressQueue()
 	self.progress = false
 	local builder = self.unit:Internal()
 	if not self.released then
-		ai.assisthst:Release(builder)
-		ai.buildsitehst:ClearMyPlans(self)
+		self.ai.assisthst:Release(builder)
+		self.ai.buildsitehst:ClearMyPlans(self)
 		if not self.isCommander and not self.isFactory then
-			if ai.IDByName[self.id] ~= nil then
-				if ai.IDByName[self.id] > ai.dontAssist[self.name]then
-					ai.nonAssistant[self.id] = nil
+			if self.ai.IDByName[self.id] ~= nil then
+				if self.ai.IDByName[self.id] > self.ai.dontAssist[self.name]then
+					self.ai.nonAssistant[self.id] = nil
 				end
 			end
 		end
@@ -589,7 +589,7 @@ function TaskQueueBST:ProgressQueue()
 				value = self:CategoryEconFilter(value)
 				if value ~= DummyUnitName then
 					self:EchoDebug("before duplicate filter " .. value)
-					local duplicate = ai.buildsitehst:CheckForDuplicates(value)
+					local duplicate = self.ai.buildsitehst:CheckForDuplicates(value)
 					if duplicate then value = DummyUnitName end
 				end
 				self:EchoDebug(value .. " after filters")
@@ -623,7 +623,7 @@ function TaskQueueBST:ProgressQueue()
 									if helpValue ~= nil and helpValue ~= DummyUnitName then
 										self:EchoDebug(utype:Name() .. " has help")
 										ai.buildsitehst:NewPlan(value, p, self)
-										local facing = ai.buildsitehst:GetFacing(p)
+										local facing = self.ai.buildsitehst:GetFacing(p)
 										success = self.unit:Internal():Build(utype, p, facing)
 									end
 								end
@@ -692,7 +692,7 @@ end
 
 function TaskQueueBST:Deactivate()
 	self.active = false
-	ai.buildsitehst:ClearMyPlans(self)
+	self.ai.buildsitehst:ClearMyPlans(self)
 end
 
 function TaskQueueBST:Priority()

@@ -1,5 +1,5 @@
 function IsCapturer(unit, ai)
-	local noncapturelist = ai.game:NonCapturingUnits()
+	local noncapturelist = self.ai.game:NonCapturingUnits()
 	for i = 1, #noncapturelist do
 		local name = noncapturelist[i]
 		if name == unit:Internal():Name() then
