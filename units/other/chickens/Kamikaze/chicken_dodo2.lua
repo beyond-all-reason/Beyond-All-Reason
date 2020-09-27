@@ -42,7 +42,7 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL HOVER",
 		objectname = "Chickens/big_chicken_dodo.s3o",
-		script = "ChickenDefenseScripts/chicken_dodo2.cob",
+		script = "Chickens/chicken_dodo2.cob",
 		seismicsignature = 4,
 		selfdestructas = "DODO_DEATH2",
 		selfdestructcountdown = 0,

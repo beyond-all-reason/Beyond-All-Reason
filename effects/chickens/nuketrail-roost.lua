@@ -89,7 +89,7 @@ return {
       },
     },
       trail = {
-        
+
         air                = true,
         class              = [[CBitmapMuzzleFlame]],
         count              = 1,
@@ -109,27 +109,27 @@ return {
             ttl                = 40,
         },
       },
-    smoke = {
+	smoke = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
           count              = 1,
           ground             = true,
           water              = true,
           properties = {
-              airdrag            = 0.92,
+              airdrag            = 0.4,
               colormap           = [[0.006 0.006 0.006 0.05   0.05 0.04 0.033 0.66   0.04 0.038 0.034 0.56   0.04 0.036 0.032 0.44   0.025 0.025 0.025 0.28   0.014 0.014 0.014 0.13    0.006 0.006 0.006 0.05   0 0 0 0.01]],
               directional        = true,
               emitrot            = -180,
               emitrotspread      = 7,
               emitvector         = [[dir]],
               gravity            = [[0.0, -0.02, 0.0]],
-              numparticles       = [[1.5 r1]],
+              numparticles       = 1,
               particlelife       = 15,
               particlelifespread = 40,
               particlesize       = 4.6,
               particlesizespread = 6.2,
-              particlespeed      = 1.5,
-              particlespeedspread = 2.5,
+              particlespeed      = 0.03,
+              particlespeedspread = 0.03,
               pos                = [[-15 r30, -15 r30, -15 r30]],
               sizegrowth         = 0.32,
               sizemod            = 1,
@@ -164,7 +164,7 @@ return {
               sizemod            = 1.0,
               texture            = [[randomdots]],
           },
-      },  
+      },
     spikes = {
       air                = true,
       class              = [[explspike]],

@@ -545,7 +545,7 @@ QueryWeapon5(piecenum)
 	
 AimPrimary(heading,pitch)
 	{
-	get PRINT(1, heading,pitch);
+	//get PRINT(1, heading,pitch);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn aimy1 to y-axis heading speed <150>;
@@ -574,7 +574,7 @@ AimWeapon4()
 AimWeapon5(heading,pitch)
 	{
 	
-	get PRINT(5, heading,pitch);
+	//get PRINT(5, heading,pitch);
 	shot5pitch = pitch;
 	shot5heading = heading;
 	return(TRUE);

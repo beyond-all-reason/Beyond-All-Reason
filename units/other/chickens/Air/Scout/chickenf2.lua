@@ -49,7 +49,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickenf1.s3o",
 		radardistance = 500,
-		script = "ChickenDefenseScripts/chickenf2.cob",
+		script = "Chickens/chickenf2.cob",
 		seismicsignature = 0,
 		selfdestructas = "TALON_DEATH",
 		side = "THUNDERBIRDS",

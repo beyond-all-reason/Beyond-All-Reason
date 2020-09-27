@@ -49,7 +49,7 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken_pidgeond.s3o",
-		script = "ChickenDefenseScripts/chickenw1d.cob",
+		script = "Chickens/chickenw1d.cob",
 		seismicsignature = 0,
 		selfdestructas = "TALON_DEATH",
 		separation = "0.2",

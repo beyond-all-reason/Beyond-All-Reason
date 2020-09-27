@@ -37,7 +37,7 @@ return {
 		name = "Fang",
 		nochasecategory = "VTOL",
 		objectname = "Chickens/spiker_gunship.s3o",
-		script = "ChickenDefenseScripts/chickens3.cob",
+		script = "Chickens/chickens3.cob",
 		seismicsignature = 0,
 		selfdestructas = "TALON_DEATH",
 		side = "THUNDERBIRDS",

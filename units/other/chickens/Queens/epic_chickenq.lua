@@ -41,7 +41,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Chickens/epic_chickenq.s3o",
 		pushresistant = true,
-		script = "ChickenDefenseScripts/epic_chickenq.cob",
+		script = "Chickens/epic_chickenq.cob",
 		seismicsignature = 4,
 		selfdestructas = "QUEEN_DEATH",
 		side = "THUNDERBIRDS",

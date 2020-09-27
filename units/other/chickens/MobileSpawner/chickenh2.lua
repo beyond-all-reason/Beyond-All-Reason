@@ -37,7 +37,7 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/s_chickenboss_white.s3o",
-		script = "ChickenDefenseScripts/chickenh2.cob",
+		script = "Chickens/chickenh2.cob",
 		selfdestructas = "BUG_DEATH",
 		side = "THUNDERBIRDS",
 		sightdistance = 700,

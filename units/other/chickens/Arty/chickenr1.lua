@@ -39,7 +39,7 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickenr.s3o",
-		script = "ChickenDefenseScripts/chickenr1.cob",
+		script = "Chickens/chickenr1.cob",
 		seismicsignature = 4,
 		selfdestructas = "LOBBER_MORPH",
 		side = "THUNDERBIRDS",

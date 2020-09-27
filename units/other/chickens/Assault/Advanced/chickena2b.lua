@@ -38,7 +38,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickena2b.s3o",
 		onlytargetcategory2 = "VTOL",
-		script = "ChickenDefenseScripts/chickena2b.cob",
+		script = "Chickens/chickena2b.cob",
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH",
 		side = "THUNDERBIRDS",

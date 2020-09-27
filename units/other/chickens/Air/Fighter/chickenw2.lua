@@ -48,7 +48,7 @@ return {
 		noautofire = false,
 		nochasecategory = "NOTAIR",
 		objectname = "Chickens/chicken_crow.s3o",
-		script = "ChickenDefenseScripts/chickenw2.cob",
+		script = "Chickens/chickenw2.cob",
 		seismicsignature = 0,
 		selfdestructas = "TALON_DEATH",
 		separation = "0.2",
