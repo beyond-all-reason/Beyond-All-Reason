@@ -602,7 +602,7 @@ ai.data.outmodedTaskqueues = {
 }
 
 -- finally, the taskqueue definitions
-ai.data.taskqueues = {
+return {
 	corcom = anyCommander,
 	armcom = anyCommander,
 	armdecom = anyCommander,

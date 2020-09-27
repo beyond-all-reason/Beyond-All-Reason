@@ -105,7 +105,7 @@ function TaskQueueBST:CategoryEconFilter(value)
 		if self.ai.data.unitTable[value].buildOptions ~= nil then
 			-- construction unit
 			self:EchoDebug("  construction unit")
-			if ai.Energy.full < 0.05 or ai.Metal.full < 0.05 then
+			if self.ai.Energy.full < 0.05 or ai.Metal.full < 0.05 then
 				value = DummyUnitName
 			end
 		elseif self.ai.data.unitTable[value].isWeapon then
@@ -129,11 +129,10 @@ function TaskQueueBST:CategoryEconFilter(value)
 	end
 	return value
 end
+
 function TaskQueueBST:Init()
-
-
-	if not self.ai.data.taskqueues then
-		shard_include("taskqueues")
+	if not self.taskqueues then
+		self.taskqueues = shard_include("taskqueues")
 	end
 	if self.ai.outmodedFactories == nil then
 		self.ai.outmodedFactories = 0
@@ -205,7 +204,7 @@ function TaskQueueBST:Init()
 end
 
 function TaskQueueBST:HasQueues()
-	return (ai.data.taskqueues[self.name] ~= nil)
+	return (self.taskqueues[self.name] ~= nil)
 end
 
 function TaskQueueBST:OwnerBuilt()
@@ -483,7 +482,7 @@ function TaskQueueBST:GetQueue()
 			q = ai.data.outmodedTaskqueues[self.name]
 		end
 	end
-	q = q or ai.data.taskqueues[self.name]
+	q = q or self.taskqueues[self.name]
 	if type(q) == "function" then
 		-- game:SendToConsole("function table found!")
 		q = q(self)
