@@ -6,6 +6,16 @@ function BehaviourFactory:Init()
 	self.scoutslist = {}
 end
 
+
+local function HasKey( value, list )
+	for k,v in pairs(list) do
+		if k == value then
+			return true
+		end
+	end
+	return false
+end
+
 function BehaviourFactory:AddBehaviours(unit)
 	if unit == nil then
 		self.game:SendToConsole("Warning: Shard BehaviourFactory:AddBehaviours was asked to provide behaviours to a nil unit")
@@ -88,24 +98,24 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else
-		if unit:InList(attackerlist) then
+		if u:InList(attackerlist) or HasKey(un,attackerlist)then
 			table.insert(b, AttackerBST)
 			-- if battleList[un] or breakthroughList[un] then
 				-- arty and merl don't make good defense
 				table.insert(b, DefendBST)
 			-- end
 		end
-		if unit:InList(raiderList) then
+		if u:InList(raiderList)or HasKey(un,raiderList) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
 			if self.ai.data.unitTable[un].mtype ~= "air" then
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end
-		if unit:InList(bomberlist) then
+		if u:InList(bomberlist) or HasKey(un,bomberlist) then
 			table.insert(b, BomberBST)
 		end
-		if unit:Inlist(self.scoutslist) then
+		if u:InList(scoutList) or HasKey(un,scoutList)then
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end
