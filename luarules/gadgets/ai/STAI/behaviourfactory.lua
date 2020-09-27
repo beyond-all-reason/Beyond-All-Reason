@@ -98,24 +98,24 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else
-		if u:InList(attackerlist) or HasKey(un,attackerlist)then
+		if HasKey(un,attackerlist)then
 			table.insert(b, AttackerBST)
 			-- if battleList[un] or breakthroughList[un] then
 				-- arty and merl don't make good defense
 				table.insert(b, DefendBST)
 			-- end
 		end
-		if u:InList(raiderList)or HasKey(un,raiderList) then
+		if HasKey(un,raiderList) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
 			if self.ai.data.unitTable[un].mtype ~= "air" then
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end
-		if u:InList(bomberlist) or HasKey(un,bomberlist) then
+		if HasKey(un,bomberlist) then
 			table.insert(b, BomberBST)
 		end
-		if u:InList(scoutList) or HasKey(un,scoutList)then
+		if HasKey(un,scoutList)then
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end
