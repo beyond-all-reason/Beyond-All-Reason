@@ -595,9 +595,10 @@ local function processLine(line,g,cfg,newlinecolor)
 		ignoreThisMessage = true
 	end
 
-	if sfind(line,"is using cheats", nil, true) then
-		ignoreThisMessage = true
-	end
+	-- filter Native AI that uses cheat-callback
+	--if sfind(line,"is using cheats", nil, true) then
+	--	ignoreThisMessage = true
+	--end
 
 	if sfind(line," to access the quit menu", nil, true) then
 		ignoreThisMessage = true

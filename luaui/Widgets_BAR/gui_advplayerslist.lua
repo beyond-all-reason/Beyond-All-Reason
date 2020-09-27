@@ -630,31 +630,34 @@ function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
 	local maxWidth = 14*(font2 and font2:GetTextWidth(absentName) or 100) + 8 -- 8 is minimal width
-	local name = ''
-	local spec = false
-	local isAI = false
-	local version = ''
-	local teamID = 0
-	local nextWidth = 0
+
 	for _,wplayer in ipairs(t) do
-		name,_,spec,teamID = Spring_GetPlayerInfo(wplayer)
-		if select(4,Spring_GetTeamInfo(teamID,false)) then -- is AI?
-			spec = false	-- because AI seems to be specs somehow
-			_,_,_,_,name, version = Spring_GetAIInfo(teamID)
-			if type(version) == "string" then
-				name = "AI:" .. name .. "-" .. version
-			else
-				name = "AI:" .. name
+		local name,_,spec,teamID = Spring_GetPlayerInfo(wplayer)
+		if not select(4, Spring_GetTeamInfo(teamID, false)) then -- is not AI?
+			local nextWidth = (spec and 11 or 14) * (font2 and font2:GetTextWidth(name) or 100)+10
+			if nextWidth > maxWidth then
+				maxWidth = nextWidth
 			end
-			if Spring.GetGameRulesParam('ainame_'..teamID) then
-				name = Spring.GetGameRulesParam('ainame_'..teamID)..' (AI)'
-			end
-		end
-		nextWidth = (spec and 11 or 14) * (font2 and font2:GetTextWidth(name) or 100)+10
-		if nextWidth > maxWidth then
-			maxWidth = nextWidth
 		end
 	end
+
+	local gaiaTeamID = Spring.GetGaiaTeamID
+	local teamList = Spring_GetTeamList()
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		if teamID ~= gaiaTeamID then
+			local _,_,_, isAiTeam = Spring_GetTeamInfo(teamID, false)
+			if isAiTeam then
+				local name = GetAIName(teamID)
+
+				local nextWidth = 14 * (font2 and font2:GetTextWidth(name) or 100)+10
+				if nextWidth > maxWidth then
+					maxWidth = nextWidth
+				end
+			end
+		end
+	end
+
 	return maxWidth
 end
 
@@ -1396,6 +1399,30 @@ function CreatePlayer(playerID)
 end
 
 
+function GetAIName(teamID)
+	local _,_,_, name, version, options = Spring_GetAIInfo(teamID)
+
+	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	if niceName then
+		name = niceName
+
+		local prof = options.profile
+		if prof then
+			name = name .. ' (' .. prof:sub(1,1):upper() .. prof:sub(2) .. ' AI)'
+		else
+			name = name .. ' (AI)'
+		end
+	else
+		if type(version) == "string" then
+			name = "AI:" .. name .. "-" .. version
+		else
+			name = "AI:" .. name
+		end
+	end
+
+	return name
+end
+
 
 function CreatePlayerFromTeam(teamID) -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
 
@@ -1405,19 +1432,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	local tdead = true
 
 	if isAI then
-
-		local version
-
-		_,_,_,_, tname, version = Spring_GetAIInfo(teamID)
-
-		if type(version) == "string" then
-			tname = "AI:" .. tname .. "-" .. version
-		else
-			tname = "AI:" .. tname
-		end
-		if Spring.GetGameRulesParam('ainame_'..teamID) then
-			tname = Spring.GetGameRulesParam('ainame_'..teamID)..' (AI)'
-		end
+		tname = GetAIName(teamID)
 
 		ttotake = false
 		tdead = false
@@ -1455,7 +1470,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 
 	return{
 		rank             = 8, -- "don't know which" value
-		skill			       = tskill,
+		skill            = tskill,
 		name             = tname,
 		team             = teamID,
 		allyteam         = tallyteam,
@@ -1467,7 +1482,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		totake           = ttotake,
 		dead             = tdead,
 		spec             = false,
-		ai 							 = tai,
+		ai               = tai,
 		energy           = energy,
 		energyStorage    = energyStorage,
 		metal            = metal,
