@@ -132,17 +132,19 @@ end
 function TaskQueueBST:Init()
 
 
-	if not ai.data.taskqueues then
+	if not self.ai.data.taskqueues then
 		shard_include("taskqueues")
 	end
-	if ai.outmodedFactories == nil then ai.outmodedFactories = 0 end
+	if self.ai.outmodedFactories == nil then
+		self.ai.outmodedFactories = 0
+	end
 
 	self.active = false
 	self.currentProject = nil
 	self.lastWatchdogCheck = self.game:Frame()
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
-	local mtype, network = ai.maphst:MobilityOfUnit(u)
+	local mtype, network = self.ai.maphst:MobilityOfUnit(u)
 	self.mtype = mtype
 	self.name = u:Name()
 	self.side = self.ai.data.unitTable[self.name].side
@@ -158,7 +160,7 @@ function TaskQueueBST:Init()
 		self.position = upos
 		local outmoded = true
 		for i, mtype in pairs(factoryMobilities[self.name]) do
-			if not ai.maphst:OutmodedFactoryHere(mtype, upos) then
+			if not self.ai.maphst:OutmodedFactoryHere(mtype, upos) then
 				-- just one non-outmoded mtype will cause the factory to act normally
 				outmoded = false
 			end
@@ -167,16 +169,16 @@ function TaskQueueBST:Init()
 		if outmoded then
 			self:EchoDebug("outmoded " .. self.name)
 			self.outmodedFactory = true
-			ai.outmodedFactoryID[self.id] = true
-			ai.outmodedFactories = ai.outmodedFactories + 1
-			ai.outmodedFactories = 1
+			self.ai.outmodedFactoryID[self.id] = true
+			self.ai.outmodedFactories = self.ai.outmodedFactories + 1
+			self.ai.outmodedFactories = 1
 		end
 	end
 
 	if self.isFactory then
 		-- precalculate amphibious rank
-		local ampSpots = ai.maphst:AccessibleMetalGeoSpotsHere('amp', self.unit:Internal():GetPosition())
-		local vehSpots = ai.maphst:AccessibleMetalGeoSpotsHere('veh', self.unit:Internal():GetPosition())
+		local ampSpots = self.ai.maphst:AccessibleMetalGeoSpotsHere('amp', self.unit:Internal():GetPosition())
+		local vehSpots = self.ai.maphst:AccessibleMetalGeoSpotsHere('veh', self.unit:Internal():GetPosition())
 		local amphRank = 0
 		if #ampSpots > 0 and #vehSpots > 0 then
 		    amphRank = 1 - (#vehSpots / #ampSpots)

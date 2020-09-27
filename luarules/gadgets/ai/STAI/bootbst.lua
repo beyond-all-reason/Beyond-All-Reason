@@ -177,13 +177,16 @@ function BootBST:ExitFactory(side)
 		out.x = pos.x + 0
 		out.y = pos.y + outX
 		out.z = pos.z + outZ
-		if out.x > self.ai.maxElmosX - 1 then
-			out.x = self.ai.maxElmosX - 1
+		local mapSize = self.map:MapDimensions()
+		local maxElmosX = mapSize.x * 8
+		local maxElmosZ = mapSize.z * 8
+		if out.x > maxElmosX - 1 then
+			out.x = maxElmosX - 1
 		elseif out.x < 1 then
 			out.x = 1
 		end
-		if out.z > self.ai.maxElmosZ - 1 then
-			out.z = self.ai.maxElmosZ - 1
+		if out.z > maxElmosZ - 1 then
+			out.z = maxElmosZ - 1
 		elseif out.z < 1 then
 			out.z = 1
 		end

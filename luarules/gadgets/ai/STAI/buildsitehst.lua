@@ -103,16 +103,19 @@ end
 
 function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition)
 	-- make sure it's on the map
+	local mapSize = self.map:MapDimensions()
+	local maxElmosX = mapSize.x * 8
+	local maxElmosZ = mapSize.z * 8
 	if pos ~= nil then
 		if self.ai.data.unitTable[unitTypeToBuild:Name()].buildOptions then
 			-- don't build factories too close to south map edge because they face south
-			-- Spring.Echo(pos.x, pos.z, self.ai.maxElmosX, self.ai.maxElmosZ)
-			if (pos.x <= 0) or (pos.x > self.ai.maxElmosX) or (pos.z <= 0) or (pos.z > self.ai.maxElmosZ - 240) then
+			-- Spring.Echo(pos.x, pos.z, maxElmosX, maxElmosZ)
+			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ - 240) then
 				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
 				pos = nil
 			end
 		else
-			if (pos.x <= 0) or (pos.x > self.ai.maxElmosX) or (pos.z <= 0) or (pos.z > self.ai.maxElmosZ) then
+			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ) then
 				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
 				pos = nil
 			end

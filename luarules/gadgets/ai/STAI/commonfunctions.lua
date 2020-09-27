@@ -37,8 +37,11 @@ local quadZ = { -1, -1, 1, 1 }
 local output = ''
 
 function ConstrainToMap(x, z)
-	x = max(min(x, ai.maxElmosX-mapBuffer), mapBuffer)
-	z = max(min(z, ai.maxElmosZ-mapBuffer), mapBuffer)
+	local mapSize = ai.map:MapDimensions()
+	local maxElmosX = mapSize.x * 8
+	local maxElmosZ = mapSize.z * 8
+	x = max(min(x, maxElmosX-mapBuffer), mapBuffer)
+	z = max(min(z, maxElmosZ-mapBuffer), mapBuffer)
 	return x, z
 end
 
@@ -46,19 +49,22 @@ function RandomAway( ai, pos, dist, opposite, angle)
 	if angle == nil then
 		angle = random() * twicePi
 	end
+	local mapSize = ai.map:MapDimensions()
+	local maxElmosX = mapSize.x * 8
+	local maxElmosZ = mapSize.z * 8
 	local away = ai.api.Position()
 	away.x = pos.x + dist * cos(angle)
 	away.z = pos.z - dist * sin(angle)
 	away.y = pos.y + 0
 	if away.x < 1 then
 		away.x = 1
-	elseif away.x > ai.maxElmosX - 1 then
-		away.x = ai.maxElmosX - 1
+	elseif away.x > maxElmosX - 1 then
+		away.x = maxElmosX - 1
 	end
 	if away.z < 1 then
 		away.z = 1
-	elseif away.z > ai.maxElmosZ - 1 then
-		away.z = ai.maxElmosZ - 1
+	elseif away.z > maxElmosZ - 1 then
+		away.z = maxElmosZ - 1
 	end
 	if opposite then
 		angle = twicePi - angle
