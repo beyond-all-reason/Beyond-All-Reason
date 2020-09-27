@@ -3,7 +3,7 @@ BehaviourFactory = class(AIBase)
 
 function BehaviourFactory:Init()
 	self.behaviours = shard_include( "behaviours" )
-	self.scoutslist = shard_include( "scouts" )
+	self.scoutslist = {}
 end
 
 function BehaviourFactory:AddBehaviours(unit)
