@@ -741,3 +741,65 @@ customDefs.lootboxplatinum = {
 	energymake = 2800,
 	metalmake = 140,
 }
+
+-- Shorter ranged long range rockets
+
+customDefs.armmerl = {
+	weapondefs = {
+		armtruck_rocket = {
+			range = 650,
+			reloadtime = 9,
+			damage = {
+				default = 1500,
+			},
+		},
+	},
+}
+
+customDefs.corvroc = {
+	weapondefs = {
+		cortruck_rocket = {
+			range = 655,
+			reloadtime = 8,
+			damage = {
+				default = 1400,
+			},
+		},
+	},
+}
+
+customDefs.corhrk = {
+	weapondefs = {
+		corhrk_rocket = {
+			range = 605,
+			reloadtime = 4,
+			damage = {
+				default = 400,
+			},
+		},
+	},
+}
+
+customDefs.cormh = {
+	weapondefs = {
+		cormh_weapon = {
+			range = 525,
+			reloadtime = 6,
+			damage = {
+				default = 393,
+			},
+		},
+	},
+}
+
+customDefs.armmh = {
+	weapondefs = {
+		armmh_weapon = {
+			range = 532,
+			reloadtime = 4,
+			damage = {
+				default = 225,
+			},
+		},
+	},
+}
