@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece turret, sleeves, smoke1, smoke2, base, flare, spindle, aimpoint;
+piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
 
@@ -168,7 +168,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret to y-axis <0.000000> speed <35.005495>;
-	turn sleeves to x-axis <0.000000> speed <15.000000>;
+	turn turret to x-axis <0.000000> speed <35.005495>;
+	//turn sleeves to x-axis <0.000000> speed <15.000000>;
 }
 SetStunned(State)
 {
@@ -285,7 +286,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode sleeves type BITMAPONLY | NOHEATCLOUD;
+		//explode sleeves type BITMAPONLY | NOHEATCLOUD;
 		//explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		//explode barrel2 type BITMAPONLY | NOHEATCLOUD;
@@ -297,7 +298,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
-		explode sleeves type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode sleeves type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode barrel2 type FALL | NOHEATCLOUD;
@@ -309,7 +310,7 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeves type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode sleeves type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode barrel1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type SMOKE | FALL | NOHEATCLOUD;
 		//explode barrel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -319,7 +320,7 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeves type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode sleeves type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode barrel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode barrel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
