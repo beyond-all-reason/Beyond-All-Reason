@@ -9,7 +9,7 @@ ScoutBST.DebugEnabled = false
 function ScoutBST:Init()
 	self.evading = false
 	self.active = false
-	local mtype, network = ai.maphst:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	self.armed = self.ai.data.unitTable[self.name].isWeapon
@@ -46,7 +46,7 @@ function ScoutBST:Update()
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
-				local los = ai.scouthst:ScoutLos(self, self.target)
+				local los = self.ai.scouthst:ScoutLos(self, self.target)
 				self:EchoDebug("target los: " .. los)
 				if los == 2 or los == 3 then
 					self.target = nil
@@ -56,8 +56,8 @@ function ScoutBST:Update()
 			local attackTarget
 			if self.armed then
 				-- game:SendToConsole(unit:GetPosition(), unit)
-				if ai.targethst:IsSafePosition(unit:GetPosition(), unit, 1) then
-					attackTarget = ai.targethst:NearbyVulnerable(unit)
+				if self.ai.targethst:IsSafePosition(unit:GetPosition(), unit, 1) then
+					attackTarget = self.ai.targethst:NearbyVulnerable(unit)
 				end
 			end
 			if attackTarget and not self.attacking then
@@ -85,7 +85,7 @@ function ScoutBST:Update()
 			end
 			-- find new scout spot if none and not attacking
 			if self.target == nil and attackTarget == nil then
-				local topos = ai.scouthst:ClosestSpot(self) -- first look for closest metal/geo spot that hasn't been seen recently
+				local topos = self.ai.scouthst:ClosestSpot(self) -- first look for closest metal/geo spot that hasn't been seen recently
 				if topos ~= nil then
 					self:EchoDebug("scouting spot at " .. topos.x .. "," .. topos.z)
 					self.target = RandomAway(topos, self.keepYourDistance) -- don't move directly onto the spot
