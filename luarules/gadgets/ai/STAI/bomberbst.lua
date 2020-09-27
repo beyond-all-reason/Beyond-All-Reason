@@ -31,19 +31,19 @@ end
 
 function BomberBST:OwnerBuilt()
 	self:EchoDebug("built")
-	ai.bomberhst:AddRecruit(self)
+	self.ai.bomberhst:AddRecruit(self)
 end
 
 function BomberBST:OwnerDead()
 	self:EchoDebug("dead")
 	-- game:SendToConsole("bomber " .. self.name .. " died")
-	ai.bomberhst:RemoveRecruit(self)
-	ai.bomberhst:NeedMore()
+	self.ai.bomberhst:RemoveRecruit(self)
+	self.ai.bomberhst:NeedMore()
 	-- notify the command that area is too hot
 	if self.target then
 		local tpos = self.target:GetPosition()
 		if tpos and tpos.x then
-			ai.targethst:AddBadPosition(tpos, 'air')
+			self.ai.targethst:AddBadPosition(tpos, 'air')
 		end
 	end
 end
@@ -73,7 +73,7 @@ function BomberBST:Activate()
 			self:BombUnit(self.target)
 		end
 	else
-		ai.bomberhst:AddRecruit(self)
+		self.ai.bomberhst:AddRecruit(self)
 	end
 end
 

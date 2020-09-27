@@ -191,11 +191,11 @@ function TaskQueueBST:Init()
 	-- reset attack count
 	if self.isFactory and not self.outmodedFactory then
 		if self.isAirFactory then
-			ai.couldBomb = 0
-			ai.hasBombed = 0
+			self.ai.couldBomb = 0
+			self.ai.hasBombed = 0
 		else
-			ai.couldAttack = 0
-			ai.hasAttacked = 0
+			self.ai.couldAttack = 0
+			self.ai.hasAttacked = 0
 		end
 	end
 
@@ -205,7 +205,7 @@ function TaskQueueBST:Init()
 end
 
 function TaskQueueBST:HasQueues()
-	return (ai.data.taskqueues[self.name] ~= nil)
+	return (self.ai.data.taskqueues[self.name] ~= nil)
 end
 
 function TaskQueueBST:OwnerBuilt()
@@ -219,7 +219,7 @@ function TaskQueueBST:OwnerIdle()
 	if self.unit == nil then return end
 	self.progress = true
 	self.currentProject = nil
-	ai.buildsitehst:ClearMyPlans(self)
+	self.ai.buildsitehst:ClearMyPlans(self)
 	self.unit:ElectBehaviour()
 end
 
@@ -231,12 +231,16 @@ end
 function TaskQueueBST:OwnerDead()
 	if self.unit ~= nil then
 		-- game:SendToConsole("taskqueue-er " .. self.name .. " died")
-		if self.outmodedFactory then self.ai.outmodedFactories = self.ai.outmodedFactories - 1 end
+		if self.outmodedFactory then
+			self.ai.outmodedFactories = self.ai.outmodedFactories - 1
+		end
 		-- self.unit = nil
-		if self.target then self.ai.targethst:AddBadPosition(self.target, self.mtype) end
-		ai.assisthst:Release(nil, self.id, true)
-		ai.buildsitehst:ClearMyPlans(self)
-		ai.buildsitehst:ClearMyConstruction(self)
+		if self.target then
+			self.ai.targethst:AddBadPosition(self.target, self.mtype)
+		end
+		self.ai.assisthst:Release(nil, self.id, true)
+		self.ai.buildsitehst:ClearMyPlans(self)
+		self.ai.buildsitehst:ClearMyConstruction(self)
 	end
 end
 
@@ -622,7 +626,7 @@ function TaskQueueBST:ProgressQueue()
 									local helpValue = self:GetHelp(value, p)
 									if helpValue ~= nil and helpValue ~= DummyUnitName then
 										self:EchoDebug(utype:Name() .. " has help")
-										ai.buildsitehst:NewPlan(value, p, self)
+										self.ai.buildsitehst:NewPlan(value, p, self)
 										local facing = self.ai.buildsitehst:GetFacing(p)
 										success = self.unit:Internal():Build(utype, p, facing)
 									end
