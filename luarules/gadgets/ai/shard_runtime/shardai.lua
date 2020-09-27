@@ -26,8 +26,15 @@ function ShardAI:Init()
 			self[internalname] = newmodule
 			table.insert(self.modules,newmodule)
 			newmodule:SetAI(self)
-			newmodule:Init()
 		end
+		for i,m in ipairs(self.modules) do
+			if m == nil then
+				self.game:SendToConsole("nil module!")
+			else
+				m:Init()
+			end
+		end
+
 	else
 		self.game:SendToConsole("No modules found :(")
 	end
