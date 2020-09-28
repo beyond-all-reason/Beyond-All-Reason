@@ -88,16 +88,16 @@ end
 
 function BossMinionsSpawn(n)
 	local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
-	local posx = x + math_random(-256,256)
-	local posz = z + math_random(-256,256)
+	local posx = x + math_random(-500,500)
+	local posz = z + math_random(-500,500)
 	local posy = Spring.GetGroundHeight(posx, posz)
 	local r = math_random(0,100)
 	local rair = math_random(0, unitSpawnerModuleConfig.aircraftchance)
 
 	if rair == 0 then
-		if r <= 40 then
+		if r <= 20 then
 			minionUnit = T1AirUnits[math_random(1,#T1AirUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 80 then
+		elseif r <= 70 then
 			minionUnit = T2AirUnits[math_random(1,#T2AirUnits)]..scavconfig.unitnamesuffix
 		elseif r <= 95 then
 			minionUnit = T3AirUnits[math_random(1,#T3AirUnits)]..scavconfig.unitnamesuffix
@@ -107,9 +107,9 @@ function BossMinionsSpawn(n)
 			minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
 		end
 	elseif posy > -20 then
-		if r <= 40 then
+		if r <= 20 then
 			minionUnit = T1LandUnits[math_random(1,#T1LandUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 80 then
+		elseif r <= 70 then
 			minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
 		elseif r <= 95 then
 			minionUnit = T3LandUnits[math_random(1,#T3LandUnits)]..scavconfig.unitnamesuffix
@@ -119,9 +119,9 @@ function BossMinionsSpawn(n)
 			minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
 		end
 	elseif posy <= -20 then
-		if r <= 40 then
+		if r <= 20 then
 			minionUnit = T1SeaUnits[math_random(1,#T1SeaUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 80 then
+		elseif r <= 70 then
 			minionUnit = T2SeaUnits[math_random(1,#T2SeaUnits)]..scavconfig.unitnamesuffix
 		elseif r <= 95 then
 			minionUnit = T3SeaUnits[math_random(1,#T3SeaUnits)]..scavconfig.unitnamesuffix

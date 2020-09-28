@@ -441,8 +441,8 @@ local moveDatas = {
 	
 	BOSSSTUMPY7 = {
 		crushstrength = 9999,
-		footprintx = 7,
-		footprintz = 7,
+		footprintx = 5,
+		footprintz = 5,
 		maxslope = 26,
 		--slopeMod = 32,
 		maxwaterdepth = 9999,

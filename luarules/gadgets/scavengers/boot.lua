@@ -180,10 +180,16 @@ function gadget:GameFrame(n)
 	if n%30 == 0 and scavconfig.messenger == true then
 		pregameMessages(n)
 	end
-
-	if n%30 == 15 and FinalBossUnitID then
+	
+	if n%150 == 85 and FinalBossUnitSpawned and FinalBossKilled == false then
+		local bosshealth = Spring.GetUnitHealth(FinalBossUnitID)
+		ScavSendMessage("Boss Health: "..math.ceil(bosshealth))
+	end
+	
+	if n%(math.ceil(600/(teamcount*spawnmultiplier))) == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
 		BossMinionsSpawn(n)
 	end
+		
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true and FinalBossKilled == false then
 		if n%30 == 0 then
@@ -229,7 +235,7 @@ function gadget:GameFrame(n)
 		UpdateTierChances(n)
 		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
 			BossWaveStarted = true
-		else
+		elseif not FinalBossUnitSpawned and not BossWaveStarted then
 			if scavengersAIEnabled and scavengersAIEnabled == true then
 				if globalScore == 0 then globalScore = 1 end
 				if scavconfig.timers.BossFight == 0 then scavconfig.timers.BossFight = 1 end
@@ -561,10 +567,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
 				Spring.Echo("Got boss commander ID, attempting to spawn minions")
 				FinalBossUnitID = unitID
-				local _,basehealth = Spring.GetUnitHealth(unitID)
-				local bosshealthmultiplier = basehealth*((teamcount*0.5)+0.5)*spawnmultiplier
-				Spring.SetUnitMaxHealth(unitID, bosshealthmultiplier)
-				Spring.SetUnitHealth(unitID, bosshealthmultiplier)
+				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
+				Spring.SetUnitHealth(unitID, bosshealth)
 			end
 		end
 		if UnitName == "scavengerdroppod_scav" then
@@ -688,6 +692,24 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		else
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
 			Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+		end
+	end
+end
+
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
+	if unitTeam == GaiaTeamID then
+		local UnitName = UnitDefs[unitDefID].name
+		for i = 1,#BossUnits do
+			if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
+				local n = Spring.GetGameFrame()
+				if not lastMinionFrame then
+					lastMinionFrame = n
+				end
+				if n > lastMinionFrame + math.ceil(30/(teamcount*spawnmultiplier)) and FinalBossUnitID then
+					lastMinionFrame = n
+					BossMinionsSpawn(n)
+				end
+			end
 		end
 	end
 end

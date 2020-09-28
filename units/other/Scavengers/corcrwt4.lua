@@ -5,7 +5,7 @@ return {
 		blocking = false,
 		bankingallowed = false,
 		brakerate = 0.275,
-		buildcostenergy = 200000,
+		buildcostenergy = 500000,
 		buildcostmetal = 20000,
 		buildpic = "scavengers/corcrwt4.PNG",
 		buildtime = 84229,
@@ -121,6 +121,7 @@ return {
 				damage = {
 					commanders = 200,
 					default = 2000,
+					vtol = 200,
 					subs = 5,
 				},
 			},
@@ -162,6 +163,7 @@ return {
 				damage = {
 					commanders = 500,
 					default = 5000,
+					vtol = 500,
 					subs = 5,
 				},
 			},
@@ -169,15 +171,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "KROWBOSSLASER2",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "SURFACE VTOL",
 			},
 			[2] = {
 				def = "KROWBOSSLASER",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "SURFACE VTOL",
 			},
 			[3] = {
 				def = "KROWBOSSLASER",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "SURFACE VTOL",
 			},
 		},
 	},
