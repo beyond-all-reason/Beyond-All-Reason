@@ -55,7 +55,9 @@ customDefs.corcom = {
 			reloadtime = 1,
 			weaponvelocity = 350,
 			damage = {
+				bombers = 9000,
 				default = 2250,
+				fighters = 9000,
 				commanders = 225,
 			},
 		},
@@ -107,7 +109,9 @@ customDefs.armcom = {
 			reloadtime = 1,
 			weaponvelocity = 350,
 			damage = {
+				bombers = 9000,
 				default = 2250,
+				fighters = 9000,
 				commanders = 225,
 			},
 		},
