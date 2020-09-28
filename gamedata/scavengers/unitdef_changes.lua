@@ -50,6 +50,16 @@ customDefs.corcom = {
 		},
 	},
 	weapondefs = {
+		corcomlaser = {
+			range = 400,
+			damage = {
+				bombers = 320,
+				default = 75,
+				fighters = 220,
+				vtol = 320,
+				subs = 5,
+			},
+		},
 		disintegrator = {
 			commandfire = false,
 			reloadtime = 1,
@@ -105,6 +115,16 @@ customDefs.armcom = {
 		},
 	},
 	weapondefs = {
+		armcomlaser = {
+			range = 400,
+			damage = {
+				bombers = 320,
+				default = 75,
+				fighters = 220,
+				vtol = 320,
+				subs = 5,
+			},
+		},
 		disintegrator = {
 			commandfire = false,
 			reloadtime = 1,
