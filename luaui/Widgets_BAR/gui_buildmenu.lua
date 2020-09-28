@@ -449,8 +449,6 @@ local function cacheUnitIcons()
 	local newTextureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * texDetailMult)
 	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadaiconSize) + 0.5) * radartexDetailMult)
 	if not textureDetail or textureDetail ~= newTextureDetail then
-		textureDetail = newTextureDetail
-		radariconTextureDetail = newRadariconTextureDetail
 		while colls <= maxC do
 			-- these are globals so it can be re-used (hover highlight)
 			gl.Color(1, 1, 1, 0.001)
@@ -458,21 +456,32 @@ local function cacheUnitIcons()
 				-- only caching for defaultCellZoom
 				if unitBuildPic[id] then
 					if alternativeUnitpics and hasAlternativeUnitpic[id] then
-						gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
+						gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
+						if textureDetail then	-- delete old texture
+							gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
+						end
 					else
-						gl.Texture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
+						gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/' .. unitBuildPic[id])
+						if textureDetail then	-- delete old texture
+							gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
+						end
 					end
 				end
 				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
 					gl.TexRect(-1, -1, 0, 0)
-					gl.Texture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
+					gl.Texture(':lr' .. newRadariconTextureDetail .. ',' .. newRadariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
 					gl.TexRect(-1, -1, 0, 0)
+					if radariconTextureDetail then	-- delete old texture
+						gl.DeleteTexture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
+					end
 				end
 				gl.Texture(false)
 			end
 			gl.Color(1, 1, 1, 1)
 			colls = colls + 1
 		end
+		textureDetail = newTextureDetail
+		radariconTextureDetail = newRadariconTextureDetail
 	end
 end
 
