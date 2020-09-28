@@ -149,8 +149,13 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
-		uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
+		if uDef.name ~= "armcomboss" and uDef.name ~= "corcomboss" then
+			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
+			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
+		else
+			uDef.autoheal = 0
+			uDef.idleautoheal = 0
+		end
 	else
 		uDef.autoheal = 3
 		uDef.idleautoheal = 3
