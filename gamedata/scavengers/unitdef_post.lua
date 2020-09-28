@@ -149,7 +149,7 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		if uDef.name and uDef.name ~= "Epic Commander - Final Boss" then
+		if uDef.name and uDef.name ~= "Scavenger Epic Commander - Final Boss" then
 			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
 		else
