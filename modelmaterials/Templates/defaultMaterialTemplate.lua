@@ -1137,7 +1137,7 @@ fragment = [[
 
 		float healthMix;
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-			vec3 seedVec = modelVertexPos.xyz * 0.8;
+			vec3 seedVec = modelVertexPos.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);

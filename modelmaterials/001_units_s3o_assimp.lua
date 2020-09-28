@@ -198,10 +198,18 @@ local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 	if threadSpeeds[unitID] ~= speed then
 		threadSpeeds[unitID] = speed
 		threadsArray[1] = speed
-		-- forward only
 		if hasStd then
 			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
 		end
+		if hasDef then
+			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		end
+		--[[
+		-- tank tracks usually don't contribute much to shadows look
+		if hasShad then
+			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+		end
+		]]--
 	end
 end
 
@@ -268,10 +276,10 @@ local materials = {
 			[5] = "%NORMALTEX2",
 		},
 		shaderOptions = {
-			threads_cor = true,
+			threads_core = true,
 		},
 		deferredOptions = {
-			threads_cor = true,
+			threads_core = true,
 			materialIndex = 2,
 		},
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(corTanks, unitID, unitDefID, mat) end,
