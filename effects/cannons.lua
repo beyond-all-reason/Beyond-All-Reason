@@ -2,7 +2,7 @@
 
 local definitions = {
 	["cannonblaze-small"] = {
-	flame = {
+		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -23,7 +23,7 @@ local definitions = {
                 useairlos          = true,
             },
         },
-    sparks = {
+    	sparks = {
 			air                = true,
 			class              = [[CSimpleParticleSystem]],
 			count              = 1,
@@ -52,7 +52,7 @@ local definitions = {
 				useairlos          = true,
       		},
     	},
-    fireback = {
+    	fireback = {
 			air                = true,
 			class              = [[CSimpleParticleSystem]],
 			count              = 1,
@@ -81,10 +81,10 @@ local definitions = {
 		        useairlos          = true,
 	        },
 	    },
-    
+
 	},
 	["arty-fast"] = {
-	flame = {
+		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -103,7 +103,7 @@ local definitions = {
                 ttl                = 4,
                 useairlos          = true,
             },
-        }, 
+        },
 	-- traillight = {
 	--         air                = true,
 	--         class              = [[CBitmapMuzzleFlame]],
@@ -123,9 +123,9 @@ local definitions = {
 	--             ttl                = 3,
  --        	},
  --    	},
-	},      
+	},
 	["arty-small"] = {
-	flame = {
+		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -141,7 +141,7 @@ local definitions = {
                 sidetexture        = [[trail]],
                 size               = 2.0,
                 sizegrowth         = -0.15,
-                ttl                = 7,
+                ttl                = 6,
                 useairlos          = true,
             },
         },
@@ -164,9 +164,9 @@ local definitions = {
 	   --          ttl                = 3,
     --     	},
     -- 	},
-	},    
+	},
     ["arty-medium"] = {
-	flame = {
+		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -185,7 +185,7 @@ local definitions = {
                 ttl                = 5,
                 useairlos          = true,
         },
-    },    
+    },
     -- traillight = {
 	   --      air                = true,
 	   --      class              = [[CBitmapMuzzleFlame]],
@@ -208,7 +208,7 @@ local definitions = {
    	-- 	},
 	},
 	["arty-heavy"] = {
-	flame = {
+		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -224,7 +224,7 @@ local definitions = {
                 sidetexture        = [[trail]],
                 size               = 3.9,
                 sizegrowth         = -0.1,
-                ttl                = 10,
+                ttl                = 9,
                 useairlos          = true,
             },
         },
@@ -244,7 +244,7 @@ local definitions = {
 				emitvector         = [[0, 1, 0]],
 				gravity            = [[0, -0.15, 0]],
 				numparticles       = 2,
-				particlelife       = 6,
+				particlelife       = 5,
 				particlelifespread = 7,
 				particlesize       = 18,
 				particlesizespread = 24,
@@ -278,7 +278,7 @@ local definitions = {
    	-- 	},
 	},
 	["arty-huge"] = {
-	flame = {
+		flame = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
             count              = 1,
@@ -294,7 +294,7 @@ local definitions = {
                 sidetexture        = [[shot]],
                 size               = 5.2,
                 sizegrowth         = -0.15,
-                ttl                = 14,
+                ttl                = 12,
                 useairlos          = true,
             },
         },
@@ -314,7 +314,7 @@ local definitions = {
 				emitvector         = [[0, 1, 0]],
 				gravity            = [[0, -0.15, 0]],
 				numparticles       = 3,
-				particlelife       = 7,
+				particlelife       = 6,
 				particlelifespread = 8,
 				particlesize       = 30,
 				particlesizespread = 30,

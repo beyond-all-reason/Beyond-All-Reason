@@ -103,6 +103,7 @@ return {
 				burnblow = true,
 				canattackground = false,
 				collidefriendly = false,
+				cegtag = "flaktrailaa",
 				craterareaofeffect = 192,
 				craterboost = 0,
 				cratermult = 0,

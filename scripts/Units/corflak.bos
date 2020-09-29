@@ -77,9 +77,9 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <1200.000000>;
+	turn gun to y-axis heading speed <1200.000000>;
 	turn barrel to x-axis <0.000000> - pitch speed <950.000000>;
-	wait-for-turn turret around y-axis;
+	wait-for-turn gun around y-axis;
 	wait-for-turn barrel around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -123,7 +123,7 @@ AimFromPrimary(piecenum)
 
 SweetSpot(piecenum)
 {
-	piecenum = turret;
+	piecenum = gun;
 }
 
 Killed(severity, corpsetype)

@@ -456,8 +456,8 @@ local definitions = {
             },
         },
     },
-  
-  
+
+
   ["missiletrailtiny"] = {
     --groundflash = {
     --  circlealpha        = 0,
@@ -1961,7 +1961,7 @@ local definitions = {
                 sidetexture        = [[glow2]],
                 size               = 3,
                 sizegrowth         = -0.1,
-                ttl                = 5,
+                ttl                = 4,
                 -- pos                = [[5, 0, 0]],
             },
         },
@@ -1985,7 +1985,7 @@ local definitions = {
         --    },
         --},
     },
-    
+
   ["missiletrailaa-large"] = {
       --groundflash = {
       --  circlealpha        = 0,
@@ -2022,7 +2022,7 @@ local definitions = {
       --          -- pos                = [[5, 0, 0]],
       --      },
       --  },
-      
+
       fire = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
@@ -2051,7 +2051,7 @@ local definitions = {
               useairlos          = true,
           },
       },
-      
+
       fireglow = {
           air                = true,
           class              = [[CSimpleParticleSystem]],

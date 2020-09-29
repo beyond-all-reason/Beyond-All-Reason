@@ -1167,7 +1167,7 @@ local function drawUnitInfo()
 	glTexture(false)
 
 	-- metal
-	local fontSize2 = fontSize * 0.9
+	local fontSize2 = fontSize * 0.87
 	local contentPaddingLeft = contentPaddingLeft + texSize + (contentPadding * 0.5)
 	font2:Print(valueY1, backgroundRect[1] + contentPaddingLeft, posY1 - (fontSize2 * 0.31), fontSize2, "o")
 	-- energy
