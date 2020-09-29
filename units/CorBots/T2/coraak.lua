@@ -121,6 +121,7 @@ return {
 				areaofeffect = 128,
 				avoidfeature = false,
 				burnblow = true,
+				cegtag = "flaktrailaa",
 				canattackground = false,
 				craterareaofeffect = 128,
 				craterboost = 0,
