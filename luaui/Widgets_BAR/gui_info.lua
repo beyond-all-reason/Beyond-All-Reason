@@ -56,6 +56,9 @@ local tooltipTextColor = '\255\255\255\255'
 local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\245\175'
+local tooltipValueWhiteColor = '\255\255\255\255'
+local tooltipValueYellowColor = '\255\255\235\175'
+local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
@@ -840,7 +843,7 @@ local function getSelectionTotals(cells)
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
 
-	local statsIndent = '  '
+	local statsIndent = ' '
 	local stats = ''
 
 	-- description
@@ -896,13 +899,13 @@ local function getSelectionTotals(cells)
 
 	-- metal cost
 	if totalMetalValue > 0 then
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "M cost: " .. tooltipValueColor .. totalMetalValue .. "   "
+		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "Cost M: " .. tooltipValueWhiteColor .. totalMetalValue .. "   "
 	end
 	stats = stats .. '\n' .. statsIndent
 
 	-- energy cost
 	if totalEnergyValue > 0 then
-		stats = stats .. tooltipLabelTextColor .. "E cost: " .. tooltipValueColor .. totalEnergyValue .. "   "
+		stats = stats .. tooltipLabelTextColor .. "Cost E: " .. tooltipValueYellowColor .. totalEnergyValue .. "   "
 	end
 
 	-- health
@@ -916,7 +919,7 @@ local function getSelectionTotals(cells)
 
 	-- DPS
 	if totalDpsValue > 0 then
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "DPS: " .. tooltipValueColor .. totalDpsValue .. "   "
+		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. "DPS: " .. tooltipValueRedColor .. totalDpsValue .. "   "
 	end
 
 	if stats ~= '' then
@@ -1085,12 +1088,12 @@ local function drawUnitInfo()
 
 	-- unit tooltip
 	font:Begin()
-	font:Print(descriptionColor .. text, backgroundRect[1] + contentPadding + iconSize, backgroundRect[4] - contentPadding - (fontSize * 2.22), fontSize * 0.94, "o")
+	font:Print(descriptionColor .. text, backgroundRect[1] + contentPadding + iconSize + iconPadding, backgroundRect[4] - contentPadding - (fontSize * 2.22), fontSize * 0.94, "o")
 	font:End()
 
 	-- unit name
 	font2:Begin()
-	font2:Print(unitNameColor .. unitDefInfo[displayUnitDefID].humanName, backgroundRect[1] + iconSize + iconPadding, backgroundRect[4] - contentPadding - (fontSize * 0.91), fontSize * 1.12, "o")
+	font2:Print(unitNameColor .. unitDefInfo[displayUnitDefID].humanName, backgroundRect[1] + contentPadding + iconSize + iconPadding, backgroundRect[4] - contentPadding - (fontSize * 0.91), fontSize * 1.12, "o")
 	--font2:End()
 
 	-- custom unit info background
@@ -1230,7 +1233,7 @@ local function drawUnitInfo()
 
 		local text = ''
 		local separator = ''
-		local infoFontsize = fontSize * 0.92
+		local infoFontsize = fontSize * 0.86
 		-- to determine what to show in what order
 		local function addTextInfo(label, value)
 			text = text .. labelColor .. separator .. string.upper(label:sub(1, 1)) .. label:sub(2)  .. valueColor .. (value and (label ~= '' and ' ' or '')..value or '')
@@ -1268,8 +1271,8 @@ local function drawUnitInfo()
 		if unitDefInfo[displayUnitDefID].weapons then
 			local reloadTime = 1
 			if exp and exp > 0.009 then
-				addTextInfo('xp', round(exp, 2))
-				addTextInfo('max-health', '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
+				addTextInfo('XP', round(exp, 2))
+				addTextInfo('max. Health', '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
 				reloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
 				reloadTime = tonumber(round((1 - (reloadTime / unitDefInfo[displayUnitDefID].reloadTime)) * 100, 0))
 				if reloadTime > 0 then
@@ -1278,22 +1281,22 @@ local function drawUnitInfo()
 			end
 			if dps then
 				dps = round(dps + (dps * (reloadTime / 100)), 0)
-				addTextInfo('dps', dps)
+				addTextInfo('DPS', dps)
 
 				if maxRange then
-					addTextInfo('max-range', maxRange)
+					addTextInfo('Weapon Range', maxRange)
 				end
 
-				addTextInfo('reload(main)', round(unitDefInfo[displayUnitDefID].reloadTime*reloadTime, 2))
+				addTextInfo('reloadtime', round(unitDefInfo[displayUnitDefID].reloadTime*reloadTime, 2))
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
 
 			if unitDefInfo[displayUnitDefID].energyPerShot then
-				addTextInfo('energyPerShot', unitDefInfo[displayUnitDefID].energyPerShot)
+				addTextInfo('energy/Shot', unitDefInfo[displayUnitDefID].energyPerShot)
 			end
 			if unitDefInfo[displayUnitDefID].metalPerShot then
-				addTextInfo('metalPerShot', unitDefInfo[displayUnitDefID].metalPerShot)
+				addTextInfo('metal/Shot', unitDefInfo[displayUnitDefID].metalPerShot)
 			end
 		end
 
@@ -1302,9 +1305,9 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].transport then
-			addTextInfo('transMass', unitDefInfo[displayUnitDefID].transport[1])
-			addTextInfo('transSize', unitDefInfo[displayUnitDefID].transport[2])
-			addTextInfo('transCapacity', unitDefInfo[displayUnitDefID].transport[3])
+			addTextInfo('transport Max. Mass', unitDefInfo[displayUnitDefID].transport[1])
+			addTextInfo('transport Max. Size', unitDefInfo[displayUnitDefID].transport[2])
+			addTextInfo('transport Capacity', unitDefInfo[displayUnitDefID].transport[3])
 		end
 
 		if unitDefInfo[displayUnitDefID].speed then
@@ -1318,7 +1321,7 @@ local function drawUnitInfo()
 		--  addTextInfo('metal extraction', round(metalExtraction, 2))
 		--end
 		if unitDefInfo[displayUnitDefID].buildSpeed then
-			addTextInfo('buildspeed', unitDefInfo[displayUnitDefID].buildSpeed)
+			addTextInfo('buildpower', unitDefInfo[displayUnitDefID].buildSpeed)
 		end
 		if unitDefInfo[displayUnitDefID].buildOptions then
 			addTextInfo('buildoptions', #unitDefInfo[displayUnitDefID].buildOptions)
@@ -1337,11 +1340,11 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].losRadius then
-			addTextInfo('los', round(unitDefInfo[displayUnitDefID].losRadius, 0))
+			addTextInfo('LoS', round(unitDefInfo[displayUnitDefID].losRadius, 0))
 		end
 		if unitDefInfo[displayUnitDefID].airLosRadius and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
 
-			addTextInfo('airlos', round(unitDefInfo[displayUnitDefID].airLosRadius, 0))
+			addTextInfo('Air LoS', round(unitDefInfo[displayUnitDefID].airLosRadius, 0))
 		end
 		if unitDefInfo[displayUnitDefID].radarRadius then
 			addTextInfo('radar', round(unitDefInfo[displayUnitDefID].radarRadius, 0))
@@ -1350,10 +1353,10 @@ local function drawUnitInfo()
 			addTextInfo('sonar', round(unitDefInfo[displayUnitDefID].sonarRadius, 0))
 		end
 		if unitDefInfo[displayUnitDefID].jammerRadius then
-			addTextInfo('jammer', round(unitDefInfo[displayUnitDefID].jammerRadius, 0))
+			addTextInfo('Jam Range', round(unitDefInfo[displayUnitDefID].jammerRadius, 0))
 		end
 		if unitDefInfo[displayUnitDefID].sonarJamRadius then
-			addTextInfo('sonarjam', round(unitDefInfo[displayUnitDefID].sonarJamRadius, 0))
+			addTextInfo('sonarjam Range', round(unitDefInfo[displayUnitDefID].sonarJamRadius, 0))
 		end
 		if unitDefInfo[displayUnitDefID].seismicRadius then
 			addTextInfo('seismic', unitDefInfo[displayUnitDefID].seismicRadius)
@@ -1363,8 +1366,8 @@ local function drawUnitInfo()
 		--addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
 		if unitDefInfo[displayUnitDefID].metalmaker then
-			addTextInfo('convertorEnergyCapacity', unitDefInfo[displayUnitDefID].metalmaker[1])
-			addTextInfo('convertorMetal', round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
+			addTextInfo('Energy needed for Conversion', unitDefInfo[displayUnitDefID].metalmaker[1])
+			addTextInfo('Converted Metal', round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
 		end
 
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
