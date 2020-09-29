@@ -2785,18 +2785,6 @@ function init()
 		  end,
 		},
 
-		{ id = "buildmenualternativeicons", group = "ui", name = "Alternative unit icons", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlternativeIcons()), description = 'Switch to a different unit icon set',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('Info', 'info', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('BuildBar', 'buildbar', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('Unit Stats', 'unitstats', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-			  saveOptionValue('Initial Queue', 'initialqueue', 'setAlternativeIcons', { 'alternativeUnitpics' }, value)
-		  end,
-		},
-
 		--{id="los_opacity", group="ui", basic=true, name="LoS "..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
 		-- onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
 		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,

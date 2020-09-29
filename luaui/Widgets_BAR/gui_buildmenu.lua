@@ -244,8 +244,6 @@ function wrap(str, limit)
 	return t
 end
 
-local alternativeUnitpics = false
-local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
@@ -272,9 +270,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitMetalCost[unitDefID] = unitDef.metalCost
 	unitGroup = {}
 	unitBuildPic[unitDefID] = unitDef.buildpicname
-	if VFS.FileExists('unitpics/alternative/' .. string_gsub(unitDef.buildpicname, '(.*/)', '')) then
-		hasAlternativeUnitpic[unitDefID] = true
-	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
 	end
@@ -455,16 +450,9 @@ local function cacheUnitIcons()
 			for id, unit in pairs(UnitDefs) do
 				-- only caching for defaultCellZoom
 				if unitBuildPic[id] then
-					if alternativeUnitpics and hasAlternativeUnitpic[id] then
-						gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
-						if textureDetail then	-- delete old texture
-							gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/alternative/' .. unitBuildPic[id])
-						end
-					else
-						gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/' .. unitBuildPic[id])
-						if textureDetail then	-- delete old texture
-							gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
-						end
+					gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/' .. unitBuildPic[id])
+					if textureDetail then	-- delete old texture
+						gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
 					end
 				end
 				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
@@ -1071,14 +1059,6 @@ function widget:Initialize()
 		doUpdate = true
 		refreshUnitIconCache()
 	end
-	WG['buildmenu'].getAlternativeIcons = function()
-		return alternativeUnitpics
-	end
-	WG['buildmenu'].setAlternativeIcons = function(value)
-		alternativeUnitpics = value
-		doUpdate = true
-		refreshUnitIconCache()
-	end
 	WG['buildmenu'].factionChange = function(unitDefID)
 		startDefID = unitDefID
 		doUpdate = true
@@ -1200,7 +1180,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	-- unit icon
 	glColor(1, 1, 1, 1)
 	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
-	glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. ((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '') .. unitBuildPic[uDefID])
+	glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
 	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
 	TexRectRound(
 		cellRects[cellRectID][1] + cellPadding + iconPadding,
@@ -1215,7 +1195,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if cellColor then
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. ((alternativeUnitpics and hasAlternativeUnitpic[uDefID]) and 'alternative/' or '') .. unitBuildPic[uDefID])
+		glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
 		TexRectRound(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
@@ -1258,7 +1238,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	end
 
 	-- darken price background gradually
-	if showPrice and (not alternativeUnitpics or makeFancy) then
+	if showPrice or makeFancy then
 		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding + (cellInnerSize * 0.415), cornerSize, 0, 0, 2, 2, { 0, 0, 0, (makeFancy and 0.2 or 0.27) }, { 0, 0, 0, 0 })
 	end
 
@@ -1326,7 +1306,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if cmds[cellRectID].params[1] then
 		local pad = math_floor(cellInnerSize * 0.03)
 		local textWidth = math_floor(font2:GetTextWidth(cmds[cellRectID].params[1] .. '  ') * cellInnerSize * 0.285)
-		local pad2 = (alternativeUnitpics and pad or 0)
+		local pad2 = 0
 		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.365) - pad2, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
 		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.15) - pad2, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
 		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2 + pad, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.365) - pad2 + pad, cellRects[cellRectID][3] - cellPadding - iconPadding - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - pad2, cornerSize * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
@@ -1465,7 +1445,7 @@ function drawBuildmenu()
 				WG['buildmenu'].selectedID = uDefID
 			end
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25 } or nil)
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil)
 		end
 	end
 
@@ -1715,11 +1695,11 @@ function widget:DrawScreen()
 							end
 							-- determine color
 							if (b or b2) and not disableInput then
-								cellColor = { 0.3, 0.8, 0.25, alternativeUnitpics and 0.7 or 0.2 }
+								cellColor = { 0.3, 0.8, 0.25, 0.2 }
 							elseif b3 and not disableInput then
-								cellColor = { 1, 0.35, 0.3, alternativeUnitpics and 0.7 or 0.2 }
+								cellColor = { 1, 0.35, 0.3, 0.2 }
 							else
-								cellColor = { 0.63, 0.63, 0.63, alternativeUnitpics and 0.25 or 0 }
+								cellColor = { 0.63, 0.63, 0.63, 0 }
 							end
 						else
 							-- selected cell
@@ -1728,7 +1708,7 @@ function widget:DrawScreen()
 							else
 								usedZoom = selectedCellZoom
 							end
-							cellColor = { 1, 0.85, alternativeUnitpics and 0.5 or 0.2, alternativeUnitpics and 1 or 0.25 }
+							cellColor = { 1, 0.85, 0.2, 0.25 }
 						end
 						if not showPrice then
 							unsetShowPrice = true
@@ -1742,8 +1722,8 @@ function widget:DrawScreen()
 						end
 						-- gloss highlight
 						--glBlending(GL_SRC_ALPHA, GL_ONE)
-						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,alternativeUnitpics and 0.16 or 0.09})
-						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,alternativeUnitpics and 0.11 or 0.07}, {1,1,1,0})
+						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.09})
+						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.07}, {1,1,1,0})
 						--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
 				end
@@ -2221,7 +2201,6 @@ function widget:GetConfigData()
 		defaultColls = defaultColls,
 		showShortcuts = showShortcuts,
 		makeFancy = makeFancy,
-		alternativeUnitpics = alternativeUnitpics,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID,
@@ -2254,9 +2233,6 @@ function widget:SetConfigData(data)
 	end
 	if data.makeFancy ~= nil then
 		makeFancy = data.makeFancy
-	end
-	if data.alternativeUnitpics ~= nil then
-		alternativeUnitpics = data.alternativeUnitpics
 	end
 	if data.stickToBottom ~= nil then
 		stickToBottom = data.stickToBottom

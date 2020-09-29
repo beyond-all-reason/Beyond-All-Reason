@@ -16,7 +16,6 @@ end
 local width = 0
 local addonWidth = 0
 local height = 0
-local alternativeUnitpics = false
 
 local zoomMult = 1.5
 local defaultCellZoom = 0 * zoomMult
@@ -227,9 +226,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canStockpile then
 		unitDefInfo[unitDefID].canStockpile = true
 	end
-	if VFS.FileExists('unitpics/alternative/' .. unitDef.buildpicname) then
-		unitDefInfo[unitDefID].hasAlternativeUnitpic = true
-	end
 	if unitDef.buildSpeed > 0 then
 		unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
 	end
@@ -361,23 +357,9 @@ unitsOrdered = nil
 local function cacheUnitIcons()
 	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)   -- when changine this also update radarIconSize formula at other place in code
 	for id, unit in pairs(UnitDefs) do
-		if unitDefInfo[id].hasAlternativeUnitpic then
-			gl.Texture(':lr200,200:unitpics/alternative/' .. unitDefInfo[id].buildPic)
-		else
-			gl.Texture(':lr200,200:unitpics/' .. unitDefInfo[id].buildPic)
-		end
+		gl.Texture(':lr100,100:unitpics/' .. unitDefInfo[id].buildPic)
 		gl.TexRect(-1, -1, 0, 0)
-		if alternativeUnitpics and unitDefInfo[id].hasAlternativeUnitpic then
-			gl.Texture(':lr100,100:unitpics/alternative/' .. unitDefInfo[id].buildPic)
-		else
-			gl.Texture(':lr100,100:unitpics/' .. unitDefInfo[id].buildPic)
-		end
-		gl.TexRect(-1, -1, 0, 0)
-		if alternativeUnitpics and unitDefInfo[id].hasAlternativeUnitpic then
-			gl.Texture(':lr160,160:unitpics/alternative/' .. unitDefInfo[id].buildPic)
-		else
-			gl.Texture(':lr160,160:unitpics/' .. unitDefInfo[id].buildPic)
-		end
+		gl.Texture(':lr160,160:unitpics/' .. unitDefInfo[id].buildPic)
 		if iconTypesMap[unitDefInfo[id].unitIconType] then
 			gl.TexRect(-1, -1, 0, 0)
 			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].unitIconType])
@@ -478,14 +460,6 @@ function widget:Initialize()
 	end
 	WG['info'].getPosition = function()
 		return width, height
-	end
-	WG['info'].getAlternativeIcons = function()
-		return alternativeUnitpics
-	end
-	WG['info'].setAlternativeIcons = function(value)
-		alternativeUnitpics = value
-		doUpdate = true
-		refreshUnitIconCache()
 	end
 	iconTypesMap = {}
 	if Script.LuaRules('GetIconTypes') then
@@ -800,7 +774,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 
 	glColor(1, 1, 1, 1)
-	glTexture(texSetting .. "unitpics/" .. ((alternativeUnitpics and unitDefInfo[uDefID].hasAlternativeUnitpic) and 'alternative/' or '') .. unitDefInfo[uDefID].buildPic)
+	glTexture(texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic)
 	--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
 	--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
 	TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 1, 1, usedZoom)
@@ -1041,18 +1015,13 @@ end
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.95 - ((1 - ui_scale) * 0.5))
 
-	local iconSize = fontSize * 5
-	local iconPadding = 0
-	local alternative = ''
-	if unitDefInfo[displayUnitDefID].hasAlternativeUnitpic then
-		alternative = 'alternative/'
-		iconPadding = bgpadding
-	end
+	local iconSize = math.floor(fontSize * 4.2)
+	local iconPadding = math.floor(fontSize * 0.4)
 
 	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
-		glTexture(":lr200,200:unitpics/" .. alternative .. unitDefInfo[displayUnitDefID].buildPic)
-		glTexRect(backgroundRect[1] + iconPadding, backgroundRect[4] - iconPadding - iconSize - bgpadding, backgroundRect[1] + iconPadding + iconSize, backgroundRect[4] - iconPadding - bgpadding)
+		glTexture(":lr160,160:unitpics/" .. unitDefInfo[displayUnitDefID].buildPic)
+		TexRectRound(backgroundRect[1] + iconPadding, backgroundRect[4] - iconPadding - iconSize - bgpadding, backgroundRect[1] + iconPadding + iconSize, backgroundRect[4] - iconPadding - bgpadding, bgpadding * 0.6, 1, 1, 1, 1, 0.11)
 		glTexture(false)
 	end
 	iconSize = iconSize + iconPadding
@@ -1218,7 +1187,7 @@ local function drawUnitInfo()
 					local uDefID = unitDefInfo[displayUnitDefID].buildOptions[cellID]
 					cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
 					glColor(0.9, 0.9, 0.9, 1)
-					glTexture(":lr100,100:unitpics/" .. ((alternativeUnitpics and unitDefInfo[uDefID].hasAlternativeUnitpic) and 'alternative/' or '') .. unitDefInfo[uDefID].buildPic)
+					glTexture(":lr100,100:unitpics/" .. unitDefInfo[uDefID].buildPic)
 					--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
 					--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
 					TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 1, 1, 0.11)
@@ -1824,19 +1793,5 @@ function widget:SelectionChanged(sel)
 		if not doUpdateClock then
 			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
 		end
-	end
-end
-
-function widget:GetConfigData()
-	--save config
-	return {
-		alternativeUnitpics = alternativeUnitpics,
-	}
-end
-
-function widget:SetConfigData(data)
-	--load config
-	if data.alternativeUnitpics ~= nil then
-		alternativeUnitpics = data.alternativeUnitpics
 	end
 end

@@ -57,16 +57,11 @@ local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
 
-local alternativeUnitpics = false
-local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
 local unitName = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitBuildPic[udid] = unitDef.buildpicname
-	if VFS.FileExists('unitpics/alternative/' .. string.gsub(unitDef.buildpicname, '(.*/)', '')) then
-		hasAlternativeUnitpic[udid] = true
-	end
 	unitName[udid] = unitDef.name
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		unitBuildOptions[udid] = unitDef.buildOptions
@@ -235,14 +230,6 @@ function widget:Initialize()
 	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
-
-	WG['buildbar'] = {}
-	WG['buildbar'].getAlternativeIcons = function()
-		return alternativeUnitpics
-	end
-	WG['buildbar'].setAlternativeIcons = function(value)
-		alternativeUnitpics = value
-	end
 end
 
 function widget:GameStart()
@@ -275,7 +262,6 @@ function widget:GetConfigData()
 		align = bar_align,
 		openByClick = bar_openByClick,
 		autoclose = bar_autoclose,
-		alternativeUnitpics = alternativeUnitpics,
 	}
 end
 
@@ -288,9 +274,6 @@ function widget:SetConfigData(data)
 
 	bar_side = math.min(math.max(bar_side, 0), 3)
 	bar_align = math.min(math.max(bar_align, -1), 1)
-	if data.alternativeUnitpics ~= nil then
-		alternativeUnitpics = data.alternativeUnitpics
-	end
 end
 
 
@@ -759,12 +742,7 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	-- draw icon
 	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
 
-	local tex
-	if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
-		tex = ':lr128,128:unitpics/alternative/' .. unitBuildPic[unitDefID]
-	else
-		tex = ':lr128,128:unitpics/' .. unitBuildPic[unitDefID]
-	end
+	local tex = ':lr128,128:unitpics/' .. unitBuildPic[unitDefID]
 	drawIcon({imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom)
 
 	-- Progress

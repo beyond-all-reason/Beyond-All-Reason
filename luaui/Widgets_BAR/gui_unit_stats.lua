@@ -119,14 +119,9 @@ local wDefs = WeaponDefs
 
 local triggerKey = KEYSYMS.SPACE
 
-local alternativeUnitpics = false
-local hasAlternativeUnitpic = {}
 local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
 	unitBuildPic[id] = def.buildpicname
-	if VFS.FileExists('unitpics/alternative/'..string.gsub(def.buildpicname, '(.*/)', '')) then
-		hasAlternativeUnitpic[id] = true
-	end
 end
 
 local myTeamID = Spring.GetMyTeamID
@@ -325,13 +320,6 @@ end
 
 function widget:Initialize()
 	font = WG['fonts'].getFont(fontfile)
-	WG['unitstats'] = {}
-	WG['unitstats'].getAlternativeIcons = function()
-		return alternativeUnitpics
-	end
-	WG['unitstats'].setAlternativeIcons = function(value)
-		alternativeUnitpics = value
-	end
 	init()
 end
 
@@ -773,12 +761,7 @@ function widget:DrawScreen()
 	-- icon
 	if uID then
 		glColor(1,1,1,1)
-		if alternativeUnitpics and hasAlternativeUnitpic[uDefID] then
-			glTexture(':lcr80,80:unitpics/alternative/'..unitBuildPic[uDefID])
-		else
-			--glTexture('#' .. uDefID)
-			glTexture(':lcr80,80:unitpics/'..unitBuildPic[uDefID])
-		end
+		glTexture(':c:unitpics/'..unitBuildPic[uDefID])
 		glTexRect(cX-(iconHalfSize*0.6), cYstart+cornersize-iconHalfSize, cX+(iconHalfSize*1.4), cYstart+cornersize+iconHalfSize)
 		glTexture(false)
 	end
@@ -811,16 +794,4 @@ function widget:DrawScreen()
 	DrawTextBuffer()
 
 ------------------------------------------------------------------------------------
-end
-
-function widget:GetConfigData()
-	return {
-		alternativeUnitpics  = alternativeUnitpics,
-	}
-end
-
-function widget:SetConfigData(data)
-	if data.alternativeUnitpics ~= nil then
-		alternativeUnitpics = data.alternativeUnitpics
-	end
 end
