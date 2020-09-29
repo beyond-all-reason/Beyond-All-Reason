@@ -2,7 +2,7 @@
 Attackers!
 ]]--
 
-attackerlist = {
+UnitiesHST.attackerlist = {
 	"corak",
 	"armpw",
 	"corgator",

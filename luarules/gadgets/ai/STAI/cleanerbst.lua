@@ -25,7 +25,7 @@ end
 function CleanerBST:Init()
 	self.name = self.unit:Internal():Name()
 	self:EchoDebug("init")
-	if nanoTurretList[self.name] then
+	if UnitiesHST.nanoTurretList[self.name] then
 		self.isStationary = true
 		self.cleaningRadius = 390
 	else

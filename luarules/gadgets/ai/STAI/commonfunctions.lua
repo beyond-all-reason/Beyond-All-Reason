@@ -211,7 +211,7 @@ function ThreatRange(unitName, groundAirSubmerged)
 			return layer.threat, layer.range
 		end
 	end
-	if antinukeList[unitName] or nukeList[unitName] or bigPlasmaList[unitName] or shieldList[unitName] then
+	if UnitiesHST.antinukeList[unitName] or UnitiesHST.nukeList[unitName] or UnitiesHST.bigPlasmaList[unitName] or UnitiesHST.shieldList[unitName] then
 		return 0, 0
 	end
 	local utable = ai.data.unitTable[unitName]
@@ -289,7 +289,7 @@ end
 
 function UnitWeaponMtypeList(unitName)
 	if unitName == nil then return {} end
-	if unitName == DummyUnitName then return {} end
+	if unitName == UnitiesHST.DummyUnitName then return {} end
 	local mtypes = unitWeaponMtypes[unitName]
 	if mtypes then
 		return mtypes

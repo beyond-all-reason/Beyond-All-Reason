@@ -87,7 +87,7 @@ function BuildAAIfNeeded(unitName)
 			return unitName
 		end
 	else
-		return DummyUnitName
+		return UnitiesHST.DummyUnitName
 	end
 end
 
@@ -95,72 +95,72 @@ function BuildTorpedoIfNeeded(unitName)
 	if IsTorpedoNeeded() then
 		return unitName
 	else
-		return DummyUnitName
+		return UnitiesHST.DummyUnitName
 	end
 end
 
 function BuildSiegeIfNeeded(unitName)
-	if unitName == DummyUnitName then return DummyUnitName end
+	if unitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then
 		if ai.siegeCount < (ai.battleCount + ai.breakthroughCount) * 0.35 then
 			return unitName
 		end
 	end
-	return DummyUnitName
+	return UnitiesHST.DummyUnitName
 end
 
 function BuildBreakthroughIfNeeded(unitName)
-	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
+	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then return unitName end
 	local mtype = ai.data.unitTable[unitName].mtype
 	if mtype == "air" then
 		local bomberCounter = ai.bomberhst:GetCounter()
-		if bomberCounter >= breakthroughBomberCounter and bomberCounter < maxBomberCounter then
+		if bomberCounter >= UnitiesHST.breakthroughBomberCounter and bomberCounter < UnitiesHST.maxBomberCounter then
 			return unitName
 		else
-			return DummyUnitName
+			return UnitiesHST.DummyUnitName
 		end
 	else
-		if ai.battleCount <= minBattleCount then return DummyUnitName end
+		if ai.battleCount <= UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
 		local attackCounter = ai.attackhst:GetCounter(mtype)
-		if attackCounter == maxAttackCounter then
+		if attackCounter == UnitiesHST.maxAttackCounter then
 			return unitName
-		elseif attackCounter >= breakthroughAttackCounter then
+		elseif attackCounter >= UnitiesHST.breakthroughAttackCounter then
 			return unitName
 		else
-			return DummyUnitName
+			return UnitiesHST.DummyUnitName
 		end
 	end
 end
 
 function BuildRaiderIfNeeded(unitName)
 	EchoDebug("build raider if needed: " .. unitName)
-	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
+	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	local mtype = ai.data.unitTable[unitName].mtype
 	if ai.factoriesAtLevel[3] ~= nil and ai.factoriesAtLevel[3] ~= {} then
 		-- if we have a level 2 factory, don't build raiders until we have some battle units
 		local attackCounter = ai.attackhst:GetCounter(mtype)
 		if ai.battleCount + ai.breakthroughCount < attackCounter / 2 then
-			return DummyUnitName
+			return UnitiesHST.DummyUnitName
 		end
 	end
 	local counter = ai.raidhst:GetCounter(mtype)
-	if counter == minRaidCounter then return DummyUnitName end
+	if counter == UnitiesHST.minRaidCounter then return UnitiesHST.DummyUnitName end
 	if ai.raiderCount[mtype] == nil then
 		-- fine
 	elseif ai.raiderCount[mtype] >= counter then
-		unitName = DummyUnitName
+		unitName = UnitiesHST.DummyUnitName
 	end
 	return unitName
 end
 
 function BuildBattleIfNeeded(unitName)
-	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
+	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	local mtype = ai.data.unitTable[unitName].mtype
 	local attackCounter = ai.attackhst:GetCounter(mtype)
-	EchoDebug(mtype .. " " .. attackCounter .. " " .. maxAttackCounter)
-	if attackCounter == maxAttackCounter and ai.battleCount > minBattleCount then return DummyUnitName end
-	if mtype == "veh" and MyTB.side == CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
+	EchoDebug(mtype .. " " .. attackCounter .. " " .. UnitiesHST.maxAttackCounter)
+	if attackCounter == UnitiesHST.maxAttackCounter and ai.battleCount > UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
+	if mtype == "veh" and MyTB.side == UnitiesHST.CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
 		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
 		return unitName
 	end
@@ -169,61 +169,61 @@ function BuildBattleIfNeeded(unitName)
 		return unitName
 	end
 	local raidCounter = ai.raidhst:GetCounter(mtype)
-	EchoDebug(mtype .. " " .. raidCounter .. " " .. maxRaidCounter)
-	if raidCounter == minRaidCounter then return unitName end
+	EchoDebug(mtype .. " " .. raidCounter .. " " .. UnitiesHST.maxRaidCounter)
+	if raidCounter == UnitiesHST.minRaidCounter then return unitName end
 	EchoDebug(ai.raiderCount[mtype])
 	if ai.raiderCount[mtype] == nil then
 		return unitName
 	elseif ai.raiderCount[mtype] < raidCounter / 2 then
-		return DummyUnitName
+		return UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function CountOwnUnits(tmpUnitName)
-	if tmpUnitName == DummyUnitName then return 0 end -- don't count no-units
+	if tmpUnitName == UnitiesHST.DummyUnitName then return 0 end -- don't count no-units
 	if ai.nameCount[tmpUnitName] == nil then return 0 end
 	return ai.nameCount[tmpUnitName]
 end
 
 function BuildWithLimitedNumber(tmpUnitName, minNumber)
-	if tmpUnitName == DummyUnitName then return DummyUnitName end
-	if minNumber == 0 then return DummyUnitName end
+	if tmpUnitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
+	if minNumber == 0 then return UnitiesHST.DummyUnitName end
 	if ai.nameCount[tmpUnitName] == nil then
 		return tmpUnitName
 	else
 		if ai.nameCount[tmpUnitName] == 0 or ai.nameCount[tmpUnitName] < minNumber then
 			return tmpUnitName
 		else
-			return DummyUnitName
+			return UnitiesHST.DummyUnitName
 		end
 	end
 end
 
 function GroundDefenseIfNeeded(unitName)
 	if not ai.needGroundDefense then
-		return DummyUnitName
+		return UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function BuildBomberIfNeeded(unitName)
-	if not IsLandAttackNeeded() then return DummyUnitName end
-	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
-	if ai.bomberhst:GetCounter() == maxBomberCounter then
-		return DummyUnitName
+	if not IsLandAttackNeeded() then return UnitiesHST.DummyUnitName end
+	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
+	if ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
+		return UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function BuildTorpedoBomberIfNeeded(unitName)
-	if not IsWaterAttackNeeded() then return DummyUnitName end
-	if unitName == DummyUnitName or unitName == nil then return DummyUnitName end
-	if ai.bomberhst:GetCounter() == maxBomberCounter then
-		return DummyUnitName
+	if not IsWaterAttackNeeded() then return UnitiesHST.DummyUnitName end
+	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
+	if ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
+		return UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
@@ -243,7 +243,7 @@ end
 
 
 local function ConsulAsFactory(tskqbhvr)
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	local rnd = math.random(1,8)
 	if 	rnd == 1 then unitName=ConVehicle(tskqbhvr)
 	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
@@ -254,13 +254,13 @@ local function ConsulAsFactory(tskqbhvr)
 	elseif 	rnd == 7 then unitName=Lvl2BotMedium(tskqbhvr)
 	else unitName = Lvl1ShipDestroyerOnly(tskqbhvr)
 	end
-	if unitName == nil then unitName = DummyUnitName end
+	if unitName == nil then unitName = UnitiesHST.DummyUnitName end
 	EchoDebug('Consul as factory '..unitName)
 	return unitName
 end
 
 local function FreakerAsFactory(tskqbhvr)
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	local rnd = math.random(1,7)
 	if 	rnd == 1 then unitName=ConBot(tskqbhvr)
 	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
@@ -270,13 +270,13 @@ local function FreakerAsFactory(tskqbhvr)
 	elseif 	rnd == 6 then unitName=Lvl2AmphBot(tskqbhvr)
 	else unitName = Lvl1ShipDestroyerOnly(tskqbhvr)
 	end
-	if unitName == nil then unitName = DummyUnitName end
+	if unitName == nil then unitName = UnitiesHST.DummyUnitName end
 	EchoDebug('Freaker as factory '..unitName)
 	return unitName
 end
 
 function NavalEngineerAsFactory(tskqbhvr)
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	local rnd= math.random(1,6)
 	if 	rnd == 1 then unitName=ConShip(tskqbhvr)
 	elseif 	rnd == 2 then unitName=ScoutShip(tskqbhvr)
@@ -290,8 +290,8 @@ function NavalEngineerAsFactory(tskqbhvr)
 end
 
 function EngineerAsFactory(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = FreakerAsFactory(tskqbhvr)
 	else
 		unitName = ConsulAsFactory(tskqbhvr)
@@ -301,7 +301,7 @@ end
 
 local function CommanderEconomy(tskqbhvr)
 	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	if not underwater then
 		unitName = Economy0()
 	else
@@ -314,7 +314,7 @@ end
 
 local function AmphibiousEconomy(tskqbhvr)
 	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	if underwater then
 		unitName = EconomyUnderWater(tskqbhvr)
 	else

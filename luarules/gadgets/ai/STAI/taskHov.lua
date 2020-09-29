@@ -7,7 +7,7 @@ local function EchoDebug(inStr)
 end
 
 function ConHover()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corch"
 	else
 		unitName = "armch"
@@ -18,7 +18,7 @@ end
 
 function HoverMerl(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cormh"
 	else
 		unitName = "armmh"
@@ -28,7 +28,7 @@ end
 
 function HoverRaider(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corsh"
 	else
 		unitName = "armsh"
@@ -38,7 +38,7 @@ end
 
 function HoverBattle(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corsnap"
 	else
 		unitName = "armanac"
@@ -48,7 +48,7 @@ end
 
 function HoverBreakthrough(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corhal"
 	else
 		unitName = "armanac"
@@ -57,7 +57,7 @@ function HoverBreakthrough(tskqbhvr)
 end
 
 function AAHover()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corah")
 	else
 		return BuildAAIfNeeded("armah")

@@ -115,7 +115,7 @@ function AttackHST:DraftSquads()
 				self.recruits[mtype] = {}
 				self.ai.hasAttacked = self.ai.hasAttacked + 1
 				self.potentialAttackCounted[mtype] = false
-				self.counter[mtype] = math.min(maxAttackCounter, self.counter[mtype] + 1)
+				self.counter[mtype] = math.min(UnitiesHST.maxAttackCounter, self.counter[mtype] + 1)
 			end
 		end
 	end
@@ -404,7 +404,7 @@ function AttackHST:AddRecruit(attkbhvr)
 			-- self:EchoDebug("adding attack recruit")
 			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
-			if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
+			if self.counter[mtype] == nil then self.counter[mtype] = UnitiesHST.baseAttackCounter end
 			if self.attackSent[mtype] == nil then self.attackSent[mtype] = 0 end
 			if self.count[mtype] == nil then self.count[mtype] = 0 end
 			local level = attkbhvr.level
@@ -435,7 +435,7 @@ end
 function AttackHST:NeedMore(attkbhvr)
 	local mtype = attkbhvr.mtype
 	local level = attkbhvr.level
-	self.counter[mtype] = math.min(maxAttackCounter, self.counter[mtype] + (level * 0.7) ) -- 0.75
+	self.counter[mtype] = math.min(UnitiesHST.maxAttackCounter, self.counter[mtype] + (level * 0.7) ) -- 0.75
 	self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 end
 
@@ -443,13 +443,13 @@ function AttackHST:NeedLess(mtype, subtract)
 	if subtract == nil then subtract = 0.1 end
 	if mtype == nil then
 		for mtype, count in pairs(self.counter) do
-			if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
-			self.counter[mtype] = math.max(self.counter[mtype] - subtract, minAttackCounter)
+			if self.counter[mtype] == nil then self.counter[mtype] = UnitiesHST.baseAttackCounter end
+			self.counter[mtype] = math.max(self.counter[mtype] - subtract, UnitiesHST.minAttackCounter)
 			self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 		end
 	else
-		if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
-		self.counter[mtype] = math.max(self.counter[mtype] - subtract, minAttackCounter)
+		if self.counter[mtype] == nil then self.counter[mtype] = UnitiesHST.baseAttackCounter end
+		self.counter[mtype] = math.max(self.counter[mtype] - subtract, UnitiesHST.minAttackCounter)
 		self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 	end
 end
@@ -463,7 +463,7 @@ function AttackHST:GetCounter(mtype)
 		return highestCounter
 	end
 	if self.counter[mtype] == nil then
-		return baseAttackCounter
+		return UnitiesHST.baseAttackCounter
 	else
 		return self.counter[mtype]
 	end

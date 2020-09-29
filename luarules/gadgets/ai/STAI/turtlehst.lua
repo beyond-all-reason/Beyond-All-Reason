@@ -45,11 +45,11 @@ function TurtleHST:Priority(unitName)
 	if p then return p end
 	local priority = 0
 	local ut = self.ai.data.unitTable[unitName]
-	if turtleList[unitName] then
-		priority = turtleList[unitName]
-	elseif antinukeList[unitName] then
+	if UnitiesHST.turtleList[unitName] then
+		priority = UnitiesHST.turtleList[unitName]
+	elseif UnitiesHST.antinukeList[unitName] then
 		priority = 2
-	elseif shieldList[unitName] then
+	elseif UnitiesHST.shieldList[unitName] then
 		priority = 2
 	else
 		if ut.buildOptions then
@@ -99,8 +99,8 @@ function TurtleHST:UnitDead(unit)
 	local unitName = unit:Name()
 	local ut = self.ai.data.unitTable[unitName]
 	local unitID = unit:ID()
-	if ut.isBuilding or nanoTurretList[unitName] then
-		if ut.isWeapon or shieldList[unitName] then
+	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon or UnitiesHST.shieldList[unitName] then
 			self:RemoveShell(unitID)
 		else
 			self:RemoveOrgan(unitID)
@@ -113,13 +113,13 @@ end
 -- also applies to plans, in which case the plan is the unitID
 function TurtleHST:NewUnit(unitName, position, unitID)
 	local ut = self.ai.data.unitTable[unitName]
-	if ut.isBuilding or nanoTurretList[unitName] then
-		if ut.isWeapon and not ut.buildOptions and not antinukeList[unitName] and not nukeList[unitName] and not bigPlasmaList[unitName] then
+	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon and not ut.buildOptions and not UnitiesHST.antinukeList[unitName] and not UnitiesHST.nukeList[unitName] and not UnitiesHST.bigPlasmaList[unitName] then
 			self:AddDefense(position, unitID, unitName)
 		else
-			if antinukeList[unitName] then
+			if UnitiesHST.antinukeList[unitName] then
 				self:AddShell(position, unitID, unitName, 1, "antinuke", 72000)
-			elseif shieldList[unitName] then
+			elseif UnitiesHST.shieldList[unitName] then
 				self:AddShell(position, unitID, unitName, 1, "shield", 450)
 			elseif ut.jammerRadius ~= 0 then
 				self:AddShell(position, unitID, unitName, 1, "jam", ut.jammerRadius)
@@ -138,8 +138,8 @@ function TurtleHST:PlanCreated(plan, unitID)
 	local found = false
 	local unitName = plan.unitName
 	local ut = self.ai.data.unitTable[unitName]
-	if ut.isBuilding or nanoTurretList[unitName] then
-		if ut.isWeapon or shieldList[unitName] then
+	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon or UnitiesHST.shieldList[unitName] then
 			for si, shell in pairs(self.shells) do
 				if shell.unitID == plan then
 					shell.unitID = unitID
@@ -167,8 +167,8 @@ end
 function TurtleHST:PlanCancelled(plan)
 	local unitName = plan.unitName
 	local ut = self.ai.data.unitTable[unitName]
-	if ut.isBuilding or nanoTurretList[unitName] then
-		if ut.isWeapon or shieldList[unitName] then
+	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon or UnitiesHST.shieldList[unitName] then
 			self:RemoveShell(plan)
 		else
 			self:RemoveOrgan(plan)
@@ -452,7 +452,7 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 	local Metal = game:GetResourceByName("Metal")
 	local priorityFloor = 1
 	local layer
-	if ut.isWeapon and not antinukeList[unitName] then
+	if ut.isWeapon and not UnitiesHST.antinukeList[unitName] then
 		if ut.groundRange ~= 0 then
 			layer = "ground"
 		elseif ut.airRange ~= 0 then
@@ -460,10 +460,10 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 		elseif ut.submergedRange ~= 0 then
 			layer = "submerged"
 		end
-	elseif antinukeList[unitName] then
+	elseif UnitiesHST.antinukeList[unitName] then
 		layer = "antinuke"
 		priorityFloor = 5
-	elseif shieldList[unitName] then
+	elseif UnitiesHST.shieldList[unitName] then
 		layer = "shield"
 		priorityFloor = 5
 	elseif ut.jammerRadius ~= 0 then

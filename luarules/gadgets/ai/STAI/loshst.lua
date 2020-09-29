@@ -273,7 +273,7 @@ function LosHST:UpdateWrecks()
 						okay = true
 					end
 				else
-					for findString, metalValue in pairs(baseFeatureMetal) do
+					for findString, metalValue in pairs(UnitiesHST.baseFeatureMetal) do
 						if string.find(featureName, findString) then
 							okay = true
 							break

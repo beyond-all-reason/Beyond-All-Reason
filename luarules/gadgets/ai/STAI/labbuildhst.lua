@@ -85,9 +85,9 @@ function LabBuildHST:PrePositionFilter()
 		local buildMe = true
 		local utn=self.ai.data.unitTable[factoryName]
 		local level = utn.techLevel
-		local isAdvanced = advFactories[factoryName]
-		local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]
-		local mtype = factoryMobilities[factoryName][1]
+		local isAdvanced = UnitiesHST.advFactories[factoryName]
+		local isExperimental = UnitiesHST.expFactories[factoryName] or UnitiesHST.leadsToExpFactories[factoryName]
+		local mtype = UnitiesHST.factoryMobilities[factoryName][1]
 		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false
@@ -100,7 +100,7 @@ function LabBuildHST:PrePositionFilter()
 			self:EchoDebug(factoryName .. ' Advanced when i dont need it')
 			buildMe = false
 		end
-		if buildMe and (not self.ai.needExperimental or self.ai.haveExpFactory) and expFactories[factoryName] then
+		if buildMe and (not self.ai.needExperimental or self.ai.haveExpFactory) and UnitiesHST.expFactories[factoryName] then
 			self:EchoDebug(factoryName .. ' Experimental when i dont need it')
 			buildMe = false
 		end
@@ -114,7 +114,7 @@ function LabBuildHST:PrePositionFilter()
 		end
 		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not self.ai.haveAdvFactory then
 			for index, factory in pairs(self.ai.factoriesAtLevel[1]) do
-				if factoryMobilities[factory.unit:Internal():Name()][1] ~= 'air' then
+				if UnitiesHST.factoryMobilities[factory.unit:Internal():Name()][1] ~= 'air' then
 					self:EchoDebug(factoryName .. ' dont build t2 air if we have another t1 type and dont have adv')
 					buildMe = false
 					break
@@ -211,7 +211,7 @@ end
 
 function LabBuildHST:FactoryPosition(factoryName,builder)
 	local utype = game:GetTypeByName(factoryName)
-	local mtype = factoryMobilities[factoryName][1]
+	local mtype = UnitiesHST.factoryMobilities[factoryName][1]
 	local builderPos = builder:GetPosition()
 	local factoryPos
 	local p
@@ -270,7 +270,7 @@ end
 
 function LabBuildHST:PostPositionalFilter(factoryName,p)
 	local mobNetOkay = false
-	for i, mtype in pairs(factoryMobilities[factoryName]) do
+	for i, mtype in pairs(UnitiesHST.factoryMobilities[factoryName]) do
 		local network = self.ai.maphst:MobilityNetworkHere(mtype, p)
 		if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
 			mobNetOkay = true
@@ -281,7 +281,7 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 		self:EchoDebug('area to small or not enough spots for ' .. factoryName)
 		return false
 	end
-	local mtype = factoryMobilities[factoryName][1]
+	local mtype = UnitiesHST.factoryMobilities[factoryName][1]
 	-- below is commented out because sometimes you need a lower level factory to build things the higher level cannot, when the previous low level factory has been destroyed
 	-- if self.ai.data.unitTable[factoryName].techLevel <= self.ai.factoryBuilded[mtype][network] then
 	-- 	self:EchoDebug('tech level ' .. self.ai.data.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. self.ai.factoryBuilded[mtype][network])

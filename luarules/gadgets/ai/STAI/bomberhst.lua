@@ -14,7 +14,7 @@ function BomberHST:Init()
     BomberHST.plans = {} --TODO why here and why called with bomberhst instead of self
 	self.recruits = {}
 	self.needsTargetting = {}
-	self.counter = baseBomberCounter
+	self.counter = UnitiesHST.baseBomberCounter
 	self.ai.hasBombed = 0
 	self.ai.couldBomb = 0
 	self.pathValidFuncs = {}
@@ -146,13 +146,13 @@ end
 
 function BomberHST:NeedMore()
 	self.counter = self.counter + 1
-	self.counter = math.min(self.counter, maxBomberCounter)
+	self.counter = math.min(self.counter, UnitiesHST.maxBomberCounter)
 	-- self:EchoDebug("bomber counter: " .. self.counter .. " (bomber died)")
 end
 
 function BomberHST:NeedLess()
 	self.counter = self.counter - 1
-	self.counter = math.max(self.counter, minBomberCounter)
+	self.counter = math.max(self.counter, UnitiesHST.minBomberCounter)
 	self:EchoDebug("bomber counter: " .. self.counter .. " (AA died)")
 end
 

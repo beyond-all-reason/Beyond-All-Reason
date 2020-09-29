@@ -5,7 +5,7 @@ local MOVESTATE_ROAM = 2
 
 -- not does it defend, but is it a dedicated defender
 function IsDefender(unit)
-	return defenderList[unit:Internal():Name()] or false
+	return UnitiesHST.defenderList[unit:Internal():Name()] or false
 end
 
 DefendBST = class(Behaviour)
@@ -24,7 +24,7 @@ function DefendBST:Init()
 	self.id = self.unit:Internal():ID()
 	self.name = self.unit:Internal():Name()
 	local ut = self.ai.data.unitTable[self.name]
-	self.tough = battleList[self.name] or breakthroughList[self.name]
+	self.tough = UnitiesHST.battleList[self.name] or UnitiesHST.breakthroughList[self.name]
 	self.isDefender = IsDefender(self.unit)
 	self.mtype = self.ai.data.unitTable[self.name].mtype
 	-- defenders need to be sorted into only one type of weapon
@@ -35,7 +35,7 @@ function DefendBST:Init()
 	elseif ut.airRange > 0 then
 		self.hits = "air"
 	end
-	for i, name in pairs(raiderList) do
+	for i, name in pairs(UnitiesHST.raiderList) do
 		if name == self.name then
 			self:EchoDebug(self.name .. " is scramble")
 			self.scramble = true
