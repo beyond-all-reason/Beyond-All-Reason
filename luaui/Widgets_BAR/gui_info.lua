@@ -843,7 +843,7 @@ local function getSelectionTotals(cells)
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
 
-	local statsIndent = ' '
+	local statsIndent = ''
 	local stats = ''
 
 	-- description
@@ -933,7 +933,6 @@ local function getSelectionTotals(cells)
 end
 
 local function drawSelection()
-
 	selUnitsCounts = spGetSelectedUnitsCounts()
 	selUnitsSorted = spGetSelectedUnitsSorted()
 	local selUnitTypes = 0
@@ -955,13 +954,13 @@ local function drawSelection()
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 		text, numLines = font:WrapText(text, contentWidth * (loadedFontSize / fontSize))
 		font:Begin()
-		font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
+		font:Print(text, backgroundRect[1] + (bgpadding*1.6), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8), fontSize, "o")
 		font:End()
 	end
 
 	-- selected units grid area
-	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.65)  -- leaving some room for the totals
-	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding - bgpadding)
+	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.7)  -- leaving some room for the totals
+	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding)
 	customInfoArea = { backgroundRect[3] - gridWidth, backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + gridHeight }
 
 	-- draw selected unit icons
