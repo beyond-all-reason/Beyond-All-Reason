@@ -15,7 +15,7 @@ return {
 		collisionvolumescales = "52 21 52",
 		collisionvolumetype = "CylY",
 		cruisealt = 135,
-		description = "Assault Transport",
+		description = "Assault Heavy Transport",
 		energymake = 3,
 		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,

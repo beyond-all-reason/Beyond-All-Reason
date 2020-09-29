@@ -14,7 +14,7 @@ return {
 		collisionvolumescales = "56 56 96",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Transport Hovercraft",
+		description = "Heavy Transport Hovercraft",
 		energymake = 2.4,
 		energyuse = 2.4,
 		explodeas = "hugeExplosionGeneric",

@@ -18,6 +18,7 @@ Units
  • EMP launcher: reduced range 10%
  • Banshee: changed weapon to machine gun with more accuracy, 5 burst (instead of 3) but little less average dps (-10%)
  • Air Fighters can no longer attack ground
+ • LLT, HLLT, BEAMER, RL, RAD now transportable with T2/Heavy Transporters 
 
 Renamed units:
  • Pack0 -> Ferret
