@@ -164,6 +164,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID].airUnit = true
 	end
 
+	if unitDef.isImmobile or unitDef.isBuilding then
+		if not unitDef.cantBeTransported then
+			unitDefInfo[unitDefID].transportable = true
+		end
+	end
+
 	unitDefInfo[unitDefID].humanName = unitDef.humanName
 	if unitDef.maxWeaponRange > 16 then
 		unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
@@ -1085,19 +1091,21 @@ local function drawUnitInfo()
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
 
+	-- custom unit info background
+	local width = contentWidth * 0.81
+	local height = (backgroundRect[4] - backgroundRect[2]) * (unitDescriptionLines > 1 and 0.495 or 0.6)
+
 	-- unit tooltip
 	font:Begin()
-	font:Print(descriptionColor .. text, backgroundRect[1] + contentPadding + iconSize + iconPadding, backgroundRect[4] - contentPadding - (fontSize * 2.22), fontSize * 0.94, "o")
+	font:Print(descriptionColor .. text, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 2.17), fontSize * 0.94, "o")
 	font:End()
 
 	-- unit name
 	font2:Begin()
-	font2:Print(unitNameColor .. unitDefInfo[displayUnitDefID].humanName, backgroundRect[1] + contentPadding + iconSize + iconPadding, backgroundRect[4] - contentPadding - (fontSize * 0.91), fontSize * 1.12, "o")
+	font2:Print(unitNameColor .. unitDefInfo[displayUnitDefID].humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 0.89), fontSize * 1.12, "o")
 	--font2:End()
 
-	-- custom unit info background
-	local width = contentWidth * 0.8
-	local height = (backgroundRect[4] - backgroundRect[2]) * (unitDescriptionLines > 1 and 0.495 or 0.6)
+	-- custom unit info area
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
 	if not displayMode == 'unitdef' or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
@@ -1338,6 +1346,10 @@ local function drawUnitInfo()
 			end
 		end
 
+		if unitDefInfo[displayUnitDefID].transportable then
+			addTextInfo('transportable')
+		end
+
 		if unitDefInfo[displayUnitDefID].losRadius then
 			addTextInfo('LoS', round(unitDefInfo[displayUnitDefID].losRadius, 0))
 		end
@@ -1369,7 +1381,7 @@ local function drawUnitInfo()
 			addTextInfo('Converted Metal', round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
 		end
 
-		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
+		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
 		local lines = lines(text)
@@ -1386,7 +1398,7 @@ local function drawUnitInfo()
 
 		-- display unit(def) info text
 		font:Begin()
-		font:Print(text, customInfoArea[1] + contentPadding, customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
+		font:Print(text, customInfoArea[3] - width + (bgpadding*2.4), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
 		font:End()
 
 	end
