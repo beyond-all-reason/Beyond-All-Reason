@@ -77,7 +77,7 @@ unitSpawnerModuleConfig = {
 	bossFightEnabled					= true,
 	FinalBossUnit						= true,
 		FinalBossHealth						= 250000,
-		FinalBossMinionsPassive				= 6000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
+		FinalBossMinionsPassive				= 3000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance

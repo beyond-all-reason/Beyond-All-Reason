@@ -160,7 +160,7 @@ end
 
 
 
-
+local minionFramerate = math.ceil(unitSpawnerModuleConfig.FinalBossMinionsPassive/(teamcount*spawnmultiplier))
 function gadget:GameFrame(n)
 
 
@@ -186,7 +186,7 @@ function gadget:GameFrame(n)
 		ScavSendMessage("Boss Health: "..math.ceil(bosshealth))
 	end
 	
-	if n%(math.ceil(6000/(teamcount*spawnmultiplier))) == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
+	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
 		BossMinionsSpawn(n)
 	end
 		
@@ -705,7 +705,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
 				if not lastMinionFrame then
 					lastMinionFrame = n
 				end
-				if n > lastMinionFrame + math.ceil(150/(teamcount*spawnmultiplier)) and FinalBossUnitID then
+				if n > lastMinionFrame + math.ceil(unitSpawnerModuleConfig.FinalBossMinionsActive/(teamcount*spawnmultiplier)) and FinalBossUnitID then
 					lastMinionFrame = n
 					BossMinionsSpawn(n)
 				end
