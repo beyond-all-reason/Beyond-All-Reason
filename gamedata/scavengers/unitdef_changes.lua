@@ -23,6 +23,7 @@ customDefs.corcom = {
 	cloakcost = 50,
 	cloakcostmoving = 100,
 	collisionvolumescales = "64 52 64",
+	description = "Builds fortified Outposts & Defenses. Cloaked",
 	explodeas = "scavcomexplosion",
 	footprintx = 4,
 	footprintz = 4,
@@ -88,6 +89,7 @@ customDefs.armcom = {
 	cloakcost = 50,
 	cloakcostmoving = 100,
 	collisionvolumescales = "64 52 64",
+	description = "Builds fortified Outposts & Defenses. Cloaked",
 	explodeas = "scavcomexplosion",
 	footprintx = 4,
 	footprintz = 4,
@@ -424,6 +426,7 @@ customDefs.armrock = {
 -- Rapid Fire AK + Cloak
 customDefs.corak = {
 	cloakcost = 3,
+	description = "Even faster Cloaked Infantry Bot",
 	mincloakdistance = 144,
 	maxvelocity = 3,
 	weapondefs = {
@@ -446,6 +449,7 @@ customDefs.corak = {
 -- Heavy Slow Fire Warrior + Cloak
 customDefs.armwar = {
 	cloakcost = 3,
+	description = "Cloaked Medium Infantry Bot with Improved Laser",
 	mincloakdistance = 144,
 	script = "scavs/ARMWARSCAV.cob",
 	weapondefs = {
@@ -458,11 +462,11 @@ customDefs.armwar = {
 			targetborder = 0.2,
 			thickness = 2.5,
 			damage = {
-				bombers = 36,
-				default = 242,
-				fighters = 36,
-				subs = 48,
-				vtol = 36,
+				bombers = 40,
+				default = 268,
+				fighters = 40,
+				subs = 55,
+				vtol = 40,
 			},
 		},
 	},
@@ -574,7 +578,28 @@ customDefs.corgator = {
 
 customDefs.cortermite = {
 	cloakcost = 12,
+	description = "Cloaked Medium All-Terrain Spider with Improved Laser",
+	maxdamage = 2300,
 	mincloakdistance = 144,
+	weapondefs = {
+		cor_termite_laser = {
+			beamtime = 0.65,
+			corethickness = 0.22,
+			energypershot = 40,
+			laserflaresize = 5.2,
+			range = 330,
+			reloadtime = 1.6,
+			soundstart = "heatray1s",
+			thickness = 2.8,
+			damage = {
+				bombers = 125,
+				default = 625,
+				fighters = 125,
+				subs = 11,
+				vtol = 125,
+			},
+		},
+	},
 }
 
 customDefs.cormando = {

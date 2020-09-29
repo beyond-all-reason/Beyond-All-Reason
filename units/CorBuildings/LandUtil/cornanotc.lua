@@ -24,7 +24,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
-		description = "Repairs and builds in large radius",
+		description = "Assist & Repair in large radius. Transportable",
 		energyuse = 30,
 		explodeas = "nanoboom",
 		footprintx = 3,
