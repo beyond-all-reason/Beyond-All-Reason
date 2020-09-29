@@ -453,7 +453,7 @@ function TargetHST:UpdateEnemies()
 			elseif los == 2 then
 				local mtype = ut.mtype
 				self:DangerCheck(name, e.unitID)
-				local value = TargetHST:Value(name)
+				local value = self:Value(name)
 				if self.ai.data.unitTable[name].extractsMetal ~= 0 then
 					table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
 				end
@@ -480,7 +480,7 @@ function TargetHST:UpdateEnemies()
 							if cell.targets[groundAirSubmerged][hurtGAS] == nil then
 								cell.targets[groundAirSubmerged][hurtGAS] = e
 							else
-								if value > TargetHST:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
+								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
 									cell.targets[groundAirSubmerged][hurtGAS] = e
 								end
 							end
@@ -497,7 +497,7 @@ function TargetHST:UpdateEnemies()
 							if cell.explosiveTarget == nil then
 								cell.explosiveTarget = e
 							else
-								if value > TargetHST:Value(cell.explosiveTarget.unitName) then
+								if value > self:Value(cell.explosiveTarget.unitName) then
 									cell.explosiveTarget = e
 								end
 							end
@@ -1027,7 +1027,7 @@ function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreVal
 			local building = self.game:GetUnitByID(buildingID)
 			if building then
 				local uname = building:Name()
-				local value = TargetHST:Value(uname)
+				local value = self:Value(uname)
 				local threat = ThreatRange(uname, "ground") + ThreatRange(uname, "air")
 				local valueThreat = value + threat
 				if not bestBuildingVT or valueThreat > bestBuildingVT then
@@ -1217,7 +1217,7 @@ function TargetHST:IsBombardPosition(position, unitName)
 	local px, pz = GetCellPosition(position)
 	local radius = self.ai.data.unitTable[unitName].groundRange
 	local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
-	if groundValue + groundThreat > TargetHST:Value(unitName) * 1.5 then
+	if groundValue + groundThreat > self:Value(unitName) * 1.5 then
 		return true
 	else
 		return false
