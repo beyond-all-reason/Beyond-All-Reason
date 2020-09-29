@@ -73,7 +73,7 @@ function TaskQueueBST:CategoryEconFilter(value)
 			self:EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
-				if overview.metalTooLow or overview.energyTooLow orself.Metal.income < 35 or self.ai.factories == 0 or overview.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow or self.Metal.income < 35 or self.ai.factories == 0 or overview.notEnoughCombats then
 					value = DummyUnitName
 				end
 			elseif littlePlasmaList[value] then
