@@ -1,5 +1,6 @@
 -- shard_include ("unitlists")
 shard_include ("common")
+shard_include ("unitieshst")
 shard_include ("maphst")
 shard_include ("buildsitehst")
 shard_include ("counthst")
@@ -24,6 +25,7 @@ shard_include ("overviewhst")
 
 return {
 	SleepST,
+	UnitiesHST,
 	MapHST,
 	EcoHST,
 	AttackHST,
