@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 0,
-		unitname = "lootdroppod_gold",
+		unitname = "lootdroppod_printer",
 		upright = false,
 		waterline = 0,
 		workertime = 1500,
