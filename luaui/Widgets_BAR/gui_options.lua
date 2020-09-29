@@ -4446,6 +4446,9 @@ function init()
 	for i, option in pairs(options) do
 		insert = true
 		if option.type == 'slider' and not option.steps then
+			if type(option.value) ~= 'number' then
+				option.value = option.min
+			end
 			if option.value < option.min then
 				option.value = option.min
 			end
