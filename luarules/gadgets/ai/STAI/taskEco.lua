@@ -8,12 +8,12 @@ end
 
 --Factory call
 function BuildAppropriateFactory()
-	return FactoryUnitName
+	return UnitiesHST.FactoryUnitName
 end
 --nano call
 function NanoTurret()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cornanotc"
 	else
 		unitName = "armnanotc"
@@ -22,8 +22,8 @@ function NanoTurret()
 end
 
 function NanoWater()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cornanotcplat"
 	else
 		unitName = "armnanotcplat"
@@ -34,8 +34,8 @@ end
 -- MEX
 
 function BuildMex()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cormex"
 	else
 		unitName = "armmex"
@@ -44,8 +44,8 @@ function BuildMex()
 end
 
 function SpecialMex()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corexp"
 	else
 		unitName = "armamex"
@@ -54,8 +54,8 @@ function SpecialMex()
 end
 
 function BuildUWMex()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coruwmex"
 	else
 		unitName = "armuwmex"
@@ -64,8 +64,8 @@ function BuildUWMex()
 end
 
 function BuildMohoMex()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cormoho"
 	else
 		unitName = "armmoho"
@@ -74,8 +74,8 @@ function BuildMohoMex()
 end
 
 function BuildUWMohoMex()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coruwmme"
 	else
 		unitName = "armuwmme"
@@ -85,7 +85,7 @@ end
 
 --ENERGY
 function Solar()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "corsolar"
 	else
 		return "armsolar"
@@ -93,7 +93,7 @@ function Solar()
 end
 
 local function SolarAdv()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "coradvsol"
 	else
 		return "armadvsol"
@@ -101,8 +101,8 @@ local function SolarAdv()
 end
 
 function Tidal()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cortide"
 	else
 		unitName = "armtide"
@@ -111,8 +111,8 @@ function Tidal()
 end
 
 function Wind()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corwin"
 	else
 		unitName = "armwin"
@@ -121,7 +121,7 @@ function Wind()
 end
 
 function TidalIfTidal()
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	local tidalPower = map:TidalStrength()
 	EchoDebug("tidal power is " .. tidalPower)
 	if tidalPower >= 10 then
@@ -165,9 +165,9 @@ function BuildGeo()
 	-- don't attempt if there are no spots on the map
 	EchoDebug("BuildGeo " .. tostring(ai.mapHasGeothermal))
 	if not ai.mapHasGeothermal or ai.Energy.income < 150 or ai.Metal.income < 10 then
-		return DummyUnitName
+		return UnitiesHST.DummyUnitName
 	end
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "corgeo"
 	else
 		return "armgeo"
@@ -178,9 +178,9 @@ function BuildMohoGeo()
 	EchoDebug("BuildMohoGeo " .. tostring(ai.mapHasGeothermal))
 	-- don't attempt if there are no spots on the map
 	if not ai.mapHasGeothermal or ai.Energy.income < 900 or ai.Metal.income < 24 then
-		return DummyUnitName
+		return UnitiesHST.DummyUnitName
 	end
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "corageo"
 	else
 		return "armageo"
@@ -191,9 +191,9 @@ end
 local function BuildSpecialGeo()
 	-- don't attempt if there are no spots on the map
 	if not ai.mapHasGeothermal then
-		return DummyUnitName
+		return UnitiesHST.DummyUnitName
 	end
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "corbhmt"
 	else
 		return "armgmm"
@@ -201,7 +201,7 @@ local function BuildSpecialGeo()
 end
 
 local function BuildFusion()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "corfus"
 	else
 		return "armfus"
@@ -210,7 +210,7 @@ local function BuildFusion()
 end
 
 local function BuildAdvFusion()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "corafus"
 	else
 		return "armafus"
@@ -220,7 +220,7 @@ end
 
 local function BuildAdvEnergy(tskqbhvr)
 	EchoDebug(tostring('advname '..tskqbhvr.name))
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	unitName = BuildFusion()
 	if ai.Energy.income > 4000 and (tskqbhvr.name == 'armacv' or tskqbhvr.name == 'coracv') then
 		unitName = BuildAdvFusion()
@@ -230,7 +230,7 @@ end
 
 
 local function BuildUWFusion()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return "coruwfus"
 	else
 		return "armuwfus"
@@ -238,8 +238,8 @@ local function BuildUWFusion()
 end
 
 function buildEstore1()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corestor"
 	else
 		unitName = "armestor"
@@ -248,8 +248,8 @@ function buildEstore1()
 end
 
 function buildEstore2()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coruwadves"
 	else
 		unitName = "armuwadves"
@@ -258,8 +258,8 @@ function buildEstore2()
 end
 
 function buildMstore1()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 			unitName = "cormstor"
 	else
 			unitName = "armmstor"
@@ -268,8 +268,8 @@ function buildMstore1()
 end
 
 function buildMstore2()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coruwadvms"
 	else
 		unitName = "armuwadvms"
@@ -278,8 +278,8 @@ function buildMstore2()
 end
 
 function buildMconv1()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cormakr"
 	else
 		unitName = "armmakr"
@@ -288,8 +288,8 @@ function buildMconv1()
 end
 
 function buildMconv2()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 			unitName ='cormmkr'
 	else
 			unitName ='armmmkr'
@@ -298,8 +298,8 @@ function buildMconv2()
 end
 
 function buildMconv2UW()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 			unitName ='corfmmm'
 	else
 			unitName ='armfmmm'
@@ -308,8 +308,8 @@ function buildMconv2UW()
 end
 
 function buildWEstore1()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coruwes"
 	else
 		unitName = "armuwes"
@@ -318,8 +318,8 @@ function buildWEstore1()
 end
 
 function buildWMstore1()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coruwms"
 	else
 		unitName = "armuwms"
@@ -328,8 +328,8 @@ function buildWMstore1()
 end
 
 function buildWMconv1()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corfmkr"
 	else
 		unitName = "armfmkr"
@@ -338,7 +338,7 @@ function buildWMconv1()
 end
 
 function Economy0()
-	local unitName=DummyUnitName
+	local unitName=UnitiesHST.DummyUnitName
 	if ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.3) then
 		unitName = BuildMex()
 	elseif ai.Energy.full > 0.9 and ai.Energy.income > 400  and ai.Metal.reserves > 100 and ai.Energy.capacity < 7000 then
@@ -357,7 +357,7 @@ function Economy0()
 end
 
 function Economy0uw()
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	if ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
 		unitName = buildWEstore1()
 	elseif ai.Metal.full > 0.7 and ai.Metal.income > 30 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 600 then
@@ -376,7 +376,7 @@ function Economy0uw()
 end
 
 function Economy1()
-	local unitName=DummyUnitName
+	local unitName=UnitiesHST.DummyUnitName
 	if ai.Energy.full > 0.5 and ai.Metal.full > 0.3 and ai.Metal.full < 0.7 and ai.Metal.income > 30 then
 		unitName = SpecialMex()
 	elseif (ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100) then
@@ -397,7 +397,7 @@ function Economy1()
 end
 
 function EconomyUnderWater()
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	if (ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100) then
 	unitName = NanoWater()
 	elseif ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
@@ -418,7 +418,7 @@ function EconomyUnderWater()
 end
 
 function AdvEconomy(tskqbhvr)
-	local unitName=DummyUnitName
+	local unitName=UnitiesHST.DummyUnitName
 	if tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Energy.income > 3000 and tskqbhvr.ai.Metal.reserves > 1000 and tskqbhvr.ai.Energy.capacity < 40000 then
 		unitName = buildEstore2()
 	elseif tskqbhvr.ai.Metal.full > 0.8 and tskqbhvr.ai.Metal.income > 100 and tskqbhvr.ai.Metal.capacity < 20000 and tskqbhvr.ai.Energy.full > 0.3 then
@@ -435,7 +435,7 @@ function AdvEconomy(tskqbhvr)
 end
 
 function AdvEconomyUnderWater(tskqbhvr)
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	if tskqbhvr.ai.Energy.full>0.8 and tskqbhvr.ai.Energy.income > 2500 and tskqbhvr.ai.Metal.reserves > 800 and tskqbhvr.ai.Energy.capacity < 50000  then
 		unitName=buildEstore2(tskqbhvr)
 	elseif tskqbhvr.ai.Metal.full>0.7 and tskqbhvr.ai.Metal.income>30 and tskqbhvr.ai.Metal.capacity < 20000 and tskqbhvr.ai.Energy.full > 0.4 then
@@ -452,7 +452,7 @@ function AdvEconomyUnderWater(tskqbhvr)
 end
 
 function EconomySeaplane(tskqbhvr)
-	local unitName=DummyUnitName
+	local unitName=UnitiesHST.DummyUnitName
 	if tskqbhvr.ai.Energy.full>0.7 and tskqbhvr.ai.Energy.income > 2000 and tskqbhvr.ai.Metal.income>tskqbhvr.ai.Metal.usage and tskqbhvr.ai.Energy.capacity < 60000  then
 		unitName=buildEstore2(tskqbhvr)
 	elseif tskqbhvr.ai.Metal.full>0.9 and tskqbhvr.ai.Metal.income>30 and tskqbhvr.ai.Metal.capacity < 30000 and tskqbhvr.ai.Energy.full > 0.3 then
@@ -467,7 +467,7 @@ function EconomySeaplane(tskqbhvr)
 end
 
 function EconomyBattleEngineer(tskqbhvr)
-        local unitName=DummyUnitName
+        local unitName=UnitiesHST.DummyUnitName
 	if tskqbhvr.ai.realEnergy > 1.25 and tskqbhvr.ai.realMetal > 1.1 then
 		unitName= NanoTurret()
 	elseif tskqbhvr.ai.Energy.full < 0.1 and tskqbhvr.ai.Metal.full > 0.1 then
@@ -482,7 +482,7 @@ function EconomyBattleEngineer(tskqbhvr)
 end
 
 function EconomyNavalEngineer(tskqbhvr)
-        local unitName=DummyUnitName
+        local unitName=UnitiesHST.DummyUnitName
 	if tskqbhvr.ai.Energy.full < 0.2 and realMetal > 1 then
 		unitName = TidalIfTidal()
 	elseif tskqbhvr.ai.Metal.full < 0.2 and tskqbhvr.ai.Energy.income > tskqbhvr.ai.Metal.usage then
@@ -495,7 +495,7 @@ function EconomyNavalEngineer(tskqbhvr)
 end
 
 function EconomyFark(tskqbhvr)
-	local unitName = DummyUnitName
+	local unitName = UnitiesHST.DummyUnitName
 	if (tskqbhvr.ai.Energy.full < 0.3 or tskqbhvr.ai.realEnergy < 1.1)   then
 		unitName = WindSolar()
 	elseif tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Metal.capacity < 4000 then

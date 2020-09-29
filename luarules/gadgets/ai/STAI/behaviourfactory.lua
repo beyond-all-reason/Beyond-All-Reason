@@ -53,11 +53,11 @@ function BehaviourFactory:defaultBehaviours(unit)
 	table.insert(b, CountBST)
 	table.insert(b, BootBST)
 
-	if commanderList[un] then
+	if UnitiesHST.commanderList[un] then
 		table.insert(b, CommanderBST)
 	end
 
-	if nanoTurretList[un] then
+	if UnitiesHST.nanoTurretList[un] then
 		table.insert(b, AssistBST)
 		table.insert(b, WardBST)
 		table.insert(b, CleanerBST)
@@ -65,11 +65,11 @@ function BehaviourFactory:defaultBehaviours(unit)
 
 	if self.ai.data.unitTable[un].isBuilding then
 		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
-		if nukeList[un] then
+		if UnitiesHST.nukeList[un] then
 			table.insert(b, NukeBST)
-		elseif antinukeList[un] then
+		elseif UnitiesHST.antinukeList[un] then
 			table.insert(b, AntinukeBST)
-		elseif bigPlasmaList[un] then
+		elseif UnitiesHST.bigPlasmaList[un] then
 			table.insert(b, BombardBST)
 		end
 	end
@@ -77,7 +77,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	if u:CanBuild() then
 		-- game:SendToConsole(u:Name() .. " can build")
 		-- moho engineer doesn't need the queue!
-		if advConList[un] then
+		if UnitiesHST.advConList[un] then
 			-- game:SendToConsole(u:Name() .. " is advanced construction unit")
 			-- half advanced engineers upgrade mexes instead of building things
 			if self.ai.advCons == nil then self.ai.advCons = 0 end
@@ -105,24 +105,24 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else
-		if HasKey(un,attackerlist)then
+		if HasKey(un,UnitiesHST.attackerlist)then
 			table.insert(b, AttackerBST)
-			-- if battleList[un] or breakthroughList[un] then
+			-- if UnitiesHST.battleList[un] or UnitiesHST.breakthroughList[un] then
 				-- arty and merl don't make good defense
 				table.insert(b, DefendBST)
 			-- end
 		end
-		if HasKey(un,raiderList) then
+		if HasKey(un,UnitiesHST.raiderList) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
 			if self.ai.data.unitTable[un].mtype ~= "air" then
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end
-		if HasKey(un,bomberList) then
+		if HasKey(un,UnitiesHST.bomberList) then
 			table.insert(b, BomberBST)
 		end
-		if HasKey(un,scoutList)then
+		if HasKey(un,UnitiesHST.scoutList)then
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end

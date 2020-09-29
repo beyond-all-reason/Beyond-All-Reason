@@ -75,7 +75,7 @@ function CleanHST:RemoveCleanable(unit)
 end
 
 function CleanHST:IsCleanable(unit)
-	return cleanable[unit:Name()]
+	return UnitiesHST.cleanable[unit:Name()]
 end
 
 function CleanHST:IsBigEnergy(unit)

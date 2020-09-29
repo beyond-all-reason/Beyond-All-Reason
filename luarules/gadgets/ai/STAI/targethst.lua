@@ -129,14 +129,14 @@ local function CellValueThreat(unitName, cell)
 			for i, weaponGAS in pairs(weapons) do
 				value = value + cell.values[GAS][weaponGAS]
 			end
-		elseif raiderDisarms[unitName] then
+		elseif UnitiesHST.raiderDisarms[unitName] then
 			notThreat = notThreat + cell.threat[GAS]
 		end
 	end
-	if gas.air and raiderList[unitName] and not raiderDisarms[unitName] then
+	if gas.air and UnitiesHST.raiderList[unitName] and not UnitiesHST.raiderDisarms[unitName] then
 		threat = threat + cell.threat.ground * 0.1
 	end
-	if raiderDisarms[unitName] then
+	if UnitiesHST.raiderDisarms[unitName] then
 		value = notThreat
 		-- if notThreat == 0 then value = 0 end
 	end
@@ -331,28 +331,28 @@ function TargetHST:DangerCheck(unitName, unitID)
 			self:CountDanger("landtarget", id)
 		end
 	end
-	if not ut.isBuilding and not commanderList[un] and ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 0 then
+	if not ut.isBuilding and not UnitiesHST.commanderList[un] and ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 0 then
 		self:CountDanger("ground", id)
-	elseif groundFacList[un] then
+	elseif UnitiesHST.groundFacList[un] then
 		self:CountDanger("ground", id)
 	end
 	if ut.mtype == "air" and ut.groundRange > 0 then
 		self:CountDanger("air", id)
-	elseif airFacList[un] then
+	elseif UnitiesHST.airFacList[un] then
 		self:CountDanger("air", id)
 	end
 	if (ut.mtype == "sub" or ut.mtype == "shp") and ut.isWeapon and not ut.isBuilding then
 		self:CountDanger("submerged", id)
-	elseif subFacList[un] then
+	elseif UnitiesHST.subFacList[un] then
 		self:CountDanger("submerged", id)
 	end
-	if bigPlasmaList[un] then
+	if UnitiesHST.bigPlasmaList[un] then
 		self:CountDanger("plasma", id)
 	end
-	if nukeList[un] then
+	if UnitiesHST.nukeList[un] then
 		self:CountDanger("nuke", id)
 	end
-	if antinukeList[un] then
+	if UnitiesHST.antinukeList[un] then
 		self:CountDanger("antinuke", id)
 	end
 	if ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 1000 then
@@ -590,7 +590,7 @@ function TargetHST:UpdateWrecks()
 			if unitName ~= nil then
 				w.unitName = unitName
 				local rut = self.ai.data.unitTable[unitName]
-				if not commanderList[unitName] and rut.speed > 0 and rut.metalCost < 2000 then
+				if not UnitiesHST.commanderList[unitName] and rut.speed > 0 and rut.metalCost < 2000 then
 					table.insert(cell.resurrectables, w)
 				end
 			end
@@ -598,7 +598,7 @@ function TargetHST:UpdateWrecks()
 				table.insert(cell.reclaimables, w)
 			end
 		else
-			for findString, metalValue in pairs(baseFeatureMetal) do
+			for findString, metalValue in pairs(UnitiesHST.baseFeatureMetal) do
 				if string.find(wname, findString, nil, true) then
 					cell.metal = cell.metal + metalValue
 					break
@@ -1346,7 +1346,7 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 				if self.cells[x] ~= nil then
 					if self.cells[x][z] ~= nil then
 						local value, threat = CellValueThreat(uname, self.cells[x][z])
-						if raiderList[uname] then
+						if UnitiesHST.raiderList[uname] then
 							-- self.cells with other raiders in or nearby are better places to go for raiders
 							if self.cells[x][z].raiderHere then threat = threat - self.cells[x][z].raiderHere end
 							if self.cells[x][z].raiderAdjacent then threat = threat - self.cells[x][z].raiderAdjacent end

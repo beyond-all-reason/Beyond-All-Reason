@@ -1,6 +1,6 @@
 function IsReclaimer(unit)
 	local tmpName = unit:Internal():Name()
-	return (reclaimerList[tmpName] or 0) > 0
+	return (UnitiesHST.reclaimerList[tmpName] or 0) > 0
 end
 
 ReclaimBST = class(Behaviour)
@@ -27,7 +27,7 @@ function ReclaimBST:Init()
 		table.insert(self.canReclaimGAS, "air")
 	end
 	self.name = self.unit:Internal():Name()
-	self.dedicated = reclaimerList[self.name]
+	self.dedicated = UnitiesHST.reclaimerList[self.name]
 	self.id = self.unit:Internal():ID()
 	self.lastCheckFrame = 0
 end
@@ -154,7 +154,7 @@ function ReclaimBST:Retarget()
 			self.targetCell = tcell
 		end
 		if not self.targetCell and self.ai.Metal.full < 0.75 then
-			self:EchoDebug("looking for closest cleanable to reclaim")
+			self:EchoDebug("looking for closest UnitiesHST.cleanable to reclaim")
 			self.targetUnit = self.ai.cleanhst:ClosestCleanable(unit)
 		end
 	end

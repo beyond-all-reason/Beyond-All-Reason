@@ -22,7 +22,7 @@ end
 function NanoHST:UnitBuilt(engineUnit)
 	local ut = self.ai.data.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if nanoTurretList[engineUnit:Name()] then
+	if UnitiesHST.nanoTurretList[engineUnit:Name()] then
 		self:AddNano(engineUnit)
 	end
 end
@@ -30,7 +30,7 @@ end
 function NanoHST:UnitDead(engineUnit)
 	local ut = self.ai.data.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if nanoTurretList[engineUnit:Name()] then
+	if UnitiesHST.nanoTurretList[engineUnit:Name()] then
 		self:RemoveNano(engineUnit)
 	end
 end

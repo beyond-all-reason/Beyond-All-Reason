@@ -55,7 +55,7 @@ function DefendHST:AddWard(behaviour, turtle)
 		local un = behaviour.name
 		local utable = self.ai.data.unitTable[un]
 		priority.air = utable.techLevel * techLevelPriority
-		if commanderList[un] then priority.air = commanderPriority end
+		if UnitiesHST.commanderList[un] then priority.air = commanderPriority end
 		local mtype = behaviour.mtype
 		if mtype == "air" then
 			-- already zero

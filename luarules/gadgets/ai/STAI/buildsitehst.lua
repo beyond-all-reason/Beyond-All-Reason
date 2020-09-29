@@ -70,7 +70,7 @@ end
 function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	local builderName = builder:Name()
 	local mtype = self.ai.data.unitTable[builderName].mtype
-	if mtype ~= "amp" and  mtype ~= "hov" and not commanderList[builderName] then
+	if mtype ~= "amp" and  mtype ~= "hov" and not UnitiesHST.commanderList[builderName] then
 		-- don't bother with units that aren't amphibious
 		return true
 	end
@@ -168,7 +168,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	end
 	if pos ~= nil then
 		local uname = unitTypeToBuild:Name()
-		if nanoTurretList[uname] then
+		if UnitiesHST.nanoTurretList[uname] then
 			-- don't build nanos too far away from factory
 			local dist = Distance(originalPosition, pos)
 			self:EchoDebug("nano distance: " .. dist)
@@ -176,7 +176,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 				self:EchoDebug("nano too far from factory")
 				pos = nil
 			end
-		elseif bigPlasmaList[uname] or littlePlasmaList[uname] or nukeList[uname] then
+		elseif UnitiesHST.bigPlasmaList[uname] or UnitiesHST.littlePlasmaList[uname] or UnitiesHST.nukeList[uname] then
 			-- don't build bombarding units outside of bombard positions
 			local b = self.ai.targethst:IsBombardPosition(pos, uname)
 			if not b then
@@ -191,7 +191,7 @@ end
 function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 	local spacing = 1
 	local name = unitTypeToBuild:Name()
-	if Eco1[name] then spacing = 2 end--TODO removing this sistem
+	if UnitiesHST.Eco1[name] then spacing = 2 end--TODO removing this sistem
 	if self.ai.data.unitTable[name].isWeapon then spacing = 8 end
 	if self.ai.data.unitTable[name].bigExplosion then spacing = 20 end
 	if self.ai.data.unitTable[name].buildOptions then spacing = 4 end
@@ -437,7 +437,7 @@ function BuildSiteHST:UnitCreated(unit)
 				self.resurrectionRepair[unitID] = plan.behaviour
 			else
 				self:EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
-				if self.ai.data.unitTable[unitName].isBuilding or nanoTurretList[unitName] then
+				if self.ai.data.unitTable[unitName].isBuilding or UnitiesHST.nanoTurretList[unitName] then
 					-- so that oversized factory lane rectangles will overlap with existing buildings
 					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
 					self.ai.turtlehst:PlanCreated(plan, unitID)
@@ -453,7 +453,7 @@ function BuildSiteHST:UnitCreated(unit)
 			break
 		end
 	end
-	if not planned and (self.ai.data.unitTable[unitName].isBuilding or nanoTurretList[unitName]) then
+	if not planned and (self.ai.data.unitTable[unitName].isBuilding or UnitiesHST.nanoTurretList[unitName]) then
 		-- for when we're restarting the AI, or other contingency
 		-- game:SendToConsole("unplanned building creation " .. unitName .. " " .. unitID .. " " .. position.x .. ", " .. position.z)
 		local rect = { position = position, unitName = unitName }
@@ -468,7 +468,7 @@ end
 -- true means there's a duplicate, false means there isn't
 function BuildSiteHST:CheckForDuplicates(unitName)
 	if unitName == nil then return true end
-	if unitName == DummyUnitName then return true end
+	if unitName == UnitiesHST.DummyUnitName then return true end
 	local utable = self.ai.data.unitTable[unitName]
 	local isFactory = utable.isBuilding and utable.buildOptions
 	local isExpensive = utable.metalCost > 300
@@ -510,7 +510,7 @@ end
 
 function BuildSiteHST:CalculateRect(rect)
 	local unitName = rect.unitName
-	if factoryExitSides[unitName] ~= nil and factoryExitSides[unitName] ~= 0 then
+	if UnitiesHST.factoryExitSides[unitName] ~= nil and UnitiesHST.factoryExitSides[unitName] ~= 0 then
 		self:CalculateFactoryLane(rect)
 		return
 	end
@@ -561,7 +561,7 @@ function BuildSiteHST:NewPlan(unitName, position, behaviour, resurrect)
 	end
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
-	if self.ai.data.unitTable[unitName].isBuilding or nanoTurretList[unitName] then
+	if self.ai.data.unitTable[unitName].isBuilding or UnitiesHST.nanoTurretList[unitName] then
 		self.ai.turtlehst:NewUnit(unitName, position, plan)
 	end
 	table.insert(self.plans, plan)
@@ -572,7 +572,7 @@ function BuildSiteHST:ClearMyPlans(behaviour)
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
-			if not plan.resurrect and (self.ai.data.unitTable[plan.unitName].isBuilding or nanoTurretList[unitName]) then
+			if not plan.resurrect and (self.ai.data.unitTable[plan.unitName].isBuilding or UnitiesHST.nanoTurretList[unitName]) then
 				self.ai.turtlehst:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)

@@ -19,7 +19,7 @@ function NukeBST:Init()
 	elseif uname == "cortron" then
 		self.tactical = true
 	end
-	self.stockpileTime = nukeList[uname]
+	self.stockpileTime = UnitiesHST.nukeList[uname]
 	self.position = self.unit:Internal():GetPosition()
 	self.range = self.ai.data.unitTable[uname].groundRange
     self.lastStockpileFrame = 0

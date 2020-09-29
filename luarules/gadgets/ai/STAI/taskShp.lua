@@ -8,8 +8,8 @@ end
 --LEVEL 1
 
 function ConShip()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corcs"
 	else
 		unitName = "armcs"
@@ -19,8 +19,8 @@ function ConShip()
 end
 
 function RezSub1(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "correcl"
 	else
 		unitName = "armrecl"
@@ -30,8 +30,8 @@ function RezSub1(tskqbhvr)
 end
 
 function Lvl1ShipRaider(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corsub"
 	else
 		unitName = "armsub"
@@ -40,8 +40,8 @@ function Lvl1ShipRaider(tskqbhvr)
 end
 
 function Lvl1ShipDestroyerOnly(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corroy"
 	else
 		unitName = "armroy"
@@ -53,13 +53,13 @@ end
 function Lvl1ShipBattle(tskqbhvr)
 	local unitName = ""
 	if ai.Metal.full < 0.5 then
-		if MyTB.side == CORESideName then
+		if MyTB.side == UnitiesHST.CORESideName then
 			unitName = "coresupp"
 		else
 			unitName = "armdecade"
 		end
 	else
-		if MyTB.side == CORESideName then
+		if MyTB.side == UnitiesHST.CORESideName then
 			unitName = "corroy"
 		else
 			unitName = "armroy"
@@ -70,13 +70,13 @@ end
 
 function ScoutShip()
 	local unitName
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corpt"
 	else
 		unitName = "armpt"
 	end
 	local scout = BuildWithLimitedNumber(unitName, 1)
-	if scout == DummyUnitName then
+	if scout == UnitiesHST.DummyUnitName then
 		return BuildAAIfNeeded(unitName)
 	else
 		return unitName
@@ -85,8 +85,8 @@ end
 
 --LEVEL 2
 function ConAdvSub()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coracsub"
 	else
 		unitName = "armacsub"
@@ -96,8 +96,8 @@ function ConAdvSub()
 end
 
 function Lvl2ShipAssist()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cormls"
 	else
 		unitName = "armmls"
@@ -108,7 +108,7 @@ end
 
 function Lvl2ShipBreakthrough(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corbats"
 	else
 		unitName = "armbats"
@@ -118,7 +118,7 @@ end
 
 function Lvl2ShipMerl(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cormship"
 	else
 		unitName = "armmship"
@@ -128,7 +128,7 @@ end
 
 function MegaShip()
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corblackhy"
 	else
 		unitName = "armepoch"
@@ -138,7 +138,7 @@ end
 
 function Lvl2ShipRaider(tskqbhvr)
 	local unitName = ""
-		if MyTB.side == CORESideName then
+		if MyTB.side == UnitiesHST.CORESideName then
 			unitName = "corshark"
 		else
 			unitName = "armsubk"
@@ -148,8 +148,8 @@ function Lvl2ShipRaider(tskqbhvr)
 end
 
 function Lvl2SubWar(tskqbhvr)
-	local unitName = DummyUnitName
-		if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+		if MyTB.side == UnitiesHST.CORESideName then
 			unitName = "corssub"
 		else
 			unitName = "armserp"
@@ -160,7 +160,7 @@ end
 
 function Lvl2ShipBattle(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corcrus"
 	else
 		unitName = "armcrus"
@@ -169,7 +169,7 @@ function Lvl2ShipBattle(tskqbhvr)
 end
 
 function Lvl2AAShip()
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corarch")
 	else
 		return BuildAAIfNeeded("armaas")

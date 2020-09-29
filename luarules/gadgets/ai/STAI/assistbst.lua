@@ -23,8 +23,8 @@ function AssistBST:Init()
 	-- keeping track of how many of each type of unit
 	local uname = self.unit:Internal():Name()
 	self.name = uname
-	if nanoTurretList[uname] then self.isNanoTurret = true end
-	if commanderList[uname] then self.isCommander = true end
+	if UnitiesHST.nanoTurretList[uname] then self.isNanoTurret = true end
+	if UnitiesHST.commanderList[uname] then self.isCommander = true end
 	self.id = self.unit:Internal():ID()
 	self.ai.assisthst:AssignIDByName(self)
 	-- game:SendToConsole("assistbst:init", ai, ai.id, self.ai, self.ai.id)

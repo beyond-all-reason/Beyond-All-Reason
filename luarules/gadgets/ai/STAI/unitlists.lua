@@ -39,7 +39,7 @@ factoryMobilities = {
 
 -- for calculating what factories to build
 -- higher values mean more effecient
-mobilityEffeciencyMultiplier = {
+factoryMobilities = {
 	veh = 1,
 	shp = 1,
 	bot = 0.9,

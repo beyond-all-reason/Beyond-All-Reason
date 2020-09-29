@@ -221,7 +221,7 @@ function MapHST:MapMobility()
 			-- find out if each mobility type can exist there
 			for mtype, utypes in pairs(mobUnitTypes) do
 				local canbuild = false
-				local uname = mobUnitExampleName[mtype]
+				local uname = UnitiesHST.mobUnitExampleName[mtype]
 				local uDef = UnitDefNames[uname]
 				canbuild = Spring.TestMoveOrder(uDef.id, pos.x, Spring.GetGroundHeight(pos.x,pos.z), pos.z)
 				if canbuild then
@@ -288,7 +288,7 @@ function MapHST:MapSpotMobility(metals, geos)
 		for i, spot in pairs(spots) do
 			local landOrWater
 			if metalOrGeo == 1 then
-				if self.map:CanBuildHere(UWMetalSpotCheckUnitType, spot) then
+				if self.map:CanBuildHere(UnitiesHST.UWMetalSpotCheckUnitType, spot) then
 					table.insert(UWMetalSpots, spot)
 					landOrWater = 2
 				else
@@ -387,7 +387,7 @@ function MapHST:Init()
 	local mapSize = self.map:MapDimensions()
 	self.ai.elmoMapSizeX = mapSize.x * 8
 	self.ai.elmoMapSizeZ = mapSize.z * 8
-	-- factoryMobilities = self:GetFactoryMobilities()TODO what?
+	-- UnitiesHST.factoryMobilities = self:GetFactoryMobilities()TODO what?
 	self.ai.conUnitPerTypeLimit = math.max(self.map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
 	self.ai.conUnitAdvPerTypeLimit = math.max(self.map:SpotCount() / 8, 2)
 	self.ai.activeMobTypes = {}
@@ -398,13 +398,13 @@ function MapHST:Init()
 		return
 	end
 	mobilityGridSize = 256 -- will be recalculated by MapMobility()
-	for mtype, unames in pairs(mobUnitNames) do
+	for mtype, unames in pairs(UnitiesHST.mobUnitNames) do
 		mobUnitTypes[mtype] = {}
 		for i, uname in pairs(unames) do
 			mobUnitTypes[mtype][i] = self.game:GetTypeByName(uname)
 		end
 	end
-	UWMetalSpotCheckUnitType = self.game:GetTypeByName(UWMetalSpotCheckUnit)
+	UnitiesHST.UWMetalSpotCheckUnitType = self.game:GetTypeByName(UnitiesHST.UWMetalSpotCheckUnit)
 	if not mobMap then
 		totalCount, mobilityGridMaxX, mobilityGridMaxZ, mobCount = self:MapMobility()
 	end
@@ -766,7 +766,7 @@ function MapHST:factoriesRating()
 		end
 	end
 	self.ai.factoryBuilded['air'][1] = 0
-	for mtype, unames in pairs(mobUnitNames) do
+	for mtype, unames in pairs(UnitiesHST.mobUnitNames) do
 		local realMetals = 0
 		local realSize = 0
 		local realGeos = 0
@@ -786,14 +786,14 @@ function MapHST:factoriesRating()
 			realGeos = math.min(0.1 * #geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
 		end
 		mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
-		mtypesMapRatings[mtype] = (self.ai.mobRating[mtype] / self.ai.mobRating['air']) * mobilityEffeciencyMultiplier[mtype]
+		mtypesMapRatings[mtype] = (self.ai.mobRating[mtype] / self.ai.mobRating['air']) * UnitiesHST.mobilityEffeciencyMultiplier[mtype]
 		-- area is not as important as number of metal and geo
-		-- mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * mobilityEffeciencyMultiplier[mtype]
+		-- mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * UnitiesHST.mobilityEffeciencyMultiplier[mtype]
 		self:EchoDebug('mtypes map rating ' ..mtype .. ' = ' .. mtypesMapRatings[mtype])
 	end
-	mtypesMapRatings['air'] = mobilityEffeciencyMultiplier['air']
+	mtypesMapRatings['air'] = UnitiesHST.mobilityEffeciencyMultiplier['air']
 	local bestPath = 0
-	for factory,mtypes in pairs(factoryMobilities)do
+	for factory,mtypes in pairs(UnitiesHST.factoryMobilities)do
 		local factoryPathRating = 0
 		local factoryMtypeRating = 0
 		if mtypes[1] ~='air' then
@@ -856,7 +856,7 @@ function MapHST:factoriesRating()
 		self:EchoDebug(factory .. ' path rating: ' .. factoryPathRating)
 		Rating = factoryPathRating * factoryMtypeRating * self.ai.data.unitTable[factory].techLevel
 		self:EchoDebug('Rating',factoryPathRating, factoryMtypeRating , self.ai.data.unitTable[factory].techLevel)
-		if factoryMobilities[factory][1] == ('hov') then
+		if UnitiesHST.factoryMobilities[factory][1] == ('hov') then
 			Rating = Rating * (self.ai.mobCount['shp'] /mobilityGridArea)
 		end
 		if factory == 'armfhp' or factory == 'corfhp' then
@@ -1026,7 +1026,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 	if position == nil then position = builder:GetPosition() end
 	local spots = {}
 	local bname = builder:Name()
-	if commanderList[bname] then
+	if UnitiesHST.commanderList[bname] then
 		-- give the commander both hov and bot spots
 		local pos = builder:GetPosition()
 		local network = self:MobilityNetworkHere("bot", pos)

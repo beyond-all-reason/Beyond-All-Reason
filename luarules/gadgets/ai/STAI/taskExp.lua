@@ -9,17 +9,17 @@ end
 --SOME FUNCTIONS ARE DUPLICATE HERE
 function Lvl3Merl(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corcat"
 	else
-		unitName = DummyUnitName
+		unitName = UnitiesHST.DummyUnitName
 	end
 	return BuildSiegeIfNeeded(unitName)
 end
 
 function Lvl3Arty(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "armshiva"
 	else
 		unitName = "armvang"
@@ -28,8 +28,8 @@ function Lvl3Arty(tskqbhvr)
 end
 
 function lv3Amp(tskqbhvr)
-	local unitName=DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName=UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "armshiva"
 	else
 		unitName = "armmar"
@@ -39,17 +39,17 @@ end
 
 function Lvl3Breakthrough(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = BuildWithLimitedNumber("corkorg", 1)
-		if unitName == DummyUnitName then
+		if unitName == UnitiesHST.DummyUnitName then
 			unitName = BuildWithLimitedNumber("corjugg", 2)
 		end
-		if unitName == DummyUnitName then
+		if unitName == UnitiesHST.DummyUnitName then
 			unitName = "corkarg"
 		end
 	else
 		unitName = BuildWithLimitedNumber("armbanth", 5)
-		if unitName == DummyUnitName then
+		if unitName == UnitiesHST.DummyUnitName then
 			unitName = "armraz"
 		end
 	end
@@ -57,8 +57,8 @@ function Lvl3Breakthrough(tskqbhvr)
 end
 
 function lv3bigamp(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = 'corkorg'
 	else
 		unitName = 'armbanth'
@@ -68,8 +68,8 @@ end
 
 function Lvl3Raider(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
-		unitName = DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
+		unitName = UnitiesHST.DummyUnitName
 	else
 		unitName = "armmar"
 	end
@@ -79,7 +79,7 @@ end
 
 function Lvl3Battle(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == CORESideName then
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corkarg"
 	else
 		unitName = "armraz"
@@ -88,8 +88,8 @@ function Lvl3Battle(tskqbhvr)
 end
 
 function Lvl3Hov(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corsok"
 	else
 		unitName = "armlun"
@@ -98,8 +98,8 @@ function Lvl3Hov(tskqbhvr)
 end
 
 function Lv3VehAmp(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		if tskqbhvr.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
@@ -113,8 +113,8 @@ end
 
 
 function Lv3Special(tskqbhvr)
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
+	local unitName = UnitiesHST.DummyUnitName
+	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corjugg"
 	else
 		unitName = "armvang"

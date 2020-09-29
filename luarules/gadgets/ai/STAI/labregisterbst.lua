@@ -17,7 +17,7 @@ function LabRegisterBST:Init()
     	x2 = self.position.x + 40,
     	z2 = self.position.z + 40,
 	}
-	self.sides = factoryExitSides[self.name]
+	self.sides = UnitiesHST.factoryExitSides[self.name]
     self.level = self.ai.data.unitTable[self.name].techLevel
 
     self.ai.factoryUnderConstruction = self.id
@@ -68,7 +68,7 @@ function LabRegisterBST:Unregister()
 	-- game:SendToConsole(self.ai.factories .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
-	local mtype = factoryMobilities[self.name][1]
+	local mtype = UnitiesHST.factoryMobilities[self.name][1]
 	local network = self.ai.maphst:MobilityNetworkHere(mtype,self.position)
 	-- self:EchoDebug(mtype, network, self.ai.factoryBuilded[mtype], self.ai.factoryBuilded[mtype][network], self.name, self.ai.data.unitTable[self.name], self.ai.data.unitTable[self.name].techLevel)
 	if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
@@ -103,7 +103,7 @@ function LabRegisterBST:Register()
 	-- game:SendToConsole(self.ai.factories .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
-	local mtype = factoryMobilities[self.name][1]
+	local mtype = UnitiesHST.factoryMobilities[self.name][1]
 	local network = self.ai.maphst:MobilityNetworkHere(mtype,self.position) or 0
 	self.ai.factoryBuilded[mtype][network] = (self.ai.factoryBuilded[mtype][network] or 0) + self.level
 	self:EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.factoryBuilded[mtype][network] .. ' adding tech '.. self.level)

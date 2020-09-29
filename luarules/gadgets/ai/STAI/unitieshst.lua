@@ -649,7 +649,7 @@ UnitiesHST.baseBomberCounter = 2
 UnitiesHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
 
 -- raid counter works backwards: it determines the number of raiders to build
--- if it reaches minRaidCounter, none are built
+-- if it reaches UnitiesHST.minRaidCounter, none are built
 UnitiesHST.minRaidCounter = 0
 UnitiesHST.maxRaidCounter = 8
 UnitiesHST.baseRaidCounter = 5
@@ -690,6 +690,3 @@ UnitiesHST.ARMSideName = "arm"
 
 -- how much metal to assume features with these strings in their names have
 UnitiesHST.baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
-
-UnitiesHST.UnitListsLoaded = true -- so that SpringShardLua doesn't load them multiple times
-
