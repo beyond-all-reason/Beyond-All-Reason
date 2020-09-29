@@ -584,7 +584,7 @@ function widget:Update(dt)
 	maxDeselectedTime = currentClock - OPTIONS.selectionEndAnimationTime
 
 	selChangedSec = selChangedSec + dt
-	if (checkSelectionChanges or selectedUnitsCount > 0) and selChangedSec >= 0.025 then
+	if checkSelectionChanges and selChangedSec >= 0.025 then
 		selChangedSec = 0
 		selectedUnitsSorted = spGetSelectedUnitsSorted()
 		selectedUnitsCount = spGetSelectedUnitsCount()

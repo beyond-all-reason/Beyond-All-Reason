@@ -1023,8 +1023,8 @@ end
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.95 - ((1 - ui_scale) * 0.5))
 
-	local iconSize = math.floor(fontSize * 4.2)
-	local iconPadding = math.floor(fontSize * 0.4)
+	local iconSize = math.floor(fontSize * 4.3)
+	local iconPadding = math.floor(fontSize * 0.35)
 
 	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
