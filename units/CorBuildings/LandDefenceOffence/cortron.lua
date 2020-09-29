@@ -138,7 +138,7 @@ return {
 				reloadtime = 2,
 				smoketrail = false,
 				soundhit = "xplomed4",
-				soundstart = "misicbm1",
+				soundstart = "mismed1",
 				stockpile = true,
 				stockpiletime = 75,
 				texture1 = "flare2",

@@ -141,7 +141,7 @@ return {
 				smoketrail = false,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				soundstart = "misicbm1",
+				soundstart = "mismed1emp1",
 				stockpile = true,
 				stockpiletime = 65,
 				texture1 = "trans",
