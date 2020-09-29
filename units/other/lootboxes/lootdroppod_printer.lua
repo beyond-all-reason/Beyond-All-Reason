@@ -1,5 +1,5 @@
 return {
-	lootdroppod_gold = {
+	lootdroppod_printer = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
