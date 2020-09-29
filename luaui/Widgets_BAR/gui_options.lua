@@ -2758,7 +2758,16 @@ function init()
 			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
 		  end,
 		},
-		{ id = "simpleminimapcolors", group = "ui", name = "Minimap" .. widgetOptionColor .. "  simple colors", type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = "Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!",
+
+		{ id = "minimap_enlarged", group = "ui", basic = true, name = "Minimap"..widgetOptionColor.."  enlarged", type = "bool", value = false, description = 'Relocates the order-menu to make room for the minimap',
+		  onload = function(i)
+			  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
+		  end,
+		},
+		{ id = "simpleminimapcolors", group = "ui", name = widgetOptionColor .. "   simple colors", type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = "Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2776,16 +2785,7 @@ function init()
 		  end,
 		},
 
-		{ id = "minimap_enlarged", group = "ui", basic = true, name = "Enlarged minimap", type = "bool", value = false, description = 'Relocates the order-menu to make room for the minimap',
-		  onload = function(i)
-			  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
-		  end,
-		},
-
-		--{id="los_opacity", group="ui", basic=true, name="LoS "..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
+		--{id="los_opacity", group="ui", basic=true, name="LoS"..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
 		-- onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
 		-- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,
 		--},
