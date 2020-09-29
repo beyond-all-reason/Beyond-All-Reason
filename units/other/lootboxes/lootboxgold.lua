@@ -68,7 +68,7 @@ return {
 				collisionvolumescales = "0 0 0",
 				collisionvolumetype = "Box",
 				damage = 50000,
-				description = "Lootbox Metal",
+				description = "Golden Lootbox Wreckage",
 				energy = 20000,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
