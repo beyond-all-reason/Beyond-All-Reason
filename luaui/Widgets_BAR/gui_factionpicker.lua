@@ -13,8 +13,8 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 local factions = {
-	{ UnitDefNames.corcom.id, 'Cortex', 'unitpics/alternative/corcom.png' },
-	{ UnitDefNames.armcom.id, 'Armada', 'unitpics/alternative/armcom.png' },
+	{ UnitDefNames.corcom.id, 'Cortex', 'unitpics/corcom.png' },
+	{ UnitDefNames.armcom.id, 'Armada', 'unitpics/armcom.png' },
 }
 local altPosition = false
 local playSounds = true
@@ -77,6 +77,76 @@ local isSpec = Spring.GetSpectatingState()
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
+	local csyMult = 1 / ((sy - py) / cs)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
+		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
+		gl.TexCoord(xc, yc)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
+	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
+end
+
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
@@ -122,6 +192,7 @@ function widget:ViewResize()
 		posX = 0
 	end
 
+	fontSize = (height * vsy * 0.125) * (1 - ((1 - ui_scale) * 0.5))
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
@@ -365,7 +436,6 @@ function drawFactionpicker()
 
 	font2:Begin()
 
-	local fontSize = (height * vsy * 0.125) * (1 - ((1 - ui_scale) * 0.5))
 	local contentPadding = (height * vsy * 0.075) * (1 - ((1 - ui_scale) * 0.5))
 	local contentWidth = backgroundRect[3] - backgroundRect[1] - contentPadding - contentPadding
 	local contentHeight = backgroundRect[4] - backgroundRect[2] - contentPadding - contentPadding
@@ -402,7 +472,6 @@ function drawFactionpicker()
 		RectRound(factionRect[i][1] + rectMargin, factionRect[i][4] - ((factionRect[i][4] - factionRect[i][2]) * 0.5), factionRect[i][3] - rectMargin, factionRect[i][4] - rectMargin, rectMargin, 1, 1, 0, 0, { 1, 1, 1, 0.04 }, { 1, 1, 1, 0.3 })
 		RectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + rectMargin, factionRect[i][3] - rectMargin, factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.33), rectMargin, 0, 0, 1, 1, { 1, 1, 1, 0.11 }, { 1, 1, 1, 0 })
 
-
 		-- selected
 		if Spring.GetTeamRulesParam(myTeamID, 'startUnit') == factions[i][1] then
 			glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -412,18 +481,47 @@ function drawFactionpicker()
 			RectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + rectMargin, factionRect[i][3] - rectMargin, factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.33), rectMargin, 0, 0, 1, 1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			glColor(1, 1, 1, 1)
+			glTexture(":lr256,256:" .. factions[i][3])
 		else
-			glColor(1, 1, 1, 0.7)
+			glColor(1, 1, 1, 1)
+			glTexture(":lgr256,256:" .. factions[i][3])
+			TexRectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + rectMargin, factionRect[i][3] - rectMargin, factionRect[i][4] - rectMargin, rectMargin, 1, 1, 1, 1, 0)
+
+			glColor(1, 1, 1, 0.25)
+			glTexture(":lr256,256:" .. factions[i][3])
 		end
 
 		-- startunit icon
-		glTexture(":lr256,256:" .. factions[i][3])
-		glTexRect(factionRect[i][1] + rectMargin, factionRect[i][2] + rectMargin, factionRect[i][3] - rectMargin, factionRect[i][4] - rectMargin)
+		TexRectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + rectMargin, factionRect[i][3] - rectMargin, factionRect[i][4] - rectMargin, rectMargin, 1, 1, 1, 1, 0)
 		glTexture(false)
 
-		-- faction name
-		font2:Print(factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.92, "co")
+		-- darken bottom
+		RectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + ((factionRect[i][4]-factionRect[i][2])*0.5), factionRect[i][3] - rectMargin, factionRect[i][2] + rectMargin, rectMargin, 2, 2, 0, 0, { 0,0,0, 0 }, { 0,0,0, 0.3 })
 
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		--RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
+		RectRound(factionRect[i][1] + rectMargin, factionRect[i][4] - ((factionRect[i][4]-factionRect[i][2])*0.6), factionRect[i][3] - rectMargin, factionRect[i][4] - rectMargin, rectMargin, 2, 2, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
+		RectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + ((factionRect[i][4]-factionRect[i][2])*0.25), factionRect[i][3] - rectMargin, factionRect[i][2] + rectMargin, rectMargin, 2, 2, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.06 })
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+		-- border
+		local halfSize = (factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin) * 0.5
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRoundCircle(
+				factionRect[i][1] + rectMargin + halfSize,
+				0,
+				factionRect[i][2] + rectMargin + halfSize,
+				halfSize, rectMargin*0.6, halfSize - math.max(1, math.floor(halfSize * 0.04)), { 1, 1, 1, 0.1}, { 1, 1, 1, 0.1 }
+		)
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+		-- faction name
+		if Spring.GetTeamRulesParam(myTeamID, 'startUnit') == factions[i][1] then
+			font2:Print(factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+		else
+			font2:Print("\255\200\200\200"..factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+		end
 	end
 	font2:End()
 end
@@ -470,6 +568,19 @@ function widget:DrawScreen()
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				RectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + rectMargin, factionRect[i][3] - rectMargin, factionRect[i][4] - rectMargin, rectMargin, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+				-- border
+				local halfSize = (factionRect[i][3]-factionRect[i][1]-rectMargin-rectMargin) * 0.5
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				RectRoundCircle(
+						factionRect[i][1] + rectMargin + halfSize,
+						0,
+						factionRect[i][2] + rectMargin + halfSize,
+						halfSize, rectMargin*0.6, halfSize - math.max(1, math.floor(halfSize * 0.04)), { 1, 1, 1, 0.1}, { 1, 1, 1, 0.1 }
+				)
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+				font2:Print(factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 				break
 			end
 		end
