@@ -1455,7 +1455,7 @@ function drawBuildmenu()
 	else
 		local paginatorFontSize = math_max(0.016 * vsy, paginatorCellHeight * 0.2)
 		local paginatorCellWidth = math_floor(contentWidth * 0.3)
-		local paginatorBorderSize = math_floor(cellSize * ((cfgIconPadding + cfgCellPadding) * 0.8))
+		local paginatorBorderSize = math_floor(cellSize * ((cfgIconPadding + cfgCellPadding)))
 
 		paginatorRects[1] = { activeArea[1], activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
@@ -1467,8 +1467,8 @@ function drawBuildmenu()
 
 		-- glossy half
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][4] - cellPadding - ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.5), paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.15 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][4] - cellPadding - ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.5), paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.15 })
+		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][4] - cellPadding - ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.5), paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.15 })
+		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][4] - cellPadding - ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.5), paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.15 })
 
 		-- glossy bottom
 		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][2] + cellPadding + ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
@@ -1670,8 +1670,8 @@ function widget:DrawScreen()
 						end
 						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
 						-- gloss
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0.13 })
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.045 }, { 1, 1, 1, 0 })
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.13 })
+						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
 					end
 
 					-- cells
