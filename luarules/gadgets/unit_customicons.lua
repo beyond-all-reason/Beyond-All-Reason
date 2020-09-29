@@ -62,7 +62,10 @@ local icons = {
     {"sub_t2_worker.user", "sub_worker",1.66},
 
     {"beacon.user", "beacon",1.66},
-    {"corlootboxgold.user", "mine",1.1},
+    {"lootboxbronze.user", "lootbox",1.0},
+    {"lootboxsilver.user", "lootboxt2",1.1},
+    {"lootboxgold.user", "lootboxt3",1.15},
+    {"lootboxplatinum.user", "lootboxt4",1.2},
 
     {"wind.user", "wind",1},
     {"energy1.user", "solar",1.5},
@@ -458,7 +461,7 @@ function loadUnitIcons()
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_fblackhy.user")
 		elseif name == "corcrwt4" then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."t4_krow.user")
-		-- lootboxes
+		-- Scavenger Printers
 		elseif string.find(name, 'lootboxnano') then
 			if string.find(name, 't1') then
 				Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxnanot1.user")
@@ -469,8 +472,17 @@ function loadUnitIcons()
 			elseif string.find(name, 't4') then
 				Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxnanot4.user")
 			end
+        -- Lootboxes / resource generators    
 		elseif string.find(name, 'lootbox') then
-			Spring.SetUnitDefIcon(udid, iconPrefix.."corlootboxgold.user")
+            if string.find(name, 'bronze') then
+                Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxbronze.user")
+            elseif string.find(name, 'silver') then
+                Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxsilver.user")
+            elseif string.find(name, 'gold') then
+                Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxgold.user")
+            elseif string.find(name, 'platinum') then
+                Spring.SetUnitDefIcon(udid, iconPrefix.."lootboxplatinum.user")
+            end
 		elseif string.find(name, 'boss') then
 			Spring.SetUnitDefIcon(udid, iconPrefix.."boss.user")
 		elseif string.find(name, 'beacon') then
