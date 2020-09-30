@@ -503,9 +503,11 @@ local function AddUnit(unitID, unitDefID)
 	else
 		Deactivate(unitID, unitDefID)
 	end
-	if lighteffectsEnabled then
+	if lighteffectsEnabled and lightDefs[unitDefID] then
 		for i = 1, #effectDefs[unitDefID] do
-			unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = spGetUnitPieceInfo(unitID, effectDefs[unitDefID][i].piecenum).offset
+			if effectDefs[unitDefID][i].piecenum then
+				unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = spGetUnitPieceInfo(unitID, effectDefs[unitDefID][i].piecenum).offset
+			end
 		end
 	end
 end

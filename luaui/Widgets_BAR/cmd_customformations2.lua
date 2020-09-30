@@ -765,6 +765,7 @@ end
 
 
 local function DrawFormationDots(vertFunction, zoomY)
+	gl.PushAttrib(GL.ALL_ATTRIB_BITS)
     local currentLength = 0
     local lengthPerUnit = lineLength / (selectedUnitsCount-1)
     local lengthUnitNext = lengthPerUnit
@@ -798,6 +799,7 @@ local function DrawFormationDots(vertFunction, zoomY)
         end
         DrawFilledCircleOutFading(fNodes[#fNodes], dotSize)
     end
+	gl.PopAttrib(GL.ALL_ATTRIB_BITS)
 end
 
 local function DrawFormationLines(vertFunction, lineStipple)
