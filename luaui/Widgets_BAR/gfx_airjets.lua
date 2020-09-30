@@ -392,12 +392,6 @@ local function Draw(unitID, unitDefID)
 						local lightOffsetRotYx = lightOffset[1]*math_cos(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math_sin(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
 						local lightOffsetRotYz = lightOffset[1]*math_sin(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math_cos(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
 
-						local offsetX = lightOffsetRotYx
-						local offsetY = lightOffset[2] --+ 7  -- add some height to make the light shine a bit more on top (for debugging)
-						local offsetZ = lightOffsetRotYz
-
-						local radius = 0.8 * fx.width * fx.length
-
 						if not lights[unitID] then
 							if not fx.color[4] then
 								fx.color[4] = fx.light * 0.66
@@ -405,9 +399,9 @@ local function Draw(unitID, unitDefID)
 							if not lights[unitID] then
 								lights[unitID] = {}
 							end
-							lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, radius, fx.color)
+							lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPos[1]+lightOffsetRotYx, unitPos[2]+lightOffset[2], unitPos[3]+lightOffsetRotYz, 0.8 * fx.width * fx.length, fx.color)
 						elseif lights[unitID][i] then
-							if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ}) then
+							if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+lightOffsetRotYx, py=unitPos[2]+lightOffset[2], pz=unitPos[3]+lightOffsetRotYz}) then
 								fx.lightID = nil
 							end
 						end
@@ -550,16 +544,10 @@ function widget:Update(dt)
 	local prevLighteffectsEnabled = lighteffectsEnabled
 	lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
 	if lighteffectsEnabled ~= prevLighteffectsEnabled then
-		if prevLighteffectsEnabled then
-			for unitID,_ in pairs(lights) do
-				RemoveLights(unitID)
-			end
-		else
-			for _, unitID in ipairs(Spring.GetAllUnits()) do
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				RemoveUnit(unitID, unitDefID)
-				AddUnit(unitID, unitDefID)
-			end
+		for _, unitID in ipairs(Spring.GetAllUnits()) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			RemoveUnit(unitID, unitDefID)
+			AddUnit(unitID, unitDefID)
 		end
 	end
 
