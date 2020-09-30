@@ -1029,7 +1029,7 @@ local function drawUnitInfo()
 	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
 		glTexture(":lr160,160:unitpics/" .. unitDefInfo[displayUnitDefID].buildPic)
-		TexRectRound(backgroundRect[1] + iconPadding, backgroundRect[4] - iconPadding - iconSize - bgpadding, backgroundRect[1] + iconPadding + iconSize, backgroundRect[4] - iconPadding - bgpadding, bgpadding * 0.6, 1, 1, 1, 1, 0.11)
+		TexRectRound(backgroundRect[1] + iconPadding, backgroundRect[4] - iconPadding - iconSize - bgpadding, backgroundRect[1] + iconPadding + iconSize, backgroundRect[4] - iconPadding - bgpadding, bgpadding * 0.6, 1, 1, 1, 1, 0.03)
 		glTexture(false)
 	end
 	iconSize = iconSize + iconPadding
