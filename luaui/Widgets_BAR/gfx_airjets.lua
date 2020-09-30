@@ -382,9 +382,9 @@ local function Draw(unitID, unitDefID)
 
 			-- add deferred light
 			if lighteffectsEnabled and lightDefs[unitDefID] then
-				local unitPos = {spGetUnitPosition(unitID)}
-				if unitPos[1] then
-					local pitch, yaw = spGetUnitRotation(unitID)
+				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
+				if unitPosZ then
+					local _, yaw = spGetUnitRotation(unitID)
 					if yaw then
 						local lightOffset = unitPieceOffset[unitID..'_'..fx.piecenum]
 
@@ -399,9 +399,9 @@ local function Draw(unitID, unitDefID)
 							if not lights[unitID] then
 								lights[unitID] = {}
 							end
-							lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPos[1]+lightOffsetRotYx, unitPos[2]+lightOffset[2], unitPos[3]+lightOffsetRotYz, 0.8 * fx.width * fx.length, fx.color)
+							lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPosX+lightOffsetRotYx, unitPosY+lightOffset[2], unitPosZ+lightOffsetRotYz, 0.8 * fx.width * fx.length, fx.color)
 						elseif lights[unitID][i] then
-							if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+lightOffsetRotYx, py=unitPos[2]+lightOffset[2], pz=unitPos[3]+lightOffsetRotYz}) then
+							if not WG['lighteffects'].editLightPos(lights[unitID][i], unitPosX+lightOffsetRotYx, unitPosY+lightOffset[2], unitPosZ+lightOffsetRotYz) then
 								fx.lightID = nil
 							end
 						end

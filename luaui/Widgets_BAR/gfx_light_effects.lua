@@ -801,6 +801,17 @@ function EditLight(lightID, params)
 	end
 end
 
+function EditLightPos(lightID, x,y,z)
+	if explosionLights[lightID] then
+		explosionLights[lightID].px = x
+		explosionLights[lightID].py = y
+		explosionLights[lightID].pz = z
+		return true
+	else
+		return false
+	end
+end
+
 function RemoveLight(lightID, life)
 	if explosionLights[lightID] then
 		if life == nil then
@@ -921,6 +932,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
 	widgetHandler:DeregisterGlobal('GadgetCreateLight')
 	widgetHandler:DeregisterGlobal('GadgetEditLight')
+	widgetHandler:DeregisterGlobal('GadgetEditLightPos')
 	widgetHandler:DeregisterGlobal('GadgetRemoveLight')
 	widgetHandler:DeregisterGlobal('GadgetCreateBeamLight')
 	widgetHandler:DeregisterGlobal('GadgetEditBeamLight')
@@ -938,6 +950,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
 	widgetHandler:RegisterGlobal('GadgetCreateLight', CreateLight)
 	widgetHandler:RegisterGlobal('GadgetEditLight', EditLight)
+	widgetHandler:RegisterGlobal('GadgetEditLightPos', EditLightPos)
 	widgetHandler:RegisterGlobal('GadgetRemoveLight', RemoveLight)
 	widgetHandler:RegisterGlobal('GadgetCreateBeamLight', CreateBeamLight)
 	widgetHandler:RegisterGlobal('GadgetEditBeamLight', EditBeamLight)
@@ -955,6 +968,9 @@ function widget:Initialize()
 	end
 	WG['lighteffects'].editLight = function(lightID, params)
 		return EditLight(lightID, params)
+	end
+	WG['lighteffects'].editLightPos = function(lightID, x,y,z)
+		return EditLightPos(lightID, x,y,z)
 	end
 	WG['lighteffects'].removeLight = function(lightID, life)
 		return RemoveLight(lightID, life)
