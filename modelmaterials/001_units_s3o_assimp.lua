@@ -11,6 +11,8 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
+		"#define SPECULARDIRMULT 3.14159265359",
+
 		"#define SPECULAR_AO",
 
 		"#define ROUGHNESS_AA 1.0",
@@ -25,6 +27,8 @@ local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 		"#define RENDERING_MODE 1",
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULARDIRMULT 3.14159265359",
 
 		"#define SPECULAR_AO",
 
