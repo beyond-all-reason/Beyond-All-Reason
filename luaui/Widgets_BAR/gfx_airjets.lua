@@ -346,6 +346,7 @@ end
 local activePlanes = {}
 local inactivePlanes = {}
 local lights = {}
+local unitPieceOffset = {}
 
 local shaders
 local lastGameFrame = Spring.GetGameFrame()
@@ -385,7 +386,7 @@ local function Draw(unitID, unitDefID)
 				if unitPos[1] then
 					local pitch, yaw = spGetUnitRotation(unitID)
 					if yaw then
-						local lightOffset = spGetUnitPieceInfo(unitID, fx.piecenum).offset
+						local lightOffset = unitPieceOffset[unitID..'_'..fx.piecenum]
 
 						-- still just only Y thus inacurate
 						local lightOffsetRotYx = lightOffset[1]*math_cos(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math_sin(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
@@ -395,7 +396,7 @@ local function Draw(unitID, unitDefID)
 						local offsetY = lightOffset[2] --+ 7  -- add some height to make the light shine a bit more on top (for debugging)
 						local offsetZ = lightOffsetRotYz
 
-						local radius = 0.8 * ((fx.width*fx.length) * (0.8+(math_random()/10)))  -- add a bit of flickering
+						local radius = 0.8 * fx.width * fx.length
 
 						if not lights[unitID] then
 							if not fx.color[4] then
@@ -406,7 +407,7 @@ local function Draw(unitID, unitDefID)
 							end
 							lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, radius, fx.color)
 						elseif lights[unitID][i] then
-							if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ, param={radius=radius}}) then
+							if not WG['lighteffects'].editLight(lights[unitID][i], {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ}) then
 								fx.lightID = nil
 							end
 						end
@@ -474,6 +475,9 @@ local function RemoveUnit(unitID, unitDefID)
 		activePlanes[unitID] = nil
 		inactivePlanes[unitID] = nil
 		RemoveLights(unitID)
+		for i = 1, #effectDefs[unitDefID] do
+			unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = nil
+		end
 	end
 end
 
@@ -504,6 +508,11 @@ local function AddUnit(unitID, unitDefID)
 		end
 	else
 		Deactivate(unitID, unitDefID)
+	end
+	if lighteffectsEnabled then
+		for i = 1, #effectDefs[unitDefID] do
+			unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = spGetUnitPieceInfo(unitID, effectDefs[unitDefID][i].piecenum).offset
+		end
 	end
 end
 
@@ -540,9 +549,17 @@ function widget:Update(dt)
 
 	local prevLighteffectsEnabled = lighteffectsEnabled
 	lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
-	if prevLighteffectsEnabled and lighteffectsEnabled ~= prevLighteffectsEnabled then
-		for unitID,_ in pairs(lights) do
-			RemoveLights(unitID)
+	if lighteffectsEnabled ~= prevLighteffectsEnabled then
+		if prevLighteffectsEnabled then
+			for unitID,_ in pairs(lights) do
+				RemoveLights(unitID)
+			end
+		else
+			for _, unitID in ipairs(Spring.GetAllUnits()) do
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				RemoveUnit(unitID, unitDefID)
+				AddUnit(unitID, unitDefID)
+			end
 		end
 	end
 
@@ -794,7 +811,7 @@ function widget:Initialize()
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		widget:UnitCreated(unitID, unitDefID, myTeamID)
+		AddUnit(unitID, unitDefID)
 	end
 
 	WG['airjets'] = {}
