@@ -168,7 +168,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
-				energypershot = 100,
+				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 15,
