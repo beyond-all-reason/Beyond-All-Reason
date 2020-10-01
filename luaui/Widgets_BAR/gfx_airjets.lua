@@ -470,7 +470,9 @@ local function RemoveUnit(unitID, unitDefID)
 		inactivePlanes[unitID] = nil
 		RemoveLights(unitID)
 		for i = 1, #effectDefs[unitDefID] do
-			unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = nil
+			if effectDefs[unitDefID][i].piecenum then
+				unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = nil
+			end
 		end
 	end
 end
