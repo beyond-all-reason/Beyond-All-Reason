@@ -366,8 +366,8 @@ local function cacheUnitIcons()
 	for id, unit in pairs(UnitDefs) do
 		-- delete old cached icon when iconsize changed
 		if prevUnitIconSize and prevUnitIconSize ~= unitIconSize then
-			gl.DeleteTexture(':lr'..unitIconSize2..','..unitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
-			gl.DeleteTexture(':lr'..unitIconSize..','..unitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
+			gl.DeleteTexture(':lr'..prevUnitIconSize..','..prevUnitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
+			gl.DeleteTexture(':lr'..prevUnitIconSize2..','..prevUnitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
 		end
 		if prevRadarIconSize and prevRadarIconSize ~= radarIconSize then
 			gl.DeleteTexture(':lr' .. (prevRadarIconSize * 2) .. ',' .. (prevRadarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
@@ -385,6 +385,7 @@ local function cacheUnitIcons()
 	end
 	prevRadarIconSize = radarIconSize
 	prevUnitIconSize = unitIconSize
+	prevUnitIconSize2 = unitIconSize2
 end
 
 local function refreshUnitIconCache()
