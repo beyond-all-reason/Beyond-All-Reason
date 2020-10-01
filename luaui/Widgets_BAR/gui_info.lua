@@ -361,14 +361,21 @@ unitsOrdered = nil
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
-	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)   -- when changine this also update radarIconSize formula at other place in code
 	for id, unit in pairs(UnitDefs) do
-		gl.Texture(':lr100,100:unitpics/' .. unitDefInfo[id].buildPic)
+		-- delete old cached icon when iconsize changed
+		if prevUnitIconSize and prevUnitIconSize ~= unitIconSize then
+			gl.DeleteTexture(':lr'..unitIconSize2..','..unitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
+			gl.DeleteTexture(':lr'..unitIconSize..','..unitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
+		end
+		if prevRadarIconSize and prevRadarIconSize ~= radarIconSize then
+			gl.DeleteTexture(':lr' .. (prevRadarIconSize * 2) .. ',' .. (prevRadarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
+		end
+
+		gl.Texture(':lr'..unitIconSize2..','..unitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
 		gl.TexRect(-1, -1, 0, 0)
-		gl.Texture(':lr160,160:unitpics/' .. unitDefInfo[id].buildPic)
+		gl.Texture(':lr'..unitIconSize..','..unitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
 		if iconTypesMap[unitDefInfo[id].iconType] then
 			gl.TexRect(-1, -1, 0, 0)
 			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
@@ -376,6 +383,8 @@ local function cacheUnitIcons()
 		end
 		gl.Texture(false)
 	end
+	prevRadarIconSize = radarIconSize
+	prevUnitIconSize = unitIconSize
 end
 
 local function refreshUnitIconCache()
@@ -428,6 +437,19 @@ function widget:ViewResize()
 
 	doUpdate = true
 	clear()
+
+	radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
+	unitIconSize = math_floor((height * vsy * 0.7) + 0.5)
+	unitIconSize2 = math_floor((height * vsy * 0.35) + 0.5)
+	if radarIconSize > 128 then
+		radarIconSize = 128
+	end
+	if unitIconSize > 256 then
+		unitIconSize = 256
+	end
+	if unitIconSize2 > 256 then
+		unitIconSize2 = 256
+	end
 
 	checkGuishader(true)
 
@@ -997,7 +1019,7 @@ local function drawSelection()
 	end
 	--texDetail = math_floor((cellsize-cellPadding)*(1+texOffset))
 	--texSetting = ':lr'..texDetail..','..texDetail..':'
-	texSetting = cellsize > 38 and ':lr160,160:' or ':lr100,100:'
+	texSetting = cellsize > 38 and ':lr'..unitIconSize..','..unitIconSize..':' or ':lr'..unitIconSize2..','..unitIconSize2..':'
 	local cellID = selUnitTypes
 	for row = 1, rows do
 		for coll = 1, colls do
@@ -1028,7 +1050,7 @@ local function drawUnitInfo()
 
 	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
-		glTexture(":lr160,160:unitpics/" .. unitDefInfo[displayUnitDefID].buildPic)
+		glTexture(":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic)
 		TexRectRound(backgroundRect[1] + iconPadding, backgroundRect[4] - iconPadding - iconSize - bgpadding, backgroundRect[1] + iconPadding + iconSize, backgroundRect[4] - iconPadding - bgpadding, bgpadding * 0.6, 1, 1, 1, 1, 0.03)
 		glTexture(false)
 	end
@@ -1037,7 +1059,6 @@ local function drawUnitInfo()
 	local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
 	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].tooltip, (contentWidth - iconSize) * (loadedFontSize / fontSize))
 
-	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
 	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
 	if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
 		glColor(1, 1, 1, 0.88)
