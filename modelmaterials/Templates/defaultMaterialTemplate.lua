@@ -1292,9 +1292,6 @@ fragment = [[
 			float Vis = VisibilityOcclusion(NdotL, NdotV, roughness2, roughness4);
 			float D = MicrofacetDistribution(NdotH, roughness4);
 			outSpecularColor = F * Vis * D /* * PI */;
-			#ifdef SPECULARDIRMULT
-				outSpecularColor *= SPECULARDIRMULT;
-			#endif
 
 			vec3 maxSun = mix(sunSpecular, sunDiffuse, step(dot(sunSpecular, LUMA), dot(sunDiffuse, LUMA)));
 			#ifdef SUNMULT
@@ -1323,9 +1320,6 @@ fragment = [[
 
 			// add to outgoing radiance dirContrib
 			dirContrib  = maxSun * (kD * albedoColor /* PI */) * NdotL * shadowMult;
-			#ifdef DIFFUSEDIRMULT
-				dirContrib *= DIFFUSEDIRMULT;
-			#endif
 			dirContrib += outSpecularColor;
         }
 
