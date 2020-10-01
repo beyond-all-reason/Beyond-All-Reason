@@ -226,7 +226,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 
 	unitDefInfo[unitDefID].tooltip = unitDef.tooltip
-	unitDefInfo[unitDefID].iconType= unitDef.iconType
+	unitDefInfo[unitDefID].iconType = unitDef.iconType
 	unitDefInfo[unitDefID].energyCost = unitDef.energyCost
 	unitDefInfo[unitDefID].metalCost = unitDef.metalCost
 	unitDefInfo[unitDefID].health = unitDef.health
@@ -369,9 +369,9 @@ local function cacheUnitIcons()
 		gl.Texture(':lr100,100:unitpics/' .. unitDefInfo[id].buildPic)
 		gl.TexRect(-1, -1, 0, 0)
 		gl.Texture(':lr160,160:unitpics/' .. unitDefInfo[id].buildPic)
-		if iconTypesMap[unitDefInfo[id].unitIconType] then
+		if iconTypesMap[unitDefInfo[id].iconType] then
 			gl.TexRect(-1, -1, 0, 0)
-			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].unitIconType])
+			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
 			gl.TexRect(-1, -1, 0, 0)
 		end
 		gl.Texture(false)
@@ -1039,9 +1039,9 @@ local function drawUnitInfo()
 
 	local radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
 	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
-	if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].unitIconType] then
+	if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
 		glColor(1, 1, 1, 0.88)
-		glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].unitIconType])
+		glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
 		glTexRect(backgroundRect[3] - radarIconMargin - radarIconSize, backgroundRect[4] - radarIconMargin - radarIconSize, backgroundRect[3] - radarIconMargin, backgroundRect[4] - radarIconMargin)
 		glTexture(false)
 		glColor(1, 1, 1, 1)
