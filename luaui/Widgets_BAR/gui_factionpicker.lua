@@ -487,7 +487,7 @@ function drawFactionpicker()
 			glTexture(":lgr256,256:" .. factions[i][3])
 			TexRectRound(factionRect[i][1] + rectMargin, factionRect[i][2] + rectMargin, factionRect[i][3] - rectMargin, factionRect[i][4] - rectMargin, rectMargin, 1, 1, 1, 1, 0)
 
-			glColor(1, 1, 1, 0.25)
+			glColor(1, 1, 1, 0.15)
 			glTexture(":lr256,256:" .. factions[i][3])
 		end
 

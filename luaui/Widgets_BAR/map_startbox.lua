@@ -48,7 +48,7 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
-local fontfileOutlineSize = 9
+local fontfileOutlineSize = 8
 local fontfileOutlineStrength = 1.65
 local fontfileOutlineStrength2 = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -239,7 +239,7 @@ function createInfotextList()
   end
   infotextList = gl.CreateList(function()
     font:Begin()
-    font:SetTextColor(0.75,0.75,0.75,1)
+    font:SetTextColor(0.9,0.9,0.9,1)
     font:Print(infotext, 0,0, infotextFontsize*widgetScale, "cno")
     font:End()
   end)
