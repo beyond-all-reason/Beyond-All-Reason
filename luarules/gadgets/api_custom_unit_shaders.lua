@@ -744,6 +744,8 @@ local function _CleanupEverything(rendering)
 	gadgetHandler:RemoveChatAction("updatesun")
 	gadgetHandler:RemoveChatAction("cusreload")
 	gadgetHandler:RemoveChatAction("reloadcus")
+	gadgetHandler:RemoveChatAction("disablecus")
+	gadgetHandler:RemoveChatAction("cusdisable")
 
 	collectgarbage()
 end
@@ -926,6 +928,13 @@ local function ReloadCUS(optName, _, _, playerID)
 	gadget:Initialize()
 end
 
+local function DisableCUS(optName, _, _, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	gadget:Shutdown()
+end
+
 local function UpdateSun(optName, _, _, playerID)
 	sunChanged = true
 end
@@ -982,6 +991,8 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("updatesun", UpdateSun)
 	gadgetHandler:AddChatAction("cusreload", ReloadCUS)
 	gadgetHandler:AddChatAction("reloadcus", ReloadCUS)
+	gadgetHandler:AddChatAction("disablecus", DisableCUS)
+	gadgetHandler:AddChatAction("cusdisable", DisableCUS)
 end
 
 function gadget:Shutdown()
