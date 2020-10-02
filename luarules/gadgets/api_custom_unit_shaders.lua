@@ -742,8 +742,8 @@ local function _CleanupEverything(rendering)
 	rendering.shadowsPostDL       = nil
 
 	gadgetHandler:RemoveChatAction("updatesun")
-	gadgetHandler:RemoveChatAction("cusreload")
-	gadgetHandler:RemoveChatAction("reloadcus")
+	--gadgetHandler:RemoveChatAction("cusreload")
+	--gadgetHandler:RemoveChatAction("reloadcus")
 	gadgetHandler:RemoveChatAction("disablecus")
 	gadgetHandler:RemoveChatAction("cusdisable")
 
