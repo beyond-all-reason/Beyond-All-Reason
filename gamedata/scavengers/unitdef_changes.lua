@@ -796,24 +796,36 @@ customDefs.lootboxplatinum = {
 -- Shorter ranged long range rockets
 
 customDefs.armmerl = {
+	description = "Very Heavy Improved Rocket Launcher",
 	weapondefs = {
 		armtruck_rocket = {
-			range = 650,
-			reloadtime = 9,
+			areaofeffect = 200,
+			edgeeffectiveness = 0.72,
+			explosiongenerator = "custom:genericshellexplosion-large-aoe",
+			impulseboost = 0.35,
+			impulsefactor = 0.35,
+			range = 651,
+			reloadtime = 18,
 			damage = {
-				default = 1500,
+				default = 2850,
 			},
 		},
 	},
 }
 
 customDefs.corvroc = {
+	description = "Very Heavy Improved Rocket Launcher",
 	weapondefs = {
 		cortruck_rocket = {
+			areaofeffect = 200,
+			edgeeffectiveness = 0.72,
+			explosiongenerator = "custom:genericshellexplosion-large-aoe",
+			impulseboost = 0.35,
+			impulsefactor = 0.35,
 			range = 655,
-			reloadtime = 8,
+			reloadtime = 16,
 			damage = {
-				default = 1400,
+				default = 2550,
 			},
 		},
 	},
