@@ -360,7 +360,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if cmdID == CMD_LAND_AT_AIRBASE then
-			if landingPlanes[unitID] or tractorPlanes[unitID] then
+			if landingPlanes[unitID] or tractorPlanes[unitID] or landedPlanes[unitID] then
 				-- finished processing
 				return true, true
 			end
