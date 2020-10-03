@@ -454,7 +454,8 @@ function SpawnStartUnit(teamID, x, z)
 	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 
 	--overwrite startUnit with random faction for newbies
-	if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
+	local _,_,_,isAI = Spring.GetTeamInfo(teamID)
+	if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or isAI == true then
 		if math.random() > 0.5 then
 			startUnit = corcomDefID
 		else
