@@ -120,8 +120,8 @@ return {
 			armbeamer_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				beamdecay = 0.1,
-				beamtime = 0.05,
+				beamdecay = 0.05,
+				beamtime = 0.1,
 				beamttl = 1,
 				corethickness = 0.233,
 				craterareaofeffect = 0,
