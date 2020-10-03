@@ -506,7 +506,7 @@ if gadgetHandler:IsSyncedCode() then
 			local sqrDist = (ux and px) and (ux - px) * (ux - px) + (uy - py) * (uy - py) + (uz - pz) * (uz - pz)
 			local rotSqrDist = (upitch and ppitch) and (upitch - ppitch) * (upitch - ppitch) + (uyaw - pyaw) * (uyaw - pyaw) + (uroll - proll) * (uroll - proll)
 			if sqrDist and rotSqrDist then
-				if sqrDist < 2 and rotSqrDist < 0.025 then
+				if sqrDist < tractorSpeed and rotSqrDist < rotTractorSpeed/2 then
 					-- snap into place
 					tractorPlanes[unitID] = nil
 					landedPlanes[unitID] = airbaseID
@@ -516,13 +516,13 @@ if gadgetHandler:IsSyncedCode() then
 					RemoveOrderFromQueue(unitID, CMD_LAND_AT_SPECIFIC_AIRBASE) -- also clears the move goal by triggering widget:UnitCmdDone
 				else
 					-- tractor towards pad
-					if sqrDist >= 2 then
+					if sqrDist >= tractorSpeed then
 						local dx, dy, dz = px - ux, py - uy, pz - uz
 						local velNormMult = tractorSpeed / math_sqrt(dx * dx + dy * dy + dz * dz)
 						local vx, vy, vz = dx * velNormMult, dy * velNormMult, dz * velNormMult
 						Spring.MoveCtrl.SetPosition(unitID, ux + vx, uy + vy, uz + vz)
 					end
-					if rotSqrDist >= 0.025 then
+					if rotSqrDist >= rotTractorSpeed/2 then
 						local dpitch, dyaw, droll = ppitch - upitch, pyaw - uyaw, proll - uroll
 						local rotNormMult = rotTractorSpeed / math_sqrt(dpitch * dpitch + dyaw * dyaw + droll * droll)
 						local rpitch, ryaw, rroll = dpitch * rotNormMult, dyaw * rotNormMult, droll * rotNormMult
