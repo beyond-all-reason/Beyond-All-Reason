@@ -257,19 +257,19 @@ function gadget:GameFrame(n)
 					if unitCommands == 0 then
 						for u = 1,#SimpleConstructorDefs do
 							if unitDefID == SimpleConstructorDefs[u] then
-								local r = math.random(0,5)
-								if ecurrent < estorage*0.75 then
+								local r = math.random(0,10)
+								if ecurrent < estorage*0.75 or r == 0 then
 									for i = 1,10 do
 										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
 									end
-								elseif mcurrent < mstorage*0.75 then
+								elseif mcurrent < mstorage*0.75 or r == 1 then
 									local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
 									if ecurrent > estorage*0.85 or (not mexspotpos) then
 										SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
 									elseif mexspotpos then
 										Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
 									end
-								elseif r == 0 then
+								elseif r == 2 or r == 3 or r == 4 or r == 5 then
 									SimpleBuildOrder(unitID, SimpleTurretDefs[math.random(1,#SimpleTurretDefs)])
 								elseif (mcurrent > mstorage*0.75 and ecurrent > estorage*0.75) then
 									--Spring.Echo(SimpleFactories[unitTeam])
@@ -290,17 +290,17 @@ function gadget:GameFrame(n)
 						for u = 1,#SimpleCommanderDefs do
 							if unitDefID == SimpleCommanderDefs[u] then
 								--Spring.GiveOrderToUnit(unitID, CMD.MOVE,{unitposx+math.random(-500,500),5000,unitposz+math.random(-500,500)}, {"shift", "alt", "ctrl"})
-								local r = math.random(0,5)
+								local r = math.random(0,10)
 								local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
 								if mexspotpos and SimpleT1Mexes[unitTeam] < 3 then
 									Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
-								elseif ecurrent < estorage*0.75 then
+								elseif ecurrent < estorage*0.75 or r == 0 then
 									for i = 1,10 do
 										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
 									end
-								elseif (ecurrent > estorage*0.85 or (not mexspotpos)) and mcurrent < mstorage*0.75 then
+								elseif (ecurrent > estorage*0.85 or (not mexspotpos)) and mcurrent < mstorage*0.75 or r == 1 then
 									SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
-								elseif r == 0 then
+								elseif r == 2 or r == 3 or r == 4 or r == 5 then
 									SimpleBuildOrder(unitID, SimpleTurretDefs[math.random(1,#SimpleTurretDefs)])
 								elseif (mcurrent > mstorage*0.75 and ecurrent > estorage*0.75) then
 									--Spring.Echo(SimpleFactories[unitTeam])
