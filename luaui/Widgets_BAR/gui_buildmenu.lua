@@ -1763,7 +1763,17 @@ function widget:DrawScreen()
 										cellColor = nil
 										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 									end
+
+									if cellRectID == hoveredCellID and not showPrice then
+										unsetShowPrice = true
+										showPrice = true
+									end
+									-- re-draw cell with hover zoom (and price shown)
 									drawCell(cellRectID, usedZoom, cellColor, progress)
+									if cellRectID == hoveredCellID and unsetShowPrice then
+										showPrice = false
+										unsetShowPrice = nil
+									end
 								end
 							end
 						end
