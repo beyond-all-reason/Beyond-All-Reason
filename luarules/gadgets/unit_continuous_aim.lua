@@ -65,6 +65,10 @@ local convertedUnits = {
 	[UnitDefNames.armvang.id] = 1,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
+	[UnitDefNames.armflash.id] = 6,
+	[UnitDefNames.corgator.id] = 6,
+	[UnitDefNames.armdecade.id] = 6,
+	[UnitDefNames.coresupp.id] = 6,
 	[UnitDefNames.corhlt.id] = 5,
 	[UnitDefNames.corfhlt.id] = 5,
 	[UnitDefNames.cordoom.id] = 5,
