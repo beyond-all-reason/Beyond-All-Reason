@@ -321,7 +321,7 @@ local widgetScale		= 0
 
 local expandDown    	= false
 local expandLeft    	= true
-local right
+local right = true
 
 local activePlayers  	= {}
 local labelOffset    	= 18
@@ -679,7 +679,7 @@ function GeometryChange()
 		widgetRight = vsx - (backgroundMargin * widgetScale)
 		widgetPosX = vsx - ((widgetWidth + backgroundMargin) * widgetScale) - widgetRelRight
 	end
-	if widgetPosX + widgetWidth/2 > vsx/2 then
+	if widgetRight > vsx/2 then
 		right = true
 	else
 		right = false
@@ -3676,7 +3676,7 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 		widgetTop   = widgetPosY + widgetHeight
 		widgetRight = widgetPosX + widgetWidth
 		widgetRelRight = vsx - (widgetPosX + (widgetWidth*widgetScale))
-		if widgetPosX + widgetWidth/2 > vsx/2 then
+		if widgetRight > vsx/2 then
 			right = true
 		else
 			right = false
