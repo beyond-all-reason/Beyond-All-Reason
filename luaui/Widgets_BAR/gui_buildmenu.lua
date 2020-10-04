@@ -1787,11 +1787,7 @@ function widget:DrawWorld()
 			local teamID = teamList[i]
 			local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
 			if tsx and tsx > 0 then
-				if not startDefID or startDefID ~= spGetTeamRulesParam(teamID, 'startUnit') then
-					startDefID = spGetTeamRulesParam(teamID, 'startUnit')
-					doUpdate = true
-				end
-				DrawUnitDef(startDefID, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
+				DrawUnitDef(spGetTeamRulesParam(teamID, 'startUnit'), teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
 			end
 		end
 		glColor(1, 1, 1, 1)
