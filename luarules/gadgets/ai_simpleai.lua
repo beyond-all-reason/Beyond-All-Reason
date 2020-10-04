@@ -5,6 +5,7 @@ local SimpleAITeamIDsCount = 0
 local SimpleCheaterAITeamIDs = {}
 local SimpleCheaterAITeamIDsCount = 0
 local UDN = UnitDefNames
+local wind = Game.windMax
 
 -- team locals
 SimpleFactories = {}
@@ -68,7 +69,7 @@ end
 			SimpleConstructorDefs[#SimpleConstructorDefs+1] = unitDefID
 		elseif unitDef.extractsMetal > 0 then
 			SimpleExtractorDefs[#SimpleExtractorDefs+1] = unitDefID
-		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0 or (unitDef.customParams and unitDef.customParams.solar) then
+		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or (unitDef.windGenerator > 0 and wind > 10) or unitDef.tidalGenerator > 0 or (unitDef.customParams and unitDef.customParams.solar) then
 			SimpleGeneratorDefs[#SimpleGeneratorDefs+1] = unitDefID
 		elseif unitDef.customParams and unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
 			SimpleConverterDefs[#SimpleConverterDefs+1] = unitDefID
@@ -123,7 +124,7 @@ local function SimpleBuildOrder(cUnitID, building)
 		local refx, refy, refz = Spring.GetUnitPosition(buildnear)
 		local reffootx = UnitDefs[refDefID].xsize*8
 		local reffootz = UnitDefs[refDefID].zsize*8
-		local spacing = math.random(96,256)
+		local spacing = math.random(64,256)
 		local testspacing = spacing*0.75
 		local buildingDefID = building
 		local r = math.random (0,3)
@@ -256,19 +257,21 @@ function gadget:GameFrame(n)
 					if unitCommands == 0 then
 						for u = 1,#SimpleConstructorDefs do
 							if unitDefID == SimpleConstructorDefs[u] then
-								
-								if ecurrent < estorage*0.50 then
+								local r = math.random(0,5)
+								if ecurrent < estorage*0.75 then
 									for i = 1,10 do
 										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
 									end
-								elseif mcurrent < mstorage*0.50 then
+								elseif mcurrent < mstorage*0.75 then
 									local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
 									if ecurrent > estorage*0.85 or (not mexspotpos) then
 										SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
 									elseif mexspotpos then
 										Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
 									end
-								elseif SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
+								elseif r == 0 then
+									SimpleBuildOrder(unitID, SimpleTurretDefs[math.random(1,#SimpleTurretDefs)])
+								elseif (mcurrent > mstorage*0.75 and ecurrent > estorage*0.75) then
 									--Spring.Echo(SimpleFactories[unitTeam])
 									SimpleBuildOrder(unitID, SimpleFactoriesDefs[math.random(1,#SimpleFactoriesDefs)])
 								else
@@ -291,13 +294,15 @@ function gadget:GameFrame(n)
 								local mexspotpos = SimpleGetClosestMexSpot(unitposx,unitposz)
 								if mexspotpos and SimpleT1Mexes[unitTeam] < 3 then
 									Spring.GiveOrderToUnit(unitID, -SimpleExtractorDefs[math.random(1,#SimpleExtractorDefs)], {mexspotpos.x, mexspotpos.y, mexspotpos.z, 0}, {"shift"})
-								elseif ecurrent < estorage*0.50 then
+								elseif ecurrent < estorage*0.75 then
 									for i = 1,10 do
 										SimpleBuildOrder(unitID, SimpleGeneratorDefs[math.random(1,#SimpleGeneratorDefs)])
 									end
-								elseif (ecurrent > estorage*0.85 or (not mexspotpos)) and mcurrent < mstorage*0.50 then
+								elseif (ecurrent > estorage*0.85 or (not mexspotpos)) and mcurrent < mstorage*0.75 then
 									SimpleBuildOrder(unitID, SimpleConverterDefs[math.random(1,#SimpleConverterDefs)])
-								elseif SimpleFactories[unitTeam] < Spring.GetGameSeconds()*0.00333 then
+								elseif r == 0 then
+									SimpleBuildOrder(unitID, SimpleTurretDefs[math.random(1,#SimpleTurretDefs)])
+								elseif (mcurrent > mstorage*0.75 and ecurrent > estorage*0.75) then
 									--Spring.Echo(SimpleFactories[unitTeam])
 									SimpleBuildOrder(unitID, SimpleFactoriesDefs[math.random(1,#SimpleFactoriesDefs)])
 								else
