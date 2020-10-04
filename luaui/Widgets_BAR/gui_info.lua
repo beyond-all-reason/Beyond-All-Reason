@@ -812,11 +812,11 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 1, 1, usedZoom)
 	glTexture(false)
 	-- darkening bottom
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 0, 0, 1, 1, { 0, 0, 0, 0.15 }, { 0, 0, 0, 0 })
+	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 0, 0, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.06 })
+	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.08 })
+	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
 	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cornerSize, 0, 0, 1, 1, { 1, 1, 1, 0.08 }, { 1, 1, 1, 0 })
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -1243,11 +1243,11 @@ local function drawUnitInfo()
 					TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 1, 1, 0.11)
 					glTexture(false)
 					-- darkening bottom
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 0, 0, 1, 1, { 0, 0, 0, 0.15 }, { 0, 0, 0, 0 })
+					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 0, 0, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
 					-- gloss
 					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - cellPadding - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cellPadding * 1.3, 0, 0, 1, 1, { 1, 1, 1, 0.08 }, { 1, 1, 1, 0 })
+					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - cellPadding - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.06 })
+					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.18), cellPadding * 1.3, 0, 0, 1, 1, { 1, 1, 1, 0.04 }, { 1, 1, 1, 0 })
 
 					local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
 					RectRoundCircle(
@@ -1713,13 +1713,20 @@ function widget:DrawScreen()
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					if b or b2 or b3 then
 						RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { color[1], color[2], color[3], (b or b2 or b3) and 0.4 or 0.2 }, { color[1], color[2], color[3], (b or b2 or b3) and 0.07 or 0.04 })
+					else
+						RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { 1,1,1, 0.08}, { 1,1,1, 0.08})
 					end
-					-- gloss
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - cellPadding - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.66), cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 0, 0, { color[1], color[2], color[3], 0 }, { color[1], color[2], color[3], (b or b2 or b3) and 0.18 or 0.13 })
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.18), cellPadding * 0.9, 0, 0, 1, 1, { color[1], color[2], color[3], (b or b2 or b3) and 0.15 or 0.1 }, { color[1], color[2], color[3], 0 })
+					-- light border
+					local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
+					glBlending(GL_SRC_ALPHA, GL_ONE)
+					RectRoundCircle(
+							cellRect[cellID][1] + cellPadding + halfSize,
+							0,
+							cellRect[cellID][2] + cellPadding + halfSize,
+							halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1,1,1, 0.07}, { 1,1,1, 0.07}
+					)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-					---- bottom darkening
-					--RectRound(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3], cellRect[cellID][2]+cellPadding+((cellRect[cellID][4]-cellRect[cellID][2])*0.33), cellPadding*0.9, 0,0,1,1,{0,0,0,(b or b2 or b3) and 0.33 or 0.25}, {0,0,0,0})
+
 					cellHovered = cellID
 					break
 				end
