@@ -2201,6 +2201,7 @@ function widget:GetConfigData()
 		defaultColls = defaultColls,
 		showShortcuts = showShortcuts,
 		makeFancy = makeFancy,
+		showTooltip = showTooltip,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID,
@@ -2233,6 +2234,9 @@ function widget:SetConfigData(data)
 	end
 	if data.makeFancy ~= nil then
 		makeFancy = data.makeFancy
+	end
+	if data.showTooltip ~= nil then
+		showTooltip = data.showTooltip
 	end
 	if data.stickToBottom ~= nil then
 		stickToBottom = data.stickToBottom
