@@ -23,7 +23,7 @@ local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 
-local iconBorderOpacity = 0.09
+local iconBorderOpacity = 0.05
 local showSelectionTotals = true
 
 -------------------------------------------------------------------------------
@@ -1051,9 +1051,27 @@ local function drawUnitInfo()
 
 	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
+		local iconX = backgroundRect[1] + iconPadding
+		local iconY =  backgroundRect[4] - iconPadding - bgpadding
+
 		glTexture(":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic)
-		TexRectRound(backgroundRect[1] + iconPadding, backgroundRect[4] - iconPadding - iconSize - bgpadding, backgroundRect[1] + iconPadding + iconSize, backgroundRect[4] - iconPadding - bgpadding, bgpadding * 0.6, 1, 1, 1, 1, 0.03)
+		TexRectRound(iconX, iconY - iconSize, iconX + iconSize, iconY, bgpadding * 0.6, 1, 1, 1, 1, 0.03)
 		glTexture(false)
+		-- darkening bottom
+		RectRound(iconX, iconY - iconSize, iconX + iconSize, iconY, bgpadding * 0.6, 0, 0, 1, 1, { 0, 0, 0, 0.15 }, { 0, 0, 0, 0 })
+		-- gloss
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRound(iconX, iconY - (iconSize*0.35), iconX + iconSize, iconY, bgpadding * 0.6, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
+		RectRound(iconX, iconY - iconSize, iconX + iconSize, iconY-(iconSize*0.2), bgpadding * 0.6, 0, 0, 1, 1, { 1, 1, 1, 0.05 }, { 1, 1, 1, 0 })
+
+		local halfSize = iconSize * 0.5
+		RectRoundCircle(
+				iconX + halfSize,
+				0,
+				iconY - halfSize,
+				halfSize, bgpadding * 0.6, halfSize - math_max(1, bgpadding* 0.5), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
+		)
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 	iconSize = iconSize + iconPadding
 
