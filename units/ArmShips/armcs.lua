@@ -52,6 +52,7 @@ return {
 			"armdrag",
 			"armclaw",
 			--"armuwmex",
+			"armguard",
 			"armtide",
 			"armgeo",
 			"armfmkr",
