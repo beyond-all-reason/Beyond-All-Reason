@@ -134,33 +134,37 @@ StopMoving()
 	stop-spin bwheel around x-axis;
 }
 
-//SetMaxReloadTime(Func_Var_1)
-//{
-//	restore_delay = Func_Var_1 * 2;
-//	return (0);
-//}
 
-//static-var  Stunned;
-//ExecuteRestoreAfterDelay()
-//{
-//   if (Stunned) {
-//       return (1);
-//    }
-//	turn gun to y-axis <0.000000> speed <90.000000>;
-//	turn gun to x-axis <0.000000> speed <50.000000>;
-// }
-//SetStunned(State)
-//{
-//    Stunned = State;
-//	if (!Stunned) {
-//	    start-script ExecuteRestoreAfterDelay();
-//	}
-//}
-//RestoreAfterDelay()
-//{
-//	sleep restore_delay;
-//	start-script ExecuteRestoreAfterDelay();
-//}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+   if (Stunned) {
+       return (1);
+    }
+	turn gun to y-axis <0.000000> speed <90.000000>;
+	turn gun to x-axis <0.000000> speed <50.000000>;
+ }
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
 
 AimPrimary(heading, pitch)
 {
@@ -170,7 +174,7 @@ AimPrimary(heading, pitch)
 	turn gun to x-axis <0.000000> - pitch speed <200.000000>;
 	wait-for-turn gun around y-axis;
 	wait-for-turn gun around x-axis;
-//	start-script RestoreAfterDelay();
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -203,10 +207,9 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode gun type BITMAPONLY | NOHEATCLOUD;
-	
+		explode gun type BITMAPONLY | NOHEATCLOUD;
+		explode rfwheel type BITMAPONLY | NOHEATCLOUD;
 		explode lfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfwheel type BITMAPONLY | NOHEATCLOUD;
 		explode bwheel type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -217,7 +220,6 @@ Killed(severity, corpsetype)
 		explode gun type FALL | NOHEATCLOUD;
 		explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode bwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
