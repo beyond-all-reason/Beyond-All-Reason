@@ -1,7 +1,7 @@
 TaskBotHST = class(Module)
 
 function TaskBotHST:Name()
-	return "TaskAirHST"
+	return "TaskBotHST"
 end
 
 function TaskBotHST:Init()
@@ -13,7 +13,7 @@ end
 
 function ConBot()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corck"
 	else
 		unitName = "armck"
@@ -24,7 +24,7 @@ end
 
 function RezBot1(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "cornecro"
 	else
 		unitName = "armrectr"
@@ -35,7 +35,7 @@ end
 
 function Lvl1BotRaider(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corak"
 	else
 		unitName = "armpw"
@@ -45,7 +45,7 @@ end
 
 function Lvl1BotBreakthrough(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corthud"
 	else
 		unitName = "armwar"
@@ -58,13 +58,13 @@ function Lvl1BotBattle(tskqbhvr)
 	local r = math.random()
 	local compare = tskqbhvr.ai.overviewhst.plasmaRocketBotRatio or 1
 	if compare >= 1 or math.random() < compare then
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side.side == UnitiesHST.CORESideName then
 			unitName = "corthud"
 		else
 			unitName = "armham"
 		end
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side.side == UnitiesHST.CORESideName then
 			unitName = "corstorm"
 		else
 			unitName = "armrock"
@@ -74,7 +74,7 @@ function Lvl1BotBattle(tskqbhvr)
 end
 
 function Lvl1AABot()
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corcrash")
 	else
 		return BuildAAIfNeeded("armjeth")
@@ -83,7 +83,7 @@ end
 
 function ScoutBot()
 	local unitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		return UnitiesHST.DummyUnitName
 	else
 		unitName = "armflea"
@@ -95,7 +95,7 @@ end
 
 function ConAdvBot()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corack"
 	else
 		unitName = "armack"
@@ -107,7 +107,7 @@ end
 
 function Lvl2BotAssist()
 	unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corfast"
 	else
 		unitName = "armfark"
@@ -118,7 +118,7 @@ end
 
 function NewCommanders(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = 'cormando'
 	else
 		unitName = UnitiesHST.DummyUnitName
@@ -128,7 +128,7 @@ end
 
 function Decoy(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = 'cordecom'
 	else
 		unitName = 'armdecom'
@@ -139,7 +139,7 @@ end
 
 function Lvl2BotBreakthrough(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corsumo"
 	else
 		unitName = "armfboy"
@@ -149,7 +149,7 @@ end
 
 function Lvl2BotArty(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "cormort"
 	else
 		unitName = "armfido"
@@ -159,7 +159,7 @@ end
 
 function Lvl2BotLongRange(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corhrk"
 	else
 		unitName = "armsnipe"
@@ -169,7 +169,7 @@ end
 
 function Lvl2BotRaider(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corpyro"
 	else
 		unitName = "armfast"
@@ -178,7 +178,7 @@ function Lvl2BotRaider(tskqbhvr)
 end
 
 function Lvl2BotCorRaiderArmArty(tskqbhvr)
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		return Lvl2BotRaider(tskqbhvr)
 	else
 		return Lvl2BotArty(tskqbhvr)
@@ -187,7 +187,7 @@ end
 
 function Lvl2BotAllTerrain(tskqbhvr)
 	local unitName=UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = 'cortermite'
 	else
 		unitName = "armsptk"
@@ -197,7 +197,7 @@ end
 
 function Lvl2BotBattle(tskqbhvr)
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = "corcan"
 	else
 		unitName = "armzeus"
@@ -207,7 +207,7 @@ end
 
 function Lvl2BotMedium(tskqbhvr)
 	local unitName=UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = 'corcan'
 	else
 		unitName = "armmav"
@@ -217,7 +217,7 @@ end
 
 function Lvl2AmphBot(tskqbhvr)
 	local unitName=UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		unitName = 'coramph'
 	else
 		unitName = 'armamph'
@@ -226,7 +226,7 @@ function Lvl2AmphBot(tskqbhvr)
 end
 
 function Lvl2AABot()
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("coraak")
 	else
 		return BuildAAIfNeeded("armaak")
