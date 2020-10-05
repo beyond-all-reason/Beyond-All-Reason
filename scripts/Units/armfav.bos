@@ -136,6 +136,8 @@ StopMoving()
 
 
 
+//following block returns weapon in straight position after firing
+
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
@@ -163,6 +165,8 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
+
+
 
 
 
