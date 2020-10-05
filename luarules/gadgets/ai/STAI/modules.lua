@@ -24,6 +24,7 @@ shard_include ("nanohst")
 shard_include ("overviewhst")
 shard_include ("taskairhst")
 shard_include ("taskbothst")
+shard_include ("taskvehhst")
 
 return {
 	SleepST,
@@ -49,5 +50,6 @@ return {
 	OverviewHST,
 	UnitHST,
 	TaskAirHST,
-	TaskBotHST
+	TaskBotHST,
+	TaskVehHST
 }

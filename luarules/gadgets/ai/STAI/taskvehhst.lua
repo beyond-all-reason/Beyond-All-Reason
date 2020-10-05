@@ -1,17 +1,19 @@
-local DebugEnabled = false
+TaskVehHST = class(Module)
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("taskVeh: " .. inStr)
-	end
+function TaskVehHST:Name()
+	return "TaskVehHST"
+end
+
+function TaskVehHST:Init()
+	self.DebugEnabled = false
 end
 
 
 --LEVEL 1
 
-function ConVehicleAmphibious()
+function TaskVehHST:ConVehicleAmphibious()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cormuskrat"
 	else
 		unitName = "armbeaver"
@@ -22,9 +24,9 @@ function ConVehicleAmphibious()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
-function ConGroundVehicle()
+function TaskVehHST:ConGroundVehicle()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corcv"
 	else
 		unitName = "armcv"
@@ -33,10 +35,10 @@ function ConGroundVehicle()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
-function ConVehicle()
+function TaskVehHST:ConVehicle()
 	local unitName = UnitiesHST.DummyUnitName
 	-- local amphRank = (((ai.mobCount['shp']) / ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
-	local amphRank = MyTB.amphRank or 0.5
+	local amphRank = self.amphRank or 0.5
 	if math.random() < amphRank then
 		unitName = ConVehicleAmphibious()
 	else
@@ -45,11 +47,11 @@ function ConVehicle()
 	return unitName
 end
 
-function Lvl1VehBreakthrough(tskqbhvr)
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl1Amphibious(tskqbhvr)
+function TaskVehHST:Lvl1VehBreakthrough()
+	if self.AmpOrGroundWeapon then
+		return Lvl1Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			return BuildBreakthroughIfNeeded("corlevlr")
 		else
 			-- armjanus isn't very a very good defense unit by itself
@@ -62,12 +64,12 @@ function Lvl1VehBreakthrough(tskqbhvr)
 	end
 end
 
-function Lvl1VehArty(tskqbhvr)
+function TaskVehHST:Lvl1VehArty()
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl1Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl1Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "corwolv"
 		else
 			unitName = "armart"
@@ -76,9 +78,9 @@ function Lvl1VehArty(tskqbhvr)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function AmphibiousRaider(tskqbhvr)
+function TaskVehHST:AmphibiousRaider()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corgarp"
 	else
 		unitName = "armpincer"
@@ -86,9 +88,9 @@ function AmphibiousRaider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl1Amphibious(tskqbhvr)
+function TaskVehHST:Lvl1Amphibious()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corgarp"
 	else
 		unitName = "armpincer"
@@ -96,12 +98,12 @@ function Lvl1Amphibious(tskqbhvr)
 	return unitName
 end
 
-function Lvl1VehRaider(tskqbhvr)
+function TaskVehHST:Lvl1VehRaider()
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl1Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl1Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "corgator"
 		else
 			unitName = "armflash"
@@ -110,12 +112,12 @@ function Lvl1VehRaider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl1VehBattle(tskqbhvr)
+function TaskVehHST:Lvl1VehBattle()
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl1Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl1Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "corraid"
 		else
 			unitName = "armstump"
@@ -124,11 +126,11 @@ function Lvl1VehBattle(tskqbhvr)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lvl1VehRaiderOutmoded(tskqbhvr)
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl1Amphibious(tskqbhvr)
+function TaskVehHST:Lvl1VehRaiderOutmoded()
+	if self.AmpOrGroundWeapon then
+		return Lvl1Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			return BuildRaiderIfNeeded("corgator")
 		else
 			return UnitiesHST.DummyUnitName
@@ -136,17 +138,17 @@ function Lvl1VehRaiderOutmoded(tskqbhvr)
 	end
 end
 
-function Lvl1AAVeh()
-	if MyTB.side == UnitiesHST.CORESideName then
+function TaskVehHST:Lvl1AAVeh()
+	if self.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("cormist")
 	else
 		return BuildAAIfNeeded("armsam")
 	end
 end
 
-function ScoutVeh()
+function TaskVehHST:ScoutVeh()
 	local unitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corfav"
 	else
 		unitName = "armfav"
@@ -156,9 +158,9 @@ end
 
 --LEVEL 2
 
-function ConAdvVehicle()
+function TaskVehHST:ConAdvVehicle()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coracv"
 	else
 		unitName = "armacv"
@@ -167,8 +169,8 @@ function ConAdvVehicle()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
-function Lvl2VehAssist()
-	if MyTB.side == UnitiesHST.CORESideName then
+function TaskVehHST:Lvl2VehAssist()
+	if self.side == UnitiesHST.CORESideName then
 		return UnitiesHST.DummyUnitName
 	else
 		unitName = 'armconsul'
@@ -177,12 +179,12 @@ function Lvl2VehAssist()
 	end
 end
 
-function Lvl2VehBreakthrough(tskqbhvr)
+function TaskVehHST:Lvl2VehBreakthrough()
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl2Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl2Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			return BuildBreakthroughIfNeeded("corgol")
 		else
 			-- armmanni isn't very a very good defense unit by itself
@@ -195,12 +197,12 @@ function Lvl2VehBreakthrough(tskqbhvr)
 	end
 end
 
-function Lvl2VehArty(tskqbhvr)
+function TaskVehHST:Lvl2VehArty()
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl2Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl2Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "cormart"
 		else
 			unitName = "armmart"
@@ -212,12 +214,12 @@ end
 -- because core doesn't have a lvl2 vehicle raider or a lvl3 raider
 
 
-function Lvl2VehRaider(tskqbhvr)
+function TaskVehHST:Lvl2VehRaider()
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl2Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl2Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = ("corseal")
 		else
 			unitName = ("armlatnk")
@@ -228,9 +230,9 @@ end
 
 
 
-function AmphibiousBattle(tskqbhvr)
+function TaskVehHST:AmphibiousBattle()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		if ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
@@ -243,9 +245,9 @@ function AmphibiousBattle(tskqbhvr)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lvl2Amphibious(tskqbhvr)
+function TaskVehHST:Lvl2Amphibious()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		if ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
@@ -258,9 +260,9 @@ function Lvl2Amphibious(tskqbhvr)
 	return unitName
 end
 
-function AmphibiousBreakthrough(tskqbhvr)
+function TaskVehHST:AmphibiousBreakthrough(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corparrow"
 	else
 		unitName = "armcroc"
@@ -268,12 +270,12 @@ function AmphibiousBreakthrough(tskqbhvr)
 	return BuildBreakthroughIfNeeded(unitName)
 end
 
-function Lvl2VehBattle(tskqbhvr)
+function TaskVehHST:Lvl2VehBattle(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl2Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl2Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "correap"
 		else
 			unitName = "armbull"
@@ -282,20 +284,20 @@ function Lvl2VehBattle(tskqbhvr)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lvl2AAVeh()
-	if MyTB.side == UnitiesHST.CORESideName then
+function TaskVehHST:Lvl2AAVeh()
+	if self.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corsent")
 	else
 		return BuildAAIfNeeded("armyork")
 	end
 end
 
-function Lvl2VehMerl(tskqbhvr)
+function TaskVehHST:Lvl2VehMerl(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.AmpOrGroundWeapon then
-		return Lvl2Amphibious(tskqbhvr)
+	if self.AmpOrGroundWeapon then
+		return Lvl2Amphibious(self)
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "corvroc"
 		else
 			unitName = "armmerl"
