@@ -3,7 +3,6 @@ AIBase = class(function(a)
    --
 end)
 
-
 function AIBase:Init()
 end
 
@@ -36,6 +35,7 @@ end
 
 function AIBase:UnitDamaged(engineunit,enginedamage)
 end
+
 function AIBase:UnitMoveFailed(engineunit)
 end
 
@@ -43,4 +43,10 @@ function AIBase:SetAI(ai)
 	self.ai = ai
 	self.game = ai.game
 	self.map = ai.map
+end
+
+function AIBase:Debug(inStr)
+	if self.debugging then
+		self.ai.game:SendToConsole(inStr)
+	end
 end
