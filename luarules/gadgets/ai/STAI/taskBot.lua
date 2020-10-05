@@ -1,11 +1,11 @@
+TaskBotHST = class(Module)
 
+function TaskBotHST:Name()
+	return "TaskAirHST"
+end
 
-local DebugEnabled = false
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("taskBot: " .. inStr)
-	end
+function TaskBotHST:Init()
+	self.DebugEnabled = false
 end
 
 

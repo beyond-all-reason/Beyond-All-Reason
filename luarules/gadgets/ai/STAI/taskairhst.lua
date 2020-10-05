@@ -8,8 +8,6 @@ function TaskAirHST:Init()
 	self.DebugEnabled = false
 end
 
-local
-
 --LEVEL 1
 
 function TaskAirHST:ConAir()
