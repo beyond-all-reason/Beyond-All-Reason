@@ -3,6 +3,9 @@ AIBase = class(function(a)
    --
 end)
 
+function AIBar:Name()
+	return 'unknown'
+end
 function AIBase:Init()
 end
 
