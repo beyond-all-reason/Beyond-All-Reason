@@ -2,7 +2,6 @@
  Task Queues!
 ]]--
 
-shard_include("taskBot")
 shard_include("taskVeh")
 shard_include("taskShp")
 shard_include("taskHov")
