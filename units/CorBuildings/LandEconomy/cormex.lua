@@ -14,7 +14,7 @@ return {
 		buildpic = "CORMEX.PNG",
 		buildtime = 1874,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW UNDERWATER",
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "48 33 48",
 		collisionvolumetype = "CylY",

@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.873,
-		turnrate = 371,
+		turnrate = 330,
 		customparams = {
 			basename = "base",
 			cannon1name = "barrel",
