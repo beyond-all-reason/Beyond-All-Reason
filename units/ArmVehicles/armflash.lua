@@ -138,6 +138,8 @@ return {
 			emgx = {
 				areaofeffect = 8,
 				avoidfeature = false,
+				burst = 3,
+				burstrate = 0.1,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -150,7 +152,7 @@ return {
 				name = "Rapid-fire close-quarters plasma gun",
 				noselfdamage = true,
 				range = 180,
-				reloadtime = 0.1,
+				reloadtime = 0.3,
 				rgbcolor = "1 0.95 0.4",
 				size = 2.15,
 				soundhitwet = "splshbig",
