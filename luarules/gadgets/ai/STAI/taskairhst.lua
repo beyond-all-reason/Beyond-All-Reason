@@ -18,7 +18,7 @@ local
 
 function TaskAirHST:ConAir()
 	unitName = UnitiesHST.DummyUnitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corca"
 	else
 		unitName = "armca"
@@ -29,7 +29,7 @@ end
 
 function TaskAirHST:Lvl1AirRaider()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "armcorbw"
 	else
 		unitName = "armkam"
@@ -39,7 +39,7 @@ end
 
 function TaskAirHST:Lvl1Fighter()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corveng"
 	else
 		unitName = "armfig"
@@ -49,7 +49,7 @@ end
 
 function TaskAirHST:Lvl1Bomber()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corshad"
 	else
 		unitName = "armthund"
@@ -59,7 +59,7 @@ end
 
 function TaskAirHST:ScoutAir()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corfink"
 	else
 		unitName = "armpeep"
@@ -70,7 +70,7 @@ end
 --LEVEL 2
 function TaskAirHST:ConAdvAir()
 	unitName = UnitiesHST.DummyUnitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coraca"
 	else
 		unitName = "armaca"
@@ -81,7 +81,7 @@ end
 
 function TaskAirHST:Lvl2Fighter()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corvamp"
 	else
 		unitName = "armhawk"
@@ -91,7 +91,7 @@ end
 
 function TaskAirHST:Lvl2AirRaider()
 	local unitName = ""
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corape"
 	else
 		-- spedical case: arm has an ubergunship
@@ -107,7 +107,7 @@ end
 
 function TaskAirHST:Lvl2Bomber()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corhurc"
 	else
 		unitName = "armpnix"
@@ -118,7 +118,7 @@ end
 
 function TaskAirHST:Lvl2TorpedoBomber()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cortitan"
 	else
 		unitName = "armlance"
@@ -127,7 +127,7 @@ function TaskAirHST:Lvl2TorpedoBomber()
 end
 
 function TaskAirHST:MegaAircraft()
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		return BuildBreakthroughIfNeeded("corcrw")
 	else
 		return BuildBreakthroughIfNeeded("armliche")
@@ -137,7 +137,7 @@ end
 
 function TaskAirHST:ScoutAdvAir()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corawac"
 	else
 		unitName = "armawac"
@@ -148,7 +148,7 @@ end
 --SEAPLANE
 function TaskAirHST:ConSeaAir()
 	unitName = UnitiesHST.DummyUnitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corcsa"
 	else
 		unitName = "armcsa"
@@ -159,7 +159,7 @@ end
 
 function TaskAirHST:SeaBomber()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corsb"
 	else
 		unitName = "armsb"
@@ -169,7 +169,7 @@ end
 
 function TaskAirHST:SeaTorpedoBomber()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corseap"
 	else
 		unitName = "armseap"
@@ -179,7 +179,7 @@ end
 
 function TaskAirHST:SeaFighter()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corsfig"
 	else
 		unitName = "armsfig"
@@ -189,7 +189,7 @@ end
 
 function TaskAirHST:SeaAirRaider()
 	local unitName = ""
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corcut"
 	else
 		unitName = "armsaber"
@@ -199,7 +199,7 @@ end
 
 function TaskAirHST:ScoutSeaAir()
 	local unitName
-	if TaskAirHST.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corhunt"
 	else
 		unitName = "armsehak"
@@ -213,7 +213,7 @@ function TaskAirHST:AirRepairPadIfNeeded()
 
 	-- only make air pads if the team has at least 1 air fac
 	if CountOwnUnits("corap") > 0 or CountOwnUnits("armap") > 0 or CountOwnUnits("coraap") > 0 or CountOwnUnits("armaap") > 0 then
-		if TaskAirHST.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			tmpUnitName = "corasp"
 		else
 			tmpUnitName = "armasp"
