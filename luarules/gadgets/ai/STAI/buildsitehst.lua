@@ -103,7 +103,7 @@ end
 
 function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition)
 	-- make sure it's on the map
-	local mapSize = self.map:MapDimensions()
+	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
 	if pos ~= nil then
@@ -112,21 +112,21 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 			-- Spring.Echo(pos.x, pos.z, maxElmosX, maxElmosZ)
 			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ - 240) then
 				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
-				pos = nil
+				return nil
 			end
 		else
 			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ) then
 				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
-				pos = nil
+				return nil
 			end
 		end
 	end
 	-- sanity check: is it REALLY possible to build here?
 	if pos ~= nil then
-		local s = map:CanBuildHere(unitTypeToBuild, pos)
+		local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
 		if not s then
 			self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
-			pos = nil
+			return nil
 		end
 	end
 	local rect
@@ -138,7 +138,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	if pos ~= nil then
 		local lw = self:LandWaterFilter(pos, unitTypeToBuild, builder)
 		if not lw then
-			pos = nil
+			return nil
 		end
 	end
 	-- don't build where you shouldn't (metal spots, geo spots, factory lanes)
@@ -154,8 +154,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	if pos ~= nil then
 		for i, plan in pairs(self.plans) do
 			if RectsOverlap(rect, plan) then
-				pos = nil
-				break
+				return nil
 			end
 		end
 	end
@@ -163,7 +162,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	if pos ~= nil then
 		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
 			self:EchoDebug(builder:Name() .. " can't go there: " .. pos.x .. "," .. pos.z)
-			pos = nil
+			return nil
 		end
 	end
 	if pos ~= nil then
@@ -174,14 +173,14 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 			self:EchoDebug("nano distance: " .. dist)
 			if dist > 390 then
 				self:EchoDebug("nano too far from factory")
-				pos = nil
+				return nil
 			end
 		elseif UnitiesHST.bigPlasmaList[uname] or UnitiesHST.littlePlasmaList[uname] or UnitiesHST.nukeList[uname] then
 			-- don't build bombarding units outside of bombard positions
 			local b = self.ai.targethst:IsBombardPosition(pos, uname)
 			if not b then
 				self:EchoDebug("bombard not in bombard position")
-				pos = nil
+				return nil
 			end
 		end
 	end
