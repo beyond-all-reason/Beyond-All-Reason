@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Player-TV",
-		desc = "Automaticly tracks players camera, (shows player-switch countdown on top of advplayerlist)",
+		desc = "Automatically tracks players camera, (shows player-switch countdown on top of advplayerlist)",
 		author = "Floris",
 		date = "January 2018",
 		license = "GNU GPL, v2 or later",
@@ -263,7 +263,7 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
-local function createList()
+function createList()
 	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
 	end
@@ -571,6 +571,8 @@ function widget:ViewResize()
 		for i = 1, #drawlist do
 			drawlist[i] = gl.DeleteList(drawlist[i])
 		end
+
+		createList()
 	end
 
 	createCountdownLists()
