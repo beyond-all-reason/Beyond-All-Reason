@@ -214,7 +214,7 @@ function ThreatRange(unitName, groundAirSubmerged)
 	if UnitiesHST.antinukeList[unitName] or UnitiesHST.nukeList[unitName] or UnitiesHST.bigPlasmaList[unitName] or UnitiesHST.shieldList[unitName] then
 		return 0, 0
 	end
-	local utable = ai.data.unitTable[unitName]
+	local utable = ai.UnitiesHST.unitTable[unitName]
 	if groundAirSubmerged == nil then
 		if utable.groundRange > utable.airRange and utable.groundRange > utable.submergedRange then
 			groundAirSubmerged = "ground"
@@ -270,7 +270,7 @@ function UnitWeaponLayerList(unitName)
 	local weaponLayers = unitWeaponLayers[unitName]
 	if weaponLayers then return weaponLayers end
 	weaponLayers = {}
-	local ut = ai.data.unitTable[unitName]
+	local ut = ai.UnitiesHST.unitTable[unitName]
 	if not ut then
 		return weaponLayers
 	end
@@ -294,7 +294,7 @@ function UnitWeaponMtypeList(unitName)
 	if mtypes then
 		return mtypes
 	end
-	local utable = ai.data.unitTable[unitName]
+	local utable = ai.UnitiesHST.unitTable[unitName]
 	mtypes = {}
 	if utable.groundRange > 0 then
 		table.insert(mtypes, "veh")
@@ -319,7 +319,7 @@ function WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
 	if unitName then
-		local ut = ai.data.unitTable[unitName]
+		local ut = ai.UnitiesHST.unitTable[unitName]
 		if ut then
 			mtype = ut.mtype
 		end

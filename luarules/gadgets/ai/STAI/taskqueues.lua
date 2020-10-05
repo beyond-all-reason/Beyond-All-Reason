@@ -70,8 +70,8 @@ function IsWaterAttackNeeded()
 end
 
 function GetMtypedLv(unitName)
-	local mtype = ai.data.unitTable[unitName].mtype
-	local level = ai.data.unitTable[unitName].techLevel
+	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
+	local level = ai.UnitiesHST.unitTable[unitName].techLevel
 	local mtypedLv = mtype .. tostring(level)
 	local counter = ai.mtypeLvCount[mtypedLv] or 0
 	EchoDebug('mtypedLvmtype ' .. mtype .. ' '.. level .. ' ' .. counter)
@@ -81,7 +81,7 @@ end
 
 function BuildAAIfNeeded(unitName)
 	if IsAANeeded() then
-		if not ai.data.unitTable[unitName].isBuilding then
+		if not ai.UnitiesHST.unitTable[unitName].isBuilding then
 			return BuildWithLimitedNumber(unitName, ai.overviewhst.AAUnitPerTypeLimit)
 		else
 			return unitName
@@ -112,7 +112,7 @@ end
 function BuildBreakthroughIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then return unitName end
-	local mtype = ai.data.unitTable[unitName].mtype
+	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
 	if mtype == "air" then
 		local bomberCounter = ai.bomberhst:GetCounter()
 		if bomberCounter >= UnitiesHST.breakthroughBomberCounter and bomberCounter < UnitiesHST.maxBomberCounter then
@@ -136,7 +136,7 @@ end
 function BuildRaiderIfNeeded(unitName)
 	EchoDebug("build raider if needed: " .. unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	local mtype = ai.data.unitTable[unitName].mtype
+	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
 	if ai.factoriesAtLevel[3] ~= nil and ai.factoriesAtLevel[3] ~= {} then
 		-- if we have a level 2 factory, don't build raiders until we have some battle units
 		local attackCounter = ai.attackhst:GetCounter(mtype)
@@ -156,7 +156,7 @@ end
 
 function BuildBattleIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	local mtype = ai.data.unitTable[unitName].mtype
+	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
 	local attackCounter = ai.attackhst:GetCounter(mtype)
 	EchoDebug(mtype .. " " .. attackCounter .. " " .. UnitiesHST.maxAttackCounter)
 	if attackCounter == UnitiesHST.maxAttackCounter and ai.battleCount > UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end

@@ -15,7 +15,7 @@ function BombardBST:Init()
     self.targetFrame = 0
     local unit = self.unit:Internal()
     self.position = unit:GetPosition()
-    self.range = self.ai.data.unitTable[unit:Name()].groundRange
+    self.range = UnitiesHST.unitTable[unit:Name()].groundRange
     self.radsPerFrame = 0.015
 end
 

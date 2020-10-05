@@ -23,10 +23,10 @@ function DefendBST:Init()
 	self.active = false
 	self.id = self.unit:Internal():ID()
 	self.name = self.unit:Internal():Name()
-	local ut = self.ai.data.unitTable[self.name]
+	local ut = UnitiesHST.unitTable[self.name]
 	self.tough = UnitiesHST.battleList[self.name] or UnitiesHST.breakthroughList[self.name]
 	self.isDefender = IsDefender(self.unit)
-	self.mtype = self.ai.data.unitTable[self.name].mtype
+	self.mtype = UnitiesHST.unitTable[self.name].mtype
 	-- defenders need to be sorted into only one type of weapon
 	if ut.groundRange > 0 then
 		self.hits = "ground"

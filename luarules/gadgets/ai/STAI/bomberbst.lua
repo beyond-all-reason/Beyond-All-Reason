@@ -17,7 +17,7 @@ function BomberBST:Init()
 
 	self.lastOrderFrame = self.game:Frame()
 	self.name = self.unit:Internal():Name()
-	if self.ai.data.unitTable[self.name].submergedRange > 0 then
+	if UnitiesHST.unitTable[self.name].submergedRange > 0 then
 		self.weapon = "torpedo"
 		self.hurts = "submerged"
 	else

@@ -53,7 +53,7 @@ function DefendHST:AddWard(behaviour, turtle)
 		if behaviour.name == nil then behaviour.name = behaviour.unit:Internal():Name() end
 		if behaviour.id == nil then behaviour.id = behaviour.unit:Internal():ID() end
 		local un = behaviour.name
-		local utable = self.ai.data.unitTable[un]
+		local utable = UnitiesHST.unitTable[un]
 		priority.air = utable.techLevel * techLevelPriority
 		if UnitiesHST.commanderList[un] then priority.air = commanderPriority end
 		local mtype = behaviour.mtype
@@ -622,7 +622,7 @@ end
 function DefendHST:GetGuardDistance(unitName)
 	local dist = self.unitGuardDistances[unitName]
 	if dist ~= nil then return dist end
-	local utable = self.ai.data.unitTable[unitName]
+	local utable = UnitiesHST.unitTable[unitName]
 	dist = (math.max(utable.xsize, utable.zsize) * 4) + 100
 	self.unitGuardDistances[unitName] = dist
 	return dist

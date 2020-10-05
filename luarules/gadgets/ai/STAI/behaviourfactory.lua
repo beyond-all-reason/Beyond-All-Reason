@@ -63,7 +63,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, CleanerBST)
 	end
 
-	if self.ai.data.unitTable[un].isBuilding then
+	if UnitiesHST.unitTable[un].isBuilding then
 		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
 		if UnitiesHST.nukeList[un] then
 			table.insert(b, NukeBST)
@@ -92,7 +92,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b,TaskQueueBST)
 		else
 			table.insert(b,TaskQueueBST)
-			if self.ai.data.unitTable[un].isBuilding then
+			if UnitiesHST.unitTable[un].isBuilding then
 				table.insert(b, LabRegisterBST)
 			else
 				table.insert(b, AssistBST)
@@ -115,7 +115,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		if HasKey(un,UnitiesHST.raiderList) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
-			if self.ai.data.unitTable[un].mtype ~= "air" then
+			if UnitiesHST.unitTable[un].mtype ~= "air" then
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end

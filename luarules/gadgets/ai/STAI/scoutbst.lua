@@ -12,10 +12,10 @@ function ScoutBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
-	self.armed = self.ai.data.unitTable[self.name].isWeapon
-	self.keepYourDistance = self.ai.data.unitTable[self.name].losRadius * 0.5
+	self.armed = UnitiesHST.unitTable[self.name].isWeapon
+	self.keepYourDistance = UnitiesHST.unitTable[self.name].losRadius * 0.5
 	if mtype == "air" then
-		self.airDistance = self.ai.data.unitTable[self.name].losRadius * 1.5
+		self.airDistance = UnitiesHST.unitTable[self.name].losRadius * 1.5
 		self.lastCircleFrame = self.game:Frame()
 	end
 	self.lastUpdateFrame = self.game:Frame()

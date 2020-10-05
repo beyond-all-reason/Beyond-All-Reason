@@ -84,7 +84,7 @@ end
 function TargetHST:Value(unitName)
 	local v = unitValue[unitName]
 	if v then return v end
-	local utable = self.ai.data.unitTable[unitName]
+	local utable = UnitiesHST.unitTable[unitName]
 	if not utable then return 0 end
 	local val = utable.metalCost + (utable.techLevel * techValue)
 	if utable.buildOptions ~= nil then
@@ -302,7 +302,7 @@ end
 function TargetHST:CountEnemyThreat(unitID, unitName, threat)
 	if not self.enemyAlreadyCounted[unitID] then
 		self.currentEnemyThreatCount = self.currentEnemyThreatCount + threat
-		if self.ai.data.unitTable[unitName].isBuilding then
+		if UnitiesHST.unitTable[unitName].isBuilding then
 			self.currentEnemyImmobileThreatCount = self.currentEnemyImmobileThreatCount + threat
 		else
 			self.currentEnemyMobileThreatCount = self.currentEnemyMobileThreatCount + threat
@@ -322,7 +322,7 @@ end
 
 function TargetHST:DangerCheck(unitName, unitID)
 	local un = unitName
-	local ut = self.ai.data.unitTable[un]
+	local ut = UnitiesHST.unitTable[un]
 	local id = unitID
 	if ut.isBuilding then
 		if ut.needsWater then
@@ -420,7 +420,7 @@ function TargetHST:UpdateEnemies()
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.unitName
-		local ut = self.ai.data.unitTable[name]
+		local ut = UnitiesHST.unitTable[name]
 		if ghost and not ghost.position and not e.beingBuilt then
 			-- count ghosts with unknown positions as non-positioned threats
 			self:DangerCheck(name, e.unitID)
@@ -454,10 +454,10 @@ function TargetHST:UpdateEnemies()
 				local mtype = ut.mtype
 				self:DangerCheck(name, e.unitID)
 				local value = self:Value(name)
-				if self.ai.data.unitTable[name].extractsMetal ~= 0 then
+				if UnitiesHST.unitTable[name].extractsMetal ~= 0 then
 					table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
 				end
-				if self.ai.data.unitTable[name].isBuilding then
+				if UnitiesHST.unitTable[name].isBuilding then
 					table.insert(cell.buildingIDs, e.unitID)
 				end
 				local hurtBy = WhatHurtsUnit(name)
@@ -589,7 +589,7 @@ function TargetHST:UpdateWrecks()
 			local unitName = ftable.unitName
 			if unitName ~= nil then
 				w.unitName = unitName
-				local rut = self.ai.data.unitTable[unitName]
+				local rut = UnitiesHST.unitTable[unitName]
 				if not UnitiesHST.commanderList[unitName] and rut.speed > 0 and rut.metalCost < 2000 then
 					table.insert(cell.resurrectables, w)
 				end
@@ -684,10 +684,10 @@ function TargetHST:UnitDamaged(unit, attacker, damage)
 	if attacker ~= nil and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
 		self:DangerCheck(attacker:Name(), attacker:ID())
 		local mtype
-		local ut = self.ai.data.unitTable[unit:Name()]
+		local ut = UnitiesHST.unitTable[unit:Name()]
 		if ut then
 			local threat = damage
-			local aut = self.ai.data.unitTable[attacker:Name()]
+			local aut = UnitiesHST.unitTable[attacker:Name()]
 			if aut then
 				if aut.isBuilding then
 					self.ai.loshst:KnowEnemy(attacker)
@@ -874,9 +874,9 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 	local bestThreatCell
 	local bestThreat = 0
 	local name = representative:Name()
-	local longrange = self.ai.data.unitTable[name].groundRange > 1000
-	local mtype = self.ai.data.unitTable[name].mtype
-	ourThreat = ourThreat or self.ai.data.unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
+	local longrange = UnitiesHST.unitTable[name].groundRange > 1000
+	local mtype = UnitiesHST.unitTable[name].mtype
+	ourThreat = ourThreat or UnitiesHST.unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local possibilities = {}
 	local highestDist = 0
@@ -937,9 +937,9 @@ function TargetHST:GetNearestAttackCell(representative, position, ourThreat)
 	position = position or representative:GetPosition()
 	self:UpdateMap()
 	local name = representative:Name()
-	local longrange = self.ai.data.unitTable[name].groundRange > 1000
-	local mtype = self.ai.data.unitTable[name].mtype
-	ourThreat = ourThreat or self.ai.data.unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
+	local longrange = UnitiesHST.unitTable[name].groundRange > 1000
+	local mtype = UnitiesHST.unitTable[name].mtype
+	ourThreat = ourThreat or UnitiesHST.unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local lowestDistValueable
 	local lowestDistThreatening
@@ -1169,7 +1169,7 @@ function TargetHST:WreckToResurrect(representative, alsoDamagedUnits)
 				if wname ~= nil then
 					local ft = featureTable[wname]
 					if ft ~= nil then
-						local ut = self.ai.data.unitTable[ft.unitName]
+						local ut = UnitiesHST.unitTable[ft.unitName]
 						if ut ~= nil then
 							local metalCost = ut.metalCost
 							if metalCost > bestMetalCost then
@@ -1215,7 +1215,7 @@ end
 function TargetHST:IsBombardPosition(position, unitName)
 	self:UpdateMap()
 	local px, pz = GetCellPosition(position)
-	local radius = self.ai.data.unitTable[unitName].groundRange
+	local radius = UnitiesHST.unitTable[unitName].groundRange
 	local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
 	if groundValue + groundThreat > self:Value(unitName) * 1.5 then
 		return true
@@ -1290,7 +1290,7 @@ function TargetHST:IsSafePosition(position, unit, threshold, adjacent)
 		return true
 	end
 	if threshold then
-		return threat < self.ai.data.unitTable[uname].metalCost * threshold, cell.response
+		return threat < UnitiesHST.unitTable[uname].metalCost * threshold, cell.response
 	else
 		return threat == 0, cell.response
 	end
@@ -1300,7 +1300,7 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	if self.pathModifierFuncs[unitName] then
 		return self.pathModifierFuncs[unitName]
 	end
-	local divisor = self.ai.data.unitTable[unitName].metalCost / 40
+	local divisor = UnitiesHST.unitTable[unitName].metalCost / 40
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
 		local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor
 		if distanceToGoal then
@@ -1388,7 +1388,7 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 		end
 	end
 	if best and notsafe then
-		local mtype = self.ai.data.unitTable[uname].mtype
+		local mtype = UnitiesHST.unitTable[uname].mtype
 		self:AddBadPosition(targetPosition, mtype, 16, 1200) -- every thing to avoid on the way to the target increases its threat a tiny bit
 		table.insert(self.feints, {x = best.x, z = best.z, px = px, pz = pz, tx = tx, tz = tz, frame = f})
 		return best.pos

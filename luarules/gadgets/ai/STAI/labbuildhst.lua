@@ -20,7 +20,7 @@ end
 
 function LabBuildHST:UnitBuilt(engineUnit)
 	local uname = engineUnit:Name()
-	local ut = self.ai.data.unitTable[uname]
+	local ut = UnitiesHST.unitTable[uname]
 	if ut.isBuilding or not ut.buildOptions then
 		-- it's not a construction unit
 		return
@@ -83,7 +83,7 @@ function LabBuildHST:PrePositionFilter()
 	for rank = 1, #self.ai.factoriesRanking do
 		local factoryName = self.ai.factoriesRanking[rank]
 		local buildMe = true
-		local utn=self.ai.data.unitTable[factoryName]
+		local utn=UnitiesHST.unitTable[factoryName]
 		local level = utn.techLevel
 		local isAdvanced = UnitiesHST.advFactories[factoryName]
 		local isExperimental = UnitiesHST.expFactories[factoryName] or UnitiesHST.leadsToExpFactories[factoryName]
@@ -143,7 +143,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 	local canDoFactory = false
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
-		local uTn = self.ai.data.unitTable[factoryName]
+		local uTn = UnitiesHST.unitTable[factoryName]
 		--if self.ai.scaledMetal > uTn.metalCost * order and self.ai.scaledEnergy > uTn.energyCost * order and self.ai.combatCount >= self.ai.factories * 20 then
 		local factoryCountSq = self.ai.factories * self.ai.factories
 		local sameFactoryCount = self.ai.nameCountFinished[factoryName] or 0
@@ -283,8 +283,8 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 	end
 	local mtype = UnitiesHST.factoryMobilities[factoryName][1]
 	-- below is commented out because sometimes you need a lower level factory to build things the higher level cannot, when the previous low level factory has been destroyed
-	-- if self.ai.data.unitTable[factoryName].techLevel <= self.ai.factoryBuilded[mtype][network] then
-	-- 	self:EchoDebug('tech level ' .. self.ai.data.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. self.ai.factoryBuilded[mtype][network])
+	-- if UnitiesHST.unitTable[factoryName].techLevel <= self.ai.factoryBuilded[mtype][network] then
+	-- 	self:EchoDebug('tech level ' .. UnitiesHST.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. self.ai.factoryBuilded[mtype][network])
 	-- 	return false
 	-- end
 	if mtype == 'bot' then

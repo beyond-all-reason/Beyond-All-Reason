@@ -1,14 +1,20 @@
-local DebugEnabled = false
+TaskAirHST = class(Module)
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("taskAir: " .. inStr)
-	end
+function TaskAirHST:Name()
+	return "TaskAirHST"
+end
+
+function TaskAirHST:internalName()
+	return "taskairhst"
+end
+
+function TaskAirHST:Init()
+	self.DebugEnabled = false
 end
 
 --LEVEL 1
 
-function ConAir()
+function TaskAirHST:ConAir()
 	unitName = UnitiesHST.DummyUnitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corca"
@@ -19,8 +25,8 @@ function ConAir()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
-function Lvl1AirRaider(tskqbhvr)
-	local unitName = ""
+function TaskAirHST:Lvl1AirRaider()
+	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "armcorbw"
 	else
@@ -29,7 +35,7 @@ function Lvl1AirRaider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl1Fighter()
+function TaskAirHST:Lvl1Fighter()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corveng"
@@ -39,7 +45,7 @@ function Lvl1Fighter()
 	return BuildAAIfNeeded(unitName)
 end
 
-function Lvl1Bomber()
+function TaskAirHST:Lvl1Bomber()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corshad"
@@ -49,7 +55,7 @@ function Lvl1Bomber()
 	return BuildBomberIfNeeded(unitName)
 end
 
-function ScoutAir()
+function TaskAirHST:ScoutAir()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corfink"
@@ -60,7 +66,7 @@ function ScoutAir()
 end
 
 --LEVEL 2
-function ConAdvAir()
+function TaskAirHST:ConAdvAir()
 	unitName = UnitiesHST.DummyUnitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "coraca"
@@ -71,7 +77,7 @@ function ConAdvAir()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
-function Lvl2Fighter()
+function TaskAirHST:Lvl2Fighter()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corvamp"
@@ -81,7 +87,7 @@ function Lvl2Fighter()
 	return BuildAAIfNeeded(unitName)
 end
 
-function Lvl2AirRaider(tskqbhvr)
+function TaskAirHST:Lvl2AirRaider()
 	local unitName = ""
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corape"
@@ -97,7 +103,7 @@ function Lvl2AirRaider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl2Bomber()
+function TaskAirHST:Lvl2Bomber()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corhurc"
@@ -108,7 +114,7 @@ function Lvl2Bomber()
 end
 
 
-function Lvl2TorpedoBomber()
+function TaskAirHST:Lvl2TorpedoBomber()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "cortitan"
@@ -118,7 +124,7 @@ function Lvl2TorpedoBomber()
 	return BuildTorpedoBomberIfNeeded(unitName)
 end
 
-function MegaAircraft()
+function TaskAirHST:MegaAircraft()
 	if MyTB.side == UnitiesHST.CORESideName then
 		return BuildBreakthroughIfNeeded("corcrw")
 	else
@@ -127,7 +133,7 @@ function MegaAircraft()
 end
 
 
-function ScoutAdvAir()
+function TaskAirHST:ScoutAdvAir()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corawac"
@@ -138,7 +144,7 @@ function ScoutAdvAir()
 end
 
 --SEAPLANE
-function ConSeaAir()
+function TaskAirHST:ConSeaAir()
 	unitName = UnitiesHST.DummyUnitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corcsa"
@@ -149,7 +155,7 @@ function ConSeaAir()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
-function SeaBomber()
+function TaskAirHST:SeaBomber()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corsb"
@@ -159,7 +165,7 @@ function SeaBomber()
 	return BuildBomberIfNeeded(unitName)
 end
 
-function SeaTorpedoBomber()
+function TaskAirHST:SeaTorpedoBomber()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corseap"
@@ -169,7 +175,7 @@ function SeaTorpedoBomber()
 	return BuildTorpedoBomberIfNeeded(unitName)
 end
 
-function SeaFighter()
+function TaskAirHST:SeaFighter()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corsfig"
@@ -179,7 +185,7 @@ function SeaFighter()
 	return BuildAAIfNeeded(unitName)
 end
 
-function SeaAirRaider(tskqbhvr)
+function TaskAirHST:SeaAirRaider()
 	local unitName = ""
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corcut"
@@ -189,7 +195,7 @@ function SeaAirRaider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function ScoutSeaAir()
+function TaskAirHST:ScoutSeaAir()
 	local unitName
 	if MyTB.side == UnitiesHST.CORESideName then
 		unitName = "corhunt"
@@ -200,7 +206,7 @@ function ScoutSeaAir()
 end
 
 --AIRPAD
-function AirRepairPadIfNeeded()
+function TaskAirHST:AirRepairPadIfNeeded()
 	local tmpUnitName = UnitiesHST.DummyUnitName
 
 	-- only make air pads if the team has at least 1 air fac
