@@ -1,13 +1,15 @@
-local DebugEnabled = false
+TaskHovHST = class(Module)
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("taskHov: " .. inStr)
-	end
+function TaskHovHST:Name()
+	return "TaskShpHST"
 end
 
-function ConHover()
-	if MyTB.side == UnitiesHST.CORESideName then
+function TaskHovHST:Init()
+	self.DebugEnabled = false
+end
+
+function TaskHovHSTConHover()
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corch"
 	else
 		unitName = "armch"
@@ -16,9 +18,9 @@ function ConHover()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
-function HoverMerl(tskqbhvr)
+function TaskHovHSTHoverMerl()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cormh"
 	else
 		unitName = "armmh"
@@ -26,9 +28,9 @@ function HoverMerl(tskqbhvr)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function HoverRaider(tskqbhvr)
+function TaskHovHSTHoverRaider()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corsh"
 	else
 		unitName = "armsh"
@@ -36,9 +38,9 @@ function HoverRaider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function HoverBattle(tskqbhvr)
+function TaskHovHSTHoverBattle()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corsnap"
 	else
 		unitName = "armanac"
@@ -46,9 +48,9 @@ function HoverBattle(tskqbhvr)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function HoverBreakthrough(tskqbhvr)
+function TaskHovHSTHoverBreakthrough()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corhal"
 	else
 		unitName = "armanac"
@@ -56,8 +58,8 @@ function HoverBreakthrough(tskqbhvr)
 	BuildBreakthroughIfNeeded(unitName)
 end
 
-function AAHover()
-	if MyTB.side == UnitiesHST.CORESideName then
+function TaskHovHSTAAHover()
+	if self.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corah")
 	else
 		return BuildAAIfNeeded("armah")

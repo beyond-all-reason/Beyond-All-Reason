@@ -26,6 +26,7 @@ shard_include ("taskairhst")
 shard_include ("taskbothst")
 shard_include ("taskvehhst")
 shard_include ("taskshphst")
+shard_include ("taskhovhst")
 
 return {
 	SleepST,
@@ -53,5 +54,6 @@ return {
 	TaskAirHST,
 	TaskBotHST,
 	TaskVehHST,
-	TaskShphst
+	TaskShphst,
+	TaskHovHST
 }
