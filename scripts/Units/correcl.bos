@@ -185,8 +185,8 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		//explode wake2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano2 type FALL | NOHEATCLOUD;
+		explode nano1 type FIRE | SMOKE | NOHEATCLOUD;
+		explode nano2 type NOHEATCLOUD;
 		//explode wake1 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -195,16 +195,16 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		//explode wake2 type SMOKE | FALL | NOHEATCLOUD;
-		explode nano1 type SMOKE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type SMOKE | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
 		//explode wake1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		//explode wake2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode wake1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		//explode wake1 type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -142,7 +142,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode prop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode prop type FIRE | SMOKE | NOHEATCLOUD;
 		explode doorl type BITMAPONLY | NOHEATCLOUD;
 		explode doorr type BITMAPONLY | NOHEATCLOUD;
 		//explode flare type BITMAPONLY | NOHEATCLOUD;
@@ -152,27 +152,27 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode prop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorl type FALL | NOHEATCLOUD;
-		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode prop type FIRE | SMOKE | NOHEATCLOUD;
+		explode doorl type NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | NOHEATCLOUD;
 		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode prop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | NOHEATCLOUD;
+		explode prop type FIRE | SMOKE | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | NOHEATCLOUD;
 		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode prop type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode doorl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode doorr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode prop type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode doorl type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode doorr type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
 		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
