@@ -109,7 +109,7 @@ return {
 				startvelocity = 80,
 				tolerance = 1167,
 				tracks = true,
-				turnrate = 99000,
+				turnrate = 20000,
 				turret = true,
 				waterweapon = true,
 				weaponacceleration = 60,

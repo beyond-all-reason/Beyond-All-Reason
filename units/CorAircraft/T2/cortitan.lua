@@ -91,6 +91,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
+				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -111,7 +112,7 @@ return {
 				startvelocity = 0,
 				tolerance = 2000,
 				tracks = true,
-				turnrate = 192000,
+				turnrate = 17000,
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 35,
@@ -120,6 +121,10 @@ return {
 				weaponvelocity = 200,
 				damage = {
 					default = 1500,
+				},
+				customparams = {
+					speceffect = "torpwaterpen",
+					when = "ypos<0",
 				},
 			},
 		},
