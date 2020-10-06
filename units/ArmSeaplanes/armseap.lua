@@ -117,6 +117,10 @@ return {
 					fighters = 15,
 					vtol = 15,
 				},
+				customparams = {
+					speceffect = "torpwaterpen",
+					when = "ypos<0",
+				},
 			},
 		},
 		weapons = {
