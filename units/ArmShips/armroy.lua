@@ -138,7 +138,7 @@ return {
 				reloadtime = 2.23333,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
-				startvelocity = 80,
+				startvelocity = 120,
 				tolerance = 1000,
 				tracks = true,
 				turnrate = 6000,
@@ -191,6 +191,8 @@ return {
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
+				maindir = "0 0 1",
+				maxangledif = 300,
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
