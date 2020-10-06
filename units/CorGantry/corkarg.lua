@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,
 		turnrate = 607.20001,
-		upright = true,
+		upright = false,
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
