@@ -1,15 +1,17 @@
-local DebugEnabled = false
+TaskExpHST = class(Module)
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("taskExp: " .. inStr)
-	end
+function TaskExpHST:Name()
+	return "TaskExpHST"
+end
+
+function TaskExpHST:Init()
+	self.DebugEnabled = false
 end
 
 --SOME FUNCTIONS ARE DUPLICATE HERE
-function Lvl3Merl(tskqbhvr)
+function TaskExpHST:Lvl3Merl()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corcat"
 	else
 		unitName = UnitiesHST.DummyUnitName
@@ -17,9 +19,9 @@ function Lvl3Merl(tskqbhvr)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function Lvl3Arty(tskqbhvr)
+function TaskExpHST:Lvl3Arty()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "armshiva"
 	else
 		unitName = "armvang"
@@ -27,9 +29,9 @@ function Lvl3Arty(tskqbhvr)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function lv3Amp(tskqbhvr)
+function TaskExpHST:lv3Amp()
 	local unitName=UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "armshiva"
 	else
 		unitName = "armmar"
@@ -37,9 +39,9 @@ function lv3Amp(tskqbhvr)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function Lvl3Breakthrough(tskqbhvr)
+function TaskExpHST:Lvl3Breakthrough()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = BuildWithLimitedNumber("corkorg", 1)
 		if unitName == UnitiesHST.DummyUnitName then
 			unitName = BuildWithLimitedNumber("corjugg", 2)
@@ -56,9 +58,9 @@ function Lvl3Breakthrough(tskqbhvr)
 	return BuildBreakthroughIfNeeded(unitName)
 end
 
-function lv3bigamp(tskqbhvr)
+function TaskExpHST:lv3bigamp()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = 'corkorg'
 	else
 		unitName = 'armbanth'
@@ -66,9 +68,9 @@ function lv3bigamp(tskqbhvr)
 	return unitName
 end
 
-function Lvl3Raider(tskqbhvr)
+function TaskExpHST:Lvl3Raider()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = UnitiesHST.DummyUnitName
 	else
 		unitName = "armmar"
@@ -77,9 +79,9 @@ function Lvl3Raider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl3Battle(tskqbhvr)
+function TaskExpHST:Lvl3Battle()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corkarg"
 	else
 		unitName = "armraz"
@@ -87,9 +89,9 @@ function Lvl3Battle(tskqbhvr)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lvl3Hov(tskqbhvr)
+function TaskExpHST:Lvl3Hov()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corsok"
 	else
 		unitName = "armlun"
@@ -97,10 +99,10 @@ function Lvl3Hov(tskqbhvr)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lv3VehAmp(tskqbhvr)
+function TaskExpHST:Lv3VehAmp()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
-		if tskqbhvr.ai.Metal.full < 0.5 then
+	if self.side == UnitiesHST.CORESideName then
+		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
 			unitName = "corparrow"
@@ -112,9 +114,9 @@ function Lv3VehAmp(tskqbhvr)
 end
 
 
-function Lv3Special(tskqbhvr)
+function TaskExpHST:Lv3Special()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corjugg"
 	else
 		unitName = "armvang"
