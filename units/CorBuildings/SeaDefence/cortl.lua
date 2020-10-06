@@ -93,6 +93,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = true,
 				burnblow = true,
+				cegtag = "torpedotrail-tiny",
 				collidefriendly = true,
 				craterareaofeffect = 0,
 				craterboost = 0,
