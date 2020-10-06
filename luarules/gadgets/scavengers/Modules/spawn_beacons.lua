@@ -37,7 +37,7 @@ function SpawnBeacon(n)
 						else
 							-- elseif globalScore > scavconfig.timers.OnlyLos then
 								-- canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
-							if globalScore > scavconfig.timers.NoRadar then
+							if globalScore > scavconfig.timers.NoRadar or ((not ScavSafeAreaExist) and scavconfig.modules.startBoxProtection == true) then
 								canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
 							else
 								canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)
