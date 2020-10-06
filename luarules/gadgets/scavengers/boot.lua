@@ -191,13 +191,13 @@ function gadget:GameFrame(n)
 	end
 		
 
-	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true and FinalBossKilled == false then
-		if n%30 == 0 then
+	if scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
+		if n%(math.ceil(150/ScavSafeAreaGenerator)) == 0 then
 			spawnStartBoxProtection(n)
 			executeStartBoxProtection(n)
 			spawnStartBoxEffect2(n)
 		end
-		if n%3 == 0 then
+		if n%(math.ceil(30/ScavSafeAreaGenerator)) == 0 then
 			spawnStartBoxEffect(n)
 		end
 	end
@@ -383,6 +383,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		UnitSuffixLenght[unitID] = nil
 		ConstructorNumberOfRetries[unitID] = nil
 		CaptureProgressForBeacons[unitID] = nil
+		if UnitName == "scavsafeareabeacon_scav" then
+			ScavSafeAreaExist = false
+		end
 	else
 		for i = 1,#AliveEnemyCommanders do
 			local comID = AliveEnemyCommanders[i]
@@ -411,6 +414,9 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 				Spring.SetUnitMaxHealth(unitID, 10000)
 			end
 			--SpawnDefencesAfterCapture(unitID, unitNewTeam)
+		end
+		if UnitName == "scavsafeareabeacon_scav" then
+			ScavSafeAreaExist = false
 		end
 		selfdx[unitID] = nil
 		selfdy[unitID] = nil
@@ -570,6 +576,20 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 				Spring.SetUnitHealth(unitID, bosshealth)
 			end
+		end
+		if UnitName == "scavsafeareabeacon_scav" then
+			ScavSafeAreaExist = true
+			if not ScavSafeAreaSize then
+				ScavSafeAreaSize = 250
+				ScavSafeAreaGenerator = 0
+			end
+			ScavSafeAreaSize = ScavSafeAreaSize * 1.25
+			ScavSafeAreaGenerator = ScavSafeAreaGenerator + 1
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			ScavSafeAreaMinX = posx - ScavSafeAreaSize
+			ScavSafeAreaMaxX = posx + ScavSafeAreaSize
+			ScavSafeAreaMinZ = posz - ScavSafeAreaSize
+			ScavSafeAreaMaxZ = posz + ScavSafeAreaSize
 		end
 		if UnitName == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})

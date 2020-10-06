@@ -17,7 +17,7 @@ end
 
 customDefs.corcom = {
 	autoheal = 15,
-	blocking = false,
+	--blocking = false,
 	buildoptions = scavUnit,
 	builddistance = 175,
 	cloakcost = 50,
