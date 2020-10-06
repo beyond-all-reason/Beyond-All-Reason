@@ -60,7 +60,10 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
-		emit-sfx 256 | 3 from prop;
+		emit-sfx 1024 + 0 from base;
+		sleep 250;
+		emit-sfx 1024 + 0 from base;
+		emit-sfx 1024 + 1 from base;
 		sleep 250;
 	}
 	return (0);
