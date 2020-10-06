@@ -1,19 +1,21 @@
-local DebugEnabled = false
+TaskEcoHST = class(Module)
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("taskEco: " .. inStr)
-	end
+function TaskEcoHST:Name()
+	return "TaskEcoHST"
+end
+
+function TaskEcoHST:Init()
+	self.DebugEnabled = false
 end
 
 --Factory call
-function BuildAppropriateFactory()
+function TaskEcoHST:BuildAppropriateFactory()
 	return UnitiesHST.FactoryUnitName
 end
 --nano call
-function NanoTurret()
+function TaskEcoHST:NanoTurret()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cornanotc"
 	else
 		unitName = "armnanotc"
@@ -21,9 +23,9 @@ function NanoTurret()
 	return unitName
 end
 
-function NanoWater()
+function TaskEcoHST:NanoWater()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cornanotcplat"
 	else
 		unitName = "armnanotcplat"
@@ -33,9 +35,9 @@ end
 
 -- MEX
 
-function BuildMex()
+function TaskEcoHST:BuildMex()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cormex"
 	else
 		unitName = "armmex"
@@ -43,9 +45,9 @@ function BuildMex()
 	return unitName
 end
 
-function SpecialMex()
+function TaskEcoHST:SpecialMex()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corexp"
 	else
 		unitName = "armamex"
@@ -53,9 +55,9 @@ function SpecialMex()
 	return unitName
 end
 
-function BuildUWMex()
+function TaskEcoHST:BuildUWMex()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coruwmex"
 	else
 		unitName = "armuwmex"
@@ -63,9 +65,9 @@ function BuildUWMex()
 	return unitName
 end
 
-function BuildMohoMex()
+function TaskEcoHST:BuildMohoMex()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cormoho"
 	else
 		unitName = "armmoho"
@@ -73,9 +75,9 @@ function BuildMohoMex()
 	return unitName
 end
 
-function BuildUWMohoMex()
+function TaskEcoHST:BuildUWMohoMex()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coruwmme"
 	else
 		unitName = "armuwmme"
@@ -84,25 +86,25 @@ function BuildUWMohoMex()
 end
 
 --ENERGY
-function Solar()
-	if MyTB.side == UnitiesHST.CORESideName then
+function TaskEcoHST:Solar()
+	if self.side == UnitiesHST.CORESideName then
 		return "corsolar"
 	else
 		return "armsolar"
 	end
 end
 
-local function SolarAdv()
-	if MyTB.side == UnitiesHST.CORESideName then
+local function TaskEcoHST:SolarAdv()
+	if self.side == UnitiesHST.CORESideName then
 		return "coradvsol"
 	else
 		return "armadvsol"
 	end
 end
 
-function Tidal()
+function TaskEcoHST:Tidal()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cortide"
 	else
 		unitName = "armtide"
@@ -110,9 +112,9 @@ function Tidal()
 	return unitName
 end
 
-function Wind()
+function TaskEcoHST:Wind()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corwin"
 	else
 		unitName = "armwin"
@@ -120,7 +122,7 @@ function Wind()
 	return unitName
 end
 
-function TidalIfTidal()
+function TaskEcoHST:TidalIfTidal()
 	local unitName = UnitiesHST.DummyUnitName
 	local tidalPower = map:TidalStrength()
 	EchoDebug("tidal power is " .. tidalPower)
@@ -130,7 +132,7 @@ function TidalIfTidal()
 	return unitName
 end
 
-function windLimit()
+function TaskEcoHST:windLimit()
 	if map:AverageWind() >= 10 then
 		local minWind = map:MinimumWindSpeed()
 		if minWind >= 8 then
@@ -144,7 +146,7 @@ function windLimit()
 	end
 end
 
-function WindSolar()
+function TaskEcoHST:WindSolar()
 	if windLimit() then
 		return Wind()
 	else
@@ -152,7 +154,7 @@ function WindSolar()
 	end
 end
 
-function Energy1()
+function TaskEcoHST:Energy1()
 
 	if ai.Energy.income > math.max(map:AverageWind() * 20, 150) then --and ai.Metal.reserves >50
 		return SolarAdv()
@@ -161,26 +163,26 @@ function Energy1()
 	end
 end
 
-function BuildGeo()
+function TaskEcoHST:BuildGeo()
 	-- don't attempt if there are no spots on the map
 	EchoDebug("BuildGeo " .. tostring(ai.mapHasGeothermal))
 	if not ai.mapHasGeothermal or ai.Energy.income < 150 or ai.Metal.income < 10 then
 		return UnitiesHST.DummyUnitName
 	end
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		return "corgeo"
 	else
 		return "armgeo"
 	end
 end
 
-function BuildMohoGeo()
+function TaskEcoHST:BuildMohoGeo()
 	EchoDebug("BuildMohoGeo " .. tostring(ai.mapHasGeothermal))
 	-- don't attempt if there are no spots on the map
 	if not ai.mapHasGeothermal or ai.Energy.income < 900 or ai.Metal.income < 24 then
 		return UnitiesHST.DummyUnitName
 	end
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		return "corageo"
 	else
 		return "armageo"
@@ -188,20 +190,20 @@ function BuildMohoGeo()
 	-- will turn into a safe geothermal or a geothermal plasma battery if too close to a factory
 end
 
-local function BuildSpecialGeo()
+local function TaskEcoHST:BuildSpecialGeo()
 	-- don't attempt if there are no spots on the map
 	if not ai.mapHasGeothermal then
 		return UnitiesHST.DummyUnitName
 	end
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		return "corbhmt"
 	else
 		return "armgmm"
 	end
 end
 
-local function BuildFusion()
-	if MyTB.side == UnitiesHST.CORESideName then
+local function TaskEcoHST:BuildFusion()
+	if self.side == UnitiesHST.CORESideName then
 		return "corfus"
 	else
 		return "armfus"
@@ -209,8 +211,8 @@ local function BuildFusion()
 	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
 end
 
-local function BuildAdvFusion()
-	if MyTB.side == UnitiesHST.CORESideName then
+local function TaskEcoHST:BuildAdvFusion()
+	if self.side == UnitiesHST.CORESideName then
 		return "corafus"
 	else
 		return "armafus"
@@ -218,28 +220,28 @@ local function BuildAdvFusion()
 	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
 end
 
-local function BuildAdvEnergy(tskqbhvr)
-	EchoDebug(tostring('advname '..tskqbhvr.name))
+local function TaskEcoHST:BuildAdvEnergy()
+	EchoDebug(tostring('advname '..self.name))
 	local unitName = UnitiesHST.DummyUnitName
 	unitName = BuildFusion()
-	if ai.Energy.income > 4000 and (tskqbhvr.name == 'armacv' or tskqbhvr.name == 'coracv') then
+	if ai.Energy.income > 4000 and (self.name == 'armacv' or self.name == 'coracv') then
 		unitName = BuildAdvFusion()
 	end
 	return unitName
 end
 
 
-local function BuildUWFusion()
-	if MyTB.side == UnitiesHST.CORESideName then
+local function TaskEcoHST:BuildUWFusion()
+	if self.side == UnitiesHST.CORESideName then
 		return "coruwfus"
 	else
 		return "armuwfus"
 	end
 end
 
-function buildEstore1()
+function TaskEcoHST:buildEstore1()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corestor"
 	else
 		unitName = "armestor"
@@ -247,9 +249,9 @@ function buildEstore1()
 	return unitName
 end
 
-function buildEstore2()
+function TaskEcoHST:buildEstore2()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coruwadves"
 	else
 		unitName = "armuwadves"
@@ -257,9 +259,9 @@ function buildEstore2()
 	return unitName
 end
 
-function buildMstore1()
+function TaskEcoHST:buildMstore1()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 			unitName = "cormstor"
 	else
 			unitName = "armmstor"
@@ -267,9 +269,9 @@ function buildMstore1()
 	return unitName
 end
 
-function buildMstore2()
+function TaskEcoHST:buildMstore2()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coruwadvms"
 	else
 		unitName = "armuwadvms"
@@ -277,9 +279,9 @@ function buildMstore2()
 	return unitName
 end
 
-function buildMconv1()
+function TaskEcoHST:buildMconv1()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cormakr"
 	else
 		unitName = "armmakr"
@@ -287,9 +289,9 @@ function buildMconv1()
 	return unitName
 end
 
-function buildMconv2()
+function TaskEcoHST:buildMconv2()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 			unitName ='cormmkr'
 	else
 			unitName ='armmmkr'
@@ -297,9 +299,9 @@ function buildMconv2()
 	return unitName
 end
 
-function buildMconv2UW()
+function TaskEcoHST:buildMconv2UW()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 			unitName ='corfmmm'
 	else
 			unitName ='armfmmm'
@@ -307,9 +309,9 @@ function buildMconv2UW()
 	return unitName
 end
 
-function buildWEstore1()
+function TaskEcoHST:buildWEstore1()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coruwes"
 	else
 		unitName = "armuwes"
@@ -317,9 +319,9 @@ function buildWEstore1()
 	return unitName
 end
 
-function buildWMstore1()
+function TaskEcoHST:buildWMstore1()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coruwms"
 	else
 		unitName = "armuwms"
@@ -327,9 +329,9 @@ function buildWMstore1()
 	return unitName
 end
 
-function buildWMconv1()
+function TaskEcoHST:buildWMconv1()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corfmkr"
 	else
 		unitName = "armfmkr"
@@ -337,7 +339,7 @@ function buildWMconv1()
 	return unitName
 end
 
-function Economy0()
+function TaskEcoHST:Economy0()
 	local unitName=UnitiesHST.DummyUnitName
 	if ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.3) then
 		unitName = BuildMex()
@@ -356,7 +358,7 @@ function Economy0()
 	return unitName
 end
 
-function Economy0uw()
+function TaskEcoHST:Economy0uw()
 	local unitName = UnitiesHST.DummyUnitName
 	if ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
 		unitName = buildWEstore1()
@@ -375,7 +377,7 @@ function Economy0uw()
 	return unitName
 end
 
-function Economy1()
+function TaskEcoHST:Economy1()
 	local unitName=UnitiesHST.DummyUnitName
 	if ai.Energy.full > 0.5 and ai.Metal.full > 0.3 and ai.Metal.full < 0.7 and ai.Metal.income > 30 then
 		unitName = SpecialMex()
@@ -396,7 +398,7 @@ function Economy1()
 	return unitName
 end
 
-function EconomyUnderWater()
+function TaskEcoHST:EconomyUnderWater()
 	local unitName = UnitiesHST.DummyUnitName
 	if (ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100) then
 	unitName = NanoWater()
@@ -417,33 +419,33 @@ function EconomyUnderWater()
 	return unitName
 end
 
-function AdvEconomy(tskqbhvr)
+function TaskEcoHST:AdvEconomy()
 	local unitName=UnitiesHST.DummyUnitName
-	if tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Energy.income > 3000 and tskqbhvr.ai.Metal.reserves > 1000 and tskqbhvr.ai.Energy.capacity < 40000 then
+	if self.ai.Energy.full > 0.9 and self.ai.Energy.income > 3000 and self.ai.Metal.reserves > 1000 and self.ai.Energy.capacity < 40000 then
 		unitName = buildEstore2()
-	elseif tskqbhvr.ai.Metal.full > 0.8 and tskqbhvr.ai.Metal.income > 100 and tskqbhvr.ai.Metal.capacity < 20000 and tskqbhvr.ai.Energy.full > 0.3 then
+	elseif self.ai.Metal.full > 0.8 and self.ai.Metal.income > 100 and self.ai.Metal.capacity < 20000 and self.ai.Energy.full > 0.3 then
 		unitName = buildMstore2()
-	elseif tskqbhvr.ai.Energy.income > tskqbhvr.ai.Energy.usage and tskqbhvr.ai.Energy.full > 0.7 and tskqbhvr.ai.Energy.income > 2000 and tskqbhvr.ai.Metal.full < 0.5 then
+	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.7 and self.ai.Energy.income > 2000 and self.ai.Metal.full < 0.5 then
 		unitName = buildMconv2()
-	elseif (tskqbhvr.ai.Energy.full < 0.3 or tskqbhvr.ai.Energy.income < tskqbhvr.ai.Energy.usage * 1.25) and tskqbhvr.ai.Metal.full > 0.1 and tskqbhvr.ai.Metal.income > 18 then
-		unitName = BuildAdvEnergy(tskqbhvr)
-	else--if tskqbhvr.ai.Metal.full < 0.2 and tskqbhvr.ai.Energy.full > 0.1 then
+	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.full > 0.1 and self.ai.Metal.income > 18 then
+		unitName = BuildAdvEnergy()
+	else--if self.ai.Metal.full < 0.2 and self.ai.Energy.full > 0.1 then
 		unitName = BuildMohoMex()
 	end
 	EchoDebug('Economy level 3 '..unitName)
 	return unitName
 end
 
-function AdvEconomyUnderWater(tskqbhvr)
+function TaskEcoHST:AdvEconomyUnderWater()
 	local unitName = UnitiesHST.DummyUnitName
-	if tskqbhvr.ai.Energy.full>0.8 and tskqbhvr.ai.Energy.income > 2500 and tskqbhvr.ai.Metal.reserves > 800 and tskqbhvr.ai.Energy.capacity < 50000  then
-		unitName=buildEstore2(tskqbhvr)
-	elseif tskqbhvr.ai.Metal.full>0.7 and tskqbhvr.ai.Metal.income>30 and tskqbhvr.ai.Metal.capacity < 20000 and tskqbhvr.ai.Energy.full > 0.4 then
-		unitName=buildMstore2(tskqbhvr)
-	elseif tskqbhvr.ai.Energy.income > tskqbhvr.ai.Energy.usage and tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Energy.income > 2000 and tskqbhvr.ai.Metal.full < 0.3 then
-		unitName = buildMconv2UW(tskqbhvr)
-	elseif (tskqbhvr.ai.Energy.full<0.3 or tskqbhvr.ai.Energy.income < tskqbhvr.ai.Energy.usage * 1.5) and tskqbhvr.ai.Metal.full>0.1 then
-		unitName = BuildUWFusion(tskqbhvr)
+	if self.ai.Energy.full>0.8 and self.ai.Energy.income > 2500 and self.ai.Metal.reserves > 800 and self.ai.Energy.capacity < 50000  then
+		unitName=buildEstore2()
+	elseif self.ai.Metal.full>0.7 and self.ai.Metal.income>30 and self.ai.Metal.capacity < 20000 and self.ai.Energy.full > 0.4 then
+		unitName=buildMstore2()
+	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.9 and self.ai.Energy.income > 2000 and self.ai.Metal.full < 0.3 then
+		unitName = buildMconv2UW()
+	elseif (self.ai.Energy.full<0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.5) and self.ai.Metal.full>0.1 then
+		unitName = BuildUWFusion()
 	else
 		unitName = BuildUWMohoMex()
 	end
@@ -451,28 +453,28 @@ function AdvEconomyUnderWater(tskqbhvr)
 	return unitName
 end
 
-function EconomySeaplane(tskqbhvr)
+function TaskEcoHST:EconomySeaplane()
 	local unitName=UnitiesHST.DummyUnitName
-	if tskqbhvr.ai.Energy.full>0.7 and tskqbhvr.ai.Energy.income > 2000 and tskqbhvr.ai.Metal.income>tskqbhvr.ai.Metal.usage and tskqbhvr.ai.Energy.capacity < 60000  then
-		unitName=buildEstore2(tskqbhvr)
-	elseif tskqbhvr.ai.Metal.full>0.9 and tskqbhvr.ai.Metal.income>30 and tskqbhvr.ai.Metal.capacity < 30000 and tskqbhvr.ai.Energy.full > 0.3 then
-		unitName=buildMstore2(tskqbhvr)
-	elseif tskqbhvr.ai.Energy.full>0.8  then
-		unitName=buildMconv2UW(tskqbhvr)
-	elseif tskqbhvr.ai.Energy.full>0.5 and tskqbhvr.ai.Metal.full>0.5 then
+	if self.ai.Energy.full>0.7 and self.ai.Energy.income > 2000 and self.ai.Metal.income>self.ai.Metal.usage and self.ai.Energy.capacity < 60000  then
+		unitName=buildEstore2()
+	elseif self.ai.Metal.full>0.9 and self.ai.Metal.income>30 and self.ai.Metal.capacity < 30000 and self.ai.Energy.full > 0.3 then
+		unitName=buildMstore2()
+	elseif self.ai.Energy.full>0.8  then
+		unitName=buildMconv2UW()
+	elseif self.ai.Energy.full>0.5 and self.ai.Metal.full>0.5 then
 		unitName=Lvl2ShipAssist()
 	end
 	EchoDebug('Economy Seaplane '..unitName)
 	return unitName
 end
 
-function EconomyBattleEngineer(tskqbhvr)
+function TaskEcoHST:EconomyBattleEngineer()
         local unitName=UnitiesHST.DummyUnitName
-	if tskqbhvr.ai.realEnergy > 1.25 and tskqbhvr.ai.realMetal > 1.1 then
+	if self.ai.realEnergy > 1.25 and self.ai.realMetal > 1.1 then
 		unitName= NanoTurret()
-	elseif tskqbhvr.ai.Energy.full < 0.1 and tskqbhvr.ai.Metal.full > 0.1 then
+	elseif self.ai.Energy.full < 0.1 and self.ai.Metal.full > 0.1 then
 		unitName = Solar()
-	elseif tskqbhvr.ai.Metal.full < 0.2 then
+	elseif self.ai.Metal.full < 0.2 then
 		unitName=BuildMex()
 	else
 		unitName = EngineerAsFactory()
@@ -481,11 +483,11 @@ function EconomyBattleEngineer(tskqbhvr)
 	return unitName
 end
 
-function EconomyNavalEngineer(tskqbhvr)
+function TaskEcoHST:EconomyNavalEngineer()
         local unitName=UnitiesHST.DummyUnitName
-	if tskqbhvr.ai.Energy.full < 0.2 and realMetal > 1 then
+	if self.ai.Energy.full < 0.2 and realMetal > 1 then
 		unitName = TidalIfTidal()
-	elseif tskqbhvr.ai.Metal.full < 0.2 and tskqbhvr.ai.Energy.income > tskqbhvr.ai.Metal.usage then
+	elseif self.ai.Metal.full < 0.2 and self.ai.Energy.income > self.ai.Metal.usage then
 		unitName = BuildUWMex()
 	else
 		unitName = NavalEngineerAsFactory()
@@ -494,11 +496,11 @@ function EconomyNavalEngineer(tskqbhvr)
 	return unitName
 end
 
-function EconomyFark(tskqbhvr)
+function TaskEcoHST:EconomyFark()
 	local unitName = UnitiesHST.DummyUnitName
-	if (tskqbhvr.ai.Energy.full < 0.3 or tskqbhvr.ai.realEnergy < 1.1)   then
+	if (self.ai.Energy.full < 0.3 or self.ai.realEnergy < 1.1)   then
 		unitName = WindSolar()
-	elseif tskqbhvr.ai.Energy.full > 0.9 and tskqbhvr.ai.Metal.capacity < 4000 then
+	elseif self.ai.Energy.full > 0.9 and self.ai.Metal.capacity < 4000 then
 		unitName = buildEstore1()
 	else
 		unitName = BuildMex()
