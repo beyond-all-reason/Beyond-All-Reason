@@ -40,7 +40,17 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 	end
-
+	
+	checkingFunctions.torpwaterpen = {}
+    checkingFunctions.torpwaterpen["ypos<0"] = function (proID)
+        local _,py,_ = Spring.GetProjectilePosition(proID)
+        if py <= 0 then
+            return true
+        else
+            return false
+        end
+    end
+	
 	applyingFunctions.split = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
@@ -62,6 +72,12 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SpawnCEG(infos.splitexplosionceg, px, py, pz,0,0,0,0,0)
 		Spring.DeleteProjectile(proID)
 	end
+	
+	applyingFunctions.torpwaterpen = function (proID)
+		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
+        Spring.SetProjectileVelocity(proID,vx,0,vz)
+    end
+	
 		applyingFunctions.cannonwaterpen = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
