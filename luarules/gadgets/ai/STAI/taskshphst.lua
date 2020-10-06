@@ -11,7 +11,7 @@ end
 
 function TaskShpHST:ConShip()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corcs"
 	else
 		unitName = "armcs"
@@ -22,7 +22,7 @@ end
 
 function TaskShpHST:RezSub1()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "correcl"
 	else
 		unitName = "armrecl"
@@ -33,7 +33,7 @@ end
 
 function TaskShpHST:Lvl1ShipRaider()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corsub"
 	else
 		unitName = "armsub"
@@ -43,7 +43,7 @@ end
 
 function TaskShpHST:Lvl1ShipDestroyerOnly()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corroy"
 	else
 		unitName = "armroy"
@@ -55,13 +55,13 @@ end
 function TaskShpHST:Lvl1ShipBattle()
 	local unitName = ""
 	if self.ai.Metal.full < 0.5 then
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "coresupp"
 		else
 			unitName = "armdecade"
 		end
 	else
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "corroy"
 		else
 			unitName = "armroy"
@@ -72,7 +72,7 @@ end
 
 function TaskShpHST:ScoutShip()
 	local unitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corpt"
 	else
 		unitName = "armpt"
@@ -88,7 +88,7 @@ end
 --LEVEL 2
 function TaskShpHST:ConAdvSub()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "coracsub"
 	else
 		unitName = "armacsub"
@@ -99,7 +99,7 @@ end
 
 function TaskShpHST:Lvl2ShipAssist()
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cormls"
 	else
 		unitName = "armmls"
@@ -110,7 +110,7 @@ end
 
 function TaskShpHST:Lvl2ShipBreakthrough()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corbats"
 	else
 		unitName = "armbats"
@@ -120,7 +120,7 @@ end
 
 function TaskShpHST:Lvl2ShipMerl()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "cormship"
 	else
 		unitName = "armmship"
@@ -130,7 +130,7 @@ end
 
 function TaskShpHST:MegaShip()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corblackhy"
 	else
 		unitName = "armepoch"
@@ -140,7 +140,7 @@ end
 
 function TaskShpHST:Lvl2ShipRaider()
 	local unitName = ""
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "corshark"
 		else
 			unitName = "armsubk"
@@ -151,7 +151,7 @@ end
 
 function TaskShpHST:Lvl2SubWar()
 	local unitName = UnitiesHST.DummyUnitName
-		if MyTB.side == UnitiesHST.CORESideName then
+		if self.side == UnitiesHST.CORESideName then
 			unitName = "corssub"
 		else
 			unitName = "armserp"
@@ -162,7 +162,7 @@ end
 
 function TaskShpHST:Lvl2ShipBattle()
 	local unitName = ""
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = "corcrus"
 	else
 		unitName = "armcrus"
@@ -171,7 +171,7 @@ function TaskShpHST:Lvl2ShipBattle()
 end
 
 function TaskShpHST:Lvl2AAShip()
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corarch")
 	else
 		return BuildAAIfNeeded("armaas")
