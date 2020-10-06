@@ -49,10 +49,10 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
-		emit-sfx 1024 + 0 from base;
+		emit-sfx 1024 + 0 from wake;
 		sleep 250;
-		emit-sfx 1024 + 0 from base;
-		emit-sfx 1024 + 1 from base;
+		emit-sfx 1024 + 0 from wake;
+		emit-sfx 1024 + 1 from wake;
 		sleep 250;
 	}
 }
