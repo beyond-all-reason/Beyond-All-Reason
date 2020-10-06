@@ -516,41 +516,35 @@ FirePrimary()
 
 	if( gun_1 == 0 )
 	{
-		move rbarrel to y-axis [1.5] speed [1000];
-		show rflare;
+		move rbarrel to z-axis [-1.5] speed [1000];
 		sleep 100;
-		hide rflare;
-		move rbarrel to y-axis [0] speed [6];
+		move rbarrel to z-axis [0] speed [6];
 		gun_1 = 1;
 		return (1);
 	}
 	if ( gun_1 == 1 )
 	{
-		move lbarrel to y-axis [1.5] speed [1000];
-		show lflare;
+		move lbarrel to z-axis [-1.5] speed [1000];
 		sleep 100;
-		hide lflare;
-		move lbarrel to y-axis [0] speed [6];
+		move lbarrel to z-axis [0] speed [6];
 		gun_1 = 2;
 		return (1);
 	}
 		if( gun_1 == 2 )
 	{
-		move rbarrel to y-axis [1.5] speed [1000];
-		show rflare;
+		move rbarrel to z-axis [-1.5] speed [1000];
 		sleep 100;
-		hide rflare;
-		move rbarrel to y-axis [0] speed [6];
+		move rbarrel to z-axis [0] speed [6];
 		gun_1 = 3;
 		return (1);
 	}
 	if ( gun_1 == 3 )
 	{
-		move lbarrel to y-axis [1.5] speed [1000];
+		move lbarrel to z-axis [-1.5] speed [1000];
 		show lflare;
 		sleep 100;
 		hide lflare;
-		move lbarrel to y-axis [0] speed [6];
+		move lbarrel to z-axis [0] speed [6];
 		gun_1 = 0;
 		return (1);
 	}
