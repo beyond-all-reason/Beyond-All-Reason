@@ -339,6 +339,30 @@ function TaskEcoHST:buildWMconv1()
 	return unitName
 end
 
+function TaskEcoHST:CommanderEconomy(tskqbhvr)
+	local underwater = self.ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
+	local unitName = UnitiesHST.DummyUnitName
+	if not underwater then
+		unitName = Economy0()
+	else
+		unitName = Economy0uw()
+	end
+	return unitName
+
+
+end
+
+function TaskEcoHST:AmphibiousEconomy(tskqbhvr)
+	local underwater = self.ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
+	local unitName = UnitiesHST.DummyUnitName
+	if underwater then
+		unitName = EconomyUnderWater(tskqbhvr)
+	else
+		unitName = self.ai.TaskEcoHST:Economy1(tskqbhvr)
+	end
+	return unitName
+end
+
 function TaskEcoHST:Economy0()
 	local unitName=UnitiesHST.DummyUnitName
 	if ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.3) then

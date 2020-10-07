@@ -12,66 +12,66 @@ random = math.random
 math.randomseed( os.time() + game:GetTeamID() )
 random(); random(); random()
 
-function TasksHST: MapHasWater()
-	return (ai.waterMap or ai.hasUWSpots) or false
+function TasksHST:MapHasWater()
+	return (self.ai.waterMap or self.ai.hasUWSpots) or false
 end
 
 -- this is initialized in maphst
-function TasksHST: MapHasUnderwaterMetal()
-	return ai.hasUWSpots or false
+function TasksHST:MapHasUnderwaterMetal()
+	return self.ai.hasUWSpots or false
 end
 
-function TasksHST: IsSiegeEquipmentNeeded()
-	return ai.overviewhst.needSiege
+function TasksHST:IsSiegeEquipmentNeeded()
+	return self.ai.overviewhst.needSiege
 end
 
-function TasksHST: IsAANeeded()
-	return ai.needAirDefense
+function TasksHST:IsAANeeded()
+	return self.ai.needAirDefense
 end
 
-function TasksHST: IsShieldNeeded()
-	return ai.needShields
+function TasksHST:IsShieldNeeded()
+	return self.ai.needShields
 end
 
-function TasksHST: IsTorpedoNeeded()
-	return ai.needSubmergedDefense
+function TasksHST:IsTorpedoNeeded()
+	return self.ai.needSubmergedDefense
 end
 
-function TasksHST: IsJammerNeeded()
-	return ai.needJammers
+function TasksHST:IsJammerNeeded()
+	return self.ai.needJammers
 end
 
-function TasksHST: IsAntinukeNeeded()
-	return ai.needAntinuke
+function TasksHST:IsAntinukeNeeded()
+	return self.ai.needAntinuke
 end
 
-function TasksHST: IsNukeNeeded()
-	local nuke = ai.needNukes and ai.canNuke
+function TasksHST:IsNukeNeeded()
+	local nuke = self.ai.needNukes and self.ai.canNuke
 	return nuke
 end
 
-function TasksHST: IsLandAttackNeeded()
-	return ai.areLandTargets or ai.needGroundDefense
+function TasksHST:IsLandAttackNeeded()
+	return self.ai.areLandTargets or self.ai.needGroundDefense
 end
 
-function TasksHST: IsWaterAttackNeeded()
-	return ai.areWaterTargets or ai.needSubmergedDefense
+function TasksHST:IsWaterAttackNeeded()
+	return self.ai.areWaterTargets or self.ai.needSubmergedDefense
 end
 
-function TasksHST: GetMtypedLv(unitName)
-	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
-	local level = ai.UnitiesHST.unitTable[unitName].techLevel
+function TasksHST:GetMtypedLv(unitName)
+	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
+	local level = self.ai.UnitiesHST.unitTable[unitName].techLevel
 	local mtypedLv = mtype .. tostring(level)
-	local counter = ai.mtypeLvCount[mtypedLv] or 0
+	local counter = self.ai.mtypeLvCount[mtypedLv] or 0
 	EchoDebug('mtypedLvmtype ' .. mtype .. ' '.. level .. ' ' .. counter)
 	return counter
 end
 
 
-function TasksHST: BuildAAIfNeeded(unitName)
+function TasksHST:BuildAAIfNeeded(unitName)
 	if IsAANeeded() then
-		if not ai.UnitiesHST.unitTable[unitName].isBuilding then
-			return BuildWithLimitedNumber(unitName, ai.overviewhst.AAUnitPerTypeLimit)
+		if not self.ai.UnitiesHST.unitTable[unitName].isBuilding then
+			return BuildWithLimitedNumber(unitName, self.ai.overviewhst.AAUnitPerTypeLimit)
 		else
 			return unitName
 		end
@@ -80,7 +80,7 @@ function TasksHST: BuildAAIfNeeded(unitName)
 	end
 end
 
-function TasksHST: BuildTorpedoIfNeeded(unitName)
+function TasksHST:BuildTorpedoIfNeeded(unitName)
 	if IsTorpedoNeeded() then
 		return unitName
 	else
@@ -88,30 +88,30 @@ function TasksHST: BuildTorpedoIfNeeded(unitName)
 	end
 end
 
-function TasksHST: BuildSiegeIfNeeded(unitName)
+function TasksHST:BuildSiegeIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then
-		if ai.siegeCount < (ai.battleCount + ai.breakthroughCount) * 0.35 then
+		if self.ai.siegeCount < (self.ai.battleCount + self.ai.breakthroughCount) * 0.35 then
 			return unitName
 		end
 	end
 	return UnitiesHST.DummyUnitName
 end
 
-function TasksHST: BuildBreakthroughIfNeeded(unitName)
+function TasksHST:BuildBreakthroughIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then return unitName end
-	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
+	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
 	if mtype == "air" then
-		local bomberCounter = ai.bomberhst:GetCounter()
+		local bomberCounter = self.ai.bomberhst:GetCounter()
 		if bomberCounter >= UnitiesHST.breakthroughBomberCounter and bomberCounter < UnitiesHST.maxBomberCounter then
 			return unitName
 		else
 			return UnitiesHST.DummyUnitName
 		end
 	else
-		if ai.battleCount <= UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
-		local attackCounter = ai.attackhst:GetCounter(mtype)
+		if self.ai.battleCount <= UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
+		local attackCounter = self.ai.attackhst:GetCounter(mtype)
 		if attackCounter == UnitiesHST.maxAttackCounter then
 			return unitName
 		elseif attackCounter >= UnitiesHST.breakthroughAttackCounter then
@@ -122,67 +122,67 @@ function TasksHST: BuildBreakthroughIfNeeded(unitName)
 	end
 end
 
-function TasksHST: BuildRaiderIfNeeded(unitName)
+function TasksHST:BuildRaiderIfNeeded(unitName)
 	EchoDebug("build raider if needed: " .. unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
-	if ai.factoriesAtLevel[3] ~= nil and ai.factoriesAtLevel[3] ~= {} then
+	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
+	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
 		-- if we have a level 2 factory, don't build raiders until we have some battle units
-		local attackCounter = ai.attackhst:GetCounter(mtype)
-		if ai.battleCount + ai.breakthroughCount < attackCounter / 2 then
+		local attackCounter = self.ai.attackhst:GetCounter(mtype)
+		if self.ai.battleCount + self.ai.breakthroughCount < attackCounter / 2 then
 			return UnitiesHST.DummyUnitName
 		end
 	end
-	local counter = ai.raidhst:GetCounter(mtype)
+	local counter = self.ai.raidhst:GetCounter(mtype)
 	if counter == UnitiesHST.minRaidCounter then return UnitiesHST.DummyUnitName end
-	if ai.raiderCount[mtype] == nil then
+	if self.ai.raiderCount[mtype] == nil then
 		-- fine
-	elseif ai.raiderCount[mtype] >= counter then
+	elseif self.ai.raiderCount[mtype] >= counter then
 		unitName = UnitiesHST.DummyUnitName
 	end
 	return unitName
 end
 
-function TasksHST: BuildBattleIfNeeded(unitName)
+function TasksHST:BuildBattleIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
-	local attackCounter = ai.attackhst:GetCounter(mtype)
+	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
+	local attackCounter = self.ai.attackhst:GetCounter(mtype)
 	EchoDebug(mtype .. " " .. attackCounter .. " " .. UnitiesHST.maxAttackCounter)
-	if attackCounter == UnitiesHST.maxAttackCounter and ai.battleCount > UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
-	if mtype == "veh" and self.side == UnitiesHST.CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
+	if attackCounter == UnitiesHST.maxAttackCounter and self.ai.battleCount > UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
+	if mtype == "veh" and self.side == UnitiesHST.CORESideName and (self.ai.factoriesAtLevel[1] == nil or self.ai.factoriesAtLevel[1] == {}) then
 		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
 		return unitName
 	end
-	if ai.factoriesAtLevel[3] ~= nil and ai.factoriesAtLevel[3] ~= {} then
+	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
 		-- if we have a level 2 factory, don't wait to build raiders first
 		return unitName
 	end
-	local raidCounter = ai.raidhst:GetCounter(mtype)
+	local raidCounter = self.ai.raidhst:GetCounter(mtype)
 	EchoDebug(mtype .. " " .. raidCounter .. " " .. UnitiesHST.maxRaidCounter)
 	if raidCounter == UnitiesHST.minRaidCounter then return unitName end
-	EchoDebug(ai.raiderCount[mtype])
-	if ai.raiderCount[mtype] == nil then
+	EchoDebug(self.ai.raiderCount[mtype])
+	if self.ai.raiderCount[mtype] == nil then
 		return unitName
-	elseif ai.raiderCount[mtype] < raidCounter / 2 then
+	elseif self.ai.raiderCount[mtype] < raidCounter / 2 then
 		return UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
-function TasksHST: CountOwnUnits(tmpUnitName)
+function TasksHST:CountOwnUnits(tmpUnitName)
 	if tmpUnitName == UnitiesHST.DummyUnitName then return 0 end -- don't count no-units
-	if ai.nameCount[tmpUnitName] == nil then return 0 end
-	return ai.nameCount[tmpUnitName]
+	if self.ai.nameCount[tmpUnitName] == nil then return 0 end
+	return self.ai.nameCount[tmpUnitName]
 end
 
-function TasksHST: BuildWithLimitedNumber(tmpUnitName, minNumber)
+function TasksHST:BuildWithLimitedNumber(tmpUnitName, minNumber)
 	if tmpUnitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
 	if minNumber == 0 then return UnitiesHST.DummyUnitName end
-	if ai.nameCount[tmpUnitName] == nil then
+	if self.ai.nameCount[tmpUnitName] == nil then
 		return tmpUnitName
 	else
-		if ai.nameCount[tmpUnitName] == 0 or ai.nameCount[tmpUnitName] < minNumber then
+		if self.ai.nameCount[tmpUnitName] == 0 or self.ai.nameCount[tmpUnitName] < minNumber then
 			return tmpUnitName
 		else
 			return UnitiesHST.DummyUnitName
@@ -190,28 +190,28 @@ function TasksHST: BuildWithLimitedNumber(tmpUnitName, minNumber)
 	end
 end
 
-function TasksHST: GroundDefenseIfNeeded(unitName)
-	if not ai.needGroundDefense then
+function TasksHST:GroundDefenseIfNeeded(unitName)
+	if not self.ai.needGroundDefense then
 		return UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
-function TasksHST: BuildBomberIfNeeded(unitName)
+function TasksHST:BuildBomberIfNeeded(unitName)
 	if not IsLandAttackNeeded() then return UnitiesHST.DummyUnitName end
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	if ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
+	if self.ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
 		return UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
-function TasksHST: BuildTorpedoBomberIfNeeded(unitName)
+function TasksHST:BuildTorpedoBomberIfNeeded(unitName)
 	if not IsWaterAttackNeeded() then return UnitiesHST.DummyUnitName end
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	if ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
+	if self.ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
 		return UnitiesHST.DummyUnitName
 	else
 		return unitName
@@ -219,10 +219,10 @@ function TasksHST: BuildTorpedoBomberIfNeeded(unitName)
 end
 
 
-function TasksHST: LandOrWater(tskqbhvr, landName, waterName)
+function TasksHST:LandOrWater(tskqbhvr, landName, waterName)
 	local builder = tskqbhvr.unit:Internal()
 	local bpos = builder:GetPosition()
-	local waterNet = ai.maphst:MobilityNetworkSizeHere("shp", bpos)
+	local waterNet = self.ai.maphst:MobilityNetworkSizeHere("shp", bpos)
 	if waterNet ~= nil then
 		return waterName
 	else
@@ -231,7 +231,7 @@ function TasksHST: LandOrWater(tskqbhvr, landName, waterName)
 end
 
 
-function TasksHST: TasksHST: ConsulAsFactory(tskqbhvr)
+function TasksHST:ConsulAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
 	local rnd = math.random(1,8)
 	if 	rnd == 1 then unitName=ConVehicle(tskqbhvr)
@@ -248,7 +248,7 @@ function TasksHST: TasksHST: ConsulAsFactory(tskqbhvr)
 	return unitName
 end
 
-function TasksHST: TasksHST: FreakerAsFactory(tskqbhvr)
+function TasksHST:FreakerAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
 	local rnd = math.random(1,7)
 	if 	rnd == 1 then unitName=ConBot(tskqbhvr)
@@ -264,7 +264,7 @@ function TasksHST: TasksHST: FreakerAsFactory(tskqbhvr)
 	return unitName
 end
 
-function TasksHST: NavalEngineerAsFactory(tskqbhvr)
+function TasksHST:NavalEngineerAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
 	local rnd= math.random(1,6)
 	if 	rnd == 1 then unitName=ConShip(tskqbhvr)
@@ -278,7 +278,7 @@ function TasksHST: NavalEngineerAsFactory(tskqbhvr)
 	return unitName
 end
 
-function TasksHST: EngineerAsFactory(tskqbhvr)
+function TasksHST:EngineerAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
 	if self.side == UnitiesHST.CORESideName then
 		unitName = FreakerAsFactory(tskqbhvr)
@@ -288,367 +288,344 @@ function TasksHST: EngineerAsFactory(tskqbhvr)
 	return unitName
 end
 
-function TasksHST: TasksHST: CommanderEconomy(tskqbhvr)
-	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
-	local unitName = UnitiesHST.DummyUnitName
-	if not underwater then
-		unitName = Economy0()
-	else
-		unitName = Economy0uw()
-	end
-	return unitName
 
-
-end
-
-function TasksHST: TasksHST: AmphibiousEconomy(tskqbhvr)
-	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
-	local unitName = UnitiesHST.DummyUnitName
-	if underwater then
-		unitName = EconomyUnderWater(tskqbhvr)
-	else
-		unitName = Economy1(tskqbhvr)
-	end
-	return unitName
-
-end
 
 -- mobile construction units:
 
 TasksHST.anyCommander = {
-	BuildAppropriateFactory,
-	CommanderEconomy,
-	BuildLLT,
-	BuildRadar,
-	CommanderAA,
-	BuildPopTorpedo,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:CommanderEconomy,
+	self.ai.TaskBuildHST:BuildLLT,
+	self.ai.TaskBuildHST:BuildRadar,
+	self.ai.TaskBuildHST:CommanderAA,
+	self.ai.TaskBuildHST:BuildPopTorpedo,
 }
 
 TasksHST.anyConUnit = {
-	BuildAppropriateFactory,
-	Economy1,
-	BuildLLT,
-	BuildSpecialLT,
-	BuildMediumAA,
-	BuildRadar,
-	BuildLvl1Jammer,
-	BuildGeo,
-	BuildHLT,
-	BuildLvl1Plasma,
-	BuildHeavyishAA,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:Economy1,
+	self.ai.TaskBuildHST:BuildLLT,
+	self.ai.TaskEcoHST:Economy1,
+	self.ai.TaskBuildHST:BuildMediumAA,
+	self.ai.TaskBuildHST:BuildRadar,
+	self.ai.TaskBuildHST:BuildLvl1Jammer,
+	self.ai.TaskEcoHST:BuildGeo,
+	self.ai.TaskBuildHST:BuildHLT,
+	self.ai.TaskBuildHST:BuildLvl1Plasma,
+	self.ai.TaskBuildHST:BuildHeavyishAA,
 }
 
 TasksHST.anyConAmphibious = {
-	BuildAppropriateFactory,
-	AmphibiousEconomy,
-	BuildGeo,
-	BuildSpecialLT,
-	BuildMediumAA,
-	BuildRadar,
-	BuildLvl1Jammer,
-	BuildHLT,
-	BuildLvl1Plasma,
-	BuildHeavyishAA,
-	AmphibiousEconomy,
-	BuildPopTorpedo,
-	BuildFloatLightAA,
-	BuildFloatRadar,
-	BuildFloatHLT,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:AmphibiousEconomy,
+	self.ai.TaskEcoHST:BuildGeo,
+	self.ai.TaskEcoHST:Economy1,
+	self.ai.TaskBuildHST:BuildMediumAA,
+	self.ai.TaskBuildHST:BuildRadar,
+	self.ai.TaskBuildHST:BuildLvl1Jammer,
+	self.ai.TaskBuildHST:BuildHLT,
+	self.ai.TaskBuildHST:BuildLvl1Plasma,
+	self.ai.TaskBuildHST:BuildHeavyishAA,
+	self.ai.TaskEcoHST:AmphibiousEconomy,
+	self.ai.TaskBuildHST:BuildPopTorpedo,
+	self.ai.TaskBuildHST:BuildFloatLightAA,
+	self.ai.TaskBuildHST:BuildFloatRadar,
+	self.ai.TaskBuildHST:BuildFloatHLT,
 }
 
 TasksHST.anyConShip = {
-	BuildAppropriateFactory,
-	EconomyUnderWater,
-	BuildFloatLightAA,
-	BuildLightTorpedo,
-	BuildFloatRadar,
-	BuildFloatHLT,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:EconomyUnderWater,
+	self.ai.TaskBuildHST:BuildFloatLightAA,
+	self.ai.TaskBuildHST:BuildLightTorpedo,
+	self.ai.TaskBuildHST:BuildFloatRadar,
+	self.ai.TaskBuildHST:BuildFloatHLT,
 }
 
 TasksHST.anyAdvConUnit = {
-	BuildAppropriateFactory,
-	AdvEconomy,
-	BuildNukeIfNeeded,
-	BuildAdvancedRadar,
-	BuildHeavyPlasma,
-	BuildAntinuke,
-	BuildLvl2PopUp,
-	BuildHeavyAA,
-	BuildLvl2Plasma,
-	BuildTachyon,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:AdvEconomy,
+	self.ai.TaskBuildHST:BuildNukeIfNeeded,
+	self.ai.TaskBuildHST:BuildAdvancedRadar,
+	self.ai.TaskBuildHST:BuildHeavyPlasma,
+	self.ai.TaskBuildHST:BuildAntinuke,
+	self.ai.TaskBuildHST:BuildLvl2PopUp,
+	self.ai.TaskBuildHST:BuildHeavyAA,
+	self.ai.TaskBuildHST:BuildLvl2Plasma,
+	self.ai.TaskBuildHST:BuildTachyon,
 	-- BuildTacticalNuke,
-	BuildExtraHeavyAA,
-	BuildLvl2Jammer,
-	BuildMohoGeo,
+	self.ai.TaskBuildHST:BuildExtraHeavyAA,
+	self.ai.TaskBuildHST:BuildLvl2Jammer,
+	self.ai.TaskEcoHST:BuildMohoGeo,
 }
 
 TasksHST.anyConSeaplane = {
-	BuildAppropriateFactory,
-	EconomySeaplane,
-	BuildFloatHeavyAA,
-	BuildAdvancedSonar,
-	BuildHeavyTorpedo,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:EconomySeaplane,
+	self.ai.TaskBuildHST:BuildFloatHeavyAA,
+	self.ai.TaskBuildHST:BuildAdvancedSonar,
+	self.ai.TaskBuildHST:BuildHeavyTorpedo,
 }
 
 TasksHST.anyAdvConSub = {
-	BuildAppropriateFactory,
-	AdvEconomyUnderWater,
-	BuildFloatHeavyAA,
-	BuildAdvancedSonar,
-	BuildHeavyTorpedo,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:AdvEconomyUnderWater,
+	self.ai.TaskBuildHST:BuildFloatHeavyAA,
+	self.ai.TaskBuildHST:BuildAdvancedSonar,
+	self.ai.TaskBuildHST:BuildHeavyTorpedo,
 }
 
 TasksHST.anyNavalEngineer = {
-	BuildAppropriateFactory,
-	EconomyNavalEngineer,
-	BuildFloatHLT,
-	BuildFloatLightAA,
-	BuildFloatRadar,
-	BuildLightTorpedo,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:EconomyNavalEngineer,
+	self.ai.TaskBuildHST:BuildFloatHLT,
+	self.ai.TaskBuildHST:BuildFloatLightAA,
+	self.ai.TaskBuildHST:BuildFloatRadar,
+	self.ai.TaskBuildHST:BuildLightTorpedo,
 }
 
 TasksHST.anyCombatEngineer = {
-	BuildAppropriateFactory,
-	EconomyBattleEngineer,
-	BuildMediumAA,
-	BuildAdvancedRadar,
-	BuildLvl2Jammer,
-	BuildHeavyAA,
-	BuildSpecialLTOnly,
-	BuildLvl2Plasma,
+	self.ai.TaskEcoHST:BuildAppropriateFactory,
+	self.ai.TaskEcoHST:EconomyBattleEngineer,
+	self.ai.TaskBuildHST:BuildMediumAA,
+	self.ai.TaskBuildHST:BuildAdvancedRadar,
+	self.ai.TaskBuildHST:BuildLvl2Jammer,
+	self.ai.TaskBuildHST:BuildHeavyAA,
+	self.ai.TaskEcoHST:Economy1,
+	self.ai.TaskBuildHST:BuildLvl2Plasma,
 }
 
 
 -- factories:
 
 TasksHST.anyLvl1AirPlant = {
-	ScoutAir,
-	Lvl1Bomber,
-	Lvl1AirRaider,
-	ConAir,
-	Lvl1Fighter,
+	self.ai.TaskAirHST:ScoutAir,
+	self.ai.TaskAirHST:Lvl1Bomber,
+	self.ai.TaskAirHST:Lvl1AirRaider,
+	self.ai.TaskAirHST:ConAir,
+	self.ai.TaskAirHST:Lvl1Fighter,
 }
 
 TasksHST.anyLvl1VehPlant = {
-	ScoutVeh,
-	ConVehicle,
-	Lvl1VehRaider,
-	Lvl1VehBattle,
-	Lvl1AAVeh,
-	Lvl1VehArty,
-	Lvl1VehBreakthrough,
+	self.ai.TaskVehHST:ScoutVeh,
+	self.ai.TaskVehHST:ConVehicle,
+	self.ai.TaskVehHST:Lvl1VehRaider,
+	self.ai.TaskVehHST:Lvl1VehBattle,
+	self.ai.TaskVehHST:Lvl1AAVeh,
+	self.ai.TaskVehHST:Lvl1VehArty,
+	self.ai.TaskVehHST:Lvl1VehBreakthrough,
 }
 
 TasksHST.anyLvl1BotLab = {
-	ScoutBot,
-	ConBot,
-	Lvl1BotRaider,
-	Lvl1BotBattle,
-	Lvl1AABot,
-	Lvl1BotBreakthrough,
-	RezBot1,
+	self.ai.TaskBotHST:ScoutBot,
+	self.ai.TaskBotHST:ConBot,
+	self.ai.TaskBotHST:Lvl1BotRaider,
+	self.ai.TaskBotHST:Lvl1BotBattle,
+	self.ai.TaskBotHST:Lvl1AABot,
+	self.ai.TaskBotHST:Lvl1BotBreakthrough,
+	self.ai.TaskBotHST:RezBot1,
 }
 
 TasksHST.anyLvl1ShipYard = {
-	ScoutShip,
-	ConShip,
-	Lvl1ShipBattle,
-	Lvl1ShipRaider,
+	self.ai.TaskShpHST:ScoutShip,
+	self.ai.TaskShpHST:ConShip,
+	self.ai.TaskShpHST:Lvl1ShipBattle,
+	self.ai.TaskShpHST:Lvl1ShipRaider,
 }
 
 TasksHST.anyHoverPlatform = {
-	HoverRaider,
-	ConHover,
-	HoverBattle,
-	HoverBreakthrough,
-	HoverMerl,
-	AAHover,
+	self.ai.TaskHovHST:HoverRaider,
+	self.ai.TaskHovHST:ConHover,
+	self.ai.TaskHovHST:HoverBattle,
+	self.ai.TaskHovHST:HoverBreakthrough,
+	self.ai.TaskHovHST:HoverMerl,
+	self.ai.TaskHovHST:AAHover,
 }
 
 TasksHST.anyAmphibiousComplex = {
-	AmphibiousRaider,
-	ConVehicleAmphibious,
-	AmphibiousBattle,
-	Lvl1ShipRaider,
-	Lvl1AABot,
-	Lvl2AABot,
+	self.ai.TaskVehHST:AmphibiousRaider,
+	self.ai.TaskVehHST:ConVehicleAmphibious,
+	self.ai.TaskVehHST:AmphibiousBattle,
+	self.ai.TaskShpHST:Lvl1ShipRaider,
+	self.ai.TaskBotHST:Lvl1AABot,
+	self.ai.TaskBotHST:Lvl2AABot,
 }
 
 TasksHST.anyLvl2VehPlant = {
-	ConAdvVehicle,
-	Lvl2VehRaider,
-	Lvl2VehBattle,
-	Lvl2VehBreakthrough,
-	Lvl2VehArty,
-	Lvl2VehMerl,
-	Lvl2AAVeh,
-	Lvl2VehAssist,
+	self.ai.TaskVehHST:ConAdvVehicle,
+	self.ai.TaskVehHST:Lvl2VehRaider,
+	self.ai.TaskVehHST:Lvl2VehBattle,
+	self.ai.TaskVehHST:Lvl2VehBreakthrough,
+	self.ai.TaskVehHST:Lvl2VehArty,
+	self.ai.TaskVehHST:Lvl2VehMerl,
+	self.ai.TaskVehHST:Lvl2AAVeh,
+	self.ai.TaskVehHST:Lvl2VehAssist,
 }
 
 TasksHST.anyLvl2BotLab = {
-	Lvl2BotRaider,
-	ConAdvBot,
-	Lvl2BotBattle,
-	Lvl2BotBreakthrough,
-	Lvl2BotArty,
-	Lvl2BotMerl,
-	Lvl2AABot,
-	Lvl2BotAssist,
+	self.ai.TaskBotHST:Lvl2BotRaider,
+	self.ai.TaskBotHST:ConAdvBot,
+	self.ai.TaskBotHST:Lvl2BotBattle,
+	self.ai.TaskBotHST:Lvl2BotBreakthrough,
+	self.ai.TaskBotHST:Lvl2BotArty,
+	self.ai.TaskBotHST:Lvl2BotMerl,
+	self.ai.TaskBotHST:Lvl2AABot,
+	self.ai.TaskBotHST:Lvl2BotAssist,
 }
 
 TasksHST.anyLvl2AirPlant = {
-	Lvl2Bomber,
-	Lvl2TorpedoBomber,
-	ConAdvAir,
-	ScoutAdvAir,
-	Lvl2Fighter,
-	Lvl2AirRaider,
-	MegaAircraft,
+	self.ai.TaskAirHST:Lvl2Bomber,
+	self.ai.TaskAirHST:Lvl2TorpedoBomber,
+	self.ai.TaskAirHST:ConAdvAir,
+	self.ai.TaskAirHST:ScoutAdvAir,
+	self.ai.TaskAirHST:Lvl2Fighter,
+	self.ai.TaskAirHST:Lvl2AirRaider,
+	self.ai.TaskAirHST:MegaAircraft,
 }
 
 TasksHST.anySeaplanePlatform = {
-	SeaBomber,
-	SeaTorpedoBomber,
-	ConSeaAir,
-	ScoutSeaAir,
-	SeaFighter,
-	SeaAirRaider,
+	self.ai.TaskAirHST:SeaBomber,
+	self.ai.TaskAirHST:SeaTorpedoBomber,
+	self.ai.TaskAirHST:ConSeaAir,
+	self.ai.TaskAirHST:ScoutSeaAir,
+	self.ai.TaskAirHST:SeaFighter,
+	self.ai.TaskAirHST:SeaAirRaider,
 }
 
 TasksHST.anyLvl2ShipYard = {
-	Lvl2ShipRaider,
-	ConAdvSub,
-	Lvl2ShipBattle,
-	Lvl2AAShip,
-	Lvl2ShipBreakthrough,
-	Lvl2ShipMerl,
-	Lvl2ShipAssist,
-	Lvl2SubWar,
-	MegaShip,
+	self.ai.TaskShpHST:Lvl2ShipRaider,
+	self.ai.TaskShpHST:ConAdvSub,
+	self.ai.TaskShpHST:Lvl2ShipBattle,
+	self.ai.TaskShpHST:Lvl2AAShip,
+	self.ai.TaskShpHST:Lvl2ShipBreakthrough,
+	self.ai.TaskShpHST:Lvl2ShipMerl,
+	self.ai.TaskShpHST:Lvl2ShipAssist,
+	self.ai.TaskShpHST:Lvl2SubWar,
+	self.ai.TaskShpHST:MegaShip,
 }
 
 TasksHST.anyExperimental = {
-	Lvl3Raider,
-	Lvl3Battle,
-	Lvl3Merl,
-	Lvl3Arty,
-	Lvl3Breakthrough,
+	self.ai.TaskBotHST:Lvl3Raider,
+	self.ai.TaskBotHST:Lvl3Battle,
+	self.ai.TaskBotHST:Lvl3Merl,
+	self.ai.TaskBotHST:Lvl3Arty,
+	self.ai.TaskBotHST:Lvl3Breakthrough,
 }
 
 TasksHST.anyOutmodedLvl1BotLab = {
-	ConBot,
-	RezBot1,
-	ScoutBot,
-	Lvl1AABot,
+	self.ai.TaskBotHST:ConBot,
+	self.ai.TaskBotHST:RezBot1,
+	self.ai.TaskBotHST:ScoutBot,
+	self.ai.TaskBotHST:Lvl1AABot,
 }
 
 TasksHST.anyOutmodedLvl1VehPlant = {
-	Lvl1VehRaiderOutmoded,
-	ConVehicle,
-	ScoutVeh,
-	Lvl1AAVeh,
+	self.ai.TaskVehHST:Lvl1VehRaiderOutmoded,
+	self.ai.TaskVehHST:ConVehicle,
+	self.ai.TaskVehHST:ScoutVeh,
+	self.ai.TaskVehHST:Lvl1AAVeh,
 }
 
 TasksHST.anyOutmodedLvl1AirPlant = {
-	ConAir,
-	ScoutAir,
-	Lvl1Fighter,
+	self.ai.TaskAirHST:ConAir,
+	self.ai.TaskAirHST:ScoutAir,
+	self.ai.TaskAirHST:Lvl1Fighter,
 }
 
 TasksHST.anyOutmodedLvl1ShipYard = {
-	ConShip,
-	ScoutShip,
+	self.ai.TaskShpHST:ConShip,
+	self.ai.TaskShpHST:ScoutShip,
 }
 
 TasksHST.anyOutmodedLvl2BotLab = {
 	-- Lvl2BotRaider,
-	ConAdvBot,
-	Lvl2AABot,
-	Lvl2BotAssist,
+	self.ai.TaskBotHST:ConAdvBot,
+	self.ai.TaskBotHST:Lvl2AABot,
+	self.ai.TaskBotHST:Lvl2BotAssist,
 }
 
 TasksHST.anyOutmodedLvl2VehPlant = {
 	-- Lvl2VehRaider,
-	Lvl2VehAssist,
-	ConAdvVehicle,
-	Lvl2AAVeh,
+	self.ai.TaskVehHST:Lvl2VehAssist,
+	self.ai.TaskVehHST:ConAdvVehicle,
+	self.ai.TaskVehHST:Lvl2AAVeh,
 }
 
 -- fall back to these when a level 2 factory exists
 TasksHST.outmodedTaskqueues = {
-	corlab = TasksHST.anyOutmodedLvl1BotLab,
-	armlab = TasksHST.anyOutmodedLvl1BotLab,
-	corvp = TasksHST.anyOutmodedLvl1VehPlant,
-	armvp = TasksHST.anyOutmodedLvl1VehPlant,
-	corap = TasksHST.anyOutmodedLvl1AirPlant,
-	armap = TasksHST.anyOutmodedLvl1AirPlant,
-	corsy = TasksHST.anyOutmodedLvl1ShipYard,
-	armsy = TasksHST.anyOutmodedLvl1ShipYard,
-	coralab = TasksHST.anyOutmodedLvl2BotLab,
-	armalab = TasksHST.anyOutmodedLvl2BotLab,
-	coravp = TasksHST.anyOutmodedLvl2VehPlant,
-	armavp = TasksHST.anyOutmodedLvl2VehPlant,
+	corlab = self.anyOutmodedLvl1BotLab,
+	armlab = self.anyOutmodedLvl1BotLab,
+	corvp = self.anyOutmodedLvl1VehPlant,
+	armvp = self.anyOutmodedLvl1VehPlant,
+	corap = self.anyOutmodedLvl1AirPlant,
+	armap = self.anyOutmodedLvl1AirPlant,
+	corsy = self.anyOutmodedLvl1ShipYard,
+	armsy = self.anyOutmodedLvl1ShipYard,
+	coralab = self.anyOutmodedLvl2BotLab,
+	armalab = self.anyOutmodedLvl2BotLab,
+	coravp = self.anyOutmodedLvl2VehPlant,
+	armavp = self.anyOutmodedLvl2VehPlant,
 }
 
 -- finally, the taskqueue definitions
 TasksHST.taskqueues = {
-	corcom = TasksHST.anyCommander,
-	armcom = TasksHST.anyCommander,
-	armdecom = TasksHST.anyCommander,
-	cordecom = TasksHST.anyCommander,
-	corcv = TasksHST.anyConUnit,
-	armcv = TasksHST.anyConUnit,
-	corck = TasksHST.anyConUnit,
-	armck = TasksHST.anyConUnit,
-	cormuskrat = TasksHST.anyConAmphibious,
-	armbeaver = TasksHST.anyConAmphibious,
-	corch = TasksHST.anyConAmphibious,
-	armch = TasksHST.anyConAmphibious,
-	corca = TasksHST.anyConUnit,
-	armca = TasksHST.anyConUnit,
-	corack = TasksHST.anyAdvConUnit,
-	armack = TasksHST.anyAdvConUnit,
-	coracv = TasksHST.anyAdvConUnit,
-	armacv = TasksHST.anyAdvConUnit,
-	coraca = TasksHST.anyAdvConUnit,
-	armaca = TasksHST.anyAdvConUnit,
-	corcsa = TasksHST.anyConSeaplane,
-	armcsa = TasksHST.anyConSeaplane,
-	corcs = TasksHST.anyConShip,
-	armcs = TasksHST.anyConShip,
-	coracsub = TasksHST.anyAdvConSub,
-	armacsub = TasksHST.anyAdvConSub,
-	cormls = TasksHST.anyNavalEngineer,
-	armmls = TasksHST.anyNavalEngineer,
-	armconsul = TasksHST.anyCombatEngineer,
-	corfast = TasksHST.anyCombatEngineer,
-	corap = TasksHST.anyLvl1AirPlant,
-	armap = TasksHST.anyLvl1AirPlant,
-	corlab = TasksHST.anyLvl1BotLab,
-	armlab = TasksHST.anyLvl1BotLab,
-	corvp = TasksHST.anyLvl1VehPlant,
-	armvp = TasksHST.anyLvl1VehPlant,
-	coralab = TasksHST.anyLvl2BotLab,
-	coravp = TasksHST.anyLvl2VehPlant,
-	corhp = TasksHST.anyHoverPlatform,
-	armhp = TasksHST.anyHoverPlatform,
-	corfhp = TasksHST.anyHoverPlatform,
-	armfhp = TasksHST.anyHoverPlatform,
-	coramsub = TasksHST.anyAmphibiousComplex,
-	armamsub = TasksHST.anyAmphibiousComplex,
-	armalab = TasksHST.anyLvl2BotLab,
-	armavp = TasksHST.anyLvl2VehPlant,
-	coraap = TasksHST.anyLvl2AirPlant,
-	armaap = TasksHST.anyLvl2AirPlant,
-	corplat = TasksHST.anySeaplanePlatform,
-	armplat = TasksHST.anySeaplanePlatform,
-	corsy = TasksHST.anyLvl1ShipYard,
-	armsy = TasksHST.anyLvl1ShipYard,
-	corasy = TasksHST.anyLvl2ShipYard,
-	armasy = TasksHST.anyLvl2ShipYard,
-	corgant = TasksHST.anyExperimental,
-	armshltx = TasksHST.anyExperimental,
-	corgantuw = TasksHST.anyUWExperimental,
-	armshltxuw = TasksHST.anyUWExperimental,
-	armfark = TasksHST.anyfark,
+	corcom = self.anyCommander,
+	armcom = self.anyCommander,
+	armdecom = self.anyCommander,
+	cordecom = self.anyCommander,
+	corcv = self.anyConUnit,
+	armcv = self.anyConUnit,
+	corck = self.anyConUnit,
+	armck = self.anyConUnit,
+	cormuskrat = self.anyConAmphibious,
+	armbeaver = self.anyConAmphibious,
+	corch = self.anyConAmphibious,
+	armch = self.anyConAmphibious,
+	corca = self.anyConUnit,
+	armca = self.anyConUnit,
+	corack = self.anyAdvConUnit,
+	armack = self.anyAdvConUnit,
+	coracv = self.anyAdvConUnit,
+	armacv = self.anyAdvConUnit,
+	coraca = self.anyAdvConUnit,
+	armaca = self.anyAdvConUnit,
+	corcsa = self.anyConSeaplane,
+	armcsa = self.anyConSeaplane,
+	corcs = self.anyConShip,
+	armcs = self.anyConShip,
+	coracsub = self.anyAdvConSub,
+	armacsub = self.anyAdvConSub,
+	cormls = self.anyNavalEngineer,
+	armmls = self.anyNavalEngineer,
+	armconsul = self.anyCombatEngineer,
+	corfast = self.anyCombatEngineer,
+	corap = self.anyLvl1AirPlant,
+	armap = self.anyLvl1AirPlant,
+	corlab = self.anyLvl1BotLab,
+	armlab = self.anyLvl1BotLab,
+	corvp = self.anyLvl1VehPlant,
+	armvp = self.anyLvl1VehPlant,
+	coralab = self.anyLvl2BotLab,
+	coravp = self.anyLvl2VehPlant,
+	corhp = self.anyHoverPlatform,
+	armhp = self.anyHoverPlatform,
+	corfhp = self.anyHoverPlatform,
+	armfhp = self.anyHoverPlatform,
+	coramsub = self.anyAmphibiousComplex,
+	armamsub = self.anyAmphibiousComplex,
+	armalab = self.anyLvl2BotLab,
+	armavp = self.anyLvl2VehPlant,
+	coraap = self.anyLvl2AirPlant,
+	armaap = self.anyLvl2AirPlant,
+	corplat = self.anySeaplanePlatform,
+	armplat = self.anySeaplanePlatform,
+	corsy = self.anyLvl1ShipYard,
+	armsy = self.anyLvl1ShipYard,
+	corasy = self.anyLvl2ShipYard,
+	armasy = self.anyLvl2ShipYard,
+	corgant = self.anyExperimental,
+	armshltx = self.anyExperimental,
+	corgantuw = self.anyUWExperimental,
+	armshltxuw = self.anyUWExperimental,
+	armfark = self.anyfark,
 }
