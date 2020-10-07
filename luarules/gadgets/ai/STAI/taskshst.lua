@@ -1,72 +1,64 @@
---[[
- Task Queues!
-]]--
+TasksHST = class(Module)
 
-
-
-
-
-
-
-local DebugEnabled = false
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		if not inStr then return end
-		game:SendToConsole("Taskqueues: " .. inStr)
-	end
+function TasksHST:Name()
+	return "TasksHST"
 end
+
+function TasksHST:Init()
+	self.DebugEnabled = false
+end
+
 random = math.random
 math.randomseed( os.time() + game:GetTeamID() )
 random(); random(); random()
 
-function MapHasWater()
+function TasksHST: MapHasWater()
 	return (ai.waterMap or ai.hasUWSpots) or false
 end
 
 -- this is initialized in maphst
-function MapHasUnderwaterMetal()
+function TasksHST: MapHasUnderwaterMetal()
 	return ai.hasUWSpots or false
 end
 
-function IsSiegeEquipmentNeeded()
+function TasksHST: IsSiegeEquipmentNeeded()
 	return ai.overviewhst.needSiege
 end
 
-function IsAANeeded()
+function TasksHST: IsAANeeded()
 	return ai.needAirDefense
 end
 
-function IsShieldNeeded()
+function TasksHST: IsShieldNeeded()
 	return ai.needShields
 end
 
-function IsTorpedoNeeded()
+function TasksHST: IsTorpedoNeeded()
 	return ai.needSubmergedDefense
 end
 
-function IsJammerNeeded()
+function TasksHST: IsJammerNeeded()
 	return ai.needJammers
 end
 
-function IsAntinukeNeeded()
+function TasksHST: IsAntinukeNeeded()
 	return ai.needAntinuke
 end
 
-function IsNukeNeeded()
+function TasksHST: IsNukeNeeded()
 	local nuke = ai.needNukes and ai.canNuke
 	return nuke
 end
 
-function IsLandAttackNeeded()
+function TasksHST: IsLandAttackNeeded()
 	return ai.areLandTargets or ai.needGroundDefense
 end
 
-function IsWaterAttackNeeded()
+function TasksHST: IsWaterAttackNeeded()
 	return ai.areWaterTargets or ai.needSubmergedDefense
 end
 
-function GetMtypedLv(unitName)
+function TasksHST: GetMtypedLv(unitName)
 	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
 	local level = ai.UnitiesHST.unitTable[unitName].techLevel
 	local mtypedLv = mtype .. tostring(level)
@@ -76,7 +68,7 @@ function GetMtypedLv(unitName)
 end
 
 
-function BuildAAIfNeeded(unitName)
+function TasksHST: BuildAAIfNeeded(unitName)
 	if IsAANeeded() then
 		if not ai.UnitiesHST.unitTable[unitName].isBuilding then
 			return BuildWithLimitedNumber(unitName, ai.overviewhst.AAUnitPerTypeLimit)
@@ -88,7 +80,7 @@ function BuildAAIfNeeded(unitName)
 	end
 end
 
-function BuildTorpedoIfNeeded(unitName)
+function TasksHST: BuildTorpedoIfNeeded(unitName)
 	if IsTorpedoNeeded() then
 		return unitName
 	else
@@ -96,7 +88,7 @@ function BuildTorpedoIfNeeded(unitName)
 	end
 end
 
-function BuildSiegeIfNeeded(unitName)
+function TasksHST: BuildSiegeIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then
 		if ai.siegeCount < (ai.battleCount + ai.breakthroughCount) * 0.35 then
@@ -106,7 +98,7 @@ function BuildSiegeIfNeeded(unitName)
 	return UnitiesHST.DummyUnitName
 end
 
-function BuildBreakthroughIfNeeded(unitName)
+function TasksHST: BuildBreakthroughIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then return unitName end
 	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
@@ -130,7 +122,7 @@ function BuildBreakthroughIfNeeded(unitName)
 	end
 end
 
-function BuildRaiderIfNeeded(unitName)
+function TasksHST: BuildRaiderIfNeeded(unitName)
 	EchoDebug("build raider if needed: " .. unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
@@ -151,13 +143,13 @@ function BuildRaiderIfNeeded(unitName)
 	return unitName
 end
 
-function BuildBattleIfNeeded(unitName)
+function TasksHST: BuildBattleIfNeeded(unitName)
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	local mtype = ai.UnitiesHST.unitTable[unitName].mtype
 	local attackCounter = ai.attackhst:GetCounter(mtype)
 	EchoDebug(mtype .. " " .. attackCounter .. " " .. UnitiesHST.maxAttackCounter)
 	if attackCounter == UnitiesHST.maxAttackCounter and ai.battleCount > UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
-	if mtype == "veh" and MyTB.side == UnitiesHST.CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
+	if mtype == "veh" and self.side == UnitiesHST.CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
 		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
 		return unitName
 	end
@@ -178,13 +170,13 @@ function BuildBattleIfNeeded(unitName)
 	end
 end
 
-function CountOwnUnits(tmpUnitName)
+function TasksHST: CountOwnUnits(tmpUnitName)
 	if tmpUnitName == UnitiesHST.DummyUnitName then return 0 end -- don't count no-units
 	if ai.nameCount[tmpUnitName] == nil then return 0 end
 	return ai.nameCount[tmpUnitName]
 end
 
-function BuildWithLimitedNumber(tmpUnitName, minNumber)
+function TasksHST: BuildWithLimitedNumber(tmpUnitName, minNumber)
 	if tmpUnitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
 	if minNumber == 0 then return UnitiesHST.DummyUnitName end
 	if ai.nameCount[tmpUnitName] == nil then
@@ -198,7 +190,7 @@ function BuildWithLimitedNumber(tmpUnitName, minNumber)
 	end
 end
 
-function GroundDefenseIfNeeded(unitName)
+function TasksHST: GroundDefenseIfNeeded(unitName)
 	if not ai.needGroundDefense then
 		return UnitiesHST.DummyUnitName
 	else
@@ -206,7 +198,7 @@ function GroundDefenseIfNeeded(unitName)
 	end
 end
 
-function BuildBomberIfNeeded(unitName)
+function TasksHST: BuildBomberIfNeeded(unitName)
 	if not IsLandAttackNeeded() then return UnitiesHST.DummyUnitName end
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	if ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
@@ -216,7 +208,7 @@ function BuildBomberIfNeeded(unitName)
 	end
 end
 
-function BuildTorpedoBomberIfNeeded(unitName)
+function TasksHST: BuildTorpedoBomberIfNeeded(unitName)
 	if not IsWaterAttackNeeded() then return UnitiesHST.DummyUnitName end
 	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
 	if ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
@@ -227,7 +219,7 @@ function BuildTorpedoBomberIfNeeded(unitName)
 end
 
 
-function LandOrWater(tskqbhvr, landName, waterName)
+function TasksHST: LandOrWater(tskqbhvr, landName, waterName)
 	local builder = tskqbhvr.unit:Internal()
 	local bpos = builder:GetPosition()
 	local waterNet = ai.maphst:MobilityNetworkSizeHere("shp", bpos)
@@ -239,7 +231,7 @@ function LandOrWater(tskqbhvr, landName, waterName)
 end
 
 
-local function ConsulAsFactory(tskqbhvr)
+function TasksHST: TasksHST: ConsulAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
 	local rnd = math.random(1,8)
 	if 	rnd == 1 then unitName=ConVehicle(tskqbhvr)
@@ -256,7 +248,7 @@ local function ConsulAsFactory(tskqbhvr)
 	return unitName
 end
 
-local function FreakerAsFactory(tskqbhvr)
+function TasksHST: TasksHST: FreakerAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
 	local rnd = math.random(1,7)
 	if 	rnd == 1 then unitName=ConBot(tskqbhvr)
@@ -272,7 +264,7 @@ local function FreakerAsFactory(tskqbhvr)
 	return unitName
 end
 
-function NavalEngineerAsFactory(tskqbhvr)
+function TasksHST: NavalEngineerAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
 	local rnd= math.random(1,6)
 	if 	rnd == 1 then unitName=ConShip(tskqbhvr)
@@ -286,9 +278,9 @@ function NavalEngineerAsFactory(tskqbhvr)
 	return unitName
 end
 
-function EngineerAsFactory(tskqbhvr)
+function TasksHST: EngineerAsFactory(tskqbhvr)
 	local unitName = UnitiesHST.DummyUnitName
-	if MyTB.side == UnitiesHST.CORESideName then
+	if self.side == UnitiesHST.CORESideName then
 		unitName = FreakerAsFactory(tskqbhvr)
 	else
 		unitName = ConsulAsFactory(tskqbhvr)
@@ -296,7 +288,7 @@ function EngineerAsFactory(tskqbhvr)
 	return unitName
 end
 
-local function CommanderEconomy(tskqbhvr)
+function TasksHST: TasksHST: CommanderEconomy(tskqbhvr)
 	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = UnitiesHST.DummyUnitName
 	if not underwater then
@@ -309,7 +301,7 @@ local function CommanderEconomy(tskqbhvr)
 
 end
 
-local function AmphibiousEconomy(tskqbhvr)
+function TasksHST: TasksHST: AmphibiousEconomy(tskqbhvr)
 	local underwater = ai.maphst:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = UnitiesHST.DummyUnitName
 	if underwater then
@@ -323,7 +315,7 @@ end
 
 -- mobile construction units:
 
-local anyCommander = {
+TasksHST.anyCommander = {
 	BuildAppropriateFactory,
 	CommanderEconomy,
 	BuildLLT,
@@ -332,7 +324,7 @@ local anyCommander = {
 	BuildPopTorpedo,
 }
 
-local anyConUnit = {
+TasksHST.anyConUnit = {
 	BuildAppropriateFactory,
 	Economy1,
 	BuildLLT,
@@ -346,7 +338,7 @@ local anyConUnit = {
 	BuildHeavyishAA,
 }
 
-local anyConAmphibious = {
+TasksHST.anyConAmphibious = {
 	BuildAppropriateFactory,
 	AmphibiousEconomy,
 	BuildGeo,
@@ -364,7 +356,7 @@ local anyConAmphibious = {
 	BuildFloatHLT,
 }
 
-local anyConShip = {
+TasksHST.anyConShip = {
 	BuildAppropriateFactory,
 	EconomyUnderWater,
 	BuildFloatLightAA,
@@ -373,7 +365,7 @@ local anyConShip = {
 	BuildFloatHLT,
 }
 
-local anyAdvConUnit = {
+TasksHST.anyAdvConUnit = {
 	BuildAppropriateFactory,
 	AdvEconomy,
 	BuildNukeIfNeeded,
@@ -390,7 +382,7 @@ local anyAdvConUnit = {
 	BuildMohoGeo,
 }
 
-local anyConSeaplane = {
+TasksHST.anyConSeaplane = {
 	BuildAppropriateFactory,
 	EconomySeaplane,
 	BuildFloatHeavyAA,
@@ -398,7 +390,7 @@ local anyConSeaplane = {
 	BuildHeavyTorpedo,
 }
 
-local anyAdvConSub = {
+TasksHST.anyAdvConSub = {
 	BuildAppropriateFactory,
 	AdvEconomyUnderWater,
 	BuildFloatHeavyAA,
@@ -406,7 +398,7 @@ local anyAdvConSub = {
 	BuildHeavyTorpedo,
 }
 
-local anyNavalEngineer = {
+TasksHST.anyNavalEngineer = {
 	BuildAppropriateFactory,
 	EconomyNavalEngineer,
 	BuildFloatHLT,
@@ -415,7 +407,7 @@ local anyNavalEngineer = {
 	BuildLightTorpedo,
 }
 
-local anyCombatEngineer = {
+TasksHST.anyCombatEngineer = {
 	BuildAppropriateFactory,
 	EconomyBattleEngineer,
 	BuildMediumAA,
@@ -429,7 +421,7 @@ local anyCombatEngineer = {
 
 -- factories:
 
-local anyLvl1AirPlant = {
+TasksHST.anyLvl1AirPlant = {
 	ScoutAir,
 	Lvl1Bomber,
 	Lvl1AirRaider,
@@ -437,7 +429,7 @@ local anyLvl1AirPlant = {
 	Lvl1Fighter,
 }
 
-local anyLvl1VehPlant = {
+TasksHST.anyLvl1VehPlant = {
 	ScoutVeh,
 	ConVehicle,
 	Lvl1VehRaider,
@@ -447,7 +439,7 @@ local anyLvl1VehPlant = {
 	Lvl1VehBreakthrough,
 }
 
-local anyLvl1BotLab = {
+TasksHST.anyLvl1BotLab = {
 	ScoutBot,
 	ConBot,
 	Lvl1BotRaider,
@@ -457,14 +449,14 @@ local anyLvl1BotLab = {
 	RezBot1,
 }
 
-local anyLvl1ShipYard = {
+TasksHST.anyLvl1ShipYard = {
 	ScoutShip,
 	ConShip,
 	Lvl1ShipBattle,
 	Lvl1ShipRaider,
 }
 
-local anyHoverPlatform = {
+TasksHST.anyHoverPlatform = {
 	HoverRaider,
 	ConHover,
 	HoverBattle,
@@ -473,7 +465,7 @@ local anyHoverPlatform = {
 	AAHover,
 }
 
-local anyAmphibiousComplex = {
+TasksHST.anyAmphibiousComplex = {
 	AmphibiousRaider,
 	ConVehicleAmphibious,
 	AmphibiousBattle,
@@ -482,7 +474,7 @@ local anyAmphibiousComplex = {
 	Lvl2AABot,
 }
 
-local anyLvl2VehPlant = {
+TasksHST.anyLvl2VehPlant = {
 	ConAdvVehicle,
 	Lvl2VehRaider,
 	Lvl2VehBattle,
@@ -493,7 +485,7 @@ local anyLvl2VehPlant = {
 	Lvl2VehAssist,
 }
 
-local anyLvl2BotLab = {
+TasksHST.anyLvl2BotLab = {
 	Lvl2BotRaider,
 	ConAdvBot,
 	Lvl2BotBattle,
@@ -504,7 +496,7 @@ local anyLvl2BotLab = {
 	Lvl2BotAssist,
 }
 
-local anyLvl2AirPlant = {
+TasksHST.anyLvl2AirPlant = {
 	Lvl2Bomber,
 	Lvl2TorpedoBomber,
 	ConAdvAir,
@@ -514,7 +506,7 @@ local anyLvl2AirPlant = {
 	MegaAircraft,
 }
 
-local anySeaplanePlatform = {
+TasksHST.anySeaplanePlatform = {
 	SeaBomber,
 	SeaTorpedoBomber,
 	ConSeaAir,
@@ -523,7 +515,7 @@ local anySeaplanePlatform = {
 	SeaAirRaider,
 }
 
-local anyLvl2ShipYard = {
+TasksHST.anyLvl2ShipYard = {
 	Lvl2ShipRaider,
 	ConAdvSub,
 	Lvl2ShipBattle,
@@ -535,7 +527,7 @@ local anyLvl2ShipYard = {
 	MegaShip,
 }
 
-local anyExperimental = {
+TasksHST.anyExperimental = {
 	Lvl3Raider,
 	Lvl3Battle,
 	Lvl3Merl,
@@ -543,39 +535,39 @@ local anyExperimental = {
 	Lvl3Breakthrough,
 }
 
-local anyOutmodedLvl1BotLab = {
+TasksHST.anyOutmodedLvl1BotLab = {
 	ConBot,
 	RezBot1,
 	ScoutBot,
 	Lvl1AABot,
 }
 
-local anyOutmodedLvl1VehPlant = {
+TasksHST.anyOutmodedLvl1VehPlant = {
 	Lvl1VehRaiderOutmoded,
 	ConVehicle,
 	ScoutVeh,
 	Lvl1AAVeh,
 }
 
-local anyOutmodedLvl1AirPlant = {
+TasksHST.anyOutmodedLvl1AirPlant = {
 	ConAir,
 	ScoutAir,
 	Lvl1Fighter,
 }
 
-local anyOutmodedLvl1ShipYard = {
+TasksHST.anyOutmodedLvl1ShipYard = {
 	ConShip,
 	ScoutShip,
 }
 
-local anyOutmodedLvl2BotLab = {
+TasksHST.anyOutmodedLvl2BotLab = {
 	-- Lvl2BotRaider,
 	ConAdvBot,
 	Lvl2AABot,
 	Lvl2BotAssist,
 }
 
-local anyOutmodedLvl2VehPlant = {
+TasksHST.anyOutmodedLvl2VehPlant = {
 	-- Lvl2VehRaider,
 	Lvl2VehAssist,
 	ConAdvVehicle,
@@ -583,80 +575,80 @@ local anyOutmodedLvl2VehPlant = {
 }
 
 -- fall back to these when a level 2 factory exists
-ai.data.outmodedTaskqueues = {
-	corlab = anyOutmodedLvl1BotLab,
-	armlab = anyOutmodedLvl1BotLab,
-	corvp = anyOutmodedLvl1VehPlant,
-	armvp = anyOutmodedLvl1VehPlant,
-	corap = anyOutmodedLvl1AirPlant,
-	armap = anyOutmodedLvl1AirPlant,
-	corsy = anyOutmodedLvl1ShipYard,
-	armsy = anyOutmodedLvl1ShipYard,
-	coralab = anyOutmodedLvl2BotLab,
-	armalab = anyOutmodedLvl2BotLab,
-	coravp = anyOutmodedLvl2VehPlant,
-	armavp = anyOutmodedLvl2VehPlant,
+TasksHST.outmodedTaskqueues = {
+	corlab = TasksHST.anyOutmodedLvl1BotLab,
+	armlab = TasksHST.anyOutmodedLvl1BotLab,
+	corvp = TasksHST.anyOutmodedLvl1VehPlant,
+	armvp = TasksHST.anyOutmodedLvl1VehPlant,
+	corap = TasksHST.anyOutmodedLvl1AirPlant,
+	armap = TasksHST.anyOutmodedLvl1AirPlant,
+	corsy = TasksHST.anyOutmodedLvl1ShipYard,
+	armsy = TasksHST.anyOutmodedLvl1ShipYard,
+	coralab = TasksHST.anyOutmodedLvl2BotLab,
+	armalab = TasksHST.anyOutmodedLvl2BotLab,
+	coravp = TasksHST.anyOutmodedLvl2VehPlant,
+	armavp = TasksHST.anyOutmodedLvl2VehPlant,
 }
 
 -- finally, the taskqueue definitions
-ai.data.taskqueues = {
-	corcom = anyCommander,
-	armcom = anyCommander,
-	armdecom = anyCommander,
-	cordecom = anyCommander,
-	corcv = anyConUnit,
-	armcv = anyConUnit,
-	corck = anyConUnit,
-	armck = anyConUnit,
-	cormuskrat = anyConAmphibious,
-	armbeaver = anyConAmphibious,
-	corch = anyConAmphibious,
-	armch = anyConAmphibious,
-	corca = anyConUnit,
-	armca = anyConUnit,
-	corack = anyAdvConUnit,
-	armack = anyAdvConUnit,
-	coracv = anyAdvConUnit,
-	armacv = anyAdvConUnit,
-	coraca = anyAdvConUnit,
-	armaca = anyAdvConUnit,
-	corcsa = anyConSeaplane,
-	armcsa = anyConSeaplane,
-	corcs = anyConShip,
-	armcs = anyConShip,
-	coracsub = anyAdvConSub,
-	armacsub = anyAdvConSub,
-	cormls = anyNavalEngineer,
-	armmls = anyNavalEngineer,
-	armconsul = anyCombatEngineer,
-	corfast = anyCombatEngineer,
-	corap = anyLvl1AirPlant,
-	armap = anyLvl1AirPlant,
-	corlab = anyLvl1BotLab,
-	armlab = anyLvl1BotLab,
-	corvp = anyLvl1VehPlant,
-	armvp = anyLvl1VehPlant,
-	coralab = anyLvl2BotLab,
-	coravp = anyLvl2VehPlant,
-	corhp = anyHoverPlatform,
-	armhp = anyHoverPlatform,
-	corfhp = anyHoverPlatform,
-	armfhp = anyHoverPlatform,
-	coramsub = anyAmphibiousComplex,
-	armamsub = anyAmphibiousComplex,
-	armalab = anyLvl2BotLab,
-	armavp = anyLvl2VehPlant,
-	coraap = anyLvl2AirPlant,
-	armaap = anyLvl2AirPlant,
-	corplat = anySeaplanePlatform,
-	armplat = anySeaplanePlatform,
-	corsy = anyLvl1ShipYard,
-	armsy = anyLvl1ShipYard,
-	corasy = anyLvl2ShipYard,
-	armasy = anyLvl2ShipYard,
-	corgant = anyExperimental,
-	armshltx = anyExperimental,
-	corgantuw = anyUWExperimental,
-	armshltxuw = anyUWExperimental,
-	armfark = anyfark,
+TasksHST.taskqueues = {
+	corcom = TasksHST.anyCommander,
+	armcom = TasksHST.anyCommander,
+	armdecom = TasksHST.anyCommander,
+	cordecom = TasksHST.anyCommander,
+	corcv = TasksHST.anyConUnit,
+	armcv = TasksHST.anyConUnit,
+	corck = TasksHST.anyConUnit,
+	armck = TasksHST.anyConUnit,
+	cormuskrat = TasksHST.anyConAmphibious,
+	armbeaver = TasksHST.anyConAmphibious,
+	corch = TasksHST.anyConAmphibious,
+	armch = TasksHST.anyConAmphibious,
+	corca = TasksHST.anyConUnit,
+	armca = TasksHST.anyConUnit,
+	corack = TasksHST.anyAdvConUnit,
+	armack = TasksHST.anyAdvConUnit,
+	coracv = TasksHST.anyAdvConUnit,
+	armacv = TasksHST.anyAdvConUnit,
+	coraca = TasksHST.anyAdvConUnit,
+	armaca = TasksHST.anyAdvConUnit,
+	corcsa = TasksHST.anyConSeaplane,
+	armcsa = TasksHST.anyConSeaplane,
+	corcs = TasksHST.anyConShip,
+	armcs = TasksHST.anyConShip,
+	coracsub = TasksHST.anyAdvConSub,
+	armacsub = TasksHST.anyAdvConSub,
+	cormls = TasksHST.anyNavalEngineer,
+	armmls = TasksHST.anyNavalEngineer,
+	armconsul = TasksHST.anyCombatEngineer,
+	corfast = TasksHST.anyCombatEngineer,
+	corap = TasksHST.anyLvl1AirPlant,
+	armap = TasksHST.anyLvl1AirPlant,
+	corlab = TasksHST.anyLvl1BotLab,
+	armlab = TasksHST.anyLvl1BotLab,
+	corvp = TasksHST.anyLvl1VehPlant,
+	armvp = TasksHST.anyLvl1VehPlant,
+	coralab = TasksHST.anyLvl2BotLab,
+	coravp = TasksHST.anyLvl2VehPlant,
+	corhp = TasksHST.anyHoverPlatform,
+	armhp = TasksHST.anyHoverPlatform,
+	corfhp = TasksHST.anyHoverPlatform,
+	armfhp = TasksHST.anyHoverPlatform,
+	coramsub = TasksHST.anyAmphibiousComplex,
+	armamsub = TasksHST.anyAmphibiousComplex,
+	armalab = TasksHST.anyLvl2BotLab,
+	armavp = TasksHST.anyLvl2VehPlant,
+	coraap = TasksHST.anyLvl2AirPlant,
+	armaap = TasksHST.anyLvl2AirPlant,
+	corplat = TasksHST.anySeaplanePlatform,
+	armplat = TasksHST.anySeaplanePlatform,
+	corsy = TasksHST.anyLvl1ShipYard,
+	armsy = TasksHST.anyLvl1ShipYard,
+	corasy = TasksHST.anyLvl2ShipYard,
+	armasy = TasksHST.anyLvl2ShipYard,
+	corgant = TasksHST.anyExperimental,
+	armshltx = TasksHST.anyExperimental,
+	corgantuw = TasksHST.anyUWExperimental,
+	armshltxuw = TasksHST.anyUWExperimental,
+	armfark = TasksHST.anyfark,
 }

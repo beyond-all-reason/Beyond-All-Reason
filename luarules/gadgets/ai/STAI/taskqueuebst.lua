@@ -130,10 +130,6 @@ function TaskQueueBST:CategoryEconFilter(value)
 	return value
 end
 function TaskQueueBST:Init()
-
-	if not self.ai.data.taskqueues then
-		shard_include("taskqueues")
-	end
 	if self.ai.outmodedFactories == nil then
 		self.ai.outmodedFactories = 0
 	end
@@ -571,7 +567,6 @@ function TaskQueueBST:ProgressQueue()
 		local value = val
 
 		-- evaluate any functions here, they may return tables
-		MyTB = self
 		while type(value) == "function" do
 			value = value(self)
 		end
