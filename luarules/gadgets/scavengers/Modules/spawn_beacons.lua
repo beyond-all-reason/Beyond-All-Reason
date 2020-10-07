@@ -24,8 +24,12 @@ function SpawnBeacon(n)
 				if canSpawnBeaconHere then
 					if globalScore then
 						local g = math_random(0,3)
-						if ScavengerStartboxExists and g ~= 0 then
-							if ScavengerStartboxXMin < posx and ScavengerStartboxXMax > posx and ScavengerStartboxZMin < posz and ScavengerStartboxZMax > posz then
+						--ScavSafeAreaMinX
+						--ScavSafeAreaMaxX
+						--ScavSafeAreaMinZ
+						--ScavSafeAreaMaxZ
+						if ScavSafeAreaExist and g ~= 0 then
+							if ScavSafeAreaMinX < posx and ScavSafeAreaMaxX > posx and ScavSafeAreaMinZ < posz and ScavSafeAreaMaxZ > posz then
 								canSpawnBeaconHere = true
 							else
 								canSpawnBeaconHere = false
@@ -33,7 +37,7 @@ function SpawnBeacon(n)
 						else
 							-- elseif globalScore > scavconfig.timers.OnlyLos then
 								-- canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
-							if globalScore > scavconfig.timers.NoRadar then
+							if globalScore > scavconfig.timers.NoRadar or ((not ScavSafeAreaExist) and scavconfig.modules.startBoxProtection == true) then
 								canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
 							else
 								canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)
@@ -71,7 +75,13 @@ function SpawnBeacon(n)
 					end
 
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					if ScavSafeAreaExist or scavconfig.modules.startBoxProtection == false then
+						Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					else
+						Spring.CreateUnit("scavsafeareabeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					end
+						
+					
 
 					
 					Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)

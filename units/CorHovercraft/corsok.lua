@@ -28,7 +28,7 @@ return {
 		idletime = 1800,
 		maxdamage = 3800,
 		maxslope = 16,
-		maxvelocity = 1.31,
+		maxvelocity = 1.51,
 		maxwaterdepth = 0,
 		movementclass = "HHOVER3",
 		name = "Sokolov",

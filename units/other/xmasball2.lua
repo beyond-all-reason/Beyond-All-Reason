@@ -3,6 +3,7 @@ return {
 		blocking = true,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
+		buildpic = "other/xmasball2.png",
 		buildtime = 255,
 		canattack = false,
 		canmove = true,

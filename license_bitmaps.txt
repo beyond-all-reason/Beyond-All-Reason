@@ -1,0 +1,48 @@
+-- bitmaps/projectiletextures/
+
+bubbletexture.tga
+explo.tga
+explofade.tga
+explowater.tga
+flare2.tga
+flashside2.tga
+glow3.tga
+gunshotxl.tga
+lightb.tga
+lightning.tga
+lightninginair.tga
+muzzleside.tga
+muzzlesideflipped.tga
+new_dirta.png
+new_dirtb.png
+smoke.tga
+smoketrail.tga
+subwake.tga
+trail.tga
+wake.tga
+waterrush.tga
+whitelightb.tga
+
+All above projectile-textures were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)
+
+-- bitmaps/atmos/*.*
+
+All textures in this folder (/bitmaps/atmos/) were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)
+
+-- bitmaps/default/
+
+circlefx0.png
+circlefx1.png
+circlefx2.png
+circlefx3.png
+flame.tga
+groundflash.tga
+groundflashwhite.tga
+groundring.tga
+muzzlefront.tga
+
+All above (/bitmaps/default/) textures were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)
+
+-- bitmaps/smoke/
+
+All smoke[xx].tga textures in this folder were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)

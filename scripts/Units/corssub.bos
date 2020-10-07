@@ -119,10 +119,10 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode torp1 type FALL | NOHEATCLOUD;
-		explode torp2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bubbles1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bubbles2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torp1 type NOHEATCLOUD;
+		explode torp2 type FIRE | SMOKE | NOHEATCLOUD;
+		explode bubbles1 type FIRE | SMOKE | NOHEATCLOUD;
+		explode bubbles2 type FIRE | SMOKE | NOHEATCLOUD;
 		explode bubbles3 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -130,19 +130,19 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torp2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode bubbles1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bubbles2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bubbles3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode torp2 type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode bubbles1 type FIRE | SMOKE | NOHEATCLOUD;
+		explode bubbles2 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode bubbles3 type FIRE | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torp2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bubbles1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode bubbles2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode bubbles3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode torp2 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode bubbles1 type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode bubbles2 type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode bubbles3 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 	return corpsetype;
 }

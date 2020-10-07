@@ -200,7 +200,7 @@ function ConstructNewBlueprint(n, scav)
 		canConstructHere = posCheck(posx, posy, posz, posradius)
 	end
 	if canConstructHere then
-		canConstructHere = posStartboxCheck(posx, posy, posz, posradius)
+		canConstructHere = posSafeAreaCheck(posx, posy, posz, posradius)
 	end
 	if canConstructHere then
 		canConstructHere = posMapsizeCheck(posx, posy, posz, posradius)

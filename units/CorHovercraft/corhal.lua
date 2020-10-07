@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 3465,
 		maxslope = 16,
-		maxvelocity = 1.3,
+		maxvelocity = 1.51,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Halberd",

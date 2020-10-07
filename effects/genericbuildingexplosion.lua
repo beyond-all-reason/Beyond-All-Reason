@@ -1229,7 +1229,7 @@ local types = {
     groundflash_small = false,
     groundflash_large = false,
     groundflash_white = false,
-    explosion = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0 0 0 0   1 0.75 0.9 0.09   0.45 0.4 0.66 0.066   0.33 0.3 0.05 0.033   0 0 0 0]]}},
+    explosion = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0.5 0.51 0.53 0.010   0.30 0.31 0.33 0.008   0 0 0 0.01]]}},
     dirt = false,
     dirt2 = false,
     sparks = false,

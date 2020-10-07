@@ -38,6 +38,23 @@ for i=1,#files do
 	}
 end
 
+local files = VFS.DirList("sounds/uw/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 11, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.2*0.3,
+		pitchmod = 0.17,
+        gainmod  = 0.2*0.3,
+		dopplerscale = 0,
+		maxconcurrent = 8,
+		--priority = 1,
+		rolloff = 0.1,
+	}
+end
+
 --VOICE MESSAGES
 -- local files = VFS.DirList("sounds/voice/")
 -- local t = Sounds.SoundItems

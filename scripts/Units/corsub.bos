@@ -49,7 +49,10 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
-		emit-sfx 256 | 3 from wake;
+		emit-sfx 1024 + 0 from wake;
+		sleep 250;
+		emit-sfx 1024 + 0 from wake;
+		emit-sfx 1024 + 1 from wake;
 		sleep 250;
 	}
 }
@@ -99,8 +102,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode tube1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tube2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tube1 type FIRE | SMOKE | NOHEATCLOUD;
+		explode tube2 type FIRE | SMOKE | NOHEATCLOUD;
 		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -108,15 +111,15 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode tube1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode tube2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tube1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode tube2 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode tube1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode tube2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode tube1 type EXPLODE_ON_HIT | FIRE |  NOHEATCLOUD;
+		explode tube2 type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
 		//explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

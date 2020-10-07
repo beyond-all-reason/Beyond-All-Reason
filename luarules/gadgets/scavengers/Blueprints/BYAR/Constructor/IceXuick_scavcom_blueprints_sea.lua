@@ -16,9 +16,11 @@ local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
 local function scavamphfactoryt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitoptions = {}
-local r = math_random(0,3)
-	local posradius = 60
+	local chance = math_random(0,10)
+	if chance == 0 then
+		local unitoptions = {}
+		local r = math_random(0,3)
+		local posradius = 60
 		if radiusCheck then
 			return posradius
 		else
@@ -30,6 +32,7 @@ local r = math_random(0,3)
 				Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 			else
 				Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			end
 		end
 	end
 end
@@ -37,9 +40,11 @@ table.insert(ScavengerConstructorBlueprintsT0Sea,scavamphfactoryt1)
 table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphfactoryt1)
 
 local function scavamphfactoryt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
-local r = math_random(0,8)
-	local posradius = 70
+	local chance = math_random(0,10)
+	if chance == 0 then
+		local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
+		local r = math_random(0,8)
+		local posradius = 70
 		if radiusCheck then
 			return posradius
 		else
@@ -53,6 +58,7 @@ local r = math_random(0,8)
 				Spring.GiveOrderToUnit(scav, -(UDN.armamsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 			else
 				Spring.GiveOrderToUnit(scav, -(unitoptions[math_random(1,#unitoptions)]), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			end
 		end
 	end
 end
