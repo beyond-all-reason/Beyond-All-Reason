@@ -9,8 +9,8 @@ function TaskBuildHST:Init()
 end
 --t1 ground
 
-function TaskBuildHST:BuildLLT(###tskqbhvrFIXME###)
-	if ###tskqbhvrFIXME###.unit == nil then
+function TaskBuildHST:BuildLLT(Builder)
+	if Builder.unit == nil then
 		return UnitiesHST.DummyUnitName
 	end
 	local unitName = UnitiesHST.DummyUnitName
@@ -19,11 +19,11 @@ function TaskBuildHST:BuildLLT(###tskqbhvrFIXME###)
 		else
 			unitName = "armllt"
 		end
-		local unit = ###tskqbhvrFIXME###.unit:Internal()
+		local unit = Builder.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildSpecialLT(###tskqbhvrFIXME###)
+function TaskBuildHST:BuildSpecialLT(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if IsAANeeded() then
 		-- pop-up turrets are protected against bombs
@@ -39,33 +39,33 @@ function TaskBuildHST:BuildSpecialLT(###tskqbhvrFIXME###)
 			unitName = "armbeamer"
 		end
 	end
-	local unit = ###tskqbhvrFIXME###.unit:Internal()
+	local unit = Builder.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildSpecialLTOnly(###tskqbhvrFIXME###)
+function TaskBuildHST:BuildSpecialLTOnly(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if self.side == UnitiesHST.CORESideName then
 		unitName = "corhllt"
 	else
 		unitName = "armbeamer"
 	end
-	local unit = ###tskqbhvrFIXME###.unit:Internal()
+	local unit = Builder.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildHLT(###tskqbhvrFIXME###)
+function TaskBuildHST:BuildHLT(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if self.side == UnitiesHST.CORESideName then
 		unitName = "corhlt"
 	else
 		unitName = "armhlt"
 	end
-	local unit = ###tskqbhvrFIXME###.unit:Internal()
+	local unit = Builder.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildDepthCharge(###tskqbhvrFIXME###)
+function TaskBuildHST:BuildDepthCharge(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if self.side == UnitiesHST.CORESideName then
 		unitName = "cordl"
@@ -75,38 +75,38 @@ function TaskBuildHST:BuildDepthCharge(###tskqbhvrFIXME###)
 	return BuildTorpedoIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildFloatHLT(###tskqbhvrFIXME###)
+function TaskBuildHST:BuildFloatHLT(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if self.side == UnitiesHST.CORESideName then
 		unitName = "corfhlt"
 	else
 		unitName = "armfhlt"
 	end
-	local unit = ###tskqbhvrFIXME###.unit:Internal()
+	local unit = Builder.unit:Internal()
 	--return GroundDefenseIfNeeded(unitName)
 	return unitName
 end
 
 --t2 ground
-function TaskBuildHST:BuildLvl2PopUp(###tskqbhvrFIXME###)
+function TaskBuildHST:BuildLvl2PopUp(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if self.side == UnitiesHST.CORESideName then
 		unitName = "corvipe"
 	else
 		unitName = "armpb"
 	end
-	local unit = ###tskqbhvrFIXME###.unit:Internal()
+	local unit = Builder.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildTachyon(###tskqbhvrFIXME###)
+function TaskBuildHST:BuildTachyon(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if self.side == UnitiesHST.CORESideName then
 		unitName = "cordoom"
 	else
 		unitName = "armanni"
 	end
-	local unit = ###tskqbhvrFIXME###.unit:Internal()
+	local unit = Builder.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)
 end
 
@@ -431,13 +431,13 @@ end
 
 --Function of function
 
-local function TaskBuildHST:CommanderAA(###tskqbhvrFIXME###)
+local function TaskBuildHST:CommanderAA(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if IsAANeeded() then
-		if ai.maphst:IsUnderWater(###tskqbhvrFIXME###.unit:Internal():GetPosition()) then
-			unitName = BuildFloatLightAA(###tskqbhvrFIXME###)
+		if ai.maphst:IsUnderWater(Builder.unit:Internal():GetPosition()) then
+			unitName = BuildFloatLightAA(Builder)
 		else
-			unitName = BuildLightAA(###tskqbhvrFIXME###)
+			unitName = BuildLightAA(Builder)
 		end
 	end
 	return unitName
