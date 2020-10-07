@@ -25,7 +25,7 @@ return {
 		idletime = 1800,
 		maxdamage = 4750,
 		maxslope = 16,
-		maxvelocity = 1.57,
+		maxvelocity = 1.67,  //1.57
 		maxwaterdepth = 0,
 		movementclass = "HHOVER3",
 		name = "Lun",
