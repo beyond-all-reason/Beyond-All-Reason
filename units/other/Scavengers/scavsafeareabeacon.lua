@@ -13,6 +13,7 @@ return {
 		cloakcost = 10,
 		description = "Toxic cloud generator",
 		energyuse = 3,
+		explodeas = "scavcomexplosion",
 		footprintx = 1,
 		footprintz = 1,
 		icontype = "building",
