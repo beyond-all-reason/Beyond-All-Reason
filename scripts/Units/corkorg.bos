@@ -1001,7 +1001,7 @@ FireWeapon2()
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = head;
+	piecenum = eyeflare;
 }
 
 QueryWeapon2(piecenum)
