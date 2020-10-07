@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 800,
+		maxdamage = 825,
 		maxvelocity = 3.49,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
