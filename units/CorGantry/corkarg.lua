@@ -37,7 +37,7 @@ return {
 		turnrate = 607.20001,
 		upright = false,
 		customparams = {
-			model_author = "FireStorm",
+			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",
 			techlevel = 3,
