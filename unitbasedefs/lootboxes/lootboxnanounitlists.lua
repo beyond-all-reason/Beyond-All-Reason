@@ -244,6 +244,7 @@ buildPossibleOptionsT4 = {
 	"corfblackhyt4",
 	"corcrwt4",
 	"cordemont4",
+	"corkarganetht4",
 	
 	--air
 	"corcrwt4",
