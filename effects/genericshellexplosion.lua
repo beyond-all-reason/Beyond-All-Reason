@@ -516,6 +516,21 @@ local definitions = {
         useairlos          = false,
       },
     },
+    shockwave = {
+        class              = [[CSpherePartSpawner]],
+            count              = 0,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            air                = true,
+            properties = {
+                alpha           = 0.41,
+                ttl             = 5,
+                expansionSpeed  = 7,
+                color           = [[0.7, 0.60, 0.32]],
+                alwaysvisible      = false,
+            },
+    },
     dustparticles = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -973,6 +988,21 @@ local definitions = {
         pos = [[r-10 r8, 15, r-10 r8]],
         speed=[[0, 0, 0]],
       },
+    },
+    shockwave = {
+        class              = [[CSpherePartSpawner]],
+            count              = 0,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            air                = true,
+            properties = {
+                alpha           = 0.43,
+                ttl             = 6,
+                expansionSpeed  = 8,
+                color           = [[0.7, 0.60, 0.32]],
+                alwaysvisible      = false,
+            },
     },
     dustparticles = {
       air                = true,

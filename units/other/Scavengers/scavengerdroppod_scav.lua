@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 400,
 		builddistance = 90,
 		--builder = true,
-		--buildpic = "chickens/roost.PNG",
+		buildpic = "scavengers/scavengerdroppod.PNG",
 		buildtime = 10500,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		canmove = false,

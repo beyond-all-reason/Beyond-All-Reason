@@ -6,7 +6,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 85000,
 		buildcostmetal = 3200,
-		buildpic = "ARMEYES.PNG",
+		buildpic = "scavengers/scavsafeareabeacon.PNG",
 		buildtime = 750,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
