@@ -1,5 +1,5 @@
 return {
-	scavengerdroppodbeacon_scav = {
+	scavengerdroppodbeacon = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 10,

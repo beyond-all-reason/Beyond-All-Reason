@@ -997,6 +997,27 @@ unitDeaths = {
         },
     },
 
+    ScavComBossExplo = {
+        weaponType = "Cannon",
+        AreaOfEffect = 3000,
+        cameraShake = 3000,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "newboom",
+        soundstart = "largegun",
+        explosiongenerator="custom:newnukehuge",
+        damage = {
+            commanders = 1950,
+            default = 15000,
+        },
+        customparams = {
+            expl_light_color = "0.6 0.15 1",
+            expl_light_mult = 1.75,
+            expl_light_radius_mult = 1.65,
+            expl_light_life_mult = 2.2,
+            expl_light_heat_radius_mult = 1.5,
+        },
+    },
 
 --NUKE EXPLOSIONS WITH DAMAGE--
 

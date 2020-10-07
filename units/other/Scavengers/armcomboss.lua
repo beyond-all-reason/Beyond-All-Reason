@@ -24,7 +24,7 @@ return {
 		corpse = "DEAD",
 		description = "Oh s##t we are so dead",
 		energymake = 250,
-		explodeas = "commanderExplosion",
+		explodeas = "ScavComBossExplo",
 		footprintx = 5,
 		footprintz = 5,
 		hidedamage = true,
@@ -49,7 +49,7 @@ return {
 		reclaimable = false,
 		script = "Units/ARMCOMBOSS.cob",
 		seismicsignature = 0,
-		selfdestructas = "commanderexplosion",
+		selfdestructas = "ScavComBossExplo",
 		selfdestructcountdown = 5,
 		showplayername = false,
 		sightdistance = 10000,
@@ -238,7 +238,7 @@ return {
 					vtol = 50000,
 				},
 			},
-			disintegratorxl = {
+			disintegrator = {
 				areaofeffect = 65,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -299,7 +299,7 @@ return {
 				def = "ARMCOMSEALASERBOSS",
 			},
 			[3] = {
-				def = "DISINTEGRATORXL",
+				def = "DISINTEGRATOR",
 				badtargetcategory = "VTOL",
 			},
 		},
