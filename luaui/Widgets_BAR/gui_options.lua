@@ -2573,6 +2573,13 @@ function init()
 			  Spring.SendCommands("cross " .. tonumber(Spring.GetConfigInt("CrossSize", 1) or 10) .. " " .. value)
 		  end,
 		},
+		{ id = "middleclicktoggle", group = "control", basic = true, name = "Middleclick toggles camera move", type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = 'Enable camera pan toggle via single middlemouse click',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("MouseDragScrollThreshold", (value and 0.3 or 0))
+		  end,
+		},
 
 		{ id = "containmouse", group = "control", basic = true, widget = "Grabinput", name = "Contain mouse", type = "bool", value = GetWidgetToggleValue("Grabinput"), description = 'When in windowed mode, this prevents your mouse from moving out of it' },
 
@@ -4593,11 +4600,6 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
 		end
-	end
-
-	-- enforce middleclick camera panning
-	if Spring.GetConfigFloat('MouseDragScrollThreshold') <= 0.3 then
-		Spring.SetConfigFloat("MouseDragScrollThreshold", 0.3)
 	end
 
 	-- Sets necessary spring configuration parameters, so shaded units look the way they should
