@@ -124,8 +124,8 @@ function determine(ud, wd)
 end
 
 function processMexData(mexDefID, mexDef, upgradePairs)
-	for defID, def in pairs(mexDefs) do
-		if (mexDef.water == def.water) and (ignoreStealth or mexDef.stealth == def.stealth) and (ignoreWeapons or mexDef.armed == def.armed) then
+	for defID, def in pairs(mexDefs) do --mexDef.water won't match; "water" mexes are the same as land mexes.
+		if (mexDef.water == def.water or mexDef.water ~= def.water) and (ignoreStealth or mexDef.stealth == def.stealth) and (ignoreWeapons or mexDef.armed == def.armed) then
 
 			if mexDef.extractsMetal > def.extractsMetal then
 				if not upgradePairs then
@@ -302,15 +302,24 @@ if (gadgetHandler:IsSyncedCode()) then
 				local upgradeTo = upgradePairs[mexDefID]
 				if upgradeTo then
 					local dist = getDistance(unitID, mexID, teamID)
-					if not bestDistance or dist < bestDistance then
-						bestDistance = dist
-						bestMexID, bestMexDefID = mexID, mexDefID
+					local mexDepth = getMexDepth(mexID)
+					if (mexDepth >= -builders[teamID][unitID].maxDepth and mexDepth <= -builders[teamID][unitID].minDepth) then
+						if not bestDistance or dist < bestDistance then
+							bestDistance = dist
+							bestMexID, bestMexDefID = mexID, mexDefID
+						end
 					end
 				end
 			end
 		end
 
 		return bestMexID, bestMexDefID
+	end
+
+	function getMexDepth(mexID)
+		--Apparently not much needs to be done here. 0 is water level, always?
+		local _, depth, _ = GetUnitPosition(mexID)
+		return depth
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -368,6 +377,8 @@ if (gadgetHandler:IsSyncedCode()) then
 			builder.buildDistance = UnitDefs[unitDefID].buildDistance
 			builder.humanName = UnitDefs[unitDefID].humanName
 			builder.teamID = unitTeam
+			builder.maxDepth = UnitDefs[unitDefID].maxWaterDepth or 9999
+			builder.minDepth = UnitDefs[unitDefID].minWaterDepth or 9999
 			builders[unitTeam][unitID] = builder
 
 			addLayoutCommands(unitID)
