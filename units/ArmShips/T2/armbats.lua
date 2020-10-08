@@ -129,7 +129,7 @@ return {
 				name = "Heavy long-range g2g plasma cannon",
 				noselfdamage = true,
 				range = 830,
-				reloadtime = 0.4,
+				reloadtime = 1,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
