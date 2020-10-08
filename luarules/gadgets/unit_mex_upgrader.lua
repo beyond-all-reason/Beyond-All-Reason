@@ -302,7 +302,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				local upgradeTo = upgradePairs[mexDefID]
 				if upgradeTo then
 					local dist = getDistance(unitID, mexID, teamID)
-					local mexDepth = getMexDepth(mexID)
+					local mexDepth = select(2, GetUnitPosition(mexID))
 					if (mexDepth >= -builders[teamID][unitID].maxDepth and mexDepth <= -builders[teamID][unitID].minDepth) then
 						if not bestDistance or dist < bestDistance then
 							bestDistance = dist
@@ -314,12 +314,6 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 
 		return bestMexID, bestMexDefID
-	end
-
-	function getMexDepth(mexID)
-		--Apparently not much needs to be done here. 0 is water level, always?
-		local _, depth, _ = GetUnitPosition(mexID)
-		return depth
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
