@@ -293,262 +293,262 @@ end
 -- mobile construction units:
 
 TasksHST.anyCommander = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:CommanderEconomy,
-	self.ai.TaskBuildHST:BuildLLT,
-	self.ai.TaskBuildHST:BuildRadar,
-	self.ai.TaskBuildHST:CommanderAA,
-	self.ai.TaskBuildHST:BuildPopTorpedo,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.CommanderEconomy,
+	self.ai.TaskBuildHST.BuildLLT,
+	self.ai.TaskBuildHST.BuildRadar,
+	self.ai.TaskBuildHST.CommanderAA,
+	self.ai.TaskBuildHST.BuildPopTorpedo,
 }
 
 TasksHST.anyConUnit = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:Economy1,
-	self.ai.TaskBuildHST:BuildLLT,
-	self.ai.TaskEcoHST:Economy1,
-	self.ai.TaskBuildHST:BuildMediumAA,
-	self.ai.TaskBuildHST:BuildRadar,
-	self.ai.TaskBuildHST:BuildLvl1Jammer,
-	self.ai.TaskEcoHST:BuildGeo,
-	self.ai.TaskBuildHST:BuildHLT,
-	self.ai.TaskBuildHST:BuildLvl1Plasma,
-	self.ai.TaskBuildHST:BuildHeavyishAA,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.Economy1,
+	self.ai.TaskBuildHST.BuildLLT,
+	self.ai.TaskEcoHST.Economy1,
+	self.ai.TaskBuildHST.BuildMediumAA,
+	self.ai.TaskBuildHST.BuildRadar,
+	self.ai.TaskBuildHST.BuildLvl1Jammer,
+	self.ai.TaskEcoHST.BuildGeo,
+	self.ai.TaskBuildHST.BuildHLT,
+	self.ai.TaskBuildHST.BuildLvl1Plasma,
+	self.ai.TaskBuildHST.BuildHeavyishAA,
 }
 
 TasksHST.anyConAmphibious = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:AmphibiousEconomy,
-	self.ai.TaskEcoHST:BuildGeo,
-	self.ai.TaskEcoHST:Economy1,
-	self.ai.TaskBuildHST:BuildMediumAA,
-	self.ai.TaskBuildHST:BuildRadar,
-	self.ai.TaskBuildHST:BuildLvl1Jammer,
-	self.ai.TaskBuildHST:BuildHLT,
-	self.ai.TaskBuildHST:BuildLvl1Plasma,
-	self.ai.TaskBuildHST:BuildHeavyishAA,
-	self.ai.TaskEcoHST:AmphibiousEconomy,
-	self.ai.TaskBuildHST:BuildPopTorpedo,
-	self.ai.TaskBuildHST:BuildFloatLightAA,
-	self.ai.TaskBuildHST:BuildFloatRadar,
-	self.ai.TaskBuildHST:BuildFloatHLT,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.AmphibiousEconomy,
+	self.ai.TaskEcoHST.BuildGeo,
+	self.ai.TaskEcoHST.Economy1,
+	self.ai.TaskBuildHST.BuildMediumAA,
+	self.ai.TaskBuildHST.BuildRadar,
+	self.ai.TaskBuildHST.BuildLvl1Jammer,
+	self.ai.TaskBuildHST.BuildHLT,
+	self.ai.TaskBuildHST.BuildLvl1Plasma,
+	self.ai.TaskBuildHST.BuildHeavyishAA,
+	self.ai.TaskEcoHST.AmphibiousEconomy,
+	self.ai.TaskBuildHST.BuildPopTorpedo,
+	self.ai.TaskBuildHST.BuildFloatLightAA,
+	self.ai.TaskBuildHST.BuildFloatRadar,
+	self.ai.TaskBuildHST.BuildFloatHLT,
 }
 
 TasksHST.anyConShip = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:EconomyUnderWater,
-	self.ai.TaskBuildHST:BuildFloatLightAA,
-	self.ai.TaskBuildHST:BuildLightTorpedo,
-	self.ai.TaskBuildHST:BuildFloatRadar,
-	self.ai.TaskBuildHST:BuildFloatHLT,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.EconomyUnderWater,
+	self.ai.TaskBuildHST.BuildFloatLightAA,
+	self.ai.TaskBuildHST.BuildLightTorpedo,
+	self.ai.TaskBuildHST.BuildFloatRadar,
+	self.ai.TaskBuildHST.BuildFloatHLT,
 }
 
 TasksHST.anyAdvConUnit = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:AdvEconomy,
-	self.ai.TaskBuildHST:BuildNukeIfNeeded,
-	self.ai.TaskBuildHST:BuildAdvancedRadar,
-	self.ai.TaskBuildHST:BuildHeavyPlasma,
-	self.ai.TaskBuildHST:BuildAntinuke,
-	self.ai.TaskBuildHST:BuildLvl2PopUp,
-	self.ai.TaskBuildHST:BuildHeavyAA,
-	self.ai.TaskBuildHST:BuildLvl2Plasma,
-	self.ai.TaskBuildHST:BuildTachyon,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.AdvEconomy,
+	self.ai.TaskBuildHST.BuildNukeIfNeeded,
+	self.ai.TaskBuildHST.BuildAdvancedRadar,
+	self.ai.TaskBuildHST.BuildHeavyPlasma,
+	self.ai.TaskBuildHST.BuildAntinuke,
+	self.ai.TaskBuildHST.BuildLvl2PopUp,
+	self.ai.TaskBuildHST.BuildHeavyAA,
+	self.ai.TaskBuildHST.BuildLvl2Plasma,
+	self.ai.TaskBuildHST.BuildTachyon,
 	-- BuildTacticalNuke,
-	self.ai.TaskBuildHST:BuildExtraHeavyAA,
-	self.ai.TaskBuildHST:BuildLvl2Jammer,
-	self.ai.TaskEcoHST:BuildMohoGeo,
+	self.ai.TaskBuildHST.BuildExtraHeavyAA,
+	self.ai.TaskBuildHST.BuildLvl2Jammer,
+	self.ai.TaskEcoHST.BuildMohoGeo,
 }
 
 TasksHST.anyConSeaplane = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:EconomySeaplane,
-	self.ai.TaskBuildHST:BuildFloatHeavyAA,
-	self.ai.TaskBuildHST:BuildAdvancedSonar,
-	self.ai.TaskBuildHST:BuildHeavyTorpedo,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.EconomySeaplane,
+	self.ai.TaskBuildHST.BuildFloatHeavyAA,
+	self.ai.TaskBuildHST.BuildAdvancedSonar,
+	self.ai.TaskBuildHST.BuildHeavyTorpedo,
 }
 
 TasksHST.anyAdvConSub = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:AdvEconomyUnderWater,
-	self.ai.TaskBuildHST:BuildFloatHeavyAA,
-	self.ai.TaskBuildHST:BuildAdvancedSonar,
-	self.ai.TaskBuildHST:BuildHeavyTorpedo,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.AdvEconomyUnderWater,
+	self.ai.TaskBuildHST.BuildFloatHeavyAA,
+	self.ai.TaskBuildHST.BuildAdvancedSonar,
+	self.ai.TaskBuildHST.BuildHeavyTorpedo,
 }
 
 TasksHST.anyNavalEngineer = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:EconomyNavalEngineer,
-	self.ai.TaskBuildHST:BuildFloatHLT,
-	self.ai.TaskBuildHST:BuildFloatLightAA,
-	self.ai.TaskBuildHST:BuildFloatRadar,
-	self.ai.TaskBuildHST:BuildLightTorpedo,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.EconomyNavalEngineer,
+	self.ai.TaskBuildHST.BuildFloatHLT,
+	self.ai.TaskBuildHST.BuildFloatLightAA,
+	self.ai.TaskBuildHST.BuildFloatRadar,
+	self.ai.TaskBuildHST.BuildLightTorpedo,
 }
 
 TasksHST.anyCombatEngineer = {
-	self.ai.TaskEcoHST:BuildAppropriateFactory,
-	self.ai.TaskEcoHST:EconomyBattleEngineer,
-	self.ai.TaskBuildHST:BuildMediumAA,
-	self.ai.TaskBuildHST:BuildAdvancedRadar,
-	self.ai.TaskBuildHST:BuildLvl2Jammer,
-	self.ai.TaskBuildHST:BuildHeavyAA,
-	self.ai.TaskEcoHST:Economy1,
-	self.ai.TaskBuildHST:BuildLvl2Plasma,
+	self.ai.TaskEcoHST.BuildAppropriateFactory,
+	self.ai.TaskEcoHST.EconomyBattleEngineer,
+	self.ai.TaskBuildHST.BuildMediumAA,
+	self.ai.TaskBuildHST.BuildAdvancedRadar,
+	self.ai.TaskBuildHST.BuildLvl2Jammer,
+	self.ai.TaskBuildHST.BuildHeavyAA,
+	self.ai.TaskEcoHST.Economy1,
+	self.ai.TaskBuildHST.BuildLvl2Plasma,
 }
 
 
--- factories:
+-- factories.
 
 TasksHST.anyLvl1AirPlant = {
-	self.ai.TaskAirHST:ScoutAir,
-	self.ai.TaskAirHST:Lvl1Bomber,
-	self.ai.TaskAirHST:Lvl1AirRaider,
-	self.ai.TaskAirHST:ConAir,
-	self.ai.TaskAirHST:Lvl1Fighter,
+	self.ai.TaskAirHST.ScoutAir,
+	self.ai.TaskAirHST.Lvl1Bomber,
+	self.ai.TaskAirHST.Lvl1AirRaider,
+	self.ai.TaskAirHST.ConAir,
+	self.ai.TaskAirHST.Lvl1Fighter,
 }
 
 TasksHST.anyLvl1VehPlant = {
-	self.ai.TaskVehHST:ScoutVeh,
-	self.ai.TaskVehHST:ConVehicle,
-	self.ai.TaskVehHST:Lvl1VehRaider,
-	self.ai.TaskVehHST:Lvl1VehBattle,
-	self.ai.TaskVehHST:Lvl1AAVeh,
-	self.ai.TaskVehHST:Lvl1VehArty,
-	self.ai.TaskVehHST:Lvl1VehBreakthrough,
+	self.ai.TaskVehHST.ScoutVeh,
+	self.ai.TaskVehHST.ConVehicle,
+	self.ai.TaskVehHST.Lvl1VehRaider,
+	self.ai.TaskVehHST.Lvl1VehBattle,
+	self.ai.TaskVehHST.Lvl1AAVeh,
+	self.ai.TaskVehHST.Lvl1VehArty,
+	self.ai.TaskVehHST.Lvl1VehBreakthrough,
 }
 
 TasksHST.anyLvl1BotLab = {
-	self.ai.TaskBotHST:ScoutBot,
-	self.ai.TaskBotHST:ConBot,
-	self.ai.TaskBotHST:Lvl1BotRaider,
-	self.ai.TaskBotHST:Lvl1BotBattle,
-	self.ai.TaskBotHST:Lvl1AABot,
-	self.ai.TaskBotHST:Lvl1BotBreakthrough,
-	self.ai.TaskBotHST:RezBot1,
+	self.ai.TaskBotHST.ScoutBot,
+	self.ai.TaskBotHST.ConBot,
+	self.ai.TaskBotHST.Lvl1BotRaider,
+	self.ai.TaskBotHST.Lvl1BotBattle,
+	self.ai.TaskBotHST.Lvl1AABot,
+	self.ai.TaskBotHST.Lvl1BotBreakthrough,
+	self.ai.TaskBotHST.RezBot1,
 }
 
 TasksHST.anyLvl1ShipYard = {
-	self.ai.TaskShpHST:ScoutShip,
-	self.ai.TaskShpHST:ConShip,
-	self.ai.TaskShpHST:Lvl1ShipBattle,
-	self.ai.TaskShpHST:Lvl1ShipRaider,
+	self.ai.TaskShpHST.ScoutShip,
+	self.ai.TaskShpHST.ConShip,
+	self.ai.TaskShpHST.Lvl1ShipBattle,
+	self.ai.TaskShpHST.Lvl1ShipRaider,
 }
 
 TasksHST.anyHoverPlatform = {
-	self.ai.TaskHovHST:HoverRaider,
-	self.ai.TaskHovHST:ConHover,
-	self.ai.TaskHovHST:HoverBattle,
-	self.ai.TaskHovHST:HoverBreakthrough,
-	self.ai.TaskHovHST:HoverMerl,
-	self.ai.TaskHovHST:AAHover,
+	self.ai.TaskHovHST.HoverRaider,
+	self.ai.TaskHovHST.ConHover,
+	self.ai.TaskHovHST.HoverBattle,
+	self.ai.TaskHovHST.HoverBreakthrough,
+	self.ai.TaskHovHST.HoverMerl,
+	self.ai.TaskHovHST.AAHover,
 }
 
 TasksHST.anyAmphibiousComplex = {
-	self.ai.TaskVehHST:AmphibiousRaider,
-	self.ai.TaskVehHST:ConVehicleAmphibious,
-	self.ai.TaskVehHST:AmphibiousBattle,
-	self.ai.TaskShpHST:Lvl1ShipRaider,
-	self.ai.TaskBotHST:Lvl1AABot,
-	self.ai.TaskBotHST:Lvl2AABot,
+	self.ai.TaskVehHST.AmphibiousRaider,
+	self.ai.TaskVehHST.ConVehicleAmphibious,
+	self.ai.TaskVehHST.AmphibiousBattle,
+	self.ai.TaskShpHST.Lvl1ShipRaider,
+	self.ai.TaskBotHST.Lvl1AABot,
+	self.ai.TaskBotHST.Lvl2AABot,
 }
 
 TasksHST.anyLvl2VehPlant = {
-	self.ai.TaskVehHST:ConAdvVehicle,
-	self.ai.TaskVehHST:Lvl2VehRaider,
-	self.ai.TaskVehHST:Lvl2VehBattle,
-	self.ai.TaskVehHST:Lvl2VehBreakthrough,
-	self.ai.TaskVehHST:Lvl2VehArty,
-	self.ai.TaskVehHST:Lvl2VehMerl,
-	self.ai.TaskVehHST:Lvl2AAVeh,
-	self.ai.TaskVehHST:Lvl2VehAssist,
+	self.ai.TaskVehHST.ConAdvVehicle,
+	self.ai.TaskVehHST.Lvl2VehRaider,
+	self.ai.TaskVehHST.Lvl2VehBattle,
+	self.ai.TaskVehHST.Lvl2VehBreakthrough,
+	self.ai.TaskVehHST.Lvl2VehArty,
+	self.ai.TaskVehHST.Lvl2VehMerl,
+	self.ai.TaskVehHST.Lvl2AAVeh,
+	self.ai.TaskVehHST.Lvl2VehAssist,
 }
 
 TasksHST.anyLvl2BotLab = {
-	self.ai.TaskBotHST:Lvl2BotRaider,
-	self.ai.TaskBotHST:ConAdvBot,
-	self.ai.TaskBotHST:Lvl2BotBattle,
-	self.ai.TaskBotHST:Lvl2BotBreakthrough,
-	self.ai.TaskBotHST:Lvl2BotArty,
-	self.ai.TaskBotHST:Lvl2BotMerl,
-	self.ai.TaskBotHST:Lvl2AABot,
-	self.ai.TaskBotHST:Lvl2BotAssist,
+	self.ai.TaskBotHST.Lvl2BotRaider,
+	self.ai.TaskBotHST.ConAdvBot,
+	self.ai.TaskBotHST.Lvl2BotBattle,
+	self.ai.TaskBotHST.Lvl2BotBreakthrough,
+	self.ai.TaskBotHST.Lvl2BotArty,
+	self.ai.TaskBotHST.Lvl2BotMerl,
+	self.ai.TaskBotHST.Lvl2AABot,
+	self.ai.TaskBotHST.Lvl2BotAssist,
 }
 
 TasksHST.anyLvl2AirPlant = {
-	self.ai.TaskAirHST:Lvl2Bomber,
-	self.ai.TaskAirHST:Lvl2TorpedoBomber,
-	self.ai.TaskAirHST:ConAdvAir,
-	self.ai.TaskAirHST:ScoutAdvAir,
-	self.ai.TaskAirHST:Lvl2Fighter,
-	self.ai.TaskAirHST:Lvl2AirRaider,
-	self.ai.TaskAirHST:MegaAircraft,
+	self.ai.TaskAirHST.Lvl2Bomber,
+	self.ai.TaskAirHST.Lvl2TorpedoBomber,
+	self.ai.TaskAirHST.ConAdvAir,
+	self.ai.TaskAirHST.ScoutAdvAir,
+	self.ai.TaskAirHST.Lvl2Fighter,
+	self.ai.TaskAirHST.Lvl2AirRaider,
+	self.ai.TaskAirHST.MegaAircraft,
 }
 
 TasksHST.anySeaplanePlatform = {
-	self.ai.TaskAirHST:SeaBomber,
-	self.ai.TaskAirHST:SeaTorpedoBomber,
-	self.ai.TaskAirHST:ConSeaAir,
-	self.ai.TaskAirHST:ScoutSeaAir,
-	self.ai.TaskAirHST:SeaFighter,
-	self.ai.TaskAirHST:SeaAirRaider,
+	self.ai.TaskAirHST.SeaBomber,
+	self.ai.TaskAirHST.SeaTorpedoBomber,
+	self.ai.TaskAirHST.ConSeaAir,
+	self.ai.TaskAirHST.ScoutSeaAir,
+	self.ai.TaskAirHST.SeaFighter,
+	self.ai.TaskAirHST.SeaAirRaider,
 }
 
 TasksHST.anyLvl2ShipYard = {
-	self.ai.TaskShpHST:Lvl2ShipRaider,
-	self.ai.TaskShpHST:ConAdvSub,
-	self.ai.TaskShpHST:Lvl2ShipBattle,
-	self.ai.TaskShpHST:Lvl2AAShip,
-	self.ai.TaskShpHST:Lvl2ShipBreakthrough,
-	self.ai.TaskShpHST:Lvl2ShipMerl,
-	self.ai.TaskShpHST:Lvl2ShipAssist,
-	self.ai.TaskShpHST:Lvl2SubWar,
-	self.ai.TaskShpHST:MegaShip,
+	self.ai.TaskShpHST.Lvl2ShipRaider,
+	self.ai.TaskShpHST.ConAdvSub,
+	self.ai.TaskShpHST.Lvl2ShipBattle,
+	self.ai.TaskShpHST.Lvl2AAShip,
+	self.ai.TaskShpHST.Lvl2ShipBreakthrough,
+	self.ai.TaskShpHST.Lvl2ShipMerl,
+	self.ai.TaskShpHST.Lvl2ShipAssist,
+	self.ai.TaskShpHST.Lvl2SubWar,
+	self.ai.TaskShpHST.MegaShip,
 }
 
 TasksHST.anyExperimental = {
-	self.ai.TaskBotHST:Lvl3Raider,
-	self.ai.TaskBotHST:Lvl3Battle,
-	self.ai.TaskBotHST:Lvl3Merl,
-	self.ai.TaskBotHST:Lvl3Arty,
-	self.ai.TaskBotHST:Lvl3Breakthrough,
+	self.ai.TaskBotHST.Lvl3Raider,
+	self.ai.TaskBotHST.Lvl3Battle,
+	self.ai.TaskBotHST.Lvl3Merl,
+	self.ai.TaskBotHST.Lvl3Arty,
+	self.ai.TaskBotHST.Lvl3Breakthrough,
 }
 
 TasksHST.anyOutmodedLvl1BotLab = {
-	self.ai.TaskBotHST:ConBot,
-	self.ai.TaskBotHST:RezBot1,
-	self.ai.TaskBotHST:ScoutBot,
-	self.ai.TaskBotHST:Lvl1AABot,
+	self.ai.TaskBotHST.ConBot,
+	self.ai.TaskBotHST.RezBot1,
+	self.ai.TaskBotHST.ScoutBot,
+	self.ai.TaskBotHST.Lvl1AABot,
 }
 
 TasksHST.anyOutmodedLvl1VehPlant = {
-	self.ai.TaskVehHST:Lvl1VehRaiderOutmoded,
-	self.ai.TaskVehHST:ConVehicle,
-	self.ai.TaskVehHST:ScoutVeh,
-	self.ai.TaskVehHST:Lvl1AAVeh,
+	self.ai.TaskVehHST.Lvl1VehRaiderOutmoded,
+	self.ai.TaskVehHST.ConVehicle,
+	self.ai.TaskVehHST.ScoutVeh,
+	self.ai.TaskVehHST.Lvl1AAVeh,
 }
 
 TasksHST.anyOutmodedLvl1AirPlant = {
-	self.ai.TaskAirHST:ConAir,
-	self.ai.TaskAirHST:ScoutAir,
-	self.ai.TaskAirHST:Lvl1Fighter,
+	self.ai.TaskAirHST.ConAir,
+	self.ai.TaskAirHST.ScoutAir,
+	self.ai.TaskAirHST.Lvl1Fighter,
 }
 
 TasksHST.anyOutmodedLvl1ShipYard = {
-	self.ai.TaskShpHST:ConShip,
-	self.ai.TaskShpHST:ScoutShip,
+	self.ai.TaskShpHST.ConShip,
+	self.ai.TaskShpHST.ScoutShip,
 }
 
 TasksHST.anyOutmodedLvl2BotLab = {
 	-- Lvl2BotRaider,
-	self.ai.TaskBotHST:ConAdvBot,
-	self.ai.TaskBotHST:Lvl2AABot,
-	self.ai.TaskBotHST:Lvl2BotAssist,
+	self.ai.TaskBotHST.ConAdvBot,
+	self.ai.TaskBotHST.Lvl2AABot,
+	self.ai.TaskBotHST.Lvl2BotAssist,
 }
 
 TasksHST.anyOutmodedLvl2VehPlant = {
 	-- Lvl2VehRaider,
-	self.ai.TaskVehHST:Lvl2VehAssist,
-	self.ai.TaskVehHST:ConAdvVehicle,
-	self.ai.TaskVehHST:Lvl2AAVeh,
+	self.ai.TaskVehHST.Lvl2VehAssist,
+	self.ai.TaskVehHST.ConAdvVehicle,
+	self.ai.TaskVehHST.Lvl2AAVeh,
 }
 
 -- fall back to these when a level 2 factory exists

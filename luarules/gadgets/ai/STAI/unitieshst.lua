@@ -968,7 +968,7 @@ for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
 UnitiesHST.unitTable, UnitiesHST.wrecks = GetUnitTable()
 
-local featureTable = GetFeatureTable(wrecks)
+local featureTable = GetFeatureTable(UnitiesHST.wrecks)
 
 wrecks = nil
 
