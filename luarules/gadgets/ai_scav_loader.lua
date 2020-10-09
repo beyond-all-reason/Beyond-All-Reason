@@ -77,6 +77,7 @@ if not gadgetHandler:IsSyncedCode() then
 			Script.LuaUI.AddNotification('scav_droppingUnits', 'scavengers/droppingUnits.wav', 20, 3.31, "Scavengers are dropping units in our area.", unlisted)
 
 			Script.LuaUI.AddNotification('scav_scavfinalvictory', 'scavengers/scavfinalvictory.wav', 20, 10.5, "Good work commander. You survived all scavenger attacks. You are victorius! Celebrate and then try and annihilate them on the next map.", unlisted)
+			Script.LuaUI.AddNotification('scav_scavfinalboss', 'scavengers/scavfinalboss.wav', 20, 13.5, "Commander, we've detected an abnormally large signature of scavenger unit. It's approaching slowly in your direction. Be prepared for the worst!", unlisted)
 			Script.LuaUI.AddNotification('scav_scavfinal12remain', 'scavengers/scavfinal12remain.wav', 20, 3.93, "12.5 minutes remaining. Still a long fight ahead.", unlisted)
 			Script.LuaUI.AddNotification('scav_scavfinal10remain', 'scavengers/scavfinal10remain.wav', 20, 1.49, "10 minutes remaining.", unlisted)
 			Script.LuaUI.AddNotification('scav_scavfinal09remain', 'scavengers/scavfinal09remain.wav', 20, 2.7, "9 minutes remaining. Hold your line.", unlisted)
