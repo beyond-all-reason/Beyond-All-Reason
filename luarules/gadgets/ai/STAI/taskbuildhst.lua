@@ -431,7 +431,7 @@ end
 
 --Function of function
 
-local function TaskBuildHST:CommanderAA(Builder)
+function TaskBuildHST:CommanderAA(Builder)
 	local unitName = UnitiesHST.DummyUnitName
 	if IsAANeeded() then
 		if ai.maphst:IsUnderWater(Builder.unit:Internal():GetPosition()) then

@@ -200,7 +200,7 @@ function TaskQueueBST:Init()
 end
 
 function TaskQueueBST:HasQueues()
-	return (self.ai.data.taskqueues[self.name] ~= nil)
+	return (ai.TasksHST.taskqueues[self.name] ~= nil)
 end
 
 function TaskQueueBST:OwnerBuilt()
@@ -460,7 +460,7 @@ function TaskQueueBST:GetQueue()
 
 	self.outmodedTechLevel = false
 	local uT = UnitiesHST.unitTable
-	if self.ai.data.outmodedTaskqueues[self.name] ~= nil and not q then
+	if self.ai.TasksHST.outmodedTaskqueues[self.name] ~= nil and not q then
 		local threshold =  1 - (uT[self.name].techLevel / self.ai.maxFactoryLevel)
 		if self.isFactory  and (self.ai.Metal.full < threshold or self.ai.Energy.full < threshold) then
 			local mtype = UnitiesHST.factoryMobilities[self.name][1]
@@ -470,7 +470,7 @@ function TaskQueueBST:GetQueue()
 					if mtype == UnitiesHST.factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
 						self:EchoDebug( self.name .. ' have major factory ' .. factoryName)
 						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
-						q = self.ai.data.outmodedTaskqueues[self.name]
+						q = self.ai.TasksHST.outmodedTaskqueues[self.name]
 						self.outmodedTechLevel = true
 						break
 					end
@@ -479,10 +479,10 @@ function TaskQueueBST:GetQueue()
 			end
 
 		elseif self.outmodedFactory then
-			q = self.ai.data.outmodedTaskqueues[self.name]
+			q = self.ai.TasksHST.outmodedTaskqueues[self.name]
 		end
 	end
-	q = q or self.ai.data.taskqueues[self.name]
+	q = q or self.ai.TasksHST.[self.name]
 	if type(q) == "function" then
 		-- game:SendToConsole("function table found!")
 		q = q(self)

@@ -292,7 +292,8 @@ end
 
 -- mobile construction units:
 
-TasksHST.anyCommander = {
+function TasksHST:anyCommander()
+	return {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.CommanderEconomy,
 	self.ai.TaskBuildHST.BuildLLT,
@@ -300,8 +301,8 @@ TasksHST.anyCommander = {
 	self.ai.TaskBuildHST.CommanderAA,
 	self.ai.TaskBuildHST.BuildPopTorpedo,
 }
-
-TasksHST.anyConUnit = {
+end
+function TasksHST:anyConUnit()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.Economy1,
 	self.ai.TaskBuildHST.BuildLLT,
@@ -313,9 +314,9 @@ TasksHST.anyConUnit = {
 	self.ai.TaskBuildHST.BuildHLT,
 	self.ai.TaskBuildHST.BuildLvl1Plasma,
 	self.ai.TaskBuildHST.BuildHeavyishAA,
-}
+} end
 
-TasksHST.anyConAmphibious = {
+function TasksHST:anyConAmphibious()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.AmphibiousEconomy,
 	self.ai.TaskEcoHST.BuildGeo,
@@ -331,18 +332,18 @@ TasksHST.anyConAmphibious = {
 	self.ai.TaskBuildHST.BuildFloatLightAA,
 	self.ai.TaskBuildHST.BuildFloatRadar,
 	self.ai.TaskBuildHST.BuildFloatHLT,
-}
+} end
 
-TasksHST.anyConShip = {
+function TasksHST:anyConShip()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.EconomyUnderWater,
 	self.ai.TaskBuildHST.BuildFloatLightAA,
 	self.ai.TaskBuildHST.BuildLightTorpedo,
 	self.ai.TaskBuildHST.BuildFloatRadar,
 	self.ai.TaskBuildHST.BuildFloatHLT,
-}
+} end
 
-TasksHST.anyAdvConUnit = {
+function TasksHST:anyAdvConUnit()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.AdvEconomy,
 	self.ai.TaskBuildHST.BuildNukeIfNeeded,
@@ -357,34 +358,34 @@ TasksHST.anyAdvConUnit = {
 	self.ai.TaskBuildHST.BuildExtraHeavyAA,
 	self.ai.TaskBuildHST.BuildLvl2Jammer,
 	self.ai.TaskEcoHST.BuildMohoGeo,
-}
+} end
 
-TasksHST.anyConSeaplane = {
+function TasksHST:anyConSeaplane()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.EconomySeaplane,
 	self.ai.TaskBuildHST.BuildFloatHeavyAA,
 	self.ai.TaskBuildHST.BuildAdvancedSonar,
 	self.ai.TaskBuildHST.BuildHeavyTorpedo,
-}
+} end
 
-TasksHST.anyAdvConSub = {
+function TasksHST:anyAdvConSub()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.AdvEconomyUnderWater,
 	self.ai.TaskBuildHST.BuildFloatHeavyAA,
 	self.ai.TaskBuildHST.BuildAdvancedSonar,
 	self.ai.TaskBuildHST.BuildHeavyTorpedo,
-}
+} end
 
-TasksHST.anyNavalEngineer = {
+function TasksHST:anyNavalEngineer()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.EconomyNavalEngineer,
 	self.ai.TaskBuildHST.BuildFloatHLT,
 	self.ai.TaskBuildHST.BuildFloatLightAA,
 	self.ai.TaskBuildHST.BuildFloatRadar,
 	self.ai.TaskBuildHST.BuildLightTorpedo,
-}
+} end
 
-TasksHST.anyCombatEngineer = {
+function TasksHST:anyCombatEngineer()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
 	self.ai.TaskEcoHST.EconomyBattleEngineer,
 	self.ai.TaskBuildHST.BuildMediumAA,
@@ -393,20 +394,20 @@ TasksHST.anyCombatEngineer = {
 	self.ai.TaskBuildHST.BuildHeavyAA,
 	self.ai.TaskEcoHST.Economy1,
 	self.ai.TaskBuildHST.BuildLvl2Plasma,
-}
+} end
 
 
 -- factories.
 
-TasksHST.anyLvl1AirPlant = {
+function TasksHST:anyLvl1AirPlant()  return  {
 	self.ai.TaskAirHST.ScoutAir,
 	self.ai.TaskAirHST.Lvl1Bomber,
 	self.ai.TaskAirHST.Lvl1AirRaider,
 	self.ai.TaskAirHST.ConAir,
 	self.ai.TaskAirHST.Lvl1Fighter,
-}
+} end
 
-TasksHST.anyLvl1VehPlant = {
+function TasksHST:anyLvl1VehPlant()  return  {
 	self.ai.TaskVehHST.ScoutVeh,
 	self.ai.TaskVehHST.ConVehicle,
 	self.ai.TaskVehHST.Lvl1VehRaider,
@@ -414,9 +415,9 @@ TasksHST.anyLvl1VehPlant = {
 	self.ai.TaskVehHST.Lvl1AAVeh,
 	self.ai.TaskVehHST.Lvl1VehArty,
 	self.ai.TaskVehHST.Lvl1VehBreakthrough,
-}
+} end
 
-TasksHST.anyLvl1BotLab = {
+function TasksHST:anyLvl1BotLab()  return  {
 	self.ai.TaskBotHST.ScoutBot,
 	self.ai.TaskBotHST.ConBot,
 	self.ai.TaskBotHST.Lvl1BotRaider,
@@ -424,34 +425,34 @@ TasksHST.anyLvl1BotLab = {
 	self.ai.TaskBotHST.Lvl1AABot,
 	self.ai.TaskBotHST.Lvl1BotBreakthrough,
 	self.ai.TaskBotHST.RezBot1,
-}
+} end
 
-TasksHST.anyLvl1ShipYard = {
+function TasksHST:anyLvl1ShipYard()  return  {
 	self.ai.TaskShpHST.ScoutShip,
 	self.ai.TaskShpHST.ConShip,
 	self.ai.TaskShpHST.Lvl1ShipBattle,
 	self.ai.TaskShpHST.Lvl1ShipRaider,
-}
+} end
 
-TasksHST.anyHoverPlatform = {
+function TasksHST:anyHoverPlatform()  return  {
 	self.ai.TaskHovHST.HoverRaider,
 	self.ai.TaskHovHST.ConHover,
 	self.ai.TaskHovHST.HoverBattle,
 	self.ai.TaskHovHST.HoverBreakthrough,
 	self.ai.TaskHovHST.HoverMerl,
 	self.ai.TaskHovHST.AAHover,
-}
+} end
 
-TasksHST.anyAmphibiousComplex = {
+function TasksHST:anyAmphibiousComplex()  return  {
 	self.ai.TaskVehHST.AmphibiousRaider,
 	self.ai.TaskVehHST.ConVehicleAmphibious,
 	self.ai.TaskVehHST.AmphibiousBattle,
 	self.ai.TaskShpHST.Lvl1ShipRaider,
 	self.ai.TaskBotHST.Lvl1AABot,
 	self.ai.TaskBotHST.Lvl2AABot,
-}
+} end
 
-TasksHST.anyLvl2VehPlant = {
+function TasksHST:anyLvl2VehPlant()  return  {
 	self.ai.TaskVehHST.ConAdvVehicle,
 	self.ai.TaskVehHST.Lvl2VehRaider,
 	self.ai.TaskVehHST.Lvl2VehBattle,
@@ -460,9 +461,9 @@ TasksHST.anyLvl2VehPlant = {
 	self.ai.TaskVehHST.Lvl2VehMerl,
 	self.ai.TaskVehHST.Lvl2AAVeh,
 	self.ai.TaskVehHST.Lvl2VehAssist,
-}
+} end
 
-TasksHST.anyLvl2BotLab = {
+function TasksHST:anyLvl2BotLab()  return  {
 	self.ai.TaskBotHST.Lvl2BotRaider,
 	self.ai.TaskBotHST.ConAdvBot,
 	self.ai.TaskBotHST.Lvl2BotBattle,
@@ -471,9 +472,9 @@ TasksHST.anyLvl2BotLab = {
 	self.ai.TaskBotHST.Lvl2BotMerl,
 	self.ai.TaskBotHST.Lvl2AABot,
 	self.ai.TaskBotHST.Lvl2BotAssist,
-}
+} end
 
-TasksHST.anyLvl2AirPlant = {
+function TasksHST:anyLvl2AirPlant()  return  {
 	self.ai.TaskAirHST.Lvl2Bomber,
 	self.ai.TaskAirHST.Lvl2TorpedoBomber,
 	self.ai.TaskAirHST.ConAdvAir,
@@ -481,18 +482,18 @@ TasksHST.anyLvl2AirPlant = {
 	self.ai.TaskAirHST.Lvl2Fighter,
 	self.ai.TaskAirHST.Lvl2AirRaider,
 	self.ai.TaskAirHST.MegaAircraft,
-}
+} end
 
-TasksHST.anySeaplanePlatform = {
+function TasksHST:anySeaplanePlatform()  return  {
 	self.ai.TaskAirHST.SeaBomber,
 	self.ai.TaskAirHST.SeaTorpedoBomber,
 	self.ai.TaskAirHST.ConSeaAir,
 	self.ai.TaskAirHST.ScoutSeaAir,
 	self.ai.TaskAirHST.SeaFighter,
 	self.ai.TaskAirHST.SeaAirRaider,
-}
+} end
 
-TasksHST.anyLvl2ShipYard = {
+function TasksHST:anyLvl2ShipYard()  return  {
 	self.ai.TaskShpHST.Lvl2ShipRaider,
 	self.ai.TaskShpHST.ConAdvSub,
 	self.ai.TaskShpHST.Lvl2ShipBattle,
@@ -502,57 +503,57 @@ TasksHST.anyLvl2ShipYard = {
 	self.ai.TaskShpHST.Lvl2ShipAssist,
 	self.ai.TaskShpHST.Lvl2SubWar,
 	self.ai.TaskShpHST.MegaShip,
-}
+} end
 
-TasksHST.anyExperimental = {
+function TasksHST:anyExperimental()  return  {
 	self.ai.TaskBotHST.Lvl3Raider,
 	self.ai.TaskBotHST.Lvl3Battle,
 	self.ai.TaskBotHST.Lvl3Merl,
 	self.ai.TaskBotHST.Lvl3Arty,
 	self.ai.TaskBotHST.Lvl3Breakthrough,
-}
+} end
 
-TasksHST.anyOutmodedLvl1BotLab = {
+function TasksHST:anyOutmodedLvl1BotLab()  return  {
 	self.ai.TaskBotHST.ConBot,
 	self.ai.TaskBotHST.RezBot1,
 	self.ai.TaskBotHST.ScoutBot,
 	self.ai.TaskBotHST.Lvl1AABot,
-}
+} end
 
-TasksHST.anyOutmodedLvl1VehPlant = {
+function TasksHST:anyOutmodedLvl1VehPlant()  return  {
 	self.ai.TaskVehHST.Lvl1VehRaiderOutmoded,
 	self.ai.TaskVehHST.ConVehicle,
 	self.ai.TaskVehHST.ScoutVeh,
 	self.ai.TaskVehHST.Lvl1AAVeh,
-}
+} end
 
-TasksHST.anyOutmodedLvl1AirPlant = {
+function TasksHST:anyOutmodedLvl1AirPlant()  return  {
 	self.ai.TaskAirHST.ConAir,
 	self.ai.TaskAirHST.ScoutAir,
 	self.ai.TaskAirHST.Lvl1Fighter,
-}
+} end
 
-TasksHST.anyOutmodedLvl1ShipYard = {
+function TasksHST:anyOutmodedLvl1ShipYard()  return  {
 	self.ai.TaskShpHST.ConShip,
 	self.ai.TaskShpHST.ScoutShip,
-}
+} end
 
-TasksHST.anyOutmodedLvl2BotLab = {
+function TasksHST:anyOutmodedLvl2BotLab()  return  {
 	-- Lvl2BotRaider,
 	self.ai.TaskBotHST.ConAdvBot,
 	self.ai.TaskBotHST.Lvl2AABot,
 	self.ai.TaskBotHST.Lvl2BotAssist,
-}
+} end
 
-TasksHST.anyOutmodedLvl2VehPlant = {
+function TasksHST:anyOutmodedLvl2VehPlant()  return  {
 	-- Lvl2VehRaider,
 	self.ai.TaskVehHST.Lvl2VehAssist,
 	self.ai.TaskVehHST.ConAdvVehicle,
 	self.ai.TaskVehHST.Lvl2AAVeh,
-}
+} end
 
 -- fall back to these when a level 2 factory exists
-TasksHST.outmodedTaskqueues = {
+function TasksHST:outmodedTaskqueues()  return  {
 	corlab = self.anyOutmodedLvl1BotLab,
 	armlab = self.anyOutmodedLvl1BotLab,
 	corvp = self.anyOutmodedLvl1VehPlant,
@@ -565,10 +566,10 @@ TasksHST.outmodedTaskqueues = {
 	armalab = self.anyOutmodedLvl2BotLab,
 	coravp = self.anyOutmodedLvl2VehPlant,
 	armavp = self.anyOutmodedLvl2VehPlant,
-}
+} end
 
 -- finally, the taskqueue definitions
-TasksHST.taskqueues = {
+function TasksHST:taskqueues()  return  {
 	corcom = self.anyCommander,
 	armcom = self.anyCommander,
 	armdecom = self.anyCommander,
@@ -628,4 +629,4 @@ TasksHST.taskqueues = {
 	corgantuw = self.anyUWExperimental,
 	armshltxuw = self.anyUWExperimental,
 	armfark = self.anyfark,
-}
+} end

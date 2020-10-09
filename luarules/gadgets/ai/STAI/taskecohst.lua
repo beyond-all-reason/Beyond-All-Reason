@@ -94,7 +94,7 @@ function TaskEcoHST:Solar()
 	end
 end
 
-local function TaskEcoHST:SolarAdv()
+function TaskEcoHST:SolarAdv()
 	if self.side == UnitiesHST.CORESideName then
 		return "coradvsol"
 	else
@@ -190,7 +190,7 @@ function TaskEcoHST:BuildMohoGeo()
 	-- will turn into a safe geothermal or a geothermal plasma battery if too close to a factory
 end
 
-local function TaskEcoHST:BuildSpecialGeo()
+function TaskEcoHST:BuildSpecialGeo()
 	-- don't attempt if there are no spots on the map
 	if not ai.mapHasGeothermal then
 		return UnitiesHST.DummyUnitName
@@ -202,7 +202,7 @@ local function TaskEcoHST:BuildSpecialGeo()
 	end
 end
 
-local function TaskEcoHST:BuildFusion()
+function TaskEcoHST:BuildFusion()
 	if self.side == UnitiesHST.CORESideName then
 		return "corfus"
 	else
@@ -211,7 +211,7 @@ local function TaskEcoHST:BuildFusion()
 	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
 end
 
-local function TaskEcoHST:BuildAdvFusion()
+function TaskEcoHST:BuildAdvFusion()
 	if self.side == UnitiesHST.CORESideName then
 		return "corafus"
 	else
@@ -220,7 +220,7 @@ local function TaskEcoHST:BuildAdvFusion()
 	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
 end
 
-local function TaskEcoHST:BuildAdvEnergy()
+function TaskEcoHST:BuildAdvEnergy()
 	EchoDebug(tostring('advname '..self.name))
 	local unitName = UnitiesHST.DummyUnitName
 	unitName = BuildFusion()
@@ -231,7 +231,7 @@ local function TaskEcoHST:BuildAdvEnergy()
 end
 
 
-local function TaskEcoHST:BuildUWFusion()
+function TaskEcoHST:BuildUWFusion()
 	if self.side == UnitiesHST.CORESideName then
 		return "coruwfus"
 	else
