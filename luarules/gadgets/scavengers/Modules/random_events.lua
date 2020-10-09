@@ -14,6 +14,7 @@ function RandomEventTrigger(CurrentFrame)
 		if RandomEventDice == 1 then
 			local Event = RandomEventsList[math_random(1,#RandomEventsList)]
 			Event(CurrentFrame)
+			LastRandomEventFrame(CurrentFrame)
 		end
 	end
 end
