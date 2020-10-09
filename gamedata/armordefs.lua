@@ -487,14 +487,14 @@ local armorDefs2 = {}
 for category,names in pairs(armorDefs) do
 	local catkeycount = #names
 	for _,name in pairs(names) do
-		local faction = string.sub(name, 1, 3)
-		if faction == 'arm' or faction == 'cor' then
+		--local faction = string.sub(name, 1, 3)
+		--if faction == 'arm' or faction == 'cor' or faction == 'chi' then
 			if armorDefs2[category] == nil then
 				armorDefs2[category] = {}
 			end
 			catkeycount = catkeycount + 1
 			armorDefs2[category][catkeycount] = name..'_scav'
-		end
+		--end
 	end
 end
 armorDefs = tableMerge(armorDefs, armorDefs2)

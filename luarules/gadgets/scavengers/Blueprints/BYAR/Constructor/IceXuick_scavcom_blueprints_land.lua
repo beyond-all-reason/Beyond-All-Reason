@@ -18,7 +18,7 @@ local nameSuffix = '_scav'
 -- FACTORIES
 
 local function scavlabt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,10)
+	local chance = math_random(0,3)
 	if chance == 0 then
 		local unitoptions = {}
 		local r = math_random(0,5)
@@ -127,7 +127,7 @@ end
 table.insert(ScavengerConstructorBlueprintsT2,scavlabt1)
 
 local function scavlabt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,10)
+	local chance = math_random(0,3)
 	if chance == 0 then
 		local unitoptions = {}
 		local r = math_random(0,5)

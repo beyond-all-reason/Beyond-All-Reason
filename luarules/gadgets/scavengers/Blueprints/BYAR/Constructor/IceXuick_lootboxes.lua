@@ -80,24 +80,22 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,IceXuickLootboxT4)
 
 local function IceXuickSpecNanoT1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
     local posradius = 64
-	--local r = math_random(0,1)
+	local r = math_random(0,1)
 	local options = {UDN.lootboxnano_t1_var1_scav.id,UDN.lootboxnano_t1_var2_scav.id,UDN.lootboxnano_t1_var3_scav.id,UDN.lootboxnano_t1_var4_scav.id}
 	if radiusCheck then
 		return posradius
 	else
-		--if r == 0 then
+		if r == 0 then
 			Spring.GiveOrderToUnit(scav, -(options[math.random(1,4)]), {posx, posy, posz, 0}, {"shift"})
-		--end
+		end
 	end
 end
-table.insert(ScavengerConstructorBlueprintsT0,IceXuickSpecNanoT1)
-table.insert(ScavengerConstructorBlueprintsT0Sea,IceXuickSpecNanoT1)
 table.insert(ScavengerConstructorBlueprintsT1,IceXuickSpecNanoT1)
 table.insert(ScavengerConstructorBlueprintsT1Sea,IceXuickSpecNanoT1)
 
 local function IceXuickSpecNanoT2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
     local posradius = 80
-	local r = math_random(0,1)
+	local r = math_random(0,2)
 	local options = {UDN.lootboxnano_t2_var1_scav.id,UDN.lootboxnano_t2_var2_scav.id,UDN.lootboxnano_t2_var3_scav.id,UDN.lootboxnano_t2_var4_scav.id}
 	if radiusCheck then
 		return posradius
@@ -107,8 +105,6 @@ local function IceXuickSpecNanoT2(scav, posx, posy, posz, GaiaTeamID, radiusChec
 		end
 	end
 end
-table.insert(ScavengerConstructorBlueprintsT1,IceXuickSpecNanoT2)
-table.insert(ScavengerConstructorBlueprintsT1Sea,IceXuickSpecNanoT2)
 table.insert(ScavengerConstructorBlueprintsT2,IceXuickSpecNanoT2)
 table.insert(ScavengerConstructorBlueprintsT2Sea,IceXuickSpecNanoT2)
 
@@ -124,8 +120,6 @@ local function IceXuickSpecNanoT3(scav, posx, posy, posz, GaiaTeamID, radiusChec
 		end
 	end
 end
-table.insert(ScavengerConstructorBlueprintsT2,IceXuickSpecNanoT3)
-table.insert(ScavengerConstructorBlueprintsT2Sea,IceXuickSpecNanoT3)
 table.insert(ScavengerConstructorBlueprintsT3,IceXuickSpecNanoT3)
 table.insert(ScavengerConstructorBlueprintsT3Sea,IceXuickSpecNanoT3)
 

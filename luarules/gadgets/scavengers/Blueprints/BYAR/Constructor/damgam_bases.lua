@@ -9,7 +9,7 @@ local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
 local function DamBase1Red(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local chance = math_random(0,10)
+local chance = math_random(0,3)
 if chance == 0 then
 	local randompopups = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
 	local randomturrets = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, UDN.cormaw_scav.id, UDN.corrl_scav.id, UDN.cornanotc_scav.id,}

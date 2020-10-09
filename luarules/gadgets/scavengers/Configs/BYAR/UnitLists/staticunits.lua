@@ -7,6 +7,8 @@ NoSelfdList = {
 	"lootboxplatinum",
 	"lootboxsilver",
 	"lootboxbronze",
+	"chickend1",
+	"roost",
 
 	-- These operate through other modules
 	--"cornanotc",

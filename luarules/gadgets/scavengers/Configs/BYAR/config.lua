@@ -16,6 +16,7 @@ scavconfig = {
 		unitSpawnerModule 				= true,
 		startBoxProtection				= true,
 		reinforcementsModule			= false, --disabled for now for weird victory conditions and too much hp
+		randomEventsModule				= true,
 		stockpilers						= true,
 		nukes							= true,
 	},
@@ -114,6 +115,12 @@ unitControllerModuleConfig = {
 
 spawnProtectionConfig = {
 	spread				= 100,
+}
+
+randomEventsConfig = {
+	randomEventMinimumDelay = 9000, -- frames
+	randomEventChance = 300, -- higher = lower chance
+	
 }
 
 

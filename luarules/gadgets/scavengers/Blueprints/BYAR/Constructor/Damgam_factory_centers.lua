@@ -8,7 +8,7 @@ local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
 local function DamgamT1Spammer(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,10)
+	local chance = math_random(0,3)
 	if chance == 0 then
 		local posradius = 192
 		if radiusCheck then

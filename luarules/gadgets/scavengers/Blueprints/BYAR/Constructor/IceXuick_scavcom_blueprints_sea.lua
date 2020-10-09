@@ -16,7 +16,7 @@ local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
 local function scavamphfactoryt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,10)
+	local chance = math_random(0,3)
 	if chance == 0 then
 		local unitoptions = {}
 		local r = math_random(0,3)
@@ -40,7 +40,7 @@ table.insert(ScavengerConstructorBlueprintsT0Sea,scavamphfactoryt1)
 table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphfactoryt1)
 
 local function scavamphfactoryt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,10)
+	local chance = math_random(0,3)
 	if chance == 0 then
 		local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
 		local r = math_random(0,8)
