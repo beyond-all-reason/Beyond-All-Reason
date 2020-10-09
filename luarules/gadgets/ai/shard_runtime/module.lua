@@ -1,11 +1,13 @@
 Module = class(AIBase)
 
 function Module:Name()
-	return "no name defined"
+	return "error no name module name defined"
 end
 
+-- Shard will not add this module if this is set to error
+-- overriding this is mandatory
 function Module:internalName()
-	return "module"
+	return "error" 
 end
 
 function Module:EchoDebug(...)

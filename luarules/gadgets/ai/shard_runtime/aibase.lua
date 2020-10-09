@@ -4,7 +4,12 @@ AIBase = class(function(a)
 end)
 
 function AIBase:Name()
-	return 'unknown'
+	return 'error no name defined'
+end
+
+-- overriding this is mandatory
+function AIBase:internalName()
+	return "error" 
 end
 
 function AIBase:Init()
