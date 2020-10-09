@@ -36,7 +36,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local defaultDelay = 0.4
 local cfgFontSize = 14
 
-local xOffset = 35
+local xOffset = 28
 local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")

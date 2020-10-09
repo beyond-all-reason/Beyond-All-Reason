@@ -514,7 +514,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 			return false
 		elseif cmdID ~= CMD_AUTOMEX then
-			if builder and builder.targetMex and ValidUnitID(builder.targetMex) and (not GetUnitIsDead(builder.targetMex)) and (getUnitPhase(unitID, teamID) == RECLAIMING) then
+			if builder and builder.targetMex and ValidUnitID(builder.targetMex) and (not GetUnitIsDead(builder.targetMex)) and (getUnitPhase(unitID, teamID) == RECLAIMING) and mexes[teamID][builder.targetMex] then
 				mexes[teamID][builder.targetMex].assignedBuilder = nil
 			end
 			return true
