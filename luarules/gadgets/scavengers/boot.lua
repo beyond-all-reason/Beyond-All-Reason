@@ -394,6 +394,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		CaptureProgressForBeacons[unitID] = nil
 		if UnitName == "scavsafeareabeacon_scav" then
 			ScavSafeAreaExist = false
+			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledBuilding*20
 		end
 	else
 		for i = 1,#AliveEnemyCommanders do
@@ -589,10 +590,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if UnitName == "scavsafeareabeacon_scav" then
 			ScavSafeAreaExist = true
 			if not ScavSafeAreaSize then
-				ScavSafeAreaSize = 250
+				ScavSafeAreaSize = math.ceil(250 * spawnmultiplier * (teamcount/2))
 				ScavSafeAreaGenerator = 0
 			end
-			ScavSafeAreaSize = ScavSafeAreaSize * 1.25
+			ScavSafeAreaSize = math.ceil(ScavSafeAreaSize * 1.25)
 			ScavSafeAreaGenerator = ScavSafeAreaGenerator + 1
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
 			ScavSafeAreaMinX = posx - ScavSafeAreaSize
