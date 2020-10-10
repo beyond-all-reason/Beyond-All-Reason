@@ -13,19 +13,17 @@ Units
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Decreased cormaw damage 27%
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
- • Karganeth: Model replaced
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
  • Banshee: changed weapon to machine gun with more accuracy, 5 burst (instead of 3) but little less average dps (-10%)
  • Air Fighters can no longer attack ground
+ • T1 construction plane E cost -30%
  • LLT, HLLT, BEAMER, RL, RAD now transportable with T2/Heavy Transporters 
- • Cor Battleship and Black Hydra laser dps increased by 15%, and minor improvements to their speed/health/cost
- • All sub damage -30%
  • Arm Peewee damage reduced by 9%
  • Core AK range reduced 240->225
  • Arm and Cor frigate damage and speed increased
- • T1 construction plane E cost -30%
- 
+ • Cor Battleship and Black Hydra laser dps increased by 15%, and minor improvements to their speed/health/cost
+ • All sub damage -30%
 
 Renamed units:
  • Pack0 -> Ferret
