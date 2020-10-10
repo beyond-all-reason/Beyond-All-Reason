@@ -59,4 +59,3 @@ function RandomEventChickenInvasion1(CurrentFrame)
 	end
 end
 table.insert(RandomEventsList,RandomEventChickenInvasion1)
-table.insert(RandomEventsList,RandomEventChickenInvasion1) -- double until i have at least 2 of those
