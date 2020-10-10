@@ -135,7 +135,7 @@ return {
 				model = "cortorpedo.s3o",
 				name = "Torpedo",
 				noselfdamage = true,
-				predictboost = 0.7,
+				predictboost = 1,
 				range = 500,
 				reloadtime = 2.5,
 				soundhit = "xplodep1",
