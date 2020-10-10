@@ -24,6 +24,7 @@ Units
  • Arm Peewee damage reduced by 9%
  • Core AK range reduced 240->225
  • Arm and Cor frigate damage and speed increased
+ • T1 construction plane E cost -30%
  
 
 Renamed units:
