@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		category = "UNDERWATER ALL NOTLAND MOBILE NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 -1",
-		collisionvolumescales = "31 30 73",
+		collisionvolumescales = "31 30 63",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Tech Level 2",

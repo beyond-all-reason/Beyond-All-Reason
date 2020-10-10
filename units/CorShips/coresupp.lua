@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 -1",
-		collisionvolumescales = "19 19 52",
+		collisionvolumescales = "19 19 58",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Fast Assault Corvette",
