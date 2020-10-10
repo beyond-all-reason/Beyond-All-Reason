@@ -13,6 +13,7 @@ return {
 		collide = true,
 		collisionvolumeoffsets = "0 5 3",
 		collisionvolumescales = "48 18 48",
+		collisionvolumetype = "CylY",
 		cruisealt = 100,
 		description = "Gunship",
 		energymake = 0.6,
