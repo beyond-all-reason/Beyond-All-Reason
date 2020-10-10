@@ -47,8 +47,8 @@ local vulnerableHealth = 400
 local wreckMult = 100
 local vulnerableReclaimDistMod = 100
 local badCellThreat = 300
-local attackDistMult = 0.5 -- between 0 and 1, the lower number, the less distance matters
-local reclaimModMult = 0.5 -- how much does the cell's metal & energy modify the distance to the cell for reclaim cells
+local attackDistMult = 0.5 -- between 0 and 1, the lower number, the less self.ai.Tool:distance matters
+local reclaimModMult = 0.5 -- how much does the cell's metal & energy modify the self.ai.Tool:distance to the cell for reclaim cells
 
 local factoryValue = 1000
 local conValue = 300
@@ -115,8 +115,8 @@ local function CellValueThreat(unitName, cell)
 		weapons = threatTypes
 		unitName = "nothing"
 	else
-		gas = WhatHurtsUnit(unitName, nil, cell.pos)
-		weapons = UnitWeaponLayerList(unitName)
+		gas = self.ai.Tool:WhatHurtsUnit(unitName, nil, cell.pos)
+		weapons = self.ai.Tool:UnitWeaponLayerList(unitName)
 	end
 	local threat = 0
 	local value = 0
@@ -424,7 +424,7 @@ function TargetHST:UpdateEnemies()
 		if ghost and not ghost.position and not e.beingBuilt then
 			-- count ghosts with unknown positions as non-positioned threats
 			self:DangerCheck(name, e.unitID)
-			local threatLayers = UnitThreatRangeLayers(name)
+			local threatLayers = Unitself.ai.Tool:ThreatRangeLayers(name)
 			for groundAirSubmerged, layer in pairs(threatLayers) do
 				self:CountEnemyThreat(e.unitID, name, layer.threat)
 			end
@@ -460,8 +460,8 @@ function TargetHST:UpdateEnemies()
 				if UnitiesHST.unitTable[name].isBuilding then
 					table.insert(cell.buildingIDs, e.unitID)
 				end
-				local hurtBy = WhatHurtsUnit(name)
-				local threatLayers = UnitThreatRangeLayers(name)
+				local hurtBy = self.ai.Tool:WhatHurtsUnit(name)
+				local threatLayers = Unitself.ai.Tool:ThreatRangeLayers(name)
 				local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
 				local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
 				for groundAirSubmerged, layer in pairs(threatLayers) do
@@ -629,7 +629,7 @@ function TargetHST:UpdateFronts(number)
 						elseif response >= highestResponses[n-1][groundAirSubmerged] then
 							okay = false
 						else
-							local dist = DistanceXZ(highCell.x, highCell.z, cell.x, cell.z)
+							local dist = self.ai.Tool:DistanceXZ(highCell.x, highCell.z, cell.x, cell.z)
 							if dist < 2 then okay = false end
 						end
 					end
@@ -722,7 +722,7 @@ function TargetHST:AddBadPosition(position, mtype, threat, duration)
 	threat = threat or badCellThreat
 	duration = duration or 1800
 	local px, pz = GetCellPosition(position)
-	local gas = WhatHurtsUnit(nil, mtype, position)
+	local gas = self.ai.Tool:WhatHurtsUnit(nil, mtype, position)
 	local f = self.game:Frame()
 	for groundAirSubmerged, yes in pairs(gas) do
 		if yes then
@@ -779,8 +779,8 @@ function TargetHST:NearbyVulnerable(unit)
 	local position = unit:GetPosition()
 	local px, pz = GetCellPosition(position)
 	local unitName = unit:Name()
-	local gas = WhatHurtsUnit(unitName, nil, position)
-	local weapons = UnitWeaponLayerList(unitName)
+	local gas = self.ai.Tool:WhatHurtsUnit(unitName, nil, position)
+	local weapons = self.ai.Tool:UnitWeaponLayerList(unitName)
 	-- check this cell
 	local vulnerable = nil
 	if self.cells[px] ~= nil then
@@ -818,7 +818,7 @@ function TargetHST:GetBestRaidCell(representative)
 	end
 	local rname = representative:Name()
 	local maxThreat = baseUnitThreat
-	local rthreat, rrange = ThreatRange(rname)
+	local rthreat, rrange = self.ai.Tool:ThreatRange(rname)
 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	local best
@@ -833,7 +833,7 @@ function TargetHST:GetBestRaidCell(representative)
 		if value > 0 and threat <= maxThreat then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				local mod = value - (threat * 3)
-				local dist = Distance(rpos, cell.pos) - mod
+				local dist = self.ai.Tool:Distance(rpos, cell.pos) - mod
 				if dist < bestDist then
 					best = cell
 					bestDist = dist
@@ -854,7 +854,7 @@ function TargetHST:RaidableCell(representative, position)
 	if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
 	local rname = representative:Name()
 	local maxThreat = baseUnitThreat
-	local rthreat, rrange = ThreatRange(rname)
+	local rthreat, rrange = self.ai.Tool:ThreatRange(rname)
 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	-- self:EchoDebug(value .. " " .. threat)
@@ -885,7 +885,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 		if cell.pos then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
 				local value, threat = CellValueThreat(name, cell)
-				local dist = Distance(position, cell.pos)
+				local dist = self.ai.Tool:Distance(position, cell.pos)
 				if dist > highestDist then highestDist = dist end
 				if dist < lowestDist then lowestDist = dist end
 				table.insert(possibilities, { cell = cell, value = value, threat = threat, dist = dist })
@@ -951,13 +951,13 @@ function TargetHST:GetNearestAttackCell(representative, position, ourThreat)
 				local value, threat = CellValueThreat(name, cell)
 				if threat <= ourThreat * 0.67 then
 					if value > 0 then
-						local dist = Distance(position, cell.pos)
+						local dist = self.ai.Tool:Distance(position, cell.pos)
 						if not lowestDistValueable or dist < lowestDistValueable then
 							lowestDistValueable = dist
 							closestValuableCell = cell
 						end
 					elseif threat > 0 then
-						local dist = Distance(position, cell.pos)
+						local dist = self.ai.Tool:Distance(position, cell.pos)
 						if not lowestDistThreatening or dist < lowestDistThreatening then
 							lowestDistThreatening = dist
 							closestThreateningCell = cell
@@ -997,7 +997,7 @@ function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreVal
 	end
 	self:UpdateMap()
 	if self.enemyBaseCell and not ignoreValue then
-		local dist = Distance(position, self.enemyBaseCell.pos)
+		local dist = self.ai.Tool:Distance(position, self.enemyBaseCell.pos)
 		if dist < range then
 			local value = self.enemyBaseCell.values.ground.ground + self.enemyBaseCell.values.air.ground + self.enemyBaseCell.values.submerged.ground
 			return self.enemyBaseCell, value + self.enemyBaseCell.response.ground
@@ -1008,7 +1008,7 @@ function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreVal
 	if minValueThreat then bestValueThreat = minValueThreat end
 	for i, cell in pairs(self.cellList) do
 		if #cell.buildingIDs > 0 then
-			local dist = Distance(position, cell.pos)
+			local dist = self.ai.Tool:Distance(position, cell.pos)
 			if dist < range then
 				local value = cell.values.ground.ground + cell.values.air.ground + cell.values.submerged.ground
 				local valuethreat = 0
@@ -1028,7 +1028,7 @@ function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreVal
 			if building then
 				local uname = building:Name()
 				local value = self:Value(uname)
-				local threat = ThreatRange(uname, "ground") + ThreatRange(uname, "air")
+				local threat = self.ai.Tool:ThreatRange(uname, "ground") + self.ai.Tool:ThreatRange(uname, "air")
 				local valueThreat = value + threat
 				if not bestBuildingVT or valueThreat > bestBuildingVT then
 					bestBuildingVT = valueThreat
@@ -1089,7 +1089,7 @@ function TargetHST:GetBestReclaimCell(representative, lookForEnergy)
 				self:EchoDebug("can't get to reclaim cell, trying nearby")
 				-- check nearby positions, because sometimes the commander is underwater in a crater but can still be reclaimed
 				for angle = halfPi, twicePi, halfPi do
-					local nearPos = RandomAway(self.ai, cell.pos, 110, nil, angle)
+					local nearPos = self.ai.Tool:RandomAway(self.ai, cell.pos, 110, nil, angle)
 					canGo = self.ai.maphst:UnitCanGoHere(representative, nearPos)
 					if canGo then
 						self:EchoDebug("found accessible position near reclaim cell")
@@ -1109,7 +1109,7 @@ function TargetHST:GetBestReclaimCell(representative, lookForEnergy)
 				local vulnerable = CellVulnerable(cell, gas, representative.canReclaimGAS)
 				if vulnerable then mod = mod + vulnerableReclaimDistMod end
 				if mod > 0 then
-					local dist = Distance(rpos, cell.pos) - (mod * reclaimModMult)
+					local dist = self.ai.Tool:Distance(rpos, cell.pos) - (mod * reclaimModMult)
 					if dist < bestDist then
 						best = cell
 						bestDist = dist
@@ -1134,7 +1134,7 @@ function TargetHST:WreckToResurrect(representative, alsoDamagedUnits)
 			local value, threat, gas = CellValueThreat(rname, cell)
 			if threat == 0 and cell.pos then
 				if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-					local dist = Distance(rpos, cell.pos)
+					local dist = self.ai.Tool:Distance(rpos, cell.pos)
 					if dist < bestDist then
 						best = cell
 						bestDist = dist
@@ -1194,13 +1194,13 @@ function TargetHST:NearestVulnerableCell(representative)
 	local rname = representative:Name()
 	local best
 	local bestDist = 99999
-	local weapons = UnitWeaponLayerList(rname)
+	local weapons = self.ai.Tool:UnitWeaponLayerList(rname)
 	for i, cell in pairs(self.cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				if CellVulnerable(cell, gas, weapons) ~= nil then
-					local dist = Distance(rpos, cell.pos)
+					local dist = self.ai.Tool:Distance(rpos, cell.pos)
 					if dist < bestDist then
 						best = cell
 						bestDist = dist
@@ -1333,7 +1333,7 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 	local uname = unit:Name()
 	local f = self.game:Frame()
 	local maxThreat = baseUnitThreat
-	local uthreat, urange = ThreatRange(uname)
+	local uthreat, urange = self.ai.Tool:ThreatRange(uname)
 	self:EchoDebug(uname .. ": " .. uthreat .. " " .. urange)
 	if uthreat > maxThreat then maxThreat = uthreat end
 	local doubleUnitRange = urange * 2
@@ -1401,7 +1401,7 @@ function TargetHST:RaiderHere(raidbehaviour)
 	if self.raiderCounted[raidbehaviour.id] then return end
 	local unit = raidbehaviour.unit:Internal()
 	if unit == nil then return end
-	local uthreat, urange = ThreatRange(unit:Name())
+	local uthreat, urange = self.ai.Tool:ThreatRange(unit:Name())
 	local position = unit:GetPosition()
 	local px, pz = GetCellPosition(position)
 	local inCell

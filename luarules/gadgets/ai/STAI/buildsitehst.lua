@@ -59,7 +59,7 @@ function BuildSiteHST:PlansOverlap(position, unitName)
 	local rect = { position = position, unitName = unitName }
 	self:CalculateRect(rect)
 	for i, plan in pairs(self.plans) do
-		if RectsOverlap(rect, plan) then
+		if self.ai.Tool:RectsOverlap(rect, plan) then
 			return true
 		end
 	end
@@ -84,12 +84,12 @@ function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	local water = self.ai.maphst:MobilityNetworkHere("shp", builderPos)
 	-- is this a land or a water unit we're building?
 	local waterBuildOrder = UnitiesHST.unitTable[unitName].needsWater
-	-- if this is a movement from land to water or water to land, check the distance
+	-- if this is a movement from land to water or water to land, check the self.ai.Tool:distance
 	if water then self:EchoDebug(builderName .. " is in water") else self:EchoDebug(builderName .. " is on land") end
 	if waterBuildOrder then self:EchoDebug(unitName .. " would be in water") else self:EchoDebug(unitName .. " would be on land") end
 	if (water and not waterBuildOrder) or (not water and waterBuildOrder) then
 		self:EchoDebug("builder would traverse the shore to build " .. unitName)
-		local dist = Distance(pos, builderPos)
+		local dist = self.ai.Tool:Distance(pos, builderPos)
 		if dist > 250 then
 			self:EchoDebug("build too far away from shore to build " .. unitName)
 			return false
@@ -144,7 +144,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	-- don't build where you shouldn't (metal spots, geo spots, factory lanes)
 	if pos ~= nil then
 		for i, dont in pairs(self.dontBuildRects) do
-			if RectsOverlap(rect, dont) then
+			if self.ai.Tool:RectsOverlap(rect, dont) then
 				pos = nil
 				break
 			end
@@ -153,7 +153,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	-- don't build on top of current build orders
 	if pos ~= nil then
 		for i, plan in pairs(self.plans) do
-			if RectsOverlap(rect, plan) then
+			if self.ai.Tool:RectsOverlap(rect, plan) then
 				return nil
 			end
 		end
@@ -169,8 +169,8 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 		local uname = unitTypeToBuild:Name()
 		if UnitiesHST.nanoTurretList[uname] then
 			-- don't build nanos too far away from factory
-			local dist = Distance(originalPosition, pos)
-			self:EchoDebug("nano distance: " .. dist)
+			local dist = self.ai.Tool:Distance(originalPosition, pos)
+			self:EchoDebug("nano self.ai.Tool:distance: " .. dist)
 			if dist > 390 then
 				self:EchoDebug("nano too far from factory")
 				return nil
@@ -268,7 +268,7 @@ function BuildSiteHST:ClosestHighestLevelFactory(builderPos, maxDist)
 	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
 		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
 			if not self.ai.outmodedFactoryID[factory.id] then
-				local dist = Distance(builderPos, factory.position)
+				local dist = self.ai.Tool:Distance(builderPos, factory.position)
 				if dist < minDist then
 					minDist = dist
 					factorybhvr = factory
@@ -378,7 +378,7 @@ function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
 	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
 	if list and #list > 0 then
 		for index, pos in pairs(list) do
-			if Distance(pos,builder:GetPosition()) < UnitiesHST.unitTable[builder:Name()].losRadius then
+			if self.ai.Tool:Distance(pos,builder:GetPosition()) < UnitiesHST.unitTable[builder:Name()].losRadius then
 				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
 					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, UnitiesHST.unitTable[utype:Name()][spaceEquals])
 					if p then return p end
@@ -429,7 +429,7 @@ function BuildSiteHST:UnitCreated(unit)
 	local planned = false
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
-		if plan.unitName == unitName and PositionWithinRect(position, plan) then
+		if plan.unitName == unitName and self.ai.Tool:PositionWithinRect(position, plan) then
 			if plan.resurrect then
 				-- so that BootBST will hold it in place while it gets repaired
 				self:EchoDebug("resurrection of " .. unitName .. " begun")

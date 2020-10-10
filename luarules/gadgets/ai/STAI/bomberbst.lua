@@ -80,7 +80,7 @@ end
 function BomberBST:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
-	self.unit:Internal():Move(RandomAway(self.ai, self.homepos, math.random(100,300))) -- you're drunk go home
+	self.unit:Internal():Move(self.ai.Tool:RandomAway(self.ai, self.homepos, math.random(100,300))) -- you're drunk go home
 end
 
 function BomberBST:Update()
@@ -114,7 +114,7 @@ function BomberBST:FollowPathToTarget(path, unit)
 		local cmdPos
 		local cmdID
 		local cmdPos = path[i].position
-		if secondMoved or DistanceSq(cmdPos, myPos) > 1210000 then
+		if secondMoved or self.ai.Tool:DistanceSq(cmdPos, myPos) > 1210000 then
 			if firstMoved then
 				local floats = api.vectorFloat()
 				-- floats:push_back(-1)

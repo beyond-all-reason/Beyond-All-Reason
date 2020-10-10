@@ -18,7 +18,7 @@ function AttackerBST:Init()
 	self.level = ut.techLevel - 1
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
 	self.size = math.max(ut.xsize, ut.zsize) * 8
-	self.congSize = self.size * 0.67 -- how much distance between it and other attackers when congregating
+	self.congSize = self.size * 0.67 -- how much self.ai.Tool:distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
 	self.sightDistance = ut.losRadius * 0.9
@@ -116,20 +116,20 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		if not self.sturdy or self.ai.loshst:IsInLos(pos) then
 			awayDistance = self.weaponDistance
 		end
-		local myAngle = AngleAdd(reverseAttackAngle, self.formationAngle)
-		self.target = RandomAway(self.ai, pos, awayDistance, nil, myAngle)
+		local myAngle = self.ai.Tool:AngleAdd(reverseAttackAngle, self.formationAngle)
+		self.target = self.ai.Tool:RandomAway(self.ai, pos, awayDistance, nil, myAngle)
 	else
-		self.target = RandomAway(self.ai, pos, self.formationDist, nil, perpendicularAttackAngle)
+		self.target = self.ai.Tool:RandomAway(self.ai, pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
 	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	if canMoveThere then
 		self.squad.lastValidMove = self.target
 	elseif self.squad.lastValidMove then
-		self.target = RandomAway(self.ai, self.squad.lastValidMove, self.congSize)
+		self.target = self.ai.Tool:RandomAway(self.ai, self.squad.lastValidMove, self.congSize)
 		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
 	if self.active and canMoveThere then
-		-- local framesToArrive = 30 * (Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
+		-- local framesToArrive = 30 * (self.ai.Tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
 		-- game:SendToConsole("frames to arrive", framesToArrive)
 		-- self.timeout = self.game:Frame() + framesToArrive
 		self.unit:Internal():Move(self.target)

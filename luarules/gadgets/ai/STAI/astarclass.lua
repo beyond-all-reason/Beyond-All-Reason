@@ -1,6 +1,6 @@
 -- ======================================================================
--- Copyright (c) 2012 RapidFire Studio Limited 
--- All Rights Reserved. 
+-- Copyright (c) 2012 RapidFire Studio Limited
+-- All Rights Reserved.
 -- http://www.rapidfirestudio.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining
@@ -145,17 +145,17 @@ end
 local function remove_node ( set, theNode )
 	for i = 1, #set do
 		local node = set[i]
-		if node == theNode then 
+		if node == theNode then
 			set [i] = set [#set]
 			set [#set] = nil
 			break
 		end
-	end	
+	end
 end
 
 local function unwind_path ( flat_path, map, current_node )
 	if map[current_node] then
-		tInsert(flat_path, 1, map[current_node]) 
+		tInsert(flat_path, 1, map[current_node])
 		return unwind_path(flat_path, map, map[current_node])
 	else
 		return flat_path
@@ -201,7 +201,7 @@ function PathfinderAStar:Find(iterations)
 	local distFunc = self.distFunc
 	local distCache = self.graph.distCache
 	local modifierFunc = self.modifierFunc
-	local distanceStartToGoal = self.distanceStartToGoal
+	distanceStartToGoal = self.distanceStartToGoal
 	-- local standardNeighborDist = self.graph.nodeDist
 	while #self.openset > 0 and it <= iterations do
 		local current = lowest_f_score(self.openset, self.f_score)
@@ -219,7 +219,7 @@ function PathfinderAStar:Find(iterations)
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
 				-- local tentative_g_score = self.g_score[current] + modifierFunc(neighbor) -- dist_between(current, neighbor, distFunc, distCache)
-				if not_in(self.openset, neighbor) then -- or tentative_g_score < self.g_score[neighbor] then 
+				if not_in(self.openset, neighbor) then -- or tentative_g_score < self.g_score[neighbor] then
 					self.came_from[neighbor] = current
 					local d = dist_between(neighbor, goal, distFunc, distCache)
 					self.g_score[neighbor] = self.g_score[current] + modifierFunc(neighbor, d, distanceStartToGoal)
@@ -273,10 +273,10 @@ function GraphAStar:Init(nodes, isNeighborNode, isValidNode, distFunc, modifierF
 end
 
 -- provides a neighbor function for a grid with each node having four neighbors
--- assumes distFunc is the default of distance squared
+-- assumes distFunc is the default of self.ai.Tool:distance squared
 function GraphAStar:SetQuadGridSize(gridSize)
 	local nodeDist = 0.1 + (gridSize * gridSize)
-	self.isNeighborNode = function ( node, neighbor ) 
+	self.isNeighborNode = function ( node, neighbor )
 		if dist_between(node, neighbor, self.distFunc, self.distCache) < nodeDist then
 			return true
 		end
@@ -288,10 +288,10 @@ function GraphAStar:SetQuadGridSize(gridSize)
 end
 
 -- provides a neighbor function for a grid with each node having eight neighbors
--- assumes distFunc is the default of distance squared
+-- assumes distFunc is the default of self.ai.Tool:distance squared
 function GraphAStar:SetOctoGridSize(gridSize)
 	local nodeDist = 0.1 + (2 * (gridSize*gridSize))
-	self.isNeighborNode = function ( node, neighbor ) 
+	self.isNeighborNode = function ( node, neighbor )
 		if dist_between(node, neighbor, self.distFunc, self.distCache) < nodeDist then
 			return true
 		end

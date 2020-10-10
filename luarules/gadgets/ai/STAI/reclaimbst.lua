@@ -209,7 +209,7 @@ function ReclaimBST:Act()
 					else
 						self:EchoDebug("reclaim feature", reclaimFeature, reclaimFeature:ID())
 						self.unit:Internal():Reclaim(reclaimFeature)
-						-- CustomCommand(self.unit:Internal(), CMD_RECLAIM, {reclaimFeature:ID()})
+						-- self.ai.Tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {reclaimFeature:ID()})
 						self.myFeature = reclaimFeature
 						self.myFeaturePos = reclaimFeature:GetPosition()
 						table.remove(cell.reclaimables, i)

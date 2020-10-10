@@ -1,6 +1,6 @@
-if not CommonFunctionsLoaded then
-	shard_include ("commonfunctions")
-end
+-- if not CommonFunctionsLoaded then
+-- 	shard_include ("commonfunctions")
+-- end
 -- if not ai.UnitiesHST.unitTable or not featureTable then
 -- 	ai.UnitiesHST.unitTable, featureTable = shard_include("getunitfeaturetable")
 -- end

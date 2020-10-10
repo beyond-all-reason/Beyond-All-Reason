@@ -1,6 +1,6 @@
 CleanHST = class(Module)
 
-local distancePerPriority = 100
+distancePerPriority = 100
 
 function CleanHST:Name()
 	return "CleanHST"
@@ -125,7 +125,7 @@ function CleanHST:CleanablesWithinRadius(position, radius, clnrbhvr)
 		local cleanable = self.cleanables[i]
 		local p = cleanable:GetPosition()
 		if p then
-			local dist = Distance(position, p)
+			local dist = self.ai.Tool:Distance(position, p)
 			if dist < radius then
 				withinCount = withinCount + 1
 				within[withinCount] = cleanable
@@ -149,7 +149,7 @@ function CleanHST:ClosestCleanable(unit)
 			local p = cleanable:GetPosition()
 			if p then
 				local priority = self.priorities[cleanable:ID()] or 0
-				local dist = Distance(myPos, p) - (priority * distancePerPriority)
+				local dist = self.ai.Tool:Distance(myPos, p) - (priority * distancePerPriority)
 				if not bestDist or dist < bestDist then
 					bestCleanable = cleanable
 					bestDist = dist

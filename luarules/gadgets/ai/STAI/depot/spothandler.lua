@@ -12,7 +12,7 @@ function MetalSpotHandler:Init()
 	self.spots = self.game.map:GetMetalSpots()
 end
 
-function distance(pos1,pos2)
+function self.ai.Tool:distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local yd = pos1.z-pos2.z
 	dist = math.sqrt(xd*xd + yd*yd)
@@ -26,7 +26,7 @@ function MetalSpotHandler:ClosestFreeSpot(unittype,position)
 	spotCount = self.game.map:SpotCount()
 	for i,v in ipairs(self.spots) do
 		local p = v
-		local dist = distance(position,p)
+		local dist = self.ai.Tool:distance(position,p)
 		if dist < bestDistance then
 			if self.game.map:CanBuildHere(unittype,p) then
 				bestDistance = dist

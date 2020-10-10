@@ -13,7 +13,7 @@ function GeoSpotHST:Init()
 	self.geos = self.game.map:GetGeoSpots()
 end
 
-function distance(pos1,pos2)
+function self.ai.Tool:distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local zd = pos1.z-pos2.z
 	local yd = pos1.y-pos2.y
@@ -30,7 +30,7 @@ function GeoSpotHST:ClosestFreeGeo(unittype,position, maxdis)
 	geoCount = self.game.map:GeoCount()
 	for i,v in ipairs(self.geos) do
 		local p = v
-		local dist = distance(position,p)
+		local dist = self.ai.Tool:distance(position,p)
 		if dist < bestDistance then
 			if self.game.map:CanBuildHere(unittype,p) then
 				--checking for unit positions

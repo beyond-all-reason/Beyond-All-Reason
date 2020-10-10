@@ -31,7 +31,7 @@ function BomberHST:Update()
 		local pathfinder = plan.pathfinder
 		local path, remaining, maxInvalid = pathfinder:Find(1)
 		if path then
-			-- path = SimplifyPath(path)
+			-- path = self.ai.Tool:SimplifyPath(path)
 			if self.DebugEnabled then
 				self.map:EraseLine(nil, nil, {1,1,1}, nil, nil, 8)
 				for i = 2, #path do

@@ -249,8 +249,8 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 					end
 				end
 			end
-			-- put into table to sort by distance
-			local bydistance = {}
+			-- put into table to sort by self.ai.Tool:distance
+			local byselfdistance = {}
 			for di = #defendersToAssign, 1, -1 do
 				local dfndbehaviour = defendersToAssign[di]
 				local okay = true
@@ -274,8 +274,8 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 					if ux then
 						if self.ai.maphst:UnitCanGoHere(defender, wardPos) then
 							local defenderPos = defender:GetPosition()
-							local dist = Distance(defenderPos, wardPos)
-							bydistance[dist] = dfndbehaviour -- the probability of the same distance is near zero
+							local dist = self.ai.Tool:Distance(defenderPos, wardPos)
+							byselfdistance[dist] = dfndbehaviour -- the probability of the same self.ai.Tool:distance is near zero
 						end
 					else
 						-- game:SendToConsole(self.ai.id, "defender unit nil position", defender:ID(), defender:Name())
@@ -284,7 +284,7 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 			end
 			-- add as many as needed, closest first
 			local n = 0
-			for dist, dfndbehaviour in pairsByKeys(bydistance) do
+			for dist, dfndbehaviour in self.ai.Tool:pairsByKeys(byselfdistance) do
 				if n < number then
 					self.wardsByDefenderID[dfndbehaviour.id] = ward
 					table.insert(ward.defenders, dfndbehaviour)
@@ -520,7 +520,7 @@ function DefendHST:FindFronts(troublingCells)
 							table.remove(self.wards, wi)
 						else
 							if water == behaviour.water then
-								local dist = Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
+								local dist = self.ai.Tool:Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
 								if dist < nearestMobileDist then
 									nearestMobileDist = dist
 									nearestMobile = ward
@@ -534,7 +534,7 @@ function DefendHST:FindFronts(troublingCells)
 						turtle.front = nil
 						if water == turtle.water then
 							if turtle.priority > 1 then
-								local dist = Distance(turtle.position, cell.pos)
+								local dist = self.ai.Tool:Distance(turtle.position, cell.pos)
 								if dist < nearestTurtleDist then
 									nearestTurtleDist = dist
 									nearestTurtle = ward
@@ -546,7 +546,7 @@ function DefendHST:FindFronts(troublingCells)
 				if n == 1 then
 					if nearestTurtle ~= nil then
 						local turtle = nearestTurtle.turtle
-						turtle.threatForecastAngle = AngleAtoB(turtle.position.x, turtle.position.z, cell.pos.x, cell.pos.z)
+						turtle.threatForecastAngle = self.ai.Tool:AngleAtoB(turtle.position.x, turtle.position.z, cell.pos.x, cell.pos.z)
 						turtle.front = true
 						self:Danger(nil, turtle, GAS)
 						self.ai.incomingThreat = cell.response[GAS]

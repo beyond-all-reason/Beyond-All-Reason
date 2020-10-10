@@ -4,6 +4,10 @@ function TaskBuildHST:Name()
 	return "TaskBuildHST"
 end
 
+function TaskBuildHST:internalName()
+	return "TaskBuildHST"
+end
+
 function TaskBuildHST:Init()
 	self.DebugEnabled = false
 end

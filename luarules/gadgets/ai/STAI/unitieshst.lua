@@ -5,8 +5,9 @@ function UnitiesHST:Name()
 end
 
 function UnitiesHST:internalName()
-	return "unitieshst"
+	return "UnitiesHST"
 end
+
 
 function UnitiesHST:Init()
 	self.DebugEnabled = false

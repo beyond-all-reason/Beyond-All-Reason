@@ -81,7 +81,7 @@ local function EchoData(name, o)
 	savepositions = {}
 	mapdatafile:write(name)
 	mapdatafile:write(" = ")
-	serialize(o)
+	self.ai.Tool:serialize(o)
 	mapdatafile:write("\n\n")
 	if #savepositions > 0 then
 		for i, sp in pairs (savepositions) do
@@ -350,10 +350,10 @@ function MapHST:MergePositions(posTable, cutoff, includeNonMerged)
 		local merge = nil
 		for i = #list, 1, -1 do
 			local pos2 = list[i]
-			local dist = Distance(pos1, pos2)
+			local dist = self.ai.Tool:Distance(pos1, pos2)
 			if dist < cutoff then
 				self:EchoDebug("merging " .. pos1.x .. "," .. pos1.z .. " with " .. pos2.x .. "," .. pos2.z .. " -- " .. dist .. " away")
-				merge = MiddleOfTwo(pos1, pos2)
+				merge = self.ai.Tool:MiddleOfTwo(pos1, pos2)
 				pos1 = merge
 				table.remove(list, i)
 			end
@@ -582,7 +582,7 @@ function MapHST:SpotSimplyfier(metalSpots,geoSpots)
 			--Spring.MarkerAddPoint(pos1.x,pos1.y,pos1.z, tostring(i))--uncomment this to draw the hotspot reducing system
 			for index2,pos2 in pairs(spots) do
 				if spots[index2] ~= false then
-					local dist = Distance(pos1,pos2)
+					local dist = self.ai.Tool:Distance(pos1,pos2)
 					if dist < limit and dist > 0 and ((pos1.y > 0 and pos2.y > 0) or (pos1.y < 0 and pos2.y < 0)) then
 						mirrorspots[index1][index2] = pos2
 						--Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)--uncomment this to draw all the hotspot on map
@@ -642,7 +642,7 @@ function MapHST:SpotPathMobRank(spotscleaned)
 				local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 				if metapath then
 					local waypoints, pathStartIdx = metapath:GetPathWayPoints()
-					local dist  = Distance3d(pos1,pos2)
+					local dist  = self.ai.Tool:Distance3d(pos1,pos2)
 					if waypoints and #waypoints > 0 and dist > 0 then
 						--self:EchoDebug(mclass,'has a path')
 -- 						if mclass == 'tank2' then
@@ -712,12 +712,12 @@ function MapHST:GuessStartLocations(spots)
 	while #spotsCopy > 0 do
 		local closest = nil
 		for i, to in pairs(spotsCopy) do
-			local dist = Distance(from, to)
+			local dist = self.ai.Tool:Distance(from, to)
 			if dist < minDist then
 				minDist = dist
 				closest = i
 			end
-			local middle = MiddleOfTwo(from, to)
+			local middle = self.ai.Tool:MiddleOfTwo(from, to)
 			table.insert(links, {dist = dist, middle = middle})
 		end
 		if closest ~= nil then
@@ -733,7 +733,7 @@ function MapHST:GuessStartLocations(spots)
 	self:EchoDebug("tolerance: " .. tolerance .. "  cutoff: " .. cutoff)
 	for i, l in pairs(links) do
 		if l.dist < cutoff then
-			self:EchoDebug("metal spot link at " .. math.ceil(l.middle.x) .. "," .. math.ceil(l.middle.z) .. " within cutoff with distance of " .. math.ceil(l.dist))
+			self:EchoDebug("metal spot link at " .. math.ceil(l.middle.x) .. "," .. math.ceil(l.middle.z) .. " within cutoff with self.ai.Tool:distance of " .. math.ceil(l.dist))
 			table.insert(matches, l.middle)
 		end
 	end
@@ -1093,7 +1093,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 		-- dont use this spot if we're already building there
 		local alreadyPlanned = self.ai.buildsitehst:PlansOverlap(p, uname)
 		if not alreadyPlanned then
-			local dist = Distance(position, p)
+			local dist = self.ai.Tool:Distance(position, p)
 			-- don't add if it's already too high
 			if dist < bestDistance then
 				-- now check if we can build there
@@ -1110,7 +1110,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 						pos = p
 						reclaimEnemyMex = false
 						if uwcheck then
-							-- self:EchoDebug("uw mex is best distance")
+							-- self:EchoDebug("uw mex is best self.ai.Tool:distance")
 							uw = uwutype
 						else
 							uw = nil
@@ -1125,7 +1125,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 							pos = epos
 							reclaimEnemyMex = enemySpot.unit
 							if uwcheck then
-								-- self:EchoDebug("uw mex is best distance")
+								-- self:EchoDebug("uw mex is best self.ai.Tool:distance")
 								uw = uwutype
 							else
 								uw = nil
@@ -1139,7 +1139,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 	end
 	-- local kbytes, threshold = gcinfo()
 	-- game:SendToConsole("maphst gcinfo: " .. kbytes .. " (after ClosestFreeSpot)")
-	-- if uw then self:EchoDebug("uw mex is final best distance") end
+	-- if uw then self:EchoDebug("uw mex is final best self.ai.Tool:distance") end
 	return pos, uw, reclaimEnemyMex
 end
 
@@ -1152,7 +1152,7 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)
 	for i,p in pairs(geoSpots) do
 		-- dont use this spot if we're already building there
 		if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafePosition(p, builder) then
-			local dist = Distance(position, p)
+			local dist = self.ai.Tool:Distance(position, p)
 			if not bestDistance or dist < bestDistance then
 				bestDistance = dist
 				bestPos = p

@@ -4,6 +4,10 @@ function TaskVehHST:Name()
 	return "TaskVehHST"
 end
 
+function TaskVehHST:internalName()
+	return "TaskVehHST"
+end
+
 function TaskVehHST:Init()
 	self.DebugEnabled = false
 end

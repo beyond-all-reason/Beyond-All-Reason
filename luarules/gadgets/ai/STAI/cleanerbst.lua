@@ -93,7 +93,7 @@ function CleanerBST:Search()
 		if not self.ignore[cleanable:ID()] then
 			local p = cleanable:GetPosition()
 			if p then
-				local dist = Distance(myPos, p)
+				local dist = self.ai.Tool:Distance(myPos, p)
 				if dist < self.cleaningRadius then
 					self:Clean(cleanable)
 					return

@@ -200,7 +200,7 @@ function TaskQueueBST:Init()
 end
 
 function TaskQueueBST:HasQueues()
-	return (ai.TasksHST.taskqueues[self.name] ~= nil)
+	return (self.ai.TasksHST:taskqueues()[self.name] ~= nil)
 end
 
 function TaskQueueBST:OwnerBuilt()
@@ -460,7 +460,7 @@ function TaskQueueBST:GetQueue()
 
 	self.outmodedTechLevel = false
 	local uT = UnitiesHST.unitTable
-	if self.ai.TasksHST.outmodedTaskqueues[self.name] ~= nil and not q then
+	if self.ai.TasksHST:outmodedTaskqueues()[self.name] ~= nil and not q then
 		local threshold =  1 - (uT[self.name].techLevel / self.ai.maxFactoryLevel)
 		if self.isFactory  and (self.ai.Metal.full < threshold or self.ai.Energy.full < threshold) then
 			local mtype = UnitiesHST.factoryMobilities[self.name][1]
@@ -482,9 +482,11 @@ function TaskQueueBST:GetQueue()
 			q = self.ai.TasksHST.outmodedTaskqueues[self.name]
 		end
 	end
-	q = q or self.ai.TasksHST.[self.name]
+
+	q = q or self.ai.TasksHST:taskqueues()[self.name]
 	if type(q) == "function" then
-		-- game:SendToConsole("function table found!")
+		game:SendToConsole("function table found!")
+			game:SendToConsole(q)
 		q = q(self)
 	end
 	return q
@@ -614,7 +616,7 @@ function TaskQueueBST:ProgressQueue()
 								if type(value) == "table" and value[1] == "ReclaimEnemyMex" then
 									self:EchoDebug("reclaiming enemy mex...")
 									--  success = self.unit:Internal():Reclaim(value[2])
-									success = CustomCommand(self.unit:Internal(), CMD_RECLAIM, {value[2].unitID})
+									success = self.ai.Tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {value[2].unitID})
 									value = value[1]
 								else
 									local helpValue = self:GetHelp(value, p)
@@ -644,7 +646,7 @@ function TaskQueueBST:ProgressQueue()
 					end
 				else
 					self.target = p
-					self.watchdogTimeout = math.max(Distance(self.unit:Internal():GetPosition(), p) * 1.5, 360)
+					self.watchdogTimeout = math.max(self.ai.Tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 360)
 					self.currentProject = value
 					if value == "ReclaimEnemyMex" then
 						self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it

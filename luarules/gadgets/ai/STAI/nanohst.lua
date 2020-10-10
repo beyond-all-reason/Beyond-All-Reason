@@ -64,13 +64,13 @@ function NanoHST:DrawDebug()
 end
 
 function NanoHST:AddNano(engineUnit)
-	self.densityMap = FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, 1)
+	self.densityMap = self.ai.Tool:FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, 1)
 	self.cellsNeedSorting = true
 	self:DrawDebug()
 end
 
 function NanoHST:RemoveNano(engineUnit)
-	self.densityMap = FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, -1)
+	self.densityMap = self.ai.Tool:FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, -1)
 	self.cellsNeedSorting = true
 	self:DrawDebug()
 end
@@ -90,7 +90,7 @@ function NanoHST:SortCells()
 		end
 	end
 	self.sortedCells = {}
-	for negCount, posList in pairsByKeys(posByCounts) do
+	for negCount, posList in self.ai.Tool:pairsByKeys(posByCounts) do
 		for i = 1, #posList do
 			local position = posList[i]
 			self:EchoDebug(-negCount, "nanos", "overlap at", position.x, position.z)

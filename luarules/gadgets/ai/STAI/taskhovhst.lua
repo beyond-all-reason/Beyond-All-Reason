@@ -1,7 +1,10 @@
 TaskHovHST = class(Module)
 
 function TaskHovHST:Name()
-	return "TaskShpHST"
+	return "TaskHovHST"
+end
+function TaskHovHST:internalName()
+	return "TaskHovHST"
 end
 
 function TaskHovHST:Init()

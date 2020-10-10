@@ -90,8 +90,8 @@ function WardBST:Activate()
 		-- run to the most defended base location
 		local salvation = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
 		self:EchoDebug(tostring(salvation), "salvation")
-		if salvation and Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
-			self.unit:Internal():Move(self.ai, RandomAway(salvation,150))
+		if salvation and self.ai.Tool:Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
+			self.unit:Internal():Move(self.ai, self.ai.Tool:RandomAway(salvation,150))
 			self.noSalvation = false
 			self.active = true
 			self:EchoDebug("unit ".. self.name .." runs away from danger")
@@ -118,7 +118,7 @@ function WardBST:NearestCombat()
 			if UnitiesHST.unitTable[un].isWeapon and (UnitiesHST.battleList[un] or UnitiesHST.breakthroughList[un]) then
 				local upos = unit:GetPosition()
 				if self.ai.targethst:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphst:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
-					local dist = Distance(fpos, upos) - UnitiesHST.unitTable[un].metalCost
+					local dist = self.ai.Tool:Distance(fpos, upos) - UnitiesHST.unitTable[un].metalCost
 					if dist < bestDistance then
 						bestDistance = dist
 						best = upos

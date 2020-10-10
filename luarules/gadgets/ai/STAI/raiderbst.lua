@@ -31,7 +31,7 @@ function RaiderBST:Init()
 	elseif self.mtype == 'air' then
 		self.groundAirSubmerged = 'air'
 	end
-	self.hurtsList = UnitWeaponLayerList(self.name)
+	self.hurtsList = self.ai.Tool:UnitWeaponLayerList(self.name)
 	self.sightRange = utable.losRadius
 
 	-- for pathfinding
@@ -113,7 +113,7 @@ function RaiderBST:Update()
 			end
 			if attackThisUnit then
 				self.offPath = true
-				CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
+				self.ai.Tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
 			elseif self.offPath then
 				self.offPath = false
 				self:ResumeCourse()
@@ -199,7 +199,7 @@ end
 
 function RaiderBST:MoveNear(position, distance)
 	distance = distance or self.nearDistance
-	self.unit:Internal():Move(RandomAway(self.ai, position, distance))
+	self.unit:Internal():Move(self.ai.Tool:RandomAway(self.ai, position, distance))
 end
 
 function RaiderBST:GetTarget()
@@ -228,7 +228,7 @@ end
 
 function RaiderBST:ArrivalCheck()
 	if not self.target then return end
-	if Distance(self.unit:Internal():GetPosition(), self.target) < self.pathingDistance then
+	if self.ai.Tool:Distance(self.unit:Internal():GetPosition(), self.target) < self.pathingDistance then
 		self:EchoDebug("arrived at target")
 		self:AttackTarget(self.attackDistance)
 		self.arrived = true
@@ -251,7 +251,7 @@ function RaiderBST:SetMoveState()
 end
 
 function RaiderBST:BeginPath(position)
-	if Distance(position, self.unit:Internal():GetPosition()) < self.minPathfinderDistance then
+	if self.ai.Tool:Distance(position, self.unit:Internal():GetPosition()) < self.minPathfinderDistance then
 		self:EchoDebug("target is too close to unit to bother pathfinding, going straight to target")
 		self.path = true
 		self.clearShot = true
@@ -297,7 +297,7 @@ function RaiderBST:ReceivePath(path)
 	-- 		self.map:DrawLine(pos1, pos2, {0,0,1}, self.unit:Internal():ID(), arrow, 8)
 	-- 	end
 	-- end
-	-- path = SimplifyPathByAngle(path)
+	-- path = self.ai.Tool:SimplifyPathByAngle(path)
 	self.path = path
 	if not self.path[2] then
 		self.pathStep = 1
@@ -379,7 +379,7 @@ function RaiderBST:AttackTarget(distance)
 	if self.unitTarget ~= nil then
 		local utpos = self.unitTarget:GetPosition()
 		if utpos and utpos.x then
-			CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
+			self.ai.Tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
 			return
 		end
 	end

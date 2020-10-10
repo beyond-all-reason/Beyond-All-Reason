@@ -4,6 +4,10 @@ function TaskBotHST:Name()
 	return "TaskBotHST"
 end
 
+function TaskBotHST:internalName()
+	return "TaskBotHST"
+end
+
 function TaskBotHST:Init()
 	self.DebugEnabled = false
 end

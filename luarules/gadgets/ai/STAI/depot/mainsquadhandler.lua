@@ -89,10 +89,10 @@ end
 function MainSquadHandler:GetMovePosition(target, position)
 	local movex = target.x - position.x
 	local movez = target.z - position.z
-	local distancesqr = (movex*movex) + (movez*movez)
-	local distance = math.sqrt(distancesqr)
-	local limitedDistance = math.min(distance, 1000)
-	local factor = limitedDistance / distance
+	distancesqr = (movex*movex) + (movez*movez)
+	distance = math.sqrt(self.ai.Tool:distancesqr)
+	local limitedDistance = math.min(self.ai.Tool:distance, 1000)
+	local factor = limitedDistance / self.ai.Tool:distance
 	local goalx, goalz = position.x + movex*factor, position.z + movez*factor
 	local goaly = Spring.GetGroundHeight(goalx, goalz)
 	return {goalx, goaly,goalz}

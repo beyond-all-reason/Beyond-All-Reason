@@ -59,7 +59,7 @@ function BootBST:Update()
 			local u = self.unit:Internal()
 			local pos = u:GetPosition()
 			-- self:EchoDebug(pos.x .. " " .. pos.z .. " " .. self.factory.exitRect.x1 .. " " .. self.factory.exitRect.z1 .. " " .. self.factory.exitRect.x2 .. " " .. self.factory.exitRect.z2)
-			if not PositionWithinRect(pos, self.factory.exitRect) then
+			if not self.ai.Tool:PositionWithinRect(pos, self.factory.exitRect) then
 				self.factory = nil
 				self.unit:ElectBehaviour()
 			elseif self.active and self.lastOrderFrame and self.lastExitSide then
@@ -146,7 +146,7 @@ function BootBST:FindMyFactory()
 	local pos = self.unit:Internal():GetPosition()
 	for level, factories in pairs(self.ai.factoriesAtLevel) do
 		for i, factory in pairs(factories) do
-			if PositionWithinRect(pos, factory.exitRect) then
+			if self.ai.Tool:PositionWithinRect(pos, factory.exitRect) then
 				self.factory = factory
 				return
 			end

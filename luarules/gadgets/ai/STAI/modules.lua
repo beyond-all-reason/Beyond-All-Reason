@@ -1,5 +1,4 @@
 -- shard_include ("unitlists")
-shard_include ("common")
 shard_include ("unitieshst")
 shard_include ("maphst")
 shard_include ("buildsitehst")
@@ -31,6 +30,7 @@ shard_include ("taskhovhst")
 shard_include ("taskexphst")
 shard_include ("taskbuildhst")
 shard_include ("taskecohst")
+shard_include ('tool')
 
 return {
 	SleepST,
@@ -63,5 +63,6 @@ return {
 	TaskHovHST,
 	TaskExpHST,
 	TaskBuildHST,
-	TaskEcoHST
+	TaskEcoHST,
+	Tool
 }

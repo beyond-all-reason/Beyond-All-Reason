@@ -200,7 +200,7 @@ function LosHST:UpdateEnemies(enemyList)
 				self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
 			end
 			self:EchoDebug("enemy " .. e.unitName .. " died!")
-			local mtypes = UnitWeaponMtypeList(e.unitName)
+			local mtypes = self.ai.Tool:UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
 				self.ai.raidhst:NeedMore(mtype)
 				self.ai.attackhst:NeedLess(mtype)
@@ -235,7 +235,7 @@ function LosHST:UpdateEnemies(enemyList)
 				if e.los == 2 then
 					-- if we know what kind of unit it is, only count as a potential threat blip if it's a hurty unit
 					-- air doesn't count because there are no buildings in the air
-					local threatLayers = UnitThreatRangeLayers(e.unitName)
+					local threatLayers = self.ai.Tool:UnitThreatRangeLayers(e.unitName)
 					if threatLayers.ground.threat == 0 and threatLayers.submerged.threat == 0 then
 						count = false
 					end

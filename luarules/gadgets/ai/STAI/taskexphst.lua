@@ -3,6 +3,9 @@ TaskExpHST = class(Module)
 function TaskExpHST:Name()
 	return "TaskExpHST"
 end
+function TaskExpHST:internalName()
+	return "TaskExpHST"
+end
 
 function TaskExpHST:Init()
 	self.DebugEnabled = false

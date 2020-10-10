@@ -4,6 +4,10 @@ function TaskEcoHST:Name()
 	return "TaskEcoHST"
 end
 
+function TaskEcoHST:internalName()
+	return "TaskEcoHST"
+end
+
 function TaskEcoHST:Init()
 	self.DebugEnabled = false
 end

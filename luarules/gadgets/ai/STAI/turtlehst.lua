@@ -24,8 +24,8 @@ local layerMod = {
 	sonar = 1000,
 }
 
-local missingFactoryDefenseDistance = 1500 -- if a turtle with a factory has no defense, subtract this much from distance
-local modDistance = 1 -- how much Priority modifies distance, the higher the number the father builders will travel for the most/least turtled turtle
+local missingFactoryDefenseDistance = 1500 -- if a turtle with a factory has no defense, subtract this much from self.ai.Tool:distance
+local modDistance = 1 -- how much Priority modifies self.ai.Tool:distance, the higher the number the father builders will travel for the most/least turtled turtle
 
 local factoryPriority = 4 -- added to tech level. above this priority allows two of the same type of defense tower.
 
@@ -189,7 +189,7 @@ function TurtleHST:AddOrgan(position, unitID, unitName)
 	local nearestTurtle
 	for i, turtle in pairs(self.turtles) do
 		if turtle.water == ut.needsWater then
-			local dist = Distance(position, turtle.position)
+			local dist = self.ai.Tool:Distance(position, turtle.position)
 			if dist < turtle.size then
 				if dist < nearestDist then
 					nearestDist = dist
@@ -329,13 +329,13 @@ function TurtleHST:Base(turtle, size, limbs)
 		local limb = { turtle = turtle, nameCounts = {}, ground = 0, submerged = 0 }
 		-- make sure the limb is in an acceptable position (not near the map edge, and not inside another turtle)
 		for aroundTheClock = 1, 12 do
-			local offMapCheck = RandomAway(self.ai, turtle.position, size * 1.33, false, angle)
+			local offMapCheck = self.ai.Tool:RandomAway(self.ai, turtle.position, size * 1.33, false, angle)
 			if offMapCheck.x ~= 1 and offMapCheck.x ~= maxElmosX - 1 and offMapCheck.z ~= 1 and offMapCheck.z ~= maxElmosZ - 1 then
-				limb.position = RandomAway(self.ai, turtle.position, size, false, angle)
+				limb.position = self.ai.Tool:RandomAway(self.ai, turtle.position, size, false, angle)
 				local inAnotherTurtle = false
 				for ti, turt in pairs(self.turtles) do
 					if turt ~= turtle then
-						local dist = Distance(turt.position, limb.position)
+						local dist = self.ai.Tool:Distance(turt.position, limb.position)
 						if dist < turt.size then
 							inAnotherTurtle = true
 							break
@@ -350,7 +350,7 @@ function TurtleHST:Base(turtle, size, limbs)
 		if limb.position then
 			for i, shell in pairs(self.shells) do
 				if exteriorLayer[shell.layer] then
-					local dist = Distance(limb.position, shell.position)
+					local dist = self.ai.Tool:Distance(limb.position, shell.position)
 					if dist < shell.radius then
 						self:Attach(limb, shell)
 					end
@@ -371,7 +371,7 @@ function TurtleHST:AddTurtle(position, water, priority)
 	local turtle = {position = position, size = babySize, maxOrganVolume = maxOrganVolume, organs = {}, organVolume = 0, limbs = { firstLimb }, interiorLimbs = { firstLimb }, firstLimb = firstLimb, water = water, nameCounts = {}, priority = priority, ground = 0, air = 0, submerged = 0, antinuke = 0, shield = 0, jam = 0, radar = 0, sonar = 0}
 	firstLimb.turtle = turtle
 	for i, shell in pairs(self.shells) do
-		local dist = Distance(position, shell.position)
+		local dist = self.ai.Tool:Distance(position, shell.position)
 		if dist < shell.radius then
 			self:Attach(turtle.firstLimb, shell)
 		end
@@ -410,7 +410,7 @@ function TurtleHST:AddShell(position, unitID, uname, value, layer, radius)
 			checkThese = turtle.interiorLimbs
 		end
 		for li, limb in pairs(checkThese) do
-			local dist = Distance(position, limb.position)
+			local dist = self.ai.Tool:Distance(position, limb.position)
 			if dist < radius then
 				self:Attach(limb, shell)
 				attached = true
@@ -476,7 +476,7 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 	end
 	local bestDist = 100000
 	local best
-	local bydistance = {}
+	local byselfdistance = {}
 	for i, turtle in pairs(self.turtles) do
 		local important = turtle.priority >= priorityFloor -- so that for example we don't build shields where there's just a mex
 		local isLocal = true
@@ -529,18 +529,18 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 					local modDefecit = modLimit - mod
 					self:EchoDebug("turtled: " .. mod .. ", limit: " .. tostring(modLimit) .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
 					if mod == 0 or mod < ut.metalCost or mod < modLimit then
-						local dist = Distance(position, limb.position)
+						local dist = self.ai.Tool:Distance(position, limb.position)
 						dist = dist - (modDefecit * modDistance)
 						if hurtyLayer[layer] and limb[layer] == 0 and turtle.priority > factoryPriority then dist = dist - missingFactoryDefenseDistance end
-						self:EchoDebug("distance: " .. dist)
+						self:EchoDebug("self.ai.Tool:distance: " .. dist)
 						if oneOnly then
 							if dist < bestDist then
-								self:EchoDebug("best distance")
+								self:EchoDebug("best self.ai.Tool:distance")
 								bestDist = dist
 								best = limb.position
 							end
 						else
-							bydistance[dist] = limb.position
+							byselfdistance[dist] = limb.position
 						end
 					end
 				end
@@ -559,7 +559,7 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 		end
 	else
 		local sorted = {}
-		for dist, pos in pairsByKeys(bydistance) do
+		for dist, pos in self.ai.Tool:pairsByKeys(byselfdistance) do
 			local newpos = api.Position()
 			newpos.x = pos.x+0
 			newpos.z = pos.z+0
@@ -591,7 +591,7 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 	local position = builder:GetPosition()
 	local bestDist = 100000
 	local best
-	local bydistance = {}
+	local byselfdistance = {}
 	for i, turtle in pairs(self.turtles) do
 		if (not unitName or turtle.organVolume < turtle.maxOrganVolume)
 		and self.ai.maphst:UnitCanGoHere(builder, turtle.position)
@@ -601,18 +601,18 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 			if mod ~= 0 then
 				local dist = 0
 				if not ignoreDistance then
-					dist = Distance(position, turtle.position)
+					dist = self.ai.Tool:Distance(position, turtle.position)
 				end
 				dist = dist - (mod * modDist)
-				self:EchoDebug("distance: " .. dist)
+				self:EchoDebug("self.ai.Tool:distance: " .. dist)
 				if oneOnly then
 					if dist < bestDist then
-						self:EchoDebug("best distance")
+						self:EchoDebug("best self.ai.Tool:distance")
 						bestDist = dist
 						best = turtle.position
 					end
 				else
-					bydistance[dist] = turtle.position
+					byselfdistance[dist] = turtle.position
 				end
 			end
 		end
@@ -629,7 +629,7 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 		end
 	else
 		local sorted = {}
-		for dist, pos in pairsByKeys(bydistance) do
+		for dist, pos in self.ai.Tool:pairsByKeys(byselfdistance) do
 			local newpos = api.Position()
 			newpos.x = pos.x+0
 			newpos.z = pos.z+0
@@ -642,14 +642,14 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 end
 
 function TurtleHST:SafeWithinTurtle(position, unitName)
-	local gas = WhatHurtsUnit(unitName)
+	local gas = self.ai.Tool:WhatHurtsUnit(unitName)
 	local cost = UnitiesHST.unitTable[unitName].metalCost
 	for i = 1, #self.turtles do
 		local turtle = self.turtles[i]
 		local safety = 0
 		for GAS, yes in pairs(gas) do safety = safety + turtle[GAS] end
 		if safety > cost then
-			local dist = Distance(position, turtle.position)
+			local dist = self.ai.Tool:Distance(position, turtle.position)
 			if dist < turtle.size + 100 then
 				return true
 			end

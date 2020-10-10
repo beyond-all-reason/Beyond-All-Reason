@@ -59,7 +59,7 @@ function BombardBST:Update()
 				end
 				if not newTarget then newTarget = bestCell.pos end
 				if newTarget ~= self.target then
-					local newAngle = AngleAtoB(self.position.x, self.position.z, newTarget.x, newTarget.z)
+					local newAngle = self.ai.Tool:AngleAtoB(self.position.x, self.position.z, newTarget.x, newTarget.z)
 					local ago = f - self.targetFrame
 					self:EchoDebug(ago, newAngle, self.targetAngle)
 					if self.targetAngle then

@@ -77,25 +77,25 @@ function DefendBST:Update()
 		local f = self.game:Frame()
 		if f % 60 == 0 then
 			if self.target == nil then return end
-			local targetPos = self.target.position or BehaviourPosition(self.target.behaviour)
+			local targetPos = self.target.position or self.ai.Tool:BehaviourPosition(self.target.behaviour)
 			if targetPos == nil then return end
 			targetPos.y = 0
 			local guardDistance = self.target.guardDistance
 			if not self.tough then guardDistance = guardDistance * 0.33 end
-			local guardPos = RandomAway(self.ai, targetPos, guardDistance, false, self.guardAngle)
+			local guardPos = self.ai.Tool:RandomAway(self.ai, targetPos, guardDistance, false, self.guardAngle)
 			local safe = self.ai.defendhst:WardSafe(self.target)
 			-- if targetPos.y > 100 then game:SendToConsole(targetPos.y .. " " .. type(self.target.behaviour)) end
 			local unitPos = unit:GetPosition()
-			local dist = Distance(unitPos, guardPos)
+			local dist = self.ai.Tool:Distance(unitPos, guardPos)
 			local behaviour = self.target.behaviour
 			if self.perpendicular then
-				guardPos = RandomAway(self.ai, guardPos, self.perpDist, false, self.perpendicular)
+				guardPos = self.ai.Tool:RandomAway(self.ai, guardPos, self.perpDist, false, self.perpendicular)
 			end
 			if behaviour ~= nil then
 				if dist > 500 then
 					if self.guarding ~= behaviour.id then
 						-- move toward mobile wards that are far away with guard order
-						CustomCommand(self.unit:Internal(), CMD_GUARD, {behaviour.id})
+						self.ai.Tool:CustomCommand(self.unit:Internal(), CMD_GUARD, {behaviour.id})
 						self.guarding = behaviour.id
 					end
 				elseif not safe then
@@ -136,7 +136,7 @@ function DefendBST:Assign(ward, angle, dist)
 		self.target = ward
 		self.guardAngle = angle or math.random() * twicePi
 		if dist then
-			self.perpendicular = AngleAdd(angle, halfPi)
+			self.perpendicular = self.ai.Tool:AngleAdd(angle, halfPi)
 			self.perpDist = dist
 		else
 			self.perpendicular = nil

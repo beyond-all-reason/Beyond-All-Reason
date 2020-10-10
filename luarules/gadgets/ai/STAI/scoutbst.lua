@@ -61,7 +61,7 @@ function ScoutBST:Update()
 				end
 			end
 			if attackTarget and not self.attacking then
-				CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
+				self.ai.Tool:CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
 				self.target = nil
 				self.evading = false
 				self.attacking = true
@@ -88,7 +88,7 @@ function ScoutBST:Update()
 				local topos = self.ai.scouthst:ClosestSpot(self) -- first look for closest metal/geo spot that hasn't been seen recently
 				if topos ~= nil then
 					self:EchoDebug("scouting spot at " .. topos.x .. "," .. topos.z)
-					self.target = RandomAway(self.ai, topos, self.keepYourDistance) -- don't move directly onto the spot
+					self.target = self.ai.Tool:RandomAway(self.ai, topos, self.keepYourDistance) -- don't move directly onto the spot
 					unit:Move(self.target)
 					self.attacking = false
 				else
@@ -106,12 +106,12 @@ function ScoutBST:Update()
 			local unit = self.unit:Internal()
 			local upos = unit:GetPosition()
 			if self.target then
-				local dist = Distance(upos, self.target)
+				local dist = self.ai.Tool:Distance(upos, self.target)
 				if dist < self.airDistance then
-					unit:Move(RandomAway(self.ai, self.target, 100))
+					unit:Move(self.ai.Tool:RandomAway(self.ai, self.target, 100))
 				end
 			else
-				unit:Move(RandomAway(self.ai, upos, 500))
+				unit:Move(self.ai.Tool:RandomAway(self.ai, upos, 500))
 			end
 			self.lastCircleFrame = f
 		end

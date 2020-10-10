@@ -4,6 +4,11 @@ function TaskShpHST:Name()
 	return "TaskShpHST"
 end
 
+function TaskShpHST:internalName()
+	return "TaskShpHST"
+end
+
+
 function TaskShpHST:Init()
 	self.DebugEnabled = false
 end

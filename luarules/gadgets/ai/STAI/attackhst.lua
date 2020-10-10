@@ -244,7 +244,7 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 		startPos = self.ai.frontPosition[representativeBehaviour.hits]
 		if startPos then
 			local angle = AnglePosPos(startPos, squad.target)
-			startPos = RandomAway(self.ai, startPos, 150, nil, angle)
+			startPos = self.ai.Tool:RandomAway(self.ai, startPos, 150, nil, angle)
 		else
 			startPos = representative:GetPosition()
 		end
@@ -271,7 +271,7 @@ function AttackHST:SquadPathfind(squad, squadIndex)
 	if not squad.pathfinder then return end
 	local path, remaining, maxInvalid = squad.pathfinder:Find(2)
 	if path then
-		-- path = SimplifyPath(path)
+		-- path = self.ai.Tool:SimplifyPath(path)
 		squad.path = path
 		squad.pathStep = 1
 		squad.targetNode = squad.path[1]
@@ -327,22 +327,22 @@ function AttackHST:SquadAdvance(squad)
 		nextPos = squad.targetNode.position
 		nextAngle = AnglePosPos(nextPos, squad.path[squad.pathStep+1].position)
 	end
-	local nextPerpendicularAngle = AngleAdd(nextAngle, halfPi)
+	local nextPerpendicularAngle = self.ai.Tool:AngleAdd(nextAngle, halfPi)
 	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
 	for i = #members, 1, -1 do
 		local member = members[i]
 		local pos = nextPos
 		if member.formationBack and squad.pathStep ~= #squad.path then
-			pos = RandomAway(self.ai, nextPos, -member.formationBack, nil, nextAngle)
+			pos = self.ai.Tool:RandomAway(self.ai, nextPos, -member.formationBack, nil, nextAngle)
 		end
 		local reverseAttackAngle
 		if squad.pathStep == #squad.path then
-			reverseAttackAngle = AngleAdd(nextAngle, pi)
+			reverseAttackAngle = self.ai.Tool:AngleAdd(nextAngle, pi)
 		end
 		member:Advance(pos, nextPerpendicularAngle, reverseAttackAngle)
 	end
 	if squad.hasMovedOnce then
-		local distToNext = Distance(squad.path[squad.pathStep-1].position, nextPos)
+		local distToNext = self.ai.Tool:Distance(squad.path[squad.pathStep-1].position, nextPos)
 		squad.idleTimeout = self.game:Frame() + (3 * 30 * (distToNext / squad.lowestSpeed))
 	end
 	squad.hasMovedOnce = true

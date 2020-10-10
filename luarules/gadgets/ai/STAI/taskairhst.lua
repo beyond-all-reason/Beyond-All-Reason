@@ -4,6 +4,10 @@ function TaskAirHST:Name()
 	return "TaskAirHST"
 end
 
+function TaskAirHST:internalName()
+	return "TaskAirHST"
+end
+
 function TaskAirHST:Init()
 	self.DebugEnabled = false
 end
