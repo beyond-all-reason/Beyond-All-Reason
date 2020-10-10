@@ -119,7 +119,7 @@ spawnProtectionConfig = {
 
 randomEventsConfig = {
 	randomEventMinimumDelay = 9000, -- frames
-	randomEventChance = 300, -- higher = lower chance
+	randomEventChance = 200, -- higher = lower chance
 	
 }
 

@@ -1,5 +1,6 @@
 
 function RandomEventChickenInvasion1(CurrentFrame)
+	Spring.Echo("Chicken Invasion Event")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	local chickens = {"chicken1_scav","chicken1b_scav","chicken1c_scav","chicken1d_scav","chicken1x_scav","chicken1y_scav","chicken1z_scav","chickens1_scav","chicken_dodo1_scav","chickenc3_scav","chickenc3b_scav","chickenc3c_scav","chickenw2_scav",}
 	for y = 1,#scavUnits do

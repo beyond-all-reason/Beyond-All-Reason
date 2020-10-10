@@ -1,5 +1,6 @@
 
 function RandomEventMiniboss1(CurrentFrame)
+	Spring.Echo("MiniBoss Event")
 	local T2bosses = {"corsumo_scav","corgol_scav","corparrow_scav","armfboy_scav","armmanni_scav",}
 	local T3bosses = {"armmar_scav","armvang_scav","armraz_scav","corshiva_scav","corkarg_scav","corcat_scav","armlun_scav","corsok_scav","armsptkt4_scav",}
 	local T4bosses = {"corkorg_scav", "corjugg_scav", "armbanth_scav","armpwt4_scav","armrattet4_scav","armvadert4_scav","cordemont4_scav","corkarganetht4_scav",}
@@ -28,6 +29,7 @@ function RandomEventMiniboss1(CurrentFrame)
 			else
 				Spring.CreateUnit(T4bosses[math_random(1,#T4bosses)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 			end
+			break
 		end
 	end
 end
