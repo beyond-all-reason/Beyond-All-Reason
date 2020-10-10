@@ -60,7 +60,10 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
-		emit-sfx 256 | 3 from prop;
+		emit-sfx 1024 + 0 from base;
+		sleep 250;
+		emit-sfx 1024 + 0 from base;
+		emit-sfx 1024 + 1 from base;
 		sleep 250;
 	}
 	return (0);
@@ -110,9 +113,9 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode doorr type FALL | NOHEATCLOUD;
-		explode doorl type FALL | NOHEATCLOUD;
-		explode prop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type NOHEATCLOUD;
+		explode doorl type NOHEATCLOUD;
+		explode prop type FIRE | SMOKE | NOHEATCLOUD;
 		//explode flare type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -120,17 +123,17 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode doorl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode prop type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | NOHEATCLOUD;
+		explode doorl type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode prop type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
 		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode doorr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode doorl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode prop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode doorl type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode prop type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

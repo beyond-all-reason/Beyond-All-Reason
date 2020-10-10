@@ -135,6 +135,6 @@ function BossFightMessages(BossWaveTimeLeft)
 	end
 
 	if BossWaveTimeLeft == 0 then
-		ScavSendNotification("scav_scavfinalvictory")
+		ScavSendNotification("scav_scavfinalboss")
 	end
 end

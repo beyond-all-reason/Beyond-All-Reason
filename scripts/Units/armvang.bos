@@ -469,6 +469,7 @@ UnitSpeed(){
 }
 StartMoving(){
 	bMoving=TRUE;
+	signal SIG_WALK;
 	start-script Walk();
 }
 StopMoving(){

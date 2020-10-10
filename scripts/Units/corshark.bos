@@ -49,7 +49,10 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
-		emit-sfx 256 | 3 from wake;
+		emit-sfx 1024 + 0 from wake;
+		sleep 250;
+		emit-sfx 1024 + 0 from wake;
+		emit-sfx 1024 + 1 from wake;
 		sleep 250;
 	}
 }
@@ -94,24 +97,24 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode torp2 type FALL | NOHEATCLOUD;
-		explode torp1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torp2 type NOHEATCLOUD;
+		explode torp1 type FIRE | SMOKE | NOHEATCLOUD;
 		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torp2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | NOHEATCLOUD;
+		explode torp2 type FIRE | SMOKE | NOHEATCLOUD;
+		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torp2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode torp2 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

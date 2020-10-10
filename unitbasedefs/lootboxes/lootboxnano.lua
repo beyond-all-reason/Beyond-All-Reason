@@ -51,7 +51,7 @@ unitDef = {
 	turnrate = 1,
 	upright = true,
 	usebuildinggrounddecal = true,
-	workertime = 500*sizeMultiplier,
+	workertime = 100*sizeMultiplier,
 	--yardmap = "oooo",
 	
 	sfxtypes = {

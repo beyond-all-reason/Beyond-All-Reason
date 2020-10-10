@@ -26,7 +26,7 @@ return {
 		maxvelocity = 5.6,
 		maxwaterdepth = 12,
 		movementclass = "TANK1",
-		name = "Jeffy",
+		name = "Ranger",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFAV.s3o",
 		script = "Units/ARMFAV.cob",

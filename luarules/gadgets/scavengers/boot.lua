@@ -63,6 +63,11 @@ if scavconfig.modules.constructorControllerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
 end
 
+if scavconfig.modules.randomEventsModule then
+	RandomEventsList = {}
+	VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
+end
+
 if scavconfig.modules.factoryControllerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
 end
@@ -181,6 +186,10 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 	
+	if n%30 == 20 and n > 9000 and scavconfig.modules.randomEventsModule == true then
+		RandomEventTrigger(n)
+	end
+	
 	if n%150 == 85 and FinalBossUnitSpawned and FinalBossKilled == false then
 		local bosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		ScavSendMessage("Boss Health: "..math.ceil(bosshealth))
@@ -191,13 +200,13 @@ function gadget:GameFrame(n)
 	end
 		
 
-	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true and FinalBossKilled == false then
-		if n%30 == 0 then
+	if scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
+		if n%(math.ceil(150/ScavSafeAreaGenerator)) == 0 then
 			spawnStartBoxProtection(n)
 			executeStartBoxProtection(n)
 			spawnStartBoxEffect2(n)
 		end
-		if n%3 == 0 then
+		if n%(math.ceil(30/ScavSafeAreaGenerator)) == 0 then
 			spawnStartBoxEffect(n)
 		end
 	end
@@ -383,6 +392,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		UnitSuffixLenght[unitID] = nil
 		ConstructorNumberOfRetries[unitID] = nil
 		CaptureProgressForBeacons[unitID] = nil
+		if UnitName == "scavsafeareabeacon_scav" then
+			ScavSafeAreaExist = false
+			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledBuilding*20
+		end
 	else
 		for i = 1,#AliveEnemyCommanders do
 			local comID = AliveEnemyCommanders[i]
@@ -411,6 +424,9 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 				Spring.SetUnitMaxHealth(unitID, 10000)
 			end
 			--SpawnDefencesAfterCapture(unitID, unitNewTeam)
+		end
+		if UnitName == "scavsafeareabeacon_scav" then
+			ScavSafeAreaExist = false
 		end
 		selfdx[unitID] = nil
 		selfdy[unitID] = nil
@@ -570,6 +586,20 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 				Spring.SetUnitHealth(unitID, bosshealth)
 			end
+		end
+		if UnitName == "scavsafeareabeacon_scav" then
+			ScavSafeAreaExist = true
+			if not ScavSafeAreaSize then
+				ScavSafeAreaSize = math.ceil(250 * spawnmultiplier * (teamcount/2))
+				ScavSafeAreaGenerator = 0
+			end
+			ScavSafeAreaSize = math.ceil(ScavSafeAreaSize * 1.25)
+			ScavSafeAreaGenerator = ScavSafeAreaGenerator + 1
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			ScavSafeAreaMinX = posx - ScavSafeAreaSize
+			ScavSafeAreaMaxX = posx + ScavSafeAreaSize
+			ScavSafeAreaMinZ = posz - ScavSafeAreaSize
+			ScavSafeAreaMaxZ = posz + ScavSafeAreaSize
 		end
 		if UnitName == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})

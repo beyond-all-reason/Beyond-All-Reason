@@ -8,6 +8,7 @@ return {
 		buildcostenergy = 25000,
 		buildcostmetal = 400,
 		builddistance = 90,
+		buildpic = "lootboxes/lootdrop.PNG",
 		buildtime = 10500,
 		canmove = false,
 		capturable = false,

@@ -71,6 +71,10 @@ function BossWaveTimer(n)
 			pickedBeacon = nil
 
 		elseif (not unitSpawnerModuleConfig.FinalBossUnit) or FinalBossKilled == true then
+			if not FinalMessagePlayed then
+				ScavSendNotification("scav_scavfinalvictory")
+				FinalMessagePlayed = true
+			end
 			local units = Spring.GetTeamUnits(GaiaTeamID)
 			FinalSelfDChance = FinalSelfDChance - 1
 			if FinalSelfDChance < 2 then

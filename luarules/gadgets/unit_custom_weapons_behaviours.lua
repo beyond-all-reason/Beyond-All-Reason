@@ -21,6 +21,16 @@ if gadgetHandler:IsSyncedCode() then
 	local applyingFunctions = {}
 	local math_sqrt = math.sqrt
 
+	checkingFunctions.cannonwaterpen = {}
+	checkingFunctions.cannonwaterpen["ypos<0"] = function (proID)
+		local _,y,_ = Spring.GetProjectilePosition(proID)
+		if y <= 0 then
+			return true
+		else
+			return false
+		end
+	end
+	
 	checkingFunctions.split = {}
 	checkingFunctions.split["yvel<0"] = function (proID)
 		local _,vy,_ = Spring.GetProjectileVelocity(proID)
@@ -30,7 +40,17 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 	end
-
+	
+	checkingFunctions.torpwaterpen = {}
+    checkingFunctions.torpwaterpen["ypos<0"] = function (proID)
+        local _,py,_ = Spring.GetProjectilePosition(proID)
+        if py <= 0 then
+            return true
+        else
+            return false
+        end
+    end
+	
 	applyingFunctions.split = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
@@ -50,6 +70,31 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SpawnProjectile(WeaponDefNames[infos.def].id, projectileParams)
 		end
 		Spring.SpawnCEG(infos.splitexplosionceg, px, py, pz,0,0,0,0,0)
+		Spring.DeleteProjectile(proID)
+	end
+	
+	applyingFunctions.torpwaterpen = function (proID)
+		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
+        Spring.SetProjectileVelocity(proID,vx,0,vz)
+    end
+	
+		applyingFunctions.cannonwaterpen = function (proID)
+		local px, py, pz = Spring.GetProjectilePosition(proID)
+		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
+		local nvx, nvy, nvz = vx * 0.5, vy * 0.5, vz * 0.5
+		local ownerID = Spring.GetProjectileOwnerID(proID)
+		local infos = projectiles[proID]
+			local projectileParams = {
+				pos = {px, py, pz},
+				speed = {nvx, nvy, nvz},
+				owner = ownerID,
+				ttl = 3000,
+				gravity = -Game.gravity/3600,
+				model = infos.model,
+				cegTag = infos.cegtag,
+				}
+			Spring.SpawnProjectile(WeaponDefNames[infos.def].id, projectileParams)
+		Spring.SpawnCEG(infos.waterpenceg, px, py, pz,0,0,0,0,0)
 		Spring.DeleteProjectile(proID)
 	end
 

@@ -1098,6 +1098,41 @@ definitions['newnukecor'].centerflare.properties.maxheat = math.floor(definition
 definitions['newnukecor'].groundflash_large.properties.size = math.floor(definitions['newnukecor'].groundflash_large.properties.size * size)
 definitions['newnukecor'].groundflash_white.properties.size = math.floor(definitions['newnukecor'].groundflash_white.properties.size * size)
 
+local size = 2.2
+
+definitions['newnukehuge-floor'] = deepcopy(definitions['newnuke-floor'])
+definitions['newnukehuge-floor'].smoke.properties.numparticles = math.floor(definitions['newnukehuge-floor'].smoke.properties.numparticles * size)
+definitions['newnukehuge-floor'].smoke.properties.particlespeed = math.floor(definitions['newnukehuge-floor'].smoke.properties.particlespeed * size)
+definitions['newnukehuge-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnukehuge-floor'].smoke.properties.particlespeedspread * size)
+--
+definitions['newnukehuge'] = deepcopy(definitions['newnuke'])
+definitions['newnukehuge'].nukefloor.properties.explosiongenerator = [[custom:newnukehuge-floor]]
+
+definitions['newnukehuge'].sparks.properties.particlespeed = math.floor(definitions['newnukehuge'].sparks.properties.particlespeed * size)
+definitions['newnukehuge'].sparks.properties.particlespeedspread = math.floor(definitions['newnukehuge'].sparks.properties.particlespeedspread * size)
+definitions['newnukehuge'].explosion_flames.properties.particlespeed = math.floor(definitions['newnukehuge'].explosion_flames.properties.particlespeed * size)
+definitions['newnukehuge'].explosion_flames.properties.particlesize = math.floor(definitions['newnukehuge'].explosion_flames.properties.particlesize * size)
+definitions['newnukehuge'].explosion.properties.particlespeed = math.floor(definitions['newnukehuge'].explosion.properties.particlespeed * size)
+definitions['newnukehuge'].explosion.properties.particlesize = math.floor(definitions['newnukehuge'].explosion.properties.particlesize * size)
+definitions['newnukehuge'].dustparticles.properties.particlespeed = math.floor(definitions['newnukehuge'].dustparticles.properties.particlespeed * size)
+definitions['newnukehuge'].dustparticles.properties.particlesize = math.floor(definitions['newnukehuge'].dustparticles.properties.particlesize * size)
+definitions['newnukehuge'].clouddust.properties.particlespeed = math.floor(definitions['newnukehuge'].clouddust.properties.particlespeed * size)
+definitions['newnukehuge'].clouddust.properties.particlesize = math.floor(definitions['newnukehuge'].clouddust.properties.particlesize * size)
+definitions['newnukehuge'].dirt.properties.particlespeed = math.floor(definitions['newnukehuge'].dirt.properties.particlespeed * size * 0.7)
+definitions['newnukehuge'].dirt.properties.particlespeedspread = math.floor(definitions['newnukehuge'].dirt.properties.particlespeedspread * size * 0.7)
+definitions['newnukehuge'].dirt.properties.numparticles = math.floor(definitions['newnukehuge'].dirt.properties.numparticles * size)
+definitions['newnukehuge'].dirt2.properties.particlespeed = math.floor(definitions['newnukehuge'].dirt2.properties.particlespeed * size * 0.7)
+definitions['newnukehuge'].dirt2.properties.particlespeedspread = math.floor(definitions['newnukehuge'].dirt2.properties.particlespeedspread * size * 0.7)
+definitions['newnukehuge'].dirt2.properties.numparticles = math.floor(definitions['newnukehuge'].dirt2.properties.numparticles * size)
+definitions['newnukehuge'].shockwave.properties.ttl = math.floor(definitions['newnukehuge'].shockwave.properties.ttl * size)
+definitions['newnukehuge'].shockwave_slow.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_slow.properties.ttl * size)
+definitions['newnukehuge'].shockwave_inner.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_inner.properties.ttl * size)
+definitions['newnukehuge'].centerflare.properties.size = math.floor(definitions['newnukehuge'].centerflare.properties.size * size * 1.2)
+definitions['newnukehuge'].centerflare.properties.heat = math.floor(definitions['newnukehuge'].centerflare.properties.heat * size)
+definitions['newnukehuge'].centerflare.properties.maxheat = math.floor(definitions['newnukehuge'].centerflare.properties.maxheat * size)
+definitions['newnukehuge'].groundflash_large.properties.size = math.floor(definitions['newnukehuge'].groundflash_large.properties.size * size)
+definitions['newnukehuge'].groundflash_white.properties.size = math.floor(definitions['newnukehuge'].groundflash_white.properties.size * size)
+
 local size = 0.48
 
 definitions['newnuketac-floor'] = deepcopy(definitions['newnuke-floor'])

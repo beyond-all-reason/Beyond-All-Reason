@@ -164,7 +164,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rprop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rprop type FIRE | SMOKE | NOHEATCLOUD;
 		explode rturret type BITMAPONLY | NOHEATCLOUD;
 		explode lprop type BITMAPONLY | NOHEATCLOUD;
 		explode lturret type BITMAPONLY | NOHEATCLOUD;
@@ -175,30 +175,30 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rprop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lprop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rprop type FIRE | SMOKE | NOHEATCLOUD;
+		explode rturret type FIRE | SMOKE | NOHEATCLOUD;
+		explode lprop type FIRE | SMOKE | NOHEATCLOUD;
 		explode lturret type FALL | NOHEATCLOUD;
-		explode bprop type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bprop type FIRE | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rprop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rprop type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		explode rturret type SMOKE | FALL | NOHEATCLOUD;
 		explode lprop type SMOKE | FALL | NOHEATCLOUD;
-		explode lturret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode bprop type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lturret type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode bprop type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rprop type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lprop type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bprop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rprop type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode rturret type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode lprop type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
+		explode bprop type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 	return corpsetype;
 }

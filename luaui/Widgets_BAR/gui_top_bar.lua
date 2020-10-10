@@ -529,7 +529,7 @@ local function updateButtons()
 		if buttonsArea['buttons'] == nil then
 			buttonsArea['buttons'] = {}
 
-			local margin = 3 * widgetScale
+			local margin = math_floor(3 * widgetScale)
 			local offset = margin
 			local width = 0
 			local buttons = 0
@@ -537,9 +537,9 @@ local function updateButtons()
 			if (WG['scavengerinfo'] ~= nil) then
 				buttons = buttons + 1
 				if buttons > 1 then
-					offset = offset + width
+					offset = math_floor(offset + width + 0.5)
 				end
-				width = font2:GetTextWidth('  Scavengers ') * fontsize
+				width = math_floor((font2:GetTextWidth('  Scavengers ') * fontsize) + 0.5)
 				buttonsArea['buttons']['scavengers'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'scavengers'
@@ -548,9 +548,9 @@ local function updateButtons()
 			if (WG['teamstats'] ~= nil) then
 				buttons = buttons + 1
 				if buttons > 1 then
-					offset = offset + width
+					offset = math_floor(offset + width + 0.5)
 				end
-				width = font2:GetTextWidth('   Stats ') * fontsize
+				width = math_floor((font2:GetTextWidth('   Stats ') * fontsize) + 0.5)
 				buttonsArea['buttons']['stats'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'stats'
@@ -559,9 +559,9 @@ local function updateButtons()
 			if (WG['commands'] ~= nil) then
 				buttons = buttons + 1
 				if buttons > 1 then
-					offset = offset + width
+					offset = math_floor(offset + width + 0.5)
 				end
-				width = font2:GetTextWidth('  Cmd ') * fontsize
+				width = math_floor((font2:GetTextWidth('  Cmd ') * fontsize) + 0.5)
 				buttonsArea['buttons']['commands'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'commands'
@@ -570,9 +570,9 @@ local function updateButtons()
 			if (WG['keybinds'] ~= nil) then
 				buttons = buttons + 1
 				if buttons > 1 then
-					offset = offset + width
+					offset = math_floor(offset + width + 0.5)
 				end
-				width = font2:GetTextWidth('  Keys ') * fontsize
+				width = math_floor((font2:GetTextWidth('  Keys ') * fontsize) + 0.5)
 				buttonsArea['buttons']['keybinds'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'keybinds'
@@ -581,9 +581,9 @@ local function updateButtons()
 			if (WG['changelog'] ~= nil) then
 				buttons = buttons + 1
 				if buttons > 1 then
-					offset = offset + width
+					offset = math_floor(offset + width + 0.5)
 				end
-				width = font2:GetTextWidth('  Changes ') * fontsize
+				width = math_floor((font2:GetTextWidth('  Changes ') * fontsize) + 0.5)
 				buttonsArea['buttons']['changelog'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'changelog'
@@ -592,21 +592,21 @@ local function updateButtons()
 			if (WG['options'] ~= nil) then
 				buttons = buttons + 1
 				if buttons > 1 then
-					offset = offset + width
+					offset = math_floor(offset + width + 0.5)
 				end
-				width = font2:GetTextWidth('  Settings ') * fontsize
+				width = math_floor((font2:GetTextWidth('  Settings ') * fontsize) + 0.5)
 				buttonsArea['buttons']['options'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'settings'
 				end
 			end
 			if chobbyLoaded then
-				offset = offset + width
-				width = font2:GetTextWidth('  Lobby  ') * fontsize
+				offset = math_floor(offset + width + 0.5)
+				width = math_floor((font2:GetTextWidth('  Lobby  ') * fontsize) + 0.5)
 				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
 			else
-				offset = offset + width
-				width = font2:GetTextWidth('  Quit  ') * fontsize
+				offset = math_floor(offset + width + 0.5)
+				width = math_floor((font2:GetTextWidth('  Quit  ') * fontsize) + 0.5)
 				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
 			end
 		end

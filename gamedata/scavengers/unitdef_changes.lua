@@ -17,7 +17,7 @@ end
 
 customDefs.corcom = {
 	autoheal = 15,
-	blocking = false,
+	--blocking = false,
 	buildoptions = scavUnit,
 	builddistance = 175,
 	cloakcost = 50,
@@ -499,6 +499,7 @@ customDefs.corgant = {
 		[numBuildoptions+1] = "corcrwt4",
 		[numBuildoptions+2] = "corfblackhyt4",
 		[numBuildoptions+3] = "cordemont4",
+		[numBuildoptions+4] = "corkarganetht4",
 	},
 }
 

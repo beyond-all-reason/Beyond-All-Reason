@@ -81,7 +81,7 @@ return {
 				blocking = false,
 				category = "corpses",
 				collisionvolumeoffsets = "0.322250366211 4.26757812502e-05 -0.458877563477",
-				collisionvolumescales = "30.6897277832 28.4224853516 78.3307495117",
+				collisionvolumescales = "30.6897277832 28.4224853516 48.3307495117",
 				collisionvolumetype = "Box",
 				damage = 1326,
 				description = "Construction Ship Wreckage",

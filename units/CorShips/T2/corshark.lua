@@ -92,6 +92,10 @@ return {
 				[2] = "deathceg3",
 				[3] = "deathceg4",
 			},
+			explosiongenerators = {
+				[0] = "custom:subbubbles",
+				[1] = "custom:subwake",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -120,6 +124,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
+				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

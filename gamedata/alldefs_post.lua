@@ -106,6 +106,10 @@ function UnitDef_Post(name, uDef)
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
+	
+	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
+		Spring.Echo("Missing Buildpic: ".. uDef.name)
+	end
 
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
          The engine uses full frames for actual reload times, but forwards the raw
