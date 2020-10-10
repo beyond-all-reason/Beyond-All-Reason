@@ -241,6 +241,46 @@ function posMapsizeCheck(posx, posy, posz, posradius)
 	end
 end
 
+function posLandCheck(posx, posy, posz, posradius)
+	local posradius = posradius or 1000
+	local testpos0 = Spring.GetGroundHeight((posx), (posz))
+	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
+	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
+	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
+	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
+	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
+	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
+	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
+	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+	local deathwater = Game.waterDamage
+	
+	
+	if testpos0 <= 0 then
+		return false
+	elseif testpos1 <= 0 then
+		return false
+	elseif testpos2 <= 0 then
+		return false
+	elseif testpos3 <= 0 then
+		return false
+	elseif testpos4 <= 0 then
+		return false
+	elseif testpos5 <= 0 then
+		return false
+	elseif testpos6 <= 0 then
+		return false
+	elseif testpos7 <= 0 then
+		return false
+	elseif testpos8 <= 0 then
+		return false
+	elseif deathwater > 0 then
+		return false
+	else
+		return true
+	end
+end
+	
+
 
 function teamsCheck()
 

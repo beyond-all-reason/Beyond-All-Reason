@@ -1,5 +1,3 @@
-local UDN = UnitDefNames
-local nameSuffix = '_scav'
 
 function RandomEventChickenInvasion1(CurrentFrame)
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
@@ -31,6 +29,12 @@ function RandomEventChickenInvasion1(CurrentFrame)
 				end
 				if CanSpawnEvent then
 					CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+				end
+				if CanSpawnEvent then
+					CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+				end
+				if CanSpawnEvent then
+					CanSpawnEvent = posMapsizeCheck(posx, posy, posz, 300)
 				end
 				if CanSpawnEvent then
 					Spring.CreateUnit("roost_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
