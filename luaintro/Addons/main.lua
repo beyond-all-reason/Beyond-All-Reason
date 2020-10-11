@@ -68,10 +68,10 @@ if not VFS.FileExists(fontfile2) then
 end
 
 local vsx,vsy = Spring.GetViewGeometry()
-local fontScale = (0.5 + (vsx*vsy / 5700000))/2
-local font = gl.LoadFont(fontfile, 64*fontScale, 16*fontScale, 1.4)
-local font2 = gl.LoadFont(fontfile2, 64*fontScale, 16*fontScale, 1.4)
-local loadedFontSize =  64*fontScale
+local fontScale = (0.5 + (vsx*vsy / 5700000))
+local font = gl.LoadFont(fontfile, 48*fontScale, 12*fontScale, 1.4)
+local font2 = gl.LoadFont(fontfile2, 48*fontScale, 12*fontScale, 1.4)
+local loadedFontSize =  48*fontScale
 
 
 function DrawStencilTexture()
@@ -252,7 +252,7 @@ function addon.DrawLoadScreen()
 	local loadvalue = math.max(0, loadProgress)
 	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
 
-	local height = math.floor(vsy * 0.02)
+	local height = math.floor(vsy * 0.025)
 	local borderSize = math.max(1, math.floor(vsy * 0.0007))
 
 	if guishader then
@@ -324,7 +324,7 @@ function addon.DrawLoadScreen()
 	-- border at loadvalue rightside
 	gl.Rect(loadvalue,0,loadvalue+(borderSize/vsx),(height-borderSize)/vsy)
 	-- gradient on top
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (height+(height*0.33)/vsy), 1, ((height-borderSize)/vsy), {0,0,0,0}, {0,0,0,0.035})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (height+(height*0.33)/vsy), 1, ((height-borderSize)/vsy), {0,0,0,0}, {0,0,0,0.045})
 
 	-- progress value
 	local lightness = 0.3
@@ -342,9 +342,9 @@ function addon.DrawLoadScreen()
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.2}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
 	-- progress value texture
-	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.085)
+	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.1)
 	gl.Texture(':ng:luaui/images/rgbnoise.png')
-	gl.BeginEnd(GL.QUADS, bartexture, 0,0,loadvalue,(height-borderSize)/vsy, (height*7)/vsy, (height*7)/vsy)
+	gl.BeginEnd(GL.QUADS, bartexture, 0,0,1,(height-borderSize)/vsy, (height*7)/vsy, (height*7)/vsy)
 	gl.Texture(false)
 	-- progress value gloss
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
