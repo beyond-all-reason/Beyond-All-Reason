@@ -235,12 +235,10 @@ function addon.DrawLoadScreen()
 	-- draw progressbar
 	local yPos =  0 --0.054
 	local loadvalue = math.max(0, loadProgress)
-
-	local pixelY = 1/vsy
-	local pixelX = 1/vsx
+	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
 
 	local height = math.floor(vsy * 0.02)
-	local borderSize = math.max(1, math.floor(vsy * 0.001))
+	local borderSize = math.max(1, math.floor(vsy * 0.0007))
 
 	if guishader then
 		if not blurShader then
@@ -302,45 +300,50 @@ function addon.DrawLoadScreen()
 	end
 
 	-- background
-	gl.Color(0.4,0.4,0.4,(blurShader and 0.21 or 0.25))
+	gl.Color(0.2,0.2,0.2,(blurShader and 0.25 or 0.3))
 	gl.Rect(0,0,1,(height/vsy))
 
 	-- border
-	gl.Color(0,0,0,0.03)
+	gl.Color(0,0,0,0.035)
 	gl.Rect(0,((height-borderSize)/vsy),1,(height/vsy))
 	-- border at loadvalue rightside
 	gl.Rect(loadvalue,0,loadvalue+(borderSize/vsx),(height-borderSize)/vsy)
+	-- gradient on top
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (height+(height*0.33)/vsy), 1, ((height-borderSize)/vsy), {0,0,0,0}, {0,0,0,0.035})
 
 	-- load value
 	local lightness = 0.3
-	gl.Color(lightness + (0.3-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
+	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 	-- background
-	gl.Color(0.4,0.4,0.4,0.1)
+	gl.Color(0.25,0.25,0.25,0.1)
 	gl.Rect(0,0,1,(height/vsy))
 
 	-- load value
-	gl.Color(lightness + (0.3-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
+	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.13}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.02})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.2}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
+
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.03}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
 	-- load value end
 	gl.Rect(loadvalue,0,loadvalue+((borderSize*(vsy/vsx))/vsx),(height-borderSize)/vsy)
 
 	-- gloss
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.92)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.75)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.055}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.013})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.06}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.017})
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- progressbar text
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Color(0.1,0.1,0.1,0.75)
+		gl.Color(0.1,0.1,0.1,0.8)
 		local barTextSize = height*0.66
 		font:Print(lastLoadMessage, barTextSize*0.33, barTextSize, barTextSize, "a")
 		--if loadProgress>0 then
