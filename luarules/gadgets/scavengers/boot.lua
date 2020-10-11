@@ -238,6 +238,11 @@ function gadget:GameFrame(n)
 		if BossWaveStarted == true then
 			BossWaveTimer(n)
 		end
+		local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
+		local scavUnitsCount = #scavUnits
+		if scavUnitsCount < 5 and n > 9000 then
+			killedscavengers = killedscavengers + 50
+		end
 	end
 	if n%1800 == 0 and n > 100 then
 		teamsCheck()
@@ -365,7 +370,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if scavConstructor[unitID] then
 			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledConstructor
 		end
-		if UnitName == "scavengerdroppodbeacon_scav" then
+		if UnitName == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
 			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledSpawner
 		end
@@ -405,7 +410,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 				break
 			end
 		end
-		if UnitName == "scavengerdroppodbeacon_scav" then
+		if UnitName == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] - 1
 		end
 	end
@@ -414,7 +419,7 @@ end
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 	local UnitName = UnitDefs[unitDefID].name
 	if unitOldTeam == GaiaTeamID then
-		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
 			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerCapturedSpawner
@@ -458,7 +463,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 				UnitSuffixLenght[unitID] = 0
 			end
 			--Spring.Echo("Scavs just captured me " .. UnitName .. " and my suffix lenght is " .. UnitSuffixLenght[unitID])
-			if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+			if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 				numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 				numOfSpawnBeacons = numOfSpawnBeacons + 1
 				scavSpawnBeacon[unitID] = true
@@ -539,7 +544,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 				end
 			end
 		end
-		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
 		end
@@ -604,7 +609,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if UnitName == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 		end
-		if UnitName == "scavengerdroppodbeacon_scav" then
+		if UnitName == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			scavSpawnBeacon[unitID] = true
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 			if scavconfig.modules.reinforcementsModule == true then
@@ -700,7 +705,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				table.insert(AliveEnemyCommanders,unitID)
 			end
 		end
-		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1
 			if scavconfig.modules.reinforcementsModule == true then
 				Spring.SetUnitNeutral(unitID, false)

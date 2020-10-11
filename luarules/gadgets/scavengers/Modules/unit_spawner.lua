@@ -30,8 +30,8 @@ function BossWaveTimer(n)
 			if #SpawnBeacons > 1 then
 				for b = 1,1000 do
 					local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
-					local _,_,_,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
-					if pickedBeaconCaptureProgress == 0 then
+					local _,_,pickedBeaconParalyze,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
+					if pickedBeaconCaptureProgress == 0 and pickedBeaconParalyze == 0 then
 						pickedBeacon = pickedBeaconTest
 						break
 					else
