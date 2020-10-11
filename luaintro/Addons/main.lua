@@ -36,7 +36,7 @@ local function CheckHardware()
 end
 local guishader = CheckHardware()
 
-local blurIntensity = 0.0035
+local blurIntensity = 0.004
 local blurShader
 local screencopy
 local blurtex
@@ -69,9 +69,9 @@ end
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontScale = (0.5 + (vsx*vsy / 5700000))/2
-local font = gl.LoadFont(fontfile, 48*fontScale, 12*fontScale, 1.4)
-local font2 = gl.LoadFont(fontfile2, 48*fontScale, 12*fontScale, 1.4)
-local loadedFontSize =  48*fontScale
+local font = gl.LoadFont(fontfile, 64*fontScale, 16*fontScale, 1.4)
+local font2 = gl.LoadFont(fontfile2, 64*fontScale, 16*fontScale, 1.4)
+local loadedFontSize =  64*fontScale
 
 
 function DrawStencilTexture()
@@ -199,15 +199,30 @@ function gradienth(px,py,sx,sy, c1,c2)
 	gl.Vertex(px, sy, 0)
 end
 
+function bartexture(px,py,sx,sy, texLength, texHeight)
+	local texHeight = texHeight or 1
+	local width = (sx-px) / texLength * 4
+	gl.TexCoord(width, texHeight)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(width, 0)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(0,0)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(0,texHeight)
+	gl.Vertex(px, sy, 0)
+end
 
 local lastLoadMessage = ""
 local lastProgress = {0, 0}
 
 local progressByLastLine = {
-	["Parsing Map Information"] = {0, 20},
-	["Loading Weapon Definitions"] = {10, 50},
+	["Parsing Map Information"] = {0, 15},
+	["Loading GameData Definitions"] = {10, 20},
+	["Creating Unit Textures"] = {15, 25},
+	["Loading Weapon Definitions"] = {20, 50},
 	["Loading LuaRules"] = {40, 80},
 	["Loading LuaUI"] = {70, 95},
+	["[LoadFinalize] finalizing PFS"] = {80, 95},
 	["Finalizing"] = {100, 100}
 }
 for name,val in pairs(progressByLastLine) do
@@ -304,43 +319,48 @@ function addon.DrawLoadScreen()
 	gl.Rect(0,0,1,(height/vsy))
 
 	-- border
-	gl.Color(0,0,0,0.035)
+	gl.Color(0,0,0,0.03)
 	gl.Rect(0,((height-borderSize)/vsy),1,(height/vsy))
 	-- border at loadvalue rightside
 	gl.Rect(loadvalue,0,loadvalue+(borderSize/vsx),(height-borderSize)/vsy)
 	-- gradient on top
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (height+(height*0.33)/vsy), 1, ((height-borderSize)/vsy), {0,0,0,0}, {0,0,0,0.035})
 
-	-- load value
+	-- progress value
 	local lightness = 0.3
 	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 	-- background
-	gl.Color(0.25,0.25,0.25,0.1)
+	gl.Color(0.22,0.22,0.22,0.12)
 	gl.Rect(0,0,1,(height/vsy))
 
-	-- load value
+	-- progress value
 	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.2}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
-
+	-- progress value texture
+	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.085)
+	gl.Texture(':ng:luaui/images/rgbnoise.png')
+	gl.BeginEnd(GL.QUADS, bartexture, 0,0,loadvalue,(height-borderSize)/vsy, (height*7)/vsy, (height*7)/vsy)
+	gl.Texture(false)
+	-- progress value gloss
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.03}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
 	-- load value end
 	gl.Rect(loadvalue,0,loadvalue+((borderSize*(vsy/vsx))/vsx),(height-borderSize)/vsy)
 
-	-- gloss
+	-- bar gloss
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.06}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.07}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.017})
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	-- progressbar text
+	-- progress text
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
 		gl.Color(0.1,0.1,0.1,0.8)
