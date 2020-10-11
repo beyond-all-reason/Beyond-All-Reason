@@ -60,17 +60,10 @@ if not VFS.FileExists(fontfile) then
 	Spring.SetConfigString('bar_font', defaultFont)
 	fontfile = 'fonts/'..defaultFont
 end
-local defaultFont2 = 'Exo2-SemiBold.otf'
-local fontfile2 = 'fonts/'..Spring.GetConfigString("bar_font2", defaultFont2)
-if not VFS.FileExists(fontfile2) then
-	Spring.SetConfigString('bar_font2', defaultFont2)
-	fontfile2 = 'fonts/'..defaultFont2
-end
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontScale = (0.5 + (vsx*vsy / 5700000))
-local font = gl.LoadFont(fontfile, 48*fontScale, 12*fontScale, 1.4)
-local font2 = gl.LoadFont(fontfile2, 48*fontScale, 12*fontScale, 1.4)
+local font = gl.LoadFont(fontfile, 48*fontScale, 22*fontScale, 1)
 local loadedFontSize =  48*fontScale
 
 
@@ -248,11 +241,10 @@ function addon.DrawLoadScreen()
 	local vsx, vsy = gl.GetViewSizes()
 
 	-- draw progressbar
-	local yPos =  0 --0.054
 	local loadvalue = math.max(0, loadProgress)
 	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
 
-	local height = math.floor(vsy * 0.025)
+	local height = math.floor(vsy * 0.024)
 	local borderSize = math.max(1, math.floor(vsy * 0.0007))
 
 	if guishader then
@@ -315,7 +307,7 @@ function addon.DrawLoadScreen()
 	end
 
 	-- background
-	gl.Color(0.2,0.2,0.2,(blurShader and 0.25 or 0.3))
+	gl.Color(0.2,0.2,0.2,(blurShader and 0.3 or 0.4))
 	gl.Rect(0,0,1,(height/vsy))
 
 	-- border
@@ -327,9 +319,10 @@ function addon.DrawLoadScreen()
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (height+(height*0.33)/vsy), 1, ((height-borderSize)/vsy), {0,0,0,0}, {0,0,0,0.045})
 
 	-- progress value
-	local lightness = 0.3
-	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
+	local lightness = 0
+	gl.Color(lightness + (0.45-(loadProgress/7)), lightness + (loadProgress*0.38), lightness, 0.6)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
+
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 	-- background
@@ -337,7 +330,7 @@ function addon.DrawLoadScreen()
 	gl.Rect(0,0,1,(height/vsy))
 
 	-- progress value
-	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.3)
+	gl.Color(lightness + (0.45-(loadProgress/7)), lightness + (loadProgress*0.38), lightness, 0.1)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.2}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
@@ -358,14 +351,17 @@ function addon.DrawLoadScreen()
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.07}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.017})
+
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- progress text
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Color(0.1,0.1,0.1,0.8)
-		local barTextSize = height*0.66
-		font:Print(lastLoadMessage, barTextSize*0.33, barTextSize, barTextSize, "a")
+		local barTextSize = height*0.58
+		font:SetTextColor(0.88,0.88,0.88,1)
+		font:SetOutlineColor(0,0,0,0.85)
+		--font:Print(lastLoadMessage, barTextSize*0.33, height*0.68, barTextSize, "a")
+		font:Print(lastLoadMessage, vsx/2, height*0.69, barTextSize, "oac")
 		--if loadProgress>0 then
 		--	font2:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.03), barTextSize, "oc")
 		--else
@@ -398,5 +394,4 @@ function addon.Shutdown()
 		blurShader = nil
 	end
 	gl.DeleteFont(font)
-	gl.DeleteFont(font2)
 end
