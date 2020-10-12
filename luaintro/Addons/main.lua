@@ -307,35 +307,34 @@ function addon.DrawLoadScreen()
 	end
 
 	-- background
-	gl.Color(0.2,0.2,0.2,(blurShader and 0.3 or 0.4))
+	gl.Color(0.15,0.15,0.15,(blurShader and 0.5 or 0.6))
 	gl.Rect(0,0,1,(height/vsy))
 
 	-- border
-	gl.Color(0,0,0,0.03)
+	gl.Color(0,0,0,0.035)
 	gl.Rect(0,((height-borderSize)/vsy),1,(height/vsy))
 	-- border at loadvalue rightside
 	gl.Rect(loadvalue,0,loadvalue+(borderSize/vsx),(height-borderSize)/vsy)
-	-- gradient on top
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (height+(height*0.33)/vsy), 1, ((height-borderSize)/vsy), {0,0,0,0}, {0,0,0,0.045})
+	-- gradient
+	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, ((height+(height*0.25))/vsy), {0,0,0,0}, {0,0,0,0.14})
 
 	-- progress value
-	local lightness = 0
-	gl.Color(lightness + (0.45-(loadProgress/7)), lightness + (loadProgress*0.38), lightness, 0.6)
+	gl.Color((0.45-(loadProgress/7)), (loadProgress*0.38), 0, 0.8)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 	-- background
-	gl.Color(0.22,0.22,0.22,0.12)
+	gl.Color(0.2,0.2,0.2,0.12)
 	gl.Rect(0,0,1,(height/vsy))
 
 	-- progress value
-	gl.Color(lightness + (0.45-(loadProgress/7)), lightness + (loadProgress*0.38), lightness, 0.1)
+	gl.Color((0.45-(loadProgress/7)), (loadProgress*0.38), 0, 0.12)
 	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.2}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
 	-- progress value texture
-	gl.Color(lightness + (0.4-(loadProgress/7)), lightness + (loadProgress*0.3), lightness, 0.1)
+	gl.Color((0.4-(loadProgress/7)), (loadProgress*0.3), 0, 0.2)
 	gl.Texture(':ng:luaui/images/rgbnoise.png')
 	gl.BeginEnd(GL.QUADS, bartexture, 0,0,1,(height-borderSize)/vsy, (height*7)/vsy, (height*7)/vsy)
 	gl.Texture(false)
@@ -347,10 +346,10 @@ function addon.DrawLoadScreen()
 	gl.Rect(loadvalue,0,loadvalue+((borderSize*(vsy/vsx))/vsx),(height-borderSize)/vsy)
 
 	-- bar gloss
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.07}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.017})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.11}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.09}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.018})
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
