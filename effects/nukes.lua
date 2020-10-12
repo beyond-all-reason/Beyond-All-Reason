@@ -1068,7 +1068,7 @@ local size = 1.5
 
 definitions['newnukecor-floor'] = deepcopy(definitions['newnuke-floor'])
 definitions['newnukecor-floor'].smoke.properties.numparticles = math.floor(definitions['newnukecor-floor'].smoke.properties.numparticles * size * 1.3)
-definitions['newnukecor-floor'].smoke.properties.size = math.floor(definitions['newnukecor-floor'].smoke.properties.size * size * 1.3)
+definitions['newnukecor-floor'].smoke.properties.particlesize = math.floor(definitions['newnukecor-floor'].smoke.properties.particlesize * size * 1.3)
 definitions['newnukecor-floor'].smoke.properties.particlespeed = math.floor(definitions['newnukecor-floor'].smoke.properties.particlespeed * size)
 definitions['newnukecor-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnukecor-floor'].smoke.properties.particlespeedspread * size)
 --
