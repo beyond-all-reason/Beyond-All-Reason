@@ -28,6 +28,7 @@ local resources = {
 	          sakexplo2 		   	= 'default/sakexplo2.tga',
             explofade		     	= 'default/explofade.tga',
             heatcloud		    	= 'default/explo.tga',
+            blastwave         = 'projectiletextures/blastwave.tga',
             flame			      	= 'default/flame.tga',
             flame_alt		    	= 'gpl/flame.png',
             fire			       	= 'gpl/fire.png',
