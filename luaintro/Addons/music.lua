@@ -26,13 +26,14 @@ function addon.Shutdown()
 end
 
 function addon.Initialize()
-	math.randomseed(os.time ())
+	math.randomseed( os.clock() )
+	math.random(); math.random(); math.random()
 	local musicvolume = Spring.GetConfigInt("snd_volmusic", 20)*0.01
 	Spring.SetSoundStreamVolume(musicvolume)
-	local musicfiles = VFS.DirList("sounds/music/war", "*.ogg")
+	local musicfiles = VFS.DirList("sounds/music/peace", "*.ogg")
 	Spring.Echo("musicfiles", #musicfiles)
 	if (#musicfiles > 0) then
-		Spring.PlaySoundStream(musicfiles[ math.random(#musicfiles) ], musicvolume)
+		Spring.PlaySoundStream(musicfiles[ (1+(math.floor((1000*os.clock())%#musicfiles))) ], musicvolume)
 		Spring.SetSoundStreamVolume(musicvolume)
 	end
 end

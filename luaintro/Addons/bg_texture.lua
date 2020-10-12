@@ -12,6 +12,9 @@ if addon.InGetInfo then
 	}
 end
 
+math.randomseed( os.clock() )
+math.random(); math.random(); math.random()
+
 ------------------------------------------
 local loadscreens = VFS.DirList("bitmaps/loadpictures/")
 
