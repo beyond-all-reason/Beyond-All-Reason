@@ -642,7 +642,7 @@ function widget:GameFrame(n)
 						if targetTime > totalTime then
 							targetTime = totalTime
 						end
-					elseif tracks == warTracks and warMeter <= 0 then
+					elseif (tracks == warTracks and warMeter <= 0) or curTrack == "no name" then
 						fadeOut = true
 						targetTime = playedTime + fadeOutTime
 						if targetTime > totalTime then
