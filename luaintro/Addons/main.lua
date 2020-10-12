@@ -61,10 +61,12 @@ if not VFS.FileExists(fontfile) then
 	fontfile = 'fonts/'..defaultFont
 end
 
+local height = math.floor(vsy * 0.03) -- loadbar height
+
 local vsx,vsy = Spring.GetViewGeometry()
-local fontScale = (0.5 + (vsx*vsy / 5700000))
-local font = gl.LoadFont(fontfile, 48*fontScale, 22*fontScale, 1)
-local loadedFontSize =  48*fontScale
+local fontScale = (0.5 + (vsx*vsy / 3500000))
+local font = gl.LoadFont(fontfile, height*fontScale, (height/2)*fontScale, 1)
+local loadedFontSize =  height*fontScale
 
 
 function DrawStencilTexture()
@@ -244,7 +246,6 @@ function addon.DrawLoadScreen()
 	local loadvalue = math.max(0, loadProgress)
 	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
 
-	local height = math.floor(vsy * 0.024)
 	local borderSize = math.max(1, math.floor(vsy * 0.0007))
 
 	if guishader then
@@ -334,7 +335,7 @@ function addon.DrawLoadScreen()
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.2}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
 	-- progress value texture
-	gl.Color((0.4-(loadProgress/7)), (loadProgress*0.3), 0, 0.2)
+	gl.Color((0.4-(loadProgress/7)), (loadProgress*0.3), 0, 0.22)
 	gl.Texture(':ng:luaui/images/rgbnoise.png')
 	gl.BeginEnd(GL.QUADS, bartexture, 0,0,1,(height-borderSize)/vsy, (height*7)/vsy, (height*7)/vsy)
 	gl.Texture(false)
