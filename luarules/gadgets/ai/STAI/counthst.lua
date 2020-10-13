@@ -42,7 +42,7 @@ function CountHST:Init()
 end
 
 function CountHST:InitializeNameCounts()
-	for name, t in pairs(UnitiesHST.unitTable) do
+	for name, t in pairs(self.ai.UnitiesHST.unitTable) do
 		self.ai.nameCount[name] = 0
 	end
 end

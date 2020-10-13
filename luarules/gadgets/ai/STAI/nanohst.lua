@@ -20,17 +20,17 @@ function NanoHST:Init()
 end
 
 function NanoHST:UnitBuilt(engineUnit)
-	local ut = UnitiesHST.unitTable[engineUnit:Name()]
+	local ut = self.ai.UnitiesHST.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if UnitiesHST.nanoTurretList[engineUnit:Name()] then
+	if self.ai.UnitiesHST.nanoTurretList[engineUnit:Name()] then
 		self:AddNano(engineUnit)
 	end
 end
 
 function NanoHST:UnitDead(engineUnit)
-	local ut = UnitiesHST.unitTable[engineUnit:Name()]
+	local ut = self.ai.UnitiesHST.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if UnitiesHST.nanoTurretList[engineUnit:Name()] then
+	if self.ai.UnitiesHST.nanoTurretList[engineUnit:Name()] then
 		self:RemoveNano(engineUnit)
 	end
 end

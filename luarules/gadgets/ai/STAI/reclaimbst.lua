@@ -1,6 +1,6 @@
 function IsReclaimer(unit)
 	local tmpName = unit:Internal():Name()
-	return (UnitiesHST.reclaimerList[tmpName] or 0) > 0
+	return (self.ai.UnitiesHST.reclaimerList[tmpName] or 0) > 0
 end
 
 ReclaimBST = class(Behaviour)
@@ -27,7 +27,7 @@ function ReclaimBST:Init()
 		table.insert(self.canReclaimGAS, "air")
 	end
 	self.name = self.unit:Internal():Name()
-	self.dedicated = UnitiesHST.reclaimerList[self.name]
+	self.dedicated = self.ai.UnitiesHST.reclaimerList[self.name]
 	self.id = self.unit:Internal():ID()
 	self.lastCheckFrame = 0
 end
@@ -154,7 +154,7 @@ function ReclaimBST:Retarget()
 			self.targetCell = tcell
 		end
 		if not self.targetCell and self.ai.Metal.full < 0.75 then
-			self:EchoDebug("looking for closest UnitiesHST.cleanable to reclaim")
+			self:EchoDebug("looking for closest self.ai.UnitiesHST.cleanable to reclaim")
 			self.targetUnit = self.ai.cleanhst:ClosestCleanable(unit)
 		end
 	end
@@ -182,7 +182,7 @@ function ReclaimBST:Act()
 		if self.targetResurrection ~= nil and not self.resurrecting then
 			self:EchoDebug("resurrecting...")
 			local resPosition = self.targetResurrection.position
-			local unitName = featureTable[self.targetResurrection.featureName].unitName
+			local unitName = self.ai.UnitiesHST.featureTable[self.targetResurrection.featureName].unitName
 			self:EchoDebug(unitName)
 			self.unit:Internal():AreaRESURRECT({resPosition.x, resPosition.y, resPosition.z}, 15)
 			self.ai.buildsitehst:NewPlan(unitName, resPosition, self, true)
@@ -197,7 +197,7 @@ function ReclaimBST:Act()
 				local rfpos = reclaimFeature:GetPosition()
 				if rfpos and rfpos.x then
 					local unitName = reclaimables[i].unitName
-					if self.dedicated and unitName and UnitiesHST.unitTable[unitName] and UnitiesHST.unitTable[unitName].extractsMetal > 0 then
+					if self.dedicated and unitName and self.ai.UnitiesHST.unitTable[unitName] and self.ai.UnitiesHST.unitTable[unitName].extractsMetal > 0 then
 						-- always resurrect metal extractors
 						self:EchoDebug("resurrect mex", reclaimFeature, reclaimFeature:ID())
 						self.unit:Internal():AreaRESURRECT({rfpos.x, rfpos.y, rfpos.z}, 15)

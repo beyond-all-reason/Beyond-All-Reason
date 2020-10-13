@@ -19,7 +19,7 @@ function RaiderBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
-	local utable = UnitiesHST.unitTable[self.name]
+	local utable = self.ai.UnitiesHST.unitTable[self.name]
 	if self.mtype == "sub" then
 		self.range = utable.submergedRange
 	else
@@ -45,7 +45,7 @@ function RaiderBST:Init()
 	self.pathingDistance = nodeSize * 0.67 -- how far away from a node means you've arrived there
 	self.minPathfinderDistance = nodeSize * 3 -- closer than this and i don't pathfind
 	self.id = self.unit:Internal():ID()
-	self.disarmer = UnitiesHST.raiderDisarms[self.name]
+	self.disarmer = self.ai.UnitiesHST.raiderDisarms[self.name]
 	self.ai.raiderCount[mtype] = (self.ai.raiderCount[mtype] or 0) + 1
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0

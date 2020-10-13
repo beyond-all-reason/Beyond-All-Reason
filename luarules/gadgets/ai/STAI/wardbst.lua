@@ -12,11 +12,11 @@ function WardBST:Init()
 	self.initialLocation = self.unit:Internal():GetPosition()
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
-	self.mtype = UnitiesHST.unitTable[self.name].mtype
+	self.mtype = self.ai.UnitiesHST.unitTable[self.name].mtype
 	self.water = self.mtype == "sub" or self.mtype == "shp" or self.mtype == "amp" -- can be hurt by submerged weapons
-	self.isCommander = UnitiesHST.commanderList[self.name]
-	self.mobile = not UnitiesHST.unitTable[self.name].isBuilding and not UnitiesHST.nanoTurretList[self.name] -- for some reason nano turrets are not buildings
-	self.isScout = UnitiesHST.scoutList[self.name]
+	self.isCommander = self.ai.UnitiesHST.commanderList[self.name]
+	self.mobile = not self.ai.UnitiesHST.unitTable[self.name].isBuilding and not self.ai.UnitiesHST.nanoTurretList[self.name] -- for some reason nano turrets are not buildings
+	self.isScout = self.ai.UnitiesHST.scoutList[self.name]
 	if self.isCommander then
 		self.threshold = 0.2
 	elseif self.isScout then
@@ -115,10 +115,10 @@ function WardBST:NearestCombat()
 	for i,unit in pairs(ownUnits) do
 		local un = unit:Name()
 		if unit:ID() ~= fid and un ~= "corcom" and un ~= "armcom" and not self.ai.defendhst:IsDefendingMe(unit, self) then
-			if UnitiesHST.unitTable[un].isWeapon and (UnitiesHST.battleList[un] or UnitiesHST.breakthroughList[un]) then
+			if self.ai.UnitiesHST.unitTable[un].isWeapon and (self.ai.UnitiesHST.battleList[un] or self.ai.UnitiesHST.breakthroughList[un]) then
 				local upos = unit:GetPosition()
 				if self.ai.targethst:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphst:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
-					local dist = self.ai.Tool:Distance(fpos, upos) - UnitiesHST.unitTable[un].metalCost
+					local dist = self.ai.Tool:Distance(fpos, upos) - self.ai.UnitiesHST.unitTable[un].metalCost
 					if dist < bestDistance then
 						bestDistance = dist
 						best = upos

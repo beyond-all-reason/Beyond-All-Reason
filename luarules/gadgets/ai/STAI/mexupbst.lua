@@ -51,7 +51,7 @@ function MexUpBST:OwnerIdle()
 			end
 			if s then
 				-- get assistance and magnetize
-				self.ai.assisthst:PersistantSummon(builder, self.mexPos, UnitiesHST.helpList[mohoName])
+				self.ai.assisthst:PersistantSummon(builder, self.mexPos, self.ai.UnitiesHST.helpList[mohoName])
 				self.released = false
 				self.active = true
 				self.mohoStarted = true
@@ -111,10 +111,10 @@ function MexUpBST:StartUpgradeProcess()
 	local mexCount = 0
 	for _, unit in pairs(ownUnits) do
 		local un = unit:Name()
-		if UnitiesHST.mexUpgrade[un] then
-			self:EchoDebug(un .. " " .. UnitiesHST.mexUpgrade[un])
+		if self.ai.UnitiesHST.mexUpgrade[un] then
+			self:EchoDebug(un .. " " .. self.ai.UnitiesHST.mexUpgrade[un])
 			-- make sure you can build the upgrade
-			local upgradetype = game:GetTypeByName(UnitiesHST.mexUpgrade[un])
+			local upgradetype = game:GetTypeByName(self.ai.UnitiesHST.mexUpgrade[un])
 			if selfUnit:CanBuild(upgradetype) then
 				-- make sure you can reach it
 				if self.ai.maphst:UnitCanGetToUnit(selfUnit, unit) then

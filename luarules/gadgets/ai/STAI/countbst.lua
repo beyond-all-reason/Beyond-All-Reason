@@ -9,7 +9,7 @@ function CountBST:Init()
 	self.finished = false
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
-	local uTn = UnitiesHST.unitTable[self.name]
+	local uTn = self.ai.UnitiesHST.unitTable[self.name]
 	-- game:SendToConsole(self.name .. " " .. self.id .. " init")
 	if uTn.isBuilding then
 		self.position = self.unit:Internal():GetPosition() -- buildings don't move
@@ -25,15 +25,15 @@ function CountBST:Init()
 	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
 	if uTn.extractsMetal > 0 then self.isMex = true end
-	if UnitiesHST.battleList[self.name] then self.isBattle = true end
-	if UnitiesHST.breakthroughList[self.name] then self.isBreakthrough = true end
-	if self.isCombat and not UnitiesHST.battleList[self.name] and not UnitiesHST.breakthroughList[self.name] then
+	if self.ai.UnitiesHST.battleList[self.name] then self.isBattle = true end
+	if self.ai.UnitiesHST.breakthroughList[self.name] then self.isBreakthrough = true end
+	if self.isCombat and not self.ai.UnitiesHST.battleList[self.name] and not self.ai.UnitiesHST.breakthroughList[self.name] then
 		self.isSiege = true
 	end
-	if UnitiesHST.reclaimerList[self.name] then self.isReclaimer = true end
-	if UnitiesHST.cleanable[self.name] then self.isCleanable = true end
-	if UnitiesHST.assistList[self.name] then self.isAssist = true end
-	if UnitiesHST.nanoTurretList[self.name] then self.isNano = true end
+	if self.ai.UnitiesHST.reclaimerList[self.name] then self.isReclaimer = true end
+	if self.ai.UnitiesHST.cleanable[self.name] then self.isCleanable = true end
+	if self.ai.UnitiesHST.assistList[self.name] then self.isAssist = true end
+	if self.ai.UnitiesHST.nanoTurretList[self.name] then self.isNano = true end
 	if self.ai.nameCount[self.name] == nil then
 		self.ai.nameCount[self.name] = 1
 	else

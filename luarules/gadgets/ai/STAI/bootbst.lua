@@ -13,8 +13,8 @@ local MOVESTATE_HOLDPOS = 0
 function BootBST:Init()
 	self.id = self.unit:Internal():ID()
 	self.name = self.unit:Internal():Name()
-	self.mobile = not UnitiesHST.unitTable[self.name].isBuilding
-	self.mtype = UnitiesHST.unitTable[self.name].mtype
+	self.mobile = not self.ai.UnitiesHST.unitTable[self.name].isBuilding
+	self.mtype = self.ai.UnitiesHST.unitTable[self.name].mtype
 	self.lastInFactoryCheck = self.game:Frame()
 	self.repairedBy = self.ai.buildsitehst:ResurrectionRepairedBy(self.id)
 	-- air units don't need to leave the factory

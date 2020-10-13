@@ -75,11 +75,11 @@ function CleanHST:RemoveCleanable(unit)
 end
 
 function CleanHST:IsCleanable(unit)
-	return UnitiesHST.cleanable[unit:Name()]
+	return self.ai.UnitiesHST.cleanable[unit:Name()]
 end
 
 function CleanHST:IsBigEnergy(unit)
-	local ut = UnitiesHST.unitTable[unit:Name()]
+	local ut = self.ai.UnitiesHST.unitTable[unit:Name()]
 	if ut then
 		return (ut.totalEnergyOut > 750)
 	end
@@ -98,7 +98,7 @@ function CleanHST:FilterCleanable(cleanable, clnrbhvr)
 	if who and who ~= clnrbhvr then return end
 	local priority = self.priorities[cleanable:ID()] or 0
 	if priority < 2 and (self.bigEnergyCount < 2 or self.ai.Metal.full > 0.1) then return end
-	if UnitiesHST.unitTable[cleanable:Name()].totalEnergyOut > 0 and (self.bigEnergyCount < 2 - priority or self.ai.Energy.full < 0.3) then
+	if self.ai.UnitiesHST.unitTable[cleanable:Name()].totalEnergyOut > 0 and (self.bigEnergyCount < 2 - priority or self.ai.Energy.full < 0.3) then
 		return
 	end
 	return cleanable

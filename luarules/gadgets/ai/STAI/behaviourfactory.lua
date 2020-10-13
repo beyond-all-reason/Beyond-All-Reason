@@ -53,23 +53,23 @@ function BehaviourFactory:defaultBehaviours(unit)
 	table.insert(b, CountBST)
 	table.insert(b, BootBST)
 
-	if UnitiesHST.commanderList[un] then
+	if self.ai.UnitiesHST.commanderList[un] then
 		table.insert(b, CommanderBST)
 	end
 
-	if UnitiesHST.nanoTurretList[un] then
+	if self.ai.UnitiesHST.nanoTurretList[un] then
 		table.insert(b, AssistBST)
 		table.insert(b, WardBST)
 		table.insert(b, CleanerBST)
 	end
 
-	if UnitiesHST.unitTable[un].isBuilding then
+	if self.ai.UnitiesHST.unitTable[un].isBuilding then
 		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
-		if UnitiesHST.nukeList[un] then
+		if self.ai.UnitiesHST.nukeList[un] then
 			table.insert(b, NukeBST)
-		elseif UnitiesHST.antinukeList[un] then
+		elseif self.ai.UnitiesHST.antinukeList[un] then
 			table.insert(b, AntinukeBST)
-		elseif UnitiesHST.bigPlasmaList[un] then
+		elseif self.ai.UnitiesHST.bigPlasmaList[un] then
 			table.insert(b, BombardBST)
 		end
 	end
@@ -77,7 +77,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	if u:CanBuild() then
 		-- game:SendToConsole(u:Name() .. " can build")
 		-- moho engineer doesn't need the queue!
-		if UnitiesHST.advConList[un] then
+		if self.ai.UnitiesHST.advConList[un] then
 			-- game:SendToConsole(u:Name() .. " is advanced construction unit")
 			-- half advanced engineers upgrade mexes instead of building things
 			if self.ai.advCons == nil then self.ai.advCons = 0 end
@@ -92,7 +92,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b,TaskQueueBST)
 		else
 			table.insert(b,TaskQueueBST)
-			if UnitiesHST.unitTable[un].isBuilding then
+			if self.ai.UnitiesHST.unitTable[un].isBuilding then
 				table.insert(b, LabRegisterBST)
 			else
 				table.insert(b, AssistBST)
@@ -105,24 +105,24 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else
-		if HasKey(un,UnitiesHST.attackerlist)then
+		if HasKey(un,self.ai.UnitiesHST.attackerlist)then
 			table.insert(b, AttackerBST)
-			-- if UnitiesHST.battleList[un] or UnitiesHST.breakthroughList[un] then
+			-- if self.ai.UnitiesHST.battleList[un] or self.ai.UnitiesHST.breakthroughList[un] then
 				-- arty and merl don't make good defense
 				table.insert(b, DefendBST)
 			-- end
 		end
-		if HasKey(un,UnitiesHST.raiderList) then
+		if HasKey(un,self.ai.UnitiesHST.raiderList) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
-			if UnitiesHST.unitTable[un].mtype ~= "air" then
+			if self.ai.UnitiesHST.unitTable[un].mtype ~= "air" then
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end
-		if HasKey(un,UnitiesHST.bomberList) then
+		if HasKey(un,self.ai.UnitiesHST.bomberList) then
 			table.insert(b, BomberBST)
 		end
-		if HasKey(un,UnitiesHST.scoutList)then
+		if HasKey(un,self.ai.UnitiesHST.scoutList)then
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end

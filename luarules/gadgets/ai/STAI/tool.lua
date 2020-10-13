@@ -221,10 +221,10 @@ function Tool:ThreatRange(unitName, groundAirSubmerged)
 			return layer.threat, layer.range
 		end
 	end
-	if UnitiesHST.antinukeList[unitName] or UnitiesHST.nukeList[unitName] or UnitiesHST.bigPlasmaList[unitName] or UnitiesHST.shieldList[unitName] then
+	if self.ai.UnitiesHST.antinukeList[unitName] or self.ai.UnitiesHST.nukeList[unitName] or self.ai.UnitiesHST.bigPlasmaList[unitName] or self.ai.UnitiesHST.shieldList[unitName] then
 		return 0, 0
 	end
-	local utable = ai.UnitiesHST.unitTable[unitName]
+	local utable = ai.self.ai.UnitiesHST.unitTable[unitName]
 	if groundAirSubmerged == nil then
 		if utable.groundRange > utable.airRange and utable.groundRange > utable.submergedRange then
 			groundAirSubmerged = "ground"
@@ -280,7 +280,7 @@ function Tool:UnitWeaponLayerList(unitName)
 	local weaponLayers = unitWeaponLayers[unitName]
 	if weaponLayers then return weaponLayers end
 	weaponLayers = {}
-	local ut = ai.UnitiesHST.unitTable[unitName]
+	local ut = ai.self.ai.UnitiesHST.unitTable[unitName]
 	if not ut then
 		return weaponLayers
 	end
@@ -299,12 +299,12 @@ end
 
 function Tool:UnitWeaponMtypeList(unitName)
 	if unitName == nil then return {} end
-	if unitName == UnitiesHST.DummyUnitName then return {} end
+	if unitName == self.ai.UnitiesHST.DummyUnitName then return {} end
 	local mtypes = unitWeaponMtypes[unitName]
 	if mtypes then
 		return mtypes
 	end
-	local utable = ai.UnitiesHST.unitTable[unitName]
+	local utable = ai.self.ai.UnitiesHST.unitTable[unitName]
 	mtypes = {}
 	if utable.groundRange > 0 then
 		table.insert(mtypes, "veh")
@@ -329,7 +329,7 @@ function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
 	if unitName then
-		game:SendToConsole(UnitiesHST.testparam)
+		game:SendToConsole(self.ai.UnitiesHST.testparam)
 		local ut = self.ai.UnitiesHST.unitTable[unitName]
 		if ut then
 			mtype = ut.mtype

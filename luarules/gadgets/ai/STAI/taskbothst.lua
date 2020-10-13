@@ -16,8 +16,8 @@ end
 --LEVEL 1
 
 function TaskBotHST:ConBot()
-	local unitName = UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName = self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corck"
 	else
 		unitName = "armck"
@@ -27,8 +27,8 @@ function TaskBotHST:ConBot()
 end
 
 function TaskBotHST:RezBot1()
-	local unitName = UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName = self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "cornecro"
 	else
 		unitName = "armrectr"
@@ -39,7 +39,7 @@ end
 
 function TaskBotHST:Lvl1BotRaider()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corak"
 	else
 		unitName = "armpw"
@@ -49,7 +49,7 @@ end
 
 function TaskBotHST:Lvl1BotBreakthrough()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corthud"
 	else
 		unitName = "armwar"
@@ -62,13 +62,13 @@ function TaskBotHST:Lvl1BotBattle()
 	local r = math.random()
 	local compare = self.ai.overviewhst.plasmaRocketBotRatio or 1
 	if compare >= 1 or math.random() < compare then
-		if self.side == UnitiesHST.CORESideName then
+		if self.side == self.ai.UnitiesHST.CORESideName then
 			unitName = "corthud"
 		else
 			unitName = "armham"
 		end
 	else
-		if self.side == UnitiesHST.CORESideName then
+		if self.side == self.ai.UnitiesHST.CORESideName then
 			unitName = "corstorm"
 		else
 			unitName = "armrock"
@@ -78,7 +78,7 @@ function TaskBotHST:Lvl1BotBattle()
 end
 
 function TaskBotHST:Lvl1AABot()
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corcrash")
 	else
 		return BuildAAIfNeeded("armjeth")
@@ -87,8 +87,8 @@ end
 
 function TaskBotHST:ScoutBot()
 	local unitName
-	if self.side == UnitiesHST.CORESideName then
-		return UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
+		return self.ai.UnitiesHST.DummyUnitName
 	else
 		unitName = "armflea"
 	end
@@ -98,8 +98,8 @@ end
 --LEVEL 2
 
 function TaskBotHST:ConAdvBot()
-	local unitName = UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName = self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corack"
 	else
 		unitName = "armack"
@@ -110,8 +110,8 @@ end
 
 
 function TaskBotHST:Lvl2BotAssist()
-	unitName = UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	unitName = self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corfast"
 	else
 		unitName = "armfark"
@@ -121,18 +121,18 @@ function TaskBotHST:Lvl2BotAssist()
 end
 
 function TaskBotHST:NewCommanders()
-	local unitName = UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName = self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'cormando'
 	else
-		unitName = UnitiesHST.DummyUnitName
+		unitName = self.ai.UnitiesHST.DummyUnitName
 	end
 	return unitName
 end
 
 function TaskBotHST:Decoy()
-	local unitName = UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName = self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'cordecom'
 	else
 		unitName = 'armdecom'
@@ -143,7 +143,7 @@ end
 
 function TaskBotHST:Lvl2BotBreakthrough()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corsumo"
 	else
 		unitName = "armfboy"
@@ -153,7 +153,7 @@ end
 
 function TaskBotHST:Lvl2BotArty()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "cormort"
 	else
 		unitName = "armfido"
@@ -163,7 +163,7 @@ end
 
 function TaskBotHST:Lvl2BotLongRange()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corhrk"
 	else
 		unitName = "armsnipe"
@@ -173,7 +173,7 @@ end
 
 function TaskBotHST:Lvl2BotRaider()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corpyro"
 	else
 		unitName = "armfast"
@@ -182,7 +182,7 @@ function TaskBotHST:Lvl2BotRaider()
 end
 
 function TaskBotHST:Lvl2BotCorRaiderArmArty()
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		return Lvl2BotRaider(self)
 	else
 		return Lvl2BotArty(self)
@@ -190,8 +190,8 @@ function TaskBotHST:Lvl2BotCorRaiderArmArty()
 end
 
 function TaskBotHST:Lvl2BotAllTerrain()
-	local unitName=UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName=self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'cortermite'
 	else
 		unitName = "armsptk"
@@ -201,7 +201,7 @@ end
 
 function TaskBotHST:Lvl2BotBattle()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corcan"
 	else
 		unitName = "armzeus"
@@ -210,8 +210,8 @@ function TaskBotHST:Lvl2BotBattle()
 end
 
 function TaskBotHST:Lvl2BotMedium()
-	local unitName=UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName=self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'corcan'
 	else
 		unitName = "armmav"
@@ -220,8 +220,8 @@ function TaskBotHST:Lvl2BotMedium()
 end
 
 function TaskBotHST:Lvl2AmphBot()
-	local unitName=UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName=self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'coramph'
 	else
 		unitName = 'armamph'
@@ -230,7 +230,7 @@ function TaskBotHST:Lvl2AmphBot()
 end
 
 function TaskBotHST:Lvl2AABot()
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("coraak")
 	else
 		return BuildAAIfNeeded("armaak")

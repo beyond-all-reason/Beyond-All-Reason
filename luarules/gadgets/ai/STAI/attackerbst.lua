@@ -1,5 +1,5 @@
 function IsAttacker(unit)
-	return UnitiesHST.attackerlist[unit:Internal():Name()] or false
+	return self.ai.UnitiesHST.attackerlist[unit:Internal():Name()] or false
 end
 
 AttackerBST = class(Behaviour)
@@ -14,7 +14,7 @@ function AttackerBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
-	local ut = UnitiesHST.unitTable[self.name]
+	local ut = self.ai.UnitiesHST.unitTable[self.name]
 	self.level = ut.techLevel - 1
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
 	self.size = math.max(ut.xsize, ut.zsize) * 8
@@ -22,7 +22,7 @@ function AttackerBST:Init()
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
 	self.sightDistance = ut.losRadius * 0.9
-	self.sturdy = UnitiesHST.battleList[self.name] or UnitiesHST.breakthroughList[self.name]
+	self.sturdy = self.ai.UnitiesHST.battleList[self.name] or self.ai.UnitiesHST.breakthroughList[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
 	elseif ut.submergedRange > 0 then
@@ -158,10 +158,10 @@ function AttackerBST:SetMoveState()
 	if thisUnit then
 		local unitName = self.name
 		local floats = api.vectorFloat()
-		if UnitiesHST.battleList[unitName] then
+		if self.ai.UnitiesHST.battleList[unitName] then
 			-- floats:push_back(MOVESTATE_ROAM)
 			floats:push_back(MOVESTATE_MANEUVER)
-		elseif UnitiesHST.breakthroughList[unitName] then
+		elseif self.ai.UnitiesHST.breakthroughList[unitName] then
 			floats:push_back(MOVESTATE_MANEUVER)
 		else
 			floats:push_back(MOVESTATE_HOLDPOS)

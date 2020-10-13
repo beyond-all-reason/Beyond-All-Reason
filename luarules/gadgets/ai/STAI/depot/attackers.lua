@@ -2,7 +2,7 @@
 Attackers!
 ]]--
 
-UnitiesHST.attackerlist = {
+self.ai.UnitiesHST.attackerlist = {
 	"corak",
 	"armpw",
 	"corgator",

@@ -80,7 +80,7 @@ function TasksHST:BuildAAIfNeeded(unitName)
 			return unitName
 		end
 	else
-		return UnitiesHST.DummyUnitName
+		return self.ai.UnitiesHST.DummyUnitName
 	end
 end
 
@@ -88,72 +88,72 @@ function TasksHST:BuildTorpedoIfNeeded(unitName)
 	if IsTorpedoNeeded() then
 		return unitName
 	else
-		return UnitiesHST.DummyUnitName
+		return self.ai.UnitiesHST.DummyUnitName
 	end
 end
 
 function TasksHST:BuildSiegeIfNeeded(unitName)
-	if unitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
+	if unitName == self.ai.UnitiesHST.DummyUnitName then return self.ai.UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then
 		if self.ai.siegeCount < (self.ai.battleCount + self.ai.breakthroughCount) * 0.35 then
 			return unitName
 		end
 	end
-	return UnitiesHST.DummyUnitName
+	return self.ai.UnitiesHST.DummyUnitName
 end
 
 function TasksHST:BuildBreakthroughIfNeeded(unitName)
-	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
+	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
 	if IsSiegeEquipmentNeeded() then return unitName end
 	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
 	if mtype == "air" then
 		local bomberCounter = self.ai.bomberhst:GetCounter()
-		if bomberCounter >= UnitiesHST.breakthroughBomberCounter and bomberCounter < UnitiesHST.maxBomberCounter then
+		if bomberCounter >= self.ai.UnitiesHST.breakthroughBomberCounter and bomberCounter < self.ai.UnitiesHST.maxBomberCounter then
 			return unitName
 		else
-			return UnitiesHST.DummyUnitName
+			return self.ai.UnitiesHST.DummyUnitName
 		end
 	else
-		if self.ai.battleCount <= UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
+		if self.ai.battleCount <= self.ai.UnitiesHST.minBattleCount then return self.ai.UnitiesHST.DummyUnitName end
 		local attackCounter = self.ai.attackhst:GetCounter(mtype)
-		if attackCounter == UnitiesHST.maxAttackCounter then
+		if attackCounter == self.ai.UnitiesHST.maxAttackCounter then
 			return unitName
-		elseif attackCounter >= UnitiesHST.breakthroughAttackCounter then
+		elseif attackCounter >= self.ai.UnitiesHST.breakthroughAttackCounter then
 			return unitName
 		else
-			return UnitiesHST.DummyUnitName
+			return self.ai.UnitiesHST.DummyUnitName
 		end
 	end
 end
 
 function TasksHST:BuildRaiderIfNeeded(unitName)
 	EchoDebug("build raider if needed: " .. unitName)
-	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
+	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
 	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
 	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
 		-- if we have a level 2 factory, don't build raiders until we have some battle units
 		local attackCounter = self.ai.attackhst:GetCounter(mtype)
 		if self.ai.battleCount + self.ai.breakthroughCount < attackCounter / 2 then
-			return UnitiesHST.DummyUnitName
+			return self.ai.UnitiesHST.DummyUnitName
 		end
 	end
 	local counter = self.ai.raidhst:GetCounter(mtype)
-	if counter == UnitiesHST.minRaidCounter then return UnitiesHST.DummyUnitName end
+	if counter == self.ai.UnitiesHST.minRaidCounter then return self.ai.UnitiesHST.DummyUnitName end
 	if self.ai.raiderCount[mtype] == nil then
 		-- fine
 	elseif self.ai.raiderCount[mtype] >= counter then
-		unitName = UnitiesHST.DummyUnitName
+		unitName = self.ai.UnitiesHST.DummyUnitName
 	end
 	return unitName
 end
 
 function TasksHST:BuildBattleIfNeeded(unitName)
-	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
+	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
 	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
 	local attackCounter = self.ai.attackhst:GetCounter(mtype)
-	EchoDebug(mtype .. " " .. attackCounter .. " " .. UnitiesHST.maxAttackCounter)
-	if attackCounter == UnitiesHST.maxAttackCounter and self.ai.battleCount > UnitiesHST.minBattleCount then return UnitiesHST.DummyUnitName end
-	if mtype == "veh" and self.side == UnitiesHST.CORESideName and (self.ai.factoriesAtLevel[1] == nil or self.ai.factoriesAtLevel[1] == {}) then
+	EchoDebug(mtype .. " " .. attackCounter .. " " .. self.ai.UnitiesHST.maxAttackCounter)
+	if attackCounter == self.ai.UnitiesHST.maxAttackCounter and self.ai.battleCount > self.ai.UnitiesHST.minBattleCount then return self.ai.UnitiesHST.DummyUnitName end
+	if mtype == "veh" and self.side == self.ai.UnitiesHST.CORESideName and (self.ai.factoriesAtLevel[1] == nil or self.ai.factoriesAtLevel[1] == {}) then
 		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
 		return unitName
 	end
@@ -162,61 +162,61 @@ function TasksHST:BuildBattleIfNeeded(unitName)
 		return unitName
 	end
 	local raidCounter = self.ai.raidhst:GetCounter(mtype)
-	EchoDebug(mtype .. " " .. raidCounter .. " " .. UnitiesHST.maxRaidCounter)
-	if raidCounter == UnitiesHST.minRaidCounter then return unitName end
+	EchoDebug(mtype .. " " .. raidCounter .. " " .. self.ai.UnitiesHST.maxRaidCounter)
+	if raidCounter == self.ai.UnitiesHST.minRaidCounter then return unitName end
 	EchoDebug(self.ai.raiderCount[mtype])
 	if self.ai.raiderCount[mtype] == nil then
 		return unitName
 	elseif self.ai.raiderCount[mtype] < raidCounter / 2 then
-		return UnitiesHST.DummyUnitName
+		return self.ai.UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function TasksHST:CountOwnUnits(tmpUnitName)
-	if tmpUnitName == UnitiesHST.DummyUnitName then return 0 end -- don't count no-units
+	if tmpUnitName == self.ai.UnitiesHST.DummyUnitName then return 0 end -- don't count no-units
 	if self.ai.nameCount[tmpUnitName] == nil then return 0 end
 	return self.ai.nameCount[tmpUnitName]
 end
 
 function TasksHST:BuildWithLimitedNumber(tmpUnitName, minNumber)
-	if tmpUnitName == UnitiesHST.DummyUnitName then return UnitiesHST.DummyUnitName end
-	if minNumber == 0 then return UnitiesHST.DummyUnitName end
+	if tmpUnitName == self.ai.UnitiesHST.DummyUnitName then return self.ai.UnitiesHST.DummyUnitName end
+	if minNumber == 0 then return self.ai.UnitiesHST.DummyUnitName end
 	if self.ai.nameCount[tmpUnitName] == nil then
 		return tmpUnitName
 	else
 		if self.ai.nameCount[tmpUnitName] == 0 or self.ai.nameCount[tmpUnitName] < minNumber then
 			return tmpUnitName
 		else
-			return UnitiesHST.DummyUnitName
+			return self.ai.UnitiesHST.DummyUnitName
 		end
 	end
 end
 
 function TasksHST:GroundDefenseIfNeeded(unitName)
 	if not self.ai.needGroundDefense then
-		return UnitiesHST.DummyUnitName
+		return self.ai.UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function TasksHST:BuildBomberIfNeeded(unitName)
-	if not IsLandAttackNeeded() then return UnitiesHST.DummyUnitName end
-	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
-		return UnitiesHST.DummyUnitName
+	if not IsLandAttackNeeded() then return self.ai.UnitiesHST.DummyUnitName end
+	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
+	if self.ai.bomberhst:GetCounter() == self.ai.UnitiesHST.maxBomberCounter then
+		return self.ai.UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function TasksHST:BuildTorpedoBomberIfNeeded(unitName)
-	if not IsWaterAttackNeeded() then return UnitiesHST.DummyUnitName end
-	if unitName == UnitiesHST.DummyUnitName or unitName == nil then return UnitiesHST.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter then
-		return UnitiesHST.DummyUnitName
+	if not IsWaterAttackNeeded() then return self.ai.UnitiesHST.DummyUnitName end
+	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
+	if self.ai.bomberhst:GetCounter() == self.ai.UnitiesHST.maxBomberCounter then
+		return self.ai.UnitiesHST.DummyUnitName
 	else
 		return unitName
 	end
@@ -236,10 +236,10 @@ end
 
 
 function TasksHST:ConsulAsFactory(tskqbhvr)
-	local unitName = UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	local rnd = math.random(1,8)
 	if 	rnd == 1 then unitName=ConVehicle(tskqbhvr)
-	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
+elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
 	elseif 	rnd == 3 then unitName=Lvl1BotRaider(tskqbhvr)
 	elseif 	rnd == 4 then unitName=Lvl1AABot(tskqbhvr)
 	elseif 	rnd == 5 then unitName=Lvl2BotArty(tskqbhvr)
@@ -247,32 +247,32 @@ function TasksHST:ConsulAsFactory(tskqbhvr)
 	elseif 	rnd == 7 then unitName=Lvl2BotMedium(tskqbhvr)
 	else unitName = Lvl1ShipDestroyerOnly(tskqbhvr)
 	end
-	if unitName == nil then unitName = UnitiesHST.DummyUnitName end
+	if unitName == nil then unitName = self.ai.UnitiesHST.DummyUnitName end
 	EchoDebug('Consul as factory '..unitName)
 	return unitName
 end
 
 function TasksHST:FreakerAsFactory(tskqbhvr)
-	local unitName = UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	local rnd = math.random(1,7)
 	if 	rnd == 1 then unitName=ConBot(tskqbhvr)
-	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
+elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
 	elseif 	rnd == 3 then unitName=Lvl1BotRaider(tskqbhvr)
 	elseif 	rnd == 4 then unitName=Lvl1AABot(tskqbhvr)
 	elseif 	rnd == 5 then unitName=Lvl2BotRaider(tskqbhvr)
 	elseif 	rnd == 6 then unitName=Lvl2AmphBot(tskqbhvr)
 	else unitName = Lvl1ShipDestroyerOnly(tskqbhvr)
 	end
-	if unitName == nil then unitName = UnitiesHST.DummyUnitName end
+	if unitName == nil then unitName = self.ai.UnitiesHST.DummyUnitName end
 	EchoDebug('Freaker as factory '..unitName)
 	return unitName
 end
 
 function TasksHST:NavalEngineerAsFactory(tskqbhvr)
-	local unitName = UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	local rnd= math.random(1,6)
 	if 	rnd == 1 then unitName=ConShip(tskqbhvr)
-	elseif 	rnd == 2 then unitName=ScoutShip(tskqbhvr)
+elseif 	rnd == 2 then unitName=ScoutShip(tskqbhvr)
 	elseif 	rnd == 3 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
 	elseif 	rnd == 4 then unitName=Lvl1ShipRaider(tskqbhvr)
 	elseif 	rnd == 5 then unitName=Lvl1ShipBattle(tskqbhvr)
@@ -283,8 +283,8 @@ function TasksHST:NavalEngineerAsFactory(tskqbhvr)
 end
 
 function TasksHST:EngineerAsFactory(tskqbhvr)
-	local unitName = UnitiesHST.DummyUnitName
-	if self.side == UnitiesHST.CORESideName then
+	local unitName = self.ai.UnitiesHST.DummyUnitName
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = FreakerAsFactory(tskqbhvr)
 	else
 		unitName = ConsulAsFactory(tskqbhvr)
@@ -298,13 +298,13 @@ end
 
 function TasksHST:anyCommander()
 	return {
-	self.ai.TaskEcoHST.BuildAppropriateFactory,
-	self.ai.TaskEcoHST.CommanderEconomy,
-	self.ai.TaskBuildHST.BuildLLT,
-	self.ai.TaskBuildHST.BuildRadar,
-	self.ai.TaskBuildHST.CommanderAA,
-	self.ai.TaskBuildHST.BuildPopTorpedo,
-}
+		self.ai.TaskEcoHST.BuildAppropriateFactory,
+		self.ai.TaskEcoHST.CommanderEconomy,
+		self.ai.TaskBuildHST.BuildLLT,
+		self.ai.TaskBuildHST.BuildRadar,
+		self.ai.TaskBuildHST.CommanderAA,
+		self.ai.TaskBuildHST.BuildPopTorpedo,
+	}
 end
 function TasksHST:anyConUnit()  return  {
 	self.ai.TaskEcoHST.BuildAppropriateFactory,
@@ -359,7 +359,7 @@ function TasksHST:anyAdvConUnit()  return  {
 	self.ai.TaskBuildHST.BuildLvl2Plasma,
 	self.ai.TaskBuildHST.BuildTachyon,
 	-- BuildTacticalNuke,
-	self.ai.TaskBuildHST.BuildExtraHeavyAA,
+			self.ai.TaskBuildHST.BuildExtraHeavyAA,
 	self.ai.TaskBuildHST.BuildLvl2Jammer,
 	self.ai.TaskEcoHST.BuildMohoGeo,
 } end
@@ -403,7 +403,7 @@ function TasksHST:anyCombatEngineer()  return  {
 
 -- factories.
 
-function TasksHST:anyLvl1AirPlant()  return  {
+		function TasksHST:anyLvl1AirPlant()  return  {
 	self.ai.TaskAirHST.ScoutAir,
 	self.ai.TaskAirHST.Lvl1Bomber,
 	self.ai.TaskAirHST.Lvl1AirRaider,
@@ -544,14 +544,14 @@ function TasksHST:anyOutmodedLvl1ShipYard()  return  {
 
 function TasksHST:anyOutmodedLvl2BotLab()  return  {
 	-- Lvl2BotRaider,
-	self.ai.TaskBotHST.ConAdvBot,
+			self.ai.TaskBotHST.ConAdvBot,
 	self.ai.TaskBotHST.Lvl2AABot,
 	self.ai.TaskBotHST.Lvl2BotAssist,
 } end
 
 function TasksHST:anyOutmodedLvl2VehPlant()  return  {
 	-- Lvl2VehRaider,
-	self.ai.TaskVehHST.Lvl2VehAssist,
+			self.ai.TaskVehHST.Lvl2VehAssist,
 	self.ai.TaskVehHST.ConAdvVehicle,
 	self.ai.TaskVehHST.Lvl2AAVeh,
 } end

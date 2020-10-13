@@ -44,12 +44,12 @@ function TurtleHST:Priority(unitName)
 	local p = unitPriorities[unitName]
 	if p then return p end
 	local priority = 0
-	local ut = UnitiesHST.unitTable[unitName]
-	if UnitiesHST.turtleList[unitName] then
-		priority = UnitiesHST.turtleList[unitName]
-	elseif UnitiesHST.antinukeList[unitName] then
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	if self.ai.UnitiesHST.turtleList[unitName] then
+		priority = self.ai.UnitiesHST.turtleList[unitName]
+	elseif self.ai.UnitiesHST.antinukeList[unitName] then
 		priority = 2
-	elseif UnitiesHST.shieldList[unitName] then
+	elseif self.ai.UnitiesHST.shieldList[unitName] then
 		priority = 2
 	else
 		if ut.buildOptions then
@@ -97,10 +97,10 @@ end
 
 function TurtleHST:UnitDead(unit)
 	local unitName = unit:Name()
-	local ut = UnitiesHST.unitTable[unitName]
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
 	local unitID = unit:ID()
-	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon or UnitiesHST.shieldList[unitName] then
+	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon or self.ai.UnitiesHST.shieldList[unitName] then
 			self:RemoveShell(unitID)
 		else
 			self:RemoveOrgan(unitID)
@@ -112,14 +112,14 @@ end
 -- received from buildsitehst
 -- also applies to plans, in which case the plan is the unitID
 function TurtleHST:NewUnit(unitName, position, unitID)
-	local ut = UnitiesHST.unitTable[unitName]
-	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon and not ut.buildOptions and not UnitiesHST.antinukeList[unitName] and not UnitiesHST.nukeList[unitName] and not UnitiesHST.bigPlasmaList[unitName] then
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon and not ut.buildOptions and not self.ai.UnitiesHST.antinukeList[unitName] and not self.ai.UnitiesHST.nukeList[unitName] and not self.ai.UnitiesHST.bigPlasmaList[unitName] then
 			self:AddDefense(position, unitID, unitName)
 		else
-			if UnitiesHST.antinukeList[unitName] then
+			if self.ai.UnitiesHST.antinukeList[unitName] then
 				self:AddShell(position, unitID, unitName, 1, "antinuke", 72000)
-			elseif UnitiesHST.shieldList[unitName] then
+			elseif self.ai.UnitiesHST.shieldList[unitName] then
 				self:AddShell(position, unitID, unitName, 1, "shield", 450)
 			elseif ut.jammerRadius ~= 0 then
 				self:AddShell(position, unitID, unitName, 1, "jam", ut.jammerRadius)
@@ -137,9 +137,9 @@ end
 function TurtleHST:PlanCreated(plan, unitID)
 	local found = false
 	local unitName = plan.unitName
-	local ut = UnitiesHST.unitTable[unitName]
-	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon or UnitiesHST.shieldList[unitName] then
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon or self.ai.UnitiesHST.shieldList[unitName] then
 			for si, shell in pairs(self.shells) do
 				if shell.unitID == plan then
 					shell.unitID = unitID
@@ -166,9 +166,9 @@ end
 -- received from buildsitehst
 function TurtleHST:PlanCancelled(plan)
 	local unitName = plan.unitName
-	local ut = UnitiesHST.unitTable[unitName]
-	if ut.isBuilding or UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon or UnitiesHST.shieldList[unitName] then
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
+		if ut.isWeapon or self.ai.UnitiesHST.shieldList[unitName] then
 			self:RemoveShell(plan)
 		else
 			self:RemoveOrgan(plan)
@@ -180,7 +180,7 @@ end
 function TurtleHST:AddOrgan(position, unitID, unitName)
 	-- calculate priority
 	local priority = self:Priority(unitName)
-	local ut = UnitiesHST.unitTable[unitName]
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
 	local volume = ut.xsize * ut.zsize * 64
 	-- create the organ
 	local organ = { priority = priority, position = position, unitID = unitID, volume = volume }
@@ -383,7 +383,7 @@ function TurtleHST:AddTurtle(position, water, priority)
 end
 
 function TurtleHST:AddDefense(position, unitID, unitName)
-	local ut = UnitiesHST.unitTable[unitName]
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
 	-- effective defense ranges are less than actual ranges, because if a building is just inside a weapon range, it's not defended
 	local defense = ut.metalCost
 	if ut.groundRange ~= 0 then
@@ -448,11 +448,11 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 	self:EchoDebug("checking for least turtled from " .. builder:Name() .. " for " .. tostring(unitName) .. " bombard: " .. tostring(bombard))
 	if unitName == nil then return end
 	local position = builder:GetPosition()
-	local ut = UnitiesHST.unitTable[unitName]
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
 	local Metal = game:GetResourceByName("Metal")
 	local priorityFloor = 1
 	local layer
-	if ut.isWeapon and not UnitiesHST.antinukeList[unitName] then
+	if ut.isWeapon and not self.ai.UnitiesHST.antinukeList[unitName] then
 		if ut.groundRange ~= 0 then
 			layer = "ground"
 		elseif ut.airRange ~= 0 then
@@ -460,10 +460,10 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 		elseif ut.submergedRange ~= 0 then
 			layer = "submerged"
 		end
-	elseif UnitiesHST.antinukeList[unitName] then
+	elseif self.ai.UnitiesHST.antinukeList[unitName] then
 		layer = "antinuke"
 		priorityFloor = 5
-	elseif UnitiesHST.shieldList[unitName] then
+	elseif self.ai.UnitiesHST.shieldList[unitName] then
 		layer = "shield"
 		priorityFloor = 5
 	elseif ut.jammerRadius ~= 0 then
@@ -482,7 +482,7 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 		local isLocal = true
 		if important then
 			-- don't build land shells on water turtles or water shells on land turtles
-			isLocal = UnitiesHST.unitTable[unitName].needsWater == turtle.water
+			isLocal = self.ai.UnitiesHST.unitTable[unitName].needsWater == turtle.water
 		end
 		if isLocal and important then
 			local modLimit = 10000
@@ -643,7 +643,7 @@ end
 
 function TurtleHST:SafeWithinTurtle(position, unitName)
 	local gas = self.ai.Tool:WhatHurtsUnit(unitName)
-	local cost = UnitiesHST.unitTable[unitName].metalCost
+	local cost = self.ai.UnitiesHST.unitTable[unitName].metalCost
 	for i = 1, #self.turtles do
 		local turtle = self.turtles[i]
 		local safety = 0

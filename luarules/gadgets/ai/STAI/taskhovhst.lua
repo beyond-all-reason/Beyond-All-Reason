@@ -12,7 +12,7 @@ function TaskHovHST:Init()
 end
 
 function TaskHovHSTConHover()
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corch"
 	else
 		unitName = "armch"
@@ -23,7 +23,7 @@ end
 
 function TaskHovHSTHoverMerl()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "cormh"
 	else
 		unitName = "armmh"
@@ -33,7 +33,7 @@ end
 
 function TaskHovHSTHoverRaider()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corsh"
 	else
 		unitName = "armsh"
@@ -43,7 +43,7 @@ end
 
 function TaskHovHSTHoverBattle()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corsnap"
 	else
 		unitName = "armanac"
@@ -53,7 +53,7 @@ end
 
 function TaskHovHSTHoverBreakthrough()
 	local unitName = ""
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "corhal"
 	else
 		unitName = "armanac"
@@ -62,7 +62,7 @@ function TaskHovHSTHoverBreakthrough()
 end
 
 function TaskHovHSTAAHover()
-	if self.side == UnitiesHST.CORESideName then
+	if self.side == self.ai.UnitiesHST.CORESideName then
 		return BuildAAIfNeeded("corah")
 	else
 		return BuildAAIfNeeded("armah")
