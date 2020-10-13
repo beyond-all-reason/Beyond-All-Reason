@@ -61,13 +61,16 @@ if not VFS.FileExists(fontfile) then
 	fontfile = 'fonts/'..defaultFont
 end
 
-local height = math.floor(vsy * 0.03) -- loadbar height
+local height = math.floor(vsy * 0.036) -- loadbar height (in pixels)
 
-local vsx,vsy = Spring.GetViewGeometry()
+local posY = math.floor((0.085 * vsy)+0.5) / vsy
+local posX = math.floor(((((posY*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
+
+local borderSize = math.max(1, math.floor(vsy * 0.0027))
+
 local fontScale = (0.5 + (vsx*vsy / 3500000))
 local font = gl.LoadFont(fontfile, height*fontScale, (height/2)*fontScale, 1)
 local loadedFontSize =  height*fontScale
-
 
 function DrawStencilTexture()
     if next(guishaderRects) or next(guishaderDlists) then
@@ -242,16 +245,13 @@ function addon.DrawLoadScreen()
 
 	local vsx, vsy = gl.GetViewSizes()
 
-	-- draw progressbar
-	local loadvalue = math.max(0, loadProgress)
+	local loadvalue = math.max(0, loadProgress) * (1-posX-posX)
 	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
-
-	local borderSize = math.max(1, math.floor(vsy * 0.0007))
 
 	if guishader then
 		if not blurShader then
 			CreateShaders()
-			guishaderRects['loadprocess1'] = {0,0,vsx,height}
+			guishaderRects['loadprocess1'] = {posX*vsx,posY*vsy,vsx-(posX*vsx),(posY*vsy)+height}
 			DrawStencilTexture()
 		end
 
@@ -308,49 +308,51 @@ function addon.DrawLoadScreen()
 	end
 
 	-- background
-	gl.Color(0.15,0.15,0.15,(blurShader and 0.5 or 0.6))
-	gl.Rect(0,0,1,(height/vsy))
+	gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
+	gl.Rect(posX,posY,1-posX,posY+(height/vsy))
 
 	-- border
-	gl.Color(0,0,0,0.035)
-	gl.Rect(0,((height-borderSize)/vsy),1,(height/vsy))
+	gl.Color(0,0,0,0.6)
+	gl.Rect(posX,posY+(height/vsy),1-posX,posY+((height+borderSize)/vsy))	-- top
+	gl.Rect(posX,posY,1-posX,posY-(borderSize/vsy))	-- bottom
+	gl.Rect(posX-(borderSize/vsx),posY-(borderSize/vsy),posX,posY+((height+borderSize)/vsy))	-- left
+	gl.Rect(1-posX,posY-(borderSize/vsy),(1-posX)+(borderSize/vsx),posY+((height+borderSize)/vsy))	-- right
 	-- border at loadvalue rightside
-	gl.Rect(loadvalue,0,loadvalue+(borderSize/vsx),(height-borderSize)/vsy)
+	--gl.Rect(posX+loadvalue,posY,posX+loadvalue+(borderSize/vsx),posY+((height-borderSize)/vsy))
 	-- gradient
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, ((height+(height*0.25))/vsy), {0,0,0,0}, {0,0,0,0.14})
+	--gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, ((height+(height*0.25))/vsy), {0,0,0,0}, {0,0,0,0.14})
 
 	-- progress value
 	gl.Color((0.45-(loadProgress/7)), (loadProgress*0.38), 0, 0.8)
-	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
+	gl.Rect(posX,posY,posX+loadvalue,posY+(height)/vsy)
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 	-- background
 	gl.Color(0.2,0.2,0.2,0.12)
-	gl.Rect(0,0,1,(height/vsy))
+	gl.Rect(posX,posY,1-posX,posY+(height/vsy))
 
 	-- progress value
 	gl.Color((0.45-(loadProgress/7)), (loadProgress*0.38), 0, 0.12)
-	gl.Rect(0,0,loadvalue,(height-borderSize)/vsy)
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, ((height-borderSize)/vsy), {1,1,1,0.2}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, loadvalue, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
+	gl.Rect(posX,posY,posX+loadvalue,posY+((height)/vsy))
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, posX+loadvalue, posY+((height)/vsy), {1,1,1,0.2}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, posX+loadvalue, posY+(((height)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
 	-- progress value texture
-	gl.Color((0.4-(loadProgress/7)), (loadProgress*0.3), 0, 0.22)
+	gl.Color((0.4-(loadProgress/7)), (loadProgress*0.3), 0, 0.2)
 	gl.Texture(':ng:luaui/images/rgbnoise.png')
-	gl.BeginEnd(GL.QUADS, bartexture, 0,0,1,(height-borderSize)/vsy, (height*7)/vsy, (height*7)/vsy)
+	gl.BeginEnd(GL.QUADS, bartexture, posX,posY,1-posX,posY+((height)/vsy), (height*7)/vsy, (height*7)/vsy)
 	gl.Texture(false)
 	-- progress value gloss
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.03}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), loadvalue, ((height-borderSize)/vsy), {1,1,1,0.04}, {1,1,1,0})
-	-- load value end
-	gl.Rect(loadvalue,0,loadvalue+((borderSize*(vsy/vsx))/vsx),(height-borderSize)/vsy)
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.93)/vsy), posX+loadvalue, posY+((height)/vsy), {1,1,1,0.05}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.77)/vsy), posX+loadvalue, posY+((height)/vsy), {1,1,1,0.04}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.3)/vsy),  posX+loadvalue, posY+((height)/vsy), {1,1,1,0.05}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, posX+loadvalue, posY+(((height)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.01})
 
 	-- bar gloss
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.93)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.11}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.77)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.08}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, (((height-borderSize)*0.3)/vsy), 1, ((height-borderSize)/vsy), {1,1,1,0.09}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, (((height-borderSize)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.018})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.93)/vsy), 1-posX, posY+((height)/vsy), {1,1,1,0.12}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.77)/vsy), 1-posX, posY+((height)/vsy), {1,1,1,0.09}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.3)/vsy),  1-posX, posY+((height)/vsy), {1,1,1,0.1}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, 1-posX, posY+(((height)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.018})
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
@@ -361,7 +363,7 @@ function addon.DrawLoadScreen()
 		font:SetTextColor(0.88,0.88,0.88,1)
 		font:SetOutlineColor(0,0,0,0.85)
 		--font:Print(lastLoadMessage, barTextSize*0.33, height*0.68, barTextSize, "a")
-		font:Print(lastLoadMessage, vsx/2, height*0.69, barTextSize, "oac")
+		font:Print(lastLoadMessage, vsx/2, (posY*vsy)+(height*0.7), barTextSize, "oac")
 		--if loadProgress>0 then
 		--	font2:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.03), barTextSize, "oc")
 		--else
