@@ -344,7 +344,7 @@ function TaskEcoHST:buildWMconv1()
 end
 
 function TaskEcoHST:CommanderEconomy(worker)
-	self:EchoDebug(self,type(self))
+	self:EchoDebug('debug inside taskeco',self,type(self))
 	local underwater = self.ai.maphst:IsUnderWater(worker.unit:Internal():GetPosition())
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if not underwater then

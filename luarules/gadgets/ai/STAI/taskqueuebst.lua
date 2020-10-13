@@ -572,7 +572,7 @@ function TaskQueueBST:ProgressQueue()
 		-- evaluate any functions here, they may return tables
 		while type(value) == "function" do
 			self:EchoDebug('function queue', value)
-			value = value(self,self)
+			value = value(self,self.ai)
 		end
 
 		if type(value) == "table" then
