@@ -348,9 +348,9 @@ function TaskEcoHST:CommanderEconomy(worker)
 	local underwater = self.ai.maphst:IsUnderWater(worker.unit:Internal():GetPosition())
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if not underwater then
-		unitName = self.Economy0()
+		unitName = self:Economy0()
 	else
-		unitName = self.Economy0uw()
+		unitName = self:Economy0uw()
 	end
 	return unitName
 
