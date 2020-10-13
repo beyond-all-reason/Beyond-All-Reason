@@ -28,7 +28,7 @@ function RandomEventRebelion2(CurrentFrame)
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	local rebelionCenter = scavUnits[math.random(1,#scavUnits)]
 	local posx, posy, posz = Spring.GetUnitPosition(rebelionCenter)
-	local areaUnits = Spring.GetUnitsInCylinder(posx, posz, math.random(500,2000), GaiaTeamID)
+	local areaUnits = Spring.GetUnitsInCylinder(posx, posz, math.random(200,500), GaiaTeamID)
 	for y = 1,#areaUnits do
 		local unitID = areaUnits[y]
 		local unitDefID = Spring.GetUnitDefID(unitID)
