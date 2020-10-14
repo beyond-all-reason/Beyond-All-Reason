@@ -12,6 +12,76 @@ if addon.InGetInfo then
 	}
 end
 
+local showTips = true
+
+local tips = {
+	"Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
+	"Queue-up multiple consecutive unit actions by holding SHIFT.",
+	"Tweak graphic preferences in options (top right corner of the screen).\nWhen your FPS drops, switch to a lower graphic preset.",
+	"Radars are cheap. Make them early in the game to effectively counter initial strikes.",
+	"To see detailed info about each unit in-game switch on \"Extensive unit info\" via Options menu",
+	"In general, vehicles are a good choice for flat and open battlefields. Bots are better on hills.",
+	"For wind generators to be worth building, the average wind speed should be over 7. Current, minimum, and maximum wind speeds are shown to the right of the energy bar.",
+	"If your economy is based on wind generators, always build an E storage to have a reserve for when the wind speed drops.",
+	"Commanders have a manual Dgun weapon, which can decimate every unit with one blow.\nPress D to quickly initiate aiming.",
+	"Spread buildings to prevent chain explosions.\nPress ALT+Z and ALT+X to adjust auto-spacing.",
+	"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
+	"Artillery vehicles can move in reverse if you press 'Ctrl' while giving a command behind it. Use this to keep shooting during a retreat.",
+	"T2 factories are expensive. Reclaim your T1 lab for metal to fund it",
+	"Air strikes and airdrops may come at any time, always have at least one anti-air unit in your base.",
+	"With ~(tilde)+doubleclick you can place a label with text on the map.\n~(tilde)+middle mouse button for an empty label.\n~(tilde)+mouse drag to draw lines",
+	"Always check your Com-counter (next to resource bars). If you have the last Commander you better hide it quick!",
+	"Expanding territory is essential for gaining economic advantage.\nTry to secure as many metal spots and geothermal vents as you can.",
+	"Think in advance about reclaiming metal from wrecks piling up at the front.",
+	"Nano towers can be picked up by transporters. This way you can move them where you need more buildpower.",
+	"When your excessing energy... build metal makers to convert the excess to metal.",
+	"Select all units of the same type by pressing CTRL+Z.",
+	"Press CTRL+C to quickly select and center the camera on your Commander.",
+	"Think ahead and include anti-air and support units in your army.",
+	"Mastering hotkeys is the key to proficiency.\nUse Z,X,C to quickly cycle between most frequently built structures.",
+	"To share resources with teammates:\n - Double-click tank icon next to the player's name to share units\n - Click-drag metal/energy bar next to player's name to send resources.\n - Press H to share an exact amount.",
+	"It is efficient to support your lab with constructors increasing its build-power.\nRight click on the factory with a constructor selected to guard (assist) with construction",
+	"Remember to separate your highly explosive buildings (like metal makers) from the rest of your base.",
+	"Most long-ranged units are very vulnerable in close combat. Always keep a good distance from your targets.",
+	"Keep all your builders busy.\nPress CTRL+B to select and center camera on your idle constructor.",
+	"The best way to prevent air strikes is building fighters and putting them on PATROL in front of your base.",
+	"Use radar jammers to hide your units from enemy radar and hinder artillery strikes.",
+	"Cloaking your Commander drains 100E stationary and 1000E when walking (every second)",
+	"Combine CLOAK with radar jamming to completely hide your units.",
+	"Long-ranged units need scouting for accurate aiming.\nGenerate a constant stream of fast, cheap units for better vision.",
+	"You can assign units to groups by pressing CTRL+[num].\nSelect the group using numbers (1-9).",
+	"When performing a bombing run fly your fighters first to eliminate enemy's fighter-wall.\nUse FIGHT or PATROL command for more effective engagement.",
+	"You can disable enemy's anti-nukes using EMP missiles (built by ARM T2 cons).",
+	"Don't build too much stuff around your Moho-geothermal powerplants or everything will go boom!",
+	"Build long range anti-air on an extended front line to slowly dismantle enemy's fighter-wall.",
+	"Your commander's Dgun can be used for insta-killing T3 units. Don't forget to CLOAK first.\nFor quickly cloaking press K.",
+	"If you are certain of losing some unit in enemy territory, self-destruct it to prevent him from getting the metal. \nPress CTRL+D to initiate the self-destruct countdown.",
+	"Mines are super-cheap and quick to build. Remember to make them away from enemy's line of sight.",
+	"Enemy's mines, radars, and jammers may be disabled using the Juno - built by both factions with T1 constructors.",
+	"Use Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units.",
+}
+
+
+-- Since math.random is not random and always the same, we save a counter to a file and use that.
+local randomTip = ''
+if showTips then
+	local filename = "LuaUI/Config/randomseed.txt"
+	local k = os.time() % 1500
+	if VFS.FileExists(filename) then
+		k = tonumber(VFS.LoadFile(filename))
+		if not k then k = 0 end
+	end
+	k = k + 1
+	local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+	if file then
+		file:write(k)
+		file:close()
+		file = nil
+	end
+
+	randomTip = tips[((math.ceil(k/2)) % #tips) + 1]
+end
+
 -- for guishader
 local function CheckHardware()
 	if (not (gl.CopyToTexture ~= nil)) then
@@ -68,7 +138,14 @@ if not VFS.FileExists(fontfile) then
 	fontfile = 'fonts/'..defaultFont
 end
 
-local height = math.floor(vsy * 0.036) -- loadbar height (in pixels)
+local defaultFont2 = 'Exo2-SemiBold.otf'
+local fontfile2 = 'fonts/'..Spring.GetConfigString("bar_font2", defaultFont2)
+if not VFS.FileExists(fontfile2) then
+	Spring.SetConfigString('bar_font2', defaultFont2)
+	fontfile2 = 'fonts/'..defaultFont2
+end
+
+local height = math.floor(vsy * 0.038) -- loadbar height (in pixels)
 
 local posY = math.floor((0.085 * vsy)+0.5) / vsy
 local posX = math.floor(((((posY*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
@@ -79,6 +156,9 @@ local fontSize = 40
 local fontScale = math.min(3, (0.5 + (vsx*vsy / 3500000)))
 local font = gl.LoadFont(fontfile, fontSize*fontScale, (fontSize/2)*fontScale, 1)
 local loadedFontSize =  fontSize*fontScale
+local font2Size = 46
+local font2 = gl.LoadFont(fontfile2, font2Size*fontScale, (font2Size/4)*fontScale, 1.3)
+local loadedFont2Size =  font2Size*fontScale
 
 function DrawStencilTexture()
     if next(guishaderRects) or next(guishaderDlists) then
@@ -365,13 +445,25 @@ function addon.DrawLoadScreen()
 	-- progress text
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, (posY*vsy)+(height*0.7), 0)
-		local barTextSize = height*0.58
+		gl.Translate(vsx/2, (posY*vsy)+(height*0.68), 0)
+		local barTextSize = height*0.54
 		font:SetTextColor(0.88,0.88,0.88,1)
 		font:SetOutlineColor(0,0,0,0.85)
 		font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
 	gl.PopMatrix()
 
+	if showTips then
+		local maxWidth = vsx	-- ?!
+		local wrappedTipText, numLines = font2:WrapText(randomTip, maxWidth)
+		gl.PushMatrix()
+		gl.Scale(1/vsx,1/vsy,1)
+		gl.Translate(vsx/2, (posY*vsy)+(height) + (posY*vsy) + (font2Size * (numLines-1)), 0)
+		local barTextSize = height*0.74
+		font2:SetTextColor(1,1,1,1)
+		font2:SetOutlineColor(0,0,0,0.8)
+		font2:Print(wrappedTipText, 0, 0, barTextSize, "oac")
+		gl.PopMatrix()
+	end
 end
 
 
@@ -397,4 +489,5 @@ function addon.Shutdown()
 		blurShader = nil
 	end
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 end
