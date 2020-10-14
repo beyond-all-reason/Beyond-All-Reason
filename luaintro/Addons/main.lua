@@ -50,6 +50,13 @@ local vsx, vsy   = Spring.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
 local lastLoadMessage = ""
 
+local wsx, wsy, _, _ = Spring.GetWindowGeometry()
+local ssx, ssy, _, _ = Spring.GetScreenGeometry()
+if wsx > ssx or wsy > ssy then
+
+end
+
+
 function addon.LoadProgress(message, replaceLastLine)
 	lastLoadMessage = message
 end
@@ -68,9 +75,10 @@ local posX = math.floor(((((posY*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
 
 local borderSize = math.max(1, math.floor(vsy * 0.0027))
 
-local fontScale = (0.5 + (vsx*vsy / 3500000))
-local font = gl.LoadFont(fontfile, height*fontScale, (height/2)*fontScale, 1)
-local loadedFontSize =  height*fontScale
+local fontSize = 40
+local fontScale = math.min(3, (0.5 + (vsx*vsy / 3500000)))
+local font = gl.LoadFont(fontfile, fontSize*fontScale, (fontSize/2)*fontScale, 1)
+local loadedFontSize =  fontSize*fontScale
 
 function DrawStencilTexture()
     if next(guishaderRects) or next(guishaderDlists) then
@@ -236,6 +244,7 @@ function addon.LoadProgress(message, replaceLastLine)
 end
 
 function addon.DrawLoadScreen()
+
 	local loadProgress = SG.GetLoadProgress()
 	if loadProgress == 0 then
 		loadProgress = lastProgress[1]
@@ -307,23 +316,19 @@ function addon.DrawLoadScreen()
 		end
 	end
 
-	-- background
-	gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
-	gl.Rect(posX,posY,1-posX,posY+(height/vsy))
-
 	-- border
 	gl.Color(0,0,0,0.6)
 	gl.Rect(posX,posY+(height/vsy),1-posX,posY+((height+borderSize)/vsy))	-- top
 	gl.Rect(posX,posY,1-posX,posY-(borderSize/vsy))	-- bottom
 	gl.Rect(posX-(borderSize/vsx),posY-(borderSize/vsy),posX,posY+((height+borderSize)/vsy))	-- left
 	gl.Rect(1-posX,posY-(borderSize/vsy),(1-posX)+(borderSize/vsx),posY+((height+borderSize)/vsy))	-- right
-	-- border at loadvalue rightside
-	--gl.Rect(posX+loadvalue,posY,posX+loadvalue+(borderSize/vsx),posY+((height-borderSize)/vsy))
-	-- gradient
-	--gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, ((height+(height*0.25))/vsy), {0,0,0,0}, {0,0,0,0.14})
+
+	-- background
+	gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
+	gl.Rect(posX+loadvalue,posY,1-posX,posY+(height/vsy))
 
 	-- progress value
-	gl.Color((0.45-(loadProgress/7)), (loadProgress*0.38), 0, 0.8)
+	gl.Color((0.4-(loadProgress/7)), (loadProgress*0.35), 0, 0.85)
 	gl.Rect(posX,posY,posX+loadvalue,posY+(height)/vsy)
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -333,8 +338,7 @@ function addon.DrawLoadScreen()
 	gl.Rect(posX,posY,1-posX,posY+(height/vsy))
 
 	-- progress value
-	gl.Color((0.45-(loadProgress/7)), (loadProgress*0.38), 0, 0.12)
-	gl.Rect(posX,posY,posX+loadvalue,posY+((height)/vsy))
+	gl.Color((0.45-(loadProgress/7)), (loadProgress*0.38), 0, 0.2)
 	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, posX+loadvalue, posY+((height)/vsy), {1,1,1,0.2}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, posX+loadvalue, posY+(((height)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.04})
 	-- progress value texture
@@ -342,33 +346,30 @@ function addon.DrawLoadScreen()
 	gl.Texture(':ng:luaui/images/rgbnoise.png')
 	gl.BeginEnd(GL.QUADS, bartexture, posX,posY,1-posX,posY+((height)/vsy), (height*7)/vsy, (height*7)/vsy)
 	gl.Texture(false)
+
 	-- progress value gloss
-	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.93)/vsy), posX+loadvalue, posY+((height)/vsy), {1,1,1,0.05}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.77)/vsy), posX+loadvalue, posY+((height)/vsy), {1,1,1,0.04}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.3)/vsy),  posX+loadvalue, posY+((height)/vsy), {1,1,1,0.05}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.93)/vsy), posX+loadvalue, posY+((height)/vsy), {1,1,1,0.18}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.77)/vsy), posX+loadvalue, posY+((height)/vsy), {1,1,1,0.15}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.3)/vsy),  posX+loadvalue, posY+((height)/vsy), {1,1,1,0.15}, {1,1,1,0})
 	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, posX+loadvalue, posY+(((height)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.01})
 
 	-- bar gloss
-	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.93)/vsy), 1-posX, posY+((height)/vsy), {1,1,1,0.12}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.77)/vsy), 1-posX, posY+((height)/vsy), {1,1,1,0.09}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, posX, posY+(((height)*0.3)/vsy),  1-posX, posY+((height)/vsy), {1,1,1,0.1}, {1,1,1,0})
-	gl.BeginEnd(GL.QUADS, gradientv, posX, posY, 1-posX, posY+(((height)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.018})
+	gl.Color(1,1,1, 0.1)
+	gl.BeginEnd(GL.QUADS, gradientv, posX+loadvalue, posY+(((height)*0.93)/vsy), 1-posX, posY+((height)/vsy), {1,1,1,0.12}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX+loadvalue, posY+(((height)*0.77)/vsy), 1-posX, posY+((height)/vsy), {1,1,1,0.1}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX+loadvalue, posY+(((height)*0.3)/vsy),  1-posX, posY+((height)/vsy), {1,1,1,0.1}, {1,1,1,0})
+	gl.BeginEnd(GL.QUADS, gradientv, posX+loadvalue, posY, 1-posX, posY+(((height)*0.3)/vsy), {1,1,1,0}, {1,1,1,0.018})
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- progress text
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
+		gl.Translate(vsx/2, (posY*vsy)+(height*0.7), 0)
 		local barTextSize = height*0.58
 		font:SetTextColor(0.88,0.88,0.88,1)
 		font:SetOutlineColor(0,0,0,0.85)
-		--font:Print(lastLoadMessage, barTextSize*0.33, height*0.68, barTextSize, "a")
-		font:Print(lastLoadMessage, vsx/2, (posY*vsy)+(height*0.7), barTextSize, "oac")
-		--if loadProgress>0 then
-		--	font2:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.03), barTextSize, "oc")
-		--else
-		--	font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.0285), barTextSize, "oc")
-		--end
+		font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
 	gl.PopMatrix()
 
 end

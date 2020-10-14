@@ -18,7 +18,7 @@ math.random(); math.random(); math.random()
 ------------------------------------------
 local loadscreens = VFS.DirList("bitmaps/loadpictures/")
 
-local screenNum = math.random(#loadscreens) 
+local screenNum = math.random(#loadscreens)
 --local backgroundTexture = loadscreens[screenNum]
 local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
 if not VFS.FileExists(backgroundTexture) then	-- because encountering white loadscreens once in a while (this is not a real fix ofc)
@@ -46,7 +46,7 @@ function addon.DrawLoadScreen()
 	local yDiv = 0
 	local ratioComp = screenAspectRatio / aspectRatio
 
-    if math.abs(ratioComp-1)>0.15 then 
+    if math.abs(ratioComp-1)>0.15 then
         if (ratioComp > 1) then
 			yDiv = (1 - ratioComp) * 0.5;
         else
@@ -58,9 +58,9 @@ function addon.DrawLoadScreen()
 	local scale = 1
 	local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
 	if ssx / vsx < 1 then	-- adjust when window is larger than the screen resolution
-		scale = ssx / vsx
-		xDiv = xDiv * scale
-		yDiv = yDiv * scale
+		--scale = ssx / vsx
+		--xDiv = xDiv * scale	-- this doesnt work
+		--yDiv = yDiv * scale
 	end
 	gl.Color(1,1,1,1)
 	gl.Texture(backgroundTexture)
