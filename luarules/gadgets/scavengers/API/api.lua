@@ -193,6 +193,28 @@ function posLosCheckNoRadar(posx, posy, posz, posradius)
 	return true
 end
 
+function posLosCheckReversed(posx, posy, posz, posradius)
+	-- if true then can spawn
+	local posradius = posradius or 1000
+	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if allyTeamID ~= GaiaAllyTeamID then
+			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx - posradius, posy, posz - posradius, allyTeamID) == true then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 	-- if true then can spawn
 	local posradius = posradius or 1000
@@ -272,6 +294,45 @@ function posLandCheck(posx, posy, posz, posradius)
 	elseif testpos7 <= 0 then
 		return false
 	elseif testpos8 <= 0 then
+		return false
+	elseif deathwater > 0 then
+		return false
+	else
+		return true
+	end
+end
+
+function posSeaCheck(posx, posy, posz, posradius)
+	local posradius = posradius or 1000
+	local testpos0 = Spring.GetGroundHeight((posx), (posz))
+	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
+	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
+	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
+	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
+	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
+	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
+	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
+	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+	local deathwater = Game.waterDamage
+	
+	
+	if testpos0 > 0 then
+		return false
+	elseif testpos1 > 0 then
+		return false
+	elseif testpos2 > 0 then
+		return false
+	elseif testpos3 > 0 then
+		return false
+	elseif testpos4 > 0 then
+		return false
+	elseif testpos5 > 0 then
+		return false
+	elseif testpos6 > 0 then
+		return false
+	elseif testpos7 > 0 then
+		return false
+	elseif testpos8 > 0 then
 		return false
 	elseif deathwater > 0 then
 		return false
