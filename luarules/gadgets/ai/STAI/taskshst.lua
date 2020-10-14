@@ -14,7 +14,7 @@ end
 
 function TasksHST:wrap( theTable, theFunction )
 	return function( tb, ai )
-		return theTable[theFunction](theTable)
+	return theTable[theFunction](theTable, tb, ai)
 	end
 end
 

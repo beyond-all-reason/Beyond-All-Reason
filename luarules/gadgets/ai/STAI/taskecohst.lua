@@ -129,9 +129,9 @@ end
 function TaskEcoHST:TidalIfTidal()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	local tidalPower = map:TidalStrength()
-	EchoDebug("tidal power is " .. tidalPower)
+	self:EchoDebug("tidal power is " .. tidalPower)
 	if tidalPower >= 10 then
-		unitName = Tidal()
+		unitName = self:Tidal()
 	end
 	return unitName
 end
@@ -140,7 +140,7 @@ function TaskEcoHST:windLimit()
 	if map:AverageWind() >= 10 then
 		local minWind = map:MinimumWindSpeed()
 		if minWind >= 8 then
-			EchoDebug("minimum wind high enough to build only wind")
+			self:EchoDebug("minimum wind high enough to build only wind")
 			return true
 		else
 			return math.random() < math.max(0.5, minWind / 8)
@@ -151,26 +151,26 @@ function TaskEcoHST:windLimit()
 end
 
 function TaskEcoHST:WindSolar()
-	if windLimit() then
-		return Wind()
+	if self:windLimit() then
+		return self:Wind()
 	else
-		return Solar()
+		return self:Solar()
 	end
 end
 
 function TaskEcoHST:Energy1()
 
-	if ai.Energy.income > math.max(map:AverageWind() * 20, 150) then --and ai.Metal.reserves >50
-		return SolarAdv()
+	if self.ai.Energy.income > math.max(map:AverageWind() * 20, 150) then --and self.ai.Metal.reserves >50
+		return self:SolarAdv()
 	else
-		return WindSolar()
+		return self:WindSolar()
 	end
 end
 
 function TaskEcoHST:BuildGeo()
 	-- don't attempt if there are no spots on the map
-	EchoDebug("BuildGeo " .. tostring(ai.mapHasGeothermal))
-	if not ai.mapHasGeothermal or ai.Energy.income < 150 or ai.Metal.income < 10 then
+	self:EchoDebug("BuildGeo " .. tostring(self.ai.mapHasGeothermal))
+	if not self.ai.mapHasGeothermal or self.ai.Energy.income < 150 or self.ai.Metal.income < 10 then
 		return self.ai.UnitiesHST.DummyUnitName
 	end
 	if self.side == self.ai.UnitiesHST.CORESideName then
@@ -181,9 +181,9 @@ function TaskEcoHST:BuildGeo()
 end
 
 function TaskEcoHST:BuildMohoGeo()
-	EchoDebug("BuildMohoGeo " .. tostring(ai.mapHasGeothermal))
+	self:EchoDebug("BuildMohoGeo " .. tostring(self.ai.mapHasGeothermal))
 	-- don't attempt if there are no spots on the map
-	if not ai.mapHasGeothermal or ai.Energy.income < 900 or ai.Metal.income < 24 then
+	if not self.ai.mapHasGeothermal or self.ai.Energy.income < 900 or self.ai.Metal.income < 24 then
 		return self.ai.UnitiesHST.DummyUnitName
 	end
 	if self.side == self.ai.UnitiesHST.CORESideName then
@@ -196,7 +196,7 @@ end
 
 function TaskEcoHST:BuildSpecialGeo()
 	-- don't attempt if there are no spots on the map
-	if not ai.mapHasGeothermal then
+	if not self.ai.mapHasGeothermal then
 		return self.ai.UnitiesHST.DummyUnitName
 	end
 	if self.side == self.ai.UnitiesHST.CORESideName then
@@ -225,11 +225,11 @@ function TaskEcoHST:BuildAdvFusion()
 end
 
 function TaskEcoHST:BuildAdvEnergy()
-	EchoDebug(tostring('advname '..self.name))
+	self:EchoDebug(tostring('advname '..self.name))
 	local unitName = self.ai.UnitiesHST.DummyUnitName
-	unitName = BuildFusion()
-	if ai.Energy.income > 4000 and (self.name == 'armacv' or self.name == 'coracv') then
-		unitName = BuildAdvFusion()
+	unitName = self:BuildFusion()
+	if self.ai.Energy.income > 4000 and (self.name == 'armacv' or self.name == 'coracv') then
+		unitName = self:BuildAdvFusion()
 	end
 	return unitName
 end
@@ -361,178 +361,178 @@ function TaskEcoHST:AmphibiousEconomy(worker)
 	local underwater = self.ai.maphst:IsUnderWater(worker.unit:Internal():GetPosition())
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if underwater then
-		unitName = EconomyUnderWater(worker)
+		unitName = self:EconomyUnderWater(worker)
 	else
-		unitName = self.ai.TaskEcoHST:Economy1(worker)
+		unitName = self:Economy1(worker)
 	end
 	return unitName
 end
 
 function TaskEcoHST:Economy0()
 	local unitName=self.ai.UnitiesHST.DummyUnitName
-	if ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.3) then
-		unitName = BuildMex()
-	elseif ai.Energy.full > 0.9 and ai.Energy.income > 400  and ai.Metal.reserves > 100 and ai.Energy.capacity < 7000 then
-		 unitName = buildEstore1()
-	elseif ai.Metal.full > 0.7 and ai.Metal.income > 50 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 500  then
-		 unitName = buildMstore1()
-	elseif ai.Energy.income > ai.Energy.usage * 1.1 and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
-		unitName = buildMconv1()
-	elseif (ai.Energy.full < 0.5 or ai.Energy.income < ai.Energy.usage )   then
-		unitName = WindSolar()
+	if self.ai.Energy.full > 0.1 and (self.ai.Metal.income < 1 or self.ai.Metal.full < 0.3) then
+		unitName = self:BuildMex()
+	elseif self.ai.Energy.full > 0.9 and self.ai.Energy.income > 400  and self.ai.Metal.reserves > 100 and self.ai.Energy.capacity < 7000 then
+		unitName = self:buildEstore1()
+	elseif self.ai.Metal.full > 0.7 and self.ai.Metal.income > 50 and self.ai.Metal.capacity < 4000 and self.ai.Energy.reserves > 500  then
+		unitName = self:buildMstore1()
+	elseif self.ai.Energy.income > self.ai.Energy.usage * 1.1 and self.ai.Energy.full > 0.9 and self.ai.Energy.income > 200 and self.ai.Energy.income < 2000 and self.ai.Metal.full < 0.3 then
+		unitName = self:buildMconv1()
+	elseif (self.ai.Energy.full < 0.5 or self.ai.Energy.income < self.ai.Energy.usage )   then
+		unitName = self:WindSolar()
 	else
-		unitName = BuildMex()
+		unitName = self:BuildMex()
 	end
-	EchoDebug('Economy commander '..unitName)
+	self:EchoDebug('Economy commander '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:Economy0uw()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
-	if ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
-		unitName = buildWEstore1()
-	elseif ai.Metal.full > 0.7 and ai.Metal.income > 30 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 600 then
-		unitName = buildWMstore1()
-	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
-		unitName = buildWMconv1()
-	elseif ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.6) then
-		unitName = BuildUWMex()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
-		unitName = TidalIfTidal()--this can get problems
+	if self.ai.Energy.full > 0.9 and self.ai.Energy.income > 500  and self.ai.Metal.reserves > 300 and self.ai.Energy.capacity < 7000 then
+		unitName = self:buildWEstore1()
+	elseif self.ai.Metal.full > 0.7 and self.ai.Metal.income > 30 and self.ai.Metal.capacity < 4000 and self.ai.Energy.reserves > 600 then
+		unitName = self:buildWMstore1()
+	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.9 and self.ai.Energy.income > 200 and self.ai.Energy.income < 2000 and self.ai.Metal.full < 0.3 then
+		unitName = self:buildWMconv1()
+	elseif self.ai.Energy.full > 0.1 and (self.ai.Metal.income < 1 or self.ai.Metal.full < 0.6) then
+		unitName = self:BuildUWMex()
+	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.income > 3 and self.ai.Metal.full > 0.1 then
+		unitName = self:TidalIfTidal()--this can get problems
 	else
-		unitName = BuildUWMex()
+		unitName = self:BuildUWMex()
 	end
-	EchoDebug('Under water Economy level 1 '..unitName)
+	self:EchoDebug('Under water Economy level 1 '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:Economy1()
 	local unitName=self.ai.UnitiesHST.DummyUnitName
-	if ai.Energy.full > 0.5 and ai.Metal.full > 0.3 and ai.Metal.full < 0.7 and ai.Metal.income > 30 then
-		unitName = SpecialMex()
-	elseif (ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100) then
-		unitName = NanoTurret()
-	elseif 	ai.Energy.full > 0.8 and ai.Energy.income > 600 and ai.Metal.reserves > 200 and ai.Energy.capacity < 7000 then
-		unitName = buildEstore1()
-	elseif ai.Metal.full > 0.8 and ai.Metal.income > 40 and ai.Metal.capacity < 4000  and ai.Energy.reserves > 300 then
-		unitName = buildMstore1()
-	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.8 and ai.Energy.income > 100 and ai.Energy.income < 2000 and ai.Metal.full < 0.5 then
-		unitName = buildMconv1()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.full > 0.1 then
-		unitName = Energy1()
+	if self.ai.Energy.full > 0.5 and self.ai.Metal.full > 0.3 and self.ai.Metal.full < 0.7 and self.ai.Metal.income > 30 then
+		unitName = self:SpecialMex()
+	elseif (self.ai.Energy.full > 0.5  and self.ai.Metal.full > 0.3 and self.ai.Metal.income > 10 and self.ai.Energy.income > 100) then
+		unitName = self:NanoTurret()
+	elseif 	self.ai.Energy.full > 0.8 and self.ai.Energy.income > 600 and self.ai.Metal.reserves > 200 and self.ai.Energy.capacity < 7000 then
+		unitName = self:buildEstore1()
+	elseif self.ai.Metal.full > 0.8 and self.ai.Metal.income > 40 and self.ai.Metal.capacity < 4000  and self.ai.Energy.reserves > 300 then
+		unitName = self:buildMstore1()
+	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.8 and self.ai.Energy.income > 100 and self.ai.Energy.income < 2000 and self.ai.Metal.full < 0.5 then
+		unitName = self:buildMconv1()
+	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.full > 0.1 then
+		unitName = self:Energy1()
 	else
-		unitName = BuildMex()
+		unitName = self:BuildMex()
 	end
-	EchoDebug('Economy level 1 '..unitName)
+	self:EchoDebug('Economy level 1 '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:EconomyUnderWater()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
-	if (ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100) then
-	unitName = NanoWater()
-	elseif ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
-		unitName = buildWEstore1()
-	elseif ai.Metal.full > 0.7 and ai.Metal.income > 30 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 600 then
-		unitName = buildWMstore1()
-	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
-		unitName = buildWMconv1()
-	elseif ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.6) then
-		unitName = BuildUWMex()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
-		unitName = TidalIfTidal()--this can get problems
+	if (self.ai.Energy.full > 0.5  and self.ai.Metal.full > 0.3 and self.ai.Metal.income > 10 and self.ai.Energy.income > 100) then
+		unitName = self:NanoWater()
+	elseif self.ai.Energy.full > 0.9 and self.ai.Energy.income > 500  and self.ai.Metal.reserves > 300 and self.ai.Energy.capacity < 7000 then
+		unitName = self:buildWEstore1()
+	elseif self.ai.Metal.full > 0.7 and self.ai.Metal.income > 30 and self.ai.Metal.capacity < 4000 and self.ai.Energy.reserves > 600 then
+		unitName = self:buildWMstore1()
+	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.9 and self.ai.Energy.income > 200 and self.ai.Energy.income < 2000 and self.ai.Metal.full < 0.3 then
+		unitName = self:buildWMconv1()
+	elseif self.ai.Energy.full > 0.1 and (self.ai.Metal.income < 1 or self.ai.Metal.full < 0.6) then
+		unitName = self:BuildUWMex()
+	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.income > 3 and self.ai.Metal.full > 0.1 then
+		unitName = self:TidalIfTidal()--this can get problems
 	else
-		unitName = BuildUWMex()
+		unitName = self:BuildUWMex()
 	end
-	EchoDebug('Under water Economy level 1 '..unitName)
+	self:EchoDebug('Under water Economy level 1 '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:AdvEconomy()
 	local unitName=self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full > 0.9 and self.ai.Energy.income > 3000 and self.ai.Metal.reserves > 1000 and self.ai.Energy.capacity < 40000 then
-		unitName = buildEstore2()
+		unitName = self:buildEstore2()
 	elseif self.ai.Metal.full > 0.8 and self.ai.Metal.income > 100 and self.ai.Metal.capacity < 20000 and self.ai.Energy.full > 0.3 then
-		unitName = buildMstore2()
+		unitName = self:buildMstore2()
 	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.7 and self.ai.Energy.income > 2000 and self.ai.Metal.full < 0.5 then
-		unitName = buildMconv2()
+		unitName = self:buildMconv2()
 	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.full > 0.1 and self.ai.Metal.income > 18 then
-		unitName = BuildAdvEnergy()
+		unitName = self:BuildAdvEnergy()
 	else--if self.ai.Metal.full < 0.2 and self.ai.Energy.full > 0.1 then
-		unitName = BuildMohoMex()
+		unitName = self:BuildMohoMex()
 	end
-	EchoDebug('Economy level 3 '..unitName)
+	self:EchoDebug('Economy level 3 '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:AdvEconomyUnderWater()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full>0.8 and self.ai.Energy.income > 2500 and self.ai.Metal.reserves > 800 and self.ai.Energy.capacity < 50000  then
-		unitName=buildEstore2()
+		unitName = self:buildEstore2()
 	elseif self.ai.Metal.full>0.7 and self.ai.Metal.income>30 and self.ai.Metal.capacity < 20000 and self.ai.Energy.full > 0.4 then
-		unitName=buildMstore2()
+		unitName = self:buildMstore2()
 	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.9 and self.ai.Energy.income > 2000 and self.ai.Metal.full < 0.3 then
-		unitName = buildMconv2UW()
+		unitName = self:buildMconv2UW()
 	elseif (self.ai.Energy.full<0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.5) and self.ai.Metal.full>0.1 then
-		unitName = BuildUWFusion()
+		unitName = self:BuildUWFusion()
 	else
-		unitName = BuildUWMohoMex()
+		unitName = self:BuildUWMohoMex()
 	end
-	EchoDebug('Economy under water level 2 '..unitName)
+	self:EchoDebug('Economy under water level 2 '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:EconomySeaplane()
 	local unitName=self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full>0.7 and self.ai.Energy.income > 2000 and self.ai.Metal.income>self.ai.Metal.usage and self.ai.Energy.capacity < 60000  then
-		unitName=buildEstore2()
+		unitName = self:buildEstore2()
 	elseif self.ai.Metal.full>0.9 and self.ai.Metal.income>30 and self.ai.Metal.capacity < 30000 and self.ai.Energy.full > 0.3 then
-		unitName=buildMstore2()
+		unitName = self:buildMstore2()
 	elseif self.ai.Energy.full>0.8  then
-		unitName=buildMconv2UW()
+		unitName = self:buildMconv2UW()
 	elseif self.ai.Energy.full>0.5 and self.ai.Metal.full>0.5 then
-		unitName=Lvl2ShipAssist()
+		unitName = self:Lvl2ShipAssist()
 	end
-	EchoDebug('Economy Seaplane '..unitName)
+	self:EchoDebug('Economy Seaplane '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:EconomyBattleEngineer()
         local unitName=self.ai.UnitiesHST.DummyUnitName
 	if self.ai.realEnergy > 1.25 and self.ai.realMetal > 1.1 then
-		unitName= NanoTurret()
+		unitName= self:NanoTurret()
 	elseif self.ai.Energy.full < 0.1 and self.ai.Metal.full > 0.1 then
-		unitName = Solar()
+		unitName = self:Solar()
 	elseif self.ai.Metal.full < 0.2 then
-		unitName=BuildMex()
+		unitName = self:BuildMex()
 	else
-		unitName = EngineerAsFactory()
+		unitName = self:EngineerAsFactory()
 	end
-	EchoDebug('Economy battle engineer  '..unitName)
+	self:EchoDebug('Economy battle engineer  '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:EconomyNavalEngineer()
-        local unitName=self.ai.UnitiesHST.DummyUnitName
+        local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full < 0.2 and realMetal > 1 then
-		unitName = TidalIfTidal()
+		unitName = self:TidalIfTidal()
 	elseif self.ai.Metal.full < 0.2 and self.ai.Energy.income > self.ai.Metal.usage then
-		unitName = BuildUWMex()
+		unitName = self:BuildUWMex()
 	else
-		unitName = NavalEngineerAsFactory()
+		unitName = self:NavalEngineerAsFactory()
 	end
-	EchoDebug('Economy Naval Engineer '..unitName)
+	self:EchoDebug('Economy Naval Engineer '..unitName)
 	return unitName
 end
 
 function TaskEcoHST:EconomyFark()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if (self.ai.Energy.full < 0.3 or self.ai.realEnergy < 1.1)   then
-		unitName = WindSolar()
-	elseif self.ai.Energy.full > 0.9 and self.ai.Metal.capacity < 4000 then
-		unitName = buildEstore1()
+		unitName = self:WindSolar()
+	elseif self.self.ai.Energy.full > 0.9 and self.self.ai.Metal.capacity < 4000 then
+		unitName = self:buildEstore1()
 	else
-		unitName = BuildMex()
+		unitName = self:BuildMex()
 	end
 	return unitName
 end
