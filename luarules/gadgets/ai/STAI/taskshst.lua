@@ -12,7 +12,7 @@ function TasksHST:Init()
 	self.DebugEnabled = false
 end
 
-function TasksHST:recall( theTable, theFunction )
+function TasksHST:call( theTable, theFunction )
 	return function( tb, ai )
 		return theTable[theFunction](theTable)
 	end
@@ -304,262 +304,262 @@ end
 
 function TasksHST:anyCommander()
 	return {
-		self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-		self:recall( self.ai.TaskEcoHST,'CommanderEconomy' ) ,
-		self:recall(  self.ai.TaskBuildHST,'BuildLLT' ) ,
-		self:recall( self.ai.TaskBuildHST,'BuildRadar' ) ,
-		self:recall( self.ai.TaskBuildHST,'CommanderAA' ) ,
-		self:recall( self.ai.TaskBuildHST,'BuildPopTorpedo' ) ,
+		self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+		self:call( self.ai.TaskEcoHST,'CommanderEconomy' ) ,
+		self:call(  self.ai.TaskBuildHST,'BuildLLT' ) ,
+		self:call( self.ai.TaskBuildHST,'BuildRadar' ) ,
+		self:call( self.ai.TaskBuildHST,'CommanderAA' ) ,
+		self:call( self.ai.TaskBuildHST,'BuildPopTorpedo' ) ,
 	}
 end
 function TasksHST:anyConUnit()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLLT' ) ,
-	self:recall( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildRadar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl1Jammer' ) ,
-	self:recall( self.ai.TaskEcoHST,'BuildGeo' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHLT' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl1Plasma' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHeavyishAA' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'Economy1' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLLT' ) ,
+	self:call( self.ai.TaskEcoHST,'Economy1' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildRadar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl1Jammer' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildGeo' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHLT' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl1Plasma' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHeavyishAA' ) ,
 } end
 
 function TasksHST:anyConAmphibious()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'AmphibiousEconomy' ) ,
-	self:recall( self.ai.TaskEcoHST,'BuildGeo' ) ,
-	self:recall( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildRadar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl1Jammer' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHLT' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl1Plasma' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHeavyishAA' ) ,
-	self:recall( self.ai.TaskEcoHST,'AmphibiousEconomy' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildPopTorpedo' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'AmphibiousEconomy' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildGeo' ) ,
+	self:call( self.ai.TaskEcoHST,'Economy1' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildRadar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl1Jammer' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHLT' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl1Plasma' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHeavyishAA' ) ,
+	self:call( self.ai.TaskEcoHST,'AmphibiousEconomy' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildPopTorpedo' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
 } end
 
 function TasksHST:anyConShip()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'EconomyUnderWater' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLightTorpedo' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'EconomyUnderWater' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLightTorpedo' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
 } end
 
 function TasksHST:anyAdvConUnit()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'AdvEconomy' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildNukeIfNeeded' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildAdvancedRadar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHeavyPlasma' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildAntinuke' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl2PopUp' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHeavyAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl2Plasma' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildTachyon' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'AdvEconomy' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildNukeIfNeeded' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildAdvancedRadar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHeavyPlasma' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildAntinuke' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl2PopUp' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHeavyAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl2Plasma' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildTachyon' ) ,
 	-- BuildTacticalNuke' ) ,
-			self:recall( self.ai.TaskBuildHST,'BuildExtraHeavyAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl2Jammer' ) ,
-	self:recall( self.ai.TaskEcoHST,'BuildMohoGeo' ) ,
+			self:call( self.ai.TaskBuildHST,'BuildExtraHeavyAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl2Jammer' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildMohoGeo' ) ,
 } end
 
 function TasksHST:anyConSeaplane()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'EconomySeaplane' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatHeavyAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildAdvancedSonar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHeavyTorpedo' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'EconomySeaplane' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatHeavyAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildAdvancedSonar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHeavyTorpedo' ) ,
 } end
 
 function TasksHST:anyAdvConSub()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'AdvEconomyUnderWater' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatHeavyAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildAdvancedSonar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHeavyTorpedo' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'AdvEconomyUnderWater' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatHeavyAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildAdvancedSonar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHeavyTorpedo' ) ,
 } end
 
 function TasksHST:anyNavalEngineer()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'EconomyNavalEngineer' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLightTorpedo' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'EconomyNavalEngineer' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLightTorpedo' ) ,
 } end
 
 function TasksHST:anyCombatEngineer()  return  {
-	self:recall( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:recall( self.ai.TaskEcoHST,'EconomyBattleEngineer' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildAdvancedRadar' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl2Jammer' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildHeavyAA' ) ,
-	self:recall( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:recall( self.ai.TaskBuildHST,'BuildLvl2Plasma' ) ,
+	self:call( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
+	self:call( self.ai.TaskEcoHST,'EconomyBattleEngineer' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildAdvancedRadar' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl2Jammer' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildHeavyAA' ) ,
+	self:call( self.ai.TaskEcoHST,'Economy1' ) ,
+	self:call( self.ai.TaskBuildHST,'BuildLvl2Plasma' ) ,
 } end
 
 
 -- factories.
 
 		function TasksHST:anyLvl1AirPlant()  return  {
-	self:recall( self.ai.TaskAirHST,'ScoutAir' ) ,
-	self:recall( self.ai.TaskAirHST,'Lvl1Bomber' ) ,
-	self:recall( self.ai.TaskAirHST,'Lvl1AirRaider' ) ,
-	self:recall( self.ai.TaskAirHST,'ConAir' ) ,
-	self:recall( self.ai.TaskAirHST,'Lvl1Fighter' ) ,
+	self:call( self.ai.TaskAirHST,'ScoutAir' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl1Bomber' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl1AirRaider' ) ,
+	self:call( self.ai.TaskAirHST,'ConAir' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl1Fighter' ) ,
 } end
 
 function TasksHST:anyLvl1VehPlant()  return  {
-	self:recall( self.ai.TaskVehHST,'ScoutVeh' ) ,
-	self:recall( self.ai.TaskVehHST,'ConVehicle' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl1VehRaider' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl1VehBattle' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl1AAVeh' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl1VehArty' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl1VehBreakthrough' ) ,
+	self:call( self.ai.TaskVehHST,'ScoutVeh' ) ,
+	self:call( self.ai.TaskVehHST,'ConVehicle' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl1VehRaider' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl1VehBattle' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl1AAVeh' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl1VehArty' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl1VehBreakthrough' ) ,
 } end
 
 function TasksHST:anyLvl1BotLab()  return  {
-	self:recall( self.ai.TaskBotHST,'ScoutBot' ) ,
-	self:recall( self.ai.TaskBotHST,'ConBot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl1BotRaider' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl1BotBattle' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl1AABot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl1BotBreakthrough' ) ,
-	self:recall( self.ai.TaskBotHST,'RezBot1' ) ,
+	self:call( self.ai.TaskBotHST,'ScoutBot' ) ,
+	self:call( self.ai.TaskBotHST,'ConBot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl1BotRaider' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl1BotBattle' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl1AABot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl1BotBreakthrough' ) ,
+	self:call( self.ai.TaskBotHST,'RezBot1' ) ,
 } end
 
 function TasksHST:anyLvl1ShipYard()  return  {
-	self:recall( self.ai.TaskShpHST,'ScoutShip' ) ,
-	self:recall( self.ai.TaskShpHST,'ConShip' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl1ShipBattle' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl1ShipRaider' ) ,
+	self:call( self.ai.TaskShpHST,'ScoutShip' ) ,
+	self:call( self.ai.TaskShpHST,'ConShip' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl1ShipBattle' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl1ShipRaider' ) ,
 } end
 
 function TasksHST:anyHoverPlatform()  return  {
-	self:recall( self.ai.TaskHovHST,'HoverRaider' ) ,
-	self:recall( self.ai.TaskHovHST,'ConHover' ) ,
-	self:recall( self.ai.TaskHovHST,'HoverBattle' ) ,
-	self:recall( self.ai.TaskHovHST,'HoverBreakthrough' ) ,
-	self:recall( self.ai.TaskHovHST,'HoverMerl' ) ,
-	self:recall( self.ai.TaskHovHST,'AAHover' ) ,
+	self:call( self.ai.TaskHovHST,'HoverRaider' ) ,
+	self:call( self.ai.TaskHovHST,'ConHover' ) ,
+	self:call( self.ai.TaskHovHST,'HoverBattle' ) ,
+	self:call( self.ai.TaskHovHST,'HoverBreakthrough' ) ,
+	self:call( self.ai.TaskHovHST,'HoverMerl' ) ,
+	self:call( self.ai.TaskHovHST,'AAHover' ) ,
 } end
 
 function TasksHST:anyAmphibiousComplex()  return  {
-	self:recall( self.ai.TaskVehHST,'AmphibiousRaider' ) ,
-	self:recall( self.ai.TaskVehHST,'ConVehicleAmphibious' ) ,
-	self:recall( self.ai.TaskVehHST,'AmphibiousBattle' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl1ShipRaider' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl1AABot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2AABot' ) ,
+	self:call( self.ai.TaskVehHST,'AmphibiousRaider' ) ,
+	self:call( self.ai.TaskVehHST,'ConVehicleAmphibious' ) ,
+	self:call( self.ai.TaskVehHST,'AmphibiousBattle' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl1ShipRaider' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl1AABot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2AABot' ) ,
 } end
 
 function TasksHST:anyLvl2VehPlant()  return  {
-	self:recall( self.ai.TaskVehHST,'ConAdvVehicle' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2VehRaider' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2VehBattle' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2VehBreakthrough' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2VehArty' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2VehMerl' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2AAVeh' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2VehAssist' ) ,
+	self:call( self.ai.TaskVehHST,'ConAdvVehicle' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2VehRaider' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2VehBattle' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2VehBreakthrough' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2VehArty' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2VehMerl' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2AAVeh' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2VehAssist' ) ,
 } end
 
 function TasksHST:anyLvl2BotLab()  return  {
-	self:recall( self.ai.TaskBotHST,'Lvl2BotRaider' ) ,
-	self:recall( self.ai.TaskBotHST,'ConAdvBot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2BotBattle' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2BotBreakthrough' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2BotArty' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2BotMerl' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2AABot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2BotAssist' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2BotRaider' ) ,
+	self:call( self.ai.TaskBotHST,'ConAdvBot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2BotBattle' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2BotBreakthrough' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2BotArty' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2BotMerl' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2AABot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2BotAssist' ) ,
 } end
 
 function TasksHST:anyLvl2AirPlant()  return  {
-	self:recall( self.ai.TaskAirHST,'Lvl2Bomber' ) ,
-	self:recall( self.ai.TaskAirHST,'Lvl2TorpedoBomber' ) ,
-	self:recall( self.ai.TaskAirHST,'ConAdvAir' ) ,
-	self:recall( self.ai.TaskAirHST,'ScoutAdvAir' ) ,
-	self:recall( self.ai.TaskAirHST,'Lvl2Fighter' ) ,
-	self:recall( self.ai.TaskAirHST,'Lvl2AirRaider' ) ,
-	self:recall( self.ai.TaskAirHST,'MegaAircraft' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl2Bomber' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl2TorpedoBomber' ) ,
+	self:call( self.ai.TaskAirHST,'ConAdvAir' ) ,
+	self:call( self.ai.TaskAirHST,'ScoutAdvAir' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl2Fighter' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl2AirRaider' ) ,
+	self:call( self.ai.TaskAirHST,'MegaAircraft' ) ,
 } end
 
 function TasksHST:anySeaplanePlatform()  return  {
-	self:recall( self.ai.TaskAirHST,'SeaBomber' ) ,
-	self:recall( self.ai.TaskAirHST,'SeaTorpedoBomber' ) ,
-	self:recall( self.ai.TaskAirHST,'ConSeaAir' ) ,
-	self:recall( self.ai.TaskAirHST,'ScoutSeaAir' ) ,
-	self:recall( self.ai.TaskAirHST,'SeaFighter' ) ,
-	self:recall( self.ai.TaskAirHST,'SeaAirRaider' ) ,
+	self:call( self.ai.TaskAirHST,'SeaBomber' ) ,
+	self:call( self.ai.TaskAirHST,'SeaTorpedoBomber' ) ,
+	self:call( self.ai.TaskAirHST,'ConSeaAir' ) ,
+	self:call( self.ai.TaskAirHST,'ScoutSeaAir' ) ,
+	self:call( self.ai.TaskAirHST,'SeaFighter' ) ,
+	self:call( self.ai.TaskAirHST,'SeaAirRaider' ) ,
 } end
 
 function TasksHST:anyLvl2ShipYard()  return  {
-	self:recall( self.ai.TaskShpHST,'Lvl2ShipRaider' ) ,
-	self:recall( self.ai.TaskShpHST,'ConAdvSub' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl2ShipBattle' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl2AAShip' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl2ShipBreakthrough' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl2ShipMerl' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl2ShipAssist' ) ,
-	self:recall( self.ai.TaskShpHST,'Lvl2SubWar' ) ,
-	self:recall( self.ai.TaskShpHST,'MegaShip' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl2ShipRaider' ) ,
+	self:call( self.ai.TaskShpHST,'ConAdvSub' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl2ShipBattle' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl2AAShip' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl2ShipBreakthrough' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl2ShipMerl' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl2ShipAssist' ) ,
+	self:call( self.ai.TaskShpHST,'Lvl2SubWar' ) ,
+	self:call( self.ai.TaskShpHST,'MegaShip' ) ,
 } end
 
 function TasksHST:anyExperimental()  return  {
-	self:recall( self.ai.TaskBotHST,'Lvl3Raider' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl3Battle' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl3Merl' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl3Arty' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl3Breakthrough' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl3Raider' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl3Battle' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl3Merl' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl3Arty' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl3Breakthrough' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1BotLab()  return  {
-	self:recall( self.ai.TaskBotHST,'ConBot' ) ,
-	self:recall( self.ai.TaskBotHST,'RezBot1' ) ,
-	self:recall( self.ai.TaskBotHST,'ScoutBot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl1AABot' ) ,
+	self:call( self.ai.TaskBotHST,'ConBot' ) ,
+	self:call( self.ai.TaskBotHST,'RezBot1' ) ,
+	self:call( self.ai.TaskBotHST,'ScoutBot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl1AABot' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1VehPlant()  return  {
-	self:recall( self.ai.TaskVehHST,'Lvl1VehRaiderOutmoded' ) ,
-	self:recall( self.ai.TaskVehHST,'ConVehicle' ) ,
-	self:recall( self.ai.TaskVehHST,'ScoutVeh' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl1AAVeh' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl1VehRaiderOutmoded' ) ,
+	self:call( self.ai.TaskVehHST,'ConVehicle' ) ,
+	self:call( self.ai.TaskVehHST,'ScoutVeh' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl1AAVeh' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1AirPlant()  return  {
-	self:recall( self.ai.TaskAirHST,'ConAir' ) ,
-	self:recall( self.ai.TaskAirHST,'ScoutAir' ) ,
-	self:recall( self.ai.TaskAirHST,'Lvl1Fighter' ) ,
+	self:call( self.ai.TaskAirHST,'ConAir' ) ,
+	self:call( self.ai.TaskAirHST,'ScoutAir' ) ,
+	self:call( self.ai.TaskAirHST,'Lvl1Fighter' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1ShipYard()  return  {
-	self:recall( self.ai.TaskShpHST,'ConShip' ) ,
-	self:recall( self.ai.TaskShpHST,'ScoutShip' ) ,
+	self:call( self.ai.TaskShpHST,'ConShip' ) ,
+	self:call( self.ai.TaskShpHST,'ScoutShip' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl2BotLab()  return  {
 	-- Lvl2BotRaider' ) ,
-			self:recall( self.ai.TaskBotHST,'ConAdvBot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2AABot' ) ,
-	self:recall( self.ai.TaskBotHST,'Lvl2BotAssist' ) ,
+			self:call( self.ai.TaskBotHST,'ConAdvBot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2AABot' ) ,
+	self:call( self.ai.TaskBotHST,'Lvl2BotAssist' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl2VehPlant()  return  {
 	-- Lvl2VehRaider' ) ,
-			self:recall( self.ai.TaskVehHST,'Lvl2VehAssist' ) ,
-	self:recall( self.ai.TaskVehHST,'ConAdvVehicle' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2AAVeh' ) ,
+			self:call( self.ai.TaskVehHST,'Lvl2VehAssist' ) ,
+	self:call( self.ai.TaskVehHST,'ConAdvVehicle' ) ,
+	self:call( self.ai.TaskVehHST,'Lvl2AAVeh' ) ,
 } end
 
 -- fall back to these when a level 2 factory exists
