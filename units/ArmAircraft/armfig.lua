@@ -107,7 +107,7 @@ return {
 				soundstart = "Rocklit3",
 				startvelocity = 450,
 				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture2 = "trans",
 				tolerance = 12000,
 				tracks = true,
 				turnrate = 20000,

@@ -39,6 +39,7 @@ local resources = {
             largebeam			    = 'default/largelaserfalloff.tga',
             gunshotxl         = 'default/gunshotxl.tga',
 			      null              = 'PD/null.tga',
+            trans             = 'projectiletextures/trans.tga',
             
             fogdirty          = 'atmos/fogdirty.tga',
             rain              = 'atmos/rain.tga',
