@@ -529,7 +529,7 @@ function TaskEcoHST:EconomyFark()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if (self.ai.Energy.full < 0.3 or self.ai.realEnergy < 1.1)   then
 		unitName = self:WindSolar()
-	elseif self.self.ai.Energy.full > 0.9 and self.self.ai.Metal.capacity < 4000 then
+	elseif self.ai.Energy.full > 0.9 and self.ai.Metal.capacity < 4000 then
 		unitName = self:buildEstore1()
 	else
 		unitName = self:BuildMex()

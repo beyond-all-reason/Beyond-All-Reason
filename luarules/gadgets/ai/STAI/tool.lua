@@ -205,6 +205,23 @@ function Tool:pairsByKeys(t, f)
   return iter
 end
 
+
+function Tool:listself.ai.Tool:dictHasKey( value, list )
+	for k,v in pairs(list) do
+		if k == value then
+			return true
+		end
+	end
+	return false
+end
+
+function Tool:dictself.ai.Tool:dictHasKey( value, list )
+	if list[value] then
+		return true
+	end
+	return false
+end
+
 function Tool:CustomCommand(unit, cmdID, cmdParams)
 	local floats = api.vectorFloat()
 	for i = 1, #cmdParams do
@@ -224,7 +241,7 @@ function Tool:ThreatRange(unitName, groundAirSubmerged)
 	if self.ai.UnitiesHST.antinukeList[unitName] or self.ai.UnitiesHST.nukeList[unitName] or self.ai.UnitiesHST.bigPlasmaList[unitName] or self.ai.UnitiesHST.shieldList[unitName] then
 		return 0, 0
 	end
-	local utable = ai.self.ai.UnitiesHST.unitTable[unitName]
+	local utable = self.ai.UnitiesHST.unitTable[unitName]
 	if groundAirSubmerged == nil then
 		if utable.groundRange > utable.airRange and utable.groundRange > utable.submergedRange then
 			groundAirSubmerged = "ground"
@@ -280,7 +297,7 @@ function Tool:UnitWeaponLayerList(unitName)
 	local weaponLayers = unitWeaponLayers[unitName]
 	if weaponLayers then return weaponLayers end
 	weaponLayers = {}
-	local ut = ai.self.ai.UnitiesHST.unitTable[unitName]
+	local ut = self.ai.UnitiesHST.unitTable[unitName]
 	if not ut then
 		return weaponLayers
 	end
@@ -304,7 +321,7 @@ function Tool:UnitWeaponMtypeList(unitName)
 	if mtypes then
 		return mtypes
 	end
-	local utable = ai.self.ai.UnitiesHST.unitTable[unitName]
+	local utable = self.ai.UnitiesHST.unitTable[unitName]
 	mtypes = {}
 	if utable.groundRange > 0 then
 		table.insert(mtypes, "veh")

@@ -100,7 +100,7 @@ end
 
 function TasksHST:BuildSiegeIfNeeded(unitName)
 	if unitName == self.ai.UnitiesHST.DummyUnitName then return self.ai.UnitiesHST.DummyUnitName end
-	if IsSiegeEquipmentNeeded() then
+	if self:IsSiegeEquipmentNeeded() then
 		if self.ai.siegeCount < (self.ai.battleCount + self.ai.breakthroughCount) * 0.35 then
 			return unitName
 		end
@@ -110,7 +110,7 @@ end
 
 function TasksHST:BuildBreakthroughIfNeeded(unitName)
 	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
-	if IsSiegeEquipmentNeeded() then return unitName end
+	if self:IsSiegeEquipmentNeeded() then return unitName end
 	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
 	if mtype == "air" then
 		local bomberCounter = self.ai.bomberhst:GetCounter()

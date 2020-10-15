@@ -10,7 +10,6 @@ end
 
 local DebugDrawEnabled = false
 
-local mSqrt = math.sqrt
 local mFloor = math.floor
 local mCeil = math.ceil
 
@@ -25,13 +24,6 @@ local function PlotSquareDebug(x, z, size, color, label, filled)
 		pos2.x, pos2.z = x + halfSize, z + halfSize
 		map:DrawRectangle(pos1, pos2, color, label, filled, 8)
 	end
-end
-
-local function dist2d(x1, z1, x2, z2)
-	local xd = x1 - x2
-	local yd = z1 - z2
-	local dist = mSqrt(xd*xd + yd*yd)
-	return dist
 end
 
 local cellElmos = 256
@@ -107,7 +99,7 @@ function TargetHST:Value(unitName)
 end
 
 -- need to change because: amphibs can't be hurt by non-submerged threats in water, and can't be hurt by anything but ground on land
-local function CellValueThreat(unitName, cell)
+function TargetHST:CellValueThreat(unitName, cell)
 	if cell == nil then return 0, 0 end
 	local gas, weapons
 	if unitName == "ALL" then
@@ -654,7 +646,7 @@ function TargetHST:UpdateDebug()
 		local maxValue = 0
 		for cx, czz in pairs(self.cells) do
 			for cz, cell in pairs(czz) do
-				local value, threat = CellValueThreat("ALL", cell)
+				local value, threat = self:CellValueThreat("ALL", cell)
 				if threat > maxThreat then maxThreat = threat end
 				if value > maxValue then maxValue = value end
 			end
@@ -663,7 +655,7 @@ function TargetHST:UpdateDebug()
 			for cz, cell in pairs(czz) do
 				local x = cell.x * cellElmos - cellElmosHalf
 				local z = cell.z * cellElmos - cellElmosHalf
-				local value, threat = CellValueThreat("ALL", cell)
+				local value, threat = self:CellValueThreat("ALL", cell)
 				if value > 0 then
 					local g = value / maxValue
 					local b = 1 - g
@@ -825,7 +817,7 @@ function TargetHST:GetBestRaidCell(representative)
 	local bestDist = 99999
 	local cells
 	for i, cell in pairs(self.cellList) do
-		local value, threat, gas = CellValueThreat(rname, cell)
+		local value, threat, gas = self:CellValueThreat(rname, cell)
 		-- cells with other raiders in or nearby are better places to go for raiders
 		if cell.raiderHere then threat = threat - cell.raiderHere end
 		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
@@ -848,7 +840,7 @@ function TargetHST:RaidableCell(representative, position)
 	position = position or representative:GetPosition()
 	local cell = self:GetCellHere(position)
 	if not cell or cell.value == 0 then return end
-	local value, threat, gas = CellValueThreat(rname, cell)
+	local value, threat, gas = self:CellValueThreat(rname, cell)
 	-- cells with other raiders in or nearby are better places to go for raiders
 	if cell.raiderHere then threat = threat - cell.raiderHere end
 	if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
@@ -884,7 +876,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 	for i, cell in pairs(self.cellList) do
 		if cell.pos then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
-				local value, threat = CellValueThreat(name, cell)
+				local value, threat = self:CellValueThreat(name, cell)
 				local dist = self.ai.Tool:Distance(position, cell.pos)
 				if dist > highestDist then highestDist = dist end
 				if dist < lowestDist then lowestDist = dist end
@@ -948,7 +940,7 @@ function TargetHST:GetNearestAttackCell(representative, position, ourThreat)
 	for i, cell in pairs(self.cellList) do
 		if cell.pos then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
-				local value, threat = CellValueThreat(name, cell)
+				local value, threat = self:CellValueThreat(name, cell)
 				if threat <= ourThreat * 0.67 then
 					if value > 0 then
 						local dist = self.ai.Tool:Distance(position, cell.pos)
@@ -977,7 +969,7 @@ function TargetHST:GetBestNukeCell()
 	local bestValueThreat = 0
 	for i, cell in pairs(self.cellList) do
 		if cell.pos then
-			local value, threat = CellValueThreat("ALL", cell)
+			local value, threat = self:CellValueThreat("ALL", cell)
 			if value > minNukeValue then
 				local valuethreat = value + threat
 				if valuethreat > bestValueThreat then
@@ -1082,7 +1074,7 @@ function TargetHST:GetBestReclaimCell(representative, lookForEnergy)
 	local bestDist = 99999
 	local bestVulnerable
 	for i, cell in pairs(self.cellList) do
-		local value, threat, gas = CellValueThreat(rname, cell)
+		local value, threat, gas = self:CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
 			local canGo = self.ai.maphst:UnitCanGoHere(representative, cell.pos)
 			if not canGo then
@@ -1131,7 +1123,7 @@ function TargetHST:WreckToResurrect(representative, alsoDamagedUnits)
 	local bestDist = 99999
 	for i, cell in pairs(self.cellList) do
 		if #cell.resurrectables ~= 0 or (alsoDamagedUnits and cell.damagedUnits and #cell.damagedUnits > 0) then
-			local value, threat, gas = CellValueThreat(rname, cell)
+			local value, threat, gas = self:CellValueThreat(rname, cell)
 			if threat == 0 and cell.pos then
 				if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 					local dist = self.ai.Tool:Distance(rpos, cell.pos)
@@ -1196,7 +1188,7 @@ function TargetHST:NearestVulnerableCell(representative)
 	local bestDist = 99999
 	local weapons = self.ai.Tool:UnitWeaponLayerList(rname)
 	for i, cell in pairs(self.cellList) do
-		local value, threat, gas = CellValueThreat(rname, cell)
+		local value, threat, gas = self:CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				if CellVulnerable(cell, gas, weapons) ~= nil then
@@ -1242,7 +1234,7 @@ function TargetHST:ValueHere(position, unitOrName)
 	end
 	local cell, px, pz = self:GetCellHere(position)
 	if cell == nil then return 0, nil, uname end
-	local value, _ = CellValueThreat(uname, cell)
+	local value, _ = self:CellValueThreat(uname, cell)
 	return value, cell, uname
 end
 
@@ -1264,7 +1256,7 @@ function TargetHST:ThreatHere(position, unitOrName, adjacent)
 	end
 	local cell, px, pz = self:GetCellHere(position)
 	if cell == nil then return 0, nil, uname end
-	local value, threat = CellValueThreat(uname, cell)
+	local value, threat = self:CellValueThreat(uname, cell)
 	if adjacent then
 		for cx = px-1, px+1 do
 			if self.cells[cx] then
@@ -1272,7 +1264,7 @@ function TargetHST:ThreatHere(position, unitOrName, adjacent)
 					if not (cx == px and cz == pz) then
 						local c = self.cells[cx][cz]
 						if c then
-							local cvalue, cthreat = CellValueThreat(uname, c)
+							local cvalue, cthreat = self:CellValueThreat(uname, c)
 							threat = threat + cthreat
 						end
 					end
@@ -1342,10 +1334,10 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 			if x == px and z == pz then
 				-- don't move to the cell you're already in
 			else
-				local dist = dist2d(tx, tz, x, z) * cellElmos
+				local dist = self.ai.Tool:DistanceXZ(tx, tz, x, z) * cellElmos
 				if self.cells[x] ~= nil then
 					if self.cells[x][z] ~= nil then
-						local value, threat = CellValueThreat(uname, self.cells[x][z])
+						local value, threat = self:CellValueThreat(uname, self.cells[x][z])
 						if self.ai.UnitiesHST.raiderList[uname] then
 							-- self.cells with other raiders in or nearby are better places to go for raiders
 							if self.cells[x][z].raiderHere then threat = threat - self.cells[x][z].raiderHere end

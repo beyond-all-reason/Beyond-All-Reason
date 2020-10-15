@@ -15,7 +15,7 @@ local maxBuildSpeedDists = {}
 local function MaxBuildDist(unitName, speed)
 	local dist = maxBuildDists[unitName]
 	if not dist then
-		local ut = ai.self.ai.UnitiesHST.unitTable[unitName]
+		local ut = self.ai.UnitiesHST.unitTable[unitName]
 		if not ut then return 0 end
 		dist = math.sqrt(ut.metalCost)
 		maxBuildDists[unitName] = dist

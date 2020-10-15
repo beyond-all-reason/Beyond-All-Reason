@@ -6,23 +6,6 @@ function BehaviourFactory:Init()
 	self.scoutslist = {}
 end
 
---[[
-local function HasKey( value, list )
-	for k,v in pairs(list) do
-		if k == value then
-			return true
-		end
-	end
-	return false
-end]]
-
-local function HasKey( value, list )
-	if list[value] then
-		return true
-	end
-	return false
-end
-
 function BehaviourFactory:AddBehaviours(unit)
 	if unit == nil then
 		self.game:SendToConsole("Warning: Shard BehaviourFactory:AddBehaviours was asked to provide behaviours to a nil unit")
@@ -101,28 +84,28 @@ function BehaviourFactory:defaultBehaviours(unit)
 			end
 		end
 		table.insert(b, WardBST)
-	elseif self.ai.IsReclaimer(unit) then
+	elseif self.ai.ReclaimBST:IsReclaimer(unit) then
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else
-		if HasKey(un,self.ai.UnitiesHST.attackerlist)then
+		if self.ai.Tool:dictHasKey(un,self.ai.UnitiesHST.attackerlist)then
 			table.insert(b, AttackerBST)
 			-- if self.ai.UnitiesHST.battleList[un] or self.ai.UnitiesHST.breakthroughList[un] then
 				-- arty and merl don't make good defense
 				table.insert(b, DefendBST)
 			-- end
 		end
-		if HasKey(un,self.ai.UnitiesHST.raiderList) then
+		if self.ai.Tool:dictHasKey(un,self.ai.UnitiesHST.raiderList) then
 			table.insert(b, RaiderBST)
 			table.insert(b, ScoutBST)
 			if self.ai.UnitiesHST.unitTable[un].mtype ~= "air" then
 				table.insert(b, DefendBST)
 			end -- will only defend when scrambled by danger
 		end
-		if HasKey(un,self.ai.UnitiesHST.bomberList) then
+		if self.ai.Tool:dictHasKey(un,self.ai.UnitiesHST.bomberList) then
 			table.insert(b, BomberBST)
 		end
-		if HasKey(un,self.ai.UnitiesHST.scoutList)then
+		if self.ai.Tool:dictHasKey(un,self.ai.UnitiesHST.scoutList)then
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end
