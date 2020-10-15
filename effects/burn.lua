@@ -498,6 +498,34 @@ return {
       },
     },
   },
+  ["burnflame"] = {
+    flame = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      properties = {
+        airdrag            = 0.99,
+        colormap           = [[0 0 0.7 0.01   0.95 0.95 1 0.4  0.65 0.65 0.68 0.2   0.1 0.1 0.1 0.18   0.08 0.07 0.06 0.12   0 0 0 0.01]],
+        directional        = true,
+        emitrot            = 70,
+        emitrotspread      = 40,
+        emitvector         = [[0.3, -1, 0.3]],
+        gravity            = [[0, 0.24, 0]],
+        numparticles       = [[0.5 r0.60]],
+        particlelife       = 9,
+        particlelifespread = 9,
+        particlesize       = 3.3,
+        particlesizespread = 10,
+        particlespeed      = -1,
+        particlespeedspread = 0.6,
+        pos                = [[-2 r4, 20 r4, -2 r4]],
+        sizegrowth         = 1.5,
+        sizemod            = 0.93,
+        texture            = [[flame_alt2]],
+      },
+    },
+  },
 
 }
 
