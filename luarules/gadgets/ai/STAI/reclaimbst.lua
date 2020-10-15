@@ -1,12 +1,12 @@
-function IsReclaimer(unit)
-	local tmpName = unit:Internal():Name()
-	return (self.ai.UnitiesHST.reclaimerList[tmpName] or 0) > 0
-end
-
 ReclaimBST = class(Behaviour)
 
 function ReclaimBST:Name()
 	return "ReclaimBST"
+end
+
+function ReclaimBST:IsReclaimer(unit)
+	local tmpName = unit:Internal():Name()
+	return (self.ai.UnitiesHST.reclaimerList[tmpName] or 0) > 0
 end
 
 local CMD_RESURRECT = 125

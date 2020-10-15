@@ -385,20 +385,20 @@ function TaskQueueBST:LocationFilter(utype, value)
 		end
 	else
 		if self.ai.UnitiesHST.unitTable[value].isWeapon  then
-			if 	utype:Name() == BuildLLT(self) or
-				utype:Name() == BuildLightAA(self) or
-				utype:Name() == BuildLvl2PopUp(self) then
+			if 	utype:Name() == self.ai.TaskBuildHST:BuildLLT(self) or
+				utype:Name() == self.ai.TaskBuildHST:BuildLightAA(self) or
+				utype:Name() == self.ai.TaskBuildHST:BuildLvl2PopUp(self) then
 					p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
 					self.ai.buildsitehst:searchPosInList(self.map:GetMetalSpots(),utype, builder, 'losRadius',20)
-			elseif 	utype:Name() == BuildSpecialLT(self) or
-					utype:Name() == BuildSpecialLTOnly(self) or
-					utype:Name() == BuildMediumAA(self) or
-					utype:Name() == BuildHeavyAA(self)then
+			elseif 	utype:Name() == self.ai.TaskBuildHST:BuildSpecialLT(self) or
+					utype:Name() == self.ai.TaskBuildHST:BuildSpecialLTOnly(self) or
+					utype:Name() == self.ai.TaskBuildHST:BuildMediumAA(self) or
+					utype:Name() == self.ai.TaskBuildHST:BuildHeavyAA(self)then
 						p =  self.ai.buildsitehst:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
-			elseif 	utype:Name() == BuildHLT(self) or
-					utype:Name() == BuildHeavyishAA(self) or
-					utype:Name() == BuildExtraHeavyAA(self) or
-					utype:Name() == BuildTachyon(self) then
+			elseif 	utype:Name() == self.ai.TaskBuildHST:BuildHLT(self) or
+					utype:Name() == self.ai.TaskBuildHST:BuildHeavyishAA(self) or
+					utype:Name() == self.ai.TaskBuildHST:BuildExtraHeavyAA(self) or
+					utype:Name() == self.ai.TaskBuildHST:BuildTachyon(self) then
 				p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'isFactory',nil, 'losRadius',100)  or self.ai.buildsitehst:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, utype:Name()),utype, builder, 'losRadius',0)
 			elseif 	self.ai.UnitiesHST.unitTable[value].isPlasmaCannon then
 				if self.ai.UnitiesHST.unitTable[value].isPlasmaCannon < 4 then

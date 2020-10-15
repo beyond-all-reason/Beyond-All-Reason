@@ -19,7 +19,7 @@ function TaskExpHST:Lvl3Merl()
 	else
 		unitName = self.ai.UnitiesHST.DummyUnitName
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskExpHST:Lvl3Arty()
@@ -29,36 +29,36 @@ function TaskExpHST:Lvl3Arty()
 	else
 		unitName = "armvang"
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskExpHST:lv3Amp()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = "armshiva"
 	else
 		unitName = "armmar"
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskExpHST:Lvl3Breakthrough()
 	local unitName = ""
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildWithLimitedNumber("corkorg", 1)
+		unitName = self.ai.TasksHST:BuildWithLimitedNumber("corkorg", 1)
 		if unitName == self.ai.UnitiesHST.DummyUnitName then
-			unitName = BuildWithLimitedNumber("corjugg", 2)
+			unitName = self.ai.TasksHST:BuildWithLimitedNumber("corjugg", 2)
 		end
 		if unitName == self.ai.UnitiesHST.DummyUnitName then
 			unitName = "corkarg"
 		end
 	else
-		unitName = BuildWithLimitedNumber("armbanth", 5)
+		unitName = self.ai.TasksHST:BuildWithLimitedNumber("armbanth", 5)
 		if unitName == self.ai.UnitiesHST.DummyUnitName then
 			unitName = "armraz"
 		end
 	end
-	return BuildBreakthroughIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBreakthroughIfNeeded(unitName)
 end
 
 function TaskExpHST:lv3bigamp()
@@ -79,7 +79,7 @@ function TaskExpHST:Lvl3Raider()
 		unitName = "armmar"
 	end
 	EchoDebug(unitName)
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskExpHST:Lvl3Battle()
@@ -89,7 +89,7 @@ function TaskExpHST:Lvl3Battle()
 	else
 		unitName = "armraz"
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskExpHST:Lvl3Hov()
@@ -99,7 +99,7 @@ function TaskExpHST:Lvl3Hov()
 	else
 		unitName = "armlun"
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskExpHST:Lv3VehAmp()
@@ -113,7 +113,7 @@ function TaskExpHST:Lv3VehAmp()
 	else
 		unitName = "armcroc"
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 
@@ -124,5 +124,5 @@ function TaskExpHST:Lv3Special()
 	else
 		unitName = "armvang"
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end

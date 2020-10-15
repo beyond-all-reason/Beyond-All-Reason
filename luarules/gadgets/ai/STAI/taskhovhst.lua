@@ -17,8 +17,8 @@ function TaskHovHSTConHover()
 	else
 		unitName = "armch"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function TaskHovHSTHoverMerl()
@@ -28,7 +28,7 @@ function TaskHovHSTHoverMerl()
 	else
 		unitName = "armmh"
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskHovHSTHoverRaider()
@@ -38,7 +38,7 @@ function TaskHovHSTHoverRaider()
 	else
 		unitName = "armsh"
 	end
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskHovHSTHoverBattle()
@@ -48,7 +48,7 @@ function TaskHovHSTHoverBattle()
 	else
 		unitName = "armanac"
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskHovHSTHoverBreakthrough()
@@ -58,14 +58,14 @@ function TaskHovHSTHoverBreakthrough()
 	else
 		unitName = "armanac"
 	end
-	BuildBreakthroughIfNeeded(unitName)
+	self.ai.TasksHST:BuildBreakthroughIfNeeded(unitName)
 end
 
 function TaskHovHSTAAHover()
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		return BuildAAIfNeeded("corah")
+		return self.ai.TasksHST:BuildAAIfNeeded("corah")
 	else
-		return BuildAAIfNeeded("armah")
+		return self.ai.TasksHST:BuildAAIfNeeded("armah")
 	end
 end
 

@@ -101,7 +101,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			end
 		end
 		table.insert(b, WardBST)
-	elseif IsReclaimer(unit) then
+	elseif self.ai.IsReclaimer(unit) then
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else

@@ -22,8 +22,8 @@ function TaskBotHST:ConBot()
 	else
 		unitName = "armck"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function TaskBotHST:RezBot1()
@@ -33,8 +33,8 @@ function TaskBotHST:RezBot1()
 	else
 		unitName = "armrectr"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , ai.conUnitPerTypeLimit))
 end
 
 function TaskBotHST:Lvl1BotRaider()
@@ -44,7 +44,7 @@ function TaskBotHST:Lvl1BotRaider()
 	else
 		unitName = "armpw"
 	end
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl1BotBreakthrough()
@@ -54,7 +54,7 @@ function TaskBotHST:Lvl1BotBreakthrough()
 	else
 		unitName = "armwar"
 	end
-	return BuildBreakthroughIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBreakthroughIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl1BotBattle()
@@ -74,14 +74,14 @@ function TaskBotHST:Lvl1BotBattle()
 			unitName = "armrock"
 		end
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl1AABot()
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		return BuildAAIfNeeded("corcrash")
+		return self.ai.TasksHST:BuildAAIfNeeded("corcrash")
 	else
-		return BuildAAIfNeeded("armjeth")
+		return self.ai.TasksHST:BuildAAIfNeeded("armjeth")
 	end
 end
 
@@ -92,7 +92,7 @@ function TaskBotHST:ScoutBot()
 	else
 		unitName = "armflea"
 	end
-	return BuildWithLimitedNumber(unitName, 1)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
 end
 
 --LEVEL 2
@@ -104,8 +104,8 @@ function TaskBotHST:ConAdvBot()
 	else
 		unitName = "armack"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 3, ai.conUnitAdvPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 3, ai.conUnitAdvPerTypeLimit))
 end
 
 
@@ -116,8 +116,8 @@ function TaskBotHST:Lvl2BotAssist()
 	else
 		unitName = "armfark"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitPerTypeLimit))
 end
 
 function TaskBotHST:NewCommanders()
@@ -148,7 +148,7 @@ function TaskBotHST:Lvl2BotBreakthrough()
 	else
 		unitName = "armfboy"
 	end
-	return BuildBreakthroughIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBreakthroughIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl2BotArty()
@@ -158,7 +158,7 @@ function TaskBotHST:Lvl2BotArty()
 	else
 		unitName = "armfido"
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl2BotLongRange()
@@ -168,7 +168,7 @@ function TaskBotHST:Lvl2BotLongRange()
 	else
 		unitName = "armsnipe"
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl2BotRaider()
@@ -178,7 +178,7 @@ function TaskBotHST:Lvl2BotRaider()
 	else
 		unitName = "armfast"
 	end
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl2BotCorRaiderArmArty()
@@ -190,7 +190,7 @@ function TaskBotHST:Lvl2BotCorRaiderArmArty()
 end
 
 function TaskBotHST:Lvl2BotAllTerrain()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'cortermite'
 	else
@@ -206,11 +206,11 @@ function TaskBotHST:Lvl2BotBattle()
 	else
 		unitName = "armzeus"
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskBotHST:Lvl2BotMedium()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'corcan'
 	else
@@ -220,7 +220,7 @@ function TaskBotHST:Lvl2BotMedium()
 end
 
 function TaskBotHST:Lvl2AmphBot()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
 		unitName = 'coramph'
 	else
@@ -231,8 +231,8 @@ end
 
 function TaskBotHST:Lvl2AABot()
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		return BuildAAIfNeeded("coraak")
+		return self.ai.TasksHST:BuildAAIfNeeded("coraak")
 	else
-		return BuildAAIfNeeded("armaak")
+		return self.ai.TasksHST:BuildAAIfNeeded("armaak")
 	end
 end

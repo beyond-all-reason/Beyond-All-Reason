@@ -21,8 +21,8 @@ function TaskAirHST:ConAir()
 	else
 		unitName = "armca"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function TaskAirHST:Lvl1AirRaider()
@@ -32,7 +32,7 @@ function TaskAirHST:Lvl1AirRaider()
 	else
 		unitName = "armkam"
 	end
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl1Fighter()
@@ -42,7 +42,7 @@ function TaskAirHST:Lvl1Fighter()
 	else
 		unitName = "armfig"
 	end
-	return BuildAAIfNeeded(unitName)
+	return self.ai.TasksHST:BuildAAIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl1Bomber()
@@ -52,7 +52,7 @@ function TaskAirHST:Lvl1Bomber()
 	else
 		unitName = "armthund"
 	end
-	return BuildBomberIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:ScoutAir()
@@ -62,7 +62,7 @@ function TaskAirHST:ScoutAir()
 	else
 		unitName = "armpeep"
 	end
-	return BuildWithLimitedNumber(unitName, 1)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
 end
 
 --LEVEL 2
@@ -73,8 +73,8 @@ function TaskAirHST:ConAdvAir()
 	else
 		unitName = "armaca"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitAdvPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 function TaskAirHST:Lvl2Fighter()
@@ -84,7 +84,7 @@ function TaskAirHST:Lvl2Fighter()
 	else
 		unitName = "armhawk"
 	end
-	return BuildAAIfNeeded(unitName)
+	return self.ai.TasksHST:BuildAAIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl2AirRaider()
@@ -100,7 +100,7 @@ function TaskAirHST:Lvl2AirRaider()
 			unitName = "armbrawl"
 		end
 	end
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl2Bomber()
@@ -110,7 +110,7 @@ function TaskAirHST:Lvl2Bomber()
 	else
 		unitName = "armpnix"
 	end
-	return BuildBomberIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBomberIfNeeded(unitName)
 end
 
 
@@ -121,14 +121,14 @@ function TaskAirHST:Lvl2TorpedoBomber()
 	else
 		unitName = "armlance"
 	end
-	return BuildTorpedoBomberIfNeeded(unitName)
+	return self.ai.TasksHST:BuildTorpedoBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:MegaAircraft()
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		return BuildBreakthroughIfNeeded("corcrw")
+		return self.ai.TasksHST:BuildBreakthroughIfNeeded("corcrw")
 	else
-		return BuildBreakthroughIfNeeded("armliche")
+		return self.ai.TasksHST:BuildBreakthroughIfNeeded("armliche")
 	end
 end
 
@@ -140,7 +140,7 @@ function TaskAirHST:ScoutAdvAir()
 	else
 		unitName = "armawac"
 	end
-	return BuildWithLimitedNumber(unitName, 1)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
 end
 
 --SEAPLANE
@@ -151,8 +151,8 @@ function TaskAirHST:ConSeaAir()
 	else
 		unitName = "armcsa"
 	end
-	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ai.conUnitAdvPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 function TaskAirHST:SeaBomber()
@@ -162,7 +162,7 @@ function TaskAirHST:SeaBomber()
 	else
 		unitName = "armsb"
 	end
-	return BuildBomberIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:SeaTorpedoBomber()
@@ -172,7 +172,7 @@ function TaskAirHST:SeaTorpedoBomber()
 	else
 		unitName = "armseap"
 	end
-	return BuildTorpedoBomberIfNeeded(unitName)
+	return self.ai.TasksHST:BuildTorpedoBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:SeaFighter()
@@ -182,7 +182,7 @@ function TaskAirHST:SeaFighter()
 	else
 		unitName = "armsfig"
 	end
-	return BuildAAIfNeeded(unitName)
+	return self.ai.TasksHST:BuildAAIfNeeded(unitName)
 end
 
 function TaskAirHST:SeaAirRaider()
@@ -192,7 +192,7 @@ function TaskAirHST:SeaAirRaider()
 	else
 		unitName = "armsaber"
 	end
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskAirHST:ScoutSeaAir()
@@ -202,7 +202,7 @@ function TaskAirHST:ScoutSeaAir()
 	else
 		unitName = "armsehak"
 	end
-	return BuildWithLimitedNumber(unitName, 1)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
 end
 
 --AIRPAD
@@ -210,7 +210,7 @@ function TaskAirHST:AirRepairPadIfNeeded()
 	local tmpUnitName = self.ai.UnitiesHST.DummyUnitName
 
 	-- only make air pads if the team has at least 1 air fac
-	if CountOwnUnits("corap") > 0 or CountOwnUnits("armap") > 0 or CountOwnUnits("coraap") > 0 or CountOwnUnits("armaap") > 0 then
+	if self.ai.TasksHST:CountOwnUnits("corap") > 0 or self.ai.TasksHST:CountOwnUnits("armap") > 0 or self.ai.TasksHST:CountOwnUnits("coraap") > 0 or self.ai.TasksHST:CountOwnUnits("armaap") > 0 then
 		if self.side == self.ai.UnitiesHST.CORESideName then
 			tmpUnitName = "corasp"
 		else
@@ -218,5 +218,5 @@ function TaskAirHST:AirRepairPadIfNeeded()
 		end
 	end
 
-	return BuildWithLimitedNumber(tmpUnitName, ai.conUnitPerTypeLimit)
+	return self.ai.TasksHST:BuildWithLimitedNumber(tmpUnitName, ai.conUnitPerTypeLimit)
 end

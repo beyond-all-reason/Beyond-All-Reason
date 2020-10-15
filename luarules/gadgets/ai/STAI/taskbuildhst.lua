@@ -24,12 +24,12 @@ function TaskBuildHST:BuildLLT(Builder)
 			unitName = "armllt"
 		end
 		local unit = Builder.unit:Internal()
-	return GroundDefenseIfNeeded(unitName)
+	return self.ai.TasksHST:GroundDefenseIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildSpecialLT(Builder)
 	local unitName = self.ai.UnitiesHST.DummyUnitName
-	if IsAANeeded() then
+	if self.ai.TasksHST:IsAANeeded() then
 		-- pop-up turrets are protected against bombs
 		if self.side == self.ai.UnitiesHST.CORESideName then
 			unitName = "cormaw"
@@ -44,7 +44,7 @@ function TaskBuildHST:BuildSpecialLT(Builder)
 		end
 	end
 	local unit = Builder.unit:Internal()
-	return GroundDefenseIfNeeded(unitName)
+	return self.ai.TasksHST:GroundDefenseIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildSpecialLTOnly(Builder)
@@ -55,7 +55,7 @@ function TaskBuildHST:BuildSpecialLTOnly(Builder)
 		unitName = "armbeamer"
 	end
 	local unit = Builder.unit:Internal()
-	return GroundDefenseIfNeeded(unitName)
+	return self.ai.TasksHST:GroundDefenseIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildHLT(Builder)
@@ -66,7 +66,7 @@ function TaskBuildHST:BuildHLT(Builder)
 		unitName = "armhlt"
 	end
 	local unit = Builder.unit:Internal()
-	return GroundDefenseIfNeeded(unitName)
+	return self.ai.TasksHST:GroundDefenseIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildDepthCharge(Builder)
@@ -76,7 +76,7 @@ function TaskBuildHST:BuildDepthCharge(Builder)
 	else
 		unitName = "armdl"
 	end
-	return BuildTorpedoIfNeeded(unitName)
+	return self.ai.TasksHST:BuildTorpedoIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildFloatHLT(Builder)
@@ -87,7 +87,7 @@ function TaskBuildHST:BuildFloatHLT(Builder)
 		unitName = "armfhlt"
 	end
 	local unit = Builder.unit:Internal()
-	--return GroundDefenseIfNeeded(unitName)
+	--return self.ai.TasksHST:GroundDefenseIfNeeded(unitName)
 	return unitName
 end
 
@@ -100,7 +100,7 @@ function TaskBuildHST:BuildLvl2PopUp(Builder)
 		unitName = "armpb"
 	end
 	local unit = Builder.unit:Internal()
-	return GroundDefenseIfNeeded(unitName)
+	return self.ai.TasksHST:GroundDefenseIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildTachyon(Builder)
@@ -111,7 +111,7 @@ function TaskBuildHST:BuildTachyon(Builder)
 		unitName = "armanni"
 	end
 	local unit = Builder.unit:Internal()
-	return GroundDefenseIfNeeded(unitName)
+	return self.ai.TasksHST:GroundDefenseIfNeeded(unitName)
 end
 
 -- torpedos
@@ -123,7 +123,7 @@ function TaskBuildHST:BuildLightTorpedo()
 	else
 		unitName = "armtl"
 	end
-	return BuildTorpedoIfNeeded(unitName)
+	return self.ai.TasksHST:BuildTorpedoIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildPopTorpedo()
@@ -133,7 +133,7 @@ function TaskBuildHST:BuildPopTorpedo()
 	else
 		unitName = "armptl"
 	end
-	return BuildTorpedoIfNeeded(unitName)
+	return self.ai.TasksHST:BuildTorpedoIfNeeded(unitName)
 end
 
 function TaskBuildHST:BuildHeavyTorpedo()
@@ -143,7 +143,7 @@ function TaskBuildHST:BuildHeavyTorpedo()
 	else
 		unitName = "armatl"
 	end
-	return BuildTorpedoIfNeeded(unitName)
+	return self.ai.TasksHST:BuildTorpedoIfNeeded(unitName)
 end
 
 --AA
@@ -154,9 +154,9 @@ end
 function TaskBuildHST:BuildLightAA()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildAAIfNeeded("corrl")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("corrl")
 	else
-		unitName = BuildAAIfNeeded("armrl")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("armrl")
 	end
 	return unitName
 end
@@ -164,9 +164,9 @@ end
 function TaskBuildHST:BuildFloatLightAA()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildAAIfNeeded("corfrt")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("corfrt")
 	else
-		unitName = BuildAAIfNeeded("armfrt")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("armfrt")
 	end
 	return unitName
 end
@@ -174,9 +174,9 @@ end
 function TaskBuildHST:BuildMediumAA()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildAAIfNeeded("cormadsam")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("cormadsam")
 	else
-		unitName = BuildAAIfNeeded("armferret")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("armferret")
 	end
 	return unitName
 end
@@ -184,9 +184,9 @@ end
 function TaskBuildHST:BuildHeavyishAA()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildAAIfNeeded("corerad")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("corerad")
 	else
-		unitName = BuildAAIfNeeded("armcir")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("armcir")
 	end
 	return unitName
 end
@@ -196,9 +196,9 @@ end
 function TaskBuildHST:BuildHeavyAA()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildAAIfNeeded("corflak")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("corflak")
 	else
-		unitName = BuildAAIfNeeded("armflak")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("armflak")
 	end
 	return unitName
 end
@@ -206,9 +206,9 @@ end
 function TaskBuildHST:BuildFloatHeavyAA()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildAAIfNeeded("corenaa")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("corenaa")
 	else
-		unitName = BuildAAIfNeeded("armfflak")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("armfflak")
 	end
 	return unitName
 end
@@ -216,9 +216,9 @@ end
 function TaskBuildHST:BuildExtraHeavyAA()
 	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		unitName = BuildAAIfNeeded("corscreamer")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("corscreamer")
 	else
-		unitName = BuildAAIfNeeded("armmercury")
+		unitName = self.ai.TasksHST:BuildAAIfNeeded("armmercury")
 	end
 	return unitName
 end
@@ -248,7 +248,7 @@ function TaskBuildHST:BuildFloatRadar()
 end
 
 function TaskBuildHST:BuildLvl1Jammer()
-	if not IsJammerNeeded() then return self.ai.UnitiesHST.DummyUnitName end
+	if not self.ai.TasksHST:IsJammerNeeded() then return self.ai.UnitiesHST.DummyUnitName end
 		if self.side == self.ai.UnitiesHST.CORESideName then
 			return "corjamt"
 		else
@@ -279,7 +279,7 @@ function TaskBuildHST:BuildAdvancedRadar()
 end
 
 function TaskBuildHST:BuildLvl2Jammer()
-	if not IsJammerNeeded() then return self.ai.UnitiesHST.DummyUnitName end
+	if not self.ai.TasksHST:IsJammerNeeded() then return self.ai.UnitiesHST.DummyUnitName end
 	if self.side == self.ai.UnitiesHST.CORESideName then
 		return "corshroud"
 	else
@@ -302,14 +302,14 @@ end
 --NUKE
 
 function TaskBuildHST:BuildAntinuke()
-	if IsAntinukeNeeded() then
+	if self.ai.TasksHST:IsAntinukeNeeded() then
 		local unitName = self.ai.UnitiesHST.DummyUnitName
 		if self.side == self.ai.UnitiesHST.CORESideName then
 			unitName = "corfmd"
 		else
 			unitName = "armamd"
 		end
-		return BuildWithLimitedNumber(unitName, 1)
+		return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
 	end
 	return self.ai.UnitiesHST.DummyUnitName
 end
@@ -321,12 +321,12 @@ function TaskBuildHST:BuildNuke()
 	else
 		unitName = "armsilo"
 	end
-	return BuildWithLimitedNumber(unitName, 1)--ai.overviewhst.nukeLimit)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)--ai.overviewhst.nukeLimit)
 end
 
 function TaskBuildHST:BuildNukeIfNeeded()
-	if IsNukeNeeded() then
-		return BuildNuke()
+	if self.ai.TasksHST:IsNukeNeeded() then
+		return self:BuildNuke()
 	end
 end
 
@@ -337,7 +337,7 @@ function TaskBuildHST:BuildTacticalNuke()
 	else
 		unitName = "armemp"
 	end
-	return BuildWithLimitedNumber(unitName, ai.overviewhst.tacticalNukeLimit)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, ai.overviewhst.tacticalNukeLimit)
 end
 
 --PLASMA
@@ -369,7 +369,7 @@ function TaskBuildHST:BuildHeavyPlasma()
 	else
 		unitName = "armbrtha"
 	end
-	return BuildWithLimitedNumber(unitName, ai.overviewhst.heavyPlasmaLimit)
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, ai.overviewhst.heavyPlasmaLimit)
 end
 
 function TaskBuildHST:BuildLol()
@@ -385,7 +385,7 @@ end
 --plasma deflector
 
 function TaskBuildHST:BuildShield()
-	if IsShieldNeeded() then
+	if self.ai.TasksHST:IsShieldNeeded() then
 		local unitName = self.ai.UnitiesHST.DummyUnitName
 		if self.side == self.ai.UnitiesHST.CORESideName then
 			unitName = "corgate"
@@ -437,11 +437,11 @@ end
 
 function TaskBuildHST:CommanderAA(Builder)
 	local unitName = self.ai.UnitiesHST.DummyUnitName
-	if IsAANeeded() then
+	if self.ai.TasksHST:IsAANeeded() then
 		if ai.maphst:IsUnderWater(Builder.unit:Internal():GetPosition()) then
-			unitName = BuildFloatLightAA(Builder)
+			unitName = self:BuildFloatLightAA(Builder)
 		else
-			unitName = BuildLightAA(Builder)
+			unitName = self:BuildLightAA(Builder)
 		end
 	end
 	return unitName

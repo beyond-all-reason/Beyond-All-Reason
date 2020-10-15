@@ -369,7 +369,7 @@ function TaskEcoHST:AmphibiousEconomy(worker)
 end
 
 function TaskEcoHST:Economy0()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full > 0.1 and (self.ai.Metal.income < 1 or self.ai.Metal.full < 0.3) then
 		unitName = self:BuildMex()
 	elseif self.ai.Energy.full > 0.9 and self.ai.Energy.income > 400  and self.ai.Metal.reserves > 100 and self.ai.Energy.capacity < 7000 then
@@ -407,7 +407,7 @@ function TaskEcoHST:Economy0uw()
 end
 
 function TaskEcoHST:Economy1()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full > 0.5 and self.ai.Metal.full > 0.3 and self.ai.Metal.full < 0.7 and self.ai.Metal.income > 30 then
 		unitName = self:SpecialMex()
 	elseif (self.ai.Energy.full > 0.5  and self.ai.Metal.full > 0.3 and self.ai.Metal.income > 10 and self.ai.Energy.income > 100) then
@@ -449,7 +449,7 @@ function TaskEcoHST:EconomyUnderWater()
 end
 
 function TaskEcoHST:AdvEconomy()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full > 0.9 and self.ai.Energy.income > 3000 and self.ai.Metal.reserves > 1000 and self.ai.Energy.capacity < 40000 then
 		unitName = self:buildEstore2()
 	elseif self.ai.Metal.full > 0.8 and self.ai.Metal.income > 100 and self.ai.Metal.capacity < 20000 and self.ai.Energy.full > 0.3 then
@@ -483,7 +483,7 @@ function TaskEcoHST:AdvEconomyUnderWater()
 end
 
 function TaskEcoHST:EconomySeaplane()
-	local unitName=self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.ai.Energy.full>0.7 and self.ai.Energy.income > 2000 and self.ai.Metal.income>self.ai.Metal.usage and self.ai.Energy.capacity < 60000  then
 		unitName = self:buildEstore2()
 	elseif self.ai.Metal.full>0.9 and self.ai.Metal.income>30 and self.ai.Metal.capacity < 30000 and self.ai.Energy.full > 0.3 then
@@ -498,9 +498,9 @@ function TaskEcoHST:EconomySeaplane()
 end
 
 function TaskEcoHST:EconomyBattleEngineer()
-        local unitName=self.ai.UnitiesHST.DummyUnitName
+        local unitName = self.ai.UnitiesHST.DummyUnitName
 	if self.ai.realEnergy > 1.25 and self.ai.realMetal > 1.1 then
-		unitName= self:NanoTurret()
+		unitName =  self:NanoTurret()
 	elseif self.ai.Energy.full < 0.1 and self.ai.Metal.full > 0.1 then
 		unitName = self:Solar()
 	elseif self.ai.Metal.full < 0.2 then

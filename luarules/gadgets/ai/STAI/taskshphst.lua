@@ -21,8 +21,8 @@ function TaskShpHST:ConShip()
 	else
 		unitName = "armcs"
 	end
-	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('correcl') --need count sub too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 5) + 2, self.ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName) + self.ai.TasksHST:GetMtypedLv('correcl') --need count sub too
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 5) + 2, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskShpHST:RezSub1()
@@ -32,8 +32,8 @@ function TaskShpHST:RezSub1()
 	else
 		unitName = "armrecl"
 	end
-	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armcs') --need count shp too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 2, self.ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName) + self.ai.TasksHST:GetMtypedLv('armcs') --need count shp too
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 2, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskShpHST:Lvl1ShipRaider()
@@ -43,7 +43,7 @@ function TaskShpHST:Lvl1ShipRaider()
 	else
 		unitName = "armsub"
 	end
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl1ShipDestroyerOnly()
@@ -53,8 +53,8 @@ function TaskShpHST:Lvl1ShipDestroyerOnly()
 	else
 		unitName = "armroy"
 	end
-	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armcs')
-	return BuildWithLimitedNumber(unitName,mtypedLv * 0.7)
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName) + self.ai.TasksHST:GetMtypedLv('armcs')
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName,mtypedLv * 0.7)
 end
 
 function TaskShpHST:Lvl1ShipBattle()
@@ -72,7 +72,7 @@ function TaskShpHST:Lvl1ShipBattle()
 			unitName = "armroy"
 		end
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskShpHST:ScoutShip()
@@ -82,9 +82,9 @@ function TaskShpHST:ScoutShip()
 	else
 		unitName = "armpt"
 	end
-	local scout = BuildWithLimitedNumber(unitName, 1)
+	local scout = self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
 	if scout == self.ai.UnitiesHST.DummyUnitName then
-		return BuildAAIfNeeded(unitName)
+		return self.ai.TasksHST:BuildAAIfNeeded(unitName)
 	else
 		return unitName
 	end
@@ -98,8 +98,8 @@ function TaskShpHST:ConAdvSub()
 	else
 		unitName = "armacsub"
 	end
-	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('cormls') --need count shp too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, self.ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName) + self.ai.TasksHST:GetMtypedLv('cormls') --need count shp too
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskShpHST:Lvl2ShipAssist()
@@ -109,8 +109,8 @@ function TaskShpHST:Lvl2ShipAssist()
 	else
 		unitName = "armmls"
 	end
-	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('coracsub') --need count sub too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, self.ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName) + self.ai.TasksHST:GetMtypedLv('coracsub') --need count sub too
+	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskShpHST:Lvl2ShipBreakthrough()
@@ -120,7 +120,7 @@ function TaskShpHST:Lvl2ShipBreakthrough()
 	else
 		unitName = "armbats"
 	end
-	return BuildBreakthroughIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBreakthroughIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl2ShipMerl()
@@ -130,7 +130,7 @@ function TaskShpHST:Lvl2ShipMerl()
 	else
 		unitName = "armmship"
 	end
-	return BuildSiegeIfNeeded(unitName)
+	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskShpHST:MegaShip()
@@ -140,7 +140,7 @@ function TaskShpHST:MegaShip()
 	else
 		unitName = "armepoch"
 	end
-	return BuildBreakthroughIfNeeded(BuildWithLimitedNumber(unitName, 1))
+	return self.ai.TasksHST:BuildBreakthroughIfNeeded(self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1))
 end
 
 function TaskShpHST:Lvl2ShipRaider()
@@ -151,7 +151,7 @@ function TaskShpHST:Lvl2ShipRaider()
 			unitName = "armsubk"
 		end
 
-	return BuildRaiderIfNeeded(unitName)
+	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl2SubWar()
@@ -162,7 +162,7 @@ function TaskShpHST:Lvl2SubWar()
 			unitName = "armserp"
 		end
 
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl2ShipBattle()
@@ -172,14 +172,14 @@ function TaskShpHST:Lvl2ShipBattle()
 	else
 		unitName = "armcrus"
 	end
-	return BuildBattleIfNeeded(unitName)
+	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl2AAShip()
 	if self.side == self.ai.UnitiesHST.CORESideName then
-		return BuildAAIfNeeded("corarch")
+		return self.ai.TasksHST:BuildAAIfNeeded("corarch")
 	else
-		return BuildAAIfNeeded("armaas")
+		return self.ai.TasksHST:BuildAAIfNeeded("armaas")
 	end
 end
 
