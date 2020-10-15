@@ -598,7 +598,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				ScavSafeAreaSize = math.ceil(250 * spawnmultiplier * (teamcount/2))
 				ScavSafeAreaGenerator = 0
 			end
-			ScavSafeAreaSize = math.ceil(ScavSafeAreaSize * 1.25)
+			ScavSafeAreaSize = math.ceil(ScavSafeAreaSize * 2)
 			ScavSafeAreaGenerator = ScavSafeAreaGenerator + 1
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
 			ScavSafeAreaMinX = posx - ScavSafeAreaSize

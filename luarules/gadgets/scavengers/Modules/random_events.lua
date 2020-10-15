@@ -3,6 +3,7 @@ for i = 1,#RandomEventsFileList do
 	VFS.Include(RandomEventsFileList[i])
 	Spring.Echo("Scav Random Events Directory: " ..RandomEventsFileList[i])
 end
+local FullRandomEventsList = RandomEventsList
 
 function RandomEventTrigger(CurrentFrame)
 	if not LastRandomEventFrame then LastRandomEventFrame = 1 end
@@ -12,9 +13,19 @@ function RandomEventTrigger(CurrentFrame)
 	
 	if CurrentFrame - LastRandomEventFrame > RandomEventMinimumDelay then
 		if RandomEventDice == 1 then
-			local Event = RandomEventsList[math_random(1,#RandomEventsList)]
+			if #RandomEventsList > 1 then
+				EventNumber = math_random(1,#RandomEventsList)
+			else
+				EventNumber = 1
+			end
+			local Event = RandomEventsList[EventNumber]
 			Event(CurrentFrame)
 			LastRandomEventFrame = CurrentFrame
+			table.remove(RandomEventsList, EventNumber)
+			if #RandomEventsList == 0 then
+				RandomEventsList = FullRandomEventsList
+			end
+			EventNumber = nil
 		end
 	end
 end
