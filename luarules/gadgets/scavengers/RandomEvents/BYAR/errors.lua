@@ -58,20 +58,15 @@ function RandomEventBlueScreenOfDeath(CurrentFrame)
 		local unitID = scavUnits[y]
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
-		if unitName ~= "armcomboss_scav" or unitName ~= "corcomboss_scav" then										
+		if unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" then										
 			local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(unitID)
-			local r = math.random(1,100)
-			if r <= 80 or unitName == "armcom" or unitName == "corcom" or unitName == "armcom_scav" or unitName == "corcom_scav" then
-				local paralyzemult = (math.random(180,360))*0.025
-				if uparalyze <= umaxhealth then
-					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
-					Spring.SetUnitHealth(unitID, {paralyze = paralyzedamage})
-				else
-					local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
-					Spring.SetUnitHealth(unitID, {paralyze = paralyzedamage})
-				end
+			local paralyzemult = (math.random(15,45))*0.025
+			if uparalyze <= umaxhealth then
+				local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+				Spring.SetUnitHealth(unitID, {paralyze = paralyzedamage})
 			else
-				Spring.DestroyUnit(unitID, false, false)
+				local paralyzedamage = (umaxhealth*paralyzemult)+uparalyze
+				Spring.SetUnitHealth(unitID, {paralyze = paralyzedamage})
 			end
 		end
 	end
