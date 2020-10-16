@@ -2726,7 +2726,7 @@ function init()
 		},
 
 		{ id = "guishader", group = "ui", basic = true, widget = "GUI Shader", name = widgetOptionColor .. "   blur", type = "bool", value = GetWidgetToggleValue("GUI Shader"), description = 'Blurs the world under every user interface element' },
-		{ id = "guishaderintensity", group = "ui", name = widgetOptionColor .. "      intensity", type = "slider", min = 0.001, max = 0.003, step = 0.0001, value = 0.002, description = '',
+		{ id = "guishaderintensity", group = "ui", name = widgetOptionColor .. "      intensity", type = "slider", min = 0.001, max = 0.005, step = 0.0001, value = 0.002, description = '',
 		  onload = function(i)
 			  loadWidgetData("GUI Shader", "guishaderintensity", { 'blurIntensity' })
 		  end,
