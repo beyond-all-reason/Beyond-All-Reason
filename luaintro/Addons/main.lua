@@ -12,8 +12,9 @@ if addon.InGetInfo then
 	}
 end
 
-local showTips = true
-local showTipBackground = true
+local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
+
+local showTipBackground = true	-- false = tips shown below the loadbar
 
 local tips = {
 	"Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
@@ -168,8 +169,8 @@ end
 
 local height = math.floor(vsy * 0.038) -- loadbar height (in pixels)
 
-local posY = math.floor((0.085 * vsy)+0.5) / vsy
-local posX = math.floor(((((posY*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
+local posYorg = math.floor((0.085 * vsy)+0.5) / vsy
+local posX = math.floor(((((posYorg*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
 
 local borderSize = math.max(1, math.floor(vsy * 0.0027))
 
@@ -345,12 +346,19 @@ function addon.LoadProgress(message, replaceLastLine)
 end
 
 function addon.DrawLoadScreen()
+	local posY = posYorg
 
 	-- tip
 	local lineHeight = font2Size * 1.15
 	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
 	local tipLines = lines(wrappedTipText)
 	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.53) + ((lineHeight * #tipLines)/vsy)
+	if showTips and not showTipBackground then
+		if #tipLines > 1 then
+			posY = posY + ((lineHeight/vsy)*(#tipLines-1))
+		end
+		tipPosYtop = posY
+	end
 
 	if guishader then
 		if not blurShader then
@@ -436,6 +444,11 @@ function addon.DrawLoadScreen()
 
 	local loadvalue = math.max(0, loadProgress) * (1-posX-posX)
 	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
+
+	-- fade away bottom
+	if showTips and not showTipBackground then
+		gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, posY+(height/vsy), {0,0,0,0}, {0,0,0,0.55})
+	end
 
 	-- border
 	gl.Color(0,0,0,0.6)

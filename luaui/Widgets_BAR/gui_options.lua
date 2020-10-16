@@ -3396,6 +3396,12 @@ function init()
 		  end,
 		},
 
+		{ id = "loadscreen_tips", group = "ui", name = "Loadscreen tips", type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = "Countdown time before it switches player",
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("loadscreen_tips", (value and 1 or 0))
+		  end,
+		},
+
 
 		-- GAME
 		{ id = "networksmoothing", restart = true, basic = true, group = "game", name = "Network smoothing", type = "bool", value = useNetworkSmoothing, description = "Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nChanges will be applied next game",
