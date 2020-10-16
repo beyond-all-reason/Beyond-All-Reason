@@ -118,7 +118,7 @@ local function CheckHardware()
 end
 local guishader = CheckHardware()
 
-local blurIntensity = 0.004
+local blurIntensity = 0.007
 local blurShader
 local screencopy
 local blurtex
@@ -384,7 +384,7 @@ function addon.DrawLoadScreen()
 			gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 			gl.UseShader(0)
 
-			if blurIntensity >= 0.0016 then
+			if blurIntensity >= 0.0015 then
 				gl.UseShader(blurShader)
 				gl.Uniform(intensityLoc, blurIntensity*0.5)
 
@@ -397,7 +397,18 @@ function addon.DrawLoadScreen()
 
 			if blurIntensity >= 0.003 then
 				gl.UseShader(blurShader)
-				gl.Uniform(intensityLoc, blurIntensity*0.5)
+				gl.Uniform(intensityLoc, blurIntensity*0.25)
+
+				gl.Texture(blurtex)
+				gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+				gl.Texture(blurtex2)
+				gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+				gl.UseShader(0)
+			end
+
+			if blurIntensity >= 0.005 then
+				gl.UseShader(blurShader)
+				gl.Uniform(intensityLoc, blurIntensity*0.125)
 
 				gl.Texture(blurtex)
 				gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
@@ -487,13 +498,13 @@ function addon.DrawLoadScreen()
 
 		-- tip background
 		if showTipBackground then
-			gl.Color(0,0,0,(blurShader and 0.22 or 0.33))
+			gl.Color(0,0,0,(blurShader and 0.22 or 0.3))
 			gl.Rect(posX-(borderSize/vsx), posY+(height/vsy)+(borderSize/vsy), 1-posX+(borderSize/vsx), tipPosYtop)
 
-			gl.BeginEnd(GL.QUADS, gradientv, posX-(borderSize/vsx), posY+(height/vsy)+(borderSize/vsy), 1-posX+(borderSize/vsx), tipPosYtop, {1,1,1,0.07}, {1,1,1,0})
-			gl.BeginEnd(GL.QUADS, gradientv, posX-(borderSize/vsx), tipPosYtop-(height/vsy), 1-posX+(borderSize/vsx), tipPosYtop, {1,1,1,0.07}, {1,1,1,0})
-			gl.Color(0,0,0,0.1)
-			gl.Rect(posX, posY+(height/vsy)+(borderSize/vsy), 1-posX, tipPosYtop-(borderSize/vsy))
+			gl.BeginEnd(GL.QUADS, gradientv, posX-(borderSize/vsx), posY+(height/vsy)+(borderSize/vsy), 1-posX+(borderSize/vsx), tipPosYtop, {1,1,1,0.045}, {1,1,1,0})
+			--gl.BeginEnd(GL.QUADS, gradientv, posX-(borderSize/vsx), tipPosYtop-(height/vsy), 1-posX+(borderSize/vsx), tipPosYtop, {1,1,1,0.04}, {1,1,1,0})
+			--gl.Color(0,0,0,0.1)
+			--gl.Rect(posX, posY+(height/vsy)+(borderSize/vsy), 1-posX, tipPosYtop-(borderSize/vsy))
 		end
 
 		-- tip text
