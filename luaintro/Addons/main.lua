@@ -137,6 +137,15 @@ if wsx > ssx or wsy > ssy then
 
 end
 
+function lines(str)
+	local t = {}
+	local function helper(line)
+		t[#t + 1] = line
+		return ""
+	end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
+end
 
 function addon.LoadProgress(message, replaceLastLine)
 	lastLoadMessage = message
@@ -463,16 +472,20 @@ function addon.DrawLoadScreen()
 		font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
 	gl.PopMatrix()
 
+	-- tip text
 	if showTips then
-		local maxWidth = vsx	-- ?!
-		local wrappedTipText, numLines = font2:WrapText(randomTip, maxWidth)
+		local lineHeight = font2Size * 1.15
+		local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.3)
+		local tipLines = lines(wrappedTipText)
 		gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, (posY*0.88*vsy)+(height) + (posY*vsy) + (font2Size * (numLines-1)), 0)
+		gl.Translate(vsx/2, (posY*0.88*vsy)+(height) + (posY*vsy) + (lineHeight * (#tipLines-1)), 0)
 		local barTextSize = height*0.74
 		font2:SetTextColor(1,1,1,1)
 		font2:SetOutlineColor(0,0,0,0.8)
-		font2:Print(wrappedTipText, 0, 0, barTextSize, "oac")
+		for i,line in pairs(tipLines) do
+			font2:Print(line, 0, -lineHeight*(i-1), barTextSize, "oac")
+		end
 		gl.PopMatrix()
 	end
 end
