@@ -13,6 +13,7 @@ if addon.InGetInfo then
 end
 
 local showTips = true
+local showTipBackground = true
 
 local tips = {
 	"Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
@@ -345,22 +346,19 @@ end
 
 function addon.DrawLoadScreen()
 
-	local loadProgress = SG.GetLoadProgress()
-	if loadProgress == 0 then
-		loadProgress = lastProgress[1]
-	else
-		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
-	end
-
-	local vsx, vsy = gl.GetViewSizes()
-
-	local loadvalue = math.max(0, loadProgress) * (1-posX-posX)
-	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
+	-- tip
+	local lineHeight = font2Size * 1.15
+	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
+	local tipLines = lines(wrappedTipText)
+	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.53) + ((lineHeight * #tipLines)/vsy)
 
 	if guishader then
 		if not blurShader then
 			CreateShaders()
-			guishaderRects['loadprocess1'] = {posX*vsx,posY*vsy,vsx-(posX*vsx),(posY*vsy)+height}
+			guishaderRects['loadprocess1'] = {(posX*vsx)-borderSize, (posY*vsy)-borderSize, (vsx-(posX*vsx))+borderSize, ((posY*vsy)+height+borderSize)}
+			if showTips and showTipBackground then
+				guishaderRects['loadprocess2'] = {(posX*vsx)-borderSize, ((posY*vsy)+height+borderSize), (vsx-(posX*vsx))+borderSize, tipPosYtop*vsy}
+			end
 			DrawStencilTexture()
 		end
 
@@ -415,6 +413,18 @@ function addon.DrawLoadScreen()
 			gl.Blending(true)
 		end
 	end
+
+	local loadProgress = SG.GetLoadProgress()
+	if loadProgress == 0 then
+		loadProgress = lastProgress[1]
+	else
+		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
+	end
+
+	local vsx, vsy = gl.GetViewSizes()
+
+	local loadvalue = math.max(0, loadProgress) * (1-posX-posX)
+	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx
 
 	-- border
 	gl.Color(0,0,0,0.6)
@@ -472,15 +482,25 @@ function addon.DrawLoadScreen()
 		font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
 	gl.PopMatrix()
 
-	-- tip text
+
 	if showTips then
-		local lineHeight = font2Size * 1.15
-		local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.3)
-		local tipLines = lines(wrappedTipText)
+
+		-- tip background
+		if showTipBackground then
+			gl.Color(0,0,0,(blurShader and 0.22 or 0.33))
+			gl.Rect(posX-(borderSize/vsx), posY+(height/vsy)+(borderSize/vsy), 1-posX+(borderSize/vsx), tipPosYtop)
+
+			gl.BeginEnd(GL.QUADS, gradientv, posX-(borderSize/vsx), posY+(height/vsy)+(borderSize/vsy), 1-posX+(borderSize/vsx), tipPosYtop, {1,1,1,0.07}, {1,1,1,0})
+			gl.BeginEnd(GL.QUADS, gradientv, posX-(borderSize/vsx), tipPosYtop-(height/vsy), 1-posX+(borderSize/vsx), tipPosYtop, {1,1,1,0.07}, {1,1,1,0})
+			gl.Color(0,0,0,0.1)
+			gl.Rect(posX, posY+(height/vsy)+(borderSize/vsy), 1-posX, tipPosYtop-(borderSize/vsy))
+		end
+
+		-- tip text
+		local barTextSize = height*0.74
 		gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, (posY*0.88*vsy)+(height) + (posY*vsy) + (lineHeight * (#tipLines-1)), 0)
-		local barTextSize = height*0.74
+		gl.Translate(vsx/2, (tipPosYtop*vsy)-(barTextSize*0.75), 0)
 		font2:SetTextColor(1,1,1,1)
 		font2:SetOutlineColor(0,0,0,0.8)
 		for i,line in pairs(tipLines) do
