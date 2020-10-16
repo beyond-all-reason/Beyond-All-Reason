@@ -20,7 +20,7 @@ return {
 		description = "Produces 1250 Energy (Hazardous)",
 		energymake = 1250,
 		energystorage = 12000,
-		explodeas = "advgeo",
+		explodeas = "advancedFusionExplosion",
 		footprintx = 6,
 		footprintz = 6,
 		icontype = "building",
