@@ -36,9 +36,9 @@ local CloudDefs = {
 	sun_penetration = 50, -- how much does the sun penetrate the fog
 }
 
-local mapcfgMap = VFS.Include("mapinfo.lua")
+local mapcfg = VFS.Include("mapinfo.lua")
 if mapcfg and mapcfg.custom and mapcfg.custom.clouds then
-	for k,v in pairs(mapcfgMap.custom.clouds) do
+	for k,v in pairs(mapcfg.custom.clouds) do
 		CloudDefs[k] = v
 	end
 else

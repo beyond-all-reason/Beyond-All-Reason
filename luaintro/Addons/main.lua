@@ -37,7 +37,7 @@ local tips = {
 	"Set your factories on Repeat to let it build a continues queue of units.",
 	"Use the Fight Command (F) with your rez-bots to make them reclaim and repair everything in the vicinity.\nOptionally turn on Repeat to let them do this forever.",
 	"When you're overflowing energy... build metal makers to convert energy to metal.",
-	"Press F3 to go to the location of the last notification or label by a teammate",	
+	"Press F3 to go to the location of the last notification or label by a teammate",
 	"Select all units of the same type by pressing CTRL+Z.",
 	"You can pause the game with the PAUSE/BREAK key, or by typing /pause",
 	"Did your teammember drop out of the game? Type /take to add all of his units to your army.",
@@ -468,7 +468,7 @@ function addon.DrawLoadScreen()
 		local wrappedTipText, numLines = font2:WrapText(randomTip, maxWidth)
 		gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, (posY*vsy)+(height) + (posY*vsy) + (font2Size * (numLines-1)), 0)
+		gl.Translate(vsx/2, (posY*0.88*vsy)+(height) + (posY*vsy) + (font2Size * (numLines-1)), 0)
 		local barTextSize = height*0.74
 		font2:SetTextColor(1,1,1,1)
 		font2:SetOutlineColor(0,0,0,0.8)
