@@ -4,7 +4,7 @@ function TaskQueueBST:Name()
 	return "TaskQueueBST"
 end
 
-TaskQueueBST.DebugEnabled = true
+TaskQueueBST.DebugEnabled = false
 
 local CMD_GUARD = 25
 

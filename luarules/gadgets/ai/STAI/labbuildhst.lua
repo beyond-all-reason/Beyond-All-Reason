@@ -234,7 +234,7 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 			for index, hotSpot in pairs(self.ai.hotSpot) do
 				if self.ai.maphst:MobilityNetworkHere(mtype,hotSpot) then
 
--- 					dist = math.min(distance, self.ai.Tool:Distance(hotSpot,factoryPos))
+					dist = math.min(distance, self.ai.Tool:Distance(hotSpot,factoryPos))
 					if dist < distance then
 						place = hotSpot
 						distance  = dist

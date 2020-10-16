@@ -968,7 +968,6 @@ getTechTree(corTechLv)
 for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
 UnitiesHST.unitTable, UnitiesHST.wrecks = GetUnitTable()
-
 UnitiesHST.featureTable = GetFeatureTable(UnitiesHST.wrecks)
 
 wrecks = nil

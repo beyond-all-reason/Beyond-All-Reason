@@ -3,10 +3,8 @@ local CMD_PATROL = 15
 local CMD_MOVE_STATE = 50
 local MOVESTATE_ROAM = 2
 
--- not does it defend, but is it a dedicated defender
-function IsDefender(unit)
-	return self.ai.UnitiesHST.defenderList[unit:Internal():Name()] or false
-end
+
+
 
 DefendBST = class(Behaviour)
 
@@ -14,9 +12,11 @@ function DefendBST:Name()
 	return "DefendBST"
 end
 
-DefendBST.DebugEnabled = false
+
+
 
 function DefendBST:Init()
+	self.DebugEnabled = false
 	self.moving = {}
 	self.unmoved = 0
 	self.lastPos = self.unit:Internal():GetPosition()
@@ -25,7 +25,7 @@ function DefendBST:Init()
 	self.name = self.unit:Internal():Name()
 	local ut = self.ai.UnitiesHST.unitTable[self.name]
 	self.tough = self.ai.UnitiesHST.battleList[self.name] or self.ai.UnitiesHST.breakthroughList[self.name]
-	self.isDefender = IsDefender(self.unit)
+	self.isDefender = self.ai.UnitiesHST.defenderList[self.name]
 	self.mtype = self.ai.UnitiesHST.unitTable[self.name].mtype
 	-- defenders need to be sorted into only one type of weapon
 	if ut.groundRange > 0 then

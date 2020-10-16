@@ -84,7 +84,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			end
 		end
 		table.insert(b, WardBST)
-	elseif self.ai.ReclaimBST:IsReclaimer(unit) then
+	elseif self.ai.UnitiesHST.reclaimerList[un] then
 		table.insert(b, ReclaimBST)
 		table.insert(b, WardBST)
 	else
@@ -109,7 +109,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end
-		if IsDefender(unit) then
+		if self.ai.UnitiesHST.defenderList[un]  then
 			table.insert(b, DefendBST)
 		end
 	end

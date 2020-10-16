@@ -206,7 +206,7 @@ function Tool:pairsByKeys(t, f)
 end
 
 
-function Tool:listself.ai.Tool:dictHasKey( value, list )
+function Tool:listHasKey( value, list )
 	for k,v in pairs(list) do
 		if k == value then
 			return true
@@ -215,7 +215,7 @@ function Tool:listself.ai.Tool:dictHasKey( value, list )
 	return false
 end
 
-function Tool:dictself.ai.Tool:dictHasKey( value, list )
+function Tool:dictHasKey( value, list )
 	if list[value] then
 		return true
 	end

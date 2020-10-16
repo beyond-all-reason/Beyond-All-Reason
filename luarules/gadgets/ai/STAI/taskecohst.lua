@@ -9,7 +9,7 @@ function TaskEcoHST:internalName()
 end
 
 function TaskEcoHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 end
 
 --Factory call
