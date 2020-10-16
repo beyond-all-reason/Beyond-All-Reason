@@ -16,36 +16,34 @@ local enabled = true
 
 local opacityMult = 1
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
---local mapcfg = VFS.Include("mapinfo.lua")
-
 local noiseTex = ":l:LuaUI/Images/rgbnoise.png"
-local mapcfg = {
-	custom = {
-		clouds = {
-		speed = 0.5, -- multiplier for speed of scrolling with wind
-		--color    = {0.46, 0.32, 0.2}, -- diffuse color of the fog
-		color    = {0.6,0.7,0.8}, -- diffuse color of the fog
 
-		-- all altitude values can be either absolute, in percent, or "auto"
-		height   = 4800, -- opacity of fog above and at this altitude will be zero
-		bottom = 1200, -- no fog below this altitude
-		fade_alt = 2500, -- fog will linearly fade away between this and "height", should be between height and bottom
-		scale = 700, -- how large will the clouds be
-		opacity = 0.65, -- what it says
-		clamp_to_map = false, -- whether fog volume is sliced to fit map, or spreads to horizon
-		sun_penetration = 50, -- how much does the sun penetrate the fog
-		},
-	},
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local CloudDefs = {
+	speed = 0.5, -- multiplier for speed of scrolling with wind
+	--color    = {0.46, 0.32, 0.2}, -- diffuse color of the fog
+	color    = {0.6,0.7,0.8}, -- diffuse color of the fog
+
+	-- all altitude values can be either absolute, in percent, or "auto"
+	height   = 4800, -- opacity of fog above and at this altitude will be zero
+	bottom = 1200, -- no fog below this altitude
+	fade_alt = 2500, -- fog will linearly fade away between this and "height", should be between height and bottom
+	scale = 700, -- how large will the clouds be
+	opacity = 0.65, -- what it says
+	clamp_to_map = false, -- whether fog volume is sliced to fit map, or spreads to horizon
+	sun_penetration = 50, -- how much does the sun penetrate the fog
 }
 
-if not mapcfg or not mapcfg.custom or not mapcfg.custom.clouds then
-	error("<Volumetric Clouds>: Can't find settings in mapinfo.lua!")
+local mapcfgMap = VFS.Include("mapinfo.lua")
+if mapcfg and mapcfg.custom and mapcfg.custom.clouds then
+	for k,v in pairs(mapcfgMap.custom.clouds) do
+		CloudDefs[k] = v
+	end
+else
+	--error("<Volumetric Clouds>: no custom defined mapinfo.lua cloud settings found")
 end
-
-local CloudDefs = mapcfg.custom.clouds
 
 local gnd_min, gnd_max = Spring.GetGroundExtremes()
 
