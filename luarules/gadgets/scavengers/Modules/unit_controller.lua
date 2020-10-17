@@ -40,7 +40,7 @@ function SelfDestructionControls(n, scav, scavDef)
 						local posz = math.random(selfdz[scav] - 400, selfdz[scav] + 400)
 						local telstartposy = Spring.GetGroundHeight(selfdx[scav], selfdz[scav])
 						local telendposy = Spring.GetGroundHeight(posx, posz)
-						local poscheck = posLosCheckOnlyLOS(posx, telendposy, posz, posradius)
+						local poscheck = posLosCheckOnlyLOS(posx, telendposy, posz, 100)
 						if (-(UnitDefs[scavDef].minWaterDepth) > telendposy) and (-(UnitDefs[scavDef].maxWaterDepth) < telendposy) and scavparalyze == 0 and poscheck == true then
 							Spring.SpawnCEG("scav-spawnexplo",selfdx[scav],telstartposy,selfdz[scav],0,0,0)
 							Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
