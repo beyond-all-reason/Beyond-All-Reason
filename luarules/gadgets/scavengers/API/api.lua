@@ -90,7 +90,7 @@ end
 
 -- Check height diffrences
 function posCheck(posx, posy, posz, posradius)
-	-- if true then can spawn
+	-- if true then position is valid
 	local posradius = posradius or 1000
 	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
 	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
@@ -129,7 +129,7 @@ end
 
 -- Check if area is occupied
 function posOccupied(posx, posy, posz, posradius)
-	-- if true then can spawn
+	-- if true then position isn't occupied
 	local posradius = posradius or 1000
 	local unitcount = #Spring.GetUnitsInRectangle(posx-posradius, posz-posradius, posx+posradius, posz+posradius)
 	if unitcount > 0 then
@@ -141,7 +141,7 @@ end
 
 -- Check if area is visible for any player
 function posLosCheck(posx, posy, posz, posradius)
-	-- if true then can spawn
+	-- if true then position is not in player LoS(includes radar)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamID ~= GaiaAllyTeamID then
@@ -172,7 +172,7 @@ function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
 end
 
 function posLosCheckNoRadar(posx, posy, posz, posradius)
-	-- if true then can spawn
+	-- if true then position is not in player LoS(excludes radar)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamID ~= GaiaAllyTeamID then
@@ -194,7 +194,7 @@ function posLosCheckNoRadar(posx, posy, posz, posradius)
 end
 
 function posLosCheckReversed(posx, posy, posz, posradius)
-	-- if true then can spawn
+	-- if true then position is in player LoS(excludes radar)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamID ~= GaiaAllyTeamID then
@@ -216,7 +216,7 @@ function posLosCheckReversed(posx, posy, posz, posradius)
 end
 
 function posLosCheckOnlyLOS(posx, posy, posz, posradius)
-	-- if true then can spawn
+	-- if true then position is in player LoS(excludes radar and airLoS)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamID ~= GaiaAllyTeamID then
@@ -233,6 +233,7 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 end
 
 function posStartboxCheck(posx, posy, posz, posradius)
+	-- if true then position is within scav startbox
 	local posradius = posradius or 1000
 	if ScavengerStartboxExists and posx <= ScavengerStartboxXMax and posx >= ScavengerStartboxXMin and posz >= ScavengerStartboxZMin and posz <= ScavengerStartboxZMax then
 		return false
@@ -242,6 +243,8 @@ function posStartboxCheck(posx, posy, posz, posradius)
 end
 
 function posSafeAreaCheck(posx, posy, posz, posradius)
+	-- if true then position is within scav safe position
+	
 	--ScavSafeAreaMinX
 	--ScavSafeAreaMaxX
 	--ScavSafeAreaMinZ
@@ -255,6 +258,7 @@ function posSafeAreaCheck(posx, posy, posz, posradius)
 end
 
 function posMapsizeCheck(posx, posy, posz, posradius)
+	-- if true then position is far enough from map border
 	local posradius = posradius or 1000
 	if posx + posradius >= mapsizeX or posx - posradius <= 0 or posz - posradius <= 0 or posz + posradius >= mapsizeZ then
 		return false
@@ -264,6 +268,7 @@ function posMapsizeCheck(posx, posy, posz, posradius)
 end
 
 function posLandCheck(posx, posy, posz, posradius)
+	-- if true then position is safe for land units
 	local posradius = posradius or 1000
 	local testpos0 = Spring.GetGroundHeight((posx), (posz))
 	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
@@ -303,6 +308,7 @@ function posLandCheck(posx, posy, posz, posradius)
 end
 
 function posSeaCheck(posx, posy, posz, posradius)
+	-- if true then position is safe for water units
 	local posradius = posradius or 1000
 	local testpos0 = Spring.GetGroundHeight((posx), (posz))
 	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )

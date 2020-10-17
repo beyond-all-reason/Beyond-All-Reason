@@ -31,7 +31,7 @@ function SelfDestructionControls(n, scav, scavDef)
 				Constructing[scav] = false
 			end
 		end
-		if (oldselfdx[scav] and oldselfdy[scav] and oldselfdz[scav]) and (oldselfdx[scav] > selfdx[scav]-10 and oldselfdx[scav] < selfdx[scav]+10) and (oldselfdy[scav] > selfdy[scav]-10 and oldselfdy[scav] < selfdy[scav]+10) and (oldselfdz[scav] > selfdz[scav]-10 and oldselfdz[scav] < selfdz[scav]+10) then
+		if (oldselfdx[scav] and oldselfdy[scav] and oldselfdz[scav]) and (oldselfdx[scav] > selfdx[scav]-20 and oldselfdx[scav] < selfdx[scav]+20) and (oldselfdy[scav] > selfdy[scav]-20 and oldselfdy[scav] < selfdy[scav]+20) and (oldselfdz[scav] > selfdz[scav]-20 and oldselfdz[scav] < selfdz[scav]+20) then
 			if selfdx[scav] < mapsizeX and selfdx[scav] > 0 and selfdz[scav] < mapsizeZ and selfdz[scav] > 0 then
 				if not scavConstructor[scav] or Constructing[scav] == false then
 					local scavhealth, scavmaxhealth, scavparalyze = Spring.GetUnitHealth(scav)
@@ -40,7 +40,8 @@ function SelfDestructionControls(n, scav, scavDef)
 						local posz = math.random(selfdz[scav] - 400, selfdz[scav] + 400)
 						local telstartposy = Spring.GetGroundHeight(selfdx[scav], selfdz[scav])
 						local telendposy = Spring.GetGroundHeight(posx, posz)
-						if (-(UnitDefs[scavDef].minWaterDepth) > telendposy) and (-(UnitDefs[scavDef].maxWaterDepth) < telendposy) and scavhealth >= scavmaxhealth*0.95 and scavparalyze == 0 then
+						local poscheck = posLosCheckOnlyLOS(posx, telendposy, posz, posradius)
+						if (-(UnitDefs[scavDef].minWaterDepth) > telendposy) and (-(UnitDefs[scavDef].maxWaterDepth) < telendposy) and scavparalyze == 0 and poscheck == true then
 							Spring.SpawnCEG("scav-spawnexplo",selfdx[scav],telstartposy,selfdz[scav],0,0,0)
 							Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
 							Spring.SetUnitPosition(scav, posx, posz)
