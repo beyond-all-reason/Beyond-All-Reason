@@ -856,6 +856,13 @@ function widget:Update(dt)
 		return
 	end
 
+	if sceduleOptionApply then
+		if sceduleOptionApply[1] <= os.clock() then
+			applyOptionValue(sceduleOptionApply[2], true, true)
+			sceduleOptionApply = nil
+		end
+	end
+
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		--if select(7, Spring.GetMouseState()) then	-- when camera panning
 		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
@@ -1679,7 +1686,7 @@ function lines(str)
 	return t
 end
 
-function applyOptionValue(i, skipRedrawWindow)
+function applyOptionValue(i, skipRedrawWindow, force)
 	if options[i] == nil then
 		return
 	end
@@ -1709,7 +1716,7 @@ function applyOptionValue(i, skipRedrawWindow)
 	end
 
 	if options[i].onchange then
-		options[i].onchange(i, options[i].value)
+		options[i].onchange(i, options[i].value, force)
 	end
 
 	if skipRedrawWindow == nil then
@@ -2713,8 +2720,12 @@ function init()
 		{ id = "uiscale", group = "ui", basic = true, name = "Interface" .. widgetOptionColor .. "  scale", type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("ui_scale", value)
+		  onchange = function(i, value, force)
+			  if force then
+				  Spring.SetConfigFloat("ui_scale", value)
+			  else
+				  sceduleOptionApply = {os.clock()+1.5, getOptionByID('uiscale')}
+			  end
 		  end,
 		},
 		{ id = "guiopacity", group = "ui", basic = true, name = widgetOptionColor .. "   opacity", type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.66), description = '',
@@ -2726,7 +2737,7 @@ function init()
 		},
 
 		{ id = "guishader", group = "ui", basic = true, widget = "GUI Shader", name = widgetOptionColor .. "   blur", type = "bool", value = GetWidgetToggleValue("GUI Shader"), description = 'Blurs the world under every user interface element' },
-		{ id = "guishaderintensity", group = "ui", name = widgetOptionColor .. "      intensity", type = "slider", min = 0.001, max = 0.005, step = 0.0001, value = 0.002, description = '',
+		{ id = "guishaderintensity", group = "ui", name = widgetOptionColor .. "      intensity", type = "slider", min = 0.001, max = 0.005, step = 0.0001, value = 0.0035, description = '',
 		  onload = function(i)
 			  loadWidgetData("GUI Shader", "guishaderintensity", { 'blurIntensity' })
 		  end,
@@ -3396,7 +3407,7 @@ function init()
 		  end,
 		},
 
-		{ id = "loadscreen_tips", group = "ui", name = "Loadscreen tips", type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = "Countdown time before it switches player",
+		{ id = "loadscreen_tips", group = "ui", name = "Loadscreen tips", type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = "Show tips at the startup load screen",
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("loadscreen_tips", (value and 1 or 0))
 		  end,
