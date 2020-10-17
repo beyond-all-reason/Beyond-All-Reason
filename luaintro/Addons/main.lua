@@ -14,7 +14,7 @@ end
 
 local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
 
-local showTipBackground = true	-- false = tips shown below the loadbar
+local showTipBackground = false	-- false = tips shown below the loadbar
 
 local tips = {
 	"Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
@@ -355,9 +355,11 @@ function addon.DrawLoadScreen()
 	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.53) + ((lineHeight * #tipLines)/vsy)
 	if showTips and not showTipBackground then
 		if #tipLines > 1 then
-			posY = posY + ((lineHeight/vsy)*(#tipLines-1))
+			posY = posY + ( (lineHeight*0.75/vsy) * (#tipLines-1) )
+			tipPosYtop = posY
+		else
+			tipPosYtop = posY - (lineHeight* 0.2/vsy)
 		end
-		tipPosYtop = posY
 	end
 
 	if guishader then
