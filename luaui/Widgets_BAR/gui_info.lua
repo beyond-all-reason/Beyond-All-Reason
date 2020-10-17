@@ -1751,6 +1751,13 @@ function widget:DrawScreen()
 
 				WG['tooltip'].ShowTooltip('info', text)
 			end
+
+
+		elseif displayMode == 'unit' then
+
+			if WG['unitstats'] and WG['unitstats'].showUnit then
+				WG['unitstats'].showUnit(displayUnitID)
+			end
 		end
 	end
 end
