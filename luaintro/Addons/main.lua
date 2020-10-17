@@ -14,6 +14,7 @@ end
 
 local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
 
+local showTipAboveBar = true
 local showTipBackground = false	-- false = tips shown below the loadbar
 
 local tips = {
@@ -169,7 +170,7 @@ end
 
 local height = math.floor(vsy * 0.038) -- loadbar height (in pixels)
 
-local posYorg = math.floor((0.085 * vsy)+0.5) / vsy
+local posYorg = math.floor((0.065 * vsy)+0.5) / vsy
 local posX = math.floor(((((posYorg*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
 
 local borderSize = math.max(1, math.floor(vsy * 0.0027))
@@ -352,8 +353,8 @@ function addon.DrawLoadScreen()
 	local lineHeight = font2Size * 1.15
 	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
 	local tipLines = lines(wrappedTipText)
-	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.53) + ((lineHeight * #tipLines)/vsy)
-	if showTips and not showTipBackground then
+	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.9) + ((lineHeight * #tipLines)/vsy)
+	if showTips and not showTipBackground and not showTipAboveBar then
 		if #tipLines > 1 then
 			posY = posY + ( (lineHeight*0.75/vsy) * (#tipLines-1) )
 			tipPosYtop = posY
@@ -366,7 +367,7 @@ function addon.DrawLoadScreen()
 		if not blurShader then
 			CreateShaders()
 			guishaderRects['loadprocess1'] = {(posX*vsx)-borderSize, (posY*vsy)-borderSize, (vsx-(posX*vsx))+borderSize, ((posY*vsy)+height+borderSize)}
-			if showTips and showTipBackground then
+			if showTips and showTipAboveBar and showTipBackground then
 				guishaderRects['loadprocess2'] = {(posX*vsx)-borderSize, ((posY*vsy)+height+borderSize), (vsx-(posX*vsx))+borderSize, tipPosYtop*vsy}
 			end
 			DrawStencilTexture()
@@ -449,7 +450,7 @@ function addon.DrawLoadScreen()
 
 	-- fade away bottom
 	if showTips and not showTipBackground then
-		gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, posY+(height/vsy), {0,0,0,0}, {0,0,0,0.55})
+		gl.BeginEnd(GL.QUADS, gradientv, 0, 0, 1, tipPosYtop+(height*3/vsy), {0,0,0,0}, {0,0,0,0.55})
 	end
 
 	-- border
@@ -512,7 +513,7 @@ function addon.DrawLoadScreen()
 	if showTips then
 
 		-- tip background
-		if showTipBackground then
+		if showTipBackground and showTipAboveBar then
 			gl.Color(0,0,0,(blurShader and 0.22 or 0.3))
 			gl.Rect(posX-(borderSize/vsx), posY+(height/vsy)+(borderSize/vsy), 1-posX+(borderSize/vsx), tipPosYtop)
 

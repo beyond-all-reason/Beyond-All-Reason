@@ -299,7 +299,7 @@ function drawTooltip(name, x, y)
 	-- draw background
 	local cornersize = 0
 	--glColor(0.45,0.45,0.45,(WG['guishader'] and 0.66 or 0.8))
-	RectRound(posX - paddingW + cornersize, posY - maxHeight - paddingH + cornersize, posX + maxWidth + paddingW - cornersize, posY + paddingH - cornersize, 3.3 * widgetScale, 2, 2, 2, 2, { 0.44, 0.44, 0.44, (WG['guishader'] and 0.67 or 0.94) }, { 0.66, 0.66, 0.66, (WG['guishader'] and 0.67 or 0.94) })
+	RectRound(posX - paddingW + cornersize, posY - maxHeight - paddingH + cornersize, posX + maxWidth + paddingW - cornersize, posY + paddingH - cornersize, 3.3 * widgetScale, 2, 2, 2, 2, { 0.44, 0.44, 0.44, (WG['guishader'] and 0.67 or 0.94) }, { 0.66, 0.66, 0.66, (WG['guishader'] and 0.62 or 0.94) })
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist(gl.CreateList(function()
 			RectRound(posX - paddingW + cornersize, posY - maxHeight - paddingH + cornersize, posX + maxWidth + paddingW - cornersize, posY + paddingH - cornersize, 3.3 * widgetScale)
@@ -312,7 +312,7 @@ function drawTooltip(name, x, y)
 		posX + maxWidth + paddingW - cornersize,
 		posY + paddingH - cornersize - 0.06,
 		2.2 * widgetScale,
-		2, 2, 2, 2, { 0, 0, 0, (WG['guishader'] and 0.5 or 0.55) }, { 0.15, 0.15, 0.15, (WG['guishader'] and 0.5 or 0.55) })
+		2, 2, 2, 2, { 0, 0, 0, (WG['guishader'] and 0.5 or 0.55) }, { 0.15, 0.15, 0.15, (WG['guishader'] and 0.47 or 0.55) })
 
 	-- draw text
 	maxHeight = math_floor(-fontSize * 0.93)
