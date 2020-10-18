@@ -107,7 +107,7 @@ function TacticalHST:PredictPosition(unitID, frames)
 	if vector == nil then return end
 	local e = self.lastKnownPositions[unitID]
 	if e == nil then return end
-	return self.ai.Tool:ApplyVector(e.position.x, e.position.z, vector.vx, vector.vz, frames)
+	return self.ai.tool:ApplyVector(e.position.x, e.position.z, vector.vx, vector.vz, frames)
 end
 
 -- so our tables don't bloat

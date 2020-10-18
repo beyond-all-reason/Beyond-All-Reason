@@ -5,7 +5,7 @@ function TaskAirHST:Name()
 end
 
 function TaskAirHST:internalName()
-	return "TaskAirHST"
+	return "taskairhst"
 end
 
 function TaskAirHST:Init()
@@ -15,208 +15,208 @@ end
 --LEVEL 1
 
 function TaskAirHST:ConAir()
-	unitName = self.ai.UnitiesHST.DummyUnitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	unitName = self.ai.armyhst.DummyUnitName
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corca"
 	else
 		unitName = "armca"
 	end
-	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
-	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function TaskAirHST:Lvl1AirRaider()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "armcorbw"
 	else
 		unitName = "armkam"
 	end
-	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
+	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl1Fighter()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corveng"
 	else
 		unitName = "armfig"
 	end
-	return self.ai.TasksHST:BuildAAIfNeeded(unitName)
+	return self.ai.taskshst:BuildAAIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl1Bomber()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corshad"
 	else
 		unitName = "armthund"
 	end
-	return self.ai.TasksHST:BuildBomberIfNeeded(unitName)
+	return self.ai.taskshst:BuildBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:ScoutAir()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corfink"
 	else
 		unitName = "armpeep"
 	end
-	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)
 end
 
 --LEVEL 2
 function TaskAirHST:ConAdvAir()
-	unitName = self.ai.UnitiesHST.DummyUnitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	unitName = self.ai.armyhst.DummyUnitName
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "coraca"
 	else
 		unitName = "armaca"
 	end
-	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
-	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitAdvPerTypeLimit))
+	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 function TaskAirHST:Lvl2Fighter()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corvamp"
 	else
 		unitName = "armhawk"
 	end
-	return self.ai.TasksHST:BuildAAIfNeeded(unitName)
+	return self.ai.taskshst:BuildAAIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl2AirRaider()
 	local unitName = ""
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corape"
 	else
 		-- spedical case: arm has an ubergunship
-		local raidCounter = self.ai.raidhst:GetCounter("air")
-		if raidCounter < self.ai.UnitiesHST.baseRaidCounter and raidCounter > self.ai.UnitiesHST.minRaidCounter then
+		local raidCounter = ai.raidhst:GetCounter("air")
+		if raidCounter < self.ai.armyhst.baseRaidCounter and raidCounter > self.ai.armyhst.minRaidCounter then
 			return "armblade"
 		else
 			unitName = "armbrawl"
 		end
 	end
-	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
+	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskAirHST:Lvl2Bomber()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corhurc"
 	else
 		unitName = "armpnix"
 	end
-	return self.ai.TasksHST:BuildBomberIfNeeded(unitName)
+	return self.ai.taskshst:BuildBomberIfNeeded(unitName)
 end
 
 
 function TaskAirHST:Lvl2TorpedoBomber()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "cortitan"
 	else
 		unitName = "armlance"
 	end
-	return self.ai.TasksHST:BuildTorpedoBomberIfNeeded(unitName)
+	return self.ai.taskshst:BuildTorpedoBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:MegaAircraft()
-	if self.side == self.ai.UnitiesHST.CORESideName then
-		return self.ai.TasksHST:BuildBreakthroughIfNeeded("corcrw")
+	if self.side == self.ai.armyhst.CORESideName then
+		return self.ai.taskshst:BuildBreakthroughIfNeeded("corcrw")
 	else
-		return self.ai.TasksHST:BuildBreakthroughIfNeeded("armliche")
+		return self.ai.taskshst:BuildBreakthroughIfNeeded("armliche")
 	end
 end
 
 
 function TaskAirHST:ScoutAdvAir()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corawac"
 	else
 		unitName = "armawac"
 	end
-	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)
 end
 
 --SEAPLANE
 function TaskAirHST:ConSeaAir()
-	unitName = self.ai.UnitiesHST.DummyUnitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	unitName = self.ai.armyhst.DummyUnitName
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corcsa"
 	else
 		unitName = "armcsa"
 	end
-	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
-	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, self.ai.conUnitAdvPerTypeLimit))
+	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 function TaskAirHST:SeaBomber()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corsb"
 	else
 		unitName = "armsb"
 	end
-	return self.ai.TasksHST:BuildBomberIfNeeded(unitName)
+	return self.ai.taskshst:BuildBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:SeaTorpedoBomber()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corseap"
 	else
 		unitName = "armseap"
 	end
-	return self.ai.TasksHST:BuildTorpedoBomberIfNeeded(unitName)
+	return self.ai.taskshst:BuildTorpedoBomberIfNeeded(unitName)
 end
 
 function TaskAirHST:SeaFighter()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corsfig"
 	else
 		unitName = "armsfig"
 	end
-	return self.ai.TasksHST:BuildAAIfNeeded(unitName)
+	return self.ai.taskshst:BuildAAIfNeeded(unitName)
 end
 
 function TaskAirHST:SeaAirRaider()
 	local unitName = ""
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corcut"
 	else
 		unitName = "armsaber"
 	end
-	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
+	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskAirHST:ScoutSeaAir()
 	local unitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corhunt"
 	else
 		unitName = "armsehak"
 	end
-	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, 1)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)
 end
 
 --AIRPAD
 function TaskAirHST:AirRepairPadIfNeeded()
-	local tmpUnitName = self.ai.UnitiesHST.DummyUnitName
+	local tmpUnitName = self.ai.armyhst.DummyUnitName
 
 	-- only make air pads if the team has at least 1 air fac
-	if self.ai.TasksHST:CountOwnUnits("corap") > 0 or self.ai.TasksHST:CountOwnUnits("armap") > 0 or self.ai.TasksHST:CountOwnUnits("coraap") > 0 or self.ai.TasksHST:CountOwnUnits("armaap") > 0 then
-		if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.ai.taskshst:CountOwnUnits("corap") > 0 or self.ai.taskshst:CountOwnUnits("armap") > 0 or self.ai.taskshst:CountOwnUnits("coraap") > 0 or self.ai.taskshst:CountOwnUnits("armaap") > 0 then
+		if self.side == self.ai.armyhst.CORESideName then
 			tmpUnitName = "corasp"
 		else
 			tmpUnitName = "armasp"
 		end
 	end
 
-	return self.ai.TasksHST:BuildWithLimitedNumber(tmpUnitName, self.ai.conUnitPerTypeLimit)
+	return self.ai.taskshst:BuildWithLimitedNumber(tmpUnitName, ai.conUnitPerTypeLimit)
 end

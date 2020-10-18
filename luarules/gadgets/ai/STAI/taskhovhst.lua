@@ -12,60 +12,60 @@ function TaskHovHST:Init()
 end
 
 function TaskHovHSTConHover()
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corch"
 	else
 		unitName = "armch"
 	end
-	local mtypedLv = self.ai.TasksHST:GetMtypedLv(unitName)
-	return self.ai.TasksHST:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
+	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function TaskHovHSTHoverMerl()
 	local unitName = ""
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "cormh"
 	else
 		unitName = "armmh"
 	end
-	return self.ai.TasksHST:BuildSiegeIfNeeded(unitName)
+	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
 function TaskHovHSTHoverRaider()
 	local unitName = ""
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corsh"
 	else
 		unitName = "armsh"
 	end
-	return self.ai.TasksHST:BuildRaiderIfNeeded(unitName)
+	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskHovHSTHoverBattle()
 	local unitName = ""
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corsnap"
 	else
 		unitName = "armanac"
 	end
-	return self.ai.TasksHST:BuildBattleIfNeeded(unitName)
+	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
 function TaskHovHSTHoverBreakthrough()
 	local unitName = ""
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corhal"
 	else
 		unitName = "armanac"
 	end
-	self.ai.TasksHST:BuildBreakthroughIfNeeded(unitName)
+	self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
 function TaskHovHSTAAHover()
-	if self.side == self.ai.UnitiesHST.CORESideName then
-		return self.ai.TasksHST:BuildAAIfNeeded("corah")
+	if self.side == self.ai.armyhst.CORESideName then
+		return self.ai.taskshst:BuildAAIfNeeded("corah")
 	else
-		return self.ai.TasksHST:BuildAAIfNeeded("armah")
+		return self.ai.taskshst:BuildAAIfNeeded("armah")
 	end
 end
 

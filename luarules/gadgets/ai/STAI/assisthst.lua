@@ -116,7 +116,7 @@ function AssistHST:RemoveWorking(assistbst)
 end
 
 function AssistHST:AssignIDByName(assistbst)
-	-- game:SendToConsole("assisthst:assignidbyname", ai, self.ai.id, self.ai, self.ai.id)
+	-- game:SendToConsole("assisthst:assignidbyname", ai, ai.id, self.ai, self.ai.id)
 
 	local uname = assistbst.name
 	if not self.ai.dontAssist[uname] then

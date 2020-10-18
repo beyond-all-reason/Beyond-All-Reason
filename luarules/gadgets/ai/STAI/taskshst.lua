@@ -211,7 +211,7 @@ function TasksHST:GroundDefenseIfNeeded(unitName)
 end
 
 function TasksHST:BuildBomberIfNeeded(unitName)
-	if not self:IsLandAttackNeeded() then return self.ai.armyhst.DummyUnitName end
+	if not IsLandAttackNeeded() then return self.ai.armyhst.DummyUnitName end
 	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
 	if self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter then
 		return self.ai.armyhst.DummyUnitName

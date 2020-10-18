@@ -24,8 +24,8 @@ local layerMod = {
 	sonar = 1000,
 }
 
-local missingFactoryDefenseDistance = 1500 -- if a turtle with a factory has no defense, subtract this much from self.ai.Tool:distance
-local modDistance = 1 -- how much Priority modifies self.ai.Tool:distance, the higher the number the father builders will travel for the most/least turtled turtle
+local missingFactoryDefenseDistance = 1500 -- if a turtle with a factory has no defense, subtract this much from self.ai.tool:distance
+local modDistance = 1 -- how much Priority modifies self.ai.tool:distance, the higher the number the father builders will travel for the most/least turtled turtle
 
 local factoryPriority = 4 -- added to tech level. above this priority allows two of the same type of defense tower.
 
@@ -44,12 +44,12 @@ function TurtleHST:Priority(unitName)
 	local p = unitPriorities[unitName]
 	if p then return p end
 	local priority = 0
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
-	if self.ai.UnitiesHST.turtleList[unitName] then
-		priority = self.ai.UnitiesHST.turtleList[unitName]
-	elseif self.ai.UnitiesHST.antinukeList[unitName] then
+	local ut = self.ai.armyhst.unitTable[unitName]
+	if self.ai.armyhst.turtleList[unitName] then
+		priority = self.ai.armyhst.turtleList[unitName]
+	elseif self.ai.armyhst.antinukeList[unitName] then
 		priority = 2
-	elseif self.ai.UnitiesHST.shieldList[unitName] then
+	elseif self.ai.armyhst.shieldList[unitName] then
 		priority = 2
 	else
 		if ut.buildOptions then
@@ -97,10 +97,10 @@ end
 
 function TurtleHST:UnitDead(unit)
 	local unitName = unit:Name()
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	local ut = self.ai.armyhst.unitTable[unitName]
 	local unitID = unit:ID()
-	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon or self.ai.UnitiesHST.shieldList[unitName] then
+	if ut.isBuilding or self.ai.armyhst.nanoTurretList[unitName] then
+		if ut.isWeapon or self.ai.armyhst.shieldList[unitName] then
 			self:RemoveShell(unitID)
 		else
 			self:RemoveOrgan(unitID)
@@ -112,14 +112,14 @@ end
 -- received from buildsitehst
 -- also applies to plans, in which case the plan is the unitID
 function TurtleHST:NewUnit(unitName, position, unitID)
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
-	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon and not ut.buildOptions and not self.ai.UnitiesHST.antinukeList[unitName] and not self.ai.UnitiesHST.nukeList[unitName] and not self.ai.UnitiesHST.bigPlasmaList[unitName] then
+	local ut = self.ai.armyhst.unitTable[unitName]
+	if ut.isBuilding or self.ai.armyhst.nanoTurretList[unitName] then
+		if ut.isWeapon and not ut.buildOptions and not self.ai.armyhst.antinukeList[unitName] and not self.ai.armyhst.nukeList[unitName] and not self.ai.armyhst.bigPlasmaList[unitName] then
 			self:AddDefense(position, unitID, unitName)
 		else
-			if self.ai.UnitiesHST.antinukeList[unitName] then
+			if self.ai.armyhst.antinukeList[unitName] then
 				self:AddShell(position, unitID, unitName, 1, "antinuke", 72000)
-			elseif self.ai.UnitiesHST.shieldList[unitName] then
+			elseif self.ai.armyhst.shieldList[unitName] then
 				self:AddShell(position, unitID, unitName, 1, "shield", 450)
 			elseif ut.jammerRadius ~= 0 then
 				self:AddShell(position, unitID, unitName, 1, "jam", ut.jammerRadius)
@@ -137,9 +137,9 @@ end
 function TurtleHST:PlanCreated(plan, unitID)
 	local found = false
 	local unitName = plan.unitName
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
-	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon or self.ai.UnitiesHST.shieldList[unitName] then
+	local ut = self.ai.armyhst.unitTable[unitName]
+	if ut.isBuilding or self.ai.armyhst.nanoTurretList[unitName] then
+		if ut.isWeapon or self.ai.armyhst.shieldList[unitName] then
 			for si, shell in pairs(self.shells) do
 				if shell.unitID == plan then
 					shell.unitID = unitID
@@ -166,9 +166,9 @@ end
 -- received from buildsitehst
 function TurtleHST:PlanCancelled(plan)
 	local unitName = plan.unitName
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
-	if ut.isBuilding or self.ai.UnitiesHST.nanoTurretList[unitName] then
-		if ut.isWeapon or self.ai.UnitiesHST.shieldList[unitName] then
+	local ut = self.ai.armyhst.unitTable[unitName]
+	if ut.isBuilding or self.ai.armyhst.nanoTurretList[unitName] then
+		if ut.isWeapon or self.ai.armyhst.shieldList[unitName] then
 			self:RemoveShell(plan)
 		else
 			self:RemoveOrgan(plan)
@@ -180,7 +180,7 @@ end
 function TurtleHST:AddOrgan(position, unitID, unitName)
 	-- calculate priority
 	local priority = self:Priority(unitName)
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	local ut = self.ai.armyhst.unitTable[unitName]
 	local volume = ut.xsize * ut.zsize * 64
 	-- create the organ
 	local organ = { priority = priority, position = position, unitID = unitID, volume = volume }
@@ -189,7 +189,7 @@ function TurtleHST:AddOrgan(position, unitID, unitName)
 	local nearestTurtle
 	for i, turtle in pairs(self.turtles) do
 		if turtle.water == ut.needsWater then
-			local dist = self.ai.Tool:Distance(position, turtle.position)
+			local dist = self.ai.tool:Distance(position, turtle.position)
 			if dist < turtle.size then
 				if dist < nearestDist then
 					nearestDist = dist
@@ -329,13 +329,13 @@ function TurtleHST:Base(turtle, size, limbs)
 		local limb = { turtle = turtle, nameCounts = {}, ground = 0, submerged = 0 }
 		-- make sure the limb is in an acceptable position (not near the map edge, and not inside another turtle)
 		for aroundTheClock = 1, 12 do
-			local offMapCheck = self.ai.Tool:RandomAway(self.ai, turtle.position, size * 1.33, false, angle)
+			local offMapCheck = self.ai.tool:RandomAway(self.ai, turtle.position, size * 1.33, false, angle)
 			if offMapCheck.x ~= 1 and offMapCheck.x ~= maxElmosX - 1 and offMapCheck.z ~= 1 and offMapCheck.z ~= maxElmosZ - 1 then
-				limb.position = self.ai.Tool:RandomAway(self.ai, turtle.position, size, false, angle)
+				limb.position = self.ai.tool:RandomAway(self.ai, turtle.position, size, false, angle)
 				local inAnotherTurtle = false
 				for ti, turt in pairs(self.turtles) do
 					if turt ~= turtle then
-						local dist = self.ai.Tool:Distance(turt.position, limb.position)
+						local dist = self.ai.tool:Distance(turt.position, limb.position)
 						if dist < turt.size then
 							inAnotherTurtle = true
 							break
@@ -350,7 +350,7 @@ function TurtleHST:Base(turtle, size, limbs)
 		if limb.position then
 			for i, shell in pairs(self.shells) do
 				if exteriorLayer[shell.layer] then
-					local dist = self.ai.Tool:Distance(limb.position, shell.position)
+					local dist = self.ai.tool:Distance(limb.position, shell.position)
 					if dist < shell.radius then
 						self:Attach(limb, shell)
 					end
@@ -371,7 +371,7 @@ function TurtleHST:AddTurtle(position, water, priority)
 	local turtle = {position = position, size = babySize, maxOrganVolume = maxOrganVolume, organs = {}, organVolume = 0, limbs = { firstLimb }, interiorLimbs = { firstLimb }, firstLimb = firstLimb, water = water, nameCounts = {}, priority = priority, ground = 0, air = 0, submerged = 0, antinuke = 0, shield = 0, jam = 0, radar = 0, sonar = 0}
 	firstLimb.turtle = turtle
 	for i, shell in pairs(self.shells) do
-		local dist = self.ai.Tool:Distance(position, shell.position)
+		local dist = self.ai.tool:Distance(position, shell.position)
 		if dist < shell.radius then
 			self:Attach(turtle.firstLimb, shell)
 		end
@@ -383,7 +383,7 @@ function TurtleHST:AddTurtle(position, water, priority)
 end
 
 function TurtleHST:AddDefense(position, unitID, unitName)
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	local ut = self.ai.armyhst.unitTable[unitName]
 	-- effective defense ranges are less than actual ranges, because if a building is just inside a weapon range, it's not defended
 	local defense = ut.metalCost
 	if ut.groundRange ~= 0 then
@@ -410,7 +410,7 @@ function TurtleHST:AddShell(position, unitID, uname, value, layer, radius)
 			checkThese = turtle.interiorLimbs
 		end
 		for li, limb in pairs(checkThese) do
-			local dist = self.ai.Tool:Distance(position, limb.position)
+			local dist = self.ai.tool:Distance(position, limb.position)
 			if dist < radius then
 				self:Attach(limb, shell)
 				attached = true
@@ -448,11 +448,11 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 	self:EchoDebug("checking for least turtled from " .. builder:Name() .. " for " .. tostring(unitName) .. " bombard: " .. tostring(bombard))
 	if unitName == nil then return end
 	local position = builder:GetPosition()
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	local ut = self.ai.armyhst.unitTable[unitName]
 	local Metal = game:GetResourceByName("Metal")
 	local priorityFloor = 1
 	local layer
-	if ut.isWeapon and not self.ai.UnitiesHST.antinukeList[unitName] then
+	if ut.isWeapon and not self.ai.armyhst.antinukeList[unitName] then
 		if ut.groundRange ~= 0 then
 			layer = "ground"
 		elseif ut.airRange ~= 0 then
@@ -460,10 +460,10 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 		elseif ut.submergedRange ~= 0 then
 			layer = "submerged"
 		end
-	elseif self.ai.UnitiesHST.antinukeList[unitName] then
+	elseif self.ai.armyhst.antinukeList[unitName] then
 		layer = "antinuke"
 		priorityFloor = 5
-	elseif self.ai.UnitiesHST.shieldList[unitName] then
+	elseif self.ai.armyhst.shieldList[unitName] then
 		layer = "shield"
 		priorityFloor = 5
 	elseif ut.jammerRadius ~= 0 then
@@ -482,7 +482,7 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 		local isLocal = true
 		if important then
 			-- don't build land shells on water turtles or water shells on land turtles
-			isLocal = self.ai.UnitiesHST.unitTable[unitName].needsWater == turtle.water
+			isLocal = self.ai.armyhst.unitTable[unitName].needsWater == turtle.water
 		end
 		if isLocal and important then
 			local modLimit = 10000
@@ -529,13 +529,13 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 					local modDefecit = modLimit - mod
 					self:EchoDebug("turtled: " .. mod .. ", limit: " .. tostring(modLimit) .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
 					if mod == 0 or mod < ut.metalCost or mod < modLimit then
-						local dist = self.ai.Tool:Distance(position, limb.position)
+						local dist = self.ai.tool:Distance(position, limb.position)
 						dist = dist - (modDefecit * modDistance)
 						if hurtyLayer[layer] and limb[layer] == 0 and turtle.priority > factoryPriority then dist = dist - missingFactoryDefenseDistance end
-						self:EchoDebug("self.ai.Tool:distance: " .. dist)
+						self:EchoDebug("self.ai.tool:distance: " .. dist)
 						if oneOnly then
 							if dist < bestDist then
-								self:EchoDebug("best self.ai.Tool:distance")
+								self:EchoDebug("best self.ai.tool:distance")
 								bestDist = dist
 								best = limb.position
 							end
@@ -559,7 +559,7 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 		end
 	else
 		local sorted = {}
-		for dist, pos in self.ai.Tool:pairsByKeys(byselfdistance) do
+		for dist, pos in self.ai.tool:pairsByKeys(byselfdistance) do
 			local newpos = api.Position()
 			newpos.x = pos.x+0
 			newpos.z = pos.z+0
@@ -601,13 +601,13 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 			if mod ~= 0 then
 				local dist = 0
 				if not ignoreDistance then
-					dist = self.ai.Tool:Distance(position, turtle.position)
+					dist = self.ai.tool:Distance(position, turtle.position)
 				end
 				dist = dist - (mod * modDist)
-				self:EchoDebug("self.ai.Tool:distance: " .. dist)
+				self:EchoDebug("self.ai.tool:distance: " .. dist)
 				if oneOnly then
 					if dist < bestDist then
-						self:EchoDebug("best self.ai.Tool:distance")
+						self:EchoDebug("best self.ai.tool:distance")
 						bestDist = dist
 						best = turtle.position
 					end
@@ -629,7 +629,7 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 		end
 	else
 		local sorted = {}
-		for dist, pos in self.ai.Tool:pairsByKeys(byselfdistance) do
+		for dist, pos in self.ai.tool:pairsByKeys(byselfdistance) do
 			local newpos = api.Position()
 			newpos.x = pos.x+0
 			newpos.z = pos.z+0
@@ -642,14 +642,14 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 end
 
 function TurtleHST:SafeWithinTurtle(position, unitName)
-	local gas = self.ai.Tool:WhatHurtsUnit(unitName)
-	local cost = self.ai.UnitiesHST.unitTable[unitName].metalCost
+	local gas = self.ai.tool:WhatHurtsUnit(unitName)
+	local cost = self.ai.armyhst.unitTable[unitName].metalCost
 	for i = 1, #self.turtles do
 		local turtle = self.turtles[i]
 		local safety = 0
 		for GAS, yes in pairs(gas) do safety = safety + turtle[GAS] end
 		if safety > cost then
-			local dist = self.ai.Tool:Distance(position, turtle.position)
+			local dist = self.ai.tool:Distance(position, turtle.position)
 			if dist < turtle.size + 100 then
 				return true
 			end
