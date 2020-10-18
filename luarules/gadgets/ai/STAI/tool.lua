@@ -7,7 +7,7 @@ function Tool:Name()
 end
 
 function Tool:internalName()
-	return "Tool"
+	return "tool"
 end
 
 sqrt = math.sqrt

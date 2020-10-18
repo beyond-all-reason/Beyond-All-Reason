@@ -5,7 +5,7 @@ function ArmyHST:Name()
 end
 
 function ArmyHST:internalName()
-	return "ArmyHST"
+	return "armyhst"
 end
 
 
