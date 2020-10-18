@@ -65,11 +65,11 @@ local function isCons(unitDef)
 end
 
 local function activateBuilder(unitId)
-	spGiveOrderToUnit(unitId, CMD_PASSIVE, { 0 }, 0)
+	spGiveOrderToUnit(unitId, CMD_PASSIVE, { 1 }, 0)
 end
 
 local function passivateBuilder(unitId)
-	spGiveOrderToUnit(unitId, CMD_PASSIVE, { 1 }, 0)
+	spGiveOrderToUnit(unitId, CMD_PASSIVE, { 0 }, 0)
 end
 
 local function toggleUnit(unitId, passive)

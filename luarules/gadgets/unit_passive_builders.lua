@@ -64,7 +64,7 @@ local cmdPassiveDesc = {
       action  = 'passive',
       type    = CMDTYPE.ICON_MODE,
       tooltip = 'Builder Mode: Low Prio(rity) restricts build when stalling on resources',
-      params  = {0, 'High Prio', 'Low Prio'}
+      params  = {0, 'Low Prio', 'High Prio'}
 }
 
 ----------------------------------------------------------------
@@ -172,7 +172,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
             spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
             spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
             passiveCons[teamID] = passiveCons[teamID] or {}
-            if cmdParams[1] == 1 then --
+            if cmdParams[1] == 0 then --
                 passiveCons[teamID][unitID] = true
             else
                 spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
