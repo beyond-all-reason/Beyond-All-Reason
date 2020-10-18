@@ -440,7 +440,8 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawWorld()
-  --gl.Fog(false)
+	--gl.Fog(false)
+	gl.Blending(true)
 
   local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
@@ -472,6 +473,7 @@ function widget:DrawWorld()
   end
 
   --gl.Fog(true)
+	gl.Blending(false)
 end
 
 --------------------------------------------------------------------------------
