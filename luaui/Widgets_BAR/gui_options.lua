@@ -3459,70 +3459,70 @@ function init()
 		{ id = "fightersfly", group = "game", basic = true, widget = "Set fighters on Fly mode", name = "Set fighters on Fly mode", type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = 'Setting fighters on Fly mode when created' },
 
 		{
-			id = "passivebuilders",
+			id = "builderpriority",
 			group = "game",
 			basic = true,
-			widget = "Passive builders",
-			name = "Passive builders",
+			widget = "Builder Priority",
+			name = "Builder Priority",
 			type = "bool",
-			value = GetWidgetToggleValue("Passive builders"),
-			description = 'Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: Set the most important builders on active and leave the rest passive'
+			value = GetWidgetToggleValue("Builder Priority"),
+			description = 'Sets builders (nanos, labs and cons) on low priority mode\n\nLow priority mode means that builders will only spend energy when its availible.\nUsage: Set the most important builders on high and leave the rest on low priority'
 		},
 
 		{
-			id = "passivebuilders_nanos",
+			id = "builderpriority_nanos",
 			group = "game",
 			name = widgetOptionColor .. "   nanos",
 			type = "bool",
 			value = (
-				WG['passivebuilders'] ~= nil
-					and WG['passivebuilders'].getPassiveNanos ~= nil
-					and WG['passivebuilders'].getPassiveNanos()
+				WG['builderpriority'] ~= nil
+					and WG['builderpriority'].getPassiveNanos ~= nil
+					and WG['builderpriority'].getLowPriorityNanos()
 			),
 			description = '',
 			onload = function(i)
-				loadWidgetData("Passive builders", "passivebuilders_nanos", { 'passiveNanos' })
+				loadWidgetData("Builder Priority", "builderpriority_nanos", { 'lowpriorityNanos' })
 			end,
 			onchange = function(i, value)
-				saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveNanos', { 'passiveNanos' }, value)
+				saveOptionValue('Builder Priority', 'builderpriority', 'setLowPriorityNanos', { 'lowpriorityNanos' }, value)
 			end,
 		},
 
 		{
-			id = "passivebuilders_cons",
+			id = "builderpriority_cons",
 			group = "game",
 			name = widgetOptionColor .. "   cons",
 			type = "bool",
 			value = (
-				WG['passivebuilders'] ~= nil
-					and WG['passivebuilders'].getPassiveCons ~= nil
-					and WG['passivebuilders'].getPassiveCons()
+				WG['builderpriority'] ~= nil
+					and WG['builderpriority'].getPassiveCons ~= nil
+					and WG['builderpriority'].getLowPriorityCons()
 			),
 			description = '',
 			onload = function(i)
-				loadWidgetData("Passive builders", "passivebuilders_cons", { 'passiveCons' })
+				loadWidgetData("Builder Priority", "builderpriority_cons", { 'lowpriorityCons' })
 			end,
 			onchange = function(i, value)
-				saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveCons', { 'passiveCons' }, value)
+				saveOptionValue('Builder Priority', 'builderpriority', 'setLowPriorityCons', { 'lowpriorityCons' }, value)
 			end,
 		},
 
 		{
-			id = "passivebuilders_labs",
+			id = "builderpriority_labs",
 			group = "game",
 			name = widgetOptionColor .. "   labs",
 			type = "bool",
 			value = (
-				WG['passivebuilders'] ~= nil
-					and WG['passivebuilders'].getPassiveLabs ~= nil
-					and WG['passivebuilders'].getPassiveLabs()
+				WG['builderpriority'] ~= nil
+					and WG['builderpriority'].getPassiveLabs ~= nil
+					and WG['builderpriority'].getLowPriorityLabs()
 			),
 			description = '',
 			onload = function(i)
-				loadWidgetData("Passive builders", "passivebuilders_labs", { 'passiveLabs' })
+				loadWidgetData("Builder Priority", "builderpriority_labs", { 'lowpriorityeLabs' })
 			end,
 			onchange = function(i, value)
-				saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveLabs', { 'passiveLabs' }, value)
+				saveOptionValue('Builder Priority', 'builderpriority', 'setLowPriorityLabs', { 'lowpriorityLabs' }, value)
 			end,
 		},
 

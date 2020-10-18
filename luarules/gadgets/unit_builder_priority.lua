@@ -1,24 +1,24 @@
 -- OUTLINE:
--- Passive cons build either at their full speed or not at all.
--- The amount of res expense for non-passive cons is calculated (as total expense - passive cons expense) and the remainder is available to the passive cons, if any.
--- We cycle through the passive cons and allocate this expense until it runs out. All other passive cons have their buildspeed set to 0.
+-- Low priority cons build either at their full speed or not at all.
+-- The amount of res expense for high prio cons is calculated (as total expense - low prio cons expense) and the remainder is available to the low prio cons, if any.
+-- We cycle through the low prio cons and allocate this expense until it runs out. All other low prio cons have their buildspeed set to 0.
 
 -- ACTUALLY:
--- We only do the check every x frames (controlled by interval) and only allow passive con(s) to act if doing so allows them to sustain their expense
+-- We only do the check every x frames (controlled by interval) and only allow low prio con(s) to act if doing so allows them to sustain their expense
 --   until the next check, based on current expense allocations.
 -- We allow the interval to be different for each team, because normally it would be wasteful to reconfigure every frame, but if a team has a high income and low
---   storage then not doing the check every frame would result in excessing resources that passive builders could have used
--- We also pick one passive con, per build target, and allow it a tiny build speed for 1 frame per interval, to prevent nanoframes that only have passive cons
+--   storage then not doing the check every frame would result in excessing resources that low prio builders could have used
+-- We also pick one low prio con, per build target, and allow it a tiny build speed for 1 frame per interval, to prevent nanoframes that only have low prio cons
 --   building them from decaying if a prolonged stall occurs.
--- We cache the buildspeeds of all passive cons to prevent constant use of get/set callouts.
+-- We cache the buildspeeds of all low prio cons to prevent constant use of get/set callouts.
 
 -- REASON:
 -- AllowUnitBuildStep is damn expensive and is a serious perf hit if it is used for all this.
 
 function gadget:GetInfo()
     return {
-        name      = 'Passive Builders v3',
-        desc      = 'Builders marked as passive only use resources after others builder have taken their share',
+        name      = 'Builder Priority', 	-- this once was named: Passive Builders v3
+        desc      = 'Builders marked as low priority only use resources after others builder have taken their share',
         author    = 'BD, Bluestone',
         date      = 'Why is date even relevant',
         license   = 'GNU GPL, v2 or later',
@@ -37,7 +37,7 @@ end
 ----------------------------------------------------------------
 -- Var
 ----------------------------------------------------------------
-local CMD_PASSIVE = 34571
+local CMD_PRIORITY = 34571
 
 local stallMarginInc = 0.2
 local stallMarginSto = 0.01
@@ -54,16 +54,16 @@ local currentBuildSpeed = {} --build speed of builderID for current interval, no
 
 local costID = {} -- costID[unitID] (contains all units)
 
-local ruleName = "passiveBuilders"
+local ruleName = "builderPriority"
 
 local resTable = {"metal","energy"}
 
 local cmdPassiveDesc = {
-      id      = CMD_PASSIVE,
-      name    = 'passive',
-      action  = 'passive',
+      id      = CMD_PRIORITY,
+      name    = 'priority',
+      action  = 'priority',
       type    = CMDTYPE.ICON_MODE,
-      tooltip = 'Builder Mode: Low Prio(rity) restricts build when stalling on resources',
+      tooltip = 'Builder Mode: Low Priority restricts build when stalling on resources',
       params  = {0, 'Low Prio', 'High Prio'}
 }
 
@@ -95,7 +95,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.buildSpeed > 0 then
         unitBuildSpeed[unitDefID] = unitDef.buildSpeed
     end
-    -- build the list of which unitdef can have passive mode
+    -- build the list of which unitdef can have low prio mode
     canPassive[unitDefID] = ((unitDef.canAssist and unitDef.buildSpeed > 0) or #unitDef.buildOptions > 0)
     cost[unitDefID] = {}
     cost[unitDefID].buildTime = unitDef.buildTime
@@ -164,8 +164,8 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
     -- track which cons are set to passive
-    if cmdID == CMD_PASSIVE and canPassive[unitDefID] then
-        local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PASSIVE)
+    if cmdID == CMD_PRIORITY and canPassive[unitDefID] then
+        local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
         if cmdIdx then
             local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
             cmdDesc.params[1] = cmdParams[1]

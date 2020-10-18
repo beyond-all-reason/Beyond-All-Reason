@@ -1,7 +1,7 @@
 --
--- Passive Builders Widget (depends: gadget:unit_passive_builders)
+-- Builder Priority/Passive builders Widget (depends: gadget:unit_builder_priority)
 --
--- Project page on github: https://github.com/SpringWidgets/passive-builders
+-- Old Project page on github: https://github.com/SpringWidgets/passive-builders
 --
 -- Changelog:
 --   v2 [teh]decay Fixed bug with rezz bots and spys
@@ -10,24 +10,23 @@
 --   v5 [teh]Flow restyled + relative position + bugfix
 --   v6 [teh]Flow removed GUI, options widget handles that part now
 --   v7 Partial rewrite for better tracing and debugability
+--   v8 [teh]Flow renamed widget from "Passive Builders" to "Builder Priority"
 --
 -- Notes:
---   - Some code was used from "Wind Speed" widget. Thx to Jazcash and Floris!
 --   - For debugging select all lines ending in "-- DEBUG" and uncomment
---
 
 local info = {
-	name = "Passive builders",
-	desc = "Allows to set builders (nanos, labs and cons) on passive mode",
+	name = "Builder Priority",
+	desc = "Allows to set builders (nanos, labs and cons) on low or high priority mode",
 	author = "[teh]decay",
 	date = "20 aug 2015",
 	license = "GNU GPL, v2 or later",
 	layer = 0,
-	version = 7,
+	version = 8,
 	enabled = true  -- loaded by default
 }
 
-local CMD_PASSIVE = 34571
+local CMD_PRIORITY = 34571
 
 -- symbol localization optimization for engine calls
 local spEcho = Spring.Echo
@@ -42,9 +41,9 @@ local armCommanderDefId = UnitDefNames["armcom"].id
 local corCommanderDefId = UnitDefNames["corcom"].id
 
 -- widget global settings and assigned defaults
-local passiveLabs = true
-local passiveNanos = true
-local passiveCons = false
+local lowpriorityLabs = true
+local lowpriorityNanos = true
+local lowpriorityCons = false
 
 -- controlled units by category
 local builderLabs = {}
@@ -64,19 +63,19 @@ local function isCons(unitDef)
 	return unitDef.canMove and unitDef.canAssist and not unitDef.isFactory
 end
 
-local function activateBuilder(unitId)
-	spGiveOrderToUnit(unitId, CMD_PASSIVE, { 1 }, 0)
+local function highpriorityBuilder(unitId)
+	spGiveOrderToUnit(unitId, CMD_PRIORITY, { 1 }, 0)
 end
 
-local function passivateBuilder(unitId)
-	spGiveOrderToUnit(unitId, CMD_PASSIVE, { 0 }, 0)
+local function lowpriorityBuilder(unitId)
+	spGiveOrderToUnit(unitId, CMD_PRIORITY, { 0 }, 0)
 end
 
 local function toggleUnit(unitId, passive)
 	if passive then
-		passivateBuilder(unitId)
+		lowpriorityBuilder(unitId)
 	else
-		activateBuilder(unitId)
+		highpriorityBuilder(unitId)
 	end
 end
 
@@ -99,21 +98,21 @@ local function classifyUnit(unitId, unitDef)
 	if isNano(unitDef) then
 		-- spEcho("[passiveunits] Classified unit is a nano. ID: "..unitId.." Type: "..unitDef.name)  -- DEBUG
 		builderNanos[unitId] = true
-		toggleUnit(unitId, passiveNanos)
+		toggleUnit(unitId, lowpriorityNanos)
 		return
 	end
 
 	if isLab(unitDef) then
 		-- spEcho("[passiveunits] Classified unit is a lab. ID: "..unitId.." Type: "..unitDef.name)  -- DEBUG
 		builderLabs[unitId] = true
-		toggleUnit(unitId, passiveLabs)
+		toggleUnit(unitId, lowpriorityLabs)
 		return
 	end
 
 	if isCons(unitDef) then
 		-- spEcho("[passiveunits] Classified unit is a cons. ID: "..unitId.." Type: "..unitDef.name)  -- DEBUG
 		builderCons[unitId] = true
-		toggleUnit(unitId, passiveCons)
+		toggleUnit(unitId, lowpriorityCons)
 		return
 	end
 
@@ -170,15 +169,15 @@ local function toggleCategory(builderIds, passive)
 end
 
 local function toggleNanos()
-	toggleCategory(builderNanos, passiveNanos)
+	toggleCategory(builderNanos, lowpriorityNanos)
 end
 
 local function toggleLabs()
-	toggleCategory(builderLabs, passiveLabs)
+	toggleCategory(builderLabs, lowpriorityLabs)
 end
 
 local function toggleCons()
-	toggleCategory(builderCons, passiveCons)
+	toggleCategory(builderCons, lowpriorityCons)
 end
 
 --
@@ -238,59 +237,59 @@ function widget:GetInfo()
 end
 
 function widget:GetConfigData()
-	-- spEcho("[passive_builders] widget:GetConfigData (nanos: "..tostring(passiveNanos).." cons: "..tostring(passiveCons).." labs: "..tostring(passiveLabs)..")")  -- DEBUG
+	-- spEcho("[builder_priority] widget:GetConfigData (nanos: "..tostring(lowpriorityNanos).." cons: "..tostring(lowpriorityCons).." labs: "..tostring(lowpriorityLabs)..")")  -- DEBUG
 
 	return {
-		passiveLabs = passiveLabs,
-		passiveNanos = passiveNanos,
-		passiveCons = passiveCons,
+		lowpriorityLabs = lowpriorityLabs,
+		lowpriorityNanos = lowpriorityNanos,
+		lowpriorityCons = lowpriorityCons,
 	}
 end
 
 function widget:SetConfigData(cfg)
-	-- spEcho("[passive_builders] widget:SetConfigData (nanos: "..tostring(cfg.passiveNanos).." cons: "..tostring(cfg.passiveCons).." labs: "..tostring(cfg.passiveLabs)..")")  -- DEBUG
+	-- spEcho("[builder_priority] widget:SetConfigData (nanos: "..tostring(cfg.lowpriorityNanos).." cons: "..tostring(cfg.lowpriorityCons).." labs: "..tostring(cfg.lowpriorityLabs)..")")  -- DEBUG
 
-	passiveLabs = cfg.passiveLabs == true
-	passiveNanos = cfg.passiveNanos == true
-	passiveCons = cfg.passiveCons == true
+	lowpriorityLabs = cfg.lowpriorityLabs == true
+	lowpriorityNanos = cfg.lowpriorityNanos == true
+	lowpriorityCons = cfg.lowpriorityCons == true
 end
 
 function widget:Initialize()
-	-- spEcho("[passive_builders] Initializing plugin")  -- DEBUG
+	-- spEcho("[builder_priority] Initializing plugin")  -- DEBUG
 
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 
-	WG['passivebuilders'] = {}
+	WG['builderpriority'] = {}
 
-	WG['passivebuilders'].getPassiveNanos = function()
-		return passiveNanos
+	WG['builderpriority'].getLowPriorityNanos = function()
+		return lowpriorityNanos
 	end
 
-	WG['passivebuilders'].setPassiveNanos = function(value)
-		-- spEcho("[passive_builders] Toggling nanos from "..tostring(passiveNanos).." to "..tostring(value))  -- DEBUG
-		passiveNanos = value
+	WG['builderpriority'].setLowPriorityNanos = function(value)
+		-- spEcho("[builder_priority] Toggling nanos from "..tostring(lowpriorityNanos).." to "..tostring(value))  -- DEBUG
+		lowpriorityNanos = value
 		toggleNanos()
 	end
 
-	WG['passivebuilders'].getPassiveLabs = function()
-		return passiveLabs
+	WG['builderpriority'].getLowPriorityLabs = function()
+		return lowpriorityLabs
 	end
 
-	WG['passivebuilders'].setPassiveLabs = function(value)
-		-- spEcho("[passive_builders] Toggling factories from "..tostring(passiveLabs).." to "..tostring(value))  -- DEBUG
-		passiveLabs = value
+	WG['builderpriority'].setLowPriorityLabs = function(value)
+		-- spEcho("[builder_priority] Toggling factories from "..tostring(lowpriorityLabs).." to "..tostring(value))  -- DEBUG
+		lowpriorityLabs = value
 		toggleLabs()
 	end
 
-	WG['passivebuilders'].getPassiveCons = function()
-		return passiveCons
+	WG['builderpriority'].getLowPriorityCons = function()
+		return lowpriorityCons
 	end
 
-	WG['passivebuilders'].setPassiveCons = function(value)
-		-- spEcho("[passive_builders] Toggling constructors from "..tostring(passiveCons).." to "..tostring(value))  -- DEBUG
-		passiveCons = value
+	WG['builderpriority'].setLowPriorityCons = function(value)
+		-- spEcho("[builder_priority] Toggling constructors from "..tostring(lowpriorityCons).." to "..tostring(value))  -- DEBUG
+		lowpriorityCons = value
 		toggleCons()
 	end
 
@@ -298,7 +297,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['passivebuilders'] = nil
+	WG['builderpriority'] = nil
 end
 
 function widget:GameStart()
