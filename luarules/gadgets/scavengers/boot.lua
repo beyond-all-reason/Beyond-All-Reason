@@ -193,6 +193,9 @@ function gadget:GameFrame(n)
 	if n%150 == 85 and FinalBossUnitSpawned and FinalBossKilled == false then
 		local bosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		ScavSendMessage("Boss Health: "..math.ceil(bosshealth))
+		if math_random(0,5) == 0 then
+			BossDGun(n)
+		end
 	end
 	
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
@@ -242,6 +245,9 @@ function gadget:GameFrame(n)
 		local scavUnitsCount = #scavUnits
 		if scavUnitsCount < 5 and n > 9000 then
 			killedscavengers = killedscavengers + 50
+			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
+				BossWaveTimeLeft = 20
+			end
 		end
 	end
 	if n%1800 == 0 and n > 100 then
@@ -594,11 +600,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 		if UnitName == "scavsafeareabeacon_scav" then
 			ScavSafeAreaExist = true
-			if not ScavSafeAreaSize then
-				ScavSafeAreaSize = math.ceil(250 * spawnmultiplier * (teamcount/2))
+			if not ScavSafeAreaGenerator then
 				ScavSafeAreaGenerator = 0
 			end
-			ScavSafeAreaSize = math.ceil(ScavSafeAreaSize * 2)
+			ScavSafeAreaSize = math.ceil(ScavSafeAreaSize + (250 * spawnmultiplier * (teamcount/2)))
 			ScavSafeAreaGenerator = ScavSafeAreaGenerator + 1
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
 			ScavSafeAreaMinX = posx - ScavSafeAreaSize

@@ -4,7 +4,7 @@ Spring.Echo("Invasion Event")
 local invasionUnitsLand = {"armbeaver_scav","cormuskrat_scav",}
 local invasionUnitsSea = {"armbeaver_scav","cormuskrat_scav",}
 local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
-local groupsize = groupsize*((unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.airmultiplier)*0.33)*unitSpawnerModuleConfig.t0multiplier
+local groupsize = groupsize*((unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.airmultiplier)*0.33)*unitSpawnerModuleConfig.t0multiplier*10
 local groupsize = math.ceil(groupsize*(teamcount/2))
 	for i = 1,groupsize do
 		for y = 1,100 do
@@ -25,12 +25,12 @@ local groupsize = math.ceil(groupsize*(teamcount/2))
 			end
 			if CanSpawnEvent then
 				if CanSpawnLand == true then
-					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+(i*15))
-					QueueSpawn(invasionUnitsLand[math.random(1,#invasionUnitsLand)], posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+90+(i*15))
+					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+(i))
+					QueueSpawn(invasionUnitsLand[math.random(1,#invasionUnitsLand)], posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+90+(i))
 					--Spring.CreateUnit(invasionUnitsLand[pickedInvasionUnitLand], posx, posy, posz, math_random(0,3),GaiaTeamID)
 				elseif CanSpawnSea == true then
-					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+(i*15))
-					QueueSpawn(invasionUnitsSea[math.random(1,#invasionUnitsSea)], posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+90+(i*15))
+					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+(i))
+					QueueSpawn(invasionUnitsSea[math.random(1,#invasionUnitsSea)], posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+90+(i))
 					--Spring.CreateUnit(invasionUnitsSea[pickedInvasionUnitLand], posx, posy, posz, math_random(0,3),GaiaTeamID)
 				end
 				break

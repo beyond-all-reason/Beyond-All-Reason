@@ -278,7 +278,7 @@ return {
 				waterweapon = false,
 				weapontimer = 4.2,
 				weapontype = "DGun",
-				weaponvelocity = 400,
+				weaponvelocity = 1000,
 				customparams = {
 					expl_light_heat_radius_mult = 3.2,
 					expl_light_heat_strength_mult = 0.66,
@@ -288,7 +288,7 @@ return {
 					light_radius_mult = 1.4,
 				},
 				damage = {
-					default = 25000,
+					default = 999999,
 					vtol = 999999,
 				},
 			},

@@ -36,7 +36,7 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 100,				-- can get multiplied in unitdef_post
+	workertime = 1000,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -102,7 +102,7 @@ customDefs.armcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 100,				-- can get multiplied in unitdef_post
+	workertime = 1000,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
