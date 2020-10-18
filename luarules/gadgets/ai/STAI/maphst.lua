@@ -81,7 +81,7 @@ local function EchoData(name, o)
 	savepositions = {}
 	mapdatafile:write(name)
 	mapdatafile:write(" = ")
-	self.ai.Tool:serialize(o)
+	self.ai.tool:serialize(o)
 	mapdatafile:write("\n\n")
 	if #savepositions > 0 then
 		for i, sp in pairs (savepositions) do
@@ -221,7 +221,7 @@ function MapHST:MapMobility()
 			-- find out if each mobility type can exist there
 			for mtype, utypes in pairs(mobUnitTypes) do
 				local canbuild = false
-				local uname = self.ai.UnitiesHST.mobUnitExampleName[mtype]
+				local uname = self.ai.armyhst.mobUnitExampleName[mtype]
 				local uDef = UnitDefNames[uname]
 				canbuild = Spring.TestMoveOrder(uDef.id, pos.x, Spring.GetGroundHeight(pos.x,pos.z), pos.z)
 				if canbuild then
@@ -288,7 +288,7 @@ function MapHST:MapSpotMobility(metals, geos)
 		for i, spot in pairs(spots) do
 			local landOrWater
 			if metalOrGeo == 1 then
-				if self.map:CanBuildHere(self.ai.UnitiesHST.UWMetalSpotCheckUnitType, spot) then
+				if self.map:CanBuildHere(self.ai.armyhst.UWMetalSpotCheckUnitType, spot) then
 					table.insert(UWMetalSpots, spot)
 					landOrWater = 2
 				else
@@ -350,10 +350,10 @@ function MapHST:MergePositions(posTable, cutoff, includeNonMerged)
 		local merge = nil
 		for i = #list, 1, -1 do
 			local pos2 = list[i]
-			local dist = self.ai.Tool:Distance(pos1, pos2)
+			local dist = self.ai.tool:Distance(pos1, pos2)
 			if dist < cutoff then
 				self:EchoDebug("merging " .. pos1.x .. "," .. pos1.z .. " with " .. pos2.x .. "," .. pos2.z .. " -- " .. dist .. " away")
-				merge = self.ai.Tool:MiddleOfTwo(pos1, pos2)
+				merge = self.ai.tool:MiddleOfTwo(pos1, pos2)
 				pos1 = merge
 				table.remove(list, i)
 			end
@@ -387,7 +387,7 @@ function MapHST:Init()
 	local mapSize = self.map:MapDimensions()
 	self.ai.elmoMapSizeX = mapSize.x * 8
 	self.ai.elmoMapSizeZ = mapSize.z * 8
-	-- self.ai.UnitiesHST.factoryMobilities = self:GetFactoryMobilities()TODO what?
+	-- self.ai.armyhst.factoryMobilities = self:GetFactoryMobilities()TODO what?
 	self.ai.conUnitPerTypeLimit = math.max(self.map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
 	self.ai.conUnitAdvPerTypeLimit = math.max(self.map:SpotCount() / 8, 2)
 	self.ai.activeMobTypes = {}
@@ -398,13 +398,13 @@ function MapHST:Init()
 		return
 	end
 	mobilityGridSize = 256 -- will be recalculated by MapMobility()
-	for mtype, unames in pairs(self.ai.UnitiesHST.mobUnitNames) do
+	for mtype, unames in pairs(self.ai.armyhst.mobUnitNames) do
 		mobUnitTypes[mtype] = {}
 		for i, uname in pairs(unames) do
 			mobUnitTypes[mtype][i] = self.game:GetTypeByName(uname)
 		end
 	end
-	self.ai.UnitiesHST.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.UnitiesHST.UWMetalSpotCheckUnit)
+	self.ai.armyhst.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.armyhst.UWMetalSpotCheckUnit)
 	if not mobMap then
 		totalCount, mobilityGridMaxX, mobilityGridMaxZ, mobCount = self:MapMobility()
 	end
@@ -582,7 +582,7 @@ function MapHST:SpotSimplyfier(metalSpots,geoSpots)
 			--Spring.MarkerAddPoint(pos1.x,pos1.y,pos1.z, tostring(i))--uncomment this to draw the hotspot reducing system
 			for index2,pos2 in pairs(spots) do
 				if spots[index2] ~= false then
-					local dist = self.ai.Tool:Distance(pos1,pos2)
+					local dist = self.ai.tool:Distance(pos1,pos2)
 					if dist < limit and dist > 0 and ((pos1.y > 0 and pos2.y > 0) or (pos1.y < 0 and pos2.y < 0)) then
 						mirrorspots[index1][index2] = pos2
 						--Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)--uncomment this to draw all the hotspot on map
@@ -642,7 +642,7 @@ function MapHST:SpotPathMobRank(spotscleaned)
 				local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
 				if metapath then
 					local waypoints, pathStartIdx = metapath:GetPathWayPoints()
-					local dist  = self.ai.Tool:Distance3d(pos1,pos2)
+					local dist  = self.ai.tool:Distance3d(pos1,pos2)
 					if waypoints and #waypoints > 0 and dist > 0 then
 						--self:EchoDebug(mclass,'has a path')
 -- 						if mclass == 'tank2' then
@@ -712,12 +712,12 @@ function MapHST:GuessStartLocations(spots)
 	while #spotsCopy > 0 do
 		local closest = nil
 		for i, to in pairs(spotsCopy) do
-			local dist = self.ai.Tool:Distance(from, to)
+			local dist = self.ai.tool:Distance(from, to)
 			if dist < minDist then
 				minDist = dist
 				closest = i
 			end
-			local middle = self.ai.Tool:MiddleOfTwo(from, to)
+			local middle = self.ai.tool:MiddleOfTwo(from, to)
 			table.insert(links, {dist = dist, middle = middle})
 		end
 		if closest ~= nil then
@@ -733,7 +733,7 @@ function MapHST:GuessStartLocations(spots)
 	self:EchoDebug("tolerance: " .. tolerance .. "  cutoff: " .. cutoff)
 	for i, l in pairs(links) do
 		if l.dist < cutoff then
-			self:EchoDebug("metal spot link at " .. math.ceil(l.middle.x) .. "," .. math.ceil(l.middle.z) .. " within cutoff with self.ai.Tool:distance of " .. math.ceil(l.dist))
+			self:EchoDebug("metal spot link at " .. math.ceil(l.middle.x) .. "," .. math.ceil(l.middle.z) .. " within cutoff with self.ai.tool:distance of " .. math.ceil(l.dist))
 			table.insert(matches, l.middle)
 		end
 	end
@@ -766,7 +766,7 @@ function MapHST:factoriesRating()
 		end
 	end
 	self.ai.factoryBuilded['air'][1] = 0
-	for mtype, unames in pairs(self.ai.UnitiesHST.mobUnitNames) do
+	for mtype, unames in pairs(self.ai.armyhst.mobUnitNames) do
 		local realMetals = 0
 		local realSize = 0
 		local realGeos = 0
@@ -786,21 +786,21 @@ function MapHST:factoriesRating()
 			realGeos = math.min(0.1 * #geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
 		end
 		mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
-		mtypesMapRatings[mtype] = (self.ai.mobRating[mtype] / self.ai.mobRating['air']) * self.ai.UnitiesHST.mobilityEffeciencyMultiplier[mtype]
+		mtypesMapRatings[mtype] = (self.ai.mobRating[mtype] / self.ai.mobRating['air']) * self.ai.armyhst.mobilityEffeciencyMultiplier[mtype]
 		-- area is not as important as number of metal and geo
-		-- mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * self.ai.UnitiesHST.mobilityEffeciencyMultiplier[mtype]
+		-- mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * self.ai.armyhst.mobilityEffeciencyMultiplier[mtype]
 		self:EchoDebug('mtypes map rating ' ..mtype .. ' = ' .. mtypesMapRatings[mtype])
 	end
-	mtypesMapRatings['air'] = self.ai.UnitiesHST.mobilityEffeciencyMultiplier['air']
+	mtypesMapRatings['air'] = self.ai.armyhst.mobilityEffeciencyMultiplier['air']
 	local bestPath = 0
-	for factory,mtypes in pairs(self.ai.UnitiesHST.factoryMobilities)do
+	for factory,mtypes in pairs(self.ai.armyhst.factoryMobilities)do
 		local factoryPathRating = 0
 		local factoryMtypeRating = 0
 		if mtypes[1] ~='air' then
 			local factoryBuildsCons = false
-			for index, unit in pairs( self.ai.UnitiesHST.unitTable[factory].unitsCanBuild) do
-				local mtype = self.ai.UnitiesHST.unitTable[unit].mtype
-				if self.ai.UnitiesHST.unitTable[unit].buildOptions then
+			for index, unit in pairs( self.ai.armyhst.unitTable[factory].unitsCanBuild) do
+				local mtype = self.ai.armyhst.unitTable[unit].mtype
+				if self.ai.armyhst.unitTable[unit].buildOptions then
 					if (self.ai.hasUWSpots and mtype ~= 'veh') or (not self.ai.hasUWSpots and mtype ~= 'amp') then
 					-- if self.ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
 						factoryBuildsCons = true
@@ -812,20 +812,20 @@ function MapHST:factoriesRating()
 			local count = 0
 			local maxPath = 0
 			local mediaPath = 0
-			for index, unit in pairs( self.ai.UnitiesHST.unitTable[factory].unitsCanBuild) do
-				local mtype = self.ai.UnitiesHST.unitTable[unit].mtype
-				local mclass = self.ai.UnitiesHST.unitTable[unit].mclass
-				if self.ai.UnitiesHST.unitTable[unit].buildOptions or not factoryBuildsCons then
+			for index, unit in pairs( self.ai.armyhst.unitTable[factory].unitsCanBuild) do
+				local mtype = self.ai.armyhst.unitTable[unit].mtype
+				local mclass = self.ai.armyhst.unitTable[unit].mclass
+				if self.ai.armyhst.unitTable[unit].buildOptions or not factoryBuildsCons then
 					local ok = true
 					-- if self.ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
 					if (self.ai.hasUWSpots and mtype ~= 'veh') or (not self.ai.hasUWSpots and mtype ~= 'amp') then
 						count = count + 1
 						factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[mtype]
-						self:EchoDebug(factory .. ' ' .. unit .. ' ' .. self.ai.UnitiesHST.unitTable[unit].mtype .. ' ' .. mtypesMapRatings[self.ai.UnitiesHST.unitTable[unit].mtype])
+						self:EchoDebug(factory .. ' ' .. unit .. ' ' .. self.ai.armyhst.unitTable[unit].mtype .. ' ' .. mtypesMapRatings[self.ai.armyhst.unitTable[unit].mtype])
 							bestPath = math.max(bestPath,spotPathMobRank[mclass])
 							maxPath = math.max(maxPath,spotPathMobRank[mclass])
 							mediaPath = mediaPath + spotPathMobRank[mclass]
-							self:EchoDebug('bigdbg',factory .. ' ' .. unit .. ' ' .. self.ai.UnitiesHST.unitTable[unit].mtype .. ' ' .. mtypesMapRatings[self.ai.UnitiesHST.unitTable[unit].mtype],bestPath,maxPath,mediaPath,spotPathMobRank[mclass])
+							self:EchoDebug('bigdbg',factory .. ' ' .. unit .. ' ' .. self.ai.armyhst.unitTable[unit].mtype .. ' ' .. mtypesMapRatings[self.ai.armyhst.unitTable[unit].mtype],bestPath,maxPath,mediaPath,spotPathMobRank[mclass])
 					end
 				end
 			end
@@ -845,7 +845,7 @@ function MapHST:factoriesRating()
 			factoryPathRating = 1
 			if #landMetalSpots + #UWMetalSpots == 0 then
 				factoryMtypeRating = mtypesMapRatings['air']
-			elseif self.ai.UnitiesHST.unitTable[factory].needsWater then
+			elseif self.ai.armyhst.unitTable[factory].needsWater then
 				factoryMtypeRating = mtypesMapRatings['air'] * (#UWMetalSpots / (#landMetalSpots + #UWMetalSpots))
 			else
 				factoryMtypeRating = mtypesMapRatings['air'] * (#landMetalSpots / (#landMetalSpots + #UWMetalSpots))
@@ -854,9 +854,9 @@ function MapHST:factoriesRating()
 		self:EchoDebug(factory .. ' mtype rating: ' .. factoryMtypeRating)
 		local Rating
 		self:EchoDebug(factory .. ' path rating: ' .. factoryPathRating)
-		Rating = factoryPathRating * factoryMtypeRating * self.ai.UnitiesHST.unitTable[factory].techLevel
-		self:EchoDebug('Rating',factoryPathRating, factoryMtypeRating , self.ai.UnitiesHST.unitTable[factory].techLevel)
-		if self.ai.UnitiesHST.factoryMobilities[factory][1] == ('hov') then
+		Rating = factoryPathRating * factoryMtypeRating * self.ai.armyhst.unitTable[factory].techLevel
+		self:EchoDebug('Rating',factoryPathRating, factoryMtypeRating , self.ai.armyhst.unitTable[factory].techLevel)
+		if self.ai.armyhst.factoryMobilities[factory][1] == ('hov') then
 			Rating = Rating * (self.ai.mobCount['shp'] /mobilityGridArea)
 		end
 		if factory == 'armfhp' or factory == 'corfhp' then
@@ -1026,7 +1026,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 	if position == nil then position = builder:GetPosition() end
 	local spots = {}
 	local bname = builder:Name()
-	if self.ai.UnitiesHST.commanderList[bname] then
+	if self.ai.armyhst.commanderList[bname] then
 		-- give the commander both hov and bot spots
 		local pos = builder:GetPosition()
 		local network = self:MobilityNetworkHere("bot", pos)
@@ -1093,7 +1093,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 		-- dont use this spot if we're already building there
 		local alreadyPlanned = self.ai.buildsitehst:PlansOverlap(p, uname)
 		if not alreadyPlanned then
-			local dist = self.ai.Tool:Distance(position, p)
+			local dist = self.ai.tool:Distance(position, p)
 			-- don't add if it's already too high
 			if dist < bestDistance then
 				-- now check if we can build there
@@ -1110,7 +1110,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 						pos = p
 						reclaimEnemyMex = false
 						if uwcheck then
-							-- self:EchoDebug("uw mex is best self.ai.Tool:distance")
+							-- self:EchoDebug("uw mex is best self.ai.tool:distance")
 							uw = uwutype
 						else
 							uw = nil
@@ -1125,7 +1125,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 							pos = epos
 							reclaimEnemyMex = enemySpot.unit
 							if uwcheck then
-								-- self:EchoDebug("uw mex is best self.ai.Tool:distance")
+								-- self:EchoDebug("uw mex is best self.ai.tool:distance")
 								uw = uwutype
 							else
 								uw = nil
@@ -1139,7 +1139,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 	end
 	-- local kbytes, threshold = gcinfo()
 	-- game:SendToConsole("maphst gcinfo: " .. kbytes .. " (after ClosestFreeSpot)")
-	-- if uw then self:EchoDebug("uw mex is final best self.ai.Tool:distance") end
+	-- if uw then self:EchoDebug("uw mex is final best self.ai.tool:distance") end
 	return pos, uw, reclaimEnemyMex
 end
 
@@ -1152,7 +1152,7 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)
 	for i,p in pairs(geoSpots) do
 		-- dont use this spot if we're already building there
 		if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafePosition(p, builder) then
-			local dist = self.ai.Tool:Distance(position, p)
+			local dist = self.ai.tool:Distance(position, p)
 			if not bestDistance or dist < bestDistance then
 				bestDistance = dist
 				bestPos = p
@@ -1176,7 +1176,7 @@ end
 function MapHST:MobilityOfUnit(unit)
 	local position = unit:GetPosition()
 	local name = unit:Name()
-	local mtype = self.ai.UnitiesHST.unitTable[name].mtype
+	local mtype = self.ai.armyhst.unitTable[name].mtype
 	if self.ai.activeMobTypes[mtype] == nil then self.ai.activeMobTypes[mtype] = true end
 	return mtype, self:MobilityNetworkHere(mtype, position)
 end
@@ -1208,14 +1208,14 @@ end
 function MapHST:UnitCanHurtVictim(unit, victim)
 	if unit:WeaponCount() == 0 then return false end
 	local vname = victim:Name()
-	local mtype = self.ai.UnitiesHST.unitTable[vname].mtype
+	local mtype = self.ai.armyhst.unitTable[vname].mtype
 	local name = unit:Name()
 	local canhurt = false
-	if self.ai.UnitiesHST.unitTable[name].groundRange > 0 and mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" then
+	if self.ai.armyhst.unitTable[name].groundRange > 0 and mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" then
 		canhurt = "ground"
-	elseif self.ai.UnitiesHST.unitTable[name].airRange > 0 and mtype == "air" then
+	elseif self.ai.armyhst.unitTable[name].airRange > 0 and mtype == "air" then
 		canhurt = "air"
-	elseif self.ai.UnitiesHST.unitTable[name].submergedRange > 0 and mtype == "shp" or mtype == "sub" or mtype == "amp" then
+	elseif self.ai.armyhst.unitTable[name].submergedRange > 0 and mtype == "shp" or mtype == "sub" or mtype == "amp" then
 		canhurt = "submerged"
 	end
 	return canhurt
@@ -1272,13 +1272,13 @@ end
 
 function MapHST:CheckDefenseLocalization(unitName, position)
 	local size = 0
-	if self.ai.UnitiesHST.unitTable[unitName].groundRange > 0 then
+	if self.ai.armyhst.unitTable[unitName].groundRange > 0 then
 		local vehsize = self:MobilityNetworkSizeHere("veh", position)
 		local botsize = self:MobilityNetworkSizeHere("bot", position)
 		size = math.max(vehsize, botsize)
-	elseif self.ai.UnitiesHST.unitTable[unitName].airRange > 0 then
+	elseif self.ai.armyhst.unitTable[unitName].airRange > 0 then
 		return true
-	elseif  self.ai.UnitiesHST.unitTable[unitName].submergedRange > 0 then
+	elseif  self.ai.armyhst.unitTable[unitName].submergedRange > 0 then
 		size = self:MobilityNetworkSizeHere("sub", position)
 	else
 		return true

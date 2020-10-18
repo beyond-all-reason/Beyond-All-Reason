@@ -115,7 +115,7 @@ function AttackHST:DraftSquads()
 				self.recruits[mtype] = {}
 				self.ai.hasAttacked = self.ai.hasAttacked + 1
 				self.potentialAttackCounted[mtype] = false
-				self.counter[mtype] = math.min(self.ai.UnitiesHST.maxAttackCounter, self.counter[mtype] + 1)
+				self.counter[mtype] = math.min(self.ai.armyhst.maxAttackCounter, self.counter[mtype] + 1)
 			end
 		end
 	end
@@ -244,7 +244,7 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 		startPos = self.ai.frontPosition[representativeBehaviour.hits]
 		if startPos then
 			local angle = AnglePosPos(startPos, squad.target)
-			startPos = self.ai.Tool:RandomAway(self.ai, startPos, 150, nil, angle)
+			startPos = self.ai.tool:RandomAway(self.ai, startPos, 150, nil, angle)
 		else
 			startPos = representative:GetPosition()
 		end
@@ -271,7 +271,7 @@ function AttackHST:SquadPathfind(squad, squadIndex)
 	if not squad.pathfinder then return end
 	local path, remaining, maxInvalid = squad.pathfinder:Find(2)
 	if path then
-		-- path = self.ai.Tool:SimplifyPath(path)
+		-- path = self.ai.tool:SimplifyPath(path)
 		squad.path = path
 		squad.pathStep = 1
 		squad.targetNode = squad.path[1]
@@ -327,22 +327,22 @@ function AttackHST:SquadAdvance(squad)
 		nextPos = squad.targetNode.position
 		nextAngle = AnglePosPos(nextPos, squad.path[squad.pathStep+1].position)
 	end
-	local nextPerpendicularAngle = self.ai.Tool:AngleAdd(nextAngle, halfPi)
+	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
 	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
 	for i = #members, 1, -1 do
 		local member = members[i]
 		local pos = nextPos
 		if member.formationBack and squad.pathStep ~= #squad.path then
-			pos = self.ai.Tool:RandomAway(self.ai, nextPos, -member.formationBack, nil, nextAngle)
+			pos = self.ai.tool:RandomAway(self.ai, nextPos, -member.formationBack, nil, nextAngle)
 		end
 		local reverseAttackAngle
 		if squad.pathStep == #squad.path then
-			reverseAttackAngle = self.ai.Tool:AngleAdd(nextAngle, pi)
+			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
 		end
 		member:Advance(pos, nextPerpendicularAngle, reverseAttackAngle)
 	end
 	if squad.hasMovedOnce then
-		local distToNext = self.ai.Tool:Distance(squad.path[squad.pathStep-1].position, nextPos)
+		local distToNext = self.ai.tool:Distance(squad.path[squad.pathStep-1].position, nextPos)
 		squad.idleTimeout = self.game:Frame() + (3 * 30 * (distToNext / squad.lowestSpeed))
 	end
 	squad.hasMovedOnce = true
@@ -404,7 +404,7 @@ function AttackHST:AddRecruit(attkbhvr)
 			-- self:EchoDebug("adding attack recruit")
 			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
-			if self.counter[mtype] == nil then self.counter[mtype] = self.ai.UnitiesHST.baseAttackCounter end
+			if self.counter[mtype] == nil then self.counter[mtype] = self.ai.armyhst.baseAttackCounter end
 			if self.attackSent[mtype] == nil then self.attackSent[mtype] = 0 end
 			if self.count[mtype] == nil then self.count[mtype] = 0 end
 			local level = attkbhvr.level
@@ -435,7 +435,7 @@ end
 function AttackHST:NeedMore(attkbhvr)
 	local mtype = attkbhvr.mtype
 	local level = attkbhvr.level
-	self.counter[mtype] = math.min(self.ai.UnitiesHST.maxAttackCounter, self.counter[mtype] + (level * 0.7) ) -- 0.75
+	self.counter[mtype] = math.min(self.ai.armyhst.maxAttackCounter, self.counter[mtype] + (level * 0.7) ) -- 0.75
 	self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 end
 
@@ -443,13 +443,13 @@ function AttackHST:NeedLess(mtype, subtract)
 	if subtract == nil then subtract = 0.1 end
 	if mtype == nil then
 		for mtype, count in pairs(self.counter) do
-			if self.counter[mtype] == nil then self.counter[mtype] = self.ai.UnitiesHST.baseAttackCounter end
-			self.counter[mtype] = math.max(self.counter[mtype] - subtract, self.ai.UnitiesHST.minAttackCounter)
+			if self.counter[mtype] == nil then self.counter[mtype] = self.ai.armyhst.baseAttackCounter end
+			self.counter[mtype] = math.max(self.counter[mtype] - subtract, self.ai.armyhst.minAttackCounter)
 			self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 		end
 	else
-		if self.counter[mtype] == nil then self.counter[mtype] = self.ai.UnitiesHST.baseAttackCounter end
-		self.counter[mtype] = math.max(self.counter[mtype] - subtract, self.ai.UnitiesHST.minAttackCounter)
+		if self.counter[mtype] == nil then self.counter[mtype] = self.ai.armyhst.baseAttackCounter end
+		self.counter[mtype] = math.max(self.counter[mtype] - subtract, self.ai.armyhst.minAttackCounter)
 		self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 	end
 end
@@ -463,7 +463,7 @@ function AttackHST:GetCounter(mtype)
 		return highestCounter
 	end
 	if self.counter[mtype] == nil then
-		return self.ai.UnitiesHST.baseAttackCounter
+		return self.ai.armyhst.baseAttackCounter
 	else
 		return self.counter[mtype]
 	end

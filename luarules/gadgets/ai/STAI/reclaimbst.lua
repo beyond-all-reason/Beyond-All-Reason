@@ -22,7 +22,7 @@ function ReclaimBST:Init()
 		table.insert(self.canReclaimGAS, "air")
 	end
 	self.name = self.unit:Internal():Name()
-	self.dedicated = self.ai.UnitiesHST.reclaimerList[self.name]
+	self.dedicated = self.ai.armyhst.reclaimerList[self.name]
 	self.id = self.unit:Internal():ID()
 	self.lastCheckFrame = 0
 end
@@ -149,7 +149,7 @@ function ReclaimBST:Retarget()
 			self.targetCell = tcell
 		end
 		if not self.targetCell and self.ai.Metal.full < 0.75 then
-			self:EchoDebug("looking for closest self.ai.UnitiesHST.cleanable to reclaim")
+			self:EchoDebug("looking for closest self.ai.armyhst.cleanable to reclaim")
 			self.targetUnit = self.ai.cleanhst:ClosestCleanable(unit)
 		end
 	end
@@ -177,7 +177,7 @@ function ReclaimBST:Act()
 		if self.targetResurrection ~= nil and not self.resurrecting then
 			self:EchoDebug("resurrecting...")
 			local resPosition = self.targetResurrection.position
-			local unitName = self.ai.UnitiesHST.featureTable[self.targetResurrection.featureName].unitName
+			local unitName = self.ai.armyhst.featureTable[self.targetResurrection.featureName].unitName
 			self:EchoDebug(unitName)
 			self.unit:Internal():AreaRESURRECT({resPosition.x, resPosition.y, resPosition.z}, 15)
 			self.ai.buildsitehst:NewPlan(unitName, resPosition, self, true)
@@ -192,7 +192,7 @@ function ReclaimBST:Act()
 				local rfpos = reclaimFeature:GetPosition()
 				if rfpos and rfpos.x then
 					local unitName = reclaimables[i].unitName
-					if self.dedicated and unitName and self.ai.UnitiesHST.unitTable[unitName] and self.ai.UnitiesHST.unitTable[unitName].extractsMetal > 0 then
+					if self.dedicated and unitName and self.ai.armyhst.unitTable[unitName] and self.ai.armyhst.unitTable[unitName].extractsMetal > 0 then
 						-- always resurrect metal extractors
 						self:EchoDebug("resurrect mex", reclaimFeature, reclaimFeature:ID())
 						self.unit:Internal():AreaRESURRECT({rfpos.x, rfpos.y, rfpos.z}, 15)
@@ -204,7 +204,7 @@ function ReclaimBST:Act()
 					else
 						self:EchoDebug("reclaim feature", reclaimFeature, reclaimFeature:ID())
 						self.unit:Internal():Reclaim(reclaimFeature)
-						-- self.ai.Tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {reclaimFeature:ID()})
+						-- self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {reclaimFeature:ID()})
 						self.myFeature = reclaimFeature
 						self.myFeaturePos = reclaimFeature:GetPosition()
 						table.remove(cell.reclaimables, i)

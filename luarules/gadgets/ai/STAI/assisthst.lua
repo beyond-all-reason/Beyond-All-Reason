@@ -52,7 +52,7 @@ end
 function AssistHST:IsLocal(assistbst, position)
 	local aunit = assistbst.unit:Internal()
 	local apos = aunit:GetPosition()
-	local dist = self.ai.Tool:Distance(position, apos)
+	local dist = self.ai.tool:Distance(position, apos)
 	if assistbst.isNanoTurret then
 		if dist > 390 then
 			return false
@@ -175,7 +175,7 @@ function AssistHST:Summon(builder, position, number, force)
 	local bid = builder:ID()
 	if #self.free >= number or (force and #self.free > 0) then
 		-- get the closest ones first
-		-- order by self.ai.Tool:distance
+		-- order by self.ai.tool:distance
 		local byselfdistance = {}
 		local returnToFree = {}
 		local count = 0
@@ -214,9 +214,9 @@ function AssistHST:Summon(builder, position, number, force)
 				self.totalAssignments = self.totalAssignments + 1
 				self.working[bid] = {}
 			end
-			-- summon in order of self.ai.Tool:distance and return the rest to free
+			-- summon in order of self.ai.tool:distance and return the rest to free
 			local n = 0
-			for dist, assistbst in self.ai.Tool:pairsByKeys(byselfdistance) do
+			for dist, assistbst in self.ai.tool:pairsByKeys(byselfdistance) do
 				if n == number then
 					-- add any unused back into free
 					table.insert(self.free, assistbst)

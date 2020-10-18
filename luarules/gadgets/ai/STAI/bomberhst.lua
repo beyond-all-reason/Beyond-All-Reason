@@ -14,7 +14,7 @@ function BomberHST:Init()
     BomberHST.plans = {} --TODO why here and why called with bomberhst instead of self
 	self.recruits = {}
 	self.needsTargetting = {}
-	self.counter = self.ai.UnitiesHST.baseBomberCounter
+	self.counter = self.ai.armyhst.baseBomberCounter
 	self.ai.hasBombed = 0
 	self.ai.couldBomb = 0
 	self.pathValidFuncs = {}
@@ -31,7 +31,7 @@ function BomberHST:Update()
 		local pathfinder = plan.pathfinder
 		local path, remaining, maxInvalid = pathfinder:Find(1)
 		if path then
-			-- path = self.ai.Tool:SimplifyPath(path)
+			-- path = self.ai.tool:SimplifyPath(path)
 			if self.DebugEnabled then
 				self.map:EraseLine(nil, nil, {1,1,1}, nil, nil, 8)
 				for i = 2, #path do
@@ -146,13 +146,13 @@ end
 
 function BomberHST:NeedMore()
 	self.counter = self.counter + 1
-	self.counter = math.min(self.counter, self.ai.UnitiesHST.maxBomberCounter)
+	self.counter = math.min(self.counter, self.ai.armyhst.maxBomberCounter)
 	-- self:EchoDebug("bomber counter: " .. self.counter .. " (bomber died)")
 end
 
 function BomberHST:NeedLess()
 	self.counter = self.counter - 1
-	self.counter = math.max(self.counter, self.ai.UnitiesHST.minBomberCounter)
+	self.counter = math.max(self.counter, self.ai.armyhst.minBomberCounter)
 	self:EchoDebug("bomber counter: " .. self.counter .. " (AA died)")
 end
 

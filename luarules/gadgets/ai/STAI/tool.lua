@@ -238,10 +238,10 @@ function Tool:ThreatRange(unitName, groundAirSubmerged)
 			return layer.threat, layer.range
 		end
 	end
-	if self.ai.UnitiesHST.antinukeList[unitName] or self.ai.UnitiesHST.nukeList[unitName] or self.ai.UnitiesHST.bigPlasmaList[unitName] or self.ai.UnitiesHST.shieldList[unitName] then
+	if self.ai.armyhst.antinukeList[unitName] or self.ai.armyhst.nukeList[unitName] or self.ai.armyhst.bigPlasmaList[unitName] or self.ai.armyhst.shieldList[unitName] then
 		return 0, 0
 	end
-	local utable = self.ai.UnitiesHST.unitTable[unitName]
+	local utable = self.ai.armyhst.unitTable[unitName]
 	if groundAirSubmerged == nil then
 		if utable.groundRange > utable.airRange and utable.groundRange > utable.submergedRange then
 			groundAirSubmerged = "ground"
@@ -297,7 +297,7 @@ function Tool:UnitWeaponLayerList(unitName)
 	local weaponLayers = unitWeaponLayers[unitName]
 	if weaponLayers then return weaponLayers end
 	weaponLayers = {}
-	local ut = self.ai.UnitiesHST.unitTable[unitName]
+	local ut = self.ai.armyhst.unitTable[unitName]
 	if not ut then
 		return weaponLayers
 	end
@@ -316,12 +316,12 @@ end
 
 function Tool:UnitWeaponMtypeList(unitName)
 	if unitName == nil then return {} end
-	if unitName == self.ai.UnitiesHST.DummyUnitName then return {} end
+	if unitName == self.ai.armyhst.DummyUnitName then return {} end
 	local mtypes = unitWeaponMtypes[unitName]
 	if mtypes then
 		return mtypes
 	end
-	local utable = self.ai.UnitiesHST.unitTable[unitName]
+	local utable = self.ai.armyhst.unitTable[unitName]
 	mtypes = {}
 	if utable.groundRange > 0 then
 		table.insert(mtypes, "veh")
@@ -346,8 +346,8 @@ function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
 	if unitName then
-		game:SendToConsole(self.ai.UnitiesHST.testparam)
-		local ut = self.ai.UnitiesHST.unitTable[unitName]
+		game:SendToConsole(self.ai.armyhst.testparam)
+		local ut = self.ai.armyhst.unitTable[unitName]
 		if ut then
 			mtype = ut.mtype
 		end

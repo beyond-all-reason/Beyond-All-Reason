@@ -273,7 +273,7 @@ function GraphAStar:Init(nodes, isNeighborNode, isValidNode, distFunc, modifierF
 end
 
 -- provides a neighbor function for a grid with each node having four neighbors
--- assumes distFunc is the default of self.ai.Tool:distance squared
+-- assumes distFunc is the default of self.ai.tool:distance squared
 function GraphAStar:SetQuadGridSize(gridSize)
 	local nodeDist = 0.1 + (gridSize * gridSize)
 	self.isNeighborNode = function ( node, neighbor )
@@ -288,7 +288,7 @@ function GraphAStar:SetQuadGridSize(gridSize)
 end
 
 -- provides a neighbor function for a grid with each node having eight neighbors
--- assumes distFunc is the default of self.ai.Tool:distance squared
+-- assumes distFunc is the default of self.ai.tool:distance squared
 function GraphAStar:SetOctoGridSize(gridSize)
 	local nodeDist = 0.1 + (2 * (gridSize*gridSize))
 	self.isNeighborNode = function ( node, neighbor )

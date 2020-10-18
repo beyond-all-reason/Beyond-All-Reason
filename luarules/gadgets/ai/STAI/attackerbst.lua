@@ -1,5 +1,5 @@
 function IsAttacker(unit)
-	return self.ai.UnitiesHST.attackerlist[unit:Internal():Name()] or false
+	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
 end
 
 AttackerBST = class(Behaviour)
@@ -14,15 +14,15 @@ function AttackerBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
-	local ut = self.ai.UnitiesHST.unitTable[self.name]
+	local ut = self.ai.armyhst.unitTable[self.name]
 	self.level = ut.techLevel - 1
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
 	self.size = math.max(ut.xsize, ut.zsize) * 8
-	self.congSize = self.size * 0.67 -- how much self.ai.Tool:distance between it and other attackers when congregating
+	self.congSize = self.size * 0.67 -- how much self.ai.tool:distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
 	self.sightDistance = ut.losRadius * 0.9
-	self.sturdy = self.ai.UnitiesHST.battleList[self.name] or self.ai.UnitiesHST.breakthroughList[self.name]
+	self.sturdy = self.ai.armyhst.battleList[self.name] or self.ai.armyhst.breakthroughList[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
 	elseif ut.submergedRange > 0 then
@@ -116,20 +116,20 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		if not self.sturdy or self.ai.loshst:IsInLos(pos) then
 			awayDistance = self.weaponDistance
 		end
-		local myAngle = self.ai.Tool:AngleAdd(reverseAttackAngle, self.formationAngle)
-		self.target = self.ai.Tool:RandomAway(self.ai, pos, awayDistance, nil, myAngle)
+		local myAngle = self.ai.tool:AngleAdd(reverseAttackAngle, self.formationAngle)
+		self.target = self.ai.tool:RandomAway(self.ai, pos, awayDistance, nil, myAngle)
 	else
-		self.target = self.ai.Tool:RandomAway(self.ai, pos, self.formationDist, nil, perpendicularAttackAngle)
+		self.target = self.ai.tool:RandomAway(self.ai, pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
 	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	if canMoveThere then
 		self.squad.lastValidMove = self.target
 	elseif self.squad.lastValidMove then
-		self.target = self.ai.Tool:RandomAway(self.ai, self.squad.lastValidMove, self.congSize)
+		self.target = self.ai.tool:RandomAway(self.ai, self.squad.lastValidMove, self.congSize)
 		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
 	if self.active and canMoveThere then
-		-- local framesToArrive = 30 * (self.ai.Tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
+		-- local framesToArrive = 30 * (self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
 		-- game:SendToConsole("frames to arrive", framesToArrive)
 		-- self.timeout = self.game:Frame() + framesToArrive
 		self.unit:Internal():Move(self.target)
@@ -158,10 +158,10 @@ function AttackerBST:SetMoveState()
 	if thisUnit then
 		local unitName = self.name
 		local floats = api.vectorFloat()
-		if self.ai.UnitiesHST.battleList[unitName] then
+		if self.ai.armyhst.battleList[unitName] then
 			-- floats:push_back(MOVESTATE_ROAM)
 			floats:push_back(MOVESTATE_MANEUVER)
-		elseif self.ai.UnitiesHST.breakthroughList[unitName] then
+		elseif self.ai.armyhst.breakthroughList[unitName] then
 			floats:push_back(MOVESTATE_MANEUVER)
 		else
 			floats:push_back(MOVESTATE_HOLDPOS)

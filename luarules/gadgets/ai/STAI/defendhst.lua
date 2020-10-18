@@ -53,9 +53,9 @@ function DefendHST:AddWard(behaviour, turtle)
 		if behaviour.name == nil then behaviour.name = behaviour.unit:Internal():Name() end
 		if behaviour.id == nil then behaviour.id = behaviour.unit:Internal():ID() end
 		local un = behaviour.name
-		local utable = self.ai.UnitiesHST.unitTable[un]
+		local utable = self.ai.armyhst.unitTable[un]
 		priority.air = utable.techLevel * techLevelPriority
-		if self.ai.UnitiesHST.commanderList[un] then priority.air = commanderPriority end
+		if self.ai.armyhst.commanderList[un] then priority.air = commanderPriority end
 		local mtype = behaviour.mtype
 		if mtype == "air" then
 			-- already zero
@@ -249,7 +249,7 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 					end
 				end
 			end
-			-- put into table to sort by self.ai.Tool:distance
+			-- put into table to sort by self.ai.tool:distance
 			local byselfdistance = {}
 			for di = #defendersToAssign, 1, -1 do
 				local dfndbehaviour = defendersToAssign[di]
@@ -274,8 +274,8 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 					if ux then
 						if self.ai.maphst:UnitCanGoHere(defender, wardPos) then
 							local defenderPos = defender:GetPosition()
-							local dist = self.ai.Tool:Distance(defenderPos, wardPos)
-							byselfdistance[dist] = dfndbehaviour -- the probability of the same self.ai.Tool:distance is near zero
+							local dist = self.ai.tool:Distance(defenderPos, wardPos)
+							byselfdistance[dist] = dfndbehaviour -- the probability of the same self.ai.tool:distance is near zero
 						end
 					else
 						-- game:SendToConsole(self.ai.id, "defender unit nil position", defender:ID(), defender:Name())
@@ -284,7 +284,7 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 			end
 			-- add as many as needed, closest first
 			local n = 0
-			for dist, dfndbehaviour in self.ai.Tool:pairsByKeys(byselfdistance) do
+			for dist, dfndbehaviour in self.ai.tool:pairsByKeys(byselfdistance) do
 				if n < number then
 					self.wardsByDefenderID[dfndbehaviour.id] = ward
 					table.insert(ward.defenders, dfndbehaviour)
@@ -520,7 +520,7 @@ function DefendHST:FindFronts(troublingCells)
 							table.remove(self.wards, wi)
 						else
 							if water == behaviour.water then
-								local dist = self.ai.Tool:Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
+								local dist = self.ai.tool:Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
 								if dist < nearestMobileDist then
 									nearestMobileDist = dist
 									nearestMobile = ward
@@ -534,7 +534,7 @@ function DefendHST:FindFronts(troublingCells)
 						turtle.front = nil
 						if water == turtle.water then
 							if turtle.priority > 1 then
-								local dist = self.ai.Tool:Distance(turtle.position, cell.pos)
+								local dist = self.ai.tool:Distance(turtle.position, cell.pos)
 								if dist < nearestTurtleDist then
 									nearestTurtleDist = dist
 									nearestTurtle = ward
@@ -546,7 +546,7 @@ function DefendHST:FindFronts(troublingCells)
 				if n == 1 then
 					if nearestTurtle ~= nil then
 						local turtle = nearestTurtle.turtle
-						turtle.threatForecastAngle = self.ai.Tool:AngleAtoB(turtle.position.x, turtle.position.z, cell.pos.x, cell.pos.z)
+						turtle.threatForecastAngle = self.ai.tool:AngleAtoB(turtle.position.x, turtle.position.z, cell.pos.x, cell.pos.z)
 						turtle.front = true
 						self:Danger(nil, turtle, GAS)
 						self.ai.incomingThreat = cell.response[GAS]
@@ -622,7 +622,7 @@ end
 function DefendHST:GetGuardDistance(unitName)
 	local dist = self.unitGuardDistances[unitName]
 	if dist ~= nil then return dist end
-	local utable = self.ai.UnitiesHST.unitTable[unitName]
+	local utable = self.ai.armyhst.unitTable[unitName]
 	dist = (math.max(utable.xsize, utable.zsize) * 4) + 100
 	self.unitGuardDistances[unitName] = dist
 	return dist

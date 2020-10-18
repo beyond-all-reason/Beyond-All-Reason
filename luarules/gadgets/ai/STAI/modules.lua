@@ -1,5 +1,5 @@
 -- shard_include ("unitlists")
-shard_include ("unitieshst")
+shard_include ("armyhst")
 shard_include ("maphst")
 shard_include ("buildsitehst")
 shard_include ("counthst")
@@ -34,7 +34,7 @@ shard_include ('tool')
 
 return {
 	SleepST,
-	UnitiesHST,
+	ArmyHST,
 	MapHST,
 	EcoHST,
 	AttackHST,

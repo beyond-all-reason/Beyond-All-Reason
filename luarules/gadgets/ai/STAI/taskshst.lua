@@ -5,7 +5,7 @@ function TasksHST:Name()
 end
 
 function TasksHST:internalName()
-	return "TasksHST"
+	return "taskshst"
 end
 
 function TasksHST:Init()
@@ -69,8 +69,8 @@ function TasksHST:IsWaterAttackNeeded()
 end
 
 function TasksHST:GetMtypedLv(unitName)
-	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
-	local level = self.ai.UnitiesHST.unitTable[unitName].techLevel
+	local mtype = self.ai.armyhst.unitTable[unitName].mtype
+	local level = self.ai.armyhst.unitTable[unitName].techLevel
 	local mtypedLv = mtype .. tostring(level)
 	local counter = self.ai.mtypeLvCount[mtypedLv] or 0
 	self:EchoDebug('mtypedLvmtype ' .. mtype .. ' '.. level .. ' ' .. counter)
@@ -80,13 +80,13 @@ end
 
 function TasksHST:BuildAAIfNeeded(unitName)
 	if self:IsAANeeded() then
-		if not self.ai.UnitiesHST.unitTable[unitName].isBuilding then
+		if not self.ai.armyhst.unitTable[unitName].isBuilding then
 			return BuildWithLimitedNumber(unitName, self.ai.overviewhst.AAUnitPerTypeLimit)
 		else
 			return unitName
 		end
 	else
-		return self.ai.UnitiesHST.DummyUnitName
+		return self.ai.armyhst.DummyUnitName
 	end
 end
 
@@ -94,72 +94,72 @@ function TasksHST:BuildTorpedoIfNeeded(unitName)
 	if self:IsTorpedoNeeded() then
 		return unitName
 	else
-		return self.ai.UnitiesHST.DummyUnitName
+		return self.ai.armyhst.DummyUnitName
 	end
 end
 
 function TasksHST:BuildSiegeIfNeeded(unitName)
-	if unitName == self.ai.UnitiesHST.DummyUnitName then return self.ai.UnitiesHST.DummyUnitName end
+	if unitName == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
 	if self:IsSiegeEquipmentNeeded() then
 		if self.ai.siegeCount < (self.ai.battleCount + self.ai.breakthroughCount) * 0.35 then
 			return unitName
 		end
 	end
-	return self.ai.UnitiesHST.DummyUnitName
+	return self.ai.armyhst.DummyUnitName
 end
 
 function TasksHST:BuildBreakthroughIfNeeded(unitName)
-	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
+	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
 	if self:IsSiegeEquipmentNeeded() then return unitName end
-	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
+	local mtype = self.ai.armyhst.unitTable[unitName].mtype
 	if mtype == "air" then
 		local bomberCounter = self.ai.bomberhst:GetCounter()
-		if bomberCounter >= self.ai.UnitiesHST.breakthroughBomberCounter and bomberCounter < self.ai.UnitiesHST.maxBomberCounter then
+		if bomberCounter >= self.ai.armyhst.breakthroughBomberCounter and bomberCounter < self.ai.armyhst.maxBomberCounter then
 			return unitName
 		else
-			return self.ai.UnitiesHST.DummyUnitName
+			return self.ai.armyhst.DummyUnitName
 		end
 	else
-		if self.ai.battleCount <= self.ai.UnitiesHST.minBattleCount then return self.ai.UnitiesHST.DummyUnitName end
+		if self.ai.battleCount <= self.ai.armyhst.minBattleCount then return self.ai.armyhst.DummyUnitName end
 		local attackCounter = self.ai.attackhst:GetCounter(mtype)
-		if attackCounter == self.ai.UnitiesHST.maxAttackCounter then
+		if attackCounter == self.ai.armyhst.maxAttackCounter then
 			return unitName
-		elseif attackCounter >= self.ai.UnitiesHST.breakthroughAttackCounter then
+		elseif attackCounter >= self.ai.armyhst.breakthroughAttackCounter then
 			return unitName
 		else
-			return self.ai.UnitiesHST.DummyUnitName
+			return self.ai.armyhst.DummyUnitName
 		end
 	end
 end
 
 function TasksHST:BuildRaiderIfNeeded(unitName)
 	self:EchoDebug("build raider if needed: " .. unitName)
-	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
-	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
+	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
+	local mtype = self.ai.armyhst.unitTable[unitName].mtype
 	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
 		-- if we have a level 2 factory, don't build raiders until we have some battle units
 		local attackCounter = self.ai.attackhst:GetCounter(mtype)
 		if self.ai.battleCount + self.ai.breakthroughCount < attackCounter / 2 then
-			return self.ai.UnitiesHST.DummyUnitName
+			return self.ai.armyhst.DummyUnitName
 		end
 	end
 	local counter = self.ai.raidhst:GetCounter(mtype)
-	if counter == self.ai.UnitiesHST.minRaidCounter then return self.ai.UnitiesHST.DummyUnitName end
+	if counter == self.ai.armyhst.minRaidCounter then return self.ai.armyhst.DummyUnitName end
 	if self.ai.raiderCount[mtype] == nil then
 		-- fine
 	elseif self.ai.raiderCount[mtype] >= counter then
-		unitName = self.ai.UnitiesHST.DummyUnitName
+		unitName = self.ai.armyhst.DummyUnitName
 	end
 	return unitName
 end
 
 function TasksHST:BuildBattleIfNeeded(unitName)
-	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
-	local mtype = self.ai.UnitiesHST.unitTable[unitName].mtype
+	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
+	local mtype = self.ai.armyhst.unitTable[unitName].mtype
 	local attackCounter = self.ai.attackhst:GetCounter(mtype)
-	self:EchoDebug(mtype .. " " .. attackCounter .. " " .. self.ai.UnitiesHST.maxAttackCounter)
-	if attackCounter == self.ai.UnitiesHST.maxAttackCounter and self.ai.battleCount > self.ai.UnitiesHST.minBattleCount then return self.ai.UnitiesHST.DummyUnitName end
-	if mtype == "veh" and self.side == self.ai.UnitiesHST.CORESideName and (self.ai.factoriesAtLevel[1] == nil or self.ai.factoriesAtLevel[1] == {}) then
+	self:EchoDebug(mtype .. " " .. attackCounter .. " " .. self.ai.armyhst.maxAttackCounter)
+	if attackCounter == self.ai.armyhst.maxAttackCounter and self.ai.battleCount > self.ai.armyhst.minBattleCount then return self.ai.armyhst.DummyUnitName end
+	if mtype == "veh" and self.side == self.ai.armyhst.CORESideName and (self.ai.factoriesAtLevel[1] == nil or self.ai.factoriesAtLevel[1] == {}) then
 		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
 		return unitName
 	end
@@ -168,61 +168,61 @@ function TasksHST:BuildBattleIfNeeded(unitName)
 		return unitName
 	end
 	local raidCounter = self.ai.raidhst:GetCounter(mtype)
-	self:EchoDebug(mtype .. " " .. raidCounter .. " " .. self.ai.UnitiesHST.maxRaidCounter)
-	if raidCounter == self.ai.UnitiesHST.minRaidCounter then return unitName end
+	self:EchoDebug(mtype .. " " .. raidCounter .. " " .. self.ai.armyhst.maxRaidCounter)
+	if raidCounter == self.ai.armyhst.minRaidCounter then return unitName end
 	self:EchoDebug(self.ai.raiderCount[mtype])
 	if self.ai.raiderCount[mtype] == nil then
 		return unitName
 	elseif self.ai.raiderCount[mtype] < raidCounter / 2 then
-		return self.ai.UnitiesHST.DummyUnitName
+		return self.ai.armyhst.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function TasksHST:CountOwnUnits(tmpUnitName)
-	if tmpUnitName == self.ai.UnitiesHST.DummyUnitName then return 0 end -- don't count no-units
+	if tmpUnitName == self.ai.armyhst.DummyUnitName then return 0 end -- don't count no-units
 	if self.ai.nameCount[tmpUnitName] == nil then return 0 end
 	return self.ai.nameCount[tmpUnitName]
 end
 
 function TasksHST:BuildWithLimitedNumber(tmpUnitName, minNumber)
-	if tmpUnitName == self.ai.UnitiesHST.DummyUnitName then return self.ai.UnitiesHST.DummyUnitName end
-	if minNumber == 0 then return self.ai.UnitiesHST.DummyUnitName end
+	if tmpUnitName == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
+	if minNumber == 0 then return self.ai.armyhst.DummyUnitName end
 	if self.ai.nameCount[tmpUnitName] == nil then
 		return tmpUnitName
 	else
 		if self.ai.nameCount[tmpUnitName] == 0 or self.ai.nameCount[tmpUnitName] < minNumber then
 			return tmpUnitName
 		else
-			return self.ai.UnitiesHST.DummyUnitName
+			return self.ai.armyhst.DummyUnitName
 		end
 	end
 end
 
 function TasksHST:GroundDefenseIfNeeded(unitName)
 	if not self.ai.needGroundDefense then
-		return self.ai.UnitiesHST.DummyUnitName
+		return self.ai.armyhst.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function TasksHST:BuildBomberIfNeeded(unitName)
-	if not IsLandAttackNeeded() then return self.ai.UnitiesHST.DummyUnitName end
-	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == self.ai.UnitiesHST.maxBomberCounter then
-		return self.ai.UnitiesHST.DummyUnitName
+	if not IsLandAttackNeeded() then return self.ai.armyhst.DummyUnitName end
+	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
+	if self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter then
+		return self.ai.armyhst.DummyUnitName
 	else
 		return unitName
 	end
 end
 
 function TasksHST:BuildTorpedoBomberIfNeeded(unitName)
-	if not IsWaterAttackNeeded() then return self.ai.UnitiesHST.DummyUnitName end
-	if unitName == self.ai.UnitiesHST.DummyUnitName or unitName == nil then return self.ai.UnitiesHST.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == self.ai.UnitiesHST.maxBomberCounter then
-		return self.ai.UnitiesHST.DummyUnitName
+	if not IsWaterAttackNeeded() then return self.ai.armyhst.DummyUnitName end
+	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
+	if self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter then
+		return self.ai.armyhst.DummyUnitName
 	else
 		return unitName
 	end
@@ -242,7 +242,7 @@ end
 
 
 function TasksHST:ConsulAsFactory(worker)
-	local unitName = self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd = math.random(1,8)
 	if 	rnd == 1 then unitName = ConVehicle(worker)
 	elseif 	rnd == 2 then unitName = ConShip(worker)
@@ -253,13 +253,13 @@ function TasksHST:ConsulAsFactory(worker)
 	elseif 	rnd == 7 then unitName = Lvl2BotMedium(worker)
 	else unitName = Lvl1ShipDestroyerOnly(worker)
 	end
-	if unitName == nil then unitName = self.ai.UnitiesHST.DummyUnitName end
+	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
 	self:EchoDebug('Consul as factory '..unitName)
 	return unitName
 end
 
 function TasksHST:FreakerAsFactory(worker)
-	local unitName = self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd = math.random(1,7)
 	if 	rnd == 1 then unitName = ConBot(worker)
 	elseif 	rnd == 2 then unitName = ConShip(worker)
@@ -269,13 +269,13 @@ function TasksHST:FreakerAsFactory(worker)
 	elseif 	rnd == 6 then unitName = Lvl2AmphBot(worker)
 	else unitName = Lvl1ShipDestroyerOnly(worker)
 	end
-	if unitName == nil then unitName = self.ai.UnitiesHST.DummyUnitName end
+	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
 	self:EchoDebug('Freaker as factory '..unitName)
 	return unitName
 end
 
 function TasksHST:NavalEngineerAsFactory(worker)
-	local unitName = self.ai.UnitiesHST.DummyUnitName
+	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd= math.random(1,6)
 	if 	rnd == 1 then unitName = ConShip(worker)
 	elseif 	rnd == 2 then unitName = ScoutShip(worker)
@@ -289,8 +289,8 @@ function TasksHST:NavalEngineerAsFactory(worker)
 end
 
 function TasksHST:EngineerAsFactory(worker)
-	local unitName = self.ai.UnitiesHST.DummyUnitName
-	if self.side == self.ai.UnitiesHST.CORESideName then
+	local unitName = self.ai.armyhst.DummyUnitName
+	if self.side == self.ai.armyhst.CORESideName then
 		unitName = self:FreakerAsFactory(worker)
 	else
 		unitName = self:ConsulAsFactory(worker)
@@ -304,262 +304,262 @@ end
 
 function TasksHST:anyCommander()
 	return {
-		self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-		self:wrap( self.ai.TaskEcoHST,'CommanderEconomy' ) ,
-		self:wrap( self.ai.TaskBuildHST,'BuildLLT' ) ,
-		self:wrap( self.ai.TaskBuildHST,'BuildRadar' ) ,
-		self:wrap( self.ai.TaskBuildHST,'CommanderAA' ) ,
-		self:wrap( self.ai.TaskBuildHST,'BuildPopTorpedo' ) ,
+		self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+		self:wrap( self.ai.taskecohst,'CommanderEconomy' ) ,
+		self:wrap( self.ai.taskbuildhst,'BuildLLT' ) ,
+		self:wrap( self.ai.taskbuildhst,'BuildRadar' ) ,
+		self:wrap( self.ai.taskbuildhst,'CommanderAA' ) ,
+		self:wrap( self.ai.taskbuildhst,'BuildPopTorpedo' ) ,
 	}
 end
 function TasksHST:anyConUnit()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLLT' ) ,
-	self:wrap( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildRadar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl1Jammer' ) ,
-	self:wrap( self.ai.TaskEcoHST,'BuildGeo' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHLT' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl1Plasma' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHeavyishAA' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'Economy1' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLLT' ) ,
+	self:wrap( self.ai.taskecohst,'Economy1' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildMediumAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildRadar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl1Jammer' ) ,
+	self:wrap( self.ai.taskecohst,'BuildGeo' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHLT' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl1Plasma' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHeavyishAA' ) ,
 } end
 
 function TasksHST:anyConAmphibious()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'AmphibiousEconomy' ) ,
-	self:wrap( self.ai.TaskEcoHST,'BuildGeo' ) ,
-	self:wrap( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildRadar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl1Jammer' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHLT' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl1Plasma' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHeavyishAA' ) ,
-	self:wrap( self.ai.TaskEcoHST,'AmphibiousEconomy' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildPopTorpedo' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'AmphibiousEconomy' ) ,
+	self:wrap( self.ai.taskecohst,'BuildGeo' ) ,
+	self:wrap( self.ai.taskecohst,'Economy1' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildMediumAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildRadar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl1Jammer' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHLT' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl1Plasma' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHeavyishAA' ) ,
+	self:wrap( self.ai.taskecohst,'AmphibiousEconomy' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildPopTorpedo' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatLightAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatRadar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatHLT' ) ,
 } end
 
 function TasksHST:anyConShip()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'EconomyUnderWater' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLightTorpedo' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'EconomyUnderWater' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatLightAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLightTorpedo' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatRadar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatHLT' ) ,
 } end
 
 function TasksHST:anyAdvConUnit()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'AdvEconomy' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildNukeIfNeeded' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildAdvancedRadar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHeavyPlasma' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildAntinuke' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl2PopUp' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHeavyAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl2Plasma' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildTachyon' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'AdvEconomy' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildNukeIfNeeded' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildAdvancedRadar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHeavyPlasma' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildAntinuke' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl2PopUp' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHeavyAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl2Plasma' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildTachyon' ) ,
 	-- BuildTacticalNuke' ) ,
-			self:wrap( self.ai.TaskBuildHST,'BuildExtraHeavyAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl2Jammer' ) ,
-	self:wrap( self.ai.TaskEcoHST,'BuildMohoGeo' ) ,
+			self:wrap( self.ai.taskbuildhst,'BuildExtraHeavyAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl2Jammer' ) ,
+	self:wrap( self.ai.taskecohst,'BuildMohoGeo' ) ,
 } end
 
 function TasksHST:anyConSeaplane()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'EconomySeaplane' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatHeavyAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildAdvancedSonar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHeavyTorpedo' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'EconomySeaplane' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatHeavyAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildAdvancedSonar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHeavyTorpedo' ) ,
 } end
 
 function TasksHST:anyAdvConSub()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'AdvEconomyUnderWater' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatHeavyAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildAdvancedSonar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHeavyTorpedo' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'AdvEconomyUnderWater' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatHeavyAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildAdvancedSonar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHeavyTorpedo' ) ,
 } end
 
 function TasksHST:anyNavalEngineer()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'EconomyNavalEngineer' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatHLT' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatLightAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildFloatRadar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLightTorpedo' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'EconomyNavalEngineer' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatHLT' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatLightAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildFloatRadar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLightTorpedo' ) ,
 } end
 
 function TasksHST:anyCombatEngineer()  return  {
-	self:wrap( self.ai.TaskEcoHST,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.TaskEcoHST,'EconomyBattleEngineer' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildMediumAA' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildAdvancedRadar' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl2Jammer' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildHeavyAA' ) ,
-	self:wrap( self.ai.TaskEcoHST,'Economy1' ) ,
-	self:wrap( self.ai.TaskBuildHST,'BuildLvl2Plasma' ) ,
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
+	self:wrap( self.ai.taskecohst,'EconomyBattleEngineer' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildMediumAA' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildAdvancedRadar' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl2Jammer' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildHeavyAA' ) ,
+	self:wrap( self.ai.taskecohst,'Economy1' ) ,
+	self:wrap( self.ai.taskbuildhst,'BuildLvl2Plasma' ) ,
 } end
 
 
 -- factories.
 
 		function TasksHST:anyLvl1AirPlant()  return  {
-	self:wrap( self.ai.TaskAirHST,'ScoutAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'Lvl1Bomber' ) ,
-	self:wrap( self.ai.TaskAirHST,'Lvl1AirRaider' ) ,
-	self:wrap( self.ai.TaskAirHST,'ConAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'Lvl1Fighter' ) ,
+	self:wrap( self.ai.taskairhst,'ScoutAir' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl1Bomber' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl1AirRaider' ) ,
+	self:wrap( self.ai.taskairhst,'ConAir' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl1Fighter' ) ,
 } end
 
 function TasksHST:anyLvl1VehPlant()  return  {
-	self:wrap( self.ai.TaskVehHST,'ScoutVeh' ) ,
-	self:wrap( self.ai.TaskVehHST,'ConVehicle' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl1VehRaider' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl1VehBattle' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl1AAVeh' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl1VehArty' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl1VehBreakthrough' ) ,
+	self:wrap( self.ai.taskvehhst,'ScoutVeh' ) ,
+	self:wrap( self.ai.taskvehhst,'ConVehicle' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl1VehRaider' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl1VehBattle' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl1AAVeh' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl1VehArty' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl1VehBreakthrough' ) ,
 } end
 
 function TasksHST:anyLvl1BotLab()  return  {
-	self:wrap( self.ai.TaskBotHST,'ScoutBot' ) ,
-	self:wrap( self.ai.TaskBotHST,'ConBot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl1BotRaider' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl1BotBattle' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl1AABot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl1BotBreakthrough' ) ,
-	self:wrap( self.ai.TaskBotHST,'RezBot1' ) ,
+	self:wrap( self.ai.taskbothast,'ScoutBot' ) ,
+	self:wrap( self.ai.taskbothast,'ConBot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl1BotRaider' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl1BotBattle' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl1AABot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl1BotBreakthrough' ) ,
+	self:wrap( self.ai.taskbothast,'RezBot1' ) ,
 } end
 
 function TasksHST:anyLvl1ShipYard()  return  {
-	self:wrap( self.ai.TaskShpHST,'ScoutShip' ) ,
-	self:wrap( self.ai.TaskShpHST,'ConShip' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl1ShipBattle' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl1ShipRaider' ) ,
+	self:wrap( self.ai.taskshphst,'ScoutShip' ) ,
+	self:wrap( self.ai.taskshphst,'ConShip' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl1ShipBattle' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl1ShipRaider' ) ,
 } end
 
 function TasksHST:anyHoverPlatform()  return  {
-	self:wrap( self.ai.TaskHovHST,'HoverRaider' ) ,
-	self:wrap( self.ai.TaskHovHST,'ConHover' ) ,
-	self:wrap( self.ai.TaskHovHST,'HoverBattle' ) ,
-	self:wrap( self.ai.TaskHovHST,'HoverBreakthrough' ) ,
-	self:wrap( self.ai.TaskHovHST,'HoverMerl' ) ,
-	self:wrap( self.ai.TaskHovHST,'AAHover' ) ,
+	self:wrap( self.ai.taskhovhst,'HoverRaider' ) ,
+	self:wrap( self.ai.taskhovhst,'ConHover' ) ,
+	self:wrap( self.ai.taskhovhst,'HoverBattle' ) ,
+	self:wrap( self.ai.taskhovhst,'HoverBreakthrough' ) ,
+	self:wrap( self.ai.taskhovhst,'HoverMerl' ) ,
+	self:wrap( self.ai.taskhovhst,'AAHover' ) ,
 } end
 
 function TasksHST:anyAmphibiousComplex()  return  {
-	self:wrap( self.ai.TaskVehHST,'AmphibiousRaider' ) ,
-	self:wrap( self.ai.TaskVehHST,'ConVehicleAmphibious' ) ,
-	self:wrap( self.ai.TaskVehHST,'AmphibiousBattle' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl1ShipRaider' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl1AABot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2AABot' ) ,
+	self:wrap( self.ai.taskvehhst,'AmphibiousRaider' ) ,
+	self:wrap( self.ai.taskvehhst,'ConVehicleAmphibious' ) ,
+	self:wrap( self.ai.taskvehhst,'AmphibiousBattle' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl1ShipRaider' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl1AABot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2AABot' ) ,
 } end
 
 function TasksHST:anyLvl2VehPlant()  return  {
-	self:wrap( self.ai.TaskVehHST,'ConAdvVehicle' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl2VehRaider' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl2VehBattle' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl2VehBreakthrough' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl2VehArty' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl2VehMerl' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl2AAVeh' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl2VehAssist' ) ,
+	self:wrap( self.ai.taskvehhst,'ConAdvVehicle' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl2VehRaider' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl2VehBattle' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl2VehBreakthrough' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl2VehArty' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl2VehMerl' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl2AAVeh' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl2VehAssist' ) ,
 } end
 
 function TasksHST:anyLvl2BotLab()  return  {
-	self:wrap( self.ai.TaskBotHST,'Lvl2BotRaider' ) ,
-	self:wrap( self.ai.TaskBotHST,'ConAdvBot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2BotBattle' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2BotBreakthrough' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2BotArty' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2BotMerl' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2AABot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2BotAssist' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2BotRaider' ) ,
+	self:wrap( self.ai.taskbothast,'ConAdvBot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2BotBattle' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2BotBreakthrough' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2BotArty' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2BotMerl' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2AABot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2BotAssist' ) ,
 } end
 
 function TasksHST:anyLvl2AirPlant()  return  {
-	self:wrap( self.ai.TaskAirHST,'Lvl2Bomber' ) ,
-	self:wrap( self.ai.TaskAirHST,'Lvl2TorpedoBomber' ) ,
-	self:wrap( self.ai.TaskAirHST,'ConAdvAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'ScoutAdvAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'Lvl2Fighter' ) ,
-	self:wrap( self.ai.TaskAirHST,'Lvl2AirRaider' ) ,
-	self:wrap( self.ai.TaskAirHST,'MegaAircraft' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl2Bomber' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl2TorpedoBomber' ) ,
+	self:wrap( self.ai.taskairhst,'ConAdvAir' ) ,
+	self:wrap( self.ai.taskairhst,'ScoutAdvAir' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl2Fighter' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl2AirRaider' ) ,
+	self:wrap( self.ai.taskairhst,'MegaAircraft' ) ,
 } end
 
 function TasksHST:anySeaplanePlatform()  return  {
-	self:wrap( self.ai.TaskAirHST,'SeaBomber' ) ,
-	self:wrap( self.ai.TaskAirHST,'SeaTorpedoBomber' ) ,
-	self:wrap( self.ai.TaskAirHST,'ConSeaAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'ScoutSeaAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'SeaFighter' ) ,
-	self:wrap( self.ai.TaskAirHST,'SeaAirRaider' ) ,
+	self:wrap( self.ai.taskairhst,'SeaBomber' ) ,
+	self:wrap( self.ai.taskairhst,'SeaTorpedoBomber' ) ,
+	self:wrap( self.ai.taskairhst,'ConSeaAir' ) ,
+	self:wrap( self.ai.taskairhst,'ScoutSeaAir' ) ,
+	self:wrap( self.ai.taskairhst,'SeaFighter' ) ,
+	self:wrap( self.ai.taskairhst,'SeaAirRaider' ) ,
 } end
 
 function TasksHST:anyLvl2ShipYard()  return  {
-	self:wrap( self.ai.TaskShpHST,'Lvl2ShipRaider' ) ,
-	self:wrap( self.ai.TaskShpHST,'ConAdvSub' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl2ShipBattle' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl2AAShip' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl2ShipBreakthrough' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl2ShipMerl' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl2ShipAssist' ) ,
-	self:wrap( self.ai.TaskShpHST,'Lvl2SubWar' ) ,
-	self:wrap( self.ai.TaskShpHST,'MegaShip' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl2ShipRaider' ) ,
+	self:wrap( self.ai.taskshphst,'ConAdvSub' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl2ShipBattle' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl2AAShip' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl2ShipBreakthrough' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl2ShipMerl' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl2ShipAssist' ) ,
+	self:wrap( self.ai.taskshphst,'Lvl2SubWar' ) ,
+	self:wrap( self.ai.taskshphst,'MegaShip' ) ,
 } end
 
 function TasksHST:anyExperimental()  return  {
-	self:wrap( self.ai.TaskBotHST,'Lvl3Raider' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl3Battle' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl3Merl' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl3Arty' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl3Breakthrough' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl3Raider' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl3Battle' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl3Merl' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl3Arty' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl3Breakthrough' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1BotLab()  return  {
-	self:wrap( self.ai.TaskBotHST,'ConBot' ) ,
-	self:wrap( self.ai.TaskBotHST,'RezBot1' ) ,
-	self:wrap( self.ai.TaskBotHST,'ScoutBot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl1AABot' ) ,
+	self:wrap( self.ai.taskbothast,'ConBot' ) ,
+	self:wrap( self.ai.taskbothast,'RezBot1' ) ,
+	self:wrap( self.ai.taskbothast,'ScoutBot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl1AABot' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1VehPlant()  return  {
-	self:wrap( self.ai.TaskVehHST,'Lvl1VehRaiderOutmoded' ) ,
-	self:wrap( self.ai.TaskVehHST,'ConVehicle' ) ,
-	self:wrap( self.ai.TaskVehHST,'ScoutVeh' ) ,
-	self:wrap( self.ai.TaskVehHST,'Lvl1AAVeh' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl1VehRaiderOutmoded' ) ,
+	self:wrap( self.ai.taskvehhst,'ConVehicle' ) ,
+	self:wrap( self.ai.taskvehhst,'ScoutVeh' ) ,
+	self:wrap( self.ai.taskvehhst,'Lvl1AAVeh' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1AirPlant()  return  {
-	self:wrap( self.ai.TaskAirHST,'ConAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'ScoutAir' ) ,
-	self:wrap( self.ai.TaskAirHST,'Lvl1Fighter' ) ,
+	self:wrap( self.ai.taskairhst,'ConAir' ) ,
+	self:wrap( self.ai.taskairhst,'ScoutAir' ) ,
+	self:wrap( self.ai.taskairhst,'Lvl1Fighter' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1ShipYard()  return  {
-	self:wrap( self.ai.TaskShpHST,'ConShip' ) ,
-	self:wrap( self.ai.TaskShpHST,'ScoutShip' ) ,
+	self:wrap( self.ai.taskshphst,'ConShip' ) ,
+	self:wrap( self.ai.taskshphst,'ScoutShip' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl2BotLab()  return  {
 	-- Lvl2BotRaider' ) ,
-			self:wrap( self.ai.TaskBotHST,'ConAdvBot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2AABot' ) ,
-	self:wrap( self.ai.TaskBotHST,'Lvl2BotAssist' ) ,
+			self:wrap( self.ai.taskbothast,'ConAdvBot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2AABot' ) ,
+	self:wrap( self.ai.taskbothast,'Lvl2BotAssist' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl2VehPlant()  return  {
 	-- Lvl2VehRaider' ) ,
-			self:wrap( self.ai.TaskVehHST,'Lvl2VehAssist' ) ,
-	self:wrap( self.ai.TaskVehHST,'ConAdvVehicle' ) ,
-	self:recall( self.ai.TaskVehHST,'Lvl2AAVeh' ) ,
+			self:wrap( self.ai.taskvehhst,'Lvl2VehAssist' ) ,
+	self:wrap( self.ai.taskvehhst,'ConAdvVehicle' ) ,
+	self:recall( self.ai.taskvehhst,'Lvl2AAVeh' ) ,
 } end
 
 -- fall back to these when a level 2 factory exists

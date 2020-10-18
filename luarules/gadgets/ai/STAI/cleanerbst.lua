@@ -25,7 +25,7 @@ end
 function CleanerBST:Init()
 	self.name = self.unit:Internal():Name()
 	self:EchoDebug("init")
-	if self.ai.UnitiesHST.nanoTurretList[self.name] then
+	if self.ai.armyhst.nanoTurretList[self.name] then
 		self.isStationary = true
 		self.cleaningRadius = 390
 	else
@@ -93,7 +93,7 @@ function CleanerBST:Search()
 		if not self.ignore[cleanable:ID()] then
 			local p = cleanable:GetPosition()
 			if p then
-				local dist = self.ai.Tool:Distance(myPos, p)
+				local dist = self.ai.tool:Distance(myPos, p)
 				if dist < self.cleaningRadius then
 					self:Clean(cleanable)
 					return
