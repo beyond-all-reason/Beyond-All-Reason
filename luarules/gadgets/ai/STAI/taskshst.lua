@@ -9,10 +9,12 @@ function TasksHST:internalName()
 end
 
 function TasksHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 end
 
 function TasksHST:wrap( theTable, theFunction )
+	self:EchoDebug(theTable)
+	self:EchoDebug(theFunction)
 	return function( tb, ai )
 	return theTable[theFunction](theTable, tb, ai)
 	end
@@ -428,13 +430,13 @@ function TasksHST:anyLvl1VehPlant()  return  {
 } end
 
 function TasksHST:anyLvl1BotLab()  return  {
-	self:wrap( self.ai.taskbothast,'ScoutBot' ) ,
-	self:wrap( self.ai.taskbothast,'ConBot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl1BotRaider' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl1BotBattle' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl1AABot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl1BotBreakthrough' ) ,
-	self:wrap( self.ai.taskbothast,'RezBot1' ) ,
+	self:wrap( self.ai.taskbothst,'ScoutBot' ) ,
+	self:wrap( self.ai.taskbothst,'ConBot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl1BotRaider' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl1BotBattle' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl1AABot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl1BotBreakthrough' ) ,
+	self:wrap( self.ai.taskbothst,'RezBot1' ) ,
 } end
 
 function TasksHST:anyLvl1ShipYard()  return  {
@@ -458,8 +460,8 @@ function TasksHST:anyAmphibiousComplex()  return  {
 	self:wrap( self.ai.taskvehhst,'ConVehicleAmphibious' ) ,
 	self:wrap( self.ai.taskvehhst,'AmphibiousBattle' ) ,
 	self:wrap( self.ai.taskshphst,'Lvl1ShipRaider' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl1AABot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2AABot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl1AABot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2AABot' ) ,
 } end
 
 function TasksHST:anyLvl2VehPlant()  return  {
@@ -474,14 +476,14 @@ function TasksHST:anyLvl2VehPlant()  return  {
 } end
 
 function TasksHST:anyLvl2BotLab()  return  {
-	self:wrap( self.ai.taskbothast,'Lvl2BotRaider' ) ,
-	self:wrap( self.ai.taskbothast,'ConAdvBot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2BotBattle' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2BotBreakthrough' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2BotArty' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2BotMerl' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2AABot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2BotAssist' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2BotRaider' ) ,
+	self:wrap( self.ai.taskbothst,'ConAdvBot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2BotBattle' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2BotBreakthrough' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2BotArty' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2BotMerl' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2AABot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2BotAssist' ) ,
 } end
 
 function TasksHST:anyLvl2AirPlant()  return  {
@@ -516,18 +518,18 @@ function TasksHST:anyLvl2ShipYard()  return  {
 } end
 
 function TasksHST:anyExperimental()  return  {
-	self:wrap( self.ai.taskbothast,'Lvl3Raider' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl3Battle' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl3Merl' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl3Arty' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl3Breakthrough' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl3Raider' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl3Battle' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl3Merl' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl3Arty' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl3Breakthrough' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1BotLab()  return  {
-	self:wrap( self.ai.taskbothast,'ConBot' ) ,
-	self:wrap( self.ai.taskbothast,'RezBot1' ) ,
-	self:wrap( self.ai.taskbothast,'ScoutBot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl1AABot' ) ,
+	self:wrap( self.ai.taskbothst,'ConBot' ) ,
+	self:wrap( self.ai.taskbothst,'RezBot1' ) ,
+	self:wrap( self.ai.taskbothst,'ScoutBot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl1AABot' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1VehPlant()  return  {
@@ -550,9 +552,9 @@ function TasksHST:anyOutmodedLvl1ShipYard()  return  {
 
 function TasksHST:anyOutmodedLvl2BotLab()  return  {
 	-- Lvl2BotRaider' ) ,
-			self:wrap( self.ai.taskbothast,'ConAdvBot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2AABot' ) ,
-	self:wrap( self.ai.taskbothast,'Lvl2BotAssist' ) ,
+			self:wrap( self.ai.taskbothst,'ConAdvBot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2AABot' ) ,
+	self:wrap( self.ai.taskbothst,'Lvl2BotAssist' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl2VehPlant()  return  {
