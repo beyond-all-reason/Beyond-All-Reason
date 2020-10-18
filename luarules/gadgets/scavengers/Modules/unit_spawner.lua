@@ -40,13 +40,15 @@ function BossWaveTimer(n)
 				end
 			elseif #SpawnBeacons == 1 then
 				pickedBeacon = SpawnBeacons[1]
+			elseif #SpawnBeacons == 0 then
+				return
 			end
 			SpawnBeacons = nil
 			
 			if pickedBeacon == 1234567890 then
 				return
 			else
-				if pickedBeacon ~= 1234567890 then
+				if pickedBeacon then
 					local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
