@@ -29,9 +29,10 @@ Sea
  • All sub damage -30%
 
 Renamed units:
+ • Jeffy -> Ranger
  • Pack0 -> Ferret
- • Gaat Gun -> Warden
  • Krogoth -> Korgoth
+ • Gaat Gun -> Warden
 
 
 10.23 -> 10.24
