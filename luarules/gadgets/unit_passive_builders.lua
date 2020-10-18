@@ -63,8 +63,8 @@ local cmdPassiveDesc = {
       name    = 'passive',
       action  = 'passive',
       type    = CMDTYPE.ICON_MODE,
-      tooltip = 'Builder Mode: Passive wont build when stalling',
-      params  = {0, 'Active', 'Passive'}
+      tooltip = 'Builder Mode: Low Prio(rity) restricts build when stalling on resources',
+      params  = {0, 'High Prio', 'Low Prio'}
 }
 
 ----------------------------------------------------------------
