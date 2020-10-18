@@ -33,7 +33,7 @@ function SpawnBeacon(n)
 				SafeAreaBeaconSpawnAttempts = (SafeAreaBeaconSpawnAttempts + 1) or 1
 			end
 			
-			canSpawnBeaconHere = posCheck(posx, posy, posz, posradius)
+			canSpawnBeaconHere = posCheck(posx, posy, posz, 80)
 			if canSpawnBeaconHere then
 				if globalScore then
 					local g = math_random(0,1)

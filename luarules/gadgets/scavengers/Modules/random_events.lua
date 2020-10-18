@@ -15,8 +15,6 @@ function RandomEventTrigger(CurrentFrame)
 		if RandomEventDice == 1 then
 			if #RandomEventsList > 1 then
 				EventNumber = math_random(1,#RandomEventsList)
-			elseif #RandomEventsList == 1 then
-				EventNumber = 1
 			else
 				RandomEventsList = FullRandomEventsList
 				EventNumber = math_random(1,#RandomEventsList)
