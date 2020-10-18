@@ -41,14 +41,21 @@ function BossWaveTimer(n)
 			elseif #SpawnBeacons == 1 then
 				pickedBeacon = SpawnBeacons[1]
 			elseif #SpawnBeacons == 0 then
-				return
+				noSpawnerForBoss = true
 			end
 			SpawnBeacons = nil
 			
 			if pickedBeacon == 1234567890 then
 				return
 			else
-				if pickedBeacon then
+				if noSpawnerForBoss then
+					local posx = math.floor(mapsizeX/2)
+					local posz = math.floor(mapsizeZ/2)
+					local posy = Spring.GetGroundHeight(posx, posz)
+					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+					FinalBossUnitSpawned = true
+					Spring.Echo("BOSS COMMANDER SPAWNED")
+				elseif pickedBeacon then
 					local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
@@ -169,7 +176,9 @@ function UnitGroupSpawn(n)
 					table.insert(SpawnBeacons,scav)
 				end
 			end
-
+			if #SpawnBeacons == 0 then
+				return
+			end
 			for b = 1,10 do
 				local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
 				local _,_,_,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
@@ -183,7 +192,6 @@ function UnitGroupSpawn(n)
 			if pickedBeacon == 1234567890 then
 				return
 			end
-
 			local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local posradius = 256
