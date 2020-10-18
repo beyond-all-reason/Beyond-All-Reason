@@ -27,7 +27,7 @@ function AssistBST:Init()
 	if self.ai.armyhst.commanderList[uname] then self.isCommander = true end
 	self.id = self.unit:Internal():ID()
 	self.ai.assisthst:AssignIDByName(self)
-	-- game:SendToConsole("assistbst:init", ai, ai.id, self.ai, self.ai.id)
+	-- game:SendToConsole("assistbst:init", ai, self.ai.id, self.ai, self.ai.id)
 	self:EchoDebug(uname .. " " .. self.ai.IDByName[self.id])
 	self:EchoDebug("added to unit "..uname)
 end

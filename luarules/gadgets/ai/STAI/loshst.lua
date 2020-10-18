@@ -135,23 +135,23 @@ function LosHST:UpdateEnemies(enemyList)
 
 			local los = 0
 			local persist = false
-			local underWater = (self.ai.armyhst.unitTable[ename].mtype == "sub")
+			local underWater = (self.ai.UnitiesHST.unitTable[ename].mtype == "sub")
 			if underWater then
 				if lt[3] then
 					-- sonar
 					los = 2
 				end
 			else
-				if lt[1] and not lt[2] and not self.ai.armyhst.unitTable[ename].stealth then
+				if lt[1] and not lt[2] and not self.ai.UnitiesHST.unitTable[ename].stealth then
 					los = 1
 				elseif lt[2] then
 					los = 2
-				elseif lt[4] and self.ai.armyhst.unitTable[ename].mtype == "air" then
+				elseif lt[4] and self.ai.UnitiesHST.unitTable[ename].mtype == "air" then
 					-- air los
 					los = 2
 				end
 			end
-			if los == 0 and self.ai.armyhst.unitTable[ename].isBuilding then
+			if los == 0 and self.ai.UnitiesHST.unitTable[ename].isBuilding then
 				-- don't remove from knownenemies if it's a building that was once seen
 				persist = true
 			elseif los == 1 then
@@ -200,7 +200,7 @@ function LosHST:UpdateEnemies(enemyList)
 				self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
 			end
 			self:EchoDebug("enemy " .. e.unitName .. " died!")
-			local mtypes = self.ai.tool:UnitWeaponMtypeList(e.unitName)
+			local mtypes = self.ai.Tool:UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
 				self.ai.raidhst:NeedMore(mtype)
 				self.ai.attackhst:NeedLess(mtype)
@@ -230,12 +230,12 @@ function LosHST:UpdateEnemies(enemyList)
 				e.ghost = { frame = f, position = e.position }
 			end
 		else
-			if not self.ai.armyhst.unitTable[e.unitName].isBuilding then
+			if not self.ai.UnitiesHST.unitTable[e.unitName].isBuilding then
 				local count = true
 				if e.los == 2 then
 					-- if we know what kind of unit it is, only count as a potential threat blip if it's a hurty unit
 					-- air doesn't count because there are no buildings in the air
-					local threatLayers = self.ai.tool:UnitThreatRangeLayers(e.unitName)
+					local threatLayers = self.ai.Tool:UnitThreatRangeLayers(e.unitName)
 					if threatLayers.ground.threat == 0 and threatLayers.submerged.threat == 0 then
 						count = false
 					end
@@ -268,12 +268,12 @@ function LosHST:UpdateWrecks()
 			-- only count features that aren't geovents and that are known to be reclaimable or guessed to be so
 			local okay = false
 			if featureName ~= "geovent" then -- don't get geo spots
-				if self.ai.armyhst.featureTable[featureName] then
-					if self.ai.armyhst.featureTable[featureName].reclaimable then
+				if self.ai.UnitiesHST.featureTable[featureName] then
+					if self.ai.UnitiesHST.featureTable[featureName].reclaimable then
 						okay = true
 					end
 				else
-					for findString, metalValue in pairs(self.ai.armyhst.baseFeatureMetal) do
+					for findString, metalValue in pairs(self.ai.UnitiesHST.baseFeatureMetal) do
 						if string.find(featureName, findString) then
 							okay = true
 							break
