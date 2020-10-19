@@ -44,6 +44,9 @@ function BossWaveTimer(n)
 				noSpawnerForBoss = true
 			end
 			SpawnBeacons = nil
+			if not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil then
+				noSpawnerForBoss = true
+			end
 			
 			if pickedBeacon == 1234567890 then
 				return
