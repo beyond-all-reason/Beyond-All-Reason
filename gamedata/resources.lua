@@ -21,6 +21,7 @@ local resources = {
             randdots			    = 'default/randdots.tga',
             smoketrail		  	= 'default/smoketrail.tga',
             wake			       	= 'default/wake.tga',
+            flashside3        = 'projectiletextures/flashside3.tga',
             flare			      	= 'default/flare.tga',
             flare2			     	= 'default/flare2.tga',
             explo				      = 'default/explo.tga',

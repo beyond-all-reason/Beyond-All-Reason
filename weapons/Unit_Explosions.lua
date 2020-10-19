@@ -990,10 +990,10 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "0.6 0.15 1",
-            expl_light_mult = 1.16,
-            expl_light_radius_mult = 1.11,
-            expl_light_life_mult = 1.3,
-            expl_light_heat_radius_mult = 1.1,
+            expl_light_mult = 3,
+            expl_light_radius_mult = 1.15,
+            expl_light_life_mult = 4,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
 
@@ -1012,9 +1012,9 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "0.6 0.15 1",
-            expl_light_mult = 1.75,
-            expl_light_radius_mult = 1.65,
-            expl_light_life_mult = 2.2,
+            expl_light_mult = 1.95,
+            expl_light_radius_mult = 1.75,
+            expl_light_life_mult = 3.2,
             expl_light_heat_radius_mult = 1.5,
         },
     },

@@ -32,7 +32,7 @@ return {
         pos                = [[0, 2, 0]],
         sizegrowth         = 0.3,
         sizemod            = 1,
-        texture            = [[flashside2]],
+        texture            = [[flashside3]],
         useairlos          = true,
       },
     },

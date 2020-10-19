@@ -27,9 +27,9 @@ local definitions = {
       water              = true,
       properties = {
         colormap           = [[1 0.7 0.3 0.3   0 0 0 0.01]],
-        size               = 120,
-        sizegrowth         = -1,
-        ttl                = 18,
+        size               = 110,
+        sizegrowth         = -0.85,
+        ttl                = 25,
         texture            = [[groundflash]],
       },
     },
@@ -40,9 +40,9 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.5   1 0.9 0.75 0.2   0 0 0 0.01]],
-        size               = 85,
-        sizegrowth         = -3.7,
+        colormap           = [[1 0.93 0.90 0.5    0 0 0 0.01]],
+        size               = 52,
+        sizegrowth         = -3.9,
         ttl                = 14,
         texture            = [[groundflashwhite]],
       },
@@ -82,7 +82,7 @@ local definitions = {
 	  underwater         = true,
       properties = {
         airdrag            = 0.82,
-        colormap           = [[0 0 0 0   1 0.8 0.5 0.09   0.9 0.4 0.15 0.066   0.66 0.28 0.03 0.033   0 0 0 0.01]],
+        colormap           = [[0 0 0 0   1 0.85 0.6 0.10   0.9 0.45 0.16 0.066   0.64 0.30 0.04 0.033   0.01 0.01 0.01 0.01]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -91,15 +91,36 @@ local definitions = {
         numparticles       = 9,
         particlelife       = 4,
         particlelifespread = 9,
-        particlesize       = 3.2,
-        particlesizespread = 5,
+        particlesize       = 6,
+        particlesizespread = 8.8,
         particlespeed      = 2,
         particlespeedspread = 3.75,
         pos                = [[0, 2, 0]],
-        sizegrowth         = 0.3,
+        sizegrowth         = 0.35,
         sizemod            = 1,
-        texture            = [[flashside2]],
+        texture            = [[flashside3]],
         useairlos          = false,
+      },
+    },
+    shockwavexplo = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = true,
+      underwater         = false,
+      water              = false,
+      properties = {
+        colormap           = [[0 0 0 0   1 0.95 0.9 0.12   0.7 0.64 0.50 0.50  0.18 0.12 0.08 0.008   0.10 0.08 0.04 0.006    0.06 0.04 0.02 0.005    0 0 0 0]],
+        dir                = [[0, 1, 0]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0,
+        fronttexture       = [[explosionwave]],
+        length             = 45,
+        sidetexture        = [[none]],
+        size               = 2.3,
+        sizegrowth         = [[-20 r8]],
+        ttl                = 9.5,
+        pos                = [[0, 10, 0]],
       },
     },
     fireglow = {
@@ -471,14 +492,14 @@ local sizes = {
     },
     groundflash_large = {
       properties = {
-        colormap           = [[1 0.7 0.3 0.24   0 0 0 0.01]],
+        --colormap           = [[1 0.7 0.3 0.24   0 0 0 0.01]],
         size               = 75,
         ttl                = 17,
       },
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.33   0 0 0 0.01]],
+        --colormap           = [[1 0.9 0.75 0.33   0 0 0 0.01]],
         size               = 55,
         ttl                = 11,
       },
@@ -614,16 +635,16 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.36   0 0 0 0.01]],
-        size               = 215,
-        ttl                = 26,
+        size               = 188,
+        ttl                = 34,
       },
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.6   1 0.9 0.75 0.23   0 0 0 0.01]],
-        size               = 160,
-        sizegrowth         = -3.4,
-        ttl                = 17,
+        --colormap           = [[1 0.93 0.9 0.6   1 0.91 0.85 0.23   0 0 0 0.01]],
+        size               = 120,
+        sizegrowth         = -4,
+        ttl                = 24,
       },
     },
 	explosion = {
@@ -636,6 +657,14 @@ local sizes = {
         particlespeedspread = 7,
 	  }
 	},
+  shockwavexplo = {
+      properties = {
+        size               = 2.5,
+        sizegrowth         = [[-21 r7.5]],
+        ttl                = 10,
+        --pos                = [[0, 10, 0]],
+      },
+    },
     fireglow = {
       properties = {
         particlesize       = 33,
@@ -759,10 +788,10 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.7   1 0.9 0.75 0.25   0 0 0 0.01]],
-        size               = 190,
-        sizegrowth         = -2.5,
-        ttl                = 23,
+        --colormap           = [[1 0.9 0.75 0.7   1 0.9 0.75 0.25   0 0 0 0.01]],
+        size               = 144,
+        sizegrowth         = -2.9,
+        ttl                = 26,
       },
     },
 	explosion = {
@@ -775,6 +804,14 @@ local sizes = {
         particlespeedspread = 9.5,
 	  }
 	},
+  shockwavexplo = {
+      properties = {
+        size               = 3.8,
+        sizegrowth         = [[-28 r12]],
+        ttl                = 11,
+        pos                = [[0, 20, 0]],
+      },
+    },
     fireglow = {
       properties = {
         particlesize       = 53,
@@ -898,7 +935,7 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.7    1 0.9 0.75 0.25   0 0 0 0.01]],
+        --colormap           = [[1 0.9 0.75 0.7    1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 230,
         sizegrowth         = -1.5,
         ttl                = 28,
@@ -913,6 +950,14 @@ local sizes = {
         particlespeed      = 5.5,
         particlespeedspread = 10,
       }
+    },
+    shockwavexplo = {
+      properties = {
+        size               = 4.4,
+        sizegrowth         = [[-28 r15]],
+        ttl                = 12.75,
+        pos                = [[0, 25, 0]],
+      },
     },
     fireglow = {
       properties = {
@@ -1037,7 +1082,7 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.75   1 0.9 0.75 0.25   0 0 0 0.01]],
+        --colormap           = [[1 0.9 0.75 0.75   1 0.9 0.75 0.25   0 0 0 0.01]],
         size               = 285,
         sizegrowth         = -1.5,
         ttl                = 30,
