@@ -249,16 +249,16 @@ local definitions = {
         emitrotspread      = 40,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = 4,
-        particlelife       = 7,
-        particlelifespread = 7,
-        particlesize       = 70,
-        particlesizespread = 120,
+        numparticles       = 5,
+        particlelife       = 10,
+        particlelifespread = 15,
+        particlesize       = 90,
+        particlesizespread = 130,
         particlespeed      = 2.4,
         particlespeedspread = 4.55,
         pos                = [[0, 4, 0]],
         sizegrowth         = 1,
-        sizemod            = 0.66,
+        sizemod            = 0.75,
         texture            = [[gunshotglow]],
         useairlos          = false,
       },
@@ -551,8 +551,8 @@ local sizes = {
     sparks = {
       properties = {
         numparticles = 3,
-        particlespeed      = 1.66,
-        particlespeedspread = 3,
+        particlespeed      = 1.96,
+        particlespeedspread = 4,
 	   	}
     },
     dirt = {
@@ -617,12 +617,35 @@ local sizes = {
         particlesizespread = 2.1,
         particlespeed      = 2.33,
         particlespeedspread = 1,
-	  }
+	    }
     },
   },
 	
   small = {
-	
+    centerflare = {
+      properties = {
+        size               = 2.5,
+        sizegrowth         = 21,
+      },
+    },
+	  explosion = {
+      properties = {
+        numparticles       = 9,
+        particlelifespread = 12,
+        particlesize       = 7,
+        particlesizespread = 12,
+        particlespeed      = 2.4,
+        particlespeedspread = 7,
+      }
+    },
+    shockwavexplo = {
+      properties = {
+        size               = 2.4,
+        sizegrowth         = [[-21 r7.5]],
+        ttl                = 10,
+        --pos                = [[0, 10, 0]],
+      },
+    },
   },
 	
   medium = {
@@ -659,9 +682,9 @@ local sizes = {
 	},
   shockwavexplo = {
       properties = {
-        size               = 2.5,
-        sizegrowth         = [[-21 r7.5]],
-        ttl                = 10,
+        size               = 2.7,
+        sizegrowth         = [[-22 r8.5]],
+        ttl                = 11,
         --pos                = [[0, 10, 0]],
       },
     },
@@ -702,8 +725,10 @@ local sizes = {
     sparks = {
       properties = {
 	    numparticles = 7,
-        particlespeed      = 3.3,
-        particlespeedspread = 6,
+      particlespeed      = 3.3,
+      particlespeedspread = 6,
+      particlesize       = 100,
+      particlesizespread = 140,
 	  }
     },
     dirt = {
@@ -848,9 +873,11 @@ local sizes = {
     },
     sparks = {
       properties = {
-	    numparticles = 10,
+	      numparticles = 10,
         particlespeed      = 3.75,
         particlespeedspread = 6.8,
+        particlesize       = 110,
+        particlesizespread = 150,
 	  }
     },
     dirt = {
@@ -998,6 +1025,8 @@ local sizes = {
         numparticles = 10,
         particlespeed      = 4.2,
         particlespeedspread = 8,
+        particlesize       = 120,
+        particlesizespread = 160,
       }
     },
     dirt = {
@@ -1145,6 +1174,8 @@ local sizes = {
         particlelifespread = 60,
         particlespeed      = 10,
         particlespeedspread = 11,
+        particlesize       = 130,
+        particlesizespread = 170,
       }
     },
     dirt2 = {
