@@ -60,11 +60,6 @@ for i,v in pairs(warTracks) do
 	end
 end
 
-local totalTracks = 0
-for i,v in pairs(tracksConfig) do
-	totalTracks = totalTracks + 1
-end
-
 local tracks = peaceTracks
 
 local playedTracks = {}
@@ -178,6 +173,7 @@ function toggleTrack(track, value)
 	local isPeaceTrack = tracksConfig[track][2] == 'peace'
 	tracksConfig[track][1] = value
 	if value then
+		-- enable
 		if isPeaceTrack then
 			if not getKeyByValue(peaceTracks, track) then
 				peaceTracks[#peaceTracks+1] = track
@@ -188,6 +184,7 @@ function toggleTrack(track, value)
 			end
 		end
 	else
+		-- disable
 		if isPeaceTrack then
 			peaceTracks[getKeyByValue(peaceTracks, track)] = nil
 		else
@@ -242,10 +239,6 @@ function widget:Initialize()
 		-- set track
 		WG['music']['setTrack'..track] = function(value)
 			toggleTrack(track, value)
-
-			for i,v in pairs(tracksConfig) do
-				totalTracks = totalTracks + 1
-			end
 		end
 	end
 end
@@ -721,6 +714,7 @@ function PlayNewTrack(track)
 			until continue
 		end
 	end
+	--Spring.Echo(#tracks, newTrack)
 	curTrack = newTrack
 	Spring.PlaySoundStream(newTrack)
     Spring.SetSoundStreamVolume(0)
@@ -906,6 +900,8 @@ function widget:SetConfigData(data)
 		for track,params in pairs(data.tracksConfig) do
 			if not peaceTracks[getKeyByValue(peaceTracks, track)] and not warTracks[getKeyByValue(warTracks, track)] then
 				tracksConfig[track] = nil
+			else
+				tracksConfig[track] = params
 			end
 		end
 		applyTracksConfig()
