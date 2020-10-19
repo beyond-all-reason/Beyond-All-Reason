@@ -3476,7 +3476,7 @@ function init()
 			type = "bool",
 			value = (
 				WG['builderpriority'] ~= nil
-					and WG['builderpriority'].getPassiveNanos ~= nil
+					and WG['builderpriority'].getLowPriorityNanos ~= nil
 					and WG['builderpriority'].getLowPriorityNanos()
 			),
 			description = '',
@@ -3495,7 +3495,7 @@ function init()
 			type = "bool",
 			value = (
 				WG['builderpriority'] ~= nil
-					and WG['builderpriority'].getPassiveCons ~= nil
+					and WG['builderpriority'].getLowPriorityCons ~= nil
 					and WG['builderpriority'].getLowPriorityCons()
 			),
 			description = '',
@@ -3514,12 +3514,12 @@ function init()
 			type = "bool",
 			value = (
 				WG['builderpriority'] ~= nil
-					and WG['builderpriority'].getPassiveLabs ~= nil
+					and WG['builderpriority'].getLowPriorityLabs ~= nil
 					and WG['builderpriority'].getLowPriorityLabs()
 			),
 			description = '',
 			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_labs", { 'lowpriorityeLabs' })
+				loadWidgetData("Builder Priority", "builderpriority_labs", { 'lowpriorityLabs' })
 			end,
 			onchange = function(i, value)
 				saveOptionValue('Builder Priority', 'builderpriority', 'setLowPriorityLabs', { 'lowpriorityLabs' }, value)

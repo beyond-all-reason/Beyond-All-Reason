@@ -898,9 +898,7 @@ function widget:SetConfigData(data)
 	if data.tracksConfig ~= nil then
 		-- cleanup old removed tracks
 		for track,params in pairs(data.tracksConfig) do
-			if not peaceTracks[getKeyByValue(peaceTracks, track)] and not warTracks[getKeyByValue(warTracks, track)] then
-				tracksConfig[track] = nil
-			else
+			if peaceTracks[getKeyByValue(peaceTracks, track)] or warTracks[getKeyByValue(warTracks, track)] then
 				tracksConfig[track] = params
 			end
 		end

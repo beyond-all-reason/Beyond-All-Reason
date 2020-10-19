@@ -64,7 +64,7 @@ local cmdPassiveDesc = {
       action  = 'priority',
       type    = CMDTYPE.ICON_MODE,
       tooltip = 'Builder Mode: Low Priority restricts build when stalling on resources',
-      params  = {0, 'Low Prio', 'High Prio'}
+      params  = {1, 'Low Prio', 'High Prio'}
 }
 
 ----------------------------------------------------------------
