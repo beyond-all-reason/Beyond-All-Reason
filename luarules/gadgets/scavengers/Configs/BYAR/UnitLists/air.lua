@@ -64,4 +64,5 @@ T4AirUnits = {
 	"corcrwt4",
 	"armfepocht4",
 	"corfblackhyt4",
+	"armthundt4",
 }
