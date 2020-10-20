@@ -118,8 +118,8 @@ unitCollisionVolume['cormaw'] = {
 	off={35,31,35,0,-5,-3,0,1,0},
 }
 unitCollisionVolume['shiva'] = {
-	on={54,50,50,0,2,-1,0,1,0},
-	off={54,30,66,0,12,-7,0,1,0},
+	on={58,50,59,0,15,-3,0,1,0},
+	off={58,50,59,0,15,-3,0,1,0},
 }
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
@@ -169,7 +169,7 @@ dynamicPieceCollisionVolume['cortoast'] = {
 }
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
-		['0']={38,12,38,0,0,0,2,0},
+		['0']={38,25,38,0,0,0,2,0},
 		['5']={25,46,25,0,25,0,1,1},
 		['offsets']={0,23,0},
 	},
