@@ -39,20 +39,20 @@ function ShardUnit:Neutral()
 	return Spring.GetUnitNeutral(self.id)
 end
 
-function ShardUnit:IsMine()
-	return ( Spring.GetMyTeamID() == self:Team() )
+function ShardUnit:IsMine( myTeam )
+	return ( myTeam == self:Team() )
 end
 
-function ShardUnit:IsNotMine()
-	return ( Spring.GetMyTeamID() ~= self:Team() )
+function ShardUnit:IsNotMine( myTeam )
+	return ( myTeam ~= self:Team() )
 end
 
-function ShardUnit:IsFriendly()
-	return ( Spring.GetMyAllyTeamID() == self:AllyTeam() )
+function ShardUnit:IsFriendly( myAllyTeam )
+	return ( myAllyTeam == self:AllyTeam() )
 end
 
-function ShardUnit:IsEnemy()
-	return ( Spring.GetMyAllyTeamID() ~= self:AllyTeam() )
+function ShardUnit:IsEnemy( myAllyTeam )
+	return ( myAllyTeam ~= self:AllyTeam() )
 end
 
 function ShardUnit:Stunned()
