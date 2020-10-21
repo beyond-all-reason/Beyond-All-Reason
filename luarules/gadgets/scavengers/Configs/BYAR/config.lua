@@ -65,6 +65,7 @@ scavconfig = {
 	other = {
 		heighttolerance						= 30, -- higher = allow higher height diffrences
 		noheightchecksforwater				= true,
+		
 	}
 }
 
@@ -85,6 +86,7 @@ unitSpawnerModuleConfig = {
 	globalscoreperoneunit 				= 1000,
 	spawnchance							= 120,
 	beaconspawnchance					= 120,
+	beacondefences						= false,
 	minimumspawnbeacons					= 2,
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 2.0,
