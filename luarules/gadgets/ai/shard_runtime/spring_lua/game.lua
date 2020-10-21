@@ -48,6 +48,10 @@ local game = {}
 		return self.ai.id
 		-- return Spring.GetMyTeamID()
 	end
+
+	function game:GetAllyTeamID()
+		return self.ai.allyId
+	end
 	
 	function game:getUnitsInCylinder(pos, range)
 		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, game:GetTeamID())
