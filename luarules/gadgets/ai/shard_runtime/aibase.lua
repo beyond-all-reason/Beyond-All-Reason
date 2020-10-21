@@ -28,6 +28,27 @@ function AIBase:UnitCreated(engineunit)
 end
 
 function AIBase:UnitBuilt(engineunit)
+	if engineunit:IsMine( self.game:GetTeamID() ) then
+		self:MyUnitBuilt(engineunit)
+	elseif engineunit:IsFriendly( self.game:GetAllyTeamID() ) then
+		self:FriendlyUnitBuilt(engineunit)
+	elseif engineunit:IsHostile( self.game:GetAllyTeamID() ) then
+		self:HostileunitBuilt(engineunit)
+	elseif engineunit:Neutral() then
+		self:NeutralUnitBuilt(engineunit)
+	end
+end
+
+function AIBase:MyUnitBuilt(engineunit)
+end
+
+function AIBase:FriendlyUnitBuilt(engineunit)
+end
+
+function AIBase:HostileUnitBuilt(engineunit)
+end
+
+function AIBase:NeutralUnitBuilt(engineunit)
 end
 
 function AIBase:UnitGiven(engineunit)
