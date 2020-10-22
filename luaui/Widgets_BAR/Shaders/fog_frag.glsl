@@ -11,7 +11,7 @@ const float opacity = float(%f);
 
 const float sunPenetrationDepth = float(%f);
 
-const float shadowOpacity = 0.4;
+const float shadowOpacity = 0.6;
 const float sunDiffuseStrength = float(6.0);
 const float noiseTexSizeInv = 1.0 / 256.0;
 const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
@@ -191,7 +191,7 @@ void main()
 
 	gl_FragColor = vec4(0.0);
 
-	#if 1
+	#if 0
 	{
 		if (z != 1.0) {
 			//vec4 sunPos = vec4(sundir * fogHeight / dot(sundir, vec3(0, 1, 0)), 1.0);
@@ -220,6 +220,7 @@ void main()
 		}
 	}
 	#endif
+	#if 1
 	{
 		// clamp ray in boundary box
 		Ray r;
@@ -246,6 +247,6 @@ void main()
 			#endif
 		}
 	}
-
+	#endif
 
 }
