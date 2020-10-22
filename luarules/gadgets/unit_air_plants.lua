@@ -41,7 +41,7 @@ for udid, ud in pairs(UnitDefs) do
 		end
 	end
 	if ud.canFly then
-		isAirplane[id] = true
+		isAirplane[udid] = true
 	end
 end
 
