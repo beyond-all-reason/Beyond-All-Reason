@@ -39,7 +39,7 @@ local spotterOpacity					= 0.16
 
 
 local defaultColorsForAllyTeams			= 0 		-- (number of teams)   if number <= of total numebr of allyTeams then dont use teamcoloring but default colors
-local keepTeamColorsForSmallAllyTeam	= 3			-- (number of teams)   use teamcolors if number or teams (inside allyTeam)  <=  this value
+local keepTeamColorsForSmallAllyTeam	= 99			-- (number of teams)   use teamcolors if number or teams (inside allyTeam)  <=  this value
 local spotterColor = {								-- default color values
 	{0,0,1} , {1,0,1} , {0,1,1} , {0,1,0} , {1,0.5,0} , {0,1,1} , {1,1,0} , {1,1,1} , {0.5,0.5,0.5} , {0,0,0} , {0.5,0,0} , {0,0.5,0} , {0,0,0.5} , {0.5,0.5,0} , {0.5,0,0.5} , {0,0.5,0.5} , {1,0.5,0.5} , {0.5,0.5,0.1} , {0.5,0.1,0.5},
 }
@@ -188,7 +188,10 @@ function setColors()
 						if pickTeamColor then
 						-- pick the first team in the allyTeam and take the color from that one
 							if (teamListIndex == 1) then
-								usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3] = Spring.GetTeamColor(teamID)
+								--usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3] = Spring.GetTeamColor(teamID)
+								usedSpotterColor[1] = 1
+								usedSpotterColor[2] = 0
+								usedSpotterColor[3] = 0
 							end
 						end
 					end
