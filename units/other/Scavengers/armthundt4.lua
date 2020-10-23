@@ -37,7 +37,7 @@ return {
 		script = "Units/scavboss/ARMTHUNDT4.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
-		sightdistance = 250,
+		sightdistance = 2500,
 		speedtofront = 0.041,
 		turnradius = 256,
 		turnrate = 212,
