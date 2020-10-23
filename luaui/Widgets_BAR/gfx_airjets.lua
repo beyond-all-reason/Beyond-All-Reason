@@ -200,6 +200,13 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust4", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrustc", light = 1.3 },
 	},
+	["armthundt4"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust1", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust2" },
+		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust3" },
+		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust4", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 85, piece = "thrustc", light = 1.3 },
+	},
 	["armpnix"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrusta", light = 1 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrustb", light = 1 },
