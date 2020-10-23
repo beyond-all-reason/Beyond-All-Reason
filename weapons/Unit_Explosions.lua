@@ -2151,6 +2151,26 @@ unitDeaths = {
             expl_light_heat_radius_mult = 1.22,
         },
     },
+    explosiont3xxl = {
+        weaponType = "Cannon",
+        AreaOfEffect = 280,
+        cameraShake = 280,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg4",
+        soundstart = "largegun",
+        explosiongenerator="custom:t3unitexplosionxxxl",
+        damage = {
+            default = 1800,
+        },
+        customparams = {
+            expl_light_color = "1 0.52 0.33",
+            expl_light_mult = 1.15,
+            expl_light_radius_mult = 1.20,
+            expl_light_life_mult = 1.24,
+            expl_light_heat_radius_mult = 1.28,
+        },
+    },
     hugeExplosionGenericSelfd = {
         weaponType = "Cannon",
         AreaOfEffect = 160,

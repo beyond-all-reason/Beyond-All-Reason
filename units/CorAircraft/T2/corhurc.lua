@@ -109,7 +109,7 @@ return {
 				reloadtime = 7,
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
-				soundstart = "bombrel",
+				soundstart = "bombrelxl",
 				weapontype = "AircraftBomb",
 				customparams = {
 					expl_light_color = "1 0.5 0.05",

@@ -279,12 +279,14 @@ local icons = {
 
 	{ "t4_demon.user", "cordemont4", 2.5 },
 	{ "t4_invader.user", "armvadert4", 2.5 },
-	{ "t4_ratte.user", "armrattet4", 3.0 },
-	{ "t4_recluse.user", "armsptkt4", 2.4 },
+	{ "t4_ratte.user", "armrattet4", 2.95 },
+	{ "t4_recluse.user", "armsptkt4", 2.2 },
+	{ "t4_karg.user", "corkarganetht4", 3.0 },
 	{ "t4_peewee.user", "armpwt4", 2.2 },
 	{ "t4_fepoch.user", "air_t4_flagship", 3.2 },
 	{ "t4_fblackhy.user", "air_t4_flagship", 3.2 },
 	{ "t4_krow.user", "corcrwt4", 3.2 },
+	{ "t4_thund.user", "armthundt4", 3.2 },
 	{ "t4_armcomboss.user", "armcomboss", 4 },
 	{ "t4_corcomboss.user", "corcomboss", 4 },
 
@@ -466,6 +468,10 @@ function loadUnitIcons()
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_fblackhy.user")
 		elseif name == "corcrwt4" then
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_krow.user")
+		elseif name == "corkarganetht4" then
+			spSetUnitDefIcon(udid, iconPrefix .. "t4_karg.user")
+		elseif name == "armthundt4" then
+			spSetUnitDefIcon(udid, iconPrefix .. "t4_thund.user")
 			-- Scavenger Printers
 		elseif string.find(name, 'lootboxnano') then
 			if string.find(name, 't1') then

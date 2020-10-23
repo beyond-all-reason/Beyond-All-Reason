@@ -297,6 +297,7 @@ local armorDefs = {
 		"armpwt4",
 		"armrattet4",
 		"armvadert4",
+		"corkarganetht4",
 	},
 	bombers = {
 		"chickenf1",
@@ -312,6 +313,8 @@ local armorDefs = {
 		"corhurc",
 		"corsb",
 		"cortitan",
+
+		"armthundt4",
 	},
 	fighters = {
 		"chickenw1",
