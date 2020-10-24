@@ -22,10 +22,14 @@ function RandomEventMiniboss1(CurrentFrame)
 			CanSpawnEvent = posMapsizeCheck(posx, posy, posz, 300)
 		end
 		if CanSpawnEvent then
-			if globalScore < scavconfig.timers.T1med then
-				Spring.CreateUnit(T2bosses[math_random(1,#T2bosses)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-			elseif globalScore < scavconfig.timers.T2med then
-				Spring.CreateUnit(T3bosses[math_random(1,#T3bosses)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+			if globalScore < scavconfig.timers.T2start then
+				for a = 1,3 do
+					Spring.CreateUnit(T2bosses[math_random(1,#T2bosses)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+				end
+			elseif globalScore < scavconfig.timers.T3start then
+				for a = 1,2 do
+					Spring.CreateUnit(T3bosses[math_random(1,#T3bosses)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+				end
 			else
 				Spring.CreateUnit(T4bosses[math_random(1,#T4bosses)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 			end
