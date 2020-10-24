@@ -36,17 +36,19 @@ if (gadgetHandler:IsSyncedCode()) then
 
 	function adjustFeatureHeight()
 		local featuretable = Spring.GetAllFeatures()
-		local x,y,z,featureDefID
+		local x,y,z,rx,ry,rz,featureDefID
 		for i = 1,#featuretable do
 			if not orgFeaturePosY[i] then
 				orgFeaturePosY[i] = select(2, Spring.GetFeaturePosition(featuretable[i]))
 			end
 			featureDefID = Spring.GetFeatureDefID(featuretable[i])
 			x,y,z = Spring.GetFeaturePosition(featuretable[i])
+      rx,ry,rz = Spring.GetFeatureRotation(featuretable[i])
 			Spring.DestroyFeature(featuretable[i])
 			if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or FeatureDefs[featureDefID].metal > 0 then -- Keep features (> 0 height) or (geovents) or (contains metal)
 				y = orgFeaturePosY[i] - waterlevel --Spring.GetGroundHeight(x,z)
-				Spring.CreateFeature(featureDefID, x,y,z)
+				local newfeatureID = Spring.CreateFeature(featureDefID, x,y,z)
+        Spring.SetFeatureRotation(newfeatureID, rx,ry,rz)
 			end
 		end
 	end
@@ -59,16 +61,17 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetGameFrame() == 0 and Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and Spring.GetModOptions().map_waterlevel ~= "0" then
+		if Spring.GetGameFrame() == 0 and Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and tonumber(Spring.GetModOptions().map_waterlevel) ~= 0 then
+      --Spring.Echo("gadget:Initialize() : Spring.GetModOptions().map_waterlevel",Spring.GetModOptions().map_waterlevel)
 			waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)))
 			adjustWaterlevel()
 		end
 	end
 
-	function gadget:GameFrame(gf)
+	--[[function gadget:GameFrame(gf) -- Keeping this in forces feature recreation on frame 0, with a lag spike on init, also destroying all preexisting feature rotations.
 		adjustFeatureHeight()
 		gadgetHandler:RemoveCallIn("GameFrame")
-	end
+	end]]--
 
 	function gadget:GamePreload()
 		if waterlevel ~= 0 then
