@@ -41,15 +41,20 @@ if (gadgetHandler:IsSyncedCode()) then
 			if not orgFeaturePosY[i] then
 				orgFeaturePosY[i] = select(2, Spring.GetFeaturePosition(featuretable[i]))
 			end
-			featureDefID = Spring.GetFeatureDefID(featuretable[i])
 			x,y,z = Spring.GetFeaturePosition(featuretable[i])
-      rx,ry,rz = Spring.GetFeatureRotation(featuretable[i])
-			Spring.DestroyFeature(featuretable[i])
-			if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or FeatureDefs[featureDefID].metal > 0 then -- Keep features (> 0 height) or (geovents) or (contains metal)
-				y = orgFeaturePosY[i] - waterlevel --Spring.GetGroundHeight(x,z)
-				local newfeatureID = Spring.CreateFeature(featureDefID, x,y,z)
-        Spring.SetFeatureRotation(newfeatureID, rx,ry,rz)
-			end
+      if math.abs(Spring.GetGroundHeight(x,z) - y) > 0.01 then
+        --Spring.Echo("Feature position wrong (",x,y,z,")", Spring.GetGroundHeight(x,z), orgFeaturePosY[i])
+
+        featureDefID = Spring.GetFeatureDefID(featuretable[i])
+        
+        rx,ry,rz = Spring.GetFeatureRotation(featuretable[i])
+        Spring.DestroyFeature(featuretable[i])
+        if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or FeatureDefs[featureDefID].metal > 0 then -- Keep features (> 0 height) or (geovents) or (contains metal)
+          y = orgFeaturePosY[i] - waterlevel --Spring.GetGroundHeight(x,z)
+          local newfeatureID = Spring.CreateFeature(featureDefID, x,y,z)
+          Spring.SetFeatureRotation(newfeatureID, rx,ry,rz)
+        end
+      end
 		end
 	end
 
@@ -68,10 +73,10 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 
-	--[[function gadget:GameFrame(gf) -- Keeping this in forces feature recreation on frame 0, with a lag spike on init, also destroying all preexisting feature rotations.
+	function gadget:GameFrame(gf) -- Keeping this in forces feature recreation on frame 0, with a lag spike on init, also destroying all preexisting feature rotations.
 		adjustFeatureHeight()
 		gadgetHandler:RemoveCallIn("GameFrame")
-	end]]--
+	end
 
 	function gadget:GamePreload()
 		if waterlevel ~= 0 then
