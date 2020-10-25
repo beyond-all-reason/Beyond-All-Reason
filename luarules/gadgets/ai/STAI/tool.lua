@@ -56,13 +56,14 @@ function Tool:ConstrainToMap(x, z)
 end
 
 function Tool:RandomAway( ai, pos, dist, opposite, angle)
+	print(pos)
 	if angle == nil then
 		angle = random() * twicePi
 	end
-	local mapSize = ai.api.map:MapDimensions()
+	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
-	local away = ai.api.Position()
+	local away = api.Position()
 	away.x = pos.x + dist * cos(angle)
 	away.z = pos.z - dist * sin(angle)
 	away.y = pos.y + 0

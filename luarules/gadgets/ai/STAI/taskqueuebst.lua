@@ -471,7 +471,7 @@ function TaskQueueBST:GetQueue()
 					if mtype == self.ai.armyhst.factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
 						self:EchoDebug( self.name .. ' have major factory ' .. factoryName)
 						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
-						q = self.ai.taskshst.outmodedTaskqueues[self.name]
+						q = self.ai.taskshst:outmodedTaskqueues()[self.name]
 						self.outmodedTechLevel = true
 						break
 					end
@@ -480,7 +480,7 @@ function TaskQueueBST:GetQueue()
 			end
 
 		elseif self.outmodedFactory then
-			q = self.ai.taskshst.outmodedTaskqueues[self.name]
+			q = self.ai.taskshst:outmodedTaskqueues()[self.name]
 		end
 	end
 

@@ -416,7 +416,7 @@ function TargetHST:UpdateEnemies()
 		if ghost and not ghost.position and not e.beingBuilt then
 			-- count ghosts with unknown positions as non-positioned threats
 			self:DangerCheck(name, e.unitID)
-			local threatLayers = Unitself.ai.tool:ThreatRangeLayers(name)
+			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
 			for groundAirSubmerged, layer in pairs(threatLayers) do
 				self:CountEnemyThreat(e.unitID, name, layer.threat)
 			end
@@ -453,7 +453,7 @@ function TargetHST:UpdateEnemies()
 					table.insert(cell.buildingIDs, e.unitID)
 				end
 				local hurtBy = self.ai.tool:WhatHurtsUnit(name)
-				local threatLayers = Unitself.ai.tool:ThreatRangeLayers(name)
+				local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
 				local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
 				local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
 				for groundAirSubmerged, layer in pairs(threatLayers) do
