@@ -578,16 +578,20 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				Spring.DestroyUnit(unitID, false, true)
 				if heading >= -24576 and heading < -8192 then -- west
 					-- 3
-					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
+					QueueSpawn(UnitName..suffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
+					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
 				elseif heading >= -8192 and heading < 8192 then -- south
 					-- 0
-					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
+					QueueSpawn(UnitName..suffix, posx, posy, posz, 0 ,GaiaTeamID, frame+1)
+					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
 				elseif heading >= 8192 and heading < 24576 then -- east
 					-- 1
-					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
+					QueueSpawn(UnitName..suffix, posx, posy, posz, 1 ,GaiaTeamID, frame+1)
+					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
 				else -- north
 					-- 2
-					Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
+					QueueSpawn(UnitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
+					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
 				end
 				return
 			end

@@ -189,9 +189,16 @@ function setColors()
 						-- pick the first team in the allyTeam and take the color from that one
 							if (teamListIndex == 1) then
 								--usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3] = Spring.GetTeamColor(teamID)
-								usedSpotterColor[1] = 1
-								usedSpotterColor[2] = 0
-								usedSpotterColor[3] = 0
+								local luaAI = Spring.GetTeamLuaAI(teamID)
+								if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+									usedSpotterColor[1] = 0.38
+									usedSpotterColor[2] = 0.14
+									usedSpotterColor[3] = 0.38
+								else
+									usedSpotterColor[1] = 1
+									usedSpotterColor[2] = 0
+									usedSpotterColor[3] = 0
+								end
 							end
 						end
 					end
