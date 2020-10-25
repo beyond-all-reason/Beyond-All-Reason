@@ -485,7 +485,7 @@ function BuildSiteHST:CheckForDuplicates(unitName)
 	return false
 end
 
-function BuildSiteHST:UnitBuilt(unit)
+function BuildSiteHST:MyUnitBuilt(unit)
 	local unitID = unit:ID()
 	local done = self.constructing[unitID]
 	if done then

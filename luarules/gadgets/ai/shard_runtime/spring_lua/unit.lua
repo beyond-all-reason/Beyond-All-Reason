@@ -35,7 +35,7 @@ function ShardUnit:AllyTeam()
 	return Spring.GetUnitAllyTeam(self.id)
 end
 
-function ShardUnit:Neutral()
+function ShardUnit:isNeutral()
 	return Spring.GetUnitNeutral(self.id)
 end
 

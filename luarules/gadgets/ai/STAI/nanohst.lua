@@ -19,7 +19,7 @@ function NanoHST:Init()
 	self.densityMap = {}
 end
 
-function NanoHST:UnitBuilt(engineUnit)
+function NanoHST:MyUnitBuilt(engineUnit)
 	local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
 	if not ut then return end
 	if self.ai.armyhst.nanoTurretList[engineUnit:Name()] then

@@ -9,7 +9,7 @@ end
 
 -- overriding this is mandatory
 function AIBase:internalName()
-	return "error" 
+	return "error"
 end
 
 function AIBase:Init()
@@ -32,9 +32,9 @@ function AIBase:UnitBuilt(engineunit)
 		self:MyUnitBuilt(engineunit)
 	elseif engineunit:IsFriendly( self.game:GetAllyTeamID() ) then
 		self:FriendlyUnitBuilt(engineunit)
-	elseif engineunit:IsHostile( self.game:GetAllyTeamID() ) then
-		self:HostileunitBuilt(engineunit)
-	elseif engineunit:Neutral() then
+	elseif engineunit:IsEnemy( self.game:GetAllyTeamID() ) then
+		self:EnemyUnitBuilt(engineunit)
+	elseif engineunit:isNeutral() then
 		self:NeutralUnitBuilt(engineunit)
 	end
 end
@@ -45,7 +45,7 @@ end
 function AIBase:FriendlyUnitBuilt(engineunit)
 end
 
-function AIBase:HostileUnitBuilt(engineunit)
+function AIBase:EnemyUnitBuilt(engineunit)
 end
 
 function AIBase:NeutralUnitBuilt(engineunit)

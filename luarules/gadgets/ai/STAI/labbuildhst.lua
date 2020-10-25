@@ -18,7 +18,7 @@ function LabBuildHST:Init()
 	self:EchoDebug('Initialize')
 end
 
-function LabBuildHST:UnitBuilt(engineUnit)
+function LabBuildHST:MyUnitBuilt(engineUnit)
 	local uname = engineUnit:Name()
 	local ut = self.ai.armyhst.unitTable[uname]
 	if ut.isBuilding or not ut.buildOptions then

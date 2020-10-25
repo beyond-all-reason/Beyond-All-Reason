@@ -20,7 +20,7 @@ function CleanHST:Init()
 	self.bigEnergyCount = 0
 end
 
-function CleanHST:UnitBuilt(unit)
+function CleanHST:MyUnitBuilt(unit)
 	if unit:Team() == self.ai.id then
 		if self:IsCleanable(unit) then
 			self:EchoDebug("cleanable " .. unit:Name())
