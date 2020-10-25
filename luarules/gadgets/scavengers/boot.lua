@@ -102,6 +102,8 @@ local function DisableUnit(unitID)
 	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1000, 2000, Game.mapSizeZ+1000) --don't move too far out or prevent_aicraft_hax will explode it!
 	Spring.SetUnitCloak(unitID, true)
 	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
+	Spring.SetUnitMaxHealth(unitID, 10000000)
+	Spring.SetUnitHealth(unitID, 10000000)
 	Spring.SetUnitNoDraw(unitID, true)
 	Spring.SetUnitStealth(unitID, true)
 	Spring.SetUnitNoSelect(unitID, true)
@@ -225,7 +227,7 @@ function gadget:GameFrame(n)
 			DisableCommander()
 			disabledCommander = true
 		end
-		Spring.SetUnitHealth(HiddenCommander, 9999999)
+		Spring.SetUnitHealth(HiddenCommander, 10000000)
 	end
 
 	if n == 100 and globalScore then
