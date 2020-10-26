@@ -2120,7 +2120,7 @@ function widget:MousePress(x, y, button)
 							Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							if preGamestartPlayer then
 								setPreGamestartDefID(cmds[cellRectID].id * -1)
-							else
+							elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 								Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
 							end
 						else
@@ -2130,7 +2130,7 @@ function widget:MousePress(x, y, button)
 							end
 							if preGamestartPlayer then
 								setPreGamestartDefID(cmds[cellRectID].id * -1)
-							else
+							elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 								Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
 							end
 						end
