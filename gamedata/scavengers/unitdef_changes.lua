@@ -609,6 +609,11 @@ customDefs.cortermite = {
 customDefs.cormando = {
 	cloakcost = 12,
 	mincloakdistance = 144,
+	maxvelocity = 1.5,
+}
+
+customDefs.corfast = {
+	maxvelocity = 2.1,
 }
 
 customDefs.armzeus = {
