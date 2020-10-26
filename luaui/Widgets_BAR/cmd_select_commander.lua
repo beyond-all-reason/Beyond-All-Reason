@@ -12,14 +12,14 @@ end
 
 function widget:Update()
   local t = Spring.GetGameSeconds()
-  if (select(3,Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)) or t > 10) then
+  if Spring.GetSpectatingState() then
     widgetHandler:RemoveWidget(self)
     return
   end
   if (t > 0) then
     local unitArray = Spring.GetTeamUnits(Spring.GetMyTeamID())
     for key, unit in pairs(unitArray) do
-      if (unitDef.customParams.iscommander == true) do
+      if (unit.customParams.iscommander == true) do
         Spring.SelectUnitArray{unitArray[key]}
         return
       end
