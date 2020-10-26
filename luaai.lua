@@ -17,6 +17,10 @@ return {
     desc = 'Infinite Games'
   },
   {
+    name = 'SimpleDefenderAI',
+    desc = 'Infinite Games'
+  },
+  {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
   },
