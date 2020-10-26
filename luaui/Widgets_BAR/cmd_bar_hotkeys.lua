@@ -16,6 +16,7 @@ end
 local unbinds={
     "bind any+c controlunit",
     "bind c controlunit",
+    "bind ctrl+c controlunit",
     "bind any+x  buildspacing dec",
     "bind x  buildspacing dec",
     "bindaction buildspacing dec",
@@ -159,6 +160,7 @@ function MakeBindsTable (swapYZ)
         "bind shift+v buildunit_armsy",
         "bind v buildunit_corsy",
         "bind shift+v buildunit_corsy",
+        "bind ctrl+c luaui/selectcommander",
 
         -- build spacing
         "bind alt+"..Z.." buildspacing inc",
