@@ -48,6 +48,7 @@ local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1
 local fontfileScale2 = fontfileScale * 1.2
 
+
 local bgcorner = "LuaUI/Images/bgcorner.png"
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
@@ -115,6 +116,8 @@ WG.uiScale = widgetScale
 
 local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
+
+local vsyncLevel = 1
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
@@ -1894,9 +1897,17 @@ function init()
 			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 		  end,
 		},
-		{ id = "vsync", group = "gfx", basic = true, name = "V-sync", type = "bool", value = tonumber(Spring.GetConfigInt("VSync", 1) or 1) == 1, description = '',
+		{ id = "vsync", group = "gfx", basic = true, name = "V-sync", type = "bool", value = tonumber(Spring.GetConfigInt("VSync", 1) or 1) == vsyncLevel, description = '',
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("VSync", (value and 1 or 0))
+			  Spring.SetConfigInt("VSync", (value and vsyncLevel or 0))
+		  end,
+		},
+		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   divider", type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled\n\n(I like to use this when I\'m spectating on my 144hz laptop)',
+		  onchange = function(i, value)
+			  vsyncLevel = value
+			  if options[getOptionByID('vsync')].value then
+			  	Spring.SetConfigInt("VSync", vsyncLevel)
+			  end
 		  end,
 		},
 		{ id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = "Limit FPS when idle/offscreen", type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = "Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode" },
@@ -3463,7 +3474,7 @@ function init()
 			group = "game",
 			basic = true,
 			widget = "Builder Priority",
-			name = "Builder Priority",
+			name = "Builder Priority Restriction",
 			type = "bool",
 			value = GetWidgetToggleValue("Builder Priority"),
 			description = 'Sets builders (nanos, labs and cons) on low priority mode\n\nLow priority mode means that builders will only spend energy when its availible.\nUsage: Set the most important builders on high and leave the rest on low priority'
@@ -3479,7 +3490,7 @@ function init()
 					and WG['builderpriority'].getLowPriorityNanos ~= nil
 					and WG['builderpriority'].getLowPriorityNanos()
 			),
-			description = '',
+			description = 'Toggle to set low priority',
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_nanos", { 'lowpriorityNanos' })
 			end,
@@ -3498,7 +3509,7 @@ function init()
 					and WG['builderpriority'].getLowPriorityCons ~= nil
 					and WG['builderpriority'].getLowPriorityCons()
 			),
-			description = '',
+			description = 'Toggle to set low priority',
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_cons", { 'lowpriorityCons' })
 			end,
@@ -3517,7 +3528,7 @@ function init()
 					and WG['builderpriority'].getLowPriorityLabs ~= nil
 					and WG['builderpriority'].getLowPriorityLabs()
 			),
-			description = '',
+			description = 'Toggle to set low priority',
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_labs", { 'lowpriorityLabs' })
 			end,
@@ -4391,6 +4402,7 @@ function init()
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
 	if Spring.GetConfigInt("VSync", 1) == 'x' then
 		options[getOptionByID('vsync')] = nil
+		options[getOptionByID('vsync_level')] = nil
 	end
 
 	if not widgetHandler.knownWidgets["Commander Name Tags"] then
@@ -4837,6 +4849,7 @@ end
 
 function widget:GetConfigData(data)
 	savedTable = {}
+	savedTable.vsyncLevel = vsyncLevel
 	savedTable.firsttimesetupDone = firstlaunchsetupDone
 	savedTable.resettedTonemapDefault = resettedTonemapDefault
 	savedTable.customPresets = customPresets
@@ -4876,6 +4889,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.vsyncLevel ~= nil then
+		vsyncLevel = data.vsyncLevel
+	end
 	if data.desiredWaterValue ~= nil then
 		desiredWaterValue = data.desiredWaterValue
 	end

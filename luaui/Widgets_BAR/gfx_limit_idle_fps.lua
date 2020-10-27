@@ -16,7 +16,14 @@ local vsyncValueActive = Spring.GetConfigInt("VSync",1)
 if vsyncValueActive > 1 then
 	vsyncValueActive = 1
 end
-local vsyncValueIdle = 4    -- sometimes somehow vsync 6 results in higher fps than 4
+local vsyncValueIdle = 4    -- sometimes vsync > 4 doesnt work at all
+
+
+local isIdle = false
+local lastUserInputTime = os.clock()
+local lastMouseX, lastMouseY = Spring.GetMouseState()
+local prevCamX, prevCamY, prevCamZ = Spring.GetCameraPosition()
+local chobbyInterface = false
 
 -- detect display frequency > 60 and set vsyncValueIdle to 6
 local infolog = VFS.LoadFile("infolog.txt")
@@ -48,15 +55,10 @@ if infolog then
 	end
 end
 
-local isIdle = false
-local lastUserInputTime = os.clock()
-local lastMouseX, lastMouseY = Spring.GetMouseState()
-local prevCamX, prevCamY, prevCamZ = Spring.GetCameraPosition()
-local chobbyInterface = false
-
 
 function widget:Shutdown()
 	Spring.SetConfigInt("VSync", vsyncValueActive)
+	WG['limitidlefps'] = nil
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -67,6 +69,13 @@ function widget:RecvLuaMsg(msg, playerID)
 			isIdle = false
 			Spring.SetConfigInt("VSync", (isIdle and vsyncValueIdle or vsyncValueActive))
 		end
+	end
+end
+
+function widget:Initialize()
+	WG['limitidlefps'] = {}
+	WG['limitidlefps'].isIdle = function()
+		return isIdle
 	end
 end
 
