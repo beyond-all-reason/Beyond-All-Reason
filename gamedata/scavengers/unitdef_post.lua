@@ -5,6 +5,12 @@ for name,uDef in pairs(UnitDefs) do
     scavUnit[#scavUnit+1] = name..'_scav'
 end
 
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	ScavDifficultyMultiplier = (tonumber(Spring.GetModOptions().scavengers))
+else
+	ScavDifficultyMultiplier = 0.5
+end
+
 local rana = math.random(3,1000)
 local ranb = math.random(2,a)
 local ranc = math.random(1,b)
@@ -116,16 +122,18 @@ function scav_Udef_Post(name, uDef)
 		uDef.name = "Scavenger "..uDef.name
 	end
 
+	local randomMultiplier = (math.random()*0.25)+0.875 -- results in random between 0.875 and 1.125
+	
 	if uDef.buildcostenergy then
-		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.85)
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.85*randomMultiplier)
 	end
 
 	if uDef.buildcostmetal then
-		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.85)
+		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.85*randomMultiplier)
 	end
 
 	if uDef.buildtime then
-		uDef.buildtime = math.ceil(uDef.buildtime*0.85)
+		uDef.buildtime = math.ceil(uDef.buildtime*0.85*randomMultiplier)
 	end
 	
 	if uDef.energymake then
@@ -137,7 +145,7 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.85)
+		uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
 	end
 
 	-- if uDef.maxvelocity then
@@ -145,16 +153,16 @@ function scav_Udef_Post(name, uDef)
 	-- end
 
 	if uDef.radardistancejam then
-		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.5)
+		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.5*ScavDifficultyMultiplier)
 	end
 
 	if uDef.maxdamage then
 		if uDef.name and uDef.name ~= "Scavenger Epic Commander - Final Boss" then
-			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
-			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1))
+			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.2*randomMultiplier))
+			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.2*randomMultiplier))
 		else
-			uDef.autoheal = 0
-			uDef.idleautoheal = 0
+			uDef.autoheal = math.ceil(10*ScavDifficultyMultiplier*randomMultiplier)
+			uDef.idleautoheal = math.ceil(10*ScavDifficultyMultiplier*randomMultiplier)
 		end
 	else
 		uDef.autoheal = 3
@@ -162,7 +170,7 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.turnrate then
-		uDef.turnrate = uDef.turnrate*1.1
+		uDef.turnrate = uDef.turnrate*1.2*randomMultiplier
 	end
 
 	if uDef.turninplaceanglelimit then
@@ -172,17 +180,17 @@ function scav_Udef_Post(name, uDef)
 	-- don't let players get scav constructors
 	if uDef.buildoptions then
 		if uDef.maxvelocity then
-			uDef.maxvelocity = uDef.maxvelocity*2
+			uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
 		end
 		if uDef.canmove == true then
 			if uDef.workertime then
-				uDef.workertime = uDef.workertime*1.5
+				uDef.workertime = uDef.workertime*1.5*ScavDifficultyMultiplier
 			end
 			if uDef.turnrate then
 				uDef.turnrate = uDef.turnrate*1.5
 			end
 			if uDef.brakerate then
-				uDef.brakerate = uDef.brakerate*1.5
+				uDef.brakerate = uDef.brakerate*3*randomMultiplier
 			end
 		end
 		if uDef.featuredefs then
@@ -200,13 +208,13 @@ function scav_Udef_Post(name, uDef)
 		end
 	end
 	
-	-- if uDef.weapondefs then
-		-- for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
-			-- for category, damage in pairs (weaponDef.damage) do
-				-- uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * 2))
-			-- end
-		-- end
-	-- end
+	if uDef.weapondefs then
+		for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
+			for category, damage in pairs (weaponDef.damage) do
+				uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * randomMultiplier))
+			end
+		end
+	end
 
 	if uDef.customparams.fighter then
 		uDef.maxvelocity = uDef.maxvelocity*2

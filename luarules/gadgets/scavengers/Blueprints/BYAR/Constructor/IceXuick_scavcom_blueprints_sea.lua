@@ -16,23 +16,20 @@ local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
 local function scavamphfactoryt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,3)
-	if chance == 0 then
-		local unitoptions = {}
-		local r = math_random(0,3)
-		local posradius = 60
-		if radiusCheck then
-			return posradius
+	local unitoptions = {}
+	local r = math_random(0,3)
+	local posradius = 60
+	if radiusCheck then
+		return posradius
+	else
+		if r == 0 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 1 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 2 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		else
-			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			elseif r == 1 then
-				Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			elseif r == 2 then
-				Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			end
+			Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		end
 	end
 end
@@ -40,25 +37,22 @@ table.insert(ScavengerConstructorBlueprintsT0Sea,scavamphfactoryt1)
 table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphfactoryt1)
 
 local function scavamphfactoryt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,3)
-	if chance == 0 then
-		local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
-		local r = math_random(0,8)
-		local posradius = 70
-		if radiusCheck then
-			return posradius
+	local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
+	local r = math_random(0,8)
+	local posradius = 70
+	if radiusCheck then
+		return posradius
+	else
+		if r == 0 or r == 1 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corplat_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 2 or r == 3 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armplat_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 4 or r == 5 then
+			Spring.GiveOrderToUnit(scav, -(UDN.coramsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 6 or r == 7 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armamsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		else
-			if r == 0 or r == 1 then
-				Spring.GiveOrderToUnit(scav, -(UDN.corplat_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			elseif r == 2 or r == 3 then
-				Spring.GiveOrderToUnit(scav, -(UDN.armplat_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			elseif r == 4 or r == 5 then
-				Spring.GiveOrderToUnit(scav, -(UDN.coramsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			elseif r == 6 or r == 7 then
-				Spring.GiveOrderToUnit(scav, -(UDN.armamsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			else
-				Spring.GiveOrderToUnit(scav, -(unitoptions[math_random(1,#unitoptions)]), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			end
+			Spring.GiveOrderToUnit(scav, -(unitoptions[math_random(1,#unitoptions)]), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		end
 	end
 end

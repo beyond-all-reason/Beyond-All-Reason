@@ -7,6 +7,11 @@
 
 customDefs = {}
 
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	ScavDifficultyMultiplier = (tonumber(Spring.GetModOptions().scavengers))
+else
+	ScavDifficultyMultiplier = 0.5
+end
 
 local scavUnit = {}
 for name,uDef in pairs(UnitDefs) do
@@ -15,6 +20,14 @@ end
 
 -- Scav Commanders
 
+customDefs.scavengerdroppodbeacon = {
+	maxdamage = 5000*ScavDifficultyMultiplier,
+}
+
+customDefs.scavsafeareabeacon = {
+	maxdamage = 10000*ScavDifficultyMultiplier,
+}
+
 customDefs.corcom = {
 	autoheal = 15,
 	--blocking = false,
@@ -22,21 +35,21 @@ customDefs.corcom = {
 	builddistance = 175,
 	cloakcost = 50,
 	cloakcostmoving = 100,
-	collisionvolumescales = "64 52 64",
 	description = "Builds fortified Outposts & Defenses. Cloaked",
 	explodeas = "scavcomexplosion",
-	footprintx = 4,
-	footprintz = 4,
+	footprintx = 0,
+	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 4500,
+	maxdamage = 4500*ScavDifficultyMultiplier,
 	maxvelocity = 0.55,
+	turnrate = 50000,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERBOT",
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 1000,				-- can get multiplied in unitdef_post
+	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -88,21 +101,21 @@ customDefs.armcom = {
 	builddistance = 175,
 	cloakcost = 50,
 	cloakcostmoving = 100,
-	collisionvolumescales = "64 52 64",
 	description = "Builds fortified Outposts & Defenses. Cloaked",
 	explodeas = "scavcomexplosion",
-	footprintx = 4,
-	footprintz = 4,
+	footprintx = 0,
+	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 4500,
+	maxdamage = 4500*ScavDifficultyMultiplier,
 	maxvelocity = 0.55,
+	turnrate = 50000,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERBOT",
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 1000,				-- can get multiplied in unitdef_post
+	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},

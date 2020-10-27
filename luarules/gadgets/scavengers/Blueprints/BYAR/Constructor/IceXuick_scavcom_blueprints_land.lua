@@ -18,137 +18,131 @@ local nameSuffix = '_scav'
 -- FACTORIES
 
 local function scavlabt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,3)
-	if chance == 0 then
-		local unitoptions = {}
-		local r = math_random(0,5)
-		local posradius = 120
-		if radiusCheck then
-			return posradius
+	local unitoptions = {}
+	local r = math_random(0,5)
+	local posradius = 120
+	if radiusCheck then
+		return posradius
+	else
+		if r == 0 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(64), posy, posz+(3), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cormstor_scav.id), {posx+(120), posy, posz+(75), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-104), posy, posz+(11), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(144), posy, posz+(-29), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cormaw_scav.id), {posx+(-80), posy, posz+(131), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(-64), posy, posz+(3), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corerad_scav.id), {posx+(0), posy, posz+(-93), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cormaw_scav.id), {posx+(80), posy, posz+(131), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cormstor_scav.id), {posx+(-120), posy, posz+(75), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(0), posy, posz+(-173), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corlab_scav.id), {posx+(0), posy, posz+(67), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(104), posy, posz+(11), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-144), posy, posz+(-29), 3}, {"shift"})
+			
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(48), posy, posz+(-125), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(64), posy, posz+(99), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(64), posy, posz+(67), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-64), posy, posz+(35), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(64), posy, posz+(35), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(16), posy, posz+(-141), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(144), posy, posz+(3), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-64), posy, posz+(67), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-64), posy, posz+(99), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(112), posy, posz+(-29), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-112), posy, posz+(-29), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-48), posy, posz+(-125), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-16), posy, posz+(-141), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-144), posy, posz+(3), 0}, {"shift"})
+		elseif r == 1 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armlab_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 2 then
+			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-80), posy, posz+(-90), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(72), posy, posz+(62), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(72), posy, posz+(94), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(72), posy, posz+(30), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(144), posy, posz+(86), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-72), posy, posz+(62), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(-144), posy, posz+(86), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corarad_scav.id), {posx+(104), posy, posz+(30), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(80), posy, posz+(-90), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corvp_scav.id), {posx+(0), posy, posz+(54), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx+(-104), posy, posz+(30), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-72), posy, posz+(94), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-72), posy, posz+(30), 0}, {"shift"})
+			
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-104), posy, posz+(-50), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-72), posy, posz+(-50), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-40), posy, posz+(-82), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(104), posy, posz+(-50), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(40), posy, posz+(-82), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-40), posy, posz+(-50), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(40), posy, posz+(-50), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(72), posy, posz+(-50), 0}, {"shift"})
+		elseif r == 3 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armvp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 4 then
+			Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(25), posy, posz+(-159), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(25), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(65), posy, posz+(-183), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(65), posy, posz+(185), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corhlt_scav.id), {posx+(113), posy, posz+(9), 1}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-63), posy, posz+(-87), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(-7), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(33), posy, posz+(-199), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(-39), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-127), posy, posz+(-23), 3}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corap_scav.id), {posx+(-31), posy, posz+(9), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(33), posy, posz+(201), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-23), posy, posz+(-63), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(-63), posy, posz+(-55), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(-63), posy, posz+(73), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(25), posy, posz+(161), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(57), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-95), posy, posz+(-55), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-127), posy, posz+(-55), 2}, {"shift"})
+			
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(65), posy, posz+(-151), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-63), posy, posz+(105), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-31), posy, posz+(89), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(65), posy, posz+(153), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-159), posy, posz+(-55), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(113), posy, posz+(-23), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(113), posy, posz+(41), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-175), posy, posz+(-23), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-111), posy, posz+(57), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-95), posy, posz+(89), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(145), posy, posz+(-7), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-95), posy, posz+(-87), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(1), posy, posz+(-199), 0}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(145), posy, posz+(25), 2}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(1), posy, posz+(201), 0}, {"shift"})
 		else
-			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(64), posy, posz+(3), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cormstor_scav.id), {posx+(120), posy, posz+(75), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-104), posy, posz+(11), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(144), posy, posz+(-29), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cormaw_scav.id), {posx+(-80), posy, posz+(131), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(-64), posy, posz+(3), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corerad_scav.id), {posx+(0), posy, posz+(-93), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cormaw_scav.id), {posx+(80), posy, posz+(131), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cormstor_scav.id), {posx+(-120), posy, posz+(75), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(0), posy, posz+(-173), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corlab_scav.id), {posx+(0), posy, posz+(67), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(104), posy, posz+(11), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-144), posy, posz+(-29), 3}, {"shift"})
-				
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(48), posy, posz+(-125), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(64), posy, posz+(99), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(64), posy, posz+(67), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-64), posy, posz+(35), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(64), posy, posz+(35), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(16), posy, posz+(-141), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(144), posy, posz+(3), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-64), posy, posz+(67), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-64), posy, posz+(99), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(112), posy, posz+(-29), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-112), posy, posz+(-29), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-48), posy, posz+(-125), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-16), posy, posz+(-141), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-144), posy, posz+(3), 0}, {"shift"})
-			elseif r == 1 then
-				Spring.GiveOrderToUnit(scav, -(UDN.armlab_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			elseif r == 2 then
-				Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-80), posy, posz+(-90), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(72), posy, posz+(62), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(72), posy, posz+(94), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(72), posy, posz+(30), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(144), posy, posz+(86), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-72), posy, posz+(62), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(-144), posy, posz+(86), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corarad_scav.id), {posx+(104), posy, posz+(30), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(80), posy, posz+(-90), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corvp_scav.id), {posx+(0), posy, posz+(54), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx+(-104), posy, posz+(30), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-72), posy, posz+(94), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-72), posy, posz+(30), 0}, {"shift"})
-				
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-104), posy, posz+(-50), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-72), posy, posz+(-50), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-40), posy, posz+(-82), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(104), posy, posz+(-50), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(40), posy, posz+(-82), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-40), posy, posz+(-50), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(40), posy, posz+(-50), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(72), posy, posz+(-50), 0}, {"shift"})
-			elseif r == 3 then
-				Spring.GiveOrderToUnit(scav, -(UDN.armvp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			elseif r == 4 then
-				Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(25), posy, posz+(-159), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(25), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(65), posy, posz+(-183), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(65), posy, posz+(185), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corhlt_scav.id), {posx+(113), posy, posz+(9), 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-63), posy, posz+(-87), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(-7), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(33), posy, posz+(-199), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(-39), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-127), posy, posz+(-23), 3}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corap_scav.id), {posx+(-31), posy, posz+(9), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(33), posy, posz+(201), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-23), posy, posz+(-63), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(-63), posy, posz+(-55), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(-63), posy, posz+(73), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(25), posy, posz+(161), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(81), posy, posz+(57), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-95), posy, posz+(-55), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+(-127), posy, posz+(-55), 2}, {"shift"})
-				
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(65), posy, posz+(-151), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-63), posy, posz+(105), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-31), posy, posz+(89), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(65), posy, posz+(153), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-159), posy, posz+(-55), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(113), posy, posz+(-23), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(113), posy, posz+(41), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-175), posy, posz+(-23), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-111), posy, posz+(57), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-95), posy, posz+(89), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(145), posy, posz+(-7), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(-95), posy, posz+(-87), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(1), posy, posz+(-199), 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(145), posy, posz+(25), 2}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+(1), posy, posz+(201), 0}, {"shift"})
-			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armap_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-			end
+			Spring.GiveOrderToUnit(scav, -(UDN.armap_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		end
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT2,scavlabt1)
 
 local function scavlabt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local chance = math_random(0,3)
-	if chance == 0 then
-		local unitoptions = {}
-		local r = math_random(0,5)
-		local posradius = 70
-			if radiusCheck then
-				return posradius
+	local unitoptions = {}
+	local r = math_random(0,5)
+	local posradius = 70
+		if radiusCheck then
+			return posradius
+		else
+			if r == 0 then
+				Spring.GiveOrderToUnit(scav, -(UDN.coralab_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			elseif r == 1 then
+				Spring.GiveOrderToUnit(scav, -(UDN.armalab_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			elseif r == 2 then
+				Spring.GiveOrderToUnit(scav, -(UDN.coravp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			elseif r == 3 then
+				Spring.GiveOrderToUnit(scav, -(UDN.armavp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			elseif r == 4 then
+				Spring.GiveOrderToUnit(scav, -(UDN.coraap_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 			else
-				if r == 0 then
-					Spring.GiveOrderToUnit(scav, -(UDN.coralab_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-				elseif r == 1 then
-					Spring.GiveOrderToUnit(scav, -(UDN.armalab_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-				elseif r == 2 then
-					Spring.GiveOrderToUnit(scav, -(UDN.coravp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-				elseif r == 3 then
-					Spring.GiveOrderToUnit(scav, -(UDN.armavp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-				elseif r == 4 then
-					Spring.GiveOrderToUnit(scav, -(UDN.coraap_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-				else
-					Spring.GiveOrderToUnit(scav, -(UDN.armaap_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armaap_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 
-			end
 		end
 	end
 end
