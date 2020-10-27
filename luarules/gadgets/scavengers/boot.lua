@@ -730,6 +730,18 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam == GaiaTeamID then
 		-- CMD.CLOAK = 37382
+		local UnitName = UnitDefs[unitDefID].name
+		if string.find(UnitName, scavconfig.unitnamesuffix) then
+			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+		else
+			UnitSuffixLenght[unitID] = 0
+		end
+		for i = 1,#WallUnitNames do
+			if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == WallUnitNames[i] then
+				Spring.SetUnitNeutral(unitID, false)
+				break
+			end
+		end
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
 		if scavConstructor[unitID] then

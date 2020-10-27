@@ -104,10 +104,6 @@ function SpawnConstructor(n)
 				end
 			end
 			SpawnBeacon(n)
-			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
-			local r = ConstructorsList[math_random(1,#ConstructorsList)]
-			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+90)
-			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 			if constructorControllerModuleConfig.useresurrectors then
 				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz, math_random(0,3),GaiaTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz, math_random(0,3),GaiaTeamID)
@@ -135,6 +131,10 @@ function SpawnConstructor(n)
 					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
 				end
 			end
+			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
+			local r = ConstructorsList[math_random(1,#ConstructorsList)]
+			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+90)
+			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 		else
 			constructortimer = constructortimer +  math.ceil(n/constructorControllerModuleConfig.constructortimerreductionframes)
 		end
@@ -194,7 +194,7 @@ function ConstructNewBlueprint(n, scav)
 		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, {"shift"})
 	end
 
-	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true)
+	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true) + 64
 	canConstructHere = posOccupied(posx, posy, posz, posradius)
 	if canConstructHere then
 		canConstructHere = posCheck(posx, posy, posz, posradius)

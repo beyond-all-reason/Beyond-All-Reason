@@ -15,6 +15,49 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local namelist = {
+		-- Contributors
+		"AF",
+		"Beherith",
+		"Damgam",
+		"Doo",
+		"FireStorm",
+		"Flaka",
+		"Floris",
+		"gajop",
+		"GoogleFrog",
+		"hokomoko",
+		"IceXuick",
+		"ivand",
+		"Krogoth",
+		"lamer",
+		"MaDDoX",
+		"pandaro",
+		"PtaQ",
+		"rossco",
+		"Sprung",
+		"Zecrus",
+		
+		-- Supporters ($40+ Donation)
+		"catraxx",
+		"EnJoY",
+		"Kodiak",
+		"L0v3",
+		
+		-- AI Nicknames
+		"QWERTY123",
+		"password",
+		"NotARobot",
+		"NotAI",
+		"Human",
+		"Realplayer",
+		"Impostor",
+		"Crewmate",
+		"SupCom",
+		"OTAPlayer",
+		"HiMom",
+		"Chris",
+		"Taylor",
+		
 		--ARMADA names
 		"Atlas",
 		"Freedom Fighter",

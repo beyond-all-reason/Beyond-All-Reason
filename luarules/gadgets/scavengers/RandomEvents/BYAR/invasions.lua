@@ -1,10 +1,10 @@
 
 function RandomEventInvasion(CurrentFrame)
 Spring.Echo("Invasion Event")
-local invasionUnitsLand = {"armbeaver_scav","cormuskrat_scav",}
+local invasionUnitsLand = {"armflea_scav", "armfav_scav", "corfav_scav", "armbeaver_scav", "cormuskrat_scav",}
 local invasionUnitsSea = {"armbeaver_scav","cormuskrat_scav",}
 local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
-local groupsize = groupsize*((unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.airmultiplier)*0.33)*unitSpawnerModuleConfig.t0multiplier*3
+local groupsize = groupsize*((unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.airmultiplier)*0.33)*unitSpawnerModuleConfig.t0multiplier*4
 local groupsize = math.ceil(groupsize*(teamcount/2))
 	for i = 1,groupsize do
 		for y = 1,100 do

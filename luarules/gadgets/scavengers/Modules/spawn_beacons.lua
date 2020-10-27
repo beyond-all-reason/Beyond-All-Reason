@@ -72,6 +72,10 @@ function SpawnBeacon(n)
 					SafeAreaBeaconSpawnAttempts = 0
 				end
 				
+				Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
 				if unitSpawnerModuleConfig.beacondefences == true then
 					local spawnTier = math_random(1,100)
 					if spawnTier <= TierSpawnChances.T0 then
@@ -97,7 +101,7 @@ function SpawnBeacon(n)
 						grouptiersea = StartboxDefenceStructuresT0Sea
 					end
 
-					Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
+					
 					local posy = Spring.GetGroundHeight(posx-128, posz)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]
@@ -107,7 +111,7 @@ function SpawnBeacon(n)
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 					end
 
-					Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
+					
 					local posy = Spring.GetGroundHeight(posx+128, posz)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]
@@ -117,7 +121,7 @@ function SpawnBeacon(n)
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 					end
 
-					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
+					
 					local posy = Spring.GetGroundHeight(posx, posz+128)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]
@@ -127,7 +131,7 @@ function SpawnBeacon(n)
 						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90)
 					end
 
-					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
+					
 					local posy = Spring.GetGroundHeight(posx, posz-128)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]

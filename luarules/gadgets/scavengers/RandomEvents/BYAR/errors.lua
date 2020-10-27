@@ -21,7 +21,7 @@ function RandomEventRebelion1(CurrentFrame)
 		end
 	end
 end
-table.insert(RandomEventsList,RandomEventRebelion1)
+--table.insert(RandomEventsList,RandomEventRebelion1)
 
 function RandomEventRebelion2(CurrentFrame)
 	Spring.Echo("Rebelion Area Event")
