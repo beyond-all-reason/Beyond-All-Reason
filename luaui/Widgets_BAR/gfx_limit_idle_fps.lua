@@ -127,7 +127,6 @@ function widget:Update(dt)
 		end
 		if isIdle ~= prevIsIdle then
 			Spring.SetConfigInt("VSync", (isIdle and vsyncValueIdle or vsyncValueActive))
-			Spring.Echo(Spring.GetGameFrame(), Spring.GetConfigInt("VSync"))
 		end
 	end
 end
