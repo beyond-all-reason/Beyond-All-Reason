@@ -160,7 +160,7 @@ function MakeBindsTable (swapYZ)
         "bind shift+v buildunit_armsy",
         "bind v buildunit_corsy",
         "bind shift+v buildunit_corsy",
-        "bind ctrl+c luaui/selectcommander",
+        "bind ctrl+c luaui selectcommander",
 
         -- build spacing
         "bind alt+"..Z.." buildspacing inc",
