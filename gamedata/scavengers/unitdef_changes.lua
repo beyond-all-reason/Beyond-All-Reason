@@ -698,6 +698,32 @@ customDefs.corllt = {
 	},
 }
 
+-- Custom ARM ambusher - NO cloak since looks weird/ugly atm
+customDefs.armamb = {
+	description = "Powerfull Stealthy Defense",
+	cancloak = false,
+	stealth = true,
+	weapondefs = {
+		armamb_gun = {
+			impulseboost = 0.5,
+			impulsefactor = 2,
+		},
+	},
+}
+
+
+customDefs.cortoast = {
+	description = "Powerfull Stealthy Defense",
+	cancloak = false,
+	stealth = true,
+	weapondefs = {
+		cortoast_gun = {
+			impulseboost = 0.5,
+			impulsefactor = 2,
+		},
+	},
+}
+
 -- Custom HLLT - low laser = faster - high laser is slower - unique sounds
 customDefs.corhllt = {
  	-- cloakcost = 9,
