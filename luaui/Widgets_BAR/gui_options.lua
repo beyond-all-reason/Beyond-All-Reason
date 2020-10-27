@@ -4732,6 +4732,11 @@ function widget:Initialize()
 	WG['options'].isvisible = function()
 		return show
 	end
+	WG['options'].getOptionValue = function(option)
+		if getOptionByID(option) then
+			return options[getOptionByID(option)].value
+		end
+	end
 	WG['options'].getCameraSmoothness = function()
 		return cameraTransitionTime
 	end
