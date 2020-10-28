@@ -119,6 +119,7 @@ local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local vsyncLevel = 1
 local vsyncEnabled = false
+local vsyncOnlyForSpec = false
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
@@ -1906,15 +1907,29 @@ function init()
 		{ id = "vsync", group = "gfx", basic = true, name = "V-sync", type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
 			  vsyncEnabled = value
-			  Spring.SetConfigInt("VSync", (vsyncEnabled and vsyncLevel or 0))
+			  local vsync = 0
+			  if vsyncEnabled and (not isSpec or vsyncOnlyForSpec) then
+				  vsync = vsyncLevel
+			  end
+			  Spring.SetConfigInt("VSync", vsync)
+		  end,
+		},
+		{ id = "vsync_spec", group = "gfx", basic = true, name = widgetOptionColor .. "   only when spectator", type = "bool", value = vsyncOnlyForSpec, description = 'Only enable vsync when being spectator',
+		  onchange = function(i, value)
+			  vsyncOnlyForSpec = value
+			  if isSpec and vsyncEnabled then
+				  Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
+			  end
 		  end,
 		},
 		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   divider", type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled\n\n(I like to use this when I\'m spectating on my 144hz laptop)',
 		  onchange = function(i, value)
 			  vsyncLevel = value
-			  if options[getOptionByID('vsync')].value then
-			  	Spring.SetConfigInt("VSync", vsyncLevel)
+			  local vsync = 0
+			  if vsyncEnabled and (not isSpec or vsyncOnlyForSpec) then
+				  vsync = vsyncLevel
 			  end
+			  Spring.SetConfigInt("VSync", vsync)
 		  end,
 		},
 		{ id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = "Limit FPS when idle/offscreen", type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = "Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode" },
@@ -4589,6 +4604,9 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
+	if isSpec and vsyncEnabled and vsyncOnlyForSpec then
+		Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
+	end
 end
 
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
@@ -4641,7 +4659,13 @@ function widget:Initialize()
 
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
-		Spring.SetConfigInt("VSync", (vsyncEnabled and vsyncLevel or 0))
+
+		-- set vsync
+		local vsync = 0
+		if vsyncEnabled and (not isSpec or vsyncOnlyForSpec) then
+			vsync = vsyncLevel
+		end
+		Spring.SetConfigInt("VSync", vsync)
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
@@ -4860,6 +4884,7 @@ end
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.vsyncLevel = vsyncLevel
+	savedTable.vsyncOnlyForSpec = vsyncOnlyForSpec
 	savedTable.vsyncEnabled = vsyncEnabled
 	savedTable.firsttimesetupDone = firstlaunchsetupDone
 	savedTable.resettedTonemapDefault = resettedTonemapDefault
@@ -4880,7 +4905,6 @@ function widget:GetConfigData(data)
 	savedTable.desiredWaterValue = desiredWaterValue
 	savedTable.waterDetected = waterDetected
 	savedTable.savedConfig = {
-		vsync = { 'VSync', tonumber(Spring.GetConfigInt("VSync", 1) or 1) },
 		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 400) },
 		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
@@ -4902,6 +4926,9 @@ end
 function widget:SetConfigData(data)
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
+	end
+	if data.vsyncOnlyForSpec ~= nil then
+		vsyncOnlyForSpec = data.vsyncOnlyForSpec
 	end
 	if data.vsyncLevel ~= nil then
 		vsyncLevel = data.vsyncLevel
