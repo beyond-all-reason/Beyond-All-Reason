@@ -118,6 +118,7 @@ local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local vsyncLevel = 1
+local vsyncEnabled = false
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
@@ -1902,9 +1903,10 @@ function init()
 			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 		  end,
 		},
-		{ id = "vsync", group = "gfx", basic = true, name = "V-sync", type = "bool", value = tonumber(Spring.GetConfigInt("VSync", 1) or 1) == vsyncLevel, description = '',
+		{ id = "vsync", group = "gfx", basic = true, name = "V-sync", type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("VSync", (value and vsyncLevel or 0))
+			  vsyncEnabled = value
+			  Spring.SetConfigInt("VSync", (vsyncEnabled and vsyncLevel or 0))
 		  end,
 		},
 		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   divider", type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled\n\n(I like to use this when I\'m spectating on my 144hz laptop)',
@@ -4616,6 +4618,7 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 
+
 	if firstlaunchsetupDone == false then
 		firstlaunchsetupDone = true
 
@@ -4625,12 +4628,6 @@ function widget:Initialize()
 		Spring.SendCommands("water 4")
 		Spring.SetConfigInt("water", 4)
 
-		local turnVsyncOff = true       -- because vsync results in considerable amount of lagginess
-		if turnVsyncOff and tonumber(Spring.GetConfigInt("Vsync", 1) or 1) == 1 then
-			Spring.SendCommands("Vsync 0")
-			Spring.SetConfigInt("Vsync", 0)
-			Spring.Echo('First time setup:  disabling Vsync')
-		end
 		local minMaxparticles = 12000
 		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 0) < minMaxparticles then
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
@@ -4644,6 +4641,7 @@ function widget:Initialize()
 
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
+		Spring.SetConfigInt("VSync", (vsyncEnabled and vsyncLevel or 0))
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
@@ -4862,6 +4860,7 @@ end
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.vsyncLevel = vsyncLevel
+	savedTable.vsyncEnabled = vsyncEnabled
 	savedTable.firsttimesetupDone = firstlaunchsetupDone
 	savedTable.resettedTonemapDefault = resettedTonemapDefault
 	savedTable.customPresets = customPresets
@@ -4901,6 +4900,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.vsyncEnabled ~= nil then
+		vsyncEnabled = data.vsyncEnabled
+	end
 	if data.vsyncLevel ~= nil then
 		vsyncLevel = data.vsyncLevel
 	end

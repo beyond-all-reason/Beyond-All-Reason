@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 -- dont show vote interface for specs for the following keywords (use lowercase)
-local specBadKeywords = { 'forcestart' }
+local specBadKeywords = { 'forcestart', 'stop' }
 
 local vsx, vsy = Spring.GetViewGeometry()
 local customScale = 1.5
