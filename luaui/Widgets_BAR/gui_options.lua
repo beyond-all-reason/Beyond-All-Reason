@@ -151,6 +151,7 @@ local presets = {
 		mapedgeextension = false,
 		lighteffects = false,
 		airjets = false,
+		heatdistortion = false,
 		snow = false,
 		particles = 15000,
 		nanoparticles = 1500,
@@ -170,6 +171,7 @@ local presets = {
 		mapedgeextension = false,
 		lighteffects = true,
 		airjets = true,
+		heatdistortion = true,
 		snow = false,
 		particles = 20000,
 		nanoparticles = 3000,
@@ -189,6 +191,7 @@ local presets = {
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
+		heatdistortion = true,
 		snow = true,
 		particles = 25000,
 		nanoparticles = 5000,
@@ -208,6 +211,7 @@ local presets = {
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
+		heatdistortion = true,
 		snow = true,
 		particles = 30000,
 		nanoparticles = 9000,
@@ -227,6 +231,7 @@ local presets = {
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
+		heatdistortion = true,
 		snow = true,
 		particles = 40000,
 		nanoparticles = 15000,
@@ -2410,6 +2415,8 @@ function init()
 		--	 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
 		-- end,
 		--},
+		{ id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = "Heat distortion fx", type = "bool", value = GetWidgetToggleValue("Lups"), description = 'Adds a distortion effect to explosions and flames' },
+
 		{ id = "clouds", group = "gfx", basic = true, widget = "Volumetric Clouds", name = "Clouds", type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
 		{ id = "clouds_opacity", group = "gfx", name = widgetOptionColor .. "   opacity", type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
 		  onload = function(i)

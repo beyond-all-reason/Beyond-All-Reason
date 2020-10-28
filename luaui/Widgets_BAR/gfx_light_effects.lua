@@ -566,14 +566,14 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						if projectileDrawParams then
 							projectileDrawParams[#projectileDrawParams + 1] = drawParams
 						end
-						if enableHeatDistortion and WG['jitter'] then
+						if enableHeatDistortion and WG['Lups'] then
 							local weaponDefID = spGetProjectileDefID(pID)
 							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and spIsSphereInView(x,y,z,100) then
 								if weaponConf[weaponDefID].wtype == 'DGun' then
 									local distance = math_diag(x-cx, y-cy, z-cz)
 									local strengthMult = 1 / (distance*0.001)
 
-									WG['jitter'].AddParticle({
+									WG['Lups'].AddParticles('JitterParticles2', {
 										layer = -35,
 										life = weaponConf[weaponDefID].heatlife/4,
 										pos = {x,y,z},
@@ -851,7 +851,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
-		if py > 0 and enableHeatDistortion and WG['jitter'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and spIsSphereInView(px,py,pz,100) then
+		if py > 0 and enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and spIsSphereInView(px,py,pz,100) then
 
 			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
@@ -885,7 +885,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				end
 			end
 			if size*strengthMult > 5 then
-				WG['jitter'].AddParticle({
+				WG['Lups'].AddParticles('JitterParticles2', {
 					layer = -35,
 					life = life,
 					pos = {px,py+10,pz},
