@@ -137,11 +137,11 @@ function scav_Udef_Post(name, uDef)
 	end
 	
 	if uDef.energymake then
-		uDef.energymake = math.ceil(uDef.energymake*0.85)
+		uDef.energymake = math.ceil(uDef.energymake*0.85*randomMultiplier)
 	end
 
 	if uDef.metalmake then
-		uDef.metalmake = math.ceil(uDef.metalmake*0.85)
+		uDef.metalmake = math.ceil(uDef.metalmake*0.85*randomMultiplier)
 	end
 
 	if uDef.maxdamage then
@@ -153,7 +153,7 @@ function scav_Udef_Post(name, uDef)
 	-- end
 
 	if uDef.radardistancejam then
-		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.5*ScavDifficultyMultiplier)
+		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25*randomMultiplier)
 	end
 
 	if uDef.maxdamage then
