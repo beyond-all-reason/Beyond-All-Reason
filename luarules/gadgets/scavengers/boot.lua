@@ -407,7 +407,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		CaptureProgressForBeacons[unitID] = nil
 		if UnitName == "scavsafeareabeacon_scav" then
 			ScavSafeAreaExist = false
-			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledBuilding*20
+			killedscavengers = killedscavengers + ((scavconfig.scoreConfig.scorePerKilledSpawner+scavconfig.scoreConfig.baseScorePerKill)*4*ScavSafeAreaGenerator)
 		end
 	else
 		for i = 1,#AliveEnemyCommanders do
