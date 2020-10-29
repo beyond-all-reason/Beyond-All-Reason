@@ -160,7 +160,7 @@ end
 
 function TaskEcoHST:Energy1()
 
-	if self.ai.Energy.income > math.max(map:AverageWind() * 20, 150) then --and self.ai.Metal.reserves >50
+	if self.ai.Energy.income > math.max(map:AverageWind() * 20, 150) and self.ai.Metal.full > 0.1 then
 		return self:SolarAdv()
 	else
 		return self:WindSolar()
@@ -224,11 +224,11 @@ function TaskEcoHST:BuildAdvFusion()
 	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
 end
 
-function TaskEcoHST:BuildAdvEnergy()
-	self:EchoDebug(tostring('advname '..self.name))
+function TaskEcoHST:BuildAdvEnergy(tqb)
+	self:EchoDebug(tostring('advname '..tqb.name))
 	local unitName = self.ai.armyhst.DummyUnitName
 	unitName = self:BuildFusion()
-	if self.ai.Energy.income > 4000 and (self.name == 'armacv' or self.name == 'coracv') then
+	if self.ai.Energy.income > 4000 and (tqb.name == 'armacv' or tqb.name == 'coracv') then
 		unitName = self:BuildAdvFusion()
 	end
 	return unitName
@@ -343,9 +343,10 @@ function TaskEcoHST:buildWMconv1()
 	return unitName
 end
 
-function TaskEcoHST:CommanderEconomy(worker)
-	self:EchoDebug('debug inside taskeco',self,type(self))
-	local underwater = self.ai.maphst:IsUnderWater(worker.unit:Internal():GetPosition())
+function TaskEcoHST:CommanderEconomy(tqb)
+	self:EchoDebug('first debug inside taskeco',self,type(self),tqb)
+	print('tqb ' .. tqb.name)
+	local underwater = self.ai.maphst:IsUnderWater(tqb.unit:Internal():GetPosition())
 	local unitName = self.ai.armyhst.DummyUnitName
 	if not underwater then
 		unitName = self:Economy0()
@@ -357,13 +358,13 @@ function TaskEcoHST:CommanderEconomy(worker)
 
 end
 
-function TaskEcoHST:AmphibiousEconomy(worker)
-	local underwater = self.ai.maphst:IsUnderWater(worker.unit:Internal():GetPosition())
+function TaskEcoHST:AmphibiousEconomy(tqb)
+	local underwater = self.ai.maphst:IsUnderWater(tqb.unit:Internal():GetPosition())
 	local unitName = self.ai.armyhst.DummyUnitName
 	if underwater then
-		unitName = self:EconomyUnderWater(worker)
+		unitName = self:EconomyUnderWater(tqb)
 	else
-		unitName = self:Economy1(worker)
+		unitName = self:Economy1(tqb)
 	end
 	return unitName
 end
@@ -448,7 +449,8 @@ function TaskEcoHST:EconomyUnderWater()
 	return unitName
 end
 
-function TaskEcoHST:AdvEconomy()
+function TaskEcoHST:AdvEconomy(a)
+	print('adv' .. tostring(a))
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.Energy.full > 0.9 and self.ai.Energy.income > 3000 and self.ai.Metal.reserves > 1000 and self.ai.Energy.capacity < 40000 then
 		unitName = self:buildEstore2()
@@ -457,7 +459,7 @@ function TaskEcoHST:AdvEconomy()
 	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.7 and self.ai.Energy.income > 2000 and self.ai.Metal.full < 0.5 then
 		unitName = self:buildMconv2()
 	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.full > 0.1 and self.ai.Metal.income > 18 then
-		unitName = self:BuildAdvEnergy()
+		unitName = self:BuildAdvEnergy(a)
 	else--if self.ai.Metal.full < 0.2 and self.ai.Energy.full > 0.1 then
 		unitName = self:BuildMohoMex()
 	end

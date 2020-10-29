@@ -82,8 +82,14 @@ function BomberHST:DoTargetting()
 				local sumZ = 0
 				local validFunc
 				for i = 1, #recruits do
+					self:EchoDebug('dotarget i' , i)
 					local recruit = recruits[i]
+					self:EchoDebug('dotarget have recruit' , recruit)
+					self EchoDebug('dotarget' , recruit.unit)
+					self:EchoDebug('dotarget ' , )
 					local pos = recruit.unit:Internal():GetPosition()
+
+
 					sumX = sumX + pos.x
 					sumZ = sumZ + pos.z
 					validFunc = validFunc or self:GetPathValidFunc(recruit.unit:Internal():Name())

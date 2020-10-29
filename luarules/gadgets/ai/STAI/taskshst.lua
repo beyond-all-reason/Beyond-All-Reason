@@ -83,7 +83,7 @@ end
 function TasksHST:BuildAAIfNeeded(unitName)
 	if self:IsAANeeded() then
 		if not self.ai.armyhst.unitTable[unitName].isBuilding then
-			return BuildWithLimitedNumber(unitName, self.ai.overviewhst.AAUnitPerTypeLimit)
+			return self:BuildWithLimitedNumber(unitName, self.ai.overviewhst.AAUnitPerTypeLimit)
 		else
 			return unitName
 		end
@@ -231,8 +231,8 @@ function TasksHST:BuildTorpedoBomberIfNeeded(unitName)
 end
 
 
-function TasksHST:LandOrWater(worker, landName, waterName)
-	local builder = worker.unit:Internal()
+function TasksHST:LandOrWater(tqb, landName, waterName)
+	local builder = tqb.unit:Internal()
 	local bpos = builder:GetPosition()
 	local waterNet = self.ai.maphst:MobilityNetworkSizeHere("shp", bpos)
 	if waterNet ~= nil then
@@ -243,59 +243,59 @@ function TasksHST:LandOrWater(worker, landName, waterName)
 end
 
 
-function TasksHST:ConsulAsFactory(worker)
+function TasksHST:ConsulAsFactory(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd = math.random(1,8)
-	if 	rnd == 1 then unitName = ConVehicle(worker)
-	elseif 	rnd == 2 then unitName = ConShip(worker)
-	elseif 	rnd == 3 then unitName = Lvl1BotRaider(worker)
-	elseif 	rnd == 4 then unitName = Lvl1AABot(worker)
-	elseif 	rnd == 5 then unitName = Lvl2BotArty(worker)
-	elseif 	rnd == 6 then unitName = Lvl2BotAllTerrain(worker)
-	elseif 	rnd == 7 then unitName = Lvl2BotMedium(worker)
-	else unitName = Lvl1ShipDestroyerOnly(worker)
+	if 	rnd == 1 then unitName = ConVehicle(tqb)
+	elseif 	rnd == 2 then unitName = ConShip(tqb)
+	elseif 	rnd == 3 then unitName = Lvl1BotRaider(tqb)
+	elseif 	rnd == 4 then unitName = Lvl1AABot(tqb)
+	elseif 	rnd == 5 then unitName = Lvl2BotArty(tqb)
+	elseif 	rnd == 6 then unitName = Lvl2BotAllTerrain(tqb)
+	elseif 	rnd == 7 then unitName = Lvl2BotMedium(tqb)
+	else unitName = Lvl1ShipDestroyerOnly(tqb)
 	end
 	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
 	self:EchoDebug('Consul as factory '..unitName)
 	return unitName
 end
 
-function TasksHST:FreakerAsFactory(worker)
+function TasksHST:FreakerAsFactory(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd = math.random(1,7)
-	if 	rnd == 1 then unitName = ConBot(worker)
-	elseif 	rnd == 2 then unitName = ConShip(worker)
-	elseif 	rnd == 3 then unitName = Lvl1BotRaider(worker)
-	elseif 	rnd == 4 then unitName = Lvl1AABot(worker)
-	elseif 	rnd == 5 then unitName = Lvl2BotRaider(worker)
-	elseif 	rnd == 6 then unitName = Lvl2AmphBot(worker)
-	else unitName = Lvl1ShipDestroyerOnly(worker)
+	if 	rnd == 1 then unitName = ConBot(tqb)
+	elseif 	rnd == 2 then unitName = ConShip(tqb)
+	elseif 	rnd == 3 then unitName = Lvl1BotRaider(tqb)
+	elseif 	rnd == 4 then unitName = Lvl1AABot(tqb)
+	elseif 	rnd == 5 then unitName = Lvl2BotRaider(tqb)
+	elseif 	rnd == 6 then unitName = Lvl2AmphBot(tqb)
+	else unitName = Lvl1ShipDestroyerOnly(tqb)
 	end
 	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
 	self:EchoDebug('Freaker as factory '..unitName)
 	return unitName
 end
 
-function TasksHST:NavalEngineerAsFactory(worker)
+function TasksHST:NavalEngineerAsFactory(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd= math.random(1,6)
-	if 	rnd == 1 then unitName = ConShip(worker)
-	elseif 	rnd == 2 then unitName = ScoutShip(worker)
-	elseif 	rnd == 3 then unitName = Lvl1ShipDestroyerOnly(worker)
-	elseif 	rnd == 4 then unitName = Lvl1ShipRaider(worker)
-	elseif 	rnd == 5 then unitName = Lvl1ShipBattle(worker)
-	else unitName = Lvl2AmphBot(worker)
+	if 	rnd == 1 then unitName = ConShip(tqb)
+	elseif 	rnd == 2 then unitName = ScoutShip(tqb)
+	elseif 	rnd == 3 then unitName = Lvl1ShipDestroyerOnly(tqb)
+	elseif 	rnd == 4 then unitName = Lvl1ShipRaider(tqb)
+	elseif 	rnd == 5 then unitName = Lvl1ShipBattle(tqb)
+	else unitName = Lvl2AmphBot(tqb)
 	end
 	self:EchoDebug('Naval engineers as factory '..unitName)
 	return unitName
 end
 
-function TasksHST:EngineerAsFactory(worker)
+function TasksHST:EngineerAsFactory(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.side == self.ai.armyhst.CORESideName then
-		unitName = self:FreakerAsFactory(worker)
+		unitName = self:FreakerAsFactory(tqb)
 	else
-		unitName = self:ConsulAsFactory(worker)
+		unitName = self:ConsulAsFactory(tqb)
 	end
 	return unitName
 end
@@ -481,7 +481,6 @@ function TasksHST:anyLvl2BotLab()  return  {
 	self:wrap( self.ai.taskbothst,'Lvl2BotBattle' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl2BotBreakthrough' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl2BotArty' ) ,
-	self:wrap( self.ai.taskbothst,'Lvl2BotMerl' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl2AABot' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl2BotAssist' ) ,
 } end
@@ -518,11 +517,11 @@ function TasksHST:anyLvl2ShipYard()  return  {
 } end
 
 function TasksHST:anyExperimental()  return  {
-	self:wrap( self.ai.taskbothst,'Lvl3Raider' ) ,
-	self:wrap( self.ai.taskbothst,'Lvl3Battle' ) ,
-	self:wrap( self.ai.taskbothst,'Lvl3Merl' ) ,
-	self:wrap( self.ai.taskbothst,'Lvl3Arty' ) ,
-	self:wrap( self.ai.taskbothst,'Lvl3Breakthrough' ) ,
+	self:wrap( self.ai.taskexphst,'Lvl3Raider' ) ,
+	self:wrap( self.ai.taskexphst,'Lvl3Battle' ) ,
+	self:wrap( self.ai.taskexphst,'Lvl3Merl' ) ,
+	self:wrap( self.ai.taskexphst,'Lvl3Arty' ) ,
+	self:wrap( self.ai.taskexphst,'Lvl3Breakthrough' ) ,
 } end
 
 function TasksHST:anyOutmodedLvl1BotLab()  return  {
@@ -552,7 +551,7 @@ function TasksHST:anyOutmodedLvl1ShipYard()  return  {
 
 function TasksHST:anyOutmodedLvl2BotLab()  return  {
 	-- Lvl2BotRaider' ) ,
-			self:wrap( self.ai.taskbothst,'ConAdvBot' ) ,
+	self:wrap( self.ai.taskbothst,'ConAdvBot' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl2AABot' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl2BotAssist' ) ,
 } end
@@ -640,5 +639,5 @@ function TasksHST:taskqueues()  return  {
 	armshltx = self:wrap( self  ,  'anyExperimental' ) ,
 	corgantuw = self:wrap( self  ,  'anyUWExperimental' ) ,
 	armshltxuw = self:wrap( self  ,  'anyUWExperimental' ) ,
-	armfark = self:wrap( self  ,  'anyfark' ) ,
+	--armfark = self:wrap( self  ,  'anyfark' ) ,
 } end

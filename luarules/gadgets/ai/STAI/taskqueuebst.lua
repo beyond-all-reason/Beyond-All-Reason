@@ -4,8 +4,6 @@ function TaskQueueBST:Name()
 	return "TaskQueueBST"
 end
 
-TaskQueueBST.DebugEnabled = false
-
 local CMD_GUARD = 25
 
 local maxBuildDists = {}
@@ -52,7 +50,7 @@ function TaskQueueBST:CategoryEconFilter(value)
 	self:EchoDebug(value .. " (before econ filter)")
 	-- self:EchoDebug("ai.Energy: " .. self.ai.Energy.reserves .. " " .. self.ai.Energy.capacity .. " " .. self.ai.Energy.income .. " " .. self.ai.Energy.usage)
 	-- self:EchoDebug("ai.Metal: " .. self.ai.Metal.reserves .. " " .. self.ai.Metal.capacity .. " " .. self.ai.Metal.income .. " " .. self.ai.Metal.usage)
-	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value] then
+	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value] or self.isCommander then
 		return value
 	end
 	if self.ai.armyhst.reclaimerList[value] then
@@ -73,7 +71,7 @@ function TaskQueueBST:CategoryEconFilter(value)
 			self:EchoDebug("  defense")
 			if self.ai.armyhst.bigPlasmaList[value] or self.ai.armyhst.nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
-				if overview.metalTooLow or overview.energyTooLow or self.Metal.income < 35 or self.ai.factories == 0 or overview.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow or self.ai.Metal.income < 35 or self.ai.factories == 0 or overview.notEnoughCombats then
 					value = self.ai.armyhst.DummyUnitName
 				end
 			elseif self.ai.armyhst.littlePlasmaList[value] then
@@ -105,13 +103,13 @@ function TaskQueueBST:CategoryEconFilter(value)
 		if self.ai.armyhst.unitTable[value].buildOptions ~= nil then
 			-- construction unit
 			self:EchoDebug("  construction unit")
-			if self.ai.Energy.full < 0.05 or self.ai.Metal.full < 0.05 then
-				value = self.ai.armyhst.DummyUnitName
-			end
+-- 			if self.ai.Energy.full < 0.05  then
+-- 				value = self.ai.armyhst.DummyUnitName
+-- 			end
 		elseif self.ai.armyhst.unitTable[value].isWeapon then
 			-- combat unit
 			self:EchoDebug("  combat unit")
-			if self.ai.Energy.full < 0.1 or self.ai.Metal.full < 0.1 then
+			if self.ai.Energy.full < 0.1 then
 				value = self.ai.armyhst.DummyUnitName
 			end
 		elseif value == "armpeep" or value == "corfink" then
@@ -130,6 +128,7 @@ function TaskQueueBST:CategoryEconFilter(value)
 	return value
 end
 function TaskQueueBST:Init()
+	self.DebugEnabled = false
 	if self.ai.outmodedFactories == nil then
 		self.ai.outmodedFactories = 0
 	end
@@ -440,7 +439,7 @@ function TaskQueueBST:LocationFilter(utype, value)
 	if not p then
 		self:EchoDebug('pos not found for .. ' .. value)
 	else
-		self:EchoDebug('found for .. ' .. value)
+		self:EchoDebug('found for .. ' .. tostring(value))
 	end
 	-- last ditch placement
 -- 	if utype ~= nil and p == nil then
@@ -456,6 +455,7 @@ function TaskQueueBST:GetQueue()
 	-- fall back to only making enough construction units if a level 2 factory exists
 	local q
 	if self.isFactory and self.ai.factoryUnderConstruction and ( self.ai.Metal.full < 0.5 or self.ai.Energy.full < 0.5) then
+		self:EchoDebug('limitate construction permiss')
 		q = {}
 	end
 
@@ -473,6 +473,7 @@ function TaskQueueBST:GetQueue()
 						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
 						q = self.ai.taskshst:outmodedTaskqueues()[self.name]
 						self.outmodedTechLevel = true
+						self:EchoDebug(self.name, 'is outmoded')
 						break
 					end
 				end
@@ -609,10 +610,10 @@ function TaskQueueBST:ProgressQueue()
 				if utype ~= nil then
 					if self.unit:Internal():CanBuild(utype) then
 						if self.isFactory then
-							local helpValue = self:GetHelp(value, self.position)
-							if helpValue ~= nil and helpValue ~= self.ai.armyhst.DummyUnitName then
+-- 							local helpValue = self:GetHelp(value, self.position) --uncommenttohelp--
+-- 							if helpValue ~= nil and helpValue ~= self.ai.armyhst.DummyUnitName then
 								success = self.unit:Internal():Build(utype)
-							end
+-- 							end
 						else
 							if p == nil then utype, value, p = self:LocationFilter(utype, value) end
 							if utype ~= nil and p ~= nil then
@@ -622,7 +623,8 @@ function TaskQueueBST:ProgressQueue()
 									success = self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {value[2].unitID})
 									value = value[1]
 								else
-									local helpValue = self:GetHelp(value, p)
+									--local helpValue = self:GetHelp(value, p) --uncommenttohelp--
+									local helpValue = value
 									if helpValue ~= nil and helpValue ~= self.ai.armyhst.DummyUnitName then
 										self:EchoDebug(utype:Name() .. " has help")
 										self.ai.buildsitehst:NewPlan(value, p, self)
@@ -683,7 +685,7 @@ function TaskQueueBST:Activate()
 		local floats = api.vectorFloat()
 		floats:push_back(self.constructing.unitID)
 		self.unit:Internal():ExecuteCustomCommand(CMD_GUARD, floats)
-		self:GetHelp(self.constructing.unitName, self.constructing.position)
+		--self:GetHelp(self.constructing.unitName, self.constructing.position) --uncommenttohelp--
 		-- self.target = self.constructing.position
 		-- self.currentProject = self.constructing.unitName
 		self.released = false

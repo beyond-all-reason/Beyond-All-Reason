@@ -243,8 +243,8 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 	elseif not squad.hasGottenPathOnce then
 		startPos = self.ai.frontPosition[representativeBehaviour.hits]
 		if startPos then
-			local angle = AnglePosPos(startPos, squad.target)
-			startPos = self.ai.tool:RandomAway(self.ai, startPos, 150, nil, angle)
+			local angle = self.ai.tool:AnglePosPos(startPos, squad.target)
+			startPos = self.ai.tool:RandomAway( startPos, 150, nil, angle)
 		else
 			startPos = representative:GetPosition()
 		end
@@ -322,10 +322,10 @@ function AttackHST:SquadAdvance(squad)
 	local nextAngle
 	if squad.pathStep == #squad.path then
 		nextPos = squad.target
-		nextAngle = AnglePosPos(squad.path[squad.pathStep-1].position, nextPos)
+		nextAngle = self.ai.tool:AnglePosPos(squad.path[squad.pathStep-1].position, nextPos)
 	else
 		nextPos = squad.targetNode.position
-		nextAngle = AnglePosPos(nextPos, squad.path[squad.pathStep+1].position)
+		nextAngle = self.ai.tool:AnglePosPos(nextPos, squad.path[squad.pathStep+1].position)
 	end
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
 	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
@@ -333,7 +333,7 @@ function AttackHST:SquadAdvance(squad)
 		local member = members[i]
 		local pos = nextPos
 		if member.formationBack and squad.pathStep ~= #squad.path then
-			pos = self.ai.tool:RandomAway(self.ai, nextPos, -member.formationBack, nil, nextAngle)
+			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
 		end
 		local reverseAttackAngle
 		if squad.pathStep == #squad.path then

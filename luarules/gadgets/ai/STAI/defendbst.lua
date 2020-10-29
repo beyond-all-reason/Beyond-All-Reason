@@ -76,14 +76,14 @@ function DefendBST:Update()
 			targetPos.y = 0
 			local guardDistance = self.target.guardDistance
 			if not self.tough then guardDistance = guardDistance * 0.33 end
-			local guardPos = self.ai.tool:RandomAway(self.ai, targetPos, guardDistance, false, self.guardAngle)
+			local guardPos = self.ai.tool:RandomAway( targetPos, guardDistance, false, self.guardAngle)
 			local safe = self.ai.defendhst:WardSafe(self.target)
 			-- if targetPos.y > 100 then game:SendToConsole(targetPos.y .. " " .. type(self.target.behaviour)) end
 			local unitPos = unit:GetPosition()
 			local dist = self.ai.tool:Distance(unitPos, guardPos)
 			local behaviour = self.target.behaviour
 			if self.perpendicular then
-				guardPos = self.ai.tool:RandomAway(self.ai, guardPos, self.perpDist, false, self.perpendicular)
+				guardPos = self.ai.tool:RandomAway( guardPos, self.perpDist, false, self.perpendicular)
 			end
 			if behaviour ~= nil then
 				if dist > 500 then

@@ -86,7 +86,7 @@ function AssistBST:Update()
 				end
 			elseif not self.patroling then
 				local patrolPos = self.fallbackPos or self.unit:Internal():GetPosition()
-				local pos = self.ai.tool:RandomAway(self.ai, patrolPos, 200)
+				local pos = self.ai.tool:RandomAway( patrolPos, 200)
 				local floats = api.vectorFloat()
 				-- populate with x, y, z of the position
 				floats:push_back(pos.x)
@@ -108,7 +108,7 @@ function AssistBST:Activate()
 	end
 	if self.isNanoTurret then
 		-- set nano turrets to patrol
-		local upos = self.ai.tool:RandomAway(self.ai, self.unit:Internal():GetPosition(), 50)
+		local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
 		local floats = api.vectorFloat()
 		-- populate with x, y, z of the position
 		floats:push_back(upos.x)

@@ -11,6 +11,9 @@ function BehaviourFactory:AddBehaviours(unit)
 		self.game:SendToConsole("Warning: Shard BehaviourFactory:AddBehaviours was asked to provide behaviours to a nil unit")
 		return
 	end
+	if not unit:Internal():IsMine(self.game:GetTeamID()) then
+		self.game:SendToConsole('caution BehaviourFactory:AddBehaviours was asked to provide behaviour to not my unit',unit:Internal():Name())
+	end
 	-- add behaviours here
 	-- unit:AddBehaviour(behaviour)
 	local b = self.behaviours[unit:Internal():Name()]
@@ -78,7 +81,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			if self.ai.armyhst.unitTable[un].isBuilding then
 				table.insert(b, LabRegisterBST)
 			else
-				table.insert(b, AssistBST)
+				--table.insert(b, AssistBST)
 				table.insert(b, ReclaimBST)
 				table.insert(b, CleanerBST)
 			end

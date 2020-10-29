@@ -1081,7 +1081,7 @@ function TargetHST:GetBestReclaimCell(representative, lookForEnergy)
 				self:EchoDebug("can't get to reclaim cell, trying nearby")
 				-- check nearby positions, because sometimes the commander is underwater in a crater but can still be reclaimed
 				for angle = halfPi, twicePi, halfPi do
-					local nearPos = self.ai.tool:RandomAway(self.ai, cell.pos, 110, nil, angle)
+					local nearPos = self.ai.tool:RandomAway( cell.pos, 110, nil, angle)
 					canGo = self.ai.maphst:UnitCanGoHere(representative, nearPos)
 					if canGo then
 						self:EchoDebug("found accessible position near reclaim cell")

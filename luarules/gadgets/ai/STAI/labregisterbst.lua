@@ -25,6 +25,7 @@ function LabRegisterBST:Init()
 end
 
 function LabRegisterBST:OwnerBuilt()
+	self:EchoDebug('ownerbuilt')
 	-- don't add factories to factory location table until they're done
 	self.finished = true
 	self:Register()

@@ -264,7 +264,7 @@ function TaskVehHST:Lvl2Amphibious()
 	return unitName
 end
 
-function TaskVehHST:AmphibiousBreakthrough(worker)
+function TaskVehHST:AmphibiousBreakthrough()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.side == self.ai.armyhst.CORESideName then
 		unitName = "corparrow"
@@ -274,7 +274,7 @@ function TaskVehHST:AmphibiousBreakthrough(worker)
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl2VehBattle(worker)
+function TaskVehHST:Lvl2VehBattle()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
 		return self:Lvl2Amphibious(self)
@@ -296,7 +296,7 @@ function TaskVehHST:Lvl2AAVeh()
 	end
 end
 
-function TaskVehHST:Lvl2VehMerl(worker)
+function TaskVehHST:Lvl2VehMerl()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
 		return self:Lvl2Amphibious(self)

@@ -4,7 +4,7 @@ function TaskExpHST:Name()
 	return "TaskExpHST"
 end
 function TaskExpHST:internalName()
-	return "TaskExpHST"
+	return "taskexphst"
 end
 
 function TaskExpHST:Init()
@@ -78,7 +78,7 @@ function TaskExpHST:Lvl3Raider()
 	else
 		unitName = "armmar"
 	end
-	EchoDebug(unitName)
+	self:EchoDebug(unitName)
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 

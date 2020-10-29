@@ -55,8 +55,7 @@ function Tool:ConstrainToMap(x, z)
 	return x, z
 end
 
-function Tool:RandomAway( ai, pos, dist, opposite, angle)
-	print(pos)
+function Tool:RandomAway(pos, dist, opposite, angle)
 	if angle == nil then
 		angle = random() * twicePi
 	end
@@ -79,7 +78,7 @@ function Tool:RandomAway( ai, pos, dist, opposite, angle)
 	end
 	if opposite then
 		angle = twicePi - angle
-		return away, Tool:RandomAway( ai, pos, dist, false, angle)
+		return away, Tool:RandomAway(pos, dist, false, angle)
 	else
 		return away
 	end
@@ -155,7 +154,7 @@ function Tool:AngleAtoB(x1, z1, x2, z2)
 	return atan2(-dz, dx)
 end
 
-function AnglePosPos(pos1, pos2)
+function Tool:AnglePosPos(pos1, pos2)
 	return self:AngleAtoB(pos1.x, pos1.z, pos2.x, pos2.z)
 end
 

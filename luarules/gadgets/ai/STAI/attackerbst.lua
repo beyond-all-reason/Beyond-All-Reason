@@ -117,15 +117,15 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 			awayDistance = self.weaponDistance
 		end
 		local myAngle = self.ai.tool:AngleAdd(reverseAttackAngle, self.formationAngle)
-		self.target = self.ai.tool:RandomAway(self.ai, pos, awayDistance, nil, myAngle)
+		self.target = self.ai.tool:RandomAway( pos, awayDistance, nil, myAngle)
 	else
-		self.target = self.ai.tool:RandomAway(self.ai, pos, self.formationDist, nil, perpendicularAttackAngle)
+		self.target = self.ai.tool:RandomAway( pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
 	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	if canMoveThere then
 		self.squad.lastValidMove = self.target
 	elseif self.squad.lastValidMove then
-		self.target = self.ai.tool:RandomAway(self.ai, self.squad.lastValidMove, self.congSize)
+		self.target = self.ai.tool:RandomAway( self.squad.lastValidMove, self.congSize)
 		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
 	if self.active and canMoveThere then

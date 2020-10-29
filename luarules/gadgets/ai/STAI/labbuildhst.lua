@@ -229,7 +229,7 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 	if p == nil then
 		self:EchoDebug('builfactory near hotSpot')
 		local place = false
-		distance = 99999
+		local distance = 99999
 		if factoryPos then
 			for index, hotSpot in pairs(self.ai.hotSpot) do
 				if self.ai.maphst:MobilityNetworkHere(mtype,hotSpot) then
