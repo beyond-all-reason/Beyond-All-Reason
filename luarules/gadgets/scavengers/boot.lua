@@ -195,7 +195,7 @@ function gadget:GameFrame(n)
 	if n%150 == 85 and FinalBossUnitSpawned and FinalBossKilled == false then
 		local bosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		ScavSendMessage("Boss Health: "..math.ceil(bosshealth))
-		if math_random(0,5) == 0 then
+		if math_random(0,math.floor(4/spawnmultiplier)) == 0 then
 			BossDGun(n)
 		end
 	end
@@ -245,8 +245,8 @@ function gadget:GameFrame(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 		local scavUnitsCount = #scavUnits
-		if scavUnitsCount < 5 and n > 9000 then
-			killedscavengers = killedscavengers + 50
+		if scavUnitsCount < 5 and n > 18000 then
+			killedscavengers = killedscavengers + 100
 			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
 				BossWaveTimeLeft = 20
 			end
