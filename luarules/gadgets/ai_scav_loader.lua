@@ -43,16 +43,17 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function SendMessage(_,msg)
-		if tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1 then
+		if Spring.GetConfigInt("scavmessages",1) == 1 then
 			if Script.LuaUI("GadgetAddMessage") then
 				Script.LuaUI.GadgetAddMessage(msg)
 			end
 		end
 	end
 	function SendNotification(_,msg)
-		if tonumber(Spring.GetConfigInt("scavmessages",1) or 1) == 1 then
+		if Spring.GetConfigInt("scavmessages",1) == 1 then
 			if Script.LuaUI("EventBroadcast") then
-				Script.LuaUI.EventBroadcast("SoundEvents "..msg.." "..myPlayerID)
+				local forceplay = (Spring.GetConfigInt("scavaudiomessages",1) == 1) and ' y' or ''
+				Script.LuaUI.EventBroadcast("SoundEvents "..msg.." "..myPlayerID..forceplay)
 			end
 		end
 	end
@@ -99,7 +100,7 @@ if not gadgetHandler:IsSyncedCode() then
 			Script.LuaUI.AddNotification('scav_scavtech3e', 'scavengers/scavtech3e.wav', 20, 3.18, "", unlisted)
 			Script.LuaUI.AddNotification('scav_scavheavyshipsdetected', 'scavengers/scavheavyshipsdetected.wav', 20, 3.28, "Alert. Heavy ships detected in the area.", unlisted)
 			--Script.LuaUI.AddNotification('scav_', 'scavengers/.wav', 20, 3, "", unlisted)
-			
+
 			Script.LuaUI.AddNotification('scav_eventmalfunctions', 'scavengers/scav-event-malfunctions.wav', 20, 3.02, "Alert! Scavenger malfunction detected.", unlisted)
 			Script.LuaUI.AddNotification('scav_eventminiboss', 'scavengers/scav-event-miniboss.wav', 20, 4.23, "Alert! Miniboss Detected.", unlisted)
 			Script.LuaUI.AddNotification('scav_eventswarm', 'scavengers/scav-event-swarmdetected.wav', 20, 3.76, "Warning! Scavenger swarm detected.", unlisted)

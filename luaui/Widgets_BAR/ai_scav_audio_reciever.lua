@@ -11,10 +11,16 @@ function widget:GetInfo()
 end
 
 
-function widget:TextCommand(msg)
-	--Spring.Echo(msg)
-	if string.sub(msg,1, 17) == "scavplaysoundfile" then 
-		Spring.PlaySoundFile(string.sub(msg, 19),0.85,'ui')
-	end
+function widget:Initialize()
+	Spring.SetConfigInt("scavaudiomessages", 1)
 end
 
+function widget:Shutdown()
+	Spring.SetConfigInt("scavaudiomessages", 0)
+end
+
+function widget:TextCommand(msg)
+	if string.sub(msg,1, 17) == "scavplaysoundfile" then
+		Spring.PlaySoundFile(string.sub(msg, 19), 0.85, 'ui')
+	end
+end

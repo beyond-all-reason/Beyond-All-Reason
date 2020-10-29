@@ -704,13 +704,15 @@ end
 
 -- function that gadgets can call
 function EventBroadcast(msg)
-	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
-        if string.find(msg, "SoundEvents", nil, true) then
-            msg = string.sub(msg, 13)
+	if string.find(msg, "SoundEvents", nil, true) then
+		msg = string.sub(msg, 13)
+		local forceplay = string.sub(msg, string.find(msg, " ", nil, true)+2, string.len(msg))
+		forceplay = (forceplay ~= nil and forceplay ~= '')
+		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
             local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
             local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
-            if (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-                QueueNotification(event)
+            if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+				QueueNotification(event, (forceplay~=nil) )
             end
         end
 	end
@@ -732,8 +734,8 @@ function isInQueue(event)
 	return false
 end
 
-function QueueNotification(event)
-	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
+function QueueNotification(event, forceplay)
+	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
 		if soundList[event] and Sound[event] then
 			if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30)) then
 				if not isInQueue(event) then
