@@ -376,8 +376,8 @@ local function cacheUnitIcons()
 		gl.Texture(':lr'..unitIconSize2..','..unitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
 		gl.TexRect(-1, -1, 0, 0)
 		gl.Texture(':lr'..unitIconSize..','..unitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
+		gl.TexRect(-1, -1, 0, 0)
 		if iconTypesMap[unitDefInfo[id].iconType] then
-			gl.TexRect(-1, -1, 0, 0)
 			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
 			gl.TexRect(-1, -1, 0, 0)
 		end
@@ -1237,7 +1237,7 @@ local function drawUnitInfo()
 					local uDefID = unitDefInfo[displayUnitDefID].buildOptions[cellID]
 					cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
 					glColor(0.9, 0.9, 0.9, 1)
-					glTexture(":lr100,100:unitpics/" .. unitDefInfo[uDefID].buildPic)
+					glTexture(":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[uDefID].buildPic)
 					--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
 					--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
 					TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 1, 1, 0.11)
