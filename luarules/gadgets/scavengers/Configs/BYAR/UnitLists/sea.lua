@@ -89,9 +89,6 @@ T3SeaUnits = {
 T4SeaUnits = {
 	"armepoch",
 	"corblackhy",
-	"corcrwt4",
-	"armfepocht4",
-	"corfblackhyt4",
 	"armvadert4",
 	"corkorg",
 	"armbanth",

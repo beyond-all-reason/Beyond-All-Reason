@@ -165,9 +165,6 @@ T4LandUnits = {
 	"armpwt4",
 	"armrattet4",
 	"armvadert4",
-	"armfepocht4",
-	"corfblackhyt4",
-	"corcrwt4",
 	"cordemont4",
 	"corkarganetht4",
 }
