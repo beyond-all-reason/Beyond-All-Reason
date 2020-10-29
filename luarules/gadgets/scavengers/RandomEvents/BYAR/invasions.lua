@@ -1,6 +1,6 @@
 
 function RandomEventInvasion(CurrentFrame)
-Spring.Echo("Invasion Event")
+ScavSendNotification("scav_eventswarm")
 local invasionUnitsLand = {"armflea_scav", "armfav_scav", "corfav_scav", "armbeaver_scav", "cormuskrat_scav",}
 local invasionUnitsSea = {"armbeaver_scav","cormuskrat_scav",}
 local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier

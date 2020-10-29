@@ -1,6 +1,6 @@
 
 function RandomEventMiniboss1(CurrentFrame)
-	Spring.Echo("MiniBoss Event")
+	ScavSendNotification("scav_eventminiboss")
 	local T2bosses = {"corsumo_scav","corgol_scav","corparrow_scav","armfboy_scav","armmanni_scav",}
 	local T3bosses = {"armmar_scav","armvang_scav","armraz_scav","corshiva_scav","corkarg_scav","corcat_scav","armlun_scav","corsok_scav","armsptkt4_scav",}
 	local T4bosses = {"corkorg_scav", "corjugg_scav", "armbanth_scav","armpwt4_scav","armrattet4_scav","armvadert4_scav","cordemont4_scav","corkarganetht4_scav",}

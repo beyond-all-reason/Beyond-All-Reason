@@ -1,6 +1,6 @@
 
 function RandomEventRebelion1(CurrentFrame)
-	Spring.Echo("Rebelion Random Event")
+	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	for y = 1,#scavUnits do
 		local unitID = scavUnits[y]
@@ -24,7 +24,7 @@ end
 --table.insert(RandomEventsList,RandomEventRebelion1)
 
 function RandomEventRebelion2(CurrentFrame)
-	Spring.Echo("Rebelion Area Event")
+	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	local rebelionCenter = scavUnits[math.random(1,#scavUnits)]
 	local posx, posy, posz = Spring.GetUnitPosition(rebelionCenter)
@@ -52,7 +52,7 @@ end
 table.insert(RandomEventsList,RandomEventRebelion2)
 
 function RandomEventBlueScreenOfDeath(CurrentFrame)
-	Spring.Echo("BSOD Event")
+	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	for y = 1,#scavUnits do
 		local unitID = scavUnits[y]
