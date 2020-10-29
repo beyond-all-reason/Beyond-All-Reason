@@ -330,7 +330,6 @@ if not gadgetHandler:IsSyncedCode() then
 		if effects then
 			for _, fx in ipairs(effects) do
 				if fx.options.onActive == true and spGetUnitIsActive(unitID) == nil then
-					Spring.Echo('unactive', unitID)
 					break
 				else
 					if (fx.class == "GroundFlash") then
@@ -340,7 +339,6 @@ if not gadgetHandler:IsSyncedCode() then
 					fx.options.under_construction = spGetUnitRulesParam(unitID, "under_construction")
 					AddFxs(unitID, LupsAddFX(fx.class, fx.options))
 					fx.options.unit = nil
-					Spring.Echo('active', unitID)
 				end
 			end
 		end

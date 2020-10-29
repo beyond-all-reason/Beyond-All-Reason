@@ -350,7 +350,7 @@ function addon.DrawLoadScreen()
 	local posY = posYorg
 
 	-- tip
-	local lineHeight = font2Size * 1.15
+	local lineHeight = font2Size * 1.12
 	local wrappedTipText, numLines = font2:WrapText(randomTip, vsx * 1.35)
 	local tipLines = lines(wrappedTipText)
 	local tipPosYtop = posY + (height/vsy)+(borderSize/vsy) + (posY*0.9) + ((lineHeight * #tipLines)/vsy)
