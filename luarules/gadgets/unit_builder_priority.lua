@@ -172,13 +172,13 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
             spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
             spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
             passiveCons[teamID] = passiveCons[teamID] or {}
-            if cmdParams[1] == 0 then --
-                passiveCons[teamID][unitID] = true
-            else
-                spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
-                currentBuildSpeed[unitID] = realBuildSpeed[unitID]
-                passiveCons[teamID][unitID] = nil
-            end
+			if cmdParams[1] == 0 then --
+				passiveCons[teamID][unitID] = true
+			elseif realBuildSpeed[unitID] then
+				spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
+				currentBuildSpeed[unitID] = realBuildSpeed[unitID]
+				passiveCons[teamID][unitID] = nil
+			end
         end
         return false -- Allowing command causes command queue to be lost if command is unshifted
     end
