@@ -712,7 +712,7 @@ function EventBroadcast(msg)
             local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
             local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
             if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-				QueueNotification(event, (forceplay~=nil) )
+				QueueNotification(event, forceplay)
             end
         end
 	end
