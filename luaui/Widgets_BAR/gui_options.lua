@@ -3464,12 +3464,12 @@ function init()
 				  Spring.SetConfigInt("LinkIncomingPeakBandwidth", 98304)
 				  Spring.SetConfigInt("LinkIncomingMaxPacketRate", 128)
 			  else
-				  Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+				  Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
 				  Spring.SetConfigInt("NetworkLossFactor", 2)
-				  Spring.SetConfigInt("LinkOutgoingBandwidth", 262144)
-				  Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 262144)
-				  Spring.SetConfigInt("LinkIncomingPeakBandwidth", 262144)
-				  Spring.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
+				  Spring.SetConfigInt("LinkOutgoingBandwidth", 196608)
+				  Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 196608)
+				  Spring.SetConfigInt("LinkIncomingPeakBandwidth", 196608)
+				  Spring.SetConfigInt("LinkIncomingMaxPacketRate", 1024)
 			  end
 		  end,
 		},
