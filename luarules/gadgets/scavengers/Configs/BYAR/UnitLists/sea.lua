@@ -47,7 +47,6 @@ T2SeaUnits = {
 	"armaas",
 	"armcrus",
 	--"armcarry",
-	"armserp",
 	"armmship",
 	"armcroc",
 	"corroy",
@@ -73,6 +72,7 @@ T2SeaUnits = {
 T3SeaUnits = {
 	"armbats",
 	"armepoch",
+	"armserp",
 	"corbats",
 	"corblackhy",
 	--hovercraft
