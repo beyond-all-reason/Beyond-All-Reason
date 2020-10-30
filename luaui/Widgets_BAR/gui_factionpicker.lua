@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "May 2020",
 		license = "GNU GPL, v2 or later",
-		layer = -1,
+		layer = 1,
 		enabled = true
 	}
 end
@@ -170,40 +170,57 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	width = 0.212
-	height = 0.14
+	width = 0.2125
+	height = 0.14 * ui_scale
 
 	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
 	width = width * ui_scale
 
-	if altPosition then
-		local margin = (0.004 * (height / width))
-		posY = height
-		posX = width + margin
-		if WG['buildpower'] then
-			buildpowerWidgetEnabled = true
-			bpWidth, bpHeight = WG['buildpower'].getPosition()
-			if bpWidth then
-				posX = bpWidth + margin
-			end
-		end
-	else
-		posY = 0.75
-		posX = 0
+	-- make pixel aligned
+	width = math.floor(width * vsx) / vsx
+	height = math.floor(height * vsy) / vsy
+
+	if WG['buildmenu'] then
+		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
 	end
 
-	fontSize = (height * vsy * 0.125) * (1 - ((1 - ui_scale) * 0.5))
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
+	if stickToBottom or (altPosition and not buildmenuBottomPos) then
+		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
+		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
 
-	backgroundRect = {math.floor(posX * vsx), math.floor((posY - height) * vsy), math.floor((posX + width) * vsx), math.floor(posY * vsy) }
+		posY = height
+		posX = width + widgetSpaceMargin
+	else
+		if buildmenuBottomPos then
+			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			posX = 0
+			posY = height + height + widgetSpaceMargin
+		else
+			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			posY = 0.75
+			local posY2, _ = WG['buildmenu'].getSize()
+			posY2 = posY2 + widgetSpaceMargin
+			posY = posY2 + height
+			if WG['minimap'] then
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+			end
+			posX = 0
+		end
+	end
+
+	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 
 	dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
 
 	checkGuishader(true)
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	doUpdate = true
+
+	fontSize = (height * vsy * 0.125) * (1 - ((1 - ui_scale) * 0.5))
 end
 
 function widget:Initialize()
