@@ -194,7 +194,7 @@ function ConstructNewBlueprint(n, scav)
 		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, {"shift"})
 	end
 
-	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true) + 64
+	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true) + 48
 	canConstructHere = posOccupied(posx, posy, posz, posradius)
 	if canConstructHere then
 		canConstructHere = posCheck(posx, posy, posz, posradius)
