@@ -11,16 +11,8 @@ function widget:GetInfo()
 end
 
 function widget:Update()
-  local t = Spring.GetGameSeconds()
-
-  -- Spectators cannot select their commander, they don't have one
-  if Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget(self)
-    return
-  end
-
   local unitArray = Spring.GetTeamUnits(Spring.GetMyTeamID())
-  for i =1, #unitArray do
+  for i = 1, #unitArray do
     local unit = unitArray[i]
     local unitDefID = Spring.GetUnitDefID(unit)
     local unitDef = UnitDefs[unitDefID]
