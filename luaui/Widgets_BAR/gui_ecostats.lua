@@ -316,7 +316,7 @@ end
 function processScaling()
 	setDefaults()
 
-	sizeMultiplier = (((vsx+vsy) / 2000) * 0.5) * (1+(ui_scale-1)/1.5)
+	sizeMultiplier = ((vsy / 700) * 0.5) * (1+(ui_scale-1)/1.5)
 
 	tH				= math.floor(tH * sizeMultiplier)
 	widgetWidth		= math.floor(widgetWidth * sizeMultiplier)
@@ -1549,8 +1549,7 @@ end
 function widget:ViewResize()
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
-	--widgetScale = (1 + (vsx*vsy / 7500000))
-	widgetScale = (((vsx+vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
+	widgetScale = (((vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
 
 	widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
