@@ -897,65 +897,69 @@ function widget:DrawScreen()
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if cmds and cellHovered then
 					local cell = cellHovered
-					drawCell(cell, cellHoverZoom)
+					if cellRects[cell] and cellRects[cell][4] then
+						drawCell(cell, cellHoverZoom)
 
-					local pad = 0
-					local colorMult = 1
-					if cmds[cell] and activeCmd == cmds[cell].name then
-						pad = (bgBorder * vsy) * 0.35
-						colorMult = 0.4
-					end
+						local pad = 0
+						local colorMult = 1
+						if cmds[cell] and activeCmd == cmds[cell].name then
+							pad = (bgBorder * vsy) * 0.35
+							colorMult = 0.4
+						end
 
-					local leftMargin = cellMarginPx
-					local rightMargin = cellMarginPx2
-					local topMargin = cellMarginPx
-					local bottomMargin = cellMarginPx2
-					local yFirstMargin = cell % rows == 1 and rightMargin or leftMargin
-					if cell % cols == 1 then
-						leftMargin = cellMarginPx2
-					end
-					if cell % cols == 0 then
-						rightMargin = cellMarginPx2
-					end
-					if cols/cell >= 1  then
-						topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
-					end
-					--if cols/cell < 1/(cols-1) then
-					--  bottomMargin = cellMarginPx2
-					--end
+						local leftMargin = cellMarginPx
+						local rightMargin = cellMarginPx2
+						local topMargin = cellMarginPx
+						local bottomMargin = cellMarginPx2
+						local yFirstMargin = cell % rows == 1 and rightMargin or leftMargin
+						if cell % cols == 1 then
+							leftMargin = cellMarginPx2
+						end
+						if cell % cols == 0 then
+							rightMargin = cellMarginPx2
+						end
+						if cols/cell >= 1  then
+							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+						end
+						--if cols/cell < 1/(cols-1) then
+						--  bottomMargin = cellMarginPx2
+						--end
 
-					-- gloss highlight
-					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][4] - topMargin - bgpadding - pad - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin, (cellRects[cell][4] - topMargin - pad), cellWidth * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
-					RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, (cellRects[cell][2] - bottomMargin - pad) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellWidth * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
-					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+						-- gloss highlight
+						glBlending(GL_SRC_ALPHA, GL_ONE)
+						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][4] - topMargin - bgpadding - pad - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin, (cellRects[cell][4] - topMargin - pad), cellWidth * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
+						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, (cellRects[cell][2] - bottomMargin - pad) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellWidth * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
+						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+					end
 				end
 			end
 
 			-- clicked cell effect
 			if clickedCellTime and cmds[clickedCell] then
 				local cell = clickedCell
-				local isActiveCmd = (cmds[cell].name == activeCmd)
-				local padding = (bgBorder * vsy) * 0.5
-				local duration = 0.33
-				if isActiveCmd then
-					duration = 0.45
-				elseif cmds[clickedCell].type == 5 then
-					duration = 0.6
-				end
-				local alpha = 0.33 - ((now - clickedCellTime) / duration)
-				if alpha > 0 then
+				if cellRects[cell] and cellRects[cell][4] then
+					local isActiveCmd = (cmds[cell].name == activeCmd)
+					local padding = (bgBorder * vsy) * 0.5
+					local duration = 0.33
 					if isActiveCmd then
-						glColor(0, 0, 0, alpha)
-					else
-						glBlending(GL_SRC_ALPHA, GL_ONE)
-						glColor(1, 1, 1, alpha)
+						duration = 0.45
+					elseif cmds[clickedCell].type == 5 then
+						duration = 0.6
 					end
-					RectRound(cellRects[cell][1] + cellMarginPx, cellRects[cell][2] + cellMarginPx, cellRects[cell][3] - cellMarginPx2, (cellRects[cell][4] - cellMarginPx2), cellWidth * 0.025, 2, 2, 2, 2)
-				else
-					clickedCellTime = nil
+					local alpha = 0.33 - ((now - clickedCellTime) / duration)
+					if alpha > 0 then
+						if isActiveCmd then
+							glColor(0, 0, 0, alpha)
+						else
+							glBlending(GL_SRC_ALPHA, GL_ONE)
+							glColor(1, 1, 1, alpha)
+						end
+						RectRound(cellRects[cell][1] + cellMarginPx, cellRects[cell][2] + cellMarginPx, cellRects[cell][3] - cellMarginPx2, (cellRects[cell][4] - cellMarginPx2), cellWidth * 0.025, 2, 2, 2, 2)
+					else
+						clickedCellTime = nil
+					end
+					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end
 		end
 	end
