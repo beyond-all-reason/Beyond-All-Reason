@@ -136,6 +136,9 @@ T3LandUnits = {
 	"corshiva",
 	"corkarg",
 	"corcat",
+	"armlunchbox",
+	"armmeatball",
+	"armassimilator",
 	--hovercraft
 	"armlun",
 	"corsok",

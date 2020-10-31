@@ -194,6 +194,9 @@ buildPossibleOptionsT3 = {
 	"armlun",
 	"corsok",
 	"armsptkt4",
+	"armlunchbox",
+	"armmeatball",
+	"armassimilator",
 	
 	--air
 	"armhawk",

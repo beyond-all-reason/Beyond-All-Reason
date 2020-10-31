@@ -494,6 +494,9 @@ customDefs.armshltx = {
 		[numBuildoptions+4] = "armvadert4",
 		[numBuildoptions+5] = "armfepocht4",
 		[numBuildoptions+6] = "armthundt4",
+		[numBuildoptions+7] = "armlunchbox",
+		[numBuildoptions+8] = "armmeatball",
+		[numBuildoptions+9] = "armassimilator",
 		
 	},
 }
@@ -506,6 +509,7 @@ customDefs.armshltxuw = {
 		[numBuildoptions+3] = "armvadert4",
 		[numBuildoptions+4] = "armfepocht4",
 		[numBuildoptions+5] = "armthundt4",
+		[numBuildoptions+6] = "armmeatball",
 	},
 }
 
