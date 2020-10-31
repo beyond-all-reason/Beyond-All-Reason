@@ -206,12 +206,12 @@ function gadget:GameFrame(n)
 		
 
 	if scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
-		if n%(math.ceil(3000/ScavSafeAreaSize)) == 0 then
+		if n%30 == 0 then
 			spawnStartBoxProtection(n)
 			executeStartBoxProtection(n)
 			spawnStartBoxEffect2(n)
 		end
-		if n%(math.ceil(450/ScavSafeAreaSize)) == 0 then
+		if n%(math.ceil(450/(math.ceil(ScavSafeAreaSize/5)))) == 0 then
 			spawnStartBoxEffect(n)
 		end
 	end
