@@ -1,0 +1,547 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  body, turret, flare, barrel, sleeve, rfthigh, rfleg, rffoot, lfthigh, lfleg, lffoot, rbthigh, rbleg, rbfoot, lbthigh, lbleg, lbfoot;
+
+static-var  bMoving, bAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_AIM				4
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from turret;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+MotionControl()
+{
+	while(TRUE)
+	{
+		// for left feet, invert y and z axis, and flip front and back feet!
+		
+		// step 0 all centered
+		if (bMoving | bSteering) 
+		{
+		
+		turn rfthigh to y-axis <0> speed <72.000000>;
+		turn rfthigh to z-axis <0> speed <42.000000>;
+		
+		turn rfleg to x-axis <0> speed <48.000000>;
+		turn rfleg to z-axis <0> speed <126.000000>;
+		
+		turn rffoot to x-axis <0> speed <60.000000>;
+		turn rffoot to y-axis <0> speed <54.000000>;
+		turn rffoot to z-axis <0> speed <66.000000>;
+		
+		
+		turn rbthigh to y-axis <-9> speed <54.000000>;
+		turn rbthigh to z-axis <10> speed <60.000000>;
+		
+		turn rbleg to x-axis <0> now;
+		turn rbleg to z-axis <-11> speed <66.000000>;
+		
+		turn rbfoot to x-axis <9.3> speed <55.800000>;
+		turn rbfoot to y-axis <9> speed <54.000000>;
+		turn rbfoot to z-axis <-1> speed <6.000000>;
+		
+		turn lbthigh to y-axis <0> speed <72.000000>;
+		turn lbthigh to z-axis <0> speed <42.000000>;
+		
+		turn lbleg to x-axis <0> speed <48.000000>;
+		turn lbleg to z-axis <0> speed <126.000000>;
+		
+		turn lbfoot to x-axis <0> speed <60.000000>;
+		turn lbfoot to y-axis <0> speed <54.000000>;
+		turn lbfoot to z-axis <0> speed <66.000000>;
+		
+		turn lfthigh to y-axis <9> speed <54.000000>;
+		turn lfthigh to z-axis <-10> speed <60.000000>;
+		
+		turn lfleg to x-axis <0> now;
+		turn lfleg to z-axis <11> speed <66.000000>;
+		
+		turn lffoot to x-axis <9.3> speed <55.800000>;
+		turn lffoot to y-axis <-9> speed <54.000000>;
+		turn lffoot to z-axis <1> speed <6.000000>;
+		
+		sleep 140;
+		}
+		if (bMoving | bSteering) 
+		{
+		
+		// step 1 foot back
+		
+		turn rfthigh to y-axis <-15> speed <90.000000>;
+		turn rfthigh to z-axis <-4> speed <24.000000>;
+		
+		turn rfleg to x-axis <0> now;
+		turn rfleg to z-axis <14> speed <84.000000>;
+		
+		turn rffoot to x-axis <-2> speed <12.000000>;
+		turn rffoot to y-axis <15> speed <90.000000>;
+		turn rffoot to z-axis <-9> speed <54.000000>;
+		
+		turn rbthigh to y-axis <12> speed <126.000000>;
+		turn rbthigh to z-axis <20> speed <60.000000>;
+		
+		turn rbleg to x-axis <-8> speed <48.000000>;
+		turn rbleg to z-axis <-28> speed <102.000000>;
+		
+		turn rbfoot to x-axis <-12> speed <127.800000>;
+		turn rbfoot to y-axis <-13> speed <132.000000>;
+		turn rbfoot to z-axis <9> speed <60.000000>;
+		
+		turn lbthigh to y-axis <15> speed <90.000000>;
+		turn lbthigh to z-axis <4> speed <24.000000>;
+		
+		turn lbleg to x-axis <0> now;
+		turn lbleg to z-axis <-14> speed <84.000000>;
+		
+		turn lbfoot to x-axis <-2> speed <12.000000>;
+		turn lbfoot to y-axis <-15> speed <90.000000>;
+		turn lbfoot to z-axis <9> speed <54.000000>;
+		
+		turn lfthigh to y-axis <-12> speed <126.000000>;
+		turn lfthigh to z-axis <-20> speed <60.000000>;
+		
+		turn lfleg to x-axis <-8> speed <48.000000>;
+		turn lfleg to z-axis <28> speed <102.000000>;
+		
+		turn lffoot to x-axis <-12> speed <127.800000>;
+		turn lffoot to y-axis <13> speed <132.000000>;
+		turn lffoot to z-axis <-9> speed <60.000000>;
+		
+		
+		sleep 140;
+		}
+		if (bMoving | bSteering) 
+		{
+		
+		// step 2 foot lift heel
+		
+		turn rfthigh to y-axis <-23> speed <48.000000>;
+		turn rfthigh to z-axis <0> speed <24.000000>;
+		
+		turn rfleg to x-axis <0> now;
+		turn rfleg to z-axis <10> speed <24.000000>;
+		
+		turn rffoot to x-axis <9.3> speed <67.800000>;
+		turn rffoot to y-axis <25> speed <60.000000>;
+		turn rffoot to z-axis <-10> speed <6.000000>;
+		
+		turn rbthigh to y-axis <12> now;
+		turn rbthigh to z-axis <-7> speed <162.000000>;
+		
+		turn rbleg to x-axis <-8> now;
+		turn rbleg to z-axis <21> speed <294.000000>;
+		
+		turn rbfoot to x-axis <10> speed <132.000000>;
+		turn rbfoot to y-axis <-9> speed <24.000000>;
+		turn rbfoot to z-axis <-11> speed <120.000000>;
+		
+		turn lbthigh to y-axis <23> speed <48.000000>;
+		turn lbthigh to z-axis <0> speed <24.000000>;
+		
+		turn lbleg to x-axis <0> now;
+		turn lbleg to z-axis <-10> speed <24.000000>;
+		
+		turn lbfoot to x-axis <9.3> speed <67.800000>;
+		turn lbfoot to y-axis <-25> speed <60.000000>;
+		turn lbfoot to z-axis <10> speed <6.000000>;
+		
+		turn lfthigh to y-axis <-12> now;
+		turn lfthigh to z-axis <7> speed <162.000000>;
+		
+		turn lfleg to x-axis <-8> now;
+		turn lfleg to z-axis <-21> speed <294.000000>;
+		
+		turn lffoot to x-axis <10> speed <132.000000>;
+		turn lffoot to y-axis <9> speed <24.000000>;
+		turn lffoot to z-axis <11> speed <120.000000>;
+		
+		sleep 140;
+		}
+		if (bMoving | bSteering) 
+		{
+		
+		// step 3 foot lifted up
+		
+		turn rfthigh to y-axis <-9> speed <84.000000>;
+		turn rfthigh to z-axis <10> speed <60.000000>;
+		
+		turn rfleg to x-axis <0> now;
+		turn rfleg to z-axis <-11> speed <126.000000>;
+		
+		turn rffoot to x-axis <9.3> now;
+		turn rffoot to y-axis <9> speed <96.000000>;
+		turn rffoot to z-axis <-1> speed <54.000000>;
+		
+		turn rbthigh to y-axis <0> speed <72.000000>;
+		turn rbthigh to z-axis <0> speed <42.000000>;
+		
+		turn rbleg to x-axis <0> speed <48.000000>;
+		turn rbleg to z-axis <0> speed <126.000000>;
+		
+		turn rbfoot to x-axis <0> speed <60.000000>;
+		turn rbfoot to y-axis <0> speed <54.000000>;
+		turn rbfoot to z-axis <0> speed <66.000000>;
+		
+		turn lbthigh to y-axis <9> speed <84.000000>;
+		turn lbthigh to z-axis <-10> speed <60.000000>;
+		
+		turn lbleg to x-axis <0> now;
+		turn lbleg to z-axis <11> speed <126.000000>;
+		
+		turn lbfoot to x-axis <9.3> now;
+		turn lbfoot to y-axis <-9> speed <96.000000>;
+		turn lbfoot to z-axis <1> speed <54.000000>;
+		
+		turn lfthigh to y-axis <0> speed <72.000000>;
+		turn lfthigh to z-axis <0> speed <42.000000>;
+		
+		turn lfleg to x-axis <0> speed <48.000000>;
+		turn lfleg to z-axis <0> speed <126.000000>;
+		
+		turn lffoot to x-axis <0> speed <60.000000>;
+		turn lffoot to y-axis <0> speed <54.000000>;
+		turn lffoot to z-axis <0> speed <66.000000>;
+		
+		sleep 140;
+		}
+		if (bMoving | bSteering) 
+		{
+		
+		// step 4 foot forward
+		
+		turn rfthigh to y-axis <12> speed <126.000000>;
+		turn rfthigh to z-axis <20> speed <60.000000>;
+		
+		turn rfleg to x-axis <-8> speed <48.000000>;
+		turn rfleg to z-axis <-28> speed <102.000000>;
+		
+		turn rffoot to x-axis <-12> speed <127.800000>;
+		turn rffoot to y-axis <-13> speed <132.000000>;
+		turn rffoot to z-axis <9> speed <60.000000>;
+		
+		turn rbthigh to y-axis <-15> speed <90.000000>;
+		turn rbthigh to z-axis <-4> speed <24.000000>;
+		
+		turn rbleg to x-axis <0> now;
+		turn rbleg to z-axis <14> speed <84.000000>;
+		
+		turn rbfoot to x-axis <-2> speed <12.000000>;
+		turn rbfoot to y-axis <15> speed <90.000000>;
+		turn rbfoot to z-axis <-9> speed <54.000000>;
+		
+		turn lbthigh to y-axis <-12> speed <126.000000>;
+		turn lbthigh to z-axis <-20> speed <60.000000>;
+		
+		turn lbleg to x-axis <-8> speed <48.000000>;
+		turn lbleg to z-axis <28> speed <102.000000>;
+		
+		turn lbfoot to x-axis <-12> speed <127.800000>;
+		turn lbfoot to y-axis <13> speed <132.000000>;
+		turn lbfoot to z-axis <-9> speed <60.000000>;
+		
+		turn lfthigh to y-axis <15> speed <90.000000>;
+		turn lfthigh to z-axis <4> speed <24.000000>;
+		
+		turn lfleg to x-axis <0> now;
+		turn lfleg to z-axis <-14> speed <84.000000>;
+		
+		turn lffoot to x-axis <-2> speed <12.000000>;
+		turn lffoot to y-axis <-15> speed <90.000000>;
+		turn lffoot to z-axis <9> speed <54.000000>;
+		
+		sleep 140;
+		}
+		if (bMoving | bSteering) 
+		{
+		
+		// step 5 put down foot up front
+		
+		turn rfthigh to y-axis <12> now;
+		turn rfthigh to z-axis <-7> speed <162.000000>;
+		
+		turn rfleg to x-axis <-8> now;
+		turn rfleg to z-axis <21> speed <294.000000>;
+		
+		turn rffoot to x-axis <10> speed <132.000000>;
+		turn rffoot to y-axis <-9> speed <24.000000>;
+		turn rffoot to z-axis <-11> speed <120.000000>;
+		
+		
+		turn rbthigh to y-axis <-23> speed <48.000000>;
+		turn rbthigh to z-axis <0> speed <24.000000>;
+		
+		turn rbleg to x-axis <0> now;
+		turn rbleg to z-axis <10> speed <24.000000>;
+		
+		turn rbfoot to x-axis <9.3> speed <67.800000>;
+		turn rbfoot to y-axis <25> speed <60.000000>;
+		turn rbfoot to z-axis <-10> speed <6.000000>;
+		
+		
+		turn lbthigh to y-axis <-12> now;
+		turn lbthigh to z-axis <7> speed <162.000000>;
+		
+		turn lbleg to x-axis <-8> now;
+		turn lbleg to z-axis <-21> speed <294.000000>;
+		
+		turn lbfoot to x-axis <10> speed <132.000000>;
+		turn lbfoot to y-axis <9> speed <24.000000>;
+		turn lbfoot to z-axis <11> speed <120.000000>;
+		
+		
+		turn lfthigh to y-axis <23> speed <48.000000>;
+		turn lfthigh to z-axis <0> speed <24.000000>;
+		
+		turn lfleg to x-axis <0> now;
+		turn lfleg to z-axis <-10> speed <24.000000>;
+		
+		turn lffoot to x-axis <9.3> speed <67.800000>;
+		turn lffoot to y-axis <-25> speed <60.000000>;
+		turn lffoot to z-axis <10> speed <6.000000>;
+		}
+		sleep 140;
+
+	
+	}
+}
+
+
+
+Steering(heading)
+{
+	while( 1 )
+	{
+		heading = get HEADING;
+		
+		
+		if ( heading < oldheading )	bSteering=TRUE;
+		if ( heading > oldheading )	bSteering=TRUE;
+		if (heading == oldheading ) bSteering=FALSE;
+
+		sleep 66;
+		oldheading = heading;
+	}
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn body to z-axis anglez speed <55.000000>;
+	turn body to x-axis <0> - anglex speed <55.000000>;
+	wait-for-turn body around z-axis;
+	wait-for-turn body around x-axis;
+	turn body to z-axis <0.000000> speed <20.000000>;
+	turn body to x-axis <0.000000> speed <20.000000>;
+}
+
+RockUnit(anglex, anglez)
+{
+	turn body to x-axis anglex speed <50.000000>;
+	turn body to z-axis <0> - anglez speed <50.000000>;
+	wait-for-turn body around z-axis;
+	wait-for-turn body around x-axis;
+	turn body to z-axis <0.000000> speed <20.000000>;
+	turn body to x-axis <0.000000> speed <20.000000>;
+}
+
+Create()
+{
+	hide flare;
+	dont-cache flare;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	bSteering = FALSE;
+	Static_Var_3 = 1;
+	oldHeading = get HEADING;
+	gun_1 = body;
+	start-script SmokeUnit();
+	start-script Steering();
+	start-script MotionControl();
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	//set-signal-mask SIG_MOVE;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	//signal SIG_MOVE;
+	Static_Var_3 = 1;
+
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
+
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep 8000;
+	turn turret to y-axis <0.000000> speed <36.000000>;
+	turn sleeve to x-axis <0.000000> speed <30.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
+	wpn1_lasthead = 1000000;
+	bAiming = FALSE;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+AimPrimary(heading, pitch)
+{
+	bAiming = TRUE;
+	signal SIG_AIM;
+	turn turret to y-axis heading speed <30.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turret around y-axis;
+		wait-for-turn sleeve around x-axis;
+	}
+	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	gun_1 = turret;
+	move barrel to z-axis [-2.750000] speed [20.625000];
+	emit-sfx 1024 + 0 from flare;
+	sleep 50;
+	move barrel to z-axis [0.000000] speed [1.000000];
+	sleep 100;
+	gun_1 = body;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode rfthigh type BITMAPONLY | NOHEATCLOUD;
+		explode rfleg type BITMAPONLY | NOHEATCLOUD;
+		explode rffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		explode barrel type BITMAPONLY | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		explode rbthigh type BITMAPONLY | NOHEATCLOUD;
+		explode rbleg type BITMAPONLY | NOHEATCLOUD;
+		explode rbfoot type BITMAPONLY | NOHEATCLOUD;
+		explode lfthigh type BITMAPONLY | NOHEATCLOUD;
+		explode lfleg type BITMAPONLY | NOHEATCLOUD;
+		explode lffoot type BITMAPONLY | NOHEATCLOUD;
+		explode lbthigh type BITMAPONLY | NOHEATCLOUD;
+		explode lbleg type BITMAPONLY | NOHEATCLOUD;
+		explode lbfoot type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode rfthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfleg type FALL | NOHEATCLOUD;
+		explode rffoot type FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbthigh type FALL | NOHEATCLOUD;
+		explode rbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbthigh type FALL | NOHEATCLOUD;
+		explode lbleg type FALL | NOHEATCLOUD;
+		explode lbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode rfthigh type SMOKE | FALL | NOHEATCLOUD;
+		explode rfleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rffoot type SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type SMOKE | FALL | NOHEATCLOUD;
+		explode rbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbleg type SMOKE | FALL | NOHEATCLOUD;
+		explode rbfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lfthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lffoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode rfthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rffoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lffoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
