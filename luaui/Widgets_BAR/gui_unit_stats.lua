@@ -598,9 +598,10 @@ function widget:DrawScreen()
 	end
 	if maxHP then
 		DrawText("Open:", format("maxHP: %d", maxHP) )
-	end
-	if armoredMultiple and armoredMultiple ~= 1 then
-		DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+
+		if armoredMultiple and armoredMultiple ~= 1 then
+			DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+		end
 	end
 
 	cY = cY - fontSize
