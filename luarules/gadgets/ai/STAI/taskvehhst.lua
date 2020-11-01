@@ -25,7 +25,7 @@ function TaskVehHST:ConVehicleAmphibious()
 	local mtypedLvAmph = self.ai.taskshst:GetMtypedLv(unitName)
 	local mtypedLvGround = self.ai.taskshst:GetMtypedLv('armcv')
 	local mtypedLv = math.max(mtypedLvAmph, mtypedLvGround) --workaround for get the best counter
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskVehHST:ConGroundVehicle()
@@ -36,12 +36,12 @@ function TaskVehHST:ConGroundVehicle()
 		unitName = "armcv"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskVehHST:ConVehicle()
 	local unitName = self.ai.armyhst.DummyUnitName
-	-- local amphRank = (((ai.mobCount['shp']) / ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
+	-- local amphRank = (((ai.mobCount['shp']) / self.ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
 	local amphRank = self.amphRank or 0.5
 	if math.random() < amphRank then
 		unitName = self:ConVehicleAmphibious()
@@ -170,7 +170,7 @@ function TaskVehHST:ConAdvVehicle()
 		unitName = "armacv"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ai.conUnitAdvPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, self.ai.conUnitAdvPerTypeLimit))
 end
 
 function TaskVehHST:Lvl2VehAssist()
@@ -179,7 +179,7 @@ function TaskVehHST:Lvl2VehAssist()
 	else
 		unitName = 'armconsul'
 		local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-		return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitPerTypeLimit))
+		return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitPerTypeLimit))
 	end
 end
 
@@ -237,7 +237,7 @@ end
 function TaskVehHST:AmphibiousBattle()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.side == self.ai.armyhst.CORESideName then
-		if ai.Metal.full < 0.5 then
+		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
 			unitName = "corparrow"
@@ -252,7 +252,7 @@ end
 function TaskVehHST:Lvl2Amphibious()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.side == self.ai.armyhst.CORESideName then
-		if ai.Metal.full < 0.5 then
+		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
 			unitName = "corparrow"

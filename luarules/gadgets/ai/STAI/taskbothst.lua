@@ -23,7 +23,7 @@ function TaskBotHST:ConBot()
 		unitName = "armck"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskBotHST:RezBot1()
@@ -34,7 +34,7 @@ function TaskBotHST:RezBot1()
 		unitName = "armrectr"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , ai.conUnitPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , self.ai.conUnitPerTypeLimit))
 end
 
 function TaskBotHST:Lvl1BotRaider()
@@ -105,7 +105,7 @@ function TaskBotHST:ConAdvBot()
 		unitName = "armack"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 3, ai.conUnitAdvPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 3, self.ai.conUnitAdvPerTypeLimit))
 end
 
 
@@ -117,7 +117,7 @@ function TaskBotHST:Lvl2BotAssist()
 		unitName = "armfark"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskBotHST:NewCommanders()

@@ -8,10 +8,11 @@ function BomberHST:internalName()
 	return "bomberhst"
 end
 
-BomberHST.DebugEnabled = false
+
 
 function BomberHST:Init()
-    BomberHST.plans = {} --TODO why here and why called with bomberhst instead of self
+	self.DebugEnabled = false
+    self.ai.bomberhst.plans = {} --TODO why here and why called with bomberhst instead of self(changed from BomberHST to self.ai.bomberhst
 	self.recruits = {}
 	self.needsTargetting = {}
 	self.counter = self.ai.armyhst.baseBomberCounter
@@ -85,14 +86,17 @@ function BomberHST:DoTargetting()
 					self:EchoDebug('dotarget i' , i)
 					local recruit = recruits[i]
 					self:EchoDebug('dotarget have recruit' , recruit)
-					self EchoDebug('dotarget' , recruit.unit)
-					self:EchoDebug('dotarget ' , )
-					local pos = recruit.unit:Internal():GetPosition()
-
-
-					sumX = sumX + pos.x
-					sumZ = sumZ + pos.z
-					validFunc = validFunc or self:GetPathValidFunc(recruit.unit:Internal():Name())
+					self:EchoDebug('dotarget unit' , recruit.unit)
+					self:EchoDebug('dotarget internal' , recruit.unit:Internal())
+					self:EchoDebug('dotarget internalPos' , recruit.unit:Internal():GetPosition())
+					if recruit and recruit.unit and  recruit.unit:Internal() then
+						local pos = recruit.unit:Internal():GetPosition()
+						sumX = sumX + pos.x
+						sumZ = sumZ + pos.z
+						validFunc = validFunc or self:GetPathValidFunc(recruit.unit:Internal():Name())
+					else
+						self:EchoDebug('warning unit without internal')
+					end
 				end
 				local midPos = api.Position()
 				midPos.x = sumX / #recruits

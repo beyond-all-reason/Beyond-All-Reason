@@ -8,12 +8,13 @@ function EcoHST:internalName()
 	return "ecohst"
 end
 
-EcoHST.DebugEnabled = false
+
 local framesPerAvg = 20
 local resourceNames = { "Energy", "Metal" }
 local resourceCount = #resourceNames
 
 function EcoHST:Init()
+	self.DebugEnabled = false
 	self.hasData = false -- so that it gets data immediately
 	self.samples = {}
 	self.ai.Energy = {}

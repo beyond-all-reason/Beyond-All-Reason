@@ -18,7 +18,7 @@ function TaskHovHSTConHover()
 		unitName = "armch"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskHovHSTHoverMerl()

@@ -370,6 +370,8 @@ function TaskEcoHST:AmphibiousEconomy(tqb)
 end
 
 function TaskEcoHST:Economy0()
+	self.DebugEnabled = true
+	self:EchoDebug(self.ai.Energy.income,self.ai.Metal.income,self.ai.Energy.full,self.ai.Metal.full)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.Energy.full > 0.1 and (self.ai.Metal.income < 1 or self.ai.Metal.full < 0.3) then
 		unitName = self:BuildMex()
@@ -379,12 +381,13 @@ function TaskEcoHST:Economy0()
 		unitName = self:buildMstore1()
 	elseif self.ai.Energy.income > self.ai.Energy.usage * 1.1 and self.ai.Energy.full > 0.9 and self.ai.Energy.income > 200 and self.ai.Energy.income < 2000 and self.ai.Metal.full < 0.3 then
 		unitName = self:buildMconv1()
-	elseif (self.ai.Energy.full < 0.5 or self.ai.Energy.income < self.ai.Energy.usage )   then
+	elseif (self.ai.Energy.full < 0.5 or self.ai.Energy.income < self.ai.Energy.usage )  or self.ai.Energy.income < 30 then
 		unitName = self:WindSolar()
 	else
 		unitName = self:BuildMex()
 	end
 	self:EchoDebug('Economy commander '..unitName)
+	self.DebugEnabled = false
 	return unitName
 end
 

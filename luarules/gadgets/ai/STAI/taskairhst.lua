@@ -74,7 +74,7 @@ function TaskAirHST:ConAdvAir()
 		unitName = "armaca"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitAdvPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitAdvPerTypeLimit))
 end
 
 function TaskAirHST:Lvl2Fighter()
@@ -93,7 +93,7 @@ function TaskAirHST:Lvl2AirRaider()
 		unitName = "corape"
 	else
 		-- spedical case: arm has an ubergunship
-		local raidCounter = ai.raidhst:GetCounter("air")
+		local raidCounter = self.ai.raidhst:GetCounter("air")
 		if raidCounter < self.ai.armyhst.baseRaidCounter and raidCounter > self.ai.armyhst.minRaidCounter then
 			return "armblade"
 		else
@@ -152,7 +152,7 @@ function TaskAirHST:ConSeaAir()
 		unitName = "armcsa"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ai.conUnitAdvPerTypeLimit))
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, self.ai.conUnitAdvPerTypeLimit))
 end
 
 function TaskAirHST:SeaBomber()
@@ -218,5 +218,5 @@ function TaskAirHST:AirRepairPadIfNeeded()
 		end
 	end
 
-	return self.ai.taskshst:BuildWithLimitedNumber(tmpUnitName, ai.conUnitPerTypeLimit)
+	return self.ai.taskshst:BuildWithLimitedNumber(tmpUnitName, self.ai.conUnitPerTypeLimit)
 end

@@ -47,7 +47,7 @@ local quadZ = { -1, -1, 1, 1 }
 local output = ''
 
 function Tool:ConstrainToMap(x, z)
-	local mapSize = ai.map:MapDimensions()
+	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
 	x = max(min(x, maxElmosX-mapBuffer), mapBuffer)
@@ -346,7 +346,7 @@ function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
 	if unitName then
-		game:SendToConsole(self.ai.armyhst.testparam)
+		--game:SendToConsole('testparam',self.ai.armyhst.testparam)
 		local ut = self.ai.armyhst.unitTable[unitName]
 		if ut then
 			mtype = ut.mtype

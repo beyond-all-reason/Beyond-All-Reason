@@ -337,7 +337,7 @@ function TaskBuildHST:BuildTacticalNuke()
 	else
 		unitName = "armemp"
 	end
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, ai.overviewhst.tacticalNukeLimit)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, self.ai.overviewhst.tacticalNukeLimit)
 end
 
 --PLASMA
@@ -369,7 +369,7 @@ function TaskBuildHST:BuildHeavyPlasma()
 	else
 		unitName = "armbrtha"
 	end
-	return self.ai.taskshst:BuildWithLimitedNumber(unitName, ai.overviewhst.heavyPlasmaLimit)
+	return self.ai.taskshst:BuildWithLimitedNumber(unitName, self.ai.overviewhst.heavyPlasmaLimit)
 end
 
 function TaskBuildHST:BuildLol()
@@ -438,7 +438,7 @@ end
 function TaskBuildHST:CommanderAA(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.taskshst:IsAANeeded() then
-		if ai.maphst:IsUnderWater(Builder.unit:Internal():GetPosition()) then
+		if self.ai.maphst:IsUnderWater(Builder.unit:Internal():GetPosition()) then
 			unitName = self:BuildFloatLightAA(Builder)
 		else
 			unitName = self:BuildLightAA(Builder)

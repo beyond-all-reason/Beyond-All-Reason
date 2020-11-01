@@ -239,9 +239,11 @@ end
 function RaiderBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		local floats = api.vectorFloat()
-		floats:push_back(MOVESTATE_ROAM)
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		print('raiderbst roam')
+		--local floats = api.vectorFloat()
+		--floats:push_back(MOVESTATE_ROAM)
+		--thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)--TODO sobstitute ALL  executecustomCommand with shardify corrispondent
+		thisUnit:Roam()
 		if self.mtype == "air" then
 			local floats = api.vectorFloat()
 			floats:push_back(IDLEMODE_FLY)

@@ -50,7 +50,7 @@ function TaskQueueBST:CategoryEconFilter(value)
 	self:EchoDebug(value .. " (before econ filter)")
 	-- self:EchoDebug("ai.Energy: " .. self.ai.Energy.reserves .. " " .. self.ai.Energy.capacity .. " " .. self.ai.Energy.income .. " " .. self.ai.Energy.usage)
 	-- self:EchoDebug("ai.Metal: " .. self.ai.Metal.reserves .. " " .. self.ai.Metal.capacity .. " " .. self.ai.Metal.income .. " " .. self.ai.Metal.usage)
-	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value] or self.isCommander then
+	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value]  then
 		return value
 	end
 	if self.ai.armyhst.reclaimerList[value] then
