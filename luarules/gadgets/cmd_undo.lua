@@ -35,7 +35,8 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	local authorizedPlayers  = {
-
+		'Floris',
+		'[teh]Flow',
 	}
 
 	local teamSelfdUnits = {}
