@@ -19,6 +19,8 @@ local advSettings = false
 
 local initialized = false
 
+local pauseGameWhenSingleplayer = true
+
 local maxNanoParticles = 5000
 
 local cameraTransitionTime = 0.2
@@ -76,6 +78,9 @@ local customMapFog = {}
 
 local isSpec = Spring.GetSpectatingState()
 
+local show = false
+local prevShow = show
+
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
 
@@ -96,15 +101,20 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
+
+local numPlayers = 0
 local scavengersAIEnabled = false
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
 		scavengersAIEnabled = true
-		break
+	end
+	if not luaAI then
+		numPlayers = numPlayers + 1
 	end
 end
+local isSinglePlayer = numPlayers == 1
 
 local desiredWaterValue = 4
 local waterDetected = false
@@ -1006,10 +1016,28 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+		if pauseGameWhenSingleplayer and not skipUnpauseOnHide then
+			Spring.SendCommands("pause "..(chobbyInterface and '1' or '0'))
+		end
 	end
 end
 
+local skipUnpauseOnHide = false
 function widget:DrawScreen()
+
+	local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+	if not isPaused then
+		skipUnpauseOnHide = false
+	end
+	if pauseGameWhenSingleplayer and prevShow ~= show then
+		if show and isPaused then
+			skipUnpauseOnHide = true
+		end
+		if not skipUnpauseOnHide then
+			Spring.SendCommands("pause "..(show and '1' or '0'))    -- cause several widgets are still using old colors
+		end
+	end
+
 
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -1259,6 +1287,8 @@ function widget:DrawScreen()
 			loadAllWidgetData()
 		end
 	end
+
+	prevShow = show
 end
 
 function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar, configValue, widgetApiFunctionParam)
@@ -4636,6 +4666,7 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 
+	prevShow = show
 
 	if firstlaunchsetupDone == false then
 		firstlaunchsetupDone = true
@@ -4782,7 +4813,6 @@ function widget:Initialize()
 	for preset, _ in pairs(customPresets) do
 		table.insert(presetNames, preset)
 	end
-
 	--init()
 end
 
