@@ -106,15 +106,19 @@ local numPlayers = 0
 local scavengersAIEnabled = false
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
+	local _,_,_, isAiTeam = Spring.GetTeamInfo(teams[i], false)
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
 		scavengersAIEnabled = true
 	end
-	if not luaAI then
+	if not luaAI and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
 		numPlayers = numPlayers + 1
 	end
 end
 local isSinglePlayer = numPlayers == 1
+
+local skipUnpauseOnHide = false
+local skipUnpauseOnLobbyHide = false
 
 local desiredWaterValue = 4
 local waterDetected = false
@@ -1016,20 +1020,26 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-		if pauseGameWhenSingleplayer and not skipUnpauseOnHide then
-			Spring.SendCommands("pause "..(chobbyInterface and '1' or '0'))
+		if isSinglePlayer and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
+			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			if chobbyInterface and isPaused then
+				skipUnpauseOnLobbyHide = true
+			end
+			if not skipUnpauseOnLobbyHide then
+				Spring.SendCommands("pause "..(chobbyInterface and '1' or '0'))
+			end
 		end
 	end
 end
 
-local skipUnpauseOnHide = false
 function widget:DrawScreen()
 
 	local _, gameSpeed, isPaused = Spring.GetGameSpeed()
 	if not isPaused then
 		skipUnpauseOnHide = false
+		skipUnpauseOnLobbyHide = false
 	end
-	if pauseGameWhenSingleplayer and prevShow ~= show then
+	if isSinglePlayer and pauseGameWhenSingleplayer and prevShow ~= show then
 		if show and isPaused then
 			skipUnpauseOnHide = true
 		end
