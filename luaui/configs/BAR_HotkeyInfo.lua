@@ -6,7 +6,8 @@ General = {
     {"ctrl + left click on name", "Ignore player"},
     {blankLine=true},
     {"Menus", title=true},
-    {"f11",                 "Widget list"},
+	{"f10",                 "Settings"},
+	{"f11",                 "Widget list"},
     {"ctrl + f11",          "Widget teak mode"},
     {"h",                   "Share units / resources"},
     {blankLine=true},
@@ -102,6 +103,5 @@ Units_III = {
     {blankLine=true},
     {"Console commands", title=true},
     {"/clearmapmarks",  "Erase all drawings and markes"},
-    {"/clock",          "Toggle ingame clock"},
-    {"/fps",            "Toggle ingame fps indicator"},
+    {"/pause",          "Pause"},
 }

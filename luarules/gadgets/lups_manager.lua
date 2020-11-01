@@ -322,8 +322,9 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-		--if fullview then return end
-		--if not fullview and CallAsTeam(myTeamID, IsUnitInLos, unitID) then return end
+
+		if fullview then return end
+		if not fullview and CallAsTeam(myTeamID, IsUnitInLos, unitID) then return end
 
 		local unitDefID = spGetUnitDefID(unitID)
 		local effects = UnitEffects[unitDefID]

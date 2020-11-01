@@ -3630,6 +3630,12 @@ function init()
 		{ id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = "Set-target as default", type = "bool", value = GetWidgetToggleValue("Set target default"), description = 'Replace default attack command to a set-target command\n(when rightclicked on enemy unit)' },
 		{ id = "dgunnogroundenemies", group = "game", widget = "DGun no ground enemies", name = "Dont snap DGun to ground units", type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = 'Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)' },
 
+		{ id = "singleplayerpause", group = "game", name = "Pause when in settings/lobby", type = "bool", value = pauseGameWhenSingleplayer, description = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings window or lobby',
+		  onchange = function(i, value)
+			  pauseGameWhenSingleplayer = value
+		  end,
+		},
+
 		{ id = "profiler", group = "dev", widget = "Widget Profiler", name = "Widget profiler", type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
 		{ id = "framegrapher", group = "dev", widget = "Frame Grapher", name = "Frame grapher", type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
 
@@ -4934,6 +4940,7 @@ function widget:GetConfigData(data)
 	savedTable.maxNanoParticles = maxNanoParticles
 	savedTable.currentGroupTab = currentGroupTab
 	savedTable.show = show
+	savedTable.pauseGameWhenSingleplayer = pauseGameWhenSingleplayer
 	savedTable.advSettings = advSettings
 	savedTable.defaultMapSunPos = defaultMapSunPos
 	savedTable.defaultSunLighting = defaultSunLighting
@@ -5002,6 +5009,9 @@ function widget:SetConfigData(data)
 	end
 	if data.show ~= nil and Spring.GetGameFrame() > 0 then
 		show = data.show
+	end
+	if data.pauseGameWhenSingleplayer ~= nil then
+		pauseGameWhenSingleplayer = data.pauseGameWhenSingleplayer
 	end
 	if data.advSettings ~= nil then
 		advSettings = data.advSettings
