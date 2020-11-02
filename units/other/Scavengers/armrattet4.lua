@@ -137,7 +137,7 @@ return {
 				reloadtime = 15,
 				size = 9,
 				soundhit = "xplonuk2",
-				soundhitwet = "splshlrg",
+				soundhitwet = "splslrg",
 				soundstart = "krogun1",
 				targetmoveerror = 0.5,
 				turret = true,
