@@ -176,34 +176,36 @@ for i=1,#files do
 	}
 end
 
+-- CHICKEN SOUNDS
 local files = VFS.DirList("sounds/chickens/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
-   fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
+   fileNames = string.sub(fileName, 18, string.find(fileName, ".wav") -1)
    t[fileNames] = {
-      file     = fileName;
+      	file     = fileName;
 	    gain = 1.2*0.3,
-      pitchmod = 0.18,
-      gainmod  = 0.2*0.3,
+      	pitchmod = 0.18,
+      	gainmod  = 0.2*0.3,
 	    dopplerscale = 1.0,
-      maxconcurrent = 4,
+      	maxconcurrent = 4,
 	    rolloff = 1.5,
    }
 end
 
+-- CRITTER SOUNDS
 local files = VFS.DirList("sounds/critters/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
-      file     = fileName;
-	    gain = 1.2*0.3,
-      pitchmod = 0.01,
-      gainmod  = 0.2*0.3,
+      	file     = fileName;
+	    gain = 1.1*0.3,
+      	pitchmod = 0.01,
+      	gainmod  = 0.15*0.3,
 	    dopplerscale = 1.0,
-      maxconcurrent = 4,
+      	maxconcurrent = 4,
 	    rolloff = 0.7,
    }
 end
