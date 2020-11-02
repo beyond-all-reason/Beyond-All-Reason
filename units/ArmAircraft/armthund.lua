@@ -96,6 +96,7 @@ return {
 				commandfire = false,
 				craterboost = 0,
 				cratermult = 0,
+				craterareaofeffect = 144,
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				explosionscar = true,
