@@ -596,7 +596,7 @@ function drawCell(cell, zoom)
 			rightMargin = cellMarginPx2
 		end
 		if cols/cell >= 1  then
-		  topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+			topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 		end
 		--if cols/cell < 1/(cols-1) then
 		--  bottomMargin = cellMarginPx2
@@ -625,8 +625,12 @@ function drawCell(cell, zoom)
 			color1 = { 0, 0, 0, 0.8 }
 			color2 = { 0, 0, 0, 0.6 }
 		end
+
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, color1, color2)
+		if padding == 1 then
+			RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*0.6}, {color2[1],color2[2],color2[3],color2[4]*0.6})
+		end
+		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*(padding>1 and 1 or 0.75)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or 0.75)})
 
 		-- gloss
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42) - padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][4] - topMargin) - padding, cellWidth * 0.017, 2, 2, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.11 })
@@ -656,26 +660,26 @@ function drawCell(cell, zoom)
 		end
 
 		-- colorize background
-		if colorize > 0.01 and not isActiveCmd then
-			local x1 = cellRects[cell][1] + leftMargin
-			if cmdColor[cmd.name] == nil then
-				cmdColor[cmd.name] = cmdColorDefault
-			end
-			local y1 = cellRects[cell][2] + bottomMargin
-			local x2 = cellRects[cell][3] - rightMargin --x1 + (padding*2.5)
-			local y2 = cellRects[cell][2] + rightMargin + ((cellRects[cell][4] - cellRects[cell][2]) * 0.2) --cellRects[cell][4]-topMargin - padding
-			RectRound(x1, y1, x2, y2, padding, 0, 0, 1, 1, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.18 * colorize }, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0 })
-			--x1 = cellRects[cell][1] + leftMargin
-			--y1 = cellRects[cell][2]+bottomMargin
-			--x2 = cellRects[cell][3] - leftMargin --x1 + (padding*2.5)
-			--y2 = cellRects[cell][2]+bottomMargin + ((cellRects[cell][4]-cellRects[cell][2])*0.6) --cellRects[cell][4]-topMargin - padding
-			--RectRound(x1, y1, x2, y2, padding, 0,0,1,1, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.11*colorize}, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0})
-			x1 = cellRects[cell][1] + leftMargin
-			y2 = cellRects[cell][4] - topMargin
-			x2 = cellRects[cell][3] - rightMargin --x1 + (padding*2.5)
-			y1 = cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.2) --cellRects[cell][4]-topMargin - padding
-			RectRound(x1, y1, x2, y2, padding, 0, 0, 1, 1, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0 }, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.12 * colorize })
-		end
+		--if colorize > 0.01 and not isActiveCmd then
+		--	local x1 = cellRects[cell][1] + leftMargin
+		--	if cmdColor[cmd.name] == nil then
+		--		cmdColor[cmd.name] = cmdColorDefault
+		--	end
+		--	local y1 = cellRects[cell][2] + bottomMargin
+		--	local x2 = cellRects[cell][3] - rightMargin --x1 + (padding*2.5)
+		--	local y2 = cellRects[cell][2] + rightMargin + ((cellRects[cell][4] - cellRects[cell][2]) * 0.2) --cellRects[cell][4]-topMargin - padding
+		--	RectRound(x1, y1, x2, y2, padding, 0, 0, 1, 1, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.18 * colorize }, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0 })
+		--	--x1 = cellRects[cell][1] + leftMargin
+		--	--y1 = cellRects[cell][2]+bottomMargin
+		--	--x2 = cellRects[cell][3] - leftMargin --x1 + (padding*2.5)
+		--	--y2 = cellRects[cell][2]+bottomMargin + ((cellRects[cell][4]-cellRects[cell][2])*0.6) --cellRects[cell][4]-topMargin - padding
+		--	--RectRound(x1, y1, x2, y2, padding, 0,0,1,1, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.11*colorize}, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0})
+		--	x1 = cellRects[cell][1] + leftMargin
+		--	y2 = cellRects[cell][4] - topMargin
+		--	x2 = cellRects[cell][3] - rightMargin --x1 + (padding*2.5)
+		--	y1 = cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.2) --cellRects[cell][4]-topMargin - padding
+		--	RectRound(x1, y1, x2, y2, padding, 0, 0, 1, 1, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0 }, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.12 * colorize })
+		--end
 
 		--if cmdColor[cmd.name] then
 		--  local s = 0.11
