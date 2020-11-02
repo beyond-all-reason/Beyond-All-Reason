@@ -627,7 +627,7 @@ function drawCell(cell, zoom)
 		end
 
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
-		if padding == 1 then
+		if padding == 1 then	-- make border less harch
 			RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*0.6}, {color2[1],color2[2],color2[3],color2[4]*0.6})
 		end
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*(padding>1 and 1 or 0.75)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or 0.75)})

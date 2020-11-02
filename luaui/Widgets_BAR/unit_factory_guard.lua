@@ -19,7 +19,7 @@ function widget:GetInfo()
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -72,7 +72,7 @@ end
 local function GuardFactory(unitID, unitDefID, factID, factDefID)
 
   if not isFactory[factDefID] then  -- is this a factory?
-    return 
+    return
   end
   if not isAssistBuilder[unitDefID] then -- can this unit assist?
     return
@@ -94,7 +94,7 @@ local function GuardFactory(unitID, unitDefID, factID, factDefID)
     return
   end
 
-  -- facing values { S = 0, E = 1, N = 2, W = 3 }  
+  -- facing values { S = 0, E = 1, N = 2, W = 3 }
   local dx, dz -- down vector
   local rx, rz -- right vector
   if (facing == 0) then
@@ -114,7 +114,7 @@ local function GuardFactory(unitID, unitDefID, factID, factDefID)
     dx, dz = -dist,  0
     rx, rz =  0,  dist
   end
-  
+
   local OrderUnit = spGiveOrderToUnit
 
   OrderUnit(unitID, CMD_MOVE,  { x + dx, y, z + dz }, { "" })
@@ -140,7 +140,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam,
   if (unitTeam ~= spGetMyTeamID()) then
     return -- not my unit
   end
-  
+
   ClearGroup(unitID, factID)
 
   if (userOrders) then
