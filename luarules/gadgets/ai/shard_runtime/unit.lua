@@ -14,12 +14,23 @@ function Unit:Init()
 		self.game:SendToConsole("Warning: Shard Unit:Init nil engineUnit?!")
 	end
 	self.behaviours = {}
+	self.nextBehaviour = nil
+	self.activeBehaviour = nil
 end
 
 function Unit:Update()
 	if self.behaviours == nil then
 		self.behaviours = {}
 	end
+
+	-- handle switching behaviours
+	if self.nextBehaviour ~= nil then
+		self.activeBehaviour = self.nextBehaviour
+		self.nextBehaviour = nil
+		self.activeBehaviour:PreActivate()
+		self.activeBehaviour:Activate()
+	end
+
 	for k,v in pairs(self.behaviours) do
 		v:Update()
 	end
@@ -116,37 +127,37 @@ function Unit:AddBehaviour(behaviour)
 end
 
 function Unit:ActiveBehaviour()
-	return self.activebeh
+	return self.activeBehaviour
 end
 
 function Unit:ElectBehaviour()
 	if self.behaviours == nil then --probably we are dead.
 		return
 	end
-	local bestbeh = nil
-	local bestscore = -1
+	local bestBehaviour = nil
+	local bestScore = -1
 	if #self.behaviours > 0 then
-		for k,v in pairs(self.behaviours) do
-			if bestbeh == nil then
-				bestbeh = v
-				bestscore = v:Priority()
+		for k,behaviour in pairs(self.behaviours) do
+			if bestBehaviour == nil then
+				bestBehaviour = behaviour
+				bestScore = behaviour:Priority()
 			else
-				local score = v:Priority()
-				if score > bestscore then
-					bestscore = score
-					bestbeh = v
+				local score = behaviour:Priority()
+				if ( score > 0 ) and ( score > bestScore ) then
+					bestScore = score
+					bestBehaviour = behaviour
 				end
 			end
 		end
-		
-		if self.activebeh ~= bestbeh then
-			if self.activebeh ~= nil then
-				self.activebeh:PreDeactivate()
-				self.activebeh:Deactivate()
+
+		if bestBehaviour ~= nil then
+			if ( self.activeBehaviour ~= bestBehaviour ) and ( self.nextBehaviour ~= bestBehaviour ) then
+				if self.activeBehaviour ~= nil then
+					self.activeBehaviour:PreDeactivate()
+					self.activeBehaviour:Deactivate()
+				end
+				self.nextBehaviour = bestBehaviour
 			end
-			self.activebeh = bestbeh
-			self.activebeh:PreActivate()
-			self.activebeh:Activate()
 		end
 	end
 end
