@@ -161,8 +161,8 @@ function scav_Udef_Post(name, uDef)
 			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.2*randomMultiplier))
 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.2*randomMultiplier))
 		else
-			uDef.autoheal = math.ceil(10*ScavDifficultyMultiplier*randomMultiplier)
-			uDef.idleautoheal = math.ceil(10*ScavDifficultyMultiplier*randomMultiplier)
+			uDef.autoheal = math.ceil(1000*ScavDifficultyMultiplier*randomMultiplier)
+			uDef.idleautoheal = math.ceil(1000*ScavDifficultyMultiplier*randomMultiplier)
 		end
 	else
 		uDef.autoheal = 3
