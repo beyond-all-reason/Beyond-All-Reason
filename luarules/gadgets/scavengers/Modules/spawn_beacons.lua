@@ -8,7 +8,7 @@ end
 function SpawnBeacon(n)
 	if n and n > 7200 then
 		local BeaconSpawnChance = math_random(0,BeaconSpawnChance)
-		if numOfSpawnBeacons <= unitSpawnerModuleConfig.minimumspawnbeacons then
+		if numOfSpawnBeacons <= unitSpawnerModuleConfig.minimumspawnbeacons or ScavSafeAreaExists == false then
 			BeaconSpawnChance = 0
 		end
 		if BossWaveTimeLeft and BossWaveTimeLeft < 1 then
