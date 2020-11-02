@@ -299,6 +299,8 @@ local icons = {
 	{ "blank.user", "blank", 1 },
 	{ "unknown.user", "unknown", 2 },
 }
+
+-- add inverted icons for scavenger units
 if UnitDefNames['armcom_scav'] then
 	local scavengerAlternatives = {}
 	for i, icon in ipairs(icons) do
@@ -443,9 +445,9 @@ function loadUnitIcons()
 
 		if name == "meteor" then
 			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
-		elseif (name == "armcom") or (name == "armdecom") then
+		elseif name == "armcom" or name == "armdecom" then
 			spSetUnitDefIcon(udid, iconPrefix .. "armcom.user")
-		elseif (name == "corcom") or (name == "cordecom") then
+		elseif name == "corcom" or name == "cordecom" then
 			spSetUnitDefIcon(udid, iconPrefix .. "corcom.user")
 			-- T4 scav units
 		elseif name == "armcomboss" then
@@ -472,6 +474,7 @@ function loadUnitIcons()
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_karg.user")
 		elseif name == "armthundt4" then
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_thund.user")
+
 			-- Scavenger Printers
 		elseif string.find(name, 'lootboxnano') then
 			if string.find(name, 't1') then
@@ -483,6 +486,7 @@ function loadUnitIcons()
 			elseif string.find(name, 't4') then
 				spSetUnitDefIcon(udid, iconPrefix .. "lootboxnanot4.user")
 			end
+
 			-- Lootboxes / resource generators
 		elseif string.find(name, 'lootbox') then
 			if string.find(name, 'bronze') then
@@ -502,25 +506,29 @@ function loadUnitIcons()
 			spSetUnitDefIcon(udid, iconPrefix .. "mine3.user")
 		elseif string.sub(name, 0, 7) == "critter" then
 			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
+
+			-- objects
 		elseif name == "chip" or name == "dice" or name == "xmasball" or name == "xmasball2" or name == "corstone" or name == "armstone" then
 			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
-		elseif (name == "mission_command_tower") then
+
+		elseif name == "mission_command_tower" then
 			spSetUnitDefIcon(udid, iconPrefix .. "commandtower.user")
-		elseif (name == "corkorg") then
+
+		elseif name == "corkorg" then
 			spSetUnitDefIcon(udid, iconPrefix .. "korgoth.user")
-		elseif (name == "armbanth") then
+		elseif name == "armbanth" then
 			spSetUnitDefIcon(udid, iconPrefix .. "bantha.user")
-		elseif (name == "corjugg") and getIconID(iconPrefix .. 'juggernaut') then
+		elseif name == "corjugg" and getIconID(iconPrefix .. 'juggernaut') then
 			spSetUnitDefIcon(udid, iconPrefix .. "juggernaut.user")
-		elseif (name == "corjugg") then
+		elseif name == "corjugg" then
 			spSetUnitDefIcon(udid, iconPrefix .. "juggernaut2.user")
-		elseif (name == "cormando") and getIconID(iconPrefix .. 'commando') then
+		elseif name == "cormando" and getIconID(iconPrefix .. 'commando') then
 			spSetUnitDefIcon(udid, iconPrefix .. "commando.user")
-		elseif (name == "cormando") then
+		elseif name == "cormando" then
 			spSetUnitDefIcon(udid, iconPrefix .. "commando2.user")
 
 			-- chickens
-		elseif (name == "chickenr3") then
+		elseif name == "chickenr3" then
 			spSetUnitDefIcon(udid, iconPrefix .. "chicken4.user")
 		elseif (ud.moveDef ~= nil and ud.moveDef.name == "chickqueen") then
 			spSetUnitDefIcon(udid, iconPrefix .. "chicken_queen.user")
@@ -538,33 +546,33 @@ function loadUnitIcons()
 			spSetUnitDefIcon(udid, iconPrefix .. "chicken1.user")
 
 			-- mines
-		elseif (name == "cormine3" or name == "armmine3" or name == "corfmine3" or name == "armfmine3" or name == "corsktl") then
+		elseif name == "cormine3" or name == "armmine3" or name == "corfmine3" or name == "armfmine3" or name == "corsktl" then
 			spSetUnitDefIcon(udid, iconPrefix .. "mine3.user")
-		elseif (name == "cormine2" or name == "armmine2" or name == "cormine4" or name == "armmine4" or name == "corroach" or name == "armvader") then
+		elseif name == "cormine2" or name == "armmine2" or name == "cormine4" or name == "armmine4" or name == "corroach" or name == "armvader" then
 			spSetUnitDefIcon(udid, iconPrefix .. "mine2.user")
 		elseif ud.modCategories["mine"] ~= nil then
 			spSetUnitDefIcon(udid, iconPrefix .. "mine1.user")
 
-			-- targetting
+			-- targeting
 		elseif ud.targfac then
 			spSetUnitDefIcon(udid, iconPrefix .. "targetting.user")
 
 			-- cloak
-		elseif (name == "armeyes" or name == "coreyes") then
+		elseif name == "armeyes" or name == "coreyes" then
 			spSetUnitDefIcon(udid, iconPrefix .. "eye.user")
-		elseif (name == "armspy" or name == "corspy" or name == "armgremlin") then
+		elseif name == "armspy" or name == "corspy" or name == "armgremlin" then
 			spSetUnitDefIcon(udid, iconPrefix .. "spy.user")
-		elseif (name == "armpeep" or name == "corfink") then
+		elseif name == "armpeep" or name == "corfink" then
 			spSetUnitDefIcon(udid, iconPrefix .. "air_t1_scout.user")
 
 			-- energy
-		elseif (name == "armwin") or (name == "corwin") then
+		elseif name == "armwin" or name == "corwin" then
 			spSetUnitDefIcon(udid, iconPrefix .. "wind.user")
-		elseif (name == "corafus" or name == "armafus") then
+		elseif name == "corafus" or name == "armafus" then
 			spSetUnitDefIcon(udid, iconPrefix .. "energy5.user")
-		elseif (name == "armageo" or name == "corageo") then
+		elseif name == "armageo" or name == "corageo" then
 			spSetUnitDefIcon(udid, iconPrefix .. "energy4.user")
-		elseif (name == "armgmm") or (name == "armfus") or (name == "corfus") or (name == "armckfus") or (name == "armdf") or (name == "armuwfus") or (name == "coruwfus") or (name == "freefusion") then
+		elseif name == "armgmm" or name == "armfus" or name == "corfus" or name == "armckfus" or name == "armdf" or name == "armuwfus" or name == "coruwfus" or name == "freefusion" then
 			spSetUnitDefIcon(udid, iconPrefix .. "energy3.user")
 		elseif name == "armgeo" or name == "corgeo" or name == "corbhmth" then
 			spSetUnitDefIcon(udid, iconPrefix .. "energy6.user")
@@ -668,46 +676,46 @@ function loadUnitIcons()
 				spSetUnitDefIcon(udid, iconPrefix .. "metalmaker_t1.user")
 			end
 
-		elseif (ud.isTransport) then
+		elseif ud.isTransport then
 			-- transports
-			if (name == "armdfly" or name == "corseah") then
+			if name == "armdfly" or name == "corseah" then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_t2_transport.user")
-			elseif (name == "armthovr" or name == "corthovr") then
+			elseif name == "armthovr" or name == "corthovr" then
 				spSetUnitDefIcon(udid, iconPrefix .. "hover_transport.user")
 			elseif name == "corintr" then
 				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_trans.user")
-			elseif (name == "armtship" or name == "cortship") then
+			elseif name == "armtship" or name == "cortship" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_transport.user")
 			else
 				spSetUnitDefIcon(udid, iconPrefix .. "air_t1_transport.user")
 			end
 
 			-- nanos
-		elseif (ud.deathExplosion == "nanoboom") then
+		elseif ud.deathExplosion == "nanoboom" then
 			spSetUnitDefIcon(udid, iconPrefix .. "worker.user")
 
 			-- amphib & t2 subs
 		elseif ud.modCategories["phib"] ~= nil or (ud.modCategories["canbeuw"] ~= nil and ud.modCategories["underwater"] == nil) then
-			if (name == "armserp" or name == "armsubk" or name == "corshark" or name == "corssub") then
+			if name == "armserp" or name == "armsubk" or name == "corshark" or name == "corssub" then
 				spSetUnitDefIcon(udid, iconPrefix .. "sub_t2.user")
-			elseif (name == "armpincer" or name == "corgarp") then
+			elseif name == "armpincer" or name == "corgarp" then
 				spSetUnitDefIcon(udid, iconPrefix .. "amphib_tank.user")
-			elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
+			elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3' then
 				spSetUnitDefIcon(udid, iconPrefix .. "amphib_t3.user")
 			elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
+				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
 					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t2_aa.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t1_aa.user")
 				end
-			elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-				if (ud.isBuilder) then
+			elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
+				if ud.isBuilder then
 					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t2_worker.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t2.user")
 				end
 			else
-				if (ud.isBuilder) then
+				if ud.isBuilder then
 					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t1_worker.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t1.user")
@@ -715,8 +723,8 @@ function loadUnitIcons()
 			end
 
 			-- submarines
-		elseif ((ud.modCategories["underwater"] ~= nil) and ud.speed > 0) then
-			if (name == "armacsub" or name == "coracsub" or name == "armrecl" or name == "correcl") then
+		elseif ud.modCategories["underwater"] ~= nil and ud.speed > 0 then
+			if name == "armacsub" or name == "coracsub" or name == "armrecl" or name == "correcl" then
 				spSetUnitDefIcon(udid, iconPrefix .. "sub_t2_worker.user")
 			else
 				spSetUnitDefIcon(udid, iconPrefix .. "sub_t1.user")
@@ -743,23 +751,23 @@ function loadUnitIcons()
 			end
 
 			-- aircraft
-		elseif (ud.canFly) then
+		elseif ud.canFly then
 
-			if (name == "armliche") and getIconID(iconPrefix .. 'air_liche') then
+			if name == "armliche" and getIconID(iconPrefix .. 'air_liche') then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_liche.user")
-			elseif (name == "armliche") then
+			elseif name == "armliche" then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_liche2.user")
-			elseif (name == "corcrw") and getIconID(iconPrefix .. 'air_krow') then
+			elseif name == "corcrw" and getIconID(iconPrefix .. 'air_krow') then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_krow.user")
-			elseif (name == "corcrw") then
+			elseif name == "corcrw" then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_krow2.user")
-			elseif (name == "armstil") then
+			elseif name == "armstil" then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_krow2.user")
-			elseif (name == "armlance" or name == "cortitan") then
+			elseif name == "armlance" or name == "cortitan" then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_t2_torpbomber.user")
-			elseif (name == "armseap" or name == "corseap") then
+			elseif name == "armseap" or name == "corseap" then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_torp.user")
-			elseif (name == "armawac" or name == "corawac" or name == "armsehak" or name == "corhunt") then
+			elseif name == "armawac" or name == "corawac" or name == "armsehak" or name == "corhunt" then
 				spSetUnitDefIcon(udid, iconPrefix .. "air_t2_radar.user")
 			elseif ud.isBuilder then
 				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
@@ -767,18 +775,18 @@ function loadUnitIcons()
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "air_t1_worker.user")
 				end
-			elseif (ud.hoverAttack) then
-				if (name == "corbw") then
+			elseif ud.hoverAttack then
+				if name == "corbw" then
 					spSetUnitDefIcon(udid, iconPrefix .. "air_bladew.user")
-				elseif (name == "armblade" or name == "corape") then
+				elseif name == "armblade" or name == "corape" then
 					spSetUnitDefIcon(udid, iconPrefix .. "air_t2_hover_missile.user")
-				elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
+				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
 					spSetUnitDefIcon(udid, iconPrefix .. "air_t2_hover.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "air_t1_hover.user")
 				end
 			elseif #ud.weapons > 0 and WeaponDefs[ud.weapons[1].weaponDef].type == "AircraftBomb" then
-				if (name == "armpnix" or name == "corhurc") then
+				if name == "armpnix" or name == "corhurc" then
 					spSetUnitDefIcon(udid, iconPrefix .. "air_t2_bomber.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "air_t1_bomber.user")
@@ -793,26 +801,26 @@ function loadUnitIcons()
 
 			-- ships
 		elseif ud.modCategories["ship"] ~= nil then
-			if (name == "armroy" or name == "corroy") then
+			if name == "armroy" or name == "corroy" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_destroyer.user")
-			elseif (name == "armdecade" or name == "coresupp") then
+			elseif name == "armdecade" or name == "coresupp" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_raid.user")
-			elseif (name == "armmship" or name == "cormship") then
+			elseif name == "armmship" or name == "cormship" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_missile.user")
-			elseif (name == "armcrus" or name == "corcrus") then
+			elseif name == "armcrus" or name == "corcrus" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_cruiser.user")
-			elseif (name == "armbats" or name == "corbats") then
+			elseif name == "armbats" or name == "corbats" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_battleship.user")
-			elseif (name == "armepoch" or name == "corblackhy") then
+			elseif name == "armepoch" or name == "corblackhy" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_flagship.user")
-			elseif (name == "armsjam" or name == "corsjam") then
+			elseif name == "armsjam" or name == "corsjam" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_jammer.user")
-			elseif (name == "armpt" or name == "corpt") then
+			elseif name == "armpt" or name == "corpt" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_tiny.user")
-			elseif (name == "armpship" or name == "corpship") then
+			elseif name == "armpship" or name == "corpship" then
 				spSetUnitDefIcon(udid, iconPrefix .. "ship_pship.user")
 			elseif ud.isBuilder then
-				if (name == "armmls" or name == "cormls") then
+				if name == "armmls" or name == "cormls" then
 					spSetUnitDefIcon(udid, iconPrefix .. "ship_engineer.user")
 				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
 					spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_worker.user")
@@ -826,7 +834,7 @@ function loadUnitIcons()
 					spSetUnitDefIcon(udid, iconPrefix .. "ship_aa.user")
 				end
 			else
-				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
+				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
 					spSetUnitDefIcon(udid, iconPrefix .. "ship_t2.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "ship.user")
@@ -834,36 +842,36 @@ function loadUnitIcons()
 			end
 
 			-- sensors
-		elseif (ud.seismicRadius > 1) then
+		elseif ud.seismicRadius > 1 then
 			spSetUnitDefIcon(udid, iconPrefix .. "seismic.user")
-		elseif (((ud.radarRadius > 1) or (ud.sonarRadius > 1)) and (ud.speed <= 0) and (#ud.weapons <= 0)) then
-			if (name == "armarad" or name == "armason" or name == "corarad" or name == "corason") then
+		elseif (ud.radarRadius > 1 or ud.sonarRadius > 1) and ud.speed <= 0 and #ud.weapons <= 0 then
+			if name == "armarad" or name == "armason" or name == "corarad" or name == "corason" then
 				spSetUnitDefIcon(udid, iconPrefix .. "radar_t2.user")
 			else
 				spSetUnitDefIcon(udid, iconPrefix .. "radar_t1.user")
 			end
 
 			-- jammer buildings
-		elseif (((ud.jammerRadius > 1) or (ud.sonarJamRadius > 1)) and (ud.speed <= 0)) then
-			if (name == "corshroud" or name == "armveil") then
+		elseif (ud.jammerRadius > 1 or ud.sonarJamRadius > 1) and ud.speed <= 0 then
+			if name == "corshroud" or name == "armveil" then
 				spSetUnitDefIcon(udid, iconPrefix .. "jammer_t2.user")
 			else
 				spSetUnitDefIcon(udid, iconPrefix .. "jammer_t1.user")
 			end
 
 			-- defenders and other buildings
-		elseif (ud.isBuilding or (ud.speed <= 0)) then
-			if (#ud.weapons <= 0) then
-				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
+		elseif ud.isBuilding or ud.speed <= 0 then
+			if #ud.weapons <= 0 then
+				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
 					spSetUnitDefIcon(udid, iconPrefix .. "building_t2.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "building_t1.user")
 				end
 			else
 				if ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-					if (name == "armmercury" or name == "corscreamer") then
+					if name == "armmercury" or name == "corscreamer" then
 						spSetUnitDefIcon(udid, iconPrefix .. "aa_longrange.user")
-					elseif WeaponDefs[ud.weapons[1].weaponDef].cegTag == '' then
+					elseif WeaponDefs[ud.weapons[1].weaponDef].cegTag == 'flaktrailaa' then
 						spSetUnitDefIcon(udid, iconPrefix .. "aa_flak.user")
 					elseif name == "corerad" or name == "armcir" or name == "armferret" or name == "cormadsam" then
 						spSetUnitDefIcon(udid, iconPrefix .. "aa2.user")
@@ -871,13 +879,21 @@ function loadUnitIcons()
 						spSetUnitDefIcon(udid, iconPrefix .. "aa1.user")
 					end
 				else
-					if (name == "armanni" or name == "cordoom") then
+					if name == "armanni" or name == "cordoom" then
 						spSetUnitDefIcon(udid, iconPrefix .. "defence_3.user")
 					elseif (name == "armguard" or name == "corpun") and getIconID(iconPrefix .. 'defence_1_arty') then
 						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_arty.user")
 					elseif (name == "armamb" or name == "cortoast") and getIconID(iconPrefix .. 'defence_2_arty') then
 						spSetUnitDefIcon(udid, iconPrefix .. "defence_2_arty.user")
-					elseif ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name == "armguard" or name == "corpun") then
+					elseif name == "armtl" or name == "cortl" or name == "armptl" or name == "corptl" or name == "armdl" or name == "cordl" then
+						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_naval.user")
+					elseif name == "armatl" or name == "coratl" then
+						spSetUnitDefIcon(udid, iconPrefix .. "defence_2_naval.user")
+					elseif name == "armhlt" or name == "corhlt" or name == "armfhlt" or name == "corfhlt" then
+						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_laser.user")
+					elseif name == "armbeamer" or name == "corhllt" then
+						spSetUnitDefIcon(udid, iconPrefix .. "defence_0_laser2.user")
+					elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name == "armguard" or name == "corpun" then
 						if weaponDef and weaponDef.type == 'BeamLaser' then
 							spSetUnitDefIcon(udid, iconPrefix .. "defence_2_laser.user")
 						elseif weaponDef and weaponDef.type == 'MissileLauncher' then
@@ -885,14 +901,6 @@ function loadUnitIcons()
 						else
 							spSetUnitDefIcon(udid, iconPrefix .. "defence_2.user")
 						end
-					elseif (name == "armtl" or name == "cortl" or name == "armptl" or name == "corptl" or name == "armdl" or name == "cordl") then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_naval.user")
-					elseif (name == "armatl" or name == "coratl") then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_2_naval.user")
-					elseif (name == "armhlt" or name == "corhlt" or name == "armfhlt" or name == "corfhlt") then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_laser.user")
-					elseif (name == "armbeamer" or name == "corhllt") then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_0_laser2.user")
 					else
 						if weaponDef and weaponDef.type == 'BeamLaser' then
 							spSetUnitDefIcon(udid, iconPrefix .. "defence_0_laser.user")
@@ -906,7 +914,7 @@ function loadUnitIcons()
 			-- vehicles
 		elseif ud.modCategories["tank"] ~= nil then
 
-			if (name == "armmanni" or name == "corgol" or name == "cortrem") then
+			if name == "armmanni" or name == "corgol" or name == "cortrem" then
 				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_big.user")
 			elseif name == "corvrad" or name == "armseer" then
 				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_radar.user")
@@ -964,7 +972,7 @@ function loadUnitIcons()
 			-- bots
 		elseif ud.modCategories["bot"] ~= nil then
 
-			if (name == "corsumo") then
+			if name == "corsumo" then
 				spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_big.user")
 			elseif name == "armflea" then
 				spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_flea.user")
@@ -979,9 +987,9 @@ function loadUnitIcons()
 			elseif name == "armham" or name == "armwar" or name == "corthud" then
 				spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_big.user")
 			elseif ud.isBuilder then
-				if (name == "cornecro" or name == "armrectr") then
+				if name == "cornecro" or name == "armrectr" then
 					spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_tinyworker.user")
-				elseif (name == "armfark" or name == "corfast") then
+				elseif name == "armfark" or name == "corfast" then
 					spSetUnitDefIcon(udid, iconPrefix .. "engineer_small.user")
 				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
 					spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_worker.user")
@@ -995,19 +1003,19 @@ function loadUnitIcons()
 					spSetUnitDefIcon(udid, iconPrefix .. "bot_aa.user")
 				end
 			else
-				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
+				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3' then
 					spSetUnitDefIcon(udid, iconPrefix .. "bot_t3.user")
-				elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
+				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
 					spSetUnitDefIcon(udid, iconPrefix .. "bot_t2.user")
 				else
 					spSetUnitDefIcon(udid, iconPrefix .. "bot_t1.user")
 				end
 			end
 
-			-- unknown
 		else
-			spSetUnitDefIcon(udid, iconPrefix .. "unknown.user")
 
+			-- unknown
+			spSetUnitDefIcon(udid, iconPrefix .. "unknown.user")
 		end
 
 	end
