@@ -5,7 +5,7 @@ function TaskShpHST:Name()
 end
 
 function TaskShpHST:internalName()
-	return "TaskShpHST"
+	return "taskshphst"
 end
 
 
@@ -16,7 +16,7 @@ end
 
 function TaskShpHST:ConShip()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcs"
 	else
 		unitName = "armcs"
@@ -27,7 +27,7 @@ end
 
 function TaskShpHST:RezSub1()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "correcl"
 	else
 		unitName = "armrecl"
@@ -38,7 +38,7 @@ end
 
 function TaskShpHST:Lvl1ShipRaider()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsub"
 	else
 		unitName = "armsub"
@@ -48,7 +48,7 @@ end
 
 function TaskShpHST:Lvl1ShipDestroyerOnly()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corroy"
 	else
 		unitName = "armroy"
@@ -60,13 +60,13 @@ end
 function TaskShpHST:Lvl1ShipBattle()
 	local unitName = ""
 	if self.ai.Metal.full < 0.5 then
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "coresupp"
 		else
 			unitName = "armdecade"
 		end
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corroy"
 		else
 			unitName = "armroy"
@@ -77,7 +77,7 @@ end
 
 function TaskShpHST:ScoutShip()
 	local unitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corpt"
 	else
 		unitName = "armpt"
@@ -93,7 +93,7 @@ end
 --LEVEL 2
 function TaskShpHST:ConAdvSub()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "coracsub"
 	else
 		unitName = "armacsub"
@@ -104,7 +104,7 @@ end
 
 function TaskShpHST:Lvl2ShipAssist()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormls"
 	else
 		unitName = "armmls"
@@ -115,7 +115,7 @@ end
 
 function TaskShpHST:Lvl2ShipBreakthrough()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corbats"
 	else
 		unitName = "armbats"
@@ -125,7 +125,7 @@ end
 
 function TaskShpHST:Lvl2ShipMerl()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormship"
 	else
 		unitName = "armmship"
@@ -135,7 +135,7 @@ end
 
 function TaskShpHST:MegaShip()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corblackhy"
 	else
 		unitName = "armepoch"
@@ -145,7 +145,7 @@ end
 
 function TaskShpHST:Lvl2ShipRaider()
 	local unitName = ""
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corshark"
 		else
 			unitName = "armsubk"
@@ -156,7 +156,7 @@ end
 
 function TaskShpHST:Lvl2SubWar()
 	local unitName = self.ai.armyhst.DummyUnitName
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corssub"
 		else
 			unitName = "armserp"
@@ -167,7 +167,7 @@ end
 
 function TaskShpHST:Lvl2ShipBattle()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcrus"
 	else
 		unitName = "armcrus"
@@ -176,7 +176,7 @@ function TaskShpHST:Lvl2ShipBattle()
 end
 
 function TaskShpHST:Lvl2AAShip()
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corarch")
 	else
 		return self.ai.taskshst:BuildAAIfNeeded("armaas")

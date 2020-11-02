@@ -369,7 +369,7 @@ ArmyHST.raiderList = {
 	armkam = 1,
 	armsaber = 1,
 	armblade = 1,
-	armcorbw = 1,
+	corbw = 1,
 	corape = 1,
 	corcut = 1,
 	corcrw = 1,
@@ -395,7 +395,7 @@ ArmyHST.scoutList = {
 }
 
 ArmyHST.raiderDisarms = {
-	armcorbw = 1,
+	corbw = 1,
 }
 
 -- units in this list are bombers or torpedo bombers
@@ -686,8 +686,8 @@ ArmyHST.mobUnitExampleName = {
 }
 
 -- side names
-ArmyHST.CORESideName = "core"
-ArmyHST.ARMSideName = "arm"
+ArmyHST.CORESideName = "cortex"
+ArmyHST.ARMSideName = "armada"
 
 -- how much metal to assume features with these strings in their names have
 ArmyHST.baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
@@ -708,11 +708,11 @@ local fighter = {
 	corvamp = 1,
 }
 
-
+--[[
 local commanderSide = {
 	armcom = "arm",
 	corcom = "core",
-}
+}]]
 
 local unitsLevels = {}
 local armTechLv ={}
@@ -769,7 +769,7 @@ local function GetBuiltBy()
 	return builtBy
 end
 
-local function GetUnitSide(name)
+local function GetUnitSide(name)--TODO change to the internal namearmada cortex
 	if string.find(name, 'arm') then
 		return 'arm'
 	elseif string.find(name, 'cor') then

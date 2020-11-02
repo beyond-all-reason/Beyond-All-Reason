@@ -17,7 +17,7 @@ end
 
 function TaskVehHST:ConVehicleAmphibious()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormuskrat"
 	else
 		unitName = "armbeaver"
@@ -30,7 +30,7 @@ end
 
 function TaskVehHST:ConGroundVehicle()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcv"
 	else
 		unitName = "armcv"
@@ -55,7 +55,7 @@ function TaskVehHST:Lvl1VehBreakthrough()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl1Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			return self.ai.taskshst:BuildBreakthroughIfNeeded("corlevlr")
 		else
 			-- armjanus isn't very a very good defense unit by itself
@@ -73,7 +73,7 @@ function TaskVehHST:Lvl1VehArty()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl1Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corwolv"
 		else
 			unitName = "armart"
@@ -84,7 +84,7 @@ end
 
 function TaskVehHST:AmphibiousRaider()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corgarp"
 	else
 		unitName = "armpincer"
@@ -94,7 +94,7 @@ end
 
 function TaskVehHST:Lvl1Amphibious()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corgarp"
 	else
 		unitName = "armpincer"
@@ -107,7 +107,7 @@ function TaskVehHST:Lvl1VehRaider()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl1Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corgator"
 		else
 			unitName = "armflash"
@@ -121,7 +121,7 @@ function TaskVehHST:Lvl1VehBattle()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl1Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corraid"
 		else
 			unitName = "armstump"
@@ -134,7 +134,7 @@ function TaskVehHST:Lvl1VehRaiderOutmoded()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl1Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			return self.ai.taskshst:BuildRaiderIfNeeded("corgator")
 		else
 			return self.ai.armyhst.DummyUnitName
@@ -143,7 +143,7 @@ function TaskVehHST:Lvl1VehRaiderOutmoded()
 end
 
 function TaskVehHST:Lvl1AAVeh()
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("cormist")
 	else
 		return self.ai.taskshst:BuildAAIfNeeded("armsam")
@@ -152,7 +152,7 @@ end
 
 function TaskVehHST:ScoutVeh()
 	local unitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corfav"
 	else
 		unitName = "armfav"
@@ -164,7 +164,7 @@ end
 
 function TaskVehHST:ConAdvVehicle()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "coracv"
 	else
 		unitName = "armacv"
@@ -174,7 +174,7 @@ function TaskVehHST:ConAdvVehicle()
 end
 
 function TaskVehHST:Lvl2VehAssist()
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.armyhst.DummyUnitName
 	else
 		unitName = 'armconsul'
@@ -188,7 +188,7 @@ function TaskVehHST:Lvl2VehBreakthrough()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl2Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			return self.ai.taskshst:BuildBreakthroughIfNeeded("corgol")
 		else
 			-- armmanni isn't very a very good defense unit by itself
@@ -206,7 +206,7 @@ function TaskVehHST:Lvl2VehArty()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl2Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "cormart"
 		else
 			unitName = "armmart"
@@ -223,7 +223,7 @@ function TaskVehHST:Lvl2VehRaider()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl2Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = ("corseal")
 		else
 			unitName = ("armlatnk")
@@ -236,7 +236,7 @@ end
 
 function TaskVehHST:AmphibiousBattle()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
@@ -251,7 +251,7 @@ end
 
 function TaskVehHST:Lvl2Amphibious()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
@@ -266,7 +266,7 @@ end
 
 function TaskVehHST:AmphibiousBreakthrough()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corparrow"
 	else
 		unitName = "armcroc"
@@ -279,7 +279,7 @@ function TaskVehHST:Lvl2VehBattle()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl2Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "correap"
 		else
 			unitName = "armbull"
@@ -289,7 +289,7 @@ function TaskVehHST:Lvl2VehBattle()
 end
 
 function TaskVehHST:Lvl2AAVeh()
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corsent")
 	else
 		return self.ai.taskshst:BuildAAIfNeeded("armyork")
@@ -301,7 +301,7 @@ function TaskVehHST:Lvl2VehMerl()
 	if self.AmpOrGroundWeapon then
 		return self:Lvl2Amphibious(self)
 	else
-		if self.side == self.ai.armyhst.CORESideName then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corvroc"
 		else
 			unitName = "armmerl"

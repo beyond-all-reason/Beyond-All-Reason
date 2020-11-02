@@ -85,6 +85,7 @@ function BomberHST:DoTargetting()
 				for i = 1, #recruits do
 					self:EchoDebug('dotarget i' , i)
 					local recruit = recruits[i]
+					self.DebugEnabled = true
 					self:EchoDebug('dotarget have recruit' , recruit)
 					self:EchoDebug('dotarget unit' , recruit.unit)
 					self:EchoDebug('dotarget internal' , recruit.unit:Internal())
@@ -97,6 +98,7 @@ function BomberHST:DoTargetting()
 					else
 						self:EchoDebug('warning unit without internal')
 					end
+					self.DebugEnabled = false
 				end
 				local midPos = api.Position()
 				midPos.x = sumX / #recruits

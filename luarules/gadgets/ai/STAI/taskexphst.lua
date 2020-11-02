@@ -14,7 +14,7 @@ end
 --SOME FUNCTIONS ARE DUPLICATE HERE
 function TaskExpHST:Lvl3Merl()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcat"
 	else
 		unitName = self.ai.armyhst.DummyUnitName
@@ -24,7 +24,7 @@ end
 
 function TaskExpHST:Lvl3Arty()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "armshiva"
 	else
 		unitName = "armvang"
@@ -34,7 +34,7 @@ end
 
 function TaskExpHST:lv3Amp()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "armshiva"
 	else
 		unitName = "armmar"
@@ -44,7 +44,7 @@ end
 
 function TaskExpHST:Lvl3Breakthrough()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildWithLimitedNumber("corkorg", 1)
 		if unitName == self.ai.armyhst.DummyUnitName then
 			unitName = self.ai.taskshst:BuildWithLimitedNumber("corjugg", 2)
@@ -63,7 +63,7 @@ end
 
 function TaskExpHST:lv3bigamp()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'corkorg'
 	else
 		unitName = 'armbanth'
@@ -73,7 +73,7 @@ end
 
 function TaskExpHST:Lvl3Raider()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.armyhst.DummyUnitName
 	else
 		unitName = "armmar"
@@ -84,7 +84,7 @@ end
 
 function TaskExpHST:Lvl3Battle()
 	local unitName = ""
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corkarg"
 	else
 		unitName = "armraz"
@@ -94,7 +94,7 @@ end
 
 function TaskExpHST:Lvl3Hov()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsok"
 	else
 		unitName = "armlun"
@@ -104,7 +104,7 @@ end
 
 function TaskExpHST:Lv3VehAmp()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
@@ -119,7 +119,7 @@ end
 
 function TaskExpHST:Lv3Special()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.side == self.ai.armyhst.CORESideName then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corjugg"
 	else
 		unitName = "armvang"
