@@ -16,6 +16,8 @@ Units
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
+ • T2 Bot Constructiors can build Advanced Fusion
+ • T2 Vehicle Constructors can make the T3 Experimental Gantry
 
 Air
  • Banshee: changed weapon to machine gun with more accuracy, 5 burst (instead of 3) but little less average dps (-10%)
