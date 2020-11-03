@@ -17,7 +17,7 @@ Units
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
  • T2 Bot/Air Constructors can build Advanced Fusion + cost: +60 metal
- • T2 Vehicle Constructors can make the T3 Experimental Gantry
+ • T2 Vehicle/Air Constructors can make the T3 Experimental Gantry
 
 
 Air

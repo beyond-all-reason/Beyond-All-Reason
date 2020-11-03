@@ -73,6 +73,7 @@ return {
 			"armap",
 			"armaap",
 			"armplat",
+			"armshltx",
 		},
 		customparams = {
 			area_mex_def = "armmoho",
