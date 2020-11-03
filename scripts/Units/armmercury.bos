@@ -19,6 +19,9 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	turn gunl to x-axis <-13> speed <25.00000>;
+    turn gunr to x-axis <-13> speed <25.00000>;
+    spin turret around y-axis speed <20.0>;
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -46,9 +49,6 @@ Create()
 	gun_1 = 1;
 	firstaim = 1;
 	start-script SmokeUnit();
-    turn gunl to x-axis <-13> speed <25.00000>;
-    turn gunr to x-axis <-13> speed <25.00000>;
-    spin turret around y-axis speed <20.0>;
 }
 
 static-var  Stunned;

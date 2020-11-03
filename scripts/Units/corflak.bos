@@ -18,6 +18,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	turn barrel to x-axis <-30> speed <25.00000>;
+    spin gun around y-axis speed <25.0>;
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -47,8 +49,6 @@ Create()
 	hide flare2;
 	gun_1 = flare1;
 	start-script SmokeUnit();
-    turn barrel to x-axis <-30> speed <25.00000>;
-    spin gun around y-axis speed <25.0>;
 }
 
 static-var  Stunned;

@@ -44,8 +44,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	turn launcher to x-axis <-25> speed <25.00000>;
+	spin turret around y-axis speed <25.0>;
 	while( TRUE )
-	{
+	{	
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
@@ -72,8 +74,6 @@ Create()
 
 	gun_1 = flare;
 	start-script SmokeUnit();
-	turn launcher to x-axis <-25> speed <25.00000>;
-	spin turret around y-axis speed <25.0>;
 	return (0);
 }
 
