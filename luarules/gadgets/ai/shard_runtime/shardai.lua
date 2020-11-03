@@ -2,7 +2,7 @@ ShardAI = class(AIBase)
 
 function ShardAI:Init()
 	if self.loaded == true then
-		self.game:SendToConsole("Init called multiple times")
+		self.game:SendToConsole( self:Name() .. " Init called multiple times" )
 		return
 	end
 	self.loaded = true
@@ -11,7 +11,9 @@ function ShardAI:Init()
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
-	self.game:SendToConsole( self.fullname.." - playing: "..self.game:GameName().." on: "..self.map:MapName())
+	self.game:SendToConsole(
+		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
+	)
 
 	self.api.shard_include("behaviourfactory")
 	self.api.shard_include("unit")
@@ -21,7 +23,7 @@ function ShardAI:Init()
 	if next(modules) ~= nil then
 		for i,m in ipairs(modules) do
 			newmodule = m()
-			self.game:SendToConsole("adding "..newmodule:Name().." module")
+			self.game:SendToConsole( "adding " .. newmodule:Name() .. " module" )
 			local internalname = newmodule:internalName()
 			if internalname == 'error' then
 				self.game:SendToConsole( "CRITICAL ERROR: The module with the name " .. newmodule:Name() .. " has no internal name! Tis is necesssary and not optional, declare an internalName() function on that module immediatley." )
@@ -45,7 +47,9 @@ function ShardAI:Init()
 		end
 
 	else
-		self.game:SendToConsole("Warning: Shard found no modules :( Who will control the units now?")
+		self.game:SendToConsole(
+			self:Name() .. "Warning: Shard found no modules :( Who will control the units now?"
+		)
 	end
 end
 
