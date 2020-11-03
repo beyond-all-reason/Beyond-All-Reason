@@ -339,27 +339,23 @@ function addUnitIcon(icon, file, size)
 	iconTypes[icon] = file
 end
 
-local loadedIcons = {}
 function loadUnitIcons()
 
 	-- free up icons
-	for i, icon in ipairs(loadedIcons) do
+	for icon, file in ipairs(iconTypes) do
 		spFreeUnitIcon(icon)
 	end
 	iconTypes = {}
-	loadedIcons = {}
 
 	-- load icons
 	for i, icon in ipairs(icons) do
 		icons[i][4] = nil   -- reset
-		--Spring.FreeUnitIcon(icon[1])
 		if VFS.FileExists('icons/' .. icon[2] .. icon[3] .. '.png') then
 			-- check if specific custom sized icon is availible
 			addUnitIcon(icon[1], 'icons/' .. icon[2] .. icon[3] .. '.png', icon[3] * iconScale)
 		else
 			addUnitIcon(icon[1], 'icons/' .. icon[2] .. '.png', icon[3] * iconScale)
 		end
-		loadedIcons[#loadedIcons + 1] = icon[1]
 	end
 
 	-- load custom unit icons when availible
@@ -403,7 +399,6 @@ function loadUnitIcons()
 						scale = '_' .. scale
 					end
 					addUnitIcon(icon[1], 'icons/' .. inv .. iconname .. scale .. '.png', tonumber(scalenum) * iconScale)
-					loadedIcons[#loadedIcons + 1] = icon[1]
 				end
 			end
 			if unitname and UnitDefNames[unitname] then
@@ -411,7 +406,6 @@ function loadUnitIcons()
 				scale = string.gsub(scale, '_', '')
 				if scale ~= '' then
 					addUnitIcon(scavPrefix .. unitname .. ".user", file, tonumber(scale) * iconScale)
-					loadedIcons[#loadedIcons + 1] = scavPrefix .. unitname .. ".user"
 				end
 			end
 		end
@@ -1044,6 +1038,7 @@ function loadUnitIcons()
 		files[#files + 1] = file
 	end
 
+	-- add inverted icons for scavenger units
 	for k, file in ipairs(files) do
 		local scavPrefix = ''
 		local scavSuffix = ''
@@ -1062,8 +1057,10 @@ function loadUnitIcons()
 				scale = string.gsub(scale, '_', '')
 				if scale ~= '' and UnitDefNames[unitname .. scavSuffix] then
 					addUnitIcon(scavPrefix .. unitname .. ".user", file, tonumber(scale) * iconScale)
+					if unitname == 'armcom' then
+						Spring.Echo(unitname, UnitDefNames[unitname .. scavSuffix].id, scavSuffix, scavPrefix .. unitname .. ".user")
+					end
 					spSetUnitDefIcon(UnitDefNames[unitname .. scavSuffix].id, scavPrefix .. unitname .. ".user")
-					loadedIcons[#loadedIcons + 1] = scavPrefix .. unitname .. ".user"
 				end
 			end
 		end

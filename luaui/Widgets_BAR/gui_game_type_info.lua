@@ -13,29 +13,29 @@
 --------------------------------------------------------------------------------
 
 function widget:GetInfo()
-  return {
-    name      = "GameTypeInfo",
-    desc      = "informs players of the game type at start",
-    author    = "Teutooni",
-    date      = "Jul 6, 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name = "GameTypeInfo",
+		desc = "informs players of the game type at start",
+		author = "Teutooni",
+		date = "Jul 6, 2008",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true  --  loaded by default?
+	}
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local vsx,vsy = Spring.GetViewGeometry()
-local widgetScale = (0.80 + (vsx*vsy / 6000000))
+local vsx, vsy = Spring.GetViewGeometry()
+local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-local glPopMatrix      = gl.PopMatrix
-local glPushMatrix     = gl.PushMatrix
-local glRotate         = gl.Rotate
-local glScale          = gl.Scale
-local glText           = gl.Text
-local glTranslate      = gl.Translate
+local glPopMatrix = gl.PopMatrix
+local glPushMatrix = gl.PushMatrix
+local glRotate = gl.Rotate
+local glScale = gl.Scale
+local glText = gl.Text
+local glTranslate = gl.Translate
 local spGetGameSeconds = Spring.GetGameSeconds
 
 local floor = math.floor
@@ -49,90 +49,92 @@ local message4 = ""
 --------------------------------------------------------------------------------
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.80 + (vsx*vsy / 6000000))
+	vsx, vsy = Spring.GetViewGeometry()
+	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
 function widget:Initialize()
-  widget:ViewResize()
+	widget:ViewResize()
 
-  if Spring.GetModOptions().deathmode=="com" then
-    message = "Kill all enemy Commanders"
-  elseif Spring.GetModOptions().deathmode=="killall" then
-    message = "Kill all enemy units"
-  elseif Spring.GetModOptions().deathmode=="neverend" then
-    widgetHandler:RemoveWidget(self)
-  end
+	if Spring.GetModOptions().deathmode == "killall" then
+		message = "Kill all enemy units"
+	elseif Spring.GetModOptions().deathmode == "neverend" then
+		widgetHandler:RemoveWidget(self)
+	else
+		--if Spring.GetModOptions().deathmode=="com" then
+		message = "Kill all enemy Commanders"
+	end
 
-  if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
-	message2 = "Commanders survive DGuns and commander explosions"
-  end
+	if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
+		message2 = "Commanders survive DGuns and commander explosions"
+	end
 
-  if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
-    plural = ""
-    if tonumber(Spring.GetModOptions().armageddontime) ~= 1 then
-        plural = "s"
-    end
-    message3 = "Armageddon at " .. Spring.GetModOptions().armageddontime .. " minute" .. plural
-  end
+	if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
+		plural = ""
+		if tonumber(Spring.GetModOptions().armageddontime) ~= 1 then
+			plural = "s"
+		end
+		message3 = "Armageddon at " .. Spring.GetModOptions().armageddontime .. " minute" .. plural
+	end
 
 	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 		message4 = "Unbalanced Commanders is enabled: Commander levels up and gain upgrades"
 	end
 end
 
-
 local sec = 0
 local blink = false
 function widget:Update(dt)
-  sec = sec + dt
-  if sec > 1 then
-    sec = sec - 1
-  end
-  if sec>0.5 then
-    blink = true
-  else
-    blink = false
-  end
+	sec = sec + dt
+	if sec > 1 then
+		sec = sec - 1
+	end
+	if sec > 0.5 then
+		blink = true
+	else
+		blink = false
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
-  if (spGetGameSeconds() > 0) then
-    widgetHandler:RemoveWidget(self)
-    return
-  end
+	if chobbyInterface then
+		return
+	end
+	if spGetGameSeconds() > 0 then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 
-  local msg = '\255\255\255\255' .. string.format("%s %s", "Gametype: ",  message)
-  local msg2 = '\255\255\255\255' .. message2
-  local msg3 = "\255\255\0\0" .. message3
-  local msg4
-  if blink then
-    msg4 = "\255\255\222\111" .. message4
-  else
-    msg4 = "\255\255\150\050" .. message4
-  end
+	local msg = '\255\255\255\255' .. string.format("%s %s", "Victory condition: ", message)
+	local msg2 = '\255\255\255\255' .. message2
+	local msg3 = "\255\255\0\0" .. message3
+	local msg4
+	if blink then
+		msg4 = "\255\255\222\111" .. message4
+	else
+		msg4 = "\255\255\150\050" .. message4
+	end
 
-  glPushMatrix()
-  glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
-  glScale(1.5, 1.5, 1)
-  font:Begin()
-  font:Print(msg, 0, 15*widgetScale, 18*widgetScale, "oc")
-  font:Print(msg2, 0, -35*widgetScale, 12.5*widgetScale, "oc")
-  font:Print(msg3, 0, -55*widgetScale, 11*widgetScale, "oc")
-  font:Print(msg4, 0, 60*widgetScale, 18*widgetScale, "oc")
-  font:End()
-  glPopMatrix()
+	glPushMatrix()
+	glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
+	glScale(1.5, 1.5, 1)
+	font:Begin()
+	font:Print(msg, 0, 15 * widgetScale, 18 * widgetScale, "oc")
+	font:Print(msg2, 0, -35 * widgetScale, 12.5 * widgetScale, "oc")
+	font:Print(msg3, 0, -55 * widgetScale, 11 * widgetScale, "oc")
+	font:Print(msg4, 0, 60 * widgetScale, 18 * widgetScale, "oc")
+	font:End()
+	glPopMatrix()
 end
 
 function widget:GameOver()
-  widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget(self)
 end

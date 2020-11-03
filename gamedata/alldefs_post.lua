@@ -83,7 +83,7 @@ local function round_to_frames(name, wd, key)
 
 	local sanitized_value = frames / Game.gameSpeed
 	if math.abs (original_value - sanitized_value) > 1E-3 then
-		Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
+		--Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
 	end
 
 	return sanitized_value-- + 1E-5
@@ -106,7 +106,7 @@ function UnitDef_Post(name, uDef)
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
-	
+
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
 		Spring.Echo("Missing Buildpic: ".. uDef.name)
 	end
