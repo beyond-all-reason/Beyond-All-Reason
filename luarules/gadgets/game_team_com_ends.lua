@@ -14,12 +14,17 @@ end
 -- his com dies it acts on an allyteam level, if all coms in an allyteam are dead
 -- the allyteam is out
 
+local deathmode = Spring.GetModOptions().deathmode
+if not deathmode then
+	deathmode = 'com'
+end
+
 -- the deathmode modoption must be set to one of the following to enable this
 local endmodes = {
-	com=true,
+	com = true,
 }
 
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 
 --SYNCED
 
@@ -79,7 +84,7 @@ local function getSqrDistance(x1,z1,x2,z2)
 end
 
 function gadget:Initialize()
-	if not endmodes[Spring.GetModOptions().deathmode] then
+	if not endmodes[deathmode] then
 		if blowUpWhenEmptyAllyTeam == false then
 			gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
 		end
