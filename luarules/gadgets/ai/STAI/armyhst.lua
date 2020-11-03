@@ -119,8 +119,8 @@ ArmyHST.geothermalPlant = {
 ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
 	armmex = "armmoho",
-	coruwmex = "coruwmme",
-	armuwmex = "armuwmme",
+	cormex = "coruwmme",--ex coruwmex
+	armmex = "armuwmme",--ex armuwmex
 	armamex = "armmoho",
 	corexp = "cormexp",
 

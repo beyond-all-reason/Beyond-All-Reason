@@ -42,7 +42,6 @@ end
 
 function TaskEcoHST:BuildMex()
 	local unitName = self.ai.armyhst.DummyUnitName
-	print(self.ai.side)
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 
 		unitName = "cormex"
@@ -65,9 +64,9 @@ end
 function TaskEcoHST:BuildUWMex()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
-		unitName = "coruwmex"
+		unitName = "cormex" --ex coruwmex
 	else
-		unitName = "armuwmex"
+		unitName = "armmex"  --ex armuwmex
 	end
 	return unitName
 end
@@ -372,7 +371,6 @@ function TaskEcoHST:AmphibiousEconomy(tqb)
 end
 
 function TaskEcoHST:Economy0()
-	self.DebugEnabled = true
 	self:EchoDebug(self.ai.Energy.income,self.ai.Metal.income,self.ai.Energy.full,self.ai.Metal.full)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.Energy.full > 0.1 and (self.ai.Metal.income < 1 or self.ai.Metal.full < 0.3) then
@@ -389,7 +387,6 @@ function TaskEcoHST:Economy0()
 		unitName = self:BuildMex()
 	end
 	self:EchoDebug('Economy commander '..unitName)
-	self.DebugEnabled = false
 	return unitName
 end
 

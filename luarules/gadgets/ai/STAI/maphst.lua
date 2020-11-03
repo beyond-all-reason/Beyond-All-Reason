@@ -1073,8 +1073,8 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 		local coruwtype
 		local armuwtype
 		if uname == "cormex" or uname == "armmex" then
-			coruwtype = self.game:GetTypeByName("coruwmex")
-			armuwtype = self.game:GetTypeByName("armuwmex")
+			coruwtype = self.game:GetTypeByName("cormex")--ex  coruwmex
+			armuwtype = self.game:GetTypeByName("armmex")--ex  armuwmex
 		elseif uname == "cormoho" or uname == "armoho" then
 			coruwtype = self.game:GetTypeByName("coruwmme")
 			armuwtype = self.game:GetTypeByName("armuwmme")
