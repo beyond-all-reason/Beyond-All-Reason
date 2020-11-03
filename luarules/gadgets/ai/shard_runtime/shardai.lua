@@ -1,5 +1,13 @@
 ShardAI = class(AIBase)
 
+function ShardAI:Name()
+	return 'Shard'
+end
+
+function ShardAI:internalName()
+	return "shard"
+end
+
 function ShardAI:Init()
 	if self.loaded == true then
 		self.game:SendToConsole( self:Name() .. " Init called multiple times" )
@@ -139,7 +147,7 @@ function ShardAI:UnitIdle(engineunit)
 		self.game:SendToConsole("shard-warning: idle engineunit nil")
 		return
 	end
-	
+
 	for i,m in ipairs(self.modules) do
 		m:UnitIdle(engineunit)
 	end
@@ -177,9 +185,24 @@ function ShardAI:GameEnd()
 	end
 end
 
+--- Adds a module after Init
+--
+-- Adds and initializes a module instance to
+-- this instance of the AI.
+--
+-- Note that this function does not get called
+-- by the AIs main Init, so changing this will
+-- not change how the modules are loaded at startup
+--
+-- @param newmodule a module object to initialize and add
 function ShardAI:AddModule( newmodule )
 	local internalname = newmodule:internalName()
+	if self[internalname] ~= nil then
+		self.game:SendToConsole( "CRITICAL ERROR: Shard tried to add a module with the internal name " .. internalname .. " but one already exists!! There cannot be duplicates! Shard will skip this module to avoid overwriting an existing module" )
+		return
+	end
 	self[internalname] = newmodule
 	table.insert(self.modules,newmodule)
+	newmodule:SetAI(self)
 	newmodule:Init()
 end
