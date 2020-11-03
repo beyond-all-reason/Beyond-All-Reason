@@ -678,7 +678,6 @@ function TaskQueueBST:ProgressQueue()
 end
 
 function TaskQueueBST:Activate()
-	self.active = true
 	if self.constructing then
 		self:EchoDebug(self.name .. " " .. self.id .. " resuming construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
 		-- resume construction if we were interrupted
@@ -696,7 +695,6 @@ function TaskQueueBST:Activate()
 end
 
 function TaskQueueBST:Deactivate()
-	self.active = false
 	self.ai.buildsitehst:ClearMyPlans(self)
 end
 
