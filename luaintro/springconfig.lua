@@ -22,10 +22,12 @@ end
 
 -- Disable PBO for intel GFX
 if Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' then
-	Spring.SetConfigInt("UsePBO",0)
+	Spring.SetConfigInt("UsePBO", 0)
 end
 
 -- Disable dynamic model lights
 Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
 
+-- Disable LoadingMT because: crashes on load
+Spring.SetConfigInt("LoadingMT", 0)
