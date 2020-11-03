@@ -1,29 +1,45 @@
+--- This is the definition of a unit AI!
+--
+-- it isn't the unit itself, but rather the mini-AI
+-- that controls it
 Unit = class(AIBase)
 
-function Unit:SetEngineRepresentation(engineUnit)
-	self.engineUnit = engineUnit
-	self.engineID = engineUnit:ID()
-end
-
-function Unit:Internal()
-	return self.engineUnit
-end
-
 function Unit:Init()
+	-- check if we were set up correctly
 	if self.engineUnit == nil then
-		self.game:SendToConsole("Warning: Shard Unit:Init nil engineUnit?!")
+		-- oh noes, someone was meant to call SetEngineRepresentation
+		-- on this before calling Init
+		--
+		-- @see Unit:SetEngineRepresentation
+		self.game:SendToConsole("Warning: Shard Unit:Init revieved a nil engineUnit :(")
 	end
 	self.behaviours = {}
 	self.nextBehaviour = nil
 	self.activeBehaviour = nil
 end
 
-function Unit:Update()
-	if self.behaviours == nil then
-		self.behaviours = {}
-	end
+--- Tell the unit AI which unit it's coontrolling
+--
+-- This is how it knows which unit it is
+--
+-- @param engineUnit the unit object ( Shard unit )
+function Unit:SetEngineRepresentation(engineUnit)
+	self.engineUnit = engineUnit
+	self.engineID = engineUnit:ID()
+end
 
-	-- handle switching behaviours
+--- Which unit is this controlling?
+--
+-- This object is great at being a mini-AI
+-- for controlling a unit, but which unit?!
+--
+-- @return a shard unit object
+function Unit:Internal()
+	return self.engineUnit
+end
+
+function Unit:Update()
+	-- Handle activating a new behaviour if we switched
 	if self.nextBehaviour ~= nil then
 		self.activeBehaviour = self.nextBehaviour
 		self.nextBehaviour = nil
@@ -31,8 +47,9 @@ function Unit:Update()
 		self.activeBehaviour:Activate()
 	end
 
-	for k,v in pairs(self.behaviours) do
-		v:Update()
+	-- Pass the update event to the behaviours
+	for k,behaviour in pairs(self.behaviours) do
+		behaviour:Update()
 	end
 end
 
@@ -122,42 +139,75 @@ function Unit:UnitMoveFailed(unit)
 	end
 end
 
+-- Adds a new behaviour to this unit.
+--
+-- It does not activate that behaviour though
+--
+-- @param behaviour The behaviour to add
 function Unit:AddBehaviour(behaviour)
 	table.insert(self.behaviours,behaviour)
 end
 
+--- Which behaviour has control of this unit?
+--
+-- @return the behaviour or nil
 function Unit:ActiveBehaviour()
 	return self.activeBehaviour
 end
 
-function Unit:ElectBehaviour()
-	if self.behaviours == nil then --probably we are dead.
-		return
+--- Does this unit have behaviours?
+--
+-- Units with no behaviours do not get events
+--
+-- @return true or false
+function Unit:HasBehaviours()
+	if self.behaviours ~= nil then
+		if #self.behaviours > 0 then
+			return true
+		end
 	end
+	return false
+end
+
+--- Picks and activates the best behaviour to control this unit!
+--
+-- If there are no behaviours or all behaviours have a
+-- negative/zero priority no behaviour is activated.
+--
+-- The elected behaviour will be activated on the next update,
+-- the currently activated behaviour is deactivated immediatley.
+--
+-- If the current behaviour is elected, there is no change
+-- The active behaviour has full control of the unit
+function Unit:ElectBehaviour()
+	-- Check if we have any behaviours to elect
+	if self:HasBehaviours() == false then
+		return -- exit early
+	end
+
 	local bestBehaviour = nil
 	local bestScore = -1
-	if #self.behaviours > 0 then
-		for k,behaviour in pairs(self.behaviours) do
-			if bestBehaviour == nil then
+
+	for k,behaviour in pairs(self.behaviours) do
+		if bestBehaviour == nil then
+			bestBehaviour = behaviour
+			bestScore = behaviour:Priority()
+		else
+			local score = behaviour:Priority()
+			if ( score > 0 ) and ( score > bestScore ) then
+				bestScore = score
 				bestBehaviour = behaviour
-				bestScore = behaviour:Priority()
-			else
-				local score = behaviour:Priority()
-				if ( score > 0 ) and ( score > bestScore ) then
-					bestScore = score
-					bestBehaviour = behaviour
-				end
 			end
 		end
+	end
 
-		if bestBehaviour ~= nil then
-			if ( self.activeBehaviour ~= bestBehaviour ) and ( self.nextBehaviour ~= bestBehaviour ) then
-				if self.activeBehaviour ~= nil then
-					self.activeBehaviour:PreDeactivate()
-					self.activeBehaviour:Deactivate()
-				end
-				self.nextBehaviour = bestBehaviour
+	if bestBehaviour ~= nil then
+		if ( self.activeBehaviour ~= bestBehaviour ) and ( self.nextBehaviour ~= bestBehaviour ) then
+			if self.activeBehaviour ~= nil then
+				self.activeBehaviour:PreDeactivate()
+				self.activeBehaviour:Deactivate()
 			end
+			self.nextBehaviour = bestBehaviour
 		end
 	end
 end
