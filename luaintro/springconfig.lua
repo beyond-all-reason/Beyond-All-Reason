@@ -31,3 +31,6 @@ Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
 -- Disable LoadingMT because: crashes on load
 Spring.SetConfigInt("LoadingMT", 0)
+
+-- Chobby had this set to 100 before and it introduced latency of 4ms a simframe, having a 10%-15% penalty comparted it the default
+Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
