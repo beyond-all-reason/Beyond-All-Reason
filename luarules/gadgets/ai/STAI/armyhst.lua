@@ -13,6 +13,15 @@ function ArmyHST:Init()
 	self.DebugEnabled = false
 end
 
+ArmyHST.techPenalty = {
+	armamsub = -1,
+	coramsub = -1,
+	armfhp = -1,
+	corfhp = -1,
+	armhp = -1,
+	corhp = -1,
+}
+
 ArmyHST.factoryMobilities = {
 	corap = {"air"},
 	armap = {"air"},
@@ -119,8 +128,8 @@ ArmyHST.geothermalPlant = {
 ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
 	armmex = "armmoho",
-	cormex = "coruwmme",--ex coruwmex
-	armmex = "armuwmme",--ex armuwmex
+	coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
+	armuwmex = "armuwmme",--ex armuwmex
 	armamex = "armmoho",
 	corexp = "cormexp",
 
@@ -233,8 +242,12 @@ ArmyHST.battleList = {
 	armzeus = 2,
 	corcrus = 2,
 	armcrus = 2,
+	armmav = 2,
+-- 	cordecom = 2,
+-- 	armdecom = 2,
 	corkarg = 3,
 	armraz = 3,
+
 }
 
 -- sturdier units to use when battle units get killed
@@ -621,7 +634,10 @@ ArmyHST.cleaners = {
 	armdecom = 1,
 	cordecom = 1,
 }
-
+ArmyHST.decoy ={
+	armdecom = 2,
+	cordecom = 2,
+}
 ArmyHST.cleanable = {
 	armsolar= 'ground',
 	corsolar= 'ground',
@@ -786,6 +802,7 @@ local function getTechTree(sideTechLv)
 	for name,lv in pairs(sideTechLv) do
 		if lv == false then
 			sideTechLv[name] = parent
+			if ArmyHST.techPenalty[name] then sideTechLv[name] = sideTechLv[name] + ArmyHST.techPenalty[name] end--here cause some not corresponding at true and seaplane maybe
 			canBuild = UnitDefNames[name].buildOptions
 			if canBuild and #canBuild > 0 then
 				for index,id in pairs(UnitDefNames[name].buildOptions) do

@@ -60,6 +60,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		end
 	end
 
+
 	if u:CanBuild() then
 		-- game:SendToConsole(u:Name() .. " can build")
 		-- moho engineer doesn't need the queue!
@@ -76,6 +77,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 				self.ai.advCons = 0
 			end
 			table.insert(b,TaskQueueBST)
+
 		else
 			table.insert(b,TaskQueueBST)
 			if self.ai.armyhst.unitTable[un].isBuilding then
@@ -127,7 +129,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			alreadyHave[behaviour] = true
 		end
 	end
-	-- game:SendToConsole(self.ai.id, #b, "behaviours", u:ID(), u:Name())
+	--game:SendToConsole(self.ai.id, #b, "behaviours", u:ID(), u:Name())
 
 	return b
 end

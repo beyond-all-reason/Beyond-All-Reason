@@ -480,7 +480,10 @@ function BuildSiteHST:CheckForDuplicates(unitName)
 	end
 	EchoDebugPlans("looking for duplicate construction for " .. unitName)
 	for unitID, construct in pairs(self.constructing) do
-		if isExpensive and construct.unitName == unitName then return true end
+		if isExpensive and construct.unitName == unitName then
+			self:EchoDebug('there is already one of this')
+			return true
+		end
 	end
 	return false
 end

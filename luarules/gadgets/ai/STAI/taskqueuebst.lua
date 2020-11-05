@@ -27,106 +27,9 @@ local function MaxBuildDist(unitName, speed)
 	return speedDist
 end
 
-function TaskQueueBST:GetAmpOrGroundWeapon()
-	if self.ai.enemyBasePosition then
-		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
-			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
-			return true
-		end
-	end
-	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
-	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
-		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
-		return true
-	end
-	return false
-end
 
-function TaskQueueBST:CategoryEconFilter(value)
-	if value == nil then return self.ai.armyhst.DummyUnitName end
-	if value == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
-	local overview =self.ai.overviewhst
-	self:EchoDebug(value .. " (before econ filter)")
-	-- self:EchoDebug("ai.Energy: " .. self.ai.Energy.reserves .. " " .. self.ai.Energy.capacity .. " " .. self.ai.Energy.income .. " " .. self.ai.Energy.usage)
-	-- self:EchoDebug("ai.Metal: " .. self.ai.Metal.reserves .. " " .. self.ai.Metal.capacity .. " " .. self.ai.Metal.income .. " " .. self.ai.Metal.usage)
-	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value]  then
-		return value
-	end
-	if self.ai.armyhst.reclaimerList[value] then
-		-- dedicated reclaimer
-		self:EchoDebug(" dedicated reclaimer")
-		if overview.metalAboveHalf or overview.energyTooLow or overview.farTooFewCombats then
-			value = self.ai.armyhst.DummyUnitName
-		end
-	elseif self.ai.armyhst.unitTable[value].isBuilding then
-		-- buildings
-		self:EchoDebug(" building")
-		if self.ai.armyhst.unitTable[value].buildOptions ~= nil then
-			-- factory
-			self:EchoDebug("  factory")
-			return value
-		elseif self.ai.armyhst.unitTable[value].isWeapon then
-			-- defense
-			self:EchoDebug("  defense")
-			if self.ai.armyhst.bigPlasmaList[value] or self.ai.armyhst.nukeList[value] then
-				-- long-range plasma and nukes aren't really defense
-				if overview.metalTooLow or overview.energyTooLow or self.ai.Metal.income < 35 or self.ai.factories == 0 or overview.notEnoughCombats then
-					value = self.ai.armyhst.DummyUnitName
-				end
-			elseif self.ai.armyhst.littlePlasmaList[value] then
-				-- plasma turrets need units to back them up
-				if overview.metalTooLow or overview.energyTooLow or self.ai.Metal.income < 10 or self.ai.factories == 0 or overview.notEnoughCombats then
-					value = self.ai.armyhst.DummyUnitName
-				end
-			else
-				if overview.metalTooLow or self.ai.Metal.income < (self.ai.armyhst.unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or self.ai.factories == 0 then
-					value = self.ai.armyhst.DummyUnitName
-				end
-			end
-		elseif self.ai.armyhst.unitTable[value].radarRadius > 0 then
-			-- radar
-			self:EchoDebug("  radar")
-			if overview.metalTooLow or overview.energyTooLow or self.ai.factories == 0 or self.ai.Energy.full < 0.5 then
-				value = self.ai.armyhst.DummyUnitName
-			end
-		else
-			-- other building
-			self:EchoDebug("  other building")
-			if overview.notEnoughCombats or overview.metalTooLow or overview.energyTooLow or self.ai.Energy.income < 200 or self.ai.Metal.income < 8 or self.ai.factories == 0 then
-				value = self.ai.armyhst.DummyUnitName
-			end
-		end
-	else
-		-- moving units
-		self:EchoDebug(" moving unit")
-		if self.ai.armyhst.unitTable[value].buildOptions ~= nil then
-			-- construction unit
-			self:EchoDebug("  construction unit")
--- 			if self.ai.Energy.full < 0.05  then
--- 				value = self.ai.armyhst.DummyUnitName
--- 			end
-		elseif self.ai.armyhst.unitTable[value].isWeapon then
-			-- combat unit
-			self:EchoDebug("  combat unit")
-			if self.ai.Energy.full < 0.1 then
-				value = self.ai.armyhst.DummyUnitName
-			end
-		elseif value == "armpeep" or value == "corfink" then
-			-- scout planes have no weapons
-			if self.ai.Energy.full < 0.3 or self.ai.Metal.full < 0.3 then
-				value = self.ai.armyhst.DummyUnitName
-			end
-		else
-			-- other unit
-			self:EchoDebug("  other unit")
-			if overview.notEnoughCombats or self.ai.Energy.full < 0.3 or self.ai.Metal.full < 0.3 then
-				value = self.ai.armyhst.DummyUnitName
-			end
-		end
-	end
-	return value
-end
+
+
 function TaskQueueBST:Init()
 	self.DebugEnabled = false
 	if self.ai.outmodedFactories == nil then
@@ -198,6 +101,107 @@ function TaskQueueBST:Init()
 	end
 end
 
+function TaskQueueBST:CategoryEconFilter(value)
+	if value == nil then return self.ai.armyhst.DummyUnitName end
+	if value == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
+	local overview =self.ai.overviewhst
+	self:EchoDebug(value .. " (before econ filter)")
+	-- self:EchoDebug("ai.Energy: " .. self.ai.Energy.reserves .. " " .. self.ai.Energy.capacity .. " " .. self.ai.Energy.income .. " " .. self.ai.Energy.usage)
+	-- self:EchoDebug("ai.Metal: " .. self.ai.Metal.reserves .. " " .. self.ai.Metal.capacity .. " " .. self.ai.Metal.income .. " " .. self.ai.Metal.usage)
+	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value]  then
+		return value
+	end
+	if self.ai.armyhst.reclaimerList[value] then
+		-- dedicated reclaimer
+		self:EchoDebug(" dedicated reclaimer")
+		if overview.metalAboveHalf or overview.energyTooLow or overview.farTooFewCombats then
+			value = self.ai.armyhst.DummyUnitName
+		end
+	elseif self.ai.armyhst.unitTable[value].isBuilding then
+		-- buildings
+		self:EchoDebug(" building")
+		if self.ai.armyhst.unitTable[value].buildOptions ~= nil then
+			-- factory
+			self:EchoDebug("  factory")
+			return value
+		elseif self.ai.armyhst.unitTable[value].isWeapon then
+			-- defense
+			self:EchoDebug("  defense")
+			if self.ai.armyhst.bigPlasmaList[value] or self.ai.armyhst.nukeList[value] then
+				-- long-range plasma and nukes aren't really defense
+				if overview.metalTooLow or overview.energyTooLow or self.ai.Metal.income < 35 or self.ai.factories == 0 or overview.notEnoughCombats then
+					value = self.ai.armyhst.DummyUnitName
+				end
+			elseif self.ai.armyhst.littlePlasmaList[value] then
+				-- plasma turrets need units to back them up
+				if overview.metalTooLow or overview.energyTooLow or self.ai.Metal.income < 10 or self.ai.factories == 0 or overview.notEnoughCombats then
+					value = self.ai.armyhst.DummyUnitName
+				end
+			else
+				if overview.metalTooLow or self.ai.Metal.income < (self.ai.armyhst.unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or self.ai.factories == 0 then
+					value = self.ai.armyhst.DummyUnitName
+				end
+			end
+		elseif self.ai.armyhst.unitTable[value].radarRadius > 0 then
+			-- radar
+			self:EchoDebug("  radar")
+			if overview.metalTooLow or overview.energyTooLow or self.ai.factories == 0 or self.ai.Energy.full < 0.5 then
+				value = self.ai.armyhst.DummyUnitName
+			end
+		else
+			-- other building
+			self:EchoDebug("  other building")
+			if overview.notEnoughCombats or overview.metalTooLow or overview.energyTooLow or self.ai.Energy.income < 200 or self.ai.Metal.income < 8 or self.ai.factories == 0 then
+				value = self.ai.armyhst.DummyUnitName
+			end
+		end
+	else
+		-- moving units
+		self:EchoDebug(" moving unit")
+		if self.ai.armyhst.unitTable[value].buildOptions ~= nil then
+			-- construction unit
+			self:EchoDebug("  construction unit")
+			-- 			if self.ai.Energy.full < 0.05  then
+				-- 				value = self.ai.armyhst.DummyUnitName
+				-- 			end
+			elseif self.ai.armyhst.unitTable[value].isWeapon then
+				-- combat unit
+				self:EchoDebug("  combat unit")
+				if self.ai.Energy.full < 0.1 then
+					value = self.ai.armyhst.DummyUnitName
+				end
+			elseif value == "armpeep" or value == "corfink" then
+				-- scout planes have no weapons
+				if self.ai.Energy.full < 0.3 or self.ai.Metal.full < 0.3 then
+					value = self.ai.armyhst.DummyUnitName
+				end
+			else
+				-- other unit
+				self:EchoDebug("  other unit")
+				if overview.notEnoughCombats or self.ai.Energy.full < 0.3 or self.ai.Metal.full < 0.3 then
+					value = self.ai.armyhst.DummyUnitName
+				end
+			end
+		end
+		return value
+	end
+
+
+function TaskQueueBST:GetAmpOrGroundWeapon()
+	if self.ai.enemyBasePosition then
+		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
+			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
+			return true
+		end
+	end
+	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
+	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
+	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
+		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
+		return true
+	end
+	return false
+end
 function TaskQueueBST:HasQueues()
 	self:EchoDebug(self.ai.taskshst:taskqueues()[self.name])
 	return (self.ai.taskshst:taskqueues()[self.name] ~= nil)

@@ -1,4 +1,4 @@
-local DebugEnabled = false
+
 
 function IsCleaner(unit)
 	local tmpName = unit:Internal():Name()
@@ -7,22 +7,23 @@ end
 
 CleanerBST = class(Behaviour)
 
-function CleanerBST:EchoDebug(...)
-	if DebugEnabled then
-		local s = ""
-		local args = {...}
-		for i = 1, #args do
-			local a = args[i]
-			s = s .. tostring(a)
-			if i < #args then
-				s = s .. ", "
-			end
-		end
-		game:SendToConsole("CleanerBST " .. self.unit:Internal():Name() .. " " .. self.unit:Internal():ID() .. " : " .. s)
-	end
-end
+-- function CleanerBST:EchoDebug(...)
+-- 	if DebugEnabled then
+-- 		local s = ""
+-- 		local args = {...}
+-- 		for i = 1, #args do
+-- 			local a = args[i]
+-- 			s = s .. tostring(a)
+-- 			if i < #args then
+-- 				s = s .. ", "
+-- 			end
+-- 		end
+-- 		game:SendToConsole("CleanerBST " .. self.unit:Internal():Name() .. " " .. self.unit:Internal():ID() .. " : " .. s)
+-- 	end
+-- end
 
 function CleanerBST:Init()
+	self.DebugEnabled = false
 	self.name = self.unit:Internal():Name()
 	self:EchoDebug("init")
 	if self.ai.armyhst.nanoTurretList[self.name] then
@@ -86,7 +87,10 @@ end
 function CleanerBST:Search()
 	if self.cleanThis then return end
 	local cleanables = self.ai.cleanhst:GetCleanables(self)
-	if not cleanables or #cleanables == 0 then return end
+	if not cleanables or #cleanables == 0 then
+		self:EchoDebug('no cleanables')
+		return
+	end
 	local myPos = self.unit:Internal():GetPosition()
 	for i = #cleanables, 1, -1 do
 		local cleanable = cleanables[i]
@@ -101,6 +105,7 @@ function CleanerBST:Search()
 					self.ignore[cleanable:ID()] = true
 				end
 			else
+				self:EchoDebug('nil cleanable pos ')
 				self.ignore[cleanable:ID()] = nil
 				self.ai.cleanhst:RemoveCleanable(cleanable)
 			end

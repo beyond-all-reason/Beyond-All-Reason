@@ -355,9 +355,8 @@ function TaskEcoHST:CommanderEconomy(tqb)
 		unitName = self:Economy0uw()
 	end
 	return unitName
-
-
 end
+
 
 function TaskEcoHST:AmphibiousEconomy(tqb)
 	local underwater = self.ai.maphst:IsUnderWater(tqb.unit:Internal():GetPosition())

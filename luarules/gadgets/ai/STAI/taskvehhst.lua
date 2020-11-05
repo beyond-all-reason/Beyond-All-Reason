@@ -5,11 +5,11 @@ function TaskVehHST:Name()
 end
 
 function TaskVehHST:internalName()
-	return "TaskVehHST"
+	return "taskvehhst"
 end
 
 function TaskVehHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 end
 
 
@@ -51,9 +51,9 @@ function TaskVehHST:ConVehicle()
 	return unitName
 end
 
-function TaskVehHST:Lvl1VehBreakthrough()
+function TaskVehHST:Lvl1VehBreakthrough(tqb)
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious(self)
+		return self:Lvl1Amphibious(tqb)
 	else
 		if  self.ai.side == self.ai.armyhst.CORESideName then
 			return self.ai.taskshst:BuildBreakthroughIfNeeded("corlevlr")
@@ -68,10 +68,10 @@ function TaskVehHST:Lvl1VehBreakthrough()
 	end
 end
 
-function TaskVehHST:Lvl1VehArty()
+function TaskVehHST:Lvl1VehArty(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious(self)
+		return self:Lvl1Amphibious(tqb)
 	else
 		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corwolv"
@@ -102,10 +102,10 @@ function TaskVehHST:Lvl1Amphibious()
 	return unitName
 end
 
-function TaskVehHST:Lvl1VehRaider()
+function TaskVehHST:Lvl1VehRaider(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious(self)
+		return self:Lvl1Amphibious(tqb)
 	else
 		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corgator"
@@ -116,10 +116,10 @@ function TaskVehHST:Lvl1VehRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl1VehBattle()
+function TaskVehHST:Lvl1VehBattle(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious(self)
+		return self:Lvl1Amphibious(tqb)
 	else
 		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corraid"

@@ -410,7 +410,9 @@ function TasksHST:anyCombatEngineer()  return  {
 	self:wrap( self.ai.taskbuildhst,'BuildLvl2Plasma' ) ,
 } end
 
-
+function TasksHST:anyFark() return{
+	self:wrap( self.ai.taskecohst,'EconomyFark' ) ,
+}end
 -- factories.
 
 		function TasksHST:anyLvl1AirPlant()  return  {
@@ -449,8 +451,8 @@ function TasksHST:anyLvl1ShipYard()  return  {
 } end
 
 function TasksHST:anyHoverPlatform()  return  {
-	self:wrap( self.ai.taskhovhst,'HoverRaider' ) ,
 	self:wrap( self.ai.taskhovhst,'ConHover' ) ,
+	self:wrap( self.ai.taskhovhst,'HoverRaider' ) ,
 	self:wrap( self.ai.taskhovhst,'HoverBattle' ) ,
 	self:wrap( self.ai.taskhovhst,'HoverBreakthrough' ) ,
 	self:wrap( self.ai.taskhovhst,'HoverMerl' ) ,
@@ -461,9 +463,10 @@ function TasksHST:anyAmphibiousComplex()  return  {
 	self:wrap( self.ai.taskvehhst,'AmphibiousRaider' ) ,
 	self:wrap( self.ai.taskvehhst,'ConVehicleAmphibious' ) ,
 	self:wrap( self.ai.taskvehhst,'AmphibiousBattle' ) ,
-	self:wrap( self.ai.taskshphst,'Lvl1ShipRaider' ) ,
+	--self:wrap( self.ai.taskshphst,'Lvl1ShipRaider' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl1AABot' ) ,
 	self:wrap( self.ai.taskbothst,'Lvl2AABot' ) ,
+	self:wrap( self.ai.taskbothst,'Decoy' ) ,
 } end
 
 function TasksHST:anyLvl2VehPlant()  return  {
@@ -525,6 +528,8 @@ function TasksHST:anyExperimental()  return  {
 	self:wrap( self.ai.taskexphst,'Lvl3Arty' ) ,
 	self:wrap( self.ai.taskexphst,'Lvl3Breakthrough' ) ,
 } end
+
+
 
 function TasksHST:anyOutmodedLvl1BotLab()  return  {
 	self:wrap( self.ai.taskbothst,'ConBot' ) ,
@@ -641,5 +646,5 @@ function TasksHST:taskqueues()  return  {
 	armshltx = self:wrap( self  ,  'anyExperimental' ) ,
 	corgantuw = self:wrap( self  ,  'anyUWExperimental' ) ,
 	armshltxuw = self:wrap( self  ,  'anyUWExperimental' ) ,
-	--armfark = self:wrap( self  ,  'anyfark' ) ,
+	armfark = self:wrap( self  ,  'anyfark' ) ,
 } end

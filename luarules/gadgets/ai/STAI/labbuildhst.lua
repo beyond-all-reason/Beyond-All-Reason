@@ -149,14 +149,20 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 		local sameFactoryCount = self.ai.nameCountFinished[factoryName] or 0
 		local sameFactoryMetal = sameFactoryCount * 20
 		local sameFactoryEnergy = sameFactoryCount * 500
-		if (
-			self.ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
-			and self.ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
-			and self.ai.combatCount >= self.ai.factories * 20
-		) or (
-			self.ai.Metal.income > (factoryCountSq * 20) + (sameFactoryMetal * 2)
-			and self.ai.Energy.income > (factoryCountSq * 200) + (sameFactoryEnergy * 2)
-		) then
+		if
+			(self.ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
+				and self.ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
+				and self.ai.combatCount >= self.ai.factories * 20)
+			or (
+				self.ai.Metal.income > (factoryCountSq * 20) + (sameFactoryMetal * 2)
+				and self.ai.Energy.income > (factoryCountSq * 200) + (sameFactoryEnergy * 2)
+			or  (uTn.metalCost * 1.2 < self.ai.Metal.reserves
+					and  uTn.energyCost  < self.ai.Energy.reserves
+					and self.ai.combatCount >= 50
+					and self.ai.factories >= 1)
+
+		)then
+
 			self:EchoDebug(factoryName .. ' conditions met')
 			local canBuild = builder:CanBuild(game:GetTypeByName(factoryName))
 			if canBuild then
@@ -287,15 +293,19 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 	-- 	self:EchoDebug('tech level ' .. self.ai.armyhst.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. self.ai.factoryBuilded[mtype][network])
 	-- 	return false
 	-- end
-	if mtype == 'bot' then
+
+	if mtype ~= 'air' and self.ai.factoryBuilded['air'][1] < 1 and self.ai.haveAdvFactory then
+		self:EchoDebug('dont build this if we dont have air')
+		return false
+	elseif mtype == 'bot' then
 		local vehNetwork = self.ai.factoryBuilded['veh'][self.ai.maphst:MobilityNetworkHere('veh',p)]
-		if (vehNetwork and vehNetwork > 0) and (vehNetwork < 4 or self.ai.factoryBuilded['air'][1] < 1) then
+		if (vehNetwork and vehNetwork > 0) and (vehNetwork < 4 ) then
 			self:EchoDebug('dont build bot where are already veh not on top of tech level')
 			return false
 		end
 	elseif mtype == 'veh' then
 		local botNetwork = self.ai.factoryBuilded['bot'][self.ai.maphst:MobilityNetworkHere('bot',p)]
-		if (botNetwork and botNetwork > 0) and (botNetwork < 9 or self.ai.factoryBuilded['air'][1] < 1) then
+		if (botNetwork and botNetwork > 0) and (botNetwork < 9 ) then
 			self:EchoDebug('dont build veh where are already bot not on top of tech level')
 			return false
 		end
