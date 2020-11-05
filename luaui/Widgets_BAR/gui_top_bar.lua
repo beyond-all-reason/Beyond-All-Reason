@@ -2068,7 +2068,7 @@ function widget:Initialize()
 		return showRejoinUI
 	end
 	WG['topbar'].showingQuit = function()
-		return showQuitscreen
+		return (showQuitscreen ~= nil)
 	end
 
 	widget:ViewResize()

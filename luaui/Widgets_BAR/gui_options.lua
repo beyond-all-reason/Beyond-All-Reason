@@ -50,6 +50,7 @@ local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1
 local fontfileScale2 = fontfileScale * 1.2
 
+local pauseGameWhenSingleplayerExecuted = false
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 local backwardTex = ":l:LuaUI/Images/backward.dds"
@@ -1027,27 +1028,44 @@ function widget:RecvLuaMsg(msg, playerID)
 			end
 			if not skipUnpauseOnLobbyHide then
 				Spring.SendCommands("pause "..(chobbyInterface and '1' or '0'))
+				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 		end
 	end
 end
 
+local quitscreen = false
+local prevQuitscreen = false
 function widget:DrawScreen()
 
+	-- pause/unpause when the options/quitscreen interface shows
 	local _, gameSpeed, isPaused = Spring.GetGameSpeed()
 	if not isPaused then
 		skipUnpauseOnHide = false
 		skipUnpauseOnLobbyHide = false
 	end
+	local showToggledOff = false
 	if isSinglePlayer and pauseGameWhenSingleplayer and prevShow ~= show then
 		if show and isPaused then
 			skipUnpauseOnHide = true
 		end
 		if not skipUnpauseOnHide then
 			Spring.SendCommands("pause "..(show and '1' or '0'))    -- cause several widgets are still using old colors
+			showToggledOff = not show
+			pauseGameWhenSingleplayerExecuted = show
 		end
 	end
-
+	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
+	if isSinglePlayer and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
+		if quitscreen and isPaused and not showToggledOff then
+			skipUnpauseOnHide = true
+		end
+		if not skipUnpauseOnHide then
+			Spring.SendCommands("pause "..(quitscreen and '1' or '0'))    -- cause several widgets are still using old colors
+			pauseGameWhenSingleplayerExecuted = quitscreen
+		end
+	end
+	prevQuitscreen = quitscreen
 
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -3633,6 +3651,16 @@ function init()
 		{ id = "singleplayerpause", group = "game", name = "Pause when in settings/lobby", type = "bool", value = pauseGameWhenSingleplayer, description = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings window or lobby',
 		  onchange = function(i, value)
 			  pauseGameWhenSingleplayer = value
+			  if isSinglePlayer and show then
+				  local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+				  if pauseGameWhenSingleplayer then
+					  Spring.SendCommands("pause "..(pauseGameWhenSingleplayer and  '1' or '0'))
+					  pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
+				  elseif pauseGameWhenSingleplayerExecuted then
+				  	  Spring.SendCommands("pause 0")
+				  	  pauseGameWhenSingleplayerExecuted = false
+				  end
+			  end
 		  end,
 		},
 
@@ -4940,6 +4968,7 @@ function widget:GetConfigData(data)
 	savedTable.maxNanoParticles = maxNanoParticles
 	savedTable.currentGroupTab = currentGroupTab
 	savedTable.show = show
+	savedTable.pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted
 	savedTable.pauseGameWhenSingleplayer = pauseGameWhenSingleplayer
 	savedTable.advSettings = advSettings
 	savedTable.defaultMapSunPos = defaultMapSunPos
@@ -5009,6 +5038,9 @@ function widget:SetConfigData(data)
 	end
 	if data.show ~= nil and Spring.GetGameFrame() > 0 then
 		show = data.show
+	end
+	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
+		pauseGameWhenSingleplayerExecuted = data.pauseGameWhenSingleplayerExecuted
 	end
 	if data.pauseGameWhenSingleplayer ~= nil then
 		pauseGameWhenSingleplayer = data.pauseGameWhenSingleplayer
