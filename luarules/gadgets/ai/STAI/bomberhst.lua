@@ -88,8 +88,8 @@ function BomberHST:DoTargetting()
 					self:EchoDebug('dotarget have recruit' , recruit)
 					self:EchoDebug('dotarget unit' , recruit.unit)
 					self:EchoDebug('dotarget internal' , recruit.unit:Internal())
-					self:EchoDebug('dotarget internalPos' , recruit.unit:Internal():GetPosition())
-					if recruit and recruit.unit and  recruit.unit:Internal() then
+					self:EchoDebug('dotarget internalPos we hope there are one' )
+					if recruit and recruit.unit and  recruit.unit:Internal() and  recruit.unit:Internal():GetPosition() then
 						local pos = recruit.unit:Internal():GetPosition()
 						sumX = sumX + pos.x
 						sumZ = sumZ + pos.z
