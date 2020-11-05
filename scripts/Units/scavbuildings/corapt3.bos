@@ -1,0 +1,285 @@
+//            * Header Info *
+// VersionSignature                     4
+// NumberOfScripts                     19
+// NumberOfPieces                      9
+// LengthOfScripts                     471
+// NumberOfStaticVars                  4
+// UKZero                              0
+// OffsetToScriptCodeIndexArray        11f0
+// OffsetToScriptNameOffsetArray       123c
+// OffsetToPieceNameOffsetArray        1288
+// OffsetToScriptCode                  2c
+// OffsetToNameArray                   12ac
+
+// OffsetToFirstName                   12ac
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, head,nano1,nano2,       dish;
+
+static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+Standby()
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 100;
+	}
+	sleep 50;
+	start-script Standby();
+}
+activatescr()
+/*     0:*/{
+/*     2:*/	if( TRUE )
+/*     4:*/	{
+				turn head to y-axis <0> now;
+				turn head to y-axis <109> speed <100>;
+				wait-for-turn head around y-axis;
+/*    12:*/		sleep 464;
+/*    13:*/	}
+/*    7e:*/	sleep 56;
+/*    81:*/	return (0);
+/*    82:*/}
+
+deactivatescr()
+/*    82:*/{
+/*    84:*/	if( TRUE )
+/*    86:*/	{
+				turn head to y-axis <0> speed <100>;
+				wait-for-turn head around y-axis;
+/*    cc:*/		sleep 424;
+/*    cd:*/	}
+/*   126:*/	return (0);
+/*   127:*/}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+/*   12a:*/{
+/*   12d:*/	while( get BUILD_PERCENT_LEFT )
+/*   12f:*/	{
+/*   131:*/		sleep 400;
+/*   134:*/	}
+/*   136:*/	while( TRUE )
+/*   138:*/	{
+/*   13b:*/		healthpercent = get HEALTH;
+/*   142:*/		if( healthpercent < 66 )
+/*   144:*/		{
+/*   149:*/			smoketype = 256 | 2;
+/*   153:*/			if( Rand( 1, 66 ) < healthpercent )
+/*   155:*/			{
+/*   15a:*/				smoketype = 256 | 1;
+/*   15c:*/			}
+/*   15e:*/			emit-sfx smoketype from base;
+/*   160:*/		}
+/*   165:*/		sleeptime = healthpercent * 50;
+/*   16c:*/		if( sleeptime < 200 )
+/*   16e:*/		{
+/*   170:*/			sleeptime = 200;
+/*   172:*/		}
+/*   174:*/		sleep sleeptime;
+/*   177:*/	}
+/*   179:*/	return (0);
+/*   17a:*/}
+
+OpenYard()
+/*   17a:*/{
+/*   17e:*/	set YARD_OPEN to 1;
+/*   183:*/	while( !get YARD_OPEN )
+/*   185:*/	{
+/*   189:*/		set BUGGER_OFF to 1;
+/*   18c:*/		sleep 1500;
+/*   191:*/		set YARD_OPEN to 1;
+/*   194:*/	}
+/*   198:*/	set BUGGER_OFF to 0;
+/*   19b:*/	return (0);
+/*   19c:*/}
+
+CloseYard()
+/*   19c:*/{
+/*   1a0:*/	set YARD_OPEN to 0;
+/*   1a4:*/	while( get YARD_OPEN )
+/*   1a6:*/	{
+/*   1aa:*/		set BUGGER_OFF to 1;
+/*   1ad:*/		sleep 1500;
+/*   1b2:*/		set YARD_OPEN to 0;
+/*   1b5:*/	}
+/*   1b9:*/	set BUGGER_OFF to 0;
+/*   1bc:*/	return (0);
+/*   1bd:*/}
+
+Go()
+/*   1bd:*/{
+/*   1cb:*/	call-script activatescr();
+/*   1ce:*/	call-script OpenYard();
+/*   1d5:*/	set INBUILDSTANCE to 1;
+/*   1d8:*/	return (0);
+/*   1d9:*/}
+
+Stop()
+/*   1d9:*/{
+/*   1dd:*/	set INBUILDSTANCE to 0;
+/*   1de:*/	call-script CloseYard();
+/*   1e1:*/	call-script deactivatescr();
+/*   1f4:*/	return (0);
+/*   1f5:*/}
+
+InitState()
+/*   1f5:*/{
+/*   1f7:*/	statechg_DesiredState = TRUE;
+/*   1fb:*/	statechg_StateChanging = FALSE;
+/*   1ff:*/	return (0);
+/*   200:*/}
+
+RequestState(requestedstate, currentstate)
+/*   202:*/{
+/*   204:*/	if( statechg_StateChanging )
+/*   206:*/	{
+/*   208:*/		statechg_DesiredState = requestedstate;
+/*   20c:*/		return (0);
+/*   20d:*/	}
+/*   20f:*/	statechg_StateChanging = TRUE;
+/*   213:*/	currentstate = statechg_DesiredState;
+/*   217:*/	statechg_DesiredState = requestedstate;
+/*   21e:*/	while( statechg_DesiredState != currentstate )
+/*   220:*/	{
+/*   225:*/		if( statechg_DesiredState == 0 )
+/*   227:*/		{
+/*   227:*/			call-script Go();
+/*   22c:*/			currentstate = 0;
+/*   22e:*/		}
+/*   233:*/		if( statechg_DesiredState == 1 )
+/*   235:*/		{
+/*   235:*/			call-script Stop();
+/*   23a:*/			currentstate = 1;
+/*   23c:*/		}
+/*   23e:*/	}
+/*   240:*/	statechg_StateChanging = FALSE;
+/*   244:*/	return (0);
+/*   245:*/}
+
+Create()
+/*   245:*/{
+/*   259:*/	unitviewer = FALSE;
+/*   25d:*/	spray = base;
+/*   25f:*/	call-script InitState();
+/*   262:*/	start-script SmokeUnit();
+			start-script Standby();
+/*   268:*/	while( get BUILD_PERCENT_LEFT )
+/*   26a:*/	{
+/*   26c:*/		sleep 1000;
+/*   26f:*/	}
+/*   273:*/	spin dish around y-axis speed <150.032967>;
+/*   278:*/	return (0);
+/*   279:*/}
+
+QueryNanoPiece(piecenum)
+/*   27a:*/{
+/*   27f:*/	if( spray == 0 )
+/*   281:*/	{
+/*   283:*/		piecenum = nano1;
+/*   285:*/	}
+/*   28a:*/	if( spray != 0 )
+/*   28c:*/	{
+/*   28e:*/		piecenum = nano2;
+/*   290:*/	}
+/*   293:*/	spray = !spray;
+/*   297:*/	return (0);
+/*   298:*/}
+
+Demo()
+/*   298:*/{
+/*   29a:*/	unitviewer = TRUE;
+/*   29e:*/	return (0);
+/*   29f:*/}
+
+Activate()
+/*   29f:*/{
+/*   2a1:*/	signal SIG_ACTIVATE;
+/*   2a4:*/	start-script RequestState(0);
+/*   2a9:*/	return (0);
+/*   2aa:*/}
+
+Deactivate()
+/*   2aa:*/{
+/*   2ac:*/	signal SIG_ACTIVATE;
+/*   2af:*/	set-signal-mask SIG_ACTIVATE;
+/*   2b3:*/	if( !unitviewer )
+/*   2b5:*/	{
+/*   2b7:*/		sleep 5000;
+/*   2b8:*/	}
+/*   2ba:*/	set-signal-mask 0;
+/*   2bd:*/	start-script RequestState(1);
+/*   2c2:*/	return (0);
+/*   2c3:*/}
+
+StartBuilding()
+/*   2c3:*/{
+/*   2cc:*/	return (0);
+/*   2cd:*/}
+
+StopBuilding()
+/*   2cd:*/{
+/*   2d4:*/	return (0);
+/*   2d5:*/}
+
+QueryBuildInfo(piecenum)
+/*   2d6:*/{
+/*   2d8:*/	piecenum = pad;
+/*   2dc:*/	return (0);
+/*   2dd:*/}
+
+SweetSpot(piecenum)
+/*   2de:*/{
+/*   2e0:*/	piecenum = base;
+/*   2e4:*/	return (0);
+/*   2e5:*/}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type BITMAPONLY | NOHEATCLOUD;
+		explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		explode pad type BITMAPONLY | NOHEATCLOUD;
+		explode dish type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head type FALL | NOHEATCLOUD;
+		explode nano1 type FALL | NOHEATCLOUD;
+		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FALL | NOHEATCLOUD;
+		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

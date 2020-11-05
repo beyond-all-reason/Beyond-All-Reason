@@ -492,11 +492,9 @@ customDefs.armshltx = {
 		[numBuildoptions+2] = "armsptkt4",
 		[numBuildoptions+3] = "armpwt4",
 		[numBuildoptions+4] = "armvadert4",
-		[numBuildoptions+5] = "armfepocht4",
-		[numBuildoptions+6] = "armthundt4",
-		[numBuildoptions+7] = "armlunchbox",
-		[numBuildoptions+8] = "armmeatball",
-		[numBuildoptions+9] = "armassimilator",
+		[numBuildoptions+5] = "armlunchbox",
+		[numBuildoptions+6] = "armmeatball",
+		[numBuildoptions+7] = "armassimilator",
 		
 	},
 }
@@ -507,29 +505,25 @@ customDefs.armshltxuw = {
 		[numBuildoptions+1] = "armrattet4",
 		[numBuildoptions+2] = "armpwt4",
 		[numBuildoptions+3] = "armvadert4",
-		[numBuildoptions+4] = "armfepocht4",
-		[numBuildoptions+5] = "armthundt4",
-		[numBuildoptions+6] = "armmeatball",
+		[numBuildoptions+4] = "armmeatball",
 	},
 }
 
 numBuildoptions = #UnitDefs.corgant.buildoptions
 customDefs.corgant = {
 	buildoptions = {
-		[numBuildoptions+1] = "corcrwt4",
-		[numBuildoptions+2] = "corfblackhyt4",
-		[numBuildoptions+3] = "cordemont4",
-		[numBuildoptions+4] = "corkarganetht4",
+		[numBuildoptions+1] = "cordemont4",
+		[numBuildoptions+2] = "corkarganetht4",
 	},
 }
 
-numBuildoptions = #UnitDefs.corgantuw.buildoptions
-customDefs.corgantuw = {
-	buildoptions = {
-		[numBuildoptions+1] = "corcrwt4",
-		[numBuildoptions+2] = "corfblackhyt4",
-	},
-}
+-- numBuildoptions = #UnitDefs.corgantuw.buildoptions
+-- customDefs.corgantuw = {
+	-- buildoptions = {
+		-- [numBuildoptions+1] = "corcrwt4",
+		-- [numBuildoptions+2] = "corfblackhyt4",
+	-- },
+-- }
 
 numBuildoptions = #UnitDefs.coravp.buildoptions
 customDefs.coravp = {
@@ -538,6 +532,49 @@ customDefs.coravp = {
 	},
 }
 
+
+
+numBuildoptions = #UnitDefs.armaca.buildoptions
+customDefs.armaca = {
+	buildoptions = {
+		[numBuildoptions+1] = "armapt3",
+	},
+}
+
+numBuildoptions = #UnitDefs.armack.buildoptions
+customDefs.armack = {
+	buildoptions = {
+		[numBuildoptions+1] = "armapt3",
+	},
+}
+
+numBuildoptions = #UnitDefs.armacv.buildoptions
+customDefs.armacv = {
+	buildoptions = {
+		[numBuildoptions+1] = "armapt3",
+	},
+}
+
+numBuildoptions = #UnitDefs.coraca.buildoptions
+customDefs.coraca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corapt3",
+	},
+}
+
+numBuildoptions = #UnitDefs.corack.buildoptions
+customDefs.corack = {
+	buildoptions = {
+		[numBuildoptions+1] = "corapt3",
+	},
+}
+
+numBuildoptions = #UnitDefs.coracv.buildoptions
+customDefs.coracv = {
+	buildoptions = {
+		[numBuildoptions+1] = "corapt3",
+	},
+}
 
 -- Cloaked Radar
 
