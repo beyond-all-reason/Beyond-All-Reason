@@ -922,7 +922,7 @@ function widget:DrawScreen()
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+			RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 		end), 'unit_stats_data')
 	end
 
