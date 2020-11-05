@@ -11,7 +11,7 @@ end
 
 PointCapturerBehaviour = class(Behaviour)
 
-function PointCapturerBehaviour:GetRandomAway(pos, dist, angle)
+function PointCapturerBehaviour:Getself.ai.tool:RandomAway(pos, dist, angle)
 	angle = angle or math.random() * math.pi * 2
 	local away = self.ai.api.Position()
 	away.x = pos.x + dist * math.cos(angle)
@@ -60,7 +60,7 @@ function PointCapturerBehaviour:GoForth()
 	local upos = self.unit:Internal():GetPosition()
 	local point = self.ai.controlpointhandler:ClosestUncapturedPoint(upos)
 	if point and point ~= self.currentPoint then
-		local movePos = self:GetRandomAway( point, math.random(self.minDist,self.maxDist) )
+		local movePos = self:Getself.ai.tool:RandomAway( point, math.random(self.minDist,self.maxDist) )
 		self.unit:Internal():Move(movePos)
 		self.currentPoint = point
 	end

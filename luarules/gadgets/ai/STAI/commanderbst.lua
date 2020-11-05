@@ -74,10 +74,10 @@ end
 function CommanderBST:HelpFactory()
 	local factPos = self.factoryToHelp:GetPosition()
 	local angle = math.random() * twicePi
-	self.unit:Internal():Move(RandomAway(self.ai, factPos, 200, nil, angle))
+	self.unit:Internal():Move(self.ai.tool:RandomAway( factPos, 200, nil, angle))
 	for i = 1, 3 do
-		local a = AngleAdd(angle, halfPi*i)
-		local pos = RandomAway(self.ai, factPos, 200, nil, a)
+		local a = self.ai.tool:AngleAdd(angle, halfPi*i)
+		local pos = self.ai.tool:RandomAway( factPos, 200, nil, a)
 		local floats = api.vectorFloat()
 		floats:push_back(pos.x)
 		floats:push_back(pos.y)

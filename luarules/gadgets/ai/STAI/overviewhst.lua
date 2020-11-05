@@ -44,15 +44,15 @@ function OverviewHST:EvaluateSituation()
 	self.ai.haveExpFactory = self.ai.factoriesAtLevel[5] and #self.ai.factoriesAtLevel[5] ~= 0
 
 	self.ai.needToReclaim = self.ai.Metal.full < 0.5 and self.ai.wreckCount > 0
-	self.AAUnitPerTypeLimit = math.ceil(self.ai.turtlehst:GetTotalPriority() / 4)
+	self.AAUnitPerTypeLimit = math.min(10,math.ceil(self.ai.turtlehst:GetTotalPriority() / 4))
 	self.heavyPlasmaLimit = math.ceil(self.ai.combatCount / 10)
 	self.nukeLimit = math.ceil(self.ai.combatCount / 50)
 	self.tacticalNukeLimit = math.ceil(self.ai.combatCount / 40)
 
 	local attackCounter = self.ai.attackhst:GetCounter()
 	local couldAttack = self.ai.couldAttack >= 1 or self.ai.couldBomb >= 1
-	local bombingTooExpensive = self.ai.bomberhst:GetCounter() == UnitiesHST.maxBomberCounter
-	local attackTooExpensive = attackCounter == UnitiesHST.maxAttackCounter
+	local bombingTooExpensive = self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter
+	local attackTooExpensive = attackCounter == self.ai.armyhst.maxAttackCounter
 	local controlMetalSpots = self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
 
@@ -66,7 +66,7 @@ function OverviewHST:EvaluateSituation()
 		self.plasmaRocketBotRatio = 1 - ((self.ai.totalEnemyImmobileThreat / self.ai.totalEnemyThreat) / 2.5)
 		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
 	end
-	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= UnitiesHST.siegeAttackCounter or controlMetalSpots
+	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= self.ai.armyhst.siegeAttackCounter or controlMetalSpots
 	local needAdvanced = (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or self.ai.lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
@@ -78,8 +78,8 @@ function OverviewHST:EvaluateSituation()
 	if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and (needUpgrade or self.ai.BigEco) and self.ai.enemyBasePosition then
 		if not self.ai.haveExpFactory then
 			for i, factory in pairs(self.ai.factoriesAtLevel[self.ai.maxFactoryLevel]) do
-				for expFactName, _ in pairs(UnitiesHST.expFactories) do
-					for _, mtype in pairs(UnitiesHST.factoryMobilities[expFactName]) do
+				for expFactName, _ in pairs(self.ai.armyhst.expFactories) do
+					for _, mtype in pairs(self.ai.armyhst.factoryMobilities[expFactName]) do
 						local myNet = self.ai.maphst:MobilityNetworkHere(mtype, factory.position)
 						local enemyNet = self.ai.maphst:MobilityNetworkHere(mtype, self.ai.enemyBasePosition)
 						if myNet and enemyNet and myNet == enemyNet then

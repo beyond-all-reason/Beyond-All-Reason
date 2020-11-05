@@ -1,19 +1,28 @@
-UnitiesHST = class(Module)
+ArmyHST = class(Module)
 
-function UnitiesHST:Name()
-	return "UnitiesHST"
+function ArmyHST:Name()
+	return "ArmyHST"
 end
 
-function UnitiesHST:internalName()
-	return "UnitiesHST"
+function ArmyHST:internalName()
+	return "armyhst"
 end
 
 
-function UnitiesHST:Init()
+function ArmyHST:Init()
 	self.DebugEnabled = false
 end
 
-UnitiesHST.factoryMobilities = {
+ArmyHST.techPenalty = {
+	armamsub = -1,
+	coramsub = -1,
+	armfhp = -1,
+	corfhp = -1,
+	armhp = -1,
+	corhp = -1,
+}
+
+ArmyHST.factoryMobilities = {
 	corap = {"air"},
 	armap = {"air"},
 	corlab = {"bot"},
@@ -46,7 +55,7 @@ UnitiesHST.factoryMobilities = {
 
 -- for calculating what factories to build
 -- higher values mean more effecient
-UnitiesHST.mobilityEffeciencyMultiplier = {
+ArmyHST.mobilityEffeciencyMultiplier = {
 	veh = 1,
 	shp = 1,
 	bot = 0.9,
@@ -56,7 +65,7 @@ UnitiesHST.mobilityEffeciencyMultiplier = {
 	air = 0.55,
 }
 
-UnitiesHST.factoryExitSides = {
+ArmyHST.factoryExitSides = {
 	corap = 0,
 	armap = 0,
 	corlab = 2,
@@ -87,7 +96,7 @@ UnitiesHST.factoryExitSides = {
 	armshltxuw = 1,
 }
 
-UnitiesHST.littlePlasmaList = {
+ArmyHST.littlePlasmaList = {
 	corpun = 1,
 	armguard = 1,
 	cortoast = 1,
@@ -96,7 +105,7 @@ UnitiesHST.littlePlasmaList = {
 }
 
 -- these big energy plants will be shielded in addition to factories
-UnitiesHST.bigEnergyList = {
+ArmyHST.bigEnergyList = {
 	corageo = 1,
 	armageo = 1,
 	corfus = 1,
@@ -106,7 +115,7 @@ UnitiesHST.bigEnergyList = {
 }
 
 -- geothermal plants
-UnitiesHST.geothermalPlant = {
+ArmyHST.geothermalPlant = {
 	corgeo = 1,
 	armgeo = 1,
 	corageo = 1,
@@ -116,18 +125,18 @@ UnitiesHST.geothermalPlant = {
 }
 
 -- what mexes upgrade to what
-UnitiesHST.mexUpgrade = {
+ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
 	armmex = "armmoho",
-	coruwmex = "coruwmme",
-	armuwmex = "armuwmme",
+	coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
+	armuwmex = "armuwmme",--ex armuwmex
 	armamex = "armmoho",
 	corexp = "cormexp",
 
 }
 
 -- these will be abandoned faster
-UnitiesHST.hyperWatchdog = {
+ArmyHST.hyperWatchdog = {
 	armmex = 1,
 	cormex = 1,
 	armgeo = 1,
@@ -136,7 +145,7 @@ UnitiesHST.hyperWatchdog = {
 
 -- things we really need to construct other than factories
 -- value is max number of assistants to get if available (0 is all available)
-UnitiesHST.helpList = {
+ArmyHST.helpList = {
 	corfus = 0,
 	armfus = 0,
 	coruwfus = 0,
@@ -154,7 +163,7 @@ UnitiesHST.helpList = {
 }
 
 -- priorities of things to defend that can't be accounted for by the formula in turtlehst
-UnitiesHST.turtleList = {
+ArmyHST.turtleList = {
 	cormakr = 0.5,
 	armmakr = 0.5,
 	corfmkr = 0.5,
@@ -178,7 +187,7 @@ UnitiesHST.turtleList = {
 }
 
 -- factories that can build advanced construction units (i.e. moho mines)
-UnitiesHST.advFactories = {
+ArmyHST.advFactories = {
 	coravp = 1,
 	coralab = 1,
 	corasy = 1,
@@ -192,7 +201,7 @@ UnitiesHST.advFactories = {
 }
 
 -- experimental factories
-UnitiesHST.expFactories = {
+ArmyHST.expFactories = {
 	corgant = 1,
 	armshltx = 1,
 	corgantuw = 1,
@@ -200,7 +209,7 @@ UnitiesHST.expFactories = {
 }
 
 -- leads to experimental
-UnitiesHST.leadsToExpFactories = {
+ArmyHST.leadsToExpFactories = {
 	corlab = 1,
 	armlab = 1,
 	coralab = 1,
@@ -212,7 +221,7 @@ UnitiesHST.leadsToExpFactories = {
 }
 
 -- sturdy, cheap units to be built in larger numbers than siege units
-UnitiesHST.battleList = {
+ArmyHST.battleList = {
 	corraid = 1,
 	armstump = 1,
 	corthud = 1,
@@ -233,12 +242,16 @@ UnitiesHST.battleList = {
 	armzeus = 2,
 	corcrus = 2,
 	armcrus = 2,
+	armmav = 2,
+-- 	cordecom = 2,
+-- 	armdecom = 2,
 	corkarg = 3,
 	armraz = 3,
+
 }
 
 -- sturdier units to use when battle units get killed
-UnitiesHST.breakthroughList = {
+ArmyHST.breakthroughList = {
 	corlevlr = 1,
 	armwar = 1,
 	corgol = 2,
@@ -258,7 +271,7 @@ UnitiesHST.breakthroughList = {
 }
 
 -- for milling about next to con units and factories only
-UnitiesHST.defenderList = {
+ArmyHST.defenderList = {
 	armaak = 1 ,
 	corcrash = 1 ,
 	armjeth = 1 ,
@@ -282,7 +295,7 @@ UnitiesHST.defenderList = {
 	corsfig = 1 ,
 }
 
-UnitiesHST.attackerlist = {
+ArmyHST.attackerlist = {
 	armsam = 1 ,
 	corwolv = 1 ,
 	armart = 1 ,
@@ -349,7 +362,7 @@ UnitiesHST.attackerlist = {
 }
 
 -- these units will be used to raid weakly defended spots
-UnitiesHST.raiderList = {
+ArmyHST.raiderList = {
 	armfast = 1,
 	corgator = 1,
 	armflash = 1,
@@ -369,7 +382,7 @@ UnitiesHST.raiderList = {
 	armkam = 1,
 	armsaber = 1,
 	armblade = 1,
-	armcorbw = 1,
+	corbw = 1,
 	corape = 1,
 	corcut = 1,
 	corcrw = 1,
@@ -380,7 +393,7 @@ UnitiesHST.raiderList = {
 	corshark = 1,
 }
 
-UnitiesHST.scoutList = {
+ArmyHST.scoutList = {
 	corfink = 1,
 	armpeep = 1,
 	corfav = 1,
@@ -394,12 +407,12 @@ UnitiesHST.scoutList = {
 	armsehak = 1,
 }
 
-UnitiesHST.raiderDisarms = {
-	armcorbw = 1,
+ArmyHST.raiderDisarms = {
+	corbw = 1,
 }
 
 -- units in this list are bombers or torpedo bombers
-UnitiesHST.bomberList = {
+ArmyHST.bomberList = {
 	corshad = 1,
 	armthund = 1,
 	corhurc = 2,
@@ -413,7 +426,7 @@ UnitiesHST.bomberList = {
 	armseap = 2,
 }
 
-UnitiesHST.antinukeList = {
+ArmyHST.antinukeList = {
 	corfmd = 1,
 	armamd = 1,
 	corcarry = 1,
@@ -422,17 +435,17 @@ UnitiesHST.antinukeList = {
 	armscab = 1,
 }
 
-UnitiesHST.shieldList = {
+ArmyHST.shieldList = {
 	corgate = 1,
 	armgate = 1,
 }
 
-UnitiesHST.commanderList = {
+ArmyHST.commanderList = {
 	armcom = 1,
 	corcom = 1,
 }
 
-UnitiesHST.nanoTurretList = {
+ArmyHST.nanoTurretList = {
 	cornanotc = 1,
 	armnanotc = 1,
 	armnanotcplat = 1,
@@ -440,13 +453,13 @@ UnitiesHST.nanoTurretList = {
 }
 
 -- cheap construction units that can be built in large numbers
-UnitiesHST.assistList = {
+ArmyHST.assistList = {
 	armfark = 1,
 	corfast = 1,
 	armconsul = 1,
 }
 
-UnitiesHST.reclaimerList = {
+ArmyHST.reclaimerList = {
 	cornecro = 1,
 	armrectr = 1,
 	correcl = 1,
@@ -454,7 +467,7 @@ UnitiesHST.reclaimerList = {
 }
 
 -- advanced construction units
-UnitiesHST.advConList = {
+ArmyHST.advConList = {
 	corack = 1,
 	armack = 1,
 	coracv = 1,
@@ -465,7 +478,7 @@ UnitiesHST.advConList = {
 	armacsub = 1,
 }
 
-UnitiesHST.groundFacList = {
+ArmyHST.groundFacList = {
 	corvp = 1,
 	armvp = 1,
 	coravp = 1,
@@ -488,7 +501,7 @@ UnitiesHST.groundFacList = {
 }
 
 -- if any of these is found among enemy units, AA units and fighters will be built
-UnitiesHST.airFacList = {
+ArmyHST.airFacList = {
 	corap = 1,
 	armap = 1,
 	coraap = 1,
@@ -498,7 +511,7 @@ UnitiesHST.airFacList = {
 }
 
 -- if any of these is found among enemy units, torpedo launchers and sonar will be built
-UnitiesHST.subFacList = {
+ArmyHST.subFacList = {
 	corsy = 1,
 	armsy = 1,
 	corasy = 1,
@@ -508,7 +521,7 @@ UnitiesHST.subFacList = {
 }
 
 -- if any of these is found among enemy units, plasma shields will be built
-UnitiesHST.bigPlasmaList = {
+ArmyHST.bigPlasmaList = {
 	corint = 1,
 	armbrtha = 1,
 }
@@ -516,20 +529,20 @@ UnitiesHST.bigPlasmaList = {
 -- if any of these is found among enemy units, antinukes will be built
 -- also used to assign nuke behaviour to own units
 -- values are how many frames it takes to stockpile
-UnitiesHST.nukeList = {
+ArmyHST.nukeList = {
 	armsilo = 3600,
 	corsilo = 5400,
 	armemp = 2700,
 	cortron = 2250,
 }
 
-UnitiesHST.seaplaneConList = {
+ArmyHST.seaplaneConList = {
 	corcsa = 1,
 	armcsa = 1,
 }
 
 
-UnitiesHST.Eco1={
+ArmyHST.Eco1={
 	armsolar=1,
 	armwin=1,
 	armadvsol=1,
@@ -578,7 +591,7 @@ UnitiesHST.Eco1={
 	cornanotcplat = 1,
 }
 
-UnitiesHST.Eco2={
+ArmyHST.Eco2={
 	--metalli
 	armmoho=4,
 	cormoho=4,
@@ -613,7 +626,7 @@ UnitiesHST.Eco2={
 	armfmmm=0,
 }
 
-UnitiesHST.cleaners = {
+ArmyHST.cleaners = {
 	armbeaver = 1,
 	cormuskrat = 1,
 	armcom = 1,
@@ -621,8 +634,11 @@ UnitiesHST.cleaners = {
 	armdecom = 1,
 	cordecom = 1,
 }
-
-UnitiesHST.cleanable = {
+ArmyHST.decoy ={
+	armdecom = 2,
+	cordecom = 2,
+}
+ArmyHST.cleanable = {
 	armsolar= 'ground',
 	corsolar= 'ground',
 	armadvsol = 'ground',
@@ -638,35 +654,35 @@ UnitiesHST.cleanable = {
 }
 
 -- minimum, maximum, starting point units required to attack, bomb
-UnitiesHST.minAttackCounter = 8
-UnitiesHST.maxAttackCounter = 30
-UnitiesHST.baseAttackCounter = 15
-UnitiesHST.breakthroughAttackCounter = 16 -- build heavier battle units
-UnitiesHST.siegeAttackCounter = 20 -- build siege units
-UnitiesHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
-UnitiesHST.minBomberCounter = 0
-UnitiesHST.maxBomberCounter = 16
-UnitiesHST.baseBomberCounter = 2
-UnitiesHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
+ArmyHST.minAttackCounter = 8
+ArmyHST.maxAttackCounter = 30
+ArmyHST.baseAttackCounter = 15
+ArmyHST.breakthroughAttackCounter = 16 -- build heavier battle units
+ArmyHST.siegeAttackCounter = 20 -- build siege units
+ArmyHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
+ArmyHST.minBomberCounter = 0
+ArmyHST.maxBomberCounter = 16
+ArmyHST.baseBomberCounter = 2
+ArmyHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
 
 -- raid counter works backwards: it determines the number of raiders to build
--- if it reaches UnitiesHST.minRaidCounter, none are built
-UnitiesHST.minRaidCounter = 0
-UnitiesHST.maxRaidCounter = 8
-UnitiesHST.baseRaidCounter = 5
+-- if it reaches ArmyHST.minRaidCounter, none are built
+ArmyHST.minRaidCounter = 0
+ArmyHST.maxRaidCounter = 8
+ArmyHST.baseRaidCounter = 5
 
 -- Taskqueuebehaviour was modified to skip this name
-UnitiesHST.DummyUnitName = "skipthisorder"
+ArmyHST.DummyUnitName = "skipthisorder"
 
 -- Taskqueuebehaviour was modified to use this as a generic "build me a factory" order
-UnitiesHST.FactoryUnitName = "buildfactory"
+ArmyHST.FactoryUnitName = "buildfactory"
 
 -- this unit is used to check for underwater metal spots
-UnitiesHST.UWMetalSpotCheckUnit = "coruwmex"
+ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
 
 -- for non-lua only; tests build orders of these units to determine mobility there
 -- multiple units for one mtype function as OR
-UnitiesHST.mobUnitNames = {
+ArmyHST.mobUnitNames = {
 	veh = {"corcv", "armllt"},
 	bot = {"corck", "armeyes"},
 	amp = {"cormuskrat"},
@@ -676,7 +692,7 @@ UnitiesHST.mobUnitNames = {
 }
 
 -- tests move orders of these units to determine mobility there
-UnitiesHST.mobUnitExampleName = {
+ArmyHST.mobUnitExampleName = {
 	veh = "armcv",
 	bot = "armck",
 	amp = "armbeaver",
@@ -686,11 +702,11 @@ UnitiesHST.mobUnitExampleName = {
 }
 
 -- side names
-UnitiesHST.CORESideName = "core"
-UnitiesHST.ARMSideName = "arm"
+ArmyHST.CORESideName = "cortex"
+ArmyHST.ARMSideName = "armada"
 
 -- how much metal to assume features with these strings in their names have
-UnitiesHST.baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
+ArmyHST.baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
 
 -- BEGIN CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
 
@@ -708,11 +724,11 @@ local fighter = {
 	corvamp = 1,
 }
 
-
+--[[
 local commanderSide = {
 	armcom = "arm",
 	corcom = "core",
-}
+}]]
 
 local unitsLevels = {}
 local armTechLv ={}
@@ -769,7 +785,7 @@ local function GetBuiltBy()
 	return builtBy
 end
 
-local function GetUnitSide(name)
+local function GetUnitSide(name)--TODO change to the internal namearmada cortex
 	if string.find(name, 'arm') then
 		return 'arm'
 	elseif string.find(name, 'cor') then
@@ -786,6 +802,7 @@ local function getTechTree(sideTechLv)
 	for name,lv in pairs(sideTechLv) do
 		if lv == false then
 			sideTechLv[name] = parent
+			if ArmyHST.techPenalty[name] then sideTechLv[name] = sideTechLv[name] + ArmyHST.techPenalty[name] end--here cause some not corresponding at true and seaplane maybe
 			canBuild = UnitDefNames[name].buildOptions
 			if canBuild and #canBuild > 0 then
 				for index,id in pairs(UnitDefNames[name].buildOptions) do
@@ -967,8 +984,8 @@ getTechTree(armTechLv)
 getTechTree(corTechLv)
 for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
-UnitiesHST.unitTable, UnitiesHST.wrecks = GetUnitTable()
-UnitiesHST.featureTable = GetFeatureTable(UnitiesHST.wrecks)
+ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
+ArmyHST.featureTable = GetFeatureTable(ArmyHST.wrecks)
 
 wrecks = nil
 

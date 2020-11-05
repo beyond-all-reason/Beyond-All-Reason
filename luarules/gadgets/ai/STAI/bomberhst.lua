@@ -8,13 +8,14 @@ function BomberHST:internalName()
 	return "bomberhst"
 end
 
-BomberHST.DebugEnabled = false
+
 
 function BomberHST:Init()
-    BomberHST.plans = {} --TODO why here and why called with bomberhst instead of self
+	self.DebugEnabled = false
+    self.ai.bomberhst.plans = {} --TODO why here and why called with bomberhst instead of self(changed from BomberHST to self.ai.bomberhst
 	self.recruits = {}
 	self.needsTargetting = {}
-	self.counter = UnitiesHST.baseBomberCounter
+	self.counter = self.ai.armyhst.baseBomberCounter
 	self.ai.hasBombed = 0
 	self.ai.couldBomb = 0
 	self.pathValidFuncs = {}
@@ -31,7 +32,7 @@ function BomberHST:Update()
 		local pathfinder = plan.pathfinder
 		local path, remaining, maxInvalid = pathfinder:Find(1)
 		if path then
-			-- path = SimplifyPath(path)
+			-- path = self.ai.tool:SimplifyPath(path)
 			if self.DebugEnabled then
 				self.map:EraseLine(nil, nil, {1,1,1}, nil, nil, 8)
 				for i = 2, #path do
@@ -82,11 +83,20 @@ function BomberHST:DoTargetting()
 				local sumZ = 0
 				local validFunc
 				for i = 1, #recruits do
+					self:EchoDebug('dotarget i' , i)
 					local recruit = recruits[i]
-					local pos = recruit.unit:Internal():GetPosition()
-					sumX = sumX + pos.x
-					sumZ = sumZ + pos.z
-					validFunc = validFunc or self:GetPathValidFunc(recruit.unit:Internal():Name())
+					self:EchoDebug('dotarget have recruit' , recruit)
+					self:EchoDebug('dotarget unit' , recruit.unit)
+					self:EchoDebug('dotarget internal' , recruit.unit:Internal())
+					self:EchoDebug('dotarget internalPos we hope there are one' )
+					if recruit and recruit.unit and  recruit.unit:Internal() and  recruit.unit:Internal():GetPosition() then
+						local pos = recruit.unit:Internal():GetPosition()
+						sumX = sumX + pos.x
+						sumZ = sumZ + pos.z
+						validFunc = validFunc or self:GetPathValidFunc(recruit.unit:Internal():Name())
+					else
+						self:EchoDebug('warning unit without internal')
+					end
 				end
 				local midPos = api.Position()
 				midPos.x = sumX / #recruits
@@ -146,13 +156,13 @@ end
 
 function BomberHST:NeedMore()
 	self.counter = self.counter + 1
-	self.counter = math.min(self.counter, UnitiesHST.maxBomberCounter)
+	self.counter = math.min(self.counter, self.ai.armyhst.maxBomberCounter)
 	-- self:EchoDebug("bomber counter: " .. self.counter .. " (bomber died)")
 end
 
 function BomberHST:NeedLess()
 	self.counter = self.counter - 1
-	self.counter = math.max(self.counter, UnitiesHST.minBomberCounter)
+	self.counter = math.max(self.counter, self.ai.armyhst.minBomberCounter)
 	self:EchoDebug("bomber counter: " .. self.counter .. " (AA died)")
 end
 

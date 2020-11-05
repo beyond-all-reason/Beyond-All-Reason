@@ -1,5 +1,15 @@
 shard_include("astarclass")
 
+Tool = class(Module)
+
+function Tool:Name()
+	return "Tool"
+end
+
+function Tool:internalName()
+	return "tool"
+end
+
 sqrt = math.sqrt
 random = math.random
 pi = math.pi
@@ -36,8 +46,8 @@ local quadZ = { -1, -1, 1, 1 }
 
 local output = ''
 
-function ConstrainToMap(x, z)
-	local mapSize = ai.map:MapDimensions()
+function Tool:ConstrainToMap(x, z)
+	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
 	x = max(min(x, maxElmosX-mapBuffer), mapBuffer)
@@ -45,14 +55,14 @@ function ConstrainToMap(x, z)
 	return x, z
 end
 
-function RandomAway( ai, pos, dist, opposite, angle)
+function Tool:RandomAway(pos, dist, opposite, angle)
 	if angle == nil then
 		angle = random() * twicePi
 	end
-	local mapSize = ai.api.map:MapDimensions()
+	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
-	local away = ai.api.Position()
+	local away = api.Position()
 	away.x = pos.x + dist * cos(angle)
 	away.z = pos.z - dist * sin(angle)
 	away.y = pos.y + 0
@@ -68,13 +78,13 @@ function RandomAway( ai, pos, dist, opposite, angle)
 	end
 	if opposite then
 		angle = twicePi - angle
-		return away, RandomAway( ai, pos, dist, false, angle)
+		return away, Tool:RandomAway(pos, dist, false, angle)
 	else
 		return away
 	end
 end
 
-function distance(pos1,pos2)
+function Tool:distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local zd = pos1.z-pos2.z
 	local yd = pos1.y-pos2.y
@@ -85,48 +95,48 @@ function distance(pos1,pos2)
 	return dist
 end
 
-function DistanceSq(pos1,pos2)
+function Tool:DistanceSq(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local yd = pos1.z-pos2.z
 	return xd*xd + yd*yd
 end
 
-function Distance(pos1,pos2)
+function Tool:Distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local yd = pos1.z-pos2.z
 	local dist = sqrt(xd*xd + yd*yd)
 	return dist
 end
 
-function DistanceXZ(x1, z1, x2, z2)
+function Tool:DistanceXZ(x1, z1, x2, z2)
 	local xd = x1 - x2
 	local zd = z1 - z2
 	return sqrt(xd*xd + zd*zd)
 end
 
-function Distance3d(pos1, pos2)
+function Tool:Distance3d(pos1, pos2)
 	local dx = pos2.x - pos1.x
 	local dy = pos2.y - pos1.y
 	local dz = pos2.z - pos1.z
 	return math.sqrt( dx*dx + dy*dy + dz*dz )
 end
 
-function ManhattanDistance(pos1,pos2)
+function Tool:ManhattanDistance(pos1,pos2)
 	local xd = math.abs(pos1.x-pos2.x)
 	local yd = math.abs(pos1.z-pos2.z)
 	local dist = xd + yd
 	return dist
 end
 
-function MiddleOfTwo(pos1, pos2)
+function Tool:MiddleOfTwo(pos1, pos2)
 	local middle = api.Position()
 	middle.x, middle.y, middle.z = (pos1.x+pos2.x)/2, (pos1.y+pos2.y)/2,(pos1.z+pos2.z)/2
 	return middle
 end
 
-function ApplyVector(x, z, vx, vz, frames)
+function Tool:ApplyVector(x, z, vx, vz, frames)
 	if frames == nil then frames = 30 end
-	return ConstrainToMap(x + (vx *frames), z + (vz * frames))
+	return Tool:ConstrainToMap(x + (vx *frames), z + (vz * frames))
 end
 
 function AngleDist(angle1, angle2)
@@ -134,21 +144,21 @@ function AngleDist(angle1, angle2)
 	-- game:SendToConsole(math.floor(angleDist * 57.29), math.floor(high * 57.29), math.floor(low * 57.29))
 end
 
-function AngleAdd(angle1, angle2)
+function Tool:AngleAdd(angle1, angle2)
 	return (angle1 + angle2) % twicePi
 end
 
-function AngleAtoB(x1, z1, x2, z2)
+function Tool:AngleAtoB(x1, z1, x2, z2)
 	local dx = x2 - x1
 	local dz = z2 - z1
 	return atan2(-dz, dx)
 end
 
-function AnglePosPos(pos1, pos2)
-	return AngleAtoB(pos1.x, pos1.z, pos2.x, pos2.z)
+function Tool:AnglePosPos(pos1, pos2)
+	return self:AngleAtoB(pos1.x, pos1.z, pos2.x, pos2.z)
 end
 
-function CheckRect(rect)
+function Tool:CheckRect(rect)
 	local new = {}
 	if rect.x1 > rect.x2 then
 		new.x1 = rect.x2 * 1
@@ -170,18 +180,18 @@ function CheckRect(rect)
 	rect.z2 = new.z2
 end
 
-function PositionWithinRect(position, rect)
+function Tool:PositionWithinRect(position, rect)
 	return position.x > rect.x1 and position.x < rect.x2 and position.z > rect.z1 and position.z < rect.z2
 end
 
-function RectsOverlap(rectA, rectB)
+function Tool:RectsOverlap(rectA, rectB)
 	return rectA.x1 < rectB.x2 and
            rectB.x1 < rectA.x2 and
            rectA.z1 < rectB.z2 and
            rectB.z1 < rectA.z2
 end
 
-function pairsByKeys(t, f)
+function Tool:pairsByKeys(t, f)
   local a = {}
   for n in pairs(t) do table.insert(a, n) end
   table.sort(a, f)
@@ -195,7 +205,24 @@ function pairsByKeys(t, f)
   return iter
 end
 
-function CustomCommand(unit, cmdID, cmdParams)
+
+function Tool:listHasKey( value, list )
+	for k,v in pairs(list) do
+		if k == value then
+			return true
+		end
+	end
+	return false
+end
+
+function Tool:dictHasKey( value, list )
+	if list[value] then
+		return true
+	end
+	return false
+end
+
+function Tool:CustomCommand(unit, cmdID, cmdParams)
 	local floats = api.vectorFloat()
 	for i = 1, #cmdParams do
 		floats:push_back(cmdParams[i])
@@ -203,7 +230,7 @@ function CustomCommand(unit, cmdID, cmdParams)
 	return unit:ExecuteCustomCommand(cmdID, floats)
 end
 
-function ThreatRange(unitName, groundAirSubmerged)
+function Tool:ThreatRange(unitName, groundAirSubmerged)
 	local threatLayers = unitThreatLayers[unitName]
 	if groundAirSubmerged ~= nil and threatLayers ~= nil then
 		local layer = threatLayers[groundAirSubmerged]
@@ -211,10 +238,10 @@ function ThreatRange(unitName, groundAirSubmerged)
 			return layer.threat, layer.range
 		end
 	end
-	if UnitiesHST.antinukeList[unitName] or UnitiesHST.nukeList[unitName] or UnitiesHST.bigPlasmaList[unitName] or UnitiesHST.shieldList[unitName] then
+	if self.ai.armyhst.antinukeList[unitName] or self.ai.armyhst.nukeList[unitName] or self.ai.armyhst.bigPlasmaList[unitName] or self.ai.armyhst.shieldList[unitName] then
 		return 0, 0
 	end
-	local utable = ai.data.unitTable[unitName]
+	local utable = self.ai.armyhst.unitTable[unitName]
 	if groundAirSubmerged == nil then
 		if utable.groundRange > utable.airRange and utable.groundRange > utable.submergedRange then
 			groundAirSubmerged = "ground"
@@ -252,25 +279,25 @@ function ThreatRange(unitName, groundAirSubmerged)
 	return threat, range
 end
 
-function UnitThreatRangeLayers(unitName)
+function Tool:UnitThreatRangeLayers(unitName)
 	local threatLayers = unitThreatLayers[unitName]
 	if threatLayers ~= nil then
 		if #threatLayers == 3 then return threatLayers end
 	end
 	threatLayers = {}
 	for i, layerName in pairs(layerNames) do
-		local threat, range = ThreatRange(unitName, layerName)
+		local threat, range = self:ThreatRange(unitName, layerName)
 		threatLayers[layerName] = { threat = threat, range = range }
 	end
 	unitThreatLayers[unitName] = threatLayers
 	return threatLayers
 end
 
-function UnitWeaponLayerList(unitName)
+function Tool:UnitWeaponLayerList(unitName)
 	local weaponLayers = unitWeaponLayers[unitName]
 	if weaponLayers then return weaponLayers end
 	weaponLayers = {}
-	local ut = ai.data.unitTable[unitName]
+	local ut = self.ai.armyhst.unitTable[unitName]
 	if not ut then
 		return weaponLayers
 	end
@@ -287,14 +314,14 @@ function UnitWeaponLayerList(unitName)
 	return weaponLayers
 end
 
-function UnitWeaponMtypeList(unitName)
+function Tool:UnitWeaponMtypeList(unitName)
 	if unitName == nil then return {} end
-	if unitName == UnitiesHST.DummyUnitName then return {} end
+	if unitName == self.ai.armyhst.DummyUnitName then return {} end
 	local mtypes = unitWeaponMtypes[unitName]
 	if mtypes then
 		return mtypes
 	end
-	local utable = ai.data.unitTable[unitName]
+	local utable = self.ai.armyhst.unitTable[unitName]
 	mtypes = {}
 	if utable.groundRange > 0 then
 		table.insert(mtypes, "veh")
@@ -315,11 +342,12 @@ function UnitWeaponMtypeList(unitName)
 	return mtypes
 end
 
-function WhatHurtsUnit(unitName, mtype, position)
+function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
 	if unitName then
-		local ut = ai.data.unitTable[unitName]
+		--game:SendToConsole('testparam',self.ai.armyhst.testparam)
+		local ut = self.ai.armyhst.unitTable[unitName]
 		if ut then
 			mtype = ut.mtype
 		end
@@ -347,7 +375,7 @@ function WhatHurtsUnit(unitName, mtype, position)
 	return hurts
 end
 
-function BehaviourPosition(behaviour)
+function Tool:BehaviourPosition(behaviour)
 	if behaviour == nil then return end
 	if behaviour.unit == nil then return end
 	local unit = behaviour.unit:Internal()
@@ -355,7 +383,7 @@ function BehaviourPosition(behaviour)
 	return unit:GetPosition()
 end
 
-function HorizontalLine(grid, x, z, tx, sets, adds)
+function Tool:HorizontalLine(grid, x, z, tx, sets, adds)
 	for ix = x, tx do
 		grid[ix] = grid[ix] or {}
 		if type(sets) == 'table' or type(adds) == 'table' then
@@ -384,15 +412,15 @@ function HorizontalLine(grid, x, z, tx, sets, adds)
 	return grid
 end
 
-function Plot4(grid, cx, cz, x, z, sets, adds)
-	grid = HorizontalLine(grid, cx - x, cz + z, cx + x, sets, adds)
+function Tool:Plot4(grid, cx, cz, x, z, sets, adds)
+	grid = self:HorizontalLine(grid, cx - x, cz + z, cx + x, sets, adds)
 	if x ~= 0 and z ~= 0 then
-        grid = HorizontalLine(grid, cx - x, cz - z, cx + x, sets, adds)
+        grid = self:HorizontalLine(grid, cx - x, cz - z, cx + x, sets, adds)
     end
     return grid
 end
 
-function FillCircle(grid, gridElmos, position, radius, sets, adds)
+function Tool:FillCircle(grid, gridElmos, position, radius, sets, adds)
 	local cx = ceil(position.x / gridElmos)
 	local cz = ceil(position.z / gridElmos)
 	radius = max( 0, radius - (gridElmos/2) )
@@ -406,9 +434,9 @@ function FillCircle(grid, gridElmos, position, radius, sets, adds)
 	        err = err + z
 	        z = z + 1
 	        err = err + z
-	        grid = Plot4(grid, cx, cz, x, lastZ, sets, adds)
+	        grid = self:Plot4(grid, cx, cz, x, lastZ, sets, adds)
 	        if err >= 0 then
-	            if x ~= lastZ then grid = Plot4(grid, cx, cz, lastZ, x, sets, adds) end
+	            if x ~= lastZ then grid = self:Plot4(grid, cx, cz, lastZ, x, sets, adds) end
 	            err = err - x
 	            x = x - 1
 	            err = err - x
@@ -418,7 +446,7 @@ function FillCircle(grid, gridElmos, position, radius, sets, adds)
 	return grid
 end
 
-function SimplifyPath(path)
+function Tool:SimplifyPath(path)
 	if #path < 3 then
 		return path
 	end
@@ -427,7 +455,7 @@ function SimplifyPath(path)
 	for i = 1, #path-1 do
 		local node1 = path[i]
 		local node2 = path[i+1]
-		local angle = AngleAtoB(node1.position.x, node1.position.z, node2.position.x, node2.position.z)
+		local angle = Tool:AngleAtoB(node1.position.x, node1.position.z, node2.position.x, node2.position.z)
 		if lastAngle then
 			local adist = AngleDist(angle, lastAngle)
 			if adist < 0.2 then
@@ -445,7 +473,7 @@ function SimplifyPath(path)
 	return path
 end
 
-function serialize (o, keylist,reset)
+function Tool:serialize (o, keylist,reset)
 	if reset then output = '' end
 	if keylist == nil then keylist = "" end
 	if type(o) == "number" then
@@ -463,7 +491,7 @@ function serialize (o, keylist,reset)
 		output = output .. ("{\n")
 		for k,v in pairs(o) do
 			output = output .. ("  [")
-			serialize(k,keylist)
+			self:serialize(k,keylist)
 			output = output .. ("] = ")
 			local newkeylist
 			if type(v) == "table" or type(v) == "userdata" then
@@ -473,16 +501,12 @@ function serialize (o, keylist,reset)
 				newkeylist = keylist .. "["  .. k .. "]"
 				end
 			end
-			serialize(v, newkeylist)
+			self:serialize(v, newkeylist)
 			output = output .. (",\n")
 		end
 		output = output .. ("}\n")
 	else
-		error("cannot serialize a " .. type(o))
+		error("cannot self:serialize a " .. type(o))
 	end
 	return output
 end
-
-
-
-CommonFunctionsLoaded = true -- so that SpringShardLua doesn't load them multiple times

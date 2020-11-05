@@ -12,10 +12,10 @@ function ScoutBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
-	self.armed = self.ai.data.unitTable[self.name].isWeapon
-	self.keepYourDistance = self.ai.data.unitTable[self.name].losRadius * 0.5
+	self.armed = self.ai.armyhst.unitTable[self.name].isWeapon
+	self.keepYourDistance = self.ai.armyhst.unitTable[self.name].losRadius * 0.5
 	if mtype == "air" then
-		self.airDistance = self.ai.data.unitTable[self.name].losRadius * 1.5
+		self.airDistance = self.ai.armyhst.unitTable[self.name].losRadius * 1.5
 		self.lastCircleFrame = self.game:Frame()
 	end
 	self.lastUpdateFrame = self.game:Frame()
@@ -61,7 +61,7 @@ function ScoutBST:Update()
 				end
 			end
 			if attackTarget and not self.attacking then
-				CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
+				self.ai.tool:CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
 				self.target = nil
 				self.evading = false
 				self.attacking = true
@@ -88,7 +88,7 @@ function ScoutBST:Update()
 				local topos = self.ai.scouthst:ClosestSpot(self) -- first look for closest metal/geo spot that hasn't been seen recently
 				if topos ~= nil then
 					self:EchoDebug("scouting spot at " .. topos.x .. "," .. topos.z)
-					self.target = RandomAway(self.ai, topos, self.keepYourDistance) -- don't move directly onto the spot
+					self.target = self.ai.tool:RandomAway( topos, self.keepYourDistance) -- don't move directly onto the spot
 					unit:Move(self.target)
 					self.attacking = false
 				else
@@ -106,12 +106,12 @@ function ScoutBST:Update()
 			local unit = self.unit:Internal()
 			local upos = unit:GetPosition()
 			if self.target then
-				local dist = Distance(upos, self.target)
+				local dist = self.ai.tool:Distance(upos, self.target)
 				if dist < self.airDistance then
-					unit:Move(RandomAway(self.ai, self.target, 100))
+					unit:Move(self.ai.tool:RandomAway( self.target, 100))
 				end
 			else
-				unit:Move(RandomAway(self.ai, upos, 500))
+				unit:Move(self.ai.tool:RandomAway( upos, 500))
 			end
 			self.lastCircleFrame = f
 		end

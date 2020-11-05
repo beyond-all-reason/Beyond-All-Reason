@@ -25,15 +25,15 @@ function RaidHST:NeedMore(mtype, add)
 	if add == nil then add = 0.1 end
 	if mtype == nil then
 		for mtype, count in pairs(self.counter) do
-			if self.counter[mtype] == nil then self.counter[mtype] = UnitiesHST.baseRaidCounter end
+			if self.counter[mtype] == nil then self.counter[mtype] = self.ai.armyhst.baseRaidCounter end
 			self.counter[mtype] = self.counter[mtype] + add
-			self.counter[mtype] = math.min(self.counter[mtype], UnitiesHST.maxRaidCounter)
+			self.counter[mtype] = math.min(self.counter[mtype], self.ai.armyhst.maxRaidCounter)
 			self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 		end
 	else
-		if self.counter[mtype] == nil then self.counter[mtype] = UnitiesHST.baseRaidCounter end
+		if self.counter[mtype] == nil then self.counter[mtype] = self.ai.armyhst.baseRaidCounter end
 		self.counter[mtype] = self.counter[mtype] + add
-		self.counter[mtype] = math.min(self.counter[mtype], UnitiesHST.maxRaidCounter)
+		self.counter[mtype] = math.min(self.counter[mtype], self.ai.armyhst.maxRaidCounter)
 		self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 	end
 end
@@ -41,15 +41,15 @@ end
 function RaidHST:NeedLess(mtype)
 	if mtype == nil then
 		for mtype, count in pairs(self.counter) do
-			if self.counter[mtype] == nil then self.counter[mtype] = UnitiesHST.baseRaidCounter end
+			if self.counter[mtype] == nil then self.counter[mtype] = self.ai.armyhst.baseRaidCounter end
 			self.counter[mtype] = self.counter[mtype] - 0.5
-			self.counter[mtype] = math.max(self.counter[mtype], UnitiesHST.minRaidCounter)
+			self.counter[mtype] = math.max(self.counter[mtype], self.ai.armyhst.minRaidCounter)
 			self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 		end
 	else
-		if self.counter[mtype] == nil then self.counter[mtype] = UnitiesHST.baseRaidCounter end
+		if self.counter[mtype] == nil then self.counter[mtype] = self.ai.armyhst.baseRaidCounter end
 		self.counter[mtype] = self.counter[mtype] - 0.5
-		self.counter[mtype] = math.max(self.counter[mtype], UnitiesHST.minRaidCounter)
+		self.counter[mtype] = math.max(self.counter[mtype], self.ai.armyhst.minRaidCounter)
 		self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 	end
 end
@@ -63,7 +63,7 @@ function RaidHST:GetCounter(mtype)
 		return highestCounter
 	end
 	if self.counter[mtype] == nil then
-		return UnitiesHST.baseRaidCounter
+		return self.ai.armyhst.baseRaidCounter
 	else
 		return self.counter[mtype]
 	end

@@ -70,7 +70,7 @@ function DamageHST:UnitDamaged(unit, attacker, damage)
 	end
 end
 
-function DamageHST:UnitBuilt(engineUnit)
+function DamageHST:MyUnitBuilt(engineUnit)
 	local unitID = engineUnit:ID()
 	self.lastHealth[unitID] = engineUnit:GetHealth()
 end

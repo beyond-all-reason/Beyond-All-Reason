@@ -9,7 +9,7 @@ function CountBST:Init()
 	self.finished = false
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
-	local uTn = self.ai.data.unitTable[self.name]
+	local uTn = self.ai.armyhst.unitTable[self.name]
 	-- game:SendToConsole(self.name .. " " .. self.id .. " init")
 	if uTn.isBuilding then
 		self.position = self.unit:Internal():GetPosition() -- buildings don't move
@@ -25,15 +25,15 @@ function CountBST:Init()
 	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
 	if uTn.extractsMetal > 0 then self.isMex = true end
-	if UnitiesHST.battleList[self.name] then self.isBattle = true end
-	if UnitiesHST.breakthroughList[self.name] then self.isBreakthrough = true end
-	if self.isCombat and not UnitiesHST.battleList[self.name] and not UnitiesHST.breakthroughList[self.name] then
+	if self.ai.armyhst.battleList[self.name] then self.isBattle = true end
+	if self.ai.armyhst.breakthroughList[self.name] then self.isBreakthrough = true end
+	if self.isCombat and not self.ai.armyhst.battleList[self.name] and not self.ai.armyhst.breakthroughList[self.name] then
 		self.isSiege = true
 	end
-	if UnitiesHST.reclaimerList[self.name] then self.isReclaimer = true end
-	if UnitiesHST.cleanable[self.name] then self.isCleanable = true end
-	if UnitiesHST.assistList[self.name] then self.isAssist = true end
-	if UnitiesHST.nanoTurretList[self.name] then self.isNano = true end
+	if self.ai.armyhst.reclaimerList[self.name] then self.isReclaimer = true end
+	if self.ai.armyhst.cleanable[self.name] then self.isCleanable = true end
+	if self.ai.armyhst.assistList[self.name] then self.isAssist = true end
+	if self.ai.armyhst.nanoTurretList[self.name] then self.isNano = true end
 	if self.ai.nameCount[self.name] == nil then
 		self.ai.nameCount[self.name] = 1
 	else
@@ -63,7 +63,7 @@ function CountBST:OwnerBuilt()
 	if self.isReclaimer then self.ai.reclaimerCount = self.ai.reclaimerCount + 1 end
 	if self.isAssist then self.ai.assistCount = self.ai.assistCount + 1 end
 	if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount + 1 end
-	if self.isCleanable then self.ai.UnitiesHST.cleanable[self.unit.engineID] = self.position end
+	if self.isCleanable then self.ai.armyhst.cleanable[self.unit.engineID] = self.position end
 	if self.isNano then
 		self.ai.nanoList[self.id] = self.unit:Internal():GetPosition()
 		self.ai.lastNanoBuild = self.unit:Internal():GetPosition()
@@ -102,7 +102,7 @@ function CountBST:OwnerDead()
 		if self.isReclaimer then self.ai.reclaimerCount = self.ai.reclaimerCount - 1 end
 		if self.isAssist then self.ai.assistCount = self.ai.assistCount - 1 end
 		if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount - 1 end
-		if self.isCleanable then self.ai.UnitiesHST.cleanable[self.unit.engineID] = nil end
+		if self.isCleanable then self.ai.armyhst.cleanable[self.unit.engineID] = nil end
 		if self.isNano then
 			self.ai.nanoList[self.id] = nil
 			if self.ai.lastNanoBuild == self.unit:Internal():GetPosition() then self.ai.lastNanoBuild = nil end

@@ -144,7 +144,7 @@ local inactive = {
 	corfmine3 = true,
 	corfrad = true,
 	corsonar = true
-	}
+}
 
 function UnitHST:Name()
 	return "UnitHandler"
@@ -165,17 +165,19 @@ function UnitHST:Init()
 end
 
 function UnitHST:Update()
-	for k,v in pairs(self.myActiveUnits) do
+	for k,unit in pairs(self.myActiveUnits) do
 		if ShardSpringLua then
-			local ux, uy, uz = Spring.GetUnitPosition(v:Internal():ID())
+			local ux, uy, uz = Spring.GetUnitPosition(unit:Internal():ID())
 			if not ux then
-				-- game:SendToConsole(self.ai.id, "nil unit position", v:Internal():ID(), v:Internal():Name(), k)
+				-- game:SendToConsole(self.ai.id, "nil unit position", unit:Internal():ID(), unit:Internal():Name(), k)
 				self.myActiveUnits[k] = nil
-				v = nil
+				unit = nil
 			end
 		end
-		if v then
-			v:Update()
+		if unit then
+			if unit:HasBehaviours() then
+				unit:Update()
+			end
 		end
 	end
 	for uID, frame in pairs(self.reallyActuallyDead) do
@@ -186,23 +188,29 @@ function UnitHST:Update()
 end
 
 function UnitHST:GameEnd()
-	for k,v in pairs(self.myActiveUnits) do
-		v:GameEnd()
+	for k,unit in pairs(self.myActiveUnits) do
+		if unit:HasBehaviours() then
+			unit:GameEnd()
+		end
 	end
 end
 
 function UnitHST:UnitCreated(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
-	for k,v in pairs(self.myActiveUnits) do
-		v:UnitCreated(u)
+	if u == nil then return end
+	for k,unit in pairs(self.myActiveUnits) do
+		if unit:HasBehaviours() then
+			unit:UnitCreated(u)
+		end
 	end
 end
 
 function UnitHST:UnitBuilt(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
-	if u ~= nil then
-		for k,v in pairs(self.myActiveUnits) do
-			v:UnitBuilt(u)
+	if u == nil then return end
+	for k,unit in pairs(self.myActiveUnits) do
+		if unit:HasBehaviours() then
+			unit:UnitBuilt(u)
 		end
 	end
 end
@@ -210,8 +218,10 @@ end
 function UnitHST:UnitDead(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
-		for k,v in pairs(self.myActiveUnits) do
-			v:UnitDead(u)
+		for k,unit in pairs(self.myActiveUnits) do
+			if unit:HasBehaviours() then
+				unit:UnitDead(u)
+			end
 		end
 	end
 	-- game:SendToConsole(self.ai.id, "removing unit from unithst tables", engineUnit:ID(), engineUnit:Name())
@@ -223,9 +233,12 @@ end
 
 function UnitHST:UnitDamaged(engineUnit,engineAttacker,damage)
 	local u = self:AIRepresentation(engineUnit)
+	if u == nil then return end
 	-- local a = self:AIRepresentation(engineAttacker)
-	for k,v in pairs(self.myActiveUnits) do
-		v:UnitDamaged(u,engineAttacker,damage)
+	for k,unit in pairs(self.myActiveUnits) do
+		if unit:HasBehaviours() then
+			unit:UnitDamaged(u,engineAttacker,damage)
+		end
 	end
 end
 
@@ -234,18 +247,15 @@ function UnitHST:AIRepresentation(engineUnit)
 		return nil
 	end
 	if self.reallyActuallyDead[engineUnit:ID()] then
-		-- self.game:SendToConsole(self.ai.id, "unit already died, not representing unit", engineUnit:ID(), engineUnit:Name())
 		return nil
 	end
 	local ux, uy, uz = engineUnit:GetPosition()
 	if not ux then
-		-- self.game:SendToConsole(self.ai.id, "nil engineUnit position, not representing unit", engineUnit:ID(), engineUnit:Name())
 		return nil
 	end
 
 	local u = self.units[engineUnit:ID()]
 	if u == nil then
-		-- self.game:SendToConsole(self.ai.id, "adding unit to unithst tables", engineUnit:ID(), engineUnit:Name())
 		u = Unit()
 		u:SetAI( self.ai )
 		self.units[engineUnit:ID()] = u
@@ -266,9 +276,10 @@ end
 
 function UnitHST:UnitIdle(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
-	if u ~= nil then
-		for k,v in pairs(self.units) do
-			v:UnitIdle(u)
+	if u == nil then return end
+	for k,unit in pairs(self.units) do
+		if unit:HasBehaviours() then
+			unit:UnitIdle(u)
 		end
 	end
 end

@@ -15,7 +15,7 @@ function BombardBST:Init()
     self.targetFrame = 0
     local unit = self.unit:Internal()
     self.position = unit:GetPosition()
-    self.range = self.ai.data.unitTable[unit:Name()].groundRange
+    self.range = self.ai.armyhst.unitTable[unit:Name()].groundRange
     self.radsPerFrame = 0.015
 end
 
@@ -59,7 +59,7 @@ function BombardBST:Update()
 				end
 				if not newTarget then newTarget = bestCell.pos end
 				if newTarget ~= self.target then
-					local newAngle = AngleAtoB(self.position.x, self.position.z, newTarget.x, newTarget.z)
+					local newAngle = self.ai.tool:AngleAtoB(self.position.x, self.position.z, newTarget.x, newTarget.z)
 					local ago = f - self.targetFrame
 					self:EchoDebug(ago, newAngle, self.targetAngle)
 					if self.targetAngle then

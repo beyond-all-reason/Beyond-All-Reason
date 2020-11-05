@@ -3,30 +3,24 @@ local CMD_PATROL = 15
 local CMD_MOVE_STATE = 50
 local MOVESTATE_ROAM = 2
 
--- not does it defend, but is it a dedicated defender
-function IsDefender(unit)
-	return UnitiesHST.defenderList[unit:Internal():Name()] or false
-end
-
 DefendBST = class(Behaviour)
 
 function DefendBST:Name()
 	return "DefendBST"
 end
 
-DefendBST.DebugEnabled = false
-
 function DefendBST:Init()
+	self.DebugEnabled = false
 	self.moving = {}
 	self.unmoved = 0
 	self.lastPos = self.unit:Internal():GetPosition()
 	self.active = false
 	self.id = self.unit:Internal():ID()
 	self.name = self.unit:Internal():Name()
-	local ut = self.ai.data.unitTable[self.name]
-	self.tough = UnitiesHST.battleList[self.name] or UnitiesHST.breakthroughList[self.name]
-	self.isDefender = IsDefender(self.unit)
-	self.mtype = self.ai.data.unitTable[self.name].mtype
+	local ut = self.ai.armyhst.unitTable[self.name]
+	self.tough = self.ai.armyhst.battleList[self.name] or self.ai.armyhst.breakthroughList[self.name]
+	self.isDefender = self.ai.armyhst.defenderList[self.name]
+	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	-- defenders need to be sorted into only one type of weapon
 	if ut.groundRange > 0 then
 		self.hits = "ground"
@@ -35,7 +29,7 @@ function DefendBST:Init()
 	elseif ut.airRange > 0 then
 		self.hits = "air"
 	end
-	for i, name in pairs(UnitiesHST.raiderList) do
+	for i, name in pairs(self.ai.armyhst.raiderList) do
 		if name == self.name then
 			self:EchoDebug(self.name .. " is scramble")
 			self.scramble = true
@@ -77,25 +71,25 @@ function DefendBST:Update()
 		local f = self.game:Frame()
 		if f % 60 == 0 then
 			if self.target == nil then return end
-			local targetPos = self.target.position or BehaviourPosition(self.target.behaviour)
+			local targetPos = self.target.position or self.ai.tool:BehaviourPosition(self.target.behaviour)
 			if targetPos == nil then return end
 			targetPos.y = 0
 			local guardDistance = self.target.guardDistance
 			if not self.tough then guardDistance = guardDistance * 0.33 end
-			local guardPos = RandomAway(self.ai, targetPos, guardDistance, false, self.guardAngle)
+			local guardPos = self.ai.tool:RandomAway( targetPos, guardDistance, false, self.guardAngle)
 			local safe = self.ai.defendhst:WardSafe(self.target)
 			-- if targetPos.y > 100 then game:SendToConsole(targetPos.y .. " " .. type(self.target.behaviour)) end
 			local unitPos = unit:GetPosition()
-			local dist = Distance(unitPos, guardPos)
+			local dist = self.ai.tool:Distance(unitPos, guardPos)
 			local behaviour = self.target.behaviour
 			if self.perpendicular then
-				guardPos = RandomAway(self.ai, guardPos, self.perpDist, false, self.perpendicular)
+				guardPos = self.ai.tool:RandomAway( guardPos, self.perpDist, false, self.perpendicular)
 			end
 			if behaviour ~= nil then
 				if dist > 500 then
 					if self.guarding ~= behaviour.id then
 						-- move toward mobile wards that are far away with guard order
-						CustomCommand(self.unit:Internal(), CMD_GUARD, {behaviour.id})
+						self.ai.tool:CustomCommand(self.unit:Internal(), CMD_GUARD, {behaviour.id})
 						self.guarding = behaviour.id
 					end
 				elseif not safe then
@@ -136,7 +130,7 @@ function DefendBST:Assign(ward, angle, dist)
 		self.target = ward
 		self.guardAngle = angle or math.random() * twicePi
 		if dist then
-			self.perpendicular = AngleAdd(angle, halfPi)
+			self.perpendicular = self.ai.tool:AngleAdd(angle, halfPi)
 			self.perpDist = dist
 		else
 			self.perpendicular = nil

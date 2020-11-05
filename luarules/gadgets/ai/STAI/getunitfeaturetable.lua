@@ -193,7 +193,6 @@ local function GetUnitTable()
 			else
 				utable.needsWater = false
 			end
-
 			if unitDef["canFly"] then
 				utable.mtype = "air"
 			elseif	utable.isBuilding and utable.needsWater then
@@ -234,7 +233,6 @@ local function GetUnitTable()
 						--and save all the mtype that can andle
 						--utable.isFactory[unitName[buildDef.name].mtype] = TODO
 					end
-
 				else
 					utable.factoriesCanBuild = {}
 					for i, oid in pairs (unitDef["buildOptions"]) do

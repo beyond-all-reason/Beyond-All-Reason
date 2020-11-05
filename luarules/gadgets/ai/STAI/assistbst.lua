@@ -23,11 +23,11 @@ function AssistBST:Init()
 	-- keeping track of how many of each type of unit
 	local uname = self.unit:Internal():Name()
 	self.name = uname
-	if UnitiesHST.nanoTurretList[uname] then self.isNanoTurret = true end
-	if UnitiesHST.commanderList[uname] then self.isCommander = true end
+	if self.ai.armyhst.nanoTurretList[uname] then self.isNanoTurret = true end
+	if self.ai.armyhst.commanderList[uname] then self.isCommander = true end
 	self.id = self.unit:Internal():ID()
 	self.ai.assisthst:AssignIDByName(self)
-	-- game:SendToConsole("assistbst:init", ai, ai.id, self.ai, self.ai.id)
+	-- game:SendToConsole("assistbst:init", ai, self.ai.id, self.ai, self.ai.id)
 	self:EchoDebug(uname .. " " .. self.ai.IDByName[self.id])
 	self:EchoDebug("added to unit "..uname)
 end
@@ -86,7 +86,7 @@ function AssistBST:Update()
 				end
 			elseif not self.patroling then
 				local patrolPos = self.fallbackPos or self.unit:Internal():GetPosition()
-				local pos = RandomAway(self.ai, patrolPos, 200)
+				local pos = self.ai.tool:RandomAway( patrolPos, 200)
 				local floats = api.vectorFloat()
 				-- populate with x, y, z of the position
 				floats:push_back(pos.x)
@@ -108,7 +108,7 @@ function AssistBST:Activate()
 	end
 	if self.isNanoTurret then
 		-- set nano turrets to patrol
-		local upos = RandomAway(self.ai, self.unit:Internal():GetPosition(), 50)
+		local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
 		local floats = api.vectorFloat()
 		-- populate with x, y, z of the position
 		floats:push_back(upos.x)

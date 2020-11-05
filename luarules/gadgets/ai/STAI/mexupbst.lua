@@ -51,7 +51,7 @@ function MexUpBST:OwnerIdle()
 			end
 			if s then
 				-- get assistance and magnetize
-				self.ai.assisthst:PersistantSummon(builder, self.mexPos, UnitiesHST.helpList[mohoName])
+				self.ai.assisthst:PersistantSummon(builder, self.mexPos, self.ai.armyhst.helpList[mohoName])
 				self.released = false
 				self.active = true
 				self.mohoStarted = true
@@ -111,10 +111,10 @@ function MexUpBST:StartUpgradeProcess()
 	local mexCount = 0
 	for _, unit in pairs(ownUnits) do
 		local un = unit:Name()
-		if UnitiesHST.mexUpgrade[un] then
-			self:EchoDebug(un .. " " .. UnitiesHST.mexUpgrade[un])
+		if self.ai.armyhst.mexUpgrade[un] then
+			self:EchoDebug(un .. " " .. self.ai.armyhst.mexUpgrade[un])
 			-- make sure you can build the upgrade
-			local upgradetype = game:GetTypeByName(UnitiesHST.mexUpgrade[un])
+			local upgradetype = game:GetTypeByName(self.ai.armyhst.mexUpgrade[un])
 			if selfUnit:CanBuild(upgradetype) then
 				-- make sure you can reach it
 				if self.ai.maphst:UnitCanGetToUnit(selfUnit, unit) then
@@ -127,9 +127,9 @@ function MexUpBST:StartUpgradeProcess()
 					local pos = unit:GetPosition()
 					-- if there are enemies nearby, don't go there as well
 					if self.ai.targethst:IsSafePosition(pos, selfUnit) then
-						-- if mod number by itself is too high, don't compute the distance at all
+						-- if mod number by itself is too high, don't compute the self.ai.tool:distance at all
 						if distMod < closestDistance then
-							local dist = Distance(pos, selfPos) + distMod
+							local dist = self.ai.tool:Distance(pos, selfPos) + distMod
 							if dist < closestDistance then
 								mexUnit = unit
 								closestDistance = dist

@@ -19,18 +19,18 @@ function NanoHST:Init()
 	self.densityMap = {}
 end
 
-function NanoHST:UnitBuilt(engineUnit)
-	local ut = self.ai.data.unitTable[engineUnit:Name()]
+function NanoHST:MyUnitBuilt(engineUnit)
+	local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if UnitiesHST.nanoTurretList[engineUnit:Name()] then
+	if self.ai.armyhst.nanoTurretList[engineUnit:Name()] then
 		self:AddNano(engineUnit)
 	end
 end
 
 function NanoHST:UnitDead(engineUnit)
-	local ut = self.ai.data.unitTable[engineUnit:Name()]
+	local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if UnitiesHST.nanoTurretList[engineUnit:Name()] then
+	if self.ai.armyhst.nanoTurretList[engineUnit:Name()] then
 		self:RemoveNano(engineUnit)
 	end
 end
@@ -64,13 +64,13 @@ function NanoHST:DrawDebug()
 end
 
 function NanoHST:AddNano(engineUnit)
-	self.densityMap = FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, 1)
+	self.densityMap = self.ai.tool:FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, 1)
 	self.cellsNeedSorting = true
 	self:DrawDebug()
 end
 
 function NanoHST:RemoveNano(engineUnit)
-	self.densityMap = FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, -1)
+	self.densityMap = self.ai.tool:FillCircle(self.densityMap, cellSize, engineUnit:GetPosition(), 400, nil, -1)
 	self.cellsNeedSorting = true
 	self:DrawDebug()
 end
@@ -90,7 +90,7 @@ function NanoHST:SortCells()
 		end
 	end
 	self.sortedCells = {}
-	for negCount, posList in pairsByKeys(posByCounts) do
+	for negCount, posList in self.ai.tool:pairsByKeys(posByCounts) do
 		for i = 1, #posList do
 			local position = posList[i]
 			self:EchoDebug(-negCount, "nanos", "overlap at", position.x, position.z)

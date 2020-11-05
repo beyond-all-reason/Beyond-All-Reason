@@ -19,7 +19,7 @@ function RaiderBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
-	local utable = self.ai.data.unitTable[self.name]
+	local utable = self.ai.armyhst.unitTable[self.name]
 	if self.mtype == "sub" then
 		self.range = utable.submergedRange
 	else
@@ -31,7 +31,7 @@ function RaiderBST:Init()
 	elseif self.mtype == 'air' then
 		self.groundAirSubmerged = 'air'
 	end
-	self.hurtsList = UnitWeaponLayerList(self.name)
+	self.hurtsList = self.ai.tool:UnitWeaponLayerList(self.name)
 	self.sightRange = utable.losRadius
 
 	-- for pathfinding
@@ -45,7 +45,7 @@ function RaiderBST:Init()
 	self.pathingDistance = nodeSize * 0.67 -- how far away from a node means you've arrived there
 	self.minPathfinderDistance = nodeSize * 3 -- closer than this and i don't pathfind
 	self.id = self.unit:Internal():ID()
-	self.disarmer = UnitiesHST.raiderDisarms[self.name]
+	self.disarmer = self.ai.armyhst.raiderDisarms[self.name]
 	self.ai.raiderCount[mtype] = (self.ai.raiderCount[mtype] or 0) + 1
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0
@@ -113,7 +113,7 @@ function RaiderBST:Update()
 			end
 			if attackThisUnit then
 				self.offPath = true
-				CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
+				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
 			elseif self.offPath then
 				self.offPath = false
 				self:ResumeCourse()
@@ -199,7 +199,7 @@ end
 
 function RaiderBST:MoveNear(position, distance)
 	distance = distance or self.nearDistance
-	self.unit:Internal():Move(RandomAway(self.ai, position, distance))
+	self.unit:Internal():Move(self.ai.tool:RandomAway( position, distance))
 end
 
 function RaiderBST:GetTarget()
@@ -228,7 +228,7 @@ end
 
 function RaiderBST:ArrivalCheck()
 	if not self.target then return end
-	if Distance(self.unit:Internal():GetPosition(), self.target) < self.pathingDistance then
+	if self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) < self.pathingDistance then
 		self:EchoDebug("arrived at target")
 		self:AttackTarget(self.attackDistance)
 		self.arrived = true
@@ -239,9 +239,7 @@ end
 function RaiderBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		local floats = api.vectorFloat()
-		floats:push_back(MOVESTATE_ROAM)
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		self.unit:Internal():Roam()
 		if self.mtype == "air" then
 			local floats = api.vectorFloat()
 			floats:push_back(IDLEMODE_FLY)
@@ -251,7 +249,7 @@ function RaiderBST:SetMoveState()
 end
 
 function RaiderBST:BeginPath(position)
-	if Distance(position, self.unit:Internal():GetPosition()) < self.minPathfinderDistance then
+	if self.ai.tool:Distance(position, self.unit:Internal():GetPosition()) < self.minPathfinderDistance then
 		self:EchoDebug("target is too close to unit to bother pathfinding, going straight to target")
 		self.path = true
 		self.clearShot = true
@@ -297,7 +295,7 @@ function RaiderBST:ReceivePath(path)
 	-- 		self.map:DrawLine(pos1, pos2, {0,0,1}, self.unit:Internal():ID(), arrow, 8)
 	-- 	end
 	-- end
-	-- path = SimplifyPathByAngle(path)
+	-- path = self.ai.tool:SimplifyPathByAngle(path)
 	self.path = path
 	if not self.path[2] then
 		self.pathStep = 1
@@ -379,7 +377,7 @@ function RaiderBST:AttackTarget(distance)
 	if self.unitTarget ~= nil then
 		local utpos = self.unitTarget:GetPosition()
 		if utpos and utpos.x then
-			CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
+			self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
 			return
 		end
 	end

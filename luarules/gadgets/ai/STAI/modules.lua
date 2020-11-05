@@ -1,6 +1,5 @@
 -- shard_include ("unitlists")
-shard_include ("common")
-shard_include ("unitieshst")
+shard_include ("armyhst")
 shard_include ("maphst")
 shard_include ("buildsitehst")
 shard_include ("counthst")
@@ -22,10 +21,20 @@ shard_include ("damagehst")
 shard_include ("cleanhst")
 shard_include ("nanohst")
 shard_include ("overviewhst")
+shard_include ("taskshst")
+shard_include ("taskairhst")
+shard_include ("taskbothst")
+shard_include ("taskvehhst")
+shard_include ("taskshphst")
+shard_include ("TaskHovHST")
+shard_include ("taskexphst")
+shard_include ("taskbuildhst")
+shard_include ("taskecohst")
+shard_include ('tool')
 
 return {
 	SleepST,
-	UnitiesHST,
+	ArmyHST,
 	MapHST,
 	EcoHST,
 	AttackHST,
@@ -45,5 +54,15 @@ return {
 	CleanHST,
 	NanoHST,
 	OverviewHST,
-	UnitHST
+	UnitHST,
+	TasksHST,
+	TaskAirHST,
+	TaskBotHST,
+	TaskVehHST,
+	TaskShpHST,
+	TaskHovHST,
+	TaskExpHST,
+	TaskBuildHST,
+	TaskEcoHST,
+	Tool
 }

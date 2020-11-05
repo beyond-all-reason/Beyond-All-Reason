@@ -1,6 +1,6 @@
 CleanHST = class(Module)
 
-local distancePerPriority = 100
+distancePerPriority = 100
 
 function CleanHST:Name()
 	return "CleanHST"
@@ -12,7 +12,6 @@ end
 
 function CleanHST:Init()
 	self.DebugEnabled = false
-
 	self.cleanables = {}
 	self.priorities = {}
 	self.isObstructedBy = {}
@@ -20,7 +19,7 @@ function CleanHST:Init()
 	self.bigEnergyCount = 0
 end
 
-function CleanHST:UnitBuilt(unit)
+function CleanHST:MyUnitBuilt(unit)
 	if unit:Team() == self.ai.id then
 		if self:IsCleanable(unit) then
 			self:EchoDebug("cleanable " .. unit:Name())
@@ -75,11 +74,11 @@ function CleanHST:RemoveCleanable(unit)
 end
 
 function CleanHST:IsCleanable(unit)
-	return UnitiesHST.cleanable[unit:Name()]
+	return self.ai.armyhst.cleanable[unit:Name()]
 end
 
 function CleanHST:IsBigEnergy(unit)
-	local ut = self.ai.data.unitTable[unit:Name()]
+	local ut = self.ai.armyhst.unitTable[unit:Name()]
 	if ut then
 		return (ut.totalEnergyOut > 750)
 	end
@@ -94,26 +93,39 @@ function CleanHST:IsBeingCleaned(unit)
 end
 
 function CleanHST:FilterCleanable(cleanable, clnrbhvr)
+
 	local who = self:IsBeingCleaned(cleanable)
-	if who and who ~= clnrbhvr then return end
-	local priority = self.priorities[cleanable:ID()] or 0
-	if priority < 2 and (self.bigEnergyCount < 2 or self.ai.Metal.full > 0.1) then return end
-	if self.ai.data.unitTable[cleanable:Name()].totalEnergyOut > 0 and (self.bigEnergyCount < 2 - priority or self.ai.Energy.full < 0.3) then
+	if who and who ~= clnrbhvr then
+		self:EchoDebug('who not clnrbhvr')
 		return
 	end
+	local priority = self.priorities[cleanable:ID()] or 0
+	if priority < 2 and (self.bigEnergyCount < 2 or self.ai.Metal.full > 0.5) then
+		self:EchoDebug('prio < 2')
+		return
+	end
+	if self.ai.armyhst.unitTable[cleanable:Name()].totalEnergyOut > 0 and (self.bigEnergyCount < 2 - priority or self.ai.Energy.full < 0.3) then
+		self:EchoDebug('dont clean E')
+		return
+	end
+	self:EchoDebug('#filteredcleanable' , #cleanable)
 	return cleanable
 end
 
 function CleanHST:GetCleanables(clnrbhvr)
 	local filtered = {}
 	local filteredCount = 0
+	self:EchoDebug('cleanable lenght', #self.cleanables)
 	for i = #self.cleanables, 1, -1 do
 		local cleanable = self:FilterCleanable(self.cleanables[i], clnrbhvr)
 		if cleanable then
-			filteredCount = filteredCount + filteredCount
+
+			filteredCount = filteredCount + 1
 			filtered[filteredCount] = cleanable
+			self:EchoDebug('filteredCount',filteredCount)
 		end
 	end
+	self:EchoDebug('get cleanables', filtered)
 	return filtered
 end
 
@@ -125,7 +137,7 @@ function CleanHST:CleanablesWithinRadius(position, radius, clnrbhvr)
 		local cleanable = self.cleanables[i]
 		local p = cleanable:GetPosition()
 		if p then
-			local dist = Distance(position, p)
+			local dist = self.ai.tool:Distance(position, p)
 			if dist < radius then
 				withinCount = withinCount + 1
 				within[withinCount] = cleanable
@@ -134,6 +146,7 @@ function CleanHST:CleanablesWithinRadius(position, radius, clnrbhvr)
 			self:RemoveCleanable(cleanable)
 		end
 	end
+	self:EchoDebug('cleanables within' , within)
 	return within
 end
 
@@ -149,7 +162,7 @@ function CleanHST:ClosestCleanable(unit)
 			local p = cleanable:GetPosition()
 			if p then
 				local priority = self.priorities[cleanable:ID()] or 0
-				local dist = Distance(myPos, p) - (priority * distancePerPriority)
+				local dist = self.ai.tool:Distance(myPos, p) - (priority * distancePerPriority)
 				if not bestDist or dist < bestDist then
 					bestCleanable = cleanable
 					bestDist = dist
@@ -159,15 +172,20 @@ function CleanHST:ClosestCleanable(unit)
 			end
 		end
 	end
+	self:EchoDebug('best cleanable', bestCleanable)
 	return bestCleanable
 end
 
 function CleanHST:ObstructedBy(unit, obsUnit)
 	local obstructions = self.isObstructedBy[unit:ID()]
-	if not obstructions then return end
+	if not obstructions then
+		self:EchoDebug('nothing obstruct')
+		return
+	end
 	for i = 1, #obstructions do
 		local obstruction = obstructions[i]
 		if obsUnit == unit then
+			self:EchoDebug('obstruction')
 			return true
 		end
 	end
@@ -191,6 +209,7 @@ function CleanHST:UnitMoveFailed(unit)
 			self.priorities[obstruction:ID()] = (self.priorities[obstruction:ID()] or 0) + 1
 			self.isObstructedBy[unit:ID()] = self.isObstructedBy[unit:ID()] or {}
 			table.insert(self.isObstructedBy[unit:ID()], obstruction)
+			self:EchoDebug('something obstruct')
 			if self.DebugEnabled then
 				obstruction:EraseHighlight({1,1,0}, nil, 9)
 				obstruction:DrawHighlight({1,1,0}, tostring(self.priorities[obstruction:ID()]), 9)
