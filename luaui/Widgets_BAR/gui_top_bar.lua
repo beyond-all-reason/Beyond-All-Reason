@@ -859,13 +859,13 @@ local function updateResbarText(res)
 						text = (allyteamOverflowingEnergy and '   Wasting Energy   ' or '   Overflowing   ')
 						if WG['notifications'] then
 							if allyteamOverflowingEnergy then
-								if numTeamsInAllyTeam > 1 then
+								if numTeamsInAllyTeam > 3 then
 									WG['notifications'].addEvent('WholeTeamWastingEnergy')
 								else
 									--WG['notifications'].addEvent('YouAreWastingEnergy')
 								end
 							else
-								WG['notifications'].addEvent('YouAreOverflowingEnergy')
+								--WG['notifications'].addEvent('YouAreOverflowingEnergy')	-- this annoys the fuck out of em and makes them build energystoages too much
 							end
 						end
 					end

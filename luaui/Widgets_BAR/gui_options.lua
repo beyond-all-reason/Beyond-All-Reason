@@ -23,7 +23,7 @@ local pauseGameWhenSingleplayer = true
 
 local maxNanoParticles = 5000
 
-local cameraTransitionTime = 0.2
+local cameraTransitionTime = 0.12
 local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
@@ -2483,13 +2483,13 @@ function init()
 		--		 onload = function(i) end,
 		--		 onchange = function(i, value) Spring.SetConfigInt("TreeRadius",value) end,
 		--		},
-		--{id="treewind", group="gfx", basic=true, name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)',
-		-- onload = function(i) end,
-		-- onchange = function(i, value)
-		--	 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
-		--	 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
-		-- end,
-		--},
+		{id="treewind", group="gfx", basic=true, name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)',
+		 onload = function(i) end,
+		 onchange = function(i, value)
+			 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
+			 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
+		 end,
+		},
 		{ id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = "Heat distortion fx", type = "bool", value = GetWidgetToggleValue("Lups"), description = 'Adds a distortion effect to explosions and flames' },
 
 		{ id = "clouds", group = "gfx", basic = true, widget = "Volumetric Clouds", name = "Clouds", type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
