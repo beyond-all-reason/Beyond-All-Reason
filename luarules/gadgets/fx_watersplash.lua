@@ -33,6 +33,7 @@ local splashCEG2 = "splash-small"
 local splashCEG3 = "splash-medium"
 local splashCEG4 = "splash-large"
 local splashCEG5 = "splash-huge"
+local splashCEG6 = "splash-nuke"
 
 
 local weaponType = {}
@@ -67,6 +68,8 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 				Spring.SpawnCEG(splashCEG4, px, 0, pz)
 			elseif aoe >= 64 and aoe < 300 then
 				Spring.SpawnCEG(splashCEG5, px, 0, pz)
+			elseif aoe >= 300 then
+				Spring.SpawnCEG(splashCEG6, px, 0, pz)
 			end
 			return true
 		else
