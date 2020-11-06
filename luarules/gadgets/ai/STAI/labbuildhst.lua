@@ -88,6 +88,10 @@ function LabBuildHST:PrePositionFilter()
 		local isAdvanced = self.ai.armyhst.advFactories[factoryName]
 		local isExperimental = self.ai.armyhst.expFactories[factoryName] or self.ai.armyhst.leadsToExpFactories[factoryName]
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
+		if mtype == 'air' and not isAdvanced and self.ai.factories == 1 then
+			self:EchoDebug(factoryName ..' not air before advanced ')
+			buildMe = false
+		end
 		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false
@@ -275,10 +279,12 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 end
 
 function LabBuildHST:PostPositionalFilter(factoryName,p)
+
 	local mobNetOkay = false
 	for i, mtype in pairs(self.ai.armyhst.factoryMobilities[factoryName]) do
 		local network = self.ai.maphst:MobilityNetworkHere(mtype, p)
 		if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
+			self:EchoDebug('mobNetOk')
 			mobNetOkay = true
 			break
 		end
@@ -294,21 +300,49 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 	-- 	return false
 	-- end
 
+
 	if mtype ~= 'air' and self.ai.factoryBuilded['air'][1] < 1 and self.ai.haveAdvFactory then
 		self:EchoDebug('dont build this if we dont have air')
 		return false
 	elseif mtype == 'bot' then
+		if self.ai.nameCountFinished[factoryName] and self.ai.nameCountFinished[factoryName] >= 1 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
+			local sameLabs = Spring.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
+			for ct, id in pairs(sameLabs) do
+				local sameLab = game:GetUnitByID(id)
+				local sameLabPos = sameLab:GetPosition()
+				if self.ai.maphst:MobilityNetworkHere('bot',p) == self.ai.maphst:MobilityNetworkHere('bot',sameLabPos) then
+					self:EchoDebug('not duplicate t1 lab')
+					return false
+				end
+			end
+		end
 		local vehNetwork = self.ai.factoryBuilded['veh'][self.ai.maphst:MobilityNetworkHere('veh',p)]
 		if (vehNetwork and vehNetwork > 0) and (vehNetwork < 4 ) then
 			self:EchoDebug('dont build bot where are already veh not on top of tech level')
 			return false
 		end
+
+
 	elseif mtype == 'veh' then
+
+
+		if self.ai.nameCountFinished[factoryName] and self.ai.nameCountFinished[factoryName] >= 1 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
+			local sameLabs = Spring.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
+			for ct, id in pairs(sameLabs) do
+				local sameLab = game:GetUnitByID(id)
+				local sameLabPos = sameLab:GetPosition()
+				if self.ai.maphst:MobilityNetworkHere('veh',p) == self.ai.maphst:MobilityNetworkHere('veh',sameLabPos) then
+					self:EchoDebug('not duplicate t1 lab')
+					return false
+				end
+			end
+		end
 		local botNetwork = self.ai.factoryBuilded['bot'][self.ai.maphst:MobilityNetworkHere('bot',p)]
 		if (botNetwork and botNetwork > 0) and (botNetwork < 9 ) then
 			self:EchoDebug('dont build veh where are already bot not on top of tech level')
 			return false
 		end
+
 	end
 	return true
 end
