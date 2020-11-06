@@ -1169,6 +1169,7 @@ local definitions = {
         sizegrowth         = 2,
         ttl                = 160,
         pos                = [[0.5, 1, 0.0]],
+        alwaysvisible      = true,
       },
     },
     circlewaves = {
@@ -1198,6 +1199,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[wave]],
         useairlos          = true,
+        alwaysvisible      = true,
       },
     },
     waterrush = {
@@ -1227,6 +1229,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[waterrush]],
         useairlos          = true,
+        alwaysvisible      = true,
       },
     },
     sparks = {
@@ -1285,6 +1288,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[explowater]],
         useairlos          = true,
+        alwaysvisible      = true,
       },
     },
     shockwave = {
@@ -1306,6 +1310,7 @@ local definitions = {
             sizegrowth         = [[-29 r6]],
             ttl                = 38,
             pos                = [[0, 5, 0]],
+            alwaysvisible      = true,
           },
         },
     shockwave_slow = {
@@ -1327,6 +1332,7 @@ local definitions = {
             sizegrowth         = [[-16 r4]],
             ttl                = 140,
             pos                = [[0, 0, 0]],
+            alwaysvisible      = true,
           },
         },
     dirt = {
