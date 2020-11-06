@@ -11,14 +11,14 @@ local widgetVersion = 23
 
 function widget:GetInfo()
 	return {
-		name      = "AdvPlayersList",
-		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
-		author    = "Marmoth. (spiced up by Floris)",
-		date      = "25 april 2015",
-		version   = widgetVersion,
-		license   = "GNU GPL, v2 or later",
-		layer     = -4,
-		enabled   = true,  --  loaded by default?
+		name = "AdvPlayersList",
+		desc = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
+		author = "Marmoth. (spiced up by Floris)",
+		date = "25 april 2015",
+		version = widgetVersion,
+		license = "GNU GPL, v2 or later",
+		layer = -4,
+		enabled = true, --  loaded by default?
 	}
 end
 
@@ -49,17 +49,17 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local customScale			= 1
-local customScaleStep		= 0.03
-local pointDuration    		= 45
-local cpuText				= false
+local customScale = 1
+local customScaleStep = 0.03
+local pointDuration = 45
+local cpuText = false
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
-local lockcameraHideEnemies = true 			-- specfullview
-local lockcameraLos = true					-- togglelos
+local lockcameraHideEnemies = true            -- specfullview
+local lockcameraLos = true                    -- togglelos
 local collapsable = false
 
-local vsx,vsy = Spring.GetViewGeometry()
+local vsx, vsy = Spring.GetViewGeometry()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -67,44 +67,44 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 -- SPEED UPS
 --------------------------------------------------------------------------------
 
-local Spring_GetGameSeconds      = Spring.GetGameSeconds
-local Spring_GetGameFrame	     = Spring.GetGameFrame
-local Spring_GetAllyTeamList     = Spring.GetAllyTeamList
-local Spring_GetTeamInfo         = Spring.GetTeamInfo
-local Spring_GetTeamList         = Spring.GetTeamList
-local Spring_GetPlayerInfo       = Spring.GetPlayerInfo
-local Spring_GetPlayerList       = Spring.GetPlayerList
-local Spring_GetTeamColor        = Spring.GetTeamColor
-local Spring_GetLocalAllyTeamID  = Spring.GetLocalAllyTeamID
-local Spring_GetLocalTeamID      = Spring.GetLocalTeamID
-local Spring_GetLocalPlayerID    = Spring.GetLocalPlayerID
-local Spring_ShareResources      = Spring.ShareResources
-local Spring_GetTeamUnitCount    = Spring.GetTeamUnitCount
-local Echo                       = Spring.Echo
-local Spring_GetTeamResources    = Spring.GetTeamResources
-local Spring_SendCommands        = Spring.SendCommands
-local Spring_GetConfigInt        = Spring.GetConfigInt
-local Spring_GetMouseState       = Spring.GetMouseState
-local Spring_GetAIInfo           = Spring.GetAIInfo
-local Spring_GetTeamRulesParam   = Spring.GetTeamRulesParam
-local Spring_IsGUIHidden		 = Spring.IsGUIHidden
-local Spring_GetDrawFrame		 = Spring.GetDrawFrame
-local Spring_GetMyTeamID		 = Spring.GetMyTeamID
-local Spring_AreTeamsAllied		 = Spring.AreTeamsAllied
+local Spring_GetGameSeconds = Spring.GetGameSeconds
+local Spring_GetGameFrame = Spring.GetGameFrame
+local Spring_GetAllyTeamList = Spring.GetAllyTeamList
+local Spring_GetTeamInfo = Spring.GetTeamInfo
+local Spring_GetTeamList = Spring.GetTeamList
+local Spring_GetPlayerInfo = Spring.GetPlayerInfo
+local Spring_GetPlayerList = Spring.GetPlayerList
+local Spring_GetTeamColor = Spring.GetTeamColor
+local Spring_GetLocalAllyTeamID = Spring.GetLocalAllyTeamID
+local Spring_GetLocalTeamID = Spring.GetLocalTeamID
+local Spring_GetLocalPlayerID = Spring.GetLocalPlayerID
+local Spring_ShareResources = Spring.ShareResources
+local Spring_GetTeamUnitCount = Spring.GetTeamUnitCount
+local Echo = Spring.Echo
+local Spring_GetTeamResources = Spring.GetTeamResources
+local Spring_SendCommands = Spring.SendCommands
+local Spring_GetConfigInt = Spring.GetConfigInt
+local Spring_GetMouseState = Spring.GetMouseState
+local Spring_GetAIInfo = Spring.GetAIInfo
+local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
+local Spring_IsGUIHidden = Spring.IsGUIHidden
+local Spring_GetDrawFrame = Spring.GetDrawFrame
+local Spring_GetMyTeamID = Spring.GetMyTeamID
+local Spring_AreTeamsAllied = Spring.AreTeamsAllied
 
 local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
 local GetCameraNames = Spring.GetCameraNames
 
-local gl_Texture		= gl.Texture
-local gl_Rect			= gl.Rect
-local gl_TexRect	 	= gl.TexRect
-local gl_Color			= gl.Color
-local gl_CreateList		= gl.CreateList
-local gl_BeginEnd		= gl.BeginEnd
-local gl_DeleteList		= gl.DeleteList
-local gl_CallList		= gl.CallList
-local gl_Text			= gl.Text
+local gl_Texture = gl.Texture
+local gl_Rect = gl.Rect
+local gl_TexRect = gl.TexRect
+local gl_Color = gl.Color
+local gl_CreateList = gl.CreateList
+local gl_BeginEnd = gl.BeginEnd
+local gl_DeleteList = gl.DeleteList
+local gl_CallList = gl.CallList
+local gl_Text = gl.Text
 
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -115,91 +115,91 @@ local GL_ONE = GL.ONE
 -- IMAGES
 --------------------------------------------------------------------------------
 
-local imageDirectory  = ":l:"..LUAUI_DIRNAME.."Images/advplayerslist/"
+local imageDirectory = ":l:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
 
-local flagsDirectory  = imageDirectory.."flags/"
+local flagsDirectory = imageDirectory .. "flags/"
 
 local pics = {
-	chipPic         = imageDirectory.."chip.dds",
-	currentPic      = imageDirectory.."indicator.dds",
-	unitsPic        = imageDirectory.."units.dds",
-	energyPic       = imageDirectory.."energy.dds",
-	metalPic        = imageDirectory.."metal.dds",
-	notFirstPic     = imageDirectory.."notfirst.dds",
-	notFirstPicWO   = imageDirectory.."notfirstwo.png",
-	pingPic         = imageDirectory.."ping.dds",
-	cpuPic          = imageDirectory.."cpu.dds",
-	selectPic       = imageDirectory.."select.png",
-	barPic          = imageDirectory.."bar.png",
-	amountPic       = imageDirectory.."amount.png",
-	pointPic        = imageDirectory.."point.dds",
-	lowPic          = imageDirectory.."low.dds",
-	arrowPic        = imageDirectory.."arrow.dds",
-	arrowdPic       = imageDirectory.."arrowd.png",
-	takePic         = imageDirectory.."take.dds",
-	crossPic        = imageDirectory.."cross.dds",
-	pointbPic       = imageDirectory.."pointb.png",
-	takebPic        = imageDirectory.."takeb.png",
-	seespecPic      = imageDirectory.."seespec.png",
-	indentPic       = imageDirectory.."indent.png",
-	cameraPic       = imageDirectory.."camera.dds",
-	countryPic      = imageDirectory.."country.dds",
-	readyTexture    = imageDirectory.."indicator.dds",
-	drawPic         = imageDirectory.."draw.dds",
-	allyPic         = imageDirectory.."ally.dds",
-	resourcesPic    = imageDirectory.."res.png",
-	resbarPic       = imageDirectory.."resbar.png",
-	resbarBgPic     = imageDirectory.."resbarBg.png",
-    barGlowCenterPic= imageDirectory.."barglow-center.png",
-    barGlowEdgePic	= imageDirectory.."barglow-edge.png",
+	chipPic = imageDirectory .. "chip.dds",
+	currentPic = imageDirectory .. "indicator.dds",
+	unitsPic = imageDirectory .. "units.dds",
+	energyPic = imageDirectory .. "energy.dds",
+	metalPic = imageDirectory .. "metal.dds",
+	notFirstPic = imageDirectory .. "notfirst.dds",
+	notFirstPicWO = imageDirectory .. "notfirstwo.png",
+	pingPic = imageDirectory .. "ping.dds",
+	cpuPic = imageDirectory .. "cpu.dds",
+	selectPic = imageDirectory .. "select.png",
+	barPic = imageDirectory .. "bar.png",
+	amountPic = imageDirectory .. "amount.png",
+	pointPic = imageDirectory .. "point.dds",
+	lowPic = imageDirectory .. "low.dds",
+	arrowPic = imageDirectory .. "arrow.dds",
+	arrowdPic = imageDirectory .. "arrowd.png",
+	takePic = imageDirectory .. "take.dds",
+	crossPic = imageDirectory .. "cross.dds",
+	pointbPic = imageDirectory .. "pointb.png",
+	takebPic = imageDirectory .. "takeb.png",
+	seespecPic = imageDirectory .. "seespec.png",
+	indentPic = imageDirectory .. "indent.png",
+	cameraPic = imageDirectory .. "camera.dds",
+	countryPic = imageDirectory .. "country.dds",
+	readyTexture = imageDirectory .. "indicator.dds",
+	drawPic = imageDirectory .. "draw.dds",
+	allyPic = imageDirectory .. "ally.dds",
+	resourcesPic = imageDirectory .. "res.png",
+	resbarPic = imageDirectory .. "resbar.png",
+	resbarBgPic = imageDirectory .. "resbarBg.png",
+	barGlowCenterPic = imageDirectory .. "barglow-center.png",
+	barGlowEdgePic = imageDirectory .. "barglow-edge.png",
 
-	cpuPingPic      = imageDirectory.."cpuping.dds",
-	specPic         = imageDirectory.."spec.png",
-	chatPic         = imageDirectory.."chat.dds",
-	sidePic         = imageDirectory.."side.dds",
-	sharePic        = imageDirectory.."share.dds",
-	namePic         = imageDirectory.."name.dds",
-	idPic           = imageDirectory.."id.dds",
-	tsPic           = imageDirectory.."ts.dds",
-	sizednPic       = imageDirectory.."sizedn.dds",
-	sizeupPic       = imageDirectory.."sizeup.dds",
+	cpuPingPic = imageDirectory .. "cpuping.dds",
+	specPic = imageDirectory .. "spec.png",
+	chatPic = imageDirectory .. "chat.dds",
+	sidePic = imageDirectory .. "side.dds",
+	sharePic = imageDirectory .. "share.dds",
+	namePic = imageDirectory .. "name.dds",
+	idPic = imageDirectory .. "id.dds",
+	tsPic = imageDirectory .. "ts.dds",
+	sizednPic = imageDirectory .. "sizedn.dds",
+	sizeupPic = imageDirectory .. "sizeup.dds",
 
-	rank0      = imageDirectory.."ranks/rank0.png",
-	rank1      = imageDirectory.."ranks/rank1.png",
-	rank2      = imageDirectory.."ranks/rank2.png",
-	rank3      = imageDirectory.."ranks/rank3.png",
-	rank4      = imageDirectory.."ranks/rank4.png",
-	rank5      = imageDirectory.."ranks/rank5.png",
-	rank6      = imageDirectory.."ranks/rank6.png",
-	rank7      = imageDirectory.."ranks/rank7.png",
+	rank0 = imageDirectory .. "ranks/rank0.png",
+	rank1 = imageDirectory .. "ranks/rank1.png",
+	rank2 = imageDirectory .. "ranks/rank2.png",
+	rank3 = imageDirectory .. "ranks/rank3.png",
+	rank4 = imageDirectory .. "ranks/rank4.png",
+	rank5 = imageDirectory .. "ranks/rank5.png",
+	rank6 = imageDirectory .. "ranks/rank6.png",
+	rank7 = imageDirectory .. "ranks/rank7.png",
 }
 
-local sidePics        = {}  -- loaded in SetSidePics function
-local sidePicsWO      = {}  -- loaded in SetSidePics function
+local sidePics = {}  -- loaded in SetSidePics function
+local sidePicsWO = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
-local apiAbsPosition = {0,0,0,0,1,1,false}
+local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
 --------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
 
-local pingCpuColors   = {
-	[1] = {r = 0.25, g = 0.82, b = 0.25},
-	[2] = {r = 0.45, g = 0.75, b = 0.33},
-	[3] = {r = 0.75, g = 0.75, b = 0.33},
-	[4] = {r = 0.85, g = 0.33, b = 0.33},
-	[5] = {r = 1, g = 0.2, b = 0.35}
+local pingCpuColors = {
+	[1] = { r = 0.25, g = 0.82, b = 0.25 },
+	[2] = { r = 0.45, g = 0.75, b = 0.33 },
+	[3] = { r = 0.75, g = 0.75, b = 0.33 },
+	[4] = { r = 0.85, g = 0.33, b = 0.33 },
+	[5] = { r = 1, g = 0.2, b = 0.35 }
 }
 
 --------------------------------------------------------------------------------
 -- Time Variables
 --------------------------------------------------------------------------------
 
-local blink           = true
-local lastTime        = 0
-local blinkTime       = 0
-local now             = 0
+local blink = true
+local lastTime = 0
+local blinkTime = 0
+local now = 0
 
 local lastRequestTime = -1
 local interRequestTime = 1 -- seconds
@@ -215,8 +215,8 @@ local hoverPlayerlist = false
 -- LockCamera variables
 --------------------------------------------------------------------------------
 
-local transitionTime	= 0.6 --how long it takes the camera to move when trackign a player
-local listTime			= 14 --how long back to look for recent broadcasters
+local transitionTime = 0.6 -- how long it takes the camera to move when tracking a player
+local listTime = 14 -- how long back to look for recent broadcasters
 
 local myPlayerID = Spring.GetMyPlayerID()
 local lockPlayerID
@@ -236,16 +236,16 @@ local myLastCameraState
 --
 --------------------------------------------------------------------------------
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 local bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 
 local playSounds = true
-local buttonclick = LUAUI_DIRNAME..'Sounds/buildbar_waypoint.wav'
-local sliderdrag = LUAUI_DIRNAME..'Sounds/buildbar_rem.wav'
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
 local lastActivity = {}
 local lastFpsData = {}
@@ -265,7 +265,7 @@ local tipText
 -- local player info
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myTeamID
-local mySpecStatus,fullView,_ = Spring.GetSpectatingState()
+local mySpecStatus, fullView, _ = Spring.GetSpectatingState()
 
 --General players/spectator count and tables
 local player = {}
@@ -289,17 +289,17 @@ local gameStarted = false
 -- Button check variable
 --------------------------------------------------------------------------------
 
-local clickToMove                  = nil    -- click detection for moving the widget
-local moveStart                    = nil    -- position of the cursor before dragging the widget
+local clickToMove = nil    -- click detection for moving the widget
+local moveStart = nil    -- position of the cursor before dragging the widget
 
-local energyPlayer                 = nil    -- player to share energy with (nil when no energy sharing)
-local metalPlayer                  = nil    -- player to share metal with(nil when no metal sharing)
-local amountEM                     = 0      -- amount of metal/energy to share/ask
-local amountEMMax                  = nil    -- max amount of metal/energy to share/ask
-local sliderPosition               = 0      -- slider position in metal and energy sharing
-local sliderOrigin                  = nil   -- position of the cursor before dragging the widget
+local energyPlayer = nil    -- player to share energy with (nil when no energy sharing)
+local metalPlayer = nil    -- player to share metal with(nil when no metal sharing)
+local amountEM = 0      -- amount of metal/energy to share/ask
+local amountEMMax = nil    -- max amount of metal/energy to share/ask
+local sliderPosition = 0      -- slider position in metal and energy sharing
+local sliderOrigin = nil   -- position of the cursor before dragging the widget
 
-local firstclick                   = 0		--
+local firstclick = 0        --
 
 local dblclickPeriod = 0.4
 local backgroundMargin = 8
@@ -311,26 +311,26 @@ local desiredLosmodeChanged = 0
 -- GEOMETRY VARIABLES
 --------------------------------------------------------------------------------
 
-local widgetTop     	= 0
-local widgetRight   	= 1
-local widgetHeight  	= 0
-local widgetWidth   	= 0
-local widgetPosX    	= vsx-200
-local widgetPosY    	= 0
-local widgetScale		= 0
+local widgetTop = 0
+local widgetRight = 1
+local widgetHeight = 0
+local widgetWidth = 0
+local widgetPosX = vsx - 200
+local widgetPosY = 0
+local widgetScale = 0
 
-local expandDown    	= false
-local expandLeft    	= true
+local expandDown = false
+local expandLeft = true
 local right = true
 
-local activePlayers  	= {}
-local labelOffset    	= 18
-local separatorOffset	= 4
-local playerOffset   	= 17
-local specOffset 	 	= 12
-local drawList       	= {}
+local activePlayers = {}
+local labelOffset = 18
+local separatorOffset = 4
+local playerOffset = 17
+local specOffset = 12
+local drawList = {}
 local teamN
-local prevClickTime  	= os.clock()
+local prevClickTime = os.clock()
 local specListShow = true
 
 local collapsed = false
@@ -343,177 +343,191 @@ local collapsedHeight = 42
 
 local modules = {}
 local modulesCount = 0
-local m_indent;   modulesCount = modulesCount + 1
-local m_rank;     modulesCount = modulesCount + 1
-local m_side;     modulesCount = modulesCount + 1
-local m_ID;       modulesCount = modulesCount + 1
-local m_name;     modulesCount = modulesCount + 1
-local m_share;    modulesCount = modulesCount + 1
-local m_chat;     modulesCount = modulesCount + 1
-local m_cpuping;  modulesCount = modulesCount + 1
-local m_diplo;    modulesCount = modulesCount + 1
-local m_sizedn;   modulesCount = modulesCount + 1
-local m_sizeup;   modulesCount = modulesCount + 1
+local m_indent;
+modulesCount = modulesCount + 1
+local m_rank;
+modulesCount = modulesCount + 1
+local m_side;
+modulesCount = modulesCount + 1
+local m_ID;
+modulesCount = modulesCount + 1
+local m_name;
+modulesCount = modulesCount + 1
+local m_share;
+modulesCount = modulesCount + 1
+local m_chat;
+modulesCount = modulesCount + 1
+local m_cpuping;
+modulesCount = modulesCount + 1
+local m_diplo;
+modulesCount = modulesCount + 1
+local m_sizedn;
+modulesCount = modulesCount + 1
+local m_sizeup;
+modulesCount = modulesCount + 1
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
-local m_point;    modulesCount = modulesCount + 1
-local m_take;     modulesCount = modulesCount + 1
-local m_seespec;  modulesCount = modulesCount + 1
+local m_point;
+modulesCount = modulesCount + 1
+local m_take;
+modulesCount = modulesCount + 1
+local m_seespec;
+modulesCount = modulesCount + 1
 
 local position = 1
 m_indent = {
-	name	  = "indent",
-	spec      = true, --display for specs?
-	play      = true, --display for players?
-	active    = true, --display? (overrides above)
-	default   = true, --display by default?
-	width     = 9,
-	position  = position,
-	posX      = 0,
-	pic       = pics["indentPic"],
-	noPic     = true,
+	name = "indent",
+	spec = true, --display for specs?
+	play = true, --display for players?
+	active = true, --display? (overrides above)
+	default = true, --display by default?
+	width = 9,
+	position = position,
+	posX = 0,
+	pic = pics["indentPic"],
+	noPic = true,
 }
 position = position + 1
 
 m_ID = {
-	name	  = "id",
-	spec      = true,
-	play      = true,
-	active    = false,
-	width     = 17,
-	position  = position,
-	posX      = 0,
-	pic       = pics["idPic"],
+	name = "id",
+	spec = true,
+	play = true,
+	active = false,
+	width = 17,
+	position = position,
+	posX = 0,
+	pic = pics["idPic"],
 }
 position = position + 1
 
 m_rank = {
-	name	  = "rank",
-	spec      = true, --display for specs?
-	play      = true, --display for players?
-	active    = true, --display? (overrides above)
-	default   = false, --display by default?
-	width     = 18,
-	position  = position,
-	posX      = 0,
-	pic       = pics["rank6"],
+	name = "rank",
+	spec = true, --display for specs?
+	play = true, --display for players?
+	active = true, --display? (overrides above)
+	default = false, --display by default?
+	width = 18,
+	position = position,
+	posX = 0,
+	pic = pics["rank6"],
 }
 position = position + 1
 
 m_country = {
-	name	  = "country",
-	spec      = true,
-	play      = true,
-	active    = true,
-	default   = true,
-	width     = 20,
-	position  = position,
-	posX      = 0,
-	pic       = pics["countryPic"],
+	name = "country",
+	spec = true,
+	play = true,
+	active = true,
+	default = true,
+	width = 20,
+	position = position,
+	posX = 0,
+	pic = pics["countryPic"],
 }
 position = position + 1
 
 m_side = {
-	name	  = "side",
-	spec      = true,
-	play      = true,
-	active    = false,
-	width     = 18,
-	position  = position,
-	posX      = 0,
-	pic       = pics["sidePic"],
+	name = "side",
+	spec = true,
+	play = true,
+	active = false,
+	width = 18,
+	position = position,
+	posX = 0,
+	pic = pics["sidePic"],
 }
 position = position + 1
 
 m_skill = {
-	name	  = "skill",
-	spec      = true,
-	play      = true,
-	active    = true,
-	width     = 18,
-	position  = position,
-	posX      = 0,
-	pic       = pics["tsPic"],
+	name = "skill",
+	spec = true,
+	play = true,
+	active = true,
+	width = 18,
+	position = position,
+	posX = 0,
+	pic = pics["tsPic"],
 }
 position = position + 1
 
 m_name = {
-	name      = "name",
-	spec      = true,
-	play      = true,
-	active    = true,
+	name = "name",
+	spec = true,
+	play = true,
+	active = true,
 	alwaysActive = true,
-	width     = 10,
-	position  = position,
-	posX      = 0,
-	pic       = pics["namePic"],
-	noPic     = true,
-	picGap    = 7,
+	width = 10,
+	position = position,
+	posX = 0,
+	pic = pics["namePic"],
+	noPic = true,
+	picGap = 7,
 }
 position = position + 1
 
 m_cpuping = {
-	name 	  = "cpuping",
-	spec      = true,
-	play      = true,
-	active    = true,
-	width     = 24,
-	position  = position,
-	posX      = 0,
-	pic       = pics["cpuPingPic"],
+	name = "cpuping",
+	spec = true,
+	play = true,
+	active = true,
+	width = 24,
+	position = position,
+	posX = 0,
+	pic = pics["cpuPingPic"],
 }
 position = position + 1
 
 m_resources = {
-	name 	    = "resources",
-	spec      = true,
-	play      = true,
-	active    = true,
-	width     = 28,
-	position  = position,
-	posX      = 0,
-	pic       = pics["resourcesPic"],
-	picGap    = 7,
+	name = "resources",
+	spec = true,
+	play = true,
+	active = true,
+	width = 28,
+	position = position,
+	posX = 0,
+	pic = pics["resourcesPic"],
+	picGap = 7,
 }
 position = position + 1
 
 m_share = {
-	name 	  = "share",
-	spec      = false,
-	play      = true,
-	active    = true,
-	width     = 50,
-	position  = position,
-	posX      = 0,
-	pic       = pics["sharePic"],
+	name = "share",
+	spec = false,
+	play = true,
+	active = true,
+	width = 50,
+	position = position,
+	posX = 0,
+	pic = pics["sharePic"],
 }
 position = position + 1
 
 m_chat = {
-	name	  = "chat",
-	spec      = false,
-	play      = true,
-    active    = false,
-	width     = 18,
-	position  = position,
-	posX      = 0,
-	pic       = pics["chatPic"],
+	name = "chat",
+	spec = false,
+	play = true,
+	active = false,
+	width = 18,
+	position = position,
+	posX = 0,
+	pic = pics["chatPic"],
 }
 position = position + 1
 
 local fixedallies = tonumber(Spring.GetModOptions().fixedallies)
 local drawAllyButton = (not fixedallies or fixedallies == 0)
 m_alliance = {
-	name 	  = "ally",
-	spec      = false,
-	play      = true,
-	active    = true,
-	width     = 16,
-	position  = position,
-	posX      = 0,
-	pic       = pics["allyPic"],
-	noPic     = false,
+	name = "ally",
+	spec = false,
+	play = true,
+	active = true,
+	width = 16,
+	position = position,
+	posX = 0,
+	pic = pics["allyPic"],
+	noPic = false,
 }
 if not drawAllyButton then
 	m_alliance.width = 0
@@ -522,28 +536,28 @@ end
 position = position + 1
 
 m_sizedn = {
-	name	  = "sizedn",
-	spec      = true,
-	play      = true,
-	active    = true,
+	name = "sizedn",
+	spec = true,
+	play = true,
+	active = true,
 	alwaysActive = true,
-	width     = 0,
-	position  = position,
-	posX      = 0,
-	pic       = pics["sizednPic"],
+	width = 0,
+	position = position,
+	posX = 0,
+	pic = pics["sizednPic"],
 }
 position = position + 1
 
 m_sizeup = {
-	name	  = "sizeup",
-	spec      = true,
-	play      = true,
-	active    = true,
+	name = "sizeup",
+	spec = true,
+	play = true,
+	active = true,
 	alwaysActive = true,
-	width     = 0,
-	position  = position,
-	posX      = 0,
-	pic       = pics["sizeupPic"],
+	width = 0,
+	position = position,
+	posX = 0,
+	pic = pics["sizeupPic"],
 }
 position = position + 1
 
@@ -566,7 +580,7 @@ modules = {
 
 m_point = {
 	active = true,
-	defaut = true,			-- defaults dont seem to be accesible on widget data load
+	defaut = true, -- defaults dont seem to be accesible on widget data load
 	pic = pics["pointbPic"],
 }
 
@@ -582,10 +596,8 @@ m_seespec = {
 	pic = pics["seespecPic"],
 }
 
-
 local specsLabelOffset = 0
 local teamsizeVersusText = ""
-
 
 local hideShareIcons = false
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
@@ -600,11 +612,11 @@ end
 
 function SetModulesPositionX()
 	m_name.width = SetMaxPlayerNameWidth()
-	table.sort(modules, function(v1,v2)
+	table.sort(modules, function(v1, v2)
 		return v1.position < v2.position
 	end)
 	pos = 1
-	for _,module in ipairs(modules) do
+	for _, module in ipairs(modules) do
 		module.posX = pos
 		if module.active == true and (module.name ~= 'share' or not hideShareIcons) then
 			if mySpecStatus == true then
@@ -629,12 +641,13 @@ end
 function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 14*(font2 and font2:GetTextWidth(absentName) or 100) + 8 -- 8 is minimal width
+	local maxWidth = 14 * (font2 and font2:GetTextWidth(absentName) or 100) + 8 -- 8 is minimal width
 
-	for _,wplayer in ipairs(t) do
-		local name,_,spec,teamID = Spring_GetPlayerInfo(wplayer)
-		if not select(4, Spring_GetTeamInfo(teamID, false)) then -- is not AI?
-			local nextWidth = (spec and 11 or 14) * (font2 and font2:GetTextWidth(name) or 100)+10
+	for _, wplayer in ipairs(t) do
+		local name, _, spec, teamID = Spring_GetPlayerInfo(wplayer)
+		if not select(4, Spring_GetTeamInfo(teamID, false)) then
+			-- is not AI?
+			local nextWidth = (spec and 11 or 14) * (font2 and font2:GetTextWidth(name) or 100) + 10
 			if nextWidth > maxWidth then
 				maxWidth = nextWidth
 			end
@@ -646,11 +659,11 @@ function SetMaxPlayerNameWidth()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 		if teamID ~= gaiaTeamID then
-			local _,_,_, isAiTeam = Spring_GetTeamInfo(teamID, false)
+			local _, _, _, isAiTeam = Spring_GetTeamInfo(teamID, false)
 			if isAiTeam then
 				local name = GetAIName(teamID)
 
-				local nextWidth = 14 * (font2 and font2:GetTextWidth(name) or 100)+10
+				local nextWidth = 14 * (font2 and font2:GetTextWidth(name) or 100) + 10
 				if nextWidth > maxWidth then
 					maxWidth = nextWidth
 				end
@@ -665,9 +678,11 @@ function GetNumberOfSpecs()
 	local pList = Spring_GetPlayerList()
 	local count = 0
 	local name = ""
-	for _,playerID in ipairs(pList) do
-		_,active,spec = Spring_GetPlayerInfo(playerID)
-		if spec and active then count = count + 1 end
+	for _, playerID in ipairs(pList) do
+		_, active, spec = Spring_GetPlayerInfo(playerID)
+		if spec and active then
+			count = count + 1
+		end
 	end
 	return count
 end
@@ -675,27 +690,26 @@ end
 function GeometryChange()
 	--check if disappeared off the edge of screen
 	widgetRight = widgetWidth + widgetPosX
-	if widgetRight > vsx-(backgroundMargin * widgetScale) then
+	if widgetRight > vsx - (backgroundMargin * widgetScale) then
 		widgetRight = vsx - (backgroundMargin * widgetScale)
 		widgetPosX = vsx - ((widgetWidth + backgroundMargin) * widgetScale) - widgetRelRight
 	end
-	if widgetRight > vsx/2 then
+	if widgetRight > vsx / 2 then
 		right = true
 	else
 		right = false
 	end
 end
 
-
 local function UpdateAlliances()
 	playerList = Spring_GetPlayerList()
 	teamList = Spring_GetTeamList()
-	for _,playerID in pairs (playerList) do
+	for _, playerID in pairs(playerList) do
 		if not player[playerID].spec then
 			local alliances = {}
-			for _,player2ID in pairs (playerList) do
-				if not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID  and  player[playerID].team ~= nil and player[player2ID].team ~= nil and  player[playerID].allyteam ~= player[player2ID].allyteam  and  Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
-					alliances[#alliances+1] = player2ID
+			for _, player2ID in pairs(playerList) do
+				if not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID and player[playerID].team ~= nil and player[player2ID].team ~= nil and player[playerID].allyteam ~= player[player2ID].allyteam and Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
+					alliances[#alliances + 1] = player2ID
 				end
 			end
 			player[playerID].alliances = alliances
@@ -707,15 +721,15 @@ function toPixels(str)
 	local chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()_+-=[]{};:,./<>?~|`'\"\\"
 	local pixels = {}
 	local pixelsCount = 0
-	for i=1, string.len(str) do
-		if i%3 == 1 then
+	for i = 1, string.len(str) do
+		if i % 3 == 1 then
 			pixelsCount = pixelsCount + 1
 			pixels[pixelsCount] = {}
 		end
-		local char = string.sub(str,i,i)
-		for ci=1, string.len(chars) do
-			if char == string.sub(chars,ci,ci) then
-				pixels[pixelsCount][#pixels[pixelsCount]+1] = (ci-1)/string.len(chars)
+		local char = string.sub(str, i, i)
+		for ci = 1, string.len(chars) do
+			if char == string.sub(chars, ci, ci) then
+				pixels[pixelsCount][#pixels[pixelsCount] + 1] = (ci - 1) / string.len(chars)
 				break
 			end
 		end
@@ -728,15 +742,15 @@ function PlayerDataBroadcast(playerName, msg)
 	local data = ''
 	local count = 0
 	local startPos = 0
-	for i=1, string.len(msg) do
+	for i = 1, string.len(msg) do
 		if string.sub(msg, i, i) == ';' then
 			count = count + 1
 			if count == 1 then
-				startPos = i+1
-				playerName = string.sub(msg,1,i-1)
+				startPos = i + 1
+				playerName = string.sub(msg, 1, i - 1)
 			elseif count == 2 then
-				msgType = string.sub(msg,startPos,i-1)
-				data = string.sub(msg, i+1)
+				msgType = string.sub(msg, startPos, i - 1)
+				data = string.sub(msg, i + 1)
 				break
 			end
 		end
@@ -745,29 +759,29 @@ function PlayerDataBroadcast(playerName, msg)
 		if msgType == 'screenshot' then
 			data = VFS.ZlibDecompress(data)
 			count = 0
-			for i=1, string.len(data) do
+			for i = 1, string.len(data) do
 				if string.sub(data, i, i) == ';' then
 					count = count + 1
 					if count == 1 then
-						local finished = string.sub(data,1,i-1)
+						local finished = string.sub(data, 1, i - 1)
 						if finished == '1' then
 							screenshotFinished = true
 						else
 							screenshotFinished = false
 						end
-						startPos = i+1
+						startPos = i + 1
 					elseif count == 2 then
-						screenshotWidth = tonumber(string.sub(data,startPos,i-1))
-						startPos = i+1
+						screenshotWidth = tonumber(string.sub(data, startPos, i - 1))
+						startPos = i + 1
 					elseif count == 3 then
-						screenshotHeight = tonumber(string.sub(data,startPos,i-1))
-						startPos = i+1
+						screenshotHeight = tonumber(string.sub(data, startPos, i - 1))
+						startPos = i + 1
 					elseif count == 4 then
-						screenshotGameframe = tonumber(string.sub(data,startPos,i-1))
+						screenshotGameframe = tonumber(string.sub(data, startPos, i - 1))
 						if not screenshotData then
-							screenshotData = string.sub(data, i+1)
+							screenshotData = string.sub(data, i + 1)
 						else
-							screenshotData = screenshotData .. string.sub(data, i+1)
+							screenshotData = screenshotData .. string.sub(data, i + 1)
 						end
 						break
 					end
@@ -776,19 +790,19 @@ function PlayerDataBroadcast(playerName, msg)
 			data = nil
 			screenshotDataLast = totalTime
 
-			if screenshotFinished or totalTime-4000 > screenshotDataLast then
+			if screenshotFinished or totalTime - 4000 > screenshotDataLast then
 				screenshotFinished = true
 				local map = Game.mapName
 				local datetable = os.date('*t')
 				local frame = Spring.GetGameFrame()
 				local minutes = math.floor((screenshotGameframe / 30 / 60))
-				local seconds = math.floor((screenshotGameframe - ((minutes*60)*30)) / 30)
+				local seconds = math.floor((screenshotGameframe - ((minutes * 60) * 30)) / 30)
 				if seconds == 0 then
 					seconds = '00'
 				elseif seconds < 10 then
-					seconds = '0'..seconds
+					seconds = '0' .. seconds
 				end
-				local time = minutes..':'..seconds
+				local time = minutes .. ':' .. seconds
 				local yyyy = datetable.year
 				local m = datetable.month
 				local d = datetable.day
@@ -796,45 +810,45 @@ function PlayerDataBroadcast(playerName, msg)
 				local min = datetable.min
 				local s = datetable.sec
 				local yyyy = tostring(yyyy)
-				local mm = ((m > 9 and tostring(m)) or (m <10 and ("0"..tostring(m))))
-				local dd = ((d > 9 and tostring(d)) or (d <10 and ("0"..tostring(d))))
-				local hh = ((h > 9 and tostring(h)) or (h <10 and ("0"..tostring(h))))
-				local minmin = ((min > 9 and tostring(min)) or (min <10 and ("0"..tostring(min))))
-				local ss = ((s > 9 and tostring(s)) or (s <10 and ("0"..tostring(s))))
+				local mm = ((m > 9 and tostring(m)) or (m < 10 and ("0" .. tostring(m))))
+				local dd = ((d > 9 and tostring(d)) or (d < 10 and ("0" .. tostring(d))))
+				local hh = ((h > 9 and tostring(h)) or (h < 10 and ("0" .. tostring(h))))
+				local minmin = ((min > 9 and tostring(min)) or (min < 10 and ("0" .. tostring(min))))
+				local ss = ((s > 9 and tostring(s)) or (s < 10 and ("0" .. tostring(s))))
 				local engine = Engine.versionFull
 
 				screenshotPixels = toPixels(screenshotData)
 				screenshotPlayer = playerName
-				screenshotFilename = yyyy..mm..dd.."_"..hh..minmin..ss.."_" ..minutes..'.'..seconds.."_"..playerName
+				screenshotFilename = yyyy .. mm .. dd .. "_" .. hh .. minmin .. ss .. "_" .. minutes .. '.' .. seconds .. "_" .. playerName
 				screenshotSaved = nil
 				screenshotSaveQueued = true
-				screenshotPosX = widgetPosX-(backgroundMargin+30+screenshotWidth*widgetScale)
+				screenshotPosX = widgetPosX - (backgroundMargin + 30 + screenshotWidth * widgetScale)
 				screenshotPosY = widgetPosY
 				screenshotDlist = gl_CreateList(function()
 					gl.PushMatrix()
-					gl.Translate(screenshotPosX, screenshotPosY,0)
-					gl.Scale(widgetScale,widgetScale,0)
+					gl.Translate(screenshotPosX, screenshotPosY, 0)
+					gl.Scale(widgetScale, widgetScale, 0)
 
-					gl_Color(0,0,0,0.66)
+					gl_Color(0, 0, 0, 0.66)
 					local margin = 2
-					RectRound(-margin,-margin,screenshotWidth+margin+margin,screenshotHeight+15+margin+margin, 6)
-					gl_Color(1,1,1,0.025)
-					RectRound(0,0,screenshotWidth,screenshotHeight+12+margin+margin, 4.5)
+					RectRound(-margin, -margin, screenshotWidth + margin + margin, screenshotHeight + 15 + margin + margin, 6)
+					gl_Color(1, 1, 1, 0.025)
+					RectRound(0, 0, screenshotWidth, screenshotHeight + 12 + margin + margin, 4.5)
 
-                    font:Begin()
-                    font:Print(screenshotPlayer, 4, screenshotHeight+6.5, 11, "on")
-                    font:End()
+					font:Begin()
+					font:Print(screenshotPlayer, 4, screenshotHeight + 6.5, 11, "on")
+					font:End()
 
 					local row = 0
 					local col = 0
-					for p=1, #screenshotPixels do
+					for p = 1, #screenshotPixels do
 						col = col + 1
-						if p%screenshotWidth == 1 then
+						if p % screenshotWidth == 1 then
 							row = row + 1
 							col = 1
 						end
 						gl.Color(screenshotPixels[p][1], screenshotPixels[p][2], screenshotPixels[p][3], 1)
-						gl.Rect(col, row, col+1, row+1)
+						gl.Rect(col, row, col + 1, row + 1)
 					end
 					gl.PopMatrix()
 
@@ -845,11 +859,11 @@ function PlayerDataBroadcast(playerName, msg)
 			end
 		elseif msgType == 'infolog' or msgType == 'config' then
 			local playerID
-			for i=1, string.len(data) do
+			for i = 1, string.len(data) do
 				if string.sub(data, i, i) == ';' then
-					playerID = tonumber(string.sub(data,1,i-1))
-					startPos = i+1
-					data = string.sub(data, i+1)
+					playerID = tonumber(string.sub(data, 1, i - 1))
+					startPos = i + 1
+					data = string.sub(data, i + 1)
 					break
 				end
 			end
@@ -861,20 +875,20 @@ function PlayerDataBroadcast(playerName, msg)
 				local h = datetable.hour
 				local min = datetable.min
 				local yyyy = tostring(yyyy)
-				local mm = ((m > 9 and tostring(m)) or (m <10 and ("0"..tostring(m))))
-				local dd = ((d > 9 and tostring(d)) or (d <10 and ("0"..tostring(d))))
-				local hh = ((h > 9 and tostring(h)) or (h <10 and ("0"..tostring(h))))
-				local minmin = ((min > 9 and tostring(min)) or (min <10 and ("0"..tostring(min))))
+				local mm = ((m > 9 and tostring(m)) or (m < 10 and ("0" .. tostring(m))))
+				local dd = ((d > 9 and tostring(d)) or (d < 10 and ("0" .. tostring(d))))
+				local hh = ((h > 9 and tostring(h)) or (h < 10 and ("0" .. tostring(h))))
+				local minmin = ((min > 9 and tostring(min)) or (min < 10 and ("0" .. tostring(min))))
 
-				local filename = 'playerdata_'..msgType..'s.txt'
+				local filename = 'playerdata_' .. msgType .. 's.txt'
 				local filedata = ''
 				if VFS.FileExists(filename) then
 					filedata = tostring(VFS.LoadFile(filename))
 				end
-				local file = assert(io.open(filename, 'w'), 'Unable to save '..filename)
-				file:write(filedata .. '-----------------------------------------------------\n----  '.. yyyy..'-'..mm..'-'..dd.."  "..hh..'.'..minmin .. '  ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
+				local file = assert(io.open(filename, 'w'), 'Unable to save ' .. filename)
+				file:write(filedata .. '-----------------------------------------------------\n----  ' .. yyyy .. '-' .. mm .. '-' .. dd .. "  " .. hh .. '.' .. minmin .. '  ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
 				file:close()
-				Spring.Echo('Added '..msgType..' to '..filename)
+				Spring.Echo('Added ' .. msgType .. ' to ' .. filename)
 			end
 		end
 	end
@@ -903,20 +917,20 @@ end
 local function LockCamera(playerID)
 
 	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and Spring_GetPlayerInfo(playerID) then
-		if lockcameraHideEnemies and not select(3,Spring_GetPlayerInfo(playerID)) then
-			Spring.SendCommands("specteam "..select(4,Spring_GetPlayerInfo(playerID)))
+		if lockcameraHideEnemies and not select(3, Spring_GetPlayerInfo(playerID)) then
+			Spring.SendCommands("specteam " .. select(4, Spring_GetPlayerInfo(playerID)))
 			if not fullView then
-				sceduledSpecFullView = 1	-- this is needed else the minimap/world doesnt update properly
+				sceduledSpecFullView = 1    -- this is needed else the minimap/world doesnt update properly
 				Spring.SendCommands("specfullview")
 			else
-				sceduledSpecFullView = 2	-- this is needed else the minimap/world doesnt update properly
+				sceduledSpecFullView = 2    -- this is needed else the minimap/world doesnt update properly
 				Spring.SendCommands("specfullview")
 			end
-			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() ~= "los" then
 				desiredLosmode = 'los'
 				desiredLosmodeChanged = os.clock()
 			end
-		elseif lockcameraHideEnemies and select(3,Spring_GetPlayerInfo(playerID)) then
+		elseif lockcameraHideEnemies and select(3, Spring_GetPlayerInfo(playerID)) then
 			if not fullView then
 				Spring.SendCommands("specfullview")
 			end
@@ -934,11 +948,11 @@ local function LockCamera(playerID)
 			SetCameraState(myLastCameraState, transitionTime)
 			myLastCameraState = nil
 		end
-		if lockcameraHideEnemies and lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+		if lockcameraHideEnemies and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
 			if not fullView then
 				Spring.SendCommands("specfullview")
 			end
-			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
 				desiredLosmode = 'normal'
 				desiredLosmodeChanged = os.clock()
 			end
@@ -960,20 +974,26 @@ function FpsEvent(playerID, fps)
 end
 
 function SystemEvent(playerID, system)
-  local lines, length = 0, 0
-  local function helper(line) lines=lines+1; if string.len(line) then length = string.len(line) end return "" end
-  helper((system:gsub("(.-)\r?\n", helper)))
-  lastSystemData[playerID] = system
+	local lines, length = 0, 0
+	local function helper(line)
+		lines = lines + 1;
+		if string.len(line) then
+			length = string.len(line)
+		end
+		return ""
+	end
+	helper((system:gsub("(.-)\r?\n", helper)))
+	lastSystemData[playerID] = system
 
-  WG.playerSystemData = WG.playerSystemData or {}
-  WG.playerSystemData[playerID] = system
+	WG.playerSystemData = WG.playerSystemData or {}
+	WG.playerSystemData[playerID] = system
 end
 
 function ActivityEvent(playerID)
-  lastActivity[playerID] = os.clock()
+	lastActivity[playerID] = os.clock()
 end
 
-function CameraBroadcastEvent(playerID,cameraState)
+function CameraBroadcastEvent(playerID, cameraState)
 
 	--if cameraState is empty then transmission has stopped
 	if not cameraState then
@@ -991,7 +1011,7 @@ function CameraBroadcastEvent(playerID,cameraState)
 		newBroadcaster = true
 	end
 
-	lastBroadcasts[playerID] = {totalTime, cameraState}
+	lastBroadcasts[playerID] = { totalTime, cameraState }
 
 	if playerID == lockPlayerID then
 		SetCameraState(cameraState, transitionTime)
@@ -1005,7 +1025,6 @@ end
 function RecvPlayerScores(newPlayerScores)
 	playerScores = newPlayerScores or {}
 end
-
 
 function widget:PlayerChanged(playerID)
 	myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -1027,7 +1046,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('PlayerDataBroadcast', PlayerDataBroadcast)
 	UpdateRecentBroadcasters()
 
-	mySpecStatus,fullView,_ = Spring.GetSpectatingState()
+	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
 	if Spring.GetGameFrame() <= 0 then
 		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
@@ -1035,13 +1054,13 @@ function widget:Initialize()
 			specListShow = false
 		end
 	end
-	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
+	if (Spring.GetConfigInt("ShowPlayerInfo") == 1) then
 		Spring.SendCommands("info 0")
 	end
 
-    if Spring.GetGameFrame()>0 then
-        gameStarted = true
- 	end
+	if Spring.GetGameFrame() > 0 then
+		gameStarted = true
+	end
 
 	GeometryChange()
 	SetModulesPositionX()
@@ -1071,10 +1090,10 @@ function widget:Initialize()
 		end
 	end
 
-    WG['advplayerlist_api'].GetLockPlayerID = function()
-        return lockPlayerID
-    end
-    WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
+	WG['advplayerlist_api'].GetLockPlayerID = function()
+		return lockPlayerID
+	end
+	WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
 		LockCamera(playerID)
 	end
 	WG['advplayerlist_api'].GetLockHideEnemies = function()
@@ -1082,11 +1101,11 @@ function widget:Initialize()
 	end
 	WG['advplayerlist_api'].SetLockHideEnemies = function(value)
 		lockcameraHideEnemies = value
-		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+		if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
 			if not lockcameraHideEnemies then
 				if not fullView then
 					Spring.SendCommands("specfullview")
-					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
 						desiredLosmode = 'normal'
 						desiredLosmodeChanged = os.clock()
 						Spring.SendCommands("togglelos")
@@ -1095,7 +1114,7 @@ function widget:Initialize()
 			else
 				if fullView then
 					Spring.SendCommands("specfullview")
-					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() ~= "los" then
 						desiredLosmode = 'los'
 						desiredLosmodeChanged = os.clock()
 						Spring.SendCommands("togglelos")
@@ -1115,12 +1134,12 @@ function widget:Initialize()
 	end
 	WG['advplayerlist_api'].SetLockLos = function(value)
 		lockcameraLos = value
-		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
-			if lockcameraLos and Spring.GetMapDrawMode()~="los" then
+		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
+			if lockcameraLos and Spring.GetMapDrawMode() ~= "los" then
 				desiredLosmode = 'los'
 				desiredLosmodeChanged = os.clock()
 				Spring.SendCommands("togglelos")
-			elseif not lockcameraLos and Spring.GetMapDrawMode()=="los" then
+			elseif not lockcameraLos and Spring.GetMapDrawMode() == "los" then
 				desiredLosmode = 'normal'
 				desiredLosmodeChanged = os.clock()
 				Spring.SendCommands("togglelos")
@@ -1131,7 +1150,7 @@ function widget:Initialize()
 		return modules[module].active
 	end
 	WG['advplayerlist_api'].SetModuleActive = function(value)
-		for n,module in pairs(modules) do
+		for n, module in pairs(modules) do
 			if module.name == value[1] then
 				modules[n].active = value[2]
 				SetModulesPositionX()
@@ -1158,7 +1177,6 @@ function widget:GameFrame(n)
 		SortList()
 	end
 end
-
 
 function widget:Shutdown()
 	if WG['guishader'] then
@@ -1197,11 +1215,10 @@ function widget:GameOver()
 	end
 end
 
-
 function SetSidePics()
 	--record readyStates
 	playerList = Spring.GetPlayerList()
-	for _,playerID in pairs (playerList) do
+	for _, playerID in pairs(playerList) do
 		playerReadyState[playerID] = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
 	end
 
@@ -1218,19 +1235,18 @@ function SetSidePics()
 				teamSide = teamSideTwo
 			end
 		else
-			_,_,_,_,teamSide = Spring_GetTeamInfo(team,false)
+			_, _, _, _, teamSide = Spring_GetTeamInfo(team, false)
 		end
 
 		if teamSide then
-			sidePics[team] = imageDirectory..teamSide.."_default.png"
-			sidePicsWO[team] = imageDirectory..teamSide.."wo_default.png"
+			sidePics[team] = imageDirectory .. teamSide .. "_default.png"
+			sidePicsWO[team] = imageDirectory .. teamSide .. "wo_default.png"
 		else
-			sidePics[team] = imageDirectory.."default.png"
-			sidePicsWO[team] = imageDirectory.."defaultwo.png"
+			sidePics[team] = imageDirectory .. "default.png"
+			sidePicsWO[team] = imageDirectory .. "defaultwo.png"
 		end
 	end
 end
-
 
 function InitializePlayers()
 	myPlayerID = Spring_GetLocalPlayerID()
@@ -1245,28 +1261,28 @@ end
 function GetAllPlayers()
 	local noplayer
 	local tplayerCount = 0
-	local allteams   = Spring_GetTeamList()
+	local allteams = Spring_GetTeamList()
 	teamN = table.maxn(allteams) - 1               --remove gaia
-	for i = 0,teamN-1 do
+	for i = 0, teamN - 1 do
 		local teamPlayers = Spring_GetPlayerList(i, true)
 		player[i + 64] = CreatePlayerFromTeam(i)
-		for _,playerID in ipairs(teamPlayers) do
+		for _, playerID in ipairs(teamPlayers) do
 			player[playerID] = CreatePlayer(playerID)
 			tplayerCount = tplayerCount + 1
 		end
 
-		local _,_,_,isAiTeam = Spring.GetTeamInfo(teamN,false)
+		local _, _, _, isAiTeam = Spring.GetTeamInfo(teamN, false)
 		local isLuaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
 		if not (isAiTeam or isLuaAI) then
 			if tplayerCount > 0 then
-				playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
+				playerSpecs[i] = true        -- (this isnt correct when team consists of only AI)
 			end
 			tplayerCount = 0
 		end
 	end
 	specPlayers = Spring_GetTeamList()
-	for _,playerID in ipairs(specPlayers) do
-		local active,_,spec = Spring_GetPlayerInfo(playerID,false)
+	for _, playerID in ipairs(specPlayers) do
+		local active, _, spec = Spring_GetPlayerInfo(playerID, false)
 		if spec == true then
 			if active == true then
 				player[playerID] = CreatePlayer(playerID)
@@ -1275,47 +1291,47 @@ function GetAllPlayers()
 	end
 end
 
-
 function GetAliveAllyTeams()
 	aliveAllyTeams = {}
-	local allteams   = Spring_GetTeamList()
+	local allteams = Spring_GetTeamList()
 	teamN = table.maxn(allteams) - 1               --remove gaia
-	for i = 0,teamN-1 do
-		local _,_, isDead, _, _, tallyteam = Spring_GetTeamInfo(i,false)
+	for i = 0, teamN - 1 do
+		local _, _, isDead, _, _, tallyteam = Spring_GetTeamInfo(i, false)
 		if not isDead then
 			aliveAllyTeams[tallyteam] = true
 		end
 	end
 end
 
-
 function round(num, idp)
-  local mult = 10^(idp or 0)
-  return math.floor(num * mult + 0.5) / mult
+	local mult = 10 ^ (idp or 0)
+	return math.floor(num * mult + 0.5) / mult
 end
 
 function GetSkill(playerID)
 
-	local customtable = select(11,Spring.GetPlayerInfo(playerID))
+	local customtable = select(11, Spring.GetPlayerInfo(playerID))
 	local tsMu = customtable.skill
 	local tsSigma = customtable.skilluncertainty
 	local tskill = ""
 	if tsMu then
 		tskill = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 0
-		tskill = round(tskill,0)
+		tskill = round(tskill, 0)
 		if string.find(tsMu, ")", nil, true) then
-			tskill = "\255"..string.char(190)..string.char(140)..string.char(140) .. tskill -- ')' means inferred from lobby rank
+			tskill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. tskill -- ')' means inferred from lobby rank
 		else
 
 			-- show privacy mode
 			local priv = ""
-			if string.find(tsMu, "~", nil, true) then -- '~' means privacy mode is on
-				priv = "\255"..string.char(200)..string.char(200)..string.char(200) .. "*"
+			if string.find(tsMu, "~", nil, true) then
+				-- '~' means privacy mode is on
+				priv = "\255" .. string.char(200) .. string.char(200) .. string.char(200) .. "*"
 			end
 
 			--show sigma
-			if tsSigma then -- 0 is low sigma, 3 is high sigma
-				tsSigma=tonumber(tsSigma)
+			if tsSigma then
+				-- 0 is low sigma, 3 is high sigma
+				tsSigma = tonumber(tsSigma)
 				local tsRed, tsGreen, tsBlue
 				if tsSigma > 2 then
 					tsRed, tsGreen, tsBlue = 190, 130, 130
@@ -1324,26 +1340,25 @@ function GetSkill(playerID)
 				elseif tsSigma == 1 then
 					tsRed, tsGreen, tsBlue = 195, 195, 195
 				elseif tsSigma < 1 then
-						tsRed, tsGreen, tsBlue = 250, 250, 250
+					tsRed, tsGreen, tsBlue = 250, 250, 250
 				end
-				tskill = priv .. "\255"..string.char(tsRed)..string.char(tsGreen)..string.char(tsBlue) .. tskill
+				tskill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. tskill
 			else
-				tskill = priv .. "\255"..string.char(195)..string.char(195)..string.char(195) .. tskill --should never happen
+				tskill = priv .. "\255" .. string.char(195) .. string.char(195) .. string.char(195) .. tskill --should never happen
 			end
 		end
 	else
-		tskill = "\255"..string.char(160)..string.char(160)..string.char(160) .. "?"
+		tskill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
 	end
 	return tskill
 end
 
-
 function CreatePlayer(playerID)
 
 	--generic player data
-	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID,false)
-	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam,false)
-	local tred, tgreen, tblue  										     = Spring_GetTeamColor(tteam)
+	local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
+	local _, _, _, _, tside, tallyteam = Spring_GetTeamInfo(tteam, false)
+	local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
 
 	--skill
 	local tskill
@@ -1351,20 +1366,24 @@ function CreatePlayer(playerID)
 
 	--cpu/ping
 	tpingLvl = GetPingLvl(tping)
-	tcpuLvl  = GetCpuLvl(tcpu)
-	tping    = tping * 1000 - ((tping * 1000) % 1)
-	tcpu     = tcpu  * 100  - ((tcpu  *  100) % 1)
+	tcpuLvl = GetCpuLvl(tcpu)
+	tping = tping * 1000 - ((tping * 1000) % 1)
+	tcpu = tcpu * 100 - ((tcpu * 100) % 1)
 
 	-- resources
-	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0,1,0,1,0,0
-	if aliveAllyTeams[tallyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == tallyteam) then
-		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(tteam, "energy")
-		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(tteam, "metal")
+	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 1, 0, 1, 0, 0
+	if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
+		energy, energyStorage, _, energyIncome = Spring_GetTeamResources(tteam, "energy")
+		metal, metalStorage, _, metalIncome = Spring_GetTeamResources(tteam, "metal")
 		if energy then
 			energy = math.floor(energy)
 			metal = math.floor(metal)
-			if energy < 0 then energy = 0 end
-			if metal < 0 then metal = 0 end
+			if energy < 0 then
+				energy = 0
+			end
+			if metal < 0 then
+				metal = 0
+			end
 		else
 			energy = 0
 			metal = 0
@@ -1372,35 +1391,34 @@ function CreatePlayer(playerID)
 	end
 
 	return {
-		rank             = trank,
-		skill			 = tskill,
-		name             = tname,
-		team             = tteam,
-		allyteam         = tallyteam,
-		red              = tred,
-		green            = tgreen,
-		blue             = tblue,
-		dark             = GetDark(tred,tgreen,tblue),
-		side             = tside,
-		pingLvl          = tpingLvl,
-		cpuLvl           = tcpuLvl,
-		ping             = tping,
-		cpu              = tcpu,
-		country          = tcountry,
-		dead             = false,
-		spec             = tspec,
-		ai               = false,
-		energy           = energy,
-		energyStorage    = energyStorage,
-		metal            = metal,
-		metalStorage     = metalStorage,
+		rank = trank,
+		skill = tskill,
+		name = tname,
+		team = tteam,
+		allyteam = tallyteam,
+		red = tred,
+		green = tgreen,
+		blue = tblue,
+		dark = GetDark(tred, tgreen, tblue),
+		side = tside,
+		pingLvl = tpingLvl,
+		cpuLvl = tcpuLvl,
+		ping = tping,
+		cpu = tcpu,
+		country = tcountry,
+		dead = false,
+		spec = tspec,
+		ai = false,
+		energy = energy,
+		energyStorage = energyStorage,
+		metal = metal,
+		metalStorage = metalStorage,
 	}
 
 end
 
-
 function GetAIName(teamID)
-	local _,_,_, name, version, options = Spring_GetAIInfo(teamID)
+	local _, _, _, name, version, options = Spring_GetAIInfo(teamID)
 
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 	if niceName then
@@ -1408,7 +1426,7 @@ function GetAIName(teamID)
 
 		local prof = options.profile
 		if prof then
-			name = name .. ' (' .. prof:sub(1,1):upper() .. prof:sub(2) .. ' AI)'
+			name = name .. ' (' .. prof:sub(1, 1):upper() .. prof:sub(2) .. ' AI)'
 		else
 			name = name .. ' (AI)'
 		end
@@ -1423,12 +1441,12 @@ function GetAIName(teamID)
 	return name
 end
 
+function CreatePlayerFromTeam(teamID)
+	-- for when we don't have a human player occupying the slot, also when a player changes team (dies)
 
-function CreatePlayerFromTeam(teamID) -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
-
-	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID,false)
-	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
-	local tname, ttotake, tskill
+	local _, _, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID, false)
+	local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
+	local tname, ttotake, tskill, tai
 	local tdead = true
 
 	if isAI then
@@ -1458,53 +1476,62 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	tskill = ""
 
 	-- resources
-	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0,1,0,1,0,0
-	if aliveAllyTeams[tallyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == tallyteam) then
-		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(teamID, "energy") or 0
-		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(teamID, "metal") or 0
+	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 1, 0, 1, 0, 0
+	if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
+		energy, energyStorage, _, energyIncome = Spring_GetTeamResources(teamID, "energy") or 0
+		metal, metalStorage, _, metalIncome = Spring_GetTeamResources(teamID, "metal") or 0
 		energy = math.floor(energy or 0)
 		metal = math.floor(metal or 0)
-		if energy < 0 then energy = 0 end
-		if metal < 0 then metal = 0 end
+		if energy < 0 then
+			energy = 0
+		end
+		if metal < 0 then
+			metal = 0
+		end
 	end
 
-	return{
-		rank             = 8, -- "don't know which" value
-		skill            = tskill,
-		name             = tname,
-		team             = teamID,
-		allyteam         = tallyteam,
-		red              = tred,
-		green            = tgreen,
-		blue             = tblue,
-		dark             = GetDark(tred, tgreen, tblue),
-		side             = tside,
-		totake           = ttotake,
-		dead             = tdead,
-		spec             = false,
-		ai               = tai,
-		energy           = energy,
-		energyStorage    = energyStorage,
-		metal            = metal,
-		metalStorage     = metalStorage,
+	return {
+		rank = 8, -- "don't know which" value
+		skill = tskill,
+		name = tname,
+		team = teamID,
+		allyteam = tallyteam,
+		red = tred,
+		green = tgreen,
+		blue = tblue,
+		dark = GetDark(tred, tgreen, tblue),
+		side = tside,
+		totake = ttotake,
+		dead = tdead,
+		spec = false,
+		ai = tai,
+		energy = energy,
+		energyStorage = energyStorage,
+		metal = metal,
+		metalStorage = metalStorage,
 	}
 
 end
 
 function UpdatePlayerResources()
-	local energy, energyStorage, metal, metalStorage = 0, 1, 0 ,1
-	for playerID,_ in pairs(player) do
+	local energy, energyStorage, metal, metalStorage = 0, 1, 0, 1
+	for playerID, _ in pairs(player) do
 		if player[playerID].name and not player[playerID].spec and player[playerID].team then
-			if aliveAllyTeams[player[playerID].allyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
-				energy, energyStorage,_, energyIncome = Spring_GetTeamResources(player[playerID].team, "energy")
-				metal, metalStorage,_, metalIncome = Spring_GetTeamResources(player[playerID].team, "metal")
-				if energy == nil then		-- need to be there for when you do /specfullview
+			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
+				energy, energyStorage, _, energyIncome = Spring_GetTeamResources(player[playerID].team, "energy")
+				metal, metalStorage, _, metalIncome = Spring_GetTeamResources(player[playerID].team, "metal")
+				if energy == nil then
+					-- need to be there for when you do /specfullview
 					energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
 				else
 					energy = math.floor(energy)
 					metal = math.floor(metal)
-					if energy < 0 then energy = 0 end
-					if metal < 0 then metal = 0 end
+					if energy < 0 then
+						energy = 0
+					end
+					if metal < 0 then
+						metal = 0
+					end
 				end
 				player[playerID].energy = energy
 				player[playerID].energyIncome = energyIncome
@@ -1517,16 +1544,17 @@ function UpdatePlayerResources()
 	end
 end
 
-function GetDark(red,green,blue)
+function GetDark(red, green, blue)
 	-- Determines if the player color is dark (i.e. if a white outline for the sidePic is needed)
-	if red + green*1.2 + blue*0.4 < 0.8 then return true end
+	if red + green * 1.2 + blue * 0.4 < 0.8 then
+		return true
+	end
 	return false
 end
 
-
 function SetOriginalColourNames()
 	-- Saves the original team colours associated to team teamID
-	for playerID,_ in pairs(player) do
+	for playerID, _ in pairs(player) do
 		if player[playerID].name then
 			if player[playerID].spec then
 				originalColourNames[playerID] = "\255\255\255\255"
@@ -1550,14 +1578,15 @@ function SortList()
 	local teamList
 	local myOldSpecStatus = mySpecStatus
 
-	mySpecStatus = select(3,Spring_GetPlayerInfo(myPlayerID,false))
+	mySpecStatus = select(3, Spring_GetPlayerInfo(myPlayerID, false))
 
 	-- checks if a team has died
 	if mySpecStatus ~= myOldSpecStatus then
 		if mySpecStatus then
 			teamList = Spring_GetTeamList()
 			for _, team in ipairs(teamList) do
-				if not select(3,Spring_GetTeamInfo(team,false)) then -- not dead
+				if not select(3, Spring_GetTeamInfo(team, false)) then
+					-- not dead
 					Spec(team)
 					break
 				end
@@ -1577,7 +1606,7 @@ function SortList()
 
 	-- calls the sortings for specs if see spec is on
 	--if m_chat.active == true then
-		vOffset = SortSpecs(vOffset)
+	vOffset = SortSpecs(vOffset)
 	--end
 
 	-- set the widget height according to space needed to show team
@@ -1586,7 +1615,6 @@ function SortList()
 	updateWidgetScale()
 end
 
-
 function SortAllyTeams(vOffset)
 	-- adds ally teams to the draw list (own ally team first)
 	-- (labels and separators are drawn)
@@ -1594,19 +1622,19 @@ function SortAllyTeams(vOffset)
 	local allyTeamList = Spring_GetAllyTeamList()
 	local firstenemy = true
 	local isFirstDrawnTeam = true
-	allyTeamsCount = table.maxn(allyTeamList)-1
+	allyTeamsCount = table.maxn(allyTeamList) - 1
 
 	--find own ally team
-	vOffset = 12/2.66
+	vOffset = 12 / 2.66
 	for allyTeamID = 0, allyTeamsCount - 1 do
-		if allyTeamID == myAllyTeamID  then
+		if allyTeamID == myAllyTeamID then
 			vOffset = vOffset + labelOffset - 3
 			if drawAlliesLabel then
-				drawListOffset[#drawListOffset+1] = vOffset
-				drawList[#drawList+1] = -2  -- "Allies" label
-			  vOffset = SortTeams(allyTeamID, vOffset)+2	-- Add the teams from the allyTeam
+				drawListOffset[#drawListOffset + 1] = vOffset
+				drawList[#drawList + 1] = -2  -- "Allies" label
+				vOffset = SortTeams(allyTeamID, vOffset) + 2    -- Add the teams from the allyTeam
 			else
-			  vOffset = SortTeams(allyTeamID, vOffset-labelOffset)
+				vOffset = SortTeams(allyTeamID, vOffset - labelOffset)
 			end
 			break
 		end
@@ -1614,24 +1642,23 @@ function SortAllyTeams(vOffset)
 
 
 	-- add the others
-	for allyTeamID = 0, allyTeamsCount-1 do
+	for allyTeamID = 0, allyTeamsCount - 1 do
 		if allyTeamID ~= myAllyTeamID then
 			if firstenemy == true then
-                vOffset = vOffset + 13
+				vOffset = vOffset + 13
 
 				vOffset = vOffset + labelOffset - 3
-				drawListOffset[#drawListOffset+1] = vOffset
-				drawList[#drawList+1] = -3 -- "Enemies" label
+				drawListOffset[#drawListOffset + 1] = vOffset
+				drawList[#drawList + 1] = -3 -- "Enemies" label
 				firstenemy = false
 			else
 				vOffset = vOffset + separatorOffset
-				drawListOffset[#drawListOffset+1] = vOffset
-				drawList[#drawList+1] = -4 -- Enemy teams separator
+				drawListOffset[#drawListOffset + 1] = vOffset
+				drawList[#drawList + 1] = -4 -- Enemy teams separator
 			end
-			vOffset = SortTeams(allyTeamID, vOffset)+2 -- Add the teams from the allyTeam
+			vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
 		end
 	end
-
 
 	return vOffset
 end
@@ -1644,31 +1671,31 @@ function SortTeams(allyTeamID, vOffset)
 	local teamsList = Spring_GetTeamList(allyTeamID)
 
 	--add teams
-	for _,teamID in ipairs(teamsList) do
-		drawListOffset[#drawListOffset+1] = vOffset
-		drawList[#drawList+1] = -1
-		vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team
-		if select(3,Spring_GetTeamInfo(teamID,false)) then
-			vOffset = vOffset - (deadPlayerHeightReduction/2)
+	for _, teamID in ipairs(teamsList) do
+		drawListOffset[#drawListOffset + 1] = vOffset
+		drawList[#drawList + 1] = -1
+		vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
+		if select(3, Spring_GetTeamInfo(teamID, false)) then
+			vOffset = vOffset - (deadPlayerHeightReduction / 2)
 		end
 	end
 
 	return vOffset
 end
 
-function SortPlayers(teamID,allyTeamID,vOffset)
+function SortPlayers(teamID, allyTeamID, vOffset)
 	-- Adds players to the draw list (self first)
 
-	local playersList       = Spring_GetPlayerList(teamID,true)
-	local noPlayer          = true
+	local playersList = Spring_GetPlayerList(teamID, true)
+	local noPlayer = true
 
 	-- add own player (if not spec)
 	if myTeamID == teamID then
 		if player[myPlayerID].name ~= nil then
 			if mySpecStatus == false then
 				vOffset = vOffset + playerOffset
-				drawListOffset[#drawListOffset+1] = vOffset
-				drawList[#drawList+1] = myPlayerID -- new player (with ID)
+				drawListOffset[#drawListOffset + 1] = vOffset
+				drawList[#drawList + 1] = myPlayerID -- new player (with ID)
 				player[myPlayerID].posY = vOffset
 				noPlayer = false
 			end
@@ -1676,13 +1703,13 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	end
 
 	-- add other players (if not spec)
-	for _,playerID in ipairs(playersList) do
+	for _, playerID in ipairs(playersList) do
 		if playerID ~= myPlayerID then
 			if player[playerID].name ~= nil then
 				if player[playerID].spec ~= true then
 					vOffset = vOffset + playerOffset
-					drawListOffset[#drawListOffset+1] = vOffset
-					drawList[#drawList+1] = playerID -- new player (with ID)
+					drawListOffset[#drawListOffset + 1] = vOffset
+					drawList[#drawList + 1] = playerID -- new player (with ID)
 					player[playerID].posY = vOffset
 					noPlayer = false
 				end
@@ -1691,22 +1718,23 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	end
 
 	-- add AI teams
-	if select(4,Spring_GetTeamInfo(teamID,false)) then -- is AI
+	if select(4, Spring_GetTeamInfo(teamID, false)) then
+		-- is AI
 		vOffset = vOffset + playerOffset
-		drawListOffset[#drawListOffset+1] = vOffset
-		drawList[#drawList+1] = 64 + teamID -- new AI team (instead of players)
+		drawListOffset[#drawListOffset + 1] = vOffset
+		drawList[#drawList + 1] = 64 + teamID -- new AI team (instead of players)
 		player[64 + teamID].posY = vOffset
 		noPlayer = false
 	end
 
 	-- add no player token if no player found in this team at this point
 	if noPlayer == true then
-		vOffset = vOffset + playerOffset - (deadPlayerHeightReduction/2)
-		drawListOffset[#drawListOffset+1] = vOffset
-		drawList[#drawList+1] = 64 + teamID  -- no players team
+		vOffset = vOffset + playerOffset - (deadPlayerHeightReduction / 2)
+		drawListOffset[#drawListOffset + 1] = vOffset
+		drawList[#drawList + 1] = 64 + teamID  -- no players team
 		player[64 + teamID].posY = vOffset
 		if Spring_GetGameFrame() > 0 then
-			player[64+teamID].totake = IsTakeable(teamID)
+			player[64 + teamID].totake = IsTakeable(teamID)
 		end
 	end
 
@@ -1715,10 +1743,10 @@ end
 
 function SortSpecs(vOffset)
 	-- Adds specs to the draw list
-	local playersList = Spring_GetPlayerList(-1,true)
+	local playersList = Spring_GetPlayerList(-1, true)
 	local noSpec = true
-	for _,playerID in ipairs(playersList) do
-		_,active,spec = Spring_GetPlayerInfo(playerID,false)
+	for _, playerID in ipairs(playersList) do
+		_, active, spec = Spring_GetPlayerInfo(playerID, false)
 		if spec and active then
 			if player[playerID].name ~= nil then
 
@@ -1726,8 +1754,8 @@ function SortSpecs(vOffset)
 				if noSpec == true then
 					vOffset = vOffset + 13
 					vOffset = vOffset + labelOffset - 2
-					drawListOffset[#drawListOffset+1] = vOffset
-					drawList[#drawList+1] = -5
+					drawListOffset[#drawListOffset + 1] = vOffset
+					drawList[#drawList + 1] = -5
 					noSpec = false
 					specJoinedOnce = true
 					vOffset = vOffset + 4
@@ -1736,8 +1764,8 @@ function SortSpecs(vOffset)
 				-- add spectator
 				if specListShow == true then
 					vOffset = vOffset + specOffset
-					drawListOffset[#drawListOffset+1] = vOffset
-					drawList[#drawList+1] = playerID
+					drawListOffset[#drawListOffset + 1] = vOffset
+					drawList[#drawList + 1] = playerID
 					player[playerID].posY = vOffset
 					noPlayer = false
 				end
@@ -1749,8 +1777,8 @@ function SortSpecs(vOffset)
 	if specJoinedOnce and noSpec then
 		vOffset = vOffset + 13
 		vOffset = vOffset + labelOffset - 2
-		drawListOffset[#drawListOffset+1] = vOffset
-		drawList[#drawList+1] = -5
+		drawListOffset[#drawListOffset + 1] = vOffset
+		drawList[#drawList + 1] = -5
 		vOffset = vOffset + 4
 	end
 
@@ -1768,26 +1796,31 @@ local MainList
 local Background
 local ShareSlider
 
-
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
-	if Spring_IsGUIHidden() then return end
+	if chobbyInterface then
+		return
+	end
+	if Spring_IsGUIHidden() then
+		return
+	end
 
-	local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
+	local mouseX, mouseY, mouseButtonL = Spring_GetMouseState()
 	if not collapsed then
 		-- update lists frequently if there is mouse interaction
 		local NeedUpdate = false
 		if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
 			local DrawFrame = Spring_GetDrawFrame()
 			local CurGameFrame = Spring_GetGameFrame()
-			if PrevGameFrame == nil then PrevGameFrame = CurGameFrame end
-			if (DrawFrame%5==0) or (CurGameFrame>PrevGameFrame+1) then
+			if PrevGameFrame == nil then
+				PrevGameFrame = CurGameFrame
+			end
+			if (DrawFrame % 5 == 0) or (CurGameFrame > PrevGameFrame + 1) then
 				--Echo(DrawFrame)
 				NeedUpdate = true
 			end
@@ -1806,10 +1839,10 @@ function widget:DrawScreen()
 		CreateBackground()
 	end
 
-	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
-	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
-	gl.Scale(widgetScale,widgetScale,0)
-	gl.Translate(scaleDiffX,scaleDiffY,0)
+	local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
+	local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
+	gl.Scale(widgetScale, widgetScale, 0)
+	gl.Translate(scaleDiffX, scaleDiffY, 0)
 
 	if not collapsed then
 		-- draws the main list
@@ -1828,33 +1861,32 @@ function widget:DrawScreen()
 	end
 
 	local scaleReset = widgetScale / widgetScale / widgetScale
-	gl.Translate(-scaleDiffX,-scaleDiffY,0)
-	gl.Scale(scaleReset,scaleReset,0)
-
+	gl.Translate(-scaleDiffX, -scaleDiffY, 0)
+	gl.Scale(scaleReset, scaleReset, 0)
 
 	if screenshotDlist then
 		gl_CallList(screenshotDlist)
-		local margin = 1.9*widgetScale
-		local left = screenshotPosX-margin
-		local bottom = screenshotPosY-margin
-		local width = (screenshotWidth*widgetScale)+margin+margin+margin
-		local height = (screenshotHeight*widgetScale)+margin+margin+margin+(15*widgetScale)
+		local margin = 1.9 * widgetScale
+		local left = screenshotPosX - margin
+		local bottom = screenshotPosY - margin
+		local width = (screenshotWidth * widgetScale) + margin + margin + margin
+		local height = (screenshotHeight * widgetScale) + margin + margin + margin + (15 * widgetScale)
 		if screenshotSaveQueued then
 			if WG['guishader'] then
-				WG['guishader'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
+				WG['guishader'].InsertRect(left, bottom, left + width, bottom + height, 'advplayerlist_screenshot')
 				screenshotGuishader = true
 			end
 			if not screenshotSaved then
 				screenshotSaved = 'next'
 			elseif screenshotSaved == 'next' then
 				screenshotSaved = 'done'
-				local file = 'screenshots/'..screenshotFilename..'.png'
-				gl.SaveImage(left,bottom,width,height,file)
-				Spring.Echo('Screenshot saved to: '..file)
+				local file = 'screenshots/' .. screenshotFilename .. '.png'
+				gl.SaveImage(left, bottom, width, height, file)
+				Spring.Echo('Screenshot saved to: ' .. file)
 				screenshotSaveQueued = nil
 			end
 		end
-		if screenshotWidth and IsOnRectPlain(mouseX,mouseY, screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale)) then
+		if screenshotWidth and IsOnRectPlain(mouseX, mouseY, screenshotPosX, screenshotPosY, screenshotPosX + (screenshotWidth * widgetScale), screenshotPosY + (screenshotHeight * widgetScale)) then
 			if mouseButtonL then
 				gl_DeleteList(screenshotDlist)
 				if WG['guishader'] then
@@ -1862,23 +1894,22 @@ function widget:DrawScreen()
 				end
 				screenshotDlist = nil
 			else
-				gl.Color(0,0,0,0.25)
-				RectRound(screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale), 2*widgetScale)				-- close button
-				local size = (screenshotHeight*widgetScale)*1.2
-				local width = size*0.011
-				gl.Color(1,1,1,0.66)
+				gl.Color(0, 0, 0, 0.25)
+				RectRound(screenshotPosX, screenshotPosY, screenshotPosX + (screenshotWidth * widgetScale), screenshotPosY + (screenshotHeight * widgetScale), 2 * widgetScale)                -- close button
+				local size = (screenshotHeight * widgetScale) * 1.2
+				local width = size * 0.011
+				gl.Color(1, 1, 1, 0.66)
 				gl.PushMatrix()
-				gl.Translate(screenshotPosX+((screenshotWidth*widgetScale)/2), screenshotPosY+((screenshotHeight*widgetScale)/2),0)
-				gl.Rotate(-60,0,0,1)
-				gl.Rect(-width,size/2,width,-size/2)
-				gl.Rotate(120,0,0,1)
-				gl.Rect(-width,size/2,width,-size/2)
+				gl.Translate(screenshotPosX + ((screenshotWidth * widgetScale) / 2), screenshotPosY + ((screenshotHeight * widgetScale) / 2), 0)
+				gl.Rotate(-60, 0, 0, 1)
+				gl.Rect(-width, size / 2, width, -size / 2)
+				gl.Rotate(120, 0, 0, 1)
+				gl.Rect(-width, size / 2, width, -size / 2)
 				gl.PopMatrix()
 			end
 		end
 	end
 end
-
 
 function CreateLists()
 
@@ -1903,110 +1934,111 @@ end
 --  Background gllist
 ---------------------------------------------------------------------------------------------------
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
+local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
+	local csyMult = 1 / ((sy - py) / cs)
 
 	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+		gl.Color(c1[1], c1[2], c1[3], c1[4])
 	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(px + cs, py, 0)
+	gl.Vertex(sx - cs, py, 0)
 	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
+		gl.Color(c2[1], c2[2], c2[3], c2[4])
 	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
+	gl.Vertex(sx - cs, sy, 0)
+	gl.Vertex(px + cs, sy, 0)
 
 	-- left side
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px, py + cs, 0)
+	gl.Vertex(px + cs, py + cs, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
+	gl.Vertex(px + cs, sy - cs, 0)
+	gl.Vertex(px, sy - cs, 0)
 
 	-- right side
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx, py + cs, 0)
+	gl.Vertex(sx - cs, py + cs, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
+	gl.Vertex(sx - cs, sy - cs, 0)
+	gl.Vertex(sx, sy - cs, 0)
 
-	local offset = 0.15		-- texture offset, because else gaps could show
+	local offset = 0.15        -- texture offset, because else gaps could show
 
 	-- bottom left
 	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+		gl.Color(c1[1], c1[2], c1[3], c1[4])
 	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
 		gl.Vertex(px, py, 0)
 	else
-		gl.Vertex(px+cs, py, 0)
+		gl.Vertex(px + cs, py, 0)
 	end
-	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(px + cs, py, 0)
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px + cs, py + cs, 0)
+	gl.Vertex(px, py + cs, 0)
 	-- bottom right
 	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+		gl.Color(c1[1], c1[2], c1[3], c1[4])
 	end
 	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
 		gl.Vertex(sx, py, 0)
 	else
-		gl.Vertex(sx-cs, py, 0)
+		gl.Vertex(sx - cs, py, 0)
 	end
-	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx - cs, py, 0)
 	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
+		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
 	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx - cs, py + cs, 0)
+	gl.Vertex(sx, py + cs, 0)
 	-- top left
 	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
+		gl.Color(c2[1], c2[2], c2[3], c2[4])
 	end
 	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
 		gl.Vertex(px, sy, 0)
 	else
-		gl.Vertex(px+cs, sy, 0)
+		gl.Vertex(px + cs, sy, 0)
 	end
-	gl.Vertex(px+cs, sy, 0)
+	gl.Vertex(px + cs, sy, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
+	gl.Vertex(px + cs, sy - cs, 0)
+	gl.Vertex(px, sy - cs, 0)
 	-- top right
 	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
+		gl.Color(c2[1], c2[2], c2[3], c2[4])
 	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
 		gl.Vertex(sx, sy, 0)
 	else
-		gl.Vertex(sx-cs, sy, 0)
+		gl.Vertex(sx - cs, sy, 0)
 	end
-	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(sx - cs, sy, 0)
 	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
+		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
 	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
+	gl.Vertex(sx - cs, sy - cs, 0)
+	gl.Vertex(sx, sy - cs, 0)
 end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
+function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
+	-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
 function CreateBackground()
@@ -2015,7 +2047,6 @@ function CreateBackground()
 		gl_DeleteList(Background)
 	end
 	local margin = backgroundMargin
-
 
 	local BLcornerX = widgetPosX - margin
 	local BLcornerY = widgetPosY - margin
@@ -2026,55 +2057,63 @@ function CreateBackground()
 		TRcornerY = widgetPosY - margin + collapsedHeight
 	end
 
-	local absLeft		= math.floor(BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1)))
-	local absBottom		= math.floor(BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1)))
-	local absRight		= math.ceil(TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1)))
-	local absTop		= math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1)))
-	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
+	local absLeft = math.floor(BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale - 1)))
+	local absBottom = math.floor(BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale - 1)))
+	local absRight = math.ceil(TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale - 1)))
+	local absTop = math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1)))
+	apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, right, collapsed }
 
 	local paddingBottom = bgpadding
 	local paddingRight = bgpadding
 	local paddingTop = bgpadding
 	local paddingLeft = bgpadding
-	if absBottom <= 0.2 then paddingBottom = 0 end
-	if absRight >= vsx-0.2 then paddingRight = 0 end
-	if absTop <= 0.2 then paddingTop = 0 end
-	if absLeft <= 0.2 then paddingLeft = 0 end
+	if absBottom <= 0.2 then
+		paddingBottom = 0
+	end
+	if absRight >= vsx - 0.2 then
+		paddingRight = 0
+	end
+	if absTop <= 0.2 then
+		paddingTop = 0
+	end
+	if absLeft <= 0.2 then
+		paddingLeft = 0
+	end
 
 	if WG['guishader'] then
-		BackgroundGuishader = gl_CreateList( function()
-			RectRound(absLeft,absBottom,absRight,absTop,bgpadding*1.6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		BackgroundGuishader = gl_CreateList(function()
+			RectRound(absLeft, absBottom, absRight, absTop, bgpadding * 1.6, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
 		end)
 		WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
 		--WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
 		--gl_Color(0,0,0,ui_opacity)
-		RectRound(absLeft,absBottom,absRight,absTop,bgpadding*1.6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
+		RectRound(absLeft, absBottom, absRight, absTop, bgpadding * 1.6, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.1, 0.1, 0.1, ui_opacity }, { 0, 0, 0, ui_opacity })
 		--gl_Color(1,1,1,ui_opacity*0.055)
 		--RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.3,0.3,0.3,ui_opacity*0.3}, {1,1,1,ui_opacity*0.3})
-		local height = 25*widgetScale
-		RectRound(absLeft+paddingLeft,absTop-paddingTop-height,absRight-paddingRight,absTop-paddingTop,bgpadding, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), 0, 0, {0.6,0.6,0.6,ui_opacity*0.15}, {1,1,1,ui_opacity*0.15})
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-height,bgpadding, 0, 0, math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.15,0.15,0.15,ui_opacity*0.15}, {0.6,0.6,0.6,ui_opacity*0.15})
+		local height = 25 * widgetScale
+		RectRound(absLeft + paddingLeft, absTop - paddingTop - height, absRight - paddingRight, absTop - paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
+		RectRound(absLeft + paddingLeft, absBottom + paddingBottom, absRight - paddingRight, absTop - paddingTop - height, bgpadding, 0, 0, math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.15, 0.15, 0.15, ui_opacity * 0.15 }, { 0.6, 0.6, 0.6, ui_opacity * 0.15 })
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(absLeft+paddingLeft,absTop-paddingTop-(height*0.4),absRight-paddingRight,absTop-paddingTop,bgpadding, 1,1,0,0, {1,1,1,0.003*glossMult}, {1,1,1,0.035*glossMult})
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop-(height*0.15),bgpadding, 0,0,1,1, {1,1,1,0.04*glossMult},{1,1,1,0})
+		RectRound(absLeft + paddingLeft, absTop - paddingTop - (height * 0.4), absRight - paddingRight, absTop - paddingTop, bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.003 * glossMult }, { 1, 1, 1, 0.035 * glossMult })
+		RectRound(absLeft + paddingLeft, absBottom + paddingBottom, absRight - paddingRight, absTop - paddingTop - (height * 0.15), bgpadding, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'
-			local yOffset = collapsedHeight*0.5
-			local xOffset = collapsedHeight/6
-			font:SetTextColor(0,0,0,0.2)
-			font:Print(text, widgetPosX - 1 + xOffset, TRcornerY-bgpadding -yOffset, 13, "")
-			font:Print(text, widgetPosX + 1 + xOffset, TRcornerY-bgpadding -yOffset, 13, "")
-			font:SetTextColor(0.87,0.87,0.87,1)
-			font:Print(text, widgetPosX + xOffset, TRcornerY-bgpadding -yOffset+0.8, 13, "n")
+			local yOffset = collapsedHeight * 0.5
+			local xOffset = collapsedHeight / 6
+			font:SetTextColor(0, 0, 0, 0.2)
+			font:Print(text, widgetPosX - 1 + xOffset, TRcornerY - bgpadding - yOffset, 13, "")
+			font:Print(text, widgetPosX + 1 + xOffset, TRcornerY - bgpadding - yOffset, 13, "")
+			font:SetTextColor(0.87, 0.87, 0.87, 1)
+			font:Print(text, widgetPosX + xOffset, TRcornerY - bgpadding - yOffset + 0.8, 13, "n")
 			font:End()
 		end
-		gl_Color(1,1,1,1)
+		gl_Color(1, 1, 1, 1)
 	end)
 
 end
@@ -2087,26 +2126,26 @@ end
 function UpdateResources()
 	if energyPlayer ~= nil then
 		if energyPlayer.team == myTeamID then
-			local current,storage = Spring_GetTeamResources(myTeamID,"energy")
+			local current, storage = Spring_GetTeamResources(myTeamID, "energy")
 			amountEMMax = storage - current
-			amountEM = amountEMMax*sliderPosition/39
-			amountEM = amountEM-(amountEM%1)
+			amountEM = amountEMMax * sliderPosition / 39
+			amountEM = amountEM - (amountEM % 1)
 		else
-			amountEMMax = Spring_GetTeamResources(myTeamID,"energy")
-			amountEM = amountEMMax*sliderPosition/39
-			amountEM = amountEM-(amountEM%1)
+			amountEMMax = Spring_GetTeamResources(myTeamID, "energy")
+			amountEM = amountEMMax * sliderPosition / 39
+			amountEM = amountEM - (amountEM % 1)
 		end
 	end
 	if metalPlayer ~= nil then
 		if metalPlayer.team == myTeamID then
-			local current, storage = Spring_GetTeamResources(myTeamID,"metal")
+			local current, storage = Spring_GetTeamResources(myTeamID, "metal")
 			amountEMMax = storage - current
-			amountEM = amountEMMax*sliderPosition/39
-			amountEM = amountEM-(amountEM%1)
+			amountEM = amountEMMax * sliderPosition / 39
+			amountEM = amountEM - (amountEM % 1)
 		else
-			amountEMMax = Spring_GetTeamResources(myTeamID,"metal")
-			amountEM = amountEMMax*sliderPosition/39
-			amountEM = amountEM-(amountEM%1)
+			amountEMMax = Spring_GetTeamResources(myTeamID, "metal")
+			amountEM = amountEMMax * sliderPosition / 39
+			amountEM = amountEM - (amountEM % 1)
 		end
 	end
 end
@@ -2114,7 +2153,7 @@ end
 function CheckTime()
 	local period = 0.5
 	now = os.clock()
-	if  now > (lastTime + period) then
+	if now > (lastTime + period) then
 		lastTime = now
 		CheckPlayersChange()
 		if blink == true then
@@ -2122,7 +2161,7 @@ function CheckTime()
 		else
 			blink = true
 		end
-		for playerID =0, 63 do
+		for playerID = 0, 63 do
 			if player[playerID] ~= nil then
 				if player[playerID].pointTime ~= nil then
 					if player[playerID].pointTime <= now then
@@ -2137,14 +2176,13 @@ function CheckTime()
 	end
 end
 
-
 function CreateMainList(tip)
 
 	--Spring.Echo("List Updated")
 
 	numberOfSpecs = GetNumberOfSpecs()
 
-	local mouseX,mouseY = Spring_GetMouseState()
+	local mouseX, mouseY = Spring_GetMouseState()
 	local leader
 
 	if MainList then
@@ -2160,7 +2198,7 @@ function CreateMainList(tip)
 				if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
 					specAmount = ""
 				end
-				DrawLabel(" Spectators  "..specAmount, drawListOffset[i], specListShow)
+				DrawLabel(" Spectators  " .. specAmount, drawListOffset[i], specListShow)
 				if Spring.GetGameFrame() <= 0 then
 					if specListShow then
 						DrawLabelTip("(click to hide specs)", drawListOffset[i], 95)
@@ -2193,7 +2231,8 @@ function CreateMainList(tip)
 		end
 		if drawTipText ~= nil then
 			tipText = drawTipText
-			if not WG['tooltip'] then	-- else use tooltip widget (in widget:update)
+			if not WG['tooltip'] then
+				-- else use tooltip widget (in widget:update)
 				DrawTip(drawTipMouseX, drawTipMouseY)
 			end
 		end
@@ -2209,8 +2248,8 @@ function DrawLabel(text, vOffset, drawSeparator)
 	--font:SetTextColor(0,0,0,0.2)
 	--font:Print(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
 	--font:Print(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
-	font:SetTextColor(0.87,0.87,0.87,1)
-	font:Print(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "on")
+	font:SetTextColor(0.87, 0.87, 0.87, 1)
+	font:Print(text, widgetPosX, widgetPosY + widgetHeight - vOffset + 7.5, 12, "on")
 	font:End()
 	if drawSeparator then
 		--DrawSeparator(vOffset)
@@ -2225,15 +2264,15 @@ function DrawLabelTip(text, vOffset, xOffset)
 	--font:SetTextColor(0,0,0,0.08)
 	--font:Print(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
 	--font:Print(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
-	font:SetTextColor(0.9,0.9,0.9,0.4)
-	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "on")
+	font:SetTextColor(0.9, 0.9, 0.9, 0.4)
+	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight - vOffset + 7.5, 10, "on")
 	font:End()
 end
 
 function DrawSeparator(vOffset)
 	vOffset = vOffset - 2
 	--gl_Color(0.55,0.55,0.55,0.45)
-	RectRound(widgetPosX+2, widgetPosY + widgetHeight -vOffset-(1.5/widgetScale), widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset+(1.5/widgetScale), (0.5/widgetScale), 1,1,1,1, {0.66,0.66,0.66,0.35}, {0,0,0,0.35})
+	RectRound(widgetPosX + 2, widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale), widgetPosX + widgetWidth - 2, widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale), 1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 })
 	--gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset+(1/widgetScale), widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset)
 	--gl_Color(0,0,0,0.3)
 	--gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset, widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset-(1/widgetScale))
@@ -2241,44 +2280,43 @@ function DrawSeparator(vOffset)
 end
 
 function DrawLabelRightside(text, vOffset)
-	local textLength = (font:GetTextWidth(text)*12)*widgetScale
+	local textLength = (font:GetTextWidth(text) * 12) * widgetScale
 	font:Begin()
-	font:SetTextColor(1,1,1,0.13)
-	font:Print(text, widgetRight - textLength, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
+	font:SetTextColor(1, 1, 1, 0.13)
+	font:Print(text, widgetRight - textLength, widgetPosY + widgetHeight - vOffset + 7.5, 12, "n")
 	font:End()
 end
-
 
 function RecvPlayerBetList(newPlayerBetList)
 	playerBetList = newPlayerBetList or {}
 end
 
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
-	tipY                 = nil
-	local rank           = player[playerID].rank
-	local skill	         = player[playerID].skill
-	local name           = player[playerID].name
-	local team           = player[playerID].team
-	local allyteam       = player[playerID].allyteam
-	local side           = player[playerID].side
-	local red            = player[playerID].red
-	local green          = player[playerID].green
-	local blue           = player[playerID].blue
-	local dark           = player[playerID].dark
-	local pingLvl        = player[playerID].pingLvl
-	local cpuLvl         = player[playerID].cpuLvl
-	local ping           = player[playerID].ping
-	local cpu            = player[playerID].cpu
-	local country        = player[playerID].country
-	local spec           = player[playerID].spec
-	local totake         = player[playerID].totake
-	local needm          = player[playerID].needm
-	local neede          = player[playerID].neede
-	local dead           = player[playerID].dead
-	local ai	           = player[playerID].ai
-	local alliances      = player[playerID].alliances
-	local posY           = widgetPosY + widgetHeight - vOffset
-	local tipPosY        = widgetPosY + ((widgetHeight - vOffset)*widgetScale)
+	tipY = nil
+	local rank = player[playerID].rank
+	local skill = player[playerID].skill
+	local name = player[playerID].name
+	local team = player[playerID].team
+	local allyteam = player[playerID].allyteam
+	local side = player[playerID].side
+	local red = player[playerID].red
+	local green = player[playerID].green
+	local blue = player[playerID].blue
+	local dark = player[playerID].dark
+	local pingLvl = player[playerID].pingLvl
+	local cpuLvl = player[playerID].cpuLvl
+	local ping = player[playerID].ping
+	local cpu = player[playerID].cpu
+	local country = player[playerID].country
+	local spec = player[playerID].spec
+	local totake = player[playerID].totake
+	local needm = player[playerID].needm
+	local neede = player[playerID].neede
+	local dead = player[playerID].dead
+	local ai = player[playerID].ai
+	local alliances = player[playerID].alliances
+	local posY = widgetPosY + widgetHeight - vOffset
+	local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
 
 	local alpha = 0.44-- alpha used to show inactivity for specs
 
@@ -2290,56 +2328,75 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	local alphaActivity = 0
 	-- keyboard/mouse activity
 	if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-			alphaActivity = (8 - math.floor(now-lastActivity[playerID])) / 5.5
-			if alphaActivity > 1 then alphaActivity = 1 end
-			if alphaActivity < 0 then alphaActivity = 0 end
-			alphaActivity = 0.33 + (alphaActivity*0.21)
-			alpha = alphaActivity
+		alphaActivity = (8 - math.floor(now - lastActivity[playerID])) / 5.5
+		if alphaActivity > 1 then
+			alphaActivity = 1
+		end
+		if alphaActivity < 0 then
+			alphaActivity = 0
+		end
+		alphaActivity = 0.33 + (alphaActivity * 0.21)
+		alpha = alphaActivity
 	end
 	-- camera activity
 	if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
 		local alphaCam = (13 - math.floor(recentBroadcasters[playerID])) / 8.5
-		if alphaCam > 1 then alphaCam = 1 end
-		if alphaCam < 0 then alphaCam = 0 end
-		alpha = 0.33 + (alphaCam*0.42)
-		if alpha < alphaActivity then alpha = alphaActivity end
+		if alphaCam > 1 then
+			alphaCam = 1
+		end
+		if alphaCam < 0 then
+			alphaCam = 0
+		end
+		alpha = 0.33 + (alphaCam * 0.42)
+		if alpha < alphaActivity then
+			alpha = alphaActivity
+		end
 	end
 
+	if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale) then
+		tipY = true
+	end
 
-	if mouseY >= tipPosY and mouseY <= tipPosY + (16*widgetScale) then tipY = true end
-
-
-	if (lockPlayerID ~= nil and lockPlayerID == playerID) then -- active
+	if (lockPlayerID ~= nil and lockPlayerID == playerID) then
+		-- active
 		DrawCamera(posY, true)
 	end
 
-	if spec == false then --player
+	if spec == false then
+		--player
 		if not dead and alliances ~= nil and #alliances > 0 then
 			DrawAlliances(alliances, posY)
 		end
-		if leader == true then                              -- take / share buttons
+		if leader == true then
+			-- take / share buttons
 			if mySpecStatus == false then
 				if allyteam == myAllyTeamID then
 					if m_take.active == true then
 						if totake == true then
 							DrawTakeSignal(posY)
-							if tipY == true then TakeTip(mouseX) end
+							if tipY == true then
+								TakeTip(mouseX)
+							end
 						end
 					end
 					if m_share.active == true and dead ~= true and not hideShareIcons then
 						DrawShareButtons(posY, needm, neede)
-						if tipY == true then ShareTip(mouseX, playerID) end
+						if tipY == true then
+							ShareTip(mouseX, playerID)
+						end
 					end
 				end
 				if drawAllyButton and dead ~= true then
-					if tipY == true then AllyTip(mouseX, playerID) end
+					if tipY == true then
+						AllyTip(mouseX, playerID)
+					end
 				end
 			else
 				if m_indent.active == true and Spring_GetMyTeamID() == team then
 					DrawDot(posY)
 				end
 			end
-			gl_Color(red,green,blue,1)
+			gl_Color(red, green, blue, 1)
 			if m_ID.active == true then
 				DrawID(team, posY, dark, dead)
 			end
@@ -2347,7 +2404,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 				DrawSkill(skill, posY, dark, name)
 			end
 		end
-		gl_Color(red,green,blue,1)
+		gl_Color(red, green, blue, 1)
 		if m_rank.active == true then
 			DrawRank(rank, posY)
 		end
@@ -2355,11 +2412,11 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			DrawCountry(country, posY)
 		end
 		--gl_Color(red,green,blue,1)
-		gl_Color(1,1,1,0.45)
+		gl_Color(1, 1, 1, 0.45)
 		if name ~= absentName and m_side.active == true then
 			DrawSidePic(team, playerID, posY, leader, dark, ai)
 		end
-		gl_Color(red,green,blue,1)
+		gl_Color(red, green, blue, 1)
 		if m_name.active == true then
 			DrawName(name, team, posY, dark, playerID)
 		end
@@ -2377,12 +2434,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 				local mi = player[playerID].metalIncome
 				if es > 0 then
 					DrawResources(e, es, m, ms, posY, dead)
-					if tipY == true then ResourcesTip(mouseX, e, es, ei, m, ms, mi) end
+					if tipY == true then
+						ResourcesTip(mouseX, e, es, ei, m, ms, mi)
+					end
 				end
 			end
 		end
-	else -- spectator
-		gl_Color(1,1,1,1)
+	else
+		-- spectator
+		gl_Color(1, 1, 1, 1)
 		if specListShow == true and m_name.active == true then
 
 			if playerSpecs[playerID] ~= nil and (lockPlayerID ~= nil and lockPlayerID ~= playerID or lockPlayerID == nil) then
@@ -2399,13 +2459,16 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	end
 
 	if m_cpuping.active == true then
-		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
-			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec) end
+		if cpuLvl ~= nil then
+			-- draws CPU usage and ping icons (except AI and ghost teams)
+			DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
+			if tipY == true then
+				PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec)
+			end
 		end
 	end
 
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 	if playerID < 64 then
 
 		if m_chat.active == true and mySpecStatus == false and spec == false then
@@ -2418,9 +2481,11 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			if player[playerID].pointTime ~= nil then
 				if player[playerID].allyteam == myAllyTeamID or mySpecStatus == true then
 					--if blink == true then
-						DrawPoint(posY, player[playerID].pointTime-now)
+					DrawPoint(posY, player[playerID].pointTime - now)
 					--end
-					if tipY == true then PointTip(mouseX) end
+					if tipY == true then
+						PointTip(mouseX)
+					end
 				end
 			end
 		end
@@ -2431,21 +2496,21 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 end
 
 function DrawTakeSignal(posY)
-
-	if blink == true then -- Draws a blinking rectangle if the player of the same team left (/take option)
+	if blink then
+		-- Draws a blinking rectangle if the player of the same team left (/take option)
 		if right then
-			gl_Color(0.7,0.7,0.7)
+			gl_Color(0.7, 0.7, 0.7)
 			gl_Texture(pics["arrowPic"])
 			DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
-			gl_Color(1,1,1)
+			gl_Color(1, 1, 1)
 			gl_Texture(pics["takePic"])
 			DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
 		else
 			local leftPosX = widgetPosX + widgetWidth
-			gl_Color(0.7,0.7,0.7)
+			gl_Color(0.7, 0.7, 0.7)
 			gl_Texture(pics["arrowPic"])
 			DrawRect(leftPosX + 14, posY, leftPosX, posY + 16)
-			gl_Color(1,1,1)
+			gl_Color(1, 1, 1)
 			gl_Texture(pics["takePic"])
 			DrawRect(leftPosX + 12, posY - 15, leftPosX + 57, posY + 32)
 		end
@@ -2453,23 +2518,22 @@ function DrawTakeSignal(posY)
 end
 
 function DrawShareButtons(posY, needm, neede)
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 	gl_Texture(pics["unitsPic"])                       -- Share UNIT BUTTON
-	DrawRect(m_share.posX + widgetPosX  + 1, posY, m_share.posX + widgetPosX  + 17, posY + 16)
+	DrawRect(m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + 16)
 	gl_Texture(pics["energyPic"])                      -- share ENERGY BUTTON
-	DrawRect(m_share.posX + widgetPosX  + 17, posY, m_share.posX + widgetPosX  + 33, posY + 16)
+	DrawRect(m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + 16)
 	gl_Texture(pics["metalPic"])                       -- share METAL BUTTON
-	DrawRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
+	DrawRect(m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + 16)
 	gl_Texture(pics["lowPic"])
-	if needm == true then
-		DrawRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
+	if needm then
+		DrawRect(m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + 16)
 	end
-	if neede == true then
-		DrawRect(m_share.posX + widgetPosX  + 17, posY, m_share.posX + widgetPosX  + 33, posY + 16)
+	if neede then
+		DrawRect(m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + 16)
 	end
 	gl_Texture(false)
 end
-
 
 function DrawChatButton(posY)
 	gl_Texture(pics["chatPic"])
@@ -2486,23 +2550,23 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 		y1Offset = 7.4
 		y2Offset = 6
 	end
-	gl_Color(1,1,1,0.14)
+	gl_Color(1, 1, 1, 0.14)
 	gl_Texture(pics["resbarBgPic"])
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + y2Offset)
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 	gl_Texture(pics["resbarPic"])
-	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset)
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal), posY + y2Offset)
 
-    if ((barWidth/metalStorage)*metal) > 0.8 then
-        local glowsize = 10
-        gl_Color(1,1,1.2,0.08)
-        gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
+	if ((barWidth / metalStorage) * metal) > 0.8 then
+		local glowsize = 10
+		gl_Color(1, 1, 1.2, 0.08)
+		gl_Texture(pics["barGlowCenterPic"])
+		DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal), posY + y2Offset - glowsize)
 
-        gl_Texture(pics["barGlowEdgePic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft-(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset-glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal)+(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
-    end
+		gl_Texture(pics["barGlowEdgePic"])
+		DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
+		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal), posY + y2Offset - glowsize)
+	end
 
 	if not dead then
 		y1Offset = 11
@@ -2511,34 +2575,34 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 		y1Offset = 10
 		y2Offset = 8.6
 	end
-    gl_Color(1,1,0,0.14)
+	gl_Color(1, 1, 0, 0.14)
 	gl_Texture(pics["resbarBgPic"])
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + y2Offset)
-	gl_Color(1,1,0,1)
+	gl_Color(1, 1, 0, 1)
 	gl_Texture(pics["resbarPic"])
-	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset)
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy), posY + y2Offset)
 
-    if ((barWidth/energyStorage)*energy) > 0.8 then
-        local glowsize = 10
-        gl_Color(1,1,0.2,0.08)
-        gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
+	if ((barWidth / energyStorage) * energy) > 0.8 then
+		local glowsize = 10
+		gl_Color(1, 1, 0.2, 0.08)
+		gl_Texture(pics["barGlowCenterPic"])
+		DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy), posY + y2Offset - glowsize)
 
-        gl_Texture(pics["barGlowEdgePic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft-(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset-glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy)+(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
-    end
+		gl_Texture(pics["barGlowEdgePic"])
+		DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
+		DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy), posY + y2Offset - glowsize)
+	end
 end
 
 function DrawChips(playerID, posY)
 	local xPos = m_name.posX + widgetPosX - 6
 	font:Begin()
-	font:SetTextColor(0.75,0.75,0.75,0.8)
-	font:Print(playerScores[playerID].score, xPos-5, posY+4, 9.5, "r")
+	font:SetTextColor(0.75, 0.75, 0.75, 0.8)
+	font:Print(playerScores[playerID].score, xPos - 5, posY + 4, 9.5, "r")
 	font:End()
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 	gl_Texture(pics["chipPic"])
-	DrawRect(xPos+4, posY+3.5, xPos-2.5, posY + 10)
+	DrawRect(xPos + 4, posY + 3.5, xPos - 2.5, posY + 10)
 end
 
 function DrawSidePic(team, playerID, posY, leader, dark, ai)
@@ -2548,7 +2612,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 		else
 			gl_Texture(pics["notFirstPic"])                          -- sets image for not leader of team players
 		end
-		DrawRect(m_side.posX + widgetPosX  + 2, posY+1, m_side.posX + widgetPosX  + 16, posY + 15) -- draws side image
+		DrawRect(m_side.posX + widgetPosX + 2, posY + 1, m_side.posX + widgetPosX + 16, posY + 15) -- draws side image
 		--[[if dark == true then	-- draws outline if player color is dark
 			gl_Color(1,1,1)
 			if leader == true then
@@ -2586,168 +2650,166 @@ function DrawRank(rank, posY)
 	else
 
 	end
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 end
 
 function DrawRankImage(rankImage, posY)
-	gl_Color(1,1,1)
+	gl_Color(1, 1, 1)
 	gl_Texture(rankImage)
-	DrawRect(m_rank.posX + widgetPosX + 3, posY+1, m_rank.posX + widgetPosX + 17, posY + 15)
+	DrawRect(m_rank.posX + widgetPosX + 3, posY + 1, m_rank.posX + widgetPosX + 17, posY + 15)
 end
 
-
-local function RectQuad(px,py,sx,sy)
-	local o = 0.008		-- texture offset, because else grey line might show at the edges
-	gl.TexCoord(o,1-o)
+local function RectQuad(px, py, sx, sy)
+	local o = 0.008        -- texture offset, because else grey line might show at the edges
+	gl.TexCoord(o, 1 - o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1 - o, 1 - o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1 - o, o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,o)
+	gl.TexCoord(o, o)
 	gl.Vertex(px, sy, 0)
 end
-function DrawRect(px,py,sx,sy)
+function DrawRect(px, py, sx, sy)
 	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy)
+	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy)
 end
 
 function DrawAlly(posY, team)
 	if Spring_AreTeamsAllied(team, myTeamID) then
-		gl_Color(0,1,0, 0.44)
+		gl_Color(0, 1, 0, 0.44)
 	else
-		gl_Color(1,0,0, 0.44)
+		gl_Color(1, 0, 0, 0.44)
 	end
 	gl_Texture(pics["allyPic"])
-	DrawRect(m_alliance.posX + widgetPosX + 3, posY+1, m_alliance.posX + widgetPosX + 17, posY + 15)
+	DrawRect(m_alliance.posX + widgetPosX + 3, posY + 1, m_alliance.posX + widgetPosX + 17, posY + 15)
 end
 
 function DrawCountry(country, posY)
 	if country ~= nil and country ~= "??" then
-		gl_Texture(flagsDirectory..string.upper(country)..".dds")
-		gl_Color(1,1,1)
-		DrawRect(m_country.posX + widgetPosX + 3, posY+1, m_country.posX + widgetPosX + 17, posY + 15)
+		gl_Texture(flagsDirectory .. string.upper(country) .. ".dds")
+		gl_Color(1, 1, 1)
+		DrawRect(m_country.posX + widgetPosX + 3, posY + 1, m_country.posX + widgetPosX + 17, posY + 15)
 	end
 end
 
 function DrawDot(posY)
-	gl_Color(1,1,1,0.70)
+	gl_Color(1, 1, 1, 0.70)
 	gl_Texture(pics["currentPic"])
-	DrawRect(m_indent.posX + widgetPosX-1 , posY+3, m_indent.posX + widgetPosX + 7, posY + 11)
+	DrawRect(m_indent.posX + widgetPosX - 1, posY + 3, m_indent.posX + widgetPosX + 7, posY + 11)
 end
 
-function DrawCamera(posY,active)
+function DrawCamera(posY, active)
 	if active ~= nil and active then
-		gl_Color(1,1,1,0.7)
+		gl_Color(1, 1, 1, 0.7)
 	else
-		gl_Color(1,1,1,0.13)
+		gl_Color(1, 1, 1, 0.13)
 	end
 	gl_Texture(pics["cameraPic"])
-	DrawRect(m_indent.posX + widgetPosX-1.5 , posY+2, m_indent.posX + widgetPosX + 9, posY + 12.4)
+	DrawRect(m_indent.posX + widgetPosX - 1.5, posY + 2, m_indent.posX + widgetPosX + 9, posY + 12.4)
 end
 
 function colourNames(teamID)
-    	nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(teamID)
-		R255 = math.floor(nameColourR*255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-        G255 = math.floor(nameColourG*255)
-        B255 = math.floor(nameColourB*255)
-        if ( R255%10 == 0) then
-                R255 = R255+1
-        end
-        if( G255%10 == 0) then
-                G255 = G255+1
-        end
-        if ( B255%10 == 0) then
-                B255 = B255+1
-        end
-	return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
+	nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
+	R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+	G255 = math.floor(nameColourG * 255)
+	B255 = math.floor(nameColourB * 255)
+	if (R255 % 10 == 0) then
+		R255 = R255 + 1
+	end
+	if (G255 % 10 == 0) then
+		G255 = G255 + 1
+	end
+	if (B255 % 10 == 0) then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
 end
 
 function DrawState(playerID, posX, posY)
--- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
-	local ready = (playerReadyState[playerID]==1) or (playerReadyState[playerID]==2) or (playerReadyState[playerID]==-1)
-	local hasStartPoint = (playerReadyState[playerID]==4)
+	-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
+	local ready = (playerReadyState[playerID] == 1) or (playerReadyState[playerID] == 2) or (playerReadyState[playerID] == -1)
+	local hasStartPoint = (playerReadyState[playerID] == 4)
 	if ai then
-		gl_Color(0.1,0.1,0.97,1)
+		gl_Color(0.1, 0.1, 0.97, 1)
 	else
 		if ready then
-			gl_Color(0.1,0.95,0.2,1)
+			gl_Color(0.1, 0.95, 0.2, 1)
 		else
 			if hasStartPoint then
-				gl_Color(1,0.65,0.1,1)
+				gl_Color(1, 0.65, 0.1, 1)
 			else
-				gl_Color(0.8,0.1,0.1,1)
+				gl_Color(0.8, 0.1, 0.1, 1)
 			end
 		end
 	end
 	gl_Texture(pics["readyTexture"])
-	DrawRect(posX, posY - 1 , posX + 16, posY + 16)
-	gl_Color(1,1,1,1)
+	DrawRect(posX, posY - 1, posX + 16, posY + 16)
+	gl_Color(1, 1, 1, 1)
 end
 
-function DrawAlliances(alliances, posY)		-- still a problem is that teams with the same/similar color can be misleading
+function DrawAlliances(alliances, posY)
+	-- still a problem is that teams with the same/similar color can be misleading
 	local posX = widgetPosX + m_name.posX
 	local width = m_name.width / #alliances
 	local padding = 2
-	for i,playerID in pairs(alliances) do
+	for i, playerID in pairs(alliances) do
 		if player[playerID] ~= nil and player[playerID].red ~= nil then
-			gl_Color(0,0,0,0.25)
-			RectRound(posX+(width*(i-1)), posY - 3 , posX + (width*i), posY + 19, 2)
+			gl_Color(0, 0, 0, 0.25)
+			RectRound(posX + (width * (i - 1)), posY - 3, posX + (width * i), posY + 19, 2)
 			gl_Color(player[playerID].red, player[playerID].green, player[playerID].blue, 0.5)
-			RectRound(posX+(width*(i-1)) + padding, posY - 3 + padding , posX + (width*i)- padding, posY + 19 - padding, 2)
+			RectRound(posX + (width * (i - 1)) + padding, posY - 3 + padding, posX + (width * i) - padding, posY + 19 - padding, 2)
 		end
 	end
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 end
 
 function DrawName(name, team, posY, dark, playerID)
-    local willSub = ""
+	local willSub = ""
 	local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
-    if not gameStarted then
-        if playerID>=64 then
-            willSub = (Spring.GetGameRulesParam("Player" .. (playerID-64) .. "willSub")==1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
-        else
-            willSub = (Spring.GetGameRulesParam("Player" .. (playerID) .. "willSub")==1) and " (sub)" or ""
-        end
-    end
-    local nameText = name .. willSub
+	if not gameStarted then
+		if playerID >= 64 then
+			willSub = (Spring.GetGameRulesParam("Player" .. (playerID - 64) .. "willSub") == 1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
+		else
+			willSub = (Spring.GetGameRulesParam("Player" .. (playerID) .. "willSub") == 1) and " (sub)" or ""
+		end
+	end
+	local nameText = name .. willSub
 
+	local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(team)
+	local xPadding = 0
 
-    local nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
-    local xPadding = 0
-
-    -- includes readystate icon if factions arent shown
+	-- includes readystate icon if factions arent shown
 	if not gameStarted and not m_side.active then
 		xPadding = 16
 		DrawState(playerID, m_name.posX + widgetPosX, posY)
 	end
-	if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-        font2:Begin()
-        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
-        font2:End()
+	if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.8 then
+		font2:Begin()
+		font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
+		font2:End()
 	else
-        font2:Begin()
-        font2:SetTextColor(0,0,0,0.4)
-        font2:SetOutlineColor(0,0,0,0.4)
-        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:SetTextColor(1,1,1,1)
-        font2:SetOutlineColor(0,0,0,1)
-        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
-        font2:End()
+		font2:Begin()
+		font2:SetTextColor(0, 0, 0, 0.4)
+		font2:SetOutlineColor(0, 0, 0, 0.4)
+		font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
+		font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
+		font2:SetTextColor(1, 1, 1, 1)
+		font2:SetOutlineColor(0, 0, 0, 1)
+		font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
+		font2:End()
 	end
 	if ignored then
-		gl_Color(1,1,1,0.9)
+		gl_Color(1, 1, 1, 0.9)
 		local x = m_name.posX + widgetPosX + 2 + xPadding
 		local y = posY + 7
 		local w = font:GetTextWidth(nameText) * 14 + 2
 		local h = 2
 		gl_Texture(false)
-		DrawRect(x,y,x+w,y+h)
+		DrawRect(x, y, x + w, y + h)
 	end
-	gl_Color(1,1,1)
+	gl_Color(1, 1, 1)
 end
-
 
 function DrawSmallName(name, team, posY, dark, playerID, alpha)
 	if team == nil then
@@ -2764,46 +2826,46 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 	if m_indent.active or m_rank.active or m_side.active or m_ID.active then
 		textindent = 0
 	end
-	local nameColourR,nameColourG,nameColourB,nameColourA = 1,1,1,1
+	local nameColourR, nameColourG, nameColourB, nameColourA = 1, 1, 1, 1
 
 	if playerSpecs[playerID] ~= nil then
-		nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
-		if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-            font2:Begin()
-            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
-            font2:End()
+		nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(team)
+		if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.8 then
+			font2:Begin()
+			font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
+			font2:End()
 		else
-            font2:Begin()
-            --font2:SetTextColor(0,0,0,0.3)
-            --font2:SetOutlineColor(0,0,0,0.3)
-            --font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
-            --font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
-            font2:SetTextColor(1,1,1,0.78)
-            font2:SetOutlineColor(0,0,0,0.3)
+			font2:Begin()
+			--font2:SetTextColor(0,0,0,0.3)
+			--font2:SetOutlineColor(0,0,0,0.3)
+			--font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
+			--font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
+			font2:SetTextColor(1, 1, 1, 0.78)
+			font2:SetOutlineColor(0, 0, 0, 0.3)
 			--gl_Color(nameColourR,nameColourG,nameColourB,0.78)
-            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
-            font2:End()
+			font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
+			font2:End()
 		end
 	else
 		font2:Begin()
-		font2:SetTextColor(0,0,0,0.3)
-		font2:SetOutlineColor(0,0,0,0.3)
+		font2:SetTextColor(0, 0, 0, 0.3)
+		font2:SetOutlineColor(0, 0, 0, 0.3)
 		font2:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
 		font2:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-		font2:SetTextColor(1,1,1,alpha)
+		font2:SetTextColor(1, 1, 1, alpha)
 		font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
 		font2:End()
 	end
 	if ignored then
-		gl_Color(1,1,1,0.7)
+		gl_Color(1, 1, 1, 0.7)
 		local x = m_name.posX + textindent + widgetPosX + 2.2
 		local y = posY + 6
 		local w = font:GetTextWidth(name) * 10 + 2
 		local h = 2
 		gl_Texture(false)
-		DrawRect(x,y,x+w,y+h)
+		DrawRect(x, y, x + w, y + h)
 	end
-	gl_Color(1,1,1)
+	gl_Color(1, 1, 1)
 end
 
 function DrawID(playerID, posY, dark, dead)
@@ -2824,11 +2886,11 @@ function DrawID(playerID, posY, dark, dead)
 	--gl_Text(colourNames(playerID) .. " ".. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 5, 11, "o")
 	--font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
 	if dead then
-		font:SetTextColor(1,1,1,0.4)
+		font:SetTextColor(1, 1, 1, 0.4)
 	else
-		font:SetTextColor(1,1,1,0.66)
+		font:SetTextColor(1, 1, 1, 0.66)
 	end
-	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "on")
+	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX + 4.5, posY + 5, fontSize, "on")
 	font:End()
 end
 
@@ -2842,14 +2904,14 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 	gl_Texture(pics["pingPic"])
 	if spec then
 		local grayvalue = 0.5 + (pingLvl / 20)
-		gl_Color(grayvalue,grayvalue,grayvalue,(0.2*pingLvl))
-		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 21, posY + 14)
+		gl_Color(grayvalue, grayvalue, grayvalue, (0.2 * pingLvl))
+		DrawRect(m_cpuping.posX + widgetPosX + 12, posY + 1, m_cpuping.posX + widgetPosX + 21, posY + 14)
 	else
-		gl_Color(pingCpuColors[pingLvl].r,pingCpuColors[pingLvl].g,pingCpuColors[pingLvl].b)
-		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 24, posY + 15)
+		gl_Color(pingCpuColors[pingLvl].r, pingCpuColors[pingLvl].g, pingCpuColors[pingLvl].b)
+		DrawRect(m_cpuping.posX + widgetPosX + 12, posY + 1, m_cpuping.posX + widgetPosX + 24, posY + 15)
 	end
 
-	grayvalue = 0.7 + (cpu/135)
+	grayvalue = 0.7 + (cpu / 135)
 
 	font:Begin()
 	if cpuText ~= nil and cpuText then
@@ -2860,13 +2922,13 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 			if spec then
 				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
 				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.75*alpha*grayvalue)
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
+				font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.75 * alpha * grayvalue)
+				font:Print(cpu, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9, "ro")
 			else
 				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
 				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
-				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.9*alpha*grayvalue)
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "ro")
+				font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.9 * alpha * grayvalue)
+				font:Print(cpu, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9.5, "ro")
 			end
 		end
 	else
@@ -2875,7 +2937,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 			if fps > 99 then
 				fps = 99
 			end
-			grayvalue = 0.95 - (math.min(fps, 99)/400)
+			grayvalue = 0.95 - (math.min(fps, 99) / 400)
 			if fps < 0 then
 				fps = 0
 				greyvalue = 1
@@ -2883,57 +2945,57 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 			if spec then
 				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
 				--font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.87*alpha*grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
+				font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
+				font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9, "ro")
 			else
 				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
 				--font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
-				font:SetTextColor(grayvalue,grayvalue,grayvalue,alpha*grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "ro")
+				font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
+				font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9.5, "ro")
 			end
 		else
 			gl_Texture(pics["cpuPic"])
 			if spec then
-				gl_Color(grayvalue,grayvalue,grayvalue,0.1+(0.14*cpuLvl))
-				DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
+				gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
+				DrawRect(m_cpuping.posX + widgetPosX + 2, posY + 1, m_cpuping.posX + widgetPosX + 13, posY + 14)
 			else
-				gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
-				DrawRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
+				gl_Color(pingCpuColors[cpuLvl].r, pingCpuColors[cpuLvl].g, pingCpuColors[cpuLvl].b)
+				DrawRect(m_cpuping.posX + widgetPosX + 1, posY + 1, m_cpuping.posX + widgetPosX + 14, posY + 15)
 			end
-			gl_Color(1,1,1,1)
+			gl_Color(1, 1, 1, 1)
 		end
 	end
 	font:End()
 end
 
-function DrawPoint(posY,pointtime)
+function DrawPoint(posY, pointtime)
 	if right == true then
-		gl_Color(1,0,0,pointtime/pointDuration)
+		gl_Color(1, 0, 0, pointtime / pointDuration)
 		gl_Texture(pics["arrowPic"])
-		DrawRect(widgetPosX - 18, posY, widgetPosX - 2, posY+ 14)
-		gl_Color(1,1,1,pointtime/pointDuration)
+		DrawRect(widgetPosX - 18, posY, widgetPosX - 2, posY + 14)
+		gl_Color(1, 1, 1, pointtime / pointDuration)
 		gl_Texture(pics["pointPic"])
-		DrawRect(widgetPosX - 33, posY-1, widgetPosX - 17, posY + 15)
+		DrawRect(widgetPosX - 33, posY - 1, widgetPosX - 17, posY + 15)
 	else
 		leftPosX = widgetPosX + widgetWidth
-		gl_Color(1,0,0,pointtime/pointDuration)
+		gl_Color(1, 0, 0, pointtime / pointDuration)
 		gl_Texture(pics["arrowPic"])
 		DrawRect(leftPosX + 18, posY, leftPosX + 2, posY + 14)
-		gl_Color(1,1,1,pointtime/pointDuration)
+		gl_Color(1, 1, 1, pointtime / pointDuration)
 		gl_Texture(pics["pointPic"])
-		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)
+		DrawRect(leftPosX + 33, posY - 1, leftPosX + 17, posY + 15)
 	end
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 end
 
 function TakeTip(mouseX)
 	if right == true then
-		if mouseX >= widgetPosX - 57 * widgetScale  and  mouseX <= widgetPosX - 1 * widgetScale then
+		if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
 			tipText = "Click to take abandoned units"
 		end
 	else
 		local leftPosX = widgetPosX + widgetWidth
-		if mouseX >= leftPosX + 1 * widgetScale  and  mouseX <= leftPosX + 57 * widgetScale then
+		if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 57 * widgetScale then
 			tipText = "Click to take abandoned units"
 		end
 	end
@@ -2941,27 +3003,26 @@ end
 
 function ShareTip(mouseX, playerID)
 	if playerID == myPlayerID then
-		if mouseX >= widgetPosX + (m_share.posX  + 1) * widgetScale  and  mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
+		if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
 			tipText = "Double click to ask for Unit support"
-		elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale  and  mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
+		elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
 			tipText = "Click and drag to ask for Energy"
-		elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale  and  mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
+		elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
 			tipText = "Click and drag to ask for Metal"
 		end
 	else
-		if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale  and  mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
+		if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
 			tipText = "Double click to share Units"
-		elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale  and  mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
+		elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
 			tipText = "Click and drag to share Energy"
-		elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale  and  mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
+		elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
 			tipText = "Click and drag to share Metal"
 		end
 	end
 end
 
-
 function AllyTip(mouseX, playerID)
-	if mouseX >= widgetPosX + (m_alliance.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_alliance.posX + 11) * widgetScale then
+	if mouseX >= widgetPosX + (m_alliance.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_alliance.posX + 11) * widgetScale then
 		if Spring_AreTeamsAllied(player[playerID].team, myTeamID) then
 			tipText = "Click to become enemy"
 		else
@@ -2970,9 +3031,8 @@ function AllyTip(mouseX, playerID)
 	end
 end
 
-
 function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
-	if mouseX >= widgetPosX + (m_resources.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then
+	if mouseX >= widgetPosX + (m_resources.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then
 		if e > 1000 then
 			e = math.floor(e / 100) * 100
 		else
@@ -2997,104 +3057,114 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
 		if mi > 200 then
 			mi = math.floor(mi / 10) * 10
 		end
-		if e >= 10000 then e = math.floor(e/1000).."k" end
-		if m >= 10000 then e = math.floor(m/1000).."k" end
-		if ei >= 10000 then ei = math.floor(ei/1000).."k" end
-		if mi >= 10000 then ei = math.floor(mi/1000).."k" end
-		tipText = "\255\255\255\000+"..ei.."\n\255\255\255\000"..e.."\n\255\255\255\255"..m.."\n\255\255\255\255+"..mi
+		if e >= 10000 then
+			e = math.floor(e / 1000) .. "k"
+		end
+		if m >= 10000 then
+			e = math.floor(m / 1000) .. "k"
+		end
+		if ei >= 10000 then
+			ei = math.floor(ei / 1000) .. "k"
+		end
+		if mi >= 10000 then
+			ei = math.floor(mi / 1000) .. "k"
+		end
+		tipText = "\255\255\255\000+" .. ei .. "\n\255\255\255\000" .. e .. "\n\255\255\255\255" .. m .. "\n\255\255\255\255+" .. mi
 	end
 end
 
-
 function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
-	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
+	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 23) * widgetScale then
 		if pingLvl < 2000 then
-			pingLvl = pingLvl.." ms"
+			pingLvl = pingLvl .. " ms"
 		elseif pingLvl >= 2000 and pingLvl < 60000 then
-			pingLvl = round(pingLvl/1000,0).." sec"
+			pingLvl = round(pingLvl / 1000, 0) .. " sec"
 		elseif pingLvl >= 60000 then
-			pingLvl = round(pingLvl/60000,0).." min"
+			pingLvl = round(pingLvl / 60000, 0) .. " min"
 		end
-		tipText = "\255\190\190\190Total command delay:  \255\255\255\255"..pingLvl
-	elseif mouseX >= widgetPosX + (m_cpuping.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 11) * widgetScale then
-		tipText = "Cpu: "..cpuLvl.."%"
+		tipText = "\255\190\190\190Total command delay:  \255\255\255\255" .. pingLvl
+	elseif mouseX >= widgetPosX + (m_cpuping.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 11) * widgetScale then
+		tipText = "Cpu: " .. cpuLvl .. "%"
 		if fps ~= nil then
-			tipText = "FPS: "..fps.."    "..tipText
+			tipText = "FPS: " .. fps .. "    " .. tipText
 		end
 		if gpumem ~= nil then
-			tipText = tipText.."    Gpu mem: "..gpumem.."%"
+			tipText = tipText .. "    Gpu mem: " .. gpumem .. "%"
 		end
 		if system ~= nil then
-			tipText = (spec and "\255\240\240\240" or colourNames(teamID))..name.."\n\255\215\255\215"..tipText.."\n\255\240\240\240"..system
+			tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n\255\215\255\215" .. tipText .. "\n\255\240\240\240" .. system
 		end
 	end
 end
 
 function PointTip(mouseX)
 	if right == true then
-		if mouseX >= widgetPosX - 28 * widgetScale  and  mouseX <= widgetPosX - 1 * widgetScale then
+		if mouseX >= widgetPosX - 28 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
 			tipText = "Click to reach the last point set by the player"
 		end
 	else
 		local leftPosX = widgetPosX + widgetWidth
-		if mouseX >= leftPosX + 1 * widgetScale  and  mouseX <= leftPosX + 28 * widgetScale then
+		if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 28 * widgetScale then
 			tipText = "Click to reach the last point set by the player"
 		end
 	end
 end
 
-
 function stringToLines(str)
-  local t = {}
-  local function helper(line) t[#t+1] = line return "" end
-  helper((str:gsub("(.-)\r?\n", helper)))
-  return t
+	local t = {}
+	local function helper(line)
+		t[#t + 1] = line
+		return ""
+	end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
 end
-
 
 function DrawTip(mouseX, mouseY)
 
-	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
-	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
+	local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
+	local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
 	local scaleReset = widgetScale / widgetScale / widgetScale
-	gl.Translate(-scaleDiffX,-scaleDiffY,0)
-	gl.Scale(scaleReset,scaleReset,0)
+	gl.Translate(-scaleDiffX, -scaleDiffY, 0)
+	gl.Scale(scaleReset, scaleReset, 0)
 
 	text = tipText --this is needed because we're inside a gllist
 	if text ~= nil then
-		local fontSize = 14*widgetScale
-		local tw = fontSize*font:GetTextWidth(text) + (20*widgetScale)
+		local fontSize = 14 * widgetScale
+		local tw = fontSize * font:GetTextWidth(text) + (20 * widgetScale)
 		local _, lines = string.gsub(text, "\n", "")
 		lines = lines + 1
 
-		local lineHeight = fontSize + (fontSize/4.5)
-		local th = lineHeight * lines + (fontSize*0.75)
+		local lineHeight = fontSize + (fontSize / 4.5)
+		local th = lineHeight * lines + (fontSize * 0.75)
 
 		local oldWidgetScale = widgetScale
 		widgetScale = 1
 
-		local bottomY = mouseY-(th-(26*oldWidgetScale))
+		local bottomY = mouseY - (th - (26 * oldWidgetScale))
 		local ycorrection = 0
-		if bottomY < 0 then ycorrection = (15*widgetScale)-bottomY end
+		if bottomY < 0 then
+			ycorrection = (15 * widgetScale) - bottomY
+		end
 
-		local padding = -1.8*oldWidgetScale
+		local padding = -1.8 * oldWidgetScale
 
-		local xoffset = -15*oldWidgetScale
+		local xoffset = -15 * oldWidgetScale
 		if right then
-			gl_Color(0.8,0.8,0.8,0.75)
-			RectRound(mouseX-tw+padding+xoffset, bottomY+ycorrection+padding, mouseX+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+			gl_Color(0.8, 0.8, 0.8, 0.75)
+			RectRound(mouseX - tw + padding + xoffset, bottomY + ycorrection + padding, mouseX + xoffset - padding, (mouseY + (26 * oldWidgetScale) + ycorrection) - padding, 4.5 * oldWidgetScale)
 
-			padding = 0*oldWidgetScale
-			gl_Color(0,0,0,0.28)
-			RectRound(mouseX-tw+padding+xoffset, bottomY+ycorrection+padding, mouseX+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+			padding = 0 * oldWidgetScale
+			gl_Color(0, 0, 0, 0.28)
+			RectRound(mouseX - tw + padding + xoffset, bottomY + ycorrection + padding, mouseX + xoffset - padding, (mouseY + (26 * oldWidgetScale) + ycorrection) - padding, 3.5 * oldWidgetScale)
 		else
-			xoffset = 22*oldWidgetScale
-			gl_Color(0.8,0.8,0.8,0.75)
-			RectRound(mouseX+padding+xoffset, bottomY+ycorrection+padding, mouseX+tw+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+			xoffset = 22 * oldWidgetScale
+			gl_Color(0.8, 0.8, 0.8, 0.75)
+			RectRound(mouseX + padding + xoffset, bottomY + ycorrection + padding, mouseX + tw + xoffset - padding, (mouseY + (26 * oldWidgetScale) + ycorrection) - padding, 4.5 * oldWidgetScale)
 
-			padding = 0*oldWidgetScale
-			gl_Color(0,0,0,0.28)
-			RectRound(mouseX+padding+xoffset, bottomY+ycorrection+padding, mouseX+tw+xoffset+padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+			padding = 0 * oldWidgetScale
+			gl_Color(0, 0, 0, 0.28)
+			RectRound(mouseX + padding + xoffset, bottomY + ycorrection + padding, mouseX + tw + xoffset + padding, (mouseY + (26 * oldWidgetScale) + ycorrection) - padding, 3.5 * oldWidgetScale)
 		end
 		widgetScale = oldWidgetScale
 
@@ -3104,9 +3174,9 @@ function DrawTip(mouseX, mouseY)
 		font:Begin()
 		for i, line in ipairs(textLines) do
 			if right then
-				font:Print('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+				font:Print('\255\244\244\244' .. line, mouseX + xoffset + (8 * widgetScale) - tw, mouseY + (8 * widgetScale) + ycorrection + th, fontSize, "o")
 			else
-				font:Print('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale), mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+				font:Print('\255\244\244\244' .. line, mouseX + xoffset + (8 * widgetScale), mouseY + (8 * widgetScale) + ycorrection + th, fontSize, "o")
 			end
 			th = th - lineHeight
 		end
@@ -3114,9 +3184,9 @@ function DrawTip(mouseX, mouseY)
 	end
 	tipText = nil
 
-	gl.Color(1,1,1,1)
-	gl.Scale(widgetScale,widgetScale,0)
-	gl.Translate(scaleDiffX,scaleDiffY,0)
+	gl.Color(1, 1, 1, 1)
+	gl.Scale(widgetScale, widgetScale, 0)
+	gl.Translate(scaleDiffX, scaleDiffY, 0)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -3136,34 +3206,34 @@ function CreateShareSlider()
 		if energyPlayer ~= nil then
 			posY = widgetPosY + widgetHeight - energyPlayer.posY
 			gl_Texture(pics["barPic"])
-			DrawRect(m_share.posX + widgetPosX  + 16,posY-3,m_share.posX + widgetPosX  + 34,posY+58)
+			DrawRect(m_share.posX + widgetPosX + 16, posY - 3, m_share.posX + widgetPosX + 34, posY + 58)
 			gl_Texture(pics["energyPic"])
-			DrawRect(m_share.posX + widgetPosX  + 17,posY+sliderPosition,m_share.posX + widgetPosX  + 33,posY+16+sliderPosition)
+			DrawRect(m_share.posX + widgetPosX + 17, posY + sliderPosition, m_share.posX + widgetPosX + 33, posY + 16 + sliderPosition)
 			gl_Texture(pics["amountPic"])
 			if right == true then
-				DrawRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
+				DrawRect(m_share.posX + widgetPosX - 28, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 19, posY + 17 + sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition, 14, "on")
+				font:Print(amountEM .. "", m_share.posX + widgetPosX - 5, posY + 3 + sliderPosition, 14, "on")
 			else
-				DrawRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
+				DrawRect(m_share.posX + widgetPosX + 76, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 31, posY + 17 + sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition, 14, "on")
+				font:Print(amountEM .. "", m_share.posX + widgetPosX + 55, posY + 3 + sliderPosition, 14, "on")
 			end
 		elseif metalPlayer ~= nil then
 			posY = widgetPosY + widgetHeight - metalPlayer.posY
 			gl_Texture(pics["barPic"])
-			DrawRect(m_share.posX + widgetPosX  + 32,posY-3,m_share.posX + widgetPosX  + 50,posY+58)
+			DrawRect(m_share.posX + widgetPosX + 32, posY - 3, m_share.posX + widgetPosX + 50, posY + 58)
 			gl_Texture(pics["metalPic"])
-			DrawRect(m_share.posX + widgetPosX  + 33, posY+sliderPosition,m_share.posX + widgetPosX  + 49,posY+16+sliderPosition)
+			DrawRect(m_share.posX + widgetPosX + 33, posY + sliderPosition, m_share.posX + widgetPosX + 49, posY + 16 + sliderPosition)
 			gl_Texture(pics["amountPic"])
 			if right == true then
-				DrawRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
+				DrawRect(m_share.posX + widgetPosX - 12, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 35, posY + 17 + sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition, 14, "on")
+				font:Print(amountEM .. "", m_share.posX + widgetPosX + 11, posY + 3 + sliderPosition, 14, "on")
 			else
-				DrawRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
+				DrawRect(m_share.posX + widgetPosX + 88, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 47, posY + 17 + sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition, 14, "on")
+				font:Print(amountEM .. "", m_share.posX + widgetPosX + 71, posY + 3 + sliderPosition, 14, "on")
 			end
 		end
 		font:End()
@@ -3175,11 +3245,16 @@ function GetCpuLvl(cpuUsage)
 
 	-- set the 5 cpu usage levels (green to red)
 
-	if cpuUsage < 0.15 then return 1
-	elseif cpuUsage < 0.3 then return 2
-	elseif cpuUsage < 0.45 then return 3
-	elseif cpuUsage < 0.65 then return 4
-	else return 5
+	if cpuUsage < 0.15 then
+		return 1
+	elseif cpuUsage < 0.3 then
+		return 2
+	elseif cpuUsage < 0.45 then
+		return 3
+	elseif cpuUsage < 0.65 then
+		return 4
+	else
+		return 5
 	end
 
 end
@@ -3188,11 +3263,16 @@ function GetPingLvl(ping)
 
 	-- set the 5 ping levels (green to red)
 
-	if ping < 0.15 then return 1
-	elseif ping < 0.3 then return 2
-	elseif ping < 0.7 then return 3
-	elseif ping < 1.5 then return 4
-	else return 5
+	if ping < 0.15 then
+		return 1
+	elseif ping < 0.3 then
+		return 2
+	elseif ping < 0.7 then
+		return 3
+	elseif ping < 1.5 then
+		return 4
+	else
+		return 5
 	end
 end
 
@@ -3204,21 +3284,24 @@ end
 local prevClickedName
 local clickedName
 
-function widget:MousePress(x,y,button) --super ugly code here
+function widget:MousePress(x, y, button)
+	--super ugly code here
 
-	if collapsed then return end
+	if collapsed then
+		return
+	end
 
 	local t = false       -- true if the object is a team leader
 	local clickedPlayer
 	local posY
 	local clickTime = os.clock()
 	if button == 1 then
-		local alt,ctrl,meta,shift = Spring.GetModKeyState()
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		sliderPosition = 0
 		amountEM = 0
 		-- spectators label onclick
 		posY = widgetPosY + widgetHeight - specsLabelOffset
-		if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY+2, widgetPosX + widgetWidth - 2, posY+20) then
+		if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
 			specListShow = not specListShow
 			SetModulesPositionX() --why?
 			SortList()
@@ -3226,7 +3309,8 @@ function widget:MousePress(x,y,button) --super ugly code here
 			return true
 		end
 
-		for _,i in ipairs(drawList) do  -- i = object #
+		for _, i in ipairs(drawList) do
+			-- i = object #
 			if i > -1 then
 				clickedPlayer = player[i]
 				clickedPlayer.id = i
@@ -3240,17 +3324,20 @@ function widget:MousePress(x,y,button) --super ugly code here
 					t = true
 				else
 					t = false
-					if m_point.active  then
+					if m_point.active then
 						if i > -1 and i < 64 then
 							if clickedPlayer.pointTime ~= nil then
 								if right == true then
-									if IsOnRect(x,y, widgetPosX - 33, posY - 2,widgetPosX - 17, posY + 16) then                           --point button
-										Spring.SetCameraTarget(clickedPlayer.pointX,clickedPlayer.pointY,clickedPlayer.pointZ,1)          --                                       --
+									if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + 16) then
+										--point button
+										Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)          --                                       --
 										return true                                                                                       --
 									end                                                                                                   --
-								else                                                                                                      --
-									if IsOnRect(x,y, widgetPosX + widgetWidth + 17, posY-2,widgetPosX + widgetWidth + 33, posY + 16) then --
-										Spring.SetCameraTarget(clickedPlayer.pointX,clickedPlayer.pointY,clickedPlayer.pointZ,1)                                                  --
+								else
+									--
+									if IsOnRect(x, y, widgetPosX + widgetWidth + 17, posY - 2, widgetPosX + widgetWidth + 33, posY + 16) then
+										--
+										Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)                                                  --
 										return true
 									end
 								end
@@ -3258,10 +3345,10 @@ function widget:MousePress(x,y,button) --super ugly code here
 						end
 					end
 				end
-				if i>-1 and i<64 then
-					if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+16) then
+				if i > -1 and i < 64 then
+					if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 16) then
 						if ctrl then
-							Spring_SendCommands{"toggleignore "..clickedPlayer.name}
+							Spring_SendCommands { "toggleignore " .. clickedPlayer.name }
 							return true
 						end
 
@@ -3282,12 +3369,15 @@ function widget:MousePress(x,y,button) --super ugly code here
 						if m_take.active == true then
 							if clickedPlayer.totake == true then
 								if right == true then
-									if IsOnRect(x,y, widgetPosX - 57, posY ,widgetPosX - 12, posY + 17) then                            --take button
+									if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
+										--take button
 										Take(clickedPlayer.team, clickedPlayer.name, i)                                                                                             --
 										return true                                                                                        --
 									end                                                                                                    --
-								else                                                                                                       --
-									if IsOnRect(x,y, widgetPosX + widgetWidth + 12, posY ,widgetPosX + widgetWidth + 57, posY + 17) then  --
+								else
+									--
+									if IsOnRect(x, y, widgetPosX + widgetWidth + 12, posY, widgetPosX + widgetWidth + 57, posY + 17) then
+										--
 										Take(clickedPlayer.team, clickedPlayer.name, i)                                                                                             --
 										return true
 									end
@@ -3295,33 +3385,40 @@ function widget:MousePress(x,y,button) --super ugly code here
 							end
 						end
 						if m_share.active == true and clickedPlayer.dead ~= true and not hideShareIcons then
-							if IsOnRect(x, y, m_share.posX + widgetPosX +1, posY, m_share.posX + widgetPosX +17,posY+16) then       -- share units button
-								if release ~= nil then                                                                                --
-									if release >= now then                                                                            --
-										if clickedPlayer.team == myTeamID then                                                        --
+							if IsOnRect(x, y, m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + 16) then
+								-- share units button
+								if release ~= nil then
+									--
+									if release >= now then
+										--
+										if clickedPlayer.team == myTeamID then
+											--
 											Spring_SendCommands("say a: I need unit support!")                                        -- (ask)
-										else                                                                                          --
+										else
+											--
 											local suc = Spring.GetSelectedUnitsCount()
-											Spring_SendCommands("say a: I gave "..suc.." units to "..clickedPlayer.name..".")
+											Spring_SendCommands("say a: I gave " .. suc .. " units to " .. clickedPlayer.name .. ".")
 											local su = Spring.GetSelectedUnits()
-											for i=1,#su do
-												local ux,uy,uz = Spring.GetUnitPosition(su[i])
-												Spring.MarkerAddPoint(ux,uy,uz)
+											for i = 1, #su do
+												local ux, uy, uz = Spring.GetUnitPosition(su[i])
+												Spring.MarkerAddPoint(ux, uy, uz)
 											end
 											Spring_ShareResources(clickedPlayer.team, "units")                                                            --
 										end
 									end
 									release = nil
 								else
-									firstclick = now+1
+									firstclick = now + 1
 								end
 								return true
 							end
-							if IsOnRect(x, y, m_share.posX + widgetPosX +17, posY, m_share.posX + widgetPosX +33,posY+16) then      -- share energy button (initiates the slider)
+							if IsOnRect(x, y, m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + 16) then
+								-- share energy button (initiates the slider)
 								energyPlayer = clickedPlayer
 								return true
 							end
-							if IsOnRect(x, y, m_share.posX + widgetPosX +33, posY, m_share.posX + widgetPosX +49,posY+16) then      -- share metal button (initiates the slider)
+							if IsOnRect(x, y, m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + 16) then
+								-- share metal button (initiates the slider)
 								metalPlayer = clickedPlayer
 								return true
 							end
@@ -3335,18 +3432,18 @@ function widget:MousePress(x,y,button) --super ugly code here
 					if i > -1 and i < 64 then
 						--chat button
 						if m_chat.active == true then
-							if IsOnRect(x, y, m_chat.posX + widgetPosX +1, posY, m_chat.posX + widgetPosX +17,posY+16) then
-								Spring_SendCommands("chatall","pastetext /w "..clickedPlayer.name..' \1')
+							if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + 16) then
+								Spring_SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
 								return true
 							end
 						end
 						--ally button
 						if m_alliance.active == true and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
-							if IsOnRect(x, y, m_alliance.posX + widgetPosX +1, posY, m_alliance.posX + widgetPosX + m_alliance.width,posY+16) then
+							if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + 16) then
 								if Spring_AreTeamsAllied(player[i].team, myTeamID) then
-									Spring_SendCommands("ally "..player[i].allyteam.." 0")
+									Spring_SendCommands("ally " .. player[i].allyteam .. " 0")
 								else
-									Spring_SendCommands("ally "..player[i].allyteam.." 1")
+									Spring_SendCommands("ally " .. player[i].allyteam .. " 1")
 								end
 								return true
 							end
@@ -3356,13 +3453,13 @@ function widget:MousePress(x,y,button) --super ugly code here
 							if clickedPlayer.pointTime ~= nil then
 								if clickedPlayer.allyteam == myAllyTeamID then
 									if right == true then
-										if IsOnRect(x,y, widgetPosX - 28, posY - 1,widgetPosX - 12, posY + 17) then
-											Spring.SetCameraTarget(clickedPlayer.pointX,clickedPlayer.pointY,clickedPlayer.pointZ,1)
+										if IsOnRect(x, y, widgetPosX - 28, posY - 1, widgetPosX - 12, posY + 17) then
+											Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
 											return true
 										end
 									else
-										if IsOnRect(x,y, widgetPosX + widgetWidth + 12, posY-1,widgetPosX + widgetWidth + 28, posY + 17) then
-											Spring.SetCameraTarget(clickedPlayer.pointX,clickedPlayer.pointY,clickedPlayer.pointZ,1)
+										if IsOnRect(x, y, widgetPosX + widgetWidth + 12, posY - 1, widgetPosX + widgetWidth + 28, posY + 17) then
+											Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
 											return true
 										end
 									end
@@ -3370,9 +3467,9 @@ function widget:MousePress(x,y,button) --super ugly code here
 							end
 						end
 						--name
-						if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+12)  then
+						if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
 							if ctrl then
-								Spring_SendCommands{"toggleignore "..clickedPlayer.name}
+								Spring_SendCommands { "toggleignore " .. clickedPlayer.name }
 								SortList()
 								CreateLists()
 								return true
@@ -3397,50 +3494,61 @@ function widget:MousePress(x,y,button) --super ugly code here
 	end
 end
 
-local mouseX, mouseY = 0,0
-function widget:MouseMove(x,y,dx,dy,button)
+local mouseX, mouseY = 0, 0
+function widget:MouseMove(x, y, dx, dy, button)
 
-  if collapsed then return end
+	if collapsed then
+		return
+	end
 
-  mouseX, mouseY = x, y
-  local moveStartX, moveStartY
-	if energyPlayer ~= nil or metalPlayer ~= nil then                            -- move energy/metal share slider
+	mouseX, mouseY = x, y
+	local moveStartX, moveStartY
+	if energyPlayer ~= nil or metalPlayer ~= nil then
+		-- move energy/metal share slider
 		if sliderOrigin == nil then
 			sliderOrigin = y
 		end
-		sliderPosition = (y-sliderOrigin) * (1/widgetScale)
-		if sliderPosition < 0 then sliderPosition = 0 end
-		if sliderPosition > 39 then sliderPosition = 39 end
-        local prevAmountEM = amountEM
+		sliderPosition = (y - sliderOrigin) * (1 / widgetScale)
+		if sliderPosition < 0 then
+			sliderPosition = 0
+		end
+		if sliderPosition > 39 then
+			sliderPosition = 39
+		end
+		local prevAmountEM = amountEM
 		UpdateResources()
-        if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.05) and amountEM ~= prevAmountEM then
-            lastSliderSound = os.clock()
-            Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
-        end
+		if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.05) and amountEM ~= prevAmountEM then
+			lastSliderSound = os.clock()
+			Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+		end
 	end
 end
 
-function widget:MouseRelease(x,y,button)
+function widget:MouseRelease(x, y, button)
 
-	if collapsed then return end
+	if collapsed then
+		return
+	end
 
 	if button == 1 then
-		if firstclick ~= nil then                                                  -- double click system for share units
+		if firstclick ~= nil then
+			-- double click system for share units
 			release = firstclick
 			firstclick = nil
 		else
 			release = nil
 		end
-		if energyPlayer ~= nil then                                                -- share energy/metal mouse release
+		if energyPlayer ~= nil then
+			-- share energy/metal mouse release
 			if energyPlayer.team == myTeamID then
 				if amountEM == 0 then
 					Spring_SendCommands("say a: I need Energy!")
 				else
-					Spring_SendCommands("say a: I need "..amountEM.." Energy!")
+					Spring_SendCommands("say a: I need " .. amountEM .. " Energy!")
 				end
 			elseif amountEM > 0 then
 				Spring_ShareResources(energyPlayer.team, "energy", amountEM)
-				Spring_SendCommands("say a: I sent "..amountEM.." energy to "..energyPlayer.name)
+				Spring_SendCommands("say a: I sent " .. amountEM .. " energy to " .. energyPlayer.name)
 			end
 			sliderOrigin = nil
 			amountEMMax = nil
@@ -3454,11 +3562,11 @@ function widget:MouseRelease(x,y,button)
 				if amountEM == 0 then
 					Spring_SendCommands("say a: I need Metal!")
 				else
-					Spring_SendCommands("say a: I need "..amountEM.." Metal!")
+					Spring_SendCommands("say a: I need " .. amountEM .. " Metal!")
 				end
 			elseif amountEM > 0 then
 				Spring_ShareResources(metalPlayer.team, "metal", amountEM)
-				Spring_SendCommands("say a: I sent "..amountEM.." metal to "..metalPlayer.name)
+				Spring_SendCommands("say a: I sent " .. amountEM .. " metal to " .. metalPlayer.name)
 			end
 			sliderOrigin = nil
 			amountEMMax = nil
@@ -3470,7 +3578,7 @@ function widget:MouseRelease(x,y,button)
 end
 
 function Spec(teamID)
-	Spring_SendCommands{"specteam "..teamID}
+	Spring_SendCommands { "specteam " .. teamID }
 	specTarget = teamID
 	SortList()
 end
@@ -3480,31 +3588,31 @@ end
 --  Tweak mode
 ---------------------------------------------------------------------------------------------------
 
-function IsOnRectPlain(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
+function IsOnRectPlain(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 
 	-- calc scale offset
-	BLcornerX = BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
-	BLcornerY = BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
-	TRcornerX = TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
-	TRcornerY = TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
+	BLcornerX = BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale - 1))
+	BLcornerY = BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale - 1))
+	TRcornerX = TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale - 1))
+	TRcornerY = TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1))
 
 	-- check if the mouse is in a rectangle
 	return x >= BLcornerX and x <= TRcornerX
-	                      and y >= BLcornerY
-	                      and y <= TRcornerY
+		and y >= BLcornerY
+		and y <= TRcornerY
 end
 
 local function DrawGreyRect()
-	gl_Color(0.2,0.2,0.2,0.25)
+	gl_Color(0.2, 0.2, 0.2, 0.25)
 	gl_Rect(widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight)
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 end
 
-local function DrawTweakButton(module,  localLeft, localOffset, localBottom)
+local function DrawTweakButton(module, localLeft, localOffset, localBottom)
 	gl_Texture(module.pic)
 	DrawRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	if module.active ~= true and module.alwaysActive == nil then
@@ -3515,19 +3623,21 @@ end
 
 local function DrawTweakButtons()
 
-	local minSize = (modulesCount-1) * 16 + 2
-	local localLeft     = widgetPosX
-	local localBottom   = widgetPosY + widgetHeight - 28
-	local localOffset   = 1 --see func above, these track how far right we've got TODO: pass values
+	local minSize = (modulesCount - 1) * 16 + 2
+	local localLeft = widgetPosX
+	local localBottom = widgetPosY + widgetHeight - 28
+	local localOffset = 1 --see func above, these track how far right we've got TODO: pass values
 
-	gl_Color(0,0,0,0.5)
-	RectRound(localLeft-3, localBottom + 8, localLeft + widgetWidth+3, localBottom + 30, 5, true)
+	gl_Color(0, 0, 0, 0.5)
+	RectRound(localLeft - 3, localBottom + 8, localLeft + widgetWidth + 3, localBottom + 30, 5, true)
 
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 	--if localLeft + minSize > vsx then localLeft = vsx - minSize end
-	if localBottom < 0 then localBottom = 0 end
+	if localBottom < 0 then
+		localBottom = 0
+	end
 
-	for n,module in pairs(modules) do
+	for n, module in pairs(modules) do
 		if module.noPic == nil or module.noPic == false then
 			if mySpecStatus == false or mySpecStatus == true and module.spec then
 				DrawTweakButton(module, localLeft, localOffset, localBottom)
@@ -3544,31 +3654,33 @@ local function DrawTweakButtons()
 end
 
 local function DrawArrows()
-	gl_Color(1,1,1,0.4)
+	gl_Color(1, 1, 1, 0.4)
 	gl_Texture(pics["arrowdPic"])
 	if expandDown == true then
 		DrawRect(widgetPosX, widgetPosY - 15, widgetRight, widgetPosY - 1)
 	else
 		DrawRect(widgetPosX, widgetTop + 15, widgetRight, widgetTop + 1)
 	end
-		gl_Texture(pics["arrowPic"])
+	gl_Texture(pics["arrowPic"])
 	if expandLeft == true then
 		DrawRect(widgetPosX - 1, widgetPosY, widgetPosX - 15, widgetTop)
 	else
 		DrawRect(widgetRight + 1, widgetPosY, widgetRight + 15, widgetTop)
 	end
-	gl_Color(1,1,1,1)
+	gl_Color(1, 1, 1, 1)
 	gl_Texture(false)
 end
 
 function widget:TweakDrawScreen()
 
-	if collapsed then return end
+	if collapsed then
+		return
+	end
 
-	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
-	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
-	gl.Scale(widgetScale,widgetScale,0)
-	gl.Translate(scaleDiffX,scaleDiffY,0)
+	local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
+	local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
+	gl.Scale(widgetScale, widgetScale, 0)
+	gl.Translate(scaleDiffX, scaleDiffY, 0)
 
 	--DrawGreyRect()
 	DrawTweakButtons()
@@ -3578,8 +3690,8 @@ function widget:TweakDrawScreen()
 	CreateBackground()
 
 	local scaleReset = widgetScale / widgetScale / widgetScale
-	gl.Translate(-scaleDiffX,-scaleDiffY,0)
-	gl.Scale(scaleReset,scaleReset,0)
+	gl.Translate(-scaleDiffX, -scaleDiffY, 0)
+	gl.Scale(scaleReset, scaleReset, 0)
 end
 
 function checkButton(module, x, y, localLeft, localOffset, localBottom)
@@ -3589,7 +3701,7 @@ function checkButton(module, x, y, localLeft, localOffset, localBottom)
 			SetModulesPositionX() --why?
 			SortList()
 			-- adjust because of widget scaling
-			local widthDiff =  (module.width * widgetScale) - module.width
+			local widthDiff = (module.width * widgetScale) - module.width
 			if module.active then
 				widgetRight = widgetRight - widthDiff
 			else
@@ -3609,21 +3721,27 @@ function checkButton(module, x, y, localLeft, localOffset, localBottom)
 	end
 end
 
-function widget:TweakMousePress(x,y,button)
+function widget:TweakMousePress(x, y, button)
 
-	if collapsed then return end
+	if collapsed then
+		return
+	end
 
 	if button == 1 then
 		local localLeft = widgetPosX
 		local localBottom = widgetPosY + widgetHeight - 28
 		local localOffset = 1
-		if localBottom < 0 then localBottom = 0 end
+		if localBottom < 0 then
+			localBottom = 0
+		end
 		--if localLeft + 181 > vsx then localLeft = vsx - 181 end
 
-		for _,module in pairs(modules) do
+		for _, module in pairs(modules) do
 			if module.noPic == nil or module.noPic == false then
 				if mySpecStatus == false or mySpecStatus == true and module.spec then
-					if checkButton(module,x,y,localLeft,localOffset,localBottom) then return true end
+					if checkButton(module, x, y, localLeft, localOffset, localBottom) then
+						return true
+					end
 					localOffset = localOffset + 16
 				end
 			end
@@ -3642,41 +3760,45 @@ function widget:TweakMousePress(x,y,button)
 	end
 end
 
+function widget:TweakMouseMove(x, y, dx, dy, button)
 
-function widget:TweakMouseMove(x,y,dx,dy,button)
-
-	if collapsed then return end
+	if collapsed then
+		return
+	end
 
 	if clickToMove ~= nil then
-		if moveStartX == nil then                                                      -- move widget on y axis
+		if moveStartX == nil then
+			-- move widget on y axis
 			moveStartX = x - widgetPosX
 		end
-		if moveStartY == nil then                                                      -- move widget on y axis
+		if moveStartY == nil then
+			-- move widget on y axis
 			moveStartY = y - widgetPosY
 		end
 		widgetPosX = widgetPosX + dx
 		widgetPosY = widgetPosY + dy
 
-		if widgetPosY <= (backgroundMargin*widgetScale) then
-			widgetPosY = (backgroundMargin*widgetScale)
+		if widgetPosY <= (backgroundMargin * widgetScale) then
+			widgetPosY = (backgroundMargin * widgetScale)
 			expandDown = false --expandDown=false only if we are right on the bottom of the screen
 		end
-		if widgetPosY + (widgetHeight * widgetScale) >= vsy -(backgroundMargin*widgetScale) then
-			widgetPosY = vsy - (widgetHeight * widgetScale) -(backgroundMargin*widgetScale)
+		if widgetPosY + (widgetHeight * widgetScale) >= vsy - (backgroundMargin * widgetScale) then
+			widgetPosY = vsy - (widgetHeight * widgetScale) - (backgroundMargin * widgetScale)
 			expandDown = true
 		end
-		if widgetPosX <= (backgroundMargin*widgetScale) then --expandLeft=false only when we are precisely on the left edge of the screen
-			widgetPosX = (backgroundMargin*widgetScale)
+		if widgetPosX <= (backgroundMargin * widgetScale) then
+			--expandLeft=false only when we are precisely on the left edge of the screen
+			widgetPosX = (backgroundMargin * widgetScale)
 			expandLeft = false
 		end
-		if widgetPosX + (widgetWidth * widgetScale) >= vsx-(backgroundMargin*widgetScale) then
-			widgetPosX = vsx - (widgetWidth * widgetScale) - (backgroundMargin*widgetScale)
+		if widgetPosX + (widgetWidth * widgetScale) >= vsx - (backgroundMargin * widgetScale) then
+			widgetPosX = vsx - (widgetWidth * widgetScale) - (backgroundMargin * widgetScale)
 			expandLeft = true
 		end
-		widgetTop   = widgetPosY + widgetHeight
+		widgetTop = widgetPosY + widgetHeight
 		widgetRight = widgetPosX + widgetWidth
-		widgetRelRight = vsx - (widgetPosX + (widgetWidth*widgetScale))
-		if widgetRight > vsx/2 then
+		widgetRelRight = vsx - (widgetPosX + (widgetWidth * widgetScale))
+		if widgetRight > vsx / 2 then
 			right = true
 		else
 			right = false
@@ -3684,9 +3806,11 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 	end
 end
 
-function widget:TweakMouseRelease(x,y,button)
+function widget:TweakMouseRelease(x, y, button)
 
-	if collapsed then return end
+	if collapsed then
+		return
+	end
 
 	clickToMove = nil                                              -- ends the share slider process
 end
@@ -3695,50 +3819,52 @@ end
 --  Save/load
 ---------------------------------------------------------------------------------------------------
 
-function widget:GetConfigData(data)      -- save
+function widget:GetConfigData(data)
+	-- save
 	if m_side ~= nil then
 
 		--put module.active into a table
 		local m_active_Table = {}
-		for n,module in pairs(modules) do
+		for n, module in pairs(modules) do
 			m_active_Table[module.name] = module.active
 		end
 
 		local settings = {
 			--view
-			widgetVersion      = widgetVersion,
-			customScale        = customScale,
-			vsx                = vsx,
-			vsy                = vsy,
-			widgetRelRight	   = widgetRelRight,
-			widgetPosX         = widgetPosX,
-			widgetPosY         = widgetPosY,
-			widgetRight        = widgetRight,
-			widgetTop          = widgetTop,
-			expandDown         = expandDown,
-			expandLeft         = expandLeft,
-			specListShow       = specListShow,
-			m_pointActive      = m_point.active,
-			m_takeActive       = m_take.active,
-			m_seespecActive    = m_seespec.active,
-			m_active_Table	   = m_active_Table,
-			cpuText            = cpuText,
-			lockPlayerID       = lockPlayerID,
-			specListShow       = specListShow,
-			gameFrame          = Spring.GetGameFrame(),
-			lastSystemData     = lastSystemData,
-			alwaysHideSpecs    = alwaysHideSpecs,
-			collapsable        = collapsable,
-			transitionTime     = transitionTime,
+			widgetVersion = widgetVersion,
+			customScale = customScale,
+			vsx = vsx,
+			vsy = vsy,
+			widgetRelRight = widgetRelRight,
+			widgetPosX = widgetPosX,
+			widgetPosY = widgetPosY,
+			widgetRight = widgetRight,
+			widgetTop = widgetTop,
+			expandDown = expandDown,
+			expandLeft = expandLeft,
+			specListShow = specListShow,
+			m_pointActive = m_point.active,
+			m_takeActive = m_take.active,
+			m_seespecActive = m_seespec.active,
+			m_active_Table = m_active_Table,
+			cpuText = cpuText,
+			lockPlayerID = lockPlayerID,
+			specListShow = specListShow,
+			gameFrame = Spring.GetGameFrame(),
+			lastSystemData = lastSystemData,
+			alwaysHideSpecs = alwaysHideSpecs,
+			collapsable = collapsable,
+			transitionTime = transitionTime,
 			lockcameraHideEnemies = lockcameraHideEnemies,
-			lockcameraLos      = lockcameraLos,
+			lockcameraLos = lockcameraLos,
 		}
 
 		return settings
 	end
 end
 
-function widget:SetConfigData(data)      -- load
+function widget:SetConfigData(data)
+	-- load
 
 	if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
 		if data.customScale ~= nil then
@@ -3771,8 +3897,8 @@ function widget:SetConfigData(data)      -- load
 
 		--view
 		if data.expandDown ~= nil and data.widgetRight ~= nil then
-			expandDown   = data.expandDown
-			expandLeft   = data.expandLeft
+			expandDown = data.expandDown
+			expandLeft = data.expandLeft
 			specListShow = data.specListShow
 			local oldvsx = data.vsx
 			local oldvsy = data.vsy
@@ -3780,10 +3906,10 @@ function widget:SetConfigData(data)      -- load
 				oldvsx = vsx
 				oldvsy = vsy
 			end
-			local dx     = vsx - oldvsx
-			local dy     = vsy - oldvsy
+			local dx = vsx - oldvsx
+			local dy = vsy - oldvsy
 			if expandDown == true then
-				widgetTop  = data.widgetTop + dy
+				widgetTop = data.widgetTop + dy
 				if widgetTop > vsy then
 					widgetTop = vsy
 				end
@@ -3792,22 +3918,22 @@ function widget:SetConfigData(data)      -- load
 			end
 			if expandLeft == true then
 				widgetRelRight = data.widgetRelRight or 0
-				widgetRight = vsx - (widgetWidth * (widgetScale-1)) - widgetRelRight --align right of widget to right of screen
-				widgetPosX = widgetRight - (widgetWidth*widgetScale)
+				widgetRight = vsx - (widgetWidth * (widgetScale - 1)) - widgetRelRight --align right of widget to right of screen
+				widgetPosX = widgetRight - (widgetWidth * widgetScale)
 				if widgetRight > vsx then
 					widgetRight = vsx
 				end
 			else
-				widgetPosX  = data.widgetPosX --align left of widget to left of screen
+				widgetPosX = data.widgetPosX --align left of widget to left of screen
 			end
 		end
-		if data.lockPlayerID ~= nil and Spring.GetGameFrame()>0 then
+		if data.lockPlayerID ~= nil and Spring.GetGameFrame() > 0 then
 			lockPlayerID = data.lockPlayerID
-			if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID),false) then
+			if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID), false) then
 				if not lockcameraHideEnemies then
 					if not fullView then
 						Spring.SendCommands("specfullview")
-						if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+						if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
 							desiredLosmode = 'normal'
 							desiredLosmodeChanged = os.clock()
 						end
@@ -3815,7 +3941,7 @@ function widget:SetConfigData(data)      -- load
 				else
 					if fullView then
 						Spring.SendCommands("specfullview")
-						if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+						if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() ~= "los" then
 							desiredLosmode = 'los'
 							desiredLosmodeChanged = os.clock()
 						end
@@ -3842,11 +3968,12 @@ function widget:SetConfigData(data)      -- load
 		end
 		--load module.active from table
 		local m_active_Table = data.m_active_Table or {}
-		for name,active in pairs(m_active_Table) do
+		for name, active in pairs(m_active_Table) do
 			--find module with matching name
-			for _,module in pairs(modules) do
+			for _, module in pairs(modules) do
 				if module.name == name then
-					if name == "ally" then	-- needs to be always active (some aready stored it as false before, this makes sure its corrected)
+					if name == "ally" then
+						-- needs to be always active (some aready stored it as false before, this makes sure its corrected)
 						module.active = true
 					else
 						module.active = module.default
@@ -3859,17 +3986,17 @@ function widget:SetConfigData(data)      -- load
 		end
 		SetModulesPositionX()
 
-		if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= Spring.GetGameFrame() and data.gameFrame > Spring.GetGameFrame()-300 then
+		if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= Spring.GetGameFrame() and data.gameFrame > Spring.GetGameFrame() - 300 then
 			lastSystemData = data.lastSystemData
 		end
 	end
 end
 
 function widget:TextCommand(command)
-	if string.find(command, "cputext", nil, true) == 1  and  string.len(command) == 7 then
+	if string.find(command, "cputext", nil, true) == 1 and string.len(command) == 7 then
 		cpuText = not cpuText
 	end
-	if string.find(command, "alwayshidespecs", nil, true) == 1  and  string.len(command) == 15 then
+	if string.find(command, "alwayshidespecs", nil, true) == 1 and string.len(command) == 15 then
 		alwaysHideSpecs = not alwaysHideSpecs
 		if alwaysHideSpecs then
 			Spring.Echo("AdvPlayersList: always hiding specs")
@@ -3886,12 +4013,13 @@ end
 
 function CheckPlayersChange()
 	local sorting = false
-	for i = 0,63 do
-		local name,active,spec,teamID,allyTeamID,pingTime,cpuUsage, country, rank = Spring_GetPlayerInfo(i,false)
+	for i = 0, 63 do
+		local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, country, rank = Spring_GetPlayerInfo(i, false)
 		if active == false then
-			if player[i].name ~= nil then                                             -- NON SPEC PLAYER LEAVING
-				if player[i].spec==false then
-					if table.maxn(Spring_GetPlayerList(player[i].team,true)) == 0 then
+			if player[i].name ~= nil then
+				-- NON SPEC PLAYER LEAVING
+				if player[i].spec == false then
+					if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
 						player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
 						sorting = true
 					end
@@ -3901,9 +4029,11 @@ function CheckPlayersChange()
 				sorting = true
 			end
 		elseif active == true and name ~= nil then
-			if spec ~= player[i].spec then                                           -- PLAYER SWITCHING TO SPEC STATUS
+			if spec ~= player[i].spec then
+				-- PLAYER SWITCHING TO SPEC STATUS
 				if spec == true then
-					if table.maxn(Spring_GetPlayerList(player[i].team,true)) == 0 then   -- (update the no players team)
+					if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
+						-- (update the no players team)
 						player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
 					end
 					player[i].team = nil                                                 -- remove team
@@ -3911,8 +4041,10 @@ function CheckPlayersChange()
 				player[i].spec = spec                                                  -- consider player as spec
 				sorting = true
 			end
-			if teamID ~= player[i].team then                                               -- PLAYER CHANGING TEAM
-				if table.maxn(Spring_GetPlayerList(player[i].team,true)) == 0 then           -- check if there is no more player in the team + update
+			if teamID ~= player[i].team then
+				-- PLAYER CHANGING TEAM
+				if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
+					-- check if there is no more player in the team + update
 					player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
 				end
 				player[i].team = teamID
@@ -3932,17 +4064,17 @@ function CheckPlayersChange()
 
 			-- Update stall / cpu / ping info for each player
 			if player[i].spec == false then
-				player[i].needm   = GetNeed("metal",player[i].team)
-				player[i].neede   = GetNeed("energy",player[i].team)
+				player[i].needm = GetNeed("metal", player[i].team)
+				player[i].neede = GetNeed("energy", player[i].team)
 				player[i].rank = rank
 			else
-				player[i].needm   = false
-				player[i].neede   = false
+				player[i].needm = false
+				player[i].neede = false
 			end
 			player[i].pingLvl = GetPingLvl(pingTime)
-			player[i].cpuLvl  = GetCpuLvl(cpuUsage)
-			player[i].ping    = pingTime*1000-((pingTime*1000)%1)
-			player[i].cpu     = cpuUsage*100-((cpuUsage*100)%1)
+			player[i].cpuLvl = GetCpuLvl(cpuUsage)
+			player[i].ping = pingTime * 1000 - ((pingTime * 1000) % 1)
+			player[i].cpu = cpuUsage * 100 - ((cpuUsage * 100) % 1)
 		end
 
 		if teamID and Spring_GetGameFrame() > 0 then
@@ -3956,21 +4088,22 @@ function CheckPlayersChange()
 		end
 	end
 
-	if sorting == true and not collapsed then    -- sorts the list again if change needs it
+	if sorting == true and not collapsed then
+		-- sorts the list again if change needs it
 		SortList()
 		SetModulesPositionX()    -- change the X size if needed (change of widest name)
 	end
 
 end
 
-
-
-function GetNeed(resType,teamID)
+function GetNeed(resType, teamID)
 	local current, _, pull, income = Spring_GetTeamResources(teamID, resType)
-		if current == nil then return false end
-	local loss =  pull - income
+	if current == nil then
+		return false
+	end
+	local loss = pull - income
 	if loss > 0 then
-		if loss*5 > current then
+		if loss * 5 > current then
 			return true
 		end
 	end
@@ -3983,14 +4116,14 @@ local tookTeamName
 local tookFrame = -120
 
 function updateTake(allyTeamID)
-	for i = 0,teamN-1 do
+	for i = 0, teamN - 1 do
 		if player[i + 64].allyTeam == allyTeamID then
 			player[i + 64] = CreatePlayerFromTeam(i)
 		end
 	end
 end
 
-function Take(teamID,name, i)
+function Take(teamID, name, i)
 
 	-- sends the /take command to spring
 	reportTake = true
@@ -4003,7 +4136,7 @@ function Take(teamID,name, i)
 end
 
 function widget:TeamDied(teamID)
-	player[teamID+64]        = CreatePlayerFromTeam(teamID)
+	player[teamID + 64] = CreatePlayerFromTeam(teamID)
 	SortList()
 end
 
@@ -4014,8 +4147,8 @@ end
 function IsTakeable(teamID)
 	if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
 		local units = Spring_GetTeamUnitCount(teamID)
-		local energy = Spring_GetTeamResources(teamID,"energy")
-		local metal = Spring_GetTeamResources(teamID,"metal")
+		local energy = Spring_GetTeamResources(teamID, "energy")
+		local metal = Spring_GetTeamResources(teamID, "metal")
 		if units and energy and metal then
 			if (units > 0) or (energy > 1000) or (metal > 100) then
 				return true
@@ -4026,17 +4159,16 @@ function IsTakeable(teamID)
 	end
 end
 
-
 function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
 
+function widget:Update(delta)
+	--handles takes & related messages
 
-function widget:Update(delta) --handles takes & related messages
-
-	local mx,my = Spring.GetMouseState()
+	local mx, my = Spring.GetMouseState()
 	hoverPlayerlist = false
-	if isInBox(mx, my, {apiAbsPosition[2]-1,apiAbsPosition[3]-1,apiAbsPosition[4]+1,apiAbsPosition[1]+1}) then
+	if isInBox(mx, my, { apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 }) then
 		hoverPlayerlist = true
 		if tipText and WG['tooltip'] then
 			WG['tooltip'].ShowTooltip('advplayerlist', tipText)
@@ -4044,18 +4176,17 @@ function widget:Update(delta) --handles takes & related messages
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-
 	uiOpacitySec = uiOpacitySec + delta
 	if uiOpacitySec > 0.5 then
 		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
 		end
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			glossMult = 1 + (2-(ui_opacity*2))
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
+			glossMult = 1 + (2 - (ui_opacity * 2))
 			CreateBackground()
 		end
 	end
@@ -4065,22 +4196,25 @@ function widget:Update(delta) --handles takes & related messages
 			collapsed = false
 			CreateBackground()
 		elseif not collapsed and not energyPlayer and not metalPlayer then
-			local graceDistance = 85*widgetScale
-			if not isInBox(mx, my, {apiAbsPosition[2]-graceDistance,apiAbsPosition[3]-graceDistance,apiAbsPosition[4]+graceDistance,apiAbsPosition[1]+graceDistance}) then
+			local graceDistance = 85 * widgetScale
+			if not isInBox(mx, my, { apiAbsPosition[2] - graceDistance, apiAbsPosition[3] - graceDistance, apiAbsPosition[4] + graceDistance, apiAbsPosition[1] + graceDistance }) then
 				collapsed = true
 				CreateBackground()
 			end
 		end
 	end
 
-	if collapsed then return end
+	if collapsed then
+		return
+	end
 
 	totalTime = totalTime + delta
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
-	mySpecStatus,fullView,_ = Spring.GetSpectatingState()
+	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
 
-	if sceduledSpecFullView ~= nil then	-- this is needed else the minimap/world doesnt update properly
+	if sceduledSpecFullView ~= nil then
+		-- this is needed else the minimap/world doesnt update properly
 		Spring.SendCommands("specfullview")
 		sceduledSpecFullView = sceduledSpecFullView - 1
 		if sceduledSpecFullView == 0 then
@@ -4088,9 +4222,10 @@ function widget:Update(delta) --handles takes & related messages
 		end
 	end
 	if lockcameraLos then
-		if desiredLosmodeChanged+1 > os.clock() then
+		if desiredLosmodeChanged + 1 > os.clock() then
 			if lockPlayerID ~= nil then
-				if desiredLosmode ~= Spring.GetMapDrawMode() then	-- this is needed else the minimap/world doesnt update properly
+				if desiredLosmode ~= Spring.GetMapDrawMode() then
+					-- this is needed else the minimap/world doesnt update properly
 					Spring.SendCommands("togglelos")
 				end
 			elseif mySpecStatus and Spring.GetMapDrawMode() == 'los' then
@@ -4110,21 +4245,21 @@ function widget:Update(delta) --handles takes & related messages
 	if curFrame >= 30 + tookFrame then
 		if lastTakeMsg + 120 < tookFrame and reportTake then
 			local teamID = tookTeamID
-			local afterE = Spring_GetTeamResources(teamID,"energy")
+			local afterE = Spring_GetTeamResources(teamID, "energy")
 			local afterM = Spring_GetTeamResources(teamID, "metal")
 			local afterU = Spring_GetTeamUnitCount(teamID)
 
 			local toSay = "say a: I took " .. tookTeamName .. ". "
 
 			if afterE and afterM and afterU then
-				if afterE > 1.0 or afterM > 1.0 or  afterU > 0 then
+				if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
 					toSay = toSay .. "Left  " .. math.floor(afterU) .. " units, " .. math.floor(afterE) .. " energy and " .. math.floor(afterM) .. " metal."
 				end
 			end
 
 			Spring_SendCommands(toSay)
 
-			for j = 0,127 do
+			for j = 0, 127 do
 				if player[j].allyteam == myAllyTeamID then
 					if player[j].totake == true then
 						player[j] = CreatePlayerFromTeam(player[j].team)
@@ -4141,7 +4276,7 @@ function widget:Update(delta) --handles takes & related messages
 	end
 
 	-- update lists to take account of allyteam faction changes before gamestart
-	if not curFrame or curFrame <=0 then
+	if not curFrame or curFrame <= 0 then
 		if timeCounter < updateRatePreStart then
 			return
 		else
@@ -4169,25 +4304,24 @@ function updateWidgetScale()
 	if customScale < 0.65 then
 		customScale = 0.65
 	end
-	widgetScale = (vsy / 980) * (1+((vsx/vsy)*0.065)) * customScale
-	widgetScale = widgetScale * (1+(ui_scale-1)/1.25)
+	widgetScale = (vsy / 980) * (1 + ((vsx / vsy) * 0.065)) * customScale
+	widgetScale = widgetScale * (1 + (ui_scale - 1) / 1.25)
 
-	widgetPosX	= vsx - (widgetWidth*widgetScale) - bgpadding
-	widgetRight	= vsx - bgpadding
+	widgetPosX = vsx - (widgetWidth * widgetScale) - bgpadding
+	widgetRight = vsx - bgpadding
 	widgetPosY = bgpadding
-	widgetTop   = widgetPosY + widgetHeight + bgpadding
+	widgetTop = widgetPosY + widgetHeight + bgpadding
 end
 
 function customScaleUp()
-	customScale		= customScale + customScaleStep
+	customScale = customScale + customScaleStep
 	updateWidgetScale()
 end
 
 function customScaleDown()
-	customScale		= customScale - customScaleStep
+	customScale = customScale - customScaleStep
 	updateWidgetScale()
 end
-
 
 function widget:ViewResize()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
@@ -4198,7 +4332,7 @@ function widget:ViewResize()
 
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font  = WG['fonts'].getFont()
+	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
@@ -4207,7 +4341,8 @@ function widget:ViewResize()
 	updateWidgetScale()
 end
 
-function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)
+function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
+	-- get the points drawn (to display point indicator)
 	if m_point.active then
 		if cmdType == "point" then
 			player[playerID].pointX = px

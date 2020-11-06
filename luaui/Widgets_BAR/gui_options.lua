@@ -158,6 +158,7 @@ local optionSelect = {}
 local windowRect = { 0, 0, 0, 0 }
 local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
+local heightmapChangeClock
 
 local presetNames = { 'lowest', 'low', 'medium', 'high', 'ultra' }    -- defined so these get listed in the right order
 local presets = {
@@ -931,32 +932,31 @@ function widget:Update(dt)
 	--	mapmeshdrawerChecked = true
 	--end
 
-	-- check if there is water shown
+	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
 		-- in case of modoption waterlevel has been made to show water
 		if not checkedForWaterAfterGamestart and Spring.GetGameFrame() <= 30 then
 			detectWater()
 			checkedForWaterAfterGamestart = true
 		end
-		if heightmapChangeClock and heightmapChangeClock + 1 > os_clock() then
+		if heightmapChangeClock and heightmapChangeClock + 1 < os_clock() then
 			for k, coords in pairs(heightmapChangeBuffer) do
 				local x = coords[1]
-				local addX = (coords[1] < coords[3] and 8 or -8)
 				local z = coords[2]
-				local addZ = (coords[2] < coords[4] and 8 or -8)
-				while x ~= coords[3] do
-					while z ~= coords[4] do
+				while x <= coords[3] do
+					z = coords[2]
+					while z <= coords[4] do
 						if spGetGroundHeight(x, z) <= 0 then
 							waterDetected = true
 							Spring.SendCommands("water " .. desiredWaterValue)
 							break
 						end
-						z = z + addZ
+						z = z + 8
 					end
 					if waterDetected then
 						break
 					end
-					x = x + addX
+					x = x + 8
 				end
 			end
 			heightmapChangeClock = nil
@@ -4684,8 +4684,8 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	if not waterDetected then
-		if not heightmapChangeClock then
+	if not waterDetected and Spring.GetGameFrame() > 30 then
+		if heightmapChangeClock == nil then
 			heightmapChangeClock = os_clock()
 		end
 		heightmapChangeBuffer[#heightmapChangeBuffer + 1] = { x1 * 8, z1 * 8, x2 * 8, z2 * 8 }

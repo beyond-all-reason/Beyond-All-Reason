@@ -31,6 +31,7 @@ local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGameSpeed = Spring.GetGameSpeed
 local math_min = math.min
 
 local metalSpots = {}
@@ -249,7 +250,8 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 
 	-- animate rotation
-	if rotationSpeed > 0 then
+	local _, gameSpeed, isPaused = spGetGameSpeed()
+	if rotationSpeed > 0 and not (isPaused or gameSpeed == 0) then
 		local angleDifference = (rotationSpeed) * (clockDifference * 5)
 		currentRotation = currentRotation + (angleDifference*0.66)
 		if currentRotation > 360 then
