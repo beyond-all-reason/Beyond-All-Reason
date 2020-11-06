@@ -16,9 +16,9 @@ end
 
 function TaskShpHST:ConShip( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "corcs" ) then
 		unitName = "corcs"
-	else
+	else if builder:CanBuild( "armcs" ) then
 		unitName = "armcs"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName) + self.ai.taskshst:GetMtypedLv('correcl') --need count sub too
@@ -27,9 +27,9 @@ end
 
 function TaskShpHST:RezSub1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "correcl" ) then
 		unitName = "correcl"
-	else
+	else if builder:CanBuild( "armrecl" ) then
 		unitName = "armrecl"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName) + self.ai.taskshst:GetMtypedLv('armcs') --need count shp too
@@ -38,9 +38,9 @@ end
 
 function TaskShpHST:Lvl1ShipRaider( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "corsub" ) then
 		unitName = "corsub"
-	else
+	else if builder:CanBuild( "armsub" ) then
 		unitName = "armsub"
 	end
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
@@ -48,9 +48,9 @@ end
 
 function TaskShpHST:Lvl1ShipDestroyerOnly( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "corroy" ) then
 		unitName = "corroy"
-	else
+	else if builder:CanBuild( "armroy" ) then
 		unitName = "armroy"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName) + self.ai.taskshst:GetMtypedLv('armcs')
@@ -60,15 +60,15 @@ end
 function TaskShpHST:Lvl1ShipBattle( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if self.ai.Metal.full < 0.5 then
-		if  self.ai.side == self.ai.armyhst.CORESideName then
+		if builder:CanBuild( "coresupp" ) then
 			unitName = "coresupp"
-		else
+		else if builder:CanBuild( "armdecade" ) then
 			unitName = "armdecade"
 		end
 	else
-		if  self.ai.side == self.ai.armyhst.CORESideName then
+		if builder:CanBuild( "corroy" ) then
 			unitName = "corroy"
-		else
+		else if builder:CanBuild( "armroy" ) then
 			unitName = "armroy"
 		end
 	end
@@ -76,10 +76,10 @@ function TaskShpHST:Lvl1ShipBattle( taskQueueBehaviour, ai, builder )
 end
 
 function TaskShpHST:ScoutShip( taskQueueBehaviour, ai, builder )
-	local unitName
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	local unitName = ""
+	if builder:CanBuild( "corpt" ) then
 		unitName = "corpt"
-	else
+	else if builder:CanBuild( "armpt" ) then
 		unitName = "armpt"
 	end
 	local scout = self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)
@@ -93,20 +93,20 @@ end
 --LEVEL 2
 function TaskShpHST:ConAdvSub( taskQueueBehaviour, ai, builder  taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "coracsub" ) then
 		unitName = "coracsub"
-	else
+	else if builder:CanBuild( "armacsub" ) then
 		unitName = "armacsub"
 	end
-	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName) + self.ai.taskshst:GetMtypedLv('cormls') --need count shp too
+	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName) + self.ai.taskshst:GetMtypedLv('cormls') --need count ship too
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, self.ai.conUnitPerTypeLimit))
 end
 
 function TaskShpHST:Lvl2ShipAssist( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "cormls" ) then
 		unitName = "cormls"
-	else
+	else if builder:CanBuild( "armmls" ) then
 		unitName = "armmls"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName) + self.ai.taskshst:GetMtypedLv('coracsub') --need count sub too
@@ -115,9 +115,9 @@ end
 
 function TaskShpHST:Lvl2ShipBreakthrough( taskQueueBehaviour, ai, builder )
 	local unitName = ""
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "corbats" ) then
 		unitName = "corbats"
-	else
+	else if builder:CanBuild( "armbats" ) then
 		unitName = "armbats"
 	end
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
@@ -125,9 +125,9 @@ end
 
 function TaskShpHST:Lvl2ShipMerl( taskQueueBehaviour, ai, builder )
 	local unitName = ""
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "cormship" ) then
 		unitName = "cormship"
-	else
+	else if builder:CanBuild( "armmship" ) then
 		unitName = "armmship"
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
@@ -135,9 +135,9 @@ end
 
 function TaskShpHST:MegaShip( taskQueueBehaviour, ai, builder )
 	local unitName = ""
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "corblackhy" ) then
 		unitName = "corblackhy"
-	else
+	else if builder:CanBuild( "armepoch" ) then
 		unitName = "armepoch"
 	end
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(self.ai.taskshst:BuildWithLimitedNumber(unitName, 1))
@@ -145,41 +145,42 @@ end
 
 function TaskShpHST:Lvl2ShipRaider( taskQueueBehaviour, ai, builder )
 	local unitName = ""
-		if  self.ai.side == self.ai.armyhst.CORESideName then
-			unitName = "corshark"
-		else
-			unitName = "armsubk"
-		end
+	if builder:CanBuild( "corshark" ) then
+		unitName = "corshark"
+	else if builder:CanBuild( "armsubk" ) then
+		unitName = "armsubk"
+	end
 
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl2SubWar( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
-		if  self.ai.side == self.ai.armyhst.CORESideName then
-			unitName = "corssub"
-		else
-			unitName = "armserp"
-		end
+	if builder:CanBuild( "corssub" ) then
+		unitName = "corssub"
+	else if builder:CanBuild( "armserp" ) then
+		unitName = "armserp"
+	end
 
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl2ShipBattle( taskQueueBehaviour, ai, builder )
 	local unitName = ""
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "corcrus" ) then
 		unitName = "corcrus"
-	else
+	else if builder:CanBuild( "armcrus" )
 		unitName = "armcrus"
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
 function TaskShpHST:Lvl2AAShip( taskQueueBehaviour, ai, builder )
-	if  self.ai.side == self.ai.armyhst.CORESideName then
+	if builder:CanBuild( "corarch" ) then
 		return self.ai.taskshst:BuildAAIfNeeded("corarch")
-	else
+	else if builder:CanBuild( "armaas" ) then
 		return self.ai.taskshst:BuildAAIfNeeded("armaas")
 	end
+	return ""
 end
 
