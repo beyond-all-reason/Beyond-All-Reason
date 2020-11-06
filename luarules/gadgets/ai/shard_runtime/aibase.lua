@@ -75,8 +75,16 @@ function AIBase:SetAI(ai)
 	self.map = ai.map
 end
 
+function AIBase:Warn(...)
+	self.game:SendToConsole(self.game:GetTeamID(), self:Name(), 'Warning: ', ...)
+end
+
+function AIBase:Info(...)
+	self.game:SendToConsole(self.game:GetTeamID(), self:Name(), 'Info: ', ...)
+end
+
 function AIBase:EchoDebug(...)
 	if self.DebugEnabled then
-		self.game:SendToConsole(self.game:GetTeamID(), self:Name(), ...)
+		self.game:SendToConsole(self.game:GetTeamID(), self:Name(), 'Debug: ',...)
 	end
 end

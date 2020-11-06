@@ -19,8 +19,12 @@ function Module:internalName()
 	return "error"
 end
 
+function Module:Warn(...)
+	self.game:SendToConsole(self.game:GetTeamID(), self.ai:Name(), self:Name(), 'Warning:', ...)
+end
+
 function Module:EchoDebug(...)
 	if self.DebugEnabled then
-		self.game:SendToConsole(self.game:GetTeamID(), self:Name(), ...)
+		self.game:SendToConsole(self.game:GetTeamID(), self.ai:Name(), self:Name(), ...)
 	end
 end
