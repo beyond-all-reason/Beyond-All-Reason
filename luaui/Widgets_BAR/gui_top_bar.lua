@@ -138,11 +138,21 @@ if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobb
 	Spring.SendLuaMenuMsg("disableLobbyButton")
 end
 
+local numPlayers = 0
 local numAllyTeams = #Spring.GetAllyTeamList() - 1
 local singleTeams = false
-if #Spring.GetTeamList() - 1 == numAllyTeams then
+local teams = Spring.GetTeamList()
+if #teams - 1 == numAllyTeams then
 	singleTeams = true
 end
+for i = 1, #teams do
+	local _,_,_, isAiTeam = Spring.GetTeamInfo(teams[i], false)
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if not luaAI and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
+		numPlayers = numPlayers + 1
+	end
+end
+local isSinglePlayer = numPlayers == 1
 
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false

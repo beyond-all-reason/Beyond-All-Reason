@@ -3648,7 +3648,7 @@ function init()
 		{ id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = "Set-target as default", type = "bool", value = GetWidgetToggleValue("Set target default"), description = 'Replace default attack command to a set-target command\n(when rightclicked on enemy unit)' },
 		{ id = "dgunnogroundenemies", group = "game", widget = "DGun no ground enemies", name = "Dont snap DGun to ground units", type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = 'Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)' },
 
-		{ id = "singleplayerpause", group = "game", name = "Pause when in settings/lobby", type = "bool", value = pauseGameWhenSingleplayer, description = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings window or lobby',
+		{ id = "singleplayerpause", group = "game", name = "Pause when in settings/quit/lobby", type = "bool", value = pauseGameWhenSingleplayer, description = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
 		  onchange = function(i, value)
 			  pauseGameWhenSingleplayer = value
 			  if isSinglePlayer and show then
