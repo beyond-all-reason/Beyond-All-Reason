@@ -10,7 +10,7 @@ end
 
 function ShardAI:Init()
 	if self.loaded == true then
-		self.game:SendToConsole( self:Name() .. " Init called multiple times" )
+		self:Warn( self:Name() .. " Init called multiple times" )
 		return
 	end
 	self.loaded = true
@@ -19,7 +19,7 @@ function ShardAI:Init()
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
-	self.game:SendToConsole(
+	self:Info(
 		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
 	)
 
@@ -31,14 +31,14 @@ function ShardAI:Init()
 	if next(modules) ~= nil then
 		for i,m in ipairs(modules) do
 			newmodule = m()
-			self.game:SendToConsole( "adding " .. newmodule:Name() .. " module" )
+			self:Info( "adding " .. newmodule:Name() .. " module" )
 			local internalname = newmodule:internalName()
 			if internalname == 'error' then
-				self.game:SendToConsole( "CRITICAL ERROR: The module with the name " .. newmodule:Name() .. " has no internal name! Tis is necesssary and not optional, declare an internalName() function on that module immediatley." )
-				self.game:SendToConsole( "Skipping the loading of " .. newmodule:Name() )
+				self:Warn( "CRITICAL ERROR: The module with the name " .. newmodule:Name() .. " has no internal name! Tis is necesssary and not optional, declare an internalName() function on that module immediatley." )
+				self:Warn( "Skipping the loading of " .. newmodule:Name() )
 			else
 				if self[internalname] ~= nil then
-					self.game:SendToConsole( "CRITICAL ERROR: Shard tried to add a module with the internal name " .. internalname .. " but one already exists!! There cannot be duplicates! Shard will skip this module to avoid overwriting an existing module" )
+					self:Warn( "CRITICAL ERROR: Shard tried to add a module with the internal name " .. internalname .. " but one already exists!! There cannot be duplicates! Shard will skip this module to avoid overwriting an existing module" )
 				else
 					self[internalname] = newmodule
 					table.insert(self.modules,newmodule)
@@ -48,16 +48,14 @@ function ShardAI:Init()
 		end
 		for i,m in ipairs(self.modules) do
 			if m == nil then
-				self.game:SendToConsole("Error! Shard tried to init a nil module!")
+				self:Warn("Error! Shard tried to init a nil module!")
 			else
 				m:Init()
 			end
 		end
 
 	else
-		self.game:SendToConsole(
-			self:Name() .. "Warning: Shard found no modules :( Who will control the units now?"
-		)
+		self:Warn( "Shard found no modules :( Who will control the units now?" )
 	end
 end
 
@@ -77,7 +75,7 @@ function ShardAI:Update()
 	end
 	for i,m in ipairs(self.modules) do
 		if m == nil then
-			self.game:SendToConsole("nil module!")
+			self:Warn("nil module!")
 		else
 			m:Update()
 		end
@@ -90,7 +88,7 @@ function ShardAI:GameMessage(text)
 	end
 	for i,m in ipairs(self.modules) do
 		if m == nil then
-			self.game:SendToConsole("nil module!")
+			self:Warn("nil module!")
 		else
 			m:GameMessage(text)
 		end
@@ -102,11 +100,11 @@ function ShardAI:UnitCreated(engineunit)
 		return
 	end
 	if engineunit == nil then
-		self.game:SendToConsole("shard found nil engineunit")
+		self:Warn("shard found nil engineunit")
 		return
 	end
 	if ( self.modules == nil ) or ( #self.modules == 0 )  then
-		self.game:SendToConsole("No modules found in AI")
+		self:Warn("No modules found in AI")
 		return
 	end
 	for i,m in ipairs(self.modules) do
@@ -119,7 +117,7 @@ function ShardAI:UnitBuilt(engineunit)
 		return
 	end
 	if engineunit == nil then
-		self.game:SendToConsole("shard-warning: unitbuilt engineunit nil ")
+		self:Warn("shard-warning: unitbuilt engineunit nil ")
 		return
 	end
 	for i,m in ipairs(self.modules) do
@@ -144,7 +142,7 @@ function ShardAI:UnitIdle(engineunit)
 		return
 	end
 	if engineunit == nil then
-		self.game:SendToConsole("shard-warning: idle engineunit nil")
+		self:Warn("shard-warning: idle engineunit nil")
 		return
 	end
 
@@ -198,7 +196,7 @@ end
 function ShardAI:AddModule( newmodule )
 	local internalname = newmodule:internalName()
 	if self[internalname] ~= nil then
-		self.game:SendToConsole( "CRITICAL ERROR: Shard tried to add a module with the internal name " .. internalname .. " but one already exists!! There cannot be duplicates! Shard will skip this module to avoid overwriting an existing module" )
+		self:Warn( "CRITICAL ERROR: Shard tried to add a module with the internal name " .. internalname .. " but one already exists!! There cannot be duplicates! Shard will skip this module to avoid overwriting an existing module" )
 		return
 	end
 	self[internalname] = newmodule

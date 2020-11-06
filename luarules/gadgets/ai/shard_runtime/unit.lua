@@ -11,7 +11,7 @@ function Unit:Init()
 		-- on this before calling Init
 		--
 		-- @see Unit:SetEngineRepresentation
-		self.game:SendToConsole("Warning: Shard Unit:Init revieved a nil engineUnit :(")
+		self:Warn("Shard Unit:Init revieved a nil engineUnit :(")
 	end
 	self.behaviours = {}
 	self.nextBehaviour = nil
