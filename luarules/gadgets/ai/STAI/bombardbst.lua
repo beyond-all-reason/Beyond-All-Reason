@@ -21,7 +21,7 @@ end
 
 function BombardBST:Fire()
 	if self.target ~= nil then
-		self:EchoDebug("fire")
+		self:EchoDebug("firing")
 		local floats = api.vectorFloat()
 		-- populate with x, y, z of the position
 		floats:push_back(self.target.x)
@@ -47,7 +47,7 @@ function BombardBST:Update()
 	if self.active then
 		local f = self.game:Frame()
 		if self.lastTargetFrame == 0 or f > self.lastTargetFrame + 300 then
-			self:EchoDebug("retarget")
+			self:EchoDebug("retargeting")
 			local bestCell, valueThreat, buildingID = self.ai.targethst:GetBestBombardCell(self.position, self.range, valueThreatThreshold)
 			if bestCell then
 				local newTarget
