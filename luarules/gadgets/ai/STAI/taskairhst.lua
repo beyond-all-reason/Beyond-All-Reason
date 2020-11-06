@@ -14,7 +14,7 @@ end
 
 --LEVEL 1
 
-function TaskAirHST:ConAir()
+function TaskAirHST:ConAir( taskQueueBehaviour, ai, builder )
 	unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corca"
@@ -25,7 +25,7 @@ function TaskAirHST:ConAir()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskAirHST:Lvl1AirRaider()
+function TaskAirHST:Lvl1AirRaider( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corbw"
@@ -35,7 +35,7 @@ function TaskAirHST:Lvl1AirRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskAirHST:Lvl1Fighter()
+function TaskAirHST:Lvl1Fighter( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corveng"
@@ -45,7 +45,7 @@ function TaskAirHST:Lvl1Fighter()
 	return self.ai.taskshst:BuildAAIfNeeded(unitName)
 end
 
-function TaskAirHST:Lvl1Bomber()
+function TaskAirHST:Lvl1Bomber( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corshad"
@@ -55,7 +55,7 @@ function TaskAirHST:Lvl1Bomber()
 	return self.ai.taskshst:BuildBomberIfNeeded(unitName)
 end
 
-function TaskAirHST:ScoutAir()
+function TaskAirHST:ScoutAir( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corfink"
@@ -66,7 +66,7 @@ function TaskAirHST:ScoutAir()
 end
 
 --LEVEL 2
-function TaskAirHST:ConAdvAir()
+function TaskAirHST:ConAdvAir( taskQueueBehaviour, ai, builder )
 	unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "coraca"
@@ -77,7 +77,7 @@ function TaskAirHST:ConAdvAir()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitAdvPerTypeLimit))
 end
 
-function TaskAirHST:Lvl2Fighter()
+function TaskAirHST:Lvl2Fighter( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corvamp"
@@ -87,7 +87,7 @@ function TaskAirHST:Lvl2Fighter()
 	return self.ai.taskshst:BuildAAIfNeeded(unitName)
 end
 
-function TaskAirHST:Lvl2AirRaider()
+function TaskAirHST:Lvl2AirRaider( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corape"
@@ -103,7 +103,7 @@ function TaskAirHST:Lvl2AirRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskAirHST:Lvl2Bomber()
+function TaskAirHST:Lvl2Bomber( taskQueueBehaviour, ai, builder  taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhurc"
@@ -114,7 +114,7 @@ function TaskAirHST:Lvl2Bomber()
 end
 
 
-function TaskAirHST:Lvl2TorpedoBomber()
+function TaskAirHST:Lvl2TorpedoBomber( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cortitan"
@@ -124,7 +124,7 @@ function TaskAirHST:Lvl2TorpedoBomber()
 	return self.ai.taskshst:BuildTorpedoBomberIfNeeded(unitName)
 end
 
-function TaskAirHST:MegaAircraft()
+function TaskAirHST:MegaAircraft( taskQueueBehaviour, ai, builder )
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildBreakthroughIfNeeded("corcrw")
 	else
@@ -133,7 +133,7 @@ function TaskAirHST:MegaAircraft()
 end
 
 
-function TaskAirHST:ScoutAdvAir()
+function TaskAirHST:ScoutAdvAir( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corawac"
@@ -144,7 +144,7 @@ function TaskAirHST:ScoutAdvAir()
 end
 
 --SEAPLANE
-function TaskAirHST:ConSeaAir()
+function TaskAirHST:ConSeaAir( taskQueueBehaviour, ai, builder )
 	unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcsa"
@@ -155,7 +155,7 @@ function TaskAirHST:ConSeaAir()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, self.ai.conUnitAdvPerTypeLimit))
 end
 
-function TaskAirHST:SeaBomber()
+function TaskAirHST:SeaBomber( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsb"
@@ -165,7 +165,7 @@ function TaskAirHST:SeaBomber()
 	return self.ai.taskshst:BuildBomberIfNeeded(unitName)
 end
 
-function TaskAirHST:SeaTorpedoBomber()
+function TaskAirHST:SeaTorpedoBomber( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corseap"
@@ -175,7 +175,7 @@ function TaskAirHST:SeaTorpedoBomber()
 	return self.ai.taskshst:BuildTorpedoBomberIfNeeded(unitName)
 end
 
-function TaskAirHST:SeaFighter()
+function TaskAirHST:SeaFighter( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsfig"
@@ -185,7 +185,7 @@ function TaskAirHST:SeaFighter()
 	return self.ai.taskshst:BuildAAIfNeeded(unitName)
 end
 
-function TaskAirHST:SeaAirRaider()
+function TaskAirHST:SeaAirRaider( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcut"
@@ -195,7 +195,7 @@ function TaskAirHST:SeaAirRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskAirHST:ScoutSeaAir()
+function TaskAirHST:ScoutSeaAir( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhunt"
@@ -206,7 +206,7 @@ function TaskAirHST:ScoutSeaAir()
 end
 
 --AIRPAD
-function TaskAirHST:AirRepairPadIfNeeded()
+function TaskAirHST:AirRepairPadIfNeeded( taskQueueBehaviour, ai, builder )
 	local tmpUnitName = self.ai.armyhst.DummyUnitName
 
 	-- only make air pads if the team has at least 1 air fac

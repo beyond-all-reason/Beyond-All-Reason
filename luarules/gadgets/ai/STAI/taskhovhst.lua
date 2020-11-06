@@ -11,7 +11,7 @@ function TaskHovHST:Init()
 	self.DebugEnabled = false
 end
 
-function TaskHovHST:ConHover()
+function TaskHovHST:ConHover( taskQueueBehaviour, ai, builder )
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corch"
 	else
@@ -21,7 +21,7 @@ function TaskHovHST:ConHover()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskHovHST:HoverMerl()
+function TaskHovHST:HoverMerl( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormh"
@@ -31,7 +31,7 @@ function TaskHovHST:HoverMerl()
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskHovHST:HoverRaider()
+function TaskHovHST:HoverRaider( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsh"
@@ -41,7 +41,7 @@ function TaskHovHST:HoverRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskHovHST:HoverBattle()
+function TaskHovHST:HoverBattle( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsnap"
@@ -51,7 +51,7 @@ function TaskHovHST:HoverBattle()
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskHovHST:HoverBreakthrough()
+function TaskHovHST:HoverBreakthrough( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhal"
@@ -61,7 +61,7 @@ function TaskHovHST:HoverBreakthrough()
 	self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskHovHST:AAHover()
+function TaskHovHST:AAHover( taskQueueBehaviour, ai, builder )
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corah")
 	else

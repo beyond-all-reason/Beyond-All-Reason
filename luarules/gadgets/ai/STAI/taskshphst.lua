@@ -14,7 +14,7 @@ function TaskShpHST:Init()
 end
 --LEVEL 1
 
-function TaskShpHST:ConShip()
+function TaskShpHST:ConShip( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcs"
@@ -25,7 +25,7 @@ function TaskShpHST:ConShip()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 5) + 2, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskShpHST:RezSub1()
+function TaskShpHST:RezSub1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "correcl"
@@ -36,7 +36,7 @@ function TaskShpHST:RezSub1()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 2, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskShpHST:Lvl1ShipRaider()
+function TaskShpHST:Lvl1ShipRaider( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsub"
@@ -46,7 +46,7 @@ function TaskShpHST:Lvl1ShipRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskShpHST:Lvl1ShipDestroyerOnly()
+function TaskShpHST:Lvl1ShipDestroyerOnly( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corroy"
@@ -57,7 +57,7 @@ function TaskShpHST:Lvl1ShipDestroyerOnly()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName,mtypedLv * 0.7)
 end
 
-function TaskShpHST:Lvl1ShipBattle()
+function TaskShpHST:Lvl1ShipBattle( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if self.ai.Metal.full < 0.5 then
 		if  self.ai.side == self.ai.armyhst.CORESideName then
@@ -75,7 +75,7 @@ function TaskShpHST:Lvl1ShipBattle()
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskShpHST:ScoutShip()
+function TaskShpHST:ScoutShip( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corpt"
@@ -91,7 +91,7 @@ function TaskShpHST:ScoutShip()
 end
 
 --LEVEL 2
-function TaskShpHST:ConAdvSub()
+function TaskShpHST:ConAdvSub( taskQueueBehaviour, ai, builder  taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "coracsub"
@@ -102,7 +102,7 @@ function TaskShpHST:ConAdvSub()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskShpHST:Lvl2ShipAssist()
+function TaskShpHST:Lvl2ShipAssist( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormls"
@@ -113,7 +113,7 @@ function TaskShpHST:Lvl2ShipAssist()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskShpHST:Lvl2ShipBreakthrough()
+function TaskShpHST:Lvl2ShipBreakthrough( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corbats"
@@ -123,7 +123,7 @@ function TaskShpHST:Lvl2ShipBreakthrough()
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskShpHST:Lvl2ShipMerl()
+function TaskShpHST:Lvl2ShipMerl( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormship"
@@ -133,7 +133,7 @@ function TaskShpHST:Lvl2ShipMerl()
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskShpHST:MegaShip()
+function TaskShpHST:MegaShip( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corblackhy"
@@ -143,7 +143,7 @@ function TaskShpHST:MegaShip()
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(self.ai.taskshst:BuildWithLimitedNumber(unitName, 1))
 end
 
-function TaskShpHST:Lvl2ShipRaider()
+function TaskShpHST:Lvl2ShipRaider( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corshark"
@@ -154,7 +154,7 @@ function TaskShpHST:Lvl2ShipRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskShpHST:Lvl2SubWar()
+function TaskShpHST:Lvl2SubWar( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corssub"
@@ -165,7 +165,7 @@ function TaskShpHST:Lvl2SubWar()
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskShpHST:Lvl2ShipBattle()
+function TaskShpHST:Lvl2ShipBattle( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcrus"
@@ -175,7 +175,7 @@ function TaskShpHST:Lvl2ShipBattle()
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskShpHST:Lvl2AAShip()
+function TaskShpHST:Lvl2AAShip( taskQueueBehaviour, ai, builder )
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corarch")
 	else
