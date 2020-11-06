@@ -15,7 +15,7 @@ end
 
 --LEVEL 1
 
-function TaskBotHST:ConBot()
+function TaskBotHST:ConBot( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corck"
@@ -26,7 +26,7 @@ function TaskBotHST:ConBot()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskBotHST:RezBot1()
+function TaskBotHST:RezBot1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cornecro"
@@ -37,7 +37,7 @@ function TaskBotHST:RezBot1()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , self.ai.conUnitPerTypeLimit))
 end
 
-function TaskBotHST:Lvl1BotRaider()
+function TaskBotHST:Lvl1BotRaider( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corak"
@@ -47,7 +47,7 @@ function TaskBotHST:Lvl1BotRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl1BotBreakthrough()
+function TaskBotHST:Lvl1BotBreakthrough( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corthud"
@@ -57,7 +57,7 @@ function TaskBotHST:Lvl1BotBreakthrough()
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl1BotBattle()
+function TaskBotHST:Lvl1BotBattle( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	local r = math.random()
 	local compare = self.ai.overviewhst.plasmaRocketBotRatio or 1
@@ -77,7 +77,7 @@ function TaskBotHST:Lvl1BotBattle()
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl1AABot()
+function TaskBotHST:Lvl1AABot( taskQueueBehaviour, ai, builder )
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corcrash")
 	else
@@ -85,7 +85,7 @@ function TaskBotHST:Lvl1AABot()
 	end
 end
 
-function TaskBotHST:ScoutBot()
+function TaskBotHST:ScoutBot( taskQueueBehaviour, ai, builder )
 	local unitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.armyhst.DummyUnitName
@@ -97,7 +97,7 @@ end
 
 --LEVEL 2
 
-function TaskBotHST:ConAdvBot()
+function TaskBotHST:ConAdvBot( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corack"
@@ -109,7 +109,7 @@ function TaskBotHST:ConAdvBot()
 end
 
 
-function TaskBotHST:Lvl2BotAssist()
+function TaskBotHST:Lvl2BotAssist( taskQueueBehaviour, ai, builder )
 	unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corfast"
@@ -120,7 +120,7 @@ function TaskBotHST:Lvl2BotAssist()
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskBotHST:NewCommanders()
+function TaskBotHST:NewCommanders( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'cormando'
@@ -130,7 +130,7 @@ function TaskBotHST:NewCommanders()
 	return unitName
 end
 
-function TaskBotHST:Decoy()
+function TaskBotHST:Decoy( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'cordecom'
@@ -141,7 +141,7 @@ function TaskBotHST:Decoy()
 end
 
 
-function TaskBotHST:Lvl2BotBreakthrough()
+function TaskBotHST:Lvl2BotBreakthrough( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsumo"
@@ -151,7 +151,7 @@ function TaskBotHST:Lvl2BotBreakthrough()
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotArty()
+function TaskBotHST:Lvl2BotArty( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormort"
@@ -161,7 +161,7 @@ function TaskBotHST:Lvl2BotArty()
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotLongRange()
+function TaskBotHST:Lvl2BotLongRange( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhrk"
@@ -171,7 +171,7 @@ function TaskBotHST:Lvl2BotLongRange()
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotRaider()
+function TaskBotHST:Lvl2BotRaider( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corpyro"
@@ -181,7 +181,7 @@ function TaskBotHST:Lvl2BotRaider()
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotCorRaiderArmArty()
+function TaskBotHST:Lvl2BotCorRaiderArmArty( taskQueueBehaviour, ai, builder )
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return Lvl2BotRaider(self)
 	else
@@ -189,7 +189,7 @@ function TaskBotHST:Lvl2BotCorRaiderArmArty()
 	end
 end
 
-function TaskBotHST:Lvl2BotAllTerrain()
+function TaskBotHST:Lvl2BotAllTerrain( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'cortermite'
@@ -199,7 +199,7 @@ function TaskBotHST:Lvl2BotAllTerrain()
 	return unitName
 end
 
-function TaskBotHST:Lvl2BotBattle()
+function TaskBotHST:Lvl2BotBattle( taskQueueBehaviour, ai, builder )
 	local unitName = ""
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcan"
@@ -209,7 +209,7 @@ function TaskBotHST:Lvl2BotBattle()
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotMedium()
+function TaskBotHST:Lvl2BotMedium( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'corcan'
@@ -219,7 +219,7 @@ function TaskBotHST:Lvl2BotMedium()
 	return unitName
 end
 
-function TaskBotHST:Lvl2AmphBot()
+function TaskBotHST:Lvl2AmphBot( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'coramph'
@@ -229,7 +229,7 @@ function TaskBotHST:Lvl2AmphBot()
 	return unitName
 end
 
-function TaskBotHST:Lvl2AABot()
+function TaskBotHST:Lvl2AABot( taskQueueBehaviour, ai, builder )
 	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("coraak")
 	else
