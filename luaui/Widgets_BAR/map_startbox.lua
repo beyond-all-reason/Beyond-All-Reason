@@ -66,8 +66,8 @@ local fontSize = 18
 local fontShadow = true        -- only shows if font has a white outline
 local shadowOpacity = 0.35
 
-local infotext = "Pick a startspot and click the Ready button. (F4 shows metal spots)"
-local infotextBoxes = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
+local infotext = "Pick a starting position and click the Ready button"
+local infotextBoxes = "Pick a starting position within the green area, and click the Ready button"
 local infotextFontsize = 13
 
 local comnameList = {}
