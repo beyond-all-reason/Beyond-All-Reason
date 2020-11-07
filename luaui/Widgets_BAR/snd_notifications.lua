@@ -67,7 +67,7 @@ addSound('MexLost', 'MexLost.wav', 8, 1.53, 'Metal extractor lost')
 
 -- resources
 addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.63, 'Your are overflowing metal')
-addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
+--addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
 --addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
 --addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
 addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.82, 'The whole team is wasting metal')
@@ -79,7 +79,7 @@ addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, 'On this map, wind is 
 
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
-LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
+--LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
 LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+300

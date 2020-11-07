@@ -2801,7 +2801,7 @@ function init()
 		},
 
 		-- INTERFACE
-		--{ id = "tweakui", group = "ui", name = "Toggle tweak UI mode", type = "bool", value = false, description = 'Some UI elements have legacy/additional settings availible\n\n(ESC to cancel)',
+		--{ id = "tweakui", group = "ui", name = "Toggle tweak UI mode", type = "bool", value = false, description = 'Some UI elements have legacy/additional settings available\n\n(ESC to cancel)',
 		--  onchange = function(i, value)
 		--	  if widgetHandler.tweakMode then
 		--		  -- cancel with ESC
@@ -2960,7 +2960,7 @@ function init()
 		--	  saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', { 'defaultColls' }, value)
 		--  end,
 		--},
-		--{ id = "buildmenu_dynamic", group = "ui", name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions availible',
+		--{ id = "buildmenu_dynamic", group = "ui", name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions available',
 		--  onload = function(i)
 		--  end,
 		--  onchange = function(i, value)
@@ -2999,7 +2999,7 @@ function init()
 			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
-		{ id = "ordermenu_alwaysshow", group = "ui", basic = true, name = widgetOptionColor .. "   always show", type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = 'Not hiding when no buttons are availible',
+		{ id = "ordermenu_alwaysshow", group = "ui", basic = true, name = widgetOptionColor .. "   always show", type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = 'Not hiding when no buttons are available',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3333,7 +3333,7 @@ function init()
 
 		{ id = "showbuilderqueue", group = "ui", basic = true, widget = "Show Builder Queue", name = "Show builder queue", type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = 'Shows ghosted buildings about to be built on the map' },
 
-		{ id = "unitenergyicons", group = "ui", basic = true, widget = "Unit energy icons", name = "Unit insufficient energy icons", type = "bool", value = GetWidgetToggleValue("Unit energy icons"), description = 'Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy availible.' },
+		{ id = "unitenergyicons", group = "ui", basic = true, widget = "Unit energy icons", name = "Unit insufficient energy icons", type = "bool", value = GetWidgetToggleValue("Unit energy icons"), description = 'Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy available.' },
 		{ id = "unitenergyicons_self", group = "ui", name = widgetOptionColor .. "   limit to own units", type = "bool", value = (WG['unitenergyicons'] ~= nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description = 'Only show above your own units',
 		  onload = function(i)
 			  loadWidgetData("Unit energy icons", "unitenergyicons_self", { 'onlyShowOwnTeam' })
@@ -3559,7 +3559,7 @@ function init()
 			name = "Builder Priority Restriction",
 			type = "bool",
 			value = GetWidgetToggleValue("Builder Priority"),
-			description = 'Sets builders (nanos, labs and cons) on low priority mode\n\nLow priority mode means that builders will only spend energy when its availible.\nUsage: Set the most important builders on high and leave the rest on low priority'
+			description = 'Sets builders (nanos, labs and cons) on low priority mode\n\nLow priority mode means that builders will only spend energy when its available.\nUsage: Set the most important builders on high and leave the rest on low priority'
 		},
 
 		{
@@ -4515,7 +4515,7 @@ function init()
 		options[getOptionByID('lockcamera_transitiontime')] = nil
 	end
 
-	-- disable options when widget isnt availible
+	-- disable options when widget isnt available
 	if widgetHandler.knownWidgets["Outline"] == nil then
 		options[getOptionByID('outline')] = nil
 		options[getOptionByID("outline_width")] = nil

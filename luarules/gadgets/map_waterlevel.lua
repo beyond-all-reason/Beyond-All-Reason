@@ -19,6 +19,12 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if (gadgetHandler:IsSyncedCode()) then
 
+	local authorizedPlayers  = {
+		'Floris',
+		'[teh]Flow',
+		'IceXuick',
+	}
+
 	local waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)) or 0)
 	local orgFeaturePosY = {}
 
@@ -46,7 +52,7 @@ if (gadgetHandler:IsSyncedCode()) then
         --Spring.Echo("Feature position wrong (",x,y,z,")", Spring.GetGroundHeight(x,z), orgFeaturePosY[i])
 
         featureDefID = Spring.GetFeatureDefID(featuretable[i])
-        
+
         rx,ry,rz = Spring.GetFeatureRotation(featuretable[i])
         Spring.DestroyFeature(featuretable[i])
         if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or FeatureDefs[featureDefID].metal > 0 then -- Keep features (> 0 height) or (geovents) or (contains metal)
@@ -85,7 +91,26 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if not Spring.IsCheatingEnabled() then return end
+
+		local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
+		local authorized = false
+		for _,name in ipairs(authorizedPlayers) do
+			if playername == name then
+				authorized = true
+				givenSomethingAtFrame = Spring.GetGameFrame()
+				break
+			end
+		end
+		if authorized == nil then
+			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
+			return
+		end
+		if not spec then
+			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when playing")
+			return
+		end
+
+		if not authorized or not Spring.IsCheatingEnabled() then return end
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
@@ -106,10 +131,10 @@ else	-- UNSYNCED
 	end
 
 	function waterlevel(cmd, line, words, playerID)
-		if not Spring.IsCheatingEnabled() then
-			Spring.Echo('Changing waterlevel requires cheats')
-			return
-		end
+		--if not Spring.IsCheatingEnabled() then
+		--	Spring.Echo('Changing waterlevel requires cheats')
+		--	return
+		--end
 		if words[1] then
 			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1])
 		end
