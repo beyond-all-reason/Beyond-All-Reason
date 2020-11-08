@@ -475,25 +475,28 @@ local function updateButtons()
 
 	local text = '    '
 
-	if (WG['scavengerinfo'] ~= nil) then
+	if WG['scavengerinfo'] ~= nil then
 		text = text .. 'Scavengers   '
 	end
-	if (WG['teamstats'] ~= nil) then
+	if WG['teamstats'] ~= nil then
 		text = text .. 'Stats   '
 	end
-	if (WG['commands'] ~= nil) then
+	if WG['commands'] ~= nil then
 		text = text .. 'Cmd   '
 	end
-	if (WG['keybinds'] ~= nil) then
+	if WG['keybinds'] ~= nil then
 		text = text .. 'Keys   '
 	end
-	if (WG['changelog'] ~= nil) then
+	if WG['changelog'] ~= nil then
 		text = text .. 'Changes   '
 	end
-	if (WG['options'] ~= nil) then
+	if WG['options'] ~= nil then
 		text = text .. 'Settings   '
 	end
 	if chobbyLoaded then
+		if not spec then
+			text = text .. 'Resign  '
+		end
 		text = text .. 'Lobby  '
 	else
 		text = text .. 'Quit  '
@@ -544,7 +547,7 @@ local function updateButtons()
 			local width = 0
 			local buttons = 0
 			firstButton = nil
-			if (WG['scavengerinfo'] ~= nil) then
+			if WG['scavengerinfo'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -555,7 +558,7 @@ local function updateButtons()
 					firstButton = 'scavengers'
 				end
 			end
-			if (WG['teamstats'] ~= nil) then
+			if WG['teamstats'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -566,7 +569,7 @@ local function updateButtons()
 					firstButton = 'stats'
 				end
 			end
-			if (WG['commands'] ~= nil) then
+			if WG['commands'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -577,7 +580,7 @@ local function updateButtons()
 					firstButton = 'commands'
 				end
 			end
-			if (WG['keybinds'] ~= nil) then
+			if WG['keybinds'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -588,7 +591,7 @@ local function updateButtons()
 					firstButton = 'keybinds'
 				end
 			end
-			if (WG['changelog'] ~= nil) then
+			if WG['changelog'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -599,7 +602,7 @@ local function updateButtons()
 					firstButton = 'changelog'
 				end
 			end
-			if (WG['options'] ~= nil) then
+			if WG['options'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -611,6 +614,12 @@ local function updateButtons()
 				end
 			end
 			if chobbyLoaded then
+				if not spec then
+					buttons = buttons + 1
+					offset = math_floor(offset + width + 0.5)
+					width = math_floor((font2:GetTextWidth('  Resign ') * fontsize) + 0.5)
+					buttonsArea['buttons']['resign'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
+				end
 				offset = math_floor(offset + width + 0.5)
 				width = math_floor((font2:GetTextWidth('  Lobby  ') * fontsize) + 0.5)
 				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
@@ -1642,7 +1651,15 @@ function widget:DrawScreen()
 				font:Begin()
 				font:SetTextColor(0, 0, 0, 1)
 				if not spec then
-					font:Print("Want to resign or quit to desktop?", quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - fontSize, fontSize, "cn")
+					local txt = "Want to resign or quit to desktop?"
+					if chobbyLoaded then
+						if numPlayers < 3 then
+							txt = "Sure you want to give up?"
+						else
+							txt = "Sure you want to give up and spectate?"
+						end
+					end
+					font:Print(txt, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - fontSize, fontSize, "cn")
 				else
 					font:Print("Really want to quit?", quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - fontSize, fontSize, "cn")
 				end
@@ -1650,29 +1667,31 @@ function widget:DrawScreen()
 				-- quit button
 				local color1, color2
 				local mult = 0.85
-				if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
-					color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
-					color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
-					mult = 1.4
-				else
-					color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
-					color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
+				if not chobbyLoaded then
+					if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+						color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
+						color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
+						mult = 1.4
+					else
+						color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
+						color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
+					end
+					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 1, 1, 1, 1, color1, color2)
+
+					glBlending(GL_SRC_ALPHA, GL_ONE)
+					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4] - ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
+					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
+					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
-				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 1, 1, 1, 1, color1, color2)
-
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4] - ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
-				RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
 				font:End()
 
 				fontSize = fontSize * 0.92
 				font2:Begin()
-				font2:SetTextColor(1, 1, 1, 1)
-				font2:SetOutlineColor(0, 0, 0, 0.23)
-				font2:Print("Quit", quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
-
+				if not chobbyLoaded then
+					font2:SetTextColor(1, 1, 1, 1)
+					font2:SetOutlineColor(0, 0, 0, 0.23)
+					font2:Print("Quit", quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				end
 				-- resign button
 				mult = 0.85
 				if not spec then
@@ -1787,8 +1806,8 @@ local function applyButtonAction(button)
 	end
 
 	local isvisible = false
-	if button == 'quit' then
-		if chobbyLoaded then
+	if button == 'quit' or button == 'resign' then
+		if chobbyLoaded and button == 'quit' then
 			Spring.SendLuaMenuMsg("showLobby")
 		else
 			local oldShowQuitscreen
@@ -1809,11 +1828,11 @@ local function applyButtonAction(button)
 			end
 		end
 	elseif button == 'options' then
-		if (WG['options'] ~= nil) then
+		if WG['options'] ~= nil then
 			isvisible = WG['options'].isvisible()
 		end
 		hideWindows()
-		if (WG['options'] ~= nil and isvisible ~= true) then
+		if WG['options'] ~= nil and isvisible ~= true then
 			WG['options'].toggle()
 		end
 	elseif button == 'scavengers' then
@@ -1821,39 +1840,39 @@ local function applyButtonAction(button)
 			isvisible = WG['scavengerinfo'].isvisible()
 		end
 		hideWindows()
-		if (WG['scavengerinfo'] ~= nil and isvisible ~= true) then
+		if WG['scavengerinfo'] ~= nil and isvisible ~= true then
 			WG['scavengerinfo'].toggle()
 		end
 	elseif button == 'changelog' then
-		if (WG['changelog'] ~= nil) then
+		if WG['changelog'] ~= nil then
 			isvisible = WG['changelog'].isvisible()
 		end
 		hideWindows()
-		if (WG['changelog'] ~= nil and isvisible ~= true) then
+		if WG['changelog'] ~= nil and isvisible ~= true then
 			WG['changelog'].toggle()
 		end
 	elseif button == 'keybinds' then
-		if (WG['keybinds'] ~= nil) then
+		if WG['keybinds'] ~= nil then
 			isvisible = WG['keybinds'].isvisible()
 		end
 		hideWindows()
-		if (WG['keybinds'] ~= nil and isvisible ~= true) then
+		if WG['keybinds'] ~= nil and isvisible ~= true then
 			WG['keybinds'].toggle()
 		end
 	elseif button == 'commands' then
-		if (WG['commands'] ~= nil) then
+		if WG['commands'] ~= nil then
 			isvisible = WG['commands'].isvisible()
 		end
 		hideWindows()
-		if (WG['commands'] ~= nil and isvisible ~= true) then
+		if WG['commands'] ~= nil and isvisible ~= true then
 			WG['commands'].toggle()
 		end
 	elseif button == 'stats' then
-		if (WG['teamstats'] ~= nil) then
+		if WG['teamstats'] ~= nil then
 			isvisible = WG['teamstats'].isvisible()
 		end
 		hideWindows()
-		if (WG['teamstats'] ~= nil and isvisible ~= true) then
+		if WG['teamstats'] ~= nil and isvisible ~= true then
 			WG['teamstats'].toggle()
 		end
 	end
@@ -1887,7 +1906,7 @@ function widget:MousePress(x, y, button)
 
 			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
 
-				if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+				if not chobbyLoaded and IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
@@ -1989,6 +2008,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:PlayerChanged()
+	local prevSpec = spec
 	spec = spGetSpectatingState()
 	checkStatus()
 	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
@@ -1997,6 +2017,9 @@ function widget:PlayerChanged()
 	end
 	if spec then
 		resbarHover = nil
+	end
+	if not prevSpec and prevSpec ~= spec then
+		init()
 	end
 end
 

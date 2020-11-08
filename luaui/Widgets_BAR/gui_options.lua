@@ -2730,7 +2730,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "camerasmoothness", group = "control", name = widgetOptionColor .. "   smoothing", type = "slider", min = 0, max = 3, step = 0.01, value = cameraTransitionTime, description = "How smooth should the transitions between camera movement be?",
+		{ id = "camerasmoothness", group = "control", name = widgetOptionColor .. "   smoothing", type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = "How smooth should the transitions between camera movement be?",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
