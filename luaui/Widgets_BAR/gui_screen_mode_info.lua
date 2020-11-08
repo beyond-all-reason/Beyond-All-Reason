@@ -64,7 +64,7 @@ function widget:DrawScreen()
 	end
 
 	local screenmode = Spring.GetMapDrawMode()
-	if screenmode ~= 'normal' then
+	if screenmode ~= 'normal' and screenmode ~= 'los'  then
 		local description = ''
 		glPushMatrix()
 		glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
