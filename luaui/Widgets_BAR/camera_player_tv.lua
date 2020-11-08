@@ -14,7 +14,7 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.55) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
@@ -440,9 +440,9 @@ function widget:Update(dt)
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
 		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.55) or guishaderEnabled ~= (WG['guishader']) then
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) or guishaderEnabled ~= (WG['guishader']) then
 			guishaderEnabled = (WG['guishader'])
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.55)
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			glossMult = 1 + (2 - (ui_opacity * 2))
 			createList()
 		end

@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.55) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
@@ -54,7 +54,7 @@ local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
 local currentTidal = 0
-local gameStarted = false
+local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
 
 local widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
@@ -494,7 +494,7 @@ local function updateButtons()
 		text = text .. 'Settings   '
 	end
 	if chobbyLoaded then
-		if not spec then
+		if not spec and not gameStarted then
 			text = text .. 'Resign  '
 		end
 		text = text .. 'Lobby  '
@@ -614,7 +614,7 @@ local function updateButtons()
 				end
 			end
 			if chobbyLoaded then
-				if not spec then
+				if not spec and not gameStarted then
 					buttons = buttons + 1
 					offset = math_floor(offset + width + 0.5)
 					width = math_floor((font2:GetTextWidth('  Resign ') * fontsize) + 0.5)
@@ -1214,6 +1214,7 @@ function widget:GameStart()
 	if displayComCounter then
 		countComs(true)
 	end
+	init()
 end
 
 function widget:GameFrame(n)
@@ -1354,8 +1355,8 @@ function widget:Update(dt)
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec > 0.5 then
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.55) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.55)
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			glossMult = 1 + (2.5 - (ui_opacity * 2.5))
 			init()
 		end

@@ -2821,7 +2821,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guiopacity", group = "ui", basic = true, name = widgetOptionColor .. "   opacity", type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.55), description = '',
+		{ id = "guiopacity", group = "ui", basic = true, name = widgetOptionColor .. "   opacity", type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.6), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4993,7 +4993,7 @@ function widget:GetConfigData(data)
 		sndvolbattle = { 'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle", 40) or 40) },
 		sndvolunitreply = { 'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply", 40) or 40) },
 		--sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
-		guiopacity = { 'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity", 0.55) or 0.66) },
+		guiopacity = { 'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66) },
 		scrollwheelspeed = { 'ScrollWheelSpeed', tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 25) or 25) },
 	}
 	return savedTable

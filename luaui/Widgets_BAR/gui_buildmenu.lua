@@ -86,7 +86,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local ordermenuLeft = vsx / 5
 local advplayerlistLeft = vsx * 0.8
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.55) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
@@ -1119,8 +1119,8 @@ function widget:Update(dt)
 			widget:ViewResize()
 			doUpdate = true
 		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.55) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.55)
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			glossMult = 1 + (2 - (ui_opacity * 2))
 			clear()
 			doUpdate = true
