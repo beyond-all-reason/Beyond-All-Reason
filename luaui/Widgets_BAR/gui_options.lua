@@ -3186,7 +3186,7 @@ function init()
 		  end,
 		},
 
-		{ id = "metalspots", group = "ui", widget = "Metalspots", name = "Metalspot indicators", type = "bool", value = GetWidgetToggleValue("Metalspots"), description = 'Shows a circle around metal spots with the amount of metal in it' },
+		{ id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = "Metalspot indicators", type = "bool", value = GetWidgetToggleValue("Metalspots"), description = 'Shows a circle around metal spots with the amount of metal in it' },
 		{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   opacity", type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5, description = 'Display metal values in the center',
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_opacity", { 'opacity' })
@@ -3196,7 +3196,7 @@ function init()
 			  saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
 		  end,
 		},
-		{ id = "metalspots_values", group = "ui", name = widgetOptionColor .. "   show values", type = "bool", value = true, description = 'Display metal values (during game))\n\nPre-gamestart or when in metalmap view (f4) this will always be shown',
+		{ id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   show values", type = "bool", value = true, description = 'Display metal values (during game))\n\nPre-gamestart or when in metalmap view (f4) this will always be shown',
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
