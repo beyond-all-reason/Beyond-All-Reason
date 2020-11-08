@@ -775,7 +775,7 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.Sound and Spring.GetGameFrame() > 0 then
+	if data.Sound ~= nil and Spring.GetGameFrame() > 0 then
 		Sound = data.Sound
 	end
 	if data.soundList ~= nil then

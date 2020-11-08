@@ -19,7 +19,6 @@ Units
  • T2 Bot/Air Constructors can build Advanced Fusion + cost: +60 metal
  • T2 Vehicle/Air Constructors can make the T3 Experimental Gantry
 
-
 Air
  • Banshee: changed weapon to machine gun with more accuracy, 5 burst (instead of 3) but little less average dps (-10%)
  • Air Fighters can no longer attack ground

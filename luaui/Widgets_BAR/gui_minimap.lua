@@ -29,7 +29,7 @@ local bgMargin = 0.005
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.55) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local backgroundRect = { 0, 0, 0, 0 }
@@ -153,8 +153,8 @@ function widget:Update(dt)
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
 		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.55) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.55)
 			clear()
 		end
 	end

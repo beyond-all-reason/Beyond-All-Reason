@@ -24,7 +24,7 @@ local POSITION_X = 0.5 -- horizontal centre of screen
 local POSITION_Y = 0.095 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.55) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local ICON_SIZE_X = iconsize * (1 + (ui_scale - 1) / 1.5)
@@ -539,8 +539,8 @@ function widget:Update(dt)
 			widget:ViewResize(Spring.GetViewGeometry())
 		end
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.55) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.55)
 		end
 	end
 

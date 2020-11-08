@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.55) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
@@ -1345,8 +1345,8 @@ function widget:Update(dt)
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec > 0.5 then
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.55) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.55)
 			glossMult = 1 + (2.5 - (ui_opacity * 2.5))
 			init()
 		end
