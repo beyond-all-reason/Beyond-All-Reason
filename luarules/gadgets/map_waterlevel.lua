@@ -91,6 +91,9 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
+		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+			return
+		end
 
 		local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 		local authorized = false
@@ -101,19 +104,9 @@ if (gadgetHandler:IsSyncedCode()) then
 				break
 			end
 		end
-		if authorized == nil then
-			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
-			return
-		end
-		if not spec then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when playing")
-			return
-		end
 
 		if not authorized or not Spring.IsCheatingEnabled() then return end
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
-			return
-		end
+
 		local params = explode(':', msg)
 		waterlevel = tonumber(params[2])
 		adjustWaterlevel()
