@@ -14,8 +14,7 @@ end
 local specBadKeywords = { 'forcestart', 'stop' }
 
 local vsx, vsy = Spring.GetViewGeometry()
-local customScale = 1.5
-local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
+local widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -149,7 +148,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
+	widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
 	widgetSpaceMargin = math.floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
@@ -274,8 +273,8 @@ function StartVote(name, owner)
 
 			local x, y, b = Spring.GetMouseState()
 
-			local width = math.floor((vsy / 12.4) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
-			local height = math.floor((vsy / 26) * ui_scale) * 2		-- *2 so it ensures number can be divided cleanly by 2
+			local width = math.floor((vsy / 6) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
+			local height = math.floor((vsy / 24) * ui_scale) * 2		-- *2 so it ensures number can be divided cleanly by 2
 
 			local fontSize = height / 5    -- title only
 			local minWidth = font:GetTextWidth('  ' .. voteName .. '  ') * fontSize
@@ -283,29 +282,28 @@ function StartVote(name, owner)
 				width = minWidth
 			end
 
-			local buttonPadding = width / 100
-			local buttonMargin = width / 32
-			local buttonHeight = height * 0.55
+			local buttonMargin = math.floor(width / 32)
+			local buttonHeight = math.floor(height * 0.55)
 
-			local xpos = width / 2
-			local ypos = vsy - (height / 2)
+			local xpos = math.floor(width / 2)
+			local ypos = math.floor(vsy - (height / 2))
 
 			if WG['topbar'] ~= nil then
 				local topbarArea = WG['topbar'].GetPosition()
 				--xpos = vsx-(width/2)
-				xpos = topbarArea[1] + (width / 2) + widgetSpaceMargin
-				ypos = topbarArea[2] - (5 * topbarArea[5]) - (height / 2)
+				xpos = math.floor(topbarArea[1] + (width / 2) + widgetSpaceMargin)
+				ypos = math.floor(topbarArea[2] - (5 * topbarArea[5]) - (height / 2))
 			end
 
 			hovered = nil
 
 			windowArea = { xpos - (width / 2), ypos - (height / 2), xpos + (width / 2), ypos + (height / 2) }
-			closeButtonArea = { (xpos + (width / 2)) - (height / 1.9), ypos + (height / 5.5), xpos + (width / 2), ypos + (height / 2) }
+			closeButtonArea = { (xpos + (width / 2)) - (height / 2), ypos + math.floor(height / 6), xpos + (width / 2), ypos + (height / 2)}
 			yesButtonArea = { xpos - (width / 2) + buttonMargin, ypos - (height / 2) + buttonMargin, xpos - (buttonMargin / 2), ypos - (height / 2) + buttonHeight - buttonMargin }
 			noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin }
 
 			-- window
-			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 5.5 * widgetScale, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
+			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
 			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 			-- close
@@ -350,15 +348,13 @@ function StartVote(name, owner)
 				color2 = { 0.5, 0, 0, 0.75 }
 				mult = 1
 			end
-			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 3 * widgetScale, 1, 1, 1, 1, color1, color2)
+			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
 
 			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(noButtonArea[1], noButtonArea[4] - ((noButtonArea[4] - noButtonArea[2]) * 0.5), noButtonArea[3], noButtonArea[4], 3 * widgetScale, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
-			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) * 0.35), 3 * widgetScale, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
+			RectRound(noButtonArea[1], noButtonArea[4] - ((noButtonArea[4] - noButtonArea[2]) * 0.5), noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
+			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			--gl.Color(0,0,0,0.075)
-			--RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 2.2*widgetScale)
 
 			fontSize = fontSize * 0.85
 			local noText = 'NO'
@@ -382,15 +378,13 @@ function StartVote(name, owner)
 					color2 = { 0, 0.5, 0, 0.38 }
 					mult = 1
 				end
-				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 3 * widgetScale, 1, 1, 1, 1, color1, color2)
+				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
 
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(yesButtonArea[1], yesButtonArea[4] - ((yesButtonArea[4] - yesButtonArea[2]) * 0.5), yesButtonArea[3], yesButtonArea[4], 3 * widgetScale, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
-				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) * 0.35), 3 * widgetScale, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
+				RectRound(yesButtonArea[1], yesButtonArea[4] - ((yesButtonArea[4] - yesButtonArea[2]) * 0.5), yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
+				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-				--gl.Color(0,0,0,0.075)
-				--RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 2.2*widgetScale)
 
 				font2:Print("YES", yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
@@ -399,7 +393,7 @@ function StartVote(name, owner)
 		-- background blur
 		if WG['guishader'] then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 5.5 * widgetScale)
+				RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'voteinterface')
 		end
