@@ -71,7 +71,9 @@ function widget:DrawScreen()
 		glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
 		--glScale(1.5, 1.5, 1)
 		font:Begin()
-		screenmode = 'overview'
+		if st.name == 'ov' then
+			screenmode = 'overview'
+		end
 		font:Print('\255\225\225\225' .. 'Screen mode:  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
 		if st.name == 'ov' then
 				description = '(TAB) press TAB to zooms in onto mouse cursor position'
