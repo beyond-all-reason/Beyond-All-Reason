@@ -494,7 +494,7 @@ local function updateButtons()
 		text = text .. 'Settings   '
 	end
 	if chobbyLoaded then
-		if not spec and not gameStarted then
+		if not spec and gameStarted then
 			text = text .. 'Resign  '
 		end
 		text = text .. 'Lobby  '
@@ -614,7 +614,7 @@ local function updateButtons()
 				end
 			end
 			if chobbyLoaded then
-				if not spec and not gameStarted then
+				if not spec and gameStarted then
 					buttons = buttons + 1
 					offset = math_floor(offset + width + 0.5)
 					width = math_floor((font2:GetTextWidth('  Resign ') * fontsize) + 0.5)
@@ -1222,8 +1222,6 @@ function widget:GameFrame(n)
 
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
-
-	--functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 end
 
 local uiOpacitySec = 0
