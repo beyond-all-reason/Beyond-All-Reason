@@ -63,15 +63,19 @@ function widget:DrawScreen()
 		return
 	end
 
+	local st = Spring.GetCameraState()
 	local screenmode = Spring.GetMapDrawMode()
-	if screenmode ~= 'normal' and screenmode ~= 'los'  then
+	if (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
 		local description = ''
 		glPushMatrix()
 		glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
 		--glScale(1.5, 1.5, 1)
 		font:Begin()
+		screenmode = 'overview'
 		font:Print('\255\225\225\225' .. 'Screen mode:  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
-		if screenmode == 'height' then
+		if st.name == 'ov' then
+				description = '(TAB) press TAB to zooms in onto mouse cursor position'
+		elseif screenmode == 'height' then
 			description = '(F1) renders a different color for every height level'
 		elseif screenmode == 'pathTraversability' then
 			description = '(F2) shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path'
