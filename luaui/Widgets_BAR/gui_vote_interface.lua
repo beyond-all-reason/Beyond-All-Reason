@@ -17,6 +17,13 @@ local vsx, vsy = Spring.GetViewGeometry()
 local customScale = 1.5
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
 
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
+
+local widgetSpaceMargin = math.floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
+local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 -- being set at gamestart again:
@@ -144,6 +151,9 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
 
+	widgetSpaceMargin = math.floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
+	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
 end
@@ -153,13 +163,30 @@ function widget:PlayerChanged(playerID)
 end
 
 --local sec = 0
---function widget:Update(dt)
---	myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
---	sec = sec + dt
---	if sec > 2 and not voteDlist then
---		StartVote('testvote yeah!', 'somebody')
---	end
---end
+local uiOpacitySec = 0
+function widget:Update(dt)
+	--myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
+	--sec = sec + dt
+	--if sec > 2 and not voteDlist then
+	--	StartVote('testvote yeah!', 'somebody')
+	--end
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			glossMult = 1 + (2.5 - (ui_opacity * 2.5))
+			init()
+		end
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+			height = orgHeight * (1 + (ui_scale - 1) / 1.7)
+			shutdown()
+			widget:ViewResize()
+		end
+	end
+end
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -194,7 +221,7 @@ function widget:AddConsoleLine(lines, priority)
 	if startedAsPlayer and (not WG['topbar'] or (WG['topbar'] and WG['topbar'].showingRejoining and not WG['topbar'].showingRejoining())) then
 		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
-			if (string.sub(line, 1, 1) == ">" and string.sub(line, 3, 3) ~= "<") then
+			if string.sub(line, 1, 1) == ">" and string.sub(line, 3, 3) ~= "<" then
 				-- system message
 				if string.find(line, " called a vote ", nil, true) then
 					-- vote called
@@ -203,7 +230,7 @@ function widget:AddConsoleLine(lines, priority)
 					if not string.find(line, '"resign ', nil, true) or isTeamPlayer(string.sub(line, string.find(line, '"resign ', nil, true) + 8, string.find(line, ' TEAM', nil, true) - 1)) then
 						StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1") .. " called a vote ", nil, true))
 					end
-				elseif voteDlist and (string.find(line, " passed.", nil, true) or string.find(line, " failed", nil, true) or string.find(line, "Vote cancelled", nil, true) or string.find(line, ' Cancelling "', nil, true)) then
+				elseif voteDlist and (string.find(string.lower(line), " passed.", nil, true) or string.find(string.lower(line), " failed", nil, true) or string.find(string.lower(line), "Vote cancelled", nil, true) or string.find(string.lower(line), ' cancelling "', nil, true)) then
 					EndVote()
 				end
 			end
@@ -247,8 +274,8 @@ function StartVote(name, owner)
 
 			local x, y, b = Spring.GetMouseState()
 
-			local width = vsx / 6.2
-			local height = vsy / 13
+			local width = math.floor((vsy / 12.4) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
+			local height = math.floor((vsy / 26) * ui_scale) * 2		-- *2 so it ensures number can be divided cleanly by 2
 
 			local fontSize = height / 5    -- title only
 			local minWidth = font:GetTextWidth('  ' .. voteName .. '  ') * fontSize
@@ -256,7 +283,6 @@ function StartVote(name, owner)
 				width = minWidth
 			end
 
-			local padding = width / 70
 			local buttonPadding = width / 100
 			local buttonMargin = width / 32
 			local buttonHeight = height * 0.55
@@ -267,7 +293,7 @@ function StartVote(name, owner)
 			if WG['topbar'] ~= nil then
 				local topbarArea = WG['topbar'].GetPosition()
 				--xpos = vsx-(width/2)
-				xpos = topbarArea[1] + (width / 2) + ((vsx - topbarArea[1]) / 1.95)
+				xpos = topbarArea[1] + (width / 2) + widgetSpaceMargin
 				ypos = topbarArea[2] - (5 * topbarArea[5]) - (height / 2)
 			end
 
@@ -280,7 +306,7 @@ function StartVote(name, owner)
 
 			-- window
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 5.5 * widgetScale, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-			RectRound(windowArea[1] + padding, windowArea[2] + padding, windowArea[3] - padding, windowArea[4] - padding, 3.5 * widgetScale, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 			-- close
 			--gl.Color(0.1,0.1,0.1,0.55+(0.36))
@@ -296,14 +322,14 @@ function StartVote(name, owner)
 				color1 = { 0.6, 0.6, 0.6, 0.08 }
 				color2 = { 1, 1, 1, 0.08 }
 			end
-			RectRound(closeButtonArea[1] + padding, closeButtonArea[2] + padding, closeButtonArea[3] - padding, closeButtonArea[4] - padding, 3.5 * widgetScale, 0, 1, 0, 1, color1, color2)
+			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding * 1.25, 0, 1, 0, 1, color1, color2)
 
 			fontSize = fontSize * 0.85
 			gl.Color(0, 0, 0, 1)
 
 			-- vote name
 			font:Begin()
-			font:Print("\255\190\190\190" .. voteName, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - padding - padding - padding - fontSize, fontSize, "con")
+			font:Print("\255\190\190\190" .. voteName, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
 			font:End()
 
 			font2:Begin()
