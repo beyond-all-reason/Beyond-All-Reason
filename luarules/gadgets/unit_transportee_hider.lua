@@ -37,7 +37,7 @@ local unitMass = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitMass[unitDefID] = unitDef.mass
 	unitTransportMass[unitDefID] = unitDef.transportMass
-	if not unitDef.modCategories.vtol and not unitDef.isAirBase then
+	if not unitDef.modCategories.vtol and not unitDef.customParams.isairbase then
 		unitTransportVtol[unitDefID] = true
 	end
 end
