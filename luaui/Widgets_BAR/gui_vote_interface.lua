@@ -35,6 +35,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+
 local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	local csyMult = 1 / ((sy - py) / cs)
 
@@ -72,8 +73,6 @@ local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	end
 	gl.Vertex(sx - cs, sy - cs, 0)
 	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
 
 	-- bottom left
 	if c2 then
@@ -176,12 +175,10 @@ function widget:Update(dt)
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			glossMult = 1 + (2.5 - (ui_opacity * 2.5))
-			init()
 		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			height = orgHeight * (1 + (ui_scale - 1) / 1.7)
-			shutdown()
 			widget:ViewResize()
 		end
 	end
@@ -305,6 +302,11 @@ function StartVote(name, owner)
 			-- window
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
 			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+
+			-- gloss
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 			-- close
 			--gl.Color(0.1,0.1,0.1,0.55+(0.36))
