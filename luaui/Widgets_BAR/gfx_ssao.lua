@@ -66,13 +66,13 @@ local presets = {
 		BLUR_PASSES = 3,
 		BLUR_SIGMA = 4.5,
 	},
-	{
-		SSAO_KERNEL_SIZE = 64,
-		DOWNSAMPLE = 1,
-		BLUR_HALF_KERNEL_SIZE = 8,
-		BLUR_PASSES = 4,
-		BLUR_SIGMA = 6.5,
-	},
+	--{
+	--	SSAO_KERNEL_SIZE = 64,
+	--	DOWNSAMPLE = 1,
+	--	BLUR_HALF_KERNEL_SIZE = 8,
+	--	BLUR_PASSES = 4,
+	--	BLUR_SIGMA = 6.5,
+	--},
 }
 
 -----------------------------------------------------------------
@@ -594,5 +594,8 @@ function widget:SetConfigData(data)
 	end
 	if data.preset ~= nil then
 		preset = data.preset
+		if preset > 1 then
+			preset = 2
+		end
 	end
 end

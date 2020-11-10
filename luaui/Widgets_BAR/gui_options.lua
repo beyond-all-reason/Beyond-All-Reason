@@ -165,7 +165,7 @@ local presets = {
 	lowest = {
 		bloom = false,
 		bloomdeferred = false,
-		ssao = 1,
+		ssao = 0,
 		mapedgeextension = false,
 		lighteffects = false,
 		airjets = false,
@@ -185,7 +185,7 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
-		ssao = 2,
+		ssao = 0,
 		mapedgeextension = false,
 		lighteffects = true,
 		airjets = true,
@@ -205,7 +205,7 @@ local presets = {
 	medium = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = 2,
+		ssao = 1,
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
@@ -225,7 +225,7 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = 3,
+		ssao = 1,
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
@@ -245,7 +245,7 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = 4,
+		ssao = 2,
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
@@ -2145,7 +2145,7 @@ function init()
 		  end,
 		},
 
-		{ id = "ssao", group = "gfx", basic = true, name = "SSAO", type = "select", options = { 'disabled', 'low', 'medium', 'high' }, value = 1, description = 'SSAO quality level\nlow quality looks more grainy (when closeup and moving the camera orunits)',
+		{ id = "ssao", group = "gfx", basic = true, name = "SSAO", type = "select", options = { 'disabled', 'low', 'high'}, value = 0, description = 'SSAO quality level\nlow quality looks more grainy (when closeup and moving the camera or units)',
 		  onchange = function(i, value)
 			  if value == 1 then
 				  widgetHandler:DisableWidget("SSAO")
@@ -2314,14 +2314,15 @@ function init()
 		  end,
 		},
 
-		{ id = "featuredrawdist", group = "gfx", name = "Feature draw distance", type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 6000) or 400), description = 'Features (trees, stones, wreckage) stop being displayed at this distance',
+		{ id = "featuredrawdist", group = "gfx", name = "Feature draw distance", type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = 'Features (trees, stones, wreckage) stop being displayed at this distance',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
-				  options[getOptionByID('featurefadedist')].value = value
-				  Spring.SetConfigInt("FeatureFadeDistance", value)
-			  end
+			  --if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
+			--	  options[getOptionByID('featurefadedist')].value = value
+			--	  Spring.SetConfigInt("FeatureFadeDistance", value)
+			  --end
+			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value*0.8))
 			  Spring.SetConfigInt("FeatureDrawDistance", value)
 		  end,
 		},
