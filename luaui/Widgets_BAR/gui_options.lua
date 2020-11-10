@@ -165,7 +165,7 @@ local presets = {
 	lowest = {
 		bloom = false,
 		bloomdeferred = false,
-		ssao = 0,
+		ssao = 1,
 		mapedgeextension = false,
 		lighteffects = false,
 		airjets = false,
@@ -185,7 +185,7 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
-		ssao = 0,
+		ssao = 1,
 		mapedgeextension = false,
 		lighteffects = true,
 		airjets = true,
@@ -225,7 +225,7 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = 1,
+		ssao = 2,
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
@@ -245,7 +245,7 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomdeferred = true,
-		ssao = 2,
+		ssao = 3,
 		mapedgeextension = true,
 		lighteffects = true,
 		airjets = true,
@@ -2145,7 +2145,7 @@ function init()
 		  end,
 		},
 
-		{ id = "ssao", group = "gfx", basic = true, name = "SSAO", type = "select", options = { 'disabled', 'low', 'high'}, value = 0, description = 'SSAO quality level\nlow quality looks more grainy (when closeup and moving the camera or units)',
+		{ id = "ssao", group = "gfx", basic = true, name = "SSAO", type = "select", options = { 'disabled', 'enabled', 'high'}, value = 0, description = 'SSAO quality level\nlow quality looks more grainy (when closeup and moving the camera or units)\n\nWARNING: might introduce a bit of lag',
 		  onchange = function(i, value)
 			  if value == 1 then
 				  widgetHandler:DisableWidget("SSAO")
