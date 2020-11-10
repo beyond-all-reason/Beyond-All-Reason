@@ -41,7 +41,7 @@ return {
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
 		workertime = 300,
-		yardmap = "occcccoocccccoocccccoocccccoocccccooccccco",
+		yardmap = "ooooooo ooooooo oooooo occccco occccco occccco",
 		buildoptions = {
 			[1] = "armacv",
 			[2] = "armconsul",
