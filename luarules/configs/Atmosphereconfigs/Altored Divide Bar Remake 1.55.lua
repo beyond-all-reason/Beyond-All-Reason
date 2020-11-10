@@ -10,7 +10,7 @@ function gadget:GameFrame(n)
 	-- DayNight Cycle
 	
 	if n%9000 > 3600 and thunderstormactive == true then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.55, 2.5, 0.55)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.65, 2.5, 0.65)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 0.15, 0.7, 2.5, 1.5)
 	else	
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 3, 1)
@@ -90,7 +90,7 @@ if n%9000 > 4500  then
 	if n%60 == 0 then
        local r = math.random(0,2)
        if r == 0 then
-	      SpawnCEGInRandomMapPos("lightningstrikegreen", 0, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	      SpawnCEGInRandomMapPos("lightningstrikegreen", 0, _, _, _, lightningsounds[math.random(1,#lightningsounds)], 1)
        end
     end 
 	if n%15 == 0 then
@@ -99,7 +99,7 @@ if n%9000 > 4500  then
             if thunderstormactive == true then
 				local posx = math.random(thunderstormxmin, thunderstormxmax)
 				local posz = math.random(thunderstormzmin, thunderstormzmax)
-				SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+				SpawnCEGInPositionGround("lightningstrikegreen", posx, 0, posz, _, _, _, lightningsounds[math.random(1,#lightningsounds)], 1)
 			end
        end
     end 
