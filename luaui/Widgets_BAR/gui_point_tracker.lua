@@ -2,25 +2,25 @@
 local versionNumber = "v2.3"
 
 function widget:GetInfo()
-  return {
-    name      = "Point Tracker",
-    desc      = versionNumber .. " Tracks recently placed map points.",
-    author    = "Evil4Zerggin",
-    date      = "29 December 2008",
-    license   = "GNU LGPL, v2.1 or later",
-    layer     = 0,
-    enabled   = false  --  loaded by default?
-  }
+	return {
+		name = "Point Tracker",
+		desc = versionNumber .. " Tracks recently placed map points.",
+		author = "Evil4Zerggin",
+		date = "29 December 2008",
+		license = "GNU LGPL, v2.1 or later",
+		layer = 0,
+		enabled = true  --  loaded by default?
+	}
 end
 
-local vsx,vsy = Spring.GetViewGeometry()
+local vsx, vsy = Spring.GetViewGeometry()
 
 ----------------------------------------------------------------
 --config
 ----------------------------------------------------------------
 --negative to disable blinking
 local blinkPeriod = -1
-local ttl = 15
+local ttl = 11
 local highlightSize = 32
 local highlightLineMin = 24
 local highlightLineMax = 40
@@ -38,6 +38,7 @@ local useFade = true
 ----------------------------------------------------------------
 --speedups
 ----------------------------------------------------------------
+
 local ArePlayersAllied = Spring.ArePlayersAllied
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetTeamColor = Spring.GetTeamColor
@@ -61,6 +62,7 @@ local GL_FILL = GL.FILL
 ----------------------------------------------------------------
 --vars
 ----------------------------------------------------------------
+
 --table; i = {r, g, b, a, px, pz, label, expiration}
 local mapPoints = {}
 local mapPointCount = 0
@@ -76,10 +78,15 @@ local vsx, vsy, sMidX, sMidY
 ----------------------------------------------------------------
 --local functions
 ----------------------------------------------------------------
+
 local function GetPlayerColor(playerID)
-	local _, _, isSpec, teamID = GetPlayerInfo(playerID,false)
-	if (isSpec) then return GetTeamColor(Spring.GetGaiaTeamID()) end
-	if (not teamID) then return nil end
+	local _, _, isSpec, teamID = GetPlayerInfo(playerID, false)
+	if isSpec then
+		return GetTeamColor(Spring.GetGaiaTeamID())
+	end
+	if not teamID then
+		return nil
+	end
 	return GetTeamColor(teamID)
 end
 
@@ -97,6 +104,7 @@ end
 local function SetUseFade(bool)
 	useFade = bool
 end
+
 ----------------------------------------------------------------
 --callins
 ----------------------------------------------------------------
@@ -118,14 +126,18 @@ function widget:Shutdown()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
-	if (not on) then return end
+	if chobbyInterface then
+		return
+	end
+	if not on then
+		return
+	end
 
 	glLineWidth(lineWidth)
 
@@ -133,25 +145,24 @@ function widget:DrawScreen()
 	while i <= mapPointCount do
 		local curr = mapPoints[i]
 		local alpha = maxAlpha * (curr[6] - timeNow) / ttl
-		if (alpha <= 0) then
+		if alpha <= 0 then
 			mapPoints[i] = mapPoints[mapPointCount]
 			mapPoints[mapPointCount] = nil
 			mapPointCount = mapPointCount - 1
 		else
 			local sx, sy, sz = WorldToScreenCoords(curr[2], curr[3], curr[4])
 			glColor(curr[1][1], curr[1][2], curr[1][3], alpha)
-			if (sx >= 0 and sy >= 0
-					and sx <= vsx and sy <= vsy) then
+			if sx >= 0 and sy >= 0 and sx <= vsx and sy <= vsy then
 				--in screen
 				local vertices = {
-					{v = {sx, sy - highlightLineMin, 0}},
-					{v = {sx, sy - highlightLineMax, 0}},
-					{v = {sx, sy + highlightLineMin, 0}},
-					{v = {sx, sy + highlightLineMax, 0}},
-					{v = {sx - highlightLineMin, sy, 0}},
-					{v = {sx - highlightLineMax, sy, 0}},
-					{v = {sx + highlightLineMin, sy, 0}},
-					{v = {sx + highlightLineMax, sy, 0}},
+					{ v = { sx, sy - highlightLineMin, 0 } },
+					{ v = { sx, sy - highlightLineMax, 0 } },
+					{ v = { sx, sy + highlightLineMin, 0 } },
+					{ v = { sx, sy + highlightLineMax, 0 } },
+					{ v = { sx - highlightLineMin, sy, 0 } },
+					{ v = { sx - highlightLineMax, sy, 0 } },
+					{ v = { sx + highlightLineMin, sy, 0 } },
+					{ v = { sx + highlightLineMax, sy, 0 } },
 				}
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 				glRect(sx - highlightSize, sy - highlightSize, sx + highlightSize, sy + highlightSize)
@@ -160,29 +171,29 @@ function widget:DrawScreen()
 				--out of screen
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 				--flip if behind screen
-				if (sz > 1) then
+				if sz > 1 then
 					sx = sMidX - sx
 					sy = sMidY - sy
 				end
 				local xRatio = sMidX / abs(sx - sMidX)
 				local yRatio = sMidY / abs(sy - sMidY)
 				local edgeDist, vertices, textX, textY, textOptions
-				if (xRatio < yRatio) then
+				if xRatio < yRatio then
 					edgeDist = (sy - sMidY) * xRatio + sMidY
-					if (sx > 0) then
+					if sx > 0 then
 						vertices = {
-							{v = {vsx, edgeDist, 0}},
-							{v = {vsx - edgeMarkerSize, edgeDist + edgeMarkerSize, 0}},
-							{v = {vsx - edgeMarkerSize, edgeDist - edgeMarkerSize, 0}},
+							{ v = { vsx, edgeDist, 0 } },
+							{ v = { vsx - edgeMarkerSize, edgeDist + edgeMarkerSize, 0 } },
+							{ v = { vsx - edgeMarkerSize, edgeDist - edgeMarkerSize, 0 } },
 						}
 						textX = vsx - edgeMarkerSize
 						textY = edgeDist - fontSize * 0.5
 						textOptions = "rn"
 					else
 						vertices = {
-							{v = {0, edgeDist, 0}},
-							{v = {edgeMarkerSize, edgeDist - edgeMarkerSize, 0}},
-							{v = {edgeMarkerSize, edgeDist + edgeMarkerSize, 0}},
+							{ v = { 0, edgeDist, 0 } },
+							{ v = { edgeMarkerSize, edgeDist - edgeMarkerSize, 0 } },
+							{ v = { edgeMarkerSize, edgeDist + edgeMarkerSize, 0 } },
 						}
 						textX = edgeMarkerSize
 						textY = edgeDist - fontSize * 0.5
@@ -190,20 +201,20 @@ function widget:DrawScreen()
 					end
 				else
 					edgeDist = (sx - sMidX) * yRatio + sMidX
-					if (sy > 0) then
+					if sy > 0 then
 						vertices = {
-							{v = {edgeDist, vsy, 0}},
-							{v = {edgeDist - edgeMarkerSize, vsy - edgeMarkerSize, 0}},
-							{v = {edgeDist + edgeMarkerSize, vsy - edgeMarkerSize, 0}},
+							{ v = { edgeDist, vsy, 0 } },
+							{ v = { edgeDist - edgeMarkerSize, vsy - edgeMarkerSize, 0 } },
+							{ v = { edgeDist + edgeMarkerSize, vsy - edgeMarkerSize, 0 } },
 						}
 						textX = edgeDist
 						textY = vsy - edgeMarkerSize - fontSize
 						textOptions = "cn"
 					else
 						vertices = {
-							{v = {edgeDist, 0, 0}},
-							{v = {edgeDist + edgeMarkerSize, edgeMarkerSize, 0}},
-							{v = {edgeDist - edgeMarkerSize, edgeMarkerSize, 0}},
+							{ v = { edgeDist, 0, 0 } },
+							{ v = { edgeDist + edgeMarkerSize, edgeMarkerSize, 0 } },
+							{ v = { edgeDist - edgeMarkerSize, edgeMarkerSize, 0 } },
 						}
 						textX = edgeDist
 						textY = edgeMarkerSize
@@ -226,7 +237,7 @@ function widget:DrawScreen()
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 
@@ -238,42 +249,44 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 	if mapPointCount >= MAP_POINT_LIMIT then
 		return
 	end
-	if (not timeNow) then
+	if not timeNow then
 		StartTime()
 	end
 	local spectator, fullView = GetSpectatingState()
-	local _, _, _, playerTeam = GetPlayerInfo(playerID,false)
-	if (label == "Start " .. playerTeam
-			or cmdType ~= "point"
-			or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView))) then
+	local _, _, _, playerTeam = GetPlayerInfo(playerID, false)
+	if label == "Start " .. playerTeam
+		or cmdType ~= "point"
+		or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView)) then
 		return
 	end
 
 	local r, g, b = GetPlayerColor(playerID)
-	local color = {r, g, b}
+	local color = { r, g, b }
 	local expiration = timeNow + ttl
 
 	mapPointCount = mapPointCount + 1
-	mapPoints[mapPointCount] = {color, px, py, pz, strSub(label, 1, maxLabelLength), expiration}
+	mapPoints[mapPointCount] = { color, px, py, pz, strSub(label, 1, maxLabelLength), expiration }
 end
 
 function widget:Update(dt)
-	if (not timeNow) then
+	if not timeNow then
 		StartTime()
 	else
 		if useFade then
 			timeNow = timeNow + dt
 		end
 		timePart = timePart + dt
-		if (timePart > blinkPeriod and blinkPeriod > 0) then
+		if timePart > blinkPeriod and blinkPeriod > 0 then
 			timePart = timePart - blinkPeriod
 			on = not on
 		end
-  end
+	end
 end
 
 function widget:DrawInMiniMap(sx, sy)
-	if (not on) then return end
+	if not on then
+		return
+	end
 	glLineWidth(lineWidth)
 
 	local ratioX = sx / mapX
@@ -285,21 +298,21 @@ function widget:DrawInMiniMap(sx, sy)
 		local x = curr[2] * ratioX
 		local y = sy - curr[4] * ratioY
 		local alpha = maxAlpha * (curr[6] - timeNow) / ttl
-		if (alpha <= 0) then
+		if alpha <= 0 then
 			mapPoints[i] = mapPoints[mapPointCount]
 			mapPoints[mapPointCount] = nil
 			mapPointCount = mapPointCount - 1
 		else
 			glColor(curr[1][1], curr[1][2], curr[1][3], alpha)
 			local vertices = {
-				{v = {x, y - minimapHighlightLineMin, 0}},
-				{v = {x, y - minimapHighlightLineMax, 0}},
-				{v = {x, y + minimapHighlightLineMin, 0}},
-				{v = {x, y + minimapHighlightLineMax, 0}},
-				{v = {x - minimapHighlightLineMin, y, 0}},
-				{v = {x - minimapHighlightLineMax, y, 0}},
-				{v = {x + minimapHighlightLineMin, y, 0}},
-				{v = {x + minimapHighlightLineMax, y, 0}},
+				{ v = { x, y - minimapHighlightLineMin, 0 } },
+				{ v = { x, y - minimapHighlightLineMax, 0 } },
+				{ v = { x, y + minimapHighlightLineMin, 0 } },
+				{ v = { x, y + minimapHighlightLineMax, 0 } },
+				{ v = { x - minimapHighlightLineMin, y, 0 } },
+				{ v = { x - minimapHighlightLineMax, y, 0 } },
+				{ v = { x + minimapHighlightLineMin, y, 0 } },
+				{ v = { x + minimapHighlightLineMax, y, 0 } },
 			}
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 			glRect(x - minimapHighlightSize, y - minimapHighlightSize, x + minimapHighlightSize, y + minimapHighlightSize)
