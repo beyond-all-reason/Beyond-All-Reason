@@ -15,7 +15,7 @@ end
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
 
-if damageStats[gameName] and damageStats[gameName].team then
+if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
 	for k, v in pairs (damageStats[gameName].team) do
 		if (not (v == damageStats[gameName].team.games)) and v.cost and v.killed_cost then

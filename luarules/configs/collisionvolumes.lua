@@ -169,13 +169,13 @@ dynamicPieceCollisionVolume['cortoast'] = {
 }
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
-		['0']={38,25,38,0,0,0,2,0},
-		['5']={25,46,25,0,25,0,1,1},
+		['0']={38,26,38,0,0,0,2,0},
+		['5']={25,45,25,0,25,0,1,1},
 		['offsets']={0,23,0},
 	},
 	off = {
-		['0']={38,25,38,0,0,0,2,0},
-		['offsets']={0, 5, 0}, --['offsets']={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
+		['0']={38,26,38,0,0,0,2,0},
+		['offsets']={0, 8, 0}, --['offsets']={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
 	}
 }
 for name, v in pairs(dynamicPieceCollisionVolume) do

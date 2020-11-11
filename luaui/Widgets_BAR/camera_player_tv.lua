@@ -19,6 +19,7 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local displayPlayername = true
+local guishaderEnabled
 
 local playerChangeDelay = 40
 
@@ -440,8 +441,8 @@ function widget:Update(dt)
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
 		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) or guishaderEnabled ~= (WG['guishader']) then
-			guishaderEnabled = (WG['guishader'])
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) or guishaderEnabled ~= (WG['guishader'] ~= nil) then
+			guishaderEnabled = (WG['guishader'] ~= nil)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			glossMult = 1 + (2 - (ui_opacity * 2))
 			createList()
@@ -461,7 +462,7 @@ function widget:Update(dt)
 				WG['tooltip'].ShowTooltip('playertv', 'Auto camera-track of mostly top TS players\n(switches player every ' .. playerChangeDelay .. ' seconds)')
 			end
 		end
-		if (not rejoining and toggled) then
+		if not rejoining and toggled then
 			if Spring.GetGameFrame() > initGameframe + 70 and os.clock() > nextTrackingPlayerChange then
 				--delay some gameframes so we know if we're rejoining or not
 				nextTrackingPlayerChange = os.clock() + playerChangeDelay
