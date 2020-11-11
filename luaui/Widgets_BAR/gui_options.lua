@@ -1966,8 +1966,13 @@ function init()
 		  onchange = function(i, value)
 			  vsyncEnabled = value
 			  local vsync = 0
-			  if vsyncEnabled and (not isSpec or vsyncOnlyForSpec) then
-				  vsync = vsyncLevel
+			  if vsyncEnabled then
+				  if not vsyncOnlyForSpec or isSpec then
+					  vsync = vsyncLevel
+					  options[getOptionByID('vsync')].value = true
+				  else
+					  options[getOptionByID('vsync')].value = 0.5
+				  end
 			  end
 			  Spring.SetConfigInt("VSync", vsync)
 		  end,
@@ -1977,6 +1982,10 @@ function init()
 			  vsyncOnlyForSpec = value
 			  if isSpec and vsyncEnabled then
 				  Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
+			  end
+			  if vsyncEnabled then
+				  local id = getOptionByID('vsync')
+				  options[id].onchange(id, options[id].value)
 			  end
 		  end,
 		},
@@ -4193,6 +4202,7 @@ function init()
 		  end,
 		},
 	}
+
 	-- air absorption does nothing on 32 bit engine version
 	if not engine64 then
 		options[getOptionByID('sndairabsorption')] = nil
@@ -4472,13 +4482,13 @@ function init()
 		options[getOptionByID('bloomdeferredquality')] = nil
 	end
 
-	if (WG['healthbars'] == nil) then
+	if WG['healthbars'] == nil then
 		options[getOptionByID('healthbarsscale')] = nil
 	elseif WG['healthbars'].getScale ~= nil then
 		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
 	end
 
-	if (WG['smartselect'] == nil) then
+	if WG['smartselect'] == nil then
 		options[getOptionByID('smartselect_includebuildings')] = nil
 		options[getOptionByID('smartselect_includebuilders')] = nil
 	else
@@ -4490,7 +4500,7 @@ function init()
 		options[getOptionByID('snowmap')].value = WG['snow'].getSnowMap()
 	end
 
-	if (WG['darkenmap'] == nil) then
+	if WG['darkenmap'] == nil then
 		options[getOptionByID('darkenmap')] = nil
 		options[getOptionByID('darkenmap_darkenfeatures')] = nil
 	else
@@ -4501,8 +4511,14 @@ function init()
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
 	if Spring.GetConfigInt("VSync", 1) == 'x' then
 		options[getOptionByID('vsync')] = nil
+		options[getOptionByID('vsync_spec')] = nil
 		options[getOptionByID('vsync_level')] = nil
+	else
+		-- doing this in order to detect if vsync is actually on due to the only when spectator setting
+		local id = getOptionByID('vsync')
+		options[id].onchange(id, options[id].value)
 	end
+
 
 	if not widgetHandler.knownWidgets["Commander Name Tags"] then
 		options[getOptionByID('nametags_icon')] = nil
@@ -4678,9 +4694,11 @@ function checkResolution()
 end
 
 function widget:PlayerChanged(playerID)
+	local prevIsSpec = isSpec
 	isSpec = Spring.GetSpectatingState()
-	if isSpec and vsyncEnabled and vsyncOnlyForSpec then
-		Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
+	if isSpec and isSpec ~= prevIsSpec and vsyncEnabled and vsyncOnlyForSpec then
+		local id = getOptionByID('vsync')
+		options[id].onchange(id, options[id].value)
 	end
 end
 
