@@ -34,29 +34,31 @@ local cellMarginOrg = 0.055
 local cellMargin = cellMarginOrg
 local bgBorderOrg = 0.0018
 local bgBorder = bgBorderOrg
-local cmdColorDefault = { 0.95, 0.95, 0.95 }
-local cmdColor = {
-	Move = { 0.64, 1, 0.64 },
-	Stop = { 1, 0.3, 0.3 },
-	Attack = { 1, 0.5, 0.35 },
-	['Area attack'] = { 1, 0.35, 0.15 },
-	ManualFire = { 1, 0.7, 0.7 },
-	Patrol = { 0.73, 0.73, 1 },
-	Fight = { 0.9, 0.5, 1 },
+local cmdInfoDefault = { 0.95, 0.95, 0.95, ''}
+local cmdInfo = {
+	Move = { 0.64, 1, 0.64, 'M'},
+	Stop = { 1, 0.3, 0.3, 'S'},
+	Attack = { 1, 0.5, 0.35, 'A' },
+	['Area attack'] = { 1, 0.35, 0.15, 'A'},
+	ManualFire = { 1, 0.7, 0.7, 'D' },
+	Patrol = { 0.73, 0.73, 1, 'P'},
+	Fight = { 0.9, 0.5, 1, 'S'},
 	Resurrect = { 1, 0.75, 1 },
-	Guard = { 0.33, 0.92, 1 },
-	Wait = { 0.7, 0.66, 0.6 },
-	Repair = { 1, 0.95, 0.7 },
-	Reclaim = { 0.86, 1, 0.86 },
+	Guard = { 0.33, 0.92, 1, 'G'},
+	Wait = { 0.7, 0.66, 0.6, 'W' },
+	Repair = { 1, 0.95, 0.7, 'R'},
+	Reclaim = { 0.86, 1, 0.86, 'E'},
 	Restore = { 0.77, 1, 0.77 },
 	Capture = { 1, 0.85, 0.22 },
-	['Set Target'] = { 1, 0.66, 0.35 },
-	['Cancel Target'] = { 0.8, 0.55, 0.2 },
-	Mex = { 0.93, 0.93, 0.93 },
+	['Set Target'] = { 1, 0.66, 0.35, 'Y'},
+	['Cancel Target'] = { 0.8, 0.55, 0.2},
+	Mex = { 0.93, 0.93, 0.93},
 	['Upgrade Mex'] = { 0.93, 0.93, 0.93 },
-	['Load units'] = { 0.1, 0.7, 1 },
-	['Unload units'] = { 0, 0.5, 1 },
+	['Load units'] = { 0.1, 0.7, 1, 'L' },
+	['Unload units'] = { 0, 0.5, 1, 'U'},
 	['Land At Airbase'] = { 0.4, 0.7, 0.4 },
+	['Cloak State'] = { nil,nil,nil, 'K'},
+	['Active state'] = { nil,nil,nil, 'X'},
 }
 local cmdNameAlternative = {
 	['Repeat off'] = 'Repeat',
@@ -659,39 +661,6 @@ function drawCell(cell, zoom)
 			end
 		end
 
-		-- colorize background
-		--if colorize > 0.01 and not isActiveCmd then
-		--	local x1 = cellRects[cell][1] + leftMargin
-		--	if cmdColor[cmd.name] == nil then
-		--		cmdColor[cmd.name] = cmdColorDefault
-		--	end
-		--	local y1 = cellRects[cell][2] + bottomMargin
-		--	local x2 = cellRects[cell][3] - rightMargin --x1 + (padding*2.5)
-		--	local y2 = cellRects[cell][2] + rightMargin + ((cellRects[cell][4] - cellRects[cell][2]) * 0.2) --cellRects[cell][4]-topMargin - padding
-		--	RectRound(x1, y1, x2, y2, padding, 0, 0, 1, 1, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.18 * colorize }, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0 })
-		--	--x1 = cellRects[cell][1] + leftMargin
-		--	--y1 = cellRects[cell][2]+bottomMargin
-		--	--x2 = cellRects[cell][3] - leftMargin --x1 + (padding*2.5)
-		--	--y2 = cellRects[cell][2]+bottomMargin + ((cellRects[cell][4]-cellRects[cell][2])*0.6) --cellRects[cell][4]-topMargin - padding
-		--	--RectRound(x1, y1, x2, y2, padding, 0,0,1,1, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.11*colorize}, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0})
-		--	x1 = cellRects[cell][1] + leftMargin
-		--	y2 = cellRects[cell][4] - topMargin
-		--	x2 = cellRects[cell][3] - rightMargin --x1 + (padding*2.5)
-		--	y1 = cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.2) --cellRects[cell][4]-topMargin - padding
-		--	RectRound(x1, y1, x2, y2, padding, 0, 0, 1, 1, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0 }, { cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.12 * colorize })
-		--end
-
-		--if cmdColor[cmd.name] then
-		--  local s = 0.11
-		--  local radius = s * ((cellRects[cell][4]-topMargin-padding)-(cellRects[cell][2]+bottomMargin+padding))
-		--  local posX = cellRects[cell][3]-leftMargin-padding - (radius*2)
-		--  local posY = cellRects[cell][4]-topMargin-padding - (radius*2)
-		--
-		--  doCircle(posX, 0, posY, radius, 16, {cmdColor[cmd.name][1], cmdColor[cmd.name][2], cmdColor[cmd.name][3], 0.75})
-		--  radius = radius * 0.6
-		--  doCircle(posX, 0, posY, radius, 12, {0,0,0, 0.15})
-		--end
-
 		-- text
 		if not showIcons or not cursorTextures[cmd.cursor] then
 			local text = string_gsub(cmd.name, "\n", " ")
@@ -713,10 +682,10 @@ function drawCell(cell, zoom)
 				fontHeightOffset = fontHeight * 0.22
 			end
 			local textColor = "\255\233\233\233"
-			if colorize > 0 and cmdColor[cmd.name] then
+			if colorize > 0 and cmdInfo[cmd.name] and cmdInfo[cmd.name][1] then
 				local part = (1 / colorize)
 				local grey = (0.93 * (part - 1))
-				textColor = convertColor((grey + cmdColor[cmd.name][1]) / part, (grey + cmdColor[cmd.name][2]) / part, (grey + cmdColor[cmd.name][3]) / part)
+				textColor = convertColor((grey + cmdInfo[cmd.name][1]) / part, (grey + cmdInfo[cmd.name][2]) / part, (grey + cmdInfo[cmd.name][3]) / part)
 			end
 			if isActiveCmd then
 				textColor = "\255\020\020\020"
@@ -854,7 +823,12 @@ function widget:DrawScreen()
 					if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 						local cmd = cmds[cell]
 						if WG['tooltip'] and cmd.tooltip then
-							WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
+							--Spring.Echo(cmd.name)
+							if cmdInfo[cmd.name] and cmdInfo[cmd.name][4] then
+								WG['tooltip'].ShowTooltip('ordermenu', '\255\255\215\100'..cmdInfo[cmd.name][4]..'\255\240\240\240 - '..cmd.tooltip)
+							else
+								WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
+							end
 						end
 						cellHovered = cell
 					end
