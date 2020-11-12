@@ -12,7 +12,7 @@ end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
+local teamcolorRadarIcon = false
 local width = 0
 local addonWidth = 0
 local height = 0
@@ -1080,7 +1080,13 @@ local function drawUnitInfo()
 
 	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
 	if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
-		glColor(1, 1, 1, 0.88)
+		if teamcolorRadarIcon and displayUnitID then
+			local teamID = Spring.GetUnitTeam(displayUnitID)
+			local r,g,b = Spring.GetTeamColor(teamID)
+			glColor(r,g,b, 1)
+		else
+			glColor(1, 1, 1, 0.88)
+		end
 		glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
 		glTexRect(backgroundRect[3] - radarIconMargin - radarIconSize, backgroundRect[4] - radarIconMargin - radarIconSize, backgroundRect[3] - radarIconMargin, backgroundRect[4] - radarIconMargin)
 		glTexture(false)

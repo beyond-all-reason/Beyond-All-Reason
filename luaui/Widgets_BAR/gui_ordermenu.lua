@@ -34,8 +34,7 @@ local cellMarginOrg = 0.055
 local cellMargin = cellMarginOrg
 local bgBorderOrg = 0.0018
 local bgBorder = bgBorderOrg
-local cmdInfoDefault = { 0.95, 0.95, 0.95, ''}
-local cmdInfo = {
+local cmdInfo = {		-- r, g, b, SHORTCUT
 	Move = { 0.64, 1, 0.64, 'M'},
 	Stop = { 1, 0.3, 0.3, 'S'},
 	Attack = { 1, 0.5, 0.35, 'A' },
@@ -51,7 +50,7 @@ local cmdInfo = {
 	Restore = { 0.77, 1, 0.77 },
 	Capture = { 1, 0.85, 0.22 },
 	['Set Target'] = { 1, 0.66, 0.35, 'Y'},
-	['Cancel Target'] = { 0.8, 0.55, 0.2},
+	['Cancel Target'] = { 0.8, 0.55, 0.2, 'J'},
 	Mex = { 0.93, 0.93, 0.93},
 	['Upgrade Mex'] = { 0.93, 0.93, 0.93 },
 	['Load units'] = { 0.1, 0.7, 1, 'L' },
@@ -622,10 +621,10 @@ function drawCell(cell, zoom)
 		else
 			if WG['guishader'] then
 				color1 = (cmd.type == 5) and { 0.4, 0.4, 0.4, 0.6 } or { 0.6, 0.6, 0.6, 0.6 }
-				color2 = { 0.7, 0.7, 0.7, 0.6 }
+				color2 = { 0.66, 0.66, 0.66, 0.5 }
 			else
 				color1 = (cmd.type == 5) and { 0.25, 0.25, 0.25, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color2 = { 0.6, 0.6, 0.6, 0.8 }
+				color2 = { 0.55, 0.55, 0.55, 0.6 }
 			end
 			RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
 
@@ -635,13 +634,13 @@ function drawCell(cell, zoom)
 
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
 		if padding == 1 then	-- make border less harch
-			RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*0.6}, {color2[1],color2[2],color2[3],color2[4]*0.6})
+			RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*math_min(0.55, ui_opacity)}, {color2[1],color2[2],color2[3],color2[4]*math_min(0.55, ui_opacity)})
 		end
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*(padding>1 and 1 or 0.75)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or 0.75)})
+		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)})
 
 		-- gloss
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42) - padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][4] - topMargin) - padding, cellWidth * 0.017, 2, 2, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.11 })
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][2] - leftMargin) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5) - padding, cellWidth * 0.017, 0, 0, 2, 2, { 1, 1, 1, 0.09 }, { 1, 1, 1, 0 })
+		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42) - padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][4] - topMargin) - padding, cellWidth * 0.017, 2, 2, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.09 })
+		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][2] - leftMargin) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5) - padding, cellWidth * 0.017, 0, 0, 2, 2, { 1, 1, 1, 0.07 }, { 1, 1, 1, 0 })
 
 		-- icon
 		if showIcons then
