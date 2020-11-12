@@ -1976,6 +1976,21 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
+    groundflash_quick = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 1,
+            air                = false,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            properties = {
+                colormap           = [[1 0.93 0.75 0.2   0 0 0 0.01]],
+                size               = 2,
+                sizegrowth         = 16,
+                ttl                = 15,
+                texture            = [[groundflash]],
+            },
+        },
     groundflash_white = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
@@ -2427,6 +2442,21 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
+    groundflash_quick = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 1,
+            air                = false,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            properties = {
+                colormap           = [[1 0.93 0.75 0.6   0 0 0 0.01]],
+                size               = 4,
+                sizegrowth         = 22,
+                ttl                = 12,
+                texture            = [[groundflash]],
+            },
+        },
     groundflash_white = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
