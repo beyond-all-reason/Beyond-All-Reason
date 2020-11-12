@@ -251,7 +251,7 @@ function setupCellGrid(force)
 		cellWidth = math_floor((activeRect[3] - activeRect[1]) / cols)
 		cellHeight = math_floor((activeRect[4] - activeRect[2]) / rows)
 		local leftOverWidth = ((activeRect[3] - activeRect[1]) - (cellWidth * cols))-1
-		local leftOverHeight = ((activeRect[4] - activeRect[2]) - (cellHeight * rows))
+		local leftOverHeight = ((activeRect[4] - activeRect[2]) - (cellHeight * rows)) -(posY-height <= 0 and 1 or 0)
 		cellMarginPx = math_max(1, math_ceil(cellHeight * 0.5 * cellMargin))
 		cellMarginPx2 = math_max(0, math_ceil(cellHeight * 0.18 * cellMargin))
 
@@ -259,14 +259,19 @@ function setupCellGrid(force)
 		--cellHeight = math_floor(cellHeight)
 		local addedWidth = 0
 		local addedHeight = 0
+		local addedWidthFloat = 0
+		local addedHeightFloat = 0
 		local prevAddedWidth = 0
 		local prevAddedHeight = 0
 		for row = 1, rows do
 			prevAddedHeight = addedHeight
-			addedHeight = math_floor((leftOverHeight / row) + 0.5)
+			addedHeightFloat = addedHeightFloat + (leftOverHeight / rows)
+			addedHeight = math_floor(addedHeightFloat)
 			prevAddedWidth = 0
+			addedWidthFloat = 0
 			for col = 1, cols do
-				addedWidth = math_floor((leftOverWidth / (cols-(col-1))) + 0.5)
+				addedWidthFloat = addedWidthFloat + (leftOverWidth / cols)
+				addedWidth = math_floor(addedWidthFloat)
 				i = i + 1
 				cellRects[i] = {
 					math_floor(activeRect[1] + prevAddedWidth + (cellWidth * (col - 1)) + 0.5),
@@ -327,8 +332,8 @@ function widget:ViewResize()
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
 	activeRect = {
-		(posX * vsx) + (posX > 0 and activeBgpadding or bgpadding),
-		((posY - height) * vsy) + (posY-height > 0 and activeBgpadding or math_floor(activeBgpadding / 3)),
+		(posX * vsx) + (posX > 0 and activeBgpadding or math.ceil(bgpadding * 0.6)),
+		((posY - height) * vsy) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
 		((posX + width) * vsx) - activeBgpadding,
 		(posY * vsy) - activeBgpadding
 	}
