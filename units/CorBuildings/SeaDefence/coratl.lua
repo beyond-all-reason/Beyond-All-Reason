@@ -33,7 +33,6 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/seadefence",
 			techlevel = 2,

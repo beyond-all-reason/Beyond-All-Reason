@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 494,
-		sonardistance = 230,
+		sonardistance = 400,
 		waterline = 0,
 		yardmap = "wwwwwwwww",
 		customparams = {
