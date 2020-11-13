@@ -465,11 +465,12 @@ function drawFactionpicker()
 	rectMargin = math.floor((padding * 1) + 0.5)
 	for i, faction in pairs(factions) do
 		factionRect[i] = {
-			math.floor(backgroundRect[3] - (altPosition and padding or 0) - (cellSize * i)),
+			math.floor(backgroundRect[3] - padding - (cellSize * i)),
 			math.floor(backgroundRect[2] + padding),
 			math.floor(backgroundRect[3] - padding - (cellSize * (i - 1))),
 			math.floor(backgroundRect[2] + padding + cellSize)
 		}
+
 		-- background
 		local color1, color2
 		if WG['guishader'] then
