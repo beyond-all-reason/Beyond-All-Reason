@@ -3,9 +3,9 @@ Spring.Echo("[Scavengers] Config initialized")
 -- Modoptions
 	local scavEndless = Spring.GetModOptions().scavengersendless or "disabled"
 	if scavEndless == "disabled" then
-		scavEndlessBool = false
-	else
 		scavEndlessBool = true
+	else
+		scavEndlessBool = false
 	end
 -- End of Modoptions
 
