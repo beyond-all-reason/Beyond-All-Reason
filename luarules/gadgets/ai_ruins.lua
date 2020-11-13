@@ -44,7 +44,7 @@ function gadget:GetInfo()
       author    = "Damgam",
       date      = "2020",
       layer     = -100,
-      enabled   = true,
+      enabled   = ruinSpawnEnabled,
     }
 end
 
