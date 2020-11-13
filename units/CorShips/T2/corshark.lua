@@ -151,11 +151,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-<<<<<<< Updated upstream
-					default = 630,
-=======
 					default = 400,
->>>>>>> Stashed changes
 				},
 			},
 		},
