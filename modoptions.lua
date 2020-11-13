@@ -194,12 +194,12 @@ local options={
 	},
 	{
 		key    = 'scavengers',
-		name   = 'Scavenger amount',
+		name   = 'Scavenger Difficulty',
 		desc   = 'This multiplier will be applied on the amount of civilians a map will end up with',
 		type   = 'number',
 		section= 'options',
-		def    = 0,
-		min    = 0,
+		def    = 0.5,
+		min    = 0.1,
 		max    = 5,
 		step   = 0.1,
 	},
@@ -216,6 +216,18 @@ local options={
 			{key="medium", name="Medium", desc="Normal ramp up for slightly experienced players"},
 			{key="hard", name="Hard", desc="Hard ramp up for experienced players"},
 			{key="brutal", name="Brutal", desc="You'll die"},
+		}
+	},
+	{
+		key    = 'scavengersendless',
+		name   = 'Scavengers Endless Mode',
+		desc   = 'Disables final boss fight, making Scavengers an endless survival mode',
+		type   = 'list',
+		section = 'options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
+			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
 		}
 	},
 	{

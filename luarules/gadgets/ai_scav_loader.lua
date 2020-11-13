@@ -9,7 +9,7 @@ for i = 1,#teams do
 		break
 	end
 end
-if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+if scavengersAIEnabled then -- or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
 	enabled = true
 end
 

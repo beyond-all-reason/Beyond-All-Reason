@@ -1,5 +1,15 @@
 Spring.Echo("[Scavengers] Config initialized")
 
+-- Modoptions
+	local scavEndless = Spring.GetModOptions().scavengersendless or "disabled"
+	if scavEndless == "disabled" then
+		scavEndlessBool = false
+	else
+		scavEndlessBool = true
+	end
+-- End of Modoptions
+
+
 scavconfig = {
 	difficulty = {
 		easy = 1,
@@ -59,6 +69,7 @@ scavconfig = {
 		T4high								= 24000,
 		T4top								= 28000,
 		BossFight							= 32000,
+		Endless								= 35000,
 		-- don't delete
 		NoRadar								= 7500,
 	},
@@ -76,7 +87,7 @@ buildingSpawnerModuleConfig = {
 }
 
 unitSpawnerModuleConfig = {
-	bossFightEnabled					= true,
+	bossFightEnabled					= scavEndlessBool,
 	FinalBossUnit						= true,
 		FinalBossHealth						= 250000, -- this*teamcount*difficulty
 		FinalBossMinionsPassive				= 3000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
@@ -133,8 +144,15 @@ function CountScavConstructors()
 end
 
 function UpdateTierChances(n)
-	-- Must be 100 in total
-	if globalScore > scavconfig.timers.T4top then
+	-- Must be 100 in total 
+	if globalScore > scavconfig.timers.Endless then
+		TierSpawnChances.T0 = 1
+		TierSpawnChances.T1 = 1
+		TierSpawnChances.T2 = 1
+		TierSpawnChances.T3 = 1
+		TierSpawnChances.T4 = 96
+		TierSpawnChances.Message = "Current tier: Endless" 
+	elseif globalScore > scavconfig.timers.T4top then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
 		TierSpawnChances.T2 = 10

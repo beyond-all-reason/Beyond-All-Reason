@@ -105,8 +105,8 @@ function ArmyMoveOrders(n, scav, scavDef)
 	end
 	local x,y,z = Spring.GetUnitPosition(attackTarget)
 	local range = UnitRange[scav]
-	local x = x + math_random(-range*3,range*3)
-	local z = z + math_random(-range*3,range*3)
+	local x = x + math_random(-range,range)
+	local z = z + math_random(-range,range)
 	if (not BossWaveStarted) and (UnitDefs[scavDef].canFly or (UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight)) then
 		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 	else

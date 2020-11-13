@@ -1,7 +1,24 @@
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0 then
-    lootboxSpawnEnabled = true
+local teams = Spring.GetTeamList()
+for i = 1,#teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengersAIEnabled = true
+		scavengerAITeamID = i - 1
+		_,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerAITeamID)
+		break
+	end
+end
+
+if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0) then
+	lootboxSpawnEnabled = true
 else
-    lootboxSpawnEnabled = false
+	lootboxSpawnEnabled = false
+end
+
+if scavengersAIEnabled then
+	NameSuffix = "_scav"
+else
+	NameSuffix = ""
 end
 
 function gadget:GetInfo()
@@ -30,27 +47,66 @@ end
 local lootboxesListLow = {
     "lootboxbronze",
     "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxnano_t1_var1",
+	"lootboxnano_t1_var2",
+	"lootboxnano_t1_var3",
+	"lootboxnano_t1_var4",
 }
 
 local lootboxesListMid = {
     "lootboxbronze",
     "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
     "lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxnano_t1_var1",
+	"lootboxnano_t1_var2",
+	"lootboxnano_t1_var3",
+	"lootboxnano_t1_var4",
+	"lootboxnano_t2_var1",
+	"lootboxnano_t2_var2",
+	"lootboxnano_t2_var3",
+	"lootboxnano_t2_var4",
 }
 
 local lootboxesListHigh = {
     "lootboxbronze",
     "lootboxbronze",
     "lootboxbronze",
+	"lootboxbronze",
+    "lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxnano_t1_var1",
+	"lootboxnano_t1_var2",
+	"lootboxnano_t1_var3",
+	"lootboxnano_t1_var4",
+	"lootboxnano_t2_var1",
+	"lootboxnano_t2_var2",
+	"lootboxnano_t2_var3",
+	"lootboxnano_t2_var4",
+	"lootboxnano_t3_var1",
+	"lootboxnano_t3_var2",
+	"lootboxnano_t3_var3",
+	"lootboxnano_t3_var4",
 }
 
 local lootboxesListTop = {
-    "lootboxsilver",
-    "lootboxsilver",
+    "lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
@@ -59,6 +115,25 @@ local lootboxesListTop = {
 	"lootboxgold",
     "lootboxgold",
     "lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxnano_t1_var1",
+	"lootboxnano_t1_var2",
+	"lootboxnano_t1_var3",
+	"lootboxnano_t1_var4",
+	"lootboxnano_t2_var1",
+	"lootboxnano_t2_var2",
+	"lootboxnano_t2_var3",
+	"lootboxnano_t2_var4",
+	"lootboxnano_t3_var1",
+	"lootboxnano_t3_var2",
+	"lootboxnano_t3_var3",
+	"lootboxnano_t3_var4",
+	"lootboxnano_t4_var1",
+	"lootboxnano_t4_var2",
+	"lootboxnano_t4_var3",
+	"lootboxnano_t4_var4",
 }
 
 
@@ -123,6 +198,14 @@ local function SpawnFromQueue(n)
 	end
 end
 
+local function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
+	if scavengersAIEnabled == true then
+		return Spring.IsPosInLos(posx, posy, posz, allyTeamID)
+	else
+		return true
+	end
+end
+
 
 -- callins
 
@@ -153,20 +236,21 @@ function gadget:GameFrame(n)
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
                 local posy = spGroundHeight(posx, posz)
-				local unitsCyl = spGetCylinder(posx, posz, 128)
-                if #unitsCyl == 0 then
+				local unitsCyl = spGetCylinder(posx, posz, 64)
+				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
+                if #unitsCyl == 0 and scavLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
                     if aliveLootboxesCount < 2 then
-						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 					elseif aliveLootboxesCount < 4 then
-						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 					elseif aliveLootboxesCount < 6 then
-						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 					else
-						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)], posx, posy, posz, math_random(0,3), spGaiaTeam)
+						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 					end
-
+					spCreateUnit("lootdroppod_gold"..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
                     break
                 end
             end
@@ -179,7 +263,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local UnitName = UnitDefs[unitDefID].name
 	if isLootbox[unitDefID] then
 		local uposx, uposy, uposz = spGetUnitPosition(unitID)
-		spCreateUnit("lootdroppod_gold", uposx, uposy, uposz, math_random(0,3), spGaiaTeam)
 		aliveLootboxes[unitID] = true
 		aliveLootboxesCount = aliveLootboxesCount + 1
         Spring.SetUnitNeutral(unitID, true)
