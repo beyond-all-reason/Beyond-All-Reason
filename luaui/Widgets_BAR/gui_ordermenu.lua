@@ -41,7 +41,7 @@ local cmdInfo = {		-- r, g, b, SHORTCUT
 	['Area attack'] = { 1, 0.35, 0.15, 'A'},
 	ManualFire = { 1, 0.7, 0.7, 'D' },
 	Patrol = { 0.73, 0.73, 1, 'P'},
-	Fight = { 0.9, 0.5, 1, 'S'},
+	Fight = { 0.9, 0.5, 1, 'F'},
 	Resurrect = { 1, 0.75, 1 },
 	Guard = { 0.33, 0.92, 1, 'G'},
 	Wait = { 0.7, 0.66, 0.6, 'W' },
@@ -620,11 +620,11 @@ function drawCell(cell, zoom)
 			color2 = { 1, 1, 1, 0.95 }
 		else
 			if WG['guishader'] then
-				color1 = (cmd.type == 5) and { 0.4, 0.4, 0.4, 0.6 } or { 0.6, 0.6, 0.6, 0.6 }
-				color2 = { 0.66, 0.66, 0.66, 0.5 }
+				color1 = (cmd.type == 5) and { 0.4, 0.4, 0.4, math_max(0.35, math_min(0.55, ui_opacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
+				color2 = { 0.8, 0.8, 0.8, math_max(0.35, math_min(0.6, ui_opacity/1.4)) }
 			else
 				color1 = (cmd.type == 5) and { 0.25, 0.25, 0.25, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color2 = { 0.55, 0.55, 0.55, 0.6 }
+				color2 = { 0.8, 0.8, 0.8, math_max(0.35, math_min(0.6, ui_opacity/1.4)) }
 			end
 			RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
 

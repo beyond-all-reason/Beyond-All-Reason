@@ -1663,6 +1663,7 @@ function widget:DrawScreen()
 					font:Print("Really want to quit?", quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - fontSize, fontSize, "cn")
 				end
 
+
 				-- quit button
 				local color1, color2
 				local mult = 0.85
@@ -1678,6 +1679,9 @@ function widget:DrawScreen()
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 1, 1, 1, 1, color1, color2)
 
 					glBlending(GL_SRC_ALPHA, GL_ONE)
+					local p = math.max(1, math_floor(widgetScale*1.8))
+					RectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
+
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4] - ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1705,6 +1709,9 @@ function widget:DrawScreen()
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], padding * 0.5, 1, 1, 1, 1, color1, color2)
 
 					glBlending(GL_SRC_ALPHA, GL_ONE)
+					local p = math.max(1, math_floor(widgetScale*1.8))
+					RectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
+
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[4] - ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.5), quitscreenResignArea[3], quitscreenResignArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
