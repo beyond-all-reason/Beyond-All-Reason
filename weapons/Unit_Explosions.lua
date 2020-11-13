@@ -2392,36 +2392,34 @@ unitDeaths = {
 
 }
 
---if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
-    function deepcopy(orig)
-        local orig_type = type(orig)
-        local copy
-        if orig_type == 'table' then
-            copy = {}
-            for orig_key, orig_value in next, orig, nil do
-                copy[deepcopy(orig_key)] = deepcopy(orig_value)
-            end
-            setmetatable(copy, deepcopy(getmetatable(orig)))
-        else -- number, string, boolean, etc
-            copy = orig
-        end
-        return copy
-    end
-
-    local scavengerDefs = {}
-    for name, def in pairs(unitDeaths) do
-		if string.find(string.lower(name), 'explosiont3') or string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
-			scavengerDefs[name..'-purple'] = deepcopy(def)
-			scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
-		elseif string.find(def.explosiongenerator, 't3unitexplosion') then
-			scavengerDefs[name..'-purple'] = deepcopy(def)
-			scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
+function deepcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[deepcopy(orig_key)] = deepcopy(orig_value)
 		end
-    end
-    for name,ud in pairs(scavengerDefs) do
-        unitDeaths[name] = ud
-    end
---end
+		setmetatable(copy, deepcopy(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
+end
+
+local scavengerDefs = {}
+for name, def in pairs(unitDeaths) do
+	if string.find(string.lower(name), 'explosiont3') or string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
+		scavengerDefs[name..'-purple'] = deepcopy(def)
+		scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
+	elseif string.find(def.explosiongenerator, 't3unitexplosion') then
+		scavengerDefs[name..'-purple'] = deepcopy(def)
+		scavengerDefs[name..'-purple'].explosiongenerator = scavengerDefs[name..'-purple'].explosiongenerator..'-purple'
+	end
+end
+for name,ud in pairs(scavengerDefs) do
+	unitDeaths[name] = ud
+end
 
 
 return lowerkeys(unitDeaths)

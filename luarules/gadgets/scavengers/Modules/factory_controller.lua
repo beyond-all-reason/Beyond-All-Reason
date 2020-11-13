@@ -13,8 +13,8 @@ function FactoryProduction(n, scav, scavDef)
 	if not isExcluded[scavDef] then
 		local range = UnitDefs[scavDef].buildDistance or 0
 		local x,y,z = Spring.GetUnitPosition(scav)
-		local posx = x+math_random(-((range+1)*0.80),(range+1)*0.80)
-		local posz = z+math_random(-((range+1)*0.80),(range+1)*0.80)
+		local posx = x+math_random(-((range+1)*0.50),(range+1)*0.50)
+		local posz = z+math_random(-((range+1)*0.50),(range+1)*0.50)
 		local posy = Spring.GetGroundHeight(posx, posz)
 		--local a = math_random(3,10)
 		--for a = 1,a do

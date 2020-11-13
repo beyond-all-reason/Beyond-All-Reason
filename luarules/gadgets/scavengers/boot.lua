@@ -27,6 +27,7 @@ function ScavSendVoiceMessage(filedirectory)
 end
 
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
+VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 
 local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/'..GameShortName..'/UnitLists/','*.lua')

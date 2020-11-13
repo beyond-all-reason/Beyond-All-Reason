@@ -231,7 +231,7 @@ function gadget:GameFrame(n)
                 end
             end
         end
-        if math_random(0,300) == 0 and lootboxSpawnEnabled then
+        if math_random(0,450) == 0 and lootboxSpawnEnabled then
             for k = 1,1000 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
@@ -241,11 +241,11 @@ function gadget:GameFrame(n)
                 if #unitsCyl == 0 and scavLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
-                    if aliveLootboxesCount < 2 then
+                    if aliveLootboxesCount < 3 then
 						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-					elseif aliveLootboxesCount < 4 then
-						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 					elseif aliveLootboxesCount < 6 then
+						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					elseif aliveLootboxesCount < 9 then
 						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 					else
 						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)

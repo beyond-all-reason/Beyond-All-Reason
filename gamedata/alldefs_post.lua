@@ -317,7 +317,7 @@ function UnitDef_Post(name, uDef)
 	uDef.customparams.healthlookmod = 0
 
 	-- scavengers
-	if string.find(name, '_scav') then -- if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
+	if string.find(name, '_scav') then
 		--name = string.gsub(name, '_scav', '')
 		VFS.Include("gamedata/scavengers/unitdef_post.lua")
 		uDef = scav_Udef_Post(name, uDef)
@@ -433,7 +433,7 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		-- scavengers
-		if string.find(name, '_scav') then -- if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
+		if string.find(name, '_scav') then
 			VFS.Include("gamedata/scavengers/weapondef_post.lua")
 			wDef = scav_Wdef_Post(name, wDef)
 		end

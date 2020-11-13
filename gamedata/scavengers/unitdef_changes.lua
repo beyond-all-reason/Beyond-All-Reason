@@ -7,10 +7,23 @@
 
 customDefs = {}
 
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
-	ScavDifficultyMultiplier = (tonumber(Spring.GetModOptions().scavengers))
-else
+scavDifficulty = Spring.GetModOptions().scavengers or "easy"
+if scavDifficulty == "noob" then
+	ScavDifficultyMultiplier = 0.1
+elseif scavDifficulty == "easy" then
 	ScavDifficultyMultiplier = 0.5
+elseif scavDifficulty == "medium" then
+	ScavDifficultyMultiplier = 1
+elseif scavDifficulty == "hard" then
+	ScavDifficultyMultiplier = 1.5
+elseif scavDifficulty == "veryhard" then
+	ScavDifficultyMultiplier = 2
+elseif scavDifficulty == "brutal" then
+	ScavDifficultyMultiplier = 3
+elseif scavDifficulty == "insane" then
+	ScavDifficultyMultiplier = 4
+elseif scavDifficulty == "impossible" then
+	ScavDifficultyMultiplier = 5
 end
 
 local scavUnit = {}

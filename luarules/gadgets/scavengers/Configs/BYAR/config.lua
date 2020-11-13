@@ -94,8 +94,8 @@ unitSpawnerModuleConfig = {
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance
-	globalscoreperoneunit 				= 1000,
-	spawnchance							= 120,
+	globalscoreperoneunit 				= 900,
+	spawnchance							= 240,
 	beaconspawnchance					= 120,
 	beacondefences						= false,
 	minimumspawnbeacons					= 2,
