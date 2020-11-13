@@ -1,5 +1,5 @@
 return {
-	corssub = {
+	corssubOld = {
 		acceleration = 0.03609,
 		activatewhenbuilt = true,
 		brakerate = 0.03609,
