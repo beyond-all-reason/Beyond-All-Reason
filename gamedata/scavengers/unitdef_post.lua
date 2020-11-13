@@ -22,6 +22,8 @@ elseif scavDifficulty == "insane" then
 	ScavDifficultyMultiplier = 4
 elseif scavDifficulty == "impossible" then
 	ScavDifficultyMultiplier = 5
+else
+	ScavDifficultyMultiplier = 0.5
 end
 
 local rana = math.random(3,1000)

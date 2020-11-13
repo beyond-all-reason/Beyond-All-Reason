@@ -28,6 +28,8 @@ elseif scavDifficulty == "insane" then
 	spawnmultiplier = 4
 elseif scavDifficulty == "impossible" then
 	spawnmultiplier = 5
+else
+	spawnmultiplier = 0.5
 end
 
 
