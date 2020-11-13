@@ -29,7 +29,7 @@ return {
 		maxdamage = 3720,
 		maxslope = 20,
 		maxwaterdepth = 0,
-		name = "Moho Geothermal Powerplant",
+		name = "Geothermal Powerplant",
 		objectname = "Units/CORAGEO.s3o",
 		script = "Units/CORAGEO.lua",
 		seismicsignature = 0,
