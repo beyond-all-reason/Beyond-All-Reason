@@ -7,14 +7,6 @@ local RuinSpawns = (math.ceil(mapsizeX+mapsizeZ)/500)+30
 
 local teams = Spring.GetTeamList()
 
-BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Ruins/'..GameShortName..'/','*.lua')
-RuinsList = {}
-RuinsListSea = {}
-for i = 1,#BlueprintsList do
-	VFS.Include(BlueprintsList[i])
-	Spring.Echo("Ruin Blueprints Directory: " ..BlueprintsList[i])
-end
-
 for i = 1,#teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
@@ -32,7 +24,27 @@ else
 end
 
 VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+GaiaTeamID = Spring.GetGaiaTeamID()
+_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 
+function SpawnRuin(name, posx, posy, posz, facing)
+	local r = math.random(1,2)
+	if r == 1 then
+		local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaAllyTeamID)
+		Spring.SetFeatureResurrect(fe, name)
+	else
+		local u = Spring.CreateUnit(name, posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
+		Spring.SetUnitNeutral(u, true)
+	end
+end
+
+BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Ruins/'..GameShortName..'/','*.lua')
+RuinsList = {}
+RuinsListSea = {}
+for i = 1,#BlueprintsList do
+	VFS.Include(BlueprintsList[i])
+	Spring.Echo("Ruin Blueprints Directory: " ..BlueprintsList[i])
+end
 
 
 
