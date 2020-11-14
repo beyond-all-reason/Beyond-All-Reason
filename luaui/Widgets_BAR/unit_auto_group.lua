@@ -132,8 +132,8 @@ function widget:ViewResize()
 		for i, _ in ipairs(dlists) do
 			gl.DeleteList(dlists[i])
 		end
-		dlists = {}
 	end
+	dlists = {}
 	for i = 0, 9 do
 		dlists[i] = gl.CreateList(function()
 			font:Begin()

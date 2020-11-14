@@ -14,6 +14,7 @@ local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 
 local deltats = {}
+local deltatsGf = {}
 local timerold = 0
 local viewSizeX, viewSizeY = 0,0
 --------------------------------------------------------------------------------
@@ -35,6 +36,7 @@ function widget:DrawScreen()
 	
 	local timernew=Spring.GetTimer()
 	deltats [#deltats + 1] = Spring.DiffTimers(timernew,timerold)
+	deltatsGf [#deltatsGf + 1] = Spring.GetGameFrame()
 	
 	timerold = timernew
 
@@ -45,7 +47,7 @@ function widget:DrawScreen()
 	gl.Color(0.0, 0.0, 0.0, 1.0)
 	gl.Rect(viewSizeX/2,0,viewSizeX,64);
 	gl.Color(1.0, 1.0, 1.0, 1.0)
-	gl.Text("DrawFrame times, top of this black area means 16ms (60fps), 2s window", viewSizeX/2, 48, 16, "d")
+	gl.Text("DrawFrame times, top of this black area means 16ms (60fps), 2s window (lighter tone is ingame second)", viewSizeX/2, 48, 16, "d")
 
 	local leftpos = viewSizeX
 	local tindex = #deltats
@@ -62,11 +64,17 @@ function widget:DrawScreen()
 		if deltat_ms < 100 then -- some minimal sanity
 			gl.Rect(leftpos-1,0	,leftpos - deltat_ms*xmul,  deltat_ms*4)
 		end
+
+		-- draw line for a ingame second
+		if deltatsGf[tindex] % 30 == 0 then
+			gl.Color(1,1,1,0.75)
+			gl.Rect(leftpos-1,0	,leftpos - deltat_ms*xmul,  deltat_ms*4)
+		end
+
 		--Spring.Echo(leftpos,viewSizeY,leftpos - deltat_ms*xmul, viewSizeY - deltat_ms)
 		leftpos = leftpos - deltat_ms*xmul
 		tindex = tindex - 1
 	end
 	gl.Color(1.0, 1.0, 1.0, 1.0)
-	
 	gl.PopMatrix()
 end

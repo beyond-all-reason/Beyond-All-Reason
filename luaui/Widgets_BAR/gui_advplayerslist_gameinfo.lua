@@ -51,6 +51,11 @@ local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
+local guishaderEnabled = (WG['guishader'])
+
+local passedTime = 0
+local passedTime2 = 0
+local uiOpacitySec = 0.5
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -269,11 +274,6 @@ function widget:Shutdown()
 	WG['displayinfo'] = nil
 end
 
-local guishaderEnabled = (WG['guishader'])
-
-local passedTime = 0
-local passedTime2 = 0
-local uiOpacitySec = 0.5
 function widget:Update(dt)
 
 	uiOpacitySec = uiOpacitySec + dt
