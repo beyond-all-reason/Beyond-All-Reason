@@ -4,12 +4,11 @@
 #include "exptype.h"
 
 piece  ground, base, dish, 
-       tur1, tur2, tur3, tur4, tur5, flaktur1, flaktur2, sleeve1,
-       sleeve2, sleeve3, sleeve4, sleeve5, flaksleeve1, flaksleeve2, barrel1a, barrel1b,
-       barrel2a, barrel2b, barrel2c, barrel3a, barrel3b, barrel4a, barrel4b, barrel4c,
-       barrel5a, barrel5b, barrel5c, flakbarrel1a, flakbarrel1b, flakbarrel2a, flakbarrel2b, flare1a,
-       flare1b, flare2a, flare2b, flare2c, flare3a, flare3b, flare4a, flare4b,
-       flare4c, flare5a, flare5b, flare5c, flakflare1a, flakflare1b, flakflare2a, flakflare2b;
+       tur1, tur2, tur3, tur4, tur5, 
+       sleeve1, sleeve2, sleeve3, sleeve4, sleeve5, 
+       barrel1a, barrel1b, barrel2a, barrel2b, barrel2c, barrel3a, barrel3b, barrel4a, barrel4b, barrel4c, barrel5a, barrel5b, barrel5c,
+       flare1a, flare1b, flare2a, flare2b, flare2c, flare3a, flare3b, flare4a, flare4b, flare4c, flare5a, flare5b, flare5c,
+       turretmis1, turretmis2, misbox1, misbox2, misflare1, misflare2;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
             Static_Var_6, Static_Var_7, restore_delay, oldHead;
@@ -131,18 +130,7 @@ Create()
 	hide flare2c;
 	hide flare4c;
 	hide flare5c;
-	hide flaktur1;
-	hide flaksleeve1;
-	hide flakbarrel1a;
-	hide flakbarrel1b;
-	hide flakflare1a;
-	hide flakflare1b;
-	hide flaktur2;
-	hide flaksleeve2;
-	hide flakbarrel2a;
-	hide flakbarrel2b;
-	hide flakflare2a;
-	hide flakflare2b;
+
 	Static_Var_1 = 0;
 	Static_Var_2 = 0;
 	Static_Var_3 = 0;
@@ -198,10 +186,10 @@ RestoreAfterDelay()
 RestoreAfterDelay3()
 {
 	sleep restore_delay;
-	turn flaktur1 to y-axis <0.000000> speed <80.000000>;
-	turn flaksleeve1 to x-axis <0.000000> speed <50.000000>;
-	turn flaktur2 to y-axis <0.000000> speed <80.000000>;
-	turn flaksleeve2 to x-axis <0.000000> speed <50.000000>;
+	turn turretmis1 to y-axis <0.000000> speed <80.000000>;
+	turn misbox1 to x-axis <0.000000> speed <50.000000>;
+	turn turretmis2 to y-axis <0.000000> speed <80.000000>;
+	turn misbox2 to x-axis <0.000000> speed <50.000000>;
 }
 
 waveSplash()
@@ -484,10 +472,10 @@ AimWeapon6(heading, pitch)
 {
 	signal 64;
 	set-signal-mask 64;
-	turn flaktur1 to y-axis heading speed <250.000000>;
-	turn flaksleeve1 to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn flaktur1 around y-axis;
-	wait-for-turn flaksleeve1 around x-axis;
+	turn turretmis1 to y-axis heading speed <250.000000>;
+	turn misbox1 to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn turretmis1 around y-axis;
+	wait-for-turn misbox1 around x-axis;
 	start-script RestoreAfterDelay3();
 	return (1);
 }
@@ -496,39 +484,33 @@ FireWeapon6()
 {
 	if( Static_Var_6 )
 	{
-	    emit-sfx 1024 + 2 from flakflare1b;
-		move flakbarrel1b to z-axis [-1.000000] speed [500.000000];
-		sleep 50;
-		move flakbarrel1b to z-axis [0.000000] speed [3.000000];
+	    emit-sfx 1024 + 2 from misflare1;	
 	}
-	else
-	{
-	    emit-sfx 1024 + 2 from flakflare1a;
-		move flakbarrel1a to z-axis [-1.000000] speed [500.000000];
-		sleep 50;
-		move flakbarrel1a to z-axis [0.000000] speed [3.000000];
-	}
+//	else
+//	{
+//	    emit-sfx 1024 + 2 from misflare2;
+//	}
 	Static_Var_6 = !Static_Var_6;
 }
 
 AimFromWeapon6(piecenum)
 {
-	piecenum = flaktur1;
+	piecenum = turretmis1;
 }
 
 QueryWeapon6(piecenum)
 {
-	piecenum = flakflare1a + Static_Var_6;
+	piecenum = misflare1 + Static_Var_6;
 }
 
 AimWeapon7(heading, pitch)
 {
 	signal 128;
 	set-signal-mask 128;
-	turn flaktur2 to y-axis heading speed <250.000000>;
-	turn flaksleeve2 to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn flaktur2 around y-axis;
-	wait-for-turn flaksleeve2 around x-axis;
+	turn turretmis2 to y-axis heading speed <250.000000>;
+	turn misbox2 to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn turretmis2 around y-axis;
+	wait-for-turn misbox2 around x-axis;
 	start-script RestoreAfterDelay3();
 	return (1);
 }
@@ -537,29 +519,23 @@ FireWeapon7()
 {
 	if( Static_Var_7 )
 	{
-	    emit-sfx 1024 + 2 from flakflare2b;
-		move flakbarrel2b to z-axis [-1.000000] speed [500.000000];
-		sleep 50;
-		move flakbarrel2b to z-axis [0.000000] speed [3.000000];
+	    emit-sfx 1024 + 2 from misflare2;
 	}
-	else
-	{
-	    emit-sfx 1024 + 2 from flakflare2a;
-		move flakbarrel2a to z-axis [-1.000000] speed [500.000000];
-		sleep 50;
-		move flakbarrel2a to z-axis [0.000000] speed [3.000000];
-	}
+//	else
+//	{
+//	    emit-sfx 1024 + 2 from misflare2;
+//	}
 	Static_Var_7 = !Static_Var_7;
 }
 
 AimFromWeapon7(piecenum)
 {
-	piecenum = flaktur2;
+	piecenum = turretmis2;
 }
 
 QueryWeapon7(piecenum)
 {
-	piecenum = flakflare2a + Static_Var_7;
+	piecenum = misflare2 + Static_Var_7;
 }
 
 SweetSpot(piecenum)
