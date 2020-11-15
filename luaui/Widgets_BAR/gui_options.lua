@@ -2021,7 +2021,8 @@ function init()
 		  onchange = function(i, value)
 			  local enabled = (value < 1000) and 0 or 1
 			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
-			  Spring.SetConfigInt("shadows", value)
+			  Spring.SetConfigInt("shadows", enabled)
+			  Spring.SetConfigInt("shadowmapsize", value)
 		  end,
 		},
 		{ id = "shadows_opacity", group = "gfx", name = widgetOptionColor .. "   opacity", type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
