@@ -43,7 +43,7 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armhovercraft",
+			subfolder = "armgantry",
 		},
 		featuredefs = {
 			dead = {

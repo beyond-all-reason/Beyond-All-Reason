@@ -46,7 +46,7 @@ return {
 		waterline = 7,
 		customparams = {
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corhovercraft",
+			subfolder = "corgantry",
 		},
 		featuredefs = {
 			dead = {
