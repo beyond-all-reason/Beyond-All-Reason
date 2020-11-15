@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 
 -- Constants (kinda)
-local drawAsSpec = false
 local circleSplitCount = 96 -- level of circle's detail
 local circleSplits = {} -- precalculated sin and cos values
 local shapeHover = 3.0 -- circle elevation over ground (probably not needed since rendering is depth-unaware)
@@ -59,19 +58,16 @@ local vsx, vsy = Spring.GetViewGeometry()
 local lineScale = 1
 local unitList = {} -- all ally units and their coordinates and radar ranges
 local rangeShapeList = {} -- table of coordinates lists for range circles
-
-local unitRange = {} -- table of unit types with their radar ranges
 local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
-function fillUnitRanges()
-    for unitDefID, unitDef in pairs(UnitDefs) do
-        if unitDef.radarRadius and unitDef.radarRadius > 0 then
-            if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
-            unitRange[unitDefID]['range'] = unitDef.radarRadius
-        end
-    end
+local unitRange = {} -- table of unit types with their radar ranges
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.radarRadius and unitDef.radarRadius > 0 then
+		if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
+		unitRange[unitDefID]['range'] = unitDef.radarRadius
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -97,7 +93,12 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-    fillUnitRanges()
+	unitList = {}
+	rangeShapeList = {}
+	if rangeCircleList then
+		glDeleteList(rangeCircleList)
+		rangeCircleList = nil
+	end
     local units = Spring.GetAllUnits()
 	for i=1,#units do
 		processUnit( units[i] )
@@ -207,8 +208,10 @@ end
 
 local sec = 0
 function widget:Update(dt)
+	if spec and fullview then return end
+
 	sec = sec + dt
-	if sec > 0.033 then	-- cap at max 30 fps updaterate
+	if sec > 0.9 then	-- 0.033 = cap at max 30 fps updaterate
 		sec = 0
 
 		-- prepare coordinates lists for radar ranges
@@ -258,7 +261,7 @@ end
 
 function widget:DrawWorld()
     if chobbyInterface then return end
-    if not drawAsSpec and spec and fullview then return end
+    if spec and fullview then return end
     if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 
     if not rangeCircleList then
