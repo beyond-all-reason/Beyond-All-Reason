@@ -73,16 +73,16 @@ local drawUnitHighlight 		= false
 local drawUnitHighlightSkipFPS	= 13  -- (0 to disable) skip drawing when framerate gets below this value
 
 local opacity      				= 1
-local duration     				= 2.6
+local duration     				= 0.9
 
-local lineWidth	   				= 7.8
-local lineOpacity				= 0.75
+local lineWidth	   				= 5.5
+local lineOpacity				= 0.85
 local lineDuration 				= 1		-- set a value <= 1
 local lineWidthEnd				= 0.85		-- multiplier
 local lineTextureLength 		= 4
 local lineTextureSpeed  		= 2.4
 
-local groundGlow				= true
+local groundGlow				= false
 local glowRadius    			= 26
 local glowDuration  			= 0.5
 local glowOpacity   			= 0.11
