@@ -3,7 +3,7 @@ function RandomEventMiniboss1(CurrentFrame)
 	local T2bosses = {"corsumo_scav","corgol_scav","corparrow_scav","armfboy_scav","armmanni_scav",}
 	local T3bosses = {"armmar_scav","armvang_scav","armraz_scav","corshiva_scav","corkarg_scav","corcat_scav","armlun_scav","corsok_scav","armsptkt4_scav",}
 	local T4bosses = {"corkorg_scav", "corjugg_scav", "armbanth_scav","armpwt4_scav","armrattet4_scav","armvadert4_scav","cordemont4_scav","corkarganetht4_scav",}
-	local baseNumber = (spawnmultiplier*0.5)+(teamcount*0.5)
+	local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.5
 	for i = 1,1000 do
 		local posx = math_random(300,mapsizeX-300)
 		local posz = math_random(300,mapsizeZ-300)

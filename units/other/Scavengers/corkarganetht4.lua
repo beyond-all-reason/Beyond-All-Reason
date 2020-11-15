@@ -244,7 +244,7 @@ return {
 				model = "cormissile3.s3o",
 				name = "KarganethMissiles",
 				noselfdamage = true,
-				range = 1200,
+				range = 800,
 				reloadtime = 0.37,
 				smoketrail = false,
 				soundhit = "xplosml2",

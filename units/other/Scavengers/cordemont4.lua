@@ -365,7 +365,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "GROUNDSCOUT NOTAIR",
+				badtargetcategory = "GROUNDSCOUT VTOL",
 				def = "DMAW",
 				onlytargetcategory = "NOTSUB",
 			},
