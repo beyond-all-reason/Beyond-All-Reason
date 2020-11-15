@@ -10,15 +10,14 @@ function widget:GetInfo()
 	}
 end
 
--- Constants (kinda)
 local circleSplitCount = 96 -- level of circle's detail
-local circleSplits = {} -- precalculated sin and cos values
 local shapeHover = 3.0 -- circle elevation over ground (probably not needed since rendering is depth-unaware)
 local rangeColor = { 0.0, 1.0, 0.0, 0.18 }
-local rangeLineWidth = 4.0 -- use UI Scale factor?
+local rangeLineWidth = 4.0 -- (note: will end up larger for larger vertical screen resolution size)
 
 -- precalculate needed sin and cos values
 -- taking values from table is hundreds of times faster (yes, really)
+local circleSplits = {} -- precalculated sin and cos values
 for i = 1, circleSplitCount do
     local rad = 2 * math.pi * i / (circleSplitCount-1)
     circleSplits[i] = { sin = math.sin(rad), cos = math.cos(rad) }
@@ -63,10 +62,15 @@ local allyTeamID = Spring.GetMyAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
+--local isBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.radarRadius and unitDef.radarRadius > 0 then
+	if unitDef.radarRadius and unitDef.radarRadius > 400 then	-- save perf by excluding low radar range units
 		if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
 		unitRange[unitDefID]['range'] = unitDef.radarRadius
+
+		--if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
+		--	isBuilding[unitDefID] = true
+		--end
 	end
 end
 
@@ -211,7 +215,7 @@ function widget:Update(dt)
 	if spec and fullview then return end
 
 	sec = sec + dt
-	if sec > 0.9 then	-- 0.033 = cap at max 30 fps updaterate
+	if sec > 0.033 then	-- 0.033 = cap at max 30 fps updaterate
 		sec = 0
 
 		-- prepare coordinates lists for radar ranges
