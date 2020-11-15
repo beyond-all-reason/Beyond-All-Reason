@@ -11,11 +11,11 @@ function widget:GetInfo()
 end
 
 -- Constants (kinda)
-local circleSplitCount = 64 -- level of circle's detail
+local circleSplitCount = 96 -- level of circle's detail
 local circleSplits = {} -- precalculated sin and cos values
-local shapeHover = 5.0 -- circle elevation over ground (probably not needed since rendering is depth-unaware)
+local shapeHover = 3.0 -- circle elevation over ground (probably not needed since rendering is depth-unaware)
 local updateInterval = 0.125 -- 8 times per second is good middle ground between look and performance
-local rangeColor = { 0.0, 1.0, 0.0, 0.25 }
+local rangeColor = { 0.0, 1.0, 0.0, 0.18 }
 local rangeLineWidth = 4.0 -- use UI Scale factor?
 
 -- precalculate needed sin and cos values
@@ -54,6 +54,8 @@ local GL_REPLACE            = GL.REPLACE
 local GL_TRIANGLE_FAN       = GL.TRIANGLE_FAN
 
 -- Globals
+local vsx, vsy = Spring.GetViewGeometry()
+local lineScale = 1
 local unitList = {} -- all ally units and their coordinates and radar ranges
 local rangeShapeList = {} -- table of coordinates lists for range circles
 
@@ -80,7 +82,13 @@ function widget:PlayerChanged()
 	spec, fullview = spGetSpectatingState()
 end
 
+function widget:ViewResize(newX,newY)
+	vsx, vsy = Spring.GetViewGeometry()
+	lineScale = vsy+500 / 1300
+end
+
 function widget:Initialize()
+	widget:ViewResize()
     fillUnitRanges()
     local units = Spring.GetAllUnits()
 	for i=1,#units do
@@ -179,11 +187,11 @@ function drawRangesOutline()
     -- Render outer circles using resulting stencil
     for unitId, rangeShape in pairs(rangeShapeList) do
         glColor( rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
-        glLineWidth(rangeLineWidth + 1.0)
+        glLineWidth(rangeLineWidth * lineScale)
         glBeginEnd(GL_LINE_LOOP, buildVertexList, rangeShape['shape'] )
     end
 
-    glStencilTest(false); 
+    glStencilTest(false)
 end
 
 function widget:GameFrame(frame)
@@ -248,11 +256,11 @@ function widget:DrawWorld()
     if chobbyInterface then return end
     if spec and fullview then return end
     if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
-    
+
     if not rangeCircleList then
         updateRangeShapes()
     end
-    
+
     if rangeCircleList then
         glCallList(rangeCircleList)
     end
