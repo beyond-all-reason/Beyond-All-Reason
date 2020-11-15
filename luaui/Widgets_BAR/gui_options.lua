@@ -3390,6 +3390,8 @@ function init()
 		},
 		{ id = "givenunits", group = "ui", widget = "Given Units", name = "Given unit icons", type = "bool", value = GetWidgetToggleValue("Given Units"), description = 'Tags given units with \'new\' icon' },
 
+		{ id = "radarrange", group = "ui", widget = "Radar Range", name = "Radar range", type = "bool", value = GetWidgetToggleValue("Radar Range"), description = 'Displays the range of radar coverage with a green line' },
+
 		{ id = "defrange", group = "ui", widget = "Defense Range", name = "Defense ranges", type = "bool", value = GetWidgetToggleValue("Defense Range"), description = 'Displays range of defenses (enemy and ally)' },
 		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   Ally Air", type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = 'Show Range For Ally Air',
 		  onload = function(i)
