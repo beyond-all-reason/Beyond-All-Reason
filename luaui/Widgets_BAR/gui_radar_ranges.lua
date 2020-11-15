@@ -14,6 +14,7 @@ local circleSplitCount = 96 -- level of circle's detail
 local shapeHover = 3.0 -- circle elevation over ground (probably not needed since rendering is depth-unaware)
 local rangeColor = { 0.0, 1.0, 0.0, 0.18 }
 local rangeLineWidth = 4.0 -- (note: will end up larger for larger vertical screen resolution size)
+local minRadarDistance = 1000
 
 -- precalculate needed sin and cos values
 -- taking values from table is hundreds of times faster (yes, really)
@@ -64,7 +65,7 @@ local allyTeamID = Spring.GetMyAllyTeamID()
 local unitRange = {} -- table of unit types with their radar ranges
 --local isBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.radarRadius and unitDef.radarRadius > 400 then	-- save perf by excluding low radar range units
+	if unitDef.radarRadius and unitDef.radarRadius > minRadarDistance then	-- save perf by excluding low radar range units
 		if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
 		unitRange[unitDefID]['range'] = unitDef.radarRadius
 
@@ -215,7 +216,7 @@ function widget:Update(dt)
 	if spec and fullview then return end
 
 	sec = sec + dt
-	if sec > 0.033 then	-- 0.033 = cap at max 30 fps updaterate
+	if sec > 0.066 then	-- 0.033 = cap at max 30 fps updaterate
 		sec = 0
 
 		-- prepare coordinates lists for radar ranges
