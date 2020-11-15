@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 	
 else
 	function gadget:GotChatMsg(msg, playerID)
-		if msg == "scavblp" then 
+		if msg == "scavblpcon" then 
 			local selectedunits = Spring.GetSelectedUnits()
 			GetBlueprintCenter()
 			Spring.Echo(" ")
@@ -30,6 +30,15 @@ else
 				GenerateBlueprint1(selectedunits[i])
 				--Spring.Echo("UnitID"..i..": "..selectedunits[i]) 
 			end
+			Spring.Echo("")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("")
+			ClearValues()
+		elseif msg == "scavblpspawn" then
+			local selectedunits = Spring.GetSelectedUnits()
+			GetBlueprintCenter()
 			Spring.Echo(" ")
 			Spring.Echo("Spawner Blueprint: ")
 			for i = 1,#selectedunits do
@@ -37,9 +46,25 @@ else
 				--Spring.Echo("UnitID"..i..": "..selectedunits[i]) 
 			end
 			Spring.Echo(" ")
-			Spring.Echo("Useless Echos to make sure whole thing land in infolog: ")
-			Spring.Echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-			Spring.Echo("i think that's enough... Blueprint Created")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("")
+			ClearValues()
+		elseif msg == "scavblpruin" then
+			local selectedunits = Spring.GetSelectedUnits()
+			GetBlueprintCenter()
+			Spring.Echo(" ")
+			Spring.Echo("Ruin Blueprint: ")
+			for i = 1,#selectedunits do
+				GenerateBlueprint3(selectedunits[i])
+				--Spring.Echo("UnitID"..i..": "..selectedunits[i]) 
+			end
+			Spring.Echo(" ")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("BLUEPRINT GENERATED")
+			Spring.Echo("")
 			ClearValues()
 		end 
 	end
@@ -66,6 +91,18 @@ else
 		
 		-- Spring.CreateUnit("corrad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 		Spring.Echo("Spring.CreateUnit("..unitDefNameString..unitDefName..unitDefNameString.."..nameSuffix, posx+("..posx.."), posy, posz+("..posz.."), "..unitIDFacing..",GaiaTeamID)") 
+		
+	end
+	function GenerateBlueprint3(unitID)
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefName = UnitDefs[unitDefID].name
+		local unitIDFacing = Spring.GetUnitBuildFacing(unitID)
+		local posx = math.ceil(centerposx[unitID]-blpcenterpositionx)
+		local posz = math.ceil(centerposz[unitID]-blpcenterpositionz)
+		local unitDefNameString = [["]]
+		
+		-- Spring.CreateUnit("corrad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.Echo("SpawnRuin("..unitDefNameString..unitDefName..unitDefNameString..", posx+("..posx.."), posy, posz+("..posz.."), "..unitIDFacing..")") 
 		
 	end
 	

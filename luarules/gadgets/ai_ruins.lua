@@ -17,7 +17,7 @@ for i = 1,#teams do
 	end
 end
 
-if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().ruins) or 0) ~= 0) then
+if scavengersAIEnabled or (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") then
 	ruinSpawnEnabled = true
 else
 	ruinSpawnEnabled = false
@@ -28,13 +28,36 @@ GaiaTeamID = Spring.GetGaiaTeamID()
 _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 
 function SpawnRuin(name, posx, posy, posz, facing)
-	local r = math.random(1,2)
-	if r == 1 then
-		local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaAllyTeamID)
-		Spring.SetFeatureResurrect(fe, name)
-	else
+	local r = math.random(1,100)
+	-- if r < 40 then
+		-- local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaAllyTeamID)
+		-- Spring.SetFeatureAlwaysVisible(fe, false)
+		-- Spring.SetFeatureResurrect(fe, name)
+		-- local u = Spring.CreateUnit(name, posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
+		-- Spring.SetUnitHealth(u, 0)
+	if r < 80 then
 		local u = Spring.CreateUnit(name, posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
 		Spring.SetUnitNeutral(u, true)
+		Spring.GiveOrderToUnit(u,CMD.FIRE_STATE,{1},0)
+		Spring.GiveOrderToUnit(u,CMD.MOVE_STATE,{0},0)
+		local udefid = Spring.GetUnitDefID(u)
+		local rrange = UnitDefs[udefid].radarRadius
+		local canmove = UnitDefs[udefid].canMove
+		local speed = UnitDefs[udefid].speed
+		-- local weapons = UnitDefs[udefid].weapons
+		-- if weapons then
+			-- Spring.SetUnitNeutral(u, false)
+		-- end
+		if canmove and speed > 0 then
+			for i = 1,6 do
+				Spring.GiveOrderToUnit(u, CMD.PATROL,{posx+(math.random(-200,200)),posy+100,posz+(math.random(-200,200))}, {"shift", "alt", "ctrl"})
+			end
+		end
+		if rrange and rrange > 1000 then
+			Spring.GiveOrderToUnit(u,CMD.ONOFF,{0},0)
+		end
+	else
+	
 	end
 end
 

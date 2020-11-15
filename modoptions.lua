@@ -249,6 +249,18 @@ local options={
 		}
 	},
 	{
+		key    = 'ruins',
+		name   = 'Random Ruins',
+		desc   = 'description',
+		type   = 'list',
+		section = 'options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
 		key    = 'lootboxes',
 		name   = 'Lootboxes',
 		desc   = '1 to enable, 0 to disable',

@@ -9,6 +9,10 @@ local posradius = 64
 		SpawnRuin("corwin", posx-48, posy, posz, math.random(0,3))
 		SpawnRuin("corwin", posx, posy, posz+48, math.random(0,3))
 		SpawnRuin("corwin", posx, posy, posz-48, math.random(0,3))
+		SpawnRuin("corak", posx+96, posy, posz, math.random(0,3))
+		SpawnRuin("corak", posx-96, posy, posz, math.random(0,3))
+		SpawnRuin("corak", posx, posy, posz+96, math.random(0,3))
+		SpawnRuin("corak", posx, posy, posz-96, math.random(0,3))
 	end
 end
 table.insert(RuinsList,corLonelyWind2)
@@ -23,16 +27,20 @@ local posradius = 64
 		SpawnRuin("armwin", posx-48, posy, posz, math.random(0,3))
 		SpawnRuin("armwin", posx, posy, posz+48, math.random(0,3))
 		SpawnRuin("armwin", posx, posy, posz-48, math.random(0,3))
+		SpawnRuin("armpw", posx+96, posy, posz, math.random(0,3))
+		SpawnRuin("armpw", posx-96, posy, posz, math.random(0,3))
+		SpawnRuin("armpw", posx, posy, posz+96, math.random(0,3))
+		SpawnRuin("armpw", posx, posy, posz-96, math.random(0,3))
 	end
 end
-table.insert(RuinsList,corLonelyWind2)
+table.insert(RuinsList,armLonelyWind2)
 
 local function corLonelyWind(posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		SpawnRuin("corwin", posx, posy, posz, math.random(0,3))
+		SpawnRuin("corsolar", posx, posy, posz, math.random(0,3))
 
 	end
 end
@@ -43,7 +51,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		SpawnRuin("armwin", posx, posy, posz, math.random(0,3))
+		SpawnRuin("armsolar", posx, posy, posz, math.random(0,3))
 	end
 end
 table.insert(RuinsList,armLonelyWind)
