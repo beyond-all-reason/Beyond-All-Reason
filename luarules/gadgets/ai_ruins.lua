@@ -27,7 +27,7 @@ VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 GaiaTeamID = Spring.GetGaiaTeamID()
 _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 
-function SpawnRuin(name, posx, posy, posz, facing)
+function SpawnRuin(name, posx, posy, posz, facing, patrol)
 	local r = math.random(1,100)
 	-- if r < 40 then
 		-- local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaAllyTeamID)
@@ -48,7 +48,7 @@ function SpawnRuin(name, posx, posy, posz, facing)
 		-- if weapons then
 			-- Spring.SetUnitNeutral(u, false)
 		-- end
-		if canmove and speed > 0 then
+		if (patrol and patrol == true) and canmove and speed > 0 then
 			for i = 1,6 do
 				Spring.GiveOrderToUnit(u, CMD.PATROL,{posx+(math.random(-200,200)),posy+100,posz+(math.random(-200,200))}, {"shift", "alt", "ctrl"})
 			end
