@@ -2994,6 +2994,8 @@ function init()
 		--  end,
 		--},
 
+		{ id = "buildpower", group = "ui", basic = true, widget = "Build power", name = "Info  "..widgetOptionColor.." build power usage bar", type = "bool", value = GetWidgetToggleValue("Build power"), description = 'Adds a vertical build power usage bar to the right of the info UI ' },
+
 		{ id = "ordermenu_colorize", group = "ui", basic = true, name = "Ordermenu" .. widgetOptionColor .. "  colorize", type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
 		  onload = function(i)
 			  loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
