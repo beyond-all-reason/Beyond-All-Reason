@@ -12,18 +12,36 @@ function widget:GetInfo()
 	}
 end
 
-local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetMyTeamID = Spring.GetMyTeamID
-local spSendCommands = Spring.SendCommands
+local spec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+
+function widget:PlayerChanged()
+	spec, fullview = Spring.GetSpectatingState()
+	if myTeamID ~= Spring.GetMyTeamID() then
+		myTeamID = Spring.GetMyTeamID()
+		switchToTeam = myTeamID
+	end
+end
 
 function widget:SelectionChanged(sel)
-	if spGetSpectatingState() then
-        if #sel > 0 then
-            local selTeam = spGetUnitTeam(sel[1])
-            if selTeam and selTeam ~= spGetMyTeamID() then
-                spSendCommands('specteam ' .. selTeam)
-            end
-        end
+	if spec and #sel > 0 then
+		local selTeam = spGetUnitTeam(sel[1])
+		if selTeam and selTeam ~= myTeamID then
+			switchToTeam = selTeam
+		end
     end
+end
+
+local sec = 0
+function widget:Update(dt)
+	if spec then
+		sec = sec + dt
+		if sec > 1.5 and switchToTeam ~= nil then	-- added a delay cause doing too quick changes is perf costly, happens when you area drag lots of mixed team units
+			sec = 0
+			Spring.SendCommands('specteam ' .. switchToTeam)
+			myTeamID = switchToTeam
+			switchToTeam = nil
+		end
+	end
 end
