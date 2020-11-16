@@ -1,16 +1,5 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
---
---  file:    gui_game_type_info.lua
---  brief:   informs players of the game type at start (i.e. Comends, lineage, com continues(killall) , commander control or commander mode)
---  author:  Riku Eischer
---
---  Copyright (C) 2008.
---  Licensed under the terms of the GNU GPL, v2 or later.
---  Thanks to trepan (Dave Rodgers) for the original CommanderEnds widget
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
