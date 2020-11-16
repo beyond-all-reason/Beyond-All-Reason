@@ -35,6 +35,7 @@ local Sound = {}
 local soundList = {}
 local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
+local gameframe = spGetGameFrame()
 
 
 function addSound(name, file, minDelay, duration, message, unlisted)
@@ -289,6 +290,7 @@ function widget:Initialize()
 	if isReplay or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
+
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
 	widgetHandler:RegisterGlobal('AddNotification', addSound)
 
@@ -365,18 +367,23 @@ function widget:Shutdown()
 end
 
 function widget:GameFrame(gf)
+
+	gameframe = gf
+
 	if not displayMessages and not spoken then return end
 
-	if gf == 30 and doTutorialMode then
+	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
+
+	if gameframe == 70 and doTutorialMode then
 		QueueTutorialNotification('t_welcome')
 	end
-	if gf % 30 == 15 then
+	if gameframe % 30 == 15 then
 		e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID,'energy')
 		m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID,'metal')
 
 		-- tutorial
 		if doTutorialMode then
-			if gf > 300 and not hasBuildMex then
+			if gameframe > 300 and not hasBuildMex then
 				QueueTutorialNotification('t_buildmex')
 			end
 			if not hasBuildEnergy and hasBuildMex then
@@ -668,7 +675,10 @@ function playNextSound()
 end
 
 function widget:Update(dt)
+
 	if not displayMessages and not spoken then return end
+
+	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
 
 	sec = sec + dt
 
@@ -704,6 +714,9 @@ end
 
 -- function that gadgets can call
 function EventBroadcast(msg)
+
+	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
+
 	if string.find(msg, "SoundEvents", nil, true) then
 		msg = string.sub(msg, 13)
 		local forceplay = string.sub(msg, string.find(msg, " ", nil, true)+2, string.len(msg))
