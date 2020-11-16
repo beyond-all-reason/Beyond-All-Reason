@@ -279,7 +279,7 @@ return {
 				noselfdamage = true,
 				range = 250,
 				reloadtime = 0.9,
-				soundhit = "xplomas2",
+				soundhit = "xplomas2s",
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
 				soundtrigger = true,
