@@ -5,14 +5,15 @@ function widget:GetInfo()
 		author    = "WarXperiment",
 		date      = "February 15, 2010",
 		license   = "GNU GPL, v2 or later",
-        version   = "5",
+        version   = 6,
         layer     = 55,
 		enabled   = true,  --  loaded by default?
     }
 end
 
 local showForCreatedUnits = false		-- keep drawing unitshape for building when it has a nanoframe but isnt finished
-local maxDisplayed = 150
+local maxDisplayedUnits = 70
+local dontShowWhenDistIcon = true
 
 --Changelog
 -- before v2 developed outside of BA by WarXperiment
@@ -20,6 +21,7 @@ local maxDisplayed = 150
 -- v3 [teh]decay - updated for spring 98 engine -- project page on github: https://github.com/jamerlan/unit_showbuild
 -- v4 Floris - lots of performance increases
 -- v5 Floris - cleanup, polishing and fixes
+-- v6 Floris - limited to not show when (would be) icon
 
 local command = {}
 local commandOrdered = {}
@@ -35,8 +37,18 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsAABBInView = Spring.IsAABBInView
+local spGetCameraPosition = Spring.GetCameraPosition
+local diag = math.diag
+
+local glPushMatrix = gl.PushMatrix
+local glLoadIdentity = gl.LoadIdentity
+local glTranslate = gl.Translate
+local glRotate = gl.Rotate
+local glUnitShape = gl.UnitShape
+local glPopMatrix = gl.PopMatrix
 
 local builderUnitDefs = {}
+local disticon = Spring.GetConfigInt("UnitIconDist", 200)
 
 local function clearBuilderCommands(unitID)
 	if commandOrdered[unitID] then
@@ -110,6 +122,14 @@ function widget:Initialize()
 	if Spring.GetGameFrame() > 0 then
 		addBuilders()
 	end
+
+	WG['showbuilderqueue'] = {}
+	WG['showbuilderqueue'].setMaxUnits = function(value)
+		maxDisplayedUnits = value
+	end
+	WG['options'].getMaxUnits = function()
+		return maxDisplayedUnits
+	end
 end
 function widget:PlayerChanged(playerID)
 	local prevSpec = spec
@@ -139,6 +159,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > lastUpdate + 0.12 then
 		lastUpdate = sec
+		disticon = Spring.GetConfigInt("UnitIconDist", 200)
 
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
 		local clock =  os.clock()
@@ -193,25 +214,45 @@ function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
 	--gl.DepthTest(true)
 
+	local camX, camY, camZ = spGetCameraPosition()
+	local dist
 	local commandVisible = 0
 	for _, units in pairs(command) do
 		local myCmd = units.id
 		local params = myCmd.params
 		local x, y, z = params[1], params[2], params[3]
 		if spIsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
-			local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
-			gl.PushMatrix()
-			gl.LoadIdentity()
-			gl.Translate( x, y, z )
-			gl.Rotate( degrees, 0, 1.0, 0 )
-			gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
-			gl.PopMatrix()
-			commandVisible = commandVisible + 1
-			if commandVisible > maxDisplayed then
-				break
+			if dontShowWhenDistIcon then
+				dist = diag(camX-x, camY-y, camZ-z)		-- note it doesnt result in comparable distance as disticon
+			end
+			if not dontShowWhenDistIcon or dist < disticon*30 then
+				local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
+				glPushMatrix()
+				glLoadIdentity()
+				glTranslate( x, y, z )
+				glRotate( degrees, 0, 1.0, 0 )
+				glUnitShape(myCmd.id, myCmd.teamid, false, false, false)
+				glPopMatrix()
+				commandVisible = commandVisible + 1
+				if commandVisible >= maxDisplayedUnits then
+					break
+				end
 			end
 		end
 	end
-
+	--Spring.Echo(commandVisible)
 	--gl.DepthTest(false)
 end
+
+
+--function widget:GetConfigData(data)
+--	savedTable = {}
+--	savedTable.maxDisplayedUnits = maxDisplayedUnits
+--	return savedTable
+--end
+--
+--function widget:SetConfigData(data)
+--	if data.maxDisplayedUnits ~= nil then
+--		maxDisplayedUnits = data.maxDisplayedUnits
+--	end
+--end

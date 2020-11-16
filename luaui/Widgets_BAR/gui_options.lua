@@ -3209,7 +3209,7 @@ function init()
 			  saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
 		  end,
 		},
-		{ id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   show values", type = "bool", value = true, description = 'Display metal values (during game))\n\nPre-gamestart or when in metalmap view (f4) this will always be shown',
+		{ id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   show values", type = "bool", value = true, description = 'Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it\'s significantly enough more costly to draw the text values',
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
