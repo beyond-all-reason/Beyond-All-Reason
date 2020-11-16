@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 21000,
 		buildcostmetal = 970,
 		buildpic = "ARMMEATBALL.PNG",
-		buildtime = 26061,
+		buildtime = 21000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -2 -1",

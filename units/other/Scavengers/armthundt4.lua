@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 315000,
 		buildcostmetal = 18400,
 		buildpic = "ARMTHUNDT4.PNG",
-		buildtime = 47780,
+		buildtime = 315000,
 		canfly = true,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",

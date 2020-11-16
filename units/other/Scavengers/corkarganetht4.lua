@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 380000,
 		buildcostmetal = 16500,
 		buildpic = "CORKARG.PNG",
-		buildtime = 506090,
+		buildtime = 380000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 -2.0 1",

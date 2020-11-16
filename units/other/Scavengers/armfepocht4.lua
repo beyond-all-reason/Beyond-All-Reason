@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 316000,
 		buildcostmetal = 34000,
 		buildpic = "armfepocht4.PNG",
-		buildtime = 339600,
+		buildtime = 316000,
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",

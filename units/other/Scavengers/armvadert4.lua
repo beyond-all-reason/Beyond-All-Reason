@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 300000,
 		buildcostmetal = 30000,
 		buildpic = "scavengers/armvadert4.PNG",
-		buildtime = 55307,
+		buildtime = 300000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

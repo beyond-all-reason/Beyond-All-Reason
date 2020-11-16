@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 316000,
 		buildcostmetal = 36000,
 		buildpic = "corfblackhyt4.PNG",
-		buildtime = 350600,
+		buildtime = 316000,
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",

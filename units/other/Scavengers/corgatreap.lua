@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 12000,
 		buildcostmetal = 798,
 		buildpic = "CORGATREAP.PNG",
-		buildtime = 13801,
+		buildtime = 12000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
