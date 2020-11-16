@@ -331,15 +331,15 @@ StopWalking() {
 // REMEMBER TO animspeed = 2 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 16; //we need to calc the frames per keyframe value, from the known animtime
+	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 16) / animSpeed; 
+		animSpeed = (maxSpeed * 2) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>30) animSpeed = 30;
+		if (animspeed>4) animSpeed = 4;
 		sleep 65;
 	}
 }
@@ -393,7 +393,7 @@ Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animati
 		set-signal-mask (SIG_AIM | SIG_MOVE);
 		sleep 10000 + 100*RAND(1,200); // 10-30 secs
 		
-		bAnimate = FALSE; // this sets animation started, so that StopAnimate knows that it should restore state quickly
+		bAnimate = TRUE; // this sets animation started, so that StopAnimate knows that it should restore state quickly
 				if (bAnimate) {
 			turn lfoot to x-axis <-35.358254> speed <265.521911> ; 
 			turn lfoot to z-axis <-0.372348> speed <2.792638> ; 
@@ -1197,9 +1197,9 @@ Killed(severity, corpsetype)
 		// pelvis type FALL | BITMAP3 | NOHEATCLOUD;
 		//explode rfire type FALL | BITMAP4 | NOHEATCLOUD;
 		//explode rloarm type FALL | BITMAP2 | NOHEATCLOUD;
-		explode rthigh type FALL | BITMAP3 | NOHEATCLOUD;
+		//explode rthigh type FALL | BITMAP3 | NOHEATCLOUD;
 		explode ruparm type FALL | BITMAP4 | NOHEATCLOUD;
-		explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
+	    explode torso type BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
@@ -1212,11 +1212,11 @@ Killed(severity, corpsetype)
 		//explode luparm type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
 		//explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		//explode rfoot type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
-		explode rleg type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
+		//explode rleg type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
 		explode rloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode rthigh type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
+		//explode rthigh type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
 		explode ruparm type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
-		explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
+	    explode torso type BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
@@ -1227,11 +1227,10 @@ Killed(severity, corpsetype)
 	//explode luparm type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
 	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	//explode rfoot type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
-	explode rleg type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
+	//explode rleg type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
 	explode rloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode rthigh type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
+	//explode rthigh type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
 	explode ruparm type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
-	explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
-	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode torso type BITMAP5 | NOHEATCLOUD;
 	return corpsetype;
 }
