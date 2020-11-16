@@ -34,7 +34,7 @@ globals = {
     "Spring", "VFS", "gl", "GL", "Game",
     "UnitDefs", "UnitDefNames", "FeatureDefs", "FeatureDefNames",
     "WeaponDefs", "WeaponDefNames", "LOG", "KEYSYMS", "CMD", "Script",
-    "SendToUnsynced", "Platform", "include",
+    "SendToUnsynced", "Platform", "Engine", "include",
     -- Gadgets
     "GG", "gadgetHandler", "gadget",
     -- Widgets
