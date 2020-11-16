@@ -15,7 +15,17 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 2048)
 
--- Enable lua shaders
+-- adv unit shading
+if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
+	Spring.SetConfigInt("AdvUnitShading", 1)
+end
+
+-- adv map shading
+if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
+	Spring.SetConfigInt("AdvMapShading", 1)
+end
+
+-- lua shaders
 if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
 	Spring.SetConfigInt("LuaShaders", 1)
 end
