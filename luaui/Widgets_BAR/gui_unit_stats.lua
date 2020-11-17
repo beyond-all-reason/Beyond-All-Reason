@@ -682,7 +682,7 @@ function widget:DrawScreen()
 		if uWep.range > 0 then
 			local oBurst = uWep.salvoSize * uWep.projectiles
 			local oRld = max(0.00000000001,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
-			if useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
+			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
 				oRld = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTimeXP") or spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or oRld
 			end
 			local wepCount = wepCounts[wDefId]
