@@ -147,6 +147,7 @@ return {
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",
 				sizegrowth = 0.7,
+				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
 				soundtrigger = false,
