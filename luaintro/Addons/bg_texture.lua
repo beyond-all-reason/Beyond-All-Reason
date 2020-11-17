@@ -15,6 +15,8 @@ end
 math.randomseed( os.clock() )
 math.random(); math.random(); math.random()
 
+local vsx, vsy = gl.GetViewSizes()
+
 ------------------------------------------
 local loadscreens = VFS.DirList("bitmaps/loadpictures/")
 
@@ -27,6 +29,7 @@ end
 if not backgroundTexture then
 	backgroundTexture = loadscreens[1]
 end
+backgroundTexture = ':l:'..backgroundTexture
 local aspectRatio
 
 function addon.DrawLoadScreen()
@@ -39,7 +42,7 @@ function addon.DrawLoadScreen()
 		aspectRatio = texInfo.xsize / texInfo.ysize
 	end
 
-	local vsx, vsy = gl.GetViewSizes()
+	vsx, vsy = gl.GetViewSizes()
 	local screenAspectRatio = vsx / vsy
 
 	local xDiv = 0
