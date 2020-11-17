@@ -21,9 +21,11 @@ local lightStrengthMult = 0.5
 
 
 local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
+
+	local camPanning = select(7, Spring.GetMouseState())
     local mx,my,m1,m2,m3 = Spring.GetMouseState()
     local traceType, tracedScreenRay = Spring.TraceScreenRay(mx, my, true)
-    if tracedScreenRay ~= nil then
+    if not camPanning and tracedScreenRay ~= nil then
         local params = {param={} }
         params.px, params.py, params.pz = tracedScreenRay[1],tracedScreenRay[2],tracedScreenRay[3]
         params.param.r, params.param.g, params.param.b = colorR,colorG,colorB
@@ -46,7 +48,7 @@ function widget:Initialize()
     if WG.DeferredLighting_RegisterFunction then
         functionID = WG.DeferredLighting_RegisterFunction(GetLights)
     end
-    
+
     WG['cursorlight'] = {}
     WG['cursorlight'].setLightStrength = function(value)
         lightStrengthMult = value
@@ -78,6 +80,7 @@ function widget:Shutdown()
     if functionID and WG.DeferredLighting_UnRegisterFunction then
         WG.DeferredLighting_UnRegisterFunction(functionID)
     end
+    WG['cursorlight'] = nil
 end
 
 
