@@ -43,7 +43,7 @@ local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":l:LuaUI/Images/blades.png"
 local poleTexture = ":l:LuaUI/Images/pole.png"
-local comTexture = ":l:LuaUI/Images/comIcon.png"
+local comTexture = ":l:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
 local glowTexture = ":l:LuaUI/Images/glow.dds"
 
 local math_floor = math.floor
@@ -89,6 +89,7 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
+comTexture = ':l:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 
@@ -494,7 +495,7 @@ local function updateButtons()
 		text = text .. 'Settings   '
 	end
 	if chobbyLoaded then
-		if not spec and gameStarted then
+		if not spec and gameStarted and not isSinglePlayer then
 			text = text .. 'Resign  '
 		end
 		text = text .. 'Lobby  '
@@ -614,7 +615,7 @@ local function updateButtons()
 				end
 			end
 			if chobbyLoaded then
-				if not spec and gameStarted then
+				if not spec and gameStarted and not isSinglePlayer then
 					buttons = buttons + 1
 					offset = math_floor(offset + width + 0.5)
 					width = math_floor((font2:GetTextWidth('  Resign ') * fontsize) + 0.5)
@@ -682,10 +683,10 @@ local function updateComs(forceText)
 	end
 	dlistComs2 = glCreateList(function()
 		-- Commander icon
-		local sizeHalf = (height / 2.75) * widgetScale
-
+		local sizeHalf = (height / 2.44) * widgetScale
+		local yOffset = ((area[3] - area[1]) * 0.025)
 		glTexture(comTexture)
-		glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf)
+		glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
 		glTexture(false)
 
 		-- Text
@@ -1206,6 +1207,7 @@ function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
+	comTexture = 'Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 end
 
 function widget:GameStart()
@@ -1243,18 +1245,20 @@ function widget:Update(dt)
 	end
 
 	local mx, my = spGetMouseState()
-
-	if blinkDirection then
-		blinkProgress = blinkProgress + (dt * 9)
-		if blinkProgress > 1 then
-			blinkProgress = 1
-			blinkDirection = false
-		end
-	else
-		blinkProgress = blinkProgress - (dt / (blinkProgress * 1.5))
-		if blinkProgress < 0 then
-			blinkProgress = 0
-			blinkDirection = true
+	local speedFactor, _, isPaused = Spring.GetGameSpeed()
+	if not isPaused then
+		if blinkDirection then
+			blinkProgress = blinkProgress + (dt * 9)
+			if blinkProgress > 1 then
+				blinkProgress = 1
+				blinkDirection = false
+			end
+		else
+			blinkProgress = blinkProgress - (dt / (blinkProgress * 1.5))
+			if blinkProgress < 0 then
+				blinkProgress = 0
+				blinkDirection = true
+			end
 		end
 	end
 
@@ -1313,7 +1317,7 @@ function widget:Update(dt)
 	end
 
 	-- wind
-	if (gameFrame ~= lastFrame) then
+	if gameFrame ~= lastFrame then
 		currentWind = sformat('%.1f', select(4, spGetWind()))
 	end
 
@@ -1334,7 +1338,6 @@ function widget:Update(dt)
 			t = t + UPDATE_RATE_S
 
 			--Estimate Server Frame
-			local speedFactor, _, isPaused = Spring.GetGameSpeed()
 			if gameStarted and not isPaused then
 				serverFrame = serverFrame + math.ceil(speedFactor * UPDATE_RATE_F)
 			end
