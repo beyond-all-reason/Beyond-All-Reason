@@ -61,20 +61,22 @@ function widget:DrawScreen()
 		--glScale(1.5, 1.5, 1)
 		font:Begin()
 		if st.name == 'ov' then
-			screenmode = 'overview'
+			screenmode = ''
 		end
-		font:Print('\255\225\225\225' .. 'Screen mode:  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
+		if screenmode ~= '' then
+			font:Print('\255\233\233\233' .. 'Screen mode:  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
+		end
 		if st.name == 'ov' then
-				description = '(TAB) press TAB to zoom onto mouse cursor position'
+			description = '...press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position...'
 		elseif screenmode == 'height' then
-			description = '(F1) displays a different color for every height level'
+			description = '[F1] displays a different color for every height level'
 		elseif screenmode == 'pathTraversability' then
-			description = '(F2) shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path'
+			description = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path'
 		elseif screenmode == 'metal' then
-			description = '(F4) shows green areas on the map than contain metal'
+			description = '[F4] shows green areas on the map than contain metal'
 		end
 		if description ~= '' then
-			font:Print('\255\200\200\200' .. description, 0, -10 * widgetScale, 17 * widgetScale, "oc")
+			font:Print('\255\215\215\215' .. description, 0, -10 * widgetScale, 17 * widgetScale, "oc")
 		end
 		--font:Print(msg2, 0, -35 * widgetScale, 12.5 * widgetScale, "oc")
 		font:End()
