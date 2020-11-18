@@ -139,6 +139,7 @@ T3LandUnits = {
 	"armlunchbox",
 	"armmeatball",
 	"armassimilator",
+	"armrectrt4",
 	--hovercraft
 	"armlun",
 	"corsok",
@@ -170,4 +171,5 @@ T4LandUnits = {
 	"armvadert4",
 	"cordemont4",
 	"corkarganetht4",
+	"armrectrt4",
 }

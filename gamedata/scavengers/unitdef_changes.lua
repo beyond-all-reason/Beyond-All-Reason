@@ -510,6 +510,7 @@ customDefs.armshltx = {
 		[numBuildoptions+5] = "armlunchbox",
 		[numBuildoptions+6] = "armmeatball",
 		[numBuildoptions+7] = "armassimilator",
+		[numBuildoptions+8] = "armrectrt4",
 		
 	},
 }
