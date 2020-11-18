@@ -119,7 +119,7 @@ for i=1,#files do
       pitchmod = 0.17,
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
-      maxconcurrent = 8,
+      maxconcurrent = 10,
       rolloff = 1.0,
    }
    
@@ -157,6 +157,23 @@ for i=1,#files do
     if string.sub(fileNames, 1, 7) == "xplosml" then
     t[fileNames].pitchmod = 0.22
     end
+end
+
+-- BOMB SOUNDS / More maxconcurrent
+local files = VFS.DirList("sounds/bombs/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.2*0.3,
+		pitchmod = 0.27,
+		gainmod  = 0.2*0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 18,
+		rolloff = 1.0,
+	}
 end
 
 -- REPLY SOUNDS

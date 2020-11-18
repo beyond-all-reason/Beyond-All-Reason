@@ -157,7 +157,7 @@ return {
 			repair = "repair2",
 			uncloak = "kloak2un",
 			underattack = "warning2",
-			unitcomplete = "kccorsel",
+			unitcomplete = "corcomsel",
 			working = "reclaim1",
 			cant = {
 				[1] = "cantdo4",
@@ -171,10 +171,14 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "kcormov",
+				[1] = "corcom1",
+				[2] = "corcom2",
+				[3] = "corcom3",
+				[4] = "corcom4",
+				[5] = "corcom5",
 			},
 			select = {
-				[1] = "kccorsel",
+				[1] = "corcomsel",
 			},
 		},
 		weapondefs = {

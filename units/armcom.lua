@@ -155,7 +155,7 @@ return {
 			repair = "repair1",
 			uncloak = "kloak1un",
 			underattack = "warning2",
-			unitcomplete = "kcarmmov",
+			unitcomplete = "armcomsel",
 			working = "reclaim1",
 			cant = {
 				[1] = "cantdo4",
@@ -169,10 +169,13 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "kcarmmov",
+				[1] = "armcom1",
+				[2] = "armcom2",
+				[3] = "armcom3",
+				[4] = "armcom4",
 			},
 			select = {
-				[1] = "kcarmsel",
+				[1] = "armcomsel",
 			},
 		},
 		weapondefs = {
