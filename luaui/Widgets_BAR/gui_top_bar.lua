@@ -709,7 +709,7 @@ end
 local function updateWind()
 	local area = windArea
 
-	local bladesSize = 25 * widgetScale
+	local bladesSize = height*0.55 * widgetScale
 
 	-- add background blur
 	if dlistWindGuishader ~= nil then
@@ -743,22 +743,20 @@ local function updateWind()
 			WG['guishader'].InsertDlist(dlistWindGuishader, 'topbar_wind')
 		end
 
+		-- blades icon
 		glPushMatrix()
-		glTranslate(area[1], area[2] + ((area[4] - area[2]) / 2), 0)
-		glTranslate((bladesSize/2), -((height * widgetScale) / 4.4), 0) -- Spacing of icon
-		glPushMatrix() -- Blades
-		glTranslate((bladesSize/2), (bladesSize/2), 0)
+		glTranslate(area[1] + ((area[3] - area[1]) / 2), area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
+		glColor(1, 1, 1, 0.3)
+		glTexture(bladesTexture)
+		-- glRotate is done after displaying this dl, and before dl2
 	end)
 
 	if dlistWind2 ~= nil then
 		glDeleteList(dlistWind2)
 	end
 	dlistWind2 = glCreateList(function()
-		glColor(1, 1, 1, 0.3)
-		glTexture(bladesTexture)
 		glTexRect(-bladesSize, -bladesSize, bladesSize, bladesSize)
 		glTexture(false)
-		glPopMatrix()
 		glPopMatrix()
 
 		-- min and max wind
@@ -768,7 +766,6 @@ local function updateWind()
 		font2:Print("\255\210\210\210" .. maxWind, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
 		font2:Print("\255\210\210\210" .. maxWind, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
 		font2:End()
-
 	end)
 
 	if WG['tooltip'] ~= nil then

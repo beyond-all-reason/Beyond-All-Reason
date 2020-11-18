@@ -67,7 +67,7 @@ function widget:DrawScreen()
 			font:Print('\255\233\233\233' .. 'Screen mode:  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
 		end
 		if st.name == 'ov' then
-			description = '...press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position...'
+			description = 'press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position'
 		elseif screenmode == 'height' then
 			description = '[F1] displays a different color for every height level'
 		elseif screenmode == 'pathTraversability' then
