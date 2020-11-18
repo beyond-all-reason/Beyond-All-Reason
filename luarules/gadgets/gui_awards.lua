@@ -509,6 +509,10 @@ if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobb
 end
 
 function gadget:Initialize()
+	if chobbyLoaded then
+		Spring.SendCommands('endgraph 0')
+	end
+
 	gadget:ViewResize()
 	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)
@@ -838,8 +842,8 @@ local quitX = 100
 local graphsX = 250
 
 function gadget:MousePress(x,y,button)
-	if button ~= 1 then return end
 	if drawAwards then
+		if button ~= 1 then return end
 		x,y = correctMouseForScaling(x,y)
 		if chobbyLoaded then
 			if (x > bx+w-quitX-5) and (x < bx+w-quitX+20*font:GetTextWidth('Leave')+5) and (y>by+50-5) and (y<by+50+16+5) then --leave button
@@ -954,7 +958,9 @@ end
 
 
 function gadget:Shutdown()
-	Spring.SendCommands('endgraph 1')
+	if not chobbyLoaded then
+		Spring.SendCommands('endgraph 1')
+	end
 	if Script.LuaUI("GuishaderRemoveRect") then
 		Script.LuaUI.GuishaderRemoveRect('awards')
 	end
