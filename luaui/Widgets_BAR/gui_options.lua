@@ -1806,6 +1806,17 @@ function loadAllWidgetData()
 	end
 end
 
+-- detect potatos
+local isPotatoCpu = false
+local isPotatoGpu = false
+local gpuMem = (Platform.gpuMemorySize/1000) > 100 and (Platform.gpuMemorySize/1000) < 1800
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	isPotatoGpu = true
+end
+if Platform.gpuMemorySize and gpuMem and gpuMem < 1800 then
+	isPotatoGpu = true
+end
+
 local engine64 = true
 function init()
 
@@ -1855,12 +1866,52 @@ function init()
 			if string.find(line, '_win32') or string.find(line, '_linux32') then
 				engine64 = false
 			end
+
+			-- look for system hardware
+			if string.find(line, 'Physical CPU Cores') then
+				if tonumber(string.match(line, '([0-9].*)')) <= 2 then
+					isPotatoCpu = true
+				end
+			end
+			if string.find(line, 'Logical CPU Cores') then
+				if tonumber(string.match(line, '([0-9].*)')) <= 2 then
+					isPotatoCpu = true
+				end
+			end
+
+			if string.find(line:lower(), 'hardware config: ') then
+				--if string.find(line:lower() 'core(tm)2') then
+				--	isPotatoCpu = true
+				--end
+				local s_ram = string.match(line, '([0-9]*MB RAM)')
+				if s_ram ~= nil then
+					s_ram = string.gsub(s_ram, " RAM", "")
+					if tonumber(s_ram) and tonumber(s_ram) < 6500 then
+						isPotatoCpu = true
+					end
+				end
+			end
 		end
 		-- adding some widescreen resolutions for local testing
 		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
+	end
+
+
+	--isPotatoCpu = true	-- enable to test
+	--isPotatoGpu = true	-- enable to test
+
+	-- restrict options for potato systems
+	if isPotatoCpu or isPotatoGpu then
+		if isPotatoCpu then
+			Spring.Echo('potato CPU detected')
+		end
+		if isPotatoCpu then
+			Spring.Echo('potato Graphics Card detected')
+		end
+		presetNames = { 'lowest', 'low', 'medium' }
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
@@ -1989,7 +2040,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   divider", type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled\n\n(I like to use this when I\'m spectating on my 144hz laptop)',
+		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   divider", type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled.\nNOTE: does not always work!\n(I like to use this when I\'m spectating on my 144hz laptop)',
 		  onchange = function(i, value)
 			  vsyncLevel = value
 			  local vsync = 0
@@ -2017,7 +2068,7 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", basic = true, name = "Shadows", type = "slider", steps = { 2048, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = 'Set shadow detail',
+		{ id = "shadowslider", group = "gfx", basic = true, name = "Shadows", type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = 'Set shadow detail',
 		  onchange = function(i, value)
 			  local enabled = (value < 1000) and 0 or 1
 			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
@@ -4302,6 +4353,53 @@ function init()
 		Spring.SetConfigInt("FSAALevel", 0)
 	end
 
+	-- reduce options for potatoes
+	if isPotatoGpu then
+		options[getOptionByID('msaa')].max = 2
+		local id = getOptionByID('shadowslider')
+		options[id].steps = { 0, 2048, 3072 }
+		if options[id].value > 3072 then
+			options[id].value = 3072
+			options[id].onchange(id, options[id].value)
+		end
+
+		local id = getOptionByID('ssao')
+		if id and GetWidgetToggleValue(options[id].widget) then
+			widgetHandler:DisableWidget(options[id].widget)
+		end
+		options[id] = nil
+		options[getOptionByID('ssao_strength')] = nil
+
+		local id = getOptionByID('bloom')
+		if id and GetWidgetToggleValue(options[id].widget) then
+			widgetHandler:DisableWidget(options[id].widget)
+		end
+		options[id] = nil
+		options[getOptionByID('bloom_brightness')] = nil
+
+		local id = getOptionByID('guishader')
+		if id and GetWidgetToggleValue(options[id].widget) then
+			widgetHandler:DisableWidget(options[id].widget)
+		end
+		options[id] = nil
+		options[getOptionByID('guishaderintensity')] = nil
+
+		local id = getOptionByID('dof')
+		if id and GetWidgetToggleValue(options[id].widget) then
+			widgetHandler:DisableWidget(options[id].widget)
+		end
+		options[id] = nil
+		options[getOptionByID('dof_autofocus')] = nil
+		options[getOptionByID('dof_fstop')] = nil
+
+		local id = getOptionByID('clouds')
+		if id and GetWidgetToggleValue(options[id].widget) then
+			widgetHandler:DisableWidget(options[id].widget)
+		end
+		options[id] = nil
+		options[getOptionByID('could_opacity')] = nil
+	end
+
 	-- remove engine particles if nano beams are enabled
 	if options[getOptionByID('nanoeffect')] and options[getOptionByID('nanoeffect')].value == 1 then
 		Spring.SetConfigInt("MaxNanoParticles", 0)
@@ -4739,11 +4837,27 @@ function widget:Initialize()
 	if firstlaunchsetupDone == false then
 		firstlaunchsetupDone = true
 
-		Spring.Echo('First time setup:  setting air absorption to 0.35')
+		Spring.Echo('First time setup:  done')
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
-		Spring.SendCommands("water 4")
-		Spring.SetConfigInt("water", 4)
+		-- Set lower defaults for potato systems
+		if gpuMem and gpuMem < 3300 then
+			Spring.SetConfigInt("MSAALevel", 2)
+		end
+		if isPotatoGpu then
+			Spring.SendCommands("water 0")
+			Spring.SetConfigInt("water", 0)
+
+			Spring.SendCommands("advmapshading 0")
+			Spring.SendCommands("shadows 0 1024")
+			Spring.SetConfigInt("shadows", 0)
+			Spring.SetConfigInt("shadowmapsize", 1024)
+			Spring.SetConfigInt("MSAALevel", 0)
+			Spring.SetConfigFloat("ui_opacity", 0.66)	-- set to be more opaque cause guishader isnt availible
+		else
+			Spring.SendCommands("water 4")
+			Spring.SetConfigInt("water", 4)
+		end
 
 		local minMaxparticles = 12000
 		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 0) < minMaxparticles then

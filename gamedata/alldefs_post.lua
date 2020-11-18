@@ -389,10 +389,10 @@ function WeaponDef_Post(name, wDef)
 			wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
 		end
 
-		--if wDef.craterareaofeffect then
-		--	wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect/1500
-		--	--Spring.Echo(name..'  '..wDef.cratermult)
-		--end
+		if wDef.craterareaofeffect then
+			wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect/1500
+			--Spring.Echo(name..'  '..wDef.cratermult)
+		end
 
 		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
 		-- wDef.targetborder = 1.0
