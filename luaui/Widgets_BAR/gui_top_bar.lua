@@ -41,8 +41,7 @@ local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
-local bladesTexture = ":l:LuaUI/Images/blades.png"
-local poleTexture = ":l:LuaUI/Images/pole.png"
+local bladesTexture = "LuaUI/Images/wind-blades.png"
 local comTexture = ":l:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
 local glowTexture = ":l:LuaUI/Images/glow.dds"
 
@@ -710,13 +709,7 @@ end
 local function updateWind()
 	local area = windArea
 
-	local xPos = area[1]
-	local yPos = area[2] + ((area[4] - area[2]) / 3.5)
-	local oorx = 10 * widgetScale
-	local oory = 13 * widgetScale
-
-	local poleWidth = 6 * widgetScale
-	local poleHeight = 14 * widgetScale
+	local bladesSize = 25 * widgetScale
 
 	-- add background blur
 	if dlistWindGuishader ~= nil then
@@ -751,28 +744,21 @@ local function updateWind()
 		end
 
 		glPushMatrix()
-		glTranslate(xPos, yPos, 0)
-		glTranslate(11 * widgetScale, -((height * widgetScale) / 4.4), 0) -- Spacing of icon
+		glTranslate(area[1], area[2] + ((area[4] - area[2]) / 2), 0)
+		glTranslate((bladesSize/2), -((height * widgetScale) / 4.4), 0) -- Spacing of icon
 		glPushMatrix() -- Blades
-		glTranslate(1 * widgetScale, 9 * widgetScale, 0)
-		glTranslate(oorx, oory, 0)
+		glTranslate((bladesSize/2), (bladesSize/2), 0)
 	end)
 
 	if dlistWind2 ~= nil then
 		glDeleteList(dlistWind2)
 	end
 	dlistWind2 = glCreateList(function()
-		glTranslate(-oorx, -oory, 0)
 		glColor(1, 1, 1, 0.3)
 		glTexture(bladesTexture)
-		glTexRect(0, 0, 27 * widgetScale, 28 * widgetScale)
+		glTexRect(-bladesSize, -bladesSize, bladesSize, bladesSize)
 		glTexture(false)
 		glPopMatrix()
-
-		x, y = 9 * widgetScale, 2 * widgetScale -- Pole
-		glTexture(poleTexture)
-		glTexRect(x, y, (7 * widgetScale) + x, y + (18 * widgetScale))
-		glTexture(false)
 		glPopMatrix()
 
 		-- min and max wind
