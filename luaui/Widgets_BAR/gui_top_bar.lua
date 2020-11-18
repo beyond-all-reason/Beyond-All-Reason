@@ -709,7 +709,7 @@ end
 local function updateWind()
 	local area = windArea
 
-	local bladesSize = height*0.55 * widgetScale
+	local bladesSize = height*0.53 * widgetScale
 
 	-- add background blur
 	if dlistWindGuishader ~= nil then
@@ -746,7 +746,7 @@ local function updateWind()
 		-- blades icon
 		glPushMatrix()
 		glTranslate(area[1] + ((area[3] - area[1]) / 2), area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
-		glColor(1, 1, 1, 0.3)
+		glColor(1, 1, 1, 0.25)
 		glTexture(bladesTexture)
 		-- glRotate is done after displaying this dl, and before dl2
 	end)
@@ -1546,9 +1546,9 @@ function widget:DrawScreen()
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
-			glColor(1, 0.6, 0, 0.6)
+			glColor(1, 0.6, 0, 0.55)
 		else
-			glColor(1, 1, 1, 0.3)
+			glColor(1, 1, 1, 0.25)
 		end
 		glCallList(dlistComs2)
 	end
