@@ -113,7 +113,7 @@ function executeStartBoxProtection(n)
 			local unitTeam = Spring.GetUnitTeam(unitID)
 			if unitTeam ~= GaiaTeamID then
 				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
-				local damage = maxHealth*(ScavSafeAreaGenerator*0.005)
+				local damage = maxHealth*(ScavSafeAreaGenerator*0.01)
 				if damage < currentHealth then
 					Spring.SetUnitHealth(unitID,currentHealth-damage)
 					local posx, posy, posz = Spring.GetUnitPosition(unitID)
