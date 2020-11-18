@@ -4354,8 +4354,8 @@ function init()
 	end
 
 	-- reduce options for potatoes
-	if isPotatoGpu then
-		options[getOptionByID('msaa')].max = 2
+	if isPotatoGpu or isPotatoCpu then
+
 		local id = getOptionByID('shadowslider')
 		options[id].steps = { 0, 2048, 3072 }
 		if options[id].value > 3072 then
@@ -4363,41 +4363,44 @@ function init()
 			options[id].onchange(id, options[id].value)
 		end
 
-		local id = getOptionByID('ssao')
-		if id and GetWidgetToggleValue(options[id].widget) then
-			widgetHandler:DisableWidget(options[id].widget)
-		end
-		options[id] = nil
-		options[getOptionByID('ssao_strength')] = nil
+		if isPotatoGpu then
+			options[getOptionByID('msaa')].max = 2
+			local id = getOptionByID('ssao')
+			if id and GetWidgetToggleValue(options[id].widget) then
+				widgetHandler:DisableWidget(options[id].widget)
+			end
+			options[id] = nil
+			options[getOptionByID('ssao_strength')] = nil
 
-		local id = getOptionByID('bloom')
-		if id and GetWidgetToggleValue(options[id].widget) then
-			widgetHandler:DisableWidget(options[id].widget)
-		end
-		options[id] = nil
-		options[getOptionByID('bloom_brightness')] = nil
+			local id = getOptionByID('bloom')
+			if id and GetWidgetToggleValue(options[id].widget) then
+				widgetHandler:DisableWidget(options[id].widget)
+			end
+			options[id] = nil
+			options[getOptionByID('bloom_brightness')] = nil
 
-		local id = getOptionByID('guishader')
-		if id and GetWidgetToggleValue(options[id].widget) then
-			widgetHandler:DisableWidget(options[id].widget)
-		end
-		options[id] = nil
-		options[getOptionByID('guishaderintensity')] = nil
+			local id = getOptionByID('guishader')
+			if id and GetWidgetToggleValue(options[id].widget) then
+				widgetHandler:DisableWidget(options[id].widget)
+			end
+			options[id] = nil
+			options[getOptionByID('guishaderintensity')] = nil
 
-		local id = getOptionByID('dof')
-		if id and GetWidgetToggleValue(options[id].widget) then
-			widgetHandler:DisableWidget(options[id].widget)
-		end
-		options[id] = nil
-		options[getOptionByID('dof_autofocus')] = nil
-		options[getOptionByID('dof_fstop')] = nil
+			local id = getOptionByID('dof')
+			if id and GetWidgetToggleValue(options[id].widget) then
+				widgetHandler:DisableWidget(options[id].widget)
+			end
+			options[id] = nil
+			options[getOptionByID('dof_autofocus')] = nil
+			options[getOptionByID('dof_fstop')] = nil
 
-		local id = getOptionByID('clouds')
-		if id and GetWidgetToggleValue(options[id].widget) then
-			widgetHandler:DisableWidget(options[id].widget)
+			local id = getOptionByID('clouds')
+			if id and GetWidgetToggleValue(options[id].widget) then
+				widgetHandler:DisableWidget(options[id].widget)
+			end
+			options[id] = nil
+			options[getOptionByID('could_opacity')] = nil
 		end
-		options[id] = nil
-		options[getOptionByID('could_opacity')] = nil
 	end
 
 	-- remove engine particles if nano beams are enabled
