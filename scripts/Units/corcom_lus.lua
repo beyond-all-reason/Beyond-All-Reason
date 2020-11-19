@@ -637,7 +637,7 @@ end
 
 function Restore()
 	SetSignalMask(SIG_AIM)
-	Sleep(1000)
+	Sleep(3000)
 	turn(aimy1, 2, 0, 90)
 	turn(aimx1, 1, 0, 90)
 	isAiming = false
@@ -646,7 +646,11 @@ function Restore()
 	leftArm = true
 end
 
-
+function script.QueryNanoPiece()
+	local piecenum;
+	piecenum = nanospray;
+	return piecenum
+end
 
 function script.Killed()
 	return 1

@@ -675,9 +675,15 @@ function script.StopBuilding()
 	return true
 end
 
+function script.QueryNanoPiece()
+	local piecenum;
+	piecenum = nano;
+	return piecenum
+end
+
 function Restore()
 	SetSignalMask(SIG_AIM)
-	Sleep(1000)
+	Sleep(3000)
 	turn(torso, 2, 0, 105)
 	turn(biggun, 1, -38, 95.0000)
 	turn(luparm, 1, 0, 95.0000)

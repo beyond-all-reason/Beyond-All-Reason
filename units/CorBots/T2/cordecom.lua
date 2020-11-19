@@ -45,7 +45,7 @@ return {
 		objectname = "Units/CORCOM.s3o",
 		radardistance = 50,
 		reclaimable = false,
-		script = "Units/CORCOM.cob",
+		script = "Units/CORCOM_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
 		showplayername = true,
