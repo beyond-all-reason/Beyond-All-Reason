@@ -128,6 +128,8 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "flamhvy1",
+				soundhitvolume = 7.5,
+				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				tolerance = 2500,

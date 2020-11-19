@@ -123,7 +123,7 @@ return {
 		weapondefs = {
 			armflak_gun = {
 				accuracy = 1000,
-				areaofeffect = 192,
+				areaofeffect = 172,
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
@@ -147,9 +147,11 @@ return {
 				reloadtime = 0.53333,
 				size = 4.5,
 				sizedecay = 0.08,
-				soundhit = "flakhit",
+				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
+				soundhitvolume = 7.5,
+				soundstartvolume = 9,
 				stages = 8,
 				turret = true,
 				weapontimer = 1,
@@ -164,6 +166,7 @@ return {
 					light_radius_mult = 0.55,
 				},
 				damage = {
+					default = 125,
 					bombers = 250,
 					fighters = 500,
 					vtol = 250,

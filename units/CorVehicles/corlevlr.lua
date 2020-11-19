@@ -150,6 +150,8 @@ return {
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "corlevlr",
+				soundhitvolume = 11.5,
+				soundstartvolume = 12.5,
 				separation = 2.0,
 				nogap = false,
 				sizeDecay = 0.08,
