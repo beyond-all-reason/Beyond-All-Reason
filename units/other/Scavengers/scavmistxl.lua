@@ -76,7 +76,9 @@ return {
 		weapondefs = {
 			lightningsurgexl = {
 				areaofeffect = 10,
-				avoidfeature = false,
+				avoidFriendly = false,
+				avoidFeature = false,
+				collideFriendly = false,
 				beamttl = 0,
 				burst = 8,
 				burstrate = 0.03333,
