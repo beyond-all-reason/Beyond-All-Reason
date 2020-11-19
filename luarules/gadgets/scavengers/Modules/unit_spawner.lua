@@ -149,6 +149,16 @@ function BossMinionsSpawn(n)
 	end
 	Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 	Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+	local posx = x + math_random(-500,500)
+	local posz = z + math_random(-500,500)
+	local posy = Spring.GetGroundHeight(posx, posz)
+	Spring.CreateUnit("scavmistxl"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+	Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+	local posx = x + math_random(-500,500)
+	local posz = z + math_random(-500,500)
+	local posy = Spring.GetGroundHeight(posx, posz)
+	Spring.CreateUnit("scavmist"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+	Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
 end
 
 

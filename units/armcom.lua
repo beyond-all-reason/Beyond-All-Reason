@@ -300,6 +300,7 @@ return {
 				},
 				damage = {
 					default = 99999,
+					scavboss = 1000,
 				},
 			},
 			repulsor1 = {

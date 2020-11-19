@@ -5,6 +5,10 @@ local armorDefs = {
 		"corcom",
 		"cordecom",
 	},
+	scavboss = {
+		"armcomboss",
+		"corcomboss",
+	},
 	indestructable = {
 		"xmasball",
 		"xmasball2",
