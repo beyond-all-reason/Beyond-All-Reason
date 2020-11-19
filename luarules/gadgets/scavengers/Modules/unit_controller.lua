@@ -104,6 +104,7 @@ function ArmyMoveOrders(n, scav, scavDef)
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	end
 	local x,y,z = Spring.GetUnitPosition(attackTarget)
+	local y = Spring.GetGroundHeight(x, z)
 	if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
 		local range = UnitRange[scav]
 		local x = x + math_random(-range*0.5,range*0.5)
