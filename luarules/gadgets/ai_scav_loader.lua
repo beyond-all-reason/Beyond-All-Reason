@@ -104,6 +104,7 @@ if not gadgetHandler:IsSyncedCode() then
 			Script.LuaUI.AddNotification('scav_eventmalfunctions', 'scavengers/scav-event-malfunctions.wav', 20, 3.02, "Alert! Scavenger malfunction detected.", unlisted)
 			Script.LuaUI.AddNotification('scav_eventminiboss', 'scavengers/scav-event-miniboss.wav', 20, 4.23, "Alert! Miniboss Detected.", unlisted)
 			Script.LuaUI.AddNotification('scav_eventswarm', 'scavengers/scav-event-swarmdetected.wav', 20, 3.76, "Warning! Scavenger swarm detected.", unlisted)
+			Script.LuaUI.AddNotification('scav_eventcloud', 'scavengers/scav-event-cloud.wav', 20, 3.04, "Alert! Scavenger cloud approaching.", unlisted)
 
 		end
 	end

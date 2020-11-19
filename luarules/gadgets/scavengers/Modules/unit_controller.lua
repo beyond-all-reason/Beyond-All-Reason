@@ -64,8 +64,8 @@ function BossDGun(n)
 		NearestBossEnemyUnitDefID = Spring.GetUnitDefID(NearestBossEnemy)
 		if UnitDefs[NearestBossEnemyUnitDefID].canFly ~= true then
 			local x,y,z = Spring.GetUnitPosition(NearestBossEnemy)
-			--Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z}, {0})
 			Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN, NearestBossEnemy, {0})
+			Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z}, {"shift"})
 		end
 	end
 end
@@ -104,13 +104,15 @@ function ArmyMoveOrders(n, scav, scavDef)
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	end
 	local x,y,z = Spring.GetUnitPosition(attackTarget)
-	local range = UnitRange[scav]
-	local x = x + math_random(-range,range)
-	local z = z + math_random(-range,range)
-	if (not BossWaveStarted) and (UnitDefs[scavDef].canFly or (UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight)) then
-		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-	else
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
-	end	
-	attackTarget = nil
+	if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
+		local range = UnitRange[scav]
+		local x = x + math_random(-range*0.5,range*0.5)
+		local z = z + math_random(-range*0.5,range*0.5)
+		if (not BossWaveStarted) and (UnitDefs[scavDef].canFly or (UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight)) then
+			Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+		else
+			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+		end	
+		attackTarget = nil
+	end
 end
