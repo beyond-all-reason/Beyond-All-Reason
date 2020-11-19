@@ -267,6 +267,8 @@ local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myTeamID
 local mySpecStatus, fullView, _ = Spring.GetSpectatingState()
 
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
 --General players/spectator count and tables
 local player = {}
 local playerSpecs = {}
@@ -654,7 +656,6 @@ function SetMaxPlayerNameWidth()
         end
     end
 
-    local gaiaTeamID = Spring.GetGaiaTeamID
     local teamList = Spring_GetTeamList()
     for i = 1, #teamList do
         local teamID = teamList[i]
