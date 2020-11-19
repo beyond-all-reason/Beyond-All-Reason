@@ -501,6 +501,10 @@ function loadUnitIcons()
 		elseif string.sub(name, 0, 7) == "critter" then
 			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
 
+			-- Scav Custom Units
+		elseif string.find(name, 'scavmist') then
+			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
+
 			-- objects
 		elseif name == "chip" or name == "dice" or name == "xmasball" or name == "xmasball2" or name == "corstone" or name == "armstone" then
 			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")

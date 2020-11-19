@@ -425,6 +425,19 @@ local moveDatas = {
 		maxwaterdepth = 9999,
 		maxwaterslope = 55,
 	},
+
+	-- Scav Mist
+	SCAVMIST = {
+		badwaterslope = 255,
+		--badslope = 255,
+		maxslope = 255,
+		crushstrength = 0,
+		footprintx = 2,
+		footprintz = 2,
+		--maxwaterdepth = 22,
+		maxwaterslope = 255,
+		speedModClass = 2,
+	},
 	
 	BOSSPEEWEE4 = {
 		crushstrength = 9999,

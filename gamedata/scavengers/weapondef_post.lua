@@ -46,7 +46,7 @@ function scav_Wdef_Post(name, wDef)
 		--wDef.rgbcolor = {0.95, 0.0, 1} Damgam Candy mode
 	    --wDef.customparams.expl_light_color = {0.95, 0.0, 1} Damgam Candy mode
 		--wDef.customparams.light_color = {0.95, 0.0, 1} Damgam Candy mode
-		wDef.explosiongenerator = "custom:genericshellexplosion-medium-lightning2-purple"
+		--wDef.explosiongenerator = "custom:genericshellexplosion-medium-lightning2-purple"
     elseif wDef.weapontype == "BeamLaser" or wDef.weapontype == "LaserCannon" or wDef.weapontype == "DGun" then
         wDef.rgbcolor = {0.95, 0.32, 1}
 		--wDef.rgbcolor = {0.95, 0.0, 1} Damgam Candy mode
