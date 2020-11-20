@@ -57,4 +57,5 @@ Collectors = {
 	"coracsub",
 	"corch",
 	"corfast",
+	"armrectrt4",
 }

@@ -72,10 +72,10 @@ end
 
 function ArmyMoveOrders(n, scav, scavDef)
 	UnitRange = {}
-	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 10 then
+	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
 		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
 	else
-		UnitRange[scav] = 10
+		UnitRange[scav] = 100
 	end
 	if not BossWaveStarted or BossWaveStarted == false then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
