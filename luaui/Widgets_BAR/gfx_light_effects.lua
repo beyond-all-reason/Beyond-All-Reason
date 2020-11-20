@@ -108,9 +108,9 @@ function loadWeaponDefs()
 			--end
 			--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
 			params.r, params.g, params.b = 1, 0.8, 0.4
-			params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5) * globalRadiusMult
+			params.radius = ((WeaponDefs[i].damageAreaOfEffect*3.3) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.5)) * globalRadiusMult
 			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
-			params.life = (14*(0.8+ params.radius/1200))*globalLifeMult
+			params.life = (14*(0.8+ params.radius/1200)) * globalLifeMult
 
 			if customParams.expl_light_color then
 				local colorList = Split(customParams.expl_light_color, " ")
@@ -150,7 +150,7 @@ function loadWeaponDefs()
 				params.heatlife = params.heatlife * tonumber(customParams.expl_light_heat_life_mult)
 			end
 
-			params.heatstrength = 1 + (params.heatradius/30)
+			params.heatstrength = math_min(3, 0.8 + (params.heatradius/40))
 
 			if customParams.expl_light_heat_strength_mult then
 				params.heatstrength = params.heatstrength * customParams.expl_light_heat_strength_mult
@@ -577,7 +577,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 										layer = -35,
 										life = weaponConf[weaponDefID].heatlife/4,
 										pos = {x,y,z},
-										size = weaponConf[weaponDefID].heatradius*1.5,
+										size = weaponConf[weaponDefID].heatradius*1.4,
 										sizeGrowth = 0.2,
 										strength = (weaponConf[weaponDefID].heatstrength*0.5)*strengthMult,
 										animSpeed = 1.3,
@@ -938,8 +938,8 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetEditBeamLight')
 	widgetHandler:DeregisterGlobal('GadgetRemoveBeamLight')
 
-	if deferredFunctionID and WG.DeferredLighting_UnregisterFunction then
-		WG.DeferredLighting_UnregisterFunction(deferredFunctionID)
+	if deferredFunctionID and WG.DeferredLighting_UnRegisterFunction then
+		WG.DeferredLighting_UnRegisterFunction(deferredFunctionID)
 	end
 end
 

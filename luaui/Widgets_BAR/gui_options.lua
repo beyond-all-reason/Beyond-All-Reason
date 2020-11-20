@@ -2349,7 +2349,7 @@ function init()
 		  end,
 		},
 
-		{ id = "disticon", group = "gfx", basic = true, name = "Strategic icon distance", type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 200), description = 'Set a lower value to get better performance',
+		{ id = "disticon", group = "gfx", basic = true, name = "Strategic icon distance", type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = 'Set a lower value to get better performance',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -5122,7 +5122,7 @@ function widget:GetConfigData(data)
 	savedTable.desiredWaterValue = desiredWaterValue
 	savedTable.waterDetected = waterDetected
 	savedTable.savedConfig = {
-		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 400) },
+		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160) },
 		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = { 'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1) },
