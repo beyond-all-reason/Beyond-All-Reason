@@ -71,7 +71,7 @@ local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui 
 local firstTime = false
 local wasPaused = false
 local gameOver = false
-local playing = true
+local playing = (Spring.GetConfigInt('music', 1) == 1)
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local targetTime = totalTime
@@ -501,7 +501,7 @@ function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
 			maxMusicVolume = math.floor(getSliderValue('musicvolume', x) * 50)
-			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+			Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
 			createList()
 		end
 		if draggingSlider == 'volume' then
@@ -530,7 +530,7 @@ function mouseEvent(x, y, button, release)
 			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 				draggingSlider = button
 				maxMusicVolume = math.floor(getSliderValue(button, x) * 50)
-				Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+				Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
 				createList()
 			end
 			button = 'volume'
@@ -547,6 +547,7 @@ function mouseEvent(x, y, button, release)
 		if button == 1 and not release and isInBox(x, y, {left, bottom, right, top}) then
 			if buttons['playpause'] ~= nil and isInBox(x, y, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
 				playing = not playing
+				Spring.SetConfigInt('music', (playing and 1 or 0))
 				Spring.PauseSoundStream()
 				createList()
 				return true
@@ -566,6 +567,7 @@ end
 
 function widget:Shutdown()
 	shutdown = true
+	Spring.SetConfigInt('music', (playing and 1 or 0))
 
 	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
 
@@ -692,6 +694,7 @@ function PlayNewTrack(track)
 		newTrack = track
 		if not playing then
 			playing = true
+			Spring.SetConfigInt('music', (playing and 1 or 0))
 		end
 	else
 		manualPlay = false
@@ -881,7 +884,6 @@ end
 function widget:GetConfigData(data)
   local savedTable = {}
   savedTable.curTrack = curTrack
-  savedTable.playing = playing
   savedTable.maxMusicVolume = maxMusicVolume
   savedTable.tracksConfig = tracksConfig
   savedTable.playedTracks = playedTracks
@@ -889,9 +891,6 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.playing ~= nil then
-		playing = data.playing
-	end
 	if data.maxMusicVolume ~= nil then
 		maxMusicVolume = data.maxMusicVolume
 	end
@@ -913,6 +912,11 @@ function widget:SetConfigData(data)
 		end
 		if data.warMeter ~= nil then
 			warMeter = data.warMeter
+		end
+	else
+		local i = Spring.GetConfigInt('musictrack', 1)
+		if peaceTracks[i] then
+			curTrack = peaceTracks[i]
 		end
 	end
 end

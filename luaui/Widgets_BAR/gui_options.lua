@@ -27,6 +27,7 @@ local cameraTransitionTime = 0.12
 local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
+local musicOptionColor = '\255\130\160\130'
 
 local firstlaunchsetupDone = false
 
@@ -2645,6 +2646,7 @@ function init()
 			  Spring.SetConfigFloat("snd_airAbsorption", value)
 		  end,
 		},
+
 		{ id = "sndvolmusic", group = "snd", basic = true, name = "Music volume", type = "slider", min = 0, max = 50, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
 		  onload = function(i)
 		  end,
@@ -2654,6 +2656,11 @@ function init()
 			  else
 				  Spring.SetConfigInt("snd_volmusic", value)
 			  end
+		  end,
+		},
+		{ id = "loadscreen_music", group = "snd", basic = true, name = widgetOptionColor.."   music starts on loadscreen", type = "bool", value = (Spring.GetConfigInt("music_loadscreen",1) == 1), description = "Music when displaying the startup load screen",
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
 		  end,
 		},
 
@@ -4520,13 +4527,13 @@ function init()
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
-			if option.id == 'sndvolmusic' then
+			if option.id == 'loadscreen_music' then
 				for k, v in pairs(musicList) do
 					count = count + 1
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
-					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = widgetOptionColor .. "   " .. trackName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
+					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. "   " .. trackName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
 										  onchange = function(i, value)
 											  saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
 										  end,

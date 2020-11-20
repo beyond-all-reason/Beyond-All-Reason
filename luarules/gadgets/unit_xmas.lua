@@ -2,7 +2,7 @@
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
-		desc		= "Creates comblast xmasballs and random candycanes on the map",
+		desc		= "Adds unit explosion xmas-balls and places candycanes randomly on the map",
 		author		= "Floris",
 		date		= "October 2017",
 		license		= "",
