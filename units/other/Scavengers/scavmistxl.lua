@@ -87,7 +87,7 @@ return {
 				cratermult = 0,
 				duration = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:lightning_storm_scav",
+				explosiongenerator = "custom:lightning_storm_scavmist",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,
