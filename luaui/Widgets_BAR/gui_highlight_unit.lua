@@ -144,7 +144,7 @@ function CreateHighlightShader()
         {
           float opac = dot(normalize(normal), normalize(eyeVec));
           opac = 1.0 - abs(opac);
-          opac = pow(opac, edgeExponent)*0.4;
+          opac = pow(opac, edgeExponent)*0.33;
 
           gl_FragColor.rgb = color + opac);
           gl_FragColor.a = opac;
