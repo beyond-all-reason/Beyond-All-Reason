@@ -29,7 +29,7 @@ local useHighlightShader = true
 local maxShaderUnits = 150
 local edgeExponent = 3
 
-local spIsUnitInView = Spring.IsUnitInView
+local spIsUnitVisible = Spring.IsUnitVisible
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitTeam = Spring.GetUnitTeam
 
@@ -184,7 +184,7 @@ function widget:DrawWorld()
   local teamID, prevTeamID, r,g,b
   for i=1,#selectedUnits do
     local unitID = selectedUnits[i]
-    if spIsUnitInView(unitID, 50, true) then
+    if spIsUnitVisible(unitID, 50, true) then
       local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
       if maxHealth ~= nil then
         if useTeamcolor then

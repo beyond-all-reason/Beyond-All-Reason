@@ -33,7 +33,7 @@ local GetCameraVectors = Spring.GetCameraVectors
 local GetGameFrame = Spring.GetGameFrame
 local IsGUIHidden = Spring.IsGUIHidden
 local GetUnitIsStunned = Spring.GetUnitIsStunned
-local IsUnitInView = Spring.IsUnitInView
+local IsUnitVisible = Spring.IsUnitVisible
 local GetUnitHealth = Spring.GetUnitHealth
 
 local abs = math.abs
@@ -107,7 +107,7 @@ function widget:DrawWorld()
 
 		glColor(0.4, 0.4, 1, 1)
 		for unitID, _ in pairs(paraUnits) do
-			if IsUnitInView(unitID, 50, true) then
+			if IsUnitVisible(unitID, 50, true) then
 				glUnit(unitID, true)
 			end
 		end
