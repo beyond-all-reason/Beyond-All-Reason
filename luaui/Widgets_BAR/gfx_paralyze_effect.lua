@@ -34,7 +34,6 @@ local GetGameFrame = Spring.GetGameFrame
 local IsGUIHidden = Spring.IsGUIHidden
 local GetUnitIsStunned = Spring.GetUnitIsStunned
 local IsUnitInView = Spring.IsUnitInView
-local IsUnitIcon = Spring.IsUnitIcon
 local GetUnitHealth = Spring.GetUnitHealth
 
 local abs = math.abs
@@ -108,7 +107,7 @@ function widget:DrawWorld()
 
 		glColor(0.4, 0.4, 1, 1)
 		for unitID, _ in pairs(paraUnits) do
-			if not IsUnitIcon(unitID) and IsUnitInView(unitID) then
+			if IsUnitInView(unitID, 50, true) then
 				glUnit(unitID, true)
 			end
 		end

@@ -29,7 +29,6 @@ local useHighlightShader = true
 local maxShaderUnits = 150
 local edgeExponent = 3
 
-local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -137,7 +136,7 @@ function widget:Initialize()
     useTeamcolor = value
     CreateHighlightShader()
   end
-  
+
   SetupCommandColors(false)
   CreateHighlightShader()
 end
@@ -185,7 +184,7 @@ function widget:DrawWorld()
   local teamID, prevTeamID, r,g,b
   for i=1,#selectedUnits do
     local unitID = selectedUnits[i]
-    if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
+    if spIsUnitInView(unitID, 50, true) then
       local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
       if maxHealth ~= nil then
         if useTeamcolor then

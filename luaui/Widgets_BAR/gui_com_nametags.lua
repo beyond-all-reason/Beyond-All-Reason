@@ -52,9 +52,9 @@ local GetTeamColor       		= Spring.GetTeamColor
 local GetUnitDefID       		= Spring.GetUnitDefID
 local GetAllUnits        		= Spring.GetAllUnits
 local IsUnitInView	 	 		= Spring.IsUnitInView
+local IsUnitIcon                = Spring.IsUnitIcon
 local GetCameraPosition  		= Spring.GetCameraPosition
 local GetUnitPosition    		= Spring.GetUnitPosition
-local IsUnitIcon                = Spring.IsUnitIcon
 local glDepthTest        		= gl.DepthTest
 local glAlphaTest        		= gl.AlphaTest
 local glColor            		= gl.Color
@@ -342,7 +342,7 @@ function widget:DrawWorld()
   local camX, camY, camZ = GetCameraPosition()
 
   for unitID, attributes in pairs(comms) do
-    if IsUnitInView(unitID) then
+    if IsUnitInView(unitID, 70) then
       local x,y,z = GetUnitPosition(unitID)
       camDistance = diag(camX-x, camY-y, camZ-z)
 

@@ -51,7 +51,6 @@ local spGetUnitDefID				= Spring.GetUnitDefID
 local spIsGUIHidden					= Spring.IsGUIHidden
 local spGetTeamColor				= Spring.GetTeamColor
 local spIsUnitVisible				= Spring.IsUnitVisible
-local spIsUnitIcon					= Spring.IsUnitIcon
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -493,7 +492,7 @@ local function updateSelectedUnitsData()
 
 	-- re-add selected units that became visible again
 	for unitID, unitParams in pairs(selectedUnitsInvisible) do
-		if spIsUnitVisible(unitID) and not spIsUnitIcon(unitID) then
+		if spIsUnitVisible(unitID, 50, true) then
 			selectedUnits[unitParams.teamID][unitID] = unitParams
 			selectedUnitsInvisible[unitID] = nil
 		end
@@ -518,7 +517,7 @@ local function updateSelectedUnitsData()
 			end
 
 			-- check if isnt visible
-			if not spIsUnitVisible(unitID) or spIsUnitIcon(unitID) then
+			if not spIsUnitVisible(unitID, 50, true) then
 				selectedUnitsInvisible[unitID] = selectedUnits[teamID][unitID]
 				selectedUnitsInvisible[unitID].teamID = teamID
 				selectedUnits[teamID][unitID] = nil
@@ -567,7 +566,7 @@ local function updateSelectedUnitsData()
 								end
 								selectedUnits[teamID][unitID].selected = true
 								selectedUnits[teamID][unitID].udid = spGetUnitDefID(unitID)
-								selectedUnits[teamID][unitID].visible = (spIsUnitVisible(unitID) and not spIsUnitIcon(unitID))
+								selectedUnits[teamID][unitID].visible = spIsUnitVisible(unitID, 50, true)
 							end
 						end
 					end
