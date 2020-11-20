@@ -213,7 +213,7 @@ function gadget:GameFrame(n)
 			spawnStartBoxEffect2(n)
 		end
 		--if n%(math.ceil(450/(math.ceil(ScavSafeAreaSize/5)))) == 0 then
-		if n%(math.ceil(7500000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
+		if n%(math.ceil(4800000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
 			spawnStartBoxEffect(n)
 		end
 	end
