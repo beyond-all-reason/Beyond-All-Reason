@@ -1885,7 +1885,7 @@ local definitions = {
                 sidetexture        = [[smoketrail]],
                 size               = 2.2,
                 sizegrowth         = 0,
-                ttl                = 6,
+                ttl                = 4,
             },
         },
     },
