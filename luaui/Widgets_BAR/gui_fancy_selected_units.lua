@@ -51,6 +51,7 @@ local spGetUnitDefID				= Spring.GetUnitDefID
 local spIsGUIHidden					= Spring.IsGUIHidden
 local spGetTeamColor				= Spring.GetTeamColor
 local spIsUnitVisible				= Spring.IsUnitVisible
+local spIsUnitIcon					= Spring.IsUnitIcon
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -488,12 +489,11 @@ function widget:SelectionChanged(sel)
 	checkSelectionChanges = true
 end
 
-
 local function updateSelectedUnitsData()
 
 	-- re-add selected units that became visible again
 	for unitID, unitParams in pairs(selectedUnitsInvisible) do
-		if spIsUnitVisible(unitID) then
+		if spIsUnitVisible(unitID) and not spIsUnitIcon(unitID) then
 			selectedUnits[unitParams.teamID][unitID] = unitParams
 			selectedUnitsInvisible[unitID] = nil
 		end
@@ -516,15 +516,15 @@ local function updateSelectedUnitsData()
 				selectedUnits[teamID][unitID].new = false
 				selectedUnits[teamID][unitID].old = currentClock - clockDifference
 			end
-			selectedUnits[teamID][unitID].visible = spIsUnitVisible(unitID)
 
 			-- check if isnt visible
-			if not spIsUnitVisible(unitID) then
+			if not spIsUnitVisible(unitID) or spIsUnitIcon(unitID) then
 				selectedUnitsInvisible[unitID] = selectedUnits[teamID][unitID]
 				selectedUnitsInvisible[unitID].teamID = teamID
 				selectedUnits[teamID][unitID] = nil
 			else
 				visibleUnitCount = visibleUnitCount + 1
+				selectedUnits[teamID][unitID].visible = true
 				-- logs current unit direction	(needs regular updates for air units, and for buildings only once)
 				local dirx, _, dirz = spGetUnitDirection(unitID)
 				if dirz ~= nil then
@@ -567,7 +567,7 @@ local function updateSelectedUnitsData()
 								end
 								selectedUnits[teamID][unitID].selected = true
 								selectedUnits[teamID][unitID].udid = spGetUnitDefID(unitID)
-								selectedUnits[teamID][unitID].visible = spIsUnitVisible(unitID)
+								selectedUnits[teamID][unitID].visible = (spIsUnitVisible(unitID) and not spIsUnitIcon(unitID))
 							end
 						end
 					end
@@ -595,7 +595,6 @@ function widget:Update(dt)
 	end
 end
 
-
 do
 	local unitID, unit, draw, unitPosX, unitPosY, unitPosZ, changedScale, usedAlpha, usedScale, usedXScale, usedZScale, usedRotationAngle
 	local health,maxHealth,paralyzeDamage,captureProgress,buildProgress
@@ -610,15 +609,15 @@ do
 				changedScale = 1
 				usedAlpha = a
 
-				if (OPTIONS.selectionEndAnimation  or  OPTIONS.selectionStartAnimation) then
+				if OPTIONS.selectionEndAnimation or OPTIONS.selectionStartAnimation then
 					if changeOpacity then
 						gl.Color(r,g,b,a)
 					end
 					-- check if the unit is deselected
-					if (OPTIONS.selectionEndAnimation and not unitParams.selected) then
-						if (maxDeselectedTime < unitParams.old) then
+					if OPTIONS.selectionEndAnimation and not unitParams.selected then
+						if maxDeselectedTime < unitParams.old then
 							changedScale = OPTIONS.selectionEndAnimationScale + (((unitParams.old - maxDeselectedTime) / OPTIONS.selectionEndAnimationTime)) * (1 - OPTIONS.selectionEndAnimationScale)
-							if (changeOpacity) then
+							if changeOpacity then
 								usedAlpha = 1 - (((unitParams.old - maxDeselectedTime) / OPTIONS.selectionEndAnimationTime) * (1-a))
 								gl.Color(r,g,b,usedAlpha)
 							end
@@ -628,16 +627,16 @@ do
 						end
 
 						-- check if the unit is newly selected
-					elseif (OPTIONS.selectionStartAnimation and unitParams.new > maxSelectTime) then
+					elseif OPTIONS.selectionStartAnimation and unitParams.new > maxSelectTime then
 						--spEcho(unitParams.new - maxSelectTime)
 						changedScale = OPTIONS.selectionStartAnimationScale + (((currentClock - unitParams.new) / OPTIONS.selectionStartAnimationTime)) * (1 - OPTIONS.selectionStartAnimationScale)
-						if (changeOpacity) then
+						if changeOpacity then
 							usedAlpha = 1 - (((currentClock - unitParams.new) / OPTIONS.selectionStartAnimationTime) * (1-a))
 							gl.Color(r,g,b,usedAlpha)
 						end
 						if not degrot[unitID] then
 							local dirx, _, dirz = spGetUnitDirection(unitID)
-							if (dirz ~= nil) then
+							if dirz ~= nil then
 								degrot[unitID] = 180 - math_acos(dirz) * rad_con
 								if dirx < 0 then
 									degrot[unitID] = 180 - math_acos(dirz) * rad_con
@@ -695,7 +694,7 @@ do
 							usedXScale = usedXScale * 1.23
 							usedZScale = usedZScale * 1.23
 						elseif OPTIONS.showExtraBuildingWeaponLine and unit.shapeName == 'square' then
-							if (unit.weaponcount > 0) then
+							if unit.weaponcount > 0 then
 								usedXScale = usedXScale * 1.14
 								usedZScale = usedZScale * 1.14
 							end
@@ -739,7 +738,7 @@ function widget:DrawWorldPreUnit()
 	-- animate scale
 	if OPTIONS.animateSpotterSize then
 		local addedMultiplierValue = OPTIONS.animationSpeed * (clockDifference * 50)
-		if (animationMultiplierAdd  and  animationMultiplier < OPTIONS.maxAnimationMultiplier) then
+		if animationMultiplierAdd and animationMultiplier < OPTIONS.maxAnimationMultiplier then
 			animationMultiplier = animationMultiplier + addedMultiplierValue
 			animationMultiplierInner = animationMultiplierInner - addedMultiplierValue
 			if (animationMultiplier > OPTIONS.maxAnimationMultiplier) then
@@ -750,7 +749,7 @@ function widget:DrawWorldPreUnit()
 		else
 			animationMultiplier = animationMultiplier - addedMultiplierValue
 			animationMultiplierInner = animationMultiplierInner + addedMultiplierValue
-			if (animationMultiplier < OPTIONS.minAnimationMultiplier) then
+			if animationMultiplier < OPTIONS.minAnimationMultiplier then
 				animationMultiplier = OPTIONS.minAnimationMultiplier
 				animationMultiplierInner = OPTIONS.maxAnimationMultiplier
 				animationMultiplierAdd = true
