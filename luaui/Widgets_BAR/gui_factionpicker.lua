@@ -27,6 +27,7 @@ local bgBorder = bgBorderOrg
 local bgMargin = 0.008
 
 local myTeamID = Spring.GetMyTeamID()
+local stickToBottom = false
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -232,6 +233,9 @@ function widget:Initialize()
 	if WG['minimap'] then
 		altPosition = WG['minimap'].getEnlarged()
 	end
+	if WG['ordermenu'] then
+		stickToBottom = WG['ordermenu'].getBottomPosition()
+	end
 
 	widget:ViewResize()
 
@@ -281,6 +285,11 @@ function widget:Update(dt)
 		end
 		if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
 			altPosition = WG['minimap'].getEnlarged()
+			widget:ViewResize()
+			doUpdate = true
+		end
+		if WG['ordermenu'] and stickToBottom ~= WG['ordermenu'].getBottomPosition() then
+			stickToBottom = WG['ordermenu'].getBottomPosition()
 			widget:ViewResize()
 			doUpdate = true
 		end
