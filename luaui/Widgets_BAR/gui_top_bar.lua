@@ -1287,9 +1287,6 @@ function widget:Update(dt)
 			-- check if the team that we are spectating changed
 			draggingShareIndicatorValue = {}
 			draggingConversionIndicatorValue = nil
-			if sec ~= 0 then
-				r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-			end
 			updateResbar('metal')
 			updateResbar('energy')
 		end
@@ -1307,7 +1304,6 @@ function widget:Update(dt)
 	if gameFrame ~= lastFrame then
 		currentWind = sformat('%.1f', select(4, spGetWind()))
 	end
-
 
 	-- coms
 	if displayComCounter then

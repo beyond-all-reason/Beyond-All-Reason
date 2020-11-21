@@ -4533,15 +4533,23 @@ function init()
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
-					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. "   " .. trackName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
-										  onchange = function(i, value)
-											  saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
-										  end,
-										  onclick = function()
-											  if WG['music'] ~= nil and WG['music'].playTrack then
-												  WG['music'].playTrack(v[1])
-											  end
-										  end,
+					local optionName, numLines = font:WrapText(trackName, ((screenWidth / 3)-70)*2*widgetScale)
+					if numLines > 1 then
+						local l = lines(optionName)
+						if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
+							l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+						end
+						optionName = l[1]..'...'
+					end
+					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
+						onchange = function(i, value)
+							saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
+						end,
+						onclick = function()
+							if WG['music'] ~= nil and WG['music'].playTrack then
+								WG['music'].playTrack(v[1])
+							end
+						end,
 					}
 				end
 			end
@@ -4913,10 +4921,12 @@ function widget:Initialize()
 			Spring.SetConfigInt("snd_volmusic", 50)
 		end
 
-		-- enable map/model shading
-		if Spring.GetConfigInt("AdvMapShading", 0) ~= 1 then
-			Spring.SetConfigInt("AdvMapShading", 1)
-		end
+		-- enable advanced map shading
+		--if Spring.GetConfigInt("AdvMapShading", 0) ~= 1 then
+		--	Spring.SetConfigInt("AdvMapShading", 1)
+		--end
+
+		-- enable advanced model shading
 		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
 			Spring.SetConfigInt("AdvModelShading", 1)
 		end
