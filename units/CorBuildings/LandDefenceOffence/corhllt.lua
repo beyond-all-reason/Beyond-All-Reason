@@ -110,10 +110,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "servmed2",
+				[1] = "lltok",
 			},
 			select = {
-				[1] = "servmed2",
+				[1] = "hlltselect",
 			},
 		},
 		weapondefs = {

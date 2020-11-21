@@ -102,11 +102,11 @@ return {
 			},
 		},
 		sounds = {
-			activate = "mexrun2",
+			activate = "mexon",
 			canceldestruct = "cancel2",
-			deactivate = "mexoff2",
+			deactivate = "mexoff",
 			underattack = "warning1",
-			working = "mexrun2",
+			working = "mexworking",
 			cant = {
 				[1] = "cantdo4",
 			},
@@ -118,11 +118,11 @@ return {
 				[5] = "count2",
 				[6] = "count1",
 			},
-			ok = {
-				[1] = "servmed2",
-			},
+			-- ok = {
+			-- 	[1] = "mexworking",
+			-- },
 			select = {
-				[1] = "mexon2",
+				[1] = "mexselect",
 			},
 		},
 	},

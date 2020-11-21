@@ -105,11 +105,11 @@ return {
 			},
 		},
 		sounds = {
-			activate = "radar1",
+			activate = "radaron",
 			canceldestruct = "cancel2",
-			deactivate = "radarde1",
+			deactivate = "radaroff",
 			underattack = "warning1",
-			working = "radar2",
+			working = "radarselect",
 			count = {
 				[1] = "count6",
 				[2] = "count5",
@@ -119,7 +119,7 @@ return {
 				[6] = "count1",
 			},
 			select = {
-				[1] = "radar2",
+				[1] = "radarselect",
 			},
 		},
 	},

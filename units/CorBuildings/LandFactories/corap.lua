@@ -106,7 +106,7 @@ return {
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
-			unitcomplete = "untdone",
+			unitcomplete = "unitready",
 			count = {
 				[1] = "count6",
 				[2] = "count5",
@@ -116,7 +116,7 @@ return {
 				[6] = "count1",
 			},
 			select = {
-				[1] = "pairactv",
+				[1] = "airplantselect",
 			},
 		},
 	},

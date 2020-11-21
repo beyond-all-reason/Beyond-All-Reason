@@ -1,17 +1,18 @@
 local Sounds = {
 	SoundItems = {
 		IncomingChat = {
-			file = "sounds/ui/blank.wav",
+			file = "sounds/ui/chat.wav",
 			in3d = "false",
 		},
 		MultiSelect = {
-			file = "sounds/ui/button9.wav",
+			file = "sounds/ui/multiselect.wav",
 			in3d = "false",
 		},
 		MapPoint = {
-			file = "sounds/ui/beep6.wav",
-			rolloff = 0.3,
-			dopplerscale = 0,       
+			file = "sounds/ui/mappoint.wav",
+			--rolloff = 0.1,
+			--dopplerscale = 0,
+			in3d = "false",       
 		},
 		FailedCommand = {
 			file = "sounds/replies/cantdo4.wav",       
@@ -119,7 +120,7 @@ for i=1,#files do
       pitchmod = 0.17,
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
-      maxconcurrent = 10,
+      maxconcurrent = 8,
       rolloff = 1.0,
    }
    
@@ -145,6 +146,12 @@ for i=1,#files do
    if string.sub(fileNames, 1, 4) == "lasr" then
     t[fileNames].pitchmod = 0
     end
+   if string.sub(fileNames, 1, 6) == "mavgun" then
+    t[fileNames].pitchmod = 0.06
+    end 
+   if string.sub(fileNames, 1, 7) == "nanlath" then
+    t[fileNames].pitchmod = 0.02
+    end 
    if string.sub(fileNames, 1, 4) == "mgun" then
     t[fileNames].pitchmod = 0.08
     end 
@@ -184,12 +191,13 @@ for i=1,#files do
 	fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
 	t[fileNames] = {
 		file     = fileName;
-		gain = 1.2*0.3,
-		pitchmod = 0.01,
+		gain = 0.5*0.2,
+		pitchmod = 0.02,
 		gainmod  = 0.2*0.3,
-		dopplerscale = 1.0,
+		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.2,
+		in3d = "false",
 	}
 end
 
@@ -198,11 +206,11 @@ local files = VFS.DirList("sounds/chickens/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
-   fileNames = string.sub(fileName, 18, string.find(fileName, ".wav") -1)
+   fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       	file     = fileName;
 	    gain = 1.2*0.3,
-      	pitchmod = 0.18,
+      	pitchmod = 0.21,
       	gainmod  = 0.2*0.3,
 	    dopplerscale = 1.0,
       	maxconcurrent = 4,
@@ -215,7 +223,7 @@ local files = VFS.DirList("sounds/critters/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
-   fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+   fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       	file     = fileName;
 	    gain = 1.1*0.3,
