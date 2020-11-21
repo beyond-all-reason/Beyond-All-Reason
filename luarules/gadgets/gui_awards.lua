@@ -505,7 +505,7 @@ end
 local chobbyLoaded = false
 if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
 	chobbyLoaded = true
-	showGraphsButton = false
+	showGraphsButton = false	-- false -> Close button
 end
 
 function gadget:Initialize()
@@ -854,8 +854,10 @@ function gadget:MousePress(x,y,button)
 				Spring.SendCommands("quitforce")
 			end
 		end
-		if showGraphsButton and (x > bx+w-graphsX-5) and (x < bx+w-graphsX+20*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
-			Spring.SendCommands('endgraph 1')
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+20*font:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close'))+5) and (y>by+50-5) and (y<by+50+16+5) then
+			if showGraphsButton then
+				Spring.SendCommands('endgraph 1')
+			end
 			if Script.LuaUI("GuishaderRemoveRect") then
 				Script.LuaUI.GuishaderRemoveRect('awards')
 			end
@@ -918,13 +920,12 @@ function gadget:DrawScreen()
 		font2:Begin()
 		font2:Print(quitColour .. (chobbyLoaded and 'Leave' or 'Quit'), bx+w-quitX, by+50, 20, "o")
 		if showGraphsButton then
-
-			if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+17+5) then
+			if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close'))+5) and (y>by+50-5) and (y<by+50+17+5) then
 				graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 			else
 				graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 			end
-			font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 20, "o")
+			font2:Print(graphColour .. (showGraphsButton and 'Show Graphs' or 'Close'), bx+w-graphsX, by+50, 20, "o")
 		end
 		font2:End()
 
