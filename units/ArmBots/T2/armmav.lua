@@ -139,7 +139,7 @@ return {
 				alphaDecay = 0.10,
 				soundhit = "xplomed5",
 				soundhitwet = "splshbig",
-				soundstart = "mavgun5",
+				soundstart = "mavgun4",
 				tolerance = 4000,
 				turret = true,
 				weapontype = "Cannon",

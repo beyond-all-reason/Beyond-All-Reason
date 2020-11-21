@@ -191,13 +191,13 @@ for i=1,#files do
 	fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
 	t[fileNames] = {
 		file     = fileName;
-		gain = 0.5*0.2,
+		gain = 1.2*0.3,
 		pitchmod = 0.02,
 		gainmod  = 0.2*0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.2,
-		in3d = "false",
+		--in3d = "false",
 	}
 end
 
