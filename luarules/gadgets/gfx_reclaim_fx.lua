@@ -76,7 +76,7 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 		local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 		if fx ~= nil then
 			local fdef = featureList[featureDefID]
-			if fdef and fdef.minx then
+			if fdef and fdef.minx and fdef.maxx then
 				local x,y,z = fx,fy,fz
 				local _, mm, _, me, _ = Spring.GetFeatureResources(featureID)
 				if me ~= nil and me > 0 then
