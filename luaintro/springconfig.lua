@@ -25,7 +25,12 @@ if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
 	Spring.SetConfigInt("AdvMapShading", 1)
 end
 
--- lua shaders
+-- disable ForceDisableShaders
+if Spring.GetConfigInt("ForceDisableShaders",0) == 1 then
+	Spring.SetConfigInt("ForceDisableShaders", 0)
+end
+
+-- enable lua shaders
 if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
 	Spring.SetConfigInt("LuaShaders", 1)
 end
