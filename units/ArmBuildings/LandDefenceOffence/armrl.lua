@@ -142,7 +142,7 @@ return {
 				soundstart = "rockhvy2",
 				startvelocity = 300,
 				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture2 = "",
 				tolerance = 10000,
 				tracks = true,
 				turnrate = 63000,

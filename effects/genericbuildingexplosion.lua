@@ -1248,13 +1248,13 @@ definitions[root..'-wind'].dirt2.properties.numparticles = definitions[root..'-w
 definitions[root..'-wind'].sparks.properties.numparticles = definitions[root..'-wind'].sparks.properties.numparticles / 2
 
 definitions[root..'-nano'] = deepcopy(definitions[root.."-wind"])
-definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   0.92 1 0.7 0.08   0.77 0.9 0.21 0.06   0.57 0.66 0.04 0.03   0 0 0 0.01]]
-definitions[root..'-nano'].fireglow.properties.colormap = [[0.15 0.14 0.1 0.005  0 0 0 0.01]]
-definitions[root..'-nano'].fireglow2.properties.colormap = [[0.26 0.24 0.08 0.26   0.36 0.44 0.13 0.44   0.15 0.2 0 0.2   0 0 0 0.01]]
-definitions[root..'-nano'].sparks.properties.colormap = [[0.85 0.95 0.77 0.017   0.6 0.9 0.3 0.011   0 0 0 0]]
+--definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   0.92 1 0.7 0.08   0.77 0.9 0.21 0.06   0.57 0.66 0.04 0.03   0 0 0 0.01]]
+--definitions[root..'-nano'].fireglow.properties.colormap = [[0.15 0.14 0.1 0.005  0 0 0 0.01]]
+--definitions[root..'-nano'].fireglow2.properties.colormap = [[0.26 0.24 0.08 0.26   0.36 0.44 0.13 0.44   0.15 0.2 0 0.2   0 0 0 0.01]]
+--definitions[root..'-nano'].sparks.properties.colormap = [[0.85 0.95 0.77 0.017   0.6 0.9 0.3 0.011   0 0 0 0]]
 definitions[root..'-nano'].sparks.properties.numparticles = definitions[root..'-nano'].sparks.properties.numparticles * 1.5
-definitions[root..'-nano'].dirt.properties.colormap = [[0.8 1 0.4 0.1   0 0 0 0.01]]
-definitions[root..'-nano'].dirt2.properties.colormap = [[0.7 1 0.3 0.1   0 0 0 0.01]]
+--definitions[root..'-nano'].dirt.properties.colormap = [[0.8 1 0.4 0.1   0 0 0 0.01]]
+--definitions[root..'-nano'].dirt2.properties.colormap = [[0.7 1 0.3 0.1   0 0 0 0.01]]
 
 definitions[root..'-metalmaker'] = deepcopy(definitions[root.."-medium"])
 definitions[root..'-metalmaker'].clouddust.properties.numparticles = definitions[root..'-metalmaker'].clouddust.properties.numparticles / 3

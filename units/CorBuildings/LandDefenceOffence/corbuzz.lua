@@ -138,7 +138,7 @@ return {
 				rgbcolor = "1, 0.4, 0",
 				soundhit = "rflrpc3",
 				soundhitwet = "splshbig",
-				soundstart = "XPLONUK4",
+				soundstart = "lrpcshot",
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
