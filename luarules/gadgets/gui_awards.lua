@@ -919,14 +919,12 @@ function gadget:DrawScreen()
 		end
 		font2:Begin()
 		font2:Print(quitColour .. (chobbyLoaded and 'Leave' or 'Quit'), bx+w-quitX, by+50, 20, "o")
-		if showGraphsButton then
-			if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close'))+5) and (y>by+50-5) and (y<by+50+17+5) then
-				graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
-			else
-				graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
-			end
-			font2:Print(graphColour .. (showGraphsButton and 'Show Graphs' or 'Close'), bx+w-graphsX, by+50, 20, "o")
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close'))+5) and (y>by+50-5) and (y<by+50+17+5) then
+			graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
+		else
+			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
+		font2:Print(graphColour .. (showGraphsButton and 'Show Graphs' or 'Close'), bx+w-graphsX, by+50, 20, "o")
 		font2:End()
 
 		if bettingScores ~= nil and bettingScores[1] ~= '' then
