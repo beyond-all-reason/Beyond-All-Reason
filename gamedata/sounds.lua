@@ -133,13 +133,16 @@ for i=1,#files do
    -- if fileNames == "newboom" then
    --  t[fileNames].gain = 0.045*0.3
    --  end
-    if fileNames == "beamershot2" then
+    if fileNames == "beamershot2" then 
     t[fileNames].gain = 0.5*0.3
     t[fileNames].pitchmod = 0.04
     end
    if fileNames == "lasfirerc" then
     t[fileNames].pitchmod = 0.06
     end
+   if string.sub(fileNames, 1, 8) == "lrpcshot" then
+    t[fileNames].pitchmod = 0.12
+    end 
    if string.sub(fileNames, 1, 7) == "heatray" then
     t[fileNames].pitchmod = 0
     end
@@ -161,7 +164,7 @@ for i=1,#files do
    if string.sub(fileNames, 1, 7) == "xplomed" then
     t[fileNames].pitchmod = 0.25
     end
-    if string.sub(fileNames, 1, 7) == "xplosml" then
+   if string.sub(fileNames, 1, 7) == "xplosml" then
     t[fileNames].pitchmod = 0.22
     end
 end
