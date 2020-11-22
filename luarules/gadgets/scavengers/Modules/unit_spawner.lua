@@ -147,18 +147,14 @@ function BossMinionsSpawn(n)
 			minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
 		end
 	end
-	Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
-	Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
-	local posx = x + math_random(-500,500)
-	local posz = z + math_random(-500,500)
-	local posy = Spring.GetGroundHeight(posx, posz)
-	Spring.CreateUnit("scavmistxl"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
-	Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
-	local posx = x + math_random(-500,500)
-	local posz = z + math_random(-500,500)
-	local posy = Spring.GetGroundHeight(posx, posz)
-	Spring.CreateUnit("scavmist"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
-	Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+	if math.random(1,4) == 1 then
+		Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+		Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+		local posx = x + math_random(-500,500)
+		local posz = z + math_random(-500,500)
+		local posy = Spring.GetGroundHeight(posx, posz)
+		Spring.CreateUnit("scavmistxxl"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+	end
 end
 
 
