@@ -44,7 +44,7 @@ return {
 		customparams = {
 			model_author = "IceXuick",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.125,
+			paralyzemultiplier = 0.001,
 			subfolder = "scavengers",
 		},
 		sfxtypes = {
