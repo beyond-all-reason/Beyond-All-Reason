@@ -530,16 +530,17 @@ customDefs.corgant = {
 	buildoptions = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
+		[numBuildoptions+3] = "corlevlrt4",
+		
 	},
 }
 
--- numBuildoptions = #UnitDefs.corgantuw.buildoptions
--- customDefs.corgantuw = {
-	-- buildoptions = {
-		-- [numBuildoptions+1] = "corcrwt4",
-		-- [numBuildoptions+2] = "corfblackhyt4",
-	-- },
--- }
+numBuildoptions = #UnitDefs.corgantuw.buildoptions
+customDefs.corgantuw = {
+	buildoptions = {
+		[numBuildoptions+1] = "corlevlrt4",
+	},
+}
 
 numBuildoptions = #UnitDefs.coravp.buildoptions
 customDefs.coravp = {

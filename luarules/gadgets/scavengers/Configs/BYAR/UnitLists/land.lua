@@ -172,4 +172,5 @@ T4LandUnits = {
 	"cordemont4",
 	"corkarganetht4",
 	"armrectrt4",
+	"corlevlrt4",
 }

@@ -298,10 +298,27 @@ local armorDefs = {
 		"coruwadves",
 		"coruwadvms",
 
+		"corgatreap",
+		
 		"armpwt4",
 		"armrattet4",
 		"armvadert4",
 		"corkarganetht4",
+		"armassimilator",
+		"armlunchbox",
+		"armmeatball",
+		"armrectrt4",
+		"armsptkt4",
+		"cordemont4",
+		"corlevlrt4",
+		
+		"scavmist",
+		"scavmistxl",
+		"scavmistxxl",
+		
+		"armapt3",
+		"corapt3",
+		
 	},
 	bombers = {
 		"chickenf1",
@@ -317,8 +334,6 @@ local armorDefs = {
 		"corhurc",
 		"corsb",
 		"cortitan",
-
-		"armthundt4",
 	},
 	fighters = {
 		"chickenw1",
@@ -382,6 +397,7 @@ local armorDefs = {
 		"corcrwt4",
 		"armfepocht4",
 		"corfblackhyt4",
+		"armthundt4",
 	},
 	shields = {
 		"armgate",
