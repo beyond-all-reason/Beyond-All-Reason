@@ -229,6 +229,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitDefInfo[unitDefID].iconType = unitDef.iconType
 	unitDefInfo[unitDefID].energyCost = unitDef.energyCost
 	unitDefInfo[unitDefID].metalCost = unitDef.metalCost
+	unitDefInfo[unitDefID].energyStorage = unitDef.energyStorage
+	unitDefInfo[unitDefID].metalStorage = unitDef.metalStorage
+
 	unitDefInfo[unitDefID].health = unitDef.health
 	unitDefInfo[unitDefID].buildTime = unitDef.buildTime
 	unitDefInfo[unitDefID].buildPic = unitDef.buildpicname
@@ -1423,8 +1426,14 @@ local function drawUnitInfo()
 		--addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
 		if unitDefInfo[displayUnitDefID].metalmaker then
-			addTextInfo('Energy needed for Conversion', unitDefInfo[displayUnitDefID].metalmaker[1])
-			addTextInfo('Converted Metal', round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
+			addTextInfo('E needed for Conversion', unitDefInfo[displayUnitDefID].metalmaker[1])
+			addTextInfo('Converted M', round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
+		end
+		if unitDefInfo[displayUnitDefID].energyStorage > 0 then
+			addTextInfo('E-storage', unitDefInfo[displayUnitDefID].energyStorage)
+		end
+		if unitDefInfo[displayUnitDefID].metalStorage > 0 then
+			addTextInfo('M-storage', unitDefInfo[displayUnitDefID].metalStorage)
 		end
 
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
