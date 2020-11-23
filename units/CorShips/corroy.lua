@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.02757,
 		buildangle = 16384,
-		buildcostenergy = 4800,
+		buildcostenergy = 7200,
 		buildcostmetal = 960,
 		buildpic = "CORROY.PNG",
 		buildtime = 10600,
