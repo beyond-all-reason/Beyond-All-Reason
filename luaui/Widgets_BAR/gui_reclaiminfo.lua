@@ -162,7 +162,7 @@ function widget:DrawScreen()
        y = y - form
       end
       font:Begin()
-      font:Print("   M:"..metal.."\255\255\255\128".." E:"..energy,x,y,form)
+      font:Print("   M:"..metal.."\255\255\255\128".." E:"..energy,x,y,form,'o')
       font:End()
     end
     --Unit resource info when mouse on one
@@ -184,7 +184,7 @@ function widget:DrawScreen()
          color = "\255\220\10\10"
         end
         font:Begin()
-        font:Print(color.."   M:"..metal,x,y,form)
+        font:Print(color.."   M:"..metal,x,y,form,'o')
         font:End()
       end
     end

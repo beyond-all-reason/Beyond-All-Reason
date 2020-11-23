@@ -14,7 +14,7 @@ end
 
 local textSize = 16
 
-local vsx,vsy = Spring.GetViewGeometry()
+local vsx, vsy = Spring.GetViewGeometry()
 
 ------------------------------------------------
 --speedups
@@ -84,10 +84,10 @@ local function DrawTextWithBackground(text, x, y, size, opt)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 	glColor(0.25, 0.25, 0.25, 0.75)
-	if (opt) then
-		if (strFind(opt, "r")) then
+	if opt then
+		if strFind(opt, "r") then
 			glRect(x, y, x - width, y + size * TEXT_CORRECT_Y)
-		elseif (strFind(opt, "c")) then
+		elseif strFind(opt, "c") then
 			glRect(x + width * 0.5, y, x - width * 0.5, y + size * TEXT_CORRECT_Y)
 		else
 			glRect(x, y, x + width, y + size * TEXT_CORRECT_Y)
@@ -98,7 +98,7 @@ local function DrawTextWithBackground(text, x, y, size, opt)
 
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 0.85)
-	font:Print(text, x+4, y, size, opt)
+	font:Print(text, x + 4, y, size, opt)
 	font:End()
 end
 
@@ -112,17 +112,17 @@ local function SetupMexDefInfos()
 		minExtractsMetal = 0
 	end
 
-	for unitDefID = 1,#UnitDefs do
+	for unitDefID = 1, #UnitDefs do
 		local unitDef = UnitDefs[unitDefID]
 		local extractsMetal = unitDef.extractsMetal
-		if (extractsMetal > 0) then
+		if extractsMetal > 0 then
 			mexDefInfos[unitDefID] = {}
 			mexDefInfos[unitDefID][1] = extractsMetal
 			--mexDefInfos[unitDefID][2] = unitDef.extractSquare --removed because deprecated from unitdefs; so mexDefInfos[UnitDefID][x] is defined only for only x=1,3,4.
-			if (unitDef.xsize % 4 == 2) then
+			if unitDef.xsize % 4 == 2 then
 				mexDefInfos[unitDefID][3] = true
 			end
-			if (unitDef.zsize % 4 == 2) then
+			if unitDef.zsize % 4 == 2 then
 				mexDefInfos[unitDefID][4] = true
 			end
 			if not minExtractsMetal or extractsMetal < minExtractsMetal then
@@ -136,19 +136,21 @@ end
 
 local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 	local newCenterX, newCenterZ
-	if (mexDefInfo[3]) then
-		newCenterX = (floor( x / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
+	if mexDefInfo[3] then
+		newCenterX = (floor(x / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
 	else
-		newCenterX = floor( x / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
+		newCenterX = floor(x / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
 	end
 
-	if (mexDefInfo[4]) then
-		newCenterZ = (floor( z / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
+	if mexDefInfo[4] then
+		newCenterZ = (floor(z / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
 	else
-		newCenterZ = floor( z / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
+		newCenterZ = floor(z / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
 	end
 
-	if (centerX == newCenterX and centerZ == newCenterZ and not forceUpdate) then return end
+	if centerX == newCenterX and centerZ == newCenterZ and not forceUpdate then
+		return
+	end
 
 	centerX = newCenterX
 	centerZ = newCenterZ
@@ -169,9 +171,10 @@ local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 			local dx, dz = cx - centerX, cz - centerZ
 			local dist = sqrt(dx * dx + dz * dz)
 
-			if (dist < MEX_RADIUS) then
+			if dist < MEX_RADIUS then
 				local _, metal, metal2 = GetGroundInfo(cx, cz)
-				if type(metal) == 'string' then	-- Spring > v104
+				if type(metal) == 'string' then
+					-- Spring > v104
 					metal = metal2
 				end
 				result = result + metal
@@ -189,11 +192,13 @@ end
 function widget:Initialize()
 	SetupMexDefInfos()
 	myTeamID = Spring.GetMyTeamID()
-  once = true
+	once = true
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
+	if chobbyInterface then
+		return
+	end
 	local drawMode = GetMapDrawMode()
 	if GetGameFrame() < 1 and defaultDefID and drawMode == "metal" then
 		local mx, my = GetMouseState()
@@ -202,7 +207,9 @@ function widget:DrawWorld()
 			coords[1] = WG.MexSnap.curPosition[1]
 			coords[3] = WG.MexSnap.curPosition[3]
 		end
-		if not coords then return end
+		if not coords then
+			return
+		end
 
 		IntegrateMetal(mexDefInfos[defaultDefID], coords[1], coords[3], false)
 
@@ -211,9 +218,9 @@ function widget:DrawWorld()
 		glDrawGroundCircle(centerX, 0, centerZ, MEX_RADIUS, 64)
 		if defaultDefID then
 			glPushMatrix()
-				glColor(1, 1, 1, 0.25)
-				glTranslate(centerX, coords[2], centerZ)
-				glUnitShape(defaultDefID, myTeamID)
+			glColor(1, 1, 1, 0.25)
+			glTranslate(centerX, coords[2], centerZ)
+			glUnitShape(defaultDefID, myTeamID)
 			glPopMatrix()
 		end
 		glColor(1, 1, 1, 1)
@@ -221,14 +228,16 @@ function widget:DrawWorld()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
-  if (once) then
+	if chobbyInterface then
+		return
+	end
+	if once then
 		widget:ViewResize()
 		once = false
 	end
@@ -242,32 +251,38 @@ function widget:DrawScreen()
 		end
 	else
 		local _, cmd_id = GetActiveCommand()
-		if (not cmd_id) then return end
+		if not cmd_id then
+			return
+		end
 		local unitDefID = -cmd_id
 		local forceUpdate = false
-		if (unitDefID ~= lastUnitDefID) then
+		if unitDefID ~= lastUnitDefID then
 			forceUpdate = true
 		end
 		lastUnitDefID = unitDefID
 		mexDefInfo = mexDefInfos[unitDefID]
 	end
 
-	if (not mexDefInfo) then return end
+	if not mexDefInfo then
+		return
+	end
 
 	local mx, my = GetMouseState()
 	local _, coords = TraceScreenRay(mx, my, true, true)
 
-	if (not coords) then return end
+	if not coords then
+		return
+	end
 	if WG.MexSnap and WG.MexSnap.curPosition then
 		coords[1] = WG.MexSnap.curPosition[1]
 		coords[3] = WG.MexSnap.curPosition[3]
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
-	DrawTextWithBackground("\255\255\255\255Metal extraction: " .. strFormat("%.2f", extraction), mx, my, textSize, "d")
+	DrawTextWithBackground("\255\255\255\255Metal extraction: " .. strFormat("%.2f", extraction), mx, my, textSize, "do")
 	glColor(1, 1, 1, 1)
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end

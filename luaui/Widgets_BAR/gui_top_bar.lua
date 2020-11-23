@@ -748,7 +748,7 @@ local function updateWind()
 		-- blades icon
 		glPushMatrix()
 		glTranslate(area[1] + ((area[3] - area[1]) / 2), area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
-		glColor(1, 1, 1, 0.25)
+		glColor(1, 1, 1, 0.2)
 		glTexture(bladesTexture)
 		-- glRotate is done after displaying this dl, and before dl2
 	end)
@@ -763,11 +763,19 @@ local function updateWind()
 
 		-- min and max wind
 		local fontsize = (height / 3.7) * widgetScale
-		font2:Begin()
-		font2:Print("\255\210\210\210" .. minWind, area[3] - (2.8 * widgetScale), area[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
-		font2:Print("\255\210\210\210" .. maxWind, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
-		font2:Print("\255\210\210\210" .. maxWind, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
-		font2:End()
+		if minWind+maxWind >= 0.5 then
+			font2:Begin()
+			font2:Print("\255\210\210\210" .. minWind, area[3] - (2.8 * widgetScale), area[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
+			font2:Print("\255\210\210\210" .. maxWind, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
+			font2:Print("\255\210\210\210" .. maxWind, area[3] - (2.8 * widgetScale), area[2] + (4.5 * widgetScale), fontsize, 'or')
+			font2:End()
+		else
+			font2:Begin()
+			--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200no", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+			font2:End()
+		end
 	end)
 
 	if WG['tooltip'] ~= nil then
@@ -1514,15 +1522,17 @@ function widget:DrawScreen()
 		glPopMatrix()
 		-- current wind
 		if gameFrame > 0 then
-			local fontSize = (height / 2.66) * widgetScale
-			if not dlistWindText[currentWind] then
-				dlistWindText[currentWind] = glCreateList(function()
-					font2:Begin()
-					font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
-					font2:End()
-				end)
+			if minWind+maxWind >= 0.5 then
+				local fontSize = (height / 2.66) * widgetScale
+				if not dlistWindText[currentWind] then
+					dlistWindText[currentWind] = glCreateList(function()
+						font2:Begin()
+						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
+						font2:End()
+					end)
+				end
+				glCallList(dlistWindText[currentWind])
 			end
-			glCallList(dlistWindText[currentWind])
 		else
 			if now < 90 and WG['tooltip'] ~= nil then
 				local minh = height * 0.5
@@ -1546,9 +1556,9 @@ function widget:DrawScreen()
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
-			glColor(1, 0.6, 0, 0.55)
+			glColor(1, 0.6, 0, 0.45)
 		else
-			glColor(1, 1, 1, 0.25)
+			glColor(1, 1, 1, 0.22)
 		end
 		glCallList(dlistComs2)
 	end
