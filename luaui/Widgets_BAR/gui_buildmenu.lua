@@ -253,7 +253,7 @@ local groups = {
 	builder = folder..'builder.png',
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
-	emp = folder..'weapon-emp.png',
+	emp = folder..'emp.png',
 }
 
 local unitBuildPic = {}
