@@ -1870,12 +1870,12 @@ function init()
 
 			-- look for system hardware
 			if string.find(line, 'Physical CPU Cores') then
-				if tonumber(string.match(line, '([0-9].*)')) <= 2 then
+				if tonumber(string.match(line, '([0-9].*)')) and tonumber(string.match(line, '([0-9].*)')) <= 2 then
 					isPotatoCpu = true
 				end
 			end
 			if string.find(line, 'Logical CPU Cores') then
-				if tonumber(string.match(line, '([0-9].*)')) <= 2 then
+				if tonumber(string.match(line, '([0-9].*)')) and tonumber(string.match(line, '([0-9].*)')) <= 2 then
 					isPotatoCpu = true
 				end
 			end
@@ -3000,6 +3000,13 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Build menu', 'buildmenu', 'setShowPrice', { 'showPrice' }, value)
+		  end,
+		},
+		{ id = "buildmenu_groupicon", group = "ui", basic = true, name = widgetOptionColor .. "   group icon", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowGroupIcon ~= nil and WG['buildmenu'].getShowGroupIcon()), description = 'Group icons in the buildmenu',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setShowGroupIcon', { 'showGroupIcon' }, value)
 		  end,
 		},
 		{ id = "buildmenu_radaricon", group = "ui", basic = true, name = widgetOptionColor .. "   radar icon", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowRadarIcon ~= nil and WG['buildmenu'].getShowRadarIcon()), description = 'Radar icons in the buildmenu',

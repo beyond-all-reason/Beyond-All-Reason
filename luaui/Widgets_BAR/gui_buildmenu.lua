@@ -21,8 +21,9 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgRadaiconSize = 0.29
+local cfgRadariconSize = 0.29
 local cfgRadariconOffset = 0.027
+local cfgGroupiconSize = 0.29
 local cfgPriceFontSize = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
@@ -40,7 +41,8 @@ local enableShortcuts = false   -- problematic since it overrules use of top row
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = true
-local showRadarIcon = true
+local showRadarIcon = false
+local showGroupIcon = true
 local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
@@ -244,6 +246,16 @@ function wrap(str, limit)
 	return t
 end
 
+local folder = ':l:LuaUI/Images/groupicons/'
+local groups = {
+	energy = folder..'energy.png',
+	metal = folder..'metal.png',
+	builder = folder..'builder.png',
+	util = folder..'util.png',
+	weapon = folder..'weapon.png',
+	emp = folder..'weapon-emp.png',
+}
+
 local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
@@ -258,9 +270,33 @@ local isMex = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.humanName
+	unitGroup[unitDefID] = 'util'
+	if unitDef.customParams.objectify or unitDef.isTransport then
+		unitGroup[unitDefID] = nil
+	end
+	if unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0 then
+		unitGroup[unitDefID] = 'energy'
+	end
+	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
+		unitGroup[unitDefID] = 'metal'
+	end
+	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+		unitGroup[unitDefID] = 'energy'
+	end
+	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
+		unitGroup[unitDefID] = 'metal'
+	end
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
+		unitGroup[unitDefID] = 'weapon'
 	end
+	for i = 1, #unitDef.weapons do
+		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+		if weaponDef and weaponDef.paralyzer then
+			unitGroup[unitDefID] = 'emp'
+		end
+	end
+
 	if unitDef.customParams.description_long then
 		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
 	end
@@ -268,13 +304,17 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitGroup = {}
 	unitBuildPic[unitDefID] = unitDef.buildpicname
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
+		unitGroup[unitDefID] = 'builder'
 	end
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
+		unitGroup[unitDefID] = 'builder'
+	end
+	if unitDef.buildSpeed > 10 then
+		unitGroup[unitDefID] = 'builder'
 	end
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
@@ -442,7 +482,7 @@ local function cacheUnitIcons()
 	local cellPadding = math_floor(cellSize * cfgCellPadding)
 	local cellInnerSize = cellSize - cellPadding - cellPadding
 	local newTextureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * texDetailMult)
-	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadaiconSize) + 0.5) * radartexDetailMult)
+	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadariconSize) + 0.5) * radartexDetailMult)
 	if not textureDetail or textureDetail ~= newTextureDetail then
 		while colls <= maxC do
 			-- these are globals so it can be re-used (hover highlight)
@@ -1014,6 +1054,13 @@ function widget:Initialize()
 		showRadarIcon = value
 		doUpdate = true
 	end
+	WG['buildmenu'].getShowGroupIcon = function()
+		return showGroupIcon
+	end
+	WG['buildmenu'].setShowGroupIcon = function(value)
+		showGroupIcon = value
+		doUpdate = true
+	end
 	WG['buildmenu'].getShowShortcuts = function()
 		return showShortcuts
 	end
@@ -1274,6 +1321,15 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
+	-- group icon
+	if showGroupIcon and unitGroup[uDefID] then
+		glColor(1, 1, 1, 0.9)
+		Spring.Echo(groups[unitGroup[uDefID]])
+		glTexture(groups[unitGroup[uDefID]])
+		glTexRect(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-groupiconSize-cellPadding, cellRects[cellRectID][1] + groupiconSize + cellPadding, cellRects[cellRectID][4]-cellPadding)
+		glTexture(false)
+	end
+
 	-- radar icon
 	if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
 		glColor(1, 1, 1, 0.9)
@@ -1397,8 +1453,9 @@ function drawBuildmenu()
 	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
-	radariconSize = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
+	radariconSize = math_floor((cellInnerSize * cfgRadariconSize) + 0.5)
 	radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding + iconPadding) + 0.5)
+	groupiconSize = math_floor((cellInnerSize * cfgGroupiconSize) + 0.5)
 	priceFontSize = math_floor((cellInnerSize * cfgPriceFontSize) + 0.5)
 
 	cellRects = {}
@@ -2204,6 +2261,7 @@ function widget:GetConfigData()
 	return {
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
+		showGroupIcon = showGroupIcon,
 		dynamicIconsize = dynamicIconsize,
 		minColls = minColls,
 		maxColls = maxColls,
@@ -2224,7 +2282,12 @@ function widget:SetConfigData(data)
 		showPrice = data.showPrice
 	end
 	if data.showRadarIcon ~= nil then
-		showRadarIcon = data.showRadarIcon
+		if data.showGroupIcon ~= nil then	-- way to set old users to new radar icons disabled default
+			showRadarIcon = data.showRadarIcon
+		end
+	end
+	if data.showGroupIcon ~= nil then
+		showGroupIcon = data.showGroupIcon
 	end
 	if data.dynamicIconsize ~= nil then
 		dynamicIconsize = data.dynamicIconsize
