@@ -83,6 +83,7 @@ end
 
 function gadget:FeatureCreated(featureID)
 	local currentFrame = GetGameFrame()
+  if currentFrame < 1 then return end -- dont proces all map features created on frame 0 by game
 	local featureList = deadUnits[currentFrame]
 	if not featureList then
 		return
