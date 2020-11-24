@@ -2282,9 +2282,7 @@ function widget:SetConfigData(data)
 		showPrice = data.showPrice
 	end
 	if data.showRadarIcon ~= nil then
-		if data.showGroupIcon ~= nil then	-- way to set old users to new radar icons disabled default
-			showRadarIcon = data.showRadarIcon
-		end
+		showRadarIcon = data.showRadarIcon
 	end
 	if data.showGroupIcon ~= nil then
 		showGroupIcon = data.showGroupIcon
