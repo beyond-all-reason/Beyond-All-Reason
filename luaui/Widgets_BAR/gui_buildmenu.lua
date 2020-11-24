@@ -1326,7 +1326,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		glColor(1, 1, 1, 0.9)
 		Spring.Echo(groups[unitGroup[uDefID]])
 		glTexture(groups[unitGroup[uDefID]])
-		glTexRect(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-groupiconSize-cellPadding, cellRects[cellRectID][1] + groupiconSize + cellPadding, cellRects[cellRectID][4]-cellPadding)
+		glTexRect(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-groupiconSize-iconPadding, cellRects[cellRectID][1] + groupiconSize + iconPadding, cellRects[cellRectID][4]-iconPadding)
 		glTexture(false)
 	end
 
