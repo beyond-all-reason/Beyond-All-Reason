@@ -459,7 +459,8 @@ function widget:ViewResize()
 	checkGuishader(true)
 
 	font, loadedFontSize = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
+	--font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(fontFile2, 1.2, 0.22, 1.5)
 end
 
 function GetColor(colormap, slider)
@@ -1080,6 +1081,23 @@ local function drawUnitInfo()
 				halfSize, bgpadding * 0.6, halfSize - math_max(1, bgpadding* 0.5), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
 		)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+		-- group icon
+		if unitGroup[displayUnitDefID] then
+			local size = math.floor((halfSize + halfSize) * 0.29)
+			glColor(1, 1, 1, 0.9)
+			glTexture(groups[unitGroup[displayUnitDefID]])
+			glTexRect(iconX, iconY - size, iconX + size, iconY)
+			glTexture(false)
+		end
+
+		-- price
+		--if unitGroup[displayUnitDefID] then
+		--	local cellPadding = (halfSize + halfSize) * 0.045
+		--	local size = (halfSize + halfSize) * 0.18
+		--	font2:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + cellPadding, iconY - halfSize - halfSize + cellPadding + (size * 1.12), size, "o")
+		--end
+
 	end
 	iconSize = iconSize + iconPadding
 
