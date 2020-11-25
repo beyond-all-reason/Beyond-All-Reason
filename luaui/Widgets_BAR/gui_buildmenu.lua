@@ -258,6 +258,7 @@ local groups = {
 	weapon = folder..'weapon.png',
 	emp = folder..'emp.png',
 	nuke = folder..'nuke.png',
+	antinuke = folder..'antinuke.png',
 }
 
 local unitBuildPic = {}
@@ -336,6 +337,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		elseif tonumber(unitDef.customParams.techlevel) == 4 then
 			unitGroup[unitDefID] = 'buildert4'
 		end
+	end
+	if string.find(string.lower(unitDef.tooltip), 'anti%-nuke') then
+		unitGroup[unitDefID] = 'antinuke'
 	end
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
