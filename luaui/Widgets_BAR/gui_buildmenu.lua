@@ -251,9 +251,13 @@ local groups = {
 	energy = folder..'energy.png',
 	metal = folder..'metal.png',
 	builder = folder..'builder.png',
+	buildert2 = folder..'buildert2.png',
+	buildert3 = folder..'buildert3.png',
+	buildert4 = folder..'buildert4.png',
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
 	emp = folder..'emp.png',
+	nuke = folder..'nuke.png',
 }
 
 local unitBuildPic = {}
@@ -271,7 +275,7 @@ local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.humanName
 	unitGroup[unitDefID] = 'util'
-	if unitDef.customParams.objectify or unitDef.isTransport then
+	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
 		unitGroup[unitDefID] = nil
 	end
 	if unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0 then
@@ -292,8 +296,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	for i = 1, #unitDef.weapons do
 		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
-		if weaponDef and weaponDef.paralyzer then
-			unitGroup[unitDefID] = 'emp'
+		if weaponDef then
+			if weaponDef.paralyzer then
+				unitGroup[unitDefID] = 'emp'
+			end
+			if weaponDef.shieldRepulser then
+				unitGroup[unitDefID] = 'util'
+			end
+			if weaponDef.name ~= nil and string.find(string.lower(weaponDef.name), 'nuclear') then
+				unitGroup[unitDefID] = 'nuke'
+			end
 		end
 	end
 
@@ -315,6 +327,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.buildSpeed > 10 then
 		unitGroup[unitDefID] = 'builder'
+	end
+	if unitGroup[unitDefID] == 'builder' and unitDef.customParams.techlevel then
+		if tonumber(unitDef.customParams.techlevel) == 2 then
+			unitGroup[unitDefID] = 'buildert2'
+		elseif tonumber(unitDef.customParams.techlevel) == 3 then
+			unitGroup[unitDefID] = 'buildert3'
+		elseif tonumber(unitDef.customParams.techlevel) == 4 then
+			unitGroup[unitDefID] = 'buildert4'
+		end
 	end
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
@@ -1026,6 +1047,9 @@ function widget:Initialize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
 	WG['buildmenu'] = {}
+	WG['buildmenu'].getGroups = function()
+		return groups, unitGroup
+	end
 	WG['buildmenu'].getMakeFancy = function()
 		return makeFancy
 	end
