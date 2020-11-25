@@ -1,0 +1,2 @@
+All animations (*.h, *.bos, *.cob) in this folder are licenced (c) CC-BY-NC-ND-3.0 to Beherith (mysterme@gmail.com)
+Bos2cob under GPL : https://github.com/ashdnazg/bos2cob/

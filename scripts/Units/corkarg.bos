@@ -664,6 +664,8 @@ AimFromPrimary(piecenum)
 	return (0);
 }
 
+
+
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
@@ -734,6 +736,18 @@ FirePrimary()
 	}
 	return (1);
 }
+
+AimFromSecondary(piecenum)
+	{	piecenum=aacover;	}
+
+QuerySecondary(piecenum)
+	{	piecenum=aacover; }
+
+AimSecondary(heading,pitch)
+	{
+	return(TRUE);
+	}
+	
 
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\corkarg_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8)) 
