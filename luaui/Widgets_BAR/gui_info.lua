@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "April 2020",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1,
 		enabled = true
 	}
 end
@@ -288,6 +288,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
 
 -- order units, add higher value for order importance
 local unitOrder = {}
@@ -496,6 +497,10 @@ function widget:Initialize()
 	WG['info'].getPosition = function()
 		return width, height
 	end
+	if  WG['buildmenu'] and  WG['buildmenu'].getGroups then
+		groups, unitGroup = WG['buildmenu'].getGroups()
+	end
+
 	iconTypesMap = {}
 	if Script.LuaRules('GetIconTypes') then
 		iconTypesMap = Script.LuaRules.GetIconTypes()
