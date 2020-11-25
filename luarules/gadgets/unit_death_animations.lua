@@ -14,8 +14,6 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return
 end
 
-local spGetGameFrame = Spring.GetGameFrame
-
 local hasDeathAnim = {
   [UnitDefNames.corkarg.id] = true,
   [UnitDefNames.corthud.id] = true,
@@ -25,9 +23,7 @@ local hasDeathAnim = {
 
 local dyingUnits = {}
 
-local maxDeathAnimLength = 300
-
-for udid, ud in pairs(UnitDefs) do
+for udid, ud in pairs(UnitDefs) do --almost all chickens have dying anims
 	if ud.customParams and ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
 		hasDeathAnim[udid] = true
 	end
@@ -42,11 +38,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		SetUnitNoSelect(unitID,true)
 		GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
-    dyingUnits[unitID] = spGetGameFrame()
+    dyingUnits[unitID] = true
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- do not allow dying units to be moved
   if dyingUnits[unitID] then
     return false
   else
@@ -54,16 +50,10 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
   end
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- for unitID reuse
+function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam) --called when killed anim finishes
   if dyingUnits[unitID] then dyingUnits[unitID] = nil end
 end
 
-function gadget:GameFrame(n) --clean up 
-  if n % 31 == 0 then
-    for time, unitid in pairs(dyingUnits) do
-      if time + maxDeathAnimLength > n then
-        dyingUnits[unitid] = nil
-      end
-    end
-  end
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- for unitID reuse, just in case
+  if dyingUnits[unitID] then dyingUnits[unitID] = nil end
 end
