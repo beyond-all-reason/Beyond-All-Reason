@@ -404,7 +404,7 @@ function addon.DrawLoadScreen()
 				guishaderRects['loadprocess2'] = {(posX*vsx)-borderSize, ((posY*vsy)+height+borderSize), (vsx-(posX*vsx))+borderSize, tipPosYtop*vsy}
 			end
 			if usingIntelGpu then
-				guishaderRects['loadprocess1'] = {0, 0.95*vsy, vsx,vsy}
+				guishaderRects['loadprocess3'] = {0, 0.95*vsy, vsx,vsy}
 			end
 			DrawStencilTexture()
 		end
