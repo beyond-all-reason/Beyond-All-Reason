@@ -459,8 +459,7 @@ function widget:ViewResize()
 	checkGuishader(true)
 
 	font, loadedFontSize = WG['fonts'].getFont(fontfile)
-	--font2 = WG['fonts'].getFont(fontfile2)
-	font2 = WG['fonts'].getFont(fontFile2, 1.2, 0.22, 1.5)
+	font2 = WG['fonts'].getFont(fontfile2)
 end
 
 function GetColor(colormap, slider)
@@ -1092,11 +1091,11 @@ local function drawUnitInfo()
 		end
 
 		-- price
-		--if unitGroup[displayUnitDefID] then
-		--	local cellPadding = (halfSize + halfSize) * 0.045
-		--	local size = (halfSize + halfSize) * 0.18
-		--	font2:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + cellPadding, iconY - halfSize - halfSize + cellPadding + (size * 1.12), size, "o")
-		--end
+		if unitGroup[displayUnitDefID] then
+			local cellPadding = (halfSize + halfSize) * 0.045
+			local size = (halfSize + halfSize) * 0.18
+			font2:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + cellPadding, iconY - halfSize - halfSize + cellPadding + (size * 1.12), size, "o")
+		end
 
 	end
 	iconSize = iconSize + iconPadding
