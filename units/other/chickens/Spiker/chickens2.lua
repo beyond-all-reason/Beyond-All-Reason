@@ -20,7 +20,7 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "24 34 53",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_m_red",
 		defaultmissiontype = "Standby",
 		description = "Ghost Spiker",
 		explodeas = "BUG_DEATH",
@@ -66,6 +66,10 @@ return {
 		customparams = {
 			maxrange = "375",
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
+			--treeshader = "no",
 		},
 		featuredefs = {
 			dead = {},
@@ -76,6 +80,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {

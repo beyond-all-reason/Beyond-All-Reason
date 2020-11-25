@@ -20,7 +20,7 @@ return {
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "18 28 41",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_m_pink",
 		defaultmissiontype = "Standby",
 		description = "Chicken Bomb",
 		explodeas = "DODO_DEATH2",
@@ -66,6 +66,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
+			--treeshader = "no",
 		},
 		featuredefs = {
 			dead = {},
@@ -80,6 +84,7 @@ return {
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
 				[2] = "deathceg4",
+				[3] = "blood_spray",
 			},
 		},
 	},

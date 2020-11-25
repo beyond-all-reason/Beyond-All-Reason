@@ -4,125 +4,81 @@
 #include "exptype.h"
 
 piece  body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
-       rknee, rshin, rfoot, rsack, lsack;
+       rknee, rshin, rfoot, rsack, lsack, aimy1;
 
 static-var  bMoving, Static_Var_2;
 
 // Signal definitions
 #define SIG_AIM				2
-#define CHANGE_TARGET       98 
 
-walk()
+// For N:\animations\chicken_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
+#define MOVESCALE 750 //How much extra body sway the chicken should have. Scale this with size of chicken
+#define MOVESPEED  9  //How many frames per animation cycle, valid 2-10
+#define ANIMAMPLITUDE 55 //How big steps the chicken should take, valid 20-200
+#define LUHAND lsack  //define these as the left and right head thingies
+#define RUHAND rsack  
+#define LLHAND lsack  //define these as the left and right head thingies
+#define RLHAND rsack  
+#define SIG_WALK 64 //these defines are needed before includes!
+#include "chicken_walk_2legged.h"
+
+#define IDLEMOVESCALE 100
+#define IDLEAMPLITUDE 50
+#define IDLESPEED 30
+#include "chicken_idle_2legged.h"
+
+#define BASEPIECE body //needed for HitByWeapon
+#define HITSPEED <15.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 100
+#include "chicken_hitbyweapon.h"
+
+
+
+lua_FlameShot(weapon) //Distortion and lups flame effect
 {
-	while( bMoving )
-	{
-		Static_Var_2 = 1;
-		if( bMoving )
-		{
-			turn lthigh to x-axis <70.000000> speed <115.000000>;
-			turn lknee to x-axis <-40.000000> speed <145.000000>;
-			turn lshin to x-axis <20.000000> speed <145.000000>;
-			turn lfoot to x-axis <-50.000000> speed <210.000000>;
-			turn rthigh to x-axis <-20.000000> speed <210.000000>;
-			turn rknee to x-axis <-60.000000> speed <210.000000>;
-			turn rshin to x-axis <50.000000> speed <210.000000>;
-			turn rfoot to x-axis <30.000000> speed <210.000000>;
-			turn body to z-axis <5.000000> speed <20.000000>;
-			turn lthigh to z-axis <-5.000000> speed <20.000000>;
-			turn rthigh to z-axis <-5.000000> speed <20.000000>;
-			move body to y-axis [0.700000] speed [4.443359];
-			turn tail to y-axis <10.000000> speed <40.000000>;
-			turn head to x-axis <-10.000000> speed <20.000000>;
-			turn tail to x-axis <10.000000> speed <20.000000>;
-			wait-for-turn lthigh around x-axis;
-		}
-		if( bMoving )
-		{
-			turn lthigh to x-axis <-10.000000> speed <160.000000>;
-			turn lknee to x-axis <15.000000> speed <145.000000>;
-			turn lshin to x-axis <-60.000000> speed <250.000000>;
-			turn lfoot to x-axis <30.000000> speed <145.000000>;
-			turn rthigh to x-axis <40.000000> speed <145.000000>;
-			turn rknee to x-axis <-35.000000> speed <145.000000>;
-			turn rshin to x-axis <-40.000000> speed <145.000000>;
-			turn rfoot to x-axis <35.000000> speed <145.000000>;
-			move body to y-axis [0.000000] speed [4.443359];
-			turn head to x-axis <10.000000> speed <20.000000>;
-			turn tail to x-axis <-10.000000> speed <20.000000>;
-			wait-for-turn lshin around x-axis;
-		}
-		if( bMoving )
-		{
-			turn rthigh to x-axis <70.000000> speed <115.000000>;
-			turn rknee to x-axis <-40.000000> speed <145.000000>;
-			turn rshin to x-axis <20.000000> speed <145.000000>;
-			turn rfoot to x-axis <-50.000000> speed <210.000000>;
-			turn lthigh to x-axis <-20.000000> speed <210.000000>;
-			turn lknee to x-axis <-60.000000> speed <210.000000>;
-			turn lshin to x-axis <50.000000> speed <210.000000>;
-			turn lfoot to x-axis <30.000000> speed <210.000000>;
-			turn tail to y-axis <-10.000000> speed <40.000000>;
-			turn body to z-axis <-5.000000> speed <20.000000>;
-			turn lthigh to z-axis <5.000000> speed <20.000000>;
-			turn rthigh to z-axis <5.000000> speed <20.000000>;
-			move body to y-axis [0.700000] speed [4.443359];
-			turn head to x-axis <-10.000000> speed <20.000000>;
-			turn tail to x-axis <10.000000> speed <20.000000>;
-			wait-for-turn rthigh around x-axis;
-		}
-		if( bMoving )
-		{
-			turn rthigh to x-axis <-10.000000> speed <160.000000>;
-			turn rknee to x-axis <15.000000> speed <145.000000>;
-			turn rshin to x-axis <-60.000000> speed <250.000000>;
-			turn rfoot to x-axis <30.000000> speed <145.000000>;
-			turn lthigh to x-axis <40.000000> speed <145.000000>;
-			turn lknee to x-axis <-35.000000> speed <145.000000>;
-			turn lshin to x-axis <-40.000000> speed <145.000000>;
-			turn lfoot to x-axis <35.000000> speed <145.000000>;
-			move body to y-axis [0.000000] speed [4.443359];
-			turn head to x-axis <10.000000> speed <20.000000>;
-			turn tail to x-axis <-10.000000> speed <20.000000>;
-			wait-for-turn rshin around x-axis;
-		}
+  return 0;
+}
+
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+static-var maxSpeed, animFramesPerKeyframe;
+
+// REMEMBER TO animspeed = 6 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = MOVESPEED; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * MOVESPEED) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<1) animSpeed=1;
+		if (animspeed>=2*MOVESPEED) animSpeed = 2*MOVESPEED;
+		sleep 197;
 	}
 }
-
-Halt()
-{
-	sleep 150;
-	if( !bMoving )
-	{
-		Static_Var_2 = 0;
-		turn lfoot to x-axis <0.000000> speed <200.000000>;
-		turn rfoot to x-axis <0.000000> speed <200.000000>;
-		turn rthigh to x-axis <0.000000> speed <200.000000>;
-		turn lthigh to x-axis <0.000000> speed <200.000000>;
-		turn lshin to x-axis <0.000000> speed <200.000000>;
-		turn rshin to x-axis <0.000000> speed <200.000000>;
-		turn lknee to x-axis <0.000000> speed <200.000000>;
-		turn rknee to x-axis <0.000000> speed <200.000000>;
-	}
+StartMoving(){
+	signal SIG_WALK;
+	bMoving=TRUE;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIG_WALK;
+	bMoving=FALSE;
+	call-script StopWalking();
+	start-script Idle();
 }
 
-StartMoving()
-{
-	bMoving = TRUE;
-	if( !Static_Var_2 )
-	{
-		start-script walk();
-	}
-}
 
-StopMoving()
-{
-	bMoving = FALSE;
-	start-script Halt();
-}
 
 Create()
 {
 	emit-sfx 1024 + 2 from body;
+	animSpeed = 6;
+	animAmplitude = ANIMAMPLITUDE;
+	start-script UnitSpeed();
 }
 
 SweetSpot(piecenum)
@@ -143,15 +99,22 @@ QueryPrimary(piecenum)
 RestoreAfterDelay()
 {
 	sleep 1000;
+	turn aimy1 to y-axis 0 speed <250.000000>;
+	turn aimy1 to x-axis 0 speed <200.000000>;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn head to y-axis heading speed <250.000000>;
-	turn head to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn head around y-axis;
+	if (pitch > <60>) pitch = <60>;
+	if (pitch < <-60>) pitch = <-60>;
+	
+	if (heading > <60>) heading = <60>;
+	if (heading < <-60>) heading = <-60>;
+	turn aimy1 to y-axis heading speed <250.000000>;
+	turn aimy1 to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -170,20 +133,23 @@ Shot1()
 	move lsack to x-axis [0.000000] speed [0.300000];
 }
 
-HitByWeaponId()
-{
-	emit-sfx 1024 from body;
-	return (100);
-}
-
 
 Killed(severity, corpsetype)
 {
-	corpsetype = 1;
+	corpsetype = 1;	
+	
 	emit-sfx 1025 from body;
-	emit-sfx 1025 from head;
-	emit-sfx 1025 from tail;
-	emit-sfx 1025 from lsack;
+	emit-sfx 1025 from head; 
+	emit-sfx 1025 from tail; 
+	emit-sfx 1025 from lthigh; 
+	emit-sfx 1025 from lknee; 
+	emit-sfx 1025 from lshin; 
+	emit-sfx 1025 from lfoot; 
+	emit-sfx 1025 from rthigh; 
+	emit-sfx 1025 from rknee; 
+	emit-sfx 1025 from rshin; 
+	emit-sfx 1025 from rfoot;
+	
 	explode body type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
 	explode head type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
 	explode tail type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;

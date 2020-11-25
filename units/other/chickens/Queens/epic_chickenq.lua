@@ -22,7 +22,7 @@ return {
 		collisionvolumescales = "69 160 180",
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_l_red",
 		defaultmissiontype = "Standby",
 		description = "Clucking Hell!",
 		explodeas = "QUEEN_DEATH",
@@ -56,12 +56,15 @@ return {
 		trackwidth = 105,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 1840,
+		turnrate = 500,
 		unitname = "epic_chickenq",
 		upright = false,
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		featuredefs = {
 			dead = {},
@@ -73,6 +76,11 @@ return {
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blood_spray",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {

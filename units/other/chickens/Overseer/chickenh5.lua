@@ -21,7 +21,7 @@ return {
 		collisionvolumeoffsets = "0 10 2",
 		collisionvolumescales = "37 55 90",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_l_white",
 		defaultmissiontype = "Standby",
 		description = "Chicken Overseer",
 		explodeas = "BIGBUG_DEATH",
@@ -64,6 +64,10 @@ return {
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_l_normals.png",
+			--treeshader = "no",
 		},
 		featuredefs = {
 			dead = {},
@@ -75,6 +79,11 @@ return {
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blank",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {

@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 11 3",
 		collisionvolumescales = "25 38 64",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_m_white",
 		defaultmissiontype = "Standby",
 		description = "All-Terrain Assault",
 		explodeas = "BIGBUG_DEATH",
@@ -31,7 +31,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 2.5,
 		maxwaterdepth = 15,
-		movementclass = "BOT3",
+		movementclass = "TBOT3",
 		name = "Basilisk",
 		noautofire = false,
 		nochasecategory = "VTOL",
@@ -58,6 +58,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
 		},
 		featuredefs = {
 			dead = {},
@@ -68,6 +72,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {

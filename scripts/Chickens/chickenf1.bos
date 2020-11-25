@@ -1,6 +1,4 @@
-piece body,head,tail,lwing,rwing,lblade,mblade,rblade,rsack,lsack;
-
-static-var bMoving;
+piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -10,41 +8,65 @@ static-var bMoving;
 #include "sfxtype.h"
 #include "exptype.h"
 
-fly()
-{
-	if (bMoving)
-		{
-			turn lwing to z-axis <-40> speed<60>;
-			turn rwing to z-axis <40> speed<60>;
-			wait-for-turn lwing around z-axis;
-			turn lwing to z-axis <40> speed<120>;
-			turn rwing to z-axis <-40> speed<120>;
-			wait-for-turn lwing around z-axis;
-			start-script fly();
-		}
-}
 
-stopfly ()
-{	
-	turn lwing		to z-axis <0> 		speed <200>;
-	turn rwing		to z-axis <0> 		speed <200>;
-}
+#include "sfxtype.h"
+#include "exptype.h"
 
-StartMoving()
-{
-	bMoving = TRUE;
-	start-script fly();
-}
 
-StopMoving()
-{
-	bMoving = FALSE;
-	start-script stopfly();
+// For N:\animations\Chickens\chicken_flight_2seg_anim_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3))
+#define MOVESCALE 200
+#define MOVESPEED 5
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+static-var  maxSpeed, animFramesPerKeyframe, bMoving, deltaSpeed;
+#define SIG_WALK 1
+
+#include "chicken_fly.h"
+static-var nowSpeed, prevSpeed;
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = MOVESPEED; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		nowSpeed = (get CURRENT_SPEED);
+		deltaSpeed = nowSpeed - prevSpeed;
+		prevSpeed = nowSpeed;
+		//animSpeed = nowSpeed;
+		//if (animSpeed<1) animSpeed=1;
+		//animSpeed = (maxSpeed * 3) / animSpeed; 
+		//if (animSpeed<1) animSpeed=1;
+		//if (animspeed>6) animSpeed = 6;
+		deltaSpeed = deltaSpeed /1000;
+		animSpeed = MOVESPEED;
+		if (deltaSpeed > 10) animspeed = MOVESPEED -1;
+		if (deltaSpeed < -10) animspeed = MOVESPEED +1;
+		 
+		
+		//get PRINT(deltaSpeed/1000, nowSpeed/1000, animSpeed,GET(GAME_FRAME)); //how to print debug info from bos
+		sleep 198;
+	}
+	
+	//animSpeed = 3;
+}
+StartMoving(){
+	signal SIG_WALK;
+	bMoving=TRUE;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIG_WALK;
+	bMoving=FALSE;
+	call-script StopWalking();
 }
 
 Create()
 {
+	nowSpeed = 0;
+	prevSpeed = 0;
+	animSpeed = 3;
+	deltaSpeed = 0;
+	animAmplitude = 100;
 	emit-sfx 1024+2 from body;
+	start-script UnitSpeed();
 }
 
 SweetSpot(piecenum)
@@ -97,13 +119,13 @@ Killed( severity, corpsetype )
 	{
 	corpsetype = 1;
 	emit-sfx 1025 from body;
-	emit-sfx 1024 from lwing;
-	emit-sfx 1024 from rwing;
+	emit-sfx 1024 from liwing;
+	emit-sfx 1024 from riwing;
 	explode body type SHATTER | NOHEATCLOUD;
 	explode head type FALL | NOHEATCLOUD;
 	explode tail type FALL | NOHEATCLOUD;
-	explode lwing type FALL | NOHEATCLOUD;
-	explode rwing type FALL | NOHEATCLOUD;
+	explode liwing type FALL | NOHEATCLOUD;
+	explode riwing type FALL | NOHEATCLOUD;
 	explode mblade type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
 	return( 0 );
 	}

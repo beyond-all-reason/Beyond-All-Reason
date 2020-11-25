@@ -34,6 +34,7 @@ return {
 		seismicsignature = 4,
 		selfdestructas = "ROOST_DEATH",
 		sightdistance = 450,
+		side = "THUNDERBIRDS",
 		smoothanim = true,
 		tedclass = "ENERGY",
 		turninplace = true,

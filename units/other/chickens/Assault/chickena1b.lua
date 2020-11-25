@@ -18,7 +18,7 @@ return {
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "27 38 60",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_l_white",
 		defaultmissiontype = "Standby",
 		description = "Assault",
 		explodeas = "BIGBUG_DEATH",
@@ -52,13 +52,16 @@ return {
 		trackwidth = 34,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 1840,
+		turnrate = 920,
 		unitname = "chickena1b",
 		upright = false,
 		workertime = 0,
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		featuredefs = {
 			dead = {},
@@ -70,6 +73,11 @@ return {
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {

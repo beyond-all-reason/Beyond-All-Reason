@@ -48,13 +48,17 @@ return {
 		trackwidth = 50,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 1840,
+		turnrate = 920,
 		unitname = "chickenp1",
 		upright = false,
 		workertime = 0,
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/chickens",
+			model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
+			--treeshader = "no",
 		},
 		featuredefs = {
 			dead = {},
@@ -65,6 +69,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {

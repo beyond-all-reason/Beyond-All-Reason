@@ -21,6 +21,13 @@ local hasDeathAnim = {
   [UnitDefNames.corsumo.id] = true,
 }
 
+for udid, ud in pairs(UnitDefs) do
+	if ud.customParams and ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
+    
+		hasDeathAnim[udid] = true
+	end
+end
+
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
 local CMD_STOP = CMD.STOP

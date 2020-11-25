@@ -19,7 +19,7 @@ return {
 		collisionvolumeoffsets = "0 15 0",
 		collisionvolumescales = "14 50 14",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_m_pink",
 		description = "Defense",
 		energystorage = 500,
 		explodeas = "custom:blood_explode",
@@ -70,6 +70,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
