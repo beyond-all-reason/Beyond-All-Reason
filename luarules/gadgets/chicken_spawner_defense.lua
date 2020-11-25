@@ -394,10 +394,10 @@ local COWARD = {
   [UnitDefNames["chickenh5"].id] = { distance = 600, chance = 0.5 }
 }
 local EGG_DROPPER = {
-  [UnitDefNames["chicken1"].id] = "chicken_egg",
-  [UnitDefNames["chicken1b"].id] = "chicken_eggb",
-  [UnitDefNames["chicken1c"].id] = "chicken_eggc",
-  [UnitDefNames["chicken1d"].id] = "chicken_eggd",
+  [UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
+  [UnitDefNames["chicken1b"].id] = "chicken_egg_s_white",
+  [UnitDefNames["chicken1c"].id] = "chicken_egg_s_red",
+  [UnitDefNames["chicken1d"].id] = "chicken_egg_s_pink",
 }
 local OVERSEER_ID = UnitDefNames["chickenh5"].id
 local SMALL_UNIT = UnitDefNames["chicken1"].id
