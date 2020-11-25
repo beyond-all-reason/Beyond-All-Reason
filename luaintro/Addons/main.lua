@@ -75,6 +75,39 @@ local tips = {
 	"Use Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units.",
 }
 
+local infolog = VFS.LoadFile("infolog.txt")
+local usingIntelGpu = false
+if infolog then
+	local function lines(str)
+		local t = {}
+		local function helper(line) table.insert(t, line) return "" end
+		helper((str:gsub("(.-)\r?\n", helper)))
+		return t
+	end
+
+	-- store changelog into array
+	local fileLines = lines(infolog)
+	for i, line in ipairs(fileLines) do
+		if string.sub(line, 1, 3) == '[F='  then
+			break
+		end
+		if string.find(line, 'GL vendor') then
+			if string.find(string.lower(line), 'intel') then
+				usingIntelGpu = true
+			end
+		end
+		if string.find(line, 'GLSL version') then
+			if string.find(string.lower(line), 'intel') then
+				usingIntelGpu = true
+			end
+		end
+		if string.find(line, 'GL renderer') then
+			if string.find(string.lower(line), 'intel') then
+				usingIntelGpu = true
+			end
+		end
+	end
+end
 
 -- Since math.random is not random and always the same, we save a counter to a file and use that.
 local randomTip = ''
@@ -370,6 +403,9 @@ function addon.DrawLoadScreen()
 			if showTips and showTipAboveBar and showTipBackground then
 				guishaderRects['loadprocess2'] = {(posX*vsx)-borderSize, ((posY*vsy)+height+borderSize), (vsx-(posX*vsx))+borderSize, tipPosYtop*vsy}
 			end
+			if usingIntelGpu then
+				guishaderRects['loadprocess3'] = {0, 0.95*vsy, vsx,vsy}
+			end
 			DrawStencilTexture()
 		end
 
@@ -533,6 +569,18 @@ function addon.DrawLoadScreen()
 		for i,line in pairs(tipLines) do
 			font2:Print(line, 0, -lineHeight*(i-1), barTextSize, "oac")
 		end
+		gl.PopMatrix()
+	end
+
+	if usingIntelGpu then
+		gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
+		gl.Rect(0,0.95,1,1)
+		gl.PushMatrix()
+		gl.Scale(1/vsx,1/vsy,1)
+		gl.Translate(vsx/2, 0.988*vsy, 0)
+		font2:SetTextColor(0.8,0.8,0.8,1)
+		font2:SetOutlineColor(0,0,0,0.8)
+		font2:Print('\255\200\200\200You are using the integrated Intel graphics card.      Your experience might be sub optimal.', 0, 0, height*0.66, "oac")
 		gl.PopMatrix()
 	end
 end
