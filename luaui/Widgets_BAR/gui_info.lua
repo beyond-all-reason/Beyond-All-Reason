@@ -865,7 +865,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		local size = math.floor((halfSize + halfSize) * 0.29)
 		glColor(1, 1, 1, 0.9)
 		glTexture(groups[unitGroup[uDefID]])
-		glTexRect(cellRect[cellID][1], cellRect[cellID][4] - size, cellRect[cellID][1] + size, cellRect[cellID][4])
+		glTexRect(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - size, cellRect[cellID][1] + size + cellPadding, cellRect[cellID][4])
 		glTexture(false)
 	end
 
