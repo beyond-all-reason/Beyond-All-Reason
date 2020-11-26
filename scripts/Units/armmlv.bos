@@ -3,8 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, nano, turret, rfwheel, lfwheel,
-       rbwheel, lbwheel;
+piece  	base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel, 
+ 		nanosleeve, lnano, rnano, lflare, rflare; 
+
 
 static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
 			oldHeading;
@@ -20,14 +21,12 @@ Steering(heading, steer, currentSpeed)
 	{
 		heading = get HEADING;
 		steer = (heading - oldheading)*3;
-		turn rfwheel to y-axis steer speed <180>;	
-		turn lfwheel to y-axis steer speed <180>;	
+		turn rwheel to y-axis steer speed <180>;	
+		turn lwheel to y-axis steer speed <180>;	
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
-		spin rfwheel around x-axis speed currentSpeed;
-		spin lfwheel around x-axis speed currentSpeed;
-		spin rbwheel around x-axis speed currentSpeed;
-		spin lbwheel around x-axis speed currentSpeed;
+		spin rwheel around x-axis speed currentSpeed;
+		spin lwheel around x-axis speed currentSpeed;
 		sleep 66;
 		oldheading = heading;
 	}
@@ -126,7 +125,7 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	Static_Var_1 = 0;
-	gun_2 = nano;
+	gun_2 = nanosleeve;
 	oldheading = get HEADING;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -182,15 +181,13 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
-	stop-spin rfwheel around x-axis;
-	stop-spin lfwheel around x-axis;
-	stop-spin rbwheel around x-axis;
-	stop-spin lbwheel around x-axis;
+	stop-spin rwheel around x-axis;
+	stop-spin lwheel around x-axis;
 }
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = nano;
+	piecenum = nanosleeve;
 }
 
 /*
@@ -218,7 +215,7 @@ FirePrimary()
 {
 	gun_2 = base;
 	sleep 3000;
-	gun_2 = nano;
+	gun_2 = nanosleeve;
 }
 
 QueryPrimary(piecenum)
@@ -244,7 +241,7 @@ FireSecondary()
 {
 	gun_2 = base;
 	sleep 3000;
-	gun_2 = nano;
+	gun_2 = nanosleeve;
 }
 
 QuerySecondary(piecenum)
@@ -264,11 +261,8 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type BITMAPONLY | NOHEATCLOUD;
-		//explode lbwheel type BITMAPONLY | NOHEATCLOUD;
-		//explode rfwheel type BITMAPONLY | NOHEATCLOUD;
-		//explode lfwheel type BITMAPONLY | NOHEATCLOUD;
-		//explode rbwheel type BITMAPONLY | NOHEATCLOUD;
+		explode nanosleeve type BITMAPONLY | NOHEATCLOUD;
+		explode shoulder type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -276,11 +270,8 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type FALL | NOHEATCLOUD;
-		explode lbwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfwheel type FALL | NOHEATCLOUD;
-		//explode lfwheel type FALL | NOHEATCLOUD;
-		//explode rbwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanosleeve type FALL | NOHEATCLOUD;
+		explode shoulder type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -288,20 +279,17 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanosleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode shoulder type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rbwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanosleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode shoulder type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
