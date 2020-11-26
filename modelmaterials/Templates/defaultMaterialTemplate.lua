@@ -75,6 +75,7 @@ vertex = [[
 	// Varyings
 	out Data {
 		vec4 modelVertexPos;
+		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -210,6 +211,7 @@ vertex = [[
 	void main(void)
 	{
 		modelVertexPos = gl_Vertex;
+		modelVertexPosOrig = modelVertexPos;
 		vec3 modelVertexNormal = gl_Normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
@@ -491,6 +493,7 @@ fragment = [[
 	// Varyings
 	in Data {
 		vec4 modelVertexPos;
+		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -1145,16 +1148,11 @@ fragment = [[
 		float healthMix;
 		vec3 seedVec;
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
-			seedVec = modelVertexPos.xyz * 0.6;
+			seedVec = modelVertexPosOrig.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
-
-			float texHeight = 1.0;
-			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS))
-				texHeight = normalTexVal.a;
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);
 			healthMix = smoothstep(0.0, healthMix, max(floatOptions[0] + floatOptions[1], 0.0));
-			//healthMix *= texHeight; // undesired, as texheight will be used elsewhere
 		}
 
 		vec3 tbnNormal;
@@ -1193,7 +1191,7 @@ fragment = [[
 			texColor2.z += 0.5 * healthMix; //additional roughness
 		}
 
-    
+
 		#ifdef LUMAMULT
 		{
 			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
@@ -1203,31 +1201,20 @@ fragment = [[
 		#endif
 
 		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
-    
+
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
-    /* 
-      //Ivand's previous implementation with nice holes :)
-			vec4 texColor1w = vec4(0.64, 0.02, 0.02, 0.0);
-			texColor1 = mix(texColor1, texColor1w, healthMix);
-			texColor2.z -= 0.5 * healthMix; //additional glossiness
-			//texColor2.y += 0.5 * healthMix; //additional metalness
-			texColor2.w = 1.0 - 0.5 * healthMix;
-    */
-      float texHeight = normalTexVal.a;
-      //healthmix seems to be between [0, 0.5] by the time it gets here, where 0.5 is fully healthy, and 0 is near dead
-      float healthyness = clamp(healthMix *2.0,0.0, 1.0);
-      if (texHeight < healthyness){
-      
-				float bloodRedDeepness = clamp((healthyness - texHeight)*8.0, 0.0,1.0);
-				tbnNormal = mix(tbnNormal,vec3(0.0, 0.0, 1.0),bloodRedDeepness); // make the surface flat
-				texColor2.r = 0.0; // no emission
+			float texHeight = normalTexVal.a;
+			float healthyness = clamp(healthMix * 2.0, 0.0, 1.0);
+			if (texHeight < healthyness){
+				float bloodRedDeepness = clamp((healthyness - texHeight) * 8.0, 0.0, 1.0);
+				tbnNormal = mix(tbnNormal, vec3(0.0, 0.0, 1.0), bloodRedDeepness); // make the surface flat
 				texColor2.g = 0.2;  // a bit metallic
- 				texColor2.b = texColor2.b *0.2;  // completely polished
-				albedoColor.rgb = mix(vec3(0.4,0.0,0.01),vec3(0.12,0.0,0.0),bloodRedDeepness);
+				texColor2.b = texColor2.b * 0.2;  // completely polished
+				albedoColor.rgb = mix(vec3(0.4, 0.0, 0.01), vec3(0.12, 0.0, 0.0), bloodRedDeepness);
 			}
 		}
-    
-    
+
+
 		N = normalize(worldTBN * tbnNormal);
 
 		// PBR Params
