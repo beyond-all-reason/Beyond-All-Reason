@@ -1154,7 +1154,7 @@ fragment = [[
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);
 			healthMix = smoothstep(0.0, healthMix, max(floatOptions[0] + floatOptions[1], 0.0));
-			healthMix *= texHeight;
+			//healthMix *= texHeight; // undesired, as texheight will be used elsewhere
 		}
 
 		vec3 tbnNormal;
@@ -1176,7 +1176,6 @@ fragment = [[
 			tbnNormal = vec3(0.0, 0.0, 1.0);
 		}
 
-		N = normalize(worldTBN * tbnNormal);
 
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAP_FLIP)) {
 			myUV.y = 1.0 - myUV.y;
@@ -1194,13 +1193,42 @@ fragment = [[
 			texColor2.z += 0.5 * healthMix; //additional roughness
 		}
 
+    
+		#ifdef LUMAMULT
+		{
+			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
+			yCbCr.x = clamp(yCbCr.x * LUMAMULT, 0.0, 1.0);
+			texColor1.rgb = YCBCR2RGB * yCbCr;
+		}
+		#endif
+
+		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
+    
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+    /* 
+      //Ivand's previous implementation with nice holes :)
 			vec4 texColor1w = vec4(0.64, 0.02, 0.02, 0.0);
 			texColor1 = mix(texColor1, texColor1w, healthMix);
 			texColor2.z -= 0.5 * healthMix; //additional glossiness
 			//texColor2.y += 0.5 * healthMix; //additional metalness
 			texColor2.w = 1.0 - 0.5 * healthMix;
+    */
+      float texHeight = normalTexVal.a;
+      //healthmix seems to be between [0, 0.5] by the time it gets here, where 0.5 is fully healthy, and 0 is near dead
+      float healthyness = clamp(healthMix *2.0,0.0, 1.0);
+      if (texHeight < healthyness){
+      
+				float bloodRedDeepness = clamp((healthyness - texHeight)*8.0, 0.0,1.0);
+				tbnNormal = mix(tbnNormal,vec3(0.0, 0.0, 1.0),bloodRedDeepness); // make the surface flat
+				texColor2.r = 0.0; // no emission
+				texColor2.g = 0.2;  // a bit metallic
+ 				texColor2.b = texColor2.b *0.2;  // completely polished
+				albedoColor.rgb = mix(vec3(0.4,0.0,0.01),vec3(0.12,0.0,0.0),bloodRedDeepness);
+			}
 		}
+    
+    
+		N = normalize(worldTBN * tbnNormal);
 
 		// PBR Params
 		#ifdef EMISSIVENESS
@@ -1261,15 +1289,6 @@ fragment = [[
 		float NdotV = clamp(dot(N, V), EPS, 1.0);
 		float VdotH = clamp(dot(V, H), 0.0, 1.0);
 
-		#ifdef LUMAMULT
-		{
-			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
-			yCbCr.x = clamp(yCbCr.x * LUMAMULT, 0.0, 1.0);
-			texColor1.rgb = YCBCR2RGB * yCbCr;
-		}
-		#endif
-
-		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
 
 		#if defined(ROUGHNESS_PERTURB_COLOR)
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
