@@ -1204,7 +1204,7 @@ fragment = [[
 
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 			float texHeight = normalTexVal.a;
-			float healthyness = clamp(healthMix * 2.0, 0.0, 1.0);
+			float healthyness = clamp(healthMix * 2.0 - 0.5, 0.0, 1.0); //healthyness of 0 is near dead, 1 is fully healthy
 			if (texHeight < healthyness){
 				float bloodRedDeepness = clamp((healthyness - texHeight) * 8.0, 0.0, 1.0);
 				tbnNormal = mix(tbnNormal, vec3(0.0, 0.0, 1.0), bloodRedDeepness); // make the surface flat
