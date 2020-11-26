@@ -95,7 +95,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        colormap           = [[0.06 0.06 0.06 0.95   0.06 0.06 0.06 0.90  0 0 0 0.01]],
+        colormap           = [[0.06 0.06 0.06 0.7   0.06 0.06 0.06 0.6  0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -123,7 +123,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.94,
-        colormap           = [[0.3 0.3 0.3 0.8      0 0 0 0.01]],
+        colormap           = [[0.3 0.3 0.3 0.7      0 0 0 0.01]],
         directional        = false,
         emitrot            = 10,
         emitrotspread      = 0,
@@ -151,7 +151,7 @@ return {
             air                = true,
             properties = {
                 airdrag            = 0.95,
-                colormap           = [[0.04 0.03 0.01 0.66   0.1 0.07 0.033 0.55    0 0 0 0]],
+                colormap           = [[0.04 0.03 0.01 0.55   0.1 0.07 0.033 0.44    0 0 0 0]],
                 directional        = true,
                 emitrot            = 180,
                 emitrotspread      = 10,
@@ -179,7 +179,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.7,
-        colormap           = [[0.1 0.1 0.1 0.8     0 0 0 0.0]],
+        colormap           = [[0.1 0.1 0.1 0.6     0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -480,7 +480,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.7,
-        colormap           = [[0.05 0.05 0.05 0.8   0 0 0 0.01]],
+        colormap           = [[0.05 0.05 0.05 0.6   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -507,7 +507,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.94,
-        colormap           = [[0.3 0.3 0.3 0.7      0 0 0 0.01]],
+        colormap           = [[0.25 0.25 0.25 0.52      0 0 0 0.01]],
         directional        = false,
         emitrot            = 10,
         emitrotspread      = 0,
@@ -516,8 +516,8 @@ return {
         numparticles       = 1,
         particlelife       = 20,
         particlelifespread = 26,
-        particlesize       = 6,
-        particlesizespread = 12,
+        particlesize       = 8,
+        particlesizespread = 16,
         particlespeed      = 4,
         particlespeedspread = 1.5,
         pos                = [[r-0.5 r0.5, 10 r15, r-0.5 r0.5]],
