@@ -443,7 +443,7 @@ function widget:ViewResize()
 	doUpdate = true
 	clear()
 
-	radarIconSize = math_floor((height * vsy * 0.17) + 0.5)
+	radarIconSize = math_floor((height * vsy * 0.12) + 0.5)
 	unitIconSize = math_floor((height * vsy * 0.7) + 0.5)
 	unitIconSize2 = math_floor((height * vsy * 0.35) + 0.5)
 	if radarIconSize > 128 then
@@ -1080,26 +1080,53 @@ local function drawUnitInfo()
 				halfSize, bgpadding * 0.6, halfSize - math_max(1, bgpadding* 0.5), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
 		)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+		-- group icon
+		if unitGroup[displayUnitDefID] then
+			local size = math.floor((halfSize + halfSize) * 0.29)
+			glColor(1, 1, 1, 0.9)
+			glTexture(groups[unitGroup[displayUnitDefID]])
+			glTexRect(iconX, iconY - size, iconX + size, iconY)
+			glTexture(false)
+		end
+
+		-- radar icon
+		if iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
+			local padding = (halfSize + halfSize) * 0.045
+			local size = math.floor((halfSize + halfSize) * 0.29)
+			glColor(1, 1, 1, 0.9)
+			glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
+			glTexRect(iconX+(halfSize + halfSize)-padding-size, iconY - (halfSize + halfSize)+padding, iconX+(halfSize + halfSize)-padding, iconY - (halfSize + halfSize) + size + padding)
+			glTexture(false)
+		end
+
+		-- price
+		if unitGroup[displayUnitDefID] then
+			local padding = (halfSize + halfSize) * 0.045
+			local size = (halfSize + halfSize) * 0.18
+			font2:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.12), size, "o")
+		end
+
 	end
 	iconSize = iconSize + iconPadding
 
 	local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
 	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].tooltip, (contentWidth - iconSize) * (loadedFontSize / fontSize))
 
-	local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
-	if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
-		if teamcolorRadarIcon and displayUnitID then
-			local teamID = Spring.GetUnitTeam(displayUnitID)
-			local r,g,b = Spring.GetTeamColor(teamID)
-			glColor(r,g,b, 1)
-		else
-			glColor(1, 1, 1, 0.88)
-		end
-		glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
-		glTexRect(backgroundRect[3] - radarIconMargin - radarIconSize, backgroundRect[4] - radarIconMargin - radarIconSize, backgroundRect[3] - radarIconMargin, backgroundRect[4] - radarIconMargin)
-		glTexture(false)
-		glColor(1, 1, 1, 1)
-	end
+	--local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
+	--if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
+	--	if teamcolorRadarIcon and displayUnitID then
+	--		local teamID = Spring.GetUnitTeam(displayUnitID)
+	--		local r,g,b = Spring.GetTeamColor(teamID)
+	--		glColor(r,g,b, 1)
+	--	else
+	--		glColor(1, 1, 1, 0.88)
+	--	end
+	--	glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
+	--	glTexRect(backgroundRect[3] - radarIconMargin - radarIconSize, backgroundRect[4] - radarIconMargin - radarIconSize, backgroundRect[3] - radarIconMargin, backgroundRect[4] - radarIconMargin)
+	--	glTexture(false)
+	--	glColor(1, 1, 1, 1)
+	--end
 
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)

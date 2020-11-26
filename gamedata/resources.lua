@@ -69,13 +69,18 @@ local resources = {
             -- barexplo_8 = 'anims/barexplo_25.png',
 
       			--Chicken Defense effects
-      			uglynovaexplo     = 'CC/uglynovaexplo.tga',
-      			sporetrail        = 'GPL/sporetrail.tga',
-      			blooddrop         = 'PD/blooddrop.tga',
-      			bloodblast        = 'PD/bloodblast.tga',
-      			bloodsplat        = 'PD/bloodsplat.tga',
-      			blooddropwhite    = 'PD/blooddropwhite.tga',
-      			bloodblastwhite   = 'PD/bloodblastwhite.tga',
+      			uglynovaexplo      = 'CC/uglynovaexplo.tga',
+      			sporetrail         = 'GPL/sporetrail.tga',
+      			blooddrop          = 'PD/blooddrop.tga',
+            blooddrop2         = 'chickens/bloodrop2.tga',
+      			bloodblast         = 'PD/bloodblast.tga',
+            bloodblast2        = 'chickens/bloodblast2.tga',
+      			bloodsplat         = 'PD/bloodsplat.tga',
+            bloodsplat2         = 'chickens/bloodsplat2.tga',
+            bloodspark2         = 'chickens/blood_splat.tga',
+            bloodcentersplatsh = 'chickens/blood_centersplatsh.tga',
+      			blooddropwhite     = 'PD/blooddropwhite.tga',
+      			bloodblastwhite    = 'PD/bloodblastwhite.tga',
          },
       }
    }

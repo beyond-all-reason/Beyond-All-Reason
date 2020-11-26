@@ -205,7 +205,7 @@ Create()
     hide flarer2;
     hide flareb;
     hide flareg;
-	gun_3 = flareb;
+	gun_3 = 0;
 	call-script InitState();
 	Static_Var_3 = 0;
 	restore_delay = 2000;
@@ -406,15 +406,15 @@ FireSecondary()
 
 FireTertiary()
 {
-	if( gun_3 == 1 )
+	if( gun_3 == 0 )
 	{
-		gun_3 = flarer1;
+		gun_3 = 1;
 		return (0);
 	}
-	if( gun_3 != 1 )
+	else
 	{
 		
-		gun_3 = flarer2;
+	   	gun_3 = 0 ;
 		return (0);
 	}
 }
@@ -446,12 +446,12 @@ QuerySecondary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	if( gun_3 == 1 )
+	if( gun_3 == 0 )
 	{
 		piecenum = flarer1;
 		//gun_3=2;
 	}
-	if( gun_3 ==2  )
+	else
 	{
 		piecenum = flarer2;
 		//gun_3=1;
