@@ -1145,8 +1145,10 @@ fragment = [[
 		}
 
 		vec3 tbnNormal;
+		float normalTexAlpha;
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
-			tbnNormal = NORM2SNORM(texture(normalTex, myUV).xyz);
+			vec4 normalTexSample = texture(normalTex, myUV);
+			tbnNormal = NORM2SNORM(normalTexSample.xyz);
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV).xyz);
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
@@ -1157,7 +1159,7 @@ fragment = [[
 			tbnNormal = vec3(0.0, 0.0, 1.0);
 		}
 
-		N = normalize(worldTBN * tbnNormal);
+		
 
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAP_FLIP)) {
 			myUV.y = 1.0 - myUV.y;
@@ -1174,6 +1176,30 @@ fragment = [[
 			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
 			texColor2.z += 0.5 * healthMix;
 		}
+		
+		#ifdef LUMAMULT
+		{
+			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
+			yCbCr.x = clamp(yCbCr.x * LUMAMULT, 0.0, 1.0);
+			texColor1.rgb = YCBCR2RGB * yCbCr;
+		}
+		#endif
+
+		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
+		
+		#ifdef RAPTOR_BLOOD
+			//Im assuming that a healthmix of 1 is a healthy unit, 0 is near-dead
+			if (normalTexAlpha < healthMix){
+				tbnNormal = vec3(0.0, 0.0, 1.0); // make the surface flat
+				texColor2.r = 0; // no emission
+				texColor2.g = 0.2;  // a bit metallic
+ 				texColor2.b = 0.0;  // completely polished
+				float bloodRedDeepness = clamp((healthMix - normalTexAlpha)*8.0, 0.0,1.0);
+				albedoColor.rgb = mix(vec3(0.5,0.0,0.01),vec3(0.175,0.0,0.0),bloodRedDeepness);
+			}
+		#endif
+
+		N = normalize(worldTBN * tbnNormal);
 
 		// PBR Params
 		#ifdef EMISSIVENESS
@@ -1234,15 +1260,7 @@ fragment = [[
 		float NdotV = clamp(dot(N, V), EPS, 1.0);
 		float VdotH = clamp(dot(V, H), 0.0, 1.0);
 
-		#ifdef LUMAMULT
-		{
-			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
-			yCbCr.x = clamp(yCbCr.x * LUMAMULT, 0.0, 1.0);
-			texColor1.rgb = YCBCR2RGB * yCbCr;
-		}
-		#endif
 
-		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
 
 		#if defined(ROUGHNESS_PERTURB_COLOR)
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
