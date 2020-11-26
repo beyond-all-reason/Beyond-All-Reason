@@ -22,10 +22,11 @@ vertex = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
+	#define OPTION_HEALTH_TEXCHICKS 9
 
-	#define OPTION_MODELSFOG 9
+	#define OPTION_MODELSFOG 10
 
-	#define OPTION_TREEWIND 10
+	#define OPTION_TREEWIND 11
 
 	#define OPTION_AUTONORMAL 21
 
@@ -74,6 +75,7 @@ vertex = [[
 	// Varyings
 	out Data {
 		vec4 modelVertexPos;
+		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -209,6 +211,7 @@ vertex = [[
 	void main(void)
 	{
 		modelVertexPos = gl_Vertex;
+		modelVertexPosOrig = modelVertexPos;
 		vec3 modelVertexNormal = gl_Normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
@@ -369,10 +372,11 @@ fragment = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
+	#define OPTION_HEALTH_TEXCHICKS 9
 
-	#define OPTION_MODELSFOG 9
+	#define OPTION_MODELSFOG 10
 
-	#define OPTION_TREEWIND 10
+	#define OPTION_TREEWIND 11
 
 	#define OPTION_AUTONORMAL 21
 
@@ -489,6 +493,7 @@ fragment = [[
 	// Varyings
 	in Data {
 		vec4 modelVertexPos;
+		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -1135,9 +1140,15 @@ fragment = [[
 		// N - worldFragNormal
 		vec3 N;
 
+		vec4 normalTexVal;
+		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+			normalTexVal = texture(normalTex, myUV);
+		}
+
 		float healthMix;
-		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-			vec3 seedVec = modelVertexPos.xyz * 0.6;
+		vec3 seedVec;
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+			seedVec = modelVertexPosOrig.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);
@@ -1146,9 +1157,15 @@ fragment = [[
 
 		vec3 tbnNormal;
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
-			tbnNormal = NORM2SNORM(texture(normalTex, myUV).xyz);
+			tbnNormal = NORM2SNORM(normalTexVal.xyz);
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV).xyz);
+				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
+			}
+			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+				vec3 tbnNormalw = NORM2SNORM(texture(rgbNoise, 0.5 * myUV).rgb);
+				tbnNormalw = mix(tbnNormal, tbnNormalw, 0.5);
+
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
 		} else if (BITMASK_FIELD(bitOptions, OPTION_AUTONORMAL)) {
@@ -1157,7 +1174,6 @@ fragment = [[
 			tbnNormal = vec3(0.0, 0.0, 1.0);
 		}
 
-		N = normalize(worldTBN * tbnNormal);
 
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAP_FLIP)) {
 			myUV.y = 1.0 - myUV.y;
@@ -1172,8 +1188,34 @@ fragment = [[
 			healthMix *= (1.0 - 0.9 * texColor2.r); //emissive parts don't get too damaged
 			texColor1 = mix(texColor1, texColor1w, healthMix);
 			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
-			texColor2.z += 0.5 * healthMix;
+			texColor2.z += 0.5 * healthMix; //additional roughness
 		}
+
+
+		#ifdef LUMAMULT
+		{
+			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
+			yCbCr.x = clamp(yCbCr.x * LUMAMULT, 0.0, 1.0);
+			texColor1.rgb = YCBCR2RGB * yCbCr;
+		}
+		#endif
+
+		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
+
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+			float texHeight = normalTexVal.a;
+			float healthyness = clamp(healthMix * 2.0, 0.0, 1.0);
+			if (texHeight < healthyness){
+				float bloodRedDeepness = clamp((healthyness - texHeight) * 8.0, 0.0, 1.0);
+				tbnNormal = mix(tbnNormal, vec3(0.0, 0.0, 1.0), bloodRedDeepness); // make the surface flat
+				texColor2.g = 0.2;  // a bit metallic
+				texColor2.b = texColor2.b * 0.2;  // completely polished
+				albedoColor.rgb = mix(vec3(0.4, 0.0, 0.01), vec3(0.12, 0.0, 0.0), bloodRedDeepness);
+			}
+		}
+
+
+		N = normalize(worldTBN * tbnNormal);
 
 		// PBR Params
 		#ifdef EMISSIVENESS
@@ -1234,15 +1276,6 @@ fragment = [[
 		float NdotV = clamp(dot(N, V), EPS, 1.0);
 		float VdotH = clamp(dot(V, H), 0.0, 1.0);
 
-		#ifdef LUMAMULT
-		{
-			vec3 yCbCr = RGB2YCBCR * texColor1.rgb;
-			yCbCr.x = clamp(yCbCr.x * LUMAMULT, 0.0, 1.0);
-			texColor1.rgb = YCBCR2RGB * yCbCr;
-		}
-		#endif
-
-		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
 
 		#if defined(ROUGHNESS_PERTURB_COLOR)
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
@@ -1422,7 +1455,7 @@ fragment = [[
 			//outColor = dirContrib + ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
-			outColor = vec3(iblDiffuse);
+			outColor = vec3(normalTexVal.aaa);
 		#endif
 
 		#if (RENDERING_MODE == 0)
@@ -1503,6 +1536,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
+		health_texchicks = false,
 
 		modelsfog        = true,
 
@@ -1529,6 +1563,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
+		health_texchicks = false,
 
 		treewind         = false,
 		autonormal       = false,
@@ -1579,10 +1614,11 @@ local shaderPlugins = {
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
+	#define OPTION_HEALTH_TEXCHICKS 9
 
-	#define OPTION_MODELSFOG 9
+	#define OPTION_MODELSFOG 10
 
-	#define OPTION_TREEWIND 10
+	#define OPTION_TREEWIND 11
 
 	#define OPTION_AUTONORMAL 21
 ]]--
@@ -1600,10 +1636,11 @@ local knownBitOptions = {
 
 	["health_texturing"] = 7,
 	["health_displace"] = 8,
+	["health_texchicks"] = 9,
 
-	["modelsfog"] = 9,
+	["modelsfog"] = 10,
 
-	["treewind"] = 10,
+	["treewind"] = 11,
 	["autonormal"] = 21,
 }
 
