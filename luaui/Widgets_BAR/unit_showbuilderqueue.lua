@@ -127,7 +127,7 @@ function widget:Initialize()
 	WG['showbuilderqueue'].setMaxUnits = function(value)
 		maxDisplayedUnits = value
 	end
-	WG['options'].getMaxUnits = function()
+	WG['showbuilderqueue'].getMaxUnits = function()
 		return maxDisplayedUnits
 	end
 end

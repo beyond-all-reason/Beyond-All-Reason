@@ -1810,11 +1810,11 @@ end
 -- detect potatos
 local isPotatoCpu = false
 local isPotatoGpu = false
-local gpuMem = (Platform.gpuMemorySize/1000) > 100 and (Platform.gpuMemorySize/1000) < 1800
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 	isPotatoGpu = true
 end
-if Platform.gpuMemorySize and gpuMem and gpuMem < 1800 then
+if gpuMem and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
