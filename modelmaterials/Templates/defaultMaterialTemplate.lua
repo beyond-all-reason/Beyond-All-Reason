@@ -22,10 +22,11 @@ vertex = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
+	#define OPTION_HEALTH_TEXCHICKS 9
 
-	#define OPTION_MODELSFOG 9
+	#define OPTION_MODELSFOG 10
 
-	#define OPTION_TREEWIND 10
+	#define OPTION_TREEWIND 11
 
 	#define OPTION_AUTONORMAL 21
 
@@ -369,10 +370,11 @@ fragment = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
+	#define OPTION_HEALTH_TEXCHICKS 9
 
-	#define OPTION_MODELSFOG 9
+	#define OPTION_MODELSFOG 10
 
-	#define OPTION_TREEWIND 10
+	#define OPTION_TREEWIND 11
 
 	#define OPTION_AUTONORMAL 21
 
@@ -1135,20 +1137,37 @@ fragment = [[
 		// N - worldFragNormal
 		vec3 N;
 
+		vec4 normalTexVal;
+		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+			normalTexVal = texture(normalTex, myUV);
+		}
+
 		float healthMix;
-		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-			vec3 seedVec = modelVertexPos.xyz * 0.6;
+		vec3 seedVec;
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+			seedVec = modelVertexPos.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
+
+			float texHeight = 1.0;
+			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS))
+				texHeight = normalTexVal.a;
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);
 			healthMix = smoothstep(0.0, healthMix, max(floatOptions[0] + floatOptions[1], 0.0));
+			healthMix *= texHeight;
 		}
 
 		vec3 tbnNormal;
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
-			tbnNormal = NORM2SNORM(texture(normalTex, myUV).xyz);
+			tbnNormal = NORM2SNORM(normalTexVal.xyz);
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV).xyz);
+				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
+			}
+			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+				vec3 tbnNormalw = NORM2SNORM(texture(rgbNoise, 0.5 * myUV).rgb);
+				tbnNormalw = mix(tbnNormal, tbnNormalw, 0.5);
+
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
 		} else if (BITMASK_FIELD(bitOptions, OPTION_AUTONORMAL)) {
@@ -1172,7 +1191,15 @@ fragment = [[
 			healthMix *= (1.0 - 0.9 * texColor2.r); //emissive parts don't get too damaged
 			texColor1 = mix(texColor1, texColor1w, healthMix);
 			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
-			texColor2.z += 0.5 * healthMix;
+			texColor2.z += 0.5 * healthMix; //additional roughness
+		}
+
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+			vec4 texColor1w = vec4(0.64, 0.02, 0.02, 0.0);
+			texColor1 = mix(texColor1, texColor1w, healthMix);
+			texColor2.z -= 0.5 * healthMix; //additional glossiness
+			//texColor2.y += 0.5 * healthMix; //additional metalness
+			texColor2.w = 1.0 - 0.5 * healthMix;
 		}
 
 		// PBR Params
@@ -1422,7 +1449,7 @@ fragment = [[
 			//outColor = dirContrib + ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
-			outColor = vec3(iblDiffuse);
+			outColor = vec3(normalTexVal.aaa);
 		#endif
 
 		#if (RENDERING_MODE == 0)
@@ -1503,6 +1530,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
+		health_texchicks = false,
 
 		modelsfog        = true,
 
@@ -1529,6 +1557,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
+		health_texchicks = false,
 
 		treewind         = false,
 		autonormal       = false,
@@ -1579,10 +1608,11 @@ local shaderPlugins = {
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
+	#define OPTION_HEALTH_TEXCHICKS 9
 
-	#define OPTION_MODELSFOG 9
+	#define OPTION_MODELSFOG 10
 
-	#define OPTION_TREEWIND 10
+	#define OPTION_TREEWIND 11
 
 	#define OPTION_AUTONORMAL 21
 ]]--
@@ -1600,10 +1630,11 @@ local knownBitOptions = {
 
 	["health_texturing"] = 7,
 	["health_displace"] = 8,
+	["health_texchicks"] = 9,
 
-	["modelsfog"] = 9,
+	["modelsfog"] = 10,
 
-	["treewind"] = 10,
+	["treewind"] = 11,
 	["autonormal"] = 21,
 }
 

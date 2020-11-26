@@ -74,6 +74,7 @@ local myClearMaterialUniform = {
 
 local armTanks = {}
 local corTanks = {}
+local chickenUnits = {}
 local otherUnits = {}
 
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -337,16 +338,18 @@ local materials = {
 			normalmapping = true,
 			flashlights = false,
 			vertex_ao = true,
-			health_displace = false,
+			health_displace = true,
 			health_texturing = false,
+			health_texchicks = true,
 			treewind = true,
 		},
 		deferredOptions = {
 			normalmapping = true,
 			flashlights = false,
 			vertex_ao = true,
-			health_displace = false,
+			health_displace = true,
 			health_texturing = false,
+			health_texchicks = true,
 			treewind = true,
 			materialIndex = 4,
 		},
@@ -355,12 +358,12 @@ local materials = {
 		},
 
 		-- are these below required?
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(chickenUnits, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(chickenUnits, unitID, unitDefID) end,
 
-		--GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
+		GameFrame = function (gf, mat) GameFrame(false, chickenUnits, gf, mat) end,
 
-		--UnitDamaged = UnitDamaged,
+		UnitDamaged = UnitDamaged,
 	}),
 }
 
