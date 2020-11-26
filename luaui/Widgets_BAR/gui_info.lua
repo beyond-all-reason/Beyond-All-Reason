@@ -848,8 +848,8 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 
 	-- lighten border
+	local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
 	if iconBorderOpacity > 0 then
-		local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRoundCircle(
 			cellRect[cellID][1] + cellPadding + halfSize,
@@ -858,6 +858,15 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 			halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
 		)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+
+	-- group icon
+	if unitGroup[uDefID] then
+		local size = math.floor((halfSize + halfSize) * 0.29)
+		glColor(1, 1, 1, 0.9)
+		glTexture(groups[unitGroup[uDefID]])
+		glTexRect(cellRect[cellID][1], cellRect[cellID][4] - size, cellRect[cellID][1] + size, cellRect[cellID][4])
+		glTexture(false)
 	end
 
 	-- unitcount
@@ -1298,6 +1307,24 @@ local function drawUnitInfo()
 						halfSize, cellPadding * 1.3, halfSize - math_max(1, cellPadding), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
 					)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+					-- group icon
+					if unitGroup[uDefID] then
+						local size = math.floor((halfSize + halfSize) * 0.4)
+						glColor(1, 1, 1, 0.9)
+						glTexture(groups[unitGroup[uDefID]])
+						glTexRect(cellRect[cellID][1], cellRect[cellID][4] - size, cellRect[cellID][1] + size, cellRect[cellID][4])
+						glTexture(false)
+					end
+
+					-- radar icon
+					--if iconTypesMap[unitDefInfo[uDefID].iconType] then
+					--	local size = math.floor((halfSize + halfSize) * 0.33)
+					--	glColor(1, 1, 1, 0.9)
+					--	glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[uDefID].iconType])
+					--	glTexRect(cellRect[cellID][3]-size, cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][2]+size)
+					--	glTexture(false)
+					--end
 				end
 				cellID = cellID - 1
 				if cellID <= 0 then
