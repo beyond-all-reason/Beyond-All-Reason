@@ -150,6 +150,7 @@ function SpawnFromQueue(n)
 			if n == QueuedSpawnsFrames[1] then
 				local createSpawnCommand = QueuedSpawns[1]
 				Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
+				Spring.SpawnCEG("scav-spawnexplo",QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],0,0,0)
 				table.remove(QueuedSpawns, 1)
 				table.remove(QueuedSpawnsFrames, 1)
 			--else
