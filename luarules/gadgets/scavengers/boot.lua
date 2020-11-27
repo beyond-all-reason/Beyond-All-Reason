@@ -580,7 +580,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if frame > 300 then
 				local heading = Spring.GetUnitHeading(unitID)
 				local suffix = scavconfig.unitnamesuffix
-				if not UnitDefNames[UnitName..suffix] then
+				-- Spring.Echo(UnitName)
+				-- Spring.Echo(UnitName..suffix)
+				if UnitDefNames[UnitName..suffix] then
 					local posx, posy, posz = Spring.GetUnitPosition(unitID)
 					Spring.DestroyUnit(unitID, false, true)
 					if heading >= -24576 and heading < -8192 then -- west
@@ -600,8 +602,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						QueueSpawn(UnitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
 						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
 					end
+					return
 				end
-				return
 			end
 		end
 		for i = 1,#BossUnits do
