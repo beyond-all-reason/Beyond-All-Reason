@@ -108,6 +108,7 @@ return {
 				size = 5.5,
 				sizedecay = 0.09,
 				soundhit = "chickens/junohit2edit",
+				soundstart = "chickens/bugarty",
 				sprayangle = 512,
 				tolerance = 5000,
 				turret = true,

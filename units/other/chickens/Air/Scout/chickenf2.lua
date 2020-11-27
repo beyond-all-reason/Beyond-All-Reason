@@ -100,7 +100,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.3,
-				explosiongenerator = "custom:gundam_MISSILE_EXPLOSION",
+				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				impulseboost = 1,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
@@ -110,7 +110,7 @@ return {
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 30,
-				soundhit = "chickens/junohit2edit",
+				soundhit = "bombsmed2",
 				sprayangle = 400,
 				weapontype = "AircraftBomb",
 				damage = {

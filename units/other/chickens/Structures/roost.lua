@@ -80,6 +80,7 @@ return {
 				reloadtime = 5,
 				smoketrail = 1,
 				soundhit = "chickens/nuke4",
+				soundhitvolume = 50,
 				startvelocity = 2000,
 				targetborder = 0.75,
 				turret = 1,

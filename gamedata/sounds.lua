@@ -208,17 +208,17 @@ end
 local files = VFS.DirList("sounds/chickens/")
 local t = Sounds.SoundItems
 for i=1,#files do
-   local fileName = files[i]
-   fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
-   t[fileNames] = {
-      	file     = fileName;
-	    gain = 1.2*0.3,
-      	pitchmod = 0.21,
-      	gainmod  = 0.2*0.3,
-	    dopplerscale = 1.0,
-      	maxconcurrent = 4,
-	    rolloff = 1.5,
-   }
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+    	file     = fileName;
+		gain = 1.2*0.3,
+    	pitchmod = 0.25,
+    	gainmod  = 0.2*0.3,
+		dopplerscale = 1.0,
+    	maxconcurrent = 4,
+		rolloff = 0.9,
+	}
 end
 
 -- CRITTER SOUNDS

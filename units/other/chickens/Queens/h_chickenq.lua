@@ -96,7 +96,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.63,
-				explosiongenerator = "custom:gundam_MISSILE_EXPLOSION",
+				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.7,
