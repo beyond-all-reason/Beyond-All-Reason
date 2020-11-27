@@ -21,7 +21,7 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgRadariconSize = 0.24
+local cfgRadariconSize = 0.23
 local cfgRadariconOffset = 0.025
 local cfgGroupiconSize = 0.29
 local cfgPriceFontSize = 0.19
@@ -41,7 +41,7 @@ local enableShortcuts = false   -- problematic since it overrules use of top row
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = false		-- false will still show hover
-local showRadarIcon = false		-- false will still show hover
+local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
 local showShortcuts = false
 local showTooltip = true
