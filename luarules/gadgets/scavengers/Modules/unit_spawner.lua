@@ -45,10 +45,11 @@ function BossWaveTimer(n)
 			end
 			SpawnBeacons = nil
 			if not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil then
-				noSpawnerForBoss = true
+				pickedBeacon = 1234567890
 			end
 			
 			if pickedBeacon == 1234567890 then
+				Spring.Echo("[Scavengers] Failed Attempt to spawn Final Boss")
 				return
 			else
 				if noSpawnerForBoss then
@@ -57,27 +58,27 @@ function BossWaveTimer(n)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 					FinalBossUnitSpawned = true
-					Spring.Echo("BOSS COMMANDER SPAWNED")
+					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				elseif pickedBeacon then
 					local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 					FinalBossUnitSpawned = true
-					Spring.Echo("BOSS COMMANDER SPAWNED")
+					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				elseif ScavengerStartboxExists == true then
 					local posx = math.floor((ScavengerStartboxXMin + ScavengerStartboxXMax)/2)
 					local posz = math.floor((ScavengerStartboxZMin + ScavengerStartboxZMax)/2)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 					FinalBossUnitSpawned = true
-					Spring.Echo("BOSS COMMANDER SPAWNED")
+					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				else
 					local posx = math.floor(mapsizeX/2)
 					local posz = math.floor(mapsizeZ/2)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 					FinalBossUnitSpawned = true
-					Spring.Echo("BOSS COMMANDER SPAWNED")
+					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				end
 			end
 			pickedBeacon = nil
@@ -148,7 +149,8 @@ function BossMinionsSpawn(n)
 		end
 	end
 	if math.random(1,4) == 1 then
-		Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+		--Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+		QueueSpawn(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID, n+1)
 		Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
 		local posx = x + math_random(-500,500)
 		local posz = z + math_random(-500,500)

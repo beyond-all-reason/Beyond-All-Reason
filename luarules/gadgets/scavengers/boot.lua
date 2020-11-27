@@ -122,20 +122,24 @@ local function DisableCommander()
 end
 
 function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
-	local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team}
-	local QueueFrame = frame
-	if #QueuedSpawnsFrames > 0 then
-		for i = 1, #QueuedSpawnsFrames do
-			local CurrentQueueFrame = QueuedSpawnsFrames[i]
-			if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
-				table.insert(QueuedSpawns, i, QueueSpawnCommand)
-				table.insert(QueuedSpawnsFrames, i, QueueFrame)
-				break
+	if UnitDefNames[unitName] then
+		local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team}
+		local QueueFrame = frame
+		if #QueuedSpawnsFrames > 0 then
+			for i = 1, #QueuedSpawnsFrames do
+				local CurrentQueueFrame = QueuedSpawnsFrames[i]
+				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
+					table.insert(QueuedSpawns, i, QueueSpawnCommand)
+					table.insert(QueuedSpawnsFrames, i, QueueFrame)
+					break
+				end
 			end
+		else
+			table.insert(QueuedSpawns, QueueSpawnCommand)
+			table.insert(QueuedSpawnsFrames, QueueFrame)
 		end
 	else
-		table.insert(QueuedSpawns, QueueSpawnCommand)
-		table.insert(QueuedSpawnsFrames, QueueFrame)
+		Spring.Echo("[Scavengers] Failed to spawn "..unitName..", invalid unit")
 	end
 end
 
@@ -602,7 +606,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 		for i = 1,#BossUnits do
 			if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
-				Spring.Echo("Got boss commander ID, attempting to spawn minions")
+				--Spring.Echo("Got boss commander ID, attempting to spawn minions")
 				FinalBossUnitID = unitID
 				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 				Spring.SetUnitHealth(unitID, bosshealth)
