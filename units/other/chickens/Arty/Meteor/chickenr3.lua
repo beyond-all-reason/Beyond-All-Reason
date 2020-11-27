@@ -100,7 +100,7 @@ return {
 				proximitypriority = -6,
 				range = 14000,
 				reloadtime = 15,
-				soundhit = "chickens/nuke4",
+				soundhit = "nuke4",
 				targetable = 1,
 				targetborder = 0.75,
 				turret = 1,

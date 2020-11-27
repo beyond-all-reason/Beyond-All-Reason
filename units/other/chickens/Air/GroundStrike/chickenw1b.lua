@@ -109,7 +109,7 @@ return {
 				noselfdamage = true,
 				range = 400,
 				reloadtime = 2,
-				soundstart = "chickens/talonattack",
+				soundstart = "talonattack",
 				startvelocity = 200,
 				submissile = 1,
 				turret = true,

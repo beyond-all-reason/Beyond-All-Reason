@@ -97,7 +97,7 @@ return {
 				noselfdamage = true,
 				range = 200,
 				reloadtime = 0.86667,
-				soundstart = "chickens/smallchickenattack",
+				soundstart = "smallchickenattack",
 				targetborder = 1,
 				tolerance = 5000,
 				turret = true,

@@ -79,7 +79,7 @@ return {
 				range = 29999,
 				reloadtime = 5,
 				smoketrail = 1,
-				soundhit = "chickens/nuke4",
+				soundhit = "nuke4",
 				soundhitvolume = 50,
 				startvelocity = 2000,
 				targetborder = 0.75,
