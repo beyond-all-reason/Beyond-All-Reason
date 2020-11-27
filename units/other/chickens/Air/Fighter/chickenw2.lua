@@ -109,7 +109,7 @@ return {
 				range = 600,
 				reloadtime = 1.6,
 				smoketrail = true,
-				soundstart = "chickens/talonattack",
+				soundstart = "talonattack",
 				startvelocity = 600,
 				texture1 = "",
 				texture2 = "sporetrail",
