@@ -188,11 +188,11 @@ function gadget:GameFrame(n)
 	if n%30 == 0 and scavconfig.messenger == true then
 		pregameMessages(n)
 	end
-	
+
 	if n%30 == 20 and n > 9000 and scavconfig.modules.randomEventsModule == true then
 		RandomEventTrigger(n)
 	end
-	
+
 	if n%150 == 85 and FinalBossUnitSpawned and FinalBossKilled == false then
 		local bosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		ScavSendMessage("Boss Health: "..math.ceil(bosshealth))
@@ -200,11 +200,11 @@ function gadget:GameFrame(n)
 			BossDGun(n)
 		end
 	end
-	
+
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
 		BossMinionsSpawn(n)
 	end
-		
+
 
 	if scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
 		if n%30 == 0 then
@@ -345,7 +345,7 @@ function gadget:GameFrame(n)
 						FactoryProduction(n, scav, scavDef)
 					end
 				end
-				
+
 				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
 				if n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					SelfDestructionControls(n, scav, scavDef)
@@ -362,7 +362,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	local UnitName = UnitDefs[unitDefID].name
 	if unitTeam == GaiaTeamID then
-		
+
 		if FinalBossUnitSpawned == true then
 			for i = 1,#BossUnits do
 				if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
@@ -372,7 +372,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 				end
 			end
 		end
-		
+
 		killedscavengers = killedscavengers + scavconfig.scoreConfig.baseScorePerKill
 		if scavStructure[unitID] and not UnitName == "scavengerdroppod_scav" and not UnitName == "scavengerdroppodbeacon_scav"  then
 			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledBuilding
@@ -576,6 +576,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if frame > 300 then
 				local heading = Spring.GetUnitHeading(unitID)
 				local suffix = scavconfig.unitnamesuffix
+				if not UnitDefNames[UnitName..suffix] then
+					suffix = ''
+				end
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
 				Spring.DestroyUnit(unitID, false, true)
 				if heading >= -24576 and heading < -8192 then -- west
