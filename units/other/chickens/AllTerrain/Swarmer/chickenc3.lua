@@ -100,7 +100,7 @@ return {
 				rgbcolor = "0.15 0.6 0.6",
 				size = 8,
 				sizedecay = -0.3,
-				soundhit = "chickens/junohit2edit",
+				soundhit = "junohit2edit",
 				targetmoveerror = 0.4,
 				tolerance = 5000,
 				turret = true,

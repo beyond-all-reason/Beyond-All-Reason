@@ -9,7 +9,7 @@ return {
 		name = "talon_death",
 		range = 450,
 		reloadtime = 3.6,
-		soundhit = "chickens/talondie",
+		soundhit = "talondie",
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {

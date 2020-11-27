@@ -9,7 +9,7 @@ return {
 		name = "lobberMorph",
 		range = 450,
 		reloadtime = 3.6,
-		soundhit = "chickens/bigbugdie",
+		soundhit = "bigbugdie",
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {

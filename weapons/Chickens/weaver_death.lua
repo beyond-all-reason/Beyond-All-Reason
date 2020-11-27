@@ -11,8 +11,8 @@ return {
 		name = "WeaverEMPBomb",
 		range = 450,
 		reloadtime = 3.6,
-		soundhit = "chickens/junohit2edit",
-		soundstart = "chickens/smallchickendead",
+		soundhit = "junohit2edit",
+		soundstart = "smallchickendead",
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {

@@ -101,7 +101,7 @@ return {
 				rgbcolor = "0.0 0.6 0.6",
 				size = 8,
 				sizedecay = -0.3,
-				soundhit = "chickens/e16",
+				soundhit = "e16",
 				sprayangle = 256,
 				targetmoveerror = 0.2,
 				tolerance = 5000,

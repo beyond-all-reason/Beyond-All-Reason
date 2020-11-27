@@ -9,7 +9,7 @@ return {
 		name = "bug_death",
 		range = 400,
 		reloadtime = 3.6,
-		soundhit = "chickens/bugdie",
+		soundhit = "bugdie",
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
