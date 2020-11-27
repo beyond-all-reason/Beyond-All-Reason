@@ -102,7 +102,7 @@ return {
 				rgbcolor = "0.0 0.6 0.6",
 				size = 8,
 				sizedecay = -0.3,
-				soundhit = "junohit2edit",
+				soundhit = "bloodsplash",
 				sprayangle = 512,
 				targetmoveerror = 0.4,
 				tolerance = 5000,

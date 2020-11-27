@@ -133,6 +133,7 @@ return {
 				noselfdamage = true,
 				range = 375,
 				reloadtime = 2,
+				soundstart = "smallchickenattack",
 				startvelocity = 300,
 				submissile = 1,
 				targetmoveerror = 0.5,

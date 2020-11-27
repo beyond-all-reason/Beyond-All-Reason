@@ -137,6 +137,7 @@ return {
 				noselfdamage = true,
 				range = 470,
 				reloadtime = 3.23333,
+				soundstart = "smallchickenattack",
 				smoketrail = true,
 				startvelocity = 600,
 				texture1 = "",
