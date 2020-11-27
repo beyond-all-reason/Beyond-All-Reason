@@ -577,26 +577,25 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				local heading = Spring.GetUnitHeading(unitID)
 				local suffix = scavconfig.unitnamesuffix
 				if not UnitDefNames[UnitName..suffix] then
-					suffix = ''
-				end
-				local posx, posy, posz = Spring.GetUnitPosition(unitID)
-				Spring.DestroyUnit(unitID, false, true)
-				if heading >= -24576 and heading < -8192 then -- west
-					-- 3
-					QueueSpawn(UnitName..suffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
-					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
-				elseif heading >= -8192 and heading < 8192 then -- south
-					-- 0
-					QueueSpawn(UnitName..suffix, posx, posy, posz, 0 ,GaiaTeamID, frame+1)
-					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
-				elseif heading >= 8192 and heading < 24576 then -- east
-					-- 1
-					QueueSpawn(UnitName..suffix, posx, posy, posz, 1 ,GaiaTeamID, frame+1)
-					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
-				else -- north
-					-- 2
-					QueueSpawn(UnitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
-					--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
+					local posx, posy, posz = Spring.GetUnitPosition(unitID)
+					Spring.DestroyUnit(unitID, false, true)
+					if heading >= -24576 and heading < -8192 then -- west
+						-- 3
+						QueueSpawn(UnitName..suffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
+					elseif heading >= -8192 and heading < 8192 then -- south
+						-- 0
+						QueueSpawn(UnitName..suffix, posx, posy, posz, 0 ,GaiaTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
+					elseif heading >= 8192 and heading < 24576 then -- east
+						-- 1
+						QueueSpawn(UnitName..suffix, posx, posy, posz, 1 ,GaiaTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
+					else -- north
+						-- 2
+						QueueSpawn(UnitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
+					end
 				end
 				return
 			end
