@@ -21,8 +21,8 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgRadariconSize = 0.29
-local cfgRadariconOffset = 0.027
+local cfgRadariconSize = 0.23
+local cfgRadariconOffset = 0.025
 local cfgGroupiconSize = 0.29
 local cfgPriceFontSize = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
@@ -946,7 +946,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.22, 1.5)
+	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.32, 1.45)
 
 	if WG['minimap'] then
 		minimapEnlarged = WG['minimap'].getEnlarged()
@@ -1368,7 +1368,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	-- price
 	if showPrice then
 		--doCircle(x, y, z, radius, sides)
-		font2:Print("\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000" .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.38), priceFontSize, "o")
+		font2:Print("\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000" .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.4), priceFontSize, "o")
 	end
 
 	-- debug order value
