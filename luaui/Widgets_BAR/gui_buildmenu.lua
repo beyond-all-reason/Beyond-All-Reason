@@ -41,7 +41,7 @@ local enableShortcuts = false   -- problematic since it overrules use of top row
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = true		-- false will still show price on hover
-local showRadarIcon = false
+local showRadarIcon = true
 local showGroupIcon = true
 local showShortcuts = false
 local showTooltip = true
