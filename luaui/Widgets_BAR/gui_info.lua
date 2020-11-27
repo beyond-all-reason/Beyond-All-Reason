@@ -1102,8 +1102,8 @@ local function drawUnitInfo()
 
 		-- radar icon
 		if iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
-			local padding = (halfSize + halfSize) * 0.045
-			local size = math.floor((halfSize + halfSize) * 0.27)
+			local padding = (halfSize + halfSize) * 0.035
+			local size = math.floor((halfSize + halfSize) * 0.26)
 			glColor(1, 1, 1, 0.9)
 			glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
 			glTexRect(iconX+(halfSize + halfSize)-padding-size, iconY - (halfSize + halfSize)+padding, iconX+(halfSize + halfSize)-padding, iconY - (halfSize + halfSize) + size + padding)
@@ -1114,7 +1114,7 @@ local function drawUnitInfo()
 		if unitGroup[displayUnitDefID] then
 			local padding = (halfSize + halfSize) * 0.045
 			local size = (halfSize + halfSize) * 0.18
-			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.12), size, "o")
+			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
 		end
 
 	end

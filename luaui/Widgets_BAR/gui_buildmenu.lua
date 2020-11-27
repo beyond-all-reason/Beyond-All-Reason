@@ -1368,7 +1368,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	-- price
 	if showPrice then
 		--doCircle(x, y, z, radius, sides)
-		font2:Print("\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000" .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.4), priceFontSize, "o")
+		font2:Print("\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000" .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
 	-- debug order value
