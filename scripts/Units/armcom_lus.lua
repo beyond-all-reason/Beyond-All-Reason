@@ -1,9 +1,9 @@
---INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 23
+--INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 24
 
 
 
 --Skeleton pieces
-local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1 = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1")    
+local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl")    
 
 local weapons = {
 	[1] = "laser",
@@ -566,7 +566,7 @@ function script.AimFromWeapon(weapon)
 	elseif weapons[weapon] == "uwlaser" then
 		return ruparm
 	elseif weapons[weapon] == "dgun" then
-		return biggun
+		return 0
 	end
 end
 
@@ -614,8 +614,8 @@ function script.AimWeapon(weapon, heading, pitch)
 		isAiming = true
 		leftArm = false
 		Turn(torso, 2, heading, rad(360.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-		Turn(biggun, 1, rad(-85), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-		Turn(luparm, 1, rad(5)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+		Turn(biggun, 1, rad(-105), rad(900.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+		Turn(luparm, 1, rad(15)-pitch, rad(900.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
 		WaitForTurn(torso,2)
 		return true
 	end
