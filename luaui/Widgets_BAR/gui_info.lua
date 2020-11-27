@@ -443,7 +443,7 @@ function widget:ViewResize()
 	doUpdate = true
 	clear()
 
-	radarIconSize = math_floor((height * vsy * 0.12) + 0.5)
+	radarIconSize = math_floor((height * vsy * 0.11) + 0.5)
 	unitIconSize = math_floor((height * vsy * 0.7) + 0.5)
 	unitIconSize2 = math_floor((height * vsy * 0.35) + 0.5)
 	if radarIconSize > 128 then
@@ -460,6 +460,7 @@ function widget:ViewResize()
 
 	font, loadedFontSize = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
+	font3 = WG['fonts'].getFont(fontfile2, 1.2, 0.32, 1.45)
 end
 
 function GetColor(colormap, slider)
@@ -1101,8 +1102,8 @@ local function drawUnitInfo()
 
 		-- radar icon
 		if iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
-			local padding = (halfSize + halfSize) * 0.045
-			local size = math.floor((halfSize + halfSize) * 0.29)
+			local padding = (halfSize + halfSize) * 0.035
+			local size = math.floor((halfSize + halfSize) * 0.26)
 			glColor(1, 1, 1, 0.9)
 			glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
 			glTexRect(iconX+(halfSize + halfSize)-padding-size, iconY - (halfSize + halfSize)+padding, iconX+(halfSize + halfSize)-padding, iconY - (halfSize + halfSize) + size + padding)
@@ -1113,7 +1114,7 @@ local function drawUnitInfo()
 		if unitGroup[displayUnitDefID] then
 			local padding = (halfSize + halfSize) * 0.045
 			local size = (halfSize + halfSize) * 0.18
-			font2:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.12), size, "o")
+			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
 		end
 
 	end
@@ -1310,10 +1311,10 @@ local function drawUnitInfo()
 
 					-- group icon
 					if unitGroup[uDefID] then
-						local size = math.floor((halfSize + halfSize) * 0.4)
+						local size = math.floor((halfSize + halfSize) * 0.33)
 						glColor(1, 1, 1, 0.9)
 						glTexture(groups[unitGroup[uDefID]])
-						glTexRect(cellRect[cellID][1], cellRect[cellID][4] - size, cellRect[cellID][1] + size, cellRect[cellID][4])
+						glTexRect(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - size, cellRect[cellID][1] + size + cellPadding, cellRect[cellID][4])
 						glTexture(false)
 					end
 
