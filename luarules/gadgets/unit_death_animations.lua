@@ -31,12 +31,14 @@ end
 
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
+local SetUnitBlocking = Spring.SetUnitBlocking 
 local CMD_STOP = CMD.STOP
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if hasDeathAnim[unitDefID] then
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		SetUnitNoSelect(unitID,true)
+    SetUnitBlocking(unitID,false) -- non blocking while dying
 		GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
     dyingUnits[unitID] = true
 	end
