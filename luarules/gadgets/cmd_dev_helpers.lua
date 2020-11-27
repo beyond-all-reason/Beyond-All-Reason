@@ -333,7 +333,13 @@ else
             Accept[#Accept+1] = Condition
         end
         if string.find(line, "all") then
-            local Condition = function (ud) if ud.name ~= 'meteor' and ud.name ~= 'roost' then return true end end
+            local Condition = function (ud)
+				local exlusions = {'meteor', 'roost', 'nuketest', 'nuketestcor', 'nuketestcororg', 'nuketestorg'}
+				for k,v in pairs(exlusions) do
+					if ud.name == v then return end
+				end
+				return true
+			end
             Accept[#Accept+1] = Condition
         end
 

@@ -59,8 +59,8 @@ local scavengerUnitDefs = {}
 
  for name,uDef in pairs(UnitDefs) do
 	 --local faction = string.sub(name, 1, 3)
-	 if not string.find(name, '_scav') and not string.find(name, 'critter_') and not string.find(name, 'chicken') then
-		 --if string.sub(name, 1, 3) == 'arm' or string.sub(name, 1, 3) == 'cor' then
+	 if not string.find(name, '_scav') and not string.find(name, 'critter_') then --and not string.find(name, 'chicken') then	-- apparently scavs resurrect chickens and expect a _scav version
+		 --if string.sub(name, 1, 3) == 'arm' or string.sub(name, 1, 3) == 'cor' then	-- somehow this fails
 			 if customDefs[name] ~= nil then
 				 if customDefs[name] ~= nil then
 					 scavengerUnitDefs[name..'_scav'] = tableMergeSpecial(deepcopy(uDef), deepcopy(customDefs[name]))

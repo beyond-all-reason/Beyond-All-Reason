@@ -40,7 +40,7 @@ local maxPosY = 0.73
 local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
-local showPrice = false		-- false will still show price on hover
+local showPrice = true		-- false will still show price on hover
 local showRadarIcon = false
 local showGroupIcon = true
 local showShortcuts = false
