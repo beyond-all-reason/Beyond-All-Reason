@@ -422,8 +422,8 @@ local moveDatas = {
 		footprintx = 0,
 		footprintz = 0,
 		maxslope = 100,
-		maxwaterdepth = 9999,
-		maxwaterslope = 55,
+		maxwaterdepth = 99999,
+		maxwaterslope = 100,
 	},
 
 	-- Scav Mist

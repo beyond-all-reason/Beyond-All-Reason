@@ -30,10 +30,10 @@ _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 function SpawnRuin(name, posx, posy, posz, facing, patrol)
 	local r = math.random(1,100)
 	if r < 30 and FeatureDefNames[name.."_heap"] then
-		local fe = Spring.CreateFeature(name.."_heap", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaAllyTeamID)
+		local fe = Spring.CreateFeature(name.."_heap", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
 		Spring.SetFeatureAlwaysVisible(fe, true)
 	elseif r < 60 and FeatureDefNames[name.."_dead"] then
-		local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaAllyTeamID)
+		local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
 		Spring.SetFeatureAlwaysVisible(fe, true)
 		Spring.SetFeatureResurrect(fe, name)
 	elseif r < 90 then

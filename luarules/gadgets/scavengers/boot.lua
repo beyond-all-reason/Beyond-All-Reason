@@ -122,20 +122,24 @@ local function DisableCommander()
 end
 
 function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
-	local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team}
-	local QueueFrame = frame
-	if #QueuedSpawnsFrames > 0 then
-		for i = 1, #QueuedSpawnsFrames do
-			local CurrentQueueFrame = QueuedSpawnsFrames[i]
-			if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
-				table.insert(QueuedSpawns, i, QueueSpawnCommand)
-				table.insert(QueuedSpawnsFrames, i, QueueFrame)
-				break
+	if UnitDefNames[unitName] then
+		local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team}
+		local QueueFrame = frame
+		if #QueuedSpawnsFrames > 0 then
+			for i = 1, #QueuedSpawnsFrames do
+				local CurrentQueueFrame = QueuedSpawnsFrames[i]
+				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
+					table.insert(QueuedSpawns, i, QueueSpawnCommand)
+					table.insert(QueuedSpawnsFrames, i, QueueFrame)
+					break
+				end
 			end
+		else
+			table.insert(QueuedSpawns, QueueSpawnCommand)
+			table.insert(QueuedSpawnsFrames, QueueFrame)
 		end
 	else
-		table.insert(QueuedSpawns, QueueSpawnCommand)
-		table.insert(QueuedSpawnsFrames, QueueFrame)
+		Spring.Echo("[Scavengers] Failed to spawn "..unitName..", invalid unit")
 	end
 end
 
@@ -146,6 +150,7 @@ function SpawnFromQueue(n)
 			if n == QueuedSpawnsFrames[1] then
 				local createSpawnCommand = QueuedSpawns[1]
 				Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
+				Spring.SpawnCEG("scav-spawnexplo",QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],0,0,0)
 				table.remove(QueuedSpawns, 1)
 				table.remove(QueuedSpawnsFrames, 1)
 			--else
@@ -576,7 +581,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if frame > 300 then
 				local heading = Spring.GetUnitHeading(unitID)
 				local suffix = scavconfig.unitnamesuffix
-				if not UnitDefNames[UnitName..suffix] then
+				-- Spring.Echo(UnitName)
+				-- Spring.Echo(UnitName..suffix)
+				if UnitDefNames[UnitName..suffix] then
 					local posx, posy, posz = Spring.GetUnitPosition(unitID)
 					Spring.DestroyUnit(unitID, false, true)
 					if heading >= -24576 and heading < -8192 then -- west
@@ -596,13 +603,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						QueueSpawn(UnitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
 						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
 					end
+					return
 				end
-				return
 			end
 		end
 		for i = 1,#BossUnits do
 			if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
-				Spring.Echo("Got boss commander ID, attempting to spawn minions")
+				--Spring.Echo("Got boss commander ID, attempting to spawn minions")
 				FinalBossUnitID = unitID
 				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 				Spring.SetUnitHealth(unitID, bosshealth)

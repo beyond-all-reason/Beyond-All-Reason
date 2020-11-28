@@ -207,6 +207,9 @@ function scav_Udef_Post(name, uDef)
 			if uDef.brakerate then
 				uDef.brakerate = uDef.brakerate*3*randomMultiplier
 			end
+			if uDef.builddistance then
+				uDef.builddistance = uDef.builddistance*2*randomMultiplier
+			end
 		end
 		if uDef.featuredefs then
 			if uDef.featuredefs.dead then
