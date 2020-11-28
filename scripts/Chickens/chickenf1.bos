@@ -1,4 +1,4 @@
-piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
+piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -20,7 +20,17 @@ piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liw
 static-var  maxSpeed, animFramesPerKeyframe, bMoving, deltaSpeed;
 #define SIG_WALK 1
 
+#define BASEPIECE body //needed for HitByWeapon
+#define HITSPEED <45.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 4
+#define MAXTILT 100
+#include "chicken_hitbyweapon.h"
+
 #include "chicken_fly.h"
+
+#include "chicken_killed_flying.h"
+
 static-var nowSpeed, prevSpeed;
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -109,23 +119,4 @@ Shot1()
 	move mblade to z-axis <0> speed [3];
 	}
 	
-HitByWeaponId()
-	{
-	emit-sfx 1024 from body;
-	return 100;
-	}
-	
-Killed( severity, corpsetype )
-	{
-	corpsetype = 1;
-	emit-sfx 1025 from body;
-	emit-sfx 1024 from liwing;
-	emit-sfx 1024 from riwing;
-	explode body type SHATTER | NOHEATCLOUD;
-	explode head type FALL | NOHEATCLOUD;
-	explode tail type FALL | NOHEATCLOUD;
-	explode liwing type FALL | NOHEATCLOUD;
-	explode riwing type FALL | NOHEATCLOUD;
-	explode mblade type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	return( 0 );
-	}
+

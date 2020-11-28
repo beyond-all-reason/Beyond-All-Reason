@@ -1,4 +1,4 @@
-piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
+piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
 
 
 // Signal definitions

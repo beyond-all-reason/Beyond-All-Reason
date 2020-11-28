@@ -69,10 +69,13 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blood_spray",
+				[1] = "custom:blood_spray", --cob 1024
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
+				[5] = "custom:blood_explode",
+				[6] = "custom:blood_spray",
+				[7] = "custom:dirt",
 			},
 			pieceexplosiongenerators = {
 				[1] = "blood_spray",

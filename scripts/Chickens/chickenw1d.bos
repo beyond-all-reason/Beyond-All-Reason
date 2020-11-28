@@ -1,4 +1,4 @@
-piece body,head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
+piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwing, liwing;
 
 
 // Signal definitions
@@ -148,13 +148,5 @@ HitByWeaponId()
 	return 100;
 	}
 
-Killed( severity, corpsetype )
-	{
-	corpsetype = 1;
-	emit-sfx 1025 from body;
-	explode head type FALL;
-	//explode lwing type FALL;
-	//explode rwing type FALL;
-	explode mblade type FALL | EXPLODE_ON_HIT;
-	return( 0 );
-	}
+
+#include "chicken_killed_flying.h"

@@ -38,7 +38,7 @@ return {
 		name = "Lobber",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Chickens/chickenr.s3o",
+		objectname = "Chickens/chickenr1.s3o",
 		script = "Chickens/chickenr1.cob",
 		seismicsignature = 4,
 		selfdestructas = "LOBBER_MORPH",
