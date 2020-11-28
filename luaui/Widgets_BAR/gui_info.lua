@@ -872,10 +872,10 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 
 	-- unitcount
 	if selUnitsCounts[uDefID] > 1 then
-		local fontSize = math_min(gridHeight * 0.19, cellsize * 0.6) * (1 - ((1 + string.len(selUnitsCounts[uDefID])) * 0.066))
-		font2:Begin()
-		font2:Print(selUnitsCounts[uDefID], cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
-		font2:End()
+		local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selUnitsCounts[uDefID])) * 0.066))
+		--font3:Begin()
+		font3:Print(selUnitsCounts[uDefID], cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
+		--font3:End()
 	end
 end
 
@@ -1064,8 +1064,8 @@ end
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.95 - ((1 - ui_scale) * 0.5))
 
-	local iconSize = math.floor(fontSize * 4.35)
-	local iconPadding = math.floor(fontSize * 0.32)
+	local iconSize = math.floor(fontSize * 4.4)
+	local iconPadding = math.floor(fontSize * 0.28)
 
 	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
@@ -1183,7 +1183,7 @@ local function drawUnitInfo()
 	local valueMinColor = '\255\255\180\180'
 
 	-- custom unit info background
-	local width = contentWidth * 0.81
+	local width = contentWidth * 0.82
 	local height = (backgroundRect[4] - backgroundRect[2]) * (unitDescriptionLines > 1 and 0.495 or 0.6)
 
 	-- unit tooltip
@@ -1203,7 +1203,7 @@ local function drawUnitInfo()
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.06 }, { 0.8, 0.8, 0.8, 0.14 })
 	end
 
-	local contentPaddingLeft = contentPadding * 0.75
+	local contentPaddingLeft = contentPadding * 0.6
 	local texPosY = backgroundRect[4] - iconSize - (contentPadding * 0.64)
 	local texSize = fontSize * 0.6
 

@@ -295,6 +295,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
 		unitGroup[unitDefID] = 'weapon'
 	end
+	if string.find(string.lower(unitDef.name), 'silo') then
+		unitGroup[unitDefID] = 'nuke'
+	end
 	for i = 1, #unitDef.weapons do
 		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
 		if weaponDef then
@@ -304,9 +307,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			if weaponDef.shieldRepulser then
 				unitGroup[unitDefID] = 'util'
 			end
-			if weaponDef.name ~= nil and string.find(string.lower(weaponDef.name), 'nuclear') then
-				unitGroup[unitDefID] = 'nuke'
-			end
+			--if weaponDef.description ~= nil and string.find(string.lower(weaponDef.description), 'nuclear') then
+			--	unitGroup[unitDefID] = 'nuke'
+			--end
 		end
 	end
 
