@@ -20,9 +20,11 @@ Steering(heading, steer, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steer = (heading - oldheading)*3;
-		turn rwheel to y-axis steer speed <180>;	
-		turn lwheel to y-axis steer speed <180>;	
+		steer = (heading - oldheading)*3;  //3
+		turn rankle to y-axis steer speed <75>;	
+		turn lankle to y-axis steer speed <75>;
+		steer = (heading - oldheading)*1.5; 
+		turn turret to y-axis steer speed <30>;	
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin rwheel around x-axis speed currentSpeed;
