@@ -1300,11 +1300,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	end
 	glTexture(false)
 
-	-- draw build progress pie on top of texture
-	if progress and showBuildProgress then
-		RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
-	end
-
 	-- make fancy
 	if makeFancy then
 		-- lighten top
@@ -1389,6 +1384,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		local col = cellRectID - ((row - 1) * colls)
 		local text = string.upper(string.char(buildKeys[row]) .. ' ' .. string.char(buildKeys[col]))
 		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize, "o")
+	end
+	
+	-- draw build progress pie on top of texture
+	if progress and showBuildProgress then
+		RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 	end
 
 	-- factory queue number

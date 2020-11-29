@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "May 2020",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 
