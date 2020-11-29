@@ -289,78 +289,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
-
--- order units, add higher value for order importance
-local unitOrder = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	unitOrder[unitDefID] = 0
-	if unitDef.buildSpeed > 0 then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + (unitDef.buildSpeed * 10000)
-	end
-	if unitDef.buildOptions[1] then
-		if unitDef.isBuilding then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 200000000
-		else
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 150000000
-		end
-		if unitDef.modCategories['notland'] or unitDef.modCategories['underwater'] then
-			unitOrder[unitDefID] = unitOrder[unitDefID] - 25000000
-		end
-	end
-	if unitDef.isImmobile or unitDef.isBuilding then
-		if unitDef.floatOnWater then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 11000000
-		elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 10000000
-		else
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 12000000
-		end
-	else
-		if unitDef.modCategories['ship'] then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 9000000
-		elseif unitDef.modCategories['hover'] then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 8000000
-		elseif unitDef.modCategories['tank'] then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 7000000
-		elseif unitDef.modCategories['bot'] then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 6000000
-		elseif unitDef.isAirUnit then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 5000000
-		elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-			unitOrder[unitDefID] = unitOrder[unitDefID] + 8600000
-		end
-	end
-	if unitDef.energyCost then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + (unitDef.energyCost / 70)
-	end
-	if unitDef.metalCost then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + unitDef.metalCost
-	end
-	if unitDefInfo[unitDefID].dps then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + unitDefInfo[unitDefID].dps
-	end
-	unitOrder[unitDefID] = math_floor(unitOrder[unitDefID])
-end
-
-local function getHighestOrderedUnit()
-	local highest = { 0, 0 }
-	for unitDefID, orderValue in pairs(unitOrder) do
-		if orderValue > highest[2] then
-			highest = { unitDefID, orderValue }
-		end
-	end
-	return highest[1]
-end
-
-local unitsOrdered = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	local uDefID = getHighestOrderedUnit()
-	unitsOrdered[#unitsOrdered + 1] = uDefID
-	unitOrder[uDefID] = nil
-end
-
-unitOrder = unitsOrdered
-unitsOrdered = nil
+local unitOrder = {}	-- retrieves from buildmenu in initialize
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -498,8 +427,32 @@ function widget:Initialize()
 	WG['info'].getPosition = function()
 		return width, height
 	end
-	if  WG['buildmenu'] and  WG['buildmenu'].getGroups then
-		groups, unitGroup = WG['buildmenu'].getGroups()
+	if WG['buildmenu'] then
+		if WG['buildmenu'].getGroups then
+			groups, unitGroup = WG['buildmenu'].getGroups()
+		end
+		if WG['buildmenu'].getOrder then
+			unitOrder = WG['buildmenu'].getOrder()
+
+			-- order buildoptions
+			for uDefID, def in pairs(unitDefInfo) do
+				if def.buildOptions then
+					local temp = {}
+					for i, udid in pairs(def.buildOptions) do
+						temp[udid] = i
+					end
+					local newBuildOptions = {}
+					local newBuildOptionsCount = 0
+					for k, orderUDefID in pairs(unitOrder) do
+						if temp[orderUDefID] then
+							newBuildOptionsCount = newBuildOptionsCount + 1
+							newBuildOptions[newBuildOptionsCount] = orderUDefID
+						end
+					end
+					unitDefInfo[uDefID].buildOptions = newBuildOptions
+				end
+			end
+		end
 	end
 
 	iconTypesMap = {}
@@ -1279,6 +1232,7 @@ local function drawUnitInfo()
 			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
 		end
 		-- draw grid (bottom right to top left)
+
 		local cellID = #unitDefInfo[displayUnitDefID].buildOptions
 		cellPadding = math_floor((cellsize * 0.022) + 0.5)
 		cellRect = {}

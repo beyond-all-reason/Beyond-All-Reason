@@ -1057,6 +1057,9 @@ function widget:Initialize()
 	WG['buildmenu'].getGroups = function()
 		return groups, unitGroup
 	end
+	WG['buildmenu'].getOrder = function()
+		return unitOrder
+	end
 	WG['buildmenu'].getMakeFancy = function()
 		return makeFancy
 	end
