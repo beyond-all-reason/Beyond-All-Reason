@@ -146,8 +146,8 @@ function widget:Update(dt)
 
 	lastPause = paused
 
-	local _, _, isPaused = spGetGameSpeed()
-	if not gameover and isPaused then
+	local _, gameSpeed, isPaused = spGetGameSpeed()
+	if not gameover and gameSpeed == 0 then
 		-- when host (admin) paused its just gamespeed 0
 		paused = true
 	else
@@ -164,7 +164,7 @@ function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 
 	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if isPaused or gameSpeed == 0 then
+	if gameSpeed == 0 then
 		-- when host admin paused its just gamespeed 0
 		paused = true
 	end
