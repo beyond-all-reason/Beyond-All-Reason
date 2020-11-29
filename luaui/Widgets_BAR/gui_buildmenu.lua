@@ -257,6 +257,7 @@ local groups = {
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
 	emp = folder..'emp.png',
+	aa = folder..'aa.png',
 	nuke = folder..'nuke.png',
 	antinuke = folder..'antinuke.png',
 }
@@ -298,8 +299,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if string.find(string.lower(unitDef.name), 'silo') then
 		unitGroup[unitDefID] = 'nuke'
 	end
+	local aaWeapons = 0
 	for i = 1, #unitDef.weapons do
 		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+		if unitDef.weapons[i].onlyTargets and unitDef.weapons[i].onlyTargets['vtol'] then
+			aaWeapons = aaWeapons + 1
+		end
 		if weaponDef then
 			if weaponDef.paralyzer then
 				unitGroup[unitDefID] = 'emp'
@@ -311,6 +316,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			--	unitGroup[unitDefID] = 'nuke'
 			--end
 		end
+	end
+	if aaWeapons > 0 and #unitDef.weapons == aaWeapons then
+		unitGroup[unitDefID] = 'aa'
 	end
 
 	if unitDef.customParams.description_long then
@@ -1385,7 +1393,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		local text = string.upper(string.char(buildKeys[row]) .. ' ' .. string.char(buildKeys[col]))
 		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize, "o")
 	end
-	
+
 	-- draw build progress pie on top of texture
 	if progress and showBuildProgress then
 		RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
