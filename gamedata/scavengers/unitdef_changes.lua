@@ -530,7 +530,7 @@ customDefs.corgant = {
 	buildoptions = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
-		[numBuildoptions+3] = "corlevlrt4",
+		[numBuildoptions+3] = "corgolt4",
 		
 	},
 }
@@ -538,7 +538,7 @@ customDefs.corgant = {
 numBuildoptions = #UnitDefs.corgantuw.buildoptions
 customDefs.corgantuw = {
 	buildoptions = {
-		[numBuildoptions+1] = "corlevlrt4",
+		[numBuildoptions+1] = "corgolt4",
 	},
 }
 

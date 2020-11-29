@@ -310,7 +310,7 @@ local armorDefs = {
 		"armrectrt4",
 		"armsptkt4",
 		"cordemont4",
-		"corlevlrt4",
+		"corgolt4",
 		
 		"scavmist",
 		"scavmistxl",
