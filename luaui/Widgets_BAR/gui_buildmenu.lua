@@ -387,11 +387,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		elseif unitDef.extractsMetal > 0 then
 			addOrderImportance(unitDefID, skip, 14000000)
 		elseif unitDef.windGenerator > 0 then
-			addOrderImportance(unitDefID, skip, 13000000)
-		elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-			addOrderImportance(unitDefID, skip, 12000000)
-		elseif unitDef.energyUpkeep < -19 then
 			addOrderImportance(unitDefID, skip, 12500000)
+		elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
+			addOrderImportance(unitDefID, skip, 11500000)
+		elseif unitDef.energyUpkeep < -19 then
+			addOrderImportance(unitDefID, skip, 12000000)
 		end
 
 		-- storage
@@ -399,12 +399,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			addOrderImportance(unitDefID, skip, 11000000)
 		end
 		if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-			addOrderImportance(unitDefID, skip, 11000000)
+			addOrderImportance(unitDefID, skip, 13000000)
 		end
 
 		-- converters
 		if string.find(string.lower(unitDef.humanName), 'converter') then
-			addOrderImportance(unitDefID, skip, 10000000)
+			addOrderImportance(unitDefID, skip, 13500000)
 		end
 	end
 
