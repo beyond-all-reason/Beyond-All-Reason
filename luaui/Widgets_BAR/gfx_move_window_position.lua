@@ -15,7 +15,6 @@ end
 
 local vsx,vsy = Spring.GetViewGeometry()
 
-local vsx, vsy = gl.GetViewSizes()
 local customScale = 1.2
 local widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 
@@ -26,6 +25,7 @@ local initialWindowPosY = windowPosY
 local dlistPosX = windowPosX
 local dlistPosY = windowPosY
 
+local font, applyButtonPos, windowList, changeClock, escape, applyChanges, draggingStartX, draggingStartY, chobbyInterface
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	local csyMult = 1 / ((sy-py)/cs)

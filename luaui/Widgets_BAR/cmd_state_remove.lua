@@ -1,13 +1,13 @@
 function widget:GetInfo()
-  return {
-    name      = "State Remover",
-    desc      = "Removes 'return fire' and 'roam' states",
-    author    = "Google Frog",
-    date      = "Oct 2, 2009",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = false  --  loaded by default?
-  }
+	return {
+		name      = "State Remover",
+		desc      = "Removes 'return fire' and 'roam' states",
+		author    = "Google Frog",
+		date      = "Oct 2, 2009",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = false  --  loaded by default?
+	}
 end
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -33,13 +33,13 @@ function widget:CommandNotify(id, params, options)
 			end
 			return true
 		end
-	end	
-	
+	end
+
 	if id == CMD_MOVE_STATE then
 		if params[1] == 2 then
 			local units = spGetSelectedUnits()
-			for i=1,#units do
-				if (excludedUnitsMovestate[spGetUnitDefID(sid)] == nil) then
+			for i=1, #units do
+				if excludedUnitsMovestate[spGetUnitDefID(units[i])] == nil then
 					spGiveOrderToUnit(units[i], CMD_MOVE_STATE, { 0 }, 0)
 				else
 					spGiveOrderToUnit(units[i], CMD_MOVE_STATE, { 2 }, 0)

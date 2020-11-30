@@ -84,6 +84,7 @@ local explosionLights = {}
 local customBeamLightsCount = 0
 local customBeamLights = {}
 
+local deferredFunctionID
 
 local function Split(s, separator)
 	local results = {}
@@ -540,7 +541,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 				end
 			end
 		else
-			lightParams = projectileLightTypes[spGetProjectileDefID(pID)]
+			local lightParams = projectileLightTypes[spGetProjectileDefID(pID)]
 			if lightParams and (not useLOD or ProjectileLevelOfDetailCheck(lightParams, pID, fps, cameraHeight)) then
 				if lightParams.beam then --BEAM type
 					local drawParams = GetBeamLights(lightParams, pID, x, y, z)

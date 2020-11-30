@@ -209,10 +209,10 @@ function widget:DrawScreenEffects()
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.version = version
-	savedTable.SHARPNESS = SHARPNESS
-	return savedTable
+	return {
+		version = version,
+		SHARPNESS = SHARPNESS
+	}
 end
 
 function widget:SetConfigData(data)

@@ -48,7 +48,6 @@ local OUTLINE_STRENGTH_ALWAYS_ON = 0.6
 
 local USE_MATERIAL_INDICES = true -- for future material indices based outline evaluation
 
-
 -----------------------------------------------------------------
 -- File path Constants
 -----------------------------------------------------------------
@@ -138,6 +137,7 @@ local function PrepareOutline(cleanState)
 
 	for i = 1, DILATE_PASSES do
 		dilationShader:ActivateWith( function ()
+			local strength
 			if OUTLINE_ZOOM_SCALE then
 				strength = GetZoomScale()
 			end
@@ -470,11 +470,11 @@ end
 
 
 function widget:GetConfigData()
-	savedTable = {}
-	savedTable.DILATE_HALF_KERNEL_SIZE = DILATE_HALF_KERNEL_SIZE
-	savedTable.STRENGTH_MULT = STRENGTH_MULT
-	savedTable.whiteColored = whiteColored
-	return savedTable
+	return {
+		DILATE_HALF_KERNEL_SIZE = DILATE_HALF_KERNEL_SIZE,
+		STRENGTH_MULT = STRENGTH_MULT,
+		whiteColored = whiteColored
+	}
 end
 
 function widget:SetConfigData(data)

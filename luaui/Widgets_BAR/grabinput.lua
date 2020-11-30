@@ -12,6 +12,7 @@ end
 
 local enabled = true
 local sec = 0
+local chobbyInterface
 
 function widget:Initialize()
 	Spring.SendCommands("grabinput 1")

@@ -26,6 +26,8 @@ local currentMapname = Game.mapName:lower()
 local maps = {}
 local gaia = Spring.GetGaiaTeamID()
 
+local features
+
 local camX, camY, camZ = Spring.GetCameraPosition()
 local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
 
@@ -120,10 +122,10 @@ end
 
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.maps	= maps
-    savedTable.darkenFeatures = darkenFeatures
-    return savedTable
+    return {
+		maps = maps,
+		darkenFeatures = darkenFeatures
+	}
 end
 
 function widget:SetConfigData(data)

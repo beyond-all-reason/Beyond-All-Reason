@@ -1,28 +1,30 @@
-function widget:GetInfo() 
-  return { 
-    name      = "MexUpg Helper", 
-    desc      = "", 
-    author    = "author: BigHead", 
+function widget:GetInfo()
+  return {
+    name      = "MexUpg Helper",
+    desc      = "",
+    author    = "author: BigHead",
     date      = "September 13, 2007",
-    license   = "GNU GPL, v2 or later", 
-    layer     = -100, 
-    enabled   = true -- loaded by default? 
-  } 
+    license   = "GNU GPL, v2 or later",
+    layer     = -100,
+    enabled   = true -- loaded by default?
+  }
 end
 
 
-local upgradeMouseCursor = "Reclaim" 
+local upgradeMouseCursor = "Reclaim"
 
-local CMD_UPGRADEMEX = 31244 
+local CMD_UPGRADEMEX = 31244
 
-local builderDefs = nil 
+local builderDefs = nil
 
-local GetUnitDefID = Spring.GetUnitDefID 
-local GiveOrderToUnit = Spring.GiveOrderToUnit 
-local GetSelectedUnits = Spring.GetSelectedUnits 
-local TraceScreenRay = Spring.TraceScreenRay 
+local GetUnitDefID = Spring.GetUnitDefID
+local GiveOrderToUnit = Spring.GiveOrderToUnit
+local GetSelectedUnits = Spring.GetSelectedUnits
+local TraceScreenRay = Spring.TraceScreenRay
 local GetActiveCommand = Spring.GetActiveCommand
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
+local rightClickUpgradeParams
 
 local isCommander = {}
 local unitHumanName = {}
@@ -33,22 +35,22 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   unitHumanName[unitDefID] = unitDef.humanName
 end
 
-function widget:Initialize() 
-  widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs) 
-end 
+function widget:Initialize()
+  widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs)
+end
 
-function widget:Shutdown() 
-  widgetHandler:DeregisterGlobal('registerUpgradePairs') 
-end 
+function widget:Shutdown()
+  widgetHandler:DeregisterGlobal('registerUpgradePairs')
+end
 
-function registerUpgradePairs(v) 
-  builderDefs = v 
-  return true 
-end 
-
-function widget:UpdateLayout(commandsChanged,page,alt,ctrl,meta, shift) 
+function registerUpgradePairs(v)
+  builderDefs = v
   return true
-end 
+end
+
+function widget:UpdateLayout(commandsChanged,page,alt,ctrl,meta, shift)
+  return true
+end
 
 
 function widget:GameFrame(n)
@@ -58,28 +60,28 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:MousePress(x, y, b)  
-  if rightClickUpgradeParams then 
+function widget:MousePress(x, y, b)
+  if rightClickUpgradeParams then
     local alt, ctrl, meta, shift = Spring.GetModKeyState()
-    local options = {} 
-    if shift then options = {"shift"} end 
-    GiveOrderToUnit(rightClickUpgradeParams.builderID, CMD_UPGRADEMEX, {rightClickUpgradeParams.mexID}, options) 
-    return true 
-  end    
+    local options = {}
+    if shift then options = {"shift"} end
+    GiveOrderToUnit(rightClickUpgradeParams.builderID, CMD_UPGRADEMEX, {rightClickUpgradeParams.mexID}, options)
+    return true
+  end
 end
 
-function widget:GetTooltip(x,y) 
-  local tooltip = nil 
+function widget:GetTooltip(x,y)
+  local tooltip = nil
   if rightClickUpgradeParams then
     tooltip = "Right click to upgrade to " .. unitHumanName[rightClickUpgradeParams.upgradeTo]
-    Spring.SetMouseCursor(upgradeMouseCursor) 
-  else 
-    tooltip = "NO TOOLTIP AVALIABLE" 
-  end 
-  return tooltip 
+    Spring.SetMouseCursor(upgradeMouseCursor)
+  else
+    tooltip = "NO TOOLTIP AVALIABLE"
+  end
+  return tooltip
 end
 
-function widget:IsAbove(x,y) 
+function widget:IsAbove(x,y)
   if not builderDefs then
     return
   end

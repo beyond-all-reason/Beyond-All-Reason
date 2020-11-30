@@ -2,15 +2,15 @@ include("keysym.h.lua")
 local versionNumber = 1.4
 
 function widget:GetInfo()
-  return {
-    name      = "FactoryQ Manager",
-    desc      = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v" .. string.format("%.1f", versionNumber) .. ")",
-    author    = "very_bad_soldier",
-    date      = "Jul 6, 2008",
-    license   = "GNU GPL, v2 or later",
-    layer     = -9000,
-    enabled   = false  --  loaded by default?
-  }
+	return {
+		name = "FactoryQ Manager",
+		desc = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v" .. string.format("%.1f", versionNumber) .. ")",
+		author = "very_bad_soldier",
+		date = "Jul 6, 2008",
+		license = "GNU GPL, v2 or later",
+		layer = -9000,
+		enabled = false  --  loaded by default?
+	}
 end
 
 --Changelog
@@ -26,7 +26,7 @@ end
 --added: Queues get saved for each mod seperately
 
 
-local vsx,vsy = Spring.GetViewGeometry()
+local vsx, vsy = Spring.GetViewGeometry()
 
 local iboxOuterMargin = 3
 local iboxWidth = 298
@@ -43,11 +43,11 @@ local igroupLabelMargin = 30
 local ititleTextXOff = 10
 local ititleTextYOff = 10
 local iunitCountXOff = 10.0
-local iunitCountYOff= 5.0
+local iunitCountYOff = 5.0
 local idrawY = 650
 
 local igroupLabelXOff = 17
-local igroupLabelYOff= 10
+local igroupLabelYOff = 10
 
 local drawFadeTime = 0.5
 local loadedBorderDisplayTime = 1.0
@@ -92,7 +92,6 @@ local groupLabelYOff
 local groupLabelMargin
 local boxOuterMargin
 
-
 local titleTextYOff
 local titleTextXOff
 
@@ -120,6 +119,8 @@ local spGetKeyState = Spring.GetKeyState
 local spEcho = Spring.Echo
 local spGetModKeyState = Spring.GetModKeyState
 local lastGameSeconds = Spring.GetGameSeconds()
+
+local font, gameStarted, selUnits, queue, chobbyInterface
 
 local isFactory = {}
 for udid, ud in pairs(UnitDefs) do
@@ -152,7 +153,6 @@ function calcScreenCoords()
 	groupLabelMargin = math.floor(igroupLabelMargin * factor + 0.5)
 	boxOuterMargin = math.floor(iboxOuterMargin * factor + 0.5)
 
-
 	titleTextYOff = math.floor(ititleTextYOff * factor + 0.5)
 	titleTextXOff = math.floor(ititleTextXOff * factor + 0.5)
 
@@ -165,34 +165,33 @@ function calcScreenCoords()
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = 0.5 + (vsx*vsy / 5700000)
+	vsx, vsy = Spring.GetViewGeometry()
+	widgetScale = 0.5 + (vsx * vsy / 5700000)
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 
 	calcScreenCoords()
 end
 
-
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget(self)
-    end
+	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget(self)
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 	widget:ViewResize()
 
 	curModId = string.upper(Game.gameShortName or "")
@@ -200,23 +199,23 @@ end
 
 -- Included FactoryClear Lua widget
 function RemoveBuildOrders(unitID, buildDefID, count)
-  local opts = {}
-  while (count > 0) do
-    if count >= 100 then
-      opts = {"right", "ctrl", "shift"}
-      count = count - 100
-    elseif count >= 20 then
-      opts = {"right", "ctrl"}
-      count = count - 20
-    elseif count >= 5 then
-      opts = {"right", "shift"}
-      count = count - 5
-    else
-      opts = {"right"}
-      count = count - 1
-    end
-    Spring.GiveOrderToUnit(unitID, -buildDefID, {}, opts)
-  end
+	local opts = {}
+	while (count > 0) do
+		if count >= 100 then
+			opts = { "right", "ctrl", "shift" }
+			count = count - 100
+		elseif count >= 20 then
+			opts = { "right", "ctrl" }
+			count = count - 20
+		elseif count >= 5 then
+			opts = { "right", "shift" }
+			count = count - 5
+		else
+			opts = { "right" }
+			count = count - 1
+		end
+		Spring.GiveOrderToUnit(unitID, -buildDefID, {}, opts)
+	end
 end
 
 function getButtonUnderMouse(mx, my)
@@ -252,52 +251,54 @@ function widget:MousePress(x, y, button)
 
 	local selUnit, unitDef = getSingleFactory()
 
-	if button == 1 then  --LMB
+	if button == 1 then
+		--LMB
 		loadQueue(selUnit, unitDef, btn)
-	elseif button == 3 then --RMB
+	elseif button == 3 then
+		--RMB
 		--saving disabled
 		return false
-	--	saveQueue(selUnit, unitDef, btn)
+		--	saveQueue(selUnit, unitDef, btn)
 	end
 
 	return true
 end
 
 function ClearFactoryQueues()
-  local udTable = Spring.GetSelectedUnitsSorted()
-  udTable.n = nil
-  for udidFac,uTable in pairs(udTable) do
-    if isFactory[udidFac] then
-      uTable.n = nil
-      for _,uid in ipairs(uTable) do
-        local queue = Spring.GetRealBuildQueue(uid)
-        if queue ~= nil then
-          for udid,buildPair in ipairs(queue) do
-            local udid, count = next(buildPair, nil)
-            RemoveBuildOrders(uid, udid, count)
-          end
-        end
-      end
-    end
-  end
+	local udTable = Spring.GetSelectedUnitsSorted()
+	udTable.n = nil
+	for udidFac, uTable in pairs(udTable) do
+		if isFactory[udidFac] then
+			uTable.n = nil
+			for _, uid in ipairs(uTable) do
+				local queue = Spring.GetRealBuildQueue(uid)
+				if queue ~= nil then
+					for udid, buildPair in ipairs(queue) do
+						local udid, count = next(buildPair, nil)
+						RemoveBuildOrders(uid, udid, count)
+					end
+				end
+			end
+		end
+	end
 end
 -- End of Included FactoryClear Lua widget
 
 function getSingleFactory()
 	selUnits = Spring.GetSelectedUnits()
 
-  --only do something when exactly ONE factory is selected to avoid execution by mistake
-  if #selUnits ~= 1 then
-  	return nil, nil
-  end
+	--only do something when exactly ONE factory is selected to avoid execution by mistake
+	if #selUnits ~= 1 then
+		return nil, nil
+	end
 
-  local unitDef = udefTab[Spring.GetUnitDefID(selUnits[1])]
+	local unitDef = udefTab[Spring.GetUnitDefID(selUnits[1])]
 
-  if unitDef.isFactory ~= true then
-    return nil, nil
-  end
+	if unitDef.isFactory ~= true then
+		return nil, nil
+	end
 
-  return selUnits[1], unitDef
+	return selUnits[1], unitDef
 end
 
 function saveQueue(unitId, unitDef, groupNo)
@@ -316,9 +317,9 @@ function saveQueue(unitId, unitDef, groupNo)
 	end
 
 	savedQueues[curModId][unitDef.id][groupNo] = unitQ
-	savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4,Spring.GetUnitStates(unitId,false,true))	-- 4=repeat
+	savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4, Spring.GetUnitStates(unitId, false, true))    -- 4=repeat
 
- 	modifiedGroup = groupNo
+	modifiedGroup = groupNo
 	modifiedGroupTime = Spring.GetGameSeconds()
 	modifiedSaved = true
 
@@ -333,9 +334,9 @@ function loadQueue(unitId, unitDef, groupNo)
 		return
 	end
 
-	queue = savedQueues[curModId][unitDef.id][groupNo]
+	local queue = savedQueues[curModId][unitDef.id][groupNo]
 	if queue ~= nil and #queue > 0 then
-	 	ClearFactoryQueues()
+		ClearFactoryQueues()
 		modifiedGroup = groupNo
 		modifiedGroupTime = Spring.GetGameSeconds()
 		modifiedSaved = false
@@ -345,14 +346,14 @@ function loadQueue(unitId, unitDef, groupNo)
 		if queue[facRepeatIdx] == false then
 			repVal = 0
 		end
-		Spring.GiveOrderToUnit(unitId, CMD.REPEAT, {repVal}, 0)
+		Spring.GiveOrderToUnit(unitId, CMD.REPEAT, { repVal }, 0)
 
-		for i=1,#queue do
-		  local cmd = queue[i]
-		  if not cmd.options.internal then
-		  	local opts = {}
-		    Spring.GiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
-		  end
+		for i = 1, #queue do
+			local cmd = queue[i]
+			if not cmd.options.internal then
+				local opts = {}
+				Spring.GiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
+			end
 		end
 	end
 end
@@ -361,7 +362,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 	local mode = nil
 	local selUnit, unitDef = getSingleFactory()
 
-	if selUnit == nil and unitDef ==nil then
+	if selUnit == nil and unitDef == nil then
 		return false
 	end
 
@@ -379,17 +380,37 @@ function widget:KeyPress(key, modifier, isRepeat)
 
 	--asert(mode ~= nil)
 	local gr = -2
-	if key == KEYSYMS.N_0 then gr = 0 end
-	if key == KEYSYMS.N_1 then gr = 1 end
-	if key == KEYSYMS.N_2 then gr = 2 end
-	if key == KEYSYMS.N_3 then gr = 3 end
-	if key == KEYSYMS.N_4 then gr = 4 end
-	if key == KEYSYMS.N_5 then gr = 5 end
-	if key == KEYSYMS.N_6 then gr = 6 end
-	if key == KEYSYMS.N_7 then gr = 7 end
-	if key == KEYSYMS.N_8 then gr = 8 end
-	if key == KEYSYMS.N_9 then gr = 9 end
-		--if key == KEYSYMS.BACKSLASH then gr = -1 end
+	if key == KEYSYMS.N_0 then
+		gr = 0
+	end
+	if key == KEYSYMS.N_1 then
+		gr = 1
+	end
+	if key == KEYSYMS.N_2 then
+		gr = 2
+	end
+	if key == KEYSYMS.N_3 then
+		gr = 3
+	end
+	if key == KEYSYMS.N_4 then
+		gr = 4
+	end
+	if key == KEYSYMS.N_5 then
+		gr = 5
+	end
+	if key == KEYSYMS.N_6 then
+		gr = 6
+	end
+	if key == KEYSYMS.N_7 then
+		gr = 7
+	end
+	if key == KEYSYMS.N_8 then
+		gr = 8
+	end
+	if key == KEYSYMS.N_9 then
+		gr = 9
+	end
+	--if key == KEYSYMS.BACKSLASH then gr = -1 end
 
 	if gr ~= -2 then
 		if mode == 1 then
@@ -402,19 +423,18 @@ function widget:KeyPress(key, modifier, isRepeat)
 	return true;
 end
 
-
-function DrawTexRect(left,top,right,bottom, texture, alpha)
-  gl.Texture(true)
-  gl.Texture(texture)
-  gl.Color(1,1,1,alpha or 1)
-  gl.TexRect(left,bottom,right,top)
-  gl.Color(1,1,1,1)
-  gl.Texture(false)
+function DrawTexRect(left, top, right, bottom, texture, alpha)
+	gl.Texture(true)
+	gl.Texture(texture)
+	gl.Color(1, 1, 1, alpha or 1)
+	gl.TexRect(left, bottom, right, top)
+	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
 end
 
 function CalcDrawCoords(unitId, heightAll)
 	local xw, yw, zw = Spring.GetUnitViewPosition(unitId)
-	local x,y,_ = Spring.WorldToScreenCoords(xw, yw, zw)
+	local x, y, _ = Spring.WorldToScreenCoords(xw, yw, zw)
 
 	if x + boxWidth - 1 > vsx then
 		x = x - boxWidth
@@ -437,29 +457,28 @@ function CalcDrawCoords(unitId, heightAll)
 		x = drawX
 	end
 
-	return x,y
+	return x, y
 end
 
-function DrawBoxTitle(x,y,alpha, unitDef, selUnit)
-  --local x,y,z = CalcDrawCoords(selUnit)
+function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
+	--local x,y,z = CalcDrawCoords(selUnit)
 
-	gl.Color(0,0,0, math.min(alpha,0.5))
-	gl.Rect(x,y, x + boxWidth,y - boxHeightTitle)
-	gl.Color(1,1,1,1)
+	gl.Color(0, 0, 0, math.min(alpha, 0.5))
+	gl.Rect(x, y, x + boxWidth, y - boxHeightTitle)
+	gl.Color(1, 1, 1, 1)
 
-	DrawTexRect(x + boxIconBorder,y - boxIconBorder,x + boxHeightTitle + boxIconBorder,y - boxHeightTitle + boxIconBorder, "#".. unitDef.id, alpha)
+	DrawTexRect(x + boxIconBorder, y - boxIconBorder, x + boxHeightTitle + boxIconBorder, y - boxHeightTitle + boxIconBorder, "#" .. unitDef.id, alpha)
 
 	local text = unitDef.humanName
 	font:Begin()
-	font:SetTextColor(0,1,0,alpha or 1)
-	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle/2.0 - titleTextYOff, fontSizeTitle, "nd")
+	font:SetTextColor(0, 1, 0, alpha or 1)
+	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle / 2.0 - titleTextYOff, fontSizeTitle, "nd")
 	font:End()
 end
 
-
 function SortQueueToUnits(queue)
 	local units = {}
-	for i=1,#queue do
+	for i = 1, #queue do
 		local entity = queue[i]
 		if type(entity) == "table" then
 			if entity.id < 0 then
@@ -475,7 +494,6 @@ function SortQueueToUnits(queue)
 	return units
 end
 
-
 function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	local xOff = 0
 	local loadedBorderWidth = 1
@@ -486,38 +504,37 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	--Draw "loaded" border
 	if modifiedGroup == groupNo and modifiedGroupTime > Spring.GetGameSeconds() - loadedBorderDisplayTime then
 		if modifiedSaved == true then
-			gl.Color(1,0,0, math.min(alpha,1.0))
+			gl.Color(1, 0, 0, math.min(alpha, 1.0))
 		else
-			gl.Color(0,1,0, math.min(alpha,1.0))
-  	end
-  	gl.Rect(x - loadedBorderWidth ,y + loadedBorderWidth, x + boxWidth + loadedBorderWidth,y - boxHeight - loadedBorderWidth)
+			gl.Color(0, 1, 0, math.min(alpha, 1.0))
+		end
+		gl.Rect(x - loadedBorderWidth, y + loadedBorderWidth, x + boxWidth + loadedBorderWidth, y - boxHeight - loadedBorderWidth)
 	end
 
-  --Draw Background Box
-	gl.Color(0,0,0, math.min(alpha,0.6))
-	gl.Rect(x,y, x + boxWidth,y - boxHeight)
+	--Draw Background Box
+	gl.Color(0, 0, 0, math.min(alpha, 0.6))
+	gl.Rect(x, y, x + boxWidth, y - boxHeight)
 	if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
-		gl.Color(0.0,  0.7, 0.0, math.min(alpha or 1, 0.5))
+		gl.Color(0.0, 0.7, 0.0, math.min(alpha or 1, 0.5))
 	else
-		gl.Color(0.7,  0.7, 0.7, math.min(alpha or 1, 0.5))
+		gl.Color(0.7, 0.7, 0.7, math.min(alpha or 1, 0.5))
 	end
-	gl.Rect(x + boxIconBorder ,y - 3, x + groupLabelMargin,y - boxHeight + 3)
+	gl.Rect(x + boxIconBorder, y - 3, x + groupLabelMargin, y - boxHeight + 3)
 
 	font:Begin()
 	--Draw group Label
-	text = groupNo
-	font:SetTextColor(1.0, 0.5, 0,alpha or 1)
-	font:Print(text, x + groupLabelXOff, y - boxHeight/2.0 - groupLabelYOff, fontSizeGroup, "cdn")
+	font:SetTextColor(1.0, 0.5, 0, alpha or 1)
+	font:Print(groupNo, x + groupLabelXOff, y - boxHeight / 2.0 - groupLabelYOff, fontSizeGroup, "cdn")
 	xOff = xOff + groupLabelMargin
 
-	for k,unitCount in pairs(units) do
-		if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing  >  x + boxWidth then
-			font:SetTextColor(1,1,1,alpha)
+	for k, unitCount in pairs(units) do
+		if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
+			font:SetTextColor(1, 1, 1, alpha)
 			font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 			break
 		else
-			DrawTexRect(x + boxIconBorder + xOff,y - boxIconBorder,x + boxHeight + boxIconBorder + xOff,y - boxHeight +  boxIconBorder,"#" .. k, alpha)
-			font:SetTextColor(1,1,1,alpha)
+			DrawTexRect(x + boxIconBorder + xOff, y - boxIconBorder, x + boxHeight + boxIconBorder + xOff, y - boxHeight + boxIconBorder, "#" .. k, alpha)
+			font:SetTextColor(1, 1, 1, alpha)
 			font:Print(unitCount, x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cnd")
 		end
 		xOff = xOff + boxHeight + unitIconSpacing
@@ -529,16 +546,15 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 		if modifiedSaved == true then
 			lText = "Saved"
 		end
-		font:SetTextColor(0.9,0.9,0.9, alpha)
-		font:Print(lText, x + (boxWidth + 0.5)/2, y - (boxHeight + 0.5)/2 - fontModifiedYOff, fontSizeModifed, "cnd")
+		font:SetTextColor(0.9, 0.9, 0.9, alpha)
+		font:Print(lText, x + (boxWidth + 0.5) / 2, y - (boxHeight + 0.5) / 2 - fontModifiedYOff, fontSizeModifed, "cnd")
 	end
 	font:End()
-	gl.Color(1,1,1,1)
+	gl.Color(1, 1, 1, 1)
 end
 
-
 function DrawBoxes()
-	selUnit, unitDef = getSingleFactory()
+	local selUnit, unitDef = getSingleFactory()
 	if elUnit == nil and unitDef == nil then
 		return
 	end
@@ -547,15 +563,15 @@ function DrawBoxes()
 	if savedQueues[curModId] ~= nil and savedQueues[curModId][unitDef.id] ~= nil then
 		itemCount = #savedQueues[curModId][unitDef.id]
 	end
-	heightAll = boxHeightTitle + itemCount * (boxHeight + boxOuterMargin)
+	local heightAll = boxHeightTitle + itemCount * (boxHeight + boxOuterMargin)
 
-	local x,y,z = CalcDrawCoords(selUnit, heightAll)
+	local x, y, z = CalcDrawCoords(selUnit, heightAll)
 
- 	local coordsChanged = false
- 	if x ~= lastBoxX or y ~= lastBoxY then
+	local coordsChanged = false
+	if x ~= lastBoxX or y ~= lastBoxY then
 		coordsChanged = true
 	end
- 	lastBoxY = y
+	lastBoxY = y
 	lastBoxX = x
 
 	DrawBoxTitle(x, y, alpha, unitDef, selUnit)
@@ -606,7 +622,8 @@ function widget:Update()
 	local now = Spring.GetGameSeconds()
 	local timediff = now - lastGameSeconds
 
-	if select(3,spGetModKeyState()) then	-- meta (space)
+	if select(3, spGetModKeyState()) then
+		-- meta (space)
 		if alpha < 1.0 then
 			alpha = alpha + timediff / drawFadeTime
 			alpha = math.min(1.0, alpha)
@@ -615,7 +632,7 @@ function widget:Update()
 	else
 		if alpha > 0.0 then
 			alpha = alpha - timediff / drawFadeTime
-  			alpha = math.max(0.0, alpha)
+			alpha = math.max(0.0, alpha)
 		end
 	end
 
@@ -623,13 +640,15 @@ function widget:Update()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
+	if chobbyInterface then
+		return
+	end
 	if alpha > 0.0 then
 		DrawBoxes()
 	else
@@ -642,24 +661,27 @@ end
 
 --save / load to config file
 function widget:GetConfigData()
-  return savedQueues
+	return savedQueues
 end
 
 function widget:SetConfigData(data)
-  if data ~= nil then
-    savedQueues = data
-  end
+	if data ~= nil then
+		savedQueues = data
+	end
 end
 
 function printDebug(value)
 	if debug then
 		if type(value) == "boolean" then
-			if value == true then spEcho("true")
-				else spEcho("false") end
+			if value == true then
+				spEcho("true")
+			else
+				spEcho("false")
+			end
 		elseif type(value) == "table" then
 			spEcho("Dumping table:")
-			for key,val in pairs(value) do
-				spEcho(key,val)
+			for key, val in pairs(value) do
+				spEcho(key, val)
 			end
 		else
 			spEcho(value)

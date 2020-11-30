@@ -1,12 +1,14 @@
-function widget:GetInfo() return {
-	name    = "Startbox Editor",
-	desc    = "cruder than yo momma",
-	author  = "git blame",
-	date    = "git log",
-	license = "PD",
-	layer   = math.huge,
-	enabled = false,
-} end
+function widget:GetInfo()
+	return {
+		name    = "Startbox Editor",
+		desc    = "cruder than yo momma",
+		author  = "git blame",
+		date    = "git log",
+		license = "PD",
+		layer   = math.huge,
+		enabled = false,
+	}
+end
 
 --[[ tl;dr
 LMB to draw (either clicks or drag)
@@ -32,7 +34,7 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
-	if (#polygon == 0) then
+	if #polygon == 0 then
 		polygon[#polygon+1] = pos
 	else
 		local dx = math.abs(pos[1] - polygon[#polygon][1])
@@ -42,7 +44,7 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	if (button ~= 1) then
+	if button ~= 1 then
 		final_polygons[#final_polygons+1] = polygon
 		polygon = {}
 	end
@@ -60,12 +62,12 @@ function widget:MouseMove(mx, my)
 		return
 	end
 
-	if (#polygon == 0) then
+	if #polygon == 0 then
 		polygon[1] = pos
 	else
 		local dx = math.abs(pos[1] - polygon[#polygon][1])
 		local dz = math.abs(pos[3] - polygon[#polygon][3])
-		if (dx > 10 or dz > 10) then
+		if dx > 10 or dz > 10 then
 			polygon[#polygon+1] = pos
 		end
 	end
@@ -75,8 +77,8 @@ end
 include("keysym.h.lua")
 
 function widget:KeyPress(key)
-	if (key == KEYSYMS.S) then
-		str = "\t["..exportedTeam.."] = {\n"
+	if key == KEYSYMS.S then
+		local str = "\t["..exportedTeam.."] = {\n"
 		str = str .. "\t\tnameLong = \"\",\n"
 		str = str .. "\t\tnameShort = \"\",\n"
 		str = str .. "\t\tstartpoints = {},\n"
@@ -103,7 +105,7 @@ function widget:KeyPress(key)
 		final_polygons = {}
 		exportedTeam = exportedTeam + 1
 	end
-	if (key == KEYSYMS.D) and (#final_polygons > 0) then
+	if key == KEYSYMS.D and #final_polygons > 0 then
 		final_polygons[#final_polygons] = nil
 	end
 end
@@ -136,7 +138,7 @@ local function DrawFinalLine(fpi)
 end
 
 function widget:DrawWorld()
-	if (#final_polygons == 0 and #polygon == 0) then return end
+	if #final_polygons == 0 and #polygon == 0 then return end
 	gl.LineWidth(3.0)
 	gl.Color(0, 1, 0, 0.5)
 	for i = 1, #final_polygons do

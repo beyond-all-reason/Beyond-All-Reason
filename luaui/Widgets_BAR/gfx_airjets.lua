@@ -697,7 +697,7 @@ local function CreateShader()
 	})
 
 	if jetShader == nil then
-		print(PRIO_MAJOR, "LUPS->airjet: (color-)shader error: " .. gl.GetShaderLog())
+		print( "airjets: (color-)shader error: " .. gl.GetShaderLog() )
 		return false
 	end
 
@@ -765,7 +765,7 @@ local function CreateShader()
 	})
 
 	if jitterShader == nil then
-		print(PRIO_MAJOR, "LUPS->airjet: (jitter-)shader error: " .. gl.GetShaderLog())
+		print( "airjets: (jitter-)shader error: " .. gl.GetShaderLog() )
 		return false
 	end
 
@@ -846,11 +846,11 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.averageFps = math.floor(averageFps)
-	savedTable.disableAtAvgFps = disableAtAvgFps
-	savedTable.limitAtAvgFps = limitAtAvgFps
-	return savedTable
+	return {
+		averageFps = math.floor(averageFps),
+		disableAtAvgFps = disableAtAvgFps,
+		limitAtAvgFps = limitAtAvgFps
+	}
 end
 
 function widget:SetConfigData(data)

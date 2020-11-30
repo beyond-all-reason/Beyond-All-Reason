@@ -15,6 +15,7 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_INSERT = CMD.INSERT
 local CMD_STOP = CMD.STOP
 local spGiveOrder = Spring.GiveOrder
+local gameStarted
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then

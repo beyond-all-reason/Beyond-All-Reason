@@ -86,9 +86,12 @@ table.insert(particleTypes, {
 })
 
 local avgFpsInit = false
+local widgetDisabledSnow = false
 
 local math_random = math.random
 local math_randomseed = math.randomseed
+
+local font, drawinfolist
 
 local shader
 local shaderTimeLoc
@@ -397,7 +400,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local widgetDisabledSnow = false
 function widget:GameFrame(gameFrame)
 	if gameFrame == 1 then
 		gameStarted = true
@@ -433,7 +435,7 @@ function widget:GameFrame(gameFrame)
 						particleDensity = math.floor(particleDensityMax * particleAmount)
 						if particleDensity > particleDensityMax then particleDensity = particleDensityMax end
 						particleStep = math.floor(particleDensity / (particleDensityMax / particleSteps))
-						if particleStep < 1 then particeStep = 1 end
+						if particleStep < 1 then particleStep = 1 end
 						enabled = true
 						widgetDisabledSnow = false
 					end
@@ -544,14 +546,14 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.snowMaps	= snowMaps
-    savedTable.averageFps = math.floor(averageFps)
-    savedTable.particleStep = particleStep
-    savedTable.gameframe = Spring.GetGameFrame()
-	savedTable.customParticleMultiplier = customParticleMultiplier
-	savedTable.autoReduce = autoReduce
-    return savedTable
+    return {
+		snowMaps = snowMaps,
+		averageFps = math.floor(averageFps),
+		articleStep = particleStep,
+		gameframe = Spring.GetGameFrame(),
+		customParticleMultiplier = customParticleMultiplier,
+		autoReduce = autoReduce
+	}
 end
 
 function widget:SetConfigData(data)

@@ -42,6 +42,8 @@ local blurtex
 local blurtex2
 local stenciltex
 local stenciltexScreen
+local intensityLoc
+local DrawScreenEffectsBlur
 local screenBlur = false
 
 local blurIntensity = defaultBlurIntensity
@@ -604,9 +606,7 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.blurIntensity = blurIntensity
-	return savedTable
+	return {blurIntensity = blurIntensity}
 end
 
 function widget:SetConfigData(data)

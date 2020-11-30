@@ -56,6 +56,10 @@ local GL_COLOR_ATTACHMENT1_EXT = 0x8CE1
 local GL_COLOR_ATTACHMENT2_EXT = 0x8CE2
 local GL_COLOR_ATTACHMENT3_EXT = 0x8CE3
 
+local baseBlurTex, baseNearBlurTex, intermediateBlurTex0, intermediateBlurTex1, intermediateBlurTex2, intermediateBlurTex3, finalBlurTex, finalNearBlurTex
+local screenTex, depthTex, intermediateBlurFBO, baseBlurFBO
+local chobbyInterface
+
 -----------------------------------------------------------------
 
 

@@ -27,6 +27,8 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 
+local chobbyInterface
+
 local isMex = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.extractsMetal > 0 then
@@ -70,11 +72,11 @@ local function GetClosestMexPosition(spot, x, z, uDefID, facing)
 end
 
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
-	
+
 	if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
 		return
 	end
-	
+
 	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 
@@ -92,9 +94,9 @@ function widget:Initialize()
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget(self)
 	end
-	
+
 	for key,value in ipairs(mapBlackList) do
-		if (Game.mapName == value) then
+		if Game.mapName == value then
 			Spring.Echo("<Snap Mex> This map is incompatible - removing mex snap widget.")
 			widgetHandler:RemoveWidget(self)
 		end
@@ -109,64 +111,62 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-	
+
 	-- Check command is to build a mex
 	local _, cmdID = spGetActiveCommand()
 	if not (cmdID and isMex[-cmdID]) then return end
-	
+
 	-- Attempt to get position of command
 	local mx, my = spGetMouseState()
 	local _, pos = spTraceScreenRay(mx, my, true)
 	if not pos then return end
-	
+
 	-- Find build position and check if it is valid (Would get 100% metal)
 	local bx, by, bz = Spring.Pos2BuildPos(-cmdID, pos[1], pos[2], pos[3])
 	local closestSpot = GetClosestMetalSpot(bx, bz)
 	if not closestSpot or WG.IsMexPositionValid(closestSpot, bx, bz) then return end
-	
+
 	-- Get the closet position that would give 100%
 	local bface = Spring.GetBuildFacing()
 	local bestPos = GetClosestMexPosition(closestSpot, bx, bz, -cmdID, bface)
 	if not bestPos then
 		WG.MexSnap.curPosition = nil
-		return 
+		return
 	end
-	
+
 	-- Draw !
 	WG.MexSnap.curPosition = bestPos
 	gl.DepthTest(false)
-	
+
 	gl.LineWidth(1.49)
     gl.Color(1, 1, 0, 0.5)
     gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, bestPos[1], bestPos[2], bestPos[3])
 	gl.LineWidth(1.0)
-	
+
 	gl.DepthTest(true)
 	gl.DepthMask(true)
-	
+
 	gl.Color(1, 1, 1, 0.5)
 	gl.PushMatrix()
 		gl.Translate(bestPos[1], bestPos[2], bestPos[3])
 		gl.Rotate(90 * bface, 0, 1, 0)
 		gl.UnitShape(-cmdID, Spring.GetMyTeamID(), false, true, false)
 	gl.PopMatrix()
-	
+
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	
 	if isMex[-cmdID] then
-		
 		local bx, bz = cmdParams[1], cmdParams[3]
 		local closestSpot = GetClosestMetalSpot(bx, bz)
 		if closestSpot and not WG.IsMexPositionValid(closestSpot, bx, bz) then
-			
+
 			local bface = cmdParams[4]
 			local bestPos = GetClosestMexPosition(closestSpot, bx, bz, -cmdID, bface)
 			if bestPos then
-				
+
 				GiveNotifyingOrder(cmdID, {bestPos[1], bestPos[2], bestPos[3], bface}, cmdOpts)
 				return true
 			end

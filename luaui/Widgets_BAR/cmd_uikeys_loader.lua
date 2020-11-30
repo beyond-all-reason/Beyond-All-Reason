@@ -11,12 +11,11 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
+	local k = ""
 	if VFS.FileExists("LuaUI/Widgets_BAR/uikeys.txt") then
 		k = tostring(VFS.LoadFile("LuaUI/Widgets_BAR/uikeys.txt"))
-	else
-		k = ""
 	end
-	lines = {}
+	local lines = {}
 	for s in k:gmatch("[^\r\n]+") do
 		table.insert(lines, s)
 	end

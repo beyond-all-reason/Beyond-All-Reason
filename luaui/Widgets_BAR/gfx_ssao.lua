@@ -545,9 +545,6 @@ local function DoDrawSSAO(isScreenSpace)
 		gl.BlendEquation(GL_FUNC_ADD)
 	end
 
-
-
-
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.Texture(2, false)
@@ -566,7 +563,7 @@ function widget:DrawWorld()
 
 		gl.MatrixMode(GL.PROJECTION)
 		gl.PushMatrix()
-		gl.LoadIdentity();
+		gl.LoadIdentity()
 
 			DoDrawSSAO(false)
 
@@ -578,11 +575,11 @@ function widget:DrawWorld()
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.strength = SSAO_ALPHA_POW
-	savedTable.radius = SSAO_RADIUS
-	savedTable.preset = preset
-	return savedTable
+	return {
+		strength = SSAO_ALPHA_POW,
+		radius = SSAO_RADIUS,
+		preset = preset
+	}
 end
 
 function widget:SetConfigData(data)

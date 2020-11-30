@@ -18,6 +18,7 @@ Settings['sizeMult'] = 1
 Settings['version'] = 5		-- just so it wont restore configdata on load if it differs format
 
 local force = true
+local autoCursorSize
 
 function split(inputstr, sep)
 	sep = sep or '%s'
