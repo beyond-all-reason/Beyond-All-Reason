@@ -44,7 +44,7 @@ local qualityPreset = 1
 
 local vsx,vsy = gl.GetViewSizes()
 
-local ivsx, ivsy, kernelRadius, kernelRadius2, initialized, illuminationThreshold, fragMaxBrightness, inverseRX, fragKernelRadius, inverseRY,
+local ivsx, ivsy, kernelRadius, kernelRadius2, initialized, illuminationThreshold, fragMaxBrightness, inverseRX, fragKernelRadius, inverseRY
 
 local drawWorldAlpha = 0
 local drawWorldPreUnitAlpha = 0

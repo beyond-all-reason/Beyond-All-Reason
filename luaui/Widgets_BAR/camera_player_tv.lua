@@ -487,7 +487,7 @@ function widget:Update(dt)
 						orderID = 2
 					end
 				end
-				prevorderID = orderID
+				prevOrderID = orderID
 				if tsOrderedPlayers[orderID] then
 					SelectTrackingPlayer(tsOrderedPlayers[orderID][2])
 				end
@@ -526,7 +526,7 @@ function widget:MousePress(mx, my, mb)
 	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
 		if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 			if mb == 1 then
-				prevorderID = nil
+				prevOrderID = nil
 				currentTrackedPlayer = nil
 				if toggled or lockPlayerID then
 					toggled = false

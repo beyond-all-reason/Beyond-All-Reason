@@ -62,6 +62,7 @@ local collapsable = false
 local vsx, vsy = Spring.GetViewGeometry()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font, font2
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -229,8 +230,9 @@ local playerScores = {}
 
 local aliveAllyTeams = {}
 
-local myLastCameraState
-
+--local myLastCameraState, sceduledSpecFullView, desiredLosmode, ShareSlider, MainList, Background, drawListOffset, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, RecvPlayerBetList, playerBetList, tipY
+local leftPosX, lastSliderSound, release, specTarget, curFrame
+--local screenshotFinished, screenshotWidth, screenshotHeight, screenshotGameframe, screenshotData, screenshotDataLast, screenshotDlist, screenshotPixels, screenshotPlayer, screenshotFilename, screenshotSaved, screenshotSaveQueued, screenshotPosX, screenshotPosY, screenshotWidth, screenshotHeight
 
 --------------------------------------------------------------------------------
 --
@@ -345,36 +347,36 @@ local collapsedHeight = 42
 
 local modules = {}
 local modulesCount = 0
-local m_indent;
+local m_indent
 modulesCount = modulesCount + 1
-local m_rank;
+local m_rank
 modulesCount = modulesCount + 1
-local m_side;
+local m_side
 modulesCount = modulesCount + 1
-local m_ID;
+local m_ID
 modulesCount = modulesCount + 1
-local m_name;
+local m_name
 modulesCount = modulesCount + 1
-local m_share;
+local m_share
 modulesCount = modulesCount + 1
-local m_chat;
+local m_chat
 modulesCount = modulesCount + 1
-local m_cpuping;
+local m_cpuping
 modulesCount = modulesCount + 1
-local m_diplo;
+local m_diplo
 modulesCount = modulesCount + 1
-local m_sizedn;
+local m_sizedn
 modulesCount = modulesCount + 1
-local m_sizeup;
+local m_sizeup
 modulesCount = modulesCount + 1
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
-local m_point;
+local m_point
 modulesCount = modulesCount + 1
-local m_take;
+local m_take
 modulesCount = modulesCount + 1
-local m_seespec;
+local m_seespec
 modulesCount = modulesCount + 1
 
 local position = 1
@@ -617,7 +619,7 @@ function SetModulesPositionX()
     table.sort(modules, function(v1, v2)
         return v1.position < v2.position
     end)
-    pos = 1
+    local pos = 1
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active == true and (module.name ~= 'share' or not hideShareIcons) then
@@ -679,6 +681,7 @@ function GetNumberOfSpecs()
     local pList = Spring_GetPlayerList()
     local count = 0
     local name = ""
+	local active, spec
     for _, playerID in ipairs(pList) do
         _, active, spec = Spring_GetPlayerInfo(playerID)
         if spec and active then
@@ -703,8 +706,8 @@ function GeometryChange()
 end
 
 local function UpdateAlliances()
-    playerList = Spring_GetPlayerList()
-    teamList = Spring_GetTeamList()
+    local playerList = Spring_GetPlayerList()
+    local teamList = Spring_GetTeamList()
     for _, playerID in pairs(playerList) do
         if not player[playerID].spec then
             local alliances = {}
@@ -743,6 +746,7 @@ function PlayerDataBroadcast(playerName, msg)
     local data = ''
     local count = 0
     local startPos = 0
+	local msgType
     for i = 1, string.len(msg) do
         if string.sub(msg, i, i) == ';' then
             count = count + 1
@@ -1218,13 +1222,13 @@ end
 
 function SetSidePics()
     --record readyStates
-    playerList = Spring.GetPlayerList()
+    local playerList = Spring.GetPlayerList()
     for _, playerID in pairs(playerList) do
         playerReadyState[playerID] = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
     end
 
     --set factions, from TeamRulesParam when possible and from initial info if not
-    teamList = Spring_GetTeamList()
+    local teamList = Spring_GetTeamList()
     for _, team in ipairs(teamList) do
         local teamSide
         if Spring_GetTeamRulesParam(team, 'startUnit') then
@@ -1281,7 +1285,7 @@ function GetAllPlayers()
             tplayerCount = 0
         end
     end
-    specPlayers = Spring_GetTeamList()
+    local specPlayers = Spring_GetTeamList()
     for _, playerID in ipairs(specPlayers) do
         local active, _, spec = Spring_GetPlayerInfo(playerID, false)
         if spec == true then
@@ -1366,8 +1370,8 @@ function CreatePlayer(playerID)
     tskill = GetSkill(playerID)
 
     --cpu/ping
-    tpingLvl = GetPingLvl(tping)
-    tcpuLvl = GetCpuLvl(tcpu)
+    local tpingLvl = GetPingLvl(tping)
+    local tcpuLvl = GetCpuLvl(tcpu)
     tping = tping * 1000 - ((tping * 1000) % 1)
     tcpu = tcpu * 100 - ((tcpu * 100) % 1)
 
@@ -1516,6 +1520,7 @@ end
 
 function UpdatePlayerResources()
     local energy, energyStorage, metal, metalStorage = 0, 1, 0, 1
+	local energyIncome, metalIncome
     for playerID, _ in pairs(player) do
         if player[playerID].name and not player[playerID].spec and player[playerID].team then
             if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
@@ -1576,7 +1581,6 @@ end
 
 
 function SortList()
-    local teamList
     local myOldSpecStatus = mySpecStatus
 
     mySpecStatus = select(3, Spring_GetPlayerInfo(myPlayerID, false))
@@ -1584,7 +1588,7 @@ function SortList()
     -- checks if a team has died
     if mySpecStatus ~= myOldSpecStatus then
         if mySpecStatus then
-            teamList = Spring_GetTeamList()
+            local teamList = Spring_GetTeamList()
             for _, team in ipairs(teamList) do
                 if not select(3, Spring_GetTeamInfo(team, false)) then
                     -- not dead
@@ -1600,7 +1604,7 @@ function SortList()
 
     drawList = {}
     drawListOffset = {}
-    vOffset = 0
+    local vOffset = 0
 
     -- calls the (cascade) sorting for players
     vOffset = SortAllyTeams(vOffset)
@@ -1623,7 +1627,7 @@ function SortAllyTeams(vOffset)
     local allyTeamList = Spring_GetAllyTeamList()
     local firstenemy = true
     local isFirstDrawnTeam = true
-    allyTeamsCount = table.maxn(allyTeamList) - 1
+    local allyTeamsCount = table.maxn(allyTeamList) - 1
 
     --find own ally team
     vOffset = 12 / 2.66
@@ -1768,7 +1772,6 @@ function SortSpecs(vOffset)
                     drawListOffset[#drawListOffset + 1] = vOffset
                     drawList[#drawList + 1] = playerID
                     player[playerID].posY = vOffset
-                    noPlayer = false
                 end
             end
         end
@@ -1815,9 +1818,9 @@ function widget:DrawScreen()
     if not collapsed then
         -- update lists frequently if there is mouse interaction
         local NeedUpdate = false
+		local CurGameFrame = Spring_GetGameFrame()
         if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
             local DrawFrame = Spring_GetDrawFrame()
-            local CurGameFrame = Spring_GetGameFrame()
             if PrevGameFrame == nil then
                 PrevGameFrame = CurGameFrame
             end
@@ -2703,17 +2706,17 @@ function DrawCamera(posY, active)
 end
 
 function colourNames(teamID)
-    nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
-    R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-    G255 = math.floor(nameColourG * 255)
-    B255 = math.floor(nameColourB * 255)
-    if (R255 % 10 == 0) then
+    local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
+    local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+    local G255 = math.floor(nameColourG * 255)
+    local B255 = math.floor(nameColourB * 255)
+    if R255 % 10 == 0 then
         R255 = R255 + 1
     end
-    if (G255 % 10 == 0) then
+    if G255 % 10 == 0 then
         G255 = G255 + 1
     end
-    if (B255 % 10 == 0) then
+    if B255 % 10 == 0 then
         B255 = B255 + 1
     end
     return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
@@ -2895,8 +2898,9 @@ end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
     gl_Texture(pics["pingPic"])
+	local grayvalue
     if spec then
-        local grayvalue = 0.5 + (pingLvl / 20)
+        grayvalue = 0.5 + (pingLvl / 20)
         gl_Color(grayvalue, grayvalue, grayvalue, (0.2 * pingLvl))
         DrawRect(m_cpuping.posX + widgetPosX + 12, posY + 1, m_cpuping.posX + widgetPosX + 21, posY + 14)
     else
@@ -3121,7 +3125,7 @@ function DrawTip(mouseX, mouseY)
     gl.Translate(-scaleDiffX, -scaleDiffY, 0)
     gl.Scale(scaleReset, scaleReset, 0)
 
-    text = tipText --this is needed because we're inside a gllist
+    local text = tipText --this is needed because we're inside a gllist
     if text ~= nil then
         local fontSize = 14 * widgetScale
         local tw = fontSize * font:GetTextWidth(text) + (20 * widgetScale)

@@ -39,7 +39,7 @@ globals = {
     -- Gadgets
     "GG", "gadgetHandler", "gadget",
     -- Widgets
-    "WG", "widgetHandler", "widget",
+    "WG", "widgetHandler", "widget", "LUAUI_DIRNAME",
     -- Chili
     "Chili", "Checkbox", "Control", "ComboBox", "Button", "Label",
     "Line", "EditBox", "Font", "Window", "ScrollPanel", "LayoutPanel",

@@ -25,6 +25,23 @@ if customparamDefsDetected then
     -- second half of a tool for baking unitdefs_post into unitdef files, see readme.txt
     local had_failed = false
 
+	function table.save2(t, filename, header)
+		local file = io.open(filename, 'w')
+		if file == nil then
+			return
+		end
+		if header then
+			file:write(header..'\n')
+		end
+		file:write('return {\n')
+		if (type(t)=="table")or(type(t)=="metatable") then SaveTable(t, file, '') end
+		file:write('}\n')
+		file:close()
+		for k,v in pairs(savedTables) do
+			savedTables[k] = nil
+		end
+	end
+
     function WriteDefToFile (folder, v)
         if not v.customParams or not v.customParams.__def then
             Spring.Echo("Warning: Could not find customparams.__def for " .. v.name)
@@ -273,24 +290,6 @@ if customparamDefsDetected then
                     file:write('{},\n') -- empty table
                 end
             end
-        end
-    end
-
-
-    function table.save2(t, filename, header)
-        local file = io.open(filename, 'w')
-        if (file == nil) then
-            return
-        end
-        if (header) then
-            file:write(header..'\n')
-        end
-        file:write('return {\n')
-        if (type(t)=="table")or(type(t)=="metatable") then SaveTable(t, file, '') end
-        file:write('}\n')
-        file:close()
-        for k,v in pairs(savedTables) do
-            savedTables[k] = nil
         end
     end
 

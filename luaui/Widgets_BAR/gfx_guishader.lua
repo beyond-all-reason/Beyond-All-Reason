@@ -43,7 +43,6 @@ local blurtex2
 local stenciltex
 local stenciltexScreen
 local intensityLoc
-local DrawScreenEffectsBlur
 local screenBlur = false
 
 local blurIntensity = defaultBlurIntensity
