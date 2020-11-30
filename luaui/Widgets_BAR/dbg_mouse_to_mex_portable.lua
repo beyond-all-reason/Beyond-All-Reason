@@ -44,16 +44,16 @@ function widget:MousePress(mx, my, button)
 	if enabled and (not Spring.IsAboveMiniMap(mx, my)) then
 		local _, pos = Spring.TraceScreenRay(mx, my, true)
 		if legalPos(pos) then
-			if true then
+			--if true then
 				handle:write("[" .. mexIndex .. "] = {x = " .. floor(pos[1] + 0.5) .. ", z = " .. floor(pos[3] + 0.5) .. ", metal = " .. tostring(metal) .. "},\n")
 				handle:flush()
 				markers[#markers + 1] = { pos[1], 0, pos[3] }
 				Spring.MarkerAddPoint(pos[1], 0, pos[3], mexIndex)
 				mexIndex = mexIndex + 1
-			else
+			--else
 				-- TODO: make right click remove markers
-				Spring.MarkerErasePosition(pos[1], 0, pos[3])
-			end
+			--	Spring.MarkerErasePosition(pos[1], 0, pos[3])
+			--end
 		end
 	end
 end

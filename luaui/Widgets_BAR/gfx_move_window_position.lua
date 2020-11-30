@@ -25,7 +25,7 @@ local initialWindowPosY = windowPosY
 local dlistPosX = windowPosX
 local dlistPosY = windowPosY
 
-local font, applyButtonPos, windowList, changeClock, escape, applyChanges, draggingStartX, draggingStartY, chobbyInterface
+local font, applyButtonPos, windowList, changeClock, escape, applyChanges, draggingStartX, draggingStartY, chobbyInterface, dragging
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 	local csyMult = 1 / ((sy-py)/cs)

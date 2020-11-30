@@ -224,7 +224,7 @@ function getButtonUnderMouse(mx, my)
 		return
 	end
 	local x2 = x1 + boxWidth
-
+	local y1, y2
 	for groupNo, ycoord in pairs(boxCoords) do
 		if type(groupNo) == "number" then
 			y1 = ycoord
@@ -555,7 +555,7 @@ end
 
 function DrawBoxes()
 	local selUnit, unitDef = getSingleFactory()
-	if elUnit == nil and unitDef == nil then
+	if selUnit == nil and unitDef == nil then
 		return
 	end
 

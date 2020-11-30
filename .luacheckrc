@@ -45,6 +45,8 @@ globals = {
     "Line", "EditBox", "Font", "Window", "ScrollPanel", "LayoutPanel",
     "Panel", "StackPanel", "Grid", "TextBox", "Image", "TreeView", "Trackbar",
     "DetachableTabPanel", "screen0", "Progressbar",
+    -- GL
+    "GL_TEXTURE_2D",
     -- Libs
     -- "LCS", "Path", "Table", "Log", "String", "Shaders", "Time", "Array", "StartScript",
 
