@@ -23,6 +23,7 @@ local SendCommmands = Spring.SendCommands
 
 local hotKeys = {}
 
+local gameStarted
 
 local hasSetTarget = {}
 for udid, ud in pairs(UnitDefs) do

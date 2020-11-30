@@ -49,6 +49,8 @@ local toggled = false
 local drawlist = {}
 local widgetHeight = 22
 
+local font, font2, lockPlayerID, prevLockPlayerID, bgpadding, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
@@ -456,7 +458,7 @@ function widget:Update(dt)
 	end
 	if isSpec and Spring.GetGameFrame() > 0 and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
-			mx, my, mb = Spring.GetMouseState()
+			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 				Spring.SetMouseCursor('cursornormal')
 				WG['tooltip'].ShowTooltip('playertv', 'Auto camera-track of mostly top TS players\n(switches player every ' .. playerChangeDelay .. ' seconds)')
@@ -607,7 +609,7 @@ function widget:DrawScreen()
 			gl.PushMatrix()
 			gl.CallList(drawlist[1])
 			gl.PopMatrix()
-			mx, my, mb = Spring.GetMouseState()
+			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 				gl.CallList(drawlist[2])
 			end
@@ -695,10 +697,10 @@ function widget:Shutdown()
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.toggled = toggled
-	savedTable.playerChangeDelay = playerChangeDelay
-	return savedTable
+	return {
+		toggled = toggled,
+		playerChangeDelay = playerChangeDelay
+	}
 end
 
 function widget:SetConfigData(data)

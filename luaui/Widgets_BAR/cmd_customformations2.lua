@@ -83,7 +83,7 @@ local positionCmds = {
     [CMD_SETTARGET] = true -- set target
 }
 
-
+local chobbyInterface
 
 function widget:Initialize()
     if not requiresAlt[CMD.ATTACK] then
@@ -318,6 +318,7 @@ local function GetInterpNodes(mUnits)
     local eX = ePos[1]
     local eZ = ePos[3]
     local eDist = fDists[2]
+	local eY
 
     interpNodes[1] = {sX, sY, sZ}
 
@@ -347,7 +348,7 @@ local function GetInterpNodes(mUnits)
     ePos = fNodes[#fNodes]
     eX = ePos[1]
     eZ = ePos[3]
-    eY=spGetGroundHeight(eX, eZ)
+    eY = spGetGroundHeight(eX, eZ)
     interpNodes[number] = {eX, eY, eZ}
 
     --DEBUG for i=1,number do Spring.Echo(interpNodes[i]) end
@@ -835,6 +836,7 @@ function widget:DrawWorld()
     if #fNodes > 1 or #dimmNodes > 1 then
         local camX, camY, camZ = spGetCameraPosition()
         local at, p = spTraceScreenRay(Xs,Ys,true,false,false)
+		local zoomY
         if at == "ground" then
             local dx, dy, dz = camX-p[1], camY-p[2], camZ-p[3]
             --zoomY = ((dx*dx + dy*dy + dz*dz)*0.01)^0.25	--tests show that sqrt(sqrt(x)) is faster than x^0.25

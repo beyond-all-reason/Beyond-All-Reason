@@ -62,6 +62,8 @@ local alternative_units = {}-- unit def id --> list of alternative unit def ids
 local updateRate = 8/30
 local timeCounter = 0
 
+local gameStarted
+
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
