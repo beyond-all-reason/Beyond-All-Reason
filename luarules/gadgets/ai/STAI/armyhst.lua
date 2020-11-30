@@ -874,7 +874,6 @@ local function GetUnitTable()
 	local unitTable = {}
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
-		local targeting = ''
 		local side = GetUnitSide(unitDef.name)
 		if unitsLevels[unitDef.name] then
 			-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
@@ -883,7 +882,7 @@ local function GetUnitTable()
 			-- end
 			local utable = {}
 			utable.side = side
-			Spring:Echo(unitDef.name)
+-- 			Spring:Echo(unitDef.name)
 			utable.techLevel = unitsLevels[unitDef["name"]]
 			if unitDef["modCategories"]["weapon"] then
 				utable.isWeapon = true
@@ -999,8 +998,6 @@ local function GetUnitTable()
 				if unitDef["isBuilding"] then
 					utable['isFactory'] = {}
 					utable.unitsCanBuild = {}
--- 					scanLab(unitDef["buildOptions"])
-
 					for i, oid in pairs (unitDef["buildOptions"]) do
 						local buildDef = UnitDefs[oid]
 						-- if is a factory insert all the units that can build

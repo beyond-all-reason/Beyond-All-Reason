@@ -7,7 +7,7 @@ end
 local CMD_RESURRECT = 125
 
 function ReclaimBST:Init()
--- 	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
@@ -54,15 +54,8 @@ function ReclaimBST:OwnerIdle()
 end
 
 function ReclaimBST:Update()
-	if self.dedicated then
-		self.DebugEnabled = true
-	else
-		self.DebugEnabled = false
-	end
 	if self.active then return end
 	local f = self.game:Frame()
-	--self:EchoDebug("frame", f, self.idle, self.lastCheckFrame)
-
 	if (self.idle and f > self.idle) or (self.dedicated and f > self.lastCheckFrame + 150) or (f > self.lastCheckFrame + 500) then
 		self:EchoDebug("update")
 		if self.idle then
