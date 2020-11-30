@@ -108,9 +108,14 @@ function TaskQueueBST:CategoryEconFilter(value)
 	self:EchoDebug(value .. " (before econ filter)")
 	-- self:EchoDebug("ai.Energy: " .. self.ai.Energy.reserves .. " " .. self.ai.Energy.capacity .. " " .. self.ai.Energy.income .. " " .. self.ai.Energy.usage)
 	-- self:EchoDebug("ai.Metal: " .. self.ai.Metal.reserves .. " " .. self.ai.Metal.capacity .. " " .. self.ai.Metal.income .. " " .. self.ai.Metal.usage)
-	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value]  or value == 'armllt' or value == 'corllt' then
+
+	if self.ai.armyhst.Eco1[value] or self.ai.armyhst.Eco2[value]  then
 		return value
 	end
+	if (value == 'armllt' or value == 'corllt') and self.ai.Energy.income > 40 and self.ai.Metal.income > 4 then
+		return value
+	end
+
 	if self.ai.armyhst.reclaimerList[value] then
 		-- dedicated reclaimer
 		self:EchoDebug(" dedicated reclaimer")
@@ -167,9 +172,9 @@ function TaskQueueBST:CategoryEconFilter(value)
 			elseif self.ai.armyhst.unitTable[value].isWeapon then
 				-- combat unit
 				self:EchoDebug("  combat unit")
-				if self.ai.Energy.full < 0.1 then
-					value = self.ai.armyhst.DummyUnitName
-				end
+-- 				if self.ai.Energy.full < 0.1 then
+-- 					value = self.ai.armyhst.DummyUnitName
+-- 				end
 			elseif value == "armpeep" or value == "corfink" then
 				-- scout planes have no weapons
 				if self.ai.Energy.full < 0.3 or self.ai.Metal.full < 0.3 then

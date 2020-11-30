@@ -7,7 +7,7 @@ end
 local CMD_RESURRECT = 125
 
 function ReclaimBST:Init()
-	self.DebugEnabled = false
+-- 	self.DebugEnabled = true
 
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
@@ -33,7 +33,7 @@ end
 
 function ReclaimBST:OwnerDead()
 	-- notify the command that area is too hot
-	-- self:EchoDebug("reclaimer " .. self.name .. " died")
+	self:EchoDebug("reclaimer " .. self.name .. " died")
 	if self.target then
 		self.ai.targethst:AddBadPosition(self.target, self.mtype)
 	end
@@ -54,10 +54,20 @@ function ReclaimBST:OwnerIdle()
 end
 
 function ReclaimBST:Update()
+	if self.dedicated then
+		self.DebugEnabled = true
+	else
+		self.DebugEnabled = false
+	end
 	if self.active then return end
 	local f = self.game:Frame()
+	--self:EchoDebug("frame", f, self.idle, self.lastCheckFrame)
+
 	if (self.idle and f > self.idle) or (self.dedicated and f > self.lastCheckFrame + 150) or (f > self.lastCheckFrame + 500) then
-		if self.idle then self:EchoDebug(f - self.idle) end
+		self:EchoDebug("update")
+		if self.idle then
+			self:EchoDebug('idletime',f - self.idle)
+		end
 		self.idle = nil
 		self.lastCheckFrame = f
 		self:Check()
@@ -66,9 +76,10 @@ end
 
 function ReclaimBST:Priority()
 	if self.targetCell or self.targetUnit then
+		self:EchoDebug("priority HIGH")
 		return 101
 	else
-		-- self:EchoDebug("priority 0")
+		self:EchoDebug("priority LOW")
 		return 0
 	end
 end
@@ -97,10 +108,12 @@ function ReclaimBST:EraseTargets()
 end
 
 function ReclaimBST:Check()
+	self:EchoDebug("check")
 	local doreclaim = false
 	if self.dedicated and not self.resurrecting then
 		doreclaim = true
 	elseif self.ai.conCount > 2 and self.ai.needToReclaim and self.ai.reclaimerCount == 0 and self.ai.IDByName[self.id] ~= 1 and self.ai.IDByName[self.id] == self.ai.nameCount[self.name] then
+		self:EchoDebug("check reclaim status 1")
 		if not self.ai.haveExtraReclaimer then
 			self.ai.haveExtraReclaimer = true
 			self.extraReclaimer = true
@@ -109,12 +122,14 @@ function ReclaimBST:Check()
 			doreclaim = true
 		end
 	elseif self.extraReclaimer then
+		self:EchoDebug("extrareclaimer")
 		self.ai.haveExtraReclaimer = false
 		self.extraReclaimer = false
 		self:EraseTargets()
 		self.unit:ElectBehaviour()
 	end
 	if doreclaim then
+		self:EchoDebug("i do reclaim")
 		self:Retarget()
 		self.unit:ElectBehaviour()
 	end
@@ -160,15 +175,28 @@ function ReclaimBST:Act()
 	if not self.active then
 		return
 	end
+-- 	local rnd =  math.random(1,3)
+-- 	local timearea = math.random(1000,2000)
+-- 	if rnd == 1 then
+-- 		self.unit:Internal():AreaRepair(self.unit:Internal():GetPosition(),timearea)
+-- 	elseif rnd ==2 then
+-- 		self.unit:Internal():AreaReclaim(self.unit:Internal():GetPosition(),timearea)
+-- 	else
+-- 		self.unit:Internal():AreaRESURRECT(self.unit:Internal():GetPosition(),timearea)
+-- 	end
+-- 	return true
+
 	if self.targetRepair then
 		self:EchoDebug("repair unit", self.targetRepair, self.targetRepair:ID())
 		self.target = self.targetRepair:GetPosition()
-		self.unit:Internal():Repair(self.targetRepair)
+-- 		self.unit:Internal():Repair(self.targetRepair)
+		self.unit:Internal():AreaRepair(self.target,200)
 		return true
 	elseif self.targetUnit then
 		self:EchoDebug("reclaim unit", self.targetUnit, self.targetUnit:ID())
 		self.target = self.targetUnit:GetPosition()
 		self.unit:Internal():Reclaim(self.targetUnit)
+
 		return true
 	elseif self.targetCell then
 		local cell = self.targetCell
@@ -203,10 +231,12 @@ function ReclaimBST:Act()
 						return true
 					else
 						self:EchoDebug("reclaim feature", reclaimFeature, reclaimFeature:ID())
-						self.unit:Internal():Reclaim(reclaimFeature)
+-- 						self.unit:Internal():Reclaim(reclaimFeature)
+						self.unit:Internal():AreaReclaim(reclaimFeature:GetPosition(),200)
 						-- self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {reclaimFeature:ID()})
 						self.myFeature = reclaimFeature
 						self.myFeaturePos = reclaimFeature:GetPosition()
+						self:EchoDebug("reclaim feature pos", self.myFeaturePos.x,self.myFeaturePos.z)
 						table.remove(cell.reclaimables, i)
 						return true
 					end

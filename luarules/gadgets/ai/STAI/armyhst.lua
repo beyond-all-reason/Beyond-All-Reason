@@ -10,7 +10,7 @@ end
 
 
 function ArmyHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 end
 
 ArmyHST.techPenalty = {
@@ -724,11 +724,6 @@ local fighter = {
 	corvamp = 1,
 }
 
---[[
-local commanderSide = {
-	armcom = "arm",
-	corcom = "core",
-}]]
 
 local unitsLevels = {}
 local armTechLv ={}
@@ -785,7 +780,58 @@ local function GetBuiltBy()
 	return builtBy
 end
 
-local function GetUnitSide(name)--TODO change to the internal namearmada cortex
+-- local function scanLabs(units,utable)
+-- 	local _metal , _energy, _los
+-- 	for i, oid in pairs(units) do
+-- 		print(i)
+-- 		print(oid)
+-- 		local buildDef = UnitDefs[oid]
+-- 		local name = buildDef["name"]
+-- 		local uTn = ArmyHST.unitTable[buildDef["name"]]
+--
+--
+-- 		_metal = _metal + utn.metalCost
+-- 		_energy = _energy + utn.energyCost
+-- 		_los = _los + utn.losRadius
+-- 		_speed = _speed + utn.speed
+--
+-- 	end
+-- 	_metal_= _metal/#units
+-- 	_energy_= _energy/#units
+-- 	_los_= _los/#units
+-- 	_speed_= _speed/#units
+-- 	for i, oid in pairs(units) do
+-- 		print(i)
+-- 		print(oid)
+-- 		local buildDef = UnitDefs[oid]
+-- 		local name = buildDef["name"]
+-- 		local uTn = ArmyHST.unitTable[buildDef["name"]]
+-- 		if utn.metalCost < _metal_ and utn.energyCost < _energy_ then
+-- 			utn.cheap = true
+-- 		else
+-- 			utn.cheap = true
+-- 		end
+--
+-- 		if utn.losradius < _los_ then
+-- 			utn.shortRange = true
+-- 		else
+-- 			utn.shortRange = true
+-- 		end
+--
+-- 		if utn.speed < _speed_ then
+-- 			utn.slow = true
+-- 		else
+-- 			utn.slow = false
+-- 		end
+--
+--
+-- 	end
+--
+-- end
+
+
+
+local function GetUnitSide(name)--TODO change to the internal name armada cortex
 	if string.find(name, 'arm') then
 		return 'arm'
 	elseif string.find(name, 'cor') then
@@ -823,12 +869,12 @@ local function getTechTree(sideTechLv)
 	end
 	parent = 0
 end
-
 local function GetUnitTable()
 	local builtBy = GetBuiltBy()
 	local unitTable = {}
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
+		local targeting = ''
 		local side = GetUnitSide(unitDef.name)
 		if unitsLevels[unitDef.name] then
 			-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
@@ -837,15 +883,34 @@ local function GetUnitTable()
 			-- end
 			local utable = {}
 			utable.side = side
+			Spring:Echo(unitDef.name)
 			utable.techLevel = unitsLevels[unitDef["name"]]
 			if unitDef["modCategories"]["weapon"] then
 				utable.isWeapon = true
 				if unitDef["weapons"][1] then
+					local defWepon1 = unitDef["weapons"][1]
+
 					utable.firstWeapon = WeaponDefs[unitDef["weapons"][1]["weaponDef"]]
+					utable.badTg = ''
+					if defWepon1.badTargets then
+						for ii,vv in pairs(defWepon1.badTargets) do
+							--Spring:Echo(ii)
+							utable.badTg = utable.badTg .. ii
+
+						end
+					end
+					utable.onlyTg = ''
+					if defWepon1.onlyTargets then
+						for ii,vv in pairs(defWepon1.onlyTargets) do
+							utable.onlyTg = utable.onlyTg .. ii
+						end
+					end
+					utable.onlyBadTg = utable.onlyTg .. utable.badTg
 				end
 			else
 				utable.isWeapon = false
 			end
+
 			if unitDef["isBuilding"] then
 				utable.isBuilding = true
 			else
@@ -934,6 +999,8 @@ local function GetUnitTable()
 				if unitDef["isBuilding"] then
 					utable['isFactory'] = {}
 					utable.unitsCanBuild = {}
+-- 					scanLab(unitDef["buildOptions"])
+
 					for i, oid in pairs (unitDef["buildOptions"]) do
 						local buildDef = UnitDefs[oid]
 						-- if is a factory insert all the units that can build
@@ -986,7 +1053,6 @@ for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
 ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
 ArmyHST.featureTable = GetFeatureTable(ArmyHST.wrecks)
-
 wrecks = nil
 
 

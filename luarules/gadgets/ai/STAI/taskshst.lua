@@ -124,7 +124,7 @@ function TasksHST:BuildBreakthroughIfNeeded(unitName)
 	else
 		if self.ai.battleCount <= self.ai.armyhst.minBattleCount then return self.ai.armyhst.DummyUnitName end
 		local attackCounter = self.ai.attackhst:GetCounter(mtype)
-		if attackCounter == self.ai.armyhst.maxAttackCounter then
+		if attackCounter < self.ai.armyhst.maxAttackCounter then
 			return unitName
 		elseif attackCounter >= self.ai.armyhst.breakthroughAttackCounter then
 			return unitName
