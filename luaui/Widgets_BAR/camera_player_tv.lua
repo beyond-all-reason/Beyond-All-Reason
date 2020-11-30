@@ -497,8 +497,8 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(n)
+	local prevRejoining = rejoining
 	if WG['topbar'] then
-		local prevRejoining = rejoining
 		rejoining = WG['topbar'].showingRejoining()
 	end
 	if isSpec and toggled and n % 30 == 5 then

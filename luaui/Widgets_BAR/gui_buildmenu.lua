@@ -60,6 +60,12 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
+local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
+local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, startDefID, font, font2, cmdsCount
+local hijackedlayout, doUpdateClock, ordermenuHeight, prevOrdermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
+local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
+local radariconSize, radariconOffset, groupiconSize, priceFontSize
+local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -1808,6 +1814,8 @@ function widget:DrawScreen()
 							end
 							cellColor = { 1, 0.85, 0.2, 0.25 }
 						end
+
+						local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
 						if not showPrice then
 							unsetShowPrice = true
 							showPrice = true
@@ -1858,7 +1866,9 @@ function widget:DrawScreen()
 						local unitBuildDefID = spGetUnitDefID(unitBuildID)
 						if unitBuildDefID then
 							-- loop all shown cells
+							local cellIsSelected
 							for cellRectID, cellRect in pairs(cellRects) do
+								cellIsSelected = false
 								if cellRectID > maxCellRectID then
 									break
 								end
@@ -1869,7 +1879,7 @@ function widget:DrawScreen()
 										if cellRectID == hoveredCellID and (b or b2 or b3) then
 											usedZoom = clickSelectedCellZoom
 										else
-											local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+											cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 											usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 										end
 									end
@@ -1878,6 +1888,7 @@ function widget:DrawScreen()
 										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 									end
 
+									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
 									if cellRectID == hoveredCellID then
 										if not showPrice then
 											unsetShowPrice = true
@@ -2140,6 +2151,7 @@ function SetBuildFacing()
 	local x = pos[1]
 	local z = pos[3]
 
+	local facing
 	if math.abs(Game.mapSizeX - 2 * x) > math.abs(Game.mapSizeZ - 2 * z) then
 		if 2 * x > Game.mapSizeX then
 			facing = 3

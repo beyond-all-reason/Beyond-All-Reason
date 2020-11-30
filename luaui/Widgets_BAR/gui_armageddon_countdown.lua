@@ -10,16 +10,20 @@ function widget:GetInfo()
 		enabled   = true
 	}
 end
-
-local vsx,vsy = Spring.GetViewGeometry()
-
 ----------------------------------------------------------------
 -- Load?
 ----------------------------------------------------------------
+
 local armageddonTime = 60 * (tonumber((Spring.GetModOptions() or {}).armageddontime) or 0)
 if armageddonTime <= 0 then
     return false
 end
+
+----------------------------------------------------------------
+----------------------------------------------------------------
+
+local vsx,vsy = Spring.GetViewGeometry()
+local font, chobbyInterface, gameStarted
 
 ----------------------------------------------------------------
 -- Callins
@@ -35,7 +39,6 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
-local gameStarterd = false
 function widget:GameFrame(n)
     if n == 1 then
         gameStarted = true

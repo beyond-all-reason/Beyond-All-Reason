@@ -50,16 +50,18 @@ table.insert(OPTIONS, {
 })
 local currentOption = 1
 
-local usedImgSize = OPTIONS[currentOption]['imageSize']
+local usedImgSize = OPTIONS[currentOption].imageSize
+local chobbyInterface
 
-function table.shallow_copy(t)
+local function shallow_copy(t)
 	local t2 = {}
 	for k,v in pairs(t) do
 		t2[k] = v
 	end
 	return t2
 end
-OPTIONS_original = table.shallow_copy(OPTIONS)
+
+local OPTIONS_original = shallow_copy(OPTIONS)
 OPTIONS_original.defaults = nil
 
 local function toggleOptions()
@@ -73,7 +75,7 @@ end
 
 function loadOption()
 	local appliedOption = OPTIONS_original[currentOption]
-	OPTIONS[currentOption] = table.shallow_copy(OPTIONS.defaults)
+	OPTIONS[currentOption] = shallow_copy(OPTIONS.defaults)
 
 	for option, value in pairs(appliedOption) do
 		OPTIONS[currentOption][option] = value
@@ -287,9 +289,7 @@ end
 
 
 function widget:GetConfigData()
-    savedTable = {}
-    savedTable.currentOption = currentOption
-	return savedTable
+	return {currentOption = currentOption}
 end
 
 function widget:SetConfigData(data)

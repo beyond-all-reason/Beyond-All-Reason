@@ -21,6 +21,7 @@ local maxOpacity = 0.55
 local opacity = 0
 
 local myTeamID = Spring.GetMyTeamID()
+local dList
 
 local comUnitDefIDs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do

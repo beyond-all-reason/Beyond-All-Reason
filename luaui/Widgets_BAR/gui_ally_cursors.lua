@@ -104,6 +104,8 @@ local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,wy --keep memory always allo
 local notIdle = {}
 local playerPos = {}
 
+local font, chobbyInterface, functionID, wx_old, wy_old
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -155,6 +157,24 @@ function widget:SetConfigData(data)
     end
 end
 
+local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
+	if not Spring.IsGUIHidden() and not chobbyInterface then
+		for playerID,cursor in pairs(cursors) do
+			if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
+				local params = {param={} }
+				params.px, params.py, params.pz = cursor[1],cursor[2],cursor[3]
+				params.param.r, params.param.g, params.param.b = teamColors[playerID][1],teamColors[playerID][2],teamColors[playerID][3]
+				params.colMult = 0.4 * lightStrengthMult
+				params.param.radius = 1000 * lightRadiusMult
+				params.py = params.py + 50
+				pointLightCount = pointLightCount + 1
+				pointLights[pointLightCount] = params
+			end
+		end
+	end
+	return beamLights, beamLightCount, pointLights, pointLightCount
+end
+
 function updateSpecList(init)
     specList = {}
     local t = Spring.GetPlayerList()
@@ -169,24 +189,6 @@ function updateSpecList(init)
         end
         functionID = WG.DeferredLighting_RegisterFunction(GetLights)
     end
-end
-
-local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
-    if not Spring.IsGUIHidden() and not chobbyInterface then
-        for playerID,cursor in pairs(cursors) do
-            if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
-                local params = {param={} }
-                params.px, params.py, params.pz = cursor[1],cursor[2],cursor[3]
-                params.param.r, params.param.g, params.param.b = teamColors[playerID][1],teamColors[playerID][2],teamColors[playerID][3]
-                params.colMult = 0.4 * lightStrengthMult
-                params.param.radius = 1000 * lightRadiusMult
-                params.py = params.py + 50
-                pointLightCount = pointLightCount + 1
-                pointLights[pointLightCount] = params
-            end
-        end
-    end
-    return beamLights, beamLightCount, pointLights, pointLightCount
 end
 
 function widget:Initialize()
@@ -595,14 +597,14 @@ end
 
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.addLights = addLights
-    savedTable.lightRadiusMult = lightRadiusMult
-    savedTable.lightStrengthMult = lightStrengthMult
-    savedTable.showCursorDot = showCursorDot
-    savedTable.showSpectatorName = showSpectatorName
-    savedTable.showPlayerName = showPlayerName
-    return savedTable
+    return {
+		addLights = addLights,
+		lightRadiusMult = lightRadiusMult,
+		lightStrengthMult = lightStrengthMult,
+		showCursorDot = showCursorDot,
+		showSpectatorName = showSpectatorName,
+		showPlayerName = showPlayerName
+	}
 end
 
 function widget:SetConfigData(data)

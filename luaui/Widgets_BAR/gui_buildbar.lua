@@ -82,6 +82,9 @@ local startTimer = Spring.GetTimer()
 local msx = Game.mapX * 512
 local msz = Game.mapY * 512
 
+local bgpadding, font, backgroundRect, backgroundOptionsRect, dlistGuishader, dlistGuishader2, forceGuishader
+local chobbyInterface, factoriesArea, cornerSize, setInfoDisplayUnitID
+
 -------------------------------------------------------------------------------
 -- Speed Up
 -------------------------------------------------------------------------------
@@ -181,7 +184,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	widgetSpaceMargin = math_floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+	local widgetSpaceMargin = math_floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 
 	glossMult = 1 + (2-(ui_opacity*2))
@@ -730,11 +733,9 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	local hoverPadding = bgpadding*0.5
 	local iconAlpha = (options.alpha or 1)
 	if options.pressed then
-		--hoverPadding = math_floor(widgetSpaceMargin*0.6)
 		iconAlpha = 1
 		zoom = 0.17
 	elseif options.hovered then
-		--hoverPadding = math_floor(widgetSpaceMargin*0.25)
 		iconAlpha = 1
 		zoom = 0.12
 	end
@@ -1019,11 +1020,17 @@ function widget:DrawScreen()
 
 				local buildList = facInfo.buildList
 				local buildQueue = GetBuildQueue(facInfo.unitID)
+				local unitBuildID = GetUnitIsBuilding(facInfo.unitID)
+				local unitBuildDefID
+				if unitBuildID then
+					unitBuildDefID = GetUnitDefID(unitBuildID)
+				end
 				for j, unitDefID in ipairs(buildList) do
 					local unitDefID = unitDefID
 					local options = {}
 					-- determine options -------------------------------------------------------------------
 					-- building?
+
 					if unitDefID == unitBuildDefID then
 						_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
 					end
@@ -1175,7 +1182,7 @@ local function _adjustSecondaryAxis(bar_side, vsd, iconSizeD)
 end
 
 function SetupDimensions(count)
-	local length, mid, vsd, iconSizeA, iconSizeB
+	local length, mid, vsd, iconSizeA, iconSizeB, vsa, vsb
 	if bar_horizontal then
 		-- horizontal (top or bottom bar)
 		vsa, iconSizeA, vsb, iconSizeB = vsx, iconSizeX, vsy, iconSizeY

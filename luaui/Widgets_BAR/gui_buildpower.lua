@@ -55,6 +55,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local gamestarted, dlistGuishader, bgpadding, chobbyInterface, contentMargin, dlistBuildpower, dlistBuildpower2
+local posX, posY, width, height
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 

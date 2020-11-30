@@ -27,6 +27,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local vsx, vsy = Spring.GetViewGeometry()
+
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
@@ -43,6 +45,8 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
+
+local font, bgpadding, chobbyInterface, hovering
 
 local drawlist = {}
 local advplayerlistPos = {}

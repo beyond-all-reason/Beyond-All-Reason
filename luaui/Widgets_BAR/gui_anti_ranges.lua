@@ -78,6 +78,8 @@ local coverageRangeCoreWater	= WeaponDefs[UnitDefNames.corcarry.weapons[1].weapo
 
 local diag = math.diag
 
+local chobbyInterface
+
 --------------------------------------------------------------------------------
 -- Callins
 --------------------------------------------------------------------------------
@@ -268,10 +270,10 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.showLineGlow2			= showLineGlow2
-    savedTable.fadeOnCloseup		= fadeOnCloseup
-    return savedTable
+    return {
+		showLineGlow2 = showLineGlow2,
+		fadeOnCloseup = fadeOnCloseup
+	}
 end
 
 function widget:SetConfigData(data)

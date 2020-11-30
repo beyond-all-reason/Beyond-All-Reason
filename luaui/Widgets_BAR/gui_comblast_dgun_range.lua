@@ -193,7 +193,7 @@ end
 function checkSpecView()
 	--check if we became a spec
     if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) ~= amSpec then
-        amSpec = spec
+        amSpec = select(3,spGetPlayerInfo(spGetMyPlayerID(),false))
 		checkComs()
     end
 end
@@ -228,6 +228,7 @@ function widget:GameFrame(n)
     end
 
 	-- check com movement
+	local oldOpacityMultiplier
 	for unitID in pairs(comCenters) do
 		local x,y,z = spGetUnitPosition(unitID)
 		if x then
@@ -428,9 +429,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.hideOnDistantEnemy	= hideOnDistantEnemy
-    return savedTable
+    return {hideOnDistantEnemy = hideOnDistantEnemy}
 end
 
 function widget:SetConfigData(data)

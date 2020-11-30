@@ -19,6 +19,7 @@ local lightStrengthMult = 0.5
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local functionID
 
 local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
 
@@ -85,10 +86,10 @@ end
 
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.lightRadiusMult = lightRadiusMult
-    savedTable.lightStrengthMult = lightStrengthMult
-    return savedTable
+    return {
+		lightRadiusMult = lightRadiusMult,
+		lightStrengthMult = lightStrengthMult
+	}
 end
 
 function widget:SetConfigData(data)

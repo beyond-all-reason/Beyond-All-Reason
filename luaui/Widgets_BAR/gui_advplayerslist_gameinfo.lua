@@ -28,6 +28,7 @@ end
 --------------------------------------------------------------------------------
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local font, bgpadding, chobbyInterface, hovering
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -56,6 +57,8 @@ local guishaderEnabled = (WG['guishader'])
 local passedTime = 0
 local passedTime2 = 0
 local uiOpacitySec = 0.5
+
+local vsx, vsy = Spring.GetViewGeometry()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

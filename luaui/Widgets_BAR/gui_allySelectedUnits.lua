@@ -21,7 +21,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local floor                 = math.floor
 local abs					= math.abs
 
-local udefTab				= UnitDefs
+local spGetSelectedUnits	= Spring.GetSelectedUnits
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spEcho                = Spring.Echo
 local spGetUnitPosition     = Spring.GetUnitPosition
@@ -105,6 +105,7 @@ local circleLinesAlly
 local lockPlayerID
 
 local unitConf = {}
+local guiList, font, chobbyInterface
 ------------------------------------------------------------------
 
 
@@ -247,7 +248,7 @@ function widget:PlayerChanged(playerID)
 	myTeamID = spGetLocalTeamID()
 	local playerTeam = select(4, spGetPlayerInfo(playerID, false))
 	local oldCoopStatus = playerSelectedUnits[playerID]["coop"]
-	playerSelectedUnits[playerID]["coop"] = (teamID == myTeamID)
+	playerSelectedUnits[playerID]["coop"] = (playerTeam == myTeamID)
 	playerSelectedUnits[playerID]["todraw"] = DoDrawPlayer(playerID)
 
 	--grab color from color pool for new teammate
@@ -358,6 +359,15 @@ function selectedUnitsRemove(playerID,unitID)
 	end
 end
 
+
+function array2Table(arr)
+	local tab = {}
+	for i,v in ipairs(arr) do
+		tab[v] = true
+	end
+	return tab
+end
+
 function DoDrawPlayer(playerID,teamID)
 	if playerID == myPlayerID then
 		return false
@@ -376,14 +386,6 @@ function deselectAllTeamSelected()
 		end
 	end
 	spSelectUnitMap(selectedUnits)
-end
-
-function array2Table(arr)
-	tab = {}
-	for i,v in ipairs(arr) do
-		tab[v] = true
-	end
-	return tab
 end
 
 local updateTime = 0
@@ -423,24 +425,6 @@ function selectPlayerSelectedUnits(playerID)
 		end
 	end
 	Spring.SelectUnitArray(units)
-end
-
-local function createGuiList()
-	if guiList ~= nil then
-		gl.DeleteList(guiList)
-	end
-	guiList = gl.CreateList(function()
-		glColor(0, 0, 0, 0.6)
-		RectRound(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 8*sizeMultiplier)
-		font:Begin()
-		font:Print("Ally Selected Units", xPos + (10*sizeMultiplier), yPos + ((panelHeight - 19)*sizeMultiplier), 13*sizeMultiplier, "n")
-		font:End()
-		glColor(1, 1, 1, 0.2)
-		drawCheckbox(xPos + (12*sizeMultiplier), yPos + (10*sizeMultiplier), selectPlayerUnits,  "Select tracked player units")
-		if WG['guishader'] then
-			WG['guishader'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'allyselectedunits')
-		end
-	end)
 end
 
 

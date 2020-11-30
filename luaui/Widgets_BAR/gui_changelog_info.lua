@@ -67,6 +67,8 @@ local versions = {}
 local changelogLines = {}
 local totalChangelogLines = 0
 
+local font, loadedFontSize, font2, changelogList, titleRect, chobbyInterface, backgroundGuishader, changelogList, dlistcreated, show
+
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	screenX = (vsx*centerPosX) - (screenWidth/2)
@@ -332,6 +334,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 
 			else
 				font:SetTextColor(fontColorLine)
+				local numLines
 				if string.find(line, '^(-)') then
 					-- bulletpointed line
 					local firstLetterPos = 2
@@ -716,10 +719,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    if buttonGL then
-        glDeleteList(buttonGL)
-        buttonGL = nil
-    end
     if changelogList then
         glDeleteList(changelogList)
         changelogList = nil

@@ -42,6 +42,9 @@ local musicDir = 'sounds/music/'
 local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
 local warTracks = VFS.DirList(musicDir..'war', '*.ogg')
 
+local vsx, vsy = Spring.GetViewGeometry()
+local bgpadding, borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime
+
 local tracksConfig = {}
 for i,v in pairs(peaceTracks) do
 	if tracksConfig[v] == nil then
@@ -456,7 +459,7 @@ local function createList()
 		local sliderHeight = math.floor((4.5*widgetScale)+0.5)
 		local lineHeight = math.floor((1.5*widgetScale)+0.5)
 
-		button = 'musicvolumeicon'
+		local button = 'musicvolumeicon'
 		local sliderY = buttons[button][2] + (buttons[button][4] - buttons[button][2])/2
 		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
@@ -488,9 +491,9 @@ local function createList()
 	end
 end
 
-function getSliderValue(draggingSlider, x)
-	local sliderWidth = buttons[draggingSlider][3] - buttons[draggingSlider][1]
-	local value = (x - buttons[draggingSlider][1]) / (sliderWidth)
+function getSliderValue(button, x)
+	local sliderWidth = buttons[button][3] - buttons[button][1]
+	local value = (x - buttons[button][1]) / (sliderWidth)
 	if value < 0 then value = 0 end
 	if value > 1 then value = 1 end
 	return value
@@ -500,12 +503,12 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getSliderValue('musicvolume', x) * 50)
+			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 50)
 			Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
 			createList()
 		end
 		if draggingSlider == 'volume' then
-			volume = math.floor(getSliderValue('volume', x) * 200)
+			volume = math.floor(getSliderValue(draggingSlider, x) * 200)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			createList()
 		end
@@ -669,7 +672,7 @@ function PlayNewTrack(track)
 
 	if dynamicMusic == 0 then
 		--Spring.Echo("Choosing a random track")
-		r = math.random(0,1)
+		local r = math.random(0,1)
 		if r == 0 then
 			tracks = peaceTracks
 		else
@@ -780,7 +783,7 @@ function widget:Update(dt)
 
 	if pauseWhenPaused and Spring.GetGameSeconds() >= 0 then
     local _, _, paused = Spring.GetGameSpeed()
-		if (paused ~= wasPaused) then
+		if paused ~= wasPaused then
 			Spring.PauseSoundStream()
 			wasPaused = paused
 		end

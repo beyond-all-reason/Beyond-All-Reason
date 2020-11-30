@@ -34,6 +34,8 @@ local gl     = gl  --  use a local copy for faster access
 local Spring = Spring
 local table  = table
 
+local font, chobbyInterface
+
 local etaTable = {}
 local etaMaxDist= 750000 -- max dist at which to draw ETA
 
