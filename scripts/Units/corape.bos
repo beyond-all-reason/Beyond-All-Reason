@@ -3,7 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  rflare2, lflare2, base, rwing1, backbone, rjet, ljet;
+piece  	base, body, lpaddle, rpaddle, rwing1, lwing1,
+		rjet, rthrust, rwing2, rmislink, rmissile1, rflare, rflare1, 
+		ljet, lthrust, lwing2, lmislink, lmissile1, lflare, lflare1;
 
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -94,9 +96,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide rflare2;
-	hide lflare2;
-	gun_1 = rflare2;
+	hide rflare1;
+	hide lflare1;
+	gun_1 = rflare1;
 	call-script InitState();
 	start-script SmokeUnit();
 }
@@ -116,11 +118,11 @@ QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = rflare2;
+		piecenum = rflare1;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = lflare2;
+		piecenum = lflare1;
 	}
 }
 
@@ -134,18 +136,18 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-		show rflare2;
+		show rflare1;
 		sleep 150;
-		hide rflare2;
-		gun_1 = lflare2;
+		hide rflare1;
+		gun_1 = lflare1;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		show lflare2;
+		show lflare1;
 		sleep 150;
-		hide lflare2;
-		gun_1 = rflare2;
+		hide lflare1;
+		gun_1 = rflare1;
 	}
 }
 
@@ -161,9 +163,8 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode lwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -173,9 +174,8 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rwing1 type FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode lwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -185,9 +185,8 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rwing1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode lwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -195,9 +194,8 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rwing1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
