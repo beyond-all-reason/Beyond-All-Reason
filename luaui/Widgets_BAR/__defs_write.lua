@@ -24,6 +24,105 @@ if customparamDefsDetected then
 
 	local savedTables = {}
 
+	-- Modified version of table.save, which rounds numbers to avoid lua stupidity 0=0.00000000234876 & various similar stuff
+
+	--------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------
+	--
+	--  file:    savetable.lua
+	--  brief:   a human friendly table writer
+	--  author:  Dave Rodgers
+	--
+	--  Copyright (C) 2007.
+	--  Licensed under the terms of the GNU GPL, v2 or later.
+	--
+	--------------------------------------------------------------------------------
+	-----
+
+	local indentString = '\t'
+
+	-- setup a lua keyword map
+	local keyWords = {
+		"and", "break", "do", "else", "elseif", "end", "false", "for", "function",
+		"if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true",
+		"until", "while"
+	}
+	local keyWordSet = {}
+	for _,w in ipairs(keyWords) do
+		keyWordSet[w] = true
+	end
+	keyWords = nil  -- don't need the array anymore
+
+	local function encloseStr(s)
+		return string.format('%q', s)
+	end
+
+
+	local function encloseKey(s)
+		local wrap = not (string.find(s, '^%a[_%a%d]*$'))
+		if (not wrap) then
+			if (string.len(s) <= 0) then wrap = true end
+		end
+		if (not wrap) then
+			if (keyWordSet[s]) then wrap = true end
+		end
+
+		if (wrap) then
+			return string.format('[%q]', s)
+		else
+			return s
+		end
+	end
+
+
+	local keyTypes = {
+		['string']  = true,
+		['number']  = true,
+		['boolean'] = true,
+	}
+
+	local valueTypes = {
+		['string']  = true,
+		['number']  = true,
+		['boolean'] = true,
+		['table']   = true,
+	}
+
+
+	local function CompareKeys(kv1, kv2)
+		local k1, v1 = kv1[1], kv1[2]
+		local k2, v2 = kv2[1], kv2[2]
+
+		local ktype1 = type(k1)
+		local ktype2 = type(k2)
+		if (ktype1 ~= ktype2) then
+			return (ktype1 > ktype2)
+		end
+
+		local vtype1 = type(v1)
+		local vtype2 = type(v2)
+		if ((vtype1 == 'table') and (vtype2 ~= 'table')) then
+			return false
+		end
+		if ((vtype1 ~= 'table') and (vtype2 == 'table')) then
+			return true
+		end
+
+		return (k1 < k2)
+	end
+
+
+	local function MakeSortedTable(t)
+		local st = {}
+		for k,v in pairs(t) do
+			if (keyTypes[type(k)] and valueTypes[type(v)]) then
+				table.insert(st, { k, v })
+			end
+		end
+		table.sort(st, CompareKeys)
+		return st
+	end
+
 	local function SaveTable(t, file, indent)
 		local indent = indent .. indentString
 
@@ -40,10 +139,10 @@ if customparamDefsDetected then
 				file:write(indent..'['..tostring(k)..'] = ')
 			end
 			-- output the value
-			if (vtype == 'string') then
+			if vtype == 'string' then
 				file:write(encloseStr(v)..',\n')
-			elseif (vtype == 'number') then
-				if (v == math.huge) then
+			elseif vtype == 'number' then
+				if v == math.huge then
 					file:write('math.huge,\n')
 				elseif (v == -math.huge) then
 					file:write('-math.huge,\n')
@@ -66,13 +165,13 @@ if customparamDefsDetected then
 					end
 					file:write(tostring(v)..',\n')
 				end
-			elseif (vtype == 'boolean') then
+			elseif vtype == 'boolean' then
 				file:write(tostring(v)..',\n')
-			elseif (vtype == 'table') then
-				if (savedTables[v]) then
+			elseif vtype == 'table' then
+				if savedTables[v] then
 					error("table.save() does not support recursive tables")
 				end
-				if (next(v)) then
+				if next(v) then
 					savedTables[t] = true
 					file:write('{\n')
 					SaveTable(v, file, indent)
@@ -97,7 +196,7 @@ if customparamDefsDetected then
 			file:write(header..'\n')
 		end
 		file:write('return {\n')
-		if (type(t)=="table")or(type(t)=="metatable") then SaveTable(t, file, '') end
+		if type(t)=="table" or type(t)=="metatable" then SaveTable(t, file, '') end
 		file:write('}\n')
 		file:close()
 		for k,v in pairs(savedTables) do
@@ -192,104 +291,5 @@ if customparamDefsDetected then
         widgetHandler:RemoveWidget(self)
     end
 
-
-    -- Modified version of table.save, which rounds numbers to avoid lua stupidity 0=0.00000000234876 & various similar stuff
-
-    --------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------
-    --
-    --  file:    savetable.lua
-    --  brief:   a human friendly table writer
-    --  author:  Dave Rodgers
-    --
-    --  Copyright (C) 2007.
-    --  Licensed under the terms of the GNU GPL, v2 or later.
-    --
-    --------------------------------------------------------------------------------
-    -----
-
-    local indentString = '\t'
-
-    -- setup a lua keyword map
-    local keyWords = {
-        "and", "break", "do", "else", "elseif", "end", "false", "for", "function",
-        "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true",
-        "until", "while"
-    }
-    local keyWordSet = {}
-    for _,w in ipairs(keyWords) do
-        keyWordSet[w] = true
-    end
-    keyWords = nil  -- don't need the array anymore
-
-    local function encloseStr(s)
-        return string.format('%q', s)
-    end
-
-
-    local function encloseKey(s)
-        local wrap = not (string.find(s, '^%a[_%a%d]*$'))
-        if (not wrap) then
-            if (string.len(s) <= 0) then wrap = true end
-        end
-        if (not wrap) then
-            if (keyWordSet[s]) then wrap = true end
-        end
-
-        if (wrap) then
-            return string.format('[%q]', s)
-        else
-            return s
-        end
-    end
-
-
-    local keyTypes = {
-        ['string']  = true,
-        ['number']  = true,
-        ['boolean'] = true,
-    }
-
-    local valueTypes = {
-        ['string']  = true,
-        ['number']  = true,
-        ['boolean'] = true,
-        ['table']   = true,
-    }
-
-
-    local function CompareKeys(kv1, kv2)
-        local k1, v1 = kv1[1], kv1[2]
-        local k2, v2 = kv2[1], kv2[2]
-
-        local ktype1 = type(k1)
-        local ktype2 = type(k2)
-        if (ktype1 ~= ktype2) then
-            return (ktype1 > ktype2)
-        end
-
-        local vtype1 = type(v1)
-        local vtype2 = type(v2)
-        if ((vtype1 == 'table') and (vtype2 ~= 'table')) then
-            return false
-        end
-        if ((vtype1 ~= 'table') and (vtype2 == 'table')) then
-            return true
-        end
-
-        return (k1 < k2)
-    end
-
-
-    local function MakeSortedTable(t)
-        local st = {}
-        for k,v in pairs(t) do
-            if (keyTypes[type(k)] and valueTypes[type(v)]) then
-                table.insert(st, { k, v })
-            end
-        end
-        table.sort(st, CompareKeys)
-        return st
-    end
 
 end

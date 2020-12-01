@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
--- blocklimit = num drawing actions / counterNum 
+-- blocklimit = num drawing actions / counterNum
 local counterNum = 25
 local blocklimit = 8
 local unblocklimit = 0.5
@@ -49,7 +49,7 @@ local action_unblock = "mapdrawunblock"
 local action_block = "mapdrawblock"
 local action_list = "mapdrawlistblocked"
 
-
+local action_unlock, AutoUnblock
 
 -- helper functions
 
@@ -77,14 +77,14 @@ end
 local function CheckTresholds()
 	for player,data in pairs(drawCmds) do
 		local sum = 0
-		local iterationCount = 0 
+		local iterationCount = 0
 		for _,val in pairs(data.counters) do
 			sum = sum + val
 			iterationCount = iterationCount + 1
 		end
 		sum = sum / (iterationCount * timeFrame)
 		if sum > blocklimit then
-			local wasBlocked = data.blocked 
+			local wasBlocked = data.blocked
 			data.blocked = timerCmd
 			if not wasBlocked then
 				Echo("Blocking map draw for " .. GetPlayerInfo(player,false))

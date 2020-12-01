@@ -48,6 +48,8 @@ local wayPtSelDist = 15
 local wayPtSelDistSqr = wayPtSelDist * wayPtSelDist
 local selWayPtsTbl = {}
 
+local chobbyInterface
+
 function widget:GetInfo()
 	return {
 		name      = "Waypoint Dragger",
@@ -164,7 +166,7 @@ local function GetWayPointsNearCursor(wpTbl, mx, my)
 	if (selUnitsTbl == nil or #selUnitsTbl == 0) then
 		return numSelWayPts
 	end
-	
+
 	for i = 1, #selUnitsTbl do
 		local unitID = selUnitsTbl[i]
 		local commands = spGetCommandQueue(unitID,20)

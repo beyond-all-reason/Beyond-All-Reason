@@ -26,6 +26,7 @@ local GetCommandQueue      = Spring.GetCommandQueue
 local GetUnitStates        = Spring.GetUnitStates
 
 local my_bombers = {}
+local gameStarted
 
 local current_team=1234567
 
@@ -47,7 +48,7 @@ local function AddUnit(unit_id, unit_udid_)
 			my_bombers[unit_id] = {reloaded=reloaded_, reloadFrame}
 			--Spring.Echo("bomber added")
 		end
-	end	
+	end
 end
 
 function widget:UnitCreated(unit_id, unit_udid, unit_tid)
@@ -69,7 +70,7 @@ function widget:UnitGiven(unit_id, unit_udid, old_team, new_team)
 	RemoveUnit(unit_id)
 	if new_team == GetMyTeamID() then
 		AddUnit(unit_id,unit_udid)
-	end	
+	end
 end
 
 
@@ -148,7 +149,7 @@ function widget:Update(dt)
 				end
 			end
 		end
-	end	
+	end
 end
 
 

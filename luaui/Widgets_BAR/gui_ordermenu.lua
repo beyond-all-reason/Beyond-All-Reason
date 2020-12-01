@@ -241,11 +241,6 @@ function setupCellGrid(force)
 	cellMargin = (cellMarginOrg / sizeDivider) * ui_scale
 	bgBorder = (bgBorderOrg / sizeDivider) * ui_scale
 
-	if minusColumn then
-		cols = cols - 1
-		rows = rows + 1
-	end
-
 	if force or oldcols ~= cols or oldRows ~= rows then
 		clickedCell = nil
 		clickedCellTime = nil

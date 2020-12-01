@@ -33,6 +33,12 @@ local GetUnitBuildFacing = Spring.GetUnitBuildFacing
 local GetUnitPosition = Spring.GetUnitPosition
 local myTeamID = Spring.GetMyTeamID()
 
+local gameStarted
+
+local isFactory = {}
+local isBuilder = {}
+local checkMustStop = {}
+
 local function UnitHasPatrolOrder(unitID)
 	local queue=GetCommandQueue(unitID,20)
 	for i=1,#queue do
@@ -44,9 +50,6 @@ local function UnitHasPatrolOrder(unitID)
 	return false
 end
 
-local isFactory = {}
-local isBuilder = {}
-local checkMustStop = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.isFactory then
 		isFactory[udid] = true

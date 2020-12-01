@@ -66,6 +66,8 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local tooltips = {}
 
+local font, chobbyInterface
+
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------

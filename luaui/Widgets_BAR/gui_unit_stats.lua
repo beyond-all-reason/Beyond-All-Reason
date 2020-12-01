@@ -37,11 +37,12 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 		end
 	end
 	local thirdRate = 0
+	--local thirdhighestUnitDef
 	for k, v in pairs (damageStats[gameName].team) do
 		if (not (v == damageStats[gameName].team.games)) and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > thirdRate and k ~= highestUnitDef and k ~= scndhighestUnitDef then
-				thirdhighestUnitDef = k
+				--thirdhighestUnitDef = k
 				thirdRate = compRate
 			end
 		end
@@ -157,6 +158,8 @@ local uDefs = UnitDefs
 local wDefs = WeaponDefs
 
 local triggerKey = KEYSYMS.SPACE
+
+local font, chobbyInterface, showUnitID
 
 local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
@@ -425,7 +428,7 @@ end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
-	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end
 
@@ -484,8 +487,9 @@ function widget:DrawScreen()
 	local sonarJammingRadius = uDef.sonarJamRadius
 	local seismicRadius = uDef.seismicRadius
 	local armoredMultiple = uDef.armoredMultiple
+	local buildProg, uExp
 	if uID then
-		uCurHp, _, _, _, buildProg = spGetUnitHealth(uID)
+		_, _, _, _, buildProg = spGetUnitHealth(uID)
 		maxHP = select(2,Spring.GetUnitHealth(uID))
 		uTeam = spGetUnitTeam(uID)
 		losRadius = spGetUnitSensorRadius(uID, 'los') or 0
@@ -495,7 +499,7 @@ function widget:DrawScreen()
 		jammingRadius = spGetUnitSensorRadius(uID, 'radarJammer') or 0
 		sonarJammingRadius = spGetUnitSensorRadius(uID, 'sonarJammer') or 0
 		seismicRadius = spGetUnitSensorRadius(uID, 'seismic') or 0
-		local uExp = spGetUnitExperience(uID)
+		uExp = spGetUnitExperience(uID)
 		armoredMultiple = select(2,Spring.GetUnitArmored(uID))
 	end
 
@@ -638,7 +642,7 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-	uWeps = uDef.weapons
+	local uWeps = uDef.weapons
 	local weaponNums = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
@@ -714,14 +718,7 @@ function widget:DrawScreen()
 			--local range = spGetUnitWeaponState(uID,weaponNums[i] or -1,"range") or uWep.range
 			local ee = uWep.edgeEffectiveness
 			local AoE = math.max(1,(math.pi * uWep.damageAreaOfEffect^2)/256)
-			if unbacom then
-				if i == 1 then
-					range = Range[level]
-				elseif i == 2 then
-					range = Range2[level]
-				end
-			end
-			local range = range
+
 			local rangeBonus = range ~= 0 and (range/uWep.range-1) or 0
 			if uExp ~= 0 then
 				DrawText("Exp:", format("+%d%% accuracy, +%d%% aim, +%d%% firerate, +%d%% range", accuracyBonus*100, moveErrorBonus*100, reloadBonus*100, rangeBonus*100 ))

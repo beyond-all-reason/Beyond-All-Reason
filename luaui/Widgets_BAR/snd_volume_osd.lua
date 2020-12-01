@@ -20,11 +20,11 @@ function widget:GetInfo()
 end
 
 include('keysym.h.lua')
-local pluskey								= KEYSYMS.PLUS 
+local pluskey								= KEYSYMS.PLUS
 local equalskey								= KEYSYMS.EQUALS -- same key as + on most qwerty keyboards
-local minuskey								= KEYSYMS.MINUS 
-local pluskey2								= KEYSYMS.KP_PLUS 
-local minuskey2								= KEYSYMS.KP_MINUS 
+local minuskey								= KEYSYMS.MINUS
+local pluskey2								= KEYSYMS.KP_PLUS
+local minuskey2								= KEYSYMS.KP_MINUS
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -58,6 +58,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local chobbyInterface
+
 function widget:Initialize()
   volume = Spring.GetConfigInt("snd_volmaster", 60)
 end
@@ -72,7 +74,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		--Spring.Echo("Volume = " .. volume)
 		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui') end
 		dt = os.clock()
-		return true		
+		return true
 	elseif (key == minuskey or key == minuskey2) and (not mods.alt) and (not mods.shift) then -- KEY = minuskey
 		volume = Spring.GetConfigInt("snd_volmaster", 80)
 		volume = volume - step
@@ -200,7 +202,7 @@ end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
-	local y1 = widgetPosY 
+	local y1 = widgetPosY
 	local y2 = widgetPosY + widgetHeight
 	local x1 = widgetPosX
 	local x2 = widgetPosX + widgetWidth
@@ -255,10 +257,10 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx = viewSizeX
 	vsy = viewSizeY
-	
+
 	widgetWidth		= vsx/4.5 -- in pixels (changed from 400)
 	widgetHeight	= vsy/27 -- in pixels (changed from 40)
-	
+
 	widgetPosX 							= vsx/2.5
 	widgetPosY 							= vsy/7.5
 end

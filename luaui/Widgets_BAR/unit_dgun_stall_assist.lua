@@ -25,6 +25,8 @@ local waitedUnits = nil -- nil / waitedUnits[1..n] = uID
 local shouldWait = {} -- shouldWait[uDefID] = true / nil
 local isFactory = {} -- isFactory[uDefID] = true / nil
 
+local gameStarted
+
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
@@ -64,7 +66,7 @@ function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
-	
+
 	for uDefID, uDef in pairs(UnitDefs) do
 		if (uDef.buildSpeed > 0) and uDef.canAssist and (not uDef.canManualFire) then
 			shouldWait[uDefID] = true
@@ -76,15 +78,15 @@ function widget:Initialize()
 end
 
 function widget:Update(dt)
-	
+
 	local _, activeCmdID = spGetActiveCommand()
 	if activeCmdID == CMD_DGUN then
 		watchTime = watchForTime
 	else
 		watchTime = watchTime - dt
-		
+
 		if waitedUnits and (watchTime < 0) then
-			
+
 			local toUnwait = {}
 			for i = 1, #waitedUnits do
 				local uID = waitedUnits[i]
@@ -102,17 +104,17 @@ function widget:Update(dt)
 				end
 			end
 			spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, 0)
-			
+
 			waitedUnits = nil
 		end
 	end
-	
+
 	if (watchTime > 0) and (not waitedUnits) then
-		
+
 		local myTeamID = spGetMyTeamID()
 		local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")
 		if (currentEnergy < targetEnergy) and (energyStorage >= targetEnergy) then
-			
+
 			waitedUnits = {}
 			local myUnits = spGetTeamUnits(myTeamID)
 			for i = 1, #myUnits do

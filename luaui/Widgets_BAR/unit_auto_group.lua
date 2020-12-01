@@ -100,6 +100,8 @@ local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
 local textSize = 13.0
 
+local font, dlists, gameStarted, chobbyInterface
+
 -- gr = groupe selected/wanted
 
 -- speedups
@@ -322,7 +324,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 			if gr == -1 then
 				gr = nil
 			end
-			selUnitDefIDs = {}
+			local selUnitDefIDs = {}
 			local unit2groupDeleted = {}
 			local exec = false --set to true when there is at least one unit to process
 			local units = GetSelectedUnits()
@@ -390,10 +392,11 @@ function widget:KeyPress(key, modifier, isRepeat)
 			local _, pos = TraceScreenRay(mx, my, true)
 			local mindist = math.huge
 			local muid = nil
-			if (pos == nil) then
+			if pos == nil then
 				return
 			end
 			local units = GetSelectedUnits()
+			local dist
 			for i = 1, #units do
 				local unitID = units[i]
 				local x, _, z = GetUnitPosition(unitID)

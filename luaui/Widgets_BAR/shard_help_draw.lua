@@ -19,7 +19,6 @@ local emptyShapeIDs = {}
 local teamChannelByID = {}
 local commandBindings = {}
 local shapeIDCounter = 0
-local lastCamState
 local selectedTeamID
 local selectedChannel
 local lastTeamID
@@ -39,6 +38,9 @@ local timerSavedNames = {}
 local lastTimerStatFrame = 0
 local timerColumns = {}
 
+
+local myFont, myMonoFont, needUpdateInterface, interfaceDisplayList
+
 local colorLocations = {
 	Rectangle = 5,
 	Circle = 4,
@@ -46,7 +48,7 @@ local colorLocations = {
 	Point = 3,
 }
 
-local coordNames = { x, z, x1, z1, x2, z2, radius, y }
+local coordNames = { x=0, z=0, x1=0, z1=0, x2=0, z2=0, radius=0, y=0 }
 
 local rectangleDisplayList = 0
 local circleDisplayList = 0
@@ -1068,10 +1070,7 @@ function widget:Update()
 	if shapeCount == 0 or not displayOnOff then
 		return
 	end
-	-- local camState = spGetCameraState()
-	-- if not CameraStatesMatch(camState, lastCamState) then
-		-- UpdateLabels()
-	-- end
+
 	selectedTeamID = selectedTeamID or lastTeamID
 	selectedChannel = selectedChannel or lastChannel
 	if not selectedTeamID or not selectedChannel then
@@ -1102,7 +1101,6 @@ function widget:Update()
 		interfaceDisplayList = glCreateList(DrawInterface)
 		needUpdateInterface = false
 	end
-	lastCamState = camState
 end
 
 function widget:DrawWorldPreUnit()

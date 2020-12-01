@@ -3223,7 +3223,7 @@ function init()
 		--		},
 
 
-		{ id = "fancyselectedunits", group = "ui", basic = true, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = 'Draws a platter under selected units\n\n\NOTE: this widget can be heavy when having lots of units selected' },
+		{ id = "fancyselectedunits", group = "ui", basic = true, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = 'Draws a platter under selected units\n\nNOTE: this widget can be heavy when having lots of units selected' },
 		--{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
 		-- onload = function(i) loadWidgetData("Fancy Selected Units", "fancyselectedunits_opacity", {'spotterOpacity'}) end,
 		-- onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setOpacity', {'spotterOpacity'}, value) end,

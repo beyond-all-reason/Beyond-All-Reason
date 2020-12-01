@@ -39,6 +39,8 @@ local hmsz = Game.mapSizeZ/2
 
 local myTeamID = spGetMyTeamID()
 
+local gameStarted
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -65,7 +67,7 @@ local function SetupUnit(unitID)
 	      z = z - 50
 	    else
 	      z = z + 50
-	    end	
+	    end
 		-- meta enables reclaim enemy units, alt autoresurrect ( if available )
 		spGiveOrderToUnit(unitID, CMD_FIGHT, { x, y, z }, {"meta"})
 	end

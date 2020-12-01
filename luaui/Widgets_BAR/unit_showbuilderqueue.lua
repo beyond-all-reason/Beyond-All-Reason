@@ -30,7 +30,7 @@ local commandCreatedUnitsIDs = {}
 local builders = {}
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
-local spec,fullView,_ = Spring.GetSpectatingState()
+local spec,fullview,_ = Spring.GetSpectatingState()
 
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -49,6 +49,8 @@ local glPopMatrix = gl.PopMatrix
 
 local builderUnitDefs = {}
 local disticon = Spring.GetConfigInt("UnitIconDist", 200)
+
+local chobbyInterface
 
 local function clearBuilderCommands(unitID)
 	if commandOrdered[unitID] then
@@ -131,11 +133,12 @@ function widget:Initialize()
 		return maxDisplayedUnits
 	end
 end
+
 function widget:PlayerChanged(playerID)
 	local prevSpec = spec
-	local prevFullfiew = fullview
+	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
-	spec,fullView,_ = Spring.GetSpectatingState()
+	spec, fullview,_ = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if playerID == myPlayerID or (spec and prevMyAllyTeamID ~= myAllyTeamID or prevFullview ~= fullview) then
 		addBuilders()

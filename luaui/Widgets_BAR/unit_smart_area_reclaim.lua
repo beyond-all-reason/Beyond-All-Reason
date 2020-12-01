@@ -49,6 +49,9 @@ local OPT_SHIFT = CMD.OPT_SHIFT
 local abs = math.abs
 local sqrt = math.sqrt
 local atan2 = math.atan2
+
+local gameStarted
+
 -----------------------------------------------------------------
 -- end locals----------------------------------------------------
 -----------------------------------------------------------------
@@ -84,7 +87,7 @@ local function tsp(rList, tList, dx, dz)
 	local closestDist
 	local closestItem
 	local closestIndex
-	
+
 	for i=1, #rList do
 		local item = rList[i]
 		if (item ~= nil) and (item ~= 0) then
@@ -97,9 +100,9 @@ local function tsp(rList, tList, dx, dz)
 			end
 		end
 	end
-	
+
 	if (closestItem == nil) then return tList end
-	
+
 	tList[#tList+1] = closestItem
 	rList[closestIndex] = 0
 	return tsp(rList, tList, closestItem[1], closestItem[2])
@@ -114,7 +117,7 @@ local function stationary(rList)
 	for i=1, #rList do
 		local item = rList[i]
 		local dx, dz = item[1], item[2]
-		
+
 		local theta = atan2(dx, dz)
 		if lastKey ~= theta then
 			sKeysCount = sKeysCount + 1
@@ -128,7 +131,7 @@ local function stationary(rList)
 			sList[theta] = lastItem
 		end
 	end
-	
+
 	local oList = {}
 	local oListCount = 0
 	sort(sKeys)
@@ -147,16 +150,16 @@ end
 
 local function issue(rList, shift)
 	local opts = {}
-	
+
 	for i=1, #rList do
 		local item = rList[i]
 		local uid, fid = item[3], item[4]
-		
+
 		local opt = {}
 		if (opts[uid] ~= nil) or (shift) then
 			opt = OPT_SHIFT
 		end
-		
+
 		GiveOrderToUnit(uid, RECLAIM, {fid+maxUnits}, opt)
 		opts[uid] = 1
 	end
@@ -166,7 +169,7 @@ function widget:CommandNotify(id, params, options)
 	if (id == RECLAIM) then
 		local mobiles, stationaries = {}, {}
 		local mobileb, stationaryb = false, false
-		
+
 		local rUnits = {}
 		local rUnitsCount = 0
 		local sUnits = GetSelectedUnits()
@@ -182,7 +185,7 @@ function widget:CommandNotify(id, params, options)
 					mobiles[uid] = unitDef
 					mobileb = true
 				end
-				
+
 				local ux, uy, uz = GetUnitPosition(uid)
 				if (options.shift) then
 					local cmds = GetCommandQueue(uid,100)
@@ -198,7 +201,7 @@ function widget:CommandNotify(id, params, options)
 				rUnits[rUnitsCount] = {uid=uid, ux=ux, uz=uz}
 			end
 		end
-		
+
 		if (#rUnits > 0) then
 			local len = #params
 			local retw = {}
@@ -209,28 +212,28 @@ function widget:CommandNotify(id, params, options)
 			local retgCount = 0
 			local rmtg = {}
 			local rmtgCount = 0
-			
+
 			if (len == 4) then
 				local x, y, z, r = params[1], params[2], params[3], params[4]
 				local xmin, xmax, zmin, zmax = (x-r), (x+r), (z-r), (z+r)
 				local rx, rz = (xmax - xmin), (zmax - zmin)
-				
+
 				local units = GetFeaturesInRectangle(xmin, zmin, xmax, zmax)
-				
+
 				local mx, my, mz = WorldToScreenCoords(x, y, z)
 				local wy = Spring.GetGroundHeight(x, z)
 				local ct, id = TraceScreenRay(mx, my)
-				
+
 				if (ct == "feature") then
 					local cu = id
-					
+
 					for i=1,#units,1 do
 						local uid = units[i]
 						local ux, uy, uz = GetFeaturePosition(uid)
 						local ur = GetFeatureRadius(uid)
 						local urx, urz = abs(ux - x), abs(uz - z)
 						local ud = sqrt((urx * urx) + (urz * urz))-ur*.5
-						
+
 						if (ud < r) then
 						local mr, _, er, _, _ = GetFeatureResources(uid)
 							if uy < 0 then
@@ -252,14 +255,14 @@ function widget:CommandNotify(id, params, options)
 							end
 						end
 					end
-					
+
 					local mr, _, er, _, _ = GetFeatureResources(cu)
 					-- if (mr > 0)and(er > 0) then return end
-					
+
 					local mList, sList = {}, {}
 					local mListCount, sListCount = 0, 0
 					local source = {}
-					
+
 					if (rmtgCount > 0) and (mr > 0) and wy > 0 then
 						source = rmtg
 					elseif (retgCount > 0) and (er > 0) and wy > 0 then
@@ -269,7 +272,7 @@ function widget:CommandNotify(id, params, options)
 					elseif (retwCount > 0) and (er > 0) and wy < 0 then
 						source = retw
 					end
-					
+
 					for i=1,#source do
 						local fid = source[i]
 						if fid ~= nil then
@@ -292,20 +295,20 @@ function widget:CommandNotify(id, params, options)
 							end
 						end
 					end
-					
+
 					local issued = false
 					if mobileb then
 						mList = tsp(mList)
 						issue(mList, options.shift)
 						issued = true
 					end
-					
+
 					if stationaryb then
 						sList = stationary(sList)
 						issue(sList, options.shift)
 						issued = true
 					end
-					
+
 					return issued
 				end
 			end

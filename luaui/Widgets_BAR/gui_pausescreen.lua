@@ -76,8 +76,9 @@ local previousDrawScreenClock = osClock()
 local paused = false
 
 local shaderAlpha = 0
-local screencopy
-local shaderProgram
+local screencopy, shaderProgram
+local chobbyInterface, alphaLoc, showPauseScreen, nonShaderAlpha
+
 
 
 --intensity formula based on http://alienryderflex.com/hsp.html
@@ -187,7 +188,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	glDeleteFont(myFont)
+	glDeleteFont(font)
 	if shaderProgram then
 		gl.DeleteShader(shaderProgram)
 	end
@@ -234,6 +235,7 @@ function drawPause()
 	local text = { 1.0, 1.0, 1.0, 0 * maxAlpha }
 	local outline = { 0.0, 0.0, 0.0, 0 * maxAlpha }
 
+	local progress
 	if paused then
 		progress = (now - pauseTimestamp) / slideTime
 	else

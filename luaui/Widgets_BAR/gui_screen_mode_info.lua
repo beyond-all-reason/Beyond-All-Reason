@@ -24,6 +24,8 @@ local glPushMatrix = gl.PushMatrix
 local glText = gl.Text
 local glTranslate = gl.Translate
 
+local font, chobbyInterface
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

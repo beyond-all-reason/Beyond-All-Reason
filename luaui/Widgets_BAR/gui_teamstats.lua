@@ -151,6 +151,7 @@ local format				= string.format
 local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
 local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
+local font, chobbyInterface, backgroundGuishader, gameStarted
 
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
@@ -188,21 +189,6 @@ function convertSIPrefix(value,thresholdmodifier,noSmallValues,useFirstDecimal)
 	return retVal
 end
 
-function rectBoxWithBorder(boxData,fillColor,edgeColor)
-	if fillColor then
-		glColor(fillColor)
-	end
-	rectBox(boxData)
-	if edgeColor then
-		glColor(edgeColor)
-	end
-	local borderSize = boxData.draggingBorderSize
-	boxData = boxData.absSizes
-	glRect(boxData.x.min, boxData.y.max, boxData.x.max, boxData.y.max - borderSize ) -- top
-	glRect(boxData.x.min, boxData.y.max, boxData.x.min + borderSize , boxData.y.min) -- left
-	glRect(boxData.x.min, boxData.y.min + borderSize, boxData.x.max, boxData.y.min) -- bottom
-	glRect(boxData.x.max - borderSize, boxData.y.max, boxData.x.max, boxData.y.min) -- right
-end
 
 function rectBox(boxData,fillColor)
 	boxData = boxData.absSizes
@@ -248,23 +234,6 @@ function colorToChar(colorarray)
 	return char(255,min(max(floor(colorarray[1]*255),1),255),min(max(floor(colorarray[2]*255),1),255),min(max(floor(colorarray[3]*255),1),255))
 end
 
-function getColourOutline(colour)
-	--local luminance  = colour[1] * 0.299 + colour[2] * 0.587 + colour[3] * 0.114
-	--return luminance > 0.25 and "o" or "O"
-
-	if (colour[1] + colour[2]*1.2 + colour[3]*0.4) < 0.8 then
-		return "o"
-	else
-		return "O"
-	end
-end
-
-function viewResize(scalingVec,guiData)
-	for boxType, boxData in pairs(guiData) do
-		guiData[boxType].absSizes = convertCoords(boxData.relSizes,scalingVec)
-	end
-	return guiData
-end
 
 function convertCoords(sourceCoords,scalingVec)
 	local newCoords = {}

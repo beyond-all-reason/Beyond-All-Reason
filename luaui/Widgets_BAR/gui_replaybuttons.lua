@@ -35,7 +35,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local chobbyInterface, font, backgroundGuishader, buttonsList, speedButtonsList, buttonlist, active_button, next_button, bgpadding
+local chobbyInterface, font, backgroundGuishader, buttonsList, speedButtonsList, buttonlist, active_button, bgpadding
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -121,7 +121,7 @@ function widget:DrawScreen()
 	local topbutton = #speedbuttons
 	if point_in_rect(buttons[1].x, buttons[1].y, b[topbutton].x + b[topbutton].w, b[topbutton].y + b[topbutton].h, uiX(mousex), uiY(mousey)) then
 		for i = 1, #b, 1 do
-			if (point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button) then
+			if point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button then
 				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -134,7 +134,7 @@ function widget:DrawScreen()
 		end
 		b = buttons
 		for i = 1, #b, 1 do
-			if (point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button) then
+			if point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button then
 				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -388,17 +388,11 @@ end
 function draw_buttons (b)
 	local mousex, mousey = Spring.GetMouseState()
 	for i = 1, #b, 1 do
-		if (b[i].color) then
+		if b[i].color then
 			gl.Color(unpack(b[i].color))
 		else
 			gl.Color(1, 0, 0, 0.66)
 		end
-		--if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
-		--	gl.Color (0.4,0.4,0.4,0.6)
-		--end
-		if (b[i].name == selected_missionid) then
-			gl.Color(0, 1, 1, 0.66)
-		end --highlight selected mission, bit unnice this way w/e
 
 		local padding = bgpadding
 		uiRect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, bgpadding * 1.6, 0, 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
@@ -421,28 +415,14 @@ function add_button (buttonlist, x, y, w, h, text, name, color)
 	new_button.h = h
 	new_button.text = text
 	new_button.name = name
-	if (color) then
+	if color then
 		new_button.color = color
 	end
 	table.insert(buttonlist, new_button)
 end
 
-function previous_button ()
-	active_button = active_button - 1
-	if (active_button < 1) then
-		active_button = #buttons
-	end
-end
-
-function next_button ()
-	active_button = active_button + 1
-	if (active_button > #buttons) then
-		active_button = 1
-	end
-end
-
 function point_in_rect (x1, y1, x2, y2, px, py)
-	if (px > x1 and px < x2 and py > y1 and py < y2) then
+	if px > x1 and px < x2 and py > y1 and py < y2 then
 		return true
 	end
 	return false

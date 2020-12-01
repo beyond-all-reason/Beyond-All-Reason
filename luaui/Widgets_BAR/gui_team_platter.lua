@@ -73,6 +73,8 @@ local platterTriangleList  = 0
 local circleDivs   = 36
 local circleOffset = 0
 
+local spotterList, chobbyInterface
+
 
 local prevCam = {}
 prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
@@ -450,10 +452,10 @@ end
 
 
 function widget:GetConfigData(data)
-  savedTable = {}
-  savedTable.skipOwnTeam			= skipOwnTeam
-  savedTable.spotterOpacity			= spotterOpacity
-  return savedTable
+  return {
+	  skipOwnTeam = skipOwnTeam,
+	  spotterOpacity = spotterOpacity
+  }
 end
 
 function widget:SetConfigData(data)

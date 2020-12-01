@@ -25,6 +25,7 @@ local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
 
 local gridSize = 32
 local useShader = true
+local wiremap = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -676,11 +677,11 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.brightness = brightness
-	savedTable.curvature = curvature
-	savedTable.fogEffect = fogEffect
-	return savedTable
+	return {
+		brightness = brightness,
+		curvature = curvature,
+		fogEffect = fogEffect
+	}
 end
 
 

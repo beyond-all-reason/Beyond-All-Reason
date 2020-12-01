@@ -19,6 +19,8 @@ local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local GetUnitStates = Spring.GetUnitStates
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
+local gameStarted, selectionChanged
+
 local CMD_MOVE = CMD.MOVE
 
 function maybeRemoveSelf()

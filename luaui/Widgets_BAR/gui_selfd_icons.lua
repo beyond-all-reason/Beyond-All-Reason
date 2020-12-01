@@ -42,6 +42,8 @@ local spGetCameraDirection		= Spring.GetCameraDirection
 
 local spec = Spring.GetSpectatingState()
 
+local chobbyInterface
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -194,7 +196,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			selfdUnits[unitID] = nil
 		end
 	end
-	
+
 	if cmdID == CMD.SELFD then
 		if spGetUnitSelfDTime(unitID) > 0 then  	-- since cmd hasnt been cancelled yet
 			selfdUnits[unitID] = nil
@@ -206,8 +208,8 @@ end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	
-	if selfdUnits[unitID] then  
+
+	if selfdUnits[unitID] then
 		selfdUnits[unitID] = nil
 	end
 end

@@ -83,6 +83,8 @@ local myTeamID = Spring.GetMyTeamID()
 
 local showOnceMore = false		-- used because of GUI shader delay
 
+local font, font2, loadedFontSize, chobbyInterface, titleRect, backgroundGuishader, textList, dlistcreated
+
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	screenX = (vsx*centerPosX) - (screenWidth/2)
@@ -268,6 +270,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			end
 
 			local line = textLines[lineKey]
+			local numLines
 			if string.find(line, '^[A-Z][A-Z]') then
 				font:SetTextColor(fontColorTitle)
 				font:Print(line, x-9, y-(lineSeparator+fontSizeTitle)*j, fontSizeTitle, "n")
@@ -276,7 +279,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				font:SetTextColor(fontColorLine)
 				-- line
 				line, numLines = font:WrapText(line, (width-50)*(loadedFontSize/fontSizeLine))
-				if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
+				if (lineSeparator+fontSizeTitle) * (j+numLines-1) > height then
 					break;
 				end
 				font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
@@ -292,7 +295,6 @@ end
 
 
 function DrawWindow()
-    local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
     local y = screenY --upwards
 
@@ -484,10 +486,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    if buttonGL then
-        glDeleteList(buttonGL)
-        buttonGL = nil
-    end
     if textList then
         glDeleteList(textList)
         textList = nil

@@ -35,6 +35,8 @@ globals = {
     "UnitDefs", "UnitDefNames", "FeatureDefs", "FeatureDefNames",
     "WeaponDefs", "WeaponDefNames", "LOG", "KEYSYMS", "CMD", "Script",
     "SendToUnsynced", "Platform", "Engine", "include",
+    -- GL
+    "GL_TEXTURE_2D", "GL_HINT_BIT",
     -- Gadgets
     "GG", "gadgetHandler", "gadget",
     -- Widgets
@@ -44,8 +46,6 @@ globals = {
     "Line", "EditBox", "Font", "Window", "ScrollPanel", "LayoutPanel",
     "Panel", "StackPanel", "Grid", "TextBox", "Image", "TreeView", "Trackbar",
     "DetachableTabPanel", "screen0", "Progressbar",
-    -- GL
-    "GL_TEXTURE_2D",
     -- Libs
     -- "LCS", "Path", "Table", "Log", "String", "Shaders", "Time", "Array", "StartScript",
 

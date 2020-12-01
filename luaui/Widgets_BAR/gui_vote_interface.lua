@@ -10,8 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-local debug = false
-
 -- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = { 'forcestart', 'stop' }
 
@@ -36,6 +34,9 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
+
+local voteDlist, chobbyInterface, font, font2, gameStarted, height, dlistGuishader
+local voteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
 
 
 local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
@@ -162,16 +163,14 @@ function widget:PlayerChanged(playerID)
 	mySpec = Spring.GetSpectatingState()
 end
 
-local sec = 0
+--local sec = 0
 local uiOpacitySec = 0
 function widget:Update(dt)
-	if debug then
-		myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
-		sec = sec + dt
-		if sec > 0.66 and not voteDlist then
-			StartVote('testvote yeah!', 'somebody')
-		end
-	end
+	--myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
+	--sec = sec + dt
+	--if sec > 2 and not voteDlist then
+	--	StartVote('testvote yeah!', 'somebody')
+	--end
 
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec > 0.5 then
@@ -291,8 +290,8 @@ function StartVote(name, owner)
 
 			if WG['topbar'] ~= nil then
 				local topbarArea = WG['topbar'].GetPosition()
-				xpos = vsx*0.75
-				--xpos = math.floor(topbarArea[1] + (width) + widgetSpaceMargin)
+				--xpos = vsx-(width/2)
+				xpos = math.floor(topbarArea[1] + (width / 2) + widgetSpaceMargin)
 				ypos = math.floor(topbarArea[2] - (5 * topbarArea[5]) - (height / 2))
 			end
 
@@ -305,7 +304,7 @@ function StartVote(name, owner)
 
 			-- window
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 1, 1, 1, 1, { 0.25, 0.22, 0.22, 0.2 }, { 0.5, 0.5, 0.5, 0.15 })
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -355,16 +354,14 @@ function StartVote(name, owner)
 				mult = 1
 			end
 			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
-			local padding = math.max(1, math.floor(widgetScale*1.5))
-			RectRound(noButtonArea[1]+padding, noButtonArea[2]+padding, noButtonArea[3]-padding, noButtonArea[4]-padding, bgpadding * 0.4, 1, 1, 1, 1, {0,0,0,0}, {0,0,0,0.12})
 
 			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(noButtonArea[1], noButtonArea[4] - ((noButtonArea[4] - noButtonArea[2]) * 0.5), noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.02 * mult }, { 1, 1, 1, 0.16 * mult })
-			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.06 * mult }, { 1, 1, 1, 0 })
+			RectRound(noButtonArea[1], noButtonArea[4] - ((noButtonArea[4] - noButtonArea[2]) * 0.5), noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
+			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-			fontSize = fontSize * 0.88
+			fontSize = fontSize * 0.85
 			local noText = 'NO'
 			if voteOwner then
 				noText = 'End Vote'
@@ -387,13 +384,11 @@ function StartVote(name, owner)
 					mult = 1
 				end
 				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
-				local padding = math.max(1, math.floor(widgetScale*1.5))
-				RectRound(yesButtonArea[1]+padding, yesButtonArea[2]+padding, yesButtonArea[3]-padding, yesButtonArea[4]-padding, bgpadding * 0.4, 1, 1, 1, 1, {0,0,0,0}, {0,0,0,0.12})
 
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(yesButtonArea[1], yesButtonArea[4] - ((yesButtonArea[4] - yesButtonArea[2]) * 0.5), yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.02 * mult }, { 1, 1, 1, 0.16 * mult })
-				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.06 * mult }, { 1, 1, 1, 0 })
+				RectRound(yesButtonArea[1], yesButtonArea[4] - ((yesButtonArea[4] - yesButtonArea[2]) * 0.5), yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
+				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font2:Print("YES", yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")

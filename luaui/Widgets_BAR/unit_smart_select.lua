@@ -14,13 +14,13 @@
 
 function widget:GetInfo()
 	return {
-		name      = "SmartSelect",
-		desc      = "Selects units as you drag over them. (SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection) /selectionmode toggles filtering buildings in selection",
-		author    = "aegis",
-		date      = "Jan 2, 2011",
-		license   = "Public Domain",
-		layer     = -99999999999,
-		enabled   = true
+		name = "SmartSelect",
+		desc = "Selects units as you drag over them. (SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection) /selectionmode toggles filtering buildings in selection",
+		author = "aegis",
+		date = "Jan 2, 2011",
+		license = "Public Domain",
+		layer = -99999999999,
+		enabled = true
 	}
 end
 
@@ -81,7 +81,7 @@ local glDepthTest = gl.DepthTest
 local glBeginEnd = gl.BeginEnd
 local GL_LINE_STRIP = GL.LINE_STRIP
 
-local GaiaTeamID  = Spring.GetGaiaTeamID()
+local GaiaTeamID = Spring.GetGaiaTeamID()
 
 -----------------------------------------------------------------
 -- end function locals ------------------------------------------
@@ -114,13 +114,13 @@ local function sort(v1, v2)
 	end
 end
 
-
 local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
 local function MinimapToWorldCoords(x, y)
-	px, py, sx, sy = GetMiniMapGeometry()
+	local px, py, sx, sy = GetMiniMapGeometry()
 	local plx = 0
-	if (minimapOnLeft) then plx = sx end
-
+	if minimapOnLeft then
+		plx = sx
+	end
 	x = ((x - px + plx) / sx) * mapWidth
 	local z = (1 - ((y - py) / sy)) * mapHeight
 	y = GetGroundHeight(x, z)
@@ -128,19 +128,19 @@ local function MinimapToWorldCoords(x, y)
 end
 
 local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
-	left, _, top = MinimapToWorldCoords(x1, y1)
-	right, _, bottom = MinimapToWorldCoords(x2, y2)
+	local left, _, top = MinimapToWorldCoords(x1, y1)
+	local right, _, bottom = MinimapToWorldCoords(x2, y2)
 
-	local left, right = sort(left, right)
-	local bottom, top = sort(bottom, top)
+	left, right = sort(left, right)
+	bottom, top = sort(bottom, top)
 
-	minimapRect = {left, bottom, right, top}
+	minimapRect = { left, bottom, right, top }
 	return GetUnitsInRectangle(left, bottom, right, top, team)
 end
 
 local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 	local units
-	if (team) then
+	if team then
 		units = GetTeamUnits(team)
 	else
 		units = GetAllUnits()
@@ -151,53 +151,52 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 
 	local result = {}
 
-	for i=1, #units do
+	for i = 1, #units do
 		local uid = units[i]
-		x, y, z = GetUnitPosition(uid)
+		local x, y, z = GetUnitPosition(uid)
 		x, y = WorldToScreenCoords(x, y, z)
 		if (left <= x and x <= right) and (top >= y and y >= bottom) then
-			result[#result+1] = uid
+			result[#result + 1] = uid
 		end
 	end
 	return result
 end
 
-
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	local equalSelection = true
-	for i=1,#sel do
+	for i = 1, #sel do
 		if selectedUnits[i] ~= sel[i] then
 			equalSelection = false
 			break
 		end
 	end
 	selectedUnits = sel
-	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
-		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
-			WG['smartselect'].updateSelection = false	-- widgethandler uses this to ignore the engine mouserelease selection
+	if referenceCoords ~= nil and GetActiveCommand() == 0 then
+		if not select(3, GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
+			WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
 		end
 	end
 end
 
 function widget:MousePress(x, y, button)
-	if (button == 1) then
+	if button == 1 then
 		referenceSelection = selectedUnits
 		referenceSelectionTypes = {}
-		for i=1, #referenceSelection do
-			udid = GetUnitDefID(referenceSelection[i])
+		for i = 1, #referenceSelection do
+			local udid = GetUnitDefID(referenceSelection[i])
 			if udid then
 				referenceSelectionTypes[udid] = 1
 			end
 		end
-		referenceScreenCoords = {x, y}
+		referenceScreenCoords = { x, y }
 		lastMeta = nil
 		lastSelection = nil
 		filtered = false
 
-		if (IsAboveMiniMap(x, y)) then
-			referenceCoords = {0, 0, 0}
-			lastCoords = {0, 0, 0}
+		if IsAboveMiniMap(x, y) then
+			referenceCoords = { 0, 0, 0 }
+			lastCoords = { 0, 0, 0 }
 		else
 			local _, c = TraceScreenRay(x, y, true, false, true)
 
@@ -208,7 +207,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:TextCommand(command)
-    if string.find(command, "selectionmode", nil, true) == 1  and  string.len(command) == 13 then
+	if string.find(command, "selectionmode", nil, true) == 1 and string.len(command) == 13 then
 		selectBuildingsWithMobile = not selectBuildingsWithMobile
 		if selectBuildingsWithMobile then
 			Spring.Echo("SmartSelect: Selects whatever comes under selection rectangle.")
@@ -216,7 +215,7 @@ function widget:TextCommand(command)
 			Spring.Echo("SmartSelect: Ignores buildings if it can select mobile units.")
 		end
 	end
-    if string.find(command, "selectionnanos", nil, true) == 1  and  string.len(command) == 14 then
+	if string.find(command, "selectionnanos", nil, true) == 1 and string.len(command) == 14 then
 		includeNanosAsMobile = not includeNanosAsMobile
 		init()
 		if includeNanosAsMobile then
@@ -228,31 +227,37 @@ function widget:TextCommand(command)
 end
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.selectBuildingsWithMobile = selectBuildingsWithMobile
-    savedTable.includeNanosAsMobile = includeNanosAsMobile
-	savedTable.includeBuilders = includeBuilders
-    return savedTable
+	return {
+		selectBuildingsWithMobile = selectBuildingsWithMobile,
+		includeNanosAsMobile = includeNanosAsMobile,
+		includeBuilders = includeBuilders
+	}
 end
 
 function widget:SetConfigData(data)
-    if data.selectBuildingsWithMobile ~= nil 	then  selectBuildingsWithMobile	= data.selectBuildingsWithMobile end
-	if data.includeNanosAsMobile ~= nil 	then  includeNanosAsMobile	= data.includeNanosAsMobile end
-	if data.includeBuilders ~= nil 	then  includeBuilders	= data.includeBuilders end
+	if data.selectBuildingsWithMobile ~= nil then
+		selectBuildingsWithMobile = data.selectBuildingsWithMobile
+	end
+	if data.includeNanosAsMobile ~= nil then
+		includeNanosAsMobile = data.includeNanosAsMobile
+	end
+	if data.includeBuilders ~= nil then
+		includeBuilders = data.includeBuilders
+	end
 end
 
 function widget:Update()
 
 	WG['smartselect'].updateSelection = true
-	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
+	if referenceCoords ~= nil and GetActiveCommand() == 0 then
 		local x, y, pressed = GetMouseState()
 
 		local px, py, sx, sy = GetMiniMapGeometry()
 
-		if (pressed or lastSelection) and (referenceSelection ~= nil) then
+		if (pressed or lastSelection) and referenceSelection ~= nil then
 
 			local alt, ctrl, meta, shift = GetModKeyState()
-			if (#referenceSelection == 0) then
+			if #referenceSelection == 0 then
 				-- no point in inverting an empty selection
 				ctrl = false
 			end
@@ -261,23 +266,25 @@ function widget:Update()
 			local idleSelect = GetKeyState(idleSelectKey)
 
 			local sameLast = (referenceScreenCoords ~= nil) and (x == referenceScreenCoords[1] and y == referenceScreenCoords[2])
-			if (sameLast and lastCoords == referenceCoords) then
+			if sameLast and lastCoords == referenceCoords then
 				return
 			end
 
 			if sameLast and (lastMeta ~= nil) and (alt == lastMeta[1] and ctrl == lastMeta[2]
-						and meta == lastMeta[3] and shift == lastMeta[4])
-				then return end
+				and meta == lastMeta[3] and shift == lastMeta[4])
+			then
+				return
+			end
 
-			lastCoords = {x, y}
-			lastMeta = {alt, ctrl, meta, shift}
+			lastCoords = { x, y }
+			lastMeta = { alt, ctrl, meta, shift }
 
 			local mouseSelection, originalMouseSelection
 			local r = referenceScreenCoords
-			local playing = GetPlayerInfo(myPlayerID,false).spectating == false
+			local playing = GetPlayerInfo(myPlayerID, false).spectating == false
 			local team = (playing and GetMyTeamID())
-			if (r ~= nil and IsAboveMiniMap(r[1], r[2])) then
-				local mx, my = max(px, min(px+sx, x)), max(py, min(py+sy, y))
+			if r ~= nil and IsAboveMiniMap(r[1], r[2]) then
+				local mx, my = max(px, min(px + sx, x)), max(py, min(py + sy, y))
 				mouseSelection = GetUnitsInMinimapRectangle(r[1], r[2], x, y, nil)
 			else
 				local d = referenceCoords
@@ -291,7 +298,7 @@ function widget:Update()
 			local filteredselection = {}
 			local filteredselectionCount = 0
 			if not Spring.IsGodModeEnabled() then
-				for i=1, #mouseSelection do
+				for i = 1, #mouseSelection do
 					if GetUnitTeam(mouseSelection[i]) ~= GaiaTeamID then
 						filteredselectionCount = filteredselectionCount + 1
 						filteredselection[filteredselectionCount] = mouseSelection[i]
@@ -304,60 +311,61 @@ function widget:Update()
 			local newSelection = {}
 			local uid, udid, udef, tmp
 
-			if (idleSelect) then
+			if idleSelect then
 				tmp = {}
-				for i=1, #mouseSelection do
+				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
-					if (mobileFilter[udid] or builderFilter[udid]) and (GetCommandQueue(uid, 0) == 0) then
-						tmp[#tmp+1] = uid
+					if (mobileFilter[udid] or builderFilter[udid]) and GetCommandQueue(uid, 0) == 0 then
+						tmp[#tmp + 1] = uid
 					end
 				end
 				mouseSelection = tmp
 			end
 
-			if (sameSelect) and (#referenceSelection > 0) then
+			if sameSelect and #referenceSelection > 0 then
 				-- only select new units identical to those already selected
 				tmp = {}
-				for i=1, #mouseSelection do
+				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
-					if (referenceSelectionTypes[udid] ~= nil) then
-						tmp[#tmp+1] = uid
+					if referenceSelectionTypes[udid] ~= nil then
+						tmp[#tmp + 1] = uid
 					end
 				end
 				mouseSelection = tmp
 			end
-
 
 			if (alt) then
 				-- only select mobile combat units
 
 				if (ctrl == false) then
 					tmp = {}
-					for i=1, #referenceSelection do
+					for i = 1, #referenceSelection do
 						uid = referenceSelection[i]
 						udid = GetUnitDefID(uid)
-						if (combatFilter[udid]) then -- is a combat unit
-							tmp[#tmp+1] = uid
+						if (combatFilter[udid]) then
+							-- is a combat unit
+							tmp[#tmp + 1] = uid
 						end
 					end
 					newSelection = tmp
 				end
 
 				tmp = {}
-				for i=1, #mouseSelection do
+				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
-					if (combatFilter[udid]) then -- is a combat unit
-						tmp[#tmp+1] = uid
+					if (combatFilter[udid]) then
+						-- is a combat unit
+						tmp[#tmp + 1] = uid
 					end
 				end
 				mouseSelection = tmp
 			elseif (selectBuildingsWithMobile == false) and (shift == false) and (ctrl == false) then
 				-- only select mobile units, not buildings
 				local mobiles = false
-				for i=1, #mouseSelection do
+				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
 					if (mobileFilter[udid]) then
@@ -369,14 +377,14 @@ function widget:Update()
 				if (mobiles) then
 					tmp = {}
 					local tmp2 = {}
-					for i=1, #mouseSelection do
+					for i = 1, #mouseSelection do
 						uid = mouseSelection[i]
 						udid = GetUnitDefID(uid)
 						if (buildingFilter[udid] == false) then
 							if (includeBuilders or not builderFilter[udid]) then
-								tmp[#tmp+1] = uid
+								tmp[#tmp + 1] = uid
 							else
-								tmp2[#tmp2+1] = uid
+								tmp2[#tmp2 + 1] = uid
 							end
 						end
 					end
@@ -391,21 +399,20 @@ function widget:Update()
 				newSelection = referenceSelection
 			end
 
-
 			if (ctrl) then
 				-- deselect units inside the selection rectangle, if we already had units selected
 				local negative = {}
 
-				for i=1, #mouseSelection do
+				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					negative[uid] = 1
 				end
 
 				tmp = {}
-				for i=1, #newSelection do
+				for i = 1, #newSelection do
 					uid = newSelection[i]
 					if (negative[uid] == nil) then
-						tmp[#tmp+1] = uid
+						tmp[#tmp + 1] = uid
 					end
 				end
 				newSelection = tmp
@@ -455,9 +462,9 @@ function init()
 	for udid, udef in pairs(UnitDefs) do
 		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc"))
 		local builder = (udef.canReclaim and udef.reclaimSpeed > 0) or
-						--(udef.builder and udef.buildSpeed > 0) or					-- udef.builder = deprecated it seems
-						(udef.canResurrect and udef.resurrectSpeed > 0) or
-						(udef.canRepair and udef.repairSpeed > 0)
+			--(udef.builder and udef.buildSpeed > 0) or					-- udef.builder = deprecated it seems
+			(udef.canResurrect and udef.resurrectSpeed > 0) or
+			(udef.canRepair and udef.repairSpeed > 0)
 		local building = (mobile == false)
 		local combat = (builder == false) and (mobile == true) and (#udef.weapons > 0)
 
@@ -474,7 +481,7 @@ end
 
 function widget:Initialize()
 
-  WG['smartselect'] = {}
+	WG['smartselect'] = {}
 	WG['smartselect'].getIncludeBuildings = function()
 		return selectBuildingsWithMobile
 	end

@@ -27,7 +27,6 @@ include("debug.lua")
 include("layout.lua")   -- contains a simple LayoutButtons()
 VFS.Include(LUAUI_DIRNAME .. 'barwidgets.lua', nil, VFS.ZIP)
 
-
 local gl = Spring.Draw  --  easier to use
 
 --------------------------------------------------------------------------------
@@ -37,7 +36,7 @@ local gl = Spring.Draw  --  easier to use
 --
 
 function Say(msg)
-  spSendCommands('say ' .. msg)
+	spSendCommands('say ' .. msg)
 end
 
 
@@ -51,18 +50,17 @@ activePage = 0
 
 forceLayout = true
 
-
 function Update()
-  local currentPage = Spring.GetActivePage()
-  if (forceLayout or (currentPage ~= activePage)) then
-    Spring.ForceLayoutUpdate()  --  for the page number indicator
-    forceLayout = false
-  end
-  activePage = currentPage
+	local currentPage = Spring.GetActivePage()
+	if (forceLayout or (currentPage ~= activePage)) then
+		Spring.ForceLayoutUpdate()  --  for the page number indicator
+		forceLayout = false
+	end
+	activePage = currentPage
 
-  widgetHandler:Update()
+	widgetHandler:Update()
 
-  return
+	return
 end
 
 
@@ -73,60 +71,60 @@ end
 --
 
 function Shutdown()
-  return widgetHandler:Shutdown()
+	return widgetHandler:Shutdown()
 end
 
 function ConfigureLayout(command)
-  return widgetHandler:ConfigureLayout(command)
+	return widgetHandler:ConfigureLayout(command)
 end
 
 function CommandNotify(id, params, options)
-  return widgetHandler:CommandNotify(id, params, options)
+	return widgetHandler:CommandNotify(id, params, options)
 end
 
 function DrawScreen(vsx, vsy)
-  widgetHandler:SetViewSize(vsx, vsy)
-  return widgetHandler:DrawScreen()
+	widgetHandler:SetViewSize(vsx, vsy)
+	return widgetHandler:DrawScreen()
 end
 
 function KeyPress(key, mods, isRepeat, label, unicode)
-  return widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
+	return widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
 end
 
 function KeyRelease(key, mods, label, unicode)
-  return widgetHandler:KeyRelease(key, mods, label, unicode)
+	return widgetHandler:KeyRelease(key, mods, label, unicode)
 end
 
 function TextInput(utf8, ...)
-  return widgetHandler:TextInput(utf8, ...)
+	return widgetHandler:TextInput(utf8, ...)
 end
 
 function MouseMove(x, y, dx, dy, button)
-  return widgetHandler:MouseMove(x, y, dx, dy, button)
+	return widgetHandler:MouseMove(x, y, dx, dy, button)
 end
 
 function MousePress(x, y, button)
-  return widgetHandler:MousePress(x, y, button)
+	return widgetHandler:MousePress(x, y, button)
 end
 
 function MouseRelease(x, y, button)
-  return widgetHandler:MouseRelease(x, y, button)
+	return widgetHandler:MouseRelease(x, y, button)
 end
 
 function IsAbove(x, y)
-  return widgetHandler:IsAbove(x, y)
+	return widgetHandler:IsAbove(x, y)
 end
 
 function GetTooltip(x, y)
-  return widgetHandler:GetTooltip(x, y)
+	return widgetHandler:GetTooltip(x, y)
 end
 
 function AddConsoleLine(msg, priority)
-  return widgetHandler:AddConsoleLine(msg, priority)
+	return widgetHandler:AddConsoleLine(msg, priority)
 end
 
 function GroupChanged(groupID)
-  return widgetHandler:GroupChanged(groupID)
+	return widgetHandler:GroupChanged(groupID)
 end
 
 

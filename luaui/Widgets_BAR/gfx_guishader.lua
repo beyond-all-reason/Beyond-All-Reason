@@ -317,7 +317,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:DrawScreenEffectsBlur()
+function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
 		return
 	end
@@ -487,8 +487,6 @@ end
 
 function widget:UpdateCallIns()
 	self:ViewResize(vsx, vsy)
-	self.DrawScreenEffects = DrawScreenEffectsBlur
-	widgetHandler:UpdateCallIn("DrawScreenEffects")
 end
 
 function widget:Initialize()

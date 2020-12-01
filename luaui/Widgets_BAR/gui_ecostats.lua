@@ -1290,7 +1290,7 @@ end
 
 function getNbPlacedPositions(teamID)
 	local nbPlayers = 0
-	local startx, starty, active, leaderID, leaderName, isDead
+	local startx, starty, active, leaderID, leaderName, isDead, spectator
 
 	for _,pID in ipairs (GetTeamList(teamID)) do
 		if teamData[pID] == nil then

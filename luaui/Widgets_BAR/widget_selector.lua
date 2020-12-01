@@ -103,6 +103,8 @@ local scrollbargrabpos = 0.0
 local show = false
 local pagestepped = false
 
+local chobbyInterface, widgetScale, dlistGuishader, lastStart
+
 local buttons = { --see MouseRelease for which functions are called by which buttons
 	[1] = "Reload LuaUI",
 	[2] = "Unload ALL Widgets",
@@ -267,16 +269,16 @@ end
 local function UpdateListScroll()
 	local wCount = #fullWidgetsList
 	local lastStart = lastStart or wCount - curMaxEntries + 1
-	if (lastStart < 1) then
+	if lastStart < 1 then
 		lastStart = 1
 	end
-	if (lastStart > wCount - curMaxEntries + 1) then
+	if lastStart > wCount - curMaxEntries + 1 then
 		lastStart = 1
 	end
-	if (startEntry > lastStart) then
+	if startEntry > lastStart then
 		startEntry = lastStart
 	end
-	if (startEntry < 1) then
+	if startEntry < 1 then
 		startEntry = 1
 	end
 
@@ -305,11 +307,11 @@ function widget:MouseWheel(up, value)
 	end
 
 	local a, c, m, s = Spring.GetModKeyState()
-	if (a or m) then
+	if a or m then
 		return false  -- alt and meta allow normal control
 	end
 	local step = (s and 4) or (c and 1) or 2
-	if (up) then
+	if up then
 		ScrollUp(step)
 	else
 		ScrollDown(step)
@@ -336,7 +338,7 @@ local function SortWidgetListFunc(nd1, nd2)
 end
 
 local function UpdateList()
-	if (not widgetHandler.knownChanged) then
+	if not widgetHandler.knownChanged then
 		return
 	end
 	widgetHandler.knownChanged = false
@@ -385,17 +387,17 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, mods, isRepeat)
-	if (show and (key == KEYSYMS.ESCAPE) or
-		((key == KEYSYMS.F11) and not isRepeat and
-			not (mods.alt or mods.ctrl or mods.meta or mods.shift))) then
+	if show and key == KEYSYMS.ESCAPE or
+		(key == KEYSYMS.F11 and not isRepeat and
+			not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
 		show = not show
 		return true
 	end
-	if (show and key == KEYSYMS.PAGEUP) then
+	if show and key == KEYSYMS.PAGEUP then
 		ScrollUp(pageStep)
 		return true
 	end
-	if (show and key == KEYSYMS.PAGEDOWN) then
+	if show and key == KEYSYMS.PAGEDOWN then
 		ScrollDown(pageStep)
 		return true
 	end
@@ -421,10 +423,10 @@ function widget:DrawScreen()
 		return
 	end
 	UpdateList()
-	if (WG['guishader'] == nil) then
+	if WG['guishader'] == nil then
 		activeGuishader = false
 	end
-	if (WG['guishader']) and not activeGuishader then
+	if WG['guishader'] and not activeGuishader then
 		activeGuishader = true
 		dlistGuishader = gl.CreateList(function()
 			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
@@ -484,7 +486,7 @@ function widget:DrawScreen()
 		local order = widgetHandler.orderList[name]
 		local enabled = order and (order > 0)
 		local active = data.active
-		if (pointed and not activescrollbar) then
+		if pointed and not activescrollbar then
 			pointedY = posy
 			pointedEnabled = data.active
 			if not pagestepped and (lmb or mmb or rmb) then
@@ -499,7 +501,7 @@ function widget:DrawScreen()
 		end
 
 		local tmpName
-		if (data.fromZip) then
+		if data.fromZip then
 			-- FIXME: extra chars not counted in text length
 			tmpName = WhiteStr .. '*' .. color .. name .. WhiteStr .. '*'
 		else
@@ -571,7 +573,7 @@ function widget:DrawScreen()
 	if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
 
 	else
-		if (pointedY) then
+		if pointedY then
 			local xn = minx + 0.5
 			local xp = maxx - 0.5
 			local yn = pointedY - ((fontSpace * 0.5 + 1) * sizeMultiplier)
@@ -615,15 +617,15 @@ function widget:MousePress(x, y, button)
 		end
 
 		-- above the scrollbar
-		if ((x >= minx + scrollbarOffset) and (x <= maxx + scrollbarOffset + (yStep * sizeMultiplier))) then
-			if ((y >= (maxy - bordery)) and (y <= maxy)) then
+		if x >= minx + scrollbarOffset and x <= maxx + scrollbarOffset + (yStep * sizeMultiplier) then
+			if y >= (maxy - bordery) and y <= maxy then
 				if x > maxx + scrollbarOffset then
 					ScrollUp(1)
 				else
 					ScrollUp(pageStep)
 				end
 				return true
-			elseif ((y >= miny) and (y <= miny + bordery)) then
+			elseif y >= miny and y <= miny + bordery then
 				if x > maxx + scrollbarOffset then
 					ScrollDown(1)
 				else
@@ -651,7 +653,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	local namedata = self:AboveLabel(x, y)
-	if (not namedata) then
+	if not namedata then
 		show = false
 		return false
 	end
@@ -671,7 +673,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MouseRelease(x, y, mb)
-	if (Spring.IsGUIHidden()) or not show then
+	if Spring.IsGUIHidden() or not show then
 		return -1
 	end
 
@@ -758,14 +760,14 @@ function widget:MouseRelease(x, y, mb)
 	local name = namedata[1]
 	local data = namedata[2]
 
-	if (mb == 1) then
+	if mb == 1 then
 		widgetHandler:ToggleWidget(name)
-	elseif ((button == 2) or (button == 3)) then
+	elseif mb == 2 or mb == 3 then
 		local w = widgetHandler:FindWidget(name)
-		if (not w) then
+		if not w then
 			return -1
 		end
-		if (button == 2) then
+		if mb == 2 then
 			widgetHandler:LowerWidget(w)
 		else
 			widgetHandler:RaiseWidget(w)
@@ -776,19 +778,19 @@ function widget:MouseRelease(x, y, mb)
 end
 
 function widget:AboveLabel(x, y)
-	if ((x < minx) or (y < (miny + bordery)) or
-		(x > maxx) or (y > (maxy - bordery))) then
+	if x < minx or y < (miny + bordery) or
+		x > maxx or y > (maxy - bordery) then
 		return nil
 	end
 	local count = #widgetsList
-	if (count < 1) then
+	if count < 1 then
 		return nil
 	end
 
 	local i = floor(1 + ((maxy - bordery) - y) / (yStep * sizeMultiplier))
-	if (i < 1) then
+	if i < 1 then
 		i = 1
-	elseif (i > count) then
+	elseif i > count then
 		i = count
 	end
 
@@ -800,8 +802,8 @@ function widget:IsAbove(x, y)
 		return false
 	end
 	UpdateList()
-	if ((x < minx) or (x > maxx + (yStep * sizeMultiplier)) or
-		(y < miny - #buttons * buttonHeight) or (y > maxy + bgPadding)) then
+	if x < minx or x > maxx + (yStep * sizeMultiplier) or
+		y < miny - #buttons * buttonHeight or y > maxy + bgPadding then
 		return false
 	end
 	return true
@@ -814,7 +816,7 @@ function widget:GetTooltip(x, y)
 
 	UpdateList()
 	local namedata = self:AboveLabel(x, y)
-	if (not namedata) then
+	if not namedata then
 		return '\255\200\255\200' .. 'Widget Selector\n' ..
 			'\255\255\255\200' .. 'LMB: toggle widget\n' ..
 			'\255\255\200\200' .. 'MMB: lower  widget\n' ..

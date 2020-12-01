@@ -20,6 +20,7 @@ end
 --------------------------------------------------------------------------------
 
 local vsx,vsy = Spring.GetViewGeometry()
+local widgetScale = (0.55 + (vsx*vsy / 10000000))
 
 local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at

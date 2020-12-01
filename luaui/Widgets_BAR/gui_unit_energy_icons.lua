@@ -39,6 +39,8 @@ local updateFrame = 0
 local lastGameFrame = 0
 local sceduledGameFrame = 1
 
+local chobbyInterface
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -224,9 +226,7 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.onlyShowOwnTeam = onlyShowOwnTeam
-	return savedTable
+	return {onlyShowOwnTeam = onlyShowOwnTeam}
 end
 
 function widget:SetConfigData(data)

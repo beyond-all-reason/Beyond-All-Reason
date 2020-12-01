@@ -134,6 +134,11 @@ local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
 
+local font, font2, bgpadding, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
+local draggingConversionIndicatorValue, conversionIndicatorArea, quitscreenArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
+local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistQuit
+local dlistButtons1, dlistButtons2, dlistRejoin, dlistComs1, dlistComs2, dlistWind1, dlistWind2
+
 local chobbyLoaded = false
 if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
 	chobbyLoaded = true
@@ -1188,8 +1193,10 @@ function init()
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateButtons()
 
-	WG['topbar'].GetPosition = function()
-		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
+	if WG['topbar'] then
+		WG['topbar'].GetPosition = function()
+			return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
+		end
 	end
 
 	updateResbarText('metal')
@@ -1473,7 +1480,7 @@ function widget:DrawScreen()
 		end
 		-- low energy background
 		if r[res][1] < 1000 then
-			process = (r[res][1] / r[res][2]) * 13
+			local process = (r[res][1] / r[res][2]) * 13
 			if process < 1 then
 				process = 1 - process
 				glColor(0.9, 0.4, 1, 0.08 * process)
@@ -1500,7 +1507,7 @@ function widget:DrawScreen()
 			end
 			-- low energy background
 			if r[res][1] < 2000 then
-				process = (r[res][1] / r[res][2]) * 13
+				local process = (r[res][1] / r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
 					glColor(0.9, 0.55, 1, 0.08 * process)

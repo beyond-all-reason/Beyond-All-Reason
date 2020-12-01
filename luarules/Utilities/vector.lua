@@ -153,7 +153,7 @@ local function DistanceToBoundedLineSq(point, line)
 	local startToEnd = Subtract(line[2], line[1])
 	local normal, projection = Normal(startToPos, startToEnd)
 	local projFactor = Dot(projection, startToEnd)
-	local normalFactor = Dot(normalFactor, startToEnd)
+	local normalFactor = Dot(normalFactor, startToEnd)	 -- normalFactor hasnt even been defined yet!?
 	if projFactor < 0 then
 		return Dist(line[1], point)
 	end

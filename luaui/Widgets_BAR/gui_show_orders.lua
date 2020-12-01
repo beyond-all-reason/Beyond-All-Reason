@@ -29,6 +29,8 @@ local fontSize = 16
 local isFactory = {}
 local GaiaTeamID  = Spring.GetGaiaTeamID() 		-- set to -1 to include Gaia units
 
+local font, chobbyInterface
+
 -----------------------------------------------------
 -- Speedup
 -----------------------------------------------------

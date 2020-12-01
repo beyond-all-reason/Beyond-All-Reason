@@ -16,7 +16,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 
 local useRoundedRectangles = true
 local roundedSizeMultiplier = 1
-local usedRoundedSize = roundedSize
+local usedRoundedSize = 4 + math.floor((((vsx*vsy) / 900000))) * roundedSizeMultiplier
 
 local TN = "Red"
 local DrawingTN = "Red_Drawing" --WG name for drawing function list
@@ -25,7 +25,7 @@ local version = 9
 local clock = os.clock
 local sgsub = string.gsub
 local function getLineCount(text)
-	_,linecount = sgsub(text,"\n","\n")
+	local _,linecount = sgsub(text,"\n","\n")
 	return linecount+1
 end
 
@@ -34,6 +34,8 @@ local WidgetList = {} --list of widgets using the framework
 
 local LastProcessedWidget = "" --for debugging
 local inTweak = false
+
+local font, Color, Rect, RectRound, TexRect, Border, Text
 
 local vsx,vsy = widgetHandler:GetViewSizes()
 if (vsx == 1) then --hax for windowed mode
@@ -229,7 +231,7 @@ local F = {
 				texturecolor = {1,1,1,alphamult}
 			end
 		end
-		if (color) then
+		if color then
 			local roundedSize = usedRoundedSize
 			if o.roundedsize ~= nil then
 				roundedSize = o.roundedsize

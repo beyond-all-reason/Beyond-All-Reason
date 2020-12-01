@@ -308,7 +308,7 @@ end
 -- Callins (game state change handlers)
 --
 function widget:UnitCreated(unitId, unitDefId, unitTeamId)
-	handleNewUnit(unitId, unitDef, unitTeamId)
+	handleNewUnit(unitId, unitDefId, unitTeamId)
 end
 
 function widget:UnitGiven(unitId, unitDefId, unitTeamId)

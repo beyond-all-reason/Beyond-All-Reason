@@ -37,6 +37,8 @@ local GiveOrderToUnit	= Spring.GiveOrderToUnit
 
 local myTeamID = Spring.GetMyTeamID()
 
+local gameStarted
+
 local canStockpile = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canStockpile then
@@ -50,7 +52,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:GetConfigData()
-	return 
+	return
 	{
 		MaxStockpile= MaxStockpile,
 	}
