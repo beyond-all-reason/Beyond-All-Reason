@@ -306,14 +306,27 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitGroup[unitDefID] = 'nuke'
 	end
 	local aaWeapons = 0
+	local weaponCount = 0
 	for i = 1, #unitDef.weapons do
 		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
-		if unitDef.weapons[i].onlyTargets and unitDef.weapons[i].onlyTargets['vtol'] then
-			aaWeapons = aaWeapons + 1
-		end
 		if weaponDef then
-			if weaponDef.paralyzer then
-				unitGroup[unitDefID] = 'emp'
+			if weaponDef.damages then
+				-- get highest damage category
+				local maxDmg = 0
+				for _, v in pairs(weaponDef.damages) do
+					if v > maxDmg then
+						maxDmg = v
+					end
+				end
+				if maxDmg > 1 then	-- filter away bogus weapons
+					weaponCount = weaponCount + 1
+					if unitDef.weapons[i].onlyTargets and unitDef.weapons[i].onlyTargets['vtol'] then
+						aaWeapons = aaWeapons + 1
+					end
+				end
+				if weaponDef.paralyzer then
+					unitGroup[unitDefID] = 'emp'
+				end
 			end
 			if weaponDef.shieldRepulser then
 				unitGroup[unitDefID] = 'util'
@@ -323,8 +336,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			--end
 		end
 	end
-	if aaWeapons > 0 and #unitDef.weapons == aaWeapons then
+	if aaWeapons > 0 and weaponCount == aaWeapons then
 		unitGroup[unitDefID] = 'aa'
+	end
+	if unitDef.name == 'armjeth' then
+		Spring.Echo(weaponCount, aaWeapons)
 	end
 
 	if unitDef.customParams.description_long then

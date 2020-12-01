@@ -28,7 +28,6 @@ std=lua51
 
 globals = {
     -- std extensions
-    "self",
     "math.round", "math.bit_or", "math.diag",
     "table.ifind", "table.show", "table.save", "table.echo", "table.print",
     -- Spring
@@ -39,7 +38,7 @@ globals = {
     -- Gadgets
     "GG", "gadgetHandler", "gadget",
     -- Widgets
-    "WG", "widgetHandler", "widget", "LUAUI_DIRNAME",
+    "WG", "widgetHandler", "widget", "LUAUI_DIRNAME", "self",
     -- Chili
     "Chili", "Checkbox", "Control", "ComboBox", "Button", "Label",
     "Line", "EditBox", "Font", "Window", "ScrollPanel", "LayoutPanel",

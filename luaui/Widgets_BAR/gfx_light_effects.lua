@@ -94,8 +94,6 @@ local function Split(s, separator)
 	return results
 end
 
-
-
 local weaponConf = {}
 function loadWeaponDefs()
 	weaponConf = {}
