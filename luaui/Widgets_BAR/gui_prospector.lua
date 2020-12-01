@@ -69,11 +69,7 @@ local MAP_SIZE_X_SCALED = MAP_SIZE_X / METAL_MAP_SQUARE_SIZE
 local MAP_SIZE_Z = Game.mapSizeZ
 local MAP_SIZE_Z_SCALED = MAP_SIZE_Z / METAL_MAP_SQUARE_SIZE
 
-------------------------------------------------
---H4X
-------------------------------------------------
-local once
-local vsx, vsy
+local once, font, chobbyInterface, forceUpdate
 
 ------------------------------------------------
 --helpers

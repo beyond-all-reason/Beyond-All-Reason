@@ -75,7 +75,7 @@ local math_min = math.min
 
 local isSpec = Spring.GetSpectatingState()
 
-local font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
+local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

@@ -22,6 +22,8 @@ local generalDuration			= 1.2		-- overall duration
 
 local imageDir					= ":n:LuaUI/Images/"
 
+local chobbyInterface
+
 local types = {
 	leftclick = {
 		size			= 0.82,
@@ -159,18 +161,18 @@ end
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
-  
+
 	local osClock = os.clock()
 	local camX, camY, camZ = spGetCameraPosition()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.DepthTest(false)
 	gl.PushMatrix()
-	
+
 	for cmdKey, cmdValue in pairs(commands) do
-		
+
 		local duration		= types[cmdValue.cmdType].duration * generalDuration
 		local durationProcess = (osClock - cmdValue.osClock) / duration
-		
+
 		-- remove when duration has passed
 		if osClock - cmdValue.osClock > duration  then
 			commands[cmdKey] = nil
@@ -181,18 +183,18 @@ function widget:DrawWorldPreUnit()
 			local a = (1 - durationProcess) * generalOpacity
 			local baseColor = types[cmdValue.cmdType].baseColor
 			a = a * baseColor[4]
-			
+
 			gl.Translate(cmdValue.x, cmdValue.y, cmdValue.z)
-			
-			local camDistance = diag(camX-cmdValue.x, camY-cmdValue.y, camZ-cmdValue.z) 
-			
+
+			local camDistance = diag(camX-cmdValue.x, camY-cmdValue.y, camZ-cmdValue.z)
+
 			-- set scale   (based on camera distance)
 			local scale = 1
 			if scaleWithCamera and camZ then
 				scale = 0.82 + camDistance / 20000
 				gl.Scale(scale,scale,scale)
 			end
-			
+
 			-- base glow
 			if baseColor[4] > 0 then
 				gl.Color(baseColor[1],baseColor[2],baseColor[3],a)
@@ -206,7 +208,7 @@ function widget:DrawWorldPreUnit()
 			gl.Translate(-cmdValue.x, -cmdValue.y, -cmdValue.z)
 		end
 	end
-	
+
 	gl.PopMatrix()
 end
 

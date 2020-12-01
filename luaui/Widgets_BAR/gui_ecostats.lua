@@ -1248,7 +1248,7 @@ end
 
 function isTeamReal(allyID)
 	if allyID == nil then return false end
-	local leaderID, spectator, isDead, unitCount
+	local leaderID, spectator, isDead, unitCount, leaderName, active
 
 	for _,tID in ipairs (GetTeamList(allyID)) do
 		_,leaderID,isDead			= GetTeamInfo(tID,false)
@@ -1332,8 +1332,7 @@ end
 
 function checkDeadTeams()
 	for teamID in pairs(teamData) do
-		isDead = select(3,GetTeamInfo(teamID,false))
-		teamData[teamID]["isDead"] = isDead
+		teamData[teamID]["isDead"] = select(3,GetTeamInfo(teamID,false))
 	end
 end
 

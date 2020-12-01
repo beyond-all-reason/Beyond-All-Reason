@@ -88,6 +88,8 @@ local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
 
+local chobbyInterface, font, font2, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
+
 local glColor = gl.Color
 local glTexRect = gl.TexRect
 local glRotate = gl.Rotate
@@ -739,6 +741,7 @@ function DrawWindow()
 	end
 
 	-- draw options
+	local yPos
 	for oid, option in pairs(options) do
 		if advSettings or option.basic and option.group ~= 'Dev' then
 			if currentGroupTab == nil or option.group == currentGroupTab then
@@ -2566,7 +2569,7 @@ function init()
 		},
 
 		{ id = "snow", group = "gfx", basic = true, widget = "Snow", name = "Snow", type = "bool", value = GetWidgetToggleValue("Snow"), description = 'Snow widget (By default.. maps with wintery names have snow applied)' },
-		{ id = "snowmap", group = "gfx", name = widgetOptionColor .. "   enabled on this map", type = "bool", value = true, description = 'It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)',
+		{ id = "snowmap", group = "gfx", name = widgetOptionColor .. "   enabled on this map", type = "bool", value = true, description = 'It will remember what you toggled for every map\n\n(by default: maps with wintery names have this toggled)',
 		  onload = function(i)
 			  loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
 		  end,
@@ -5121,31 +5124,31 @@ function getSelectKey(i, value)
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.vsyncLevel = vsyncLevel
-	savedTable.vsyncOnlyForSpec = vsyncOnlyForSpec
-	savedTable.vsyncEnabled = vsyncEnabled
-	savedTable.firsttimesetupDone = firstlaunchsetupDone
-	savedTable.resettedTonemapDefault = resettedTonemapDefault
-	savedTable.customPresets = customPresets
-	savedTable.cameraTransitionTime = cameraTransitionTime
-	savedTable.cameraPanTransitionTime = cameraPanTransitionTime
-	savedTable.maxNanoParticles = maxNanoParticles
-	savedTable.currentGroupTab = currentGroupTab
-	savedTable.show = show
-	savedTable.pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted
-	savedTable.pauseGameWhenSingleplayer = pauseGameWhenSingleplayer
-	savedTable.advSettings = advSettings
-	savedTable.defaultMapSunPos = defaultMapSunPos
-	savedTable.defaultSunLighting = defaultSunLighting
-	savedTable.defaultFog = defaultFog
-	savedTable.mapChecksum = Game.mapChecksum
-	savedTable.customMapSunPos = customMapSunPos
-	savedTable.customMapFog = customMapFog
-	savedTable.useNetworkSmoothing = useNetworkSmoothing
-	savedTable.desiredWaterValue = desiredWaterValue
-	savedTable.waterDetected = waterDetected
-	savedTable.savedConfig = {
+	return {
+		vsyncLevel = vsyncLevel,
+		vsyncOnlyForSpec = vsyncOnlyForSpec,
+		vsyncEnabled = vsyncEnabled,
+		firsttimesetupDone = firstlaunchsetupDone,
+		resettedTonemapDefault = resettedTonemapDefault,
+		customPresets = customPresets,
+		cameraTransitionTime = cameraTransitionTime,
+		cameraPanTransitionTime = cameraPanTransitionTime,
+		maxNanoParticles = maxNanoParticles,
+		currentGroupTab = currentGroupTab,
+		show = show,
+		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
+		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
+		advSettings = advSettings,
+		defaultMapSunPos = defaultMapSunPos,
+		defaultSunLighting = defaultSunLighting,
+		defaultFog = defaultFog,
+		mapChecksum = Game.mapChecksum,
+		customMapSunPos = customMapSunPos,
+		customMapFog = customMapFog,
+		useNetworkSmoothing = useNetworkSmoothing,
+		desiredWaterValue = desiredWaterValue,
+		waterDetected = waterDetected,
+
 		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160) },
 		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
@@ -5161,7 +5164,6 @@ function widget:GetConfigData(data)
 		guiopacity = { 'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66) },
 		scrollwheelspeed = { 'ScrollWheelSpeed', tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 25) or 25) },
 	}
-	return savedTable
 end
 
 function widget:SetConfigData(data)

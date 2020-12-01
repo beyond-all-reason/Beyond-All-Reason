@@ -942,7 +942,7 @@ function widget:Shutdown()
 end
 
 function widget:AddConsoleLine(lines,priority)
-	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
+	lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 	local textcolor
 	for line in lines:gmatch("[^\n]+") do
 		textcolor = processLine(line, console, Config.console, textcolor)[4]

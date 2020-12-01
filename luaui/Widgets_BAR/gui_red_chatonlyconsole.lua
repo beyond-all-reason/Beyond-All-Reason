@@ -552,7 +552,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		end
 
 	-- spectator chat
-	elseif sfind(line,"^(\[\[.*\])") then	-- somehow adding space at end doesnt work
+	elseif sfind(line,"^(%[%[.*%])") then	-- somehow adding space at end doesnt work
 		local endChar = sfind(line, "] ", nil, true)
 		if endChar then
 			local name = ssub(line, 2, endChar-1)
@@ -938,7 +938,7 @@ function widget:TextCommand(command)
 end
 
 function widget:AddConsoleLine(lines,priority)
-	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
+	lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 	local textcolor
 	for line in lines:gmatch("[^\n]+") do
 		textcolor = processLine(line, console, Config.console, textcolor)

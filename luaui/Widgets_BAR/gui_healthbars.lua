@@ -1112,7 +1112,7 @@ do
 				if fullText and drawBarPercentage > 0 then
 					infotext = reload .. '%'
 				end
-				AddBar("reload", reload, "reload", infoText or '')
+				AddBar("reload", reload, "reload", infotext or '')
 			end
 		end
 

@@ -20,6 +20,8 @@ local valuegreycolor = "\255\180\180\180"
 local vcolor = valuegreycolor
 local separator = "::"
 
+local font, font2, loadedFontSize, changelogList, titleRect, chobbyInterface, backgroundGuishader, show
+
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -665,10 +667,6 @@ function widget:Shutdown()
 	Spring.SendCommands("bind i gameinfo")
 	widgetHandler:RemoveAction("customgameinfo", toggle)
 
-	if buttonGL then
-		glDeleteList(buttonGL)
-		buttonGL = nil
-	end
 	if changelogList then
 		glDeleteList(changelogList)
 		changelogList = nil

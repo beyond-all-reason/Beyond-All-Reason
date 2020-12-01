@@ -95,6 +95,11 @@ local rows = 0
 local cols = 0
 local disableInput = false
 
+local font, font2, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader
+local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
+local bpWidth, bpHeight, buildmenuBottomPos, buildpowerWidgetEnabled
+local activeCmd, prevActiveCmd, doUpdate, doUpdateClock, SelectedUnitsCount
+
 local hiddencmds = {
 	[76] = true, --load units clone
 	[65] = true, --selfd
@@ -302,6 +307,7 @@ function widget:ViewResize()
 	end
 
 	font2 = WG['fonts'].getFont(fontFile)
+	local widgetSpaceMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
 		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)

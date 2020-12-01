@@ -60,6 +60,8 @@ local centerPosY = 0.49		-- note: dont go too far from 0.5
 local screenX = (vsx*centerPosX) - (screenWidth/2)
 local screenY = (vsy*centerPosY) + (screenHeight/2)
 
+local font, font2, loadedFontSize, titleRect, keybinds, chobbyInterface, backgroundGuishader, show
+
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	screenX = (vsx*centerPosX) - (screenWidth/2)

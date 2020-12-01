@@ -61,6 +61,8 @@ local rangeShapeList = {} -- table of coordinates lists for range circles
 local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
+local chobbyInterface, rangeCircleList
+
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
 --local isBuilding = {}

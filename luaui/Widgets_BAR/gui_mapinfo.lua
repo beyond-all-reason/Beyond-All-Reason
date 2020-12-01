@@ -63,6 +63,8 @@ local mapInfo = {}
 local mapInfoWidth = 400	-- minimum width
 local mapinfoList = {}
 
+local font, mapInfoBoxHeight, chobbyInterface
+
 --------------------------------------------------------------------------------
 -- Functions
 --------------------------------------------------------------------------------
@@ -283,9 +285,7 @@ end
 
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.stickToFloor = stickToFloor
-    return savedTable
+    return {stickToFloor = stickToFloor}
 end
 
 function widget:SetConfigData(data)

@@ -25,6 +25,8 @@ local usedCutoffDistance = cutoffDistance * distanceMult
 local iconsizeMult = 1
 local usedIconsize = iconsize * iconsizeMult
 
+local chobbyInterface
+
 local rankTexBase = 'LuaUI/Images/ranks/'
 local rankTextures = {
 	[0] = nil,

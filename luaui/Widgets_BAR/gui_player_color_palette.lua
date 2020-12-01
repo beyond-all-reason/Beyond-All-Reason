@@ -209,22 +209,22 @@ function reloadWidgets()
 	end
 end
 
-function ordercolors(_, _, params)
-	local oldRandomize = randomize
-	randomize = false
-	if oldRandomize == randomize then
-		Spring.Echo("Player Color Palette:  Player colors are already ordered by hue")
-	else
-		SetNewTeamColors()
-		reloadWidgets()
-	end
-end
+--function ordercolors(_, _, params)
+--	local oldRandomize = randomize
+--	randomize = false
+--	if oldRandomize == randomize then
+--		Spring.Echo("Player Color Palette:  Player colors are already ordered by hue")
+--	else
+--		SetNewTeamColors()
+--		reloadWidgets()
+--	end
+--end
 
-function shufflecolors(_, _, params)
-	randomize = true
-	SetNewTeamColors()
-	reloadWidgets()
-end
+--function shufflecolors(_, _, params)
+--	randomize = true
+--	SetNewTeamColors()
+--	reloadWidgets()
+--end
 
 function widget:Update(dt)
 	if useSameTeamColors and myTeamID ~= Spring.GetMyTeamID() then
@@ -261,10 +261,10 @@ function widget:Shutdown()
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.randomize = randomize
-	savedTable.useSameTeamColors = useSameTeamColors
-	return savedTable
+	return {
+		randomize = randomize,
+		useSameTeamColors = useSameTeamColors
+	}
 end
 
 function widget:SetConfigData(data)

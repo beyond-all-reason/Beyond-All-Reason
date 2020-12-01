@@ -68,6 +68,7 @@ local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobby
 local texSetting, cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
+local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -942,7 +943,7 @@ end
 local function drawSelection()
 	selUnitsCounts = spGetSelectedUnitsCounts()
 	selUnitsSorted = spGetSelectedUnitsSorted()
-	local selUnitTypes = 0
+	selUnitTypes = 0
 	selectionCells = {}
 
 	for k, uDefID in pairs(unitOrder) do
@@ -1647,10 +1648,6 @@ function widget:MouseRelease(x, y, button)
 	if WG['smartselect'] and not WG['smartselect'].updateSelection then
 		return
 	end
-	if not activePress then
-		return -1
-	end
-	activePress = false
 	local icon = MouseOverIcon(x, y)
 
 	local units = spGetSelectedUnitsSorted()

@@ -59,6 +59,8 @@ local currentTypewriterLine = 0
 local scrolling = false
 local lineMaxWidth = 0
 
+local font, chobbyInterface, hovering, startFadeTime, dataRestored
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -499,9 +501,7 @@ function widget:GetConfigData(data)
     for i, _ in ipairs(messageLines) do
         messageLines[i][6] = nil
     end
-    savedTable = {}
-    savedTable.messageLines = messageLines
-    return savedTable
+    return {messageLines = messageLines}
 end
 
 function widget:SetConfigData(data)

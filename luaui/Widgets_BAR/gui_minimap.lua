@@ -40,6 +40,8 @@ local spGetCameraState = Spring.GetCameraState
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
 
+local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 

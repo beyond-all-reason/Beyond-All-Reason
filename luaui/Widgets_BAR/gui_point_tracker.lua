@@ -73,7 +73,7 @@ local on = false
 local mapX = Game.mapX * 512
 local mapY = Game.mapY * 512
 
-local vsx, vsy, sMidX, sMidY
+local sMidX, sMidY, font, chobbyInterface
 
 ----------------------------------------------------------------
 --local functions

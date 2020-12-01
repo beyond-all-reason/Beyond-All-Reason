@@ -53,6 +53,8 @@ local fontfileOutlineSize = 22
 local fontfileOutlineStrength = 1.15
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
+local dont, chobbyInterface
+
 local extractors = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.extractsMetal > 0 then
@@ -188,7 +190,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:PlayerChanged(playerID)
-	local prevFullView = fullView
+	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -305,11 +307,11 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.showValue = showValue
-	savedTable.opacity = opacity
-	savedTable.metalViewOnly = metalViewOnly
-	return savedTable
+	return {
+		showValue = showValue,
+		opacity = opacity,
+		metalViewOnly = metalViewOnly
+	}
 end
 
 function widget:SetConfigData(data)
