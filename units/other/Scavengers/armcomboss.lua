@@ -186,12 +186,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 200,
+					bombers = 600,
 					commanders = 200,
-					default = 5000,
-					fighters = 200,
+					default = 3000,
+					fighters = 300,
 					subs = 1000,
-					vtol = 5000,
+					vtol = 4000,
 				},
 			},
 			armcomsealaserboss = {
@@ -230,12 +230,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					bombers = 200,
+					bombers = 600,
 					commanders = 200,
-					default = 5000,
-					fighters = 200,
+					default = 3000,
+					fighters = 300,
 					subs = 1000,
-					vtol = 5000,
+					vtol = 4000,
 				},
 			},
 			disintegrator = {
