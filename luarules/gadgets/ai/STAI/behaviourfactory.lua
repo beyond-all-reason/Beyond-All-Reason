@@ -79,13 +79,18 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b,TaskQueueBST)
 
 		else
-			table.insert(b,TaskQueueBST)
-			if self.ai.armyhst.unitTable[un].isBuilding then
+			if un == 'armlab' then
+				table.insert(b,TaskLabBST)
 				table.insert(b, LabRegisterBST)
 			else
-				--table.insert(b, AssistBST)
-				table.insert(b, ReclaimBST)
-				table.insert(b, CleanerBST)
+				table.insert(b,TaskQueueBST)
+				if self.ai.armyhst.unitTable[un].isBuilding then
+					table.insert(b, LabRegisterBST)
+				else
+					--table.insert(b, AssistBST)
+					table.insert(b, ReclaimBST)
+					table.insert(b, CleanerBST)
+				end
 			end
 		end
 		table.insert(b, WardBST)
