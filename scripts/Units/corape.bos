@@ -4,8 +4,8 @@
 #include "exptype.h"
 
 piece  	base, body, lpaddle, rpaddle, rwing1, lwing1,
-		rjet, rthrust, rwing2, rmislink, rmissile1, rflare, rflare1, 
-		ljet, lthrust, lwing2, lmislink, lmissile1, lflare, lflare1;
+		rjet, rthrust, rwing2, rmislink, rmissile1, rflare1, 
+		ljet, lthrust, lwing2, lmislink, lmissile1, lflare1;
 
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
 
