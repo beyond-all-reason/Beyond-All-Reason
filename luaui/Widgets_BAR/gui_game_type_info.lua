@@ -45,6 +45,8 @@ local message2 = ""
 local message3 = ""
 local message4 = ""
 
+local font, chobbyInterface
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -72,7 +74,7 @@ function widget:Initialize()
 	end
 
 	if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
-		plural = ""
+		local plural = ""
 		if tonumber(Spring.GetModOptions().armageddontime) ~= 1 then
 			plural = "s"
 		end

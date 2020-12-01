@@ -33,6 +33,8 @@ local spIsUnitVisible = Spring.IsUnitVisible
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitTeam = Spring.GetUnitTeam
 
+local shader, chobbyInterface
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

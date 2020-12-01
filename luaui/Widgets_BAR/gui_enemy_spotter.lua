@@ -81,6 +81,8 @@ prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 local edgeExponent			= 1.5
 local highlightOpacity		= 2.3
 
+local shader, chobbyInterface, DrawSpotterList
+
 local ignoreUnits = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.customParams['nohealthbars'] then
@@ -176,8 +178,8 @@ function setColors()
 			allyToSpotterColorCount     = allyToSpotterColorCount+1
 			allyToSpotterColor[allyID]  = allyToSpotterColorCount
 			local usedSpotterColor      = spotterColor[allyToSpotterColorCount]
+			local teamList = Spring.GetTeamList(allyID)
 			if defaultColorsForAllyTeams < numberOfAllyTeams-1 then
-				local teamList = Spring.GetTeamList(allyID)
 				for teamListIndex = 1, #teamList do
 					local teamID = teamList[teamListIndex]
 					if teamID ~= gaiaTeamID then
@@ -187,7 +189,7 @@ function setColors()
 						end
 						if pickTeamColor then
 						-- pick the first team in the allyTeam and take the color from that one
-							if (teamListIndex == 1) then
+							if teamListIndex == 1 then
 								--usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3] = Spring.GetTeamColor(teamID)
 								local luaAI = Spring.GetTeamLuaAI(teamID)
 								if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
@@ -204,10 +206,8 @@ function setColors()
 					end
 				end
 			end
-			teamList = Spring.GetTeamList(allyID)
 			for teamListIndex = 1, #teamList do
-				teamID = teamList[teamListIndex]
-				if teamID ~= gaiaTeamID then
+				if teamList[teamListIndex] ~= gaiaTeamID then
 					allyColors[allyID] = usedSpotterColor
 					allyColors[allyID][4] = spotterOpacity
 				end
@@ -317,9 +317,7 @@ end
 function widget:DrawWorldPreUnit()
 	if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
 	if chobbyInterface then return end
-	if not drawWithHiddenGUI then
-		if spIsGUIHidden() then return end
-	end
+	if spIsGUIHidden() then return end
 
 	if drawPlatter then
 
@@ -389,6 +387,7 @@ function widget:DrawWorld()
 
 	if useXrayHighlight and visibleUnitsCount > 0 then
 		gl.Color(1, 1, 1, 0.7)
+		local opacity
 		if shader then
 			gl.UseShader(shader)
 			opacity = highlightOpacity
@@ -433,14 +432,14 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.drawPlatter				= drawPlatter
-    savedTable.useXrayHighlight			= useXrayHighlight
-    savedTable.renderAllTeamsAsSpec		= renderAllTeamsAsSpec
-    savedTable.renderAllTeamsAsPlayer	= renderAllTeamsAsPlayer
-    savedTable.spotterOpacity			= spotterOpacity
-    savedTable.highlightOpacity			= highlightOpacity
-    return savedTable
+    return {
+		drawPlatter = drawPlatter,
+		useXrayHighlight = useXrayHighlight,
+		renderAllTeamsAsSpec = renderAllTeamsAsSpec,
+		renderAllTeamsAsPlayer = renderAllTeamsAsPlayer,
+		spotterOpacity = spotterOpacity,
+		highlightOpacity = highlightOpacity
+	}
 end
 
 function widget:SetConfigData(data)

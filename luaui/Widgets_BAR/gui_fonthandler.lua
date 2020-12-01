@@ -29,7 +29,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local fonts = {}
 local fontScale = 1
 local sceduledDeleteFonts = {}
-
+local sceduledDeleteFontsClock
 
 local function split(s, separator)
 	local results = {}

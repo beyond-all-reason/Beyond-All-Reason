@@ -85,6 +85,7 @@ local dgunRange	= WeaponDefNames["armcom_disintegrator"].range + WeaponDefNames[
 local comCircleDlist = {}
 local prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
 
+local chobbyInterface
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -92,7 +93,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
         isCommander[unitDefID] = true
     end
 end
---------------------------------------------------------------------------------
 
 
 local vsx,vsy = Spring.GetViewGeometry()

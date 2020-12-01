@@ -44,6 +44,8 @@ local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 local hoversize = 0
 local rot = 0
 
+local chobbyInterface, font
+
 local X_MIN = 0
 local X_MAX = 0
 local Y_MIN = 0
@@ -590,7 +592,7 @@ function widget:Update(dt)
 			CONDENSE = false
 		end
 
-		oldNoOfIcons = noOfIcons
+		local oldNoOfIcons = noOfIcons
 		noOfIcons = 0
 		drawTable = {}
 		local drawTableCount = 0

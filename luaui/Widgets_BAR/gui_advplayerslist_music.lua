@@ -43,7 +43,7 @@ local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
 local warTracks = VFS.DirList(musicDir..'war', '*.ogg')
 
 local vsx, vsy = Spring.GetViewGeometry()
-local bgpadding, borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime
+local bgpadding, borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface
 
 local tracksConfig = {}
 for i,v in pairs(peaceTracks) do

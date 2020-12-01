@@ -75,6 +75,8 @@ local math_min = math.min
 
 local isSpec = Spring.GetSpectatingState()
 
+local font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -181,12 +183,14 @@ function widget:ViewResize()
 	width = math.floor(width * vsx) / vsx
 	height = math.floor(height * vsy) / vsy
 
+	local buildmenuBottomPos
 	if WG['buildmenu'] then
 		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
 	end
 
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
+	local widgetSpaceMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
 		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
@@ -267,11 +271,10 @@ function widget:Update(dt)
 		if WG['buildpower'] then
 			local newBpWidth, newBpHeight = WG['buildpower'].getPosition()
 			if bpWidth == nil or (bpWidth ~= newBpWidth or bpHeight ~= newBpHeight) then
+				bpWidth = newBpWidth
+				bpHeight = newBpHeight
 				widget:ViewResize()
 			end
-		elseif buildpowerWidgetEnabled then
-			buildpowerWidgetEnabled = false
-			widget:ViewResize()
 		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)

@@ -104,7 +104,7 @@ local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,wy --keep memory always allo
 local notIdle = {}
 local playerPos = {}
 
-local font, chobbyInterface, functionID, wx_old, wy_old
+local font, chobbyInterface, functionID, wx_old, wz_old
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -135,22 +135,6 @@ function widget:TextCommand(command)
     if string.find(command, "allycursorplayername", nil, true) == 1  and  string.len(command) == 20 then
         showPlayerName = not showPlayerName
     end
-
-    if showPlayerName then
-        usedCursorSize = drawNamesCursorSize
-    end
-end
-
-function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.showSpectatorName  = showSpectatorName
-    savedTable.showPlayerName     = showPlayerName
-    return savedTable
-end
-
-function widget:SetConfigData(data)
-    if data.showSpectatorName ~= nil   then  showSpectatorName   = data.showSpectatorName end
-    if data.showPlayerName ~= nil      then  showPlayerName      = data.showPlayerName end
 
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
@@ -608,14 +592,18 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.showSpectatorName ~= nil   then  showSpectatorName   = data.showSpectatorName end
+	if data.showPlayerName ~= nil      then  showPlayerName      = data.showPlayerName end
+
+	if showPlayerName then
+		usedCursorSize = drawNamesCursorSize
+	end
     if data.addLights ~= nil then
         addLights = data.addLights
         lightRadiusMult = data.lightRadiusMult
         lightStrengthMult = data.lightStrengthMult
         if data.showCursorDot ~= nil then
             showCursorDot = data.showCursorDot
-            showSpectatorName = data.showSpectatorName
-            showPlayerName = data.showPlayerName
         end
     end
 end

@@ -377,10 +377,11 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				break ;
 			end
 
+			local numLines
 			local line = changelogLines[lineKey]
 			if string.find(line, '::') then
-				local cmd = string.match(line, '^[ \+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
-				local descr = string.sub(line, string.len(string.match(line, '^[ \+a-zA-Z0-9_-]*::')) + 1)
+				local cmd = string.match(line, '^[ %+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
+				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::')) + 1)
 				descr, numLines = font:WrapText(descr, (width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset) * (loadedFontSize / fontSizeLine))
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
 					break ;

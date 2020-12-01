@@ -62,7 +62,7 @@ local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
 local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, startDefID, font, font2, cmdsCount
-local hijackedlayout, doUpdateClock, ordermenuHeight, prevOrdermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
+local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local radariconSize, radariconOffset, groupiconSize, priceFontSize
 local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
@@ -338,9 +338,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if aaWeapons > 0 and weaponCount == aaWeapons then
 		unitGroup[unitDefID] = 'aa'
-	end
-	if unitDef.name == 'armjeth' then
-		Spring.Echo(weaponCount, aaWeapons)
 	end
 
 	if unitDef.customParams.description_long then
@@ -1249,11 +1246,11 @@ function widget:Update(dt)
 				local prevAdvplayerlistLeft = advplayerlistLeft
 				advplayerlistLeft = advplayerlistPos[2]
 			end
+			local prevOrdermenuLeft = ordermenuLeft
+			local prevOrdermenuHeight = ordermenuHeight
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
-				local prevOrdermenuLeft = ordermenuLeft
 				ordermenuLeft = oposX + owidth
-				local prevOrdermenuHeight = ordermenuHeight
 				ordermenuHeight = oheight
 			end
 			if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
@@ -1692,7 +1689,7 @@ function widget:DrawScreen()
 	end
 
 	-- refresh buildmenu if active cmd changed
-	prevActiveCmd = activeCmd
+	local prevActiveCmd = activeCmd
 	activeCmd = select(4, spGetActiveCommand())
 	if activeCmd ~= prevActiveCmd then
 		doUpdate = true

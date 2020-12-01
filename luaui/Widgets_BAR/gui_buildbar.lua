@@ -82,8 +82,8 @@ local startTimer = Spring.GetTimer()
 local msx = Game.mapX * 512
 local msz = Game.mapY * 512
 
-local bgpadding, font, backgroundRect, backgroundOptionsRect, dlistGuishader, dlistGuishader2, forceGuishader
-local chobbyInterface, factoriesArea, cornerSize, setInfoDisplayUnitID
+local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
+local chobbyInterface, factoriesArea, cornerSize, setInfoDisplayUnitID, factoriesAreaHovered
 
 -------------------------------------------------------------------------------
 -- Speed Up

@@ -95,6 +95,8 @@ local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 
 local unba_enabled = (Spring.GetModOptions() and Spring.GetModOptions().unba == "enabled")
 
+local chobbyInterface
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -162,7 +164,7 @@ local glColor = gl.Color
 local glMyText = gl.FogCoord
 local floor = math.floor
 local sub = string.sub
-local GetUnitDefID = Spring.GetUnitDefID
+local spGetUnitDefID = Spring.GetUnitDefID
 local glDepthTest = gl.DepthTest
 
 --------------------------------------------------------------------------------
@@ -171,7 +173,7 @@ local glDepthTest = gl.DepthTest
 
 -- tiny perf improvement this way:
 local unitsUnitDefCache = {}
-function aGetUnitDefID(unitID)
+function GetUnitDefID(unitID)
 	if unitsUnitDefCache[unitID] == nil then
 		unitsUnitDefCache[unitID] = spGetUnitDefID(unitID)
 	end
@@ -754,10 +756,10 @@ do
 
 	local brightClr = {}
 	function DrawUnitBar(offsetY, percent, color)
-		if (barShader) then
+		if barShader then
 			glMultiTexCoord(1, color)
 			glMultiTexCoord(2, percent, offsetY)
-			glCallList(barDList, progress)
+			glCallList(barDList)
 			return
 		end
 
@@ -774,7 +776,7 @@ do
 	end
 
 	function DrawFeatureBar(offsetY, percent, color)
-		if (barShader) then
+		if barShader then
 			glMultiTexCoord(1, color)
 			glMultiTexCoord(2, percent, offsetY)
 			glCallList(barFeatureDList)
@@ -967,7 +969,7 @@ do
 
 	function DrawUnitInfos(unitID, unitDefID, hideHealth, ux, uy, uz, dist)
 
-		fullText = (dist < infoDistance * drawDistanceMult)
+		local fullText = (dist < infoDistance * drawDistanceMult)
 
 		ci = unitdefInfo[unitDefID]
 
@@ -1451,22 +1453,20 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.barScale = barScale
-	savedTable.drawBarPercentage = drawBarPercentage
-	savedTable.alwaysDrawBarPercentageForComs = alwaysDrawBarPercentageForComs
-	savedTable.currentOption = currentOption
-	savedTable.hideHealthbars = hideHealthbars
-	savedTable.drawDistanceMult = drawDistanceMult
-	savedTable.variableBarSizes = variableBarSizes
-	return savedTable
+	return {
+		barScale = barScale,
+		drawBarPercentage = drawBarPercentage,
+		alwaysDrawBarPercentageForComs = alwaysDrawBarPercentageForComs,
+		hideHealthbars = hideHealthbars,
+		drawDistanceMult = drawDistanceMult,
+		variableBarSizes = variableBarSizes
+	}
 end
 
 function widget:SetConfigData(data)
 	barScale = data.barScale or barScale
 	drawBarPercentage = data.drawBarPercentage or drawBarPercentage
 	alwaysDrawBarPercentageForComs = data.alwaysDrawBarPercentageForComs or alwaysDrawBarPercentageForComs
-	currentOption = data.currentOption or currentOption
 	if data.hideHealthbars ~= nil then
 		hideHealthbars = data.hideHealthbars
 	end

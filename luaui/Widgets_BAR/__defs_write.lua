@@ -22,6 +22,69 @@ if customparamDefsDetected then
         }
     end
 
+	local savedTables = {}
+
+	local function SaveTable(t, file, indent)
+		local indent = indent .. indentString
+
+		local st = MakeSortedTable(t)
+
+		for _,kv in ipairs(st) do
+			local k, v = kv[1], kv[2]
+			local ktype = type(k)
+			local vtype = type(v)
+			-- output the key
+			if (ktype == 'string') then
+				file:write(indent..encloseKey(k)..' = ')
+			else
+				file:write(indent..'['..tostring(k)..'] = ')
+			end
+			-- output the value
+			if (vtype == 'string') then
+				file:write(encloseStr(v)..',\n')
+			elseif (vtype == 'number') then
+				if (v == math.huge) then
+					file:write('math.huge,\n')
+				elseif (v == -math.huge) then
+					file:write('-math.huge,\n')
+				else
+					if k=="buildcostmetal" or k=="buildcostenergy" or k=="metalpershot" or k=="energypershot" then
+						-- round to integer
+						v = string.format("%.0f", v)
+					else
+						-- round to 5dp, convert to string, then remove trailing 0s after decimal point
+						v = string.format("%.5f", v)
+						local a,b = string.find(v,".")
+						if a~= nil then
+							v = string.reverse(v)
+							while (string.sub(v,1,1)=="0") do
+								v = string.sub(v,2)
+							end
+							if string.sub(v,1,1)=="." then v = string.sub(v,2) end --remove the decimal point, if needed
+							v = string.reverse(v)
+						end
+					end
+					file:write(tostring(v)..',\n')
+				end
+			elseif (vtype == 'boolean') then
+				file:write(tostring(v)..',\n')
+			elseif (vtype == 'table') then
+				if (savedTables[v]) then
+					error("table.save() does not support recursive tables")
+				end
+				if (next(v)) then
+					savedTables[t] = true
+					file:write('{\n')
+					SaveTable(v, file, indent)
+					file:write(indent..'},\n')
+					savedTables[t] = nil
+				else
+					file:write('{},\n') -- empty table
+				end
+			end
+		end
+	end
+
     -- second half of a tool for baking unitdefs_post into unitdef files, see readme.txt
     local had_failed = false
 
@@ -147,8 +210,6 @@ if customparamDefsDetected then
 
     local indentString = '\t'
 
-    local savedTables = {}
-
     -- setup a lua keyword map
     local keyWords = {
         "and", "break", "do", "else", "elseif", "end", "false", "for", "function",
@@ -229,68 +290,6 @@ if customparamDefsDetected then
         end
         table.sort(st, CompareKeys)
         return st
-    end
-
-
-    local function SaveTable(t, file, indent)
-        local indent = indent .. indentString
-
-        local st = MakeSortedTable(t)
-
-        for _,kv in ipairs(st) do
-            local k, v = kv[1], kv[2]
-            local ktype = type(k)
-            local vtype = type(v)
-            -- output the key
-            if (ktype == 'string') then
-                file:write(indent..encloseKey(k)..' = ')
-            else
-                file:write(indent..'['..tostring(k)..'] = ')
-            end
-            -- output the value
-            if (vtype == 'string') then
-                file:write(encloseStr(v)..',\n')
-            elseif (vtype == 'number') then
-                if (v == math.huge) then
-                    file:write('math.huge,\n')
-                elseif (v == -math.huge) then
-                    file:write('-math.huge,\n')
-                else
-                    if k=="buildcostmetal" or k=="buildcostenergy" or k=="metalpershot" or k=="energypershot" then
-                        -- round to integer
-                        v = string.format("%.0f", v)
-                    else
-                        -- round to 5dp, convert to string, then remove trailing 0s after decimal point
-                        v = string.format("%.5f", v)
-                        local a,b = string.find(v,".")
-                        if a~= nil then
-                            v = string.reverse(v)
-                            while (string.sub(v,1,1)=="0") do
-                                v = string.sub(v,2)
-                            end
-                            if string.sub(v,1,1)=="." then v = string.sub(v,2) end --remove the decimal point, if needed
-                            v = string.reverse(v)
-                        end
-                    end
-                    file:write(tostring(v)..',\n')
-                end
-            elseif (vtype == 'boolean') then
-                file:write(tostring(v)..',\n')
-            elseif (vtype == 'table') then
-                if (savedTables[v]) then
-                    error("table.save() does not support recursive tables")
-                end
-                if (next(v)) then
-                    savedTables[t] = true
-                    file:write('{\n')
-                    SaveTable(v, file, indent)
-                    file:write(indent..'},\n')
-                    savedTables[t] = nil
-                else
-                    file:write('{},\n') -- empty table
-                end
-            end
-        end
     end
 
 end

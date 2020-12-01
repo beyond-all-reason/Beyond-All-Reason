@@ -62,6 +62,13 @@ local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
+local prevUnitIconSize, prevUnitIconSize2, radarIconSize, prevRadarIconSize, unitIconSize, unitIconSize2, iconTypesMap
+local dlistCache, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, texSetting, displayMode
+local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
+local texSetting, cellRect, cellPadding, cornerSize, cellsize, cellHovered
+local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
+local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -949,6 +956,7 @@ local function drawSelection()
 
 	-- draw selection totals
 	if showSelectionTotals then
+		local numLines
 		local stats = getSelectionTotals(selectionCells)
 		local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " units selected" .. stats .. "\n " .. (stats == '' and '' or '\n')
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
@@ -1639,14 +1647,14 @@ function widget:MouseRelease(x, y, button)
 	if WG['smartselect'] and not WG['smartselect'].updateSelection then
 		return
 	end
-	if (not activePress) then
+	if not activePress then
 		return -1
 	end
 	activePress = false
 	local icon = MouseOverIcon(x, y)
 
 	local units = spGetSelectedUnitsSorted()
-	if (units.n ~= unitTypes) then
+	if units.n ~= selUnitTypes then
 		return -1  -- discard this click
 	end
 	units.n = nil
@@ -1655,7 +1663,7 @@ function widget:MouseRelease(x, y, button)
 	local unitTable = nil
 	local index = 0
 	for udid, uTable in pairs(units) do
-		if (index == icon) then
+		if index == icon then
 			unitDefID = udid
 			unitTable = uTable
 			break
@@ -1668,11 +1676,11 @@ function widget:MouseRelease(x, y, button)
 
 	local alt, ctrl, meta, shift = spGetModKeyState()
 
-	if (button == 1) then
+	if button == 1 then
 		LeftMouseButton(unitDefID, unitTable)
-	elseif (button == 2) then
+	elseif button == 2 then
 		MiddleMouseButton(unitDefID, unitTable)
-	elseif (button == 3) then
+	elseif button == 3 then
 		RightMouseButton(unitDefID, unitTable)
 	end
 
@@ -1703,7 +1711,6 @@ function widget:DrawScreen()
 		end)
 	end
 	gl.CallList(dlistInfo)
-
 
 
 	-- widget hovered
@@ -1793,7 +1800,6 @@ end
 
 function checkChanges()
 	local x, y, b, b2, b3 = spGetMouseState()
-	lastType = hoverType
 	lastHoverData = hoverData
 	hoverType, hoverData = spTraceScreenRay(x, y)
 	if hoverType == 'unit' or hoverType == 'feature' then
@@ -1803,9 +1809,9 @@ function checkChanges()
 	else
 		lastHoverDataClock = os_clock()
 	end
-	prevDisplayMode = displayMode
-	prevDisplayUnitDefID = displayUnitDefID
-	prevDisplayUnitID = displayUnitID
+	local prevDisplayMode = displayMode
+	local prevDisplayUnitDefID = displayUnitDefID
+	local prevDisplayUnitID = displayUnitID
 
 	-- determine what mode to display
 	displayMode = 'text'

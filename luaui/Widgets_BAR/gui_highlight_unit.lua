@@ -85,6 +85,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local shader, chobbyInterface
 
 local texName = 'LuaUI/Images/highlight_strip.png'
 
@@ -243,18 +244,6 @@ end
 
 local function SetFeatureColor(featureID, alpha)
 	glColor(1.0, 0.0, 1.0, alpha) -- purple
-	do
-		return
-	end  -- FIXME -- wait for feature team/allyteam resolution
-
-	local allyTeamID = spGetFeatureAllyTeam(featureID)
-	if allyTeamID == nil or allyTeamID < 0 then
-		glColor(1.0, 1.0, 1.0, alpha) -- white
-	elseif allyTeamID == spGetMyAllyTeamID() then
-		glColor(0.0, 1.0, 1.0, alpha) -- cyan
-	else
-		glColor(1.0, 0.0, 0.0, alpha) -- red
-	end
 end
 
 local function UnitDrawFunc(unitID)

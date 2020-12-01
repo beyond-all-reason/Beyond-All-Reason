@@ -61,6 +61,8 @@ local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
 
+local font, bgpadding, chobbyInterface, sideImageList
+
 local reclaimerUnits = {}
 
 local Button 						= {}
@@ -746,7 +748,7 @@ end
 local function DrawOptionRibbon()
 	local h = 45*sizeMultiplier
 	local dx = 80*sizeMultiplier
-	local x0
+	local x0, x1
 	local t = 12*sizeMultiplier
 
 	if right then
@@ -864,12 +866,11 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 		b = 1
 	end
 
-	if mouseOn and (not isDead) then
+	if mouseOn and not isDead then
 		if ctrlDown then
 			glColor(1,1,1,a)
 		else
-			local gs
-			gs,_,_ = GetGameSpeed() or 1
+			local gs,_,_ = GetGameSpeed() or 1
 			glColor(r-0.2*sin(10*t/gs),g-0.2*sin(10*t/gs),b,a)
 		end
 	else
@@ -1046,17 +1047,6 @@ function UpdateAllies()
 end
 
 
-function UpdateAlly(allyID)
-	if inSpecMode then
-		setAllyData(allyID)
-	else
-		if allyID == myAllyID then
-			setAllyData(allyID)
-		end
-	end
-end
-
-
 local reclaimerUnitDefs = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder and not def.isFactory then
@@ -1132,10 +1122,10 @@ end
 
 function setTeamTable(teamID)
 
-	local side, aID, isDead, commanderAlive, minc, mrecl, einc, erecl, x, y, leaderName, leaderID, active, spectator
+	local commanderAlive, minc, mrecl, einc, erecl, x, y
 
-	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID,false)
-	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID,false)
+	local _,leaderID,isDead,isAI,side,aID,_,_ = GetTeamInfo(teamID,false)
+	local leaderName,active,spectator,_,_,_,_,_,_ = GetPlayerInfo(leaderID,false)
 
 	if teamID == gaiaID then
 		if haveZombies then
@@ -1147,7 +1137,7 @@ function setTeamTable(teamID)
 
 	local tred, tgreen, tblue = GetTeamColor(teamID)
 	local luminance  = (tred * 0.299) + (tgreen * 0.587) + (tblue * 0.114)
-	if (luminance < 0.2) then
+	if luminance < 0.2 then
 		tred = tred + 0.25
 		tgreen = tgreen + 0.25
 		tblue = tblue + 0.25
@@ -1165,6 +1155,7 @@ function setTeamTable(teamID)
 	if cp and cp.side then side = cp.side end
 
 	-- code from ecostats widget
+	local teamside
 	if Spring.GetTeamRulesParam(teamID, 'startUnit') then
 		local startunit = Spring.GetTeamRulesParam(teamID, 'startUnit')
 		if startunit == armcomDefID then
@@ -1540,18 +1531,13 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-function widget:MouseRelease(x,y,button)
-	if button == 2 or button == 3 then
-		pressedToMove = nil                                              -- ends move action
-	end
-end
 
 function widget:ViewResize()
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (((vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
 
-	widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 
 	font = WG['fonts'].getFont()
@@ -1622,7 +1608,7 @@ function widget:Update(dt)
 	end
 	if myFullview ~= select(2,Spring.GetSpectatingState()) then
 		myFullview = select(2,Spring.GetSpectatingState())
-		if myFullView then
+		if myFullview then
 			Reinit()
 		else
 			removeGuiShaderRects()
@@ -1645,7 +1631,7 @@ end
 function widget:DrawScreen()
 	if chobbyInterface then return end
 	if not inSpecMode or not myFullview then return end
-	if Spring.IsGUIHidden() or (not inSpecMode) then return end
+	if Spring.IsGUIHidden() or not inSpecMode then return end
 
 	if not sideImageList then makeSideImageList() end
 
