@@ -95,8 +95,8 @@ local autosave = false
 -----------------------------------------------------------------------------------
 local function ReadFile(zip, name, file)
 	name = name or ''
-	if (not file) then return end
-	local dataRaw, dataFunc, data, err
+	if not file then return end
+	local dataRaw, dataFunc, data, success, err
 
 	zip:open(file)
 	dataRaw = zip:read("*all")
@@ -408,7 +408,7 @@ local function LoadUnits()
 
 	-- second pass for orders
 	for oldID, data in pairs(savedata.unit) do
-		LoadOrdersForUnit(unitID, data)
+		LoadOrdersForUnit(oldID, data)
 
 		if data.factoryData then
 			for i=1,#data.factoryData.commands do

@@ -54,20 +54,6 @@ local GetUnitIsTransporting = Spring.GetUnitIsTransporting
 local GetGroundHeight = Spring.GetGroundHeight
 local math_sqrt = math.sqrt
 
-local function IgBuilderChanged()
-	CONST_IGNORE_BUILDERS = options.ignoreBuilders.value
-end
-
-local options = {
-	ignoreBuilders = {
-		name = "Transport AI: Ignore Builders",
-		type = "bool",
-		value = false,
-		desc = "Do not pick up builders.",
-		OnChange = IgBuilderChanged,
-	},
-}
-
 local isFactory = {}
 local isTransport = {}
 local isTransportable = {}

@@ -12,6 +12,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+local enabled
 GG.AiHelpers = {}
 
 --------------------------------
@@ -25,9 +26,9 @@ GG.AiHelpers.Start = function()
 end
 
 local mapwidth = math.max(Game.mapSizeX, Game.mapSizeZ)
-local celltoscan = celltoscan or {}
-local defidpersizetype = defidpersizetype or {}
-local cells = cells or {}
+local celltoscan = {} --celltoscan or {}
+local defidpersizetype =  {} --defidpersizetype or {}
+local cells = {} --cells or {}
 local math_sqrt = math.sqrt
 
 GG.AiHelpers.NewPlacementHandler.GetPosFromID = function(id)
@@ -379,9 +380,9 @@ end
 				SeenBuildings[id] = SeenBuildings[id] or {}
 				SeenBuildings[id][unitID] = true
 			end
-		end				
+		end
 	end
-	
+
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		if enabled ~= true then return end
 		if isNanoTC[unitDefID] then
@@ -390,7 +391,7 @@ end
 			gadget:UpdateClosestNanoTCTable(unitTeam)
 		end
 	end
-	
+
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if enabled ~= true then return end
 		if not attackerDefID then return end
@@ -403,21 +404,21 @@ end
 		local h,maxh,_ = Spring.GetUnitHealth(unitID)
 		damage = math.min(h,damage)
 		if paralyzer then damage = damage * 0.2 end
-		if attackerDefID and attackerTeam then
-			local count = Spring.GetTeamUnitDefCount(attackerTeam, attackerDefID)
-			if count > 0 then
-				ratio2 = 30/count
-			else
-				ratio2 = 30
-			end
-		end
+		--if attackerDefID and attackerTeam then
+		--	local count = Spring.GetTeamUnitDefCount(attackerTeam, attackerDefID)
+		--	if count > 0 then
+		--		ratio2 = 30/count
+		--	else
+		--		ratio2 = 30
+		--	end
+		--end
 		local ratio = damage/maxh
 		local killed_m = unitMetalCost[unitDefID] * ratio
 		local killed_e = unitEnergyCost[unitDefID] * ratio
 		info[attackerTeam][attackerDefID].killed_cost = info[attackerTeam][attackerDefID].killed_cost + killed_m + killed_e/60
 		info[attackerTeam][attackerDefID].avgkilled_cost = info[attackerTeam][attackerDefID].killed_cost / info[attackerTeam][attackerDefID].n
 	end
-	
+
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if enabled ~= true then return end
 		if not NanoTC[unitTeam] then NanoTC[unitTeam] = {} end
@@ -436,10 +437,10 @@ end
 	function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 		if enabled ~= true then return end
 		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
-		gadget:UnitFinished(unitID, unitDefID, newTeam)	
+		gadget:UnitFinished(unitID, unitDefID, newTeam)
 	end
 
-	
+
 	function gadget:GameFrame(f)
 		if enabled ~= true then return end
 		for id, cell in pairs(celltoscan) do
@@ -458,11 +459,11 @@ end
 	function gadget:SetCellValue(id, size, buildtype, value)
 		cells[size][buildtype][id] = value
 	end
-	
+
 	function gadget:ScanCell(id)
 		celltoscan[id] = true
 	end
-	
+
 	function gadget:UpdateClosestNanoTCTable(teamID)
 		if teamID then
 			ClosestNanoTC[teamID] = nil

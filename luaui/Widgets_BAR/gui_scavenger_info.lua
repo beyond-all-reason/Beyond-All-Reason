@@ -498,9 +498,7 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.numGames	= numGames
-	return savedTable
+	return {numGames	= numGames}
 end
 
 function widget:SetConfigData(data)

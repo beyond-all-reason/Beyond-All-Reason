@@ -36,6 +36,8 @@ local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
 
+local lockPlayerID
+
 function addSound(name, file, minDelay, duration, message, unlisted)
 	Sound[name] = {file, minDelay, duration, message}
 	soundList[name] = true

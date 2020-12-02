@@ -88,7 +88,10 @@ local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
 
-local chobbyInterface, font, font2, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
+local chobbyInterface, font, font2, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
+local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
+local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
+local fontOption, draggingSlider, sliderValueChanged, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -490,7 +493,7 @@ function lines(str)
 		t[#t + 1] = line
 		return ""
 	end
-	helper((str:gsub("(.-)\r?\n", helpe3r)))
+	helper((str:gsub("(.-)\r?\n", helper)))
 	return t
 end
 
@@ -548,7 +551,7 @@ function orderOptions()
 	local newOptionsCount = 0
 	for id, group in pairs(optionGroups) do
 		--if advSettings or group.id ~= 'dev' then
-		grOptions = groupOptions[group.id]
+		local grOptions = groupOptions[group.id]
 		if #grOptions > 0 then
 			local name = group.name
 			if group.id == 'gfx' then
@@ -1241,7 +1244,7 @@ function widget:DrawScreen()
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
 					for optionID, _ in pairs(presets['lowest']) do
-						optionKey = getOptionByID(optionID)
+						local optionKey = getOptionByID(optionID)
 						if optionHover[optionKey] ~= nil then
 							RectRound(optionHover[optionKey][1], optionHover[optionKey][2] + 1.33, optionHover[optionKey][3], optionHover[optionKey][4] - 1.33, 1, 2, 2, 2, 2, { 0, 0, 0, 0.15 }, { 1, 1, 1, 0.15 })
 						end
@@ -1486,6 +1489,7 @@ function mouseEvent(x, y, button, release)
 
 	local cx, cy = correctMouseForScaling(x, y)
 	if show then
+		local returnTrue
 		local cx, cy = correctMouseForScaling(x, y)
 		if button == 3 then
 			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
@@ -1831,6 +1835,7 @@ function init()
 	if infolog then
 		local fileLines = lines(infolog)
 		local desktop = ''
+		local addResolutions
 		for i, line in ipairs(fileLines) do
 			if addResolutions then
 				local resolution = string.match(line, '[0-9]*x[0-9]*')
@@ -4484,9 +4489,9 @@ function init()
 					for k, v in pairs(soundList) do
 						count = count + 1
 						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", basic = true, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
-											  onchange = function(i, value)
-												  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
-											  end,
+							onchange = function(i, value)
+								saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
+							end,
 							--onclick = function()
 							--	if WG['notifications'] ~= nil and WG['notifications'].playNotif then
 							--		WG['notifications'].playNotif(v[1])

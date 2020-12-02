@@ -26,6 +26,8 @@ local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
+local widgetScale
+
 local customScale = 1
 
 local playSounds = true
@@ -189,15 +191,6 @@ function convertSIPrefix(value,thresholdmodifier,noSmallValues,useFirstDecimal)
 	return retVal
 end
 
-
-function rectBox(boxData,fillColor)
-	boxData = boxData.absSizes
-	if fillColor then
-		glColor(fillColor)
-	end
-	glRect(boxData.x.min,boxData.y.max,boxData.x.max,boxData.y.min)
-end
-
 function aboveRectangle(mousePos,boxData)
 	local included = true
 	for coordName, coordData in pairs(boxData.absSizes) do
@@ -233,19 +226,6 @@ end
 function colorToChar(colorarray)
 	return char(255,min(max(floor(colorarray[1]*255),1),255),min(max(floor(colorarray[2]*255),1),255),min(max(floor(colorarray[3]*255),1),255))
 end
-
-
-function convertCoords(sourceCoords,scalingVec)
-	local newCoords = {}
-	for coordName, coordData in pairs(sourceCoords) do
-		newCoords[coordName] = {}
-		for minmax, value in pairs(coordData) do
-			newCoords[coordName][minmax] = value*scalingVec[coordName]
-		end
-	end
-	return newCoords
-end
-
 
 local teamData={}
 local maxColumnTextSize = 0
@@ -703,12 +683,8 @@ function DrawBackground()
 	if not guiData.mainPanel.visible then
 		return
 	end
-	if widgetHandler:InTweakMode() then
-		--rectBoxWithBorder(guiData.mainPanel,{0,0,0,0.4})
-	else
-		if backgroundDisplayList then
-			glCallList(backgroundDisplayList)
-		end
+	if backgroundDisplayList then
+		glCallList(backgroundDisplayList)
 	end
 
 	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max

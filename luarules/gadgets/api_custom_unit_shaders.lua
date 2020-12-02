@@ -326,9 +326,9 @@ local function _ProcessOptions(optName, _, optValues, playerID)
 	--Spring.Utilities.TableEcho({optName, optValues, playerID}, "_ProcessOptions")
 
 	for _, rendering in ipairs(allRendering) do
-		for matName, matTable in pairs(rendering.materialDefs) do
-			if matTable.ProcessOptions then
-				local optCh = matTable.ProcessOptions(matTable, optName, optValues)
+		for matName, mat in pairs(rendering.materialDefs) do
+			if mat.ProcessOptions then
+				local optCh = mat.ProcessOptions(matTable, optName, optValues)
 				optionsChanged = optionsChanged or optCh
 			end
 		end
@@ -690,9 +690,9 @@ local function _CleanupEverything(rendering)
 		end
 	end
 
-	for _, mat in pairs(rendering.materialDefs) do
+	for matName, mat in pairs(rendering.materialDefs) do
 		if mat.Finalize then
-			mat.Finalize(matName, matSrc)
+			mat.Finalize(matName, mat)
 		end
 		for _, shaderObject in pairs({mat.standardShaderObj, mat.deferredShaderObj, mat.shadowShaderObj}) do
 			if shaderObject then
@@ -969,10 +969,10 @@ function gadget:Initialize()
 	}
 
 	for _, rendering in ipairs(allRendering) do
-		for matName, matTable in pairs(rendering.materialDefs) do
+		for matName, mat in pairs(rendering.materialDefs) do
 
-			if matTable.GetAllOptions then
-				local allOptions = matTable.GetAllOptions()
+			if mat.GetAllOptions then
+				local allOptions = mat.GetAllOptions()
 				for opt, _ in pairs(allOptions) do
 					if not registeredOptions[opt] then
 						registeredOptions[opt] = true

@@ -11,7 +11,7 @@ function gadget:GetInfo()
   }
 end
 
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
     return
 end
 
@@ -71,7 +71,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
         customtable = select(11,Spring.GetPlayerInfo(playerID)) or {}
     end
     local tsMu = customtable and customtable.skill or ""
-    mu = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 25
+    local mu = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 25
 
     info[unitDefID] = info[unitDefID] or {dmg_dealt=0,dmg_rec=0,kills=0,killed_cost=0,n=0,ts=0,minutes=0}
 

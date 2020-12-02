@@ -57,7 +57,7 @@ local critterConfig = {
   { spawnCircle = {x=13300, z=3800, r=3000}, unitNames = {["critter_penguin"]=rnd(2,5)} },
   { spawnBox = {x1=1800, z1=650, x2=14700, z2=7400}, unitNames = {["critter_penguin"]=rnd(10,20)} },
   { spawnBox = {x1=50, z1=50, x2=16300, z2=8150}, unitNames = {["critter_goldfish"]=rnd(75,150)} },
-l},
+},
 
 ["Barbary Coves v2"] = {
   { spawnBox = {x1=50, z1=50, x2=9200, z2=8150}, unitNames = {["critter_goldfish"]=rnd(100,250)} },
@@ -72,7 +72,7 @@ l},
   { spawnCircle = {x=8888, z=1700, r=1200}, unitNames = {["critter_duck"]=rnd(2,6)} },
   { spawnCircle = {x=8888, z=1700, r=550}, unitNames = {["critter_gull"]=rnd(0,3)} },
   { spawnCircle = {x=8888, z=1700, r=900}, unitNames = {["critter_gull"]=rnd(0,3)} },
-l},
+},
 
 
 ["DesertSiege_v2b"] = {

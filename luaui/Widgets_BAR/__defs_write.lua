@@ -187,7 +187,7 @@ if customparamDefsDetected then
     -- second half of a tool for baking unitdefs_post into unitdef files, see readme.txt
     local had_failed = false
 
-	function table.save2(t, filename, header)
+	function save2(t, filename, header)
 		local file = io.open(filename, 'w')
 		if file == nil then
 			return
@@ -237,7 +237,7 @@ if customparamDefsDetected then
             Spring.CreateDir(folder.."/"..subfolder)
         end
 
-        table.save2(ud_table, folder .. "/" .. subfolder .. v.name .. ".lua")
+        save2(ud_table, folder .. "/" .. subfolder .. v.name .. ".lua")
         return true
     end
 
