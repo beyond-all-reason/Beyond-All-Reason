@@ -139,12 +139,14 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep restore_delay;
+	sleep 3000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
 {
+	//return (1);
+	stop-spin turret around y-axis;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <670.159341>;
@@ -181,7 +183,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = guns;
 }
 
 QueryPrimary(piecenum)
@@ -191,7 +193,7 @@ QueryPrimary(piecenum)
 
 SweetSpot(piecenum)
 {
-	piecenum = turret;
+	piecenum = guns;
 }
 
 Killed(severity, corpsetype)
