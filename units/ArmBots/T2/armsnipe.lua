@@ -121,7 +121,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armsnipe_weapon = {
+			armsnipe_weapon = {	-- NOTE this range of 900 was shown in unit stats but was only effectively 800 by range
 				areaofeffect = 16,
 				avoidfeature = true,
 				avoidfriendly = true,
@@ -173,7 +173,7 @@ return {
 				duration = 0.0025,
 				edgeeffectiveness = 0.15,
 				energypershot = 500,
-				explosiongenerator = "custom:genericshellexplosion-large",
+				explosiongenerator = "custom:genericshellexplosion-sniper",
 				impactonly = true,
 				impulseboost = 0.234,
 				impulsefactor = 0.234,
@@ -185,10 +185,10 @@ return {
 				reloadtime = 10,
 				rgbcolor = "1 1 0",
 				size = 0.1,
-				--soundhit = "sniperhit",
+				soundhit = "sniperhit",
 				soundhitvolume = 4,
 				soundhitwet = "sizzle",
-				soundstart = "sniper2",
+				soundstart = "sniper3",
 				soundstartvolume = 4,
 				thickness = 0.5,
 				turret = true,
@@ -206,7 +206,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMSNIPE_WEAPON",
+				def = "OLD_ARMSNIPE_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 		},
