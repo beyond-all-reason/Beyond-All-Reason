@@ -11,9 +11,7 @@ function gadget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 	function gadget:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam)
 		local _,y,_ = Spring.GetUnitPosition(transporteeID)
 		local height = Spring.GetUnitHeight(transporteeID)
@@ -22,7 +20,6 @@ if (gadgetHandler:IsSyncedCode()) then
 		else
 			return true
 		end
-		return true
 	end
 
 	function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, x, y, z) -- disallow unloading underwater

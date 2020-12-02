@@ -220,23 +220,18 @@ local transitionTime = 0.6 -- how long it takes the camera to move when tracking
 local listTime = 14 -- how long back to look for recent broadcasters
 
 local myPlayerID = Spring.GetMyPlayerID()
-local lockPlayerID
 
+local totalTime = 0
 local lastBroadcasts = {}
 local recentBroadcasters = {}
 local newBroadcaster = false
-local totalTime = 0
-local playerScores = {}
-
 local aliveAllyTeams = {}
+local playerScores = {}
+local screenshotVars = {} -- finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
 --local myLastCameraState, sceduledSpecFullView, desiredLosmode, ShareSlider, MainList, Background, drawListOffset, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, RecvPlayerBetList, playerBetList, tipY
-local leftPosX, lastSliderSound, release, specTarget, curFrame
---local screenshotFinished, screenshotWidth, screenshotHeight, screenshotGameframe, screenshotData, screenshotDataLast, screenshotDlist, screenshotPixels, screenshotPlayer, screenshotFilename, screenshotSaved, screenshotSaveQueued, screenshotPosX, screenshotPosY, screenshotWidth, screenshotHeight
+local lockPlayerID, leftPosX, lastSliderSound, release, specTarget, curFrame
 
---------------------------------------------------------------------------------
---
---------------------------------------------------------------------------------
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -681,7 +676,7 @@ function GetNumberOfSpecs()
     local pList = Spring_GetPlayerList()
     local count = 0
     local name = ""
-	local active, spec
+    local active, spec
     for _, playerID in ipairs(pList) do
         _, active, spec = Spring_GetPlayerInfo(playerID)
         if spec and active then
@@ -746,7 +741,7 @@ function PlayerDataBroadcast(playerName, msg)
     local data = ''
     local count = 0
     local startPos = 0
-	local msgType
+    local msgType
     for i = 1, string.len(msg) do
         if string.sub(msg, i, i) == ';' then
             count = count + 1
@@ -770,38 +765,38 @@ function PlayerDataBroadcast(playerName, msg)
                     if count == 1 then
                         local finished = string.sub(data, 1, i - 1)
                         if finished == '1' then
-                            screenshotFinished = true
+                            screenshotVars.finished = true
                         else
-                            screenshotFinished = false
+                            screenshotVars.finished = false
                         end
                         startPos = i + 1
                     elseif count == 2 then
-                        screenshotWidth = tonumber(string.sub(data, startPos, i - 1))
+                        screenshotVars.width = tonumber(string.sub(data, startPos, i - 1))
                         startPos = i + 1
                     elseif count == 3 then
-                        screenshotHeight = tonumber(string.sub(data, startPos, i - 1))
+                        screenshotVars.height = tonumber(string.sub(data, startPos, i - 1))
                         startPos = i + 1
                     elseif count == 4 then
-                        screenshotGameframe = tonumber(string.sub(data, startPos, i - 1))
-                        if not screenshotData then
-                            screenshotData = string.sub(data, i + 1)
+                        screenshotVars.gameframe = tonumber(string.sub(data, startPos, i - 1))
+                        if not screenshotVars.data then
+                            screenshotVars.data = string.sub(data, i + 1)
                         else
-                            screenshotData = screenshotData .. string.sub(data, i + 1)
+                            screenshotVars.data = screenshotVars.data .. string.sub(data, i + 1)
                         end
                         break
                     end
                 end
             end
             data = nil
-            screenshotDataLast = totalTime
+            screenshotVars.dataLast = totalTime
 
-            if screenshotFinished or totalTime - 4000 > screenshotDataLast then
-                screenshotFinished = true
+            if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
+                screenshotVars.finished = true
                 local map = Game.mapName
                 local datetable = os.date('*t')
                 local frame = Spring.GetGameFrame()
-                local minutes = math.floor((screenshotGameframe / 30 / 60))
-                local seconds = math.floor((screenshotGameframe - ((minutes * 60) * 30)) / 30)
+                local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
+                local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
                 if seconds == 0 then
                     seconds = '00'
                 elseif seconds < 10 then
@@ -822,45 +817,45 @@ function PlayerDataBroadcast(playerName, msg)
                 local ss = ((s > 9 and tostring(s)) or (s < 10 and ("0" .. tostring(s))))
                 local engine = Engine.versionFull
 
-                screenshotPixels = toPixels(screenshotData)
-                screenshotPlayer = playerName
-                screenshotFilename = yyyy .. mm .. dd .. "_" .. hh .. minmin .. ss .. "_" .. minutes .. '.' .. seconds .. "_" .. playerName
-                screenshotSaved = nil
-                screenshotSaveQueued = true
-                screenshotPosX = widgetPosX - (backgroundMargin + 30 + screenshotWidth * widgetScale)
-                screenshotPosY = widgetPosY
-                screenshotDlist = gl_CreateList(function()
+                screenshotVars.pixels = toPixels(screenshotVars.data)
+                screenshotVars.player = playerName
+                screenshotVars.filename = yyyy .. mm .. dd .. "_" .. hh .. minmin .. ss .. "_" .. minutes .. '.' .. seconds .. "_" .. playerName
+                screenshotVars.saved = nil
+                screenshotVars.saveQueued = true
+                screenshotVars.posX = widgetPosX - (backgroundMargin + 30 + screenshotVars.width * widgetScale)
+                screenshotVars.posY = widgetPosY
+                screenshotVars.dlist = gl_CreateList(function()
                     gl.PushMatrix()
-                    gl.Translate(screenshotPosX, screenshotPosY, 0)
+                    gl.Translate(screenshotVars.posX, screenshotVars.posY, 0)
                     gl.Scale(widgetScale, widgetScale, 0)
 
                     gl_Color(0, 0, 0, 0.66)
                     local margin = 2
-                    RectRound(-margin, -margin, screenshotWidth + margin + margin, screenshotHeight + 15 + margin + margin, 6)
+                    RectRound(-margin, -margin, screenshotVars.width + margin + margin, screenshotVars.height + 15 + margin + margin, 6)
                     gl_Color(1, 1, 1, 0.025)
-                    RectRound(0, 0, screenshotWidth, screenshotHeight + 12 + margin + margin, 4.5)
+                    RectRound(0, 0, screenshotVars.width, screenshotVars.height + 12 + margin + margin, 4.5)
 
                     font:Begin()
-                    font:Print(screenshotPlayer, 4, screenshotHeight + 6.5, 11, "on")
+                    font:Print(screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
                     font:End()
 
                     local row = 0
                     local col = 0
-                    for p = 1, #screenshotPixels do
+                    for p = 1, #screenshotVars.pixels do
                         col = col + 1
-                        if p % screenshotWidth == 1 then
+                        if p % screenshotVars.width == 1 then
                             row = row + 1
                             col = 1
                         end
-                        gl.Color(screenshotPixels[p][1], screenshotPixels[p][2], screenshotPixels[p][3], 1)
+                        gl.Color(screenshotVars.pixels[p][1], screenshotVars.pixels[p][2], screenshotVars.pixels[p][3], 1)
                         gl.Rect(col, row, col + 1, row + 1)
                     end
                     gl.PopMatrix()
 
                 end)
-                screenshotPixels = nil
-                screenshotData = nil
-                screenshotFinished = nil
+                screenshotVars.pixels = nil
+                screenshotVars.data = nil
+                screenshotVars.finished = nil
             end
         elseif msgType == 'infolog' or msgType == 'config' then
             local playerID
@@ -910,8 +905,8 @@ local function UpdateRecentBroadcasters()
     local i = 1
     for playerID, info in pairs(lastBroadcasts) do
         lastTime = info[1]
-        if (totalTime - lastTime <= listTime or playerID == lockPlayerID) then
-            if (totalTime - lastTime <= listTime) then
+        if totalTime - lastTime <= listTime or playerID == lockPlayerID then
+            if totalTime - lastTime <= listTime then
                 recentBroadcasters[playerID] = totalTime - lastTime
             end
             i = i + 1
@@ -1059,7 +1054,7 @@ function widget:Initialize()
             specListShow = false
         end
     end
-    if (Spring.GetConfigInt("ShowPlayerInfo") == 1) then
+    if Spring.GetConfigInt("ShowPlayerInfo") == 1 then
         Spring.SendCommands("info 0")
     end
 
@@ -1206,8 +1201,8 @@ function widget:Shutdown()
     if Background then
         gl_DeleteList(Background)
     end
-    if screenshotDlist then
-        gl_DeleteList(screenshotDlist)
+    if screenshotVars.dlist then
+        gl_DeleteList(screenshotVars.dlist)
     end
     if lockPlayerID then
         LockCamera()
@@ -1520,7 +1515,7 @@ end
 
 function UpdatePlayerResources()
     local energy, energyStorage, metal, metalStorage = 0, 1, 0, 1
-	local energyIncome, metalIncome
+    local energyIncome, metalIncome
     for playerID, _ in pairs(player) do
         if player[playerID].name and not player[playerID].spec and player[playerID].team then
             if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
@@ -1818,13 +1813,13 @@ function widget:DrawScreen()
     if not collapsed then
         -- update lists frequently if there is mouse interaction
         local NeedUpdate = false
-		local CurGameFrame = Spring_GetGameFrame()
-        if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
+        local CurGameFrame = Spring_GetGameFrame()
+        if mouseX > widgetPosX + m_name.posX + m_name.width - 5 and mouseX < widgetPosX + widgetWidth and mouseY > widgetPosY - 16 and mouseY < widgetPosY + widgetHeight then
             local DrawFrame = Spring_GetDrawFrame()
             if PrevGameFrame == nil then
                 PrevGameFrame = CurGameFrame
             end
-            if (DrawFrame % 5 == 0) or (CurGameFrame > PrevGameFrame + 1) then
+            if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
                 --Echo(DrawFrame)
                 NeedUpdate = true
             end
@@ -1868,43 +1863,43 @@ function widget:DrawScreen()
     gl.Translate(-scaleDiffX, -scaleDiffY, 0)
     gl.Scale(scaleReset, scaleReset, 0)
 
-    if screenshotDlist then
-        gl_CallList(screenshotDlist)
+    if screenshotVars.dlist then
+        gl_CallList(screenshotVars.dlist)
         local margin = 1.9 * widgetScale
-        local left = screenshotPosX - margin
-        local bottom = screenshotPosY - margin
-        local width = (screenshotWidth * widgetScale) + margin + margin + margin
-        local height = (screenshotHeight * widgetScale) + margin + margin + margin + (15 * widgetScale)
-        if screenshotSaveQueued then
+        local left = screenshotVars.posX - margin
+        local bottom = screenshotVars.posY - margin
+        local width = (screenshotVars.width * widgetScale) + margin + margin + margin
+        local height = (screenshotVars.height * widgetScale) + margin + margin + margin + (15 * widgetScale)
+        if screenshotVars.saveQueued then
             if WG['guishader'] then
                 WG['guishader'].InsertRect(left, bottom, left + width, bottom + height, 'advplayerlist_screenshot')
-                screenshotGuishader = true
+                screenshotVars.guishader = true
             end
-            if not screenshotSaved then
-                screenshotSaved = 'next'
-            elseif screenshotSaved == 'next' then
-                screenshotSaved = 'done'
-                local file = 'screenshots/' .. screenshotFilename .. '.png'
+            if not screenshotVars.saved then
+                screenshotVars.saved = 'next'
+            elseif screenshotVars.saved == 'next' then
+                screenshotVars.saved = 'done'
+                local file = 'screenshotVars.s/' .. screenshotVars.filename .. '.png'
                 gl.SaveImage(left, bottom, width, height, file)
                 Spring.Echo('Screenshot saved to: ' .. file)
-                screenshotSaveQueued = nil
+                screenshotVars.saveQueued = nil
             end
         end
-        if screenshotWidth and IsOnRectPlain(mouseX, mouseY, screenshotPosX, screenshotPosY, screenshotPosX + (screenshotWidth * widgetScale), screenshotPosY + (screenshotHeight * widgetScale)) then
+        if screenshotVars.width and IsOnRectPlain(mouseX, mouseY, screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale)) then
             if mouseButtonL then
-                gl_DeleteList(screenshotDlist)
+                gl_DeleteList(screenshotVars.dlist)
                 if WG['guishader'] then
                     WG['guishader'].RemoveRect('advplayerlist_screenshot')
                 end
-                screenshotDlist = nil
+                screenshotVars.dlist = nil
             else
                 gl.Color(0, 0, 0, 0.25)
-                RectRound(screenshotPosX, screenshotPosY, screenshotPosX + (screenshotWidth * widgetScale), screenshotPosY + (screenshotHeight * widgetScale), 2 * widgetScale)                -- close button
-                local size = (screenshotHeight * widgetScale) * 1.2
+                RectRound(screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale), 2 * widgetScale)                -- close button
+                local size = (screenshotVars.height * widgetScale) * 1.2
                 local width = size * 0.011
                 gl.Color(1, 1, 1, 0.66)
                 gl.PushMatrix()
-                gl.Translate(screenshotPosX + ((screenshotWidth * widgetScale) / 2), screenshotPosY + ((screenshotHeight * widgetScale) / 2), 0)
+                gl.Translate(screenshotVars.posX + ((screenshotVars.width * widgetScale) / 2), screenshotVars.posY + ((screenshotVars.height * widgetScale) / 2), 0)
                 gl.Rotate(-60, 0, 0, 1)
                 gl.Rect(-width, size / 2, width, -size / 2)
                 gl.Rotate(120, 0, 0, 1)
@@ -2355,7 +2350,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         tipY = true
     end
 
-    if (lockPlayerID ~= nil and lockPlayerID == playerID) then
+    if lockPlayerID ~= nil and lockPlayerID == playerID then
         -- active
         DrawCamera(posY, true)
     end
@@ -2553,7 +2548,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
     gl_Texture(pics["resbarPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal), posY + y2Offset)
 
-    if ((barWidth / metalStorage) * metal) > 0.8 then
+    if (barWidth / metalStorage) * metal > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 1.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
@@ -2578,7 +2573,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
     gl_Texture(pics["resbarPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy), posY + y2Offset)
 
-    if ((barWidth / energyStorage) * energy) > 0.8 then
+    if (barWidth / energyStorage) * energy > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 0.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
@@ -2898,7 +2893,7 @@ end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
     gl_Texture(pics["pingPic"])
-	local grayvalue
+    local grayvalue
     if spec then
         grayvalue = 0.5 + (pingLvl / 20)
         gl_Color(grayvalue, grayvalue, grayvalue, (0.2 * pingLvl))
@@ -4147,7 +4142,7 @@ function IsTakeable(teamID)
         local energy = Spring_GetTeamResources(teamID, "energy")
         local metal = Spring_GetTeamResources(teamID, "metal")
         if units and energy and metal then
-            if (units > 0) or (energy > 1000) or (metal > 100) then
+            if units > 0 or energy > 1000 or metal > 100 then
                 return true
             end
         end

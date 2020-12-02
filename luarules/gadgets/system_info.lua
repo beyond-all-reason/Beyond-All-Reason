@@ -63,6 +63,8 @@ else
 			return
 		end
 
+		local s_cpu, s_gpu, s_gpuVram, s_ram, s_os, s_resolution, s_displaymode, s_displays, s_config, s_configs_os, s_cpuCoresLogical, s_cpuCoresPhysical, ds, nl, configEnd
+
 		if Engine ~= nil and Platform ~= nil then	-- v104
 			if Platform.gpu ~= nil then
 				s_gpu = Platform.gpu
@@ -86,9 +88,7 @@ else
 		local infolog = VFS.LoadFile("infolog.txt")
 		if infolog then
 
-			-- store changelog into array
-			fileLines = lines(infolog)
-
+			local fileLines = lines(infolog)
 			for i, line in ipairs(fileLines) do
 
 				if string.sub(line, 1, 3) == '[F='  then
@@ -96,8 +96,8 @@ else
 				end
 
 				-- Spring v104
-				if s_gpu ~= nil and string.match(line, 'current=\{[0-9]*x[0-9]*') then
-					s_resolution = string.sub(string.match(line, 'current=\{[0-9]*x[0-9]*'), 10)
+				if s_gpu ~= nil and string.match(line, 'current=%{[0-9]*x[0-9]*') then
+					s_resolution = string.sub(string.match(line, 'current=%{[0-9]*x[0-9]*'), 10)
 				end
 
 				if line:find('(display%-mode set to )') then
@@ -128,9 +128,9 @@ else
 				if string.find(line, 'Logical CPU Cores') then
 					s_cpuCoresLogical = string.match(line, '([0-9].*)')
 				end
-				if (string.find(line:lower(), 'hardware config: ')) then
+				if string.find(line:lower(), 'hardware config: ') then
 					s_cpu = string.sub(line, select(2, string.find(line:lower(), 'hardware config: ')))
-					s_cpu = string.match(s_cpu, '([\+a-zA-Z0-9 ()@._-]*)')
+					s_cpu = string.match(s_cpu, '([%+a-zA-Z0-9 ()@._-]*)')
 					s_cpu = string.gsub(s_cpu, " Processor", "")
 					s_cpu = string.gsub(s_cpu, " Eight[-]Core", "")
 					s_cpu = string.gsub(s_cpu, " Six[-]Core", "")
@@ -142,7 +142,7 @@ else
 						s_ram = string.gsub(s_ram, " RAM", "")
 					end
 				end
-				if (string.find(line:lower(), 'operating system: ')) then
+				if string.find(line:lower(), 'operating system: ') then
 					s_os = string.sub(line, select(2, string.find(line:lower(), 'operating system: ')))
 				end
 			end

@@ -1,5 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
@@ -14,13 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
-
-if (gadgetHandler:IsSyncedCode()) then
-
-
+if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
-		TerrainTypeTable = {}
 		if Spring.GetModOptions() and Spring.GetModOptions().map_terraintype and Spring.GetModOptions().map_terraintype == "disabled" then
+			local TerrainTypeTable = {}
 			for i = 0 , 255 do
 				if Spring.GetTerrainTypeData(i) then
 					TerrainTypeTable[i] = {Spring.GetTerrainTypeData(i)}
@@ -28,5 +23,6 @@ if (gadgetHandler:IsSyncedCode()) then
 				end
 			end
 		end
+		gadgetHandler:RemoveGadget(self)
 	end
 end

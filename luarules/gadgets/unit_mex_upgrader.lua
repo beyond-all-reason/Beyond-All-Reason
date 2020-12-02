@@ -42,7 +42,7 @@ local mexes = {}
 local builders = {}
 
 local IDLE = 0
-local FOLOWING_ORDERS = 1
+local FOLLOWING_ORDERS = 1
 local RECLAIMING = 2
 local BUILDING = 3
 
@@ -124,7 +124,8 @@ function determine(ud, wd)
 end
 
 function processMexData(mexDefID, mexDef, upgradePairs)
-	for defID, def in pairs(mexDefs) do --mexDef.water won't match; "water" mexes are the same as land mexes.
+	for defID, def in pairs(mexDefs) do
+		--mexDef.water won't match; "water" mexes are the same as land mexes.
 		if (mexDef.water == def.water or mexDef.water ~= def.water) and (ignoreStealth or mexDef.stealth == def.stealth) and (ignoreWeapons or mexDef.armed == def.armed) then
 
 			if mexDef.extractsMetal > def.extractsMetal then
@@ -146,7 +147,7 @@ function isBuilder(unitDef)
 	return (unitDef.isBuilder and unitDef.canAssist)
 end
 
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 
 	local isCommander = {}
 	local unitXsize = {}
@@ -303,7 +304,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				if upgradeTo then
 					local dist = getDistance(unitID, mexID, teamID)
 					local mexDepth = select(2, GetUnitPosition(mexID))
-					if (mexDepth >= -builders[teamID][unitID].maxDepth and mexDepth <= -builders[teamID][unitID].minDepth) then
+					if mexDepth >= -builders[teamID][unitID].maxDepth and mexDepth <= -builders[teamID][unitID].minDepth then
 						if not bestDistance or dist < bestDistance then
 							bestDistance = dist
 							bestMexID, bestMexDefID = mexID, mexDefID
@@ -520,7 +521,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			return true
 		end
 		local cmdDescID = FindUnitCmdDesc(unitID, CMD_AUTOMEX)
-		if (cmdDescID == nil) then
+		if cmdDescID == nil then
 			return
 		end
 

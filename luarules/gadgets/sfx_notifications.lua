@@ -29,11 +29,6 @@ function AllPlayers()
 	return players
 end
 
-function AllUsers()
-	local players = Spring.GetPlayerList()
-	return players
-end
-
 function PlayersInAllyTeamID(allyTeamID)
 	local players = AllPlayers()
 	for ct, id in pairs(players) do

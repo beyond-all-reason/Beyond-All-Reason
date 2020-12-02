@@ -379,7 +379,7 @@ function loadUnitIcons()
 		local iconname = string.gsub(name, '.png', '')
 		if iconname then
 			local iconname = string.match(iconname, '([a-z0-9-_]*)')
-			local scale = string.match(name, '_[0-9.]*\.png')
+			local scale = string.match(name, '_[0-9.]*%.png')
 			if scale ~= nil then
 				iconname = string.gsub(name, scale, '')
 				scale = string.gsub(scale, '_', '')

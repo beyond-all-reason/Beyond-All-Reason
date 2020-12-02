@@ -32,6 +32,8 @@ if gadgetHandler:IsSyncedCode() then
 	local isBuilder = {}
 	local unitSize = {}
 	local unitBuildSpeedTime = {}
+	local initiated
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.isBuilder then
 			isBuilder[unitDefID] = true

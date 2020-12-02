@@ -139,7 +139,6 @@ if gadgetHandler:IsSyncedCode() then
 	local failBurrows = {}
 	local heroChicken = {}
 	local defenseMap = {}
-	local chickenTypes, defenders
 
 	do
 		-- load config file

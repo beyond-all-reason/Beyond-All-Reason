@@ -1,46 +1,45 @@
 function gadget:GetInfo()
 	return {
-		name	= 'Units Targetting Prioritie',
-		desc	= 'Adds a priority command/button to set the wanted target priritizing',
-		author	= 'Doo',
-		version	= 'v1.0',
-		date	= 'May 2018',
-		license	= 'GNU GPL, v2 or later',
-		layer	= -1, --must run before game_initial_spawn, because game_initial_spawn must control the return of GameSteup
-		enabled	= true
+		name = 'Units Targetting Prioritie',
+		desc = 'Adds a priority command/button to set the wanted target priritizing',
+		author = 'Doo',
+		version = 'v1.0',
+		date = 'May 2018',
+		license = 'GNU GPL, v2 or later',
+		layer = -1, --must run before game_initial_spawn, because game_initial_spawn must control the return of GameSteup
+		enabled = true
 	}
 end
 
---synced
 if gadgetHandler:IsSyncedCode() then
 
 	local CMD_SET_PRIORITY = 34567
 	local setPriorityAirf = {
-		id      = CMD_SET_PRIORITY,
-		type    = CMDTYPE.ICON_MODE,
-		name    = 'Set Priority',
-		action  = 'setpriority',
+		id = CMD_SET_PRIORITY,
+		type = CMDTYPE.ICON_MODE,
+		name = 'Set Priority',
+		action = 'setpriority',
 		tooltip = 'target priority',
 		queueing = false,
-		params  = { '0', 'Fighters', 'Bombers', 'none'} ,
+		params = { '0', 'Fighters', 'Bombers', 'none' },
 	}
 	local setPriorityAirb = {
-		id      = CMD_SET_PRIORITY,
-		type    = CMDTYPE.ICON_MODE,
-		name    = 'Set Priority',
-		action  = 'setpriority',
+		id = CMD_SET_PRIORITY,
+		type = CMDTYPE.ICON_MODE,
+		name = 'Set Priority',
+		action = 'setpriority',
 		tooltip = 'target priority',
 		queueing = false,
-		params  = { '1', 'Fighters', 'Bombers', 'none'} ,
+		params = { '1', 'Fighters', 'Bombers', 'none' },
 	}
 	local setPriorityAirn = {
-		id      = CMD_SET_PRIORITY,
-		type    = CMDTYPE.ICON_MODE,
-		name    = 'Set Priority',
-		action  = 'setpriority',
+		id = CMD_SET_PRIORITY,
+		type = CMDTYPE.ICON_MODE,
+		name = 'Set Priority',
+		action = 'setpriority',
 		tooltip = 'target priority',
 		queueing = false,
-		params  = { '2', 'Fighters', 'Bombers', 'No priority'} ,
+		params = { '2', 'Fighters', 'Bombers', 'No priority' },
 	}
 	local airCategories = {
 		[UnitDefNames.armatlas.id] = "Bombers",
@@ -150,14 +149,15 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		if (targetID == -1) and (attackerWeaponNum == -1) then
+		if targetID == -1 and attackerWeaponNum == -1 then
 			return true, defPriority
 		end
 		local unitDefID = Spring.GetUnitDefID(targetID)
 		if unitDefID then
 			local priority = defPriority or 1.0
-			if airCategories[unitDefID] and spGetUnitRulesParam(unitID, "targetPriorityFighters") then -- and spGetUnitRulesParam(unitID, "targetPriorityBombers") and spGetUnitRulesParam(unitID, "targetPriorityScouts"))
-				priority = priority * spGetUnitRulesParam(unitID, ("targetPriority"..airCategories[unitDefID]))
+			if airCategories[unitDefID] and spGetUnitRulesParam(unitID, "targetPriorityFighters") then
+				-- and spGetUnitRulesParam(unitID, "targetPriorityBombers") and spGetUnitRulesParam(unitID, "targetPriorityScouts"))
+				priority = priority * spGetUnitRulesParam(unitID, ("targetPriority" .. airCategories[unitDefID]))
 			end
 			return true, priority
 		end

@@ -172,10 +172,7 @@ local function CheckStartbox (boxID, x, z)
 
 	for i = 1, #box do
 		local x1, z1, x2, z2, x3, z3 = unpack(box[i])
-		if (math.cross_product(x, z, x1, z1, x2, z2) <= 0
-		and math.cross_product(x, z, x2, z2, x3, z3) <= 0
-		and math.cross_product(x, z, x3, z3, x1, z1) <= 0
-		) then
+		if math.cross_product(x, z, x1, z1, x2, z2) <= 0 and math.cross_product(x, z, x2, z2, x3, z3) <= 0 and math.cross_product(x, z, x3, z3, x1, z1) <= 0 then
 			return true
 		end
 	end
@@ -346,7 +343,7 @@ function gadget:Initialize()
 		end
 	end
 
-	if (shuffleMode == "off") or (shuffleMode == "disable") then
+	if shuffleMode == "off" or shuffleMode == "disable" then
 
 		for i = 1, #allyTeamList do
 			local allyTeamID = allyTeamList[i]
@@ -359,7 +356,7 @@ function gadget:Initialize()
 			end
 		end
 
-	elseif (shuffleMode == "shuffle") then
+	elseif shuffleMode == "shuffle" then
 
 		local randomizedSequence = {}
 		for i = 1, #actualAllyTeamList do
@@ -378,7 +375,7 @@ function gadget:Initialize()
 			end
 		end
 
-	elseif (shuffleMode == "allshuffle") then
+	elseif shuffleMode == "allshuffle" then
 
 		local randomizedSequence = {}
 		for id in pairs(startboxConfig) do
@@ -412,7 +409,7 @@ function gadget:Initialize()
 	end
 
 	for clanName, clan in pairs(clans) do
-		if (clan[1] == 1) and (clanName ~= "") then
+		if clan[1] == 1 and clanName ~= "" then
 			Spring.SetGameRulesParam("allyteam_short_name_" .. clan[3], clan[2])
 			Spring.SetGameRulesParam("allyteam_long_name_"  .. clan[3], clanName)
 		end
@@ -420,7 +417,7 @@ function gadget:Initialize()
 end
 
 function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z, rx, ry, rz)
-	if (x == 0 and z == 0) then
+	if x == 0 and z == 0 then
 		-- engine default startpos
 		return false
 	end
@@ -431,7 +428,7 @@ function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z, rx, ry
 
 	local teamID = select(4, Spring.GetPlayerInfo(playerID, false))
 
-	if (shuffleMode == "disable") then
+	if shuffleMode == "disable" then
 		-- note this is after the AI check; toasters still have to obey
 		Spring.SetTeamRulesParam (teamID, "valid_startpos", 1)
 		return true
@@ -439,7 +436,7 @@ function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z, rx, ry
 
 	local boxID = Spring.GetTeamRulesParam(teamID, "start_box_id")
 
-	if (not boxID) or CheckStartbox(boxID, x, z) then
+	if not boxID or CheckStartbox(boxID, x, z) then
 		Spring.SetTeamRulesParam (teamID, "valid_startpos", 1)
 		return true
 	else
@@ -468,7 +465,7 @@ function gadget:RecvSkirmishAIMessage(teamID, dataStr)
 
 	if not dataStr:find(command2,1,true) then
 		-- for checking own startpos
-		if (not boxID) or CheckStartbox(boxID, x, z) then
+		if not boxID or CheckStartbox(boxID, x, z) then
 			return "1"
 		else
 			return "0"
