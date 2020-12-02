@@ -160,8 +160,8 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 	local dispx = (nx-bx)/norm
 	local dispz = (nz-bz)/norm
 	local disp = 120
-	x = bx + disp * (dispx)
-	z = bz + disp * (dispz)
+	local x = bx + disp * (dispx)
+	local z = bz + disp * (dispz)
 
 	-- if the terrain nearby was too steep, just start on the mex (-> assume mex is passable)
 	if IsSteep(x,z) then

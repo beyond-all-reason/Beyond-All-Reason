@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 
 	local defaultMapSunPos = {gl.GetSun("pos")}
 
@@ -162,7 +162,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 					Spring.SetSunLighting({groundShadowDensity = 0, modelShadowDensity = 0, groundDiffuseColor = {0,0,0}, modelDiffuseColor = {0,0,0}, groundSpecularColor = {0,0,0}, modelSpecularColor = {0,0,0}})
 				end
 				--Spring.Echo("Sun Position: X: "..SunX.." Z: "..SunZ.." Y: "..SunY)
-				SunHeighToSynced = SunY
+				--SunHeighToSynced = SunY
 				Spring.SetSunDirection(SunX,SunY,SunZ)
 			end
 		end

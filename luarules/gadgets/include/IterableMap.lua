@@ -36,13 +36,13 @@ function IterableMap.Add(self, key, data)
 end
 
 function IterableMap.AddSelf(self, data)
-	key = IterableMap.GetUnusedKey(self)
+	local key = IterableMap.GetUnusedKey(self)
 	data.index = key
 	IterableMap.Add(self, key, data)
 end
 
 function IterableMap.Remove(self, key)
-	if (not key) or (not self.indexByKey[key]) then
+	if not key or not self.indexByKey[key] then
 		return false
 	end
 	local myIndex = self.indexByKey[key]
@@ -57,7 +57,7 @@ function IterableMap.Remove(self, key)
 end
 
 function IterableMap.ReplaceKey(self, oldKey, newKey)
-	if (not oldKey) or (not self.indexByKey[oldKey]) or self.indexByKey[newKey] then
+	if not oldKey or not self.indexByKey[oldKey] or self.indexByKey[newKey] then
 		return false
 	end
 	self.keyByIndex[self.indexByKey[oldKey]] = newKey
