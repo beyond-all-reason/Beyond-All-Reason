@@ -4,8 +4,8 @@
 #include "exptype.h"
 
 piece  	base, body, lpaddle, rpaddle, rwing1, lwing1,
-		rjet, rthrust, rwing2, rmislink, rmissile1, rflare1, 
-		ljet, lthrust, lwing2, lmislink, lmissile1, lflare1;
+		rjet, rthrust, rwing2, rmislink, rmissile, rflare, 
+		ljet, lthrust, lwing2, lmislink, lmissile, lflare;
 
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -96,9 +96,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide rflare1;
-	hide lflare1;
-	gun_1 = rflare1;
+	hide rflare;
+	hide lflare;
+	gun_1 = rflare;
 	call-script InitState();
 	start-script SmokeUnit();
 }
@@ -118,11 +118,11 @@ QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = rflare1;
+		piecenum = rflare;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = lflare1;
+		piecenum = lflare;
 	}
 }
 
@@ -136,18 +136,18 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-		show rflare1;
+		show rflare;
 		sleep 150;
-		hide rflare1;
-		gun_1 = lflare1;
+		hide rflare;
+		gun_1 = lflare;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		show lflare1;
+		show lflare;
 		sleep 150;
-		hide lflare1;
-		gun_1 = rflare1;
+		hide lflare;
+		gun_1 = rflare;
 	}
 }
 
