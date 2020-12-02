@@ -130,7 +130,7 @@ end
 --check if a player is to be considered as a 'newbie', in terms of startpoint placements
 function isPlayerNewbie(pID)
 	local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID,false)
-	playerRank = tonumber(pRank) or 0
+	pRank = tonumber(pRank) or 0
 	local customtable = select(11,Spring.GetPlayerInfo(pID)) or {} -- player custom table
 	local tsMu = tostring(customtable.skill) or ""
 	local tsSigma = tonumber(customtable.skilluncertainty) or 3
@@ -432,9 +432,9 @@ function SpawnTeamStartUnit(teamID, allyTeamID)
 
 	-- if its choose-in-game mode, see if we need to autoplace anyone
 	if Game.startPosType==2 then
-		if ((not startPointTable[teamID]) or (startPointTable[teamID][1] < 0)) then
+		if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 			-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
-			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
+			x,z=GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 		else
 			--fallback
 			if x<=0 or z<=0 then
@@ -471,7 +471,7 @@ function SpawnStartUnit(teamID, x, z)
 			end
 		end
 	end
-	
+
 	--spawn starting unit
 	local y = spGetGroundHeight(x,z)
 	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
@@ -525,6 +525,8 @@ local readyY = vsy * 0.8
 local readyH = 35
 local readyW = 100
 local bgMargin = 2.5
+
+local readyButton, readyButtonHover
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
@@ -838,6 +840,7 @@ function gadget:DrawScreen()
 
 				-- draw ready button and text
 				local x,y = Spring.GetMouseState()
+				local colorString
 				x,y = correctMouseForScaling(x,y)
 				if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
 					gl.CallList(readyButtonHover)
@@ -859,6 +862,7 @@ function gadget:DrawScreen()
 
 			if gameStarting and not isReplay then
 				timer = timer + Spring.GetLastUpdateSeconds()
+				local colorString
 				if timer % 0.75 <= 0.375 then
 					colorString = "\255\233\233\20"
 				else

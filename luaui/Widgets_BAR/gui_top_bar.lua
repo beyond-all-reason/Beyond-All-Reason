@@ -1590,7 +1590,6 @@ function widget:DrawScreen()
 		glCallList(dlistButtons1)
 		-- hovered?
 		if not showQuitscreen and buttonsArea['buttons'] ~= nil and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
-			buttonsAreaHovered = nil
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
 					glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1923,7 +1922,6 @@ function widget:MousePress(x, y, button)
 					Spring.SendCommands("QuitForce")
 					showQuitscreen = nil
 					hideQuitWindow = os.clock()
-					return true
 				end
 				if not spec and IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 					if playSounds then
@@ -1934,17 +1932,13 @@ function widget:MousePress(x, y, button)
 					if WG['guishader'] then
 						WG['guishader'].setScreenBlur(false)
 					end
-					return true
 				end
-				return true
 			else
 				showQuitscreen = nil
 				if WG['guishader'] then
 					WG['guishader'].setScreenBlur(false)
 				end
-				return true
 			end
-
 			return true
 		end
 

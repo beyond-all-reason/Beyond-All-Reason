@@ -7,7 +7,7 @@ function gadget:GetInfo()
         date      = "July 2014",
         license   = "GNU GPL, v3 or later",
         layer     = 0,
-        enabled   = false,  --  loaded by default?
+        enabled   = true,  --  loaded by default?
     }
 end
 
@@ -28,11 +28,11 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
         --if weaponDef.visuals.modelName == 'objects3d/minitorpedo.3do' then
         --    subMissileWeapons[weaponDef.id] = 'torpedotrail-tiny'
         if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' then
-            subMissileWeapons[weaponDef.id] = 'torpedotrail-tiny'
+            subMissileWeapons[weaponDef.id] = 'torpedotrail-small'
         elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
             subMissileWeapons[weaponDef.id] = 'torpedotrail-large'
         else
-            subMissileWeapons[weaponDef.id] = 'torpedotrail-tiny'
+            subMissileWeapons[weaponDef.id] = 'torpedotrail-small'
         end
     end
 end
@@ -55,9 +55,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 end
 
 function gadget:ProjectileDestroyed(proID)
-    if subMissileWeapons[weaponDefID] then
-        missiles[proID] = nil
-    end
+	missiles[proID] = nil
 end
 
 function gadget:GameFrame(n)

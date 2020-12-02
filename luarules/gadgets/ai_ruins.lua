@@ -1,7 +1,7 @@
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 local GameShortName = Game.gameShortName
 
 local RuinSpawns = (math.ceil(mapsizeX+mapsizeZ)/500)+30
@@ -14,8 +14,7 @@ for i = 1,#teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
 		scavengersAIEnabled = true
-		local scavengerAITeamID = i - 1
-		_,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerAITeamID)
+		scavengerAllyTeamID = select(6, Spring.GetTeamInfo(i - 1))
 		break
 	end
 end
@@ -60,8 +59,8 @@ function SpawnRuin(name, posx, posy, posz, facing, patrol)
 end
 
 local BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Ruins/'..GameShortName..'/','*.lua')
-local RuinsList = {}
-local RuinsListSea = {}
+RuinsList = {}
+RuinsListSea = {}
 for i = 1,#BlueprintsList do
 	VFS.Include(BlueprintsList[i])
 	Spring.Echo("Ruin Blueprints Directory: " ..BlueprintsList[i])

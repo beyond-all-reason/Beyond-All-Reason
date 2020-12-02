@@ -1601,7 +1601,7 @@ function gadgetHandler:FeaturePreDamaged(
 	local retImpulse = 1.0
 
 	for _, g in ipairs(self.FeaturePreDamagedList) do
-		dmg, imp = g:FeaturePreDamaged(
+		local dmg, imp = g:FeaturePreDamaged(
 			featureID, featureDefID, featureTeam,
 			retDamage,
 			weaponDefID, projectileID,

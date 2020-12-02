@@ -20,7 +20,6 @@ local HEADER_SEL_COMPRESSED = "cosc"
 local HEADER_LENGHT = string.len(HEADER_SEL_UNCOMPRESSED)
 
 
-
 if gadgetHandler:IsSyncedCode() then
 	local charset = {}  do -- [0-9a-zA-Z]
 		for c = 48, 57  do table.insert(charset, string.char(c)) end
@@ -78,8 +77,8 @@ else
 			end
 		end
 
-		if compressed then		--we have a compressed msg here
-			msg = ZlibDecompress( msg )
+		if compressed then		-- we have a compressed msg here
+			msg = ZlibDeCompress( msg )
 		end
 
 		local counts = UnpackU16( msg, 1, 2 )
@@ -142,10 +141,6 @@ else
 	--FORMAT: uncompressed msg "cosu[addCount][removeCount]([unitIdToAdd]*)([unitIdToRemove]*)"
 	--FORMAT: compressed msg "cosc{[addCount][removeCount]([unitIdToAdd]*)([unitIdToRemove]*)}"  the part in curly braces has to be zlib compressed
 	--FORMAT clear all: "cosu[0xffffff][0xffffff]"  --magic value. impossible to have as normal message
-
-	function sendFullRefresh()
-
-	end
 
 	function sendUnitsMsg( msg )
 		local finalMsg = msg

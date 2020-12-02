@@ -67,8 +67,9 @@ if gadgetHandler:IsSyncedCode() then
 		-- cleanup periodically
 		if gameFrame % 901 == 1 then
 			local oldestGameFrame = gameFrame - rememberGameframes
+			local cleanedUnits = {}
 			for teamID, units in pairs(teamSelfdUnits) do
-				local cleanedUnits = {}
+				cleanedUnits = {}
 				for oldUnitID, params in pairs(units) do
 					if params[1] > oldestGameFrame then
 						cleanedUnits[oldUnitID] = params
@@ -262,7 +263,7 @@ else	-- UNSYNCED
 
 	function Undo(cmd, line, words, playerID)
 		if words[1] ~= nil and words[2] ~= nil then
-			targetTeamID = words[1]
+			local targetTeamID = words[1]
 			if words[3] ~= nil then
 				targetTeamID = words[3]
 			end

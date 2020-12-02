@@ -315,7 +315,7 @@ local function _CompileMaterialShaders(rendering)
 end
 
 local function _ProcessOptions(optName, _, optValues, playerID)
-	if (playerID ~= Spring.GetMyPlayerID()) then
+	if playerID ~= Spring.GetMyPlayerID() then
 		return
 	end
 
@@ -328,7 +328,7 @@ local function _ProcessOptions(optName, _, optValues, playerID)
 	for _, rendering in ipairs(allRendering) do
 		for matName, mat in pairs(rendering.materialDefs) do
 			if mat.ProcessOptions then
-				local optCh = mat.ProcessOptions(matTable, optName, optValues)
+				local optCh = mat.ProcessOptions(mat, optName, optValues)
 				optionsChanged = optionsChanged or optCh
 			end
 		end

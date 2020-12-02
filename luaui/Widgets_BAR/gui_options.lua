@@ -90,7 +90,7 @@ local os_clock = os.clock
 
 local chobbyInterface, font, font2, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
-local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
+local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, showPresetButtons
 local fontOption, draggingSlider, sliderValueChanged, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
 
 local glColor = gl.Color
@@ -2967,7 +2967,6 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  minimapIconsize = value
 			  Spring.SetConfigFloat("MinimapIconScale", value)
 			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
 		  end,

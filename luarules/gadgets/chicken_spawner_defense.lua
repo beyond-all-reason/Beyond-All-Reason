@@ -30,7 +30,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 	-- BEGIN SYNCED
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -139,6 +139,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	local failBurrows = {}
 	local heroChicken = {}
 	local defenseMap = {}
+	local chickenTypes, defenders
 
 	do
 		-- load config file
@@ -1205,11 +1206,11 @@ if (gadgetHandler:IsSyncedCode()) then
 		local unitID = CreateUnit(defs.unitName, x, y, z, "n", defs.team)
 		if unitID then
 			SetUnitExperience(unitID, mRandom() * expMod)
-			if (mRandom() < 0.1) then
+			if mRandom() < 0.1 then
 				local mod = 0.75 - (mRandom() * 0.25)
-				if (mRandom() < 0.1) then
+				if mRandom() < 0.1 then
 					mod = mod - (mRandom() * 0.2)
-					if (mRandom() < 0.1) then
+					if mRandom() < 0.1 then
 						mod = mod - (mRandom() * 0.2)
 					end
 				end
@@ -1227,7 +1228,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				if targetCache and (unitID ~= queenID) and (mRandom(1, 15) == 5) then
 					idleOrderQueue[unitID] = { cmd = CMD.ATTACK, params = { targetCache }, opts = {} }
 				else
-					if (mRandom(100) > 20) then
+					if mRandom(100) > 20 then
 						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = chickenParams, opts = {} }
 					else
 						idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = chickenParams, opts = {} }

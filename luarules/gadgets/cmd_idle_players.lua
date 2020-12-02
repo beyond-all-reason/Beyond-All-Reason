@@ -163,28 +163,28 @@ if ( not gadgetHandler:IsSyncedCode()) then
     end
 
     -- extract a player name from a text message
-    function getPlayerName(playerMessage)
-        local pos
-        local retVal = ""
-        for index,pattern in pairs(nameEnclosingPatterns) do
-            local prefix = pattern[1]
-            local suffix = pattern[2]
-            local prefixstart,prefixend
-            local suffixstart,suffixend
-            if prefix ~= "" then
-                prefixstart,prefixend = playerMessage:find(prefix,1,true)
-            end
-            prefixend = (prefixend or 0 ) + 1
-            if suffix ~= "" then
-                suffixstart,suffixend = playerMessage:find(suffix,prefixend,true)
-            end
-            if suffixstart then
-                suffixstart = suffixstart - 1
-                return playerMessage:sub(prefixend,suffixstart)
-            end
-        end
-        return ""
-    end
+    --function getPlayerName(playerMessage)
+    --    local pos
+    --    local retVal = ""
+    --    for index,pattern in pairs(nameEnclosingPatterns) do
+    --        local prefix = pattern[1]
+    --        local suffix = pattern[2]
+    --        local prefixstart,prefixend
+    --        local suffixstart,suffixend
+    --        if prefix ~= "" then
+    --            prefixstart,prefixend = playerMessage:find(prefix,1,true)
+    --        end
+    --        prefixend = (prefixend or 0 ) + 1
+    --        if suffix ~= "" then
+    --            suffixstart,suffixend = playerMessage:find(suffix,prefixend,true)
+    --        end
+    --        if suffixstart then
+    --            suffixstart = suffixstart - 1
+    --            return playerMessage:sub(prefixend,suffixstart)
+    --        end
+    --    end
+    --    return ""
+    --end
 
     --this callin has never been implemented!
     --[[
