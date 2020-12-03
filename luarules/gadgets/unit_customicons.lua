@@ -401,10 +401,11 @@ function loadUnitIcons()
 					addUnitIcon(icon[1], 'icons/' .. inv .. iconname .. scale .. '.png', tonumber(scalenum) * iconScale)
 				end
 			end
-			if unitname and UnitDefNames[unitname] then
+			local unitname = iconname
+			if UnitDefNames[unitname] then
 				local scale = string.gsub(name, unitname, '')
 				scale = string.gsub(scale, '_', '')
-				if scale ~= '' then
+				if scale ~= '' and tonumber(scale) then
 					addUnitIcon(scavPrefix .. unitname .. ".user", file, tonumber(scale) * iconScale)
 				end
 			end

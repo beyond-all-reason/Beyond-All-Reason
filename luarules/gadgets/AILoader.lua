@@ -42,10 +42,10 @@ Shard.AIsByTeamID = {}
 --os = shard_include("spring_lua/fakeos")
 
 -- missing math function
-function math.mod(number1, number2)
-	return number1 % number2
-end
-math.fmod = math.mod
+--function math.mod(number1, number2)
+--	return number1 % number2
+--end
+--math.fmod = math.mod
 
 -- localization
 local spEcho = Spring.Echo

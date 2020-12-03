@@ -28,12 +28,12 @@ std=lua51
 
 globals = {
     -- std extensions
-    "math.round", "math.bit_or", "math.diag", "math.cross_product",
+    "math.round", "math.bit_or", "math.diag", "math.cross_product", "math.triangulate",
     "table.ifind", "table.show", "table.save", "table.echo", "table.print",
     -- Spring
     "Spring", "VFS", "gl", "GL", "Game",
     "UnitDefs", "UnitDefNames", "FeatureDefs", "FeatureDefNames",
-    "WeaponDefs", "WeaponDefNames", "LOG", "KEYSYMS", "CMD", "Script",
+    "WeaponDefs", "WeaponDefNames", "LOG", "KEYSYMS", "CMD", "CMD_", "Script",
     "SendToUnsynced", "Platform", "Engine", "include", "COB",
     -- GL
     "GL_TEXTURE_2D", "GL_HINT_BIT",
