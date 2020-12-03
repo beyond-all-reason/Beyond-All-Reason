@@ -217,20 +217,8 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		sleep 250;
-		hide flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		sleep 250;
-		hide flare2;
-	}
 	++gun_1;
-	if( gun_1 == 2 )
+	if( gun_1 >= 2 )
 	{
 		gun_1 = 0;
 	}
@@ -299,7 +287,7 @@ FireSecondary()
 		emit-sfx 257 from barrel;
 	}
 	++gun_2;
-	if( gun_2 == 4 )
+	if( gun_2 >= 4 )
 	{
 		gun_2 = 0;
 		Static_Var_8 = 0;

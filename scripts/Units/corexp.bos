@@ -88,7 +88,7 @@ Create()
 	Static_Var_5 = 182;
 	Static_Var_7 = 0;
 	Static_Var_8 = 0;
-	gun_1 = base;
+	gun_1 = 0;
 	Static_Var_1 = 1;
 	call-script InitState();
 	start-script SmokeUnit();
@@ -163,19 +163,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 == 0 )
-	{
-		sleep 150;
-	}
-	if( gun_1 == 1 )
-	{
-		sleep 150;
-	}
-	++gun_1;
-	if( gun_1 == 2 )
-	{
-		gun_1 = 0;
-	}
+	gun_1 = ! gun_1;
 }
 
 QueryPrimary(piecenum)

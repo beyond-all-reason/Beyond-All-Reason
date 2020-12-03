@@ -228,11 +228,13 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
+	signal SIG_WALK;
 	bMoving=TRUE;
 	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
+	bMoving=FALSE;
 	call-script StopWalking();
 }
 
