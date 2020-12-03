@@ -1,7 +1,7 @@
 Spring.Utilities = Spring.Utilities or {}
-if not Spring.Utilities.Base64Decode then
-	VFS.Include("LuaRules/Utilities/base64.lua")
-end
+--if not Spring.Utilities.Base64Decode then
+--	VFS.Include("LuaRules/Utilities/base64.lua")
+--end
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -157,30 +157,30 @@ end
 
 Spring.Utilities.TableEcho = TableEcho
 
-function Spring.Utilities.CustomKeyToUsefulTable(dataRaw)
-	if not dataRaw then
-		return
-	end
-	if not type(dataRaw) == 'string' then
-		Spring.Echo("Customkey data error! type == " .. type(dataRaw))
-	else
-		dataRaw = string.gsub(dataRaw, '_', '=')
-		dataRaw = Spring.Utilities.Base64Decode(dataRaw)
-		local dataFunc, err = loadstring("return " .. dataRaw)
-		if dataFunc then
-			local success, usefulTable = pcall(dataFunc)
-			if success then
-				if collectgarbage then
-					collectgarbage("collect")
-				end
-				return usefulTable
-			end
-		end
-		if err then
-			Spring.Echo("Customkey error", err)
-		end
-	end
-	if collectgarbage then
-		collectgarbage("collect")
-	end
-end
+--function Spring.Utilities.CustomKeyToUsefulTable(dataRaw)
+--	if not dataRaw then
+--		return
+--	end
+--	if not type(dataRaw) == 'string' then
+--		Spring.Echo("Customkey data error! type == " .. type(dataRaw))
+--	else
+--		dataRaw = string.gsub(dataRaw, '_', '=')
+--		dataRaw = Spring.Utilities.Base64Decode(dataRaw)
+--		local dataFunc, err = loadstring("return " .. dataRaw)
+--		if dataFunc then
+--			local success, usefulTable = pcall(dataFunc)
+--			if success then
+--				if collectgarbage then
+--					collectgarbage("collect")
+--				end
+--				return usefulTable
+--			end
+--		end
+--		if err then
+--			Spring.Echo("Customkey error", err)
+--		end
+--	end
+--	if collectgarbage then
+--		collectgarbage("collect")
+--	end
+--end
