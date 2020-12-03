@@ -18,6 +18,58 @@ local startboxConfig
 
 local ParseBoxes = VFS.Include ("LuaRules/Gadgets/Include/startbox_utilities.lua")
 
+
+-------------------------------------------------------------------------------
+-- vector functions
+-------------------------------------------------------------------------------
+
+local function AbsVal(x, y, z)
+	if z then
+		return math.sqrt(x*x + y*y + z*z)
+	elseif y then
+		return math.sqrt(x*x + y*y)
+	elseif x[3] then
+		return math.sqrt(x[1]*x[1] + x[2]*x[2] + x[3]*x[3])
+	else
+		return math.sqrt(x[1]*x[1] + x[2]*x[2])
+	end
+end
+local function Unit(v)
+	local mag = AbsVal(v)
+	if mag > 0 then
+		return {v[1]/mag, v[2]/mag}
+	else
+		return v
+	end
+end
+local function Subtract(v1, v2)
+	return {v1[1] - v2[1], v1[2] - v2[2]}
+end
+local function Dot(v1, v2)
+	if v1[3] then
+		return v1[1]*v2[1] + v1[2]*v2[2] + v1[3]*v2[3]
+	else
+		return v1[1]*v2[1] + v1[2]*v2[2]
+	end
+end
+local function Add(v1, v2)
+	return {v1[1] + v2[1], v1[2] + v2[2]}
+end
+local function Mult(b, v)
+	return {b*v[1], b*v[2]}
+end
+local function Project(v1, v2)
+	local uV2 = Unit(v2)
+	return Mult(Dot(v1, uV2), uV2)
+end
+local function Normal(v1, v2)		-- The normal of v1 onto v2. Returns such that v1 = normal + projection
+	local projection = Project(v1, v2)
+	return Subtract(v1, projection), projection
+end
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
 local function GetAverageStartpoint(boxID)
 	local box = startboxConfig[boxID]
 	local startpoints = box.startpoints
@@ -34,24 +86,23 @@ local function GetAverageStartpoint(boxID)
 end
 
 local function RegtangularizeTrapezoid(edgeA, edgeB)
-	local vector = Spring.Utilities.Vector
 	local origin = edgeA[1]
-	local unit = vector.Unit(vector.Subtract(edgeA[2], edgeA[1]))
+	local unit = Unit(Subtract(edgeA[2], edgeA[1]))
 
 	if (edgeA[1][1] < edgeA[1][2]) ~= (edgeB[1][1] < edgeB[1][2]) then
 		-- Swap points if lines are passed backwards
 		edgeB[1], edgeB[2] = edgeB[2], edgeB[1]
 	end
 
-	local distANear, distAFar = 0, vector.AbsVal(vector.Subtract(edgeA[2], edgeA[1]))
-	local distBNear, distBFar = vector.Dot(vector.Subtract(edgeB[1], edgeA[1]), unit), vector.Dot(vector.Subtract(edgeB[2], edgeA[1]), unit)
+	local distANear, distAFar = 0, AbsVal(Subtract(edgeA[2], edgeA[1]))
+	local distBNear, distBFar = Dot(Subtract(edgeB[1], edgeA[1]), unit), Dot(Subtract(edgeB[2], edgeA[1]), unit)
 
 	local nearDist, farDist = math.max(distANear, distBNear), math.min(distAFar, distBFar)
 
-	edgeA[1] = vector.Add(origin, vector.Mult(nearDist, unit))
-	edgeA[2] = vector.Add(origin, vector.Mult(farDist, unit))
-	local normal = vector.Normal(vector.Subtract(edgeB[1], edgeA[1]), unit)
-	return {edgeA[1], vector.Subtract(edgeA[2], edgeA[1]), normal}
+	edgeA[1] = Add(origin, Mult(nearDist, unit))
+	edgeA[2] = Add(origin, Mult(farDist, unit))
+	local normal = Normal(Subtract(edgeB[1], edgeA[1]), unit)
+	return {edgeA[1], Subtract(edgeA[2], edgeA[1]), normal}
 end
 
 local function GetBoxID(allyTeamID)
