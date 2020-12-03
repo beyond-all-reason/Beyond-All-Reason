@@ -55,7 +55,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			end
 			x, y, z = Spring.GetUnitVelocity(unitID)
 			Spring.AddUnitImpulse(unitID, x * -0.66, y * -0.66, z * -0.66)
-			return (damage * 0.12, 0
+			return damage * 0.12, 0
 		elseif MINE_BLAST[weaponID] then
 			return damage * 0.12, 0.24
 		end
