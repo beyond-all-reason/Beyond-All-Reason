@@ -298,7 +298,7 @@ local amountEMMax = nil    -- max amount of metal/energy to share/ask
 local sliderPosition = 0      -- slider position in metal and energy sharing
 local sliderOrigin = nil   -- position of the cursor before dragging the widget
 
-local firstclick = 0        --
+local firstclick = 0
 
 local dblclickPeriod = 0.4
 local backgroundMargin = 8
@@ -339,7 +339,6 @@ local collapsedHeight = 42
 -- Modules
 --------------------------------------------------
 
-
 local modules = {}
 local modulesCount = 0
 local m_indent
@@ -364,6 +363,15 @@ local m_sizedn
 modulesCount = modulesCount + 1
 local m_sizeup
 modulesCount = modulesCount + 1
+
+--local m_country
+--modulesCount = modulesCount + 1
+--local m_alliance
+--modulesCount = modulesCount + 1
+--local m_skill
+--modulesCount = modulesCount + 1
+--local m_resources
+--modulesCount = modulesCount + 1
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)

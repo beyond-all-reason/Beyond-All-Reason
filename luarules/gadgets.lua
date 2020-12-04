@@ -44,14 +44,14 @@ local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)
 
 --------------------------------------------------------------------------------
 
-function pgl()
-	-- (print gadget list)  FIXME: move this into a gadget
-	for k, v in ipairs(gadgetHandler.gadgets) do
-		Spring.Log(LOG_SECTION, LOG.ERROR,
-			string.format("%3i  %3i  %s", k, v.ghInfo.layer, v.ghInfo.name)
-		)
-	end
-end
+--function pgl()
+--	-- (print gadget list)  FIXME: move this into a gadget
+--	for k, v in ipairs(gadgetHandler.gadgets) do
+--		Spring.Log(LOG_SECTION, LOG.ERROR,
+--			string.format("%3i  %3i  %s", k, v.ghInfo.layer, v.ghInfo.name)
+--		)
+--	end
+--end
 
 
 --------------------------------------------------------------------------------

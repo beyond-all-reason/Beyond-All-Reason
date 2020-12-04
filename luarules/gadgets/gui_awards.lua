@@ -97,8 +97,8 @@ if gadgetHandler:IsSyncedCode() then
 			local teamIDs = Spring.GetTeamList(allyTeamIDs[i])
 			for j = 1, #teamIDs do
 				local isLuaAI = (Spring.GetTeamLuaAI(teamIDs[j]) ~= "")
-				local isGaiaTeam = (teamIDs[j] == gaiaTeamID)
-				if not select(4, Spring.GetTeamInfo(teamIDs[j], false)) and not isLuaAI and not isGaiaTeam then
+				local _,_,_,isAiTeam = Spring.GetTeamInfo(teamIDs[j])
+				if not (select(4, Spring.GetTeamInfo(teamIDs[j], false)) or isLuaAI or isAiTeam or teamIDs[j] == gaiaTeamID) then
 					local playerIDs = Spring.GetPlayerList(teamIDs[j])
 					local numPlayers = 0
 					for _, playerID in pairs(playerIDs) do
@@ -572,7 +572,7 @@ else
 		Spring.SendLuaRulesMsg(awardsMsg)
 
 		--create awards
-		addy = 0
+		local addy = 0
 		if traitorScore > threshold then
 			addy = 100
 			h = 600

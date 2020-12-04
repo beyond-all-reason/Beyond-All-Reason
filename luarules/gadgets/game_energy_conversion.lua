@@ -160,7 +160,7 @@ local function UnitParalysed(uID, uDefID, uTeam)
 	if convertCapacities[uDefID] then
 		local cDefs = convertCapacities[uDefID]
 		if teamMMList[uTeam][cDefs.e][uID].built then
-			WteamMMList[uTeam][cDefs.e][uID].emped = true
+			teamMMList[uTeam][cDefs.e][uID].emped = true
 			AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
 		end
 	end
@@ -169,7 +169,7 @@ end
 local function UnitParalysisOver(uID, uDefID, uTeam)
 	if convertCapacities[uDefID] then
 		local cDefs = convertCapacities[uDefID]
-		if (teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built) then
+		if teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built then
 			teamMMList[uTeam][cDefs.e][uID].emped = false
 			AdjustTeamCapacity(uTeam, cDefs.c, cDefs.e)
 		end
@@ -194,7 +194,7 @@ end
 
 function EmpedVector:process(currentFrame)
 	for uID, frameID in pairs(self.unitBuffer) do
-		if (currentFrame >= frameID) then
+		if currentFrame >= frameID then
 			UnitParalysisOver(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
 
 			self.unitBuffer[uID] = nil
@@ -289,7 +289,7 @@ end
 function gadget:GameFrame(n)
 
 	-- process emped in the least likely used frame by the actual per team maker computations
-	if (n % resourceRefreshRate == resourceRefreshRate - 1) then
+	if n % resourceRefreshRate == resourceRefreshRate - 1 then
 		currentFrameStamp = currentFrameStamp + 1
 		EmpedVector:process(currentFrameStamp)
 	end
@@ -332,7 +332,7 @@ function gadget:GameFrame(n)
 				spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
 			end
 		end
-		if (splitMMPointer == resourceRefreshRate) then
+		if splitMMPointer == resourceRefreshRate then
 			splitMMPointer = 1
 		else
 			splitMMPointer = splitMMPointer + 1

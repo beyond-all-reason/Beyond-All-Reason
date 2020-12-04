@@ -120,7 +120,7 @@ if gadgetHandler:IsSyncedCode() then
 			if not present then
 				local customtable = select(11, Spring.GetPlayerInfo(playerID)) or {}
 				local tsMu = customtable.skill
-				ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
+				local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 				if ts then
 					absent[playerID] = ts
 					--Spring.Echo("absent:", playerID, ts)
@@ -458,7 +458,7 @@ else
 		--local customtable = select(11,Spring.GetPlayerInfo(myPlayerID))
 		local tsMu = "30"--customtable.skill
 		local tsSigma = "0"--customtable.skilluncertainty
-		ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
+		--local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 		tsSigma = tonumber(tsSigma)
 		eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and spec
 

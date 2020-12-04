@@ -183,7 +183,7 @@ if gadgetHandler:IsSyncedCode() then
 			update = true
 		end
 
-		if update == true and (curtime - lastupdate > updategrain then
+		if update == true and curtime - lastupdate > updategrain then
 			lastupdate = curtime
 			SendToUnsynced("UpdateList", curtime)
 			update = false
