@@ -1,15 +1,15 @@
-local mapsizeX = Game.mapSizeX
-local mapsizeZ = Game.mapSizeZ
-local GaiaTeamID = Spring.GetGaiaTeamID()
-local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
+-- these are used in poschecks.lua so arent localized here
+mapsizeX = Game.mapSizeX
+mapsizeZ = Game.mapSizeZ
+GaiaTeamID = Spring.GetGaiaTeamID()
+GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
+
 local GameShortName = Game.gameShortName
-
 local RuinSpawns = (math.ceil(mapsizeX+mapsizeZ)/500)+30
-
-local teams = Spring.GetTeamList()
 
 local scavengersAIEnabled = false
 local scavengerAllyTeamID
+local teams = Spring.GetTeamList()
 for i = 1,#teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then

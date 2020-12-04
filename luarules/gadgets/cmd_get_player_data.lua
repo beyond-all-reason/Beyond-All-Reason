@@ -61,7 +61,7 @@ else
 	local validation = SYNCED.validationPlayerData
 
 	local userconfigComplete, queueScreenshot, queueScreenShotHeight, queueScreenShotHeightBatch, queueScreenShotH, queueScreenShotHmax, queueScreenShotStep
-	local queueScreenShotWidth, queueScreenshotGameframe, queueScreenShotPixels, queueScreenShotBroadcastChars, queueScreenShotCharsPerBroadcast
+	local queueScreenShotWidth, queueScreenshotGameframe, queueScreenShotPixels, queueScreenShotBroadcastChars, queueScreenShotCharsPerBroadcast, pixels
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SendToWG", SendToWG)

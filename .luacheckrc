@@ -33,7 +33,7 @@ globals = {
     -- Spring
     "Spring", "VFS", "gl", "GL", "Game",
     "UnitDefs", "UnitDefNames", "FeatureDefs", "FeatureDefNames",
-    "WeaponDefs", "WeaponDefNames", "LOG", "KEYSYMS", "CMD", "CMD_", "Script",
+    "WeaponDefs", "WeaponDefNames", "LOG", "KEYSYMS", "CMD", "Script",
     "SendToUnsynced", "Platform", "Engine", "include", "COB",
     -- GL
     "GL_TEXTURE_2D", "GL_HINT_BIT",
