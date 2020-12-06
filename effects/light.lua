@@ -7,7 +7,7 @@ return {
 			water = true,
 			ground = true,
 			unit = true,
-			count = 2,
+			count = 1,
 			properties = {
 				heat = 25,
 				texture = [[flare]],
@@ -108,7 +108,7 @@ return {
 			water = true,
 			ground = true,
 			unit = true,
-			count = 2,
+			count = 1,
 			properties = {
 				heat = 30,
 				texture = [[flare]],
