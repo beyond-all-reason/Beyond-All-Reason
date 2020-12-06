@@ -234,16 +234,14 @@ function widget:Initialize()
 	WG['music'].getTracksConfig = function(value)
 		return tracksConfig
 	end
-	if tracksConfig and type(tracksConfig) == 'table' then
-		for track, params in pairs(tracksConfig) do
-			-- get track
-			WG['music']['getTrack'..track] = function()
-				return params[1]
-			end
-			-- set track
-			WG['music']['setTrack'..track] = function(value)
-				toggleTrack(track, value)
-			end
+	for track, params in pairs(tracksConfig) do
+		-- get track
+		WG['music']['getTrack'..track] = function()
+			return params[1]
+		end
+		-- set track
+		WG['music']['setTrack'..track] = function(value)
+			toggleTrack(track, value)
 		end
 	end
 end
@@ -899,7 +897,7 @@ function widget:SetConfigData(data)
 	if data.maxMusicVolume ~= nil then
 		maxMusicVolume = data.maxMusicVolume
 	end
-	if data.tracksConfig ~= nil then
+	if data.tracksConfig ~= nil and type(data.tracksConfig) == 'table' then
 		-- cleanup old removed tracks
 		for track,params in pairs(data.tracksConfig) do
 			if peaceTracks[getKeyByValue(peaceTracks, track)] or warTracks[getKeyByValue(warTracks, track)] then
