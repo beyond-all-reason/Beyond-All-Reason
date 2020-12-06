@@ -7,7 +7,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local widgetVersion = 23
+local widgetVersion = 24
 
 function widget:GetInfo()
     return {
@@ -44,6 +44,7 @@ end
 -- v21   (Floris): toggles LoS and /specfullview when camera tracking a player
 -- v22   (Floris): added auto collapse function
 -- v23   (Floris): hiding share buttons when you are alone
+-- v24   (Floris): cleanup and removed betting system
 
 --------------------------------------------------------------------------------
 -- Config
@@ -52,7 +53,6 @@ end
 local customScale = 1
 local customScaleStep = 0.03
 local pointDuration = 45
-local cpuText = false
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
 local lockcameraHideEnemies = true            -- specfullview
@@ -81,7 +81,6 @@ local Spring_GetLocalTeamID = Spring.GetLocalTeamID
 local Spring_GetLocalPlayerID = Spring.GetLocalPlayerID
 local Spring_ShareResources = Spring.ShareResources
 local Spring_GetTeamUnitCount = Spring.GetTeamUnitCount
-local Echo = Spring.Echo
 local Spring_GetTeamResources = Spring.GetTeamResources
 local Spring_SendCommands = Spring.SendCommands
 local Spring_GetConfigInt = Spring.GetConfigInt
@@ -127,7 +126,6 @@ local pics = {
     energyPic = imageDirectory .. "energy.dds",
     metalPic = imageDirectory .. "metal.dds",
     notFirstPic = imageDirectory .. "notfirst.dds",
-    notFirstPicWO = imageDirectory .. "notfirstwo.png",
     pingPic = imageDirectory .. "ping.dds",
     cpuPic = imageDirectory .. "cpu.dds",
     selectPic = imageDirectory .. "select.png",
@@ -139,9 +137,6 @@ local pics = {
     arrowdPic = imageDirectory .. "arrowd.png",
     takePic = imageDirectory .. "take.dds",
     crossPic = imageDirectory .. "cross.dds",
-    pointbPic = imageDirectory .. "pointb.png",
-    takebPic = imageDirectory .. "takeb.png",
-    seespecPic = imageDirectory .. "seespec.png",
     indentPic = imageDirectory .. "indent.png",
     cameraPic = imageDirectory .. "camera.dds",
     countryPic = imageDirectory .. "country.dds",
@@ -154,12 +149,10 @@ local pics = {
     barGlowCenterPic = imageDirectory .. "barglow-center.png",
     barGlowEdgePic = imageDirectory .. "barglow-edge.png",
 
-    cpuPingPic = imageDirectory .. "cpuping.dds",
     specPic = imageDirectory .. "spec.png",
     chatPic = imageDirectory .. "chat.dds",
     sidePic = imageDirectory .. "side.dds",
     sharePic = imageDirectory .. "share.dds",
-    namePic = imageDirectory .. "name.dds",
     idPic = imageDirectory .. "id.dds",
     tsPic = imageDirectory .. "ts.dds",
     sizednPic = imageDirectory .. "sizedn.dds",
@@ -176,7 +169,6 @@ local pics = {
 }
 
 local sidePics = {}  -- loaded in SetSidePics function
-local sidePicsWO = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
@@ -219,19 +211,25 @@ local hoverPlayerlist = false
 local transitionTime = 0.6 -- how long it takes the camera to move when tracking a player
 local listTime = 14 -- how long back to look for recent broadcasters
 
-local myPlayerID = Spring.GetMyPlayerID()
-
 local totalTime = 0
 local lastBroadcasts = {}
 local recentBroadcasters = {}
 local newBroadcaster = false
 local aliveAllyTeams = {}
-local playerScores = {}
-local screenshotVars = {} -- finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
+local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
---local myLastCameraState, sceduledSpecFullView, desiredLosmode, ShareSlider, MainList, Background, drawListOffset, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, RecvPlayerBetList, playerBetList, tipY
-local lockPlayerID, leftPosX, lastSliderSound, release, specTarget, curFrame
+--local desiredLosmode, drawListOffset, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY
+local lockPlayerID, leftPosX, lastSliderSound, release, specTarget, curFrame, tipText, prevClickedName, clickedName, myLastCameraState, sceduledSpecFullView
+local PrevGameFrame, MainList, Background, ShareSlider
 
+local deadPlayerHeightReduction = 10
+
+local mouseX, mouseY = 0, 0
+
+local reportTake = false
+local tookTeamID
+local tookTeamName
+local tookFrame = -120
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -250,18 +248,13 @@ local lastSystemData = {}
 local lastGpuMemData = {}
 
 --------------------------------------------------------------------------------
--- Tooltip
---------------------------------------------------------------------------------
-
-local tipText
-
---------------------------------------------------------------------------------
 -- Players counts and info
 --------------------------------------------------------------------------------
 
 -- local player info
+local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
-local myTeamID
+local myTeamID = Spring.GetLocalTeamID()
 local mySpecStatus, fullView, _ = Spring.GetSpectatingState()
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -288,15 +281,15 @@ local gameStarted = false
 -- Button check variable
 --------------------------------------------------------------------------------
 
-local clickToMove = nil    -- click detection for moving the widget
-local moveStart = nil    -- position of the cursor before dragging the widget
+local clickToMove    -- click detection for moving the widget
+local moveStart    -- position of the cursor before dragging the widget
 
-local energyPlayer = nil    -- player to share energy with (nil when no energy sharing)
-local metalPlayer = nil    -- player to share metal with(nil when no metal sharing)
+local energyPlayer    -- player to share energy with (nil when no energy sharing)
+local metalPlayer    -- player to share metal with(nil when no metal sharing)
 local amountEM = 0      -- amount of metal/energy to share/ask
-local amountEMMax = nil    -- max amount of metal/energy to share/ask
+local amountEMMax    -- max amount of metal/energy to share/ask
 local sliderPosition = 0      -- slider position in metal and energy sharing
-local sliderOrigin = nil   -- position of the cursor before dragging the widget
+local sliderOrigin   -- position of the cursor before dragging the widget
 
 local firstclick = 0
 
@@ -364,22 +357,20 @@ modulesCount = modulesCount + 1
 local m_sizeup
 modulesCount = modulesCount + 1
 
---local m_country
---modulesCount = modulesCount + 1
---local m_alliance
---modulesCount = modulesCount + 1
---local m_skill
---modulesCount = modulesCount + 1
---local m_resources
---modulesCount = modulesCount + 1
+local m_country
+modulesCount = modulesCount + 1
+local m_alliance
+modulesCount = modulesCount + 1
+local m_skill
+modulesCount = modulesCount + 1
+local m_resources
+modulesCount = modulesCount + 1
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
 local m_point
 modulesCount = modulesCount + 1
 local m_take
-modulesCount = modulesCount + 1
-local m_seespec
 modulesCount = modulesCount + 1
 
 local position = 1
@@ -468,7 +459,6 @@ m_name = {
     width = 10,
     position = position,
     posX = 0,
-    pic = pics["namePic"],
     noPic = true,
     picGap = 7,
 }
@@ -482,7 +472,7 @@ m_cpuping = {
     width = 24,
     position = position,
     posX = 0,
-    pic = pics["cpuPingPic"],
+    pic = pics["cpuPic"],
 }
 position = position + 1
 
@@ -588,7 +578,6 @@ modules = {
 m_point = {
     active = true,
     defaut = true, -- defaults dont seem to be accesible on widget data load
-    pic = pics["pointbPic"],
 }
 
 m_take = {
@@ -597,14 +586,7 @@ m_take = {
     pic = pics["takePic"],
 }
 
-m_seespec = {
-    active = true,
-    default = true,
-    pic = pics["seespecPic"],
-}
-
 local specsLabelOffset = 0
-local teamsizeVersusText = ""
 
 local hideShareIcons = false
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
@@ -1030,10 +1012,6 @@ end
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
 
-function RecvPlayerScores(newPlayerScores)
-    playerScores = newPlayerScores or {}
-end
-
 function widget:PlayerChanged(playerID)
     myAllyTeamID = Spring.GetMyAllyTeamID()
     mySpecStatus, fullView = Spring.GetSpectatingState()
@@ -1045,7 +1023,6 @@ end
 function widget:Initialize()
     widget:ViewResize()
 
-    widgetHandler:RegisterGlobal('getPlayerScoresAdvplayerslist', RecvPlayerScores)
     widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
     widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
     widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
@@ -1193,7 +1170,6 @@ function widget:Shutdown()
         WG['guishader'].RemoveRect('advplayerlist_screenshot')
     end
     WG['advplayerlist_api'] = nil
-    widgetHandler:DeregisterGlobal('getPlayerScoresAdvplayerslist')
     widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
     widgetHandler:DeregisterGlobal('ActivityEvent')
     widgetHandler:DeregisterGlobal('FpsEvent')
@@ -1248,10 +1224,8 @@ function SetSidePics()
 
         if teamSide then
             sidePics[team] = imageDirectory .. teamSide .. "_default.png"
-            sidePicsWO[team] = imageDirectory .. teamSide .. "wo_default.png"
         else
             sidePics[team] = imageDirectory .. "default.png"
-            sidePicsWO[team] = imageDirectory .. "defaultwo.png"
         end
     end
 end
@@ -1671,7 +1645,6 @@ function SortAllyTeams(vOffset)
     return vOffset
 end
 
-local deadPlayerHeightReduction = 10
 function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
     --(teams are not visible as such unless they are empty or AI)
@@ -1798,11 +1771,6 @@ end
 --  Draw control
 ---------------------------------------------------------------------------------------------------
 
-local PrevGameFrame
-local MainList
-local Background
-local ShareSlider
-
 function widget:RecvLuaMsg(msg, playerID)
     if msg:sub(1, 18) == 'LobbyOverlayActive' then
         chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
@@ -1828,13 +1796,11 @@ function widget:DrawScreen()
                 PrevGameFrame = CurGameFrame
             end
             if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
-                --Echo(DrawFrame)
                 NeedUpdate = true
             end
         end
 
         if NeedUpdate then
-            --Spring.Echo("DS APL update")
             CreateLists()
             PrevGameFrame = CurGameFrame
         end
@@ -2288,10 +2254,6 @@ function DrawLabelRightside(text, vOffset)
     font:End()
 end
 
-function RecvPlayerBetList(newPlayerBetList)
-    playerBetList = newPlayerBetList or {}
-end
-
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     tipY = nil
     local rank = player[playerID].rank
@@ -2320,10 +2282,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
 
     local alpha = 0.44-- alpha used to show inactivity for specs
-
-    if WG['betfrontend'] ~= nil then
-        playerScores = WG['betfrontend'].GetPlayerScores()
-    end
 
     alpha = 0.33
     local alphaActivity = 0
@@ -2450,9 +2408,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                 if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
                     DrawCamera(posY, false)
                 end
-            end
-            if playerScores[playerID] ~= nil then
-                DrawChips(playerID, posY)
             end
             DrawSmallName(name, team, posY, false, playerID, alpha)
         end
@@ -2593,17 +2548,6 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
     end
 end
 
-function DrawChips(playerID, posY)
-    local xPos = m_name.posX + widgetPosX - 6
-    font:Begin()
-    font:SetTextColor(0.75, 0.75, 0.75, 0.8)
-    font:Print(playerScores[playerID].score, xPos - 5, posY + 4, 9.5, "r")
-    font:End()
-    gl_Color(1, 1, 1, 1)
-    gl_Texture(pics["chipPic"])
-    DrawRect(xPos + 4, posY + 3.5, xPos - 2.5, posY + 10)
-end
-
 function DrawSidePic(team, playerID, posY, leader, dark, ai)
     if gameStarted then
         if leader == true then
@@ -2612,17 +2556,6 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
             gl_Texture(pics["notFirstPic"])                          -- sets image for not leader of team players
         end
         DrawRect(m_side.posX + widgetPosX + 2, posY + 1, m_side.posX + widgetPosX + 16, posY + 15) -- draws side image
-        --[[if dark == true then	-- draws outline if player color is dark
-			gl_Color(1,1,1)
-			if leader == true then
-				gl_Texture(sidePicsWO[team])
-			else
-				gl_Texture(notFirstPicWO)
-			end
-			DrawRect(m_side.posX + widgetPosX + 2, posY+1,m_side.posX + widgetPosX + 16, posY + 15)
-			gl_Texture(false)
-		end
-		]]--
         gl_Texture(false)
     else
         DrawState(playerID, m_side.posX + widgetPosX, posY)
@@ -2913,57 +2846,38 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 
     grayvalue = 0.7 + (cpu / 135)
 
+    -- display user fps
     font:Begin()
-    if cpuText ~= nil and cpuText then
-        if type(cpu) == "number" then
-            if cpu > 99 then
-                cpu = 99
-            end
-            if spec then
-                --font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
-                --font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-                font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.75 * alpha * grayvalue)
-                font:Print(cpu, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9, "ro")
-            else
-                --font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
-                --font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
-                font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.9 * alpha * grayvalue)
-                font:Print(cpu, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9.5, "ro")
-            end
+    if fps ~= nil then
+        if fps > 99 then
+            fps = 99
+        end
+        grayvalue = 0.95 - (math.min(fps, 99) / 400)
+        if fps < 0 then
+            fps = 0
+            greyvalue = 1
+        end
+        if spec then
+            --font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
+            --font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+            font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
+            font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9, "ro")
+        else
+            --font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
+            --font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+            font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
+            font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9.5, "ro")
         end
     else
-
-        if fps ~= nil then
-            if fps > 99 then
-                fps = 99
-            end
-            grayvalue = 0.95 - (math.min(fps, 99) / 400)
-            if fps < 0 then
-                fps = 0
-                greyvalue = 1
-            end
-            if spec then
-                --font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
-                --font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-                font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
-                font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9, "ro")
-            else
-                --font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
-                --font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
-                font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
-                font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9.5, "ro")
-            end
+        gl_Texture(pics["cpuPic"])
+        if spec then
+            gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
+            DrawRect(m_cpuping.posX + widgetPosX + 2, posY + 1, m_cpuping.posX + widgetPosX + 13, posY + 14)
         else
-            gl_Texture(pics["cpuPic"])
-            if spec then
-                gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
-                DrawRect(m_cpuping.posX + widgetPosX + 2, posY + 1, m_cpuping.posX + widgetPosX + 13, posY + 14)
-            else
-                gl_Color(pingCpuColors[cpuLvl].r, pingCpuColors[cpuLvl].g, pingCpuColors[cpuLvl].b)
-                DrawRect(m_cpuping.posX + widgetPosX + 1, posY + 1, m_cpuping.posX + widgetPosX + 14, posY + 15)
-            end
-            gl_Color(1, 1, 1, 1)
+            gl_Color(pingCpuColors[cpuLvl].r, pingCpuColors[cpuLvl].g, pingCpuColors[cpuLvl].b)
+            DrawRect(m_cpuping.posX + widgetPosX + 1, posY + 1, m_cpuping.posX + widgetPosX + 14, posY + 15)
         end
+        gl_Color(1, 1, 1, 1)
     end
     font:End()
 end
@@ -3281,9 +3195,6 @@ end
 --  Mouse
 ---------------------------------------------------------------------------------------------------
 
-local prevClickedName
-local clickedName
-
 function widget:MousePress(x, y, button)
     --super ugly code here
 
@@ -3494,7 +3405,6 @@ function widget:MousePress(x, y, button)
     end
 end
 
-local mouseX, mouseY = 0, 0
 function widget:MouseMove(x, y, dx, dy, button)
 
     if collapsed then
@@ -3845,9 +3755,7 @@ function widget:GetConfigData(data)
             specListShow = specListShow,
             m_pointActive = m_point.active,
             m_takeActive = m_take.active,
-            m_seespecActive = m_seespec.active,
             m_active_Table = m_active_Table,
-            cpuText = cpuText,
             lockPlayerID = lockPlayerID,
             specListShow = specListShow,
             gameFrame = Spring.GetGameFrame(),
@@ -3949,9 +3857,6 @@ function widget:SetConfigData(data)
                 end
             end
         end
-        if data.cpuText ~= nil then
-            cpuText = data.cpuText
-        end
 
         --not technically modules
         m_point.active = true -- m_point.default doesnt work
@@ -3961,10 +3866,6 @@ function widget:SetConfigData(data)
         m_take.active = true -- m_take.default doesnt work
         if data.m_takeActive ~= nil then
             m_take.active = data.m_takeActive
-        end
-        m_seespec.active = true -- m_seespec.default doesnt work
-        if data.m_seespecActive ~= nil then
-            m_seespec.active = data.m_seespecActive
         end
         --load module.active from table
         local m_active_Table = data.m_active_Table or {}
@@ -3993,9 +3894,6 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if string.find(command, "cputext", nil, true) == 1 and string.len(command) == 7 then
-        cpuText = not cpuText
-    end
     if string.find(command, "alwayshidespecs", nil, true) == 1 and string.len(command) == 15 then
         alwaysHideSpecs = not alwaysHideSpecs
         if alwaysHideSpecs then
@@ -4109,11 +4007,6 @@ function GetNeed(resType, teamID)
     end
     return false
 end
-
-local reportTake = false
-local tookTeamID
-local tookTeamName
-local tookFrame = -120
 
 function updateTake(allyTeamID)
     for i = 0, teamN - 1 do
