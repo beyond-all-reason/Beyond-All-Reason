@@ -234,14 +234,16 @@ function widget:Initialize()
 	WG['music'].getTracksConfig = function(value)
 		return tracksConfig
 	end
-	for track, params in pairs(tracksConfig) do
-		-- get track
-		WG['music']['getTrack'..track] = function()
-			return params[1]
-		end
-		-- set track
-		WG['music']['setTrack'..track] = function(value)
-			toggleTrack(track, value)
+	if tracksConfig and type(tracksConfig) == 'table' then
+		for track, params in pairs(tracksConfig) do
+			-- get track
+			WG['music']['getTrack'..track] = function()
+				return params[1]
+			end
+			-- set track
+			WG['music']['setTrack'..track] = function(value)
+				toggleTrack(track, value)
+			end
 		end
 	end
 end

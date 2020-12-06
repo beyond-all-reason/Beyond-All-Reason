@@ -218,9 +218,9 @@ local newBroadcaster = false
 local aliveAllyTeams = {}
 local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
---local desiredLosmode, drawListOffset, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY
+--local Background, ShareSlider, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY
 local lockPlayerID, leftPosX, lastSliderSound, release, specTarget, curFrame, tipText, prevClickedName, clickedName, myLastCameraState, sceduledSpecFullView
-local PrevGameFrame, MainList, Background, ShareSlider
+local PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 10
 

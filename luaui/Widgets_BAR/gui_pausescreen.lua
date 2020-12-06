@@ -166,7 +166,7 @@ function widget:Update(dt)
 	end
 
 	-- admin pause / game freeze
-	if not paused then
+	if not paused and gameFrame > 0 then
 		if lastGameFrame == gameFrame then
 			if now - lastGameFrameTime > 1 then
 				if not noNewGameframes then
