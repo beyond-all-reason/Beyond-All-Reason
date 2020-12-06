@@ -1549,7 +1549,7 @@ function MouseOverSubIcon(x, y)
 			icon = math.floor((y - boptRect[4]) / bopt_inext[2])
 		end
 
-		if icon > #facs[openedMenu + 1].buildList - 1 then
+		if facs[openedMenu + 1] and icon > #facs[openedMenu + 1].buildList - 1 then
 			icon = #facs[openedMenu + 1].buildList - 1
 		elseif icon < 0 then
 			icon = 0
