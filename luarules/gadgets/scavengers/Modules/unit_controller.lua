@@ -58,18 +58,6 @@ function SelfDestructionControls(n, scav, scavDef)
 	Constructing[scav] = nil
 end
 
-function BossDGun(n)
-	if FinalBossUnitID then
-		local NearestBossEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 20000, false)
-		NearestBossEnemyUnitDefID = Spring.GetUnitDefID(NearestBossEnemy)
-		if UnitDefs[NearestBossEnemyUnitDefID].canFly ~= true then
-			local x,y,z = Spring.GetUnitPosition(NearestBossEnemy)
-			Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN, NearestBossEnemy, {0})
-			Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z}, {"shift"})
-		end
-	end
-end
-
 function ArmyMoveOrders(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then

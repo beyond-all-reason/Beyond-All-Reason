@@ -95,7 +95,7 @@ end
 
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
-
+VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
 
 local function DisableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
@@ -198,11 +198,24 @@ function gadget:GameFrame(n)
 		RandomEventTrigger(n)
 	end
 
-	if n%150 == 85 and FinalBossUnitSpawned and FinalBossKilled == false then
-		local bosshealth = Spring.GetUnitHealth(FinalBossUnitID)
-		ScavSendMessage("Boss Health: "..math.ceil(bosshealth))
-		if math_random(0,math.floor(4/spawnmultiplier)) == 0 then
-			BossDGun(n)
+	if n%(150/spawnmultiplier) == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
+		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
+		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
+		local bosshealthpercentage = math.floor(currentbosshealth/(initialbosshealth*0.01))
+		ScavSendMessage("Boss Health: "..math.ceil(currentbosshealth).. " ("..bosshealthpercentage.."%)")
+		ScavBossPhaseControl(bosshealthpercentage)
+		if math_random(0,(11-BossFightCurrentPhase)) == 0 then
+			if BossFightCurrentPhase == 1 then
+				local SpecAbi = BossSpecialAbilitiesList[1]
+				if SpecAbi then
+					SpecAbi(n)
+				end
+			else
+				local SpecAbi = BossSpecialAbilitiesList[math_random(1,#(BossFightCurrentPhase))]
+				if SpecAbi then
+					SpecAbi(n)
+				end
+			end
 		end
 	end
 
