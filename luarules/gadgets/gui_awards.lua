@@ -391,27 +391,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		local bettingWinners = ''
-		local bettingScore = 0
-		local bettingParticipants = 0
-		if GG['betengine'] ~= nil and GG['betengine'].playerScores ~= nil then
-			for playerID, info in pairs(GG['betengine'].playerScores) do
-				bettingParticipants = bettingParticipants + 1
-				if info.won > 0 then
-					local playerName, _, isSpec = Spring.GetPlayerInfo(playerID, false)
-					if info.score > bettingScore then
-						bettingScore = info.score
-						bettingWinners = playerName
-					elseif info.score == bettingScore then
-						bettingWinners = bettingWinners .. ', ' .. playerName
-					end
-				end
-			end
-			if bettingParticipants <= 1 and not localtestDebug then
-				bettingWinners = ''
-			end
-		end
-
 		--tell unsynced
 		SendToUnsynced("ReceiveAwards", ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi,
 			fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi,
@@ -420,7 +399,6 @@ if gadgetHandler:IsSyncedCode() then
 			dmgRecAward, dmgRecScore,
 			sleepAward, sleepScore,
 			cowAward,
-			bettingWinners, bettingScore, bettingParticipants,
 			traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
 
 	end
@@ -449,7 +427,7 @@ else
 	local GL_LINE_LOOP = GL.LINE_LOOP
 	local glText = gl.Text
 
-	local thisAward, bettingScores
+	local thisAward
 
 	local widgetScale = 1
 
@@ -557,10 +535,7 @@ else
 						   dmgRecAward, dmgRecScore,
 						   sleepAward, sleepScore,
 						   cowAward,
-						   bettingWinners, bettingScore, bettingParticipants,
 						   traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
-
-		bettingScores = { bettingWinners, bettingScore, bettingParticipants }
 
 		--record who won which awards in chat message (for demo parsing by replays.springrts.com)
 		--make all values positive, as unsigned ints are easier to parse
@@ -956,30 +931,6 @@ else
 		font2:Print(graphColour .. (showGraphsButton and 'Show Graphs' or 'Close'), bx + w - graphsX, by + 50, 20, "o")
 		font2:End()
 
-		if bettingScores ~= nil and bettingScores[1] ~= '' then
-			local winners = bettingScores[1]
-			local maxscore = bettingScores[2]
-			local participants = bettingScores[3]
-
-			local chipSize = 16
-			local chipHeight = 3
-			local heightOffset = 0
-			local xOffset = 0
-			glTexture(':l:LuaRules/Images/chip.dds')
-			local i = 0
-			while i <= maxscore do
-				i = i + 1
-				if chipStackOffsets[i] == nil then
-					chipStackOffsets[i] = math.random() * 2.4
-				end
-				xOffset = chipStackOffsets[i]
-				glTexRect(bx + 10 + xOffset, by + 10 + heightOffset + chipSize, bx + 10 + chipSize + xOffset, by + 10 + heightOffset)
-				heightOffset = heightOffset + chipHeight
-			end
-			font:Begin()
-			font:Print('\255\225\225\225' .. winners .. '\255\150\150\150 became the betting winner(s)     \255\130\130\130...among ' .. participants .. ' participants', bx + 18 + chipSize, by + 6 + (chipSize / 2), 14, "o")
-			font:End()
-		end
 		glPopMatrix()
 	end
 

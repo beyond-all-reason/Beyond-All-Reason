@@ -18,6 +18,7 @@ end
 
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameState = Spring.GetGameState
+local spGetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
 local glTexture = gl.Texture
@@ -34,6 +35,7 @@ local glUniform = gl.Uniform
 local glGetUniformLocation = gl.GetUniformLocation
 
 local osClock = os.clock
+
 
 ----------------------------------------------------------------------------------
 
@@ -74,10 +76,14 @@ local vsx, vsy = Spring.GetWindowGeometry()
 local widgetInitTime = osClock()
 local previousDrawScreenClock = osClock()
 local paused = false
+local lastGameFrame = spGetGameFrame()
+local lastGameFrameTime = os.clock() + 10
 
 local shaderAlpha = 0
 local screencopy, shaderProgram
 local chobbyInterface, alphaLoc, showPauseScreen, nonShaderAlpha
+local gameover = false
+local noNewGameframes = false
 
 
 
@@ -118,13 +124,13 @@ local fragmentShaderSource = {
 	]],
 }
 
-local gameover = false
 function widget:GameOver()
 	gameover = true
 end
 
 function widget:Update(dt)
 	local now = osClock()
+	local gameFrame = spGetGameFrame()
 	previousDrawScreenClock = now
 
 	local diffPauseTime = (now - pauseTimestamp)
@@ -157,6 +163,26 @@ function widget:Update(dt)
 
 	if spGetGameState and select(3, spGetGameState()) then
 		paused = true
+	end
+
+	-- admin pause / game freeze
+	if not paused and gameFrame > 0 and not gameover then
+		if lastGameFrame == gameFrame then
+			if now - lastGameFrameTime > 1 then
+				if not noNewGameframes then
+					pauseTimestamp = now - (slideTime + autoFadeTime)
+				end
+				paused = true
+				noNewGameframes = true
+			else
+				noNewGameframes = false
+			end
+		else
+			lastGameFrame = gameFrame
+			lastGameFrameTime = now
+			paused = false
+			noNewGameframes = false
+		end
 	end
 end
 
@@ -283,7 +309,7 @@ function drawPause()
 	glPopMatrix()
 end
 
-function updateWindowCoords()
+local function updateWindowCoords()
 	wndX1 = (vsx / 2) - boxWidth
 	wndY1 = (vsy / 2) + boxHeight
 	wndX2 = (vsx / 2) + boxWidth

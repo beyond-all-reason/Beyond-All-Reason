@@ -122,9 +122,10 @@ if not gadgetHandler:IsSyncedCode() then
 else
 	-- SYNCED
 
+	-- used in map configs
+	mapsizeX = Game.mapSizeX
+	mapsizeZ = Game.mapSizeZ
 
-	local mapsizeX = Game.mapSizeX
-	local mapsizeZ = Game.mapSizeZ
 	local math_random = math.random
 	local spSpawnCEG = Spring.SpawnCEG
 	local spGetGroundHeight = Spring.GetGroundHeight

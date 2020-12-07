@@ -400,7 +400,7 @@ function widget:CommandsChanged()
 				customCommands[#customCommands + 1] = {
 					id = CMD_AREA_MEX,
 					type = CMDTYPE.ICON_AREA,
-					tooltip = 'Define an area to make mexes in',
+					tooltip = 'Define an area (with metal spots in it) to make metal extractors in',
 					name = 'Mex',
 					cursor = 'Repair',
 					action = 'areamex',

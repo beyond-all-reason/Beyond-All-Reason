@@ -4557,7 +4557,13 @@ function init()
 					end
 					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
 						onchange = function(i, value)
-							saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
+							if not WG['music'] and widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
+								if widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ] then
+									widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ][1] = value
+								end
+							else
+								saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
+							end
 						end,
 						onclick = function()
 							if WG['music'] ~= nil and WG['music'].playTrack then

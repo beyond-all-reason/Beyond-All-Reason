@@ -1644,43 +1644,7 @@ function widget:MouseRelease(x, y, button)
 			end
 		end
 	end
-
-	if WG['smartselect'] and not WG['smartselect'].updateSelection then
-		return
-	end
-	local icon = MouseOverIcon(x, y)
-
-	local units = spGetSelectedUnitsSorted()
-	if units.n ~= selUnitTypes then
-		return -1  -- discard this click
-	end
-	units.n = nil
-
-	local unitDefID = -1
-	local unitTable = nil
-	local index = 0
-	for udid, uTable in pairs(units) do
-		if index == icon then
-			unitDefID = udid
-			unitTable = uTable
-			break
-		end
-		index = index + 1
-	end
-	if (unitTable == nil) then
-		return -1
-	end
-
-	local alt, ctrl, meta, shift = spGetModKeyState()
-
-	if button == 1 then
-		LeftMouseButton(unitDefID, unitTable)
-	elseif button == 2 then
-		MiddleMouseButton(unitDefID, unitTable)
-	elseif button == 3 then
-		RightMouseButton(unitDefID, unitTable)
-	end
-
+	
 	return -1
 end
 

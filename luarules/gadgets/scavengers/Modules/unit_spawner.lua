@@ -9,6 +9,9 @@ function BossWaveTimer(n)
 	if not FinalSelfDChance then
 		FinalSelfDChance = 60
 	end
+	if not ScavBossFailedSpawnAttempts then
+		ScavBossFailedSpawnAttempts = 0
+	end
 	if BossWaveTimeLeft > 0 then
 		BossWaveTimeLeft = BossWaveTimeLeft - 1
 		BossFightMessages(BossWaveTimeLeft)
@@ -27,7 +30,9 @@ function BossWaveTimer(n)
 				end
 			end
 			
-			if #SpawnBeacons > 1 then
+			if ScavBossFailedSpawnAttempts >= 10 then
+				noSpawnerForBoss = true
+			elseif #SpawnBeacons > 1 then
 				for b = 1,1000 do
 					local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
 					local _,_,pickedBeaconParalyze,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
@@ -46,13 +51,21 @@ function BossWaveTimer(n)
 			SpawnBeacons = nil
 			if not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil then
 				pickedBeacon = 1234567890
+				
 			end
-			
 			if pickedBeacon == 1234567890 then
 				Spring.Echo("[Scavengers] Failed Attempt to spawn Final Boss")
+				ScavBossFailedSpawnAttempts = ScavBossFailedSpawnAttempts+1
 				return
 			else
-				if noSpawnerForBoss then
+				if noSpawnerForBoss and ScavengerStartboxExists == true then
+					local posx = math.floor((ScavengerStartboxXMin + ScavengerStartboxXMax)/2)
+					local posz = math.floor((ScavengerStartboxZMin + ScavengerStartboxZMax)/2)
+					local posy = Spring.GetGroundHeight(posx, posz)
+					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+					FinalBossUnitSpawned = true
+					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
+				elseif noSpawnerForBoss then
 					local posx = math.floor(mapsizeX/2)
 					local posz = math.floor(mapsizeZ/2)
 					local posy = Spring.GetGroundHeight(posx, posz)
@@ -104,58 +117,66 @@ function BossWaveTimer(n)
 end
 
 function BossMinionsSpawn(n)
-	local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
-	local posx = x + math_random(-500,500)
-	local posz = z + math_random(-500,500)
-	local posy = Spring.GetGroundHeight(posx, posz)
-	local r = math_random(0,100)
-	local rair = math_random(0, unitSpawnerModuleConfig.aircraftchance)
-
-	if rair == 0 then
-		if r <= 20 then
-			minionUnit = T1AirUnits[math_random(1,#T1AirUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 70 then
-			minionUnit = T2AirUnits[math_random(1,#T2AirUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 95 then
-			minionUnit = T3AirUnits[math_random(1,#T3AirUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 100 then
-			minionUnit = T4AirUnits[math_random(1,#T4AirUnits)]..scavconfig.unitnamesuffix
-		else
-			minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
-		end
-	elseif posy > -20 then
-		if r <= 20 then
-			minionUnit = T1LandUnits[math_random(1,#T1LandUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 70 then
-			minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 95 then
-			minionUnit = T3LandUnits[math_random(1,#T3LandUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 100 then
-			minionUnit = T4LandUnits[math_random(1,#T4LandUnits)]..scavconfig.unitnamesuffix
-		else
-			minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
-		end
-	elseif posy <= -20 then
-		if r <= 20 then
-			minionUnit = T1SeaUnits[math_random(1,#T1SeaUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 70 then
-			minionUnit = T2SeaUnits[math_random(1,#T2SeaUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 95 then
-			minionUnit = T3SeaUnits[math_random(1,#T3SeaUnits)]..scavconfig.unitnamesuffix
-		elseif r <= 100 then
-			minionUnit = T4SeaUnits[math_random(1,#T4SeaUnits)]..scavconfig.unitnamesuffix
-		else
-			minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
-		end
-	end
-	if math.random(1,4) == 1 then
-		--Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
-		QueueSpawn(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID, n+1)
-		Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+	if BossFightCurrentPhase then
+		local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
 		local posx = x + math_random(-500,500)
 		local posz = z + math_random(-500,500)
 		local posy = Spring.GetGroundHeight(posx, posz)
-		Spring.CreateUnit("scavmistxxl"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+		local r = math_random(0,100)
+		local rair = math_random(0, unitSpawnerModuleConfig.aircraftchance)
+
+		if rair == 0 then
+			if BossFightCurrentPhase >= 9 then
+				minionUnit = T4AirUnits[math_random(1,#T4AirUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 7 then
+				minionUnit = T3AirUnits[math_random(1,#T3AirUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 5 then
+				minionUnit = T2AirUnits[math_random(1,#T2AirUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 3 then
+				minionUnit = T1AirUnits[math_random(1,#T1AirUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase == 1 then
+				minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
+			else
+				minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
+			end
+		elseif posy > -20 then
+			if BossFightCurrentPhase >= 9 then
+				minionUnit = T4LandUnits[math_random(1,#T4LandUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 7 then
+				minionUnit = T3LandUnits[math_random(1,#T3LandUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 5 then
+				minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 3 then
+				minionUnit = T1LandUnits[math_random(1,#T1LandUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase == 1 then
+				minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
+			else
+				minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
+			end
+		elseif posy <= -20 then
+			if BossFightCurrentPhase >= 9 then
+				minionUnit = T4SeaUnits[math_random(1,#T4SeaUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 7 then
+				minionUnit = T3SeaUnits[math_random(1,#T3SeaUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 5 then
+				minionUnit = T2SeaUnits[math_random(1,#T2SeaUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 3 then
+				minionUnit = T1SeaUnits[math_random(1,#T1SeaUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase == 1 then
+				minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
+			else
+				minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
+			end
+		end
+		if math.random(1,4) == 1 then
+			--Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+			QueueSpawn(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID, n+1)
+			Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+			local posx = x + math_random(-500,500)
+			local posz = z + math_random(-500,500)
+			local posy = Spring.GetGroundHeight(posx, posz)
+			Spring.CreateUnit("scavmistxxl"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+		end
 	end
 end
 
