@@ -3157,7 +3157,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "mascotte", group = "ui", basic = true, widget = "AdvPlayersList Mascotte", name = widgetOptionColor .. "   mascotte", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascotte"), description = 'Shows a mascotte on top of the playerslist' },
+		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   mascot", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = 'Shows a mascot on top of the playerslist' },
 		{ id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   unit totals", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = 'Show your unit totals on top of the playerlist' },
 		{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   music player", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = 'Show music player on top of playerlist',
 		  onload = function(i)

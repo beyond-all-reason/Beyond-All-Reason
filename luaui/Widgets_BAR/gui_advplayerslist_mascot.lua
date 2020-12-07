@@ -1,11 +1,11 @@
 function widget:GetInfo()
 	return {
-		name		= "AdvPlayersList Mascotte",
-		desc		= "Shows a mascotte sitting on top of the adv-playerlist  (use /mascotte to switch)",
+		name		= "AdvPlayersList Mascot",
+		desc		= "Shows a mascot sitting on top of the adv-playerlist  (use /mascot to switch)",
 		author		= "Floris",
 		date		= "23 may 2015",
 		license		= "GNU GPL, v2 or later",
-		layer		= -2,			-- set to -5 to draw mascotte on top of advplayerlist
+		layer		= -2,			-- set to -5 to draw mascot on top of advplayerlist
 		enabled		= false,
 	}
 end
@@ -13,7 +13,7 @@ end
 --  Config
 ---------------------------------------------------------------------------------------------------
 
-local imageDirectory			= ":l:"..LUAUI_DIRNAME.."Images/advplayerslist_mascotte/"
+local imageDirectory			= ":l:"..LUAUI_DIRNAME.."Images/advplayerslist_mascot/"
 
 local OPTIONS = {}
 OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values
@@ -281,9 +281,9 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:TextCommand(command)
-    if string.find(command, "mascotte", nil, true) == 1  and  string.len(command) == 8 then
+    if string.find(command, "mascot", nil, true) == 1  and  string.len(command) == 8 then
 		toggleOptions()
-		Spring.Echo("Adv-playerlist mascotte: "..OPTIONS[currentOption].name)
+		Spring.Echo("Playerlist mascot: "..OPTIONS[currentOption].name)
 	end
 end
 

@@ -1079,7 +1079,7 @@ local function updateResbar(res)
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, "\255\215\255\215" .. res:sub(1, 1):upper() .. res:sub(2) .. " Share Slider\n\255\240\240\240Overflowing to your team when \n" .. res .. " goes beyond this point")
 			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, "\255\215\255\215" .. res:sub(1, 1):upper() .. res:sub(2) .. " Share Slider\n\255\240\240\240Overflowing to your team when \n" .. res .. " goes beyond this point")
 
-			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, "\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Convertor units)")
+			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, "\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Converter units)")
 		else
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, "\255\215\255\215" .. res:sub(1, 1):upper() .. res:sub(2) .. " Share Slider\n\255\240\240\240Overflowing to your team when \n" .. res .. " goes beyond this point")
 		end
