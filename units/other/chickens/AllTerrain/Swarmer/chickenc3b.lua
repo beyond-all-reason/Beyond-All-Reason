@@ -97,7 +97,7 @@ return {
 				noselfdamage = true,
 				range = 240,
 				reloadtime = 3.5,
-				rgbcolor = "0 0.6 0.65",
+				rgbcolor = "0 0.65 0.65",
 				size = 8,
 				sizedecay = -0.3,
 				soundhit = "bloodsplash",
