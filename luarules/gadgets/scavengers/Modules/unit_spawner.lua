@@ -49,11 +49,10 @@ function BossWaveTimer(n)
 				noSpawnerForBoss = true
 			end
 			SpawnBeacons = nil
-			if not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil then
+			if noSpawnerForBoss ~= true and not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil then
 				pickedBeacon = 1234567890
-				
 			end
-			if pickedBeacon == 1234567890 then
+			if noSpawnerForBoss ~= true and pickedBeacon == 1234567890 then
 				Spring.Echo("[Scavengers] Failed Attempt to spawn Final Boss")
 				ScavBossFailedSpawnAttempts = ScavBossFailedSpawnAttempts+1
 				return

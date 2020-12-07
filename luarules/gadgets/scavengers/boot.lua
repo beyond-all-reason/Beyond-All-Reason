@@ -211,7 +211,7 @@ function gadget:GameFrame(n)
 					SpecAbi(n)
 				end
 			else
-				local SpecAbi = BossSpecialAbilitiesList[math_random(1,#(BossFightCurrentPhase))]
+				local SpecAbi = BossSpecialAbilitiesList[math_random(1,BossFightCurrentPhase)]
 				if SpecAbi then
 					SpecAbi(n)
 				end
