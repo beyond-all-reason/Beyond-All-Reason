@@ -3857,6 +3857,30 @@ function init()
 			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
 		  end,
 		},
+		{ id = "fog_r", group = "dev", name = "Fog"..widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local fogColor = { gl.GetAtmosphere("fogColor") }
+			  Spring.SetAtmosphere({ fogColor = {value, fogColor[2], fogColor[3], fogColor[4]} })
+		  end,
+		},
+		{ id = "fog_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local fogColor = { gl.GetAtmosphere("fogColor") }
+			  Spring.SetAtmosphere({ fogColor = {fogColor[1], value, fogColor[3], fogColor[4]} })
+		  end,
+		},
+		{ id = "fog_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local fogColor = { gl.GetAtmosphere("fogColor") }
+			  Spring.SetAtmosphere({ fogColor = {fogColor[1], fogColor[2], value, fogColor[4]} })
+		  end,
+		},
 		--{id="debugdrawai", group="dev", name="Debug draw AI", type="bool", value=false, description="",	-- seems only for engine AI
 		--  onchange=function(i, value)
 		--	  Spring.SendCommands("DebugDrawAI "..(value and '1' or '0'))
