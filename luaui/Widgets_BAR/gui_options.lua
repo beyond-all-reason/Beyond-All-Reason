@@ -3881,6 +3881,18 @@ function init()
 			  Spring.SetAtmosphere({ fogColor = {fogColor[1], fogColor[2], value, fogColor[4]} })
 		  end,
 		},
+		{ id = "fog_color_reset", group = "dev", name = widgetOptionColor .. "   reset map default", type = "bool", value = false, description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  options[getOptionByID('fog_r')].value = defaultFog.fogColor[1]
+			  options[getOptionByID('fog_g')].value = defaultFog.fogColor[2]
+			  options[getOptionByID('fog_b')].value = defaultFog.fogColor[3]
+			  options[getOptionByID('fog_color_reset')].value = false
+			  Spring.SetAtmosphere({ fogColor = defaultFog.fogColor })
+			  Spring.Echo('resetted map fog color defaults')
+		  end,
+		},
 		--{id="debugdrawai", group="dev", name="Debug draw AI", type="bool", value=false, description="",	-- seems only for engine AI
 		--  onchange=function(i, value)
 		--	  Spring.SendCommands("DebugDrawAI "..(value and '1' or '0'))
