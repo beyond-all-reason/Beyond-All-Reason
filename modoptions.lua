@@ -63,18 +63,18 @@ local options={
 		step   = 1,
 	},
 
-	{
-		key		= "unba",
-		name	= "Unbalanced Commanders",
-		desc	= "Defines if commanders level up with xp and gain more power or not",
-		type	= "list",
-		def		= "disabled",
-		section	= "modes",
-		items	= {
-			{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
-			{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
-		}
-	},
+	--{
+	--	key		= "unba",
+	--	name	= "Unbalanced Commanders",
+	--	desc	= "Defines if commanders level up with xp and gain more power or not",
+	--	type	= "list",
+	--	def		= "disabled",
+	--	section	= "modes",
+	--	items	= {
+	--		{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
+	--		{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
+	--	}
+	--},
 
 	{
 		key    = 'coop',

@@ -12,17 +12,56 @@ end
 
 local noTranslationText = '---'
 
-local myPlayerID = Spring.GetMyPlayerID()
-local myCountry = select(8, Spring.GetPlayerInfo(myPlayerID, false))
-local language = 'en'
-local languages = {}
+-- todo: echo where language of choice is missing entries
+--local debug = false		-- true = echo the missing entries of the additional languages
+
 local languageContent = {}
+local defaultLanguage = 'en'
+local language = Spring.GetConfigString('language', defaultLanguage)
+
+
+local languages = {}
+local files = VFS.DirList('language', '*')
+for k, file in ipairs(files) do
+	local name = string.sub(file, 10)
+	local ext = string.sub(name, string.len(name) - 2)
+	if ext == 'lua' then
+		name = string.sub(name, 1, string.len(name) - 4)
+		languages[name] = true
+	end
+end
+
+local function tableMerge(t1, t2)
+	for k, v in pairs(t2) do
+		if type(v) == "table" then
+			if type(t1[k] or false) == "table" then
+				tableMerge(t1[k] or {}, t2[k] or {})
+			else
+				t1[k] = v
+			end
+		else
+			t1[k] = v
+		end
+	end
+	return t1
+end
 
 local function loadLanguage()
-	local file = "language/"..language..".lua"
+	-- load base language file (english)
+	local file = "language/"..defaultLanguage..".lua"
 	local s = assert(VFS.LoadFile(file, VFS.RAW_FIRST))
 	local func = loadstring(s, file)
-	languageContent = func()
+	local defaultLanguageContent = func()
+
+	if language == defaultLanguage then
+		languageContent = defaultLanguageContent
+	else
+		file = "language/"..language..".lua"
+		s = assert(VFS.LoadFile(file, VFS.RAW_FIRST))
+		func = loadstring(s, file)
+		-- merge default base file with custom language
+		languageContent = tableMerge(defaultLanguageContent, func())
+	end
 end
 
 function widget:Initialize()
@@ -34,6 +73,7 @@ function widget:Initialize()
 	end
 	WG['lang'].setLanguage = function(value)
 		if value ~= language and languages[value] then
+			Spring.SetConfigString('language', language)
 			language = value
 			loadLanguage()
 		end

@@ -48,7 +48,6 @@ local glowTexture = ":l:LuaUI/Images/glow.dds"
 local math_floor = math.floor
 local math_min = math.min
 
-local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
@@ -174,9 +173,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-
-
-local texts = {		-- default texts (also update language/en.lua if you change this)
+local texts = {		-- fallback (if you change this, also update: language/en.lua)
 	button_quit = 'Quit',
 	button_resign = 'Resign',
 	button_lobby = 'Lobby',
@@ -898,7 +895,7 @@ local function updateResbarText(res)
 					local bgpadding2 = 2.2 * widgetScale
 					local text = ''
 					if res == 'metal' then
-						text = (allyteamOverflowingMetal and '   '..texts.resbar_wasting..' '..texts.resbar_metal..'  ' or '   '..texts.resbar_overflowing..'   ')
+						text = (allyteamOverflowingMetal and '   '..texts.resbar_wasting..'   ' or '   '..texts.resbar_overflowing..'   ')
 						if WG['notifications'] then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
@@ -911,7 +908,7 @@ local function updateResbarText(res)
 							end
 						end
 					else
-						text = (allyteamOverflowingEnergy and '   '..texts.resbar_wasting..' '..texts.resbar_energy..'  ' or '   '..texts.resbar_overflowing..'   ')
+						text = (allyteamOverflowingEnergy and '   '..texts.resbar_wasting..'   '  or '   '..texts.resbar_overflowing..'   ')
 						if WG['notifications'] then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 3 then
