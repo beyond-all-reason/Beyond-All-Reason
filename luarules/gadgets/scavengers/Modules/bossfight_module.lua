@@ -24,6 +24,22 @@ function ScavBossPhaseControl(bosshealthpercentage)
 	end
 end
 
+function BossPassiveAbilityController(n)
+	if not AbilityTimer then AbilityTimer = 0 end
+	AbilityTimer = AbilityTimer - 1
+	
+	if CurrentlyUsedPassiveAbility == "none" then
+		return
+	elseif CurrentlyUsedPassiveAbility == "selfrepair" and AbilityTimer > 0 then -- Gonna need sound and visual effects here
+		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
+		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
+		local healing = initialbosshealth*0.01*BossFightCurrentPhase
+		if currentbosshealth < initialbosshealth then
+			Spring.SetUnitHealth(FinalBossUnitID, currentbosshealth+healing)
+		end
+	end
+end
+
 
 
 
@@ -33,6 +49,7 @@ end
 
 function BossSpecAbiDGun(n)
 	if FinalBossUnitID then
+		Spring.Echo("[Scavengers] Boss Dgun Activated")
 		CurrentlyUsedPassiveAbility = "none"
 		local NearestBossEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 20000, false)
 		--NearestBossEnemyUnitDefID = Spring.GetUnitDefID(NearestBossEnemy)
@@ -46,6 +63,7 @@ end
 
 function BossSpecAbiDGunFrenzy(n)
 	if FinalBossUnitID then
+		Spring.Echo("[Scavengers] Boss Frenzy Dgun Activated")
 		CurrentlyUsedPassiveAbility = "none"
 		local r = math_random(1,4)
 		local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
@@ -105,6 +123,14 @@ function BossSpecAbiDGunFrenzy(n)
 	end
 end
 
+function BossSpecAbiSelfRepair(n)
+	if FinalBossUnitID then
+		Spring.Echo("[Scavengers] Boss Self Repair Activated")
+		CurrentlyUsedPassiveAbility = "selfrepair"
+		AbilityTimer = BossFightCurrentPhase*3
+	end
+end
+
 
 
 
@@ -115,15 +141,8 @@ end
 
 
 BossSpecialAbilitiesList = {
+	BossSpecAbiSelfRepair,
 	BossSpecAbiDGun,
-	BossSpecAbiDGun,
-	BossSpecAbiDGun,
-	BossSpecAbiDGun,
-	BossSpecAbiDGunFrenzy,
-	BossSpecAbiDGunFrenzy,
-	BossSpecAbiDGunFrenzy,
-	BossSpecAbiDGunFrenzy,
-	BossSpecAbiDGunFrenzy,
 	BossSpecAbiDGunFrenzy,
 }
 
