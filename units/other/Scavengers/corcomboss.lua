@@ -192,7 +192,7 @@ return {
 					default = 100,
 					fighters = 300,
 					subs = 1000,
-					vtol = 4000,
+					vtol = 99999,
 				},
 			},
 			corcomsealaserboss = {
@@ -236,7 +236,7 @@ return {
 					default = 100,
 					fighters = 300,
 					subs = 1000,
-					vtol = 4000,
+					vtol = 99999,
 				},
 			},
 			disintegrator = {
