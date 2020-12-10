@@ -15,6 +15,33 @@ end
 --   function init
 ]]--
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	basic = 'Basic',
+	advanced = 'Advanced',
+	group = {
+		graphics = 'Graphics',
+		interface = 'Interface',
+		game = 'Game',
+		control = 'Control',
+		audio = 'Audio',
+		notifications = 'Notifications',
+		dev = 'Dev',
+	},
+	presetnames = {'lowest', 'low', 'medium', 'high', 'ultra'},
+	option = {
+		preset = 'Load graphics preset',
+		preset_descr = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
+		resolution = 'Load graphics preset',
+		resolution_descr = 'WARNING: sometimes freezes game engine in windowed mode',
+		fullscreen = 'Fullscreen',
+		borderless = 'Borderless window',
+		borderless_descr = 'Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)',
+		windowpos = 'Move window position',
+		windowpos_descr = 'Toggle and move window position with the arrow keys or by dragging',
+		vsync = 'V-sync',
+	},
+}
+
 local advSettings = false
 
 local initialized = false
@@ -166,109 +193,8 @@ local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
 
-local presetNames = { 'lowest', 'low', 'medium', 'high', 'ultra' }    -- defined so these get listed in the right order
-local presets = {
-	lowest = {
-		bloom = false,
-		bloomdeferred = false,
-		ssao = 1,
-		mapedgeextension = false,
-		lighteffects = false,
-		airjets = false,
-		heatdistortion = false,
-		snow = false,
-		particles = 15000,
-		nanoparticles = 1500,
-		nanobeamamount = 6,
-		treeradius = 0,
-		--treewind = false,
-		guishader = false,
-		decals = 0,
-		--grounddetail = 70,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	low = {
-		bloom = false,
-		bloomdeferred = true,
-		ssao = 1,
-		mapedgeextension = false,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = false,
-		particles = 20000,
-		nanoparticles = 3000,
-		nanobeamamount = 8,
-		treeradius = 200,
-		--treewind = false,
-		guishader = false,
-		decals = 0,
-		--grounddetail = 100,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	medium = {
-		bloom = true,
-		bloomdeferred = true,
-		ssao = 1,
-		mapedgeextension = true,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = true,
-		particles = 25000,
-		nanoparticles = 5000,
-		nanobeamamount = 12,
-		treeradius = 400,
-		--treewind = false,
-		guishader = true,
-		decals = 2,
-		--grounddetail = 140,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	high = {
-		bloom = true,
-		bloomdeferred = true,
-		ssao = 2,
-		mapedgeextension = true,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = true,
-		particles = 30000,
-		nanoparticles = 9000,
-		nanobeamamount = 20,
-		treeradius = 800,
-		--treewind = true,
-		guishader = true,
-		decals = 4,
-		--grounddetail = 180,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	ultra = {
-		bloom = true,
-		bloomdeferred = true,
-		ssao = 3,
-		mapedgeextension = true,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = true,
-		particles = 40000,
-		nanoparticles = 15000,
-		nanobeamamount = 40,
-		treeradius = 800,
-		--treewind = true,
-		guishader = true,
-		decals = 5,
-		--grounddetail = 200,
-		darkenmap_darkenfeatures = true,
-		enemyspotter_highlight = true,
-	},
-}
+local presetNames = {}
+local presets = {}
 local customPresets = {}
 
 local startScript = VFS.LoadFile("_script.txt")
@@ -607,9 +533,9 @@ function DrawWindow()
 	-- title
 	local color = '\255\255\255\255'
 	local color2 = '\255\125\125\125'
-	local title = "" .. color .. "Basic" .. color2 .. "  /  Advanced"
+	local title = "" .. color .. texts.basic .. color2 .. "  /  " .. texts.advanced
 	if advSettings then
-		title = "" .. color2 .. "Basic  /  " .. color .. "Advanced"
+		title = "" .. color2 .. texts.basic.."  /  " .. color .. texts.advanced
 	end
 	local titleFontSize = 18
 	titleRect = { x - bgMargin, y + bgMargin, x + (font2:GetTextWidth(title) * titleFontSize) + 35 - bgMargin, y + 37 }
@@ -1828,6 +1754,111 @@ end
 local engine64 = true
 function init()
 
+	presetNames = texts.presetnames    -- defined so these get listed in the right order
+	presets = {
+		[presetNames[1]] = {
+			bloom = false,
+			bloomdeferred = false,
+			ssao = 1,
+			mapedgeextension = false,
+			lighteffects = false,
+			airjets = false,
+			heatdistortion = false,
+			snow = false,
+			particles = 15000,
+			nanoparticles = 1500,
+			nanobeamamount = 6,
+			treeradius = 0,
+			--treewind = false,
+			guishader = false,
+			decals = 0,
+			--grounddetail = 70,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[2]] = {
+			bloom = false,
+			bloomdeferred = true,
+			ssao = 1,
+			mapedgeextension = false,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = false,
+			particles = 20000,
+			nanoparticles = 3000,
+			nanobeamamount = 8,
+			treeradius = 200,
+			--treewind = false,
+			guishader = false,
+			decals = 0,
+			--grounddetail = 100,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[3]] = {
+			bloom = true,
+			bloomdeferred = true,
+			ssao = 1,
+			mapedgeextension = true,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 25000,
+			nanoparticles = 5000,
+			nanobeamamount = 12,
+			treeradius = 400,
+			--treewind = false,
+			guishader = true,
+			decals = 2,
+			--grounddetail = 140,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[4]] = {
+			bloom = true,
+			bloomdeferred = true,
+			ssao = 2,
+			mapedgeextension = true,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 30000,
+			nanoparticles = 9000,
+			nanobeamamount = 20,
+			treeradius = 800,
+			--treewind = true,
+			guishader = true,
+			decals = 4,
+			--grounddetail = 180,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[5]] = {
+			bloom = true,
+			bloomdeferred = true,
+			ssao = 3,
+			mapedgeextension = true,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 40000,
+			nanoparticles = 15000,
+			nanobeamamount = 40,
+			treeradius = 800,
+			--treewind = true,
+			guishader = true,
+			decals = 5,
+			--grounddetail = 200,
+			darkenmap_darkenfeatures = true,
+			enemyspotter_highlight = true,
+		},
+	}
+	customPresets = {}
+
 	local supportedResolutions = {}
 	local soundDevices = { 'default' }
 	local soundDevicesByName = { [''] = 1 }
@@ -1925,13 +1956,13 @@ function init()
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
-		{ id = 'gfx', name = 'Graphics' },
-		{ id = 'ui', name = 'Interface' },
-		{ id = 'game', name = 'Game' },
-		{ id = 'control', name = 'Control' },
-		{ id = 'snd', name = 'Audio' },
-		{ id = 'notif', name = 'Notifications' },
-		{ id = 'dev', name = 'Dev' },
+		{ id = 'gfx', name = texts.group.graphics },
+		{ id = 'ui', name = texts.group.interface },
+		{ id = 'game', name = texts.group.game },
+		{ id = 'control', name = texts.group.control },
+		{ id = 'snd', name = texts.group.audio },
+		{ id = 'notif', name = texts.group.notifications },
+		{ id = 'dev', name = texts.group.dev },
 	}
 
 	if not currentGroupTab or Spring.GetGameFrame() == 0 then
@@ -1952,7 +1983,7 @@ function init()
 
 	options = {
 		-- PRESET
-		{ id = "preset", group = "gfx", basic = true, name = "Load graphics preset", type = "select", options = presetNames, value = 0, description = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
+		{ id = "preset", group = "gfx", basic = true, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -1962,7 +1993,7 @@ function init()
 		  end,
 		},
 		--GFX
-		{ id = "resolution", group = "gfx", basic = true, name = "Resolution", type = "select", options = supportedResolutions, value = 0, description = 'WARNING: sometimes freezes game engine in windowed mode',
+		{ id = "resolution", group = "gfx", basic = true, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
 		  onchange = function(i, value)
 			  local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
 			  local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
@@ -1980,7 +2011,7 @@ function init()
 			  checkResolution()
 		  end,
 		},
-		{ id = "fullscreen", group = "gfx", basic = true, name = "Fullscreen", type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
+		{ id = "fullscreen", group = "gfx", basic = true, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
 		  onchange = function(i, value)
 			  if value then
 				  options[getOptionByID('borderless')].value = false
@@ -1999,7 +2030,7 @@ function init()
 			  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
 			  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
 		  end, },
-		{ id = "borderless", group = "gfx", basic = true, name = "Borderless window", type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = "Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)",
+		{ id = "borderless", group = "gfx", basic = true, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
 			  if value then
@@ -2016,13 +2047,13 @@ function init()
 			  checkResolution()
 		  end,
 		},
-		{ id = "windowpos", group = "gfx", basic = true, widget = "Move Window Position", name = "Move window position", type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = 'Toggle and move window position with the arrow keys or by dragging',
+		{ id = "windowpos", group = "gfx", basic = true, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
 			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 		  end,
 		},
-		{ id = "vsync", group = "gfx", basic = true, name = "V-sync", type = "bool", value = vsyncEnabled, description = '',
+		{ id = "vsync", group = "gfx", basic = true, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
 			  vsyncEnabled = value
 			  local vsync = 0
@@ -4904,6 +4935,11 @@ function detectWater()
 end
 
 function widget:Initialize()
+
+	if WG['lang'] then
+		texts = WG['lang'].getText('options')
+	end
+
 	widget:ViewResize()
 
 	prevShow = show

@@ -23,7 +23,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Bluestone",
 		date = "Jan 8, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = -math.huge,
+		layer = (-math.huge) + 1,
 		handler = true,
 		enabled = true
 	}
@@ -82,6 +82,9 @@ local maxWidth = 0.01
 local borderx = yStep * 0.75
 local bordery = yStep * 0.75
 
+local activeGuishader = false
+local scrollbarOffset = -15
+
 local midx = vsx * 0.5
 local minx = vsx * 0.4
 local maxx = vsx * 0.6
@@ -105,12 +108,22 @@ local pagestepped = false
 
 local chobbyInterface, widgetScale, dlistGuishader, lastStart
 
+local texts = {
+	title = 'Widget Selector',
+	button_reloadluaui = 'Reload LuaUI',
+	button_unloadallwidgets = 'Unload All Widgets',
+	button_disallowuserwidgets = 'Disallow User Widgets',
+	button_allowuserwidgets = 'Allow User Widgets',
+	button_resetluaui = 'Reset LuaUI',
+	button_factoryresetluaui = 'Factory Reset LuaUI',
+}
+
 local buttons = { --see MouseRelease for which functions are called by which buttons
-	[1] = "Reload LuaUI",
-	[2] = "Unload ALL Widgets",
-	[3] = "Allow/Disallow User Widgets",
-	[4] = "Reset LuaUI",
-	[5] = "Factory Reset LuaUI",
+	[1] = texts.button_reloadluaui,
+	[2] = texts.button_unloadallwidgets,
+	[3] = texts.button_disallowuserwidgets,
+	[4] = texts.button_resetluaui,
+	[5] = texts.button_factoryresetluaui,
 }
 
 local allowuserwidgets = true
@@ -127,18 +140,32 @@ local buttonTop = 28 -- offset between top of buttons and bottom of widget
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['lang'] then		-- not sure why but this seems not availible yet aperently
+		texts = WG['lang'].getText('widgetselector')
+	end
+	buttons = { --see MouseRelease for which functions are called by which buttons
+		[1] = texts.button_reloadluaui,
+		[2] = texts.button_unloadallwidgets,
+		[3] = texts.button_disallowuserwidgets,
+		[4] = texts.button_resetluaui,
+		[5] = texts.button_factoryresetluaui,
+	}
+	if not allowuserwidgets then
+		buttons[3] = ''
+	end
+
 	widgetHandler.knownChanged = true
 	Spring.SendCommands('unbindkeyset f11')
 
 	if allowuserwidgets then
 		if widgetHandler.allowUserWidgets then
-			buttons[3] = "Disallow User Widgets"
+			buttons[3] = texts.button_disallowuserwidgets
 		else
-			buttons[3] = "Allow User Widgets"
+			buttons[3] = texts.button_llowuserwidgets
 		end
 	end
 	if Spring.GetGameFrame() <= 0 then
-		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "13") and '1' or '0'))
+		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
 	end
 end
 
@@ -403,8 +430,7 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 	return false
 end
-local activeGuishader = false
-local scrollbarOffset = -15
+
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
@@ -416,7 +442,7 @@ function widget:DrawScreen()
 		return
 	end
 	if not show then
-		if activeGuishader and (WG['guishader']) then
+		if WG['guishader'] and activeGuishader then
 			activeGuishader = false
 			WG['guishader'].DeleteDlist('widgetselector')
 		end
@@ -438,7 +464,7 @@ function widget:DrawScreen()
 
 	-- draw the header
 	font2:Begin()
-	font2:Print("Widget Selector", midx, maxy + ((11 + bgPadding) * sizeMultiplier), titleFontSize * sizeMultiplier, "oc")
+	font2:Print(texts.title, midx, maxy + ((11 + bgPadding) * sizeMultiplier), titleFontSize * sizeMultiplier, "oc")
 	font2:End()
 
 	font:Begin()
@@ -753,7 +779,7 @@ function widget:MouseRelease(x, y, mb)
 	end
 
 	local namedata = self:AboveLabel(x, y)
-	if (not namedata) then
+	if not namedata then
 		return false
 	end
 
@@ -834,7 +860,7 @@ function widget:GetTooltip(x, y)
 	tt = d.desc and tt .. WhiteStr .. d.desc .. '\n' or tt
 	tt = d.author and tt .. BlueStr .. 'Author:  ' .. CyanStr .. d.author .. '\n' or tt
 	tt = tt .. MagentaStr .. d.basename
-	if (d.fromZip) then
+	if d.fromZip then
 		tt = tt .. RedStr .. ' (mod widget)'
 	end
 	return tt
@@ -881,7 +907,3 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 end
-
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
