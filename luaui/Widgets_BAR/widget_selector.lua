@@ -106,7 +106,7 @@ local scrollbargrabpos = 0.0
 local show = false
 local pagestepped = false
 
-local chobbyInterface, widgetScale, dlistGuishader, lastStart
+local chobbyInterface, widgetScale, dlistGuishader, lastStart, receivedTexts
 
 local texts = {
 	title = 'Widget Selector',
@@ -140,30 +140,20 @@ local buttonTop = 28 -- offset between top of buttons and bottom of widget
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if WG['lang'] then		-- not sure why but this seems not availible yet aperently
-		texts = WG['lang'].getText('widgetselector')
-	end
-	buttons = { --see MouseRelease for which functions are called by which buttons
-		[1] = texts.button_reloadluaui,
-		[2] = texts.button_unloadallwidgets,
-		[3] = texts.button_disallowuserwidgets,
-		[4] = texts.button_resetluaui,
-		[5] = texts.button_factoryresetluaui,
-	}
+
 	if not allowuserwidgets then
 		buttons[3] = ''
-	end
-
-	widgetHandler.knownChanged = true
-	Spring.SendCommands('unbindkeyset f11')
-
-	if allowuserwidgets then
+	else
 		if widgetHandler.allowUserWidgets then
 			buttons[3] = texts.button_disallowuserwidgets
 		else
 			buttons[3] = texts.button_llowuserwidgets
 		end
 	end
+
+	widgetHandler.knownChanged = true
+	Spring.SendCommands('unbindkeyset f11')
+
 	if Spring.GetGameFrame() <= 0 then
 		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
 	end
@@ -448,6 +438,29 @@ function widget:DrawScreen()
 		end
 		return
 	end
+
+	if not receivedTexts and WG['lang'] then		-- not sure why but this seems not availible yet aperently
+		texts = WG['lang'].getText('widgetselector')
+		receivedTexts = true
+
+		buttons = { --see MouseRelease for which functions are called by which buttons
+			[1] = texts.button_reloadluaui,
+			[2] = texts.button_unloadallwidgets,
+			[3] = texts.button_disallowuserwidgets,
+			[4] = texts.button_resetluaui,
+			[5] = texts.button_factoryresetluaui,
+		}
+		if not allowuserwidgets then
+			buttons[3] = ''
+		else
+			if widgetHandler.allowUserWidgets then
+				buttons[3] = texts.button_disallowuserwidgets
+			else
+				buttons[3] = texts.button_llowuserwidgets
+			end
+		end
+	end
+
 	UpdateList()
 	if WG['guishader'] == nil then
 		activeGuishader = false

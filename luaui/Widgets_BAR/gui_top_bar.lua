@@ -49,7 +49,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		metal = 'metal',
 		energy = 'energy',
 		overflowing = 'Overflowing',
-		wasting = 'Wasting',
+		wastingmetal = 'Wasting Metal',
+		wastingenergy = 'Wasting Energy',
 		overflowing_energy_tooltip = 'Energy Share Slider\n\255\240\240\240Overflowing to your team when energy goes beyond this point',
 		overflowing_metal_tooltip = 'Metal Share Slider\n\255\240\240\240Overflowing to your team when metal goes beyond this point',
 		energyconversion_tooltip = '\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Converter units)',
@@ -903,7 +904,7 @@ local function updateResbarText(res)
 					local bgpadding2 = 2.2 * widgetScale
 					local text = ''
 					if res == 'metal' then
-						text = (allyteamOverflowingMetal and '   '..texts.resbar.wasting..'   ' or '   '..texts.resbar.overflowing..'   ')
+						text = (allyteamOverflowingMetal and '   '..texts.resbar.wastingmetal..'   ' or '   '..texts.resbar.overflowing..'   ')
 						if WG['notifications'] then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
@@ -916,7 +917,7 @@ local function updateResbarText(res)
 							end
 						end
 					else
-						text = (allyteamOverflowingEnergy and '   '..texts.resbar.wasting..'   '  or '   '..texts.resbar.overflowing..'   ')
+						text = (allyteamOverflowingEnergy and '   '..texts.resbar.wastingenergy..'   '  or '   '..texts.resbar.overflowing..'   ')
 						if WG['notifications'] then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 3 then

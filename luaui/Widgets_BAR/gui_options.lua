@@ -2068,7 +2068,7 @@ function init()
 			  Spring.SetConfigInt("VSync", vsync)
 		  end,
 		},
-		{ id = "vsync_spec", group = "gfx", basic = true, name = widgetOptionColor .. "   only when spectator", type = "bool", value = vsyncOnlyForSpec, description = 'Only enable vsync when being spectator',
+		{ id = "vsync_spec", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
 		  onchange = function(i, value)
 			  vsyncOnlyForSpec = value
 			  if isSpec and vsyncEnabled then
@@ -2080,7 +2080,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   divider", type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled.\nNOTE: does not always work!\n(I like to use this when I\'m spectating on my 144hz laptop)',
+		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   "..texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
 		  onchange = function(i, value)
 			  vsyncLevel = value
 			  local vsync = 0
@@ -2090,16 +2090,15 @@ function init()
 			  Spring.SetConfigInt("VSync", vsync)
 		  end,
 		},
-		{ id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = "Limit FPS when idle/offscreen", type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = "Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode" },
+		{ id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-		{ id = "msaa", group = "gfx", basic = true, name = "Anti Aliasing", type = "slider", min = 0, max = 8, step = 1, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = 'Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		{ id = "msaa", group = "gfx", basic = true, name = texts.option.msaa, type = "slider", min = 0, max = 8, step = 1, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MSAALevel", value)
 		  end,
 		},
 
-		--{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		{ id = "cas_sharpness", group = "gfx", name = "Contrast Adaptive Sharpen", min = 0.25, max = 0.85, step = 0.01, type = "slider", value = 0.7, description = 'How much sharpening should be applied to the image',
+		{ id = "cas_sharpness", group = "gfx", name = texts.option.cas_sharpness, min = 0.25, max = 0.85, step = 0.01, type = "slider", value = 0.7, description = texts.option.cas_sharpness_descr,
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
 		  end,
@@ -2108,7 +2107,7 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", basic = true, name = "Shadows", type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = 'Set shadow detail',
+		{ id = "shadowslider", group = "gfx", basic = true, name = texts.option.shadowslider, type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
 		  onchange = function(i, value)
 			  local enabled = (value < 1000) and 0 or 1
 			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
@@ -2116,14 +2115,12 @@ function init()
 			  Spring.SetConfigInt("shadowmapsize", value)
 		  end,
 		},
-		{ id = "shadows_opacity", group = "gfx", name = widgetOptionColor .. "   opacity", type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
+		{ id = "shadows_opacity", group = "gfx", name = widgetOptionColor .. "   "..texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
 		  onchange = function(i, value)
 			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
 		  end,
 		},
-		{ id = "sun_y", group = "gfx", name = "Sun" .. widgetOptionColor .. "  height", type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
-		  onload = function(i)
-		  end,
+		{ id = "sun_y", group = "gfx", name = texts.option.sun_.. widgetOptionColor .. "  "..texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunY = value
@@ -2140,9 +2137,7 @@ function init()
 			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 		  end,
 		},
-		{ id = "sun_x", group = "gfx", name = widgetOptionColor .. "   pos X", type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
-		  onload = function(i)
-		  end,
+		{ id = "sun_x", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunX = value
@@ -2159,7 +2154,7 @@ function init()
 			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 		  end,
 		},
-		{ id = "sun_z", group = "gfx", name = widgetOptionColor .. "   pos Z", type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
+		{ id = "sun_z", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2178,7 +2173,7 @@ function init()
 			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 		  end,
 		},
-		{ id = "sun_reset", group = "gfx", name = widgetOptionColor .. "   reset map default", type = "bool", value = false, description = '',
+		{ id = "sun_reset", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_reset, type = "bool", value = false, description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2194,14 +2189,14 @@ function init()
 		  end,
 		},
 
-		{ id = "darkenmap", group = "gfx", name = "Darken map", min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = 'Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings',
+		{ id = "darkenmap", group = "gfx", name = texts.option.darkenmap, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
 		  end,
 		},
-		{ id = "darkenmap_darkenfeatures", group = "gfx", name = widgetOptionColor .. "   darken features", type = "bool", value = false, description = 'Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.',
+		{ id = "darkenmap_darkenfeatures", group = "gfx", name = widgetOptionColor .. "   "..texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4574,6 +4569,16 @@ function init()
 		options[getOptionByID('notifications_volume')] = nil
 		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
 	end
+
+
+	--for i, option in pairs(options) do
+	--	Spring.Echo("			"..option.id.." = '"..option.name.."',")
+	--	if option.description and option.description ~= '' then
+	--		Spring.Echo("			"..option.id.."_descr = '"..option.description.."',")
+	--	end
+	--end
+
+
 
 	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
 		local tracksConfig = {}
