@@ -35,7 +35,7 @@ return {
 		radardistancejam = 450,
 		script = "Units/CORSPEC.cob",
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 250,
+		sightdistance = 325,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.858,

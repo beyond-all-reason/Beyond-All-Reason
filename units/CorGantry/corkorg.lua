@@ -35,7 +35,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
-		sightdistance = 845,
+		sightdistance = 800,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.7392,

@@ -33,7 +33,7 @@ return {
 		script = "Units/CORPARROW.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 385,
+		sightdistance = 537.5,
 		sonardistance = 288.75,
 		trackoffset = -6,
 		trackstrength = 10,

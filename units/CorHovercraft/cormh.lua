@@ -31,7 +31,7 @@ return {
 		script = "Units/CORMH.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 509,
+		sightdistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.5972,

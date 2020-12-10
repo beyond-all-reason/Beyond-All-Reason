@@ -49,7 +49,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
 		showplayername = true,
-		sightdistance = 377,
+		sightdistance = 450,
 		terraformspeed = 750,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,

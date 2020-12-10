@@ -33,7 +33,7 @@ return {
 		script = "Units/CORGARP.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 234,
+		sightdistance = 350,
 		sonardistance = 175.5,
 		trackoffset = 0,
 		trackstrength = 6,

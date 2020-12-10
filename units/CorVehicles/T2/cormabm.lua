@@ -36,7 +36,7 @@ return {
 		script = "Units/CORMABM.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 450,
+		sightdistance = 325,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "corwidetracks",

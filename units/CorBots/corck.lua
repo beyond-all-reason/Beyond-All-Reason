@@ -35,7 +35,7 @@ return {
 		script = "Units/CORCK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		sightdistance = 299,
+		sightdistance = 275,
 		terraformspeed = 450,
 		turninplace = true,
 		turninplaceanglelimit = 90,

@@ -30,7 +30,7 @@ return {
 		script = "Units/CORKARG.COB",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
-		sightdistance = 455,
+		sightdistance = 650,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,

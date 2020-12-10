@@ -32,7 +32,7 @@ return {
 		script = "Units/CORMIST.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 620,
+		sightdistance = 475,
 		trackoffset = -6,
 		trackstrength = 5,
 		tracktype = "corwidetracks",

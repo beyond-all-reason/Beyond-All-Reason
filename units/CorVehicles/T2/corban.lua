@@ -35,7 +35,7 @@ return {
 		script = "Units/CORBAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 546,
+		sightdistance = 650,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "corwidetracks",

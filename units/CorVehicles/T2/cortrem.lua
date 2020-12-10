@@ -35,7 +35,7 @@ return {
 		script = "Units/CORTREM.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 351,
+		sightdistance = 400,
 		trackoffset = -8,
 		trackstrength = 8,
 		tracktype = "corwidetracks",

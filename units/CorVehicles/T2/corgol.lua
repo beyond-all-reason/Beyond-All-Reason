@@ -33,7 +33,7 @@ return {
 		script = "Units/CORGOL.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 395,
+		sightdistance = 575,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "corwidetracks",

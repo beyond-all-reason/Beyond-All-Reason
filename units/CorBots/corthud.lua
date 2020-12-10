@@ -33,7 +33,7 @@ return {
 		script = "Units/CORTHUD.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 380,
+		sightdistance = 365,
 		trackoffset = 2,
 		trackstrength = 8,
 		trackstretch = 0.325,

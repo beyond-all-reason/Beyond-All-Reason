@@ -34,7 +34,7 @@ return {
 		script = "Units/ARMROY.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 500,
+		sightdistance = 575,
 		sonardistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,

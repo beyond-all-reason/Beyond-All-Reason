@@ -35,7 +35,7 @@ return {
 		script = "Units/CORNECRO.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallbuilderSelfd",
-		sightdistance = 430,
+		sightdistance = 350,
 		stealth = true,
 		terraformspeed = 1000,
 		turninplace = true,

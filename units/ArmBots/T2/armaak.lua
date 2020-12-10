@@ -29,7 +29,7 @@ return {
 		script = "Units/ARMAAK.cob",
 		seismicsignature = 1,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 400,
+		sightdistance = 325,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0428,

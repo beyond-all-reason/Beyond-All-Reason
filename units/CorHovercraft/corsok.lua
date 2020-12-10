@@ -37,7 +37,7 @@ return {
 		radardistance = 0,
 		script = "Units/corsok.cob",
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 650,
+		sightdistance = 712.5,
 		sonardistance = 700,
 		turninplace = true,
 		turninplaceanglelimit = 90,

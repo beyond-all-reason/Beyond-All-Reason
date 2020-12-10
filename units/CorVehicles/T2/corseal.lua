@@ -33,7 +33,7 @@ return {
 		script = "Units/CORSEAL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 399,
+		sightdistance = 470,
 		sonardistance = 299.25,
 		trackoffset = 6,
 		trackstrength = 5,

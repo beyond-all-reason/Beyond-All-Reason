@@ -35,7 +35,7 @@ return {
 		script = "Units/CORINTR.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd-phib",
-		sightdistance = 292,
+		sightdistance = 325,
 		trackoffset = -10,
 		trackstrength = 10,
 		tracktype = "corwidetracks",

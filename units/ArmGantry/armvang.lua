@@ -31,7 +31,7 @@ return {
 		script = "Units/ARMVANG.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
-		sightdistance = 625,
+		sightdistance = 700,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.726,

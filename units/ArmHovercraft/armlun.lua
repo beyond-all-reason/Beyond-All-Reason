@@ -34,7 +34,7 @@ return {
 		radardistance = 0,
 		script = "Units/armlun.cob",
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 620,
+		sightdistance = 625,
 		sonardistance = 550,
 		turninplace = true,
 		turninplaceanglelimit = 90,

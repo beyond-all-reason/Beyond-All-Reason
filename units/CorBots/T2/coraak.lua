@@ -28,7 +28,7 @@ return {
 		script = "Units/CORAAK.cob",
 		seismicsignature = 1,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 390,
+		sightdistance = 325,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.759,

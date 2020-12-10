@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMSAM.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 620,
+		sightdistance = 475,
 		trackoffset = -7,
 		trackstrength = 5,
 		tracktype = "armsam_tracks",

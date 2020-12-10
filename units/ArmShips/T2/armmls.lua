@@ -33,7 +33,7 @@ return {
 		script = "Units/ARMMLS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 260,
+		sightdistance = 375,
 		terraformspeed = 2000,
 		turninplace = true,
 		turninplaceanglelimit = 90,

@@ -31,7 +31,7 @@ return {
 		script = "Units/CORSNAP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 491,
+		sightdistance = 385,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.518,

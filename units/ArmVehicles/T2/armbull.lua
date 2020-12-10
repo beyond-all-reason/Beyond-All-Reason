@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMBULL.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 494,
+		sightdistance = 480,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "armbull_tracks",

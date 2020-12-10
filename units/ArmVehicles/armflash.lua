@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMFLASH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 299,
+		sightdistance = 350,
 		trackoffset = 5,
 		trackstrength = 4,
 		tracktype = "armpincer_tracks",

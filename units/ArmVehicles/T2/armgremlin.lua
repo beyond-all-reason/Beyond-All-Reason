@@ -35,7 +35,7 @@ return {
 		script = "Units/ARMGREMLIN.cob",
 		seismicsignature = 4,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 494,
+		sightdistance = 400,
 		stealth = true,
 		trackstrength = 6,
 		tracktype = "armgremlin_tracks",

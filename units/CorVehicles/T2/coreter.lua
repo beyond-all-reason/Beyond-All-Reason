@@ -35,7 +35,7 @@ return {
 		script = "Units/CORETER.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 299,
+		sightdistance = 325,
 		trackoffset = 3,
 		trackstrength = 6,
 		tracktype = "corwidetracks",

@@ -32,7 +32,7 @@ return {
 		script = "Units/CORVROC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 221,
+		sightdistance = 400,
 		stealth = true,
 		trackstrength = 8,
 		tracktype = "corwidetracks",

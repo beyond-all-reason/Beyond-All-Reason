@@ -31,7 +31,7 @@ return {
 		script = "Units/ARMANAC.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 509,
+		sightdistance = 385,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.6698,

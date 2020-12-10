@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMMERL.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 247,
+		sightdistance = 400,
 		stealth = true,
 		trackoffset = 15,
 		trackstrength = 8,

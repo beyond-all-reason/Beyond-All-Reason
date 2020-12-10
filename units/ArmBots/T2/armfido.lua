@@ -33,7 +33,7 @@ return {
 		script = "Units/ARMFIDO.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 400,
+		sightdistance = 575,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.518,

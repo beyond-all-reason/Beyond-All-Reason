@@ -35,7 +35,7 @@ return {
 		script = "Units/armart.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 364,
+		sightdistance = 350,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "armpincer_tracks",

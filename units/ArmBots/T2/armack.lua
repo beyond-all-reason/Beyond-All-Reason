@@ -36,7 +36,7 @@ return {
 		script = "Units/ARMACK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 323.70001,
+		sightdistance = 325,
 		terraformspeed = 900,
 		turninplace = true,
 		turninplaceanglelimit = 90,

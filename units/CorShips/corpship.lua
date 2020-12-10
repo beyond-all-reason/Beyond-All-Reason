@@ -35,7 +35,7 @@ return {
 		script = "Units/CORPSHIP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 500,
+		sightdistance = 465,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 382.5,

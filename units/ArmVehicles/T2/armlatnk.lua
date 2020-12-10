@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMLATNK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 390,
+		sightdistance = 400,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "armacv_tracks",

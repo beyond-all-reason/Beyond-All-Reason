@@ -34,7 +34,7 @@ return {
 		script = "Units/ARMFBOY.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 510,
+		sightdistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.66,

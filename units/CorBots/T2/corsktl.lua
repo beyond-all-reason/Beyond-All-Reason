@@ -37,7 +37,7 @@ return {
 		seismicsignature = 4,
 		selfdestructas = "corsktlSelfd",
 		selfdestructcountdown = 0,
-		sightdistance = 260,
+		sightdistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.155,

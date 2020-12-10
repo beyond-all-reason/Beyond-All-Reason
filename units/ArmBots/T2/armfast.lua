@@ -30,7 +30,7 @@ return {
 		script = "Units/ARMFAST.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 351,
+		sightdistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.4486,

@@ -43,7 +43,7 @@ return {
 		script = "Units/CORMLV.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 188,
+		sightdistance = 275,
 		stealth = true,
 		terraformspeed = 120,
 		trackoffset = 12,

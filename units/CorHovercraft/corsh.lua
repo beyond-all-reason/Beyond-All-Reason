@@ -31,7 +31,7 @@ return {
 		script = "Units/CORSH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 509,
+		sightdistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.8116,

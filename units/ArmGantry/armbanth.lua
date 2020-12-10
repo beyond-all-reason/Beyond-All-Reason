@@ -35,7 +35,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		selfdestructcountdown = 10,
-		sightdistance = 617,
+		sightdistance = 750,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,

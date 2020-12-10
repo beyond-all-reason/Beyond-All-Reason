@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMFAV.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 635,
+		sightdistance = 600,
 		trackoffset = -3,
 		trackstrength = 5,
 		tracktype = "armstump_tracks",

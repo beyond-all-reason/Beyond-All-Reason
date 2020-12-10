@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMHAM.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 380,
+		sightdistance = 365,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0164,

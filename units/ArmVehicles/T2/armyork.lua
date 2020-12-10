@@ -33,7 +33,7 @@ return {
 		script = "Units/ARMYORK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 390,
+		sightdistance = 325,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "armyork_tracks",

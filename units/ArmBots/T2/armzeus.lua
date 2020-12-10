@@ -30,7 +30,7 @@ return {
 		script = "Units/ARMZEUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 331.5,
+		sightdistance = 350,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0428,

@@ -35,7 +35,7 @@ return {
 		script = "Units/CORSJAM.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 403,
+		sightdistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 384,

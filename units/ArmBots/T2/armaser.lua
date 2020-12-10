@@ -35,7 +35,7 @@ return {
 		script = "Units/ARMASER.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 325,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0626,

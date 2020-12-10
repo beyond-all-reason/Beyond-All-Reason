@@ -31,7 +31,7 @@ return {
 		script = "Units/ARMDECADE.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 375,
+		sightdistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 631.5,

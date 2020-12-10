@@ -34,7 +34,7 @@ return {
 		script = "Units/CORROY.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 500,
+		sightdistance = 580,
 		sonardistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,

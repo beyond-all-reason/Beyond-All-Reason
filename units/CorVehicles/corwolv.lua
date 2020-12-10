@@ -35,7 +35,7 @@ return {
 		script = "Units/CORWOLV.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 299,
+		sightdistance = 350,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "corwidetracks",

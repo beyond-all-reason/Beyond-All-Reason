@@ -36,7 +36,7 @@ return {
 		script = "Units/CORACSUB.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd-uw",
-		sightdistance = 156,
+		sightdistance = 375,
 		terraformspeed = 1500,
 		turninplace = true,
 		turninplaceanglelimit = 90,

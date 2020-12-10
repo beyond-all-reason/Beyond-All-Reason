@@ -36,7 +36,7 @@ return {
 		radardistancejam = 450,
 		script = "Units/ARMJAM.cob",
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 325,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "StdTank",

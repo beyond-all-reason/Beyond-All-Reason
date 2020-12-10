@@ -32,7 +32,7 @@ return {
 		script = "Units/CORAH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 509,
+		sightdistance = 325,
 		sonardistance = 350,
 		turninplace = true,
 		turninplaceanglelimit = 90,

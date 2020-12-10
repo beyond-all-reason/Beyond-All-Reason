@@ -34,7 +34,7 @@ return {
 		script = "Units/CORMSHIP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongenericSelfd",
-		sightdistance = 318.5,
+		sightdistance = 450,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 300,

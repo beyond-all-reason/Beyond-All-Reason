@@ -32,7 +32,7 @@ return {
 		script = "Units/CORGATOR.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 273,
+		sightdistance = 350,
 		trackoffset = 8,
 		trackstrength = 5,
 		tracktype = "corwidetracks",

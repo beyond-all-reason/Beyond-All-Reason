@@ -33,7 +33,7 @@ return {
 		script = "Units/CORBATS.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
-		sightdistance = 455,
+		sightdistance = 750,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 177,

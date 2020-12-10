@@ -35,7 +35,7 @@ return {
 		script = "Units/CORMUSKRAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 260,
+		sightdistance = 275,
 		terraformspeed = 400,
 		trackoffset = 8,
 		trackstrength = 5,

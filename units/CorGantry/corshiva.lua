@@ -30,7 +30,7 @@ return {
 		script = "Units/CORSHIVA.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
-		sightdistance = 520,
+		sightdistance = 675,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0626,

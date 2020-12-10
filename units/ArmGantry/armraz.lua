@@ -30,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		--selfdestructcountdown = 1,
-		sightdistance = 450,
+		sightdistance = 587.5,
 		strafetoattack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,

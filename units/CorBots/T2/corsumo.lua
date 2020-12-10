@@ -33,7 +33,7 @@ return {
 		script = "Units/CORSUMO.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
-		sightdistance = 510,
+		sightdistance = 575,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.495,

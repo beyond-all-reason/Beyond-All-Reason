@@ -33,7 +33,7 @@ return {
 		script = "Units/CORSENT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 338,
+		sightdistance = 325,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "corwidetracks",

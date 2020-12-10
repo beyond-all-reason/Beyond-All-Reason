@@ -39,7 +39,7 @@ return {
 		script = "Units/CORBLACKHY.cob",
 		seismicsignature = 0,
 		selfdestructas = "FlagshipExplosionSelfd",
-		sightdistance = 650,
+		sightdistance = 765,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 129,

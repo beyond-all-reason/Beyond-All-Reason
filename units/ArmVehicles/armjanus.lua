@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMJANUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 325,
+		sightdistance = 365,
 		trackoffset = 3,
 		trackstrength = 6,
 		tracktype = "armstump_tracks",

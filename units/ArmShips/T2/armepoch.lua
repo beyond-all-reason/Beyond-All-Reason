@@ -39,7 +39,7 @@ return {
 		script = "Units/ARMEPOCH.cob",
 		seismicsignature = 0,
 		selfdestructas = "flagshipExplosionSelfd",
-		sightdistance = 689,
+		sightdistance = 765,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 135,

@@ -36,7 +36,7 @@ return {
 		script = "Units/ARMACSUB.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-uw",
-		sightdistance = 156,
+		sightdistance = 375,
 		terraformspeed = 1500,
 		turninplace = true,
 		turninplaceanglelimit = 90,

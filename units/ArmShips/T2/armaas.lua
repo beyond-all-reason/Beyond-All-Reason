@@ -34,7 +34,7 @@ return {
 		script = "Units/ARMAAS.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd-uw",
-		sightdistance = 475,
+		sightdistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.344,

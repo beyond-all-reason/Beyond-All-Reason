@@ -33,7 +33,7 @@ return {
 		script = "Units/ARMSTUMP.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 325,
+		sightdistance = 350,
 		trackoffset = 3,
 		trackstrength = 6,
 		tracktype = "armstump_tracks",

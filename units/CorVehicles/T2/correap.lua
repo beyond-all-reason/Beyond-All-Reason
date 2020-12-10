@@ -32,7 +32,7 @@ return {
 		script = "Units/CORREAP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 462,
+		sightdistance = 455,
 		trackoffset = 8,
 		trackstrength = 8,
 		tracktype = "corwidetracks",

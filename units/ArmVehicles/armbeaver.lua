@@ -36,7 +36,7 @@ return {
 		script = "Units/ARMBEAVER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 266,
+		sightdistance = 275,
 		terraformspeed = 400,
 		trackstrength = 5,
 		tracktype = "armpincer_tracks",

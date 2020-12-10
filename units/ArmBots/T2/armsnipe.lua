@@ -34,7 +34,7 @@ return {
 		power = 750, --compensation for XP rank with super low AoE weapons
 		script = "Units/ARMSNIPE.cob",
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 455,
+		sightdistance = 450,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.7788,

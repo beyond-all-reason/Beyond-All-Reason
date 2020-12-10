@@ -34,7 +34,7 @@ return {
 		script = "Units/CORARCH.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 465,
+		sightdistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 340.5,

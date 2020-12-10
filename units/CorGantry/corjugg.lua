@@ -34,7 +34,7 @@ return {
 		script = "Units/CORJUGG.cob",
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",
-		sightdistance = 720,
+		sightdistance = 645,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.363,

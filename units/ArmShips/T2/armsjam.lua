@@ -35,7 +35,7 @@ return {
 		script = "Units/ARMSJAM.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 390,
+		sightdistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 405,
