@@ -33,7 +33,7 @@ function BossPassiveAbilityController(n)
 	elseif CurrentlyUsedPassiveAbility == "selfrepair" and AbilityTimer > 0 then -- Gonna need sound and visual effects here
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-		local healing = initialbosshealth*0.01*BossFightCurrentPhase
+		local healing = initialbosshealth*0.0033*BossFightCurrentPhase
 		if currentbosshealth < initialbosshealth then
 			Spring.SetUnitHealth(FinalBossUnitID, currentbosshealth+healing)
 		end
