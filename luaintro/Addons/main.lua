@@ -2,7 +2,7 @@
 if addon.InGetInfo then
 	return {
 		name    = "Main",
-		desc    = "displays a simplae loadbar",
+		desc    = "displays a simple loading bar",
 		author  = "jK",
 		date    = "2012,2013",
 		license = "GPL2",
@@ -15,7 +15,7 @@ end
 local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
 
 local showTipAboveBar = true
-local showTipBackground = false	-- false = tips shown below the loadbar
+local showTipBackground = false	-- false = tips shown below the loading bar
 
 local tips = {
 	"Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
@@ -31,27 +31,27 @@ local tips = {
 	"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
 	--"Artillery vehicles can move in reverse if you press 'Ctrl' while giving a command behind it. Use this to keep shooting during a retreat.",
 	"T2 factories are expensive. You can reclaim your T1 lab for metal to fund it.",
-	"Air strikes and airdrops may come at any time, always have at least one anti-air unit in your base.",
-	"With Q + doubleclick LMB you can place a label with text on the map.\nQ + middle mouse button for an empty label. Q + mouse drag to draw lines",
+	"Air strikes and air drops may come at any time, always have at least one anti-air unit in your base.",
+	"With Q + double click LMB you can place a label with text on the map.\nQ + middle mouse button for an empty label. Q + mouse drag to draw lines",
 	"Always check your Com-counter (next to resource bars). If you have the last Commander you better hide it quick!",
 	"Expanding territory is essential for gaining economic advantage.\nTry to secure as many metal spots and geothermal vents as you can.",
 	"Think in advance about reclaiming metal from wrecks piling up at the front.",
 	"Nano turrets can be picked up by transporters. This way you can move them where you need more buildpower.",
-	"Set your factories on Repeat to let it build a continues queue of units.",
+	"Set your factories on Repeat to let it build a continuous queue of units.",
 	"Use the Fight Command (F) with your rez-bots to make them reclaim and repair everything in the vicinity.\nOptionally turn on Repeat to let them do this forever.",
 	"When you're overflowing energy... build metal makers to convert energy to metal.",
-	"Press F3 to go to the location of the last notification or label by a teammate",
+	"Press F3 to go to the location of the last notification or label by a team mate",
 	"Select all units of the same type by pressing CTRL+Z.",
 	"You can pause the game with the PAUSE/BREAK key, or by typing /pause",
-	"Did your teammember drop out of the game? Type /take to add all of his units to your army.",
+	"Did your team member drop out of the game? Type /take to add all of his units to your army.",
 	"Give your nano turrets a Fight Command (F) to let it repair and reclaim everything within reach.",
 	"Press E and drag and area circle to quickly rEclaim all resources/wreckages.",
 	"Press R and drag and area circle to quickly Repair all units inside this circle.",
 	"Press CTRL+C to quickly select and center the camera on your Commander.",
 	"Think ahead and include anti-air and support units in your army.",
 	"Mastering hotkeys is the key to proficiency.\nUse Z,X,C,V to quickly cycle between most frequently built structures.",
-	"To share resources with teammates:\nClick-drag metal/energy bar next to player's name to send resources.",
-	"To share units with teammates:\nSelect the unit(s) and click the tank-icon next to the players name.",
+	"To share resources with team mates:\nClick-drag metal/energy bar next to player's name to send resources.",
+	"To share units with team mates:\nSelect the unit(s) and click the tank-icon next to the players name.",
 	"It is efficient to support your lab with constructors increasing its build-power.\nRight click on the factory with a constructor selected to guard (assist) with construction",
 	"Remember to separate your highly explosive buildings (like metal makers) from the rest of your base.",
 	"Most long-ranged units are very vulnerable in close combat. Always keep a good distance from your targets. Try to use the Fight (F) Command",
@@ -65,7 +65,7 @@ local tips = {
 	"When performing a bombing run fly your fighters first to eliminate enemy's fighter-wall.\nUse FIGHT or PATROL command for more effective engagement.",
 	"You can disable enemy's anti-nukes using EMP missiles (built by ARM T2 cons).",
 	"Shields in BAR are 'plasma-deflector-shields'. They only deflect plasma shells. Everything else will go through.",
-	"Don't build too much stuff around your Moho-geothermal powerplants or everything will go boom!",
+	"Don't build too much stuff around your Moho-geothermal power plants or everything will go boom!",
 	"If you encounter a bug, or have a great idea or want to contribute in any way, please join BAR on Discord.",
 	"Build long range anti-air on an extended front line to slowly dismantle enemy's fighter-wall.",
 	"Your commander's Dgun can be used for insta-killing T3 units.\nDon't forget to CLOAK first. For quickly cloaking press K.",
@@ -201,7 +201,7 @@ if not VFS.FileExists(fontfile2) then
 	fontfile2 = 'fonts/'..defaultFont2
 end
 
-local height = math.floor(vsy * 0.038) -- loadbar height (in pixels)
+local height = math.floor(vsy * 0.038) -- loading bar height (in pixels)
 
 local posYorg = math.floor((0.065 * vsy)+0.5) / vsy
 local posX = math.floor(((((posYorg*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
