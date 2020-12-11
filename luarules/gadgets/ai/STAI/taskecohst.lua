@@ -22,7 +22,7 @@ function TaskEcoHST:NanoTurret( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cornanotc" ) then
 		unitName = "cornanotc"
-	else if builder:CanBuild( "armnanotc" ) then
+	elseif builder:CanBuild( "armnanotc" ) then
 		unitName = "armnanotc"
 	end
 	return unitName
@@ -32,7 +32,7 @@ function TaskEcoHST:NanoWater( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cornanotcplat" ) then
 		unitName = "cornanotcplat"
-	else if builder:CanBuild( "armnanotcplat" ) then
+	elseif builder:CanBuild( "armnanotcplat" ) then
 		unitName = "armnanotcplat"
 	end
 	return unitName
@@ -44,7 +44,7 @@ function TaskEcoHST:BuildMex( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cormex" ) then
 		unitName = "cormex"
-	else if builder:CanBuild( "armmex" ) then
+	elseif builder:CanBuild( "armmex" ) then
 		unitName = "armmex"
 	end
 	return unitName
@@ -54,7 +54,7 @@ function TaskEcoHST:SpecialMex( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corexp" ) then
 		unitName = "corexp"
-	else if builder:CanBuild( "armamex" ) then
+	elseif builder:CanBuild( "armamex" ) then
 		unitName = "armamex"
 	end
 	return unitName
@@ -64,7 +64,7 @@ function TaskEcoHST:BuildUWMex( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cormex" ) then
 		unitName = "cormex" --ex coruwmex
-	else if builder:CanBuild( "armmex" ) then
+	elseif builder:CanBuild( "armmex" ) then
 		unitName = "armmex"  --ex armuwmex
 	end
 	return unitName
@@ -74,7 +74,7 @@ function TaskEcoHST:BuildMohoMex( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cormoho" ) then
 		unitName = "cormoho"
-	else if builder:CanBuild( "armmoho" ) then
+	elseif builder:CanBuild( "armmoho" ) then
 		unitName = "armmoho"
 	end
 	return unitName
@@ -84,7 +84,7 @@ function TaskEcoHST:BuildUWMohoMex( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "coruwmme" ) then
 		unitName = "coruwmme"
-	else if builder:CanBuild( "armuwmme" ) then
+	elseif builder:CanBuild( "armuwmme" ) then
 		unitName = "armuwmme"
 	end
 	return unitName
@@ -94,7 +94,7 @@ end
 function TaskEcoHST:Solar( taskQueueBehaviour, ai, builder )
 	if builder:CanBuild( "corsolar" ) then
 		return "corsolar"
-	else if builder:CanBuild( "armsolar" ) then
+	elseif builder:CanBuild( "armsolar" ) then
 		return "armsolar"
 	end
 end
@@ -102,7 +102,7 @@ end
 function TaskEcoHST:SolarAdv( taskQueueBehaviour, ai, builder )
 	if builder:CanBuild( "coradvsol" ) then
 		return "coradvsol"
-	else if builder:CanBuild( "armadvsol" ) then
+	elseif builder:CanBuild( "armadvsol" ) then
 		return "armadvsol"
 	end
 end
@@ -111,7 +111,7 @@ function TaskEcoHST:Tidal( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cortide" ) then
 		unitName = "cortide"
-	else if builder:CanBuild( "armtide" ) then
+	elseif builder:CanBuild( "armtide" ) then
 		unitName = "armtide"
 	end
 	return unitName
@@ -121,7 +121,7 @@ function TaskEcoHST:Wind( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corwin" ) then
 		unitName = "corwin"
-	else if builder:CanBuild( "armwin" ) then
+	elseif builder:CanBuild( "armwin" ) then
 		unitName = "armwin"
 	end
 	return unitName
@@ -176,7 +176,7 @@ function TaskEcoHST:BuildGeo( taskQueueBehaviour, ai, builder )
 	end
 	if builder:CanBuild( "corgeo" ) then
 		return "corgeo"
-	else if builder:CanBuild( "armgeo" ) then
+	elseif builder:CanBuild( "armgeo" ) then
 		return "armgeo"
 	end
 	return ""
@@ -190,7 +190,7 @@ function TaskEcoHST:BuildMohoGeo( taskQueueBehaviour, ai, builder )
 	end
 	if builder:CanBuild( "corageo" ) then
 		return "corageo"
-	else if builder:CanBuild( "armageo" ) then
+	elseif builder:CanBuild( "armageo" ) then
 		return "armageo"
 	end
 	return ""
@@ -204,7 +204,7 @@ function TaskEcoHST:BuildSpecialGeo( taskQueueBehaviour, ai, builder )
 	end
 	if builder:CanBuild( "corbhmt" ) then
 		return "corbhmt"
-	else if builder:CanBuild( "armgmm" ) then
+	elseif builder:CanBuild( "armgmm" ) then
 		return "armgmm"
 	end
 end
@@ -212,7 +212,7 @@ end
 function TaskEcoHST:BuildFusion( taskQueueBehaviour, ai, builder )
 	if builder:CanBuild( "corfus" ) then
 		return "corfus"
-	else if builder:CanBuild( "armfus" ) then
+	elseif builder:CanBuild( "armfus" ) then
 		return "armfus"
 	end
 	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
@@ -221,7 +221,7 @@ end
 function TaskEcoHST:BuildAdvFusion( taskQueueBehaviour, ai, builder )
 	if builder:CanBuild( "corafus" ) then
 		return "corafus"
-	else if builder:CanBuild( "armafus" ) then
+	elseif builder:CanBuild( "armafus" ) then
 		return "armafus"
 	end
 	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBST if energy income is higher than 4000
@@ -241,7 +241,7 @@ end
 function TaskEcoHST:BuildUWFusion( taskQueueBehaviour, ai, builder )
 	if builder:CanBuild( "coruwfus" ) then
 		return "coruwfus"
-	else if builder:CanBuild( "armuwfus" ) then
+	elseif builder:CanBuild( "armuwfus" ) then
 		return "armuwfus"
 	end
 end
@@ -250,7 +250,7 @@ function TaskEcoHST:buildEstore1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corestor" ) then
 		unitName = "corestor"
-	else if builder:CanBuild( "armestor" ) then
+	elseif builder:CanBuild( "armestor" ) then
 		unitName = "armestor"
 	end
 	return unitName
@@ -260,7 +260,7 @@ function TaskEcoHST:buildEstore2( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "coruwadves" ) then
 		unitName = "coruwadves"
-	else if builder:CanBuild( "armuwadves" ) then
+	elseif builder:CanBuild( "armuwadves" ) then
 		unitName = "armuwadves"
 	end
 	return unitName
@@ -270,7 +270,7 @@ function TaskEcoHST:buildMstore1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cormstor" ) then
 		unitName = "cormstor"
-	else if builder:CanBuild( "armmstor" ) then
+	elseif builder:CanBuild( "armmstor" ) then
 		unitName = "armmstor"
 	end
 	return unitName
@@ -280,7 +280,7 @@ function TaskEcoHST:buildMstore2( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "coruwadvms" ) then
 		unitName = "coruwadvms"
-	else if builder:CanBuild( "armuwadvms" ) then
+	elseif builder:CanBuild( "armuwadvms" ) then
 		unitName = "armuwadvms"
 	end
 	return unitName
@@ -290,7 +290,7 @@ function TaskEcoHST:buildMconv1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cormakr" ) then
 		unitName = "cormakr"
-	else if builder:CanBuild( "armmakr" ) then
+	elseif builder:CanBuild( "armmakr" ) then
 		unitName = "armmakr"
 	end
 	return unitName
@@ -300,7 +300,7 @@ function TaskEcoHST:buildMconv2( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cormmkr" ) then
 		unitName ='cormmkr'
-	else if builder:CanBuild( "armmmkr" ) then
+	elseif builder:CanBuild( "armmmkr" ) then
 		unitName ='armmmkr'
 	end
 	return unitName
@@ -310,7 +310,7 @@ function TaskEcoHST:buildMconv2UW( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corfmmm" ) then
 		unitName ='corfmmm'
-	else if builder:CanBuild( "armfmmm" ) then
+	elseif builder:CanBuild( "armfmmm" ) then
 		unitName ='armfmmm'
 	end
 	return unitName
@@ -320,7 +320,7 @@ function TaskEcoHST:buildWEstore1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "coruwes" ) then
 		unitName = "coruwes"
-	else if builder:CanBuild( "armuwes" ) then
+	elseif builder:CanBuild( "armuwes" ) then
 		unitName = "armuwes"
 	end
 	return unitName
@@ -330,7 +330,7 @@ function TaskEcoHST:buildWMstore1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "coruwms" ) then
 		unitName = "coruwms"
-	else if builder:CanBuild( "armuwms" ) then
+	elseif builder:CanBuild( "armuwms" ) then
 		unitName = "armuwms"
 	end
 	return unitName
@@ -340,7 +340,7 @@ function TaskEcoHST:buildWMconv1( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corfmkr" ) then
 		unitName = "corfmkr"
-	else if builder:CanBuild( "armfmkr" ) then
+	elseif builder:CanBuild( "armfmkr" ) then
 		unitName = "armfmkr"
 	end
 	return unitName
@@ -418,7 +418,7 @@ function TaskEcoHST:Economy1( taskQueueBehaviour, ai, builder )
 	elseif 	self.ai.Energy.full > 0.8 and self.ai.Energy.income > 600 and self.ai.Metal.reserves > 200 and self.ai.Energy.capacity < 7000 then
 		unitName = self:buildEstore1( taskQueueBehaviour, ai, builder )
 	elseif self.ai.Metal.full > 0.8 and self.ai.Metal.income > 40 and self.ai.Metal.capacity < 4000  and self.ai.Energy.reserves > 300 then
-		unitName = self:buildMstore1( taskQueueBehaviour, ai, builder  taskQueueBehaviour, ai, builder )
+		unitName = self:buildMstore1( taskQueueBehaviour, ai, builder)
 	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.8 and self.ai.Energy.income > 100 and self.ai.Energy.income < 2000 and self.ai.Metal.full < 0.5 then
 		unitName = self:buildMconv1( taskQueueBehaviour, ai, builder )
 	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.full > 0.1 then
