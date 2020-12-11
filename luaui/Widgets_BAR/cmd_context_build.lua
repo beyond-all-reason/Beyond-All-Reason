@@ -3,7 +3,7 @@ function widget:GetInfo()
 	return {
 		name = "Context Build",
 		desc = "Toggles buildings between buildings automagically" ,
-		author = "dizekat and BD",
+		author = "dizekat and BrainDamage",
 		date = "30 July 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1,

@@ -23,7 +23,7 @@ function gadget:GetInfo()
 	return {
 		name = "CustomIcons",
 		desc = "Sets custom unit icons",
-		author = "trepan,BD,TheFatController,Floris",
+		author = "trepan,BrainDamage,TheFatController,Floris",
 		date = "Jan 8, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = -100,

@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name      = "Rez Exp",
 		desc      = "Restores experience upon resurrection",
-		author    = "BD",
+		author    = "BrainDamage",
 		date      = "-",
 		version   = 1,
 		license   = "WTFPL",

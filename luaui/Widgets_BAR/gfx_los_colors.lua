@@ -2,7 +2,7 @@ function widget:GetInfo()
     return {
         name      = "LOS colors",
         desc      = "custom colors for LOS",
-        author    = "[teh]decay (thx to Floris, gluon, hokomoko, [teh]Teddy)",
+        author    = "[teh]decay (thx to Floris, BrainDamage, hokomoko, [teh]Teddy)",
         date      = "23 jul 2015",
         license   = "public domain",
         layer     = 0,

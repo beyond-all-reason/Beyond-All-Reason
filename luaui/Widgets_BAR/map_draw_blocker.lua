@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name	= "Map Draw Blocker",
 		desc	= "blocks map draws from spammers",
-		author	= "BD",
+		author	= "BrainDamage",
 		date	= "-",
 		license = "WTFPL",
 		layer	= 0,

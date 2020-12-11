@@ -2,7 +2,7 @@ function widget:GetInfo()
     return {
         name      = "Comblast & Dgun Range",
         desc      = "Shows the range of commander death explosion and dgun ranges",
-        author    = "Bluestone, based on similar widgets by vbs, tfc, decay  (made fancy by Floris)",
+        author    = "Bluestone, very_bad_soldier, the fat controller, decay, Floris, BrainDamage",
         date      = "14 february 2015",
         license   = "GPL v3 or later",
         license   = "GPL v3 or later",

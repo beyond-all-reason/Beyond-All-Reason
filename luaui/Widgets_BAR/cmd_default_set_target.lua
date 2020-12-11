@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 	name	= "Set target default",
 	desc	= "replaces default click from attack to set target",
-	author	= "BD",
+	author	= "BrainDamage",
 	date	= "-",
 	license	= "WTFPL",
 	layer	= -math.huge,

@@ -2,7 +2,7 @@ function gadget:GetInfo()
     return {
         name = "Take Manager",
         desc = "Handles players AFK and drops",
-        author = "BD",
+        author = "BrainDamage",
         date = "2012",
         license = "WTFPL",
         layer = 1,

@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name = "Unally on demand",
 		desc = "Removes an alliance when a dynamic ally attemps to backstab",
-		author = "BD",
+		author = "BrainDamage",
 		date = "-",
 		license = "GNU GPL, v2 or later",
 		layer = 0,

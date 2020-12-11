@@ -3,7 +3,7 @@ function widget:GetInfo()
   return {
     name      = "Take Proxy",
     desc      = "Renames /luarules take2 to /take",
-    author    = "BD",
+    author    = "BrainDamage",
     date      = "2012",
     license   = "WTFPL",
     layer     = 0,
