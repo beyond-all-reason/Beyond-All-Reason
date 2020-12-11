@@ -2516,8 +2516,8 @@ function init()
 		  onchange = function(i, value)
 			  local enabled = (value < 1000) and 0 or 1
 			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
-			  Spring.SetConfigInt("shadows", enabled)
-			  Spring.SetConfigInt("shadowmapsize", value)
+			  Spring.SetConfigInt("Shadows", enabled)
+			  Spring.SetConfigInt("ShadowMapSize", value)
 		  end,
 		},
 		{ id = "shadows_opacity", group = "gfx", name = widgetOptionColor .. "   "..texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
@@ -2777,10 +2777,8 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if Spring.GetConfigInt("distdraw", 1) < 10000 then
-				  Spring.SendCommands("distdraw 10000")
-			  end
 			  Spring.SendCommands("disticon " .. value)
+			  Spring.GetConfigInt("UnitIconDist", value)
 		  end,
 		},
 		{ id = "iconscale", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
@@ -5350,17 +5348,17 @@ function widget:Initialize()
 		end
 		if isPotatoGpu then
 			Spring.SendCommands("water 0")
-			Spring.SetConfigInt("water", 0)
+			Spring.SetConfigInt("Water", 0)
 
 			Spring.SendCommands("advmapshading 0")
-			Spring.SendCommands("shadows 0 1024")
-			Spring.SetConfigInt("shadows", 0)
-			Spring.SetConfigInt("shadowmapsize", 1024)
+			Spring.SendCommands("Shadows 0 1024")
+			Spring.SetConfigInt("Shadows", 0)
+			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("MSAALevel", 0)
 			Spring.SetConfigFloat("ui_opacity", 0.66)	-- set to be more opaque cause guishader isnt availible
 		else
 			Spring.SendCommands("water 4")
-			Spring.SetConfigInt("water", 4)
+			Spring.SetConfigInt("Water", 4)
 		end
 
 		local minMaxparticles = 12000
