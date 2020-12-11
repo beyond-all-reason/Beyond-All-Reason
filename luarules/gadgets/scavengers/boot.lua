@@ -198,25 +198,25 @@ function gadget:GameFrame(n)
 		RandomEventTrigger(n)
 	end
 
-	if n%(150/spawnmultiplier) == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
+	if n%(75/spawnmultiplier) == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
+		if not SpecialAbilityCountdown then SpecialAbilityCountdown = 10 end
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 		local bosshealthpercentage = math.floor(currentbosshealth/(initialbosshealth*0.01))
 		ScavSendMessage("Boss Health: "..math.ceil(currentbosshealth).. " ("..bosshealthpercentage.."%)")
 		ScavBossPhaseControl(bosshealthpercentage)
-		if math_random(0,(11-BossFightCurrentPhase)) == 0 then
-			if BossFightCurrentPhase == 1 then
-				local SpecAbi = BossSpecialAbilitiesList[1]
-				if SpecAbi then
-					SpecAbi(n)
-				end
-			else
-				local SpecAbi = BossSpecialAbilitiesList[math_random(1,#(BossFightCurrentPhase))]
-				if SpecAbi then
-					SpecAbi(n)
-				end
+		SpecialAbilityCountdown = SpecialAbilityCountdown - 1
+		if SpecialAbilityCountdown <= 0 then
+			local SpecAbi = BossSpecialAbilitiesUsedList[math_random(1,#BossSpecialAbilitiesUsedList)]
+			if SpecAbi then
+				SpecialAbilityCountdown = 10 - BossFightCurrentPhase
+				SpecAbi(n)
 			end
 		end
+	end
+
+	if n%10 == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
+		BossPassiveAbilityController(n)
 	end
 
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then

@@ -1,5 +1,13 @@
 Behaviour = class(AIBase)
 
+function Behaviour:Name()
+	return 'Unknown Behaviour'
+end
+
+function Module:internalName()
+	return "unknown behaviour"
+end
+
 function Behaviour:init()
 	self.active = false
 	self.priority = 0
@@ -105,12 +113,12 @@ function Behaviour:IsActive()
 	return self.active
 end
 
-function Behaviour:Name()
-	return 'Behaviour'
+function Behaviour:Warn(...)
+	self.game:SendToConsole(self.game:GetTeamID(), self.ai:Name(), self:Name(), self.unit:Internal():Name(), self.unit:Internal():ID(), 'Warning:', ...)
 end
 
 function Behaviour:EchoDebug(...)
 	if self.DebugEnabled then
-		self.game:SendToConsole(self.game:GetTeamID(), self:Name(), self.unit:Internal():Name(), self.unit:Internal():ID(), ...)
+		self.game:SendToConsole(self.game:GetTeamID(), self.ai:Name(), self:Name(), self.unit:Internal():Name(), self.unit:Internal():ID(), ...)
 	end
 end

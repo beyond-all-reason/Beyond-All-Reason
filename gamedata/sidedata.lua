@@ -8,4 +8,8 @@ return {
         name = 'Cortex',
         startunit = 'corcom',
     },
+    {
+        name = 'Random',
+        startunit = 'armcom',
+    },
 }

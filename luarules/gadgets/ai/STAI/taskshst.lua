@@ -16,8 +16,24 @@ function TasksHST:wrap( theTable, theFunction )
 	self:EchoDebug(theTable)
 	self:EchoDebug(theFunction)
 	return function( tb, ai )
-	return theTable[theFunction](theTable, tb, ai)
+		return theTable[theFunction](theTable, tb, ai)
 	end
+end
+
+function map(func, array)
+	local new_array = {}
+	for i,v in ipairs(array) do
+		new_array[i] = func(v)
+	end
+	return new_array
+end
+
+function TasksHST:multiwrap( tables )
+	local wrapped = {}
+	for i,v in ipairs( table ) do
+		wrapped[i] = self:wrap( v[1], v[2] )
+	end
+	return wrapped
 end
 
 random = math.random
@@ -245,59 +261,59 @@ function TasksHST:LandOrWater(tqb, landName, waterName)
 end
 
 
-function TasksHST:ConsulAsFactory(tqb)
+function TasksHST:ConsulAsFactory( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd = math.random(1,8)
-	if 	rnd == 1 then unitName = self.ai.taskvehhst:ConVehicle(tqb)
-	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ConShip(tqb)
-	elseif 	rnd == 3 then unitName = self.ai.taskbothst:Lvl1BotRaider(tqb)
-	elseif 	rnd == 4 then unitName = self.ai.taskbothst:Lvl1AABot(tqb)
-	elseif 	rnd == 5 then unitName = self.ai.taskbothst:Lvl2BotArty(tqb)
-	elseif 	rnd == 6 then unitName = self.ai.taskbothst:Lvl2BotAllTerrain(tqb)
-	elseif 	rnd == 7 then unitName = self.ai.taskbothst:Lvl2BotMedium(tqb)
-	else unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly(tqb)
+	if 	rnd == 1 then unitName = self.ai.taskvehhst:ConVehicle( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ConShip( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 3 then unitName = self.ai.taskbothst:Lvl1BotRaider( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 4 then unitName = self.ai.taskbothst:Lvl1AABot( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 5 then unitName = self.ai.taskbothst:Lvl2BotArty( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 6 then unitName = self.ai.taskbothst:Lvl2BotAllTerrain( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 7 then unitName = self.ai.taskbothst:Lvl2BotMedium( taskQueueBehaviour, ai, builder )
+	else unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly( taskQueueBehaviour, ai, builder )
 	end
 	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
 	self:EchoDebug('Consul as factory '..unitName)
 	return unitName
 end
 
-function TasksHST:FreakerAsFactory(tqb)
+function TasksHST:FreakerAsFactory( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd = math.random(1,7)
-	if 	rnd == 1 then unitName = self.ai.taskbothst:ConBot(tqb)
-	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ConShip(tqb)
-	elseif 	rnd == 3 then unitName = self.ai.taskbothst:Lvl1BotRaider(tqb)
-	elseif 	rnd == 4 then unitName = self.ai.taskbothst:Lvl1AABot(tqb)
-	elseif 	rnd == 5 then unitName = self.ai.taskbothst:Lvl2BotRaider(tqb)
-	elseif 	rnd == 6 then unitName = self.ai.taskbothst:Lvl2AmphBot(tqb)
-	else unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly(tqb)
+	if 	rnd == 1 then unitName = self.ai.taskbothst:ConBot( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ConShip( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 3 then unitName = self.ai.taskbothst:Lvl1BotRaider( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 4 then unitName = self.ai.taskbothst:Lvl1AABot( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 5 then unitName = self.ai.taskbothst:Lvl2BotRaider( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 6 then unitName = self.ai.taskbothst:Lvl2AmphBot( taskQueueBehaviour, ai, builder )
+	else unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly( taskQueueBehaviour, ai, builder )
 	end
 	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
 	self:EchoDebug('Freaker as factory '..unitName)
 	return unitName
 end
 
-function TasksHST:NavalEngineerAsFactory(tqb)
+function TasksHST:NavalEngineerAsFactory( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	local rnd= math.random(1,6)
-	if 	rnd == 1 then unitName = self.ai.taskshphst:ConShip(tqb)
-	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ScoutShip(tqb)
-	elseif 	rnd == 3 then unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly(tqb)
-	elseif 	rnd == 4 then unitName = self.ai.taskshphst:Lvl1ShipRaider(tqb)
-	elseif 	rnd == 5 then unitName = self.ai.taskshphst:Lvl1ShipBattle(tqb)
-	else unitName = self.ai.taskbothst:Lvl2AmphBot(tqb)
+	if 	rnd == 1 then unitName = self.ai.taskshphst:ConShip( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ScoutShip( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 3 then unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 4 then unitName = self.ai.taskshphst:Lvl1ShipRaider( taskQueueBehaviour, ai, builder )
+	elseif 	rnd == 5 then unitName = self.ai.taskshphst:Lvl1ShipBattle( taskQueueBehaviour, ai, builder )
+	else unitName = self.ai.taskbothst:Lvl2AmphBot( taskQueueBehaviour, ai, builder )
 	end
 	self:EchoDebug('Naval engineers as factory '..unitName)
 	return unitName
 end
 
-function TasksHST:EngineerAsFactory(tqb)
+function TasksHST:EngineerAsFactory( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
-		unitName = self:FreakerAsFactory(tqb)
+		unitName = self:FreakerAsFactory( taskQueueBehaviour, ai, builder )
 	else
-		unitName = self:ConsulAsFactory(tqb)
+		unitName = self:ConsulAsFactory( taskQueueBehaviour, ai, builder )
 	end
 	return unitName
 end
@@ -307,15 +323,16 @@ end
 -- mobile construction units:
 
 function TasksHST:anyCommander()
-	return {
-		self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-		self:wrap( self.ai.taskecohst,'CommanderEconomy' ) ,
-		self:wrap( self.ai.taskbuildhst,'BuildLLT' ) ,
-		self:wrap( self.ai.taskbuildhst,'BuildRadar' ) ,
-		self:wrap( self.ai.taskbuildhst,'CommanderAA' ) ,
-		self:wrap( self.ai.taskbuildhst,'BuildPopTorpedo' ) ,
-	}
+	return self:multiwrap( {
+		{ self.ai.taskecohst,'BuildAppropriateFactory' },
+		{ self.ai.taskecohst,'CommanderEconomy' },
+		{ self.ai.taskbuildhst,'BuildLLT' },
+		{ self.ai.taskbuildhst,'BuildRadar' },
+		{ self.ai.taskbuildhst,'CommanderAA' },
+		{ self.ai.taskbuildhst,'BuildPopTorpedo' },
+	} )
 end
+
 function TasksHST:anyConUnit()  return  {
 	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
 	self:wrap( self.ai.taskecohst,'Economy1' ) ,
@@ -572,79 +589,79 @@ function TasksHST:anyOutmodedLvl2VehPlant()  return  {
 
 -- fall back to these when a level 2 factory exists
 function TasksHST:outmodedTaskqueues()  return  {
-	corlab = self:wrap( self  ,  'anyOutmodedLvl1BotLab' ) ,
-	armlab = self:wrap( self  ,  'anyOutmodedLvl1BotLab' ) ,
-	corvp = self:wrap( self  ,  'anyOutmodedLvl1VehPlant' ) ,
-	armvp = self:wrap( self  ,  'anyOutmodedLvl1VehPlant' ) ,
-	corap = self:wrap( self  ,  'anyOutmodedLvl1AirPlant' ) ,
-	armap = self:wrap( self  ,  'anyOutmodedLvl1AirPlant' ) ,
-	corsy = self:wrap( self  ,  'anyOutmodedLvl1ShipYard' ) ,
-	armsy = self:wrap( self  ,  'anyOutmodedLvl1ShipYard' ) ,
-	coralab = self:wrap( self  ,  'anyOutmodedLvl2BotLab' ) ,
-	armalab = self:wrap( self  ,  'anyOutmodedLvl2BotLab' ) ,
-	coravp = self:wrap( self  ,  'anyOutmodedLvl2VehPlant' ) ,
-	armavp = self:wrap( self  ,  'anyOutmodedLvl2VehPlant' ) ,
+	corlab = self:wrap( self,  'anyOutmodedLvl1BotLab' ) ,
+	armlab = self:wrap( self,  'anyOutmodedLvl1BotLab' ) ,
+	corvp = self:wrap( self,  'anyOutmodedLvl1VehPlant' ) ,
+	armvp = self:wrap( self,  'anyOutmodedLvl1VehPlant' ) ,
+	corap = self:wrap( self,  'anyOutmodedLvl1AirPlant' ) ,
+	armap = self:wrap( self,  'anyOutmodedLvl1AirPlant' ) ,
+	corsy = self:wrap( self,  'anyOutmodedLvl1ShipYard' ) ,
+	armsy = self:wrap( self,  'anyOutmodedLvl1ShipYard' ) ,
+	coralab = self:wrap( self,  'anyOutmodedLvl2BotLab' ) ,
+	armalab = self:wrap( self,  'anyOutmodedLvl2BotLab' ) ,
+	coravp = self:wrap( self,  'anyOutmodedLvl2VehPlant' ) ,
+	armavp = self:wrap( self,  'anyOutmodedLvl2VehPlant' ) ,
 } end
 
 -- finally' ) , the taskqueue definitions
 function TasksHST:taskqueues()  return  {
-	armaap = self:wrap( self  ,  'anyLvl2AirPlant' ) ,
-	armaca = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	armack = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	armacsub = self:wrap( self  ,  'anyAdvConSub' ) ,
-	armacv = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	armalab = self:wrap( self  ,  'anyLvl2BotLab' ) ,
-	armamsub = self:wrap( self  ,  'anyAmphibiousComplex' ) ,
-	armap = self:wrap( self  ,  'anyLvl1AirPlant' ) ,
-	armasy = self:wrap( self  ,  'anyLvl2ShipYard' ) ,
-	armavp = self:wrap( self  ,  'anyLvl2VehPlant' ) ,
-	armbeaver = self:wrap( self  ,  'anyConAmphibious' ) ,
-	armca = self:wrap( self  ,  'anyConUnit' ) ,
-	armch = self:wrap( self  ,  'anyConAmphibious' ) ,
-	armck = self:wrap( self  ,  'anyConUnit' ) ,
-	armcom = self:wrap( self  ,  'anyCommander' ) ,
-	armconsul = self:wrap( self  ,  'anyCombatEngineer' ) ,
-	armcs = self:wrap( self  ,  'anyConShip' ) ,
-	armcsa = self:wrap( self  ,  'anyConSeaplane' ) ,
-	armcv = self:wrap( self  ,  'anyConUnit' ) ,
-	armdecom = self:wrap( self  ,  'anyCommander' ) ,
-	armfark = self:wrap( self  ,  'anyFark' ) ,
-	armfhp = self:wrap( self  ,  'anyHoverPlatform' ) ,
-	armhp = self:wrap( self  ,  'anyHoverPlatform' ) ,
-	armlab = self:wrap( self  ,  'anyLvl1BotLab' ) ,
-	armmls = self:wrap( self  ,  'anyNavalEngineer' ) ,
-	armplat = self:wrap( self  ,  'anySeaplanePlatform' ) ,
-	armshltx = self:wrap( self  ,  'anyExperimental' ) ,
-	armshltxuw = self:wrap( self  ,  'anyUWExperimental' ) ,
-	armsy = self:wrap( self  ,  'anyLvl1ShipYard' ) ,
-	armvp = self:wrap( self  ,  'anyLvl1VehPlant' ) ,
-	coraap = self:wrap( self  ,  'anyLvl2AirPlant' ) ,
-	coraca = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	corack = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	coracsub = self:wrap( self  ,  'anyAdvConSub' ) ,
-	coracv = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	coralab = self:wrap( self  ,  'anyLvl2BotLab' ) ,
-	coramsub = self:wrap( self  ,  'anyAmphibiousComplex' ) ,
-	corap = self:wrap( self  ,  'anyLvl1AirPlant' ) ,
-	corasy = self:wrap( self  ,  'anyLvl2ShipYard' ) ,
-	coravp = self:wrap( self  ,  'anyLvl2VehPlant' ) ,
-	corca = self:wrap( self  ,  'anyConUnit' ) ,
-	corch = self:wrap( self  ,  'anyConAmphibious' ) ,
-	corck = self:wrap( self  ,  'anyConUnit' ) ,
-	corcom = self:wrap( self  ,  'anyCommander' ) ,
-	corcs = self:wrap( self  ,  'anyConShip' ) ,
-	corcsa = self:wrap( self  ,  'anyConSeaplane' ) ,
-	corcv = self:wrap( self  ,  'anyConUnit' ) ,
-	cordecom = self:wrap( self  ,  'anyCommander' ) ,
-	corfast = self:wrap( self  ,  'anyCombatEngineer' ) ,
-	corfhp = self:wrap( self  ,  'anyHoverPlatform' ) ,
-	corgant = self:wrap( self  ,  'anyExperimental' ) ,
-	corgantuw = self:wrap( self  ,  'anyUWExperimental' ) ,
-	corhp = self:wrap( self  ,  'anyHoverPlatform' ) ,
-	corlab = self:wrap( self  ,  'anyLvl1BotLab' ) ,
-	cormls = self:wrap( self  ,  'anyNavalEngineer' ) ,
-	cormuskrat = self:wrap( self  ,  'anyConAmphibious' ) ,
-	corplat = self:wrap( self  ,  'anySeaplanePlatform' ) ,
-	corsy = self:wrap( self  ,  'anyLvl1ShipYard' ) ,
-	corvp = self:wrap( self  ,  'anyLvl1VehPlant' ) ,
+	armaap = self:wrap( self,  'anyLvl2AirPlant' ) ,
+	armaca = self:wrap( self,  'anyAdvConUnit' ) ,
+	armack = self:wrap( self,  'anyAdvConUnit' ) ,
+	armacsub = self:wrap( self,  'anyAdvConSub' ) ,
+	armacv = self:wrap( self,  'anyAdvConUnit' ) ,
+	armalab = self:wrap( self,  'anyLvl2BotLab' ) ,
+	armamsub = self:wrap( self,  'anyAmphibiousComplex' ) ,
+	armap = self:wrap( self,  'anyLvl1AirPlant' ) ,
+	armasy = self:wrap( self,  'anyLvl2ShipYard' ) ,
+	armavp = self:wrap( self,  'anyLvl2VehPlant' ) ,
+	armbeaver = self:wrap( self,  'anyConAmphibious' ) ,
+	armca = self:wrap( self,  'anyConUnit' ) ,
+	armch = self:wrap( self,  'anyConAmphibious' ) ,
+	armck = self:wrap( self,  'anyConUnit' ) ,
+	armcom = self:wrap( self,  'anyCommander' ) ,
+	armconsul = self:wrap( self,  'anyCombatEngineer' ) ,
+	armcs = self:wrap( self,  'anyConShip' ) ,
+	armcsa = self:wrap( self,  'anyConSeaplane' ) ,
+	armcv = self:wrap( self,  'anyConUnit' ) ,
+	armdecom = self:wrap( self,  'anyCommander' ) ,
+	armfark = self:wrap( self,  'anyFark' ) ,
+	armfhp = self:wrap( self,  'anyHoverPlatform' ) ,
+	armhp = self:wrap( self,  'anyHoverPlatform' ) ,
+	armlab = self:wrap( self,  'anyLvl1BotLab' ) ,
+	armmls = self:wrap( self,  'anyNavalEngineer' ) ,
+	armplat = self:wrap( self,  'anySeaplanePlatform' ) ,
+	armshltx = self:wrap( self,  'anyExperimental' ) ,
+	armshltxuw = self:wrap( self,  'anyUWExperimental' ) ,
+	armsy = self:wrap( self,  'anyLvl1ShipYard' ) ,
+	armvp = self:wrap( self,  'anyLvl1VehPlant' ) ,
+	coraap = self:wrap( self,  'anyLvl2AirPlant' ) ,
+	coraca = self:wrap( self,  'anyAdvConUnit' ) ,
+	corack = self:wrap( self,  'anyAdvConUnit' ) ,
+	coracsub = self:wrap( self,  'anyAdvConSub' ) ,
+	coracv = self:wrap( self,  'anyAdvConUnit' ) ,
+	coralab = self:wrap( self,  'anyLvl2BotLab' ) ,
+	coramsub = self:wrap( self,  'anyAmphibiousComplex' ) ,
+	corap = self:wrap( self,  'anyLvl1AirPlant' ) ,
+	corasy = self:wrap( self,  'anyLvl2ShipYard' ) ,
+	coravp = self:wrap( self,  'anyLvl2VehPlant' ) ,
+	corca = self:wrap( self,  'anyConUnit' ) ,
+	corch = self:wrap( self,  'anyConAmphibious' ) ,
+	corck = self:wrap( self,  'anyConUnit' ) ,
+	corcom = self:wrap( self,  'anyCommander' ) ,
+	corcs = self:wrap( self,  'anyConShip' ) ,
+	corcsa = self:wrap( self,  'anyConSeaplane' ) ,
+	corcv = self:wrap( self,  'anyConUnit' ) ,
+	cordecom = self:wrap( self,  'anyCommander' ) ,
+	corfast = self:wrap( self,  'anyCombatEngineer' ) ,
+	corfhp = self:wrap( self,  'anyHoverPlatform' ) ,
+	corgant = self:wrap( self,  'anyExperimental' ) ,
+	corgantuw = self:wrap( self,  'anyUWExperimental' ) ,
+	corhp = self:wrap( self,  'anyHoverPlatform' ) ,
+	corlab = self:wrap( self,  'anyLvl1BotLab' ) ,
+	cormls = self:wrap( self,  'anyNavalEngineer' ) ,
+	cormuskrat = self:wrap( self,  'anyConAmphibious' ) ,
+	corplat = self:wrap( self,  'anySeaplanePlatform' ) ,
+	corsy = self:wrap( self,  'anyLvl1ShipYard' ) ,
+	corvp = self:wrap( self,  'anyLvl1VehPlant' ) ,
 } end

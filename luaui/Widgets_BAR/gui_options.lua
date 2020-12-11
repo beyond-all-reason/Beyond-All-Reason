@@ -15,6 +15,33 @@ end
 --   function init
 ]]--
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	basic = 'Basic',
+	advanced = 'Advanced',
+	group = {
+		graphics = 'Graphics',
+		interface = 'Interface',
+		game = 'Game',
+		control = 'Control',
+		audio = 'Audio',
+		notifications = 'Notifications',
+		dev = 'Dev',
+	},
+	presetnames = {'lowest', 'low', 'medium', 'high', 'ultra'},
+	option = {
+		preset = 'Load graphics preset',
+		preset_descr = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
+		resolution = 'Load graphics preset',
+		resolution_descr = 'WARNING: sometimes freezes game engine in windowed mode',
+		fullscreen = 'Fullscreen',
+		borderless = 'Borderless window',
+		borderless_descr = 'Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)',
+		windowpos = 'Move window position',
+		windowpos_descr = 'Toggle and move window position with the arrow keys or by dragging',
+		vsync = 'V-sync',
+	},
+}
+
 local advSettings = false
 
 local initialized = false
@@ -166,109 +193,8 @@ local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
 
-local presetNames = { 'lowest', 'low', 'medium', 'high', 'ultra' }    -- defined so these get listed in the right order
-local presets = {
-	lowest = {
-		bloom = false,
-		bloomdeferred = false,
-		ssao = 1,
-		mapedgeextension = false,
-		lighteffects = false,
-		airjets = false,
-		heatdistortion = false,
-		snow = false,
-		particles = 15000,
-		nanoparticles = 1500,
-		nanobeamamount = 6,
-		treeradius = 0,
-		--treewind = false,
-		guishader = false,
-		decals = 0,
-		--grounddetail = 70,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	low = {
-		bloom = false,
-		bloomdeferred = true,
-		ssao = 1,
-		mapedgeextension = false,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = false,
-		particles = 20000,
-		nanoparticles = 3000,
-		nanobeamamount = 8,
-		treeradius = 200,
-		--treewind = false,
-		guishader = false,
-		decals = 0,
-		--grounddetail = 100,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	medium = {
-		bloom = true,
-		bloomdeferred = true,
-		ssao = 1,
-		mapedgeextension = true,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = true,
-		particles = 25000,
-		nanoparticles = 5000,
-		nanobeamamount = 12,
-		treeradius = 400,
-		--treewind = false,
-		guishader = true,
-		decals = 2,
-		--grounddetail = 140,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	high = {
-		bloom = true,
-		bloomdeferred = true,
-		ssao = 2,
-		mapedgeextension = true,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = true,
-		particles = 30000,
-		nanoparticles = 9000,
-		nanobeamamount = 20,
-		treeradius = 800,
-		--treewind = true,
-		guishader = true,
-		decals = 4,
-		--grounddetail = 180,
-		darkenmap_darkenfeatures = false,
-		enemyspotter_highlight = false,
-	},
-	ultra = {
-		bloom = true,
-		bloomdeferred = true,
-		ssao = 3,
-		mapedgeextension = true,
-		lighteffects = true,
-		airjets = true,
-		heatdistortion = true,
-		snow = true,
-		particles = 40000,
-		nanoparticles = 15000,
-		nanobeamamount = 40,
-		treeradius = 800,
-		--treewind = true,
-		guishader = true,
-		decals = 5,
-		--grounddetail = 200,
-		darkenmap_darkenfeatures = true,
-		enemyspotter_highlight = true,
-	},
-}
+local presetNames = {}
+local presets = {}
 local customPresets = {}
 
 local startScript = VFS.LoadFile("_script.txt")
@@ -607,9 +533,9 @@ function DrawWindow()
 	-- title
 	local color = '\255\255\255\255'
 	local color2 = '\255\125\125\125'
-	local title = "" .. color .. "Basic" .. color2 .. "  /  Advanced"
+	local title = "" .. color .. texts.basic .. color2 .. "  /  " .. texts.advanced
 	if advSettings then
-		title = "" .. color2 .. "Basic  /  " .. color .. "Advanced"
+		title = "" .. color2 .. texts.basic.."  /  " .. color .. texts.advanced
 	end
 	local titleFontSize = 18
 	titleRect = { x - bgMargin, y + bgMargin, x + (font2:GetTextWidth(title) * titleFontSize) + 35 - bgMargin, y + 37 }
@@ -1828,6 +1754,111 @@ end
 local engine64 = true
 function init()
 
+	presetNames = texts.presetnames    -- defined so these get listed in the right order
+	presets = {
+		[presetNames[1]] = {
+			bloom = false,
+			bloomdeferred = false,
+			ssao = 1,
+			mapedgeextension = false,
+			lighteffects = false,
+			airjets = false,
+			heatdistortion = false,
+			snow = false,
+			particles = 15000,
+			nanoparticles = 1500,
+			nanobeamamount = 6,
+			treeradius = 0,
+			--treewind = false,
+			guishader = false,
+			decals = 0,
+			--grounddetail = 70,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[2]] = {
+			bloom = false,
+			bloomdeferred = true,
+			ssao = 1,
+			mapedgeextension = false,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = false,
+			particles = 20000,
+			nanoparticles = 3000,
+			nanobeamamount = 8,
+			treeradius = 200,
+			--treewind = false,
+			guishader = false,
+			decals = 0,
+			--grounddetail = 100,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[3]] = {
+			bloom = true,
+			bloomdeferred = true,
+			ssao = 1,
+			mapedgeextension = true,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 25000,
+			nanoparticles = 5000,
+			nanobeamamount = 12,
+			treeradius = 400,
+			--treewind = false,
+			guishader = true,
+			decals = 2,
+			--grounddetail = 140,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[4]] = {
+			bloom = true,
+			bloomdeferred = true,
+			ssao = 2,
+			mapedgeextension = true,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 30000,
+			nanoparticles = 9000,
+			nanobeamamount = 20,
+			treeradius = 800,
+			--treewind = true,
+			guishader = true,
+			decals = 4,
+			--grounddetail = 180,
+			darkenmap_darkenfeatures = false,
+			enemyspotter_highlight = false,
+		},
+		[presetNames[5]] = {
+			bloom = true,
+			bloomdeferred = true,
+			ssao = 3,
+			mapedgeextension = true,
+			lighteffects = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 40000,
+			nanoparticles = 15000,
+			nanobeamamount = 40,
+			treeradius = 800,
+			--treewind = true,
+			guishader = true,
+			decals = 5,
+			--grounddetail = 200,
+			darkenmap_darkenfeatures = true,
+			enemyspotter_highlight = true,
+		},
+	}
+	customPresets = {}
+
 	local supportedResolutions = {}
 	local soundDevices = { 'default' }
 	local soundDevicesByName = { [''] = 1 }
@@ -1925,13 +1956,13 @@ function init()
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
-		{ id = 'gfx', name = 'Graphics' },
-		{ id = 'ui', name = 'Interface' },
-		{ id = 'game', name = 'Game' },
-		{ id = 'control', name = 'Control' },
-		{ id = 'snd', name = 'Audio' },
-		{ id = 'notif', name = 'Notifications' },
-		{ id = 'dev', name = 'Dev' },
+		{ id = 'gfx', name = texts.group.graphics },
+		{ id = 'ui', name = texts.group.interface },
+		{ id = 'game', name = texts.group.game },
+		{ id = 'control', name = texts.group.control },
+		{ id = 'snd', name = texts.group.audio },
+		{ id = 'notif', name = texts.group.notifications },
+		{ id = 'dev', name = texts.group.dev },
 	}
 
 	if not currentGroupTab or Spring.GetGameFrame() == 0 then
@@ -1952,7 +1983,7 @@ function init()
 
 	options = {
 		-- PRESET
-		{ id = "preset", group = "gfx", basic = true, name = "Load graphics preset", type = "select", options = presetNames, value = 0, description = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
+		{ id = "preset", group = "gfx", basic = true, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -1962,7 +1993,7 @@ function init()
 		  end,
 		},
 		--GFX
-		{ id = "resolution", group = "gfx", basic = true, name = "Resolution", type = "select", options = supportedResolutions, value = 0, description = 'WARNING: sometimes freezes game engine in windowed mode',
+		{ id = "resolution", group = "gfx", basic = true, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
 		  onchange = function(i, value)
 			  local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
 			  local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
@@ -1980,7 +2011,7 @@ function init()
 			  checkResolution()
 		  end,
 		},
-		{ id = "fullscreen", group = "gfx", basic = true, name = "Fullscreen", type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
+		{ id = "fullscreen", group = "gfx", basic = true, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
 		  onchange = function(i, value)
 			  if value then
 				  options[getOptionByID('borderless')].value = false
@@ -1999,7 +2030,7 @@ function init()
 			  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
 			  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
 		  end, },
-		{ id = "borderless", group = "gfx", basic = true, name = "Borderless window", type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = "Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)",
+		{ id = "borderless", group = "gfx", basic = true, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
 			  if value then
@@ -2016,13 +2047,13 @@ function init()
 			  checkResolution()
 		  end,
 		},
-		{ id = "windowpos", group = "gfx", basic = true, widget = "Move Window Position", name = "Move window position", type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = 'Toggle and move window position with the arrow keys or by dragging',
+		{ id = "windowpos", group = "gfx", basic = true, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
 			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 		  end,
 		},
-		{ id = "vsync", group = "gfx", basic = true, name = "V-sync", type = "bool", value = vsyncEnabled, description = '',
+		{ id = "vsync", group = "gfx", basic = true, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
 			  vsyncEnabled = value
 			  local vsync = 0
@@ -2037,7 +2068,7 @@ function init()
 			  Spring.SetConfigInt("VSync", vsync)
 		  end,
 		},
-		{ id = "vsync_spec", group = "gfx", basic = true, name = widgetOptionColor .. "   only when spectator", type = "bool", value = vsyncOnlyForSpec, description = 'Only enable vsync when being spectator',
+		{ id = "vsync_spec", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
 		  onchange = function(i, value)
 			  vsyncOnlyForSpec = value
 			  if isSpec and vsyncEnabled then
@@ -2049,7 +2080,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   divider", type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled.\nNOTE: does not always work!\n(I like to use this when I\'m spectating on my 144hz laptop)',
+		{ id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   "..texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
 		  onchange = function(i, value)
 			  vsyncLevel = value
 			  local vsync = 0
@@ -2059,16 +2090,15 @@ function init()
 			  Spring.SetConfigInt("VSync", vsync)
 		  end,
 		},
-		{ id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = "Limit FPS when idle/offscreen", type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = "Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode" },
+		{ id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-		{ id = "msaa", group = "gfx", basic = true, name = "Anti Aliasing", type = "slider", min = 0, max = 8, step = 1, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = 'Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		{ id = "msaa", group = "gfx", basic = true, name = texts.option.msaa, type = "slider", min = 0, max = 8, step = 1, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MSAALevel", value)
 		  end,
 		},
 
-		--{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		{ id = "cas_sharpness", group = "gfx", name = "Contrast Adaptive Sharpen", min = 0.25, max = 0.85, step = 0.01, type = "slider", value = 0.7, description = 'How much sharpening should be applied to the image',
+		{ id = "cas_sharpness", group = "gfx", name = texts.option.cas_sharpness, min = 0.25, max = 0.85, step = 0.01, type = "slider", value = 0.7, description = texts.option.cas_sharpness_descr,
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
 		  end,
@@ -2077,7 +2107,7 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", basic = true, name = "Shadows", type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = 'Set shadow detail',
+		{ id = "shadowslider", group = "gfx", basic = true, name = texts.option.shadowslider, type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
 		  onchange = function(i, value)
 			  local enabled = (value < 1000) and 0 or 1
 			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
@@ -2085,14 +2115,12 @@ function init()
 			  Spring.SetConfigInt("shadowmapsize", value)
 		  end,
 		},
-		{ id = "shadows_opacity", group = "gfx", name = widgetOptionColor .. "   opacity", type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
+		{ id = "shadows_opacity", group = "gfx", name = widgetOptionColor .. "   "..texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
 		  onchange = function(i, value)
 			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
 		  end,
 		},
-		{ id = "sun_y", group = "gfx", name = "Sun" .. widgetOptionColor .. "  height", type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
-		  onload = function(i)
-		  end,
+		{ id = "sun_y", group = "gfx", name = texts.option.sun_.. widgetOptionColor .. "  "..texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunY = value
@@ -2109,9 +2137,7 @@ function init()
 			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 		  end,
 		},
-		{ id = "sun_x", group = "gfx", name = widgetOptionColor .. "   pos X", type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
-		  onload = function(i)
-		  end,
+		{ id = "sun_x", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunX = value
@@ -2128,7 +2154,7 @@ function init()
 			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 		  end,
 		},
-		{ id = "sun_z", group = "gfx", name = widgetOptionColor .. "   pos Z", type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
+		{ id = "sun_z", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2147,7 +2173,7 @@ function init()
 			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 		  end,
 		},
-		{ id = "sun_reset", group = "gfx", name = widgetOptionColor .. "   reset map default", type = "bool", value = false, description = '',
+		{ id = "sun_reset", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_reset, type = "bool", value = false, description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2163,14 +2189,14 @@ function init()
 		  end,
 		},
 
-		{ id = "darkenmap", group = "gfx", name = "Darken map", min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = 'Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings',
+		{ id = "darkenmap", group = "gfx", name = texts.option.darkenmap, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
 		  end,
 		},
-		{ id = "darkenmap_darkenfeatures", group = "gfx", name = widgetOptionColor .. "   darken features", type = "bool", value = false, description = 'Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.',
+		{ id = "darkenmap_darkenfeatures", group = "gfx", name = widgetOptionColor .. "   "..texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3157,7 +3183,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "mascotte", group = "ui", basic = true, widget = "AdvPlayersList Mascotte", name = widgetOptionColor .. "   mascotte", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascotte"), description = 'Shows a mascotte on top of the playerslist' },
+		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   mascot", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = 'Shows a mascot on top of the playerslist' },
 		{ id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   unit totals", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = 'Show your unit totals on top of the playerlist' },
 		{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   music player", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = 'Show music player on top of playerlist',
 		  onload = function(i)
@@ -3857,6 +3883,42 @@ function init()
 			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
 		  end,
 		},
+		{ id = "fog_r", group = "dev", name = "Fog"..widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local fogColor = { gl.GetAtmosphere("fogColor") }
+			  Spring.SetAtmosphere({ fogColor = {value, fogColor[2], fogColor[3], fogColor[4]} })
+		  end,
+		},
+		{ id = "fog_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local fogColor = { gl.GetAtmosphere("fogColor") }
+			  Spring.SetAtmosphere({ fogColor = {fogColor[1], value, fogColor[3], fogColor[4]} })
+		  end,
+		},
+		{ id = "fog_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local fogColor = { gl.GetAtmosphere("fogColor") }
+			  Spring.SetAtmosphere({ fogColor = {fogColor[1], fogColor[2], value, fogColor[4]} })
+		  end,
+		},
+		{ id = "fog_color_reset", group = "dev", name = widgetOptionColor .. "   reset map default", type = "bool", value = false, description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  options[getOptionByID('fog_r')].value = defaultFog.fogColor[1]
+			  options[getOptionByID('fog_g')].value = defaultFog.fogColor[2]
+			  options[getOptionByID('fog_b')].value = defaultFog.fogColor[3]
+			  options[getOptionByID('fog_color_reset')].value = false
+			  Spring.SetAtmosphere({ fogColor = defaultFog.fogColor })
+			  Spring.Echo('resetted map fog color defaults')
+		  end,
+		},
 		--{id="debugdrawai", group="dev", name="Debug draw AI", type="bool", value=false, description="",	-- seems only for engine AI
 		--  onchange=function(i, value)
 		--	  Spring.SendCommands("DebugDrawAI "..(value and '1' or '0'))
@@ -4508,6 +4570,16 @@ function init()
 		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
 	end
 
+
+	--for i, option in pairs(options) do
+	--	Spring.Echo("			"..option.id.." = '"..option.name.."',")
+	--	if option.description and option.description ~= '' then
+	--		Spring.Echo("			"..option.id.."_descr = '"..option.description.."',")
+	--	end
+	--end
+
+
+
 	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
 		local tracksConfig = {}
 		if WG['music'] ~= nil and WG['music'].getTracksConfig ~= nil then
@@ -4868,6 +4940,11 @@ function detectWater()
 end
 
 function widget:Initialize()
+
+	if WG['lang'] then
+		texts = WG['lang'].getText('options')
+	end
+
 	widget:ViewResize()
 
 	prevShow = show

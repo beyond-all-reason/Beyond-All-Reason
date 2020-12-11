@@ -165,6 +165,8 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
+
+
 Create()
 {
 	Static_Var_2 = 0;
@@ -228,6 +230,23 @@ StopMoving()
 	turn base to x-axis <0.0> speed <3.0>;
 	move base to y-axis [0.0] speed [0.23];
 }
+
+
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = base;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = base;
+}
+
 
 QueryNanoPiece(piecenum)
 {

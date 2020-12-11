@@ -11,6 +11,59 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	button = {
+		quit = 'Quit',
+		resign = 'Resign',
+		lobby = 'Lobby',
+		settings = 'Settings',
+		changes = 'Changes',
+		commands = 'Cmd',
+		keys = 'Keys',
+		scavengers = 'Scavengers',
+		stats = 'Stats',
+	},
+	quit = {
+		quit = 'Quit',
+		resign = 'Resign',
+		really_quit = 'Really want to quit?',
+		really_quitresign = 'Want to resign or quit to desktop?',
+		really_resign = 'Sure you want to give up?',
+		really_resign2 = 'Sure you want to give up and spectate?',
+	},
+	catchingup = 'Catching up',
+	catchingup_tooltip = 'Displays the catchup progress',
+	comcount_tooltip = '\255\215\255\215Commander Counter\n\255\240\240\240Displays the number of ally\nand enemy commanders',
+	wind = {
+		nowind1 = 'no',
+		nowind2 = 'wind',
+		tooltip = '\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength (small numbers are minimum and maximum)\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (armada) or 6 (cortex)',
+		worth1 = 'Wind isnt worth',
+		worth2 = 'Wind is viable',
+		worth3 = 'Average wind is okay',
+		worth4 = 'Average wind is good',
+		worth5 = 'Average wind is really good',
+		worth6 = 'Wind is insanely good',
+	},
+	resbar = {
+		metal = 'metal',
+		energy = 'energy',
+		overflowing = 'Overflowing',
+		wastingmetal = 'Wasting Metal',
+		wastingenergy = 'Wasting Energy',
+		overflowing_energy_tooltip = 'Energy Share Slider\n\255\240\240\240Overflowing to your team when energy goes beyond this point',
+		overflowing_metal_tooltip = 'Metal Share Slider\n\255\240\240\240Overflowing to your team when metal goes beyond this point',
+		energyconversion_tooltip = '\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Converter units)',
+		pull_tooltip = 'spending (per second)',
+		income_tooltip = 'income (per second)',
+		expense_tooltip = 'potential spending  (per second)',
+		storage_tooltip = 'storage',
+		conversion_tooltip = '\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Converter units)',
+		current_energy_tooltip = 'Share to a specific player by...\n1) Using the (adv)playerlist,\n    dragging up the energy icon at the rightside.\n2) An interface brought up with the H key.',
+		current_metal_tooltip = 'Share to a specific player by...\n1) Using the (adv)playerlist,\n    dragging up the metal icon at the rightside.\n2) An interface brought up with the H key.',
+	},
+}
+
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
@@ -48,7 +101,6 @@ local glowTexture = ":l:LuaUI/Images/glow.dds"
 local math_floor = math.floor
 local math_min = math.min
 
-local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
@@ -467,12 +519,12 @@ local function updateRejoin()
 		-- Text
 		local fontsize = 13.5 * widgetScale
 		font2:Begin()
-		font2:Print('\255\225\255\225Catching up', area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + fontsize, fontsize, 'cor')
+		font2:Print('\255\225\255\225'..texts.catchingup, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + fontsize, fontsize, 'cor')
 		font2:End()
 
 	end)
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('rejoin', area, "Displays the catchup progress")
+		WG['tooltip'].AddTooltip('rejoin', area, texts.catchingup_tooltip)
 	end
 end
 
@@ -484,30 +536,30 @@ local function updateButtons()
 	local text = '    '
 
 	if WG['scavengerinfo'] ~= nil then
-		text = text .. 'Scavengers   '
+		text = text .. texts.button.scavengers..'   '
 	end
 	if WG['teamstats'] ~= nil then
-		text = text .. 'Stats   '
+		text = text .. texts.button.stats..'   '
 	end
 	if WG['commands'] ~= nil then
-		text = text .. 'Cmd   '
+		text = text .. texts.button.commands..'   '
 	end
 	if WG['keybinds'] ~= nil then
-		text = text .. 'Keys   '
+		text = text .. texts.button.keys..'   '
 	end
 	if WG['changelog'] ~= nil then
-		text = text .. 'Changes   '
+		text = text .. texts.button.changes..'   '
 	end
 	if WG['options'] ~= nil then
-		text = text .. 'Settings   '
+		text = text .. texts.button.settings..'   '
 	end
 	if chobbyLoaded then
 		if not spec and gameStarted and not isSinglePlayer then
-			text = text .. 'Resign  '
+			text = text .. texts.button.resign..'  '
 		end
-		text = text .. 'Lobby  '
+		text = text .. texts.button.lobby..'  '
 	else
-		text = text .. 'Quit  '
+		text = text .. texts.button.quit..'  '
 	end
 
 	local fontsize = totalWidth / font2:GetTextWidth(text)
@@ -560,7 +612,7 @@ local function updateButtons()
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
 				end
-				width = math_floor((font2:GetTextWidth('  Scavengers ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('   '..texts.button.scavengers) * fontsize) + 0.5)
 				buttonsArea['buttons']['scavengers'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'scavengers'
@@ -571,7 +623,7 @@ local function updateButtons()
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
 				end
-				width = math_floor((font2:GetTextWidth('   Stats ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('    '..texts.button.stats) * fontsize) + 0.5)
 				buttonsArea['buttons']['stats'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'stats'
@@ -582,7 +634,7 @@ local function updateButtons()
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
 				end
-				width = math_floor((font2:GetTextWidth('  Cmd ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('   '..texts.button.commands) * fontsize) + 0.5)
 				buttonsArea['buttons']['commands'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'commands'
@@ -593,7 +645,7 @@ local function updateButtons()
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
 				end
-				width = math_floor((font2:GetTextWidth('  Keys ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('   '..texts.button.keys) * fontsize) + 0.5)
 				buttonsArea['buttons']['keybinds'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'keybinds'
@@ -604,7 +656,7 @@ local function updateButtons()
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
 				end
-				width = math_floor((font2:GetTextWidth('  Changes ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('   '..texts.button.changes) * fontsize) + 0.5)
 				buttonsArea['buttons']['changelog'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'changelog'
@@ -615,7 +667,7 @@ local function updateButtons()
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
 				end
-				width = math_floor((font2:GetTextWidth('  Settings ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('   '..texts.button.settings) * fontsize) + 0.5)
 				buttonsArea['buttons']['options'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'settings'
@@ -625,15 +677,15 @@ local function updateButtons()
 				if not spec and gameStarted and not isSinglePlayer then
 					buttons = buttons + 1
 					offset = math_floor(offset + width + 0.5)
-					width = math_floor((font2:GetTextWidth('  Resign ') * fontsize) + 0.5)
+					width = math_floor((font2:GetTextWidth('   '..texts.button.resign) * fontsize) + 0.5)
 					buttonsArea['buttons']['resign'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				end
 				offset = math_floor(offset + width + 0.5)
-				width = math_floor((font2:GetTextWidth('  Lobby  ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('    '..texts.button.lobby) * fontsize) + 0.5)
 				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
 			else
 				offset = math_floor(offset + width + 0.5)
-				width = math_floor((font2:GetTextWidth('  Quit  ') * fontsize) + 0.5)
+				width = math_floor((font2:GetTextWidth('    '..texts.button.quit) * fontsize) + 0.5)
 				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
 			end
 		end
@@ -710,7 +762,7 @@ local function updateComs(forceText)
 	comcountChanged = nil
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('coms', area, "\255\215\255\215Commander Counter\n\255\240\240\240Displays the number of ally\nand enemy commanders")
+		WG['tooltip'].AddTooltip('coms', area, texts.comcount_tooltip)
 	end
 end
 
@@ -778,14 +830,14 @@ local function updateWind()
 		else
 			font2:Begin()
 			--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
-			font2:Print("\255\200\200\200no", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
-			font2:Print("\255\200\200\200wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200"..texts.wind.nowind1, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200"..texts.wind.nowind2, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 			font2:End()
 		end
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum (" .. minWind .. ") and maximum (" .. maxWind .. ")\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (armada) or 6 (cortex)")
+		WG['tooltip'].AddTooltip('wind', area, texts.wind.tooltip)
 	end
 end
 
@@ -852,7 +904,7 @@ local function updateResbarText(res)
 					local bgpadding2 = 2.2 * widgetScale
 					local text = ''
 					if res == 'metal' then
-						text = (allyteamOverflowingMetal and '   Wasting Metal   ' or '   Overflowing   ')
+						text = (allyteamOverflowingMetal and '   '..texts.resbar.wastingmetal..'   ' or '   '..texts.resbar.overflowing..'   ')
 						if WG['notifications'] then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
@@ -865,7 +917,7 @@ local function updateResbarText(res)
 							end
 						end
 					else
-						text = (allyteamOverflowingEnergy and '   Wasting Energy   ' or '   Overflowing   ')
+						text = (allyteamOverflowingEnergy and '   '..texts.resbar.wastingenergy..'   '  or '   '..texts.resbar.overflowing..'   ')
 						if WG['notifications'] then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 3 then
@@ -1076,18 +1128,18 @@ local function updateResbar(res)
 	-- add tooltips
 	if WG['tooltip'] ~= nil and conversionIndicatorArea then
 		if res == 'energy' then
-			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, "\255\215\255\215" .. res:sub(1, 1):upper() .. res:sub(2) .. " Share Slider\n\255\240\240\240Overflowing to your team when \n" .. res .. " goes beyond this point")
-			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, "\255\215\255\215" .. res:sub(1, 1):upper() .. res:sub(2) .. " Share Slider\n\255\240\240\240Overflowing to your team when \n" .. res .. " goes beyond this point")
+			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, "\255\215\255\215" .. (res == 'energy' and texts.resbar.overflowing_energy_tooltip or texts.resbar.overflowing_metal_tooltip))
+			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, "\255\215\255\215" .. (res == 'energy' and texts.resbar.overflowing_energy_tooltip or texts.resbar.overflowing_metal_tooltip))
 
-			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, "\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Convertor units)")
+			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, texts.resbar.conversion_tooltip)
 		else
-			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, "\255\215\255\215" .. res:sub(1, 1):upper() .. res:sub(2) .. " Share Slider\n\255\240\240\240Overflowing to your team when \n" .. res .. " goes beyond this point")
+			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, "\255\215\255\215" .. (res == 'energy' and texts.resbar.overflowing_energy_tooltip or texts.resbar.overflowing_metal_tooltip))
 		end
-		WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, "" .. res .. " spending (per second)")
-		WG['tooltip'].AddTooltip(res .. '_income', { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, "" .. res .. " income (per second)")
-		WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, "" .. res .. " potential spending  (per second)")
-		WG['tooltip'].AddTooltip(res .. '_storage', { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, "" .. res .. " storage")
-		WG['tooltip'].AddTooltip(res .. '_curent', { resbarDrawinfo[res].textCurrent[2] - (resbarDrawinfo[res].textCurrent[4] * 1.75), resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[2] + (resbarDrawinfo[res].textCurrent[4] * 1.75), resbarDrawinfo[res].textCurrent[3] + resbarDrawinfo[res].textCurrent[4] }, "\255\215\255\215" .. string.upper(res) .. "\n\255\240\240\240Share " .. res .. " to a specific player by...\n1) Using the (adv)playerlist,\n    dragging up the " .. res .. " icon at the rightside.\n2) An interface brought up with the H key.")
+		WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, "" .. res .. " "..texts.resbar.pull_tooltip)
+		WG['tooltip'].AddTooltip(res .. '_income', { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, "" .. res .. " "..texts.resbar.income_tooltip)
+		WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, "" .. res .. " "..texts.resbar.expense_tooltip)
+		WG['tooltip'].AddTooltip(res .. '_storage', { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, "" .. res .. " "..texts.resbar.storage_tooltip)
+		WG['tooltip'].AddTooltip(res .. '_current', { resbarDrawinfo[res].textCurrent[2] - (resbarDrawinfo[res].textCurrent[4] * 1.75), resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[2] + (resbarDrawinfo[res].textCurrent[4] * 1.75), resbarDrawinfo[res].textCurrent[3] + resbarDrawinfo[res].textCurrent[4] }, "\255\215\255\215" .. string.upper(res) .. "\n\255\240\240\240"..(res == 'energy' and texts.resbar.current_energy_tooltip or texts.resbar.current_metal_tooltip))
 	end
 end
 
@@ -1545,17 +1597,17 @@ function widget:DrawScreen()
 			if now < 90 and WG['tooltip'] ~= nil then
 				local minh = height * 0.5
 				if (minWind + maxWind) / 2 < 5.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind isnt worth', windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', texts.wind.worth1, windArea[1], windArea[2] - minh * widgetScale)
 				elseif (minWind + maxWind) / 2 >= 5.5 and (minWind + maxWind) / 2 < 7 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is viable', windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', texts.wind.worth2, windArea[1], windArea[2] - minh * widgetScale)
 				elseif (minWind + maxWind) / 2 >= 7 and (minWind + maxWind) / 2 < 8.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is okay', windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', texts.wind.worth3, windArea[1], windArea[2] - minh * widgetScale)
 				elseif (minWind + maxWind) / 2 >= 8.5 and (minWind + maxWind) / 2 < 10 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is good', windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', texts.wind.worth4, windArea[1], windArea[2] - minh * widgetScale)
 				elseif (minWind + maxWind) / 2 >= 10 and (minWind + maxWind) / 2 < 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is really good', windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', texts.wind.worth5, windArea[1], windArea[2] - minh * widgetScale)
 				elseif (minWind + maxWind) / 2 >= 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is insanely good', windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', texts.wind.worth6, windArea[1], windArea[2] - minh * widgetScale)
 				end
 			end
 		end
@@ -1653,17 +1705,17 @@ function widget:DrawScreen()
 				font:Begin()
 				font:SetTextColor(0, 0, 0, 1)
 				if not spec then
-					local txt = "Want to resign or quit to desktop?"
+					local txt = texts.quit.really_quitresign
 					if chobbyLoaded then
 						if numPlayers < 3 then
-							txt = "Sure you want to give up?"
+							txt = texts.quit.really_resign
 						else
-							txt = "Sure you want to give up and spectate?"
+							txt = texts.quit.really_resign2
 						end
 					end
 					font:Print(txt, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - fontSize, fontSize, "cn")
 				else
-					font:Print("Really want to quit?", quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - fontSize, fontSize, "cn")
+					font:Print(texts.quit.really_quit, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - fontSize, fontSize, "cn")
 				end
 
 
@@ -1696,7 +1748,7 @@ function widget:DrawScreen()
 				if not chobbyLoaded then
 					font2:SetTextColor(1, 1, 1, 1)
 					font2:SetOutlineColor(0, 0, 0, 0.23)
-					font2:Print("Quit", quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+					font2:Print(texts.quit.quit, quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 				-- resign button
 				mult = 0.85
@@ -1719,7 +1771,7 @@ function widget:DrawScreen()
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-					font2:Print("Resign", quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+					font2:Print(texts.quit.resign, quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 				font2:End()
 			end
@@ -1845,7 +1897,7 @@ local function applyButtonAction(button)
 			WG['options'].toggle()
 		end
 	elseif button == 'scavengers' then
-		if (WG['scavengerinfo'] ~= nil) then
+		if WG['scavengerinfo'] ~= nil then
 			isvisible = WG['scavengerinfo'].isvisible()
 		end
 		hideWindows()
@@ -2088,6 +2140,7 @@ function widget:GameProgress (n)
 	serverFrame = n
 end
 
+
 function widget:Initialize()
 
 	gameFrame = Spring.GetGameFrame()
@@ -2106,6 +2159,10 @@ function widget:Initialize()
 	end
 	WG['topbar'].showingQuit = function()
 		return (showQuitscreen ~= nil)
+	end
+
+	if WG['lang'] then
+		texts = WG['lang'].getText('topbar')
 	end
 
 	widget:ViewResize()
@@ -2165,14 +2222,14 @@ function shutdown()
 		WG['tooltip'].RemoveTooltip(res .. '_pull')
 		WG['tooltip'].RemoveTooltip(res .. '_income')
 		WG['tooltip'].RemoveTooltip(res .. '_storage')
-		WG['tooltip'].RemoveTooltip(res .. '_curent')
+		WG['tooltip'].RemoveTooltip(res .. '_current')
 		res = 'metal'
 		WG['tooltip'].RemoveTooltip(res .. '_share_slider')
 		WG['tooltip'].RemoveTooltip(res .. '_share_slider2')
 		WG['tooltip'].RemoveTooltip(res .. '_pull')
 		WG['tooltip'].RemoveTooltip(res .. '_income')
 		WG['tooltip'].RemoveTooltip(res .. '_storage')
-		WG['tooltip'].RemoveTooltip(res .. '_curent')
+		WG['tooltip'].RemoveTooltip(res .. '_current')
 	end
 end
 
