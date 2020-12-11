@@ -125,13 +125,13 @@ function BossMinionsSpawn(n)
 		local rair = math_random(0, unitSpawnerModuleConfig.aircraftchance)
 
 		if rair == 0 then
-			if BossFightCurrentPhase >= 9 then
+			if BossFightCurrentPhase >= 5 then
 				minionUnit = T4AirUnits[math_random(1,#T4AirUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 7 then
+			elseif BossFightCurrentPhase >= 4 then
 				minionUnit = T3AirUnits[math_random(1,#T3AirUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 5 then
-				minionUnit = T2AirUnits[math_random(1,#T2AirUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase >= 3 then
+				minionUnit = T2AirUnits[math_random(1,#T2AirUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 2 then
 				minionUnit = T1AirUnits[math_random(1,#T1AirUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase == 1 then
 				minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
@@ -153,13 +153,13 @@ function BossMinionsSpawn(n)
 				minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
 			end
 		elseif posy <= -20 then
-			if BossFightCurrentPhase >= 9 then
+			if BossFightCurrentPhase >= 5 then
 				minionUnit = T4SeaUnits[math_random(1,#T4SeaUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 7 then
+			elseif BossFightCurrentPhase >= 4 then
 				minionUnit = T3SeaUnits[math_random(1,#T3SeaUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 5 then
-				minionUnit = T2SeaUnits[math_random(1,#T2SeaUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase >= 3 then
+				minionUnit = T2SeaUnits[math_random(1,#T2SeaUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 2 then
 				minionUnit = T1SeaUnits[math_random(1,#T1SeaUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase == 1 then
 				minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
