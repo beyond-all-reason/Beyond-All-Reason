@@ -123,8 +123,6 @@ return {
 			outline_mult_descr = 'Set the relative strength of the outline',
 			outline_color = 'white',
 			outline_color_descr = 'Black (off) or white (on) colored outline ',
-
-
 			bloomdeferred = 'Bloom (unit)',
 			bloomdeferred_descr = 'Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)',
 			bloomdeferredbrightness = 'brightness',
@@ -305,6 +303,8 @@ return {
 			advplayerlist_cpuping_descr = 'show cpu/ping usage/value',
 			advplayerlist_share = 'show share buttons',
 			advplayerlist_share_descr = 'show (quick) share buttons\n\nNOTE: auto hides when having no team members',
+
+
 			mascot = 'mascot',
 			mascot_descr = 'Shows a mascot on top of the playerslist',
 			unittotals = 'unit totals',
