@@ -42,6 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 		"EnJoY",
 		"Kodiak",
 		"L0v3",
+		"Jazcash",
 		
 		-- AI Nicknames
 		"QWERTY123",
