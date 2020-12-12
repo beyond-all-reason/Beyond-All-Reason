@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, wing1, wing2, thrust;
+piece  base, bwing, lthrust, mthrust, rthrust;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -84,14 +84,20 @@ Create()
 {
 	start-script SmokeUnit(); 
 	start-script BarrelRoll();
+	hide lthrust;
+	hide mthrust;
+	hide rthrust;
+	turn bwing to x-axis <40> now;
 }
 
 Activate()
 {
+	turn bwing to x-axis <0> speed <45>;
 }
 
 Deactivate()
 {
+	turn bwing to x-axis <40> speed <45>;
 }
 
 SweetSpot(piecenum)
@@ -103,35 +109,27 @@ Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
-		corpsetype = 1 ;
+	corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type BITMAPONLY | NOHEATCLOUD;
-		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode bwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
-		corpsetype = 2 ;
+	corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type FALL | NOHEATCLOUD;
-		explode wing2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode bwing type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
-		corpsetype = 3 ;
+	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode bwing type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode wing2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrust type BITMAPONLY | NOHEATCLOUD;
-	return corpsetype;
+		explode bwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		return corpsetype;
 }
