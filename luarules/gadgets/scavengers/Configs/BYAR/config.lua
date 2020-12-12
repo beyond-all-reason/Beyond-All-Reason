@@ -127,7 +127,7 @@ unitControllerModuleConfig = {
 }
 
 spawnProtectionConfig = {
-	useunit				= true, -- use starbox otherwise
+	useunit				= false, -- use starbox otherwise
 	spread				= 100,
 }
 
