@@ -27,6 +27,15 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	killallunits = 'Kill all enemy units',
+	killallcoms = 'Kill all enemy Commanders',
+	comssurvivedguns = 'Commanders survive DGuns and commander explosions',
+	armageddonat = 'Armageddon at',
+	unbacomsenabled = 'Unbalanced Commanders is enabled: Commander levels up and gain upgrades',
+	victorycondition = 'Victory condition',
+}
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
@@ -58,31 +67,30 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('gametypeinfo')
+	end
 	widget:ViewResize()
 
 	if Spring.GetModOptions().deathmode == "killall" then
-		message = "Kill all enemy units"
+		message = texts.killallunits
 	elseif Spring.GetModOptions().deathmode == "neverend" then
 		widgetHandler:RemoveWidget(self)
 	else
 		--if Spring.GetModOptions().deathmode=="com" then
-		message = "Kill all enemy Commanders"
+		message = texts.killallcoms
 	end
 
 	if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
-		message2 = "Commanders survive DGuns and commander explosions"
+		message2 = texts.comssurvivedguns
 	end
 
 	if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
-		local plural = ""
-		if tonumber(Spring.GetModOptions().armageddontime) ~= 1 then
-			plural = "s"
-		end
-		message3 = "Armageddon at " .. Spring.GetModOptions().armageddontime .. " minute" .. plural
+		message3 = texts.armageddonat..": " .. Spring.GetModOptions().armageddontime
 	end
 
 	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		message4 = "Unbalanced Commanders is enabled: Commander levels up and gain upgrades"
+		message4 = texts.unbacomsenabled
 	end
 end
 
@@ -115,7 +123,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	local msg = '\255\255\255\255' .. string.format("%s %s", "Victory condition: ", message)
+	local msg = '\255\255\255\255' .. string.format("%s %s", texts.victorycondition..": ", message)
 	local msg2 = '\255\255\255\255' .. message2
 	local msg3 = "\255\255\0\0" .. message3
 	local msg4

@@ -10,6 +10,13 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	no = 'NO',
+	yes = 'YES',
+	endvote = 'End Vote',
+	esc = 'ESC',
+}
+
 -- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = { 'forcestart', 'stop' }
 
@@ -188,6 +195,9 @@ function widget:Update(dt)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('voteinterface')
+	end
 	widget:ViewResize()
 	if Spring.IsReplay() then
 		widgetHandler:RemoveWidget(self)
@@ -337,7 +347,7 @@ function StartVote(name, owner)
 
 			font2:Begin()
 			-- ESC
-			font2:Print("\255\0\0\0ESC", closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
+			font2:Print("\255\0\0\0"..texts.esc, closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
 
 			-- NO
 			local color1, color2, mult
@@ -362,9 +372,9 @@ function StartVote(name, owner)
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 			fontSize = fontSize * 0.85
-			local noText = 'NO'
+			local noText = texts.no
 			if voteOwner then
-				noText = 'End Vote'
+				noText = texts.endvote
 			end
 			font2:SetOutlineColor(0, 0, 0, 0.4)
 			font2:Print(noText, noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
@@ -391,7 +401,7 @@ function StartVote(name, owner)
 				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Print("YES", yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(texts.yes, yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
 			font2:End()
 		end)

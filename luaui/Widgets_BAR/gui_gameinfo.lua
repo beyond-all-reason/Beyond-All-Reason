@@ -10,6 +10,20 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	title = 'Game info',
+	engine = 'Engine',
+	engineversionerror = 'engine version error',
+	size = 'Size',
+	gravity = 'Gravity',
+	hardness = 'Hardness',
+	tidalspeed = 'Tidal speed',
+	windspeed = 'Wind speed',
+	waterdamage = 'Water damage',
+	chickenoptions = 'Chicken options',
+	modoptions = 'Mod options',
+}
+
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -20,7 +34,7 @@ local valuegreycolor = "\255\180\180\180"
 local vcolor = valuegreycolor
 local separator = "::"
 
-local font, font2, loadedFontSize, changelogList, titleRect, chobbyInterface, backgroundGuishader, show
+local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
 
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -30,18 +44,9 @@ for i = 1, #teams do
 	end
 end
 
-local content = ""
-content = content .. titlecolor .. Game.gameName .. valuegreycolor .. " (" .. Game.gameMutator .. ") " .. titlecolor .. Game.gameVersion .. "\n"
-content = content .. keycolor .. "Engine" .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or "Engine version error") .. "\n"
-content = content .. "\n"
+local content = ''
 
--- map info
-content = content .. titlecolor .. Game.mapName .. "\n"
-content = content .. valuegreycolor .. Game.mapDescription .. "\n"
-content = content .. keycolor .. "Size" .. separator .. valuegreycolor .. Game.mapX .. valuegreycolor .. " x " .. valuegreycolor .. Game.mapY .. "\n"
-content = content .. keycolor .. "Gravity" .. separator .. valuegreycolor .. Game.gravity .. "\n"
-content = content .. keycolor .. "Hardness" .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
-tidal = Game.tidal
+local tidal = Game.tidal
 if Spring.GetModOptions() and Spring.GetModOptions().map_tidal then
 	map_tidal = Spring.GetModOptions().map_tidal
 	if map_tidal == "unchanged" then
@@ -56,20 +61,6 @@ end
 if Spring.GetTidal then
 	tidal = Spring.GetTidal()
 end
-content = content .. keycolor .. "Tidal speed" .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
-
-if Game.windMin == Game.windMax then
-	content = content .. keycolor .. "Wind speed" .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
-else
-	content = content .. keycolor .. "Wind speed" .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "  -  " .. valuegreycolor .. Game.windMax .. "\n"
-end
-if Game.waterDamage == 0 then
-	vcolor = valuegreycolor
-else
-	vcolor = valuecolor
-end
-content = content .. keycolor .. "Water damage" .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
-content = content .. "\n"
 
 -- modoptions
 local defaultModoptions = VFS.Include("modoptions.lua")
@@ -111,24 +102,6 @@ for key, value in pairs(modoptions) do
 	else
 		changedModoptions[key] = value
 	end
-end
-if chickensEnabled then
-	-- filter chicken modoptions
-	content = content .. titlecolor .. "Chicken options\n"
-	for key, value in pairs(changedChickenModoptions) do
-		content = content .. keycolor .. string.sub(key, 9) .. separator .. valuecolor .. value .. "\n"
-	end
-	for key, value in pairs(unchangedChickenModoptions) do
-		content = content .. keycolor .. string.sub(key, 9) .. separator .. valuegreycolor .. value .. "\n"
-	end
-	content = content .. "\n"
-end
-content = content .. titlecolor .. "Mod options\n"
-for key, value in pairs(changedModoptions) do
-	content = content .. keycolor .. key .. separator .. valuecolor .. value .. "\n"
-end
-for key, value in pairs(unchangedModoptions) do
-	content = content .. keycolor .. key .. separator .. valuegreycolor .. value .. "\n"
 end
 
 local bgMargin = 6
@@ -174,8 +147,8 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 local widgetScale = 1
 local vsx, vsy = Spring.GetViewGeometry()
 
-local changelogLines = {}
-local totalChangelogLines = 0
+local fileLines = {}
+local totalFileLines = 0
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -187,10 +160,10 @@ function widget:ViewResize()
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
 
-	if changelogList then
-		gl.DeleteList(changelogList)
+	if mainDList then
+		gl.DeleteList(mainDList)
 	end
-	changelogList = gl.CreateList(DrawWindow)
+	mainDList = gl.CreateList(DrawWindow)
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -330,16 +303,16 @@ function DrawTextarea(x, y, width, height, scrollbar)
 
 	-- textarea scrollbar
 	if scrollbar then
-		if (totalChangelogLines > maxLines or startLine > 1) then
+		if totalFileLines > maxLines or startLine > 1 then
 			-- only show scroll above X lines
 			local scrollbarTop = y - scrollbarOffsetTop - scrollbarMargin - (scrollbarWidth - scrollbarPosWidth)
 			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin + (scrollbarWidth - scrollbarPosWidth)
-			local scrollbarPosHeight = math.max(((height - scrollbarMargin - scrollbarMargin) / totalChangelogLines) * ((height - scrollbarMargin - scrollbarMargin) / 25), scrollbarPosMinHeight)
+			local scrollbarPosHeight = math.max(((height - scrollbarMargin - scrollbarMargin) / totalFileLines) * ((height - scrollbarMargin - scrollbarMargin) / 25), scrollbarPosMinHeight)
 			if scrollbarPosHeight > scrollbarTop - scrollbarBottom then
 				scrollbarPosHeight = scrollbarTop - scrollbarBottom
 			end
-			local scrollbarPos = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine - 1) / totalChangelogLines)
-			scrollbarPos = scrollbarPos + ((startLine - 1) / totalChangelogLines) * scrollbarPosHeight    -- correct position taking position bar height into account
+			local scrollbarPos = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine - 1) / totalFileLines)
+			scrollbarPos = scrollbarPos + ((startLine - 1) / totalFileLines) * scrollbarPosHeight    -- correct position taking position bar height into account
 
 			-- background
 			gl.Color(scrollbarBackgroundColor)
@@ -375,12 +348,12 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			if (lineSeparator + fontSizeTitle) * j > height then
 				break ;
 			end
-			if changelogLines[lineKey] == nil then
+			if fileLines[lineKey] == nil then
 				break ;
 			end
 
 			local numLines
-			local line = changelogLines[lineKey]
+			local line = fileLines[lineKey]
 			if string.find(line, '::') then
 				local cmd = string.match(line, '^[ %+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
 				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::')) + 1)
@@ -425,7 +398,7 @@ function DrawWindow()
 	RectRound(x, y - screenHeight, x + screenWidth, y, 5.5, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 	-- title
-	local title = "Game info"
+	local title = texts.title
 	local titleFontSize = 18
 	gl.Color(0, 0, 0, 0.8)
 	titleRect = { x - bgMargin, y + bgMargin, x + (font2:GetTextWidth(title) * titleFontSize) + 27 - bgMargin, y + 37 }
@@ -458,17 +431,17 @@ function widget:DrawScreen()
 	end
 
 	-- draw the help
-	if not changelogList then
-		changelogList = gl.CreateList(DrawWindow)
+	if not mainDList then
+		mainDList = gl.CreateList(DrawWindow)
 	end
 
 	if show or showOnceMore then
 
-		-- draw the changelog panel
+		-- draw the panel
 		glPushMatrix()
 		glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
 		glScale(widgetScale, widgetScale, 1)
-		glCallList(changelogList)
+		glCallList(mainDList)
 		glPopMatrix()
 		if WG['guishader'] then
 			local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
@@ -521,15 +494,15 @@ function widget:MouseWheel(up, value)
 		if startLine < 1 then
 			startLine = 1
 		end
-		if startLine > totalChangelogLines - textareaMinLines then
-			startLine = totalChangelogLines - textareaMinLines
+		if startLine > totalFileLines - textareaMinLines then
+			startLine = totalFileLines - textareaMinLines
 		end
 
-		if changelogList then
-			glDeleteList(changelogList)
+		if mainDList then
+			glDeleteList(mainDList)
 		end
 
-		changelogList = gl.CreateList(DrawWindow)
+		mainDList = gl.CreateList(DrawWindow)
 		return true
 	else
 		return false
@@ -596,22 +569,22 @@ function lines(str)
 end
 
 local function hideWindows()
-	if (WG['options'] ~= nil) then
+	if WG['options'] ~= nil then
 		WG['options'].toggle(false)
 	end
-	if (WG['changelog'] ~= nil) then
+	if WG['changelog'] ~= nil then
 		WG['changelog'].toggle(false)
 	end
-	if (WG['keybinds'] ~= nil) then
+	if WG['keybinds'] ~= nil then
 		WG['keybinds'].toggle(false)
 	end
-	if (WG['commands'] ~= nil) then
+	if WG['commands'] ~= nil then
 		WG['commands'].toggle(false)
 	end
-	if (WG['teamstats'] ~= nil) then
+	if WG['teamstats'] ~= nil then
 		WG['teamstats'].toggle(false)
 	end
-	if (WG['scavengerinfo'] ~= nil) then
+	if WG['scavengerinfo'] ~= nil then
 		WG['scavengerinfo'].toggle(false)
 	end
 end
@@ -624,41 +597,83 @@ function toggle()
 end
 
 function widget:Initialize()
-
-	if content then
-		widgetHandler:AddAction("customgameinfo", toggle)
-		Spring.SendCommands("unbind any+i gameinfo")
-		Spring.SendCommands("unbind i gameinfo")
-		Spring.SendCommands("bind i customgameinfo")
-
-		WG['gameinfo'] = {}
-		WG['gameinfo'].toggle = function(state)
-			if state ~= nil then
-				show = state
-			else
-				show = not show
-			end
-			if show then
-				hideWindows()
-			end
-		end
-		WG['gameinfo'].isvisible = function()
-			return show
-		end
-		-- somehow there are a few characters added at the start that we need to remove
-		--content = string.sub(content, 4)
-
-		-- store changelog into array
-		changelogLines = lines(content)
-
-		for i, line in ipairs(changelogLines) do
-			totalChangelogLines = i
-		end
-		widget:ViewResize()
-	else
-		--Spring.Echo("Commands info: couldn't load the commandslist file")
-		widgetHandler:RemoveWidget(self)
+	if WG['lang'] then
+		texts = WG['lang'].getText('gameinfo')
 	end
+
+	content = content .. titlecolor .. Game.gameName .. valuegreycolor .. " (" .. Game.gameMutator .. ") " .. titlecolor .. Game.gameVersion .. "\n"
+	content = content .. keycolor .. texts.engine .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or texts.engineversionerror) .. "\n"
+	content = content .. "\n"
+
+	-- map info
+	content = content .. titlecolor .. Game.mapName .. "\n"
+	content = content .. valuegreycolor .. Game.mapDescription .. "\n"
+	content = content .. keycolor .. texts.size .. separator .. valuegreycolor .. Game.mapX .. valuegreycolor .. " x " .. valuegreycolor .. Game.mapY .. "\n"
+	content = content .. keycolor .. texts.gravity .. separator .. valuegreycolor .. Game.gravity .. "\n"
+	content = content .. keycolor .. texts.hardness .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
+	content = content .. keycolor .. texts.tidalspeed .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
+
+	if Game.windMin == Game.windMax then
+		content = content .. keycolor .. texts.windspeed .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
+	else
+		content = content .. keycolor .. texts.windspeed .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "  -  " .. valuegreycolor .. Game.windMax .. "\n"
+	end
+	local vcolor
+	if Game.waterDamage == 0 then
+		vcolor = valuegreycolor
+	else
+		vcolor = valuecolor
+	end
+	content = content .. keycolor .. texts.waterdamage .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
+	content = content .. "\n"
+	if chickensEnabled then
+		-- filter chicken modoptions
+		content = content .. titlecolor .. texts.chickenoptions.."\n"
+		for key, value in pairs(changedChickenModoptions) do
+			content = content .. keycolor .. string.sub(key, 9) .. separator .. valuecolor .. value .. "\n"
+		end
+		for key, value in pairs(unchangedChickenModoptions) do
+			content = content .. keycolor .. string.sub(key, 9) .. separator .. valuegreycolor .. value .. "\n"
+		end
+		content = content .. "\n"
+	end
+	content = content .. titlecolor .. texts.modoptions.."\n"
+	for key, value in pairs(changedModoptions) do
+		content = content .. keycolor .. key .. separator .. valuecolor .. value .. "\n"
+	end
+	for key, value in pairs(unchangedModoptions) do
+		content = content .. keycolor .. key .. separator .. valuegreycolor .. value .. "\n"
+	end
+
+	widgetHandler:AddAction("customgameinfo", toggle)
+	Spring.SendCommands("unbind any+i gameinfo")
+	Spring.SendCommands("unbind i gameinfo")
+	Spring.SendCommands("bind i customgameinfo")
+
+	WG['gameinfo'] = {}
+	WG['gameinfo'].toggle = function(state)
+		if state ~= nil then
+			show = state
+		else
+			show = not show
+		end
+		if show then
+			hideWindows()
+		end
+	end
+	WG['gameinfo'].isvisible = function()
+		return show
+	end
+	-- somehow there are a few characters added at the start that we need to remove
+	--content = string.sub(content, 4)
+
+	-- store changelog into array
+	fileLines = lines(content)
+
+	for i, line in ipairs(fileLines) do
+		totalFileLines = i
+	end
+	widget:ViewResize()
 end
 
 function widget:Shutdown()
@@ -667,9 +682,9 @@ function widget:Shutdown()
 	Spring.SendCommands("bind i gameinfo")
 	widgetHandler:RemoveAction("customgameinfo", toggle)
 
-	if changelogList then
-		glDeleteList(changelogList)
-		changelogList = nil
+	if mainDList then
+		glDeleteList(mainDList)
+		mainDList = nil
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('gameinfo')
