@@ -204,51 +204,6 @@ local options={
 		-- step   = 0.1,
 	-- },
 	{
-		key    = 'scavengers',
-		name   = 'Scavengers Difficulty',
-		desc   = 'Scavengers Difficulty Level',
-		type   = 'list',
-		section = 'options',
-		def  = "easy",
-		items={
-			{key="noob", name="Noob", desc="Noob"},
-			{key="easy", name="Easy", desc="Easy"},
-			{key="medium", name="Medium", desc="Medium"},
-			{key="hard", name="Hard", desc="Hard"},
-			{key="veryhard", name="Very Hard", desc="Very Hard"},
-			{key="brutal", name="Brutal", desc="You'll die"},
-			{key="insane", name="Insane", desc="You'll die, but harder."},
-			{key="impossible", name="Impossible", desc="You can't win this... seriously."},
-		}
-	},
-	{
-		key    = 'scavengerstech',
-		name   = 'Scavengers Tech Speed',
-		desc   = 'Determines how fast scav tech ramps up. Adaptive will adjust to players skill',
-		type   = 'list',
-		section = 'options',
-		def  = "adaptive",
-		items={
-			{key="adaptive", name="Adaptive", desc="Adapts to players skill"},
-			{key="easy", name="Easy", desc="Slow ramp up for newbies and noobs"},
-			{key="medium", name="Medium", desc="Normal ramp up for slightly experienced players"},
-			{key="hard", name="Hard", desc="Hard ramp up for experienced players"},
-			{key="brutal", name="Brutal", desc="You'll die"},
-		}
-	},
-	{
-		key    = 'scavengersendless',
-		name   = 'Scavengers Endless Mode',
-		desc   = 'Disables final boss fight, making Scavengers an endless survival mode',
-		type   = 'list',
-		section = 'options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
-			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
-		}
-	},
-	{
 		key    = 'ruins',
 		name   = 'Random Ruins',
 		desc   = 'description',
@@ -282,17 +237,17 @@ local options={
 	--	max    = 1,
 	--	step   = 1,
 	--},
-	{
-		key    = 'night',
-		name   = 'Day-Night Cycle',
-		desc   = 'Hello darkness my old friend',
-		type   = 'number',
-		section= 'options',
-		def    = 0,
-		min    = 0,
-		max    = 1,
-		step   = 1,
-	},
+	-- {
+		-- key    = 'night',
+		-- name   = 'Day-Night Cycle',
+		-- desc   = 'Hello darkness my old friend',
+		-- type   = 'number',
+		-- section= 'options',
+		-- def    = 0,
+		-- min    = 0,
+		-- max    = 1,
+		-- step   = 1,
+	-- },
 	{
 		key    = "newbie_placer",
 		name   = "Newbie Placer",
@@ -374,8 +329,119 @@ local options={
 			{key="none", name="Disallow All", desc="No enemy units can be napped"},
 		}
 	},
-
-
+	-----------------------------------------------------------------------------------------------------------------------------------------
+	{
+		key="options_scavengers",
+		name="Scavengers",
+		desc="Gameplay options for Scavengers gamemode",
+		type="section",
+	},
+	
+	{
+		key    = 'scavdifficulty',
+		name   = 'Difficulty',
+		desc   = 'Scavengers Difficulty Level',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "easy",
+		items={
+			{key="noob", name="Noob", desc="Noob"},
+			{key="easy", name="Easy", desc="Easy"},
+			{key="medium", name="Medium", desc="Medium"},
+			{key="hard", name="Hard", desc="Hard"},
+			{key="veryhard", name="Very Hard", desc="Very Hard"},
+			{key="brutal", name="Brutal", desc="You'll die"},
+			{key="insane", name="Insane", desc="You'll die, but harder."},
+			{key="impossible", name="Impossible", desc="You can't win this... seriously."},
+		}
+	},
+	
+	-- {
+		-- key    = 'scavtechdifficulty',
+		-- name   = 'Scavengers Tech Difficulty',
+		-- desc   = 'Determines how fast scav tech ramps up. Adaptive will adjust to players skill',
+		-- type   = 'list',
+		-- section = 'options_scavengers',
+		-- def  = "adaptive",
+		-- items={
+			-- {key="adaptive", name="Adaptive", desc="Adapts to players skill"},
+			-- {key="easy", name="Easy", desc="Slow ramp up for newbies and noobs"},
+			-- {key="medium", name="Medium", desc="Normal ramp up for slightly experienced players"},
+			-- {key="hard", name="Hard", desc="Hard ramp up for experienced players"},
+			-- {key="brutal", name="Brutal", desc="You'll die"},
+		-- }
+	-- },
+	
+	{
+		key    = 'scavtechcurve',
+		name   = 'Tech Curve',
+		desc   = 'Modifies how fast Scavengers tech up',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="normal", name="Normal", desc="x1"},
+			{key="fast", name="Fast", desc="x0.5"},
+			{key="slow", name="Slow", desc="x1.5"},
+		}
+	},
+	
+	{
+		key    = 'scavendless',
+		name   = 'Endless Mode',
+		desc   = 'Disables final boss fight, turning Scavengers into an endless survival mode',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
+			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
+		}
+	},
+	
+	{
+		key    = 'scavbosshealth',
+		name   = 'Boss Health Modifier',
+		desc   = 'Modifies Final Boss maximum health points',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="normal", name="Normal", desc="x1"},
+			{key="lower", name="Lower", desc="x0.5"},
+			{key="higher", name="Higher", desc="x1.5"},
+			{key="high", name="High", desc="x2"},
+		}
+	},
+	
+	{
+		key    = 'scavevents',
+		name   = 'Random Events',
+		desc   = 'Random Events System',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="Random Events Enabled"},
+			{key="disabled", name="Disabled", desc="Random Events Disabled"},
+		}
+	},
+	
+	{
+		key    = 'scaveventsamount',
+		name   = 'Random Events Amount',
+		desc   = 'Modifies frequency of random events',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="normal", name="Normal", desc="Normal"},
+			{key="lower", name="Lower", desc="Halved"},
+			{key="higher", name="Higher", desc="Doubled"},
+		}
+	},
+	
+	-----------------------------------------------------------------------------------------------------------------------------------------
 
 -- Chicken Defense Options
 	{

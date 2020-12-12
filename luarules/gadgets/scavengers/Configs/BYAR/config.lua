@@ -1,12 +1,57 @@
 Spring.Echo("[Scavengers] Config initialized")
 
 -- Modoptions
-	local scavEndless = Spring.GetModOptions().scavengersendless or "disabled"
-	if scavEndless == "disabled" then
-		scavEndlessBool = true
+	-- Endless Mode
+	local Modoption = Spring.GetModOptions().scavendless or "disabled"
+	if Modoption == "disabled" then
+		scavEndlessModoption = true
 	else
-		scavEndlessBool = false
+		scavEndlessModoption = false
 	end
+	
+	-- Boss Health Modifier
+	local Modoption = Spring.GetModOptions().scavbosshealth or "normal"
+	if Modoption == "normal" then
+		ScavBossHealthModoption = 1
+	elseif Modoption == "lower" then
+		ScavBossHealthModoption = 0.5
+	elseif Modoption == "higher" then
+		ScavBossHealthModoption = 1.5
+	elseif Modoption == "high" then
+		ScavBossHealthModoption = 2
+	end
+	
+	-- Tech Curve Modifier
+	local Modoption = Spring.GetModOptions().scavtechcurve or "normal"
+	if Modoption == "normal" then
+		ScavTechCurveModoption = 1
+	elseif Modoption == "fast" then
+		ScavTechCurveModoption = 0.5
+	elseif Modoption == "slow" then
+		ScavTechCurveModoption = 1.5
+	end
+	
+	-- Random Events Bool
+	local Modoption = Spring.GetModOptions().scavendless or "enabled"
+	if Modoption == "enabled" then
+		ScavRandomEventsEnabledModoption = true
+	elseif Modoption == "disabled" then
+		ScavRandomEventsEnabledModoption = false
+	end
+	
+	-- Random Events Amount
+	local Modoption = Spring.GetModOptions().scavendless or "normal"
+	if Modoption == "normal" then
+		ScavRandomEventsAmountModoption = 1
+	elseif Modoption == "lower" then
+		ScavRandomEventsAmountModoption = 2
+	elseif Modoption == "higher" then
+		ScavRandomEventsAmountModoption = 0.5
+	end
+	
+	
+	
+	Modoption = nil
 -- End of Modoptions
 
 
@@ -26,7 +71,7 @@ scavconfig = {
 		unitSpawnerModule 				= true,
 		startBoxProtection				= true,
 		reinforcementsModule			= false, --disabled for now for weird victory conditions and too much hp
-		randomEventsModule				= true,
+		randomEventsModule				= ScavRandomEventsEnabledModoption,
 		stockpilers						= true,
 		nukes							= true,
 	},
@@ -48,30 +93,30 @@ scavconfig = {
 	timers = {
 		-- globalScore values
 		T0start								= 1,
-		T1start								= 600,
-		T1low								= 900,
-		T1med								= 1200,
-		T1high								= 1500,
-		T1top								= 1800,
-		T2start								= 2250,
-		T2low								= 3000,
-		T2med								= 3750,
-		T2high								= 4500,
-		T2top								= 6000,
-		T3start								= 7500,
-		T3low								= 9000,
-		T3med								= 10500,
-		T3high								= 12000,
-		T3top								= 13500,
-		T4start								= 15000,
-		T4low								= 18000,
-		T4med								= 21000,
-		T4high								= 24000,
-		T4top								= 28000,
-		BossFight							= 32000,
-		Endless								= 35000,
+		T1start								= 600*ScavTechCurveModoption,
+		T1low								= 900*ScavTechCurveModoption,
+		T1med								= 1200*ScavTechCurveModoption,
+		T1high								= 1500*ScavTechCurveModoption,
+		T1top								= 1800*ScavTechCurveModoption,
+		T2start								= 2250*ScavTechCurveModoption,
+		T2low								= 3000*ScavTechCurveModoption,
+		T2med								= 3750*ScavTechCurveModoption,
+		T2high								= 4500*ScavTechCurveModoption,
+		T2top								= 6000*ScavTechCurveModoption,
+		T3start								= 7500*ScavTechCurveModoption,
+		T3low								= 9000*ScavTechCurveModoption,
+		T3med								= 10500*ScavTechCurveModoption,
+		T3high								= 12000*ScavTechCurveModoption,
+		T3top								= 13500*ScavTechCurveModoption,
+		T4start								= 15000*ScavTechCurveModoption,
+		T4low								= 18000*ScavTechCurveModoption,
+		T4med								= 21000*ScavTechCurveModoption,
+		T4high								= 24000*ScavTechCurveModoption,
+		T4top								= 28000*ScavTechCurveModoption,
+		BossFight							= 32000*ScavTechCurveModoption,
+		Endless								= 35000*ScavTechCurveModoption,
 		-- don't delete
-		NoRadar								= 7500,
+		NoRadar								= 7500*ScavTechCurveModoption,
 	},
 	other = {
 		heighttolerance						= 30, -- higher = allow higher height diffrences
@@ -87,9 +132,9 @@ buildingSpawnerModuleConfig = {
 }
 
 unitSpawnerModuleConfig = {
-	bossFightEnabled					= scavEndlessBool,
+	bossFightEnabled					= scavEndlessModoption,
 	FinalBossUnit						= true,
-		FinalBossHealth						= 500000, -- this*teamcount*difficulty
+		FinalBossHealth						= 500000*ScavBossHealthModoption, -- this*teamcount*difficulty
 		FinalBossMinionsPassive				= 3000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
@@ -132,8 +177,8 @@ spawnProtectionConfig = {
 }
 
 randomEventsConfig = {
-	randomEventMinimumDelay = 9000, -- frames
-	randomEventChance = 200, -- higher = lower chance
+	randomEventMinimumDelay = 9000*ScavRandomEventsAmountModoption, -- frames
+	randomEventChance = 200*ScavRandomEventsAmountModoption, -- higher = lower chance
 	
 }
 
