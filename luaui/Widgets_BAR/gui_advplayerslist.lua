@@ -59,6 +59,34 @@ local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
 local collapsable = false
 
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	spectators = 'Spectators',
+	enemies = 'Enemies',
+	allies = 'Allies',
+	clicktohidespecs = 'click to hide specs',
+	clicktoshowspecs = 'click to show specs',
+	dblclickplayernametotrack = 'dbl-click playername to track',
+	clicktotake = 'Click to take abandoned units',
+	dblclickunitsupport = 'Double click to ask for Unit support',
+	dblclickshareunits = 'Double click to share Units',
+	clickdragaskenergy = 'Click and drag to ask for Energy',
+	clickdragaskmetal = 'Click and drag to ask for Metal',
+	clickdragshareenergy = 'Click and drag to share for Energy',
+	clickdragsharemetal = 'Click and drag to share for Metal',
+	clicktobecomeenemy = 'Click to become enemy',
+	clicktobecomeally = 'Click to become ally',
+	k = 'k',
+	ms = 'ms',
+	sec = 'sec',
+	min = 'min',
+	totalcmddelay = 'Total command delay',
+	cpu = 'CPU',
+	fps = 'FPS',
+	gpumem = 'GPU mem',
+	pointclicktooltip = 'Click to reach the last point set by the player',
+}
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -1021,6 +1049,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('advplayerslist')
+	end
+
     widget:ViewResize()
 
     widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
@@ -2165,22 +2197,22 @@ function CreateMainList(tip)
                 if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
                     specAmount = ""
                 end
-                DrawLabel(" Spectators  " .. specAmount, drawListOffset[i], specListShow)
+                DrawLabel(" "..texts.spectators.."  " .. specAmount, drawListOffset[i], specListShow)
                 if Spring.GetGameFrame() <= 0 then
                     if specListShow then
-                        DrawLabelTip("(click to hide specs)", drawListOffset[i], 95)
+                        DrawLabelTip("("..texts.clicktohidespecs..")", drawListOffset[i], 95)
                     else
-                        DrawLabelTip("(click to show specs)", drawListOffset[i], 95)
+                        DrawLabelTip("("..texts.clicktoshowspecs..")", drawListOffset[i], 95)
                     end
                 end
             elseif drawObject == -4 then
                 DrawSeparator(drawListOffset[i])
             elseif drawObject == -3 then
-                DrawLabel(" Enemies", drawListOffset[i], true)
+                DrawLabel(" "..texts.enemies, drawListOffset[i], true)
             elseif drawObject == -2 then
-                DrawLabel(" Allies", drawListOffset[i], true)
+                DrawLabel(" "..texts.allies, drawListOffset[i], true)
                 if Spring.GetGameFrame() <= 0 then
-                    DrawLabelTip("(dbl-click playername to track)", drawListOffset[i], 46)
+                    DrawLabelTip("("..texts.dblclickplayernametotrack..")", drawListOffset[i], 46)
                 end
             elseif drawObject == -1 then
                 leader = true
@@ -2905,12 +2937,12 @@ end
 function TakeTip(mouseX)
     if right == true then
         if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = "Click to take abandoned units"
+            tipText = texts.clicktotake
         end
     else
         local leftPosX = widgetPosX + widgetWidth
         if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 57 * widgetScale then
-            tipText = "Click to take abandoned units"
+            tipText = texts.clicktotake
         end
     end
 end
@@ -2918,19 +2950,19 @@ end
 function ShareTip(mouseX, playerID)
     if playerID == myPlayerID then
         if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
-            tipText = "Double click to ask for Unit support"
+            tipText = texts.dblclickunitsupport
         elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
-            tipText = "Click and drag to ask for Energy"
+            tipText = texts.clickdragaskenergy
         elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
-            tipText = "Click and drag to ask for Metal"
+            tipText = texts.clickdragaskmetal
         end
     else
         if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
-            tipText = "Double click to share Units"
+            tipText = texts.dblclickshareunits
         elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
-            tipText = "Click and drag to share Energy"
+            tipText = texts.clickdragshareenergy
         elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
-            tipText = "Click and drag to share Metal"
+            tipText = texts.clickdragsharemetal
         end
     end
 end
@@ -2938,9 +2970,9 @@ end
 function AllyTip(mouseX, playerID)
     if mouseX >= widgetPosX + (m_alliance.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_alliance.posX + 11) * widgetScale then
         if Spring_AreTeamsAllied(player[playerID].team, myTeamID) then
-            tipText = "Click to become enemy"
+            tipText = texts.clicktobecomeenemy
         else
-            tipText = "Click to become ally"
+            tipText = texts.clicktobecomeally
         end
     end
 end
@@ -2972,16 +3004,16 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
             mi = math.floor(mi / 10) * 10
         end
         if e >= 10000 then
-            e = math.floor(e / 1000) .. "k"
+            e = math.floor(e / 1000) .. texts.k
         end
         if m >= 10000 then
-            e = math.floor(m / 1000) .. "k"
+            e = math.floor(m / 1000) .. texts.k
         end
         if ei >= 10000 then
-            ei = math.floor(ei / 1000) .. "k"
+            ei = math.floor(ei / 1000) .. texts.k
         end
         if mi >= 10000 then
-            ei = math.floor(mi / 1000) .. "k"
+            ei = math.floor(mi / 1000) .. texts.k
         end
         tipText = "\255\255\255\000+" .. ei .. "\n\255\255\255\000" .. e .. "\n\255\255\255\255" .. m .. "\n\255\255\255\255+" .. mi
     end
@@ -2990,20 +3022,20 @@ end
 function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
     if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 23) * widgetScale then
         if pingLvl < 2000 then
-            pingLvl = pingLvl .. " ms"
+            pingLvl = pingLvl .. " "..texts.ms
         elseif pingLvl >= 2000 and pingLvl < 60000 then
-            pingLvl = round(pingLvl / 1000, 0) .. " sec"
+            pingLvl = round(pingLvl / 1000, 0) .. " "..texts.sec
         elseif pingLvl >= 60000 then
-            pingLvl = round(pingLvl / 60000, 0) .. " min"
+            pingLvl = round(pingLvl / 60000, 0) .. " "..texts.min
         end
-        tipText = "\255\190\190\190Total command delay:  \255\255\255\255" .. pingLvl
+        tipText = "\255\190\190\190"..texts.totalcmddelay..":  \255\255\255\255" .. pingLvl
     elseif mouseX >= widgetPosX + (m_cpuping.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 11) * widgetScale then
-        tipText = "Cpu: " .. cpuLvl .. "%"
+        tipText = texts.cpu..": " .. cpuLvl .. "%"
         if fps ~= nil then
-            tipText = "FPS: " .. fps .. "    " .. tipText
+            tipText = texts.fps..": " .. fps .. "    " .. tipText
         end
         if gpumem ~= nil then
-            tipText = tipText .. "    Gpu mem: " .. gpumem .. "%"
+            tipText = tipText .. "    "..texts.gpumem..": " .. gpumem .. "%"
         end
         if system ~= nil then
             tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n\255\215\255\215" .. tipText .. "\n\255\240\240\240" .. system
@@ -3014,12 +3046,12 @@ end
 function PointTip(mouseX)
     if right == true then
         if mouseX >= widgetPosX - 28 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = "Click to reach the last point set by the player"
+            tipText = texts.pointclicktooltip
         end
     else
         local leftPosX = widgetPosX + widgetWidth
         if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 28 * widgetScale then
-            tipText = "Click to reach the last point set by the player"
+            tipText = texts.pointclicktooltip
         end
     end
 end

@@ -301,7 +301,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		metalspots_values_descr = 'Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it\'s significantly enough more costly to draw the text values',
 		metalspots_metalviewonly = 'limit to F4 (metalmap) view',
 		metalspots_metalviewonly_descr = 'Limit display to only during pre-gamestart or when in metalmap view (f4)',
-		healthbarsscale = 'Health barsscale',
+		healthbars = 'Health bars',
+		healthbarsscale = 'scale',
 		healthbarsdistance = 'draw distance',
 		healthbarsvariable = 'variable sizes',
 		healthbarsvariable_descr = 'Increases healthbar sizes for bigger units',
@@ -337,6 +338,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		nametags_icon_descr = 'Show commander name when its displayed as icon',
 		commandsfx = 'Command FX',
 		commandsfx_descr = 'Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well',
+		commandsfxfilterai = '',
+		commandsfxfilterai_descr = 'Hide commands for AI teams',
 		commandsfxopacity = 'opacity',
 		displaydps = 'Display DPS',
 		displaydps_descr = 'Display the \'Damage Per Second\' done where target are hit',
@@ -442,7 +445,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		sunlighting_reset = 'Reset ground/unit coloring',
 		sunlighting_reset_descr = 'resets ground/unit ambient/diffuse/specular colors',
 		red = 'red',
-		greed = 'green',
+		green = 'green',
 		blue = 'blue',
 	},
 }
@@ -3570,9 +3573,9 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   mascot", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = 'Shows a mascot on top of the playerslist' },
-		{ id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   unit totals", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = 'Show your unit totals on top of the playerlist' },
-		{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   music player", type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = 'Show music player on top of playerlist',
+		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
+		{ id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   "..texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
+		{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   "..texts.option.musicplayer, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = texts.option.musicplayer,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3582,7 +3585,7 @@ function init()
 		  end
 		},
 
-		{ id = "consolemaxlines", group = "ui", name = "Console" .. widgetOptionColor .. "  max lines", type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
+		{ id = "consolemaxlines", group = "ui", name = texts.option.console .. widgetOptionColor .. "  "..texts.option.consolemaxlines, type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
 		  onload = function(i)
 			  loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", { 'Config', 'console', 'maxlines' })
 		  end,
@@ -3591,7 +3594,7 @@ function init()
 			  saveOptionValue('Red Console (old)', 'red_console', 'setMaxLines', { 'Config', 'console', 'maxlines' }, value)
 		  end,
 		},
-		{ id = "consolefontsize", group = "ui", name = widgetOptionColor .. "   font size", type = "slider", min = 0.9, max = 1.1, step = 0.05, value = 1, description = '',
+		{ id = "consolefontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolefontsize, type = "slider", min = 0.9, max = 1.1, step = 0.05, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Red Console (In-game chat only)", "consolefontsize", { 'fontsizeMultiplier' })
 		  end,
@@ -3603,12 +3606,12 @@ function init()
 
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
-		{ id = "idlebuilders", group = "ui", basic = true, widget = "Idle Builders", name = "List idle builders", type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = 'Displays a row of idle builder units at the bottom of the screen' },
+		{ id = "idlebuilders", group = "ui", basic = true, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 
-		{ id = "buildbar", group = "ui", basic = true, widget = "BuildBar", name = "Factory build bar", type = "bool", value = GetWidgetToggleValue("BuildBar"), description = 'Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue' },
+		{ id = "buildbar", group = "ui", basic = true, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
 
-		{ id = "teamplatter", group = "ui", basic = true, widget = "TeamPlatter", name = "Unit team platters", type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = 'Shows a team color platter above all visible units' },
-		{ id = "teamplatter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   opacity", min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = 'Set the opacity of the team spotters',
+		{ id = "teamplatter", group = "ui", basic = true, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
+		{ id = "teamplatter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   "..texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = texts.option.teamplatter_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("TeamPlatter", "teamplatter_opacity", { 'spotterOpacity' })
 		  end,
@@ -3616,7 +3619,7 @@ function init()
 			  saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', { 'spotterOpacity' }, value)
 		  end,
 		},
-		{ id = "teamplatter_skipownteam", group = "ui", name = widgetOptionColor .. "   skip own units", type = "bool", value = false, description = 'Doesnt draw platters for yourself',
+		{ id = "teamplatter_skipownteam", group = "ui", name = widgetOptionColor .. "   "..texts.option.teamplatter_skipownteam, type = "bool", value = false, description = texts.option.teamplatter_skipownteam_descr,
 		  onload = function(i)
 			  loadWidgetData("TeamPlatter", "teamplatter_skipownteam", { 'skipOwnTeam' })
 		  end,
@@ -3625,8 +3628,8 @@ function init()
 		  end,
 		},
 
-		{ id = "enemyspotter", group = "ui", basic = true, widget = "EnemySpotter", name = "Enemy spotters", type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = 'Draws smoothed circles under enemy units\n\nDisables when enemy is single colored or alone' },
-		{ id = "enemyspotter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   opacity", min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = 'Set the opacity of the enemy-spotter rings',
+		{ id = "enemyspotter", group = "ui", basic = true, widget = "EnemySpotter", name = texts.option.enemyspotter, type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = texts.option.enemyspotter_descr },
+		{ id = "enemyspotter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   "..texts.option.enemyspotter_opacity, min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = texts.option.enemyspotter_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("EnemySpotter", "enemyspotter_opacity", { 'spotterOpacity' })
 		  end,
@@ -3640,12 +3643,12 @@ function init()
 		--		},
 
 
-		{ id = "fancyselectedunits", group = "ui", basic = true, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = 'Draws a platter under selected units\n\nNOTE: this widget can be heavy when having lots of units selected' },
+		{ id = "fancyselectedunits", group = "ui", basic = true, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = texts.option.fancyselectedunits_descr },
 		--{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
 		-- onload = function(i) loadWidgetData("Fancy Selected Units", "fancyselectedunits_opacity", {'spotterOpacity'}) end,
 		-- onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setOpacity', {'spotterOpacity'}, value) end,
 		--},
-		{ id = "fancyselectedunits_baseopacity", group = "ui", name = widgetOptionColor .. "   opacity", min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.15, description = 'Set the opacity of the highlight on selected units',
+		{ id = "fancyselectedunits_baseopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.fancyselectedunits_baseopacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.15, description = texts.option.fancyselectedunits_baseopacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Fancy Selected Units", "fancyselectedunits_baseopacity", { 'baseOpacity' })
 		  end,
@@ -3653,7 +3656,7 @@ function init()
 			  saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setBaseOpacity', { 'baseOpacity' }, value)
 		  end,
 		},
-		{ id = "fancyselectedunits_teamcoloropacity", group = "ui", name = widgetOptionColor .. "   teamcolor amount", min = 0, max = 1, step = 0.01, type = "slider", value = 0.55, description = 'Set the amount of teamcolor used for the base platter',
+		{ id = "fancyselectedunits_teamcoloropacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.fancyselectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.55, description = texts.option.fancyselectedunits_teamcoloropacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Fancy Selected Units", "fancyselectedunits_teamcoloropacity", { 'teamcolorOpacity' })
 		  end,
@@ -3662,8 +3665,8 @@ function init()
 		  end,
 		},
 
-		{ id = "highlightselunits", group = "ui", basic = true, widget = "Highlight Selected Units", name = "Selection Unit Highlight", type = "bool", value = GetWidgetToggleValue("Highlight Selected Units"), description = 'Highlights unit models when selected' },
-		{ id = "highlightselunits_opacity", group = "ui", basic = true, name = widgetOptionColor .. "   opacity", min = 0.05, max = 0.5, step = 0.01, type = "slider", value = 0.1, description = 'Set the opacity of the highlight on selected units',
+		{ id = "highlightselunits", group = "ui", basic = true, widget = "Highlight Selected Units", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units"), description = texts.option.highlightselunits_descr },
+		{ id = "highlightselunits_opacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.highlightselunits_opacity, min = 0.05, max = 0.5, step = 0.01, type = "slider", value = 0.1, description = texts.option.highlightselunits_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", { 'highlightAlpha' })
 		  end,
@@ -3675,7 +3678,7 @@ function init()
 		--		 onload = function(i) loadWidgetData("Highlight Selected Units", "highlightselunits_shader", {'useHighlightShader'}) end,
 		--		 onchange = function(i, value) saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setShader', {'useHighlightShader'}, value) end,
 		--		},
-		{ id = "highlightselunits_teamcolor", group = "ui", basic = true, name = widgetOptionColor .. "   use teamcolor", type = "bool", value = false, description = 'Use teamcolor instead of unit health coloring',
+		{ id = "highlightselunits_teamcolor", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
 		  onload = function(i)
 			  loadWidgetData("Highlight Selected Units", "highlightselunits_teamcolor", { 'useTeamcolor' })
 		  end,
@@ -3684,8 +3687,8 @@ function init()
 		  end,
 		},
 
-		{ id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = "Metalspot indicators", type = "bool", value = GetWidgetToggleValue("Metalspots"), description = 'Shows a circle around metal spots with the amount of metal in it' },
-		{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   opacity", type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5, description = 'Display metal values in the center',
+		{ id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = 'Shows a circle around metal spots with the amount of metal in it' },
+		{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5, description = 'Display metal values in the center',
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_opacity", { 'opacity' })
 		  end,
@@ -3694,7 +3697,7 @@ function init()
 			  saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
 		  end,
 		},
-		{ id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   show values", type = "bool", value = true, description = 'Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it\'s significantly enough more costly to draw the text values',
+		{ id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.metalspots_values, type = "bool", value = true, description = 'Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it\'s significantly enough more costly to draw the text values',
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
@@ -3703,7 +3706,7 @@ function init()
 			  saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
 		  end,
 		},
-		{ id = "metalspots_metalviewonly", group = "ui", name = widgetOptionColor .. "   limit to F4 (metalmap) view", type = "bool", value = false, description = 'Limit display to only during pre-gamestart or when in metalmap view (f4)',
+		{ id = "metalspots_metalviewonly", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_metalviewonly, type = "bool", value = false, description = 'Limit display to only during pre-gamestart or when in metalmap view (f4)',
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_metalviewonly", { 'metalViewOnly' })
 		  end,
@@ -3712,7 +3715,7 @@ function init()
 		  end,
 		},
 
-		{ id = "healthbarsscale", group = "ui", name = "Health bars" .. widgetOptionColor .. "  scale", type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
+		{ id = "healthbarsscale", group = "ui", name = texts.option.healthbars .. widgetOptionColor .. "  "..texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Health Bars", "healthbarsscale", { 'barScale' })
 		  end,
@@ -3720,7 +3723,7 @@ function init()
 			  saveOptionValue('Health Bars', 'healthbars', 'setScale', { 'barScale' }, value)
 		  end,
 		},
-		{ id = "healthbarsdistance", group = "ui", name = widgetOptionColor .. "   draw distance", type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
+		{ id = "healthbarsdistance", group = "ui", name = widgetOptionColor .. "   "..texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Health Bars", "healthbarsdistance", { 'drawDistanceMult' })
 		  end,
@@ -3728,7 +3731,7 @@ function init()
 			  saveOptionValue('Health Bars', 'healthbars', 'setDrawDistance', { 'drawDistanceMult' }, value)
 		  end,
 		},
-		{ id = "healthbarsvariable", group = "ui", name = widgetOptionColor .. "   variable sizes", type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = 'Increases healthbar sizes for bigger units',
+		{ id = "healthbarsvariable", group = "ui", name = widgetOptionColor .. "   "..texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
 		  onload = function(i)
 			  loadWidgetData("Health Bars", "healthbarsvariable", { 'variableBarSizes' })
 		  end,
@@ -3736,7 +3739,7 @@ function init()
 			  saveOptionValue('Health Bars', 'healthbars', 'setVariableSizes', { 'variableBarSizes' }, value)
 		  end,
 		},
-		{ id = "healthbarshide", group = "ui", name = widgetOptionColor .. "   show health only when selected", type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = 'Hide the healthbar and rely on damaged unit looks',
+		{ id = "healthbarshide", group = "ui", name = widgetOptionColor .. "   "..texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
 		  onload = function(i)
 			  loadWidgetData("Health Bars", "healthbarshide", { 'hideHealthbars' })
 		  end,
@@ -3745,15 +3748,15 @@ function init()
 		  end,
 		},
 
-		{ id = "rankicons", group = "ui", basic = true, widget = "Rank Icons", name = "Rank icons", type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = 'Shows a rank icon depending on experience next to units' },
-		{ id = "rankicons_distance", group = "ui", name = widgetOptionColor .. "   draw distance", type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
+		{ id = "rankicons", group = "ui", basic = true, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
+		{ id = "rankicons_distance", group = "ui", name = widgetOptionColor .. "   "..texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', { 'distanceMult' }, value)
 		  end,
 		},
-		{ id = "rankicons_scale", group = "ui", name = widgetOptionColor .. "   scale", type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
+		{ id = "rankicons_scale", group = "ui", name = widgetOptionColor .. "   "..texts.option.rankicons_scale, type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3761,8 +3764,8 @@ function init()
 		  end,
 		},
 
-		{ id = "allycursors", group = "ui", basic = true, widget = "AllyCursors", name = "Ally cursors", type = "bool", value = GetWidgetToggleValue("AllyCursors"), description = 'Shows the position of ally cursors' },
-		{ id = "allycursors_playername", group = "ui", name = widgetOptionColor .. "   player name", type = "bool", value = true, description = 'Shows the player name next to the cursor',
+		{ id = "allycursors", group = "ui", basic = true, widget = "AllyCursors", name = texts.option.allycursors, type = "bool", value = GetWidgetToggleValue("AllyCursors"), description = texts.option.allycursors_descr },
+		{ id = "allycursors_playername", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_playername, type = "bool", value = true, description = texts.option.allycursors_playername_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_playername", { 'showPlayerName' })
 		  end,
@@ -3770,7 +3773,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', { 'showPlayerName' }, value)
 		  end,
 		},
-		{ id = "allycursors_spectatorname", group = "ui", name = widgetOptionColor .. "   spectator name", type = "bool", value = true, description = 'Shows the spectator name next to the cursor',
+		{ id = "allycursors_spectatorname", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_spectatorname, type = "bool", value = true, description = texts.option.allycursors_spectatorname_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_spectatorname", { 'showSpectatorName' })
 		  end,
@@ -3778,7 +3781,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorNames', { 'showSpectatorName' }, value)
 		  end,
 		},
-		{ id = "allycursors_showdot", group = "ui", name = widgetOptionColor .. "   cursor dot", type = "bool", value = true, description = 'Shows a dot at the center of ally cursor position',
+		{ id = "allycursors_showdot", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
 		  end,
@@ -3786,7 +3789,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', { 'showCursorDot' }, value)
 		  end,
 		},
-		{ id = "allycursors_lights", group = "ui", name = widgetOptionColor .. "   lights (non-specs)", type = "bool", value = true, description = 'Adds a colored light to every ally cursor',
+		{ id = "allycursors_lights", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_lights, type = "bool", value = true, description = texts.option.allycursors_lights_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lights", { 'addLights' })
 		  end,
@@ -3794,7 +3797,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLights', { 'addLights' }, options[getOptionByID('allycursors_lights')].value)
 		  end,
 		},
-		{ id = "allycursors_lightradius", group = "ui", name = widgetOptionColor .. "      radius", type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
+		{ id = "allycursors_lightradius", group = "ui", name = widgetOptionColor .. "      "..texts.option.allycursors_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lightradius", { 'lightRadiusMult' })
 		  end,
@@ -3802,7 +3805,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', { 'lightRadiusMult' }, value)
 		  end,
 		},
-		{ id = "allycursors_lightstrength", group = "ui", name = widgetOptionColor .. "      strength", type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
+		{ id = "allycursors_lightstrength", group = "ui", name = widgetOptionColor .. "      "..texts.option.allycursors_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lightstrength", { 'lightStrengthMult' })
 		  end,
@@ -3811,8 +3814,8 @@ function init()
 		  end,
 		},
 
-		{ id = "cursorlight", group = "ui", basic = true, widget = "Cursor Light", name = "Cursor light", type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = 'Adds a light at/above your cursor position' },
-		{ id = "cursorlight_lightradius", group = "ui", name = widgetOptionColor .. "   radius", type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
+		{ id = "cursorlight", group = "ui", basic = true, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
+		{ id = "cursorlight_lightradius", group = "ui", name = widgetOptionColor .. "   "..texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
 		  onload = function(i)
 			  loadWidgetData("Cursor Light", "cursorlight_lightradius", { 'lightRadiusMult' })
 		  end,
@@ -3820,7 +3823,7 @@ function init()
 			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', { 'lightRadiusMult' }, value)
 		  end,
 		},
-		{ id = "cursorlight_lightstrength", group = "ui", name = widgetOptionColor .. "   strength", type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
+		{ id = "cursorlight_lightstrength", group = "ui", name = widgetOptionColor .. "   "..texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
 		  onload = function(i)
 			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'lightStrengthMult' })
 		  end,
@@ -3829,10 +3832,10 @@ function init()
 		  end,
 		},
 
-		{ id = "showbuilderqueue", group = "ui", basic = true, widget = "Show Builder Queue", name = "Show builder queue", type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = 'Shows ghosted buildings about to be built on the map' },
+		{ id = "showbuilderqueue", group = "ui", basic = true, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
 
-		{ id = "unitenergyicons", group = "ui", basic = true, widget = "Unit energy icons", name = "Unit insufficient energy icons", type = "bool", value = GetWidgetToggleValue("Unit energy icons"), description = 'Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy available.' },
-		{ id = "unitenergyicons_self", group = "ui", name = widgetOptionColor .. "   limit to own units", type = "bool", value = (WG['unitenergyicons'] ~= nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description = 'Only show above your own units',
+		{ id = "unitenergyicons", group = "ui", basic = true, widget = "Unit energy icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit energy icons"), description = texts.option.unitenergyicons_descr },
+		{ id = "unitenergyicons_self", group = "ui", name = widgetOptionColor .. "   "..texts.option.unitenergyicons_self, type = "bool", value = (WG['unitenergyicons'] ~= nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description = texts.option.unitenergyicons_self_descr,
 		  onload = function(i)
 			  loadWidgetData("Unit energy icons", "unitenergyicons_self", { 'onlyShowOwnTeam' })
 		  end,
@@ -3842,7 +3845,7 @@ function init()
 		},
 
 
-		{ id = "nametags_icon", group = "ui", name = "Commander name on icon", type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = 'Show commander name when its displayed as icon',
+		{ id = "nametags_icon", group = "ui", name = texts.option.nametags_icon, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.nametags_icon_descr,
 		  onload = function(i)
 			  loadWidgetData("Commander Name Tags", "nametags_icon", { 'drawForIcon' })
 		  end,
@@ -3851,8 +3854,8 @@ function init()
 		  end,
 		},
 
-		{ id = "commandsfx", group = "ui", basic = true, widget = "Commands FX", name = "Command FX", type = "bool", value = GetWidgetToggleValue("Commands FX"), description = 'Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well' },
-		{ id = "commandsfxfilterai", group = "ui", name = widgetOptionColor .. "   filter AI teams", type = "bool", value = true, description = 'Hide commands for AI teams',
+		{ id = "commandsfx", group = "ui", basic = true, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
+		{ id = "commandsfxfilterai", group = "ui", name = widgetOptionColor .. "   "..texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxfilterai", { 'filterAIteams' })
 		  end,
@@ -3860,7 +3863,7 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
 		  end,
 		},
-		{ id = "commandsfxopacity", group = "ui", name = widgetOptionColor .. "   opacity", type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
+		{ id = "commandsfxopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.commandsfxopacity, type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxopacity", { 'opacity' })
 		  end,
@@ -3869,19 +3872,19 @@ function init()
 		  end,
 		},
 
-		{ id = "displaydps", group = "ui", basic = true, name = "Display DPS", type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = 'Display the \'Damage Per Second\' done where target are hit',
+		{ id = "displaydps", group = "ui", basic = true, name = texts.option.displaydps, type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = texts.option.displaydps_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("DisplayDPS", (value and 1 or 0))
 		  end,
 		},
-		{ id = "givenunits", group = "ui", widget = "Given Units", name = "Given unit icons", type = "bool", value = GetWidgetToggleValue("Given Units"), description = 'Tags given units with \'new\' icon' },
+		{ id = "givenunits", group = "ui", widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
 
-		{ id = "radarrange", group = "ui", widget = "Radar Range", name = "Radar range", type = "bool", value = GetWidgetToggleValue("Radar Range"), description = 'Displays the range of radar coverage with a green line' },
+		{ id = "radarrange", group = "ui", widget = "Radar Range", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Radar Range"), description = texts.option.radarrange_descr },
 
-		{ id = "defrange", group = "ui", widget = "Defense Range", name = "Defense ranges", type = "bool", value = GetWidgetToggleValue("Defense Range"), description = 'Displays range of defenses (enemy and ally)' },
-		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   Ally Air", type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = 'Show Range For Ally Air',
+		{ id = "defrange", group = "ui", widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.displaydps_descr },
+		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
 		  end,
@@ -3895,7 +3898,7 @@ function init()
 			  saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 		  end,
 		},
-		{ id = "defrange_allyground", group = "ui", name = widgetOptionColor .. "   Ally Ground", type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = 'Show Range For Ally Ground',
+		{ id = "defrange_allyground", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = texts.option.defrange_allyground_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allyground", { 'enabled', 'ally', 'ground' })
 		  end,
@@ -3909,7 +3912,7 @@ function init()
 			  saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 		  end,
 		},
-		{ id = "defrange_allynuke", group = "ui", name = widgetOptionColor .. "   Ally Nuke", type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = 'Show Range For Ally Air Nuke',
+		{ id = "defrange_allynuke", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = texts.option.defrange_allynuke_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
 		  end,
@@ -3923,7 +3926,7 @@ function init()
 			  saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 		  end,
 		},
-		{ id = "defrange_enemyair", group = "ui", name = widgetOptionColor .. "   Enemy Air", type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = 'Show Range For Enemy Air',
+		{ id = "defrange_enemyair", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_enemyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = texts.option.defrange_enemyair_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
 		  end,
@@ -3937,7 +3940,7 @@ function init()
 			  saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 		  end,
 		},
-		{ id = "defrange_enemyground", group = "ui", name = widgetOptionColor .. "   Enemy Ground", type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = 'Show Range For Enemy Ground',
+		{ id = "defrange_enemyground", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = texts.option.defrange_allyground_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
 		  end,
@@ -3951,7 +3954,7 @@ function init()
 			  saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 		  end,
 		},
-		{ id = "defrange_enemynuke", group = "ui", name = widgetOptionColor .. "   Enemy Nuke", type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = 'Show Range For Enemy Nuke',
+		{ id = "defrange_enemynuke", group = "ui", name = widgetOptionColor .. "   ".. texts.option.defrange_enemynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = texts.option.defrange_enemynuke_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
 		  end,
@@ -3966,7 +3969,7 @@ function init()
 		  end,
 		},
 
-		{ id = "allyselunits_select", group = "ui", name = "Tracking player: select units", type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = "When viewing a players camera, this selects what the player has selected",
+		{ id = "allyselunits_select", group = "ui", name =  texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
 		  onload = function(i)
 			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
 		  end,
@@ -3974,7 +3977,7 @@ function init()
 			  saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
 		  end,
 		},
-		{ id = "lockcamera_hideenemies", group = "ui", name = widgetOptionColor .. "   only show tracked player viewpoint", type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = "When viewing a players camera, this will display what the tracked player sees",
+		{ id = "lockcamera_hideenemies", group = "ui", name = widgetOptionColor .. "   ".. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
 		  end,
@@ -3982,7 +3985,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
 		  end,
 		},
-		{ id = "lockcamera_los", group = "ui", name = widgetOptionColor .. "   show tracked player LoS", type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = "When viewing a players camera and los, shows shaded los ranges too",
+		{ id = "lockcamera_los", group = "ui", name = widgetOptionColor .. "   ".. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_los", { 'lockcameraLos' })
 		  end,
@@ -3991,7 +3994,7 @@ function init()
 		  end,
 		},
 
-		{ id = "playertv_countdown", group = "ui", name = "Player TV countdown", type = "slider", min = 8, max = 60, step = 1, value = (WG['playertv'] ~= nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description = "Countdown time before it switches player",
+		{ id = "playertv_countdown", group = "ui", name = texts.option.playertv_countdown, type = "slider", min = 8, max = 60, step = 1, value = (WG['playertv'] ~= nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description = texts.option.playertv_countdown_descr,
 		  onload = function(i)
 			  loadWidgetData("Player-TV", "playertv_countdown", { 'playerChangeDelay' })
 		  end,
@@ -4000,7 +4003,7 @@ function init()
 		  end,
 		},
 
-		{ id = "loadscreen_tips", group = "ui", name = "Loadscreen tips", type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = "Show tips at the startup load screen",
+		{ id = "loadscreen_tips", group = "ui", name = texts.option.loadscreen_tips, type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = texts.option.loadscreen_tips_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("loadscreen_tips", (value and 1 or 0))
 		  end,
@@ -4008,7 +4011,7 @@ function init()
 
 
 		-- GAME
-		{ id = "networksmoothing", restart = true, basic = true, group = "game", name = "Network smoothing", type = "bool", value = useNetworkSmoothing, description = "Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection\n\nChanges will be applied next game",
+		{ id = "networksmoothing", restart = true, basic = true, group = "game", name = texts.option.networksmoothing, type = "bool", value = useNetworkSmoothing, description = texts.option.networksmoothing_descr,
 		  onload = function(i)
 			  options[i].onchange(i, options[i].value)
 		  end,
@@ -4031,16 +4034,16 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "autoquit", group = "game", basic = true, widget = "Autoquit", name = "Auto quit", type = "bool", value = GetWidgetToggleValue("Autoquit"), description = 'Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.' },
+		{ id = "autoquit", group = "game", basic = true, widget = "Autoquit", name = texts.option.autoquit, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.autoquit_descr },
 
-		{ id = "smartselect_includebuildings", group = "game", basic = true, name = "Include structures in area-selection", type = "bool", value = false, description = 'When rectangle-drag-selecting an area, include building units too?\n\ndisabled: non-mobile units will be excluded\n(except: nanos always will be selected)',
+		{ id = "smartselect_includebuildings", group = "game", basic = true, name = texts.option.smartselect_includebuildings, type = "bool", value = false, description = texts.option.smartselect_includebuildings_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', { 'selectBuildingsWithMobile' }, value)
 		  end,
 		},
-		{ id = "smartselect_includebuilders", group = "game", basic = true, name = widgetOptionColor .. "   include builders   (if above is off)", type = "bool", value = true, description = 'When rectangle-drag-selecting an area, exclude builder units',
+		{ id = "smartselect_includebuilders", group = "game", basic = true, name = widgetOptionColor .. "   "..texts.option.smartselect_includebuilders, type = "bool", value = true, description = texts.option.smartselect_includebuilders_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4048,31 +4051,31 @@ function init()
 		  end,
 		},
 
-		{ id = "onlyfighterspatrol", group = "game", basic = true, widget = "OnlyFightersPatrol", name = "Only fighters patrol", type = "bool", value = GetWidgetToggleValue("Autoquit"), description = 'Only fighters obey a factory\'s patrol route after leaving airlab.' },
-		{ id = "fightersfly", group = "game", basic = true, widget = "Set fighters on Fly mode", name = "Set fighters on Fly mode", type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = 'Setting fighters on Fly mode when created' },
+		{ id = "onlyfighterspatrol", group = "game", basic = true, widget = "OnlyFightersPatrol", name = texts.option.onlyfighterspatrol, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.onlyfighterspatrol_descr },
+		{ id = "fightersfly", group = "game", basic = true, widget = "Set fighters on Fly mode", name = texts.option.fightersfly, type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = texts.option.fightersfly_descr },
 
 		{
 			id = "builderpriority",
 			group = "game",
 			basic = true,
 			widget = "Builder Priority",
-			name = "Builder Priority Restriction",
+			name = texts.option.builderpriority,
 			type = "bool",
 			value = GetWidgetToggleValue("Builder Priority"),
-			description = 'Sets builders (nanos, labs and cons) on low priority mode\n\nLow priority mode means that builders will only spend energy when its available.\nUsage: Set the most important builders on high and leave the rest on low priority'
+			description = texts.option.builderpriority_descr,
 		},
 
 		{
 			id = "builderpriority_nanos",
 			group = "game",
-			name = widgetOptionColor .. "   nanos",
+			name = widgetOptionColor .. "   "..texts.option.builderpriority_nanos,
 			type = "bool",
 			value = (
 				WG['builderpriority'] ~= nil
 					and WG['builderpriority'].getLowPriorityNanos ~= nil
 					and WG['builderpriority'].getLowPriorityNanos()
 			),
-			description = 'Toggle to set low priority',
+			description = texts.option.builderpriority_nanos_descr,
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_nanos", { 'lowpriorityNanos' })
 			end,
@@ -4084,14 +4087,14 @@ function init()
 		{
 			id = "builderpriority_cons",
 			group = "game",
-			name = widgetOptionColor .. "   cons",
+			name = widgetOptionColor .. "   "..texts.option.builderpriority_cons,
 			type = "bool",
 			value = (
 				WG['builderpriority'] ~= nil
 					and WG['builderpriority'].getLowPriorityCons ~= nil
 					and WG['builderpriority'].getLowPriorityCons()
 			),
-			description = 'Toggle to set low priority',
+			description = texts.option.builderpriority_cons_descr,
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_cons", { 'lowpriorityCons' })
 			end,
@@ -4103,14 +4106,14 @@ function init()
 		{
 			id = "builderpriority_labs",
 			group = "game",
-			name = widgetOptionColor .. "   labs",
+			name = widgetOptionColor .. "   "..texts.option.builderpriority_labs,
 			type = "bool",
 			value = (
 				WG['builderpriority'] ~= nil
 					and WG['builderpriority'].getLowPriorityLabs ~= nil
 					and WG['builderpriority'].getLowPriorityLabs()
 			),
-			description = 'Toggle to set low priority',
+			description = texts.option.builderpriority_labs_descr,
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_labs", { 'lowpriorityLabs' })
 			end,
@@ -4119,11 +4122,11 @@ function init()
 			end,
 		},
 
-		{ id = "autocloakpopups", group = "game", basic = true, widget = "Auto Cloak Popups", name = "Auto cloak popups", type = "bool", value = GetWidgetToggleValue("Auto Cloak Popups"), description = 'Auto cloaks Pit Bull and Ambusher' },
+		{ id = "autocloakpopups", group = "game", basic = true, widget = "Auto Cloak Popups", name = texts.option.autocloakpopups, type = "bool", value = GetWidgetToggleValue("Auto Cloak Popups"), description = texts.option.autocloakpopups_descr },
 
-		{ id = "unitreclaimer", group = "game", basic = true, widget = "Unit Reclaimer", name = "Unit Reclaimer", type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = 'Reclaim units in an area. Hover over a unit and drag an area-reclaim circle' },
+		{ id = "unitreclaimer", group = "game", basic = true, widget = "Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
 
-		{ id = "autogroup_immediate", group = "game", basic = true, name = "Autogroup immediate mode", type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = 'Units built/resurrected/received are added to autogroups immediately,\ninstead when they get to be idle.\n\n(add units to autogroup with ALT+number)',
+		{ id = "autogroup_immediate", group = "game", basic = true, name = texts.option.autogroup_immediate, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = texts.option.autogroup_immediate_descr,
 		  onload = function(i)
 			  loadWidgetData("Auto Group", "autogroup_immediate", { 'config', 'immediate', 'value' })
 		  end,
@@ -4140,15 +4143,15 @@ function init()
 		  end,
 		},
 
-		{ id = "factoryguard", group = "game", basic = true, widget = "FactoryGuard", name = "Factory guard (builders)", type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = 'Newly created builders will assist their source factory' },
-		{ id = "factoryholdpos", group = "game", basic = true, widget = "Factory hold position", name = "Factory hold position", type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = 'Sets factories and units they produce, to hold position automatically (not aircraft)' },
-		{ id = "factoryrepeat", group = "game", basic = true, widget = "Factory Auto-Repeat", name = "Factory auto-repeat", type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = 'Sets new factories on Repeat mode' },
+		{ id = "factoryguard", group = "game", basic = true, widget = "FactoryGuard", name = texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
+		{ id = "factoryholdpos", group = "game", basic = true, widget = "Factory hold position", name = texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
+		{ id = "factoryrepeat", group = "game", basic = true, widget = "Factory Auto-Repeat", name = texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
 
-		{ id = "transportai", group = "game", basic = true, widget = "Transport AI", name = "Transport AI", type = "bool", value = GetWidgetToggleValue("Transport AI"), description = 'Transport units automatically pick up new units going to factory waypoint.' },
-		{ id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = "Set-target as default", type = "bool", value = GetWidgetToggleValue("Set target default"), description = 'Replace default attack command to a set-target command\n(when rightclicked on enemy unit)' },
-		{ id = "dgunnogroundenemies", group = "game", widget = "DGun no ground enemies", name = "Dont snap DGun to ground units", type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = 'Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)' },
+		{ id = "transportai", group = "game", basic = true, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
+		{ id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
+		{ id = "dgunnogroundenemies", group = "game", widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
 
-		{ id = "singleplayerpause", group = "game", name = "Pause when in settings/quit/lobby", type = "bool", value = pauseGameWhenSingleplayer, description = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
+		{ id = "singleplayerpause", group = "game", name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
 		  onchange = function(i, value)
 			  pauseGameWhenSingleplayer = value
 			  if isSinglePlayer and show then
@@ -4164,83 +4167,83 @@ function init()
 		  end,
 		},
 
-		{ id = "profiler", group = "dev", widget = "Widget Profiler", name = "Widget profiler", type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
-		{ id = "framegrapher", group = "dev", widget = "Frame Grapher", name = "Frame grapher", type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
+		{ id = "profiler", group = "dev", widget = "Widget Profiler", name = texts.option.profiler, type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
+		{ id = "framegrapher", group = "dev", widget = "Frame Grapher", name = texts.option.framegrapher, type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
 
 		-- DEV
-		{ id = "autocheat", group = "dev", widget = "Auto cheat", name = "Auto enable cheats for $VERSION", type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = "does: /cheat, /globallos, /godmode" },
-		{ id = "restart", group = "dev", name = "Restart", type = "bool", value = false, description = "Restarts the game",
+		{ id = "autocheat", group = "dev", widget = "Auto cheat", name = texts.option.autocheat, type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = texts.option.autocheat_descr },
+		{ id = "restart", group = "dev", name = texts.option.restart, type = "bool", value = false, description = texts.option.restart_descr,
 		  onchange = function(i, value)
 			  options[getOptionByID('restart')].value = false
 			  Spring.Restart("", startScript)
 		  end,
 		},
-		{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = "Startbox editor", type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)" },
+		{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
-		{ id = "tonemapA", group = "dev", name = "Unit tonemapping" .. widgetOptionColor .. "  var 1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
+		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapA", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapB", group = "dev", name = widgetOptionColor .. "   var 2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.8), description = "",
+		{ id = "tonemapB", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.8), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapB", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapC", group = "dev", name = widgetOptionColor .. "   var 3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.35), description = "",
+		{ id = "tonemapC", group = "dev", name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.35), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapC", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   var 4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 1.0), description = "",
+		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapD", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   var 5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.15), description = "",
+		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.15), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapE", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "envAmbient", group = "dev", name = widgetOptionColor .. "   ambient %", type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.3), description = "",
+		{ id = "envAmbient", group = "dev", name = widgetOptionColor .. "   "..texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.3), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("envAmbient", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   sun mult", type = "slider", min = 0.4, max = 2.5, step = 0.05, value = Spring.GetConfigFloat("unitSunMult", 1.35), description = "",
+		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitSunMult, type = "slider", min = 0.4, max = 2.5, step = 0.05, value = Spring.GetConfigFloat("unitSunMult", 1.35), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitSunMult", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "unitExposureMult", group = "dev", name = widgetOptionColor .. "   exposure mult", type = "slider", min = 0.5, max = 2, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
+		{ id = "unitExposureMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitExposureMult, type = "slider", min = 0.5, max = 2, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitExposureMult", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "modelGamma", group = "dev", name = widgetOptionColor .. "   gamma value", type = "slider", min = 0.8, max = 2.4, step = 0.05, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
+		{ id = "modelGamma", group = "dev", name = widgetOptionColor .. "   "..texts.option.modelGamma, type = "slider", min = 0.8, max = 2.4, step = 0.05, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("modelGamma", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   restore defaults", type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
+		{ id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   "..texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapA", 4.8)
 			  Spring.SetConfigFloat("tonemapB", 0.8)
@@ -4265,12 +4268,12 @@ function init()
 			  options[getOptionByID('tonemapDefaults')].value = false
 		  end,
 		},
-		{ id = "debugcolvol", group = "dev", name = "Draw Collision Volumes", type = "bool", value = false, description = "",
+		{ id = "debugcolvol", group = "dev", name = texts.option.debugcolvol, type = "bool", value = false, description = "",
 		  onchange = function(i, value)
 			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
 		  end,
 		},
-		{ id = "fog_r", group = "dev", name = "Fog"..widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
+		{ id = "fog_r", group = "dev", name = texts.option.fog..widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4278,7 +4281,7 @@ function init()
 			  Spring.SetAtmosphere({ fogColor = {value, fogColor[2], fogColor[3], fogColor[4]} })
 		  end,
 		},
-		{ id = "fog_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
+		{ id = "fog_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4286,7 +4289,7 @@ function init()
 			  Spring.SetAtmosphere({ fogColor = {fogColor[1], value, fogColor[3], fogColor[4]} })
 		  end,
 		},
-		{ id = "fog_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
+		{ id = "fog_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4294,7 +4297,7 @@ function init()
 			  Spring.SetAtmosphere({ fogColor = {fogColor[1], fogColor[2], value, fogColor[4]} })
 		  end,
 		},
-		{ id = "fog_color_reset", group = "dev", name = widgetOptionColor .. "   reset map default", type = "bool", value = false, description = '',
+		{ id = "fog_color_reset", group = "dev", name = widgetOptionColor .. "   "..texts.option.fog_color_reset, type = "bool", value = false, description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4312,7 +4315,7 @@ function init()
 		--  end,
 		--},
 
-		{ id = "map_voidwater", group = "dev", name = "Map VoidWater", type = "bool", value = false, description = "",
+		{ id = "map_voidwater", group = "dev", name = texts.option.map_voidwater, type = "bool", value = false, description = "",
 		  onload = function(i)
 			  options[i].value = gl.GetMapRendering("voidWater")
 		  end,
@@ -4320,7 +4323,7 @@ function init()
 			  Spring.SetMapRenderingParams({ voidWater = value })
 		  end,
 		},
-		{ id = "map_voidground", group = "dev", name = "Map VoidGround", type = "bool", value = false, description = "",
+		{ id = "map_voidground", group = "dev", name = texts.option.map_voidground, type = "bool", value = false, description = "",
 		  onload = function(i)
 			  options[i].value = gl.GetMapRendering("voidGround")
 		  end,
@@ -4329,7 +4332,7 @@ function init()
 		  end,
 		},
 
-		{ id = "map_splatdetailnormaldiffusealpha", group = "dev", name = "Map splatDetailNormalDiffuseAlpha", type = "bool", value = false, description = "",
+		{ id = "map_splatdetailnormaldiffusealpha", group = "dev", name = texts.option.map_splatdetailnormaldiffusealpha, type = "bool", value = false, description = "",
 		  onload = function(i)
 			  options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
 		  end,
@@ -4338,7 +4341,7 @@ function init()
 		  end,
 		},
 
-		{ id = "map_splattexmults_r", group = "dev", name = "Map Splat Tex Mult" .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+		{ id = "map_splattexmults_r", group = "dev", name = texts.option.map_splattexmults .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b, a = gl.GetMapRendering("splatTexMults")
 			  options[i].value = r
@@ -4379,7 +4382,7 @@ function init()
 		  end,
 		},
 
-		{ id = "map_splattexacales_r", group = "dev", name = "Map Splat Tex Scales" .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+		{ id = "map_splattexacales_r", group = "dev", name = texts.option.map_splattexacales .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b, a = gl.GetMapRendering("splatTexScales")
 			  options[i].value = r
@@ -4420,7 +4423,7 @@ function init()
 		},
 
 
-		{ id = "GroundShadowDensity", group = "dev", name = "GroundShadowDensity" .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+		{ id = "GroundShadowDensity", group = "dev", name = texts.option.GroundShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local groundshadowDensity = gl.GetSun("shadowDensity", "ground")
 			  options[i].value = groundshadowDensity
@@ -4431,7 +4434,7 @@ function init()
 		  end,
 		},
 
-		{ id = "UnitShadowDensity", group = "dev", name = "UnitShadowDensity" .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+		{ id = "UnitShadowDensity", group = "dev", name = texts.option.UnitShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local groundshadowDensity = gl.GetSun("shadowDensity", "unit")
 			  options[i].value = groundshadowDensity
@@ -4442,7 +4445,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_groundambient_r", group = "dev", name = "Ground ambient" .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_r", group = "dev", name = texts.option.color_groundambient .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = r
@@ -4453,7 +4456,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundambient_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = g
@@ -4464,7 +4467,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundambient_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = b
@@ -4476,7 +4479,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_grounddiffuse_r", group = "dev", name = "Ground diffuse" .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_r", group = "dev", name = texts.option.color_grounddiffuse .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = r
@@ -4487,7 +4490,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_grounddiffuse_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = g
@@ -4498,7 +4501,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_grounddiffuse_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = b
@@ -4510,7 +4513,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_groundspecular_r", group = "dev", name = "Ground specular" .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundspecular_r", group = "dev", name = texts.option.color_groundspecular .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular")
 			  options[i].value = r
@@ -4521,7 +4524,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundspecular_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundspecular_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular")
 			  options[i].value = g
@@ -4532,7 +4535,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundspecular_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundspecular_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular")
 			  options[i].value = b
@@ -4545,7 +4548,7 @@ function init()
 		},
 
 
-		{ id = "color_unitambient_r", group = "dev", name = "Unit ambient" .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_r", group = "dev", name = texts.option.color_unitambient .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = r
@@ -4556,7 +4559,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitambient_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = g
@@ -4567,7 +4570,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitambient_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = b
@@ -4579,7 +4582,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_unitdiffuse_r", group = "dev", name = "Unit diffuse" .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_r", group = "dev", name = texts.option.color_unitdiffuse .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = r
@@ -4590,7 +4593,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitdiffuse_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = g
@@ -4601,7 +4604,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitdiffuse_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = b
@@ -4613,7 +4616,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_unitspecular_r", group = "dev", name = "Unit specular" .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_r", group = "dev", name = texts.option.color_unitspecular .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = r
@@ -4624,7 +4627,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitspecular_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = g
@@ -4635,7 +4638,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitspecular_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = b
@@ -4647,7 +4650,7 @@ function init()
 		  end,
 		},
 
-		{ id = "suncolor_r", group = "dev", name = "Sun" .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "suncolor_r", group = "dev", name = "Sun" .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("sunColor")
 			  options[i].value = r
@@ -4658,7 +4661,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "suncolor_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "suncolor_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("sunColor")
 			  options[i].value = g
@@ -4669,7 +4672,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "suncolor_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "suncolor_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("sunColor")
 			  options[i].value = b
@@ -4681,7 +4684,7 @@ function init()
 		  end,
 		},
 
-		{ id = "skycolor_r", group = "dev", name = "Sky " .. widgetOptionColor .. "  red", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "skycolor_r", group = "dev", name = texts.option.skycolor .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("skyColor")
 			  options[i].value = r
@@ -4692,7 +4695,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "skycolor_g", group = "dev", name = widgetOptionColor .. "   green", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "skycolor_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("skyColor")
 			  options[i].value = g
@@ -4703,7 +4706,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "skycolor_b", group = "dev", name = widgetOptionColor .. "   blue", type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "skycolor_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("skyColor")
 			  options[i].value = b
@@ -4715,7 +4718,7 @@ function init()
 		  end,
 		},
 
-		{ id = "sunlighting_reset", group = "dev", name = "Reset ground/unit coloring", type = "bool", value = false, description = 'resets ground/unit ambient/diffuse/specular colors',
+		{ id = "sunlighting_reset", group = "dev", name = texts.option.sunlighting_reset, type = "bool", value = false, description = texts.option.sunlighting_reset_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)

@@ -629,8 +629,8 @@ function drawCell(cell, zoom)
 			end
 			RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
 
-			color1 = { 0, 0, 0, 0.8 }
-			color2 = { 0, 0, 0, 0.6 }
+			color1 = { 0, 0, 0, 0.85 }
+			color2 = { 0, 0, 0, 0.7 }
 		end
 
 		local padding = math_max(1, math_floor(bgpadding * 0.52))

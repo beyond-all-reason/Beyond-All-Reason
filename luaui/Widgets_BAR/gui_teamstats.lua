@@ -26,6 +26,34 @@ local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	player = 'Player',
+	dead = 'dead',
+	gone = 'gone',
+	damagedealt1 = 'Damage',
+	damagedealt2 = 'Dealt',
+	damagereceived1 = 'Damage',
+	damagereceived2 = 'Received',
+	unitsproduced1 = 'Units',
+	unitsproduced2 = 'Produced',
+	unitskilled1 = 'Units',
+	unitskilled2 = 'Killed',
+	unitsdied1 = 'Units',
+	unitsdied2 = 'Died',
+	damageefficiency1 = 'Damage',
+	damageefficiency2 = 'Efficiency',
+	aggressionlevel1 = 'Aggression',
+	aggressionlevel2 = 'Level',
+	metalproduced1 = 'Metal',
+	metalproduced2 = 'Produced',
+	metalexcess1 = 'Metal',
+	metalexcess2 = 'Excess',
+	energyproduced1 = 'Energy',
+	energyproduced2 = 'Produced',
+	energyexcess1 = 'Energy',
+	energyexcess2 = 'Excess',
+}
+
 local widgetScale
 
 local customScale = 1
@@ -64,36 +92,7 @@ local header = {
 --	"resourcesSent",
 }
 
-local headerRemap = {
-	frame = {" ","Player"},
-	metalUsed = {"Metal","Used"},
-	metalProduced = {"Metal","Produced"},
-	metalExcess = {"Metal","Excess"},
-	metalReceived = {"Metal","Received"},
-	metalSent = {"Metal","Sent"},
-	energyUsed = {"Energy","Used"},
-	energyProduced = {"Energy","Produced"},
-	energyExcess = {"Energy","Excess"},
-	energyReceived = {"Energy","Received"},
-	energySent = {"Energy","Sent"},
-	damageDealt = {"Damage","Dealt"},
-	damageReceived = {"Damage","Received"},
-	damageEfficiency = {"Damage","Efficiency"},
-	unitsProduced = {"Units","Produced"},
-	unitsDied = {"Units","Died"},
-	unitsReceived = {"Units","Received"},
-	unitsSent = {"Units","Sent"},
-	unitsCaptured = {"Units","Captured"},
-	unitsOutCaptured = {"Units","OutCaptured"},
-	unitsKilled = {"Units","Killed"},
-	resourcesUsed = {"Resources","Used"},
-	resourcesProduced = {"Resources","Produced"},
-	resourcesExcess = {"Resources","Excess"},
-	resourcesReceived = {"Resources","Received"},
-	resourcesSent = {"Resources","Sent"},
-	killEfficiency = {"Killing","Efficiency"},
-	aggressionLevel = {"Aggression","Level"},
-}
+local headerRemap = {}	-- filled in initialize
 
 local guiData = {
 	mainPanel = {
@@ -292,6 +291,41 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('teamstats')
+	end
+
+	headerRemap = {
+		frame = {" ",texts.player},
+		--metalUsed = {"Metal","Used"},
+		metalProduced = {texts.metalproduced1,texts.metalproduced2},
+		metalExcess = {texts.metalexcess1,texts.metalexcess2},
+		--metalReceived = {"Metal","Received"},
+		--metalSent = {"Metal","Sent"},
+		--energyUsed = {"Energy","Used"},
+		energyProduced = {texts.energyproduced1,texts.energyproduced2},
+		energyExcess = {texts.energyexcess1,texts.energyexcess2},
+		--energyReceived = {"Energy","Received"},
+		--energySent = {"Energy","Sent"},
+		damageDealt = {texts.damagedealt1,texts.damagedealt2},
+		damageReceived = {texts.damagereceived1,texts.damagereceived2},
+		damageEfficiency = {texts.damageefficiency1,texts.damageefficiency2},
+		unitsProduced = {texts.unitsproduced1,texts.unitsproduced2},
+		unitsDied = {texts.unitsdied1,texts.unitsdied2},
+		--unitsReceived = {"Units","Received"},
+		--unitsSent = {"Units","Sent"},
+		--unitsCaptured = {"Units","Captured"},
+		--unitsOutCaptured = {"Units","OutCaptured"},
+		unitsKilled = {texts.unitskilled1,texts.unitskilled2},
+		--resourcesUsed = {"Resources","Used"},
+		--resourcesProduced = {"Resources","Produced"},
+		--resourcesExcess = {"Resources","Excess"},
+		--resourcesReceived = {"Resources","Received"},
+		--resourcesSent = {"Resources","Sent"},
+		--killEfficiency = {"Killing","Efficiency"},
+		aggressionLevel = {texts.aggressionlevel1,texts.aggressionlevel2},
+	}
+
 	guiData.mainPanel.visible = false
 	widget:ViewResize()
 	local _,_, paused = Spring.GetGameSpeed()
@@ -387,14 +421,14 @@ function widget:GameFrame(n,forceupdate)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
-							playerName = teamControllers[teamID] or "gone"
+							playerName = teamControllers[teamID] or texts.gone
 						else
 							teamControllers[teamID] = playerName
 						end
 						if isDead then
-							playerName = playerName .. " (dead)"
+							playerName = playerName .. " ("..texts.dead..")"
 						elseif not isActive then
-							playerName = playerName .. " (gone)"
+							playerName = playerName .. " ("..texts.gone..")"
 						end
 					end
 					if history.damageReceived ~= 0 then
