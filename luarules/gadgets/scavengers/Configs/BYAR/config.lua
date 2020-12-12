@@ -68,7 +68,7 @@ scavconfig = {
 		T4med								= 21000,
 		T4high								= 24000,
 		T4top								= 28000,
-		BossFight							= 1,--32000,
+		BossFight							= 32000,
 		Endless								= 35000,
 		-- don't delete
 		NoRadar								= 7500,
@@ -127,7 +127,7 @@ unitControllerModuleConfig = {
 }
 
 spawnProtectionConfig = {
-	useunit				= false, -- use starbox otherwise
+	useunit				= true, -- use starbox otherwise
 	spread				= 100,
 }
 
