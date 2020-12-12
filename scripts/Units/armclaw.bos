@@ -40,7 +40,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Go()
 {
-	move post to y-axis [0] speed [150.000000];
+	move post to y-axis [4] speed [150.000000];
 	move barrel to z-axis [0.000000] speed [90.000000];
 	wait-for-move post along y-axis;
 	wait-for-move barrel along z-axis;
@@ -117,14 +117,14 @@ RestoreAfterDelay()
 
 Create()
 {
-	hide flare;
-	dont-shade flare;
-	dont-cache flare;
+
 	restore_delay = 2000;
 	Static_Var_1 = 0;
 	call-script InitState();
 	start-script SmokeUnit();
 	start-script RequestState(0);
+	
+	move aimpoint to y-axis [5] speed [150.000000];
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
@@ -157,6 +157,7 @@ AimPrimary(heading, pitch)
 		sleep 250;
 	}
 	turn post to y-axis heading speed <300.000000>;
+	if (pitch < 0) pitch = 0;
 	turn turret to x-axis <0.000000> - pitch speed <300.000000>;
 	wait-for-turn post around y-axis;
 	wait-for-turn turret around x-axis;

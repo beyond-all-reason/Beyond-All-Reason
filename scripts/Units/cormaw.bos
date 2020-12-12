@@ -46,7 +46,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Go()
 {
 	set ARMORED to 0;
-	move top to y-axis [0.000000] speed [19.989014];
+	move top to y-axis [8.000000] speed [19.989014];
 	wait-for-move top along y-axis;
 	move bore to z-axis [0.000000] speed [19.989014];
 	move barrel to z-axis [0.000000] speed [19.989014];
@@ -109,6 +109,7 @@ Create()
 	{
 		sleep 250;
 	}
+	move aimpoint to y-axis [8] now;
 	start-script SmokeUnit();
 	start-script RequestState(1);
 }
