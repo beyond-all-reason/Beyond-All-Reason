@@ -30,7 +30,7 @@ function ScavBossPhaseControl(bosshealthpercentage)
 		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesEndgameList
 	else
 		BossFightCurrentPhase = 10
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesEmergencyList
+		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesEndgameList
 	end
 end
 
@@ -60,7 +60,7 @@ end
 
 function BossSpecAbiDGun(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
 		if nearestEnemy then
 			Spring.Echo("[Scavengers] Boss Dgun Activated")
 			local NearestBossEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 20000, false)
@@ -73,7 +73,7 @@ end
 
 function BossSpecAbiDGunFrenzy(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 500, false)
 		if nearestEnemy then
 			Spring.Echo("[Scavengers] Boss Frenzy Dgun Activated")
 			local r = math_random(1,4)
@@ -137,11 +137,10 @@ end
 
 function BossSpecAbiRetreat(n)
 	if FinalBossUnitID then
-		AbilityTimer = BossFightCurrentPhase*3
 		for q = 1,100 do
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			local posx = math.random(100, mapsizeX-100)
-			local posz = math.random(100, mapsizeZ-100)
+			local posx = math.random(bossx-1000, bossx+1000)
+			local posz = math.random(bossz-1000, bossz+1000)
 			local telstartposy = Spring.GetGroundHeight(bossx, bossz)
 			local telendposy = Spring.GetGroundHeight(posx, posz)
 			canTeleport = posLosCheckOnlyLOS(posx, telendposy, posz, 100)
@@ -151,6 +150,7 @@ function BossSpecAbiRetreat(n)
 			if canTeleport == true then
 				Spring.Echo("[Scavengers] Boss Self Repair Activated")
 				CurrentlyUsedPassiveAbility = "selfrepair"
+				AbilityTimer = BossFightCurrentPhase*3
 				Spring.SpawnCEG("scav-spawnexplo",bossx,telstartposy,bossz,0,0,0)
 				Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
 				Spring.SetUnitPosition(FinalBossUnitID, posx, posz)
@@ -163,7 +163,7 @@ end
 
 function BossSpecAbiFighterWave(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
 		if nearestEnemy then
 			Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
 			local r = math_random(1,4)
@@ -197,14 +197,27 @@ function BossSpecAbiFighterWave(n)
 	end
 end
 
-function BossSpecAbiNearbyNuke(n)
+function BossSpecAbiNearbyTacNuke(n)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
 		if nearestEnemy then
 			Spring.Echo("[Scavengers] Boss Is TacNuking")
 			local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
 			for i = 1,BossFightCurrentPhase do
-				QueueSpawn("scavnukespawner_scav", posx+math_random(-750,750), posy, posz+math_random(-750,750), math_random(0,3),GaiaTeamID, n+i*30+math.random(0,60))
+				QueueSpawn("scavtacnukespawner_scav", posx+math_random(-750,750), posy, posz+math_random(-750,750), math_random(0,3),GaiaTeamID, n+i*30+math.random(0,60))
+			end
+		end
+	end
+end
+
+function BossSpecAbiNearbyEMP(n)
+	if FinalBossUnitID then
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
+		if nearestEnemy then
+			Spring.Echo("[Scavengers] Boss Is EMP'ing")
+			local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
+			for i = 1,BossFightCurrentPhase do
+				QueueSpawn("scavempspawner_scav", posx+math_random(-750,750), posy, posz+math_random(-750,750), math_random(0,3),GaiaTeamID, n+i*30+math.random(0,60))
 			end
 		end
 	end
@@ -227,18 +240,16 @@ BossSpecialAbilitiesMidgameList = {
 	BossSpecAbiDGun,
 	BossSpecAbiDGunFrenzy,
 	BossSpecAbiFighterWave,
-	BossSpecAbiNearbyNuke,
+	BossSpecAbiNearbyTacNuke,
+	BossSpecAbiNearbyEMP,
 }
 
 BossSpecialAbilitiesEndgameList = {
 	BossSpecAbiDGun,
 	BossSpecAbiDGunFrenzy,
 	BossSpecAbiFighterWave,
-	BossSpecAbiNearbyNuke,
-}
-
-BossSpecialAbilitiesEmergencyList = {
-	BossSpecAbiNearbyNuke,
+	BossSpecAbiNearbyTacNuke,
+	BossSpecAbiNearbyEMP,
 	BossSpecAbiRetreat,
 }
 

@@ -5,7 +5,7 @@ GaiaTeamID = Spring.GetGaiaTeamID()
 GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 local GameShortName = Game.gameShortName
-local RuinSpawns = (math.ceil(mapsizeX+mapsizeZ)/500)+30
+local RuinSpawns = ((math.ceil(mapsizeX+mapsizeZ)/500)+30)*10
 
 local scavengersAIEnabled = false
 local scavengerAllyTeamID
@@ -83,7 +83,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 function gadget:GameFrame(n)
-	if n > 30 and n <= RuinSpawns then
+	if n > 30 and n%10 == 0 and n <= RuinSpawns then
 		for i = 1,100 do
 			local pickedRuin = RuinsList[math.random(1,#RuinsList)]
 			local pickedRuinSea = RuinsListSea[math.random(1,#RuinsListSea)]

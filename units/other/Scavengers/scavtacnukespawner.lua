@@ -1,5 +1,5 @@
 return {
-	scavnukespawner = {
+	scavtacnukespawner = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
