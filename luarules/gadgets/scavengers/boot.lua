@@ -139,7 +139,7 @@ function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
 			table.insert(QueuedSpawnsFrames, QueueFrame)
 		end
 	else
-		Spring.Echo("[Scavengers] Failed to spawn "..unitName..", invalid unit")
+		Spring.Echo("[Scavengers] Failed to queue "..unitName..", invalid unit")
 	end
 end
 
@@ -183,6 +183,16 @@ function gadget:GameFrame(n)
 
 	if n > 1 then
 		SpawnFromQueue(n)
+	end
+
+	if n == 1 and spawnProtectionConfig.useunit == false and scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists then
+		ScavSafeAreaExist = true
+		ScavSafeAreaGenerator = 5
+		ScavSafeAreaMinX = ScavengerStartboxXMin
+		ScavSafeAreaMaxX = ScavengerStartboxXMax
+		ScavSafeAreaMinZ = ScavengerStartboxZMin
+		ScavSafeAreaMaxZ = ScavengerStartboxZMax
+		ScavSafeAreaSize = math.ceil(((ScavengerStartboxXMax - ScavengerStartboxXMin) + (ScavengerStartboxZMax - ScavengerStartboxZMin))*0.25)
 	end
 
 	if n == 300 then

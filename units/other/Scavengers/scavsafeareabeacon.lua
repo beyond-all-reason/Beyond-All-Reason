@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 3200,
 		buildpic = "scavengers/scavsafeareabeacon.PNG",
 		buildtime = 750,
+		blocking = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 10,
