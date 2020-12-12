@@ -10,6 +10,13 @@ function widget:GetInfo()
 	}
 end
 
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	playertv = 'Player TV',
+	cancelcamera = 'cancel camera',
+	tooltip = 'Auto camera-track of mostly top ranked players\n(switches player every 40 seconds by default)',
+}
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -295,7 +302,7 @@ function createList()
 		font:Print(color .. text, right - (textWidth / 2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
 
 		if toggled then
-			local name = 'Player TV  '
+			local name = texts.playertv..'  '
 			local fontSize = (widgetHeight * widgetScale) * 0.6
 			local vpos = toggleButton[2] + (0.25 * widgetHeight * widgetScale)
 			font:SetTextColor(0, 0, 0, 0.6)
@@ -317,10 +324,10 @@ function createList()
 		gl.Color(0, 0, 0, 0.14)
 		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, bgpadding, 1, 1, 1, 0)
 
-		local text = '   cancel camera   '
+		local text = '   '..texts.cancelcamera..'   '
 		local color = '\255\255\225\225'
 		if not toggled and not lockPlayerID then
-			text = '   Player TV   '
+			text = '   '..texts.playertv..'   '
 			color = '\255\225\255\225'
 		end
 		local fontSize = (widgetHeight * widgetScale) * 0.5
@@ -367,6 +374,10 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('playertv')
+	end
+
 	widget:ViewResize()
 
 	isSpec = Spring.GetSpectatingState()
@@ -461,7 +472,7 @@ function widget:Update(dt)
 			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 				Spring.SetMouseCursor('cursornormal')
-				WG['tooltip'].ShowTooltip('playertv', 'Auto camera-track of mostly top TS players\n(switches player every ' .. playerChangeDelay .. ' seconds)')
+				WG['tooltip'].ShowTooltip('playertv', texts.tooltip)
 			end
 		end
 		if not rejoining and toggled then

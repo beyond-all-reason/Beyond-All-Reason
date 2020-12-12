@@ -892,54 +892,58 @@ if gadgetHandler:IsSyncedCode() then
 			if unitID ~= queenID or GetUnitTeam(unitID) ~= chickenTeamID then
 				if failCount > 5 then
 					local x, y, z = GetUnitPosition(unitID)
-					local yh = GetGroundHeight(x, z)
-					if y and yh and (y < (yh + 1)) then
-						deathQueue[unitID] = { selfd = false, reclaimed = true }
-						chickenCount = chickenCount - 1
-						chickenDebtCount = chickenDebtCount + 1
-						if chickenBirths[unitID] then
-							local burrowFailCount = failBurrows[chickenBirths[unitID].burrowID]
-							if (burrowFailCount == nil) then
-								failBurrows[chickenBirths[unitID].burrowID] = 1
-							else
-								failBurrows[chickenBirths[unitID].burrowID] = burrowFailCount + 1
+					if x then
+						local yh = GetGroundHeight(x, z)
+						if y and yh and (y < (yh + 1)) then
+							deathQueue[unitID] = { selfd = false, reclaimed = true }
+							chickenCount = chickenCount - 1
+							chickenDebtCount = chickenDebtCount + 1
+							if chickenBirths[unitID] then
+								local burrowFailCount = failBurrows[chickenBirths[unitID].burrowID]
+								if (burrowFailCount == nil) then
+									failBurrows[chickenBirths[unitID].burrowID] = 1
+								else
+									failBurrows[chickenBirths[unitID].burrowID] = burrowFailCount + 1
+								end
 							end
 						end
 					end
 				elseif failCount > 2 then
 					local x, y, z = GetUnitPosition(unitID)
-					local attackingFeature = false
-					if not checkedForDT then
-						checkedForDT = true
-						local nearFeatures = Spring.GetFeaturesInSphere(x, y, z, 70)
-						for i, featureID in ipairs(nearFeatures) do
-							local featureDefID = Spring.GetFeatureDefID(featureID)
-							if featureDefID and FeatureDefs[featureDefID].metal > 0 and not FeatureDefs[featureDefID].autoReclaimable then
-								local fx, fy, fz = Spring.GetFeaturePosition(featureID)
-								idleOrderQueue[unitID] = { cmd = CMD.ATTACK, params = { fx, fy, fz }, opts = {} }
-								attackingFeature = true
-								break
-							end
-						end
-					end
-					if not attackingFeature then
-						local dx, _, dz = GetUnitDirection(unitID)
-						local angle = math.atan2(dx, dz)
-						Spring.SpawnCEG("blood_trail", x, y, z, 0, 0, 0)
-						if y < -15 then
-							deathQueue[unitID] = { selfd = false, reclaimed = false }
-							chickenCount = chickenCount - 1
-							chickenDebtCount = chickenDebtCount + 1
-							if chickenBirths[unitID] then
-								local burrowFailCount = failBurrows[chickenBirths[unitID].burrowID]
-								if burrowFailCount == nil then
-									failBurrows[chickenBirths[unitID].burrowID] = 3
-								else
-									failBurrows[chickenBirths[unitID].burrowID] = burrowFailCount + 3
+					if x then
+						local attackingFeature = false
+						if not checkedForDT then
+							checkedForDT = true
+							local nearFeatures = Spring.GetFeaturesInSphere(x, y, z, 70)
+							for i, featureID in ipairs(nearFeatures) do
+								local featureDefID = Spring.GetFeatureDefID(featureID)
+								if featureDefID and FeatureDefs[featureDefID].metal > 0 and not FeatureDefs[featureDefID].autoReclaimable then
+									local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+									idleOrderQueue[unitID] = { cmd = CMD.ATTACK, params = { fx, fy, fz }, opts = {} }
+									attackingFeature = true
+									break
 								end
 							end
 						end
-						Spring.AddUnitImpulse(unitID, math.sin(angle) * 2, 2.5, math.cos(angle) * 2, 100)
+						if not attackingFeature then
+							local dx, _, dz = GetUnitDirection(unitID)
+							local angle = math.atan2(dx, dz)
+							Spring.SpawnCEG("blood_trail", x, y, z, 0, 0, 0)
+							if y < -15 then
+								deathQueue[unitID] = { selfd = false, reclaimed = false }
+								chickenCount = chickenCount - 1
+								chickenDebtCount = chickenDebtCount + 1
+								if chickenBirths[unitID] then
+									local burrowFailCount = failBurrows[chickenBirths[unitID].burrowID]
+									if burrowFailCount == nil then
+										failBurrows[chickenBirths[unitID].burrowID] = 3
+									else
+										failBurrows[chickenBirths[unitID].burrowID] = burrowFailCount + 3
+									end
+								end
+							end
+							Spring.AddUnitImpulse(unitID, math.sin(angle) * 2, 2.5, math.cos(angle) * 2, 100)
+						end
 					end
 				end
 			end

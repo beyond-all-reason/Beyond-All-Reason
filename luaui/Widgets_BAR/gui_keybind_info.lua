@@ -11,6 +11,11 @@ return {
 }
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	title = 'Keybinds',
+	disclaimer = 'These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!'
+}
+
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -232,7 +237,7 @@ function DrawWindow()
 	RectRound(x,y-screenHeight,x+screenWidth,y,5.5, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
 
 	-- title background
-    local title = "Keybinds"
+    local title = texts.title
     local titleFontSize = 18
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
@@ -256,7 +261,7 @@ function DrawWindow()
 
     gl.Color(1,1,1,1)
 	font:Begin()
-    font:Print("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
+    font:Print(texts.disclaimer, screenX+12, y-screenHeight + 14, 12.5)
 	font:End()
 end
 
@@ -354,6 +359,9 @@ function mouseEvent(x, y, button, release)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('keys')
+	end
 
 	WG['keybinds'] = {}
 	WG['keybinds'].toggle = function(state)

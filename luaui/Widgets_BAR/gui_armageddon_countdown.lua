@@ -22,6 +22,12 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	armageddon = 'ARMAGEDDON',
+	armageddoniminent = 'Armageddon imminent...',
+	armageddonapproaches = 'Armageddon approaches...',
+}
+
 local vsx,vsy = Spring.GetViewGeometry()
 local font, chobbyInterface, gameStarted
 
@@ -30,6 +36,9 @@ local font, chobbyInterface, gameStarted
 ----------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('armageddon')
+	end
 	widget:ViewResize()
 end
 
@@ -58,11 +67,11 @@ function widget:DrawScreen()
         local vsx, vsy = gl.GetViewSizes()
         font:Begin()
         if timeLeft <= 0 then
-            font:Print('\255\255\1\1ARMAGEDDON', 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print('\255\255\1\1'..texts.armageddon, 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         elseif timeLeft <= 60 then
-            font:Print(string.format('\255\255\1\1Armageddon imminent... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print(string.format('\255\255\1\1'..texts.armageddoniminent..' %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         else
-            font:Print(string.format('\255\255\255\1Armageddon approaches... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print(string.format('\255\255\255\1'..texts.armageddonapproaches..' %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         end
         font:End()
     end

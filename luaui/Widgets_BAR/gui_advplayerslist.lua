@@ -61,6 +61,7 @@ local collapsable = false
 
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	playerlist = 'Playerlist',
 	spectators = 'Spectators',
 	enemies = 'Enemies',
 	allies = 'Allies',
@@ -2108,7 +2109,7 @@ function CreateBackground()
 
         if collapsed then
             font:Begin()
-            local text = 'Playerlist'
+            local text = texts.playerlist
             local yOffset = collapsedHeight * 0.5
             local xOffset = collapsedHeight / 6
             font:SetTextColor(0, 0, 0, 0.2)
@@ -2854,7 +2855,7 @@ function DrawID(playerID, posY, dark, dead)
     else
         font:SetTextColor(1, 1, 1, 0.66)
     end
-    font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX + 4.5, posY + 5, fontSize, "on")
+    font:Print(spacer .. playerID, m_ID.posX + deadspace + widgetPosX + 4.5, posY + 5, fontSize, "on")
     font:End()
 end
 
@@ -3159,11 +3160,11 @@ function CreateShareSlider()
             if right == true then
                 DrawRect(m_share.posX + widgetPosX - 28, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 19, posY + 17 + sliderPosition)
                 gl_Texture(false)
-                font:Print(amountEM .. "", m_share.posX + widgetPosX - 5, posY + 3 + sliderPosition, 14, "on")
+                font:Print(amountEM, m_share.posX + widgetPosX - 5, posY + 3 + sliderPosition, 14, "on")
             else
                 DrawRect(m_share.posX + widgetPosX + 76, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 31, posY + 17 + sliderPosition)
                 gl_Texture(false)
-                font:Print(amountEM .. "", m_share.posX + widgetPosX + 55, posY + 3 + sliderPosition, 14, "on")
+                font:Print(amountEM, m_share.posX + widgetPosX + 55, posY + 3 + sliderPosition, 14, "on")
             end
         elseif metalPlayer ~= nil then
             posY = widgetPosY + widgetHeight - metalPlayer.posY
@@ -3175,11 +3176,11 @@ function CreateShareSlider()
             if right == true then
                 DrawRect(m_share.posX + widgetPosX - 12, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 35, posY + 17 + sliderPosition)
                 gl_Texture(false)
-                font:Print(amountEM .. "", m_share.posX + widgetPosX + 11, posY + 3 + sliderPosition, 14, "on")
+                font:Print(amountEM, m_share.posX + widgetPosX + 11, posY + 3 + sliderPosition, 14, "on")
             else
                 DrawRect(m_share.posX + widgetPosX + 88, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 47, posY + 17 + sliderPosition)
                 gl_Texture(false)
-                font:Print(amountEM .. "", m_share.posX + widgetPosX + 71, posY + 3 + sliderPosition, 14, "on")
+                font:Print(amountEM, m_share.posX + widgetPosX + 71, posY + 3 + sliderPosition, 14, "on")
             end
         end
         font:End()

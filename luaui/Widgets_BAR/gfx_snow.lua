@@ -33,6 +33,7 @@ local gameFrameCountdown		= 120		-- on launch: wait this many frames before adju
 local particleScaleMultiplier	= 1
 
 -- pregame info message
+local showPreGameInfo = false
 local autoReduce = true
 local fadetime = 13
 local fadetimeThreshold = 30
@@ -358,18 +359,20 @@ function widget:Initialize()
 		gameStarted = true
 	end
 
-	drawinfolist = gl.CreateList( function()
-		local text = "Snowing less when FPS gets lower \n"
-		local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
-		local fontSize = 30
-		--local textWidth = font:GetTextWidth(text)*fontSize
-		local textHeight = font:GetTextHeight(text)*fontSize
-		--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
-		font:Begin()
-		font:Print(text, 0, textHeight/2, fontSize, "c")
-		font:Print(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
-		font:End()
-	end)
+	if showPreGameInfo then
+		drawinfolist = gl.CreateList( function()
+			local text = "Snowing less when FPS gets lower \n"
+			local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
+			local fontSize = 30
+			--local textWidth = font:GetTextWidth(text)*fontSize
+			local textHeight = font:GetTextHeight(text)*fontSize
+			--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
+			font:Begin()
+			font:Print(text, 0, textHeight/2, fontSize, "c")
+			font:Print(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
+			font:End()
+		end)
+	end
 
 	startOsClock = os.clock()
 	-- check for keywords
@@ -455,25 +458,27 @@ function widget:Shutdown()
 	end
 end
 
-function widget:DrawScreen()
-	if not enabled or not autoReduce then return end
+if showPreGameInfo then
+	function widget:DrawScreen()
+		if not enabled or not autoReduce then return end
 
-	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
-		if not avgFpsInit then
-			avgFpsInit = true
-			averageFps = spGetFPS()
-		end
-		local now = os.clock()
-		local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
-		if opacityMultiplier > 1 then opacityMultiplier = 1 end
+		if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
+			if not avgFpsInit then
+				avgFpsInit = true
+				averageFps = spGetFPS()
+			end
+			local now = os.clock()
+			local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
+			if opacityMultiplier > 1 then opacityMultiplier = 1 end
 
-		if opacityMultiplier > 0 then
-			gl.PushMatrix()
-			gl.Translate(vsx/2, vsy/1.5, 0)
-			gl.Scale(widgetScale,widgetScale,0)
-			gl.Color(1,1,1,textStartOpacity*opacityMultiplier)
-			gl.CallList(drawinfolist)
-			gl.PopMatrix()
+			if opacityMultiplier > 0 then
+				gl.PushMatrix()
+				gl.Translate(vsx/2, vsy/1.5, 0)
+				gl.Scale(widgetScale,widgetScale,0)
+				gl.Color(1,1,1,textStartOpacity*opacityMultiplier)
+				gl.CallList(drawinfolist)
+				gl.PopMatrix()
+			end
 		end
 	end
 end

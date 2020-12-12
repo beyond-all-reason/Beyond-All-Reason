@@ -12,6 +12,10 @@ end
 
 --local show = true
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	title = 'Changelog',
+}
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 
@@ -385,7 +389,7 @@ function DrawWindow()
 	RectRound(x,y-screenHeight,x+screenWidth,y,5.5, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
 
 	-- title
-    local title = "Changelog"
+    local title = texts.title
 	local titleFontSize = 18
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
@@ -678,6 +682,9 @@ function lines(str)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('changelog')
+	end
 	widget:ViewResize()
 	if changelogFile then
 

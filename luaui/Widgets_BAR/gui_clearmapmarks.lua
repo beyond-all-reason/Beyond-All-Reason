@@ -10,6 +10,10 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	tooltip = 'clear mapmarks/drawings',
+}
+
 local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
 local iconSize = 19
 
@@ -60,7 +64,7 @@ local function createList(size)
 		gl.Texture(false)
 	end)
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, "clear mapmarks/drawings")
+		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, texts.tooltip)
 	end
 end
 
@@ -83,6 +87,9 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('clearmapmarks')
+	end
 	updatePosition(true)
 end
 

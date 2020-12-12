@@ -19,6 +19,10 @@ local vsx,vsy = Spring.GetViewGeometry()
 --  Declarations
 ---------------------------------------------------------------------------------------------------
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	tooltip = 'Team metal/energy income\n(Lighter part of the bar is reclaim income)',
+}
+
 local PmaxDmg						= 0
 local comTable 						= {}
 local comDefs						= {}
@@ -159,6 +163,10 @@ local images			= {
 ---------------------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('ecostats')
+	end
+
 	if not (Spring.GetSpectatingState() or isReplay) then
 		inSpecMode = false
 		Spring.Echo("Ecostats: widget loaded in active player mode")
@@ -739,90 +747,12 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 
 	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
-		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, "Team metal/energy income\n(Lighter part of the bar is reclaim income)")
+		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, texts.tooltip)
 		tooltipAreas['ecostats_'..allyID] = area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]
 	end
 	glColor(1,1,1,1)
 end
 
-local function DrawOptionRibbon()
-	local h = 45*sizeMultiplier
-	local dx = 80*sizeMultiplier
-	local x0, x1
-	local t = 12*sizeMultiplier
-
-	if right then
-		x0 = widgetPosX-dx
-		x1 = x0 + dx + widgetWidth
-	else
-		x0 = widgetPosX
-		x1 = x0 + dx + widgetWidth
-	end
-	local yPos = widgetPosY + widgetHeight - tH*(aliveAllyTeams)
-
-	Options["resText"]["x1"] = x1 - (20*sizeMultiplier)
-	Options["resText"]["x2"] = x1 - (20*sizeMultiplier) + t
-	Options["resText"]["y2"] = yPos - (7*sizeMultiplier)
-	Options["resText"]["y1"] = yPos - (7*sizeMultiplier) - t
-
-	Options["sticktotopbar"]["x1"] = x1 - (20*sizeMultiplier)
-	Options["sticktotopbar"]["x2"] = x1 - (20*sizeMultiplier) + t
-	Options["sticktotopbar"]["y2"] = yPos - (27*sizeMultiplier)
-	Options["sticktotopbar"]["y1"] = yPos - (27*sizeMultiplier) - t
-
-	Options["removeDead"]["x1"] = x0 + (190*sizeMultiplier)
-	Options["removeDead"]["x2"] = x0 + (190*sizeMultiplier) + t
-	Options["removeDead"]["y2"] = yPos - (47*sizeMultiplier)
-	Options["removeDead"]["y1"] = yPos - (47*sizeMultiplier) - t
-
-
-	glColor(0,0,0,0.4)                              -- draws background rectangle
-	--glRect(x0,widgetPosY, x1, widgetPosY -h)
-	local padding = 2*sizeMultiplier
-	RectRound(x0-padding, yPos -h-padding, x1+padding, yPos+padding, 6*sizeMultiplier)
-
-	font:Begin()
-	font:SetTextColor(0.8,0.8,1,0.8)
-	font:Print("Show resource text:", x0+(10*sizeMultiplier), Options["resText"]["y1"]+4,textsize)
-	font:Print("Stick to Top Bar widget:", x0+(10*sizeMultiplier), Options["sticktotopbar"]["y1"]+4,textsize)
-	font:End()
-	--glText("Remove dead teams:", x0+10, Options["removeDead"]["y1"]+(textsize/2),textsize)
-	glColor(1,1,1,1)
-	if Options["resText"]["On"] then
-		glTexture(images["checkboxon"])
-	else
-		glTexture(images["checkboxoff"])
-	end
-	glTexRect(
-		Options["resText"]["x1"],
-		Options["resText"]["y1"],
-		Options["resText"]["x2"],
-		Options["resText"]["y2"]
-	)
-	if Options["sticktotopbar"]["On"] then
-		glTexture(images["checkboxon"])
-	else
-		glTexture(images["checkboxoff"])
-	end
-	glTexRect(
-		Options["sticktotopbar"]["x1"],
-		Options["sticktotopbar"]["y1"],
-		Options["sticktotopbar"]["x2"],
-		Options["sticktotopbar"]["y2"]
-	)
-	--[[if Options["removeDead"]["On"] then
-		glTexture(images["checkboxon"])
-	else
-		glTexture(images["checkboxoff"])
-	end
-	glTexRect(
-		Options["removeDead"]["x1"],
-		Options["removeDead"]["y1"],
-		Options["removeDead"]["x2"],
-		Options["removeDead"]["y2"]
-	)]]--
-	glTexture(false)
-end
 
 local function DrawBox(hOffset, vOffset,r,g,b)
 	local w = tH*0.36
