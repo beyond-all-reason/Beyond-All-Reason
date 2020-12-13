@@ -8,7 +8,7 @@ piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso
 static-var  bMoving, Static_Var_2;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
-#define SIG_WALK 4
+#define SIG_WALK 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\coraak_anim_walk.blend 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:5
