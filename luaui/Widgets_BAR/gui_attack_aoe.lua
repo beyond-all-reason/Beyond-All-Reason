@@ -1,3 +1,6 @@
+-- $Id: gui_attack_aoe.lua 3823 2009-01-19 23:40:49Z evil4zerggin $
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 local versionNumber = "v3.1c"
 
 function widget:GetInfo()
@@ -13,7 +16,7 @@ function widget:GetInfo()
 end
 
 --------------------------------------------------------------------------------
--- config
+--config
 --------------------------------------------------------------------------------
 local numScatterPoints = 32
 local aoeColor = { 1, 0, 0, 1 }
@@ -27,7 +30,7 @@ local numAoECircles = 9
 local pointSizeMult = 2048
 
 --------------------------------------------------------------------------------
--- vars
+--vars
 --------------------------------------------------------------------------------
 local aoeDefInfo = {}
 local dgunInfo = {}
@@ -40,8 +43,10 @@ local circleList
 local secondPart = 0
 local mouseDistance = 1000
 
+local chobbyInterface, selectionChanged
+
 --------------------------------------------------------------------------------
--- speedups
+--speedups
 --------------------------------------------------------------------------------
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
@@ -85,8 +90,6 @@ local max = math.max
 local min = math.min
 local sqrt = math.sqrt
 
-local chobbyInterface, selectionChanged
-
 local unitCost = {}
 local isAirUnit = {}
 local isShip = {}
@@ -120,7 +123,7 @@ end
 
 local function Normalize(x, y, z)
 	local mag = sqrt(x * x + y * y + z * z)
-	if mag == 0	then
+	if mag == 0 then
 		return nil
 	else
 		return x / mag, y / mag, z / mag, mag
@@ -142,33 +145,21 @@ local function GetMouseTargetPosition(dgun)
 	elseif mouseTargetType == "unit" then
 		if ((dgun and WG['dgunnoally'] ~= nil) or (not dgun and WG['attacknoally'] ~= nil)) and Spring.IsUnitAllied(mouseTarget) then
 			mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
-			if not mouseTarget then
-				return false
-			else
-				return mouseTarget[1], mouseTarget[2], mouseTarget[3]
-			end
+			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
 		elseif ((dgun and WG['dgunnoenemy'] ~= nil) or (not dgun and WG['attacknoenemy'] ~= nil)) and not Spring.IsUnitAllied(mouseTarget) then
 			local unitDefID = Spring.GetUnitDefID(mouseTarget)
 			local mouseTargetType2, mouseTarget2 = TraceScreenRay(mx, my, true)
-			if not mouseTarget2 then
-				return false
+			if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and isHover[unitDefID]) then
+				return GetUnitPosition(mouseTarget)
 			else
-				if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and isHover[unitDefID]) then
-					return GetUnitPosition(mouseTarget)
-				else
-					return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
-				end
+				return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
 			end
 		else
 			return GetUnitPosition(mouseTarget)
 		end
 	elseif mouseTargetType == "feature" then
 		local mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
-		if not mouseTarget then
-			return false
-		else
-			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
-		end
+		return mouseTarget[1], mouseTarget[2], mouseTarget[3]
 		--return GetFeaturePosition(mouseTarget)
 	else
 		return nil
@@ -234,11 +225,10 @@ local function SetupUnitDef(unitDefID, unitDef)
 				if weaponDef.type == "DGun" then
 					dgunInfo[unitDefID] = { range = dgunRange, aoe = weaponDef.damageAreaOfEffect, unitname = unitDef.name, requiredEnergy = unitDef.energyCost }
 				elseif weaponDef.canAttackGround
-					and not weaponDef.type == "Shield"
+					and not (weaponDef.type == "Shield")
 					and not ToBool(weaponDef.interceptor)
-					and weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread
-					and not string.find(weaponDef.name, "flak", nil, true)
-				then
+					and (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread)
+					and not string.find(weaponDef.name, "flak", nil, true) then
 					maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
 					maxWeaponDef = weaponDef
 				end
@@ -271,10 +261,10 @@ local function SetupUnitDef(unitDefID, unitDef)
 			scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 30 * 16
 			local rangeScatter = (8 * maxWeaponDef.wobble - maxWeaponDef.turnRate)
 			aoeDefInfo[unitDefID] = { type = "wobble", scatter = scatter, rangeScatter = rangeScatter, range = maxWeaponDef.range }
-		elseif maxWeaponDef.wobble > turnRate then
+		elseif (maxWeaponDef.wobble > turnRate) then
 			scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 30 * 16
 			aoeDefInfo[unitDefID] = { type = "wobble", scatter = scatter }
-		elseif maxWeaponDef.tracks then
+		elseif (maxWeaponDef.tracks) then
 			aoeDefInfo[unitDefID] = { type = "tracking" }
 		else
 			aoeDefInfo[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
@@ -343,7 +333,7 @@ local function UpdateSelection()
 
 		if aoeDefInfo[unitDefID] then
 			local currCost = unitCost[unitDefID] * #unitIDs
-			if (currCost > maxCost) then
+			if currCost > maxCost then
 				maxCost = currCost
 				aoeUnitDefID = unitDefID
 				aoeUnitID = GetRepUnitID(unitIDs)
@@ -424,11 +414,13 @@ end
 local function GetBallisticVector(v, dx, dy, dz, trajectory, range)
 	local dr_sq = dx * dx + dz * dz
 	local dr = sqrt(dr_sq)
+
 	if dr > range then
 		return nil
 	end
 
 	local d_sq = dr_sq + dy * dy
+
 	if d_sq == 0 then
 		return 0, v * trajectory, 0
 	end
@@ -439,6 +431,7 @@ local function GetBallisticVector(v, dx, dy, dz, trajectory, range)
 	end
 
 	local root2 = 2 * dr_sq * d_sq * (v * v - g * dy - trajectory * sqrt(root1))
+
 	if root2 < 0 then
 		return nil
 	end
@@ -446,7 +439,7 @@ local function GetBallisticVector(v, dx, dy, dz, trajectory, range)
 	local vr = sqrt(root2) / (2 * d_sq)
 	local vy
 
-	if dr == 0 and vr == 0 then
+	if r == 0 or vr == 0 then
 		vy = v
 	else
 		vy = vr * dy / dr + dr * g / (2 * vr)
@@ -497,20 +490,20 @@ end
 --v: weaponvelocity
 --trajectory: +1 for high, -1 for low
 local function DrawBallisticScatter(scatter, v, fx, fy, fz, tx, ty, tz, trajectory, range)
-	if scatter == 0 then
+	if (scatter == 0) then
 		return
 	end
 	local dx = tx - fx
 	local dy = ty - fy
 	local dz = tz - fz
-	if dx == 0 and dz == 0 then
+	if (dx == 0 and dz == 0) then
 		return
 	end
 
 	local bx, by, bz = GetBallisticVector(v, dx, dy, dz, trajectory, range)
 
 	--don't draw anything if out of range
-	if not bx then
+	if (not bx) then
 		return
 	end
 
@@ -533,11 +526,9 @@ local function DrawBallisticScatter(scatter, v, fx, fy, fz, tx, ty, tz, trajecto
 	local wlx = -scatter * (rz + barZ)
 	local wlz = scatter * (rx + barX)
 
-	local bars = {
-		{ tx + wx, ty, tz + wz }, { tx - wx, ty, tz - wz },
-		{ sx + wsx, ty, sz + wsz }, { lx + wlx, ty, lz + wlz },
-		{ sx - wsx, ty, sz - wsz }, { lx - wlx, ty, lz - wlz }
-	}
+	local bars = { { tx + wx, ty, tz + wz }, { tx - wx, ty, tz - wz },
+				   { sx + wsx, ty, sz + wsz }, { lx + wlx, ty, lz + wlz },
+				   { sx - wsx, ty, sz - wsz }, { lx - wlx, ty, lz - wlz } }
 
 	local scatterDiv = scatter / numScatterPoints
 	local vertices = {}
@@ -567,7 +558,7 @@ local function DrawBallisticScatter(scatter, v, fx, fy, fz, tx, ty, tz, trajecto
 end
 
 --------------------------------------------------------------------------------
--- wobble
+--wobble
 --------------------------------------------------------------------------------
 local function DrawWobbleScatter(scatter, fx, fy, fz, tx, ty, tz, rangeScatter, range)
 	local dx = tx - fx
@@ -599,7 +590,7 @@ local function DrawDirectScatter(scatter, fx, fy, fz, tx, ty, tz, range, unitRad
 
 	local bx, by, bz, d = Normalize(dx, dy, dz)
 
-	if not bx or d == 0 or d > range then
+	if (not bx or d == 0 or d > range) then
 		return
 	end
 
@@ -627,8 +618,10 @@ end
 local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, salvoSize, salvoDelay)
 	local dx = tx - fx
 	local dz = tz - fz
+
 	local bx, _, bz = Normalize(dx, 0, dz)
-	if not bx then
+
+	if (not bx) then
 		return
 	end
 
@@ -698,15 +691,15 @@ function widget:DrawWorld()
 	end
 	local _, cmd, _ = GetActiveCommand()
 
-	if cmd == CMD_DGUN and dgunUnitDefID then
+	if (cmd == CMD_DGUN and dgunUnitDefID) then
 		mouseDistance = GetMouseDistance() or 1000
 		local tx, ty, tz = GetMouseTargetPosition(true)
-		if not tx then
+		if (not tx) then
 			return
 		end
 		local info = dgunInfo[dgunUnitDefID]
 		local fx, fy, fz = GetUnitPosition(dgunUnitID)
-		if not fx then
+		if (not fx) then
 			return
 		end
 		local angle = math.atan2(fx - tx, fz - tz) + (math.pi / 2.1)
@@ -730,24 +723,24 @@ function widget:DrawWorld()
 		return
 	end
 
-	if cmd ~= CMD_ATTACK or not aoeUnitDefID then
+	if (cmd ~= CMD_ATTACK or not aoeUnitDefID) then
 		--UpdateSelection()
 		return
 	end
 
 	mouseDistance = GetMouseDistance() or 1000
 	local tx, ty, tz = GetMouseTargetPosition()
-	if not tx then
+	if (not tx) then
 		return
 	end
 
 	local info = aoeDefInfo[aoeUnitDefID]
 
 	local fx, fy, fz = GetUnitPosition(aoeUnitID)
-	if not fx then
+	if (not fx) then
 		return
 	end
-	if not info.mobile then
+	if (not info.mobile) then
 		fy = fy + GetUnitRadius(aoeUnitID)
 	end
 
@@ -756,7 +749,7 @@ function widget:DrawWorld()
 	end
 	local weaponType = info.type
 
-	if weaponType == "ballistic" then
+	if (weaponType == "ballistic") then
 		local trajectory = select(7, Spring.GetUnitStates(aoeUnitID, false, true))
 		if trajectory then
 			trajectory = 1
@@ -765,19 +758,19 @@ function widget:DrawWorld()
 		end
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawBallisticScatter(info.scatter, info.v, fx, fy, fz, tx, ty, tz, trajectory, info.range)
-	elseif weaponType == "noexplode" then
+	elseif (weaponType == "noexplode") then
 		DrawNoExplode(info.aoe, fx, fy, fz, tx, ty, tz, info.range, info.requiredEnergy)
-	elseif weaponType == "tracking" then
+	elseif (weaponType == "tracking") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
-	elseif weaponType == "direct" then
+	elseif (weaponType == "direct") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawDirectScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.range, GetUnitRadius(aoeUnitID))
-	elseif weaponType == "dropped" then
+	elseif (weaponType == "dropped") then
 		DrawDroppedScatter(info.aoe, info.ee, info.scatter, info.v, fx, info.h, fz, tx, ty, tz, info.salvoSize, info.salvoDelay)
-	elseif weaponType == "wobble" then
+	elseif (weaponType == "wobble") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawWobbleScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.rangeScatter, info.range)
-	elseif weaponType == "orbital" then
+	elseif (weaponType == "orbital") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawOrbitalScatter(info.scatter, tx, ty, tz)
 	else
