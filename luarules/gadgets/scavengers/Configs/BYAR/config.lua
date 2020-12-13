@@ -32,7 +32,7 @@ Spring.Echo("[Scavengers] Config initialized")
 	end
 	
 	-- Random Events Bool
-	local Modoption = Spring.GetModOptions().scavendless or "enabled"
+	local Modoption = Spring.GetModOptions().scavevents or "enabled"
 	if Modoption == "enabled" then
 		ScavRandomEventsEnabledModoption = true
 	elseif Modoption == "disabled" then
@@ -40,7 +40,7 @@ Spring.Echo("[Scavengers] Config initialized")
 	end
 	
 	-- Random Events Amount
-	local Modoption = Spring.GetModOptions().scavendless or "normal"
+	local Modoption = Spring.GetModOptions().scaveventsamount or "normal"
 	if Modoption == "normal" then
 		ScavRandomEventsAmountModoption = 1
 	elseif Modoption == "lower" then

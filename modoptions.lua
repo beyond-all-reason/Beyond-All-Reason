@@ -378,7 +378,7 @@ local options={
 		desc   = 'Modifies how fast Scavengers tech up',
 		type   = 'list',
 		section = 'options_scavengers',
-		def  = "disabled",
+		def  = "normal",
 		items={
 			{key="normal", name="Normal", desc="x1"},
 			{key="fast", name="Fast", desc="x0.5"},
@@ -394,8 +394,8 @@ local options={
 		section = 'options_scavengers',
 		def  = "disabled",
 		items={
-			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
 			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
+			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
 		}
 	},
 	
@@ -405,7 +405,7 @@ local options={
 		desc   = 'Modifies Final Boss maximum health points',
 		type   = 'list',
 		section = 'options_scavengers',
-		def  = "disabled",
+		def  = "normal",
 		items={
 			{key="normal", name="Normal", desc="x1"},
 			{key="lower", name="Lower", desc="x0.5"},
@@ -420,7 +420,7 @@ local options={
 		desc   = 'Random Events System',
 		type   = 'list',
 		section = 'options_scavengers',
-		def  = "disabled",
+		def  = "enabled",
 		items={
 			{key="enabled", name="Enabled", desc="Random Events Enabled"},
 			{key="disabled", name="Disabled", desc="Random Events Disabled"},
@@ -433,7 +433,7 @@ local options={
 		desc   = 'Modifies frequency of random events',
 		type   = 'list',
 		section = 'options_scavengers',
-		def  = "disabled",
+		def  = "normal",
 		items={
 			{key="normal", name="Normal", desc="Normal"},
 			{key="lower", name="Lower", desc="Halved"},
