@@ -37,7 +37,6 @@ if not Spring.GetGameRulesParam("difficulty") then
 	return false
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -51,6 +50,23 @@ local gl, GL = gl, GL
 local widgetHandler = widgetHandler
 local math = math
 local table = table
+
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	thequeenisangered = 'The Queen is angered!',
+	wave = 'Wave',
+	chickens = 'Chickens',
+	count = 'Count',
+	kills = 'Kills',
+	chickenkills = 'Chicken Kills',
+	queenanger = 'Queen Anger',
+	queenhealth = 'Queen Health',
+	graceperiod = 'Grace Period',
+	burrows = 'Burrows',
+	burrowkills = 'Burrow Kills',
+	mode = 'Mode',
+	yourscore = 'Your Score',
+}
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/chickenpanel.tga"
@@ -198,12 +214,12 @@ local function MakeCountString(type, showbreakdown)
 	if showbreakdown then
 		local breakDown = table.concat(t, white .. ",") .. white
 		if showbrackets then
-			return string.format("Chickens: %d (%s)", total, breakDown)
+			return string.format(texts.chickens..": %d (%s)", total, breakDown)
 		else
-			return string.format("Chickens: %d", total)
+			return string.format(texts.chickens..": %d", total)
 		end
 	else
-		return ("Chicken Kills: " .. white .. total)
+		return (texts.chickenkills..": " .. white .. total)
 	end
 end
 
@@ -231,25 +247,25 @@ local function CreatePanelDisplayList()
 	local techLevel = ""
 	if currentTime > gameInfo.gracePeriod then
 		if gameInfo.queenAnger < 100 then
-			techLevel = "Queen Anger: " .. gameInfo.queenAnger .. "%"
+			techLevel = texts.queenanger..": " .. gameInfo.queenAnger .. "%"
 		else
-			techLevel = "Queen Health: " .. gameInfo.queenLife .. "%"
+			techLevel = texts.queenhealth..": " .. gameInfo.queenLife .. "%"
 		end
 	else
-		techLevel = "Grace Period: " .. math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5)
+		techLevel = texts.graceperiod..": " .. math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5)
 	end
 
 	font:Begin()
 	font:Print(white .. techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
 	font:Print(white .. gameInfo.unitCounts, panelMarginX, PanelRow(2), panelFontSize, "")
 	font:Print(white .. gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
-	font:Print(white .. "Burrows: " .. gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
-	font:Print(white .. "Burrow Kills: " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
-	local s = white .. "Mode: " .. difficulties[gameInfo.difficulty]
+	font:Print(white .. texts.burrows..": " .. gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
+	font:Print(white .. texts.burrowkills..": " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
+	local s = white .. texts.mode..": " .. difficulties[gameInfo.difficulty]
 	if gotScore then
-		font:Print(white .. "Your Score: " .. comma_value(scoreCount), 88, h - 170, panelFontSize "")
+		font:Print(white .. texts.yourscore..": " .. comma_value(scoreCount), 88, h - 170, panelFontSize "")
 	else
-		font:Print(white .. "Mode: " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
+		font:Print(white .. texts.mode..": " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
@@ -305,8 +321,8 @@ local function UpdateRules()
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
 	end
-	gameInfo.unitCounts = MakeCountString("Count", true)
-	gameInfo.unitKills = MakeCountString("Kills", false)
+	gameInfo.unitCounts = MakeCountString(texts.count, true)
+	gameInfo.unitKills = MakeCountString(texts.kills, false)
 
 	updatePanel = true
 end
@@ -322,19 +338,19 @@ end
 
 function ChickenEvent(chickenEventArgs)
 	if chickenEventArgs.type == "wave" then
-		if (gameInfo.roostCount < 1) then
+		if gameInfo.roostCount < 1 then
 			return
 		end
 		waveMessage = {}
 		waveCount = waveCount + 1
-		waveMessage[1] = "Wave " .. waveCount
-		waveMessage[2] = waveColors[chickenEventArgs.tech] .. chickenEventArgs.number .. " chickens!"
+		waveMessage[1] = texts.wave.." " .. waveCount
+		waveMessage[2] = waveColors[chickenEventArgs.tech] .. chickenEventArgs.number .. ' '..texts.chickens..'!'
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "burrowSpawn" then
 		UpdateRules()
 	elseif chickenEventArgs.type == "queen" then
 		waveMessage = {}
-		waveMessage[1] = "The Queen is angered!"
+		waveMessage[1] = texts.thequeenisangered
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
 		gotScore = chickenEventArgs.number
@@ -346,6 +362,9 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('chickenpanel')
+	end
 	widget:ViewResize()
 
 	displayList = gl.CreateList(function()

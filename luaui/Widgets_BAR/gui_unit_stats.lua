@@ -12,13 +12,74 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	prog = 'Prog',
+	metal = 'Metal',
+	energy = 'Energy',
+	cost = 'Cost',
+	move = 'Move',
+	speedaccelturn = 'Speed / Accel / Turn',
+	build = 'Build',
+	los = 'Los',
+	airlos = 'AirLos',
+	radar = 'Radar',
+	sonar = 'Sonar',
+	jammer = 'Jam',
+	sonarjam = 'Sonar Jam',
+	seis = 'Seis',
+	other = 'Other',
+	stealth = 'Stealth',
+	armor = 'Armor',
+	class = 'class',
+	exp = 'Exp',
+	open = 'Open',
+	closed = 'Closed',
+	maxhp = 'max HP',
+	health = 'health',
+	assist = 'Assist',
+	repair = 'Repair',
+	reclaim = 'Reclaim',
+	resurrect = 'Resurrect',
+	capture = 'Capture',
+	cloak = 'Cloak',
+	waterweapon = 'Waterweapon',
+	manuelfire = 'Manuelfire',
+	stockpile = 'Stockpile',
+	paralyzer = 'Paralyzer',
+	kamikaze = 'Kamikaze',
+	abilities = 'Abilities',
+	deathexplosion = 'Death Explosion',
+	selfdestruct = 'Self Destruct',
+	weap = 'Weap',
+	accuracy = 'accuracy',
+	aim = 'aim',
+	firerate = 'firerate',
+	range = 'range',
+	aoe = 'aoe',
+	edge = 'edge',
+	s = 's', -- seconds abbr
+	reload = 'reload',
+	paralyze = 'paralyze',
+	impulse = 'impulse',
+	crater = 'crater',
+	info = 'Info',
+	dmg = 'Dmg',
+	infinite = 'infinite',
+	burst = 'Burst',
+	modifiers = 'Modifiers',
+	each = 'each',
+	dps = 'DPS',
+	persecond = 'per second',
+	totaldmg = 'Total Dmg',
+}
+
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
 
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if (not (v == damageStats[gameName].team.games)) and v.cost and v.killed_cost then
+		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > rate then
 				highestUnitDef = k
@@ -28,7 +89,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	end
 	local scndRate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if (not (v == damageStats[gameName].team.games)) and v.cost and v.killed_cost then
+		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > scndRate and k ~= highestUnitDef then
 				scndhighestUnitDef = k
@@ -39,7 +100,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local thirdRate = 0
 	--local thirdhighestUnitDef
 	for k, v in pairs (damageStats[gameName].team) do
-		if (not (v == damageStats[gameName].team.games)) and v.cost and v.killed_cost then
+		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > thirdRate and k ~= highestUnitDef and k ~= scndhighestUnitDef then
 				--thirdhighestUnitDef = k
@@ -361,6 +422,9 @@ end
 ------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('unitstats')
+	end
 	font = WG['fonts'].getFont(fontfile)
 	init()
 	WG['unitstats'] = {}
@@ -534,9 +598,9 @@ function widget:DrawScreen()
 		local mEta = (mRem - mCur) / (mInc + mRec)
 		local eEta = (eRem - eCur) / (eInc + eRec)
 
-		DrawText("Prog:", format("%d%%", 100 * buildProg))
-		DrawText("Metal:", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
-		DrawText("Energy:", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
+		DrawText(texts.prog..":", format("%d%%", 100 * buildProg))
+		DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
+		DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
 		--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / math.max(mEta, eEta)))
 		cY = cY - fontSize
 	end
@@ -547,25 +611,25 @@ function widget:DrawScreen()
 
 	--DrawText('Height:', uDefs[spGetUnitDefID(uID)].height)
 
-	DrawText("Cost:", format(metalColor .. '%d' .. white .. ' / ' ..
+	DrawText(texts.cost..":", format(metalColor .. '%d' .. white .. ' / ' ..
 							energyColor .. '%d' .. white .. ' / ' ..
 							buildColor .. '%d', uDef.metalCost, uDef.energyCost, uDef.buildTime)
 			)
 
 	if not (uDef.isBuilding or uDef.isFactory) then
 		if not uID or not Spring.GetUnitMoveTypeData(uID) then
-			DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
+			DrawText(texts.move..":", format("%.1f / %.1f / %.0f ("..texts.speedaccelturn..")", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
 		else
 			local mData = Spring.GetUnitMoveTypeData(uID)
 			local mSpeed = mData.maxSpeed or uDef.speed
 			local mAccel = mData.accRate or uDef.maxAcc
 			local mTurnRate = mData.baseTurnRate or uDef.turnRate
-			DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", mSpeed, 900 * mAccel, simSpeed * mTurnRate * (180 / 32767)))
+			DrawText(texts.move..":", format("%.1f / %.1f / %.0f ("..texts.speedaccelturn..")", mSpeed, 900 * mAccel, simSpeed * mTurnRate * (180 / 32767)))
 		end
 	end
 
 	if uDef.buildSpeed > 0 then
-		DrawText('Build:', yellow .. uDef.buildSpeed)
+		DrawText(texts.build..':', yellow .. uDef.buildSpeed)
 	end
 
 
@@ -575,15 +639,15 @@ function widget:DrawScreen()
 	-- Sensors and Jamming
 	------------------------------------------------------------------------------------
 
-	DrawText('Los:', losRadius .. (airLosRadius > losRadius and format(' (AirLos: %d)', airLosRadius) or ''))
+	DrawText(texts.los..':', losRadius .. (airLosRadius > losRadius and format(' ('..texts.airlos..': %d)', airLosRadius) or ''))
 
-	if radarRadius   > 0 then DrawText('Radar:', '\255\77\255\77' .. radarRadius) end
-	if sonarRadius   > 0 then DrawText('Sonar:', '\255\128\128\255' .. sonarRadius) end
-	if jammingRadius > 0 then DrawText('Jam:'  , '\255\255\77\77' .. jammingRadius) end
-	if sonarJammingRadius > 0 then DrawText('Sonar Jam:', '\255\255\77\77' .. sonarJammingRadius) end
-	if seismicRadius > 0 then DrawText('Seis:' , '\255\255\26\255' .. seismicRadius) end
+	if radarRadius   > 0 then DrawText(texts.radar..':', '\255\77\255\77' .. radarRadius) end
+	if sonarRadius   > 0 then DrawText(texts.sonar..':', '\255\128\128\255' .. sonarRadius) end
+	if jammingRadius > 0 then DrawText(texts.jammer..':'  , '\255\255\77\77' .. jammingRadius) end
+	if sonarJammingRadius > 0 then DrawText(texts.sonarjam..':', '\255\255\77\77' .. sonarJammingRadius) end
+	if seismicRadius > 0 then DrawText(texts.seis..':' , '\255\255\26\255' .. seismicRadius) end
 
-	if uDef.stealth then DrawText("Other:", "Stealth") end
+	if uDef.stealth then DrawText(texts.other..":", texts.stealth) end
 
 	cY = cY - fontSize
 
@@ -591,20 +655,20 @@ function widget:DrawScreen()
 	-- Armor
 	------------------------------------------------------------------------------------
 
-	DrawText("Armor:", "class " .. Game.armorTypes[uDef.armorType or 0] or '???')
+	DrawText(texts.armor..":", texts.class .. Game.armorTypes[uDef.armorType or 0] or '???')
 
 	if uID and uExp ~= 0 then
 		if maxHP then
-			DrawText("Exp:", format("+%d%% health", (maxHP/uDef.health-1)*100))
+			DrawText(texts.exp..":", format("+%d%% "..texts.health, (maxHP/uDef.health-1)*100))
 		else
-			DrawText("Exp:                 unknown",'\255\255\77\77')
+			--DrawText("Exp:                 unknown",'\255\255\77\77')
 		end
 	end
 	if maxHP then
-		DrawText("Open:", format("maxHP: %d", maxHP) )
+		DrawText(texts.open..":", format(texts.maxhp..": %d", maxHP) )
 
 		if armoredMultiple and armoredMultiple ~= 1 then
-			DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+			DrawText(texts.closed..":", format(" +%d%%, "..texts.maxhp..": %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
 		end
 	end
 
@@ -616,24 +680,24 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 	---- Build Related
 	local specabs = ''
-	specabs = specabs..((uDef.canBuild and "Build, ") or "")
-	specabs = specabs..((uDef.canAssist and "Assist, ") or "")
-	specabs = specabs..((uDef.canRepair and "Repair, ") or "")
-	specabs = specabs..((uDef.canReclaim and "Reclaim, ") or "")
-	specabs = specabs..((uDef.canResurrect and "Resurrect, ") or "")
-	specabs = specabs..((uDef.canCapture and "Capture, ") or "")
+	specabs = specabs..((uDef.canBuild and texts.build..", ") or "")
+	specabs = specabs..((uDef.canAssist and texts.assist..", ") or "")
+	specabs = specabs..((uDef.canRepair and texts.repair..", ") or "")
+	specabs = specabs..((uDef.canReclaim and texts.reclaim..", ") or "")
+	specabs = specabs..((uDef.canResurrect and texts.resurrect..", ") or "")
+	specabs = specabs..((uDef.canCapture and texts.capture..", ") or "")
 	---- Radar/Sonar states
-	specabs = specabs..((uDef.canCloak and "Cloak, ") or "")
-	specabs = specabs..((uDef.stealth and "Stealth,  ") or "")
+	specabs = specabs..((uDef.canCloak and texts.cloak..", ") or "")
+	specabs = specabs..((uDef.stealth and texts.stealth..",  ") or "")
 
 	---- Attack Related
-	specabs = specabs..((uDef.canAttackWater and "Waterweapon, ") or "")
-	specabs = specabs..((uDef.canManualFire and "Manualfire, ") or "")
-	specabs = specabs..((uDef.canStockpile and "Stockpile, ") or "")
-	specabs = specabs..((uDef.canParalyze  and "Paralyzer, ") or "")
-	specabs = specabs..((uDef.canKamikaze  and "Kamikaze, ") or "")
+	specabs = specabs..((uDef.canAttackWater and texts.waterweapon..", ") or "")
+	specabs = specabs..((uDef.canManualFire and texts.manuelfire..", ") or "")
+	specabs = specabs..((uDef.canStockpile and texts.stockpile..", ") or "")
+	specabs = specabs..((uDef.canParalyze  and texts.paralyzer..", ") or "")
+	specabs = specabs..((uDef.canKamikaze  and texts.kamikaze..", ") or "")
 	if (string.len(specabs) > 11) then
-		DrawText("Abilities:", string.sub(specabs, 1, string.len(specabs)-2))
+		DrawText(texts.abilities..":", string.sub(specabs, 1, string.len(specabs)-2))
 		cY = cY - fontSize
 	end
 
@@ -694,16 +758,16 @@ function widget:DrawScreen()
 			local typeName =  uWep.type
 			local wpnName = uWep.description
 			if i == deathWeaponIndex then
-				wpnName = "Death explosion"
+				wpnName = texts.deathexplosion
 				oRld = 1
 			elseif i == selfDWeaponIndex then
-				wpnName = "Self Destruct"
+				wpnName = texts.selfdestruct
 				oRld = uDef.selfDCountdown
 			end
 			if wepCount > 1 then
-				DrawText("Weap:", format(yellow .. "%dx" .. white .. " %s", wepCount, wpnName))
+				DrawText(texts.weap..":", format(yellow .. "%dx" .. white .. " %s", wepCount, wpnName))
 			else
-				DrawText("Weap:", wpnName)
+				DrawText(texts.weap..":", wpnName)
 			end
 			local reload = uWep.reload
 			local accuracy = uWep.accuracy
@@ -721,27 +785,27 @@ function widget:DrawScreen()
 
 			local rangeBonus = range ~= 0 and (range/uWep.range-1) or 0
 			if uExp ~= 0 then
-				DrawText("Exp:", format("+%d%% accuracy, +%d%% aim, +%d%% firerate, +%d%% range", accuracyBonus*100, moveErrorBonus*100, reloadBonus*100, rangeBonus*100 ))
+				DrawText(texts.exp..":", format("+%d%% "..texts.accuracy..", +%d%% "..texts.aim..", +%d%% "..texts.firerate..", +%d%% "..texts.range, accuracyBonus*100, moveErrorBonus*100, reloadBonus*100, rangeBonus*100 ))
 			end
 			local infoText = ""
-			if wpnName == "Death explosion" or wpnName == "Self Destruct" then
-				infoText = format("%d aoe, %d%% edge", uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+			if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
+				infoText = format("%d "..texts.aoe..", %d%% "..texts.edge, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
 			else
-				infoText =  format("%.2f", (useExp and reload or uWep.reload)).."s reload, "..format("%d range, %d aoe, %d%% edge", useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+				infoText =  format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
 			end
 			if uWep.damages.paralyzeDamageTime > 0 then
-				infoText = format("%s, %ds paralyze", infoText, uWep.damages.paralyzeDamageTime)
+				infoText = format("%s, %ds "..texts.paralyze, infoText, uWep.damages.paralyzeDamageTime)
 			end
 			if uWep.damages.impulseBoost > 0 then
-				infoText = format("%s, %d impulse", infoText, uWep.damages.impulseBoost*100)
+				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseBoost*100)
 			end
 			if uWep.damages.craterBoost > 0 then
-				infoText = format("%s, %d crater", infoText, uWep.damages.craterBoost*100)
+				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)
 			end
 			if string.find(uWep.name, "disintegrator") then
-				infoText = format("%.2f", (useExp and reload or uWep.reload)).."s reload, "..format("%d range", useExp and range or uWep.range)
+				infoText = format("%.2f", (useExp and reload or uWep.reload)).."s "..texts.reload..", "..format("%d "..texts.range, useExp and range or uWep.range)
 			end
-			DrawText("Info:", infoText)
+			DrawText(texts.info..":", infoText)
 			local defaultDamage = uWep.damages[0]
 			local cat = 0
 			local oDmg = uWep.damages[cat]
@@ -749,17 +813,17 @@ function widget:DrawScreen()
 			local burst = uWep.salvoSize
 			local EEFactor = (ee - (-1 + ee)*math.log(1 - ee))/ee^2
 			if string.find(uWep.name, "disintegrator") then
-				DrawText("Dmg:", yellow.."Infinite")
-			elseif wpnName == "Death explosion" or wpnName == "Self Destruct" then
+				DrawText(texts.dmg..":", yellow..texts.infinite)
+			elseif wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
 					local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
 					local dpsAoE = dps * AoE * EEFactor
 					local bDamages = defaultDamage * burst
 					local bDamagesAoE = bDamages * AoE * EEFactor
-					dmgString = "Burst = "..(format(yellow .. "%d", bDamages))..white.."."
-					dmgString = "Burst = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
-					DrawText("Dmg:", dmgString)
+					dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
+					dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
+					DrawText(texts.dmg..":", dmgString)
 				end
 				local dmgString	= white
 				for cat=1, #uWep.damages do
@@ -769,7 +833,7 @@ function widget:DrawScreen()
 						dmgString = dmgString..white..catName.." = "..(format(yellow .. "%d", (oDmg*100/defaultDamage)))..yellow.."%"..white.."; "
 					end
 				end
-				DrawText("Modifiers:", dmgString)
+				DrawText(texts.modifiers..":", dmgString)
 			else
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
@@ -781,12 +845,12 @@ function widget:DrawScreen()
 					totaldpsAoE = totaldpsAoE + wepCount*dpsAoE
 					totalbDamages = totalbDamages + wepCount* bDamages
 					totalbDamagesAoE = totalbDamagesAoE +  wepCount*bDamagesAoE
-					dmgString = "DPS = "..(format(yellow .. "%d", dps))..white.."; Burst = "..(format(yellow .. "%d", bDamages))..white.."."
-					dmgString = "DPS = "..(format(yellow .. "%d", dps))..white.." ( "..(format(yellow .. "%d", dpsAoE))..white.." ) Burst = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
+					dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
+					dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.." ( "..(format(yellow .. "%d", dpsAoE))..white.." ) "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
 					if wepCount > 1 then
-						dmgString = dmgString .. white .. " (Each)"
+						dmgString = dmgString .. white .. " ("..texts.each..")"
 					end
-					DrawText("Dmg:", dmgString)
+					DrawText(texts.dmg..":", dmgString)
 				end
 				local dmgString	= white
 				for cat=1, #uWep.damages do
@@ -796,7 +860,7 @@ function widget:DrawScreen()
 						dmgString = dmgString..white..catName.." = "..(format(yellow .. "%d", (oDmg*100/defaultDamage)))..yellow.."%"..white.."; "
 					end
 				end
-				DrawText("Modifiers:", dmgString)
+				DrawText(texts.modifiers..":", dmgString)
 			end
 
 
@@ -808,10 +872,10 @@ function widget:DrawScreen()
 				-- They drain ((simSpeed+2)/simSpeed) times more resources than they should (And the listed drain is real, having lower income than listed drain WILL stall you)
 				local drainAdjust = uWep.stockpile and (simSpeed+2)/simSpeed or 1
 
-				DrawText('Cost:', format(metalColor .. '%d' .. white .. ', ' ..
+				DrawText(texts.cost..':', format(metalColor .. '%d' .. white .. ', ' ..
 						energyColor .. '%d' .. white .. ' = ' ..
 						metalColor .. '-%d' .. white .. ', ' ..
-						energyColor .. '-%d' .. white .. ' per second',
+						energyColor .. '-%d' .. white .. ' '..texts.persecond,
 						uWep.metalCost,
 						uWep.energyCost,
 						drainAdjust * uWep.metalCost / oRld,
@@ -824,7 +888,7 @@ function widget:DrawScreen()
 	end
 
 	if totaldps > 0 then
-		DrawText('TotalDmg:', "DPS = "..(format(yellow .. "%d", totaldps))..white.." ( "..(format(yellow .. "%d", totaldpsAoE))..white.." ) Burst = "..(format(yellow .. "%d", totalbDamages))..white.." ( "..(format(yellow .. "%d", totalbDamagesAoE))..white.." ).")
+		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..white.." ( "..(format(yellow .. "%d", totaldpsAoE))..white.." ) "..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white.." ( "..(format(yellow .. "%d", totalbDamagesAoE))..white.." ).")
 		cY = cY - fontSize
 	end
 

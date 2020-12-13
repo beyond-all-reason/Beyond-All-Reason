@@ -1,9 +1,7 @@
-local versionNumber = "v1.92"
-
 function widget:GetInfo()
 	return {
 		name = "Prospector",
-		desc = versionNumber .. " Tooltip for amount of metal extracted when placing metal extractors.",
+		desc = "Tooltip for amount of metal extracted when placing metal extractors.",
 		author = "Evil4Zerggin",
 		date = "9 January 2009",
 		license = "GNU LGPL, v2.1 or later",
@@ -14,11 +12,14 @@ end
 
 local textSize = 16
 
-local vsx, vsy = Spring.GetViewGeometry()
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	metalextraction = 'Metal extraction',
+}
 
 ------------------------------------------------
 --speedups
 ------------------------------------------------
+---
 local GetActiveCommand = Spring.GetActiveCommand
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
@@ -51,6 +52,7 @@ local strFormat = string.format
 --vars
 ------------------------------------------------
 
+local vsx, vsy = Spring.GetViewGeometry()
 --unitDefID = {extractsMetal, extractSquare, oddX, oddZ}
 local mexDefInfos = {}
 local defaultDefID
@@ -186,6 +188,9 @@ end
 ------------------------------------------------
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('prospector')
+	end
 	SetupMexDefInfos()
 	myTeamID = Spring.GetMyTeamID()
 	once = true
@@ -274,7 +279,7 @@ function widget:DrawScreen()
 		coords[3] = WG.MexSnap.curPosition[3]
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
-	DrawTextWithBackground("\255\255\255\255Metal extraction: " .. strFormat("%.2f", extraction), mx, my, textSize, "do")
+	DrawTextWithBackground("\255\255\255\255"..texts.metalextraction..": " .. strFormat("%.2f", extraction), mx, my, textSize, "do")
 	glColor(1, 1, 1, 1)
 end
 

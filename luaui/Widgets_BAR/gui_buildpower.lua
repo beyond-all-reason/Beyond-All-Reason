@@ -10,6 +10,13 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	usedbuildpower = 'Used buildpower',
+	buildpower = 'buildpower',
+	builders = 'builders',
+	tip = 'Increase efficiency -> put idle worker units to work! (have enough resources too!)\n\255\240\240\240High buildpower usage -> make more workers',
+}
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -121,6 +128,9 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('buildpower')
+	end
 	widget:ViewResize()
 
 	WG['buildpower'] = {}
@@ -384,7 +394,7 @@ function widget:DrawScreen()
 	local x, y, b = Spring.GetMouseState()
 	if WG['tooltip'] and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		Spring.SetMouseCursor('cursornormal')
-		WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215Used buildpower: \255\255\255\200' .. math.ceil(avgBuildPower * 100) .. '% \255\180\180\180   buildpower: \255\255\255\200' .. totalBuildpower .. ' \255\180\180\180   builders: \255\255\255\200' .. totalBuilders .. '\n\255\240\240\240Increase efficiency -> put idle worker units to work! (have enough resources too!)\n\255\240\240\240High buildpower usage -> make more workers')
+		WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215'..texts.usedbuildpower': \255\255\255\200' .. math.ceil(avgBuildPower * 100) .. '% \255\180\180\180   '..texts.buildpower..': \255\255\255\200' .. totalBuildpower .. ' \255\180\180\180   '..texts.builders..': \255\255\255\200' .. totalBuilders .. '\n\255\240\240\240'..texts.tip)
 		--Spring.SetMouseCursor('cursornormal')
 	end
 
