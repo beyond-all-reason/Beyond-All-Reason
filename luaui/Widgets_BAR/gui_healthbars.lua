@@ -63,6 +63,18 @@ local minReloadTime = 4 --// in seconds
 
 local variableBarSizes = true
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	shield = 'shield',
+	health = 'health',
+	building = 'building',
+	stockpile = 'stockpile',
+	paralyze = 'paralyze',
+	capture = 'capture',
+	reload = 'reload',
+	resurrect = 'resurrect',
+	reclaim = 'reclaim',
+}
+
 local destructableFeature = {}
 local drawnFeature = {}
 for i = 1, #FeatureDefs do
@@ -646,6 +658,10 @@ function init()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('healthbars')
+	end
+
 	--// catch f9
 	Spring.SendCommands({ "showhealthbars 0" })
 	Spring.SendCommands({ "showrezbars 0" })
@@ -862,7 +878,7 @@ do
 				end
 				glColor(1, 1, 1, barAlpha)
 				glText(barInfo.text, barStart, -outlineSize, 4, "r")
-				if drawBarTitles and barInfo.title ~= "health" then
+				if drawBarTitles and barInfo.title ~= texts.health then
 					glColor(1, 1, 1, titlesAlpha)
 					glText(barInfo.title, 0, 0, 2.35, "cd")
 				end
@@ -891,7 +907,7 @@ do
 					glColor(1, 1, 1, featureBarAlpha)
 					glText(barInfo.text, fBarStart, yoffset - outlineSize, 4, "r")
 				end
-				if drawBarTitles and barInfo.title ~= "health" then
+				if drawBarTitles and barInfo.title ~= texts.health then
 					glColor(1, 1, 1, featureTitlesAlpha)
 					glText(barInfo.title, 0, yoffset - outlineSize, 2.35, "cd")
 				end
@@ -1010,7 +1026,7 @@ do
 						if shieldOn ~= 0 and build == 1 and shieldPower < ci.maxShield then
 							ci.maxShield = WeaponDefs[UnitDefs[unitDefID].weapons[i].weaponDef].shieldPower
 							shieldPower = shieldPower / ci.maxShield
-							AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
+							AddBar(texts.shield, shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
 						end
 					end
 				end
@@ -1018,7 +1034,7 @@ do
 				local shieldOn, shieldPower = GetUnitShieldState(unitID)
 				if shieldOn and build == 1 and shieldPower < ci.maxShield then
 					shieldPower = shieldPower / ci.maxShield
-					AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
+					AddBar(texts.shield, shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
 				end
 			end
 		end
@@ -1042,7 +1058,7 @@ do
 						infotext = hp100 .. '%'
 					end
 				end
-				AddBar("health", hp, nil, infotext or '', bfcolormap[hp100])
+				AddBar(texts.health, hp, nil, infotext or '', bfcolormap[hp100])
 			end
 		end
 
@@ -1052,7 +1068,7 @@ do
 			if fullText and (drawBarPercentage > 0 or dist < minPercentageDistance * drawDistanceMult) then
 				infotext = floor(build * 100) .. '%'
 			end
-			AddBar("building", build, "build", infotext or '')
+			AddBar(texts.building, build, "build", infotext or '')
 		end
 
 		--// STOCKPILE
@@ -1062,7 +1078,7 @@ do
 			if numStockpiled then
 				stockpileBuild = stockpileBuild or 0
 				if stockpileBuild > 0 then
-					AddBar("stockpile", stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100) .. '%') or '')
+					AddBar(texts.stockpile, stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100) .. '%') or '')
 				end
 			end
 		else
@@ -1087,7 +1103,7 @@ do
 				end
 			end
 			local empcolor_index = (stunned and ((blink and "emp_b") or "emp_p")) or ("emp")
-			AddBar("paralyze", emp, empcolor_index, infotext)
+			AddBar(texts.paralyze, emp, empcolor_index, infotext)
 		end
 
 		--// CAPTURE
@@ -1096,7 +1112,7 @@ do
 			if fullText and drawBarPercentage > 0 then
 				infotext = floor(capture * 100) .. '%'
 			end
-			AddBar("capture", capture, "capture", infotext or '')
+			AddBar(texts.capture, capture, "capture", infotext or '')
 		end
 
 		--// RELOAD
@@ -1112,7 +1128,7 @@ do
 				if fullText and drawBarPercentage > 0 then
 					infotext = reload .. '%'
 				end
-				AddBar("reload", reload, "reload", infotext or '')
+				AddBar(texts.reload, reload, "reload", infotext or '')
 			end
 		end
 
@@ -1195,17 +1211,17 @@ do
 		--// HEALTH
 		if hp < featureHpThreshold and drawFeatureHealth then
 			local color = { GetColor(fhpcolormap, hp) }
-			AddBar("health", hp, nil, (floor(hp * 100) <= drawFeatureBarPercentage and floor(hp * 100) .. '%') or '', color)
+			AddBar(texts.health, hp, nil, (floor(hp * 100) <= drawFeatureBarPercentage and floor(hp * 100) .. '%') or '', color)
 		end
 
 		--// RESURRECT
 		if resurrect > 0 then
-			AddBar("resurrect", resurrect, "resurrect", (fullText and floor(resurrect * 100) .. '%') or '')
+			AddBar(texts.resurrect, resurrect, "resurrect", (fullText and floor(resurrect * 100) .. '%') or '')
 		end
 
 		--// RECLAIMING
 		if reclaimLeft > 0 and reclaimLeft < 1 then
-			AddBar("reclaim", reclaimLeft, "reclaim", (fullText and floor(reclaimLeft * 100) .. '%') or '')
+			AddBar(texts.reclaim, reclaimLeft, "reclaim", (fullText and floor(reclaimLeft * 100) .. '%') or '')
 		end
 
 		if barsN > 0 then
