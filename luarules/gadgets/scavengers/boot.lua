@@ -192,7 +192,7 @@ function gadget:GameFrame(n)
 		ScavSafeAreaMaxX = ScavengerStartboxXMax
 		ScavSafeAreaMinZ = ScavengerStartboxZMin
 		ScavSafeAreaMaxZ = ScavengerStartboxZMax
-		ScavSafeAreaSize = math.ceil(((ScavengerStartboxXMax - ScavengerStartboxXMin) + (ScavengerStartboxZMax - ScavengerStartboxZMin))*0.25)
+		ScavSafeAreaSize = math.ceil(((ScavengerStartboxXMax - ScavengerStartboxXMin) + (ScavengerStartboxZMax - ScavengerStartboxZMin))*0.175)
 	end
 
 	if n == 300 then
