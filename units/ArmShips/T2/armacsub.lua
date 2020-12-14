@@ -4,7 +4,7 @@ return {
 		brakerate = 0.04428,
 		buildcostenergy = 9000,
 		buildcostmetal = 700,
-		builddistance = 160,
+		builddistance = 180,
 		builder = true,
 		buildpic = "ARMACSUB.PNG",
 		buildtime = 18000,

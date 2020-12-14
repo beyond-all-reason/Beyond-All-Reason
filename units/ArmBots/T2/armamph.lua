@@ -24,7 +24,7 @@ return {
 		maxdamage = 1050,
 		maxslope = 14,
 		maxvelocity = 3,
-		movementclass = "HOVER3",
+		movementclass = "HOVER5",
 		name = "Pelican",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMAMPH.s3o",
