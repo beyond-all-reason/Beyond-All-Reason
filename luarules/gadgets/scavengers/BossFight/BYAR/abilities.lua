@@ -25,7 +25,7 @@ function BossPassiveAbilityController(n)
 	elseif CurrentlyUsedPassiveAbility == "selfrepair" then -- Gonna need sound and visual effects here
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-		local healing = initialbosshealth*0.000025*BossFightCurrentPhase
+		local healing = initialbosshealth*0.0001*BossFightCurrentPhase
 		if currentbosshealth < initialbosshealth then
 			Spring.SetUnitHealth(FinalBossUnitID, currentbosshealth+healing)
 		end
@@ -38,9 +38,9 @@ end
 
 function BossSpecAbiDGun(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1500, false)
 		if nearestEnemy then
-			Spring.Echo("[Scavengers] Boss Dgun Activated")
+			--Spring.Echo("[Scavengers] Boss Dgun Activated")
 			local NearestBossEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 20000, false)
 			local x,y,z = Spring.GetUnitPosition(NearestBossEnemy)
 			Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z}, {0})
@@ -50,9 +50,14 @@ function BossSpecAbiDGun(n)
 end
 table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
 table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
 table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
 table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
 table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
@@ -60,9 +65,9 @@ table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiDGun)
 
 function BossSpecAbiDGunFrenzy(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 500, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
 		if nearestEnemy then
-			Spring.Echo("[Scavengers] Boss Frenzy Dgun Activated")
+			--Spring.Echo("[Scavengers] Boss Frenzy Dgun Activated")
 			local r = math_random(1,4)
 			local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
 			if r == 1 then -- clockwise
@@ -126,11 +131,11 @@ table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiDGunFrenzy)
 
 function BossSpecAbiSuperDGun(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 500, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
 		if nearestEnemy then
-			Spring.Echo("[Scavengers] Boss Super Dgun Activated")
+			--Spring.Echo("[Scavengers] Boss Super Dgun Activated")
 			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 500)
+			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 750)
 			SuperDgunTargets = 0
 			for e = 1,#NearestUnits do
 				local uID = NearestUnits[e]
@@ -148,29 +153,31 @@ function BossSpecAbiSuperDGun(n)
 		end
 	end
 end
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiSuperDGun)
 table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiSuperDGun)
 table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiSuperDGun)
 
 function BossSpecAbiSelfRepair(n)
 	if FinalBossUnitID then
-		Spring.Echo("[Scavengers] Boss Self Repair Activated")
+		--Spring.Echo("[Scavengers] Boss Self Repair Activated")
 		CurrentlyUsedPassiveAbility = "selfrepair"
 		AbilityTimer = BossFightCurrentPhase*3
 	end
 end
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiSelfRepair)
 table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiSelfRepair)
 table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiSelfRepair)
 
 function BossSpecAbiFighterWave(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 3000, false)
 		if nearestEnemy then
-			Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
+			--Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
 			local r = math_random(1,4)
 			local fighters = {"armhawk_scav", "corvamp_scav",}
 			local fighter = fighters[math_random(1,2)]
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			for i = 1,2*BossFightCurrentPhase*spawnmultiplier do
+			for i = 1,5*BossFightCurrentPhase*spawnmultiplier do
 				if r == 1 then
 					local posx = 0
 					local posz = math.random(0,mapsizeZ)
@@ -196,17 +203,29 @@ function BossSpecAbiFighterWave(n)
 		end
 	end
 end
+table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiFighterWave)
 table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiFighterWave)
 table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiFighterWave)
 
 function BossSpecAbiNearbyTacNuke(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
 		if nearestEnemy then
-			Spring.Echo("[Scavengers] Boss Is TacNuking")
-			local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
-			for i = 1,BossFightCurrentPhase do
-				QueueSpawn("scavtacnukespawner_scav", posx+math_random(-750,750), posy, posz+math_random(-750,750), math_random(0,3),GaiaTeamID, n+i*30+math.random(0,60))
+			--Spring.Echo("[Scavengers] Boss Is TacNuking")
+			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
+			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 750)
+			if #NearestUnits > 5 then
+				for i = 1,BossFightCurrentPhase do
+					for t = 1,10 do
+						local target = NearestUnits[math_random(1,#NearestUnits)]
+						local targetTeam = Spring.GetUnitTeam(target)
+						if targetTeam ~= GaiaTeamID then
+							local x,y,z = Spring.GetUnitPosition(target)
+							QueueSpawn("scavtacnukespawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),GaiaTeamID, n+i+math.random(0,60))
+							break
+						end
+					end
+				end
 			end
 		end
 	end
@@ -216,15 +235,27 @@ table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiNearbyTacNuke)
 
 function BossSpecAbiNearbyEMP(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
 		if nearestEnemy then
-			Spring.Echo("[Scavengers] Boss Is EMP'ing")
-			local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
-			for i = 1,BossFightCurrentPhase do
-				QueueSpawn("scavempspawner_scav", posx+math_random(-750,750), posy, posz+math_random(-750,750), math_random(0,3),GaiaTeamID, n+i*30+math.random(0,60))
+			--Spring.Echo("[Scavengers] Boss Is TacNuking")
+			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
+			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 750)
+			if #NearestUnits > 5 then
+				for i = 1,BossFightCurrentPhase do
+					for t = 1,10 do
+						local target = NearestUnits[math_random(1,#NearestUnits)]
+						local targetTeam = Spring.GetUnitTeam(target)
+						if targetTeam ~= GaiaTeamID then
+							local x,y,z = Spring.GetUnitPosition(target)
+							QueueSpawn("scavempspawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),GaiaTeamID, n+i+math.random(0,60))
+							break
+						end
+					end
+				end
 			end
 		end
 	end
 end
 table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiNearbyEMP)
 table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiNearbyEMP)
+

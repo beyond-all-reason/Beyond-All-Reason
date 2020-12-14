@@ -208,7 +208,7 @@ function gadget:GameFrame(n)
 		RandomEventTrigger(n)
 	end
 
-	if n%(75/spawnmultiplier) == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
+	if n%30 == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
 		if not SpecialAbilityCountdown then SpecialAbilityCountdown = 10 end
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
@@ -219,7 +219,7 @@ function gadget:GameFrame(n)
 		if SpecialAbilityCountdown <= 0 then
 			local SpecAbi = BossSpecialAbilitiesUsedList[math_random(1,#BossSpecialAbilitiesUsedList)]
 			if SpecAbi then
-				SpecialAbilityCountdown = 10 - BossFightCurrentPhase
+				SpecialAbilityCountdown = (10 - BossFightCurrentPhase)*2
 				SpecAbi(n)
 			end
 		end
