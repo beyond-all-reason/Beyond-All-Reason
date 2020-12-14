@@ -976,7 +976,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.32, 1.45)
+	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.28, 1.6)
 
 	if WG['minimap'] then
 		minimapEnlarged = WG['minimap'].getEnlarged()

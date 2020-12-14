@@ -12,6 +12,7 @@ end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
 local teamcolorRadarIcon = false
 local width = 0
 local addonWidth = 0
@@ -28,6 +29,9 @@ local showSelectionTotals = true
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+}
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -397,18 +401,18 @@ function widget:ViewResize()
 
 	font, loadedFontSize = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
-	font3 = WG['fonts'].getFont(fontfile2, 1.2, 0.32, 1.45)
+	font3 = WG['fonts'].getFont(fontfile2, 1.2, 0.28, 1.6)
 end
 
 function GetColor(colormap, slider)
 	local coln = #colormap
-	if (slider >= 1) then
+	if slider >= 1 then
 		local col = colormap[coln]
 		return col[1], col[2], col[3], col[4]
 	end
-	if (slider < 0) then
+	if slider < 0 then
 		slider = 0
-	elseif (slider > 1) then
+	elseif slider > 1 then
 		slider = 1
 	end
 	local posn = 1 + (coln - 1) * slider
@@ -423,6 +427,9 @@ function GetColor(colormap, slider)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('info')
+	end
 	widget:ViewResize()
 
 	WG['info'] = {}
@@ -959,7 +966,7 @@ local function drawSelection()
 	if showSelectionTotals then
 		local numLines
 		local stats = getSelectionTotals(selectionCells)
-		local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " units selected" .. stats .. "\n " .. (stats == '' and '' or '\n')
+		local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " "..texts.unitsselected .. stats .. "\n " .. (stats == '' and '' or '\n')
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 		text, numLines = font:WrapText(text, contentWidth * (loadedFontSize / fontSize))
 		font:Begin()
@@ -1024,7 +1031,7 @@ end
 
 
 local function drawUnitInfo()
-	local fontSize = (height * vsy * 0.123) * (0.95 - ((1 - ui_scale) * 0.5))
+	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
 
 	local iconSize = math.floor(fontSize * 4.4)
 	local iconPadding = math.floor(fontSize * 0.28)
@@ -1644,7 +1651,7 @@ function widget:MouseRelease(x, y, button)
 			end
 		end
 	end
-	
+
 	return -1
 end
 

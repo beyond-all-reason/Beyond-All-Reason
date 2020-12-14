@@ -199,7 +199,9 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 	for i = 1, #unitData.fxTable do
 		local fxID = unitData.fxTable[i]
 		local fx = Lups.GetParticles(fxID)
-		fx.visibleToMyAllyTeam = unitVisible
+		if fx then
+			fx.visibleToMyAllyTeam = unitVisible
+		end
 	end
 end
 
