@@ -1,8 +1,8 @@
 return {
 	corape = {
-		acceleration = 0.15,
+		acceleration = 0.20,
 		blocking = false,
-		brakerate = 0.356,
+		brakerate = 0.20,
 		buildcostenergy = 6800,
 		buildcostmetal = 370,
 		buildpic = "CORAPE.PNG",
