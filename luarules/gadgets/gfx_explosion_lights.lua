@@ -16,7 +16,7 @@ end
 -------------------------------------------------------------------------------
 
 
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
     local cannonWeapons = {}
     function gadget:Initialize()
         for wdid, wd in pairs(WeaponDefs) do
@@ -65,7 +65,7 @@ else
     local spIsPosInLos = Spring.IsPosInLos
 
     function gadget:PlayerChanged(playerID)
-        if (playerID == Spring.GetMyPlayerID()) then
+        if playerID == Spring.GetMyPlayerID() then
             myAllyID = Spring.GetMyAllyTeamID()
         end
     end
@@ -73,7 +73,7 @@ else
     local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
         if Script.LuaUI("GadgetWeaponExplosion") then
             if ownerID ~= nil then
-                if (spGetUnitAllyTeam(ownerID) == myAllyID  or  spIsPosInLos(px, py, pz, myAllyID)) then
+                if spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
                     Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
                 end
             else
@@ -87,7 +87,7 @@ else
         --Spring.Echo(weaponID..'  '..math.random())
         if Script.LuaUI("GadgetWeaponBarrelfire") then
             if ownerID ~= nil then
-                if (spGetUnitAllyTeam(ownerID) == myAllyID  or  spIsPosInLos(px, py, pz, myAllyID)) then
+                if spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
                     Script.LuaUI.GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
                 end
             else

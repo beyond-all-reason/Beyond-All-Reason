@@ -2,9 +2,9 @@
 if addon.InGetInfo then
 	return {
 		name    = "Main",
-		desc    = "displays a simple loading bar",
-		author  = "jK",
-		date    = "2012,2013",
+		desc    = "loadbar and tips",
+		author  = "jK, Floris",
+		date    = "2012",
 		license = "GPL2",
 		layer   = 0,
 		depend  = {"LoadProgress"},

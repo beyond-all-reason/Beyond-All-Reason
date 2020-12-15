@@ -486,6 +486,16 @@ end
 else
 ----------------------------------------------------------------
 
+local texts = {		-- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	ready = 'Ready',
+	gamestartingin = 'Game starting in',
+	seconds = 'seconds',
+	youneed = 'You need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)',
+	closingin = 'closing in...',
+	unsupportedai = 'Unsupportedai',
+	unsupportedengine = 'Unsupported engine\n\You need at least version',
+}
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -729,6 +739,10 @@ function gadget:MouseRelease(x,y)
 end
 
 function gadget:Initialize()
+	if GG.lang then
+		texts = GG.lang.getText('initialspawn')
+	end
+
 	-- add function to receive when startpoints were chosen
 	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
 
@@ -846,7 +860,7 @@ function gadget:DrawScreen()
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. "Ready", -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
+				font:Print(colorString .. texts.ready, -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
@@ -859,7 +873,7 @@ function gadget:DrawScreen()
 				else
 					colorString = "\255\255\255\255"
 				end
-				local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
+				local text = colorString .. texts.gamestartingin.." " .. math.max(1,3-math.floor(timer)) .. " "..texts.seconds
 				font:Begin()
 				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
 				font:End()
@@ -880,9 +894,9 @@ function gadget:DrawScreen()
 		gl.Rect(0,0,vsx,vsy)
 		font:Begin()
 		if unsupportedAI then
-			font:Print("\255\200\200\200Unsupported AI  ("..unsupportedAI..")\n\nYou need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200"..texts.unsupportedai.."  ("..unsupportedAI..")\n\n"..texts.youneed.."\n\n\255\130\130\130"..texts.closingin.." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		else
-			font:Print("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200"..texts.unsupportedengine.."  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130"..texts.closingin.." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		end
 		font:End()
 		if Script.LuaUI("GuishaderInsertRect") then

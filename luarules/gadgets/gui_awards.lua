@@ -91,14 +91,14 @@ if gadgetHandler:IsSyncedCode() then
 	-----------------------------------
 
 	function gadget:GameStart()
-		--make table of teams eligible for awards
+		-- make table of teams eligible for awards
 		local allyTeamIDs = Spring.GetAllyTeamList()
 		for i = 1, #allyTeamIDs do
 			local teamIDs = Spring.GetTeamList(allyTeamIDs[i])
 			for j = 1, #teamIDs do
-				local isLuaAI = (Spring.GetTeamLuaAI(teamIDs[j]) ~= "")
-				local _,_,_,isAiTeam = Spring.GetTeamInfo(teamIDs[j])
-				if not (select(4, Spring.GetTeamInfo(teamIDs[j], false)) or isLuaAI or isAiTeam or teamIDs[j] == gaiaTeamID) then
+				local isLuaAI = (Spring.GetTeamLuaAI(teamIDs[j]) ~= nil)
+				local isAiTeam = select(4, Spring.GetTeamInfo(teamIDs[j]))
+				if not (isLuaAI or isAiTeam or teamIDs[j] == gaiaTeamID) then
 					local playerIDs = Spring.GetPlayerList(teamIDs[j])
 					local numPlayers = 0
 					for _, playerID in pairs(playerIDs) do
@@ -106,7 +106,6 @@ if gadgetHandler:IsSyncedCode() then
 							numPlayers = numPlayers + 1
 						end
 					end
-
 					if numPlayers > 0 then
 						present[teamIDs[j]] = true
 						teamInfo[teamIDs[j]] = { allDmg = 0, ecoDmg = 0, fightDmg = 0, otherDmg = 0, dmgDealt = 0, ecoUsed = 0, effScore = 0, ecoProd = 0, lastKill = 0, dmgRec = 0, sleepTime = 0, present = true, teamDmg = 0, }
@@ -411,6 +410,28 @@ else
 	-------------------------------------------------------------------------------------
 	-------------------------------------------------------------------------------------
 
+	local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+		awards = 'Awards',
+		score = 'Score',
+		producedthemostresources = 'produced the most resources',
+		notawarded = 'not awarded',
+		unknown = 'unknown',
+		coop = 'coop',
+		tookthemostdamage = 'took the most damage',
+		sleptlongestfor = 'slept longest, for',
+		runnersup = 'Runners up',
+		leave = 'Leave',
+		quit = 'Quit',
+		close = 'Close',
+		showgraphs = 'Show Graphs',
+		minutes = 'minutes',
+		destroyingresourceproduction = 'Destroying enemy resource production',
+		destroyingunitsdefences = 'Destroying enemy units and defences',
+		efficientuseofresources = 'Efficient use of resources',
+		doingeverything = 'Doing everything',
+		thetraitor = 'The Traitor - Destroying allied units',
+	}
+
 	local glCreateList = gl.CreateList
 	local glCallList = gl.CallList
 	local glDeleteList = gl.DeleteList
@@ -472,7 +493,7 @@ else
 	function gadget:ViewResize(viewSizeX, viewSizeY)
 		vsx, vsy = Spring.GetViewGeometry()
 		local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-		if (fontfileScale ~= newFontfileScale) then
+		if fontfileScale ~= newFontfileScale then
 			fontfileScale = newFontfileScale
 			gl.DeleteFont(font)
 			font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
@@ -498,6 +519,9 @@ else
 	end
 
 	function gadget:Initialize()
+		if GG.lang then
+			texts = GG.lang.getText('awards')
+		end
 		if chobbyLoaded then
 			Spring.SendCommands('endgraph 0')
 		end
@@ -553,16 +577,16 @@ else
 			h = 600
 		end
 		CreateBackground()
-		FirstAward = CreateAward('fuscup', 0, 'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100)
-		SecondAward = CreateAward('bullcup', 0, 'Destroying enemy units and defences', white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200)
-		ThirdAward = CreateAward('comwreath', 0, 'Efficient use of resources', white, effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300)
+		FirstAward = CreateAward('fuscup', 0, texts.destroyingresourceproduction, white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100)
+		SecondAward = CreateAward('bullcup', 0, texts.destroyingunitsdefences, white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200)
+		ThirdAward = CreateAward('comwreath', 0, texts.efficientuseofresources, white, effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300)
 		if cowAward ~= -1 then
-			CowAward = CreateAward('cow', 1, 'Doing everything', white, ecoKillAward, 1, 1, 1, 1, 1, 400 + addy)
+			CowAward = CreateAward('cow', 1, texts.doingeverything, white, ecoKillAward, 1, 1, 1, 1, 1, 400 + addy)
 		else
 			OtherAwards = CreateAward('', 2, '', white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400 + addy)
 		end
 		if traitorScore > threshold then
-			FourthAward = CreateAward('traitor', 0, 'The Traitor - Destroying allied units', white, traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi, 400)
+			FourthAward = CreateAward('traitor', 0, texts.thetraitor, white, traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi, 400)
 		end
 		drawAwards = true
 
@@ -698,7 +722,7 @@ else
 			glTexRect(bx + w / 2 - 220, by + h - 75, bx + w / 2 + 120, by + h - 5)
 
 			font:Begin()
-			font:Print('Score', bx + w / 2 + 275, by + h - 65, 15, "o")
+			font:Print(texts.score, bx + w / 2 + 275, by + h - 65, 15, "o")
 			font:End()
 		end)
 	end
@@ -733,10 +757,10 @@ else
 		if plList[1] then
 			name = plList[1]
 			if #plList > 1 then
-				name = name .. " (coop)"
+				name = name .. '( '..texts.coop..')'
 			end
 		else
-			name = "(unknown)"
+			name = '('..texts.unknown..')'
 		end
 
 		return name
@@ -750,19 +774,19 @@ else
 		if winnerID >= 0 then
 			winnerName = FindPlayerName(winnerID)
 		else
-			winnerName = "(not awarded)"
+			winnerName = '('..texts.notawarded..')'
 		end
 
 		if secondID >= 0 then
 			secondName = FindPlayerName(secondID)
 		else
-			secondName = "(not awarded)"
+			secondName = '('..texts.notawarded..')'
 		end
 
 		if thirdID >= 0 then
 			thirdName = FindPlayerName(thirdID)
 		else
-			thirdName = "(not awarded)"
+			thirdName = '('..texts.notawarded..')'
 		end
 
 		thisAward = glCreateList(function()
@@ -782,15 +806,15 @@ else
 				--if the cow is not awarded, we replace it with minor awards (just text)
 				local heightoffset = 0
 				if winnerID >= 0 then
-					font:Print(colourNames(winnerID) .. winnerName .. white .. ' produced the most resources (' .. math.floor(winnerScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+					font:Print(colourNames(winnerID) .. winnerName .. white .. ' '..texts.producedthemostresources..' (' .. math.floor(winnerScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 					heightoffset = heightoffset + 17
 				end
 				if secondID >= 0 then
-					font:Print(colourNames(secondID) .. secondName .. white .. ' took the most damage (' .. math.floor(secondScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+					font:Print(colourNames(secondID) .. secondName .. white .. ' '..texts.tookthemostdamage..' (' .. math.floor(secondScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 					heightoffset = heightoffset + 17
 				end
 				if thirdID >= 0 then
-					font:Print(colourNames(thirdID) .. thirdName .. white .. ' slept longest, for ' .. math.floor(thirdScore / 60) .. ' minutes.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+					font:Print(colourNames(thirdID) .. thirdName .. white .. ' '..texts.sleptlongestfor..' ' .. math.floor(thirdScore / 60) .. ' '..texts.minutes..'.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 				end
 			end
 
@@ -807,7 +831,7 @@ else
 				else
 					font:Print('-', bx + w / 2 + 275, by + h - offset - 5, 17, "o")
 				end
-				font:Print('Runners up:', bx + 500, by + h - offset - 5, 14, "o")
+				font:Print(texts.runnersup..':', bx + 500, by + h - offset - 5, 14, "o")
 
 				if secondScore > 0 then
 					if pic == 'comwreath' then
@@ -916,19 +940,19 @@ else
 		local quitColour
 		local graphColour
 
-		if (x > bx + w - quitX - 5) and (x < bx + w - quitX + 17 * font2:GetTextWidth('Quit') + 5) and (y > by + 50 - 5) and (y < by + 50 + 17 + 5) then
+		if (x > bx + w - quitX - 5) and (x < bx + w - quitX + 17 * font2:GetTextWidth(texts.quit) + 5) and (y > by + 50 - 5) and (y < by + 50 + 17 + 5) then
 			quitColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			quitColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
 		font2:Begin()
-		font2:Print(quitColour .. (chobbyLoaded and 'Leave' or 'Quit'), bx + w - quitX, by + 50, 20, "o")
-		if (x > bx + w - graphsX - 5) and (x < bx + w - graphsX + 17 * font2:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close')) + 5) and (y > by + 50 - 5) and (y < by + 50 + 17 + 5) then
+		font2:Print(quitColour .. (chobbyLoaded and texts.leave or texts.quit), bx + w - quitX, by + 50, 20, "o")
+		if (x > bx + w - graphsX - 5) and (x < bx + w - graphsX + 17 * font2:GetTextWidth((showGraphsButton and texts.showgraphs or texts.close)) + 5) and (y > by + 50 - 5) and (y < by + 50 + 17 + 5) then
 			graphColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			graphColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
-		font2:Print(graphColour .. (showGraphsButton and 'Show Graphs' or 'Close'), bx + w - graphsX, by + 50, 20, "o")
+		font2:Print(graphColour .. (showGraphsButton and texts.showgraphs or texts.close), bx + w - graphsX, by + 50, 20, "o")
 		font2:End()
 
 		glPopMatrix()

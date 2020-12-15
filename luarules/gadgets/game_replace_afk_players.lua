@@ -24,12 +24,17 @@ if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
 	return
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
------------------------------
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	offertoplay = 'Offer to play',
+	withdrawoffer = 'Withdraw offer',
+	substituteecho = 'If player(s) are afk when the game starts, you might be used as a substitute',
+	substitutewithdrawn = 'Your offer to substitute has been withdrawn',
+	substitutionoccurred = 'Substitution occurred, revealed start positions to all',
+	wassubstitutedinfor = 'was substituted in for',
+}
+
 if gadgetHandler:IsSyncedCode() then
-	-----------------------------
 
 	-- TS difference required for substitutions
 	-- idealDiff is used if possible, validDiff as fall-back, otherwise no
@@ -174,7 +179,7 @@ if gadgetHandler:IsSyncedCode() then
 
 					local incoming, _ = Spring.GetPlayerInfo(sID, false)
 					local outgoing, _ = Spring.GetPlayerInfo(playerID, false)
-					Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
+					Spring.Echo(incoming .. ' '..texts.wassubstitutedinfor..' ' .. outgoing)
 				end
 				substitutesLocal[sID] = nil
 				wouldSub = true
@@ -446,6 +451,10 @@ else
 
 	function gadget:Initialize()
 
+		if GG.lang then
+			texts = GG.lang.getText('replaceafkplayers')
+		end
+
 		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
 			return
@@ -492,9 +501,9 @@ else
 			end
 			local textString
 			if not offer then
-				textString = "Offer to play"
+				textString = texts.offertoplay
 			else
-				textString = "Withdraw offer"
+				textString = texts.withdrawoffer
 			end
 			font:Begin()
 			font:Print(colorString .. textString, -((bW / 2) - 12.5), -((bH / 2) - 9.5), 19, "o")
@@ -517,14 +526,14 @@ else
 			--Spring.Echo("sent", myPlayerID, ts)
 			if not offer then
 				Spring.SendLuaRulesMsg('\144')
-				Spring.Echo("If player(s) are afk when the game starts, you might be used as a substitute")
+				Spring.Echo(texts.substituteecho)
 				offer = true
 				bW = 160
 				MakeButton()
 				return true
 			else
 				Spring.SendLuaRulesMsg('\145')
-				Spring.Echo("Your offer to substitute has been withdrawn")
+				Spring.Echo(texts.substitutewithdrawn)
 				offer = false
 				bW = 140
 				MakeButton()
@@ -572,7 +581,7 @@ else
 			return
 		end
 		if revealed then
-			Spring.Echo("Substitution occurred, revealed start positions to all")
+			Spring.Echo(texts.substitutionoccurred)
 		end
 
 		gadgetHandler:RemoveCallIn("GameFrame")
