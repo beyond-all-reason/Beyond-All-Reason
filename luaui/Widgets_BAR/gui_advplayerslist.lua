@@ -1286,9 +1286,9 @@ function GetAllPlayers()
             tplayerCount = tplayerCount + 1
         end
 
-        local _, _, _, isAiTeam = Spring.GetTeamInfo(teamN, false)
-        local isLuaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
-        if not (isAiTeam or isLuaAI) then
+        local isAiTeam = select(4, Spring.GetTeamInfo(teamN, false))
+        local luaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
+        if not (isAiTeam or (luaAI ~= nil and luaAI ~= '')) then
             if tplayerCount > 0 then
                 playerSpecs[i] = true        -- (this isnt correct when team consists of only AI)
             end

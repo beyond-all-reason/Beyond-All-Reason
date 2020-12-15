@@ -439,7 +439,7 @@ local function GetBallisticVector(v, dx, dy, dz, trajectory, range)
 	local vr = sqrt(root2) / (2 * d_sq)
 	local vy
 
-	if r == 0 or vr == 0 then
+	if vr == 0 then
 		vy = v
 	else
 		vy = vr * dy / dr + dr * g / (2 * vr)

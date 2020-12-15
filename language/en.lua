@@ -1010,7 +1010,7 @@ return {
 		seconds = 'seconds',
 		youneed = 'You need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)',
 		closingin = 'closing in...',
-		unsupportedai = 'Unsupportedai',
+		unsupportedai = 'Unsupported AI',
 		unsupportedengine = 'Unsupported engine\n\You need at least version',
 	},
 	replaceafkplayers = {

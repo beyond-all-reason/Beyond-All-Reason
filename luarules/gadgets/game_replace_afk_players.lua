@@ -15,7 +15,7 @@ local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if not luaAI and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
+	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
 		numPlayers = numPlayers + 1
 	end
 end

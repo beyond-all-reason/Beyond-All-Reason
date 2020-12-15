@@ -208,7 +208,7 @@ end
 for i = 1, #teams do
 	local _,_,_, isAiTeam = Spring.GetTeamInfo(teams[i], false)
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if not luaAI and not isAiTeam and teams[i] ~= gaiaTeamID then
+	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= gaiaTeamID then
 		numPlayers = numPlayers + 1
 	end
 end

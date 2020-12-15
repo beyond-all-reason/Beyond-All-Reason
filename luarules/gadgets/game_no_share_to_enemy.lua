@@ -25,7 +25,7 @@ local isNonPlayerTeam = { [Spring.GetGaiaTeamID()] = true }
 local teams = Spring.GetTeamList()
 for i=1,#teams do
     local _,_,_,isAiTeam = Spring.GetTeamInfo(teams[i],false)
-    local isLuaAI = (Spring.GetTeamLuaAI(teams[i]) ~= "")
+    local isLuaAI = (Spring.GetTeamLuaAI(teams[i]) ~= nil)
     if isAiTeam or isLuaAI then
         isNonPlayerTeam[teams[i]] = true
     end
