@@ -11,9 +11,6 @@ function widget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
 local stickToBottom = false
 
 local alwaysShow = false
@@ -252,6 +249,7 @@ function wrap(str, limit)
 	return t
 end
 
+
 local folder = ':l:LuaUI/Images/groupicons/'
 local groups = {
 	energy = folder..'energy.png',
@@ -268,15 +266,25 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	nextpage = 'Next page',
+	previouspage = 'Previous page',
+}
+local unitHumanName = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	-- gets filled with unit names from unitdefs, then overwritten by language file names
+}
+local unitTooltip = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	-- gets filled with unit tooltips for unitdefs, then overwritten by language file tooltips
+}
+
 local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
 local isBuilder = {}
 local isFactory = {}
-local unitHumanName = {}
 local unitDescriptionLong = {}
-local unitTooltip = {}
 local unitIconType = {}
 local isMex = {}
 local unitMaxWeaponRange = {}
@@ -1060,7 +1068,23 @@ local function hijacklayout()
 	Spring.ForceLayoutUpdate()
 end
 
+
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('buildmenu')
+		local translations = WG['lang'].getText('unitnames')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitHumanName[UnitDefNames[name].id] = text
+			end
+		end
+		translations = WG['lang'].getText('unittooltips')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitTooltip[UnitDefNames[name].id] = text
+			end
+		end
+	end
 	hijacklayout()
 
 	iconTypesMap = {}
@@ -1782,7 +1806,7 @@ function widget:DrawScreen()
 					end
 					if paginatorHovered then
 						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. (paginatorHovered == 1 and "previous page" or "next page")
+							local text = "\255\240\240\240" .. (paginatorHovered == 1 and texts.previouspage or texts.nextpage)
 							WG['tooltip'].ShowTooltip('buildmenu', text)
 						end
 						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })

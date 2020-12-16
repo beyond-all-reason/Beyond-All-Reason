@@ -467,6 +467,18 @@ end
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('info')
+		local translations = WG['lang'].getText('unitnames')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitDefInfo[UnitDefNames[name].id].tooltip = text
+			end
+		end
+		translations = WG['lang'].getText('unittooltips')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitDefInfo[UnitDefNames[name].id].humanName = text
+			end
+		end
 	end
 	widget:ViewResize()
 

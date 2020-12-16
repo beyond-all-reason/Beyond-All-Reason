@@ -38,7 +38,7 @@ return {
 		turnrate = 885.5,
 		upright = true,
 		customparams = {
-			description_long = "Warrior is a durable Bot armed with a rapid firing double laser. It has a relatively high HP for T1 and can easily take down multiple light assault units, like A.K.'s, Peewees etc. Often referred to as \"mobile LLT\". Their range is enough to overshoot Commanders, so with a little micro it may be used to force them to retreat. Always combine with resurrection Bots for healing and resurrecting fallen units.",
+			description_long = "Warrior is a durable Bot armed with a rapid firing double laser. It has a relatively high HP for T1 and can easily take down multiple light assault units, like A.K.'s, Peewees etc. Often referred to as 'mobile LLT'. Their range is enough to overshoot Commanders, so with a little micro it may be used to force them to retreat. Always combine with resurrection Bots for healing and resurrecting fallen units.",
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",

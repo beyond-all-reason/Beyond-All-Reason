@@ -72,6 +72,9 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	persecond = 'per second',
 	totaldmg = 'Total Dmg',
 }
+local unitHumanName = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	-- gets filled with unit names from unitdefs, then overwritten by language file names
+}
 
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
@@ -225,6 +228,7 @@ local font, chobbyInterface, showUnitID
 local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
 	unitBuildPic[id] = def.buildpicname
+	unitHumanName[id] = def.humanName
 end
 
 local myTeamID = Spring.GetMyTeamID
@@ -534,6 +538,12 @@ end
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('unitstats')
+		local translations = WG['lang'].getText('unitnames')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitHumanName[UnitDefNames[name].id] = text
+			end
+		end
 	end
 	font = WG['fonts'].getFont(fontfile)
 	init()
@@ -1037,7 +1047,7 @@ function widget:DrawScreen()
 	end
 
 	-- title
-	local text = "\255\190\255\190" .. uDef.humanName
+	local text = "\255\190\255\190" .. unitHumanName[uDefID]
 	if uID then
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end

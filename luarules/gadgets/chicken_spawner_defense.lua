@@ -1118,14 +1118,16 @@ if gadgetHandler:IsSyncedCode() then
 				local h = GetUnitHeading(unitID)
 				SetUnitBlocking(unitID, false, false)
 				local newUnitID = CreateUnit("chickenr2", bx, by, bz, "n", unitTeam)
-				Spring.SetUnitNoDraw(newUnitID, true)
-				Spring.MoveCtrl.Enable(newUnitID)
-				Spring.MoveCtrl.SetHeading(newUnitID, h)
-				Spring.MoveCtrl.Disable(newUnitID)
-				SetUnitExperience(newUnitID, mRandom() * expMod)
-				Spring.SetUnitNoDraw(newUnitID, false)
-				deathQueue[unitID] = { selfd = false, reclaimed = true }
-				idleOrderQueue[newUnitID] = { cmd = CMD.STOP, params = {}, opts = {} }
+				if newUnitID then
+					Spring.SetUnitNoDraw(newUnitID, true)
+					Spring.MoveCtrl.Enable(newUnitID)
+					Spring.MoveCtrl.SetHeading(newUnitID, h)
+					Spring.MoveCtrl.Disable(newUnitID)
+					SetUnitExperience(newUnitID, mRandom() * expMod)
+					Spring.SetUnitNoDraw(newUnitID, false)
+					deathQueue[unitID] = { selfd = false, reclaimed = true }
+					idleOrderQueue[newUnitID] = { cmd = CMD.STOP, params = {}, opts = {} }
+				end
 				return
 			end
 		elseif unitID == queenID then
