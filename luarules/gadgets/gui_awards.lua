@@ -515,14 +515,14 @@ else
 	local chobbyLoaded = false
 	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
 		chobbyLoaded = true
-		showGraphsButton = false    -- false -> Close button
+		--showGraphsButton = false    -- false -> Close button
 	end
 
 	function gadget:Initialize()
 		if GG.lang then
 			texts = GG.lang.getText('awards')
 		end
-		if chobbyLoaded then
+		if chobbyLoaded and not showGraphsButton then
 			Spring.SendCommands('endgraph 0')
 		end
 
@@ -882,7 +882,11 @@ else
 			end
 			if (x > bx + w - graphsX - 5) and (x < bx + w - graphsX + 20 * font:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close')) + 5) and (y > by + 50 - 5) and (y < by + 50 + 16 + 5) then
 				if showGraphsButton then
-					Spring.SendCommands('endgraph 1')
+					if chobbyLoaded then
+						Spring.SendCommands('endgraph 2')
+					else
+						Spring.SendCommands('endgraph 1')
+					end
 				end
 				if Script.LuaUI("GuishaderRemoveRect") then
 					Script.LuaUI.GuishaderRemoveRect('awards')
