@@ -837,7 +837,7 @@ return {
 			nametags_icon_descr = 'Show commander name when its displayed as icon',
 			commandsfx = 'Command FX',
 			commandsfx_descr = 'Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well',
-			commandsfxfilterai = '',
+			commandsfxfilterai = 'filter AI teams',
 			commandsfxfilterai_descr = 'Hide commands for AI teams',
 			commandsfxopacity = 'opacity',
 			displaydps = 'Display DPS',

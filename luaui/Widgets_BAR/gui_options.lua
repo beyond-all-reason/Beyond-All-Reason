@@ -3507,6 +3507,13 @@ function init()
 			  saveOptionValue('Order menu', 'ordermenu', 'setAlwaysShow', { 'alwaysShow' }, value)
 		  end,
 		},
+		--{ id = "ordermenu_button_move", group = "ui", name = widgetOptionColor .. "   "..texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisbledCmd~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Order menu', 'ordermenu', 'setAlwaysShow', { 'alwaysShow' }, value)
+		--  end,
+		--},
 
 
 		{ id = "advplayerlist_scale", group = "ui", basic = true, name = texts.option.advplayerlist .. widgetOptionColor .. "  "..texts.option.advplayerlist_scale, min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = texts.option.advplayerlist_scale_descr,

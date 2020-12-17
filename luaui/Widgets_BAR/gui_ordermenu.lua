@@ -10,9 +10,6 @@ function widget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
 local cellZoom = 1
 local cellClickedZoom = 1.1
 local cellHoverZoom = 1.045
@@ -455,6 +452,16 @@ function widget:Initialize()
 	end
 	WG['ordermenu'].getBottomPosition = function()
 		return stickToBottom
+	end
+	WG['ordermenu'].getDisabledCmd = function(cmd)
+		return disabledCmd[cmd]
+	end
+	WG['ordermenu'].setDisabledCmd = function(cmd, value)
+		if value then
+			disabledCmd[cmd] = true
+		else
+			disabledCmd[cmd] = nil
+		end
 	end
 	WG['ordermenu'].getColorize = function()
 		return colorize
