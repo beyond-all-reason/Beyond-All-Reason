@@ -1195,7 +1195,7 @@ function drawResbarValues(res)
 		dlistResValues[res][currentResValue[res]] = glCreateList(function()
 			-- Text: current
 			font2:Begin()
-			font2:Print(math.abs(currentResValue[res]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+			font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 			font2:End()
 		end)
 	end
