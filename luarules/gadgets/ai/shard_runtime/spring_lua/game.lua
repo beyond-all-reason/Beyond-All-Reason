@@ -52,11 +52,22 @@ local game = {}
 	function game:GetAllyTeamID()
 		return self.ai.allyId
 	end
-	
+
 	function game:getUnitsInCylinder(pos, range)
 		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, game:GetTeamID())
 	end
-	
+
+	function game:GetUnitIsBuilding(id)
+		return Spring.GetUnitIsBuilding(id)
+	end
+
+	function game:GetTeamUnitDefCount(team,unitDef)
+		print(team)
+		print(unitDef)
+		return Spring.GetTeamUnitDefCount(team,unitDef)
+	end
+
+
 	function game:GetEnemies()
 		local ev = self.ai.enemyUnitIds
 		if not ev then return {} end

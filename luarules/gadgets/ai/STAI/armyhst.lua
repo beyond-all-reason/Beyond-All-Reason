@@ -296,26 +296,37 @@ ArmyHST.defenderList = {
 }
 
 ArmyHST.attackerlist = {
-	armsam = 1 ,
-	corwolv = 1 ,
-	armart = 1 ,
-	armjanus = 1 ,
-	corlvlr = 1 ,
-	corthud = 1 ,
-	armham = 1 ,
-	corraid = 1 ,
-	armstump = 1 ,
-	correap = 1 ,
-	armbull = 1 ,
+	--t1bot
 	corstorm = 1 ,
 	armrock = 1 ,
+	corthud = 1 ,
+	armham = 1 ,
+	armwar = 1 ,
+	--t1veh
+	armsam = 1 ,
+	corwolv = 1 ,
+	armstump = 1 ,
+	corraid = 1 ,
+	corlevlr = 1 ,
+
+	--t2bot
+	--t2veh
+	armart = 1 ,
+	armjanus = 1 ,
+
+
+
+
+	correap = 1 ,
+	armbull = 1 ,
+
 	cormart = 1 ,
 	armmart = 1 ,
 	cormort = 1 ,
-	armwar = 1 ,
+
 	armsnipe = 1 ,
 	armzeus = 1 ,
-	corlevlr = 1 ,
+
 	corsumo = 1 ,
 	corcan = 1 ,
 	corhrk = 1 ,
@@ -327,7 +338,6 @@ ArmyHST.attackerlist = {
 	armfido = 1 ,
 	armsptk = 1 ,
 	armmh = 1 ,
-	corwolv = 1 ,
 	cormist = 1 ,
 	armfboy = 1 ,
 	corcrw = 1 ,
@@ -536,10 +546,10 @@ ArmyHST.nukeList = {
 	cortron = 2250,
 }
 
-ArmyHST.seaplaneConList = {
-	corcsa = 1,
-	armcsa = 1,
-}
+-- ArmyHST.seaplaneConList = {
+-- 	corcsa = 1,
+-- 	armcsa = 1,
+-- }
 
 
 ArmyHST.Eco1={
@@ -735,11 +745,25 @@ local continue = false
 
 local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
 
+local function getDPS(unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	local weapons = unitDef["weapons"]
+	local dps = 0
+	for i=1, #weapons do
+		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDef = WeaponDefs[weaponDefID]
+		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
+	end
+	Spring.Echo('dps',dps)
+	return dps
+end
+
 
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	local weaponRange = 0
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
+	local dps = 0
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
@@ -762,7 +786,9 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 				weaponRange = weaponDef["range"]
 			end
 		end
+
 	end
+
 	return weaponRange
 end
 
@@ -780,54 +806,131 @@ local function GetBuiltBy()
 	return builtBy
 end
 
--- local function scanLabs(units,utable)
--- 	local _metal , _energy, _los
--- 	for i, oid in pairs(units) do
--- 		print(i)
--- 		print(oid)
--- 		local buildDef = UnitDefs[oid]
--- 		local name = buildDef["name"]
--- 		local uTn = ArmyHST.unitTable[buildDef["name"]]
---
---
--- 		_metal = _metal + utn.metalCost
--- 		_energy = _energy + utn.energyCost
--- 		_los = _los + utn.losRadius
--- 		_speed = _speed + utn.speed
---
--- 	end
--- 	_metal_= _metal/#units
--- 	_energy_= _energy/#units
--- 	_los_= _los/#units
--- 	_speed_= _speed/#units
--- 	for i, oid in pairs(units) do
--- 		print(i)
--- 		print(oid)
--- 		local buildDef = UnitDefs[oid]
--- 		local name = buildDef["name"]
--- 		local uTn = ArmyHST.unitTable[buildDef["name"]]
--- 		if utn.metalCost < _metal_ and utn.energyCost < _energy_ then
--- 			utn.cheap = true
+local function GetWeaponParams(weaponDefID)
+	local WD = WeaponDefs[weaponDefID]
+	local WDCP = WD.customParams
+	local weaponDamageSingle = tonumber(WDCP.statsdamage) or WD.damages[0] or 0
+	local weaponDamageMult = tonumber(WDCP.statsprojectiles) or ((tonumber(WDCP.script_burst) or WD.salvoSize) * WD.projectiles)
+	local weaponDamage = weaponDamageSingle * weaponDamageMult
+	local weaponRange = WD.range
+
+	local reloadTime = tonumber(WD.customParams.script_reload) or WD.reload
+
+	if WD.dyndamageexp and WD.dyndamageexp > 0 then
+		local dynDamageExp = WD.dyndamageexp
+		local dynDamageMin = WD.dyndamagemin or 0.0001
+		local dynDamageRange = WD.dyndamagerange or weaponRange
+		local dynDamageInverted = WD.dyndamageinverted or false
+		local dynMod
+
+		if dynDamageInverted then
+			dynMod = math.pow(distance3D / dynDamageRange, dynDamageExp)
+		else
+			dynMod = 1 - math.pow(distance3D / dynDamageRange, dynDamageExp)
+		end
+
+		weaponDamage = math.max(weaponDamage * dynMod, dynDamageMin)
+	end
+
+	local dps = weaponDamage / reloadTime
+	return dps, weaponDamage, reloadTime
+end
+
+local function scanLabs(units,lab)
+	local counter = 0
+	local _metal = 0
+	local _energy = 0
+	local _speed = 0
+	local _maxWeaponRange = 0
+	local _hp = 0
+	local _dps = 0
+	local maxM
+	local minM
+	local scout
+	local scoutR
+	local attacker
+	local attackerR
+	local maxMunit
+	local minMunit
+	--Spring.Echo('LAB:',lab,#units)
+	for i, name in pairs(units) do
+		local def = UnitDefNames[name]
+		if def.maxWeaponRange > 0 and not def.isBuilder and  def.selfDCountdown ~= 0 then
+			counter = counter + 1
+		end
+	end
+	for i, name in pairs(units) do
+		local def = UnitDefNames[name]
+		_metal = _metal + def.metalCost
+		_energy = _energy + def.energyCost
+		_maxWeaponRange = _maxWeaponRange + def.maxWeaponRange
+		_hp = _hp + def.health
+		_dps = _dps + ArmyHST.unitTable[name].dps
+		--Spring.Echo(name,def.maxWeaponRange)
+		if def.maxWeaponRange > 0 and not def.isBuilder and  def.selfDCountdown ~= 0 then
+
+			if not maxM then
+				maxM = def.metalCost
+				maxMunit = name
+			elseif def.metalCost > maxM then
+				maxM = def.metalCost
+				maxMunit = name
+			end
+			if not minM then
+				minM = def.metalCost
+				minMunit = name
+			elseif def.metalCost < minM then
+				minM = def.metalCost
+				minMunit = name
+			end
+			if not scout then
+				scoutR = (def.speed ) / (def.metalCost * def.energyCost)
+				scout = name
+			elseif  (def.speed ) / (def.metalCost * def.energyCost) > scoutR  then
+				scoutR = (def.speed ) / (def.metalCost * def.energyCost)
+				scout = name
+			end
+			if not attacker then
+				attackerR =  (ArmyHST.unitTable[name].dps * def.health * (def.speed * def.maxAcc) )
+				attacker = name
+			elseif   (ArmyHST.unitTable[name].dps * def.health * (def.speed * def.maxAcc) ) > attackerR then
+				attackerR =  (ArmyHST.unitTable[name].dps * def.health * (def.speed * def.maxAcc)  )
+				attacker = name
+			end
+
+		end
+
+
+	end
+-- 	Spring.Echo('maxmname',maxMunit)
+-- 	Spring.Echo('minmname',minMunit)
+--	Spring.Echo('scout',scout)
+	Spring.Echo(lab,'attacker',attacker,attackerR)
+	_metal = _metal / counter
+	_energy = _energy / counter
+	_maxWeaponRange = _maxWeaponRange / counter
+	_hp = _hp / counter
+	_dps = _dps /  counter
+	for i, name in pairs(units) do
+		ArmyHST.unitTable[name].metalRatio = UnitDefNames[name].metalCost / _metal
+		ArmyHST.unitTable[name].energyRatio = UnitDefNames[name].energyCost / _energy
+		ArmyHST.unitTable[name].maxWeaponRangeRatio =  UnitDefNames[name].maxWeaponRange / _maxWeaponRange
+		ArmyHST.unitTable[name].healthR =  UnitDefNames[name].health / _hp
+		ArmyHST.unitTable[name].dpsR =  ArmyHST.unitTable[name].dps / _dps
+-- 		if ArmyHST.unitTable[name].maxWeaponRangeRatio > 0.75 and ArmyHST.unitTable[name].maxWeaponRangeRatio < 1.25 then
+-- 			Spring.Echo(lab,name,'TRUE')
 -- 		else
--- 			utn.cheap = true
+-- 			Spring.Echo(lab,name,ArmyHST.unitTable[name].maxWeaponRangeRatio)
 -- 		end
---
--- 		if utn.losradius < _los_ then
--- 			utn.shortRange = true
+-- 		if ArmyHST.unitTable[name].healthR > 0.75 and ArmyHST.unitTable[name].healthR < 1.25 then
+-- 			Spring.Echo(lab,name,'TRUE')
 -- 		else
--- 			utn.shortRange = true
+-- 			Spring.Echo(lab,name,ArmyHST.unitTable[name].healthR)
 -- 		end
---
--- 		if utn.speed < _speed_ then
--- 			utn.slow = true
--- 		else
--- 			utn.slow = false
--- 		end
---
---
--- 	end
---
--- end
+	--Spring.Echo(lab,name ,ArmyHST.unitTable[name].dpsR)
+	end
+
+end
 
 
 
@@ -918,6 +1021,7 @@ local function GetUnitTable()
 			utable.groundRange = GetLongestWeaponRange(unitDefID, 0)
 			utable.airRange = GetLongestWeaponRange(unitDefID, 1)
 			utable.submergedRange = GetLongestWeaponRange(unitDefID, 2)
+			utable.dps = getDPS(unitDefID)
 			if unitDef.speed == 0 and utable.isWeapon then
 				utable.isTurret = true
 				if unitDef.modCategories.mine then
@@ -958,6 +1062,21 @@ local function GetUnitTable()
 			utable.buildTime = unitDef["buildTime"]
 			utable.totalEnergyOut = unitDef["totalEnergyOut"]
 			utable.extractsMetal = unitDef["extractsMetal"]
+			utable.isTransport = unitDef.isTransport
+			utable.isImmobile = unitDef.isImmobile
+			utable.isBuilding = unitDef.isBuild
+			utable.isBuilder = unitDef.isBuilder
+			utable.isMobileBuilder = unitDef.isMobileBuilder
+			utable.isStaticBuilder = unitDef.isStaticBuilder
+			utable.isFactory = unitDef.isLab
+			utable.isExtractor = unitDef.Extractor
+			utable.isGroundUnit = unitDef.isGroundUnit
+			utable.isAirUnit = unitDef.isAirUnit
+			utable.isStrafingAirUnit = unitDef.isStrafingAirUnit
+			utable.isHoveringAirUnit = unitDef.isHoveringAirUnit
+			utable.isFighterAirUnit = unitDef.isFighterAirUnit
+			utable.isBomberAirUnit = unitDef.isBomberAirUnit
+
 			utable.mclass = unitDef.moveDef.name
 			utable.speed = unitDef.speed
 			if unitDef["minWaterDepth"] > 0 then
@@ -990,9 +1109,11 @@ local function GetUnitTable()
 					utable.mtype = 'veh'
 				end
 			end
+
 			if unitDef["isBuilder"] and #unitDef["buildOptions"] < 1 and not unitDef.moveDef.name then
 				utable.isNano = true
 			end
+
 			if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
 				utable.buildOptions = true
 				if unitDef["isBuilding"] then
@@ -1005,6 +1126,7 @@ local function GetUnitTable()
 						--and save all the mtype that can andle
 						--utable.isFactory[unitName[buildDef.name].mtype] = TODO
 					end
+
 				else
 					utable.factoriesCanBuild = {}
 					for i, oid in pairs (unitDef["buildOptions"]) do
@@ -1014,6 +1136,14 @@ local function GetUnitTable()
 							table.insert(utable.factoriesCanBuild, buildDef["name"])
 						end
 					end
+					if #utable.factoriesCanBuild > 0 then
+						utable.isCon = true
+					else
+						utable.isEngineer = true
+					end
+
+
+
 				end
 			end
 			utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
@@ -1050,6 +1180,11 @@ for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
 ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
 ArmyHST.featureTable = GetFeatureTable(ArmyHST.wrecks)
+for lab,t in pairs (ArmyHST.unitTable) do
+	if t.isFactory then
+		scanLabs(t.unitsCanBuild,lab)
+	end
+end
 wrecks = nil
 
 
