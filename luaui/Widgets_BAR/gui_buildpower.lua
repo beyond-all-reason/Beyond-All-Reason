@@ -394,7 +394,7 @@ function widget:DrawScreen()
 	local x, y, b = Spring.GetMouseState()
 	if WG['tooltip'] and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		Spring.SetMouseCursor('cursornormal')
-		WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215'..texts.usedbuildpower': \255\255\255\200' .. math.ceil(avgBuildPower * 100) .. '% \255\180\180\180   '..texts.buildpower..': \255\255\255\200' .. totalBuildpower .. ' \255\180\180\180   '..texts.builders..': \255\255\255\200' .. totalBuilders .. '\n\255\240\240\240'..texts.tip)
+		WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215'..texts.usedbuildpower..': \255\255\255\200' .. math.ceil(avgBuildPower * 100) .. '% \255\180\180\180   '..texts.buildpower..': \255\255\255\200' .. totalBuildpower .. ' \255\180\180\180   '..texts.builders..': \255\255\255\200' .. totalBuilders .. '\n\255\240\240\240'..texts.tip)
 		--Spring.SetMouseCursor('cursornormal')
 	end
 
