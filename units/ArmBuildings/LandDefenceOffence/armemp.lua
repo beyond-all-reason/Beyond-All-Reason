@@ -148,9 +148,9 @@ return {
 				texture2 = "null",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 32768,
-				weaponacceleration = 180,
-				weapontimer = 5,
+				turnrate = 10000,
+				weaponacceleration = 150,
+				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {
