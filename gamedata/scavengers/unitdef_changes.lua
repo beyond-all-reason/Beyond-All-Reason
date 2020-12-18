@@ -555,6 +555,7 @@ numBuildoptions = #UnitDefs.armaca.buildoptions
 customDefs.armaca = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
+		[numBuildoptions+2] = "armminivulc",
 	},
 }
 
@@ -562,6 +563,7 @@ numBuildoptions = #UnitDefs.armack.buildoptions
 customDefs.armack = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
+		[numBuildoptions+2] = "armminivulc",
 	},
 }
 
@@ -569,6 +571,7 @@ numBuildoptions = #UnitDefs.armacv.buildoptions
 customDefs.armacv = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
+		[numBuildoptions+2] = "armminivulc",
 	},
 }
 
