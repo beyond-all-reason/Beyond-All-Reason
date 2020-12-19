@@ -176,7 +176,7 @@ function PutScavAlliesInScavTeam(n)
 	for i = 1,#players do
 		local player = players[i]
 		local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
-		if allyTeamID == GaiaAllyTeamID then
+		if allyTeamID == GaiaAllyTeamID and (not spectator) then
 			Spring.AssignPlayerToTeam(player, GaiaTeamID)
 			local units = Spring.GetTeamUnits(teamID)
 			for u = 1,#units do
