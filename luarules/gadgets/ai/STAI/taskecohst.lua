@@ -15,8 +15,9 @@ end
 
 --Factory call
 function TaskEcoHST:BuildAppropriateFactory( taskQueueBehaviour, ai, builder )
-	return self.ai.armyhst.FactoryUnitName
+	return self.ai.labbuildhst:GetBuilderFactory(builder)
 end
+
 --nano call
 function TaskEcoHST:NanoTurret( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
