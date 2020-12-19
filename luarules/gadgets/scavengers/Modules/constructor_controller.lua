@@ -59,10 +59,10 @@ function SpawnConstructor(n)
 				pickedBeacon = pickedBeaconTest
 				break
 			else
-				pickedBeacon = 1234567890
+				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 		end
-		if pickedBeacon == 1234567890 then
+		if pickedBeacon == 16000000 then
 			return
 		end
 		posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
