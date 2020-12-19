@@ -171,15 +171,45 @@ end
 	-- end
 -- end
 
+function PutScavAlliesInScavTeam(n)
+	local players = Spring.GetPlayerList()
+	for i = 1,#players do
+		local player = players[i]
+		local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
+		if allyTeamID == GaiaAllyTeamID then
+			Spring.AssignPlayerToTeam(player, GaiaTeamID)
+			local units = Spring.GetTeamUnits(teamID)
+			for u = 1,#units do
+				Spring.DestroyUnit(units[u], false, true)
+				Spring.KillTeam(teamID)
+			end
+		end
+	end
+	
+	local scavAllies = Spring.GetTeamList(GaiaAllyTeamID)
+	for i = 1,#scavAllies do
+		local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
+		local LuaAI = Spring.GetTeamLuaAI(scavAllies[i])
+		if (AI or LuaAI) and scavAllies[i] ~= GaiaTeamID then
+			local units = Spring.GetTeamUnits(scavAllies[i])
+			for u = 1,#units do
+				Spring.DestroyUnit(units[u], false, true)
+				Spring.KillTeam(scavAllies[i])
+			end
+		end
+	end
+end
+
 
 
 local minionFramerate = math.ceil(unitSpawnerModuleConfig.FinalBossMinionsPassive/(teamcount*spawnmultiplier))
 function gadget:GameFrame(n)
 
 
-	-- if n%30 == 0 then
+	if n == 1 then
 		-- PutSpectatorsInScavTeam(n)
-	-- end
+		PutScavAlliesInScavTeam(n)
+	end
 
 	if n > 1 then
 		SpawnFromQueue(n)
