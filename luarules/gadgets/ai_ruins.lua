@@ -20,7 +20,7 @@ for i = 1,#teams do
 end
 
 local ruinSpawnEnabled = false
-if scavengersAIEnabled or (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") then
+if (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") then--or scavengersAIEnabled then
 	ruinSpawnEnabled = true
 end
 
