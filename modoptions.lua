@@ -203,29 +203,6 @@ local options={
 		-- max    = 5,
 		-- step   = 0.1,
 	-- },
-	{
-		key    = 'ruins',
-		name   = 'Random Ruins',
-		desc   = 'description',
-		type   = 'list',
-		section = 'options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
-	},
-	{
-		key    = 'lootboxes',
-		name   = 'Lootboxes',
-		desc   = '1 to enable, 0 to disable',
-		type   = 'number',
-		section= 'options',
-		def    = 0,
-		min    = 0,
-		max    = 1,
-		step   = 1,
-	},
 	--{
 	--	key    = 'airrebalance',
 	--	name   = 'Heavier but more expensive air',
@@ -438,6 +415,30 @@ local options={
 			{key="normal", name="Normal", desc="Normal"},
 			{key="lower", name="Lower", desc="Halved"},
 			{key="higher", name="Higher", desc="Doubled"},
+		}
+	},
+	{
+		key    = 'ruins',
+		name   = 'Random Ruins',
+		desc   = 'description',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'lootboxes',
+		name   = 'Lootboxes',
+		desc   = '1 to enable, 0 to disable',
+		type   = 'list',
+		section= 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
 		}
 	},
 	

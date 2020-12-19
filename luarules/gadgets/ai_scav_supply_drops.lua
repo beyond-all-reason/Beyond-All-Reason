@@ -9,7 +9,7 @@ for i = 1,#teams do
 	end
 end
 
-if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0) then
+if (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") then
 	lootboxSpawnEnabled = true
 else
 	lootboxSpawnEnabled = false
