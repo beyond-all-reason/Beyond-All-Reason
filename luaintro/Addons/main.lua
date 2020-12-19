@@ -133,7 +133,8 @@ if showTips then
 		if not k then k = 0 end
 	end
 	k = k + 1
-	local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+	--local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+	local file = io.open(filename,'w')
 	if file then
 		file:write(k)
 		file:close()

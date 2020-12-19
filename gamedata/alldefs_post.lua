@@ -163,7 +163,7 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				
+
 				uDef.collide = false
 				--local airmult = 1.3
 				--if uDef.buildcostenergy then
@@ -343,13 +343,13 @@ end
 --------------------------------------------------------------------------------
 
 local function ProcessSoundDefaults(wd)
-	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume) or (not wd.soundhitwetvolume)
+	local forceSetVolume = not wd.soundstartvolume or not wd.soundhitvolume or not wd.soundhitwetvolume
 	if not forceSetVolume then
 		return
 	end
 
 	local defaultDamage = wd.damage and wd.damage.default
-	if (not defaultDamage) or (defaultDamage <= 50) then
+	if not defaultDamage or defaultDamage <= 50 then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
 		wd.soundhitwetvolume = 5
@@ -361,13 +361,13 @@ local function ProcessSoundDefaults(wd)
 		soundVolume = soundVolume*0.5
 	end
 
-	if (not wd.soundstartvolume) then
+	if not wd.soundstartvolume then
 		wd.soundstartvolume = soundVolume
 	end
-	if (not wd.soundhitvolume) then
+	if not wd.soundhitvolume then
 		wd.soundhitvolume = soundVolume
 	end
-		if (not wd.soundhitwetvolume) then
+		if not wd.soundhitwetvolume then
 			if wd.weapontype == "LaserCannon" or "BeamLaser" then
 				wd.soundhitwetvolume = soundVolume * 0.3
 		else
@@ -470,7 +470,7 @@ end
 
 -- process modoptions (last, because they should not get baked)
 function ModOptions_Post (UnitDefs, WeaponDefs)
-	if (Spring.GetModOptions) then
+	if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions() or {}
 	local map_tidal = modOptions and modOptions.map_tidal
 		if map_tidal and map_tidal ~= "unchanged" then
@@ -489,13 +489,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 
 		-- transporting enemy coms
-		if (modOptions.transportenemy == "notcoms") then
+		if modOptions.transportenemy == "notcoms" then
 			for name,ud in pairs(UnitDefs) do
-				if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
+				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 					ud.transportbyenemy = false
 				end
 			end
-		elseif (modOptions.transportenemy == "none") then
+		elseif modOptions.transportenemy == "none" then
 			for name, ud in pairs(UnitDefs) do
 				ud.transportbyenemy = false
 			end
