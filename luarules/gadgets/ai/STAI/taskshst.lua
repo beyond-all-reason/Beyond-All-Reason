@@ -322,16 +322,24 @@ end
 
 -- mobile construction units:
 
-function TasksHST:anyCommander()
-	return self:multiwrap( {
-		{ self.ai.taskecohst,'BuildAppropriateFactory' },
-		{ self.ai.taskecohst,'CommanderEconomy' },
-		{ self.ai.taskbuildhst,'BuildLLT' },
-		{ self.ai.taskbuildhst,'BuildRadar' },
-		{ self.ai.taskbuildhst,'CommanderAA' },
-		{ self.ai.taskbuildhst,'BuildPopTorpedo' },
-	} )
-end
+-- function TasksHST:anyCommander()
+-- 	return self:multiwrap( {
+-- 		{ self.ai.taskecohst,'BuildAppropriateFactory' },
+-- 		{ self.ai.taskecohst,'CommanderEconomy' },
+-- 		{ self.ai.taskbuildhst,'BuildLLT' },
+-- 		{ self.ai.taskbuildhst,'BuildRadar' },
+-- 		{ self.ai.taskbuildhst,'CommanderAA' },
+-- 		{ self.ai.taskbuildhst,'BuildPopTorpedo' },
+-- 	} )
+-- end
+function TasksHST:anyCommander() return  {
+	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ),
+	self:wrap( self.ai.taskecohst,'CommanderEconomy' ),
+	self:wrap( 	self.ai.taskbuildhst,'BuildLLT' ),
+	self:wrap( self.ai.taskbuildhst,'BuildRadar' ),
+	self:wrap( self.ai.taskbuildhst,'CommanderAA' ),
+	self:wrap( self.ai.taskbuildhst,'BuildPopTorpedo' ),
+} end
 
 function TasksHST:anyConUnit()  return  {
 	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
