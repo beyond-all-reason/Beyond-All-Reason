@@ -32,6 +32,8 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local showButtons = false
+
 -- relies on a gadget to implement "luarules reloadluaui"
 -- relies on custom stuff in widgetHandler to implement blankOutConfig and allowUserWidgets
 
@@ -62,7 +64,7 @@ local curMaxEntries = 25
 local startEntry = 1
 local pageStep = floor(curMaxEntries / 2) - 1
 
-local fontSize = 13.5
+local fontSize = 14.25
 local fontSpace = 8.5
 local yStep = fontSize + fontSpace
 
@@ -501,12 +503,14 @@ function widget:DrawScreen()
 	RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 	-- draw the text buttons (at the bottom) & their outlines
-	for i, name in ipairs(buttons) do
-		tcol = WhiteStr
-		if minx < mx and mx < maxx and miny - (buttonTop * sizeMultiplier) - i * (buttonHeight * sizeMultiplier) < my and my < miny - (buttonTop * sizeMultiplier) - (i - 1) * (buttonHeight * sizeMultiplier) then
-			tcol = '\255\031\031\031'
+	if showButtons then
+		for i, name in ipairs(buttons) do
+			tcol = WhiteStr
+			if minx < mx and mx < maxx and miny - (buttonTop * sizeMultiplier) - i * (buttonHeight * sizeMultiplier) < my and my < miny - (buttonTop * sizeMultiplier) - (i - 1) * (buttonHeight * sizeMultiplier) then
+				tcol = '\255\031\031\031'
+			end
+			font:Print(tcol .. buttons[i], (minx + maxx) / 2, miny - (buttonTop * sizeMultiplier) - (i * (buttonHeight * sizeMultiplier)), buttonFontSize * sizeMultiplier, "oc")
 		end
-		font:Print(tcol .. buttons[i], (minx + maxx) / 2, miny - (buttonTop * sizeMultiplier) - (i * (buttonHeight * sizeMultiplier)), buttonFontSize * sizeMultiplier, "oc")
 	end
 
 
@@ -635,7 +639,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if (Spring.IsGUIHidden()) or not show then
+	if Spring.IsGUIHidden() or not show then
 		return false
 	end
 
@@ -643,8 +647,10 @@ function widget:MousePress(x, y, button)
 
 	if button == 1 then
 		-- above a button
-		if minx < x and x < maxx and miny - (buttonTop * sizeMultiplier) - #buttons * (buttonHeight * sizeMultiplier) < y and y < miny - (buttonTop * sizeMultiplier) then
-			return true
+		if showButtons then
+			if minx < x and x < maxx and miny - (buttonTop * sizeMultiplier) - #buttons * (buttonHeight * sizeMultiplier) < y and y < miny - (buttonTop * sizeMultiplier) then
+				return true
+			end
 		end
 
 		-- above the -/+
@@ -749,7 +755,7 @@ function widget:MouseRelease(x, y, mb)
 		end
 	end
 
-	if mb == 1 then
+	if showButtons and mb == 1 then
 		local buttonID = nil
 		for i, _ in ipairs(buttons) do
 			if minx < x and x < maxx and miny - (buttonTop * sizeMultiplier) - i * (buttonHeight * sizeMultiplier) < y and y < miny - (buttonTop * sizeMultiplier) - (i - 1) * (buttonHeight * sizeMultiplier) then
@@ -841,9 +847,11 @@ function widget:IsAbove(x, y)
 		return false
 	end
 	UpdateList()
-	if x < minx or x > maxx + (yStep * sizeMultiplier) or
-		y < miny - #buttons * buttonHeight or y > maxy + bgPadding then
-		return false
+	if showButtons then
+		if x < minx or x > maxx + (yStep * sizeMultiplier) or
+			y < miny - #buttons * buttonHeight or y > maxy + bgPadding then
+			return false
+		end
 	end
 	return true
 end
