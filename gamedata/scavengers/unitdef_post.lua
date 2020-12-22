@@ -5,7 +5,7 @@ for name,uDef in pairs(UnitDefs) do
     scavUnit[#scavUnit+1] = name..'_scav'
 end
 
-scavDifficulty = Spring.GetModOptions().scavengers or "easy"
+scavDifficulty = Spring.GetModOptions().scavdifficulty or "easy"
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "easy" then
