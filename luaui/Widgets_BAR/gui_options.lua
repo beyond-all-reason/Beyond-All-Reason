@@ -11,6 +11,7 @@ function widget:GetInfo()
 end
 
 --[[
+--[[
 --   Add option, at:
 --   function init
 ]]--
@@ -411,6 +412,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		dgunnogroundenemies_descr = 'Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)',
 		singleplayerpause = 'Pause when in settings/quit/lobby',
 		singleplayerpause_descr = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
+		customwidgets = 'Allow custom widgets',
+		customwidgets_descr = 'enable loading of custom widgets (placed inside spring/luaui/widgets_bar)',
 		profiler = 'Widget profiler',
 		framegrapher = 'Frame grapher',
 		autocheat = 'Auto enable cheats for $VERSION',
@@ -4174,10 +4177,16 @@ function init()
 		  end,
 		},
 
+		-- DEV
+		{ id = "customwidgets", group = "dev", name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
+		  onchange = function(i, value)
+			  widgetHandler.__allowUserWidgets = value
+			  Spring.SendCommands("luarules reloadluaui")
+		  end,
+		},
 		{ id = "profiler", group = "dev", widget = "Widget Profiler", name = texts.option.profiler, type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
 		{ id = "framegrapher", group = "dev", widget = "Frame Grapher", name = texts.option.framegrapher, type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
 
-		-- DEV
 		{ id = "autocheat", group = "dev", widget = "Auto cheat", name = texts.option.autocheat, type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = texts.option.autocheat_descr },
 		{ id = "restart", group = "dev", name = texts.option.restart, type = "bool", value = false, description = texts.option.restart_descr,
 		  onchange = function(i, value)

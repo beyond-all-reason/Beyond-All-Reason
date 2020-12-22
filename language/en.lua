@@ -910,6 +910,8 @@ return {
 			dgunnogroundenemies_descr = 'Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)',
 			singleplayerpause = 'Pause when in settings/quit/lobby',
 			singleplayerpause_descr = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
+			customwidgets = 'Allow custom widgets',
+			customwidgets_descr = 'enable loading of custom widgets (placed inside spring/luaui/widgets_bar)',
 			profiler = 'Widget profiler',
 			framegrapher = 'Frame grapher',
 			autocheat = 'Auto enable cheats for $VERSION',
