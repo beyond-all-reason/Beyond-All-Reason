@@ -83,6 +83,10 @@ local borderPadding = 5
 local showConversionSlider = true
 local bladeSpeedMultiplier = 0.2
 
+local backgroundTexture = "LuaUI/Images/stripes.png"
+local bgtexOpacity = 0.018
+local bgtexScale = 6	-- lower = smaller tiles
+
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
@@ -186,7 +190,7 @@ local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
 
-local font, font2, bgpadding, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
+local font, font2, bgpadding, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover, bgtexSize
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
 local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistQuit
@@ -373,6 +377,79 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
+local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	local scale = size and (size / (sx-px)) or 1
+	local offset = offset or 0
+	local csyMult = 1 / ((sy - py) / cs)
+	local ycMult = (sy-py) / (sx-px)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = ((x - px) / (sx - px))
+		yc = 1 - ((y - py) / (sy - py))
+		gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+end
+
 local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
 	if not color2 then
 		color2 = color1
@@ -466,6 +543,10 @@ local function updateRejoin()
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 1, 1, 1, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, ui_opacity })
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.3, 0.3, 0.3, ui_opacity * 0.1 })
+
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, bgtexOpacity)
+		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -588,6 +669,10 @@ local function updateButtons()
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 1, 1, 1, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, (ui_opacity) })
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
+
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, bgtexOpacity)
+		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -726,6 +811,10 @@ local function updateComs(forceText)
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
 
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, bgtexOpacity)
+		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3] - bgpadding, area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
@@ -792,6 +881,10 @@ local function updateWind()
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 1, 1, 1, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, ui_opacity })
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
+
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, bgtexOpacity)
+		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1047,6 +1140,10 @@ local function updateResbar(res)
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
 
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, bgtexOpacity)
+		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, 0, bgtexSize)
+
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3] - bgpadding, area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
@@ -1188,7 +1285,18 @@ function drawResbarValues(res)
 	DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
 	DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
 	glTexture(false)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+	if res == 'energy' then
+		gl.Texture("LuaUI/Images/paralyzed.png")
+		gl.Color(1,1,1, 0.08)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/50, (resbarDrawinfo[res].barTexRect[3]-resbarDrawinfo[res].barTexRect[1])/1.25)
+
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		gl.Color(1,1,1, 0.16)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/70, (resbarDrawinfo[res].barTexRect[3]-resbarDrawinfo[res].barTexRect[1])/0.9)
+	else
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
 
 	currentResValue[res] = short(cappedCurRes)
 	if not dlistResValues[res][currentResValue[res]] then
@@ -1207,6 +1315,8 @@ function init()
 	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 
 	topbarArea = { math_floor(xPos + (borderPadding * widgetScale)), math_floor(vsy - (height * widgetScale)), vsx, vsy }
+
+	bgtexSize = bgpadding * bgtexScale
 
 	local filledWidth = 0
 	local totalWidth = topbarArea[3] - topbarArea[1]

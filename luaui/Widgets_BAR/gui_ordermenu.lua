@@ -155,6 +155,9 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
+local backgroundTexture = "LuaUI/Images/stripes.png"
+local bgtexOpacity = 0.018
+local bgtexScale = 6	-- lower = smaller tiles
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
@@ -173,7 +176,7 @@ local rows = 0
 local cols = 0
 local disableInput = false
 
-local font, font2, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader
+local font, font2, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader, bgtexSize
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
 local bpWidth, bpHeight, buildmenuBottomPos, buildpowerWidgetEnabled
 local activeCmd, prevActiveCmd, doUpdate, doUpdateClock, SelectedUnitsCount
@@ -407,6 +410,8 @@ function widget:ViewResize()
 		end
 	end
 
+	bgtexSize = bgpadding * bgtexScale
+
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
 	activeRect = {
@@ -638,6 +643,79 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
+local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	local scale = size and (size / (sx-px)) or 1
+	local offset = offset or 0
+	local csyMult = 1 / ((sy - py) / cs)
+	local ycMult = (sy-py) / (sx-px)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = ((x - px) / (sx - px))
+		yc = 1 - ((y - py) / (sy - py))
+		gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+end
+
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
 	gl.Vertex(px, py, 0)
@@ -729,6 +807,11 @@ function drawCell(cell, zoom)
 			RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*math_min(0.55, ui_opacity)}, {color2[1],color2[2],color2[3],color2[4]*math_min(0.55, ui_opacity)})
 		end
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)})
+
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, 0.033)
+		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, 0, bgtexSize*0.6)
+		gl.Texture(false)
 
 		-- gloss
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42) - padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][4] - topMargin) - padding, cellWidth * 0.017, 2, 2, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.09 })
@@ -858,6 +941,11 @@ function drawOrders()
 	-- background
 	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
 	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
+
+	gl.Texture(backgroundTexture)
+	gl.Color(1,1,1, bgtexOpacity)
+	TexturedRectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 1, 0, 0, bgtexSize)
+	gl.Texture(false)
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)

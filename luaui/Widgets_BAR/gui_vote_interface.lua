@@ -300,7 +300,7 @@ function StartVote(name, owner)
 			if WG['topbar'] ~= nil then
 				local topbarArea = WG['topbar'].GetPosition()
 				--xpos = vsx-(width/2)
-				xpos = math.floor(topbarArea[1] + (width / 2) + widgetSpaceMargin)
+				xpos = math.floor(topbarArea[1] + (width/2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1])/2))
 				ypos = math.floor(topbarArea[2] - (5 * topbarArea[5]) - (height / 2))
 			end
 
@@ -313,11 +313,11 @@ function StartVote(name, owner)
 
 			-- window
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, { 1, 1, 1, 0 }, { 1, 1, 1, 0.045 * glossMult })
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 			-- close
@@ -334,7 +334,7 @@ function StartVote(name, owner)
 				color1 = { 0.6, 0.6, 0.6, 0.08 }
 				color2 = { 1, 1, 1, 0.08 }
 			end
-			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding * 1.25, 0, 1, 0, 1, color1, color2)
+			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, color1, color2)
 
 			fontSize = fontSize * 0.85
 			gl.Color(0, 0, 0, 1)

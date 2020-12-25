@@ -57,7 +57,11 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
+local backgroundTexture = "LuaUI/Images/stripes.png"
+local bgtexOpacity = 0.018
+local bgtexScale = 6	-- lower = smaller tiles
+
+local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail, bgtexSize
 local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, startDefID, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
@@ -700,6 +704,80 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
 
+local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	local scale = size and (size / (sx-px)) or 1
+	local offset = offset or 0
+	local csyMult = 1 / ((sy - py) / cs)
+	local ycMult = (sy-py) / (sx-px)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = ((x - px) / (sx - px))
+		yc = 1 - ((y - py) / (sy - py))
+		gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+end
+
+
 -- cs (corner size) is not implemented yet
 local function RectRoundProgress(left, bottom, right, top, cs, progress, color)
 
@@ -1046,6 +1124,8 @@ function widget:ViewResize()
 		height = math_floor(height * vsy) / vsy
 	end
 
+	bgtexSize = bgpadding * bgtexScale
+
 	backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 
 	checkGuishader(true)
@@ -1295,6 +1375,11 @@ function drawBuildmenuBg()
 	-- background
 	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, (posX > 0 and 1 or 0), 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
 	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY2 > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, (posY2 > 0 and 1 or 0), 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
+
+	gl.Texture(backgroundTexture)
+	gl.Color(1,1,1, bgtexOpacity)
+	TexturedRectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 1, 0, 0, bgtexSize)
+	gl.Texture(false)
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)
