@@ -1691,6 +1691,12 @@ function drawBuildmenu()
 		RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 		RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 
+		--gl.Texture(backgroundTexture)
+		--gl.Color(1,1,1, bgtexOpacity)
+		--TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, bgtexSize*0.55)
+		--TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, bgtexSize*0.55)
+		--gl.Texture(false)
+
 		-- glossy half
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][4] - cellPadding - ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.5), paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.15 })

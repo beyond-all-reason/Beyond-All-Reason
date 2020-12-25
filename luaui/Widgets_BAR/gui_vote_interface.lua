@@ -421,8 +421,8 @@ function StartVote(name, owner)
 			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, color1, color2)
 
 			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, 0.03)
-			TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, 0, bgtexSize*0.5)
+			gl.Color(1,1,1, bgtexOpacity*1.6)
+			TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, 0, bgtexSize*0.55)
 			gl.Texture(false)
 
 			fontSize = fontSize * 0.85
@@ -454,8 +454,8 @@ function StartVote(name, owner)
 			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
 
 			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, 0.03)
-			TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.5)
+			gl.Color(1,1,1, bgtexOpacity*1.6)
+			TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.55)
 			gl.Texture(false)
 
 			-- gloss
@@ -489,8 +489,8 @@ function StartVote(name, owner)
 				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
 
 				gl.Texture(backgroundTexture)
-				gl.Color(1,1,1, 0.03)
-				TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.5)
+				gl.Color(1,1,1, bgtexOpacity*1.6)
+				TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.55)
 				gl.Texture(false)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)

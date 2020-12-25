@@ -1205,7 +1205,7 @@ local function updateResbar(res)
 
 			gl.Texture(backgroundTexture)
 			gl.Color(1,1,1, 0.03)
-			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.5)
+			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.55)
 		end
 		-- Share slider
 		local value = r[res][6]
@@ -1225,7 +1225,7 @@ local function updateResbar(res)
 
 		gl.Texture(backgroundTexture)
 		gl.Color(1,1,1, 0.03)
-		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.5)
+		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.55)
 		gl.Texture(false)
 
 		glTexture(false)
@@ -1861,8 +1861,8 @@ function widget:DrawScreen()
 					RectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
 
 					gl.Texture(backgroundTexture)
-					gl.Color(1,1,1, 0.03)
-					TexturedRectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, bgtexSize*0.5)
+					gl.Color(1,1,1, bgtexOpacity*1.6)
+					TexturedRectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, bgtexSize*0.55)
 
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4] - ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
@@ -1895,7 +1895,7 @@ function widget:DrawScreen()
 					RectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
 
 					gl.Texture(backgroundTexture)
-					gl.Color(1,1,1, 0.03)
+					gl.Color(1,1,1, bgtexOpacity*1.6)
 					TexturedRectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, bgtexSize*0.5)
 
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[4] - ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.5), quitscreenResignArea[3], quitscreenResignArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })

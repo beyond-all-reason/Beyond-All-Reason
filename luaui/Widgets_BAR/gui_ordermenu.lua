@@ -809,8 +809,8 @@ function drawCell(cell, zoom)
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)})
 
 		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, 0.03)
-		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, 0, bgtexSize*0.5)
+		gl.Color(1,1,1, bgtexOpacity*1.6)
+		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, 0, bgtexSize*0.55)
 		gl.Texture(false)
 
 		-- gloss

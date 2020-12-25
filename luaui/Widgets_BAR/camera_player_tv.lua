@@ -17,6 +17,11 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	tooltip = 'Auto camera-track of mostly top ranked players\n(switches player every 40 seconds by default)',
 }
 
+local backgroundTexture = "LuaUI/Images/stripes.png"
+local bgtexOpacity = 0.018
+local bgtexScale = 6	-- lower = smaller tiles
+local bgtexSize
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -273,6 +278,79 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
+local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	local scale = size and (size / (sx-px)) or 1
+	local offset = offset or 0
+	local csyMult = 1 / ((sy - py) / cs)
+	local ycMult = (sy-py) / (sx-px)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = ((x - px) / (sx - px))
+		yc = 1 - ((y - py) / (sy - py))
+		gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+end
+
 function createList()
 	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
@@ -297,6 +375,11 @@ function createList()
 		toggleButton = { right - textWidth, bottom, right, top }
 
 		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, bgtexOpacity*1.5)
+		TexturedRectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, 0, bgtexSize*0.6)
+		gl.Texture(false)
 
 		font:Begin()
 		font:Print(color .. text, right - (textWidth / 2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
@@ -565,6 +648,7 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgtexSize = bgpadding * bgtexScale
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
