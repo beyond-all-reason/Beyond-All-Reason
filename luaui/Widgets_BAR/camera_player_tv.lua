@@ -17,10 +17,10 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	tooltip = 'Auto camera-track of mostly top ranked players\n(switches player every 40 seconds by default)',
 }
 
-local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.017
-local bgtexScale = 6	-- lower = smaller tiles
-local bgtexSize
+local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
+local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexOpacity = 0.2
+local buttonBgtexSize
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -376,9 +376,9 @@ function createList()
 
 		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity*1.5)
-		TexturedRectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, 0, bgtexSize*0.6)
+		gl.Texture(buttonBackgroundTexture)
+		gl.Color(1,1,1, buttonBgtexOpacity)
+		TexturedRectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, 0, buttonBgtexSize)
 		gl.Texture(false)
 
 		font:Begin()
@@ -648,7 +648,7 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
-	bgtexSize = bgpadding * bgtexScale
+	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)

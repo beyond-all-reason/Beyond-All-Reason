@@ -27,9 +27,14 @@ local hoverCellZoom = 0.03 * zoomMult
 local iconBorderOpacity = 0.1
 local showSelectionTotals = true
 
+local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
+local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexOpacity = 0.2
+local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
+local bgtexSize
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -108,7 +113,7 @@ local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
-local prevUnitIconSize, prevUnitIconSize2, radarIconSize, prevRadarIconSize, unitIconSize, unitIconSize2, iconTypesMap, bgtexSize
+local prevUnitIconSize, prevUnitIconSize2, radarIconSize, prevRadarIconSize, unitIconSize, unitIconSize2, iconTypesMap
 local dlistCache, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, texSetting, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
 local texSetting, cellRect, cellPadding, cornerSize, cellsize, cellHovered
@@ -420,8 +425,8 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
-
 	bgtexSize = bgpadding * bgtexScale
+	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	backgroundRect = { 0, 0, (width - addonWidth) * vsx, height * vsy }
 
@@ -911,11 +916,18 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		usedZoom = defaultCellZoom
 	end
 
+	-- button background only visible when transparant unit icons
+	--glTexture(buttonBackgroundTexture)
+	--glColor(1,1,1, buttonBgtexOpacity)
+	--TexturedRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,1,1, 0, buttonBgtexSize)
+
 	glColor(1, 1, 1, 1)
 	glTexture(texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic)
 	--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
 	--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
 	TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 1, 1, usedZoom)
+
+
 	glTexture(false)
 	-- darkening bottom
 	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 0, 0, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })

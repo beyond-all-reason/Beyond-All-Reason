@@ -155,9 +155,15 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
+
+local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
+local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexOpacity = 0.2
+local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
+local bgtexSize
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
@@ -176,7 +182,7 @@ local rows = 0
 local cols = 0
 local disableInput = false
 
-local font, font2, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader, bgtexSize
+local font, font2, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
 local bpWidth, bpHeight, buildmenuBottomPos, buildpowerWidgetEnabled
 local activeCmd, prevActiveCmd, doUpdate, doUpdateClock, SelectedUnitsCount
@@ -411,6 +417,7 @@ function widget:ViewResize()
 	end
 
 	bgtexSize = bgpadding * bgtexScale
+	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
@@ -808,9 +815,9 @@ function drawCell(cell, zoom)
 		end
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)})
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity*1.6)
-		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, 0, bgtexSize*0.55)
+		gl.Texture(buttonBackgroundTexture)
+		gl.Color(1,1,1, buttonBgtexOpacity)
+		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, 0, buttonBgtexSize)
 		gl.Texture(false)
 
 		-- gloss

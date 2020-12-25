@@ -83,9 +83,14 @@ local borderPadding = 5
 local showConversionSlider = true
 local bladeSpeedMultiplier = 0.2
 
+local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
+local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexOpacity = 0.2
+local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
+local bgtexSize
 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
@@ -190,7 +195,7 @@ local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
 
-local font, font2, bgpadding, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover, bgtexSize
+local font, font2, bgpadding, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
 local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistQuit
@@ -255,6 +260,8 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgtexSize = bgpadding * bgtexScale
+	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -1203,9 +1210,9 @@ local function updateResbar(res)
 			RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, { 0.6, 0.6, 0.45, 1 }, { 0.95, 0.95, 0.7, 1 })
 			RectRoundCircle(conversionIndicatorArea[1] + ((conversionIndicatorArea[3] - conversionIndicatorArea[1]) / 2), 0, conversionIndicatorArea[2] + ((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2), (conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2, cornerSize, math.ceil(((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2) - cornerSize), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 })
 
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, 0.022)
-			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.55)
+			gl.Texture(buttonBackgroundTexture)
+			gl.Color(1,1,1, buttonBgtexOpacity*0.7)
+			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize)
 		end
 		-- Share slider
 		local value = r[res][6]
@@ -1223,9 +1230,9 @@ local function updateResbar(res)
 		RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, { 0.4, 0, 0, 1 }, { 0.8, 0, 0, 1 })
 		RectRoundCircle(shareIndicatorArea[res][1] + ((shareIndicatorArea[res][3] - shareIndicatorArea[res][1]) / 2), 0, shareIndicatorArea[res][2] + ((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2), (shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2, cornerSize, math.ceil(((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2) - cornerSize), { 1, 1, 1, 0.13 }, { 1, 1, 1, 0.13 })
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, 0.022)
-		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.55)
+		gl.Texture(buttonBackgroundTexture)
+		gl.Color(1,1,1, buttonBgtexOpacity*0.7)
+		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize)
 		gl.Texture(false)
 
 		glTexture(false)
@@ -1324,8 +1331,6 @@ function init()
 	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 
 	topbarArea = { math_floor(xPos + (borderPadding * widgetScale)), math_floor(vsy - (height * widgetScale)), vsx, vsy }
-
-	bgtexSize = bgpadding * bgtexScale
 
 	local filledWidth = 0
 	local totalWidth = topbarArea[3] - topbarArea[1]
@@ -1860,9 +1865,9 @@ function widget:DrawScreen()
 					local p = math.max(1, math_floor(widgetScale*1.8))
 					RectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
 
-					gl.Texture(backgroundTexture)
-					gl.Color(1,1,1, bgtexOpacity*1.6)
-					TexturedRectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, bgtexSize*0.55)
+					gl.Texture(buttonBackgroundTexture)
+					gl.Color(1,1,1, buttonBgtexOpacity)
+					TexturedRectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, buttonBgtexSize)
 
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4] - ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
@@ -1894,9 +1899,9 @@ function widget:DrawScreen()
 					local p = math.max(1, math_floor(widgetScale*1.8))
 					RectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
 
-					gl.Texture(backgroundTexture)
-					gl.Color(1,1,1, bgtexOpacity*1.6)
-					TexturedRectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, bgtexSize*0.5)
+					gl.Texture(buttonBackgroundTexture)
+					gl.Color(1,1,1, buttonBgtexOpacity)
+					TexturedRectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, buttonBgtexSize)
 
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[4] - ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.5), quitscreenResignArea[3], quitscreenResignArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })

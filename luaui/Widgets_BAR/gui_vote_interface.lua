@@ -17,6 +17,10 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	esc = 'ESC',
 }
 
+local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
+local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexOpacity = 0.2
+local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
@@ -240,6 +244,7 @@ function widget:ViewResize()
 	widgetSpaceMargin = math.floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 	bgtexSize = bgpadding * bgtexScale
+	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -249,7 +254,7 @@ function widget:PlayerChanged(playerID)
 	mySpec = Spring.GetSpectatingState()
 end
 
---local sec = 0
+local sec = 0
 local uiOpacitySec = 0
 function widget:Update(dt)
 	--myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
@@ -420,9 +425,9 @@ function StartVote(name, owner)
 			end
 			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, color1, color2)
 
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, bgtexOpacity*1.6)
-			TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, 0, bgtexSize*0.55)
+			gl.Texture(buttonBackgroundTexture)
+			gl.Color(1,1,1, buttonBgtexOpacity)
+			TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, 0, buttonBgtexSize)
 			gl.Texture(false)
 
 			fontSize = fontSize * 0.85
@@ -453,9 +458,9 @@ function StartVote(name, owner)
 			end
 			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
 
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, bgtexOpacity*1.6)
-			TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.55)
+			gl.Texture(buttonBackgroundTexture)
+			gl.Color(1,1,1, buttonBgtexOpacity)
+			TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, buttonBgtexSize)
 			gl.Texture(false)
 
 			-- gloss
@@ -488,9 +493,9 @@ function StartVote(name, owner)
 				end
 				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
 
-				gl.Texture(backgroundTexture)
-				gl.Color(1,1,1, bgtexOpacity*1.6)
-				TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.55)
+				gl.Texture(buttonBackgroundTexture)
+				gl.Color(1,1,1, buttonBgtexOpacity)
+				TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, buttonBgtexSize)
 				gl.Texture(false)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)

@@ -57,16 +57,21 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
+local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
+local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexOpacity = 0.2
+local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
+local bgtexSize
 
-local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail, bgtexSize
+local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
 local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, startDefID, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local radariconSize, radariconOffset, groupiconSize, priceFontSize
-local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
+--local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -1071,6 +1076,8 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
+	bgtexSize = bgpadding * bgtexScale
+	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
@@ -1123,8 +1130,6 @@ function widget:ViewResize()
 		width = math_floor(width * vsx) / vsx
 		height = math_floor(height * vsy) / vsy
 	end
-
-	bgtexSize = bgpadding * bgtexScale
 
 	backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 
@@ -1691,11 +1696,11 @@ function drawBuildmenu()
 		RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 		RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 
-		--gl.Texture(backgroundTexture)
-		--gl.Color(1,1,1, bgtexOpacity)
-		--TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, bgtexSize*0.55)
-		--TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, bgtexSize*0.55)
-		--gl.Texture(false)
+		gl.Texture(buttonBackgroundTexture)
+		gl.Color(1,1,1, buttonBgtexOpacity)
+		TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
+		TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
+		gl.Texture(false)
 
 		-- glossy half
 		glBlending(GL_SRC_ALPHA, GL_ONE)
