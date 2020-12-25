@@ -60,7 +60,7 @@ local lockcameraLos = true                    -- togglelos
 local collapsable = false
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.018
+local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
@@ -2180,7 +2180,7 @@ function CreateBackground()
 
 		gl.Texture(backgroundTexture)
 		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(absLeft + paddingLeft, absTop - paddingTop - height, absRight - paddingRight, absTop - paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, 0, bgtexSize)
+		TexturedRectRound(absLeft + paddingLeft, absTop - paddingTop, absRight - paddingRight, absBottom + paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, 0, bgtexSize)
 		gl.Texture(false)
 
 		-- gloss

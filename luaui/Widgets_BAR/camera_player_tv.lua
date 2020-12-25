@@ -18,7 +18,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 }
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.018
+local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
 local bgtexSize
 

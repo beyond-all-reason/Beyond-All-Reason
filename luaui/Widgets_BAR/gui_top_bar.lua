@@ -84,7 +84,7 @@ local showConversionSlider = true
 local bladeSpeedMultiplier = 0.2
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.018
+local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
 
 local armcomDefID = UnitDefNames.armcom.id
@@ -1204,7 +1204,7 @@ local function updateResbar(res)
 			RectRoundCircle(conversionIndicatorArea[1] + ((conversionIndicatorArea[3] - conversionIndicatorArea[1]) / 2), 0, conversionIndicatorArea[2] + ((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2), (conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2, cornerSize, math.ceil(((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2) - cornerSize), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 })
 
 			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, 0.03)
+			gl.Color(1,1,1, 0.022)
 			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.55)
 		end
 		-- Share slider
@@ -1224,7 +1224,7 @@ local function updateResbar(res)
 		RectRoundCircle(shareIndicatorArea[res][1] + ((shareIndicatorArea[res][3] - shareIndicatorArea[res][1]) / 2), 0, shareIndicatorArea[res][2] + ((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2), (shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2, cornerSize, math.ceil(((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2) - cornerSize), { 1, 1, 1, 0.13 }, { 1, 1, 1, 0.13 })
 
 		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, 0.03)
+		gl.Color(1,1,1, 0.022)
 		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.55)
 		gl.Texture(false)
 
@@ -1297,11 +1297,11 @@ function drawResbarValues(res)
 
 	if res == 'energy' then
 		gl.Texture("LuaUI/Images/paralyzed.png")
-		gl.Color(1,1,1, 0.08)
+		gl.Color(1,1,1, 0.07)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/50, (resbarDrawinfo[res].barTexRect[3]-resbarDrawinfo[res].barTexRect[1])/1.25)
-
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, os.clock()/40, (resbarDrawinfo[res].barTexRect[3]-resbarDrawinfo[res].barTexRect[1])/1.25)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1, 0.16)
+		gl.Color(1,1,1, 0.14)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/70, (resbarDrawinfo[res].barTexRect[3]-resbarDrawinfo[res].barTexRect[1])/0.9)
 	else
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)

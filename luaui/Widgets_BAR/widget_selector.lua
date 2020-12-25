@@ -40,6 +40,11 @@ local showButtons = false
 include("keysym.h.lua")
 include("fonts.lua")
 
+local backgroundTexture = "LuaUI/Images/stripes.png"
+local bgtexOpacity = 0.017
+local bgtexScale = 6	-- lower = smaller tiles
+local bgtexSize
+
 local WhiteStr = "\255\255\255\255"
 local RedStr = "\255\255\001\001"
 local GreenStr = "\255\001\255\001"
@@ -272,6 +277,79 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
+local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	local scale = size and (size / (sx-px)) or 1
+	local offset = offset or 0
+	local csyMult = 1 / ((sy - py) / cs)
+	local ycMult = (sy-py) / (sx-px)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = ((x - px) / (sx - px))
+		yc = 1 - ((y - py) / (sy - py))
+		gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+end
+
 local function UpdateGeometry()
 	midx = vsx * 0.5
 	midy = vsy * 0.5
@@ -397,6 +475,11 @@ function widget:ViewResize(n_vsx, n_vsy)
 	font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 	font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
+	local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+	local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgtexSize = bgpadding * bgtexScale
+
 	sizeMultiplier = 0.66 + (vsx * vsy / 6500000) * customScale
 
 	UpdateGeometry()
@@ -501,6 +584,11 @@ function widget:DrawScreen()
 	-- draw the box
 	RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
 	RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+
+	gl.Texture(backgroundTexture)
+	gl.Color(1,1,1, bgtexOpacity*0.6)
+	TexturedRectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, 0, bgtexSize)
+	gl.Texture(false)
 
 	-- draw the text buttons (at the bottom) & their outlines
 	if showButtons then

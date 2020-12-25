@@ -58,7 +58,7 @@ local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.018
+local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
 
 local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail, bgtexSize

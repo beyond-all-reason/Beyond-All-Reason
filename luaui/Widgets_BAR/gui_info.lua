@@ -28,7 +28,7 @@ local iconBorderOpacity = 0.1
 local showSelectionTotals = true
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.018
+local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
 
 -------------------------------------------------------------------------------

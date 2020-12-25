@@ -156,7 +156,7 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.018
+local bgtexOpacity = 0.017
 local bgtexScale = 6	-- lower = smaller tiles
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
