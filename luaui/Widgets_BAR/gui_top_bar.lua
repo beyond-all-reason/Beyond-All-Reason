@@ -194,7 +194,7 @@ local font, font2, bgpadding, chobbyInterface, firstButton, fontSize, comcountCh
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
 local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistQuit
-local dlistButtons1, dlistButtons2, dlistRejoin, dlistComs1, dlistComs2, dlistWind1, dlistWind2
+--local dlistButtons1, dlistButtons2, dlistRejoin, dlistComs1, dlistComs2, dlistWind1, dlistWind2
 
 local chobbyLoaded = false
 if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
@@ -1202,6 +1202,10 @@ local function updateResbar(res)
 			RectRound(conversionIndicatorArea[1] - edgeWidth, conversionIndicatorArea[2] - edgeWidth, conversionIndicatorArea[3] + edgeWidth, conversionIndicatorArea[4] + edgeWidth, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.09 }, { 0, 0, 0, 0.09 })
 			RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, { 0.6, 0.6, 0.45, 1 }, { 0.95, 0.95, 0.7, 1 })
 			RectRoundCircle(conversionIndicatorArea[1] + ((conversionIndicatorArea[3] - conversionIndicatorArea[1]) / 2), 0, conversionIndicatorArea[2] + ((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2), (conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2, cornerSize, math.ceil(((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2) - cornerSize), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 })
+
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, 0.03)
+			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.5)
 		end
 		-- Share slider
 		local value = r[res][6]
@@ -1218,6 +1222,11 @@ local function updateResbar(res)
 		RectRound(shareIndicatorArea[res][1] - edgeWidth, shareIndicatorArea[res][2] - edgeWidth, shareIndicatorArea[res][3] + edgeWidth, shareIndicatorArea[res][4] + edgeWidth, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.09 }, { 0, 0, 0, 0.09 })
 		RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, { 0.4, 0, 0, 1 }, { 0.8, 0, 0, 1 })
 		RectRoundCircle(shareIndicatorArea[res][1] + ((shareIndicatorArea[res][3] - shareIndicatorArea[res][1]) / 2), 0, shareIndicatorArea[res][2] + ((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2), (shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2, cornerSize, math.ceil(((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2) - cornerSize), { 1, 1, 1, 0.13 }, { 1, 1, 1, 0.13 })
+
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, 0.03)
+		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, bgtexSize*0.5)
+		gl.Texture(false)
 
 		glTexture(false)
 	end)
@@ -1797,7 +1806,7 @@ function widget:DrawScreen()
 
 				local w = math_floor(335 * widgetScale)
 				local h = math_floor(w / 3.5)
-				local padding = math_floor(w / 70)
+				local padding = math_floor(w / 90)
 				local buttonPadding = math_floor(w / 90)
 				local buttonMargin = math_floor(w / 30)
 				local buttonHeight = math_floor(h * 0.55)
@@ -1811,6 +1820,10 @@ function widget:DrawScreen()
 				RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], padding)
 				RectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, { 0.55, 0.55, 0.5, 0.025 + (0.025 * fadeProgress) }, { 0.2, 0.2, 0.2, 0.025 + (0.025 * fadeProgress) })
 
+				gl.Texture(backgroundTexture)
+				gl.Color(1,1,1, bgtexOpacity)
+				TexturedRectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, 0, bgtexSize)
+
 				local fontSize = h / 6
 				font:Begin()
 				font:SetTextColor(0, 0, 0, 1)
@@ -1823,9 +1836,9 @@ function widget:DrawScreen()
 							txt = texts.quit.really_resign2
 						end
 					end
-					font:Print(txt, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - fontSize, fontSize, "cn")
+					font:Print(txt, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - padding - fontSize, fontSize, "cn")
 				else
-					font:Print(texts.quit.really_quit, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - fontSize, fontSize, "cn")
+					font:Print(texts.quit.really_quit, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - padding - padding - fontSize, fontSize, "cn")
 				end
 
 
@@ -1846,6 +1859,10 @@ function widget:DrawScreen()
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					local p = math.max(1, math_floor(widgetScale*1.8))
 					RectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
+
+					gl.Texture(backgroundTexture)
+					gl.Color(1,1,1, 0.03)
+					TexturedRectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, bgtexSize*0.5)
 
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[4] - ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.5), quitscreenQuitArea[3], quitscreenQuitArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
 					RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })
@@ -1876,6 +1893,10 @@ function widget:DrawScreen()
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					local p = math.max(1, math_floor(widgetScale*1.8))
 					RectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, {1,1,1,0.035}, {1,1,1,0.08})
+
+					gl.Texture(backgroundTexture)
+					gl.Color(1,1,1, 0.03)
+					TexturedRectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, bgtexSize*0.5)
 
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[4] - ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.5), quitscreenResignArea[3], quitscreenResignArea[4], padding * 0.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
 					RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) * 0.35), padding * 0.5, 0, 0, 2, 2, { 1, 1, 1, 0.12 * mult }, { 1, 1, 1, 0 })

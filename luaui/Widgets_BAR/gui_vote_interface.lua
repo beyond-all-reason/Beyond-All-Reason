@@ -17,6 +17,11 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	esc = 'ESC',
 }
 
+local backgroundTexture = "LuaUI/Images/stripes.png"
+local bgtexOpacity = 0.018
+local bgtexScale = 6	-- lower = smaller tiles
+local bgtexSize
+
 -- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = { 'forcestart', 'stop' }
 
@@ -151,6 +156,79 @@ function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
+local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	local scale = size and (size / (sx-px)) or 1
+	local offset = offset or 0
+	local csyMult = 1 / ((sy - py) / cs)
+	local ycMult = (sy-py) / (sx-px)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = ((x - px) / (sx - px))
+		yc = 1 - ((y - py) / (sy - py))
+		gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -161,6 +239,7 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = math.floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgtexSize = bgpadding * bgtexScale
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -311,9 +390,14 @@ function StartVote(name, owner)
 			yesButtonArea = { xpos - (width / 2) + buttonMargin, ypos - (height / 2) + buttonMargin, xpos - (buttonMargin / 2), ypos - (height / 2) + buttonHeight - buttonMargin }
 			noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin }
 
-			-- window
+			-- background
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
 			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, bgtexOpacity*0.5)
+			TexturedRectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, 0, bgtexSize)
+			gl.Texture(false)
 
 			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -335,6 +419,11 @@ function StartVote(name, owner)
 				color2 = { 1, 1, 1, 0.08 }
 			end
 			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, color1, color2)
+
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, 0.03)
+			TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, 0, bgtexSize*0.5)
+			gl.Texture(false)
 
 			fontSize = fontSize * 0.85
 			gl.Color(0, 0, 0, 1)
@@ -363,6 +452,11 @@ function StartVote(name, owner)
 				mult = 1
 			end
 			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
+
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, 0.03)
+			TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.5)
+			gl.Texture(false)
 
 			-- gloss
 			glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -394,6 +488,10 @@ function StartVote(name, owner)
 				end
 				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
 
+				gl.Texture(backgroundTexture)
+				gl.Color(1,1,1, 0.03)
+				TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, bgtexSize*0.5)
+				gl.Texture(false)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				RectRound(yesButtonArea[1], yesButtonArea[4] - ((yesButtonArea[4] - yesButtonArea[2]) * 0.5), yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
