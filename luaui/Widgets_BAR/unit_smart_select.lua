@@ -350,7 +350,7 @@ function widget:Update()
 					for i = 1, #referenceSelection do
 						uid = referenceSelection[i]
 						udid = GetUnitDefID(uid)
-						if (combatFilter[udid]) then
+						if combatFilter[udid] then
 							-- is a combat unit
 							tmp[#tmp + 1] = uid
 						end

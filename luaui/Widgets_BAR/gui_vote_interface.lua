@@ -188,7 +188,6 @@ function widget:Update(dt)
 		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 			widget:ViewResize()
 		end
 	end

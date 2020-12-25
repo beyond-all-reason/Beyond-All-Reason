@@ -13,9 +13,9 @@ end
 
 local defaultFile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local defaultFile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local defaultSize = 32
-local defaultOutlineSize = 0.17
-local defaultOutlineStrength = 1.05
+local defaultSize = 28
+local defaultOutlineSize = 0.18
+local defaultOutlineStrength = 1.1
 
 local presets = {
 	{defaultFile, defaultSize, defaultOutlineSize, defaultOutlineStrength},
@@ -24,6 +24,7 @@ local presets = {
 	{defaultFile2, defaultSize, 0.2, 1.3},
 }
 
+local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fonts = {}
@@ -58,6 +59,12 @@ function widget:Update(dt)
 		sceduledDeleteFonts = {}
 		sceduledDeleteFontsClock = nil
 	end
+
+	-- not executing this cause other widgets wont know that their font has been deleted
+	--if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
+	--	ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+	--	widget:ViewResize()
+	--end
 end
 
 
@@ -90,7 +97,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	local newFontScale = ((vsx+vsy / 2) / 2500)
+	local newFontScale = ((vsx+vsy / 2) / 2500) * ui_scale
 	if fontScale ~= newFontScale then
 		fontScale = newFontScale
 		for id,font in pairs(fonts) do

@@ -3312,6 +3312,7 @@ function init()
 		  onchange = function(i, value, force)
 			  if force then
 				  Spring.SetConfigFloat("ui_scale", value)
+				  Spring.SendCommands("luarules reloadluaui")
 			  else
 				  sceduleOptionApply = {os.clock()+1.5, getOptionByID('uiscale')}
 			  end

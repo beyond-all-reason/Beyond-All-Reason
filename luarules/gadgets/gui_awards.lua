@@ -963,7 +963,9 @@ else
 	end
 
 	function gadget:Shutdown()
-		if not chobbyLoaded then
+		if chobbyLoaded then
+			Spring.SendCommands('endgraph 2')
+		else
 			Spring.SendCommands('endgraph 1')
 		end
 		if Script.LuaUI("GuishaderRemoveRect") then
