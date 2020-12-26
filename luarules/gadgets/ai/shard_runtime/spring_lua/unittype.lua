@@ -51,8 +51,8 @@ function ShardUnitType:IsFactory()
 	return self.def.isFactory
 end
 
-function ShardUnitType:CanBuild(type)
-	if not type then
+function ShardUnitType:CanBuild(uType)
+	if not uType then
 		return self.def.buildOptions and #self.def.buildOptions > 0
 	end
 	-- Spring.Echo(self.def.name, "can build?", type, type:Name())
@@ -63,7 +63,7 @@ function ShardUnitType:CanBuild(type)
 			self.canBuildType[defID] = true
 		end
 	end
-	return self.canBuildType[type:ID()]
+	return self.canBuildType[uType:ID()]
 end
 
 function ShardUnitType:WeaponCount()
