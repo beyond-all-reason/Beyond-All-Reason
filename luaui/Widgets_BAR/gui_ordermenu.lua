@@ -161,7 +161,7 @@ local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0.3
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.017
+local bgtexOpacity = 0.016
 local bgtexScale = 6	-- lower = smaller tiles
 local bgtexSize
 

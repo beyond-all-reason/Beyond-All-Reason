@@ -41,7 +41,7 @@ include("keysym.h.lua")
 include("fonts.lua")
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.017
+local bgtexOpacity = 0.016
 local bgtexScale = 6	-- lower = smaller tiles
 local bgtexSize
 

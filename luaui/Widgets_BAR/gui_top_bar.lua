@@ -83,12 +83,13 @@ local borderPadding = 5
 local showConversionSlider = true
 local bladeSpeedMultiplier = 0.2
 
+local noiseBackgroundTexture = "LuaUI/Images/rgbnoise.png"
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0.3
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.017
+local bgtexOpacity = 0.016
 local bgtexScale = 6	-- lower = smaller tiles
 local bgtexSize
 
@@ -575,8 +576,13 @@ local function updateRejoin()
 		-- Bar background
 		local edgeWidth = math.max(1, math_floor(vsy / 1100))
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
-		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.06 }, { 0, 0, 0, 0.06 })
+		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.03 }, { 0, 0, 0, 0.03 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
+
+		gl.Texture(noiseBackgroundTexture)
+		gl.Color(1,1,1, 0.12)
+		TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 0, barWidth*0.6)
+
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
@@ -1178,7 +1184,10 @@ local function updateResbar(res)
 
 		-- Bar background
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
-		RectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 1,1,1, 0.03 }, { 1,1,1, 0.03 })
+		--RectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 1,1,1, 0.03 }, { 1,1,1, 0.03 })
+		gl.Texture(noiseBackgroundTexture)
+		gl.Color(1,1,1, 0.15)
+		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, 0, barWidth*0.33)
 
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })

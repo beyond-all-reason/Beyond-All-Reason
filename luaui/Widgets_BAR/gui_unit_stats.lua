@@ -77,7 +77,7 @@ local unitHumanName = {        -- fallback (if you want to change this, also upd
 }
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.017
+local bgtexOpacity = 0.016
 local bgtexScale = 6	-- lower = smaller tiles
 local bgtexSize
 
@@ -175,6 +175,10 @@ local widgetScale = 1
 local xOffset = (32 + (fontSize*0.9))*widgetScale
 local yOffset = -((32 - (fontSize*0.9))*widgetScale)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+
+local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+bgtexSize = bgpadding * bgtexScale
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -1159,7 +1163,7 @@ function widget:DrawScreen()
 	RectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
 
 	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, bgtexOpacity*0.6)
+	gl.Color(1,1,1, bgtexOpacity*0.75)
 	TexturedRectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize*0.66, 2,2,2,2, 0, bgtexSize)
 	gl.Texture(false)
 
@@ -1200,7 +1204,7 @@ function widget:DrawScreen()
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+			RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 		end), 'unit_stats_data')
 	end
 
@@ -1208,7 +1212,7 @@ function widget:DrawScreen()
 	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
 
 	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, bgtexOpacity*0.6)
+	gl.Color(1,1,1, bgtexOpacity*0.75)
 	TexturedRectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.66, 2,2,2,2, 0, bgtexSize)
 	gl.Texture(false)
 
