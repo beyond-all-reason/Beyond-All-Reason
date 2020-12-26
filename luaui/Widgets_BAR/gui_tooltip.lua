@@ -32,8 +32,8 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 ------------------------------------------------------------------------------------
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.012
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = 0.012
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -403,12 +403,14 @@ function drawTooltip(name, x, y)
 
 
 	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, bgtexOpacity)
-	TexturedRectRound(posX - paddingW + cornersize,
-		posY - maxHeight - paddingH + cornersize,
-		posX + maxWidth + paddingW - cornersize,
-		posY + paddingH - cornersize - 0.06, bgpadding, 1,1,1,1, 0, bgtexSize)
-	gl.Texture(false)
+	if ui_tileopacity > 0 then
+		gl.Color(1,1,1, ui_tileopacity)
+		TexturedRectRound(posX - paddingW + cornersize,
+			posY - maxHeight - paddingH + cornersize,
+			posX + maxWidth + paddingW - cornersize,
+			posY + paddingH - cornersize - 0.06, bgpadding, 1,1,1,1, 0, bgtexSize)
+		gl.Texture(false)
+	end
 
 	-- draw text
 	maxHeight = math_floor(-fontSize * 0.93)

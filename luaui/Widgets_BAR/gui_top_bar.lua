@@ -89,8 +89,8 @@ local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.016
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
 
 local armcomDefID = UnitDefNames.armcom.id
@@ -552,9 +552,11 @@ local function updateRejoin()
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.3, 0.3, 0.3, ui_opacity * 0.1 })
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		if ui_tileopacity > 0 then
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, ui_tileopacity)
+			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		end
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -683,9 +685,11 @@ local function updateButtons()
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		if ui_tileopacity > 0 then
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, ui_tileopacity)
+			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		end
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -824,9 +828,11 @@ local function updateComs(forceText)
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		if ui_tileopacity > 0 then
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, ui_tileopacity)
+			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		end
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -895,9 +901,11 @@ local function updateWind()
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		if ui_tileopacity > 0 then
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, ui_tileopacity)
+			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
+		end
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1154,9 +1162,11 @@ local function updateResbar(res)
 		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
 
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, 0, bgtexSize)
+		if ui_tileopacity > 0 then
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, ui_tileopacity)
+			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, 0, bgtexSize)
+		end
 
 		-- gloss
 		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3] - bgpadding, area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
@@ -1838,9 +1848,11 @@ function widget:DrawScreen()
 				RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], padding)
 				RectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, { 0.55, 0.55, 0.5, 0.025 + (0.025 * fadeProgress) }, { 0.2, 0.2, 0.2, 0.025 + (0.025 * fadeProgress) })
 
-				gl.Texture(backgroundTexture)
-				gl.Color(1,1,1, bgtexOpacity)
-				TexturedRectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, 0, bgtexSize)
+				if ui_tileopacity > 0 then
+					gl.Texture(backgroundTexture)
+					gl.Color(1,1,1, ui_tileopacity)
+					TexturedRectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, 0, bgtexSize)
+				end
 
 				local fontSize = h / 6
 				font:Begin()

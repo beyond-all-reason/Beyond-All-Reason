@@ -32,7 +32,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	option = {
 		preset = 'Load graphics preset',
 		preset_descr = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
-		resolution = 'Load graphics preset',
+		resolution = 'Resolution',
 		resolution_descr = 'WARNING: sometimes freezes game engine in windowed mode',
 		fullscreen = 'Fullscreen',
 		borderless = 'Borderless window',
@@ -201,6 +201,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		interface = 'Interface',
 		uiscale = 'scale',
 		guiopacity = 'opacity',
+		guitilescale = 'background tile scale',
+		guitileopacity = 'opacity',
 		guishader = 'blur',
 		guishader_descr = 'Blurs the world under every user interface element',
 		guishaderintensity = '   intensity',
@@ -339,7 +341,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		nametags_icon_descr = 'Show commander name when its displayed as icon',
 		commandsfx = 'Command FX',
 		commandsfx_descr = 'Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well',
-		commandsfxfilterai = '',
+		commandsfxfilterai = 'filter AI teams',
 		commandsfxfilterai_descr = 'Hide commands for AI teams',
 		commandsfxopacity = 'opacity',
 		displaydps = 'Display DPS',
@@ -3323,6 +3325,30 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("ui_opacity", value)
+		  end,
+		},
+		{ id = "guitilescale", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 15), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value, force)
+			  if force then
+				  Spring.SetConfigFloat("ui_tilescale", value)
+				  Spring.SendCommands("luarules reloadluaui")
+			  else
+				  sceduleOptionApply = {os.clock()+1.5, getOptionByID('guitilescale')}
+			  end
+		  end,
+		},
+		{ id = "guitileopacity", group = "ui", basic = true, name = widgetOptionColor .. "      "..texts.option.guitileopacity, type = "slider", min = 0, max = 0.04, step = 0.002, value = Spring.GetConfigFloat("ui_tileopacity", 0.016), description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value, force)
+			  if force then
+				  Spring.SetConfigFloat("ui_tileopacity", value)
+				  Spring.SendCommands("luarules reloadluaui")
+			  else
+				  sceduleOptionApply = {os.clock()+1.5, getOptionByID('guitileopacity')}
+			  end
 		  end,
 		},
 

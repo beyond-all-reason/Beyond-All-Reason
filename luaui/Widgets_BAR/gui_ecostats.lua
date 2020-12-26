@@ -24,8 +24,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 }
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.016
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
 
 local PmaxDmg						= 0
@@ -816,10 +816,12 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	--glColor(1,1,1,ui_opacity*0.055)
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
-	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, bgtexOpacity)
-	TexturedRectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, 0, bgtexSize)
-	gl.Texture(false)
+	if ui_tileopacity > 0 then
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, ui_tileopacity)
+		TexturedRectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, 0, bgtexSize)
+		gl.Texture(false)
+	end
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)

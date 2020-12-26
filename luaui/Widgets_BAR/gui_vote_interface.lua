@@ -22,8 +22,8 @@ local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.016
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
 
 -- dont show vote interface for specs for the following keywords (use lowercase)
@@ -400,7 +400,7 @@ function StartVote(name, owner)
 			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, bgtexOpacity*0.5)
+			gl.Color(1,1,1, ui_tileopacity*0.5)
 			TexturedRectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, 0, bgtexSize)
 			gl.Texture(false)
 

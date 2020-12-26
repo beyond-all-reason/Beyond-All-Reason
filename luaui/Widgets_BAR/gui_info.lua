@@ -28,8 +28,8 @@ local iconBorderOpacity = 0.1
 local showSelectionTotals = true
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.016
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
 
 -------------------------------------------------------------------------------
@@ -1641,10 +1641,12 @@ local function drawInfo()
 	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 1, (WG['buildpower'] and 0 or 1), 1, 1, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
 	RectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, (WG['buildpower'] and 0 or 1), 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
 
-	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, bgtexOpacity)
-	TexturedRectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 1,1,1,1, 0, bgtexSize)
-	gl.Texture(false)
+	if ui_tileopacity > 0 then
+		gl.Texture(backgroundTexture)
+		gl.Color(1,1,1, ui_tileopacity)
+		TexturedRectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 1,1,1,1, 0, bgtexSize)
+		gl.Texture(false)
+	end
 
 	-- gloss
 	glBlending(GL_SRC_ALPHA, GL_ONE)

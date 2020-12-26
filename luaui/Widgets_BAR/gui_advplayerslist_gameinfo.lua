@@ -28,8 +28,8 @@ end
 --------------------------------------------------------------------------------
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.016
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -332,10 +332,12 @@ local function createList()
 		--glColor(1,1,1,ui_opacity*0.055)
 		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, 0, bgtexSize)
-		gl.Texture(false)
+		if ui_tileopacity > 0 then
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, ui_tileopacity)
+			TexturedRectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, 0, bgtexSize)
+			gl.Texture(false)
+		end
 
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)

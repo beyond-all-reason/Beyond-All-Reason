@@ -699,6 +699,8 @@ return {
 			interface = 'Interface',
 			uiscale = 'scale',
 			guiopacity = 'opacity',
+			guitilescale = 'background tile scale',
+			guitileopacity = 'opacity',
 			guishader = 'blur',
 			guishader_descr = 'Blurs the world under every user interface element',
 			guishaderintensity = '   intensity',

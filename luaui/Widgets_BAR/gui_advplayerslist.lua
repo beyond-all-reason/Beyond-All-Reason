@@ -60,8 +60,8 @@ local lockcameraLos = true                    -- togglelos
 local collapsable = false
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.016
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	playerlist = 'Playerlist',
@@ -2178,10 +2178,12 @@ function CreateBackground()
         RectRound(absLeft + paddingLeft, absTop - paddingTop - height, absRight - paddingRight, absTop - paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
         RectRound(absLeft + paddingLeft, absBottom + paddingBottom, absRight - paddingRight, absTop - paddingTop - height, bgpadding, 0, 0, math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.15, 0.15, 0.15, ui_opacity * 0.15 }, { 0.6, 0.6, 0.6, ui_opacity * 0.15 })
 
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, bgtexOpacity)
-		TexturedRectRound(absLeft + paddingLeft, absTop - paddingTop, absRight - paddingRight, absBottom + paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, 0, bgtexSize)
-		gl.Texture(false)
+		if ui_tileopacity > 0 then
+			gl.Texture(backgroundTexture)
+			gl.Color(1,1,1, ui_tileopacity)
+			TexturedRectRound(absLeft + paddingLeft, absTop - paddingTop, absRight - paddingRight, absBottom + paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, 0, bgtexSize)
+			gl.Texture(false)
+		end
 
 		-- gloss
         glBlending(GL_SRC_ALPHA, GL_ONE)

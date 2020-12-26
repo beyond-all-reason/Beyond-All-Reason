@@ -41,8 +41,8 @@ include("keysym.h.lua")
 include("fonts.lua")
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
-local bgtexOpacity = 0.016
-local bgtexScale = 8	-- lower = smaller tiles
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
 
 local WhiteStr = "\255\255\255\255"
@@ -586,7 +586,7 @@ function widget:DrawScreen()
 	RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, bgtexOpacity*0.6)
+	gl.Color(1,1,1, ui_tileopacity*0.6)
 	TexturedRectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, 0, bgtexSize)
 	gl.Texture(false)
 
