@@ -157,7 +157,7 @@ local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0.2
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"

@@ -18,7 +18,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 }
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0.2
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"

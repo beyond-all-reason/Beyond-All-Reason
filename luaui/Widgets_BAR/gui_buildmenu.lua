@@ -58,7 +58,7 @@ local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0.2
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"

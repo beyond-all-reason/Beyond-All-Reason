@@ -84,7 +84,7 @@ local showConversionSlider = true
 local bladeSpeedMultiplier = 0.2
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.5	-- lower = smaller tiles
+local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0.2
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
@@ -1211,8 +1211,8 @@ local function updateResbar(res)
 			RectRoundCircle(conversionIndicatorArea[1] + ((conversionIndicatorArea[3] - conversionIndicatorArea[1]) / 2), 0, conversionIndicatorArea[2] + ((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2), (conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2, cornerSize, math.ceil(((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2) - cornerSize), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 })
 
 			gl.Texture(buttonBackgroundTexture)
-			gl.Color(1,1,1, buttonBgtexOpacity*0.7)
-			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize)
+			gl.Color(1,1,1, buttonBgtexOpacity*0.6)
+			TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize*0.82)
 		end
 		-- Share slider
 		local value = r[res][6]
@@ -1232,7 +1232,7 @@ local function updateResbar(res)
 
 		gl.Texture(buttonBackgroundTexture)
 		gl.Color(1,1,1, buttonBgtexOpacity*0.7)
-		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize)
+		TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize*0.82)
 		gl.Texture(false)
 
 		glTexture(false)
