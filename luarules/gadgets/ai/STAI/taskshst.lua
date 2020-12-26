@@ -15,8 +15,8 @@ end
 function TasksHST:wrap( theTable, theFunction )
 	self:EchoDebug(theTable)
 	self:EchoDebug(theFunction)
-	return function( tb, ai )
-		return theTable[theFunction](theTable, tb, ai)
+	return function( tb, ai ,bd)
+		return theTable[theFunction](theTable, tb, ai, bd)
 	end
 end
 
