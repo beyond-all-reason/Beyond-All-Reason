@@ -335,7 +335,7 @@ end
 function TasksHST:anyCommander() return  {
 	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ),
 	self:wrap( self.ai.taskecohst,'CommanderEconomy' ),
-	self:wrap( 	self.ai.taskbuildhst,'BuildLLT' ),
+	self:wrap( self.ai.taskbuildhst,'BuildLLT' ),
 	self:wrap( self.ai.taskbuildhst,'BuildRadar' ),
 	self:wrap( self.ai.taskbuildhst,'CommanderAA' ),
 	self:wrap( self.ai.taskbuildhst,'BuildPopTorpedo' ),

@@ -16,7 +16,7 @@ end
 --Factory call
 function TaskEcoHST:BuildAppropriateFactory( taskQueueBehaviour, ai, builder )
 	return self.ai.armyhst.FactoryUnitName
-	--return self.ai.labbuildhst:GetBuilderFactory(builder)
+	--return self.ai.labbuildhst:GetBuilderFactory( taskQueueBehaviour, ai, builder )
 end
 
 --nano call
