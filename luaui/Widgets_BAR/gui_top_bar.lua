@@ -1850,7 +1850,7 @@ function widget:DrawScreen()
 
 				if ui_tileopacity > 0 then
 					gl.Texture(backgroundTexture)
-					gl.Color(1,1,1, ui_tileopacity)
+					gl.Color(1,1,1, ui_tileopacity*2)
 					TexturedRectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, 0, bgtexSize)
 				end
 
