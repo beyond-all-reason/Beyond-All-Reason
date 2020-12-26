@@ -59,7 +59,7 @@ local selectedCellZoom = 0.135 * zoomMult
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0.2
+local buttonBgtexOpacity = 0.3
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.017

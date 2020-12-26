@@ -19,7 +19,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0.2
+local buttonBgtexOpacity = 0.3
 local buttonBgtexSize
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
