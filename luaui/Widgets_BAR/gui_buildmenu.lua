@@ -63,7 +63,7 @@ local buttonBgtexOpacity = 0.3
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
-local bgtexScale = 6	-- lower = smaller tiles
+local bgtexScale = 8	-- lower = smaller tiles
 local bgtexSize
 
 local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail

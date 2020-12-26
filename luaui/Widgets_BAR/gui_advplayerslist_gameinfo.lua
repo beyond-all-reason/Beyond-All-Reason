@@ -29,7 +29,7 @@ end
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
-local bgtexScale = 6	-- lower = smaller tiles
+local bgtexScale = 8	-- lower = smaller tiles
 local bgtexSize
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")

@@ -376,10 +376,12 @@ function createList()
 
 		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 
+		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		gl.Texture(buttonBackgroundTexture)
 		gl.Color(1,1,1, buttonBgtexOpacity)
 		TexturedRectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, 0, buttonBgtexSize)
 		gl.Texture(false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 		font:Begin()
 		font:Print(color .. text, right - (textWidth / 2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')

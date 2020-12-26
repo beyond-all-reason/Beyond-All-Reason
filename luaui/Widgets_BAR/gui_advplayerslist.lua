@@ -61,7 +61,7 @@ local collapsable = false
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
-local bgtexScale = 6	-- lower = smaller tiles
+local bgtexScale = 8	-- lower = smaller tiles
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	playerlist = 'Playerlist',

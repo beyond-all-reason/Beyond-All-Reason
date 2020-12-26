@@ -162,7 +162,7 @@ local buttonBgtexOpacity = 0.3
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
-local bgtexScale = 6	-- lower = smaller tiles
+local bgtexScale = 8	-- lower = smaller tiles
 local bgtexSize
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
@@ -818,9 +818,10 @@ function drawCell(cell, zoom)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		gl.Texture(buttonBackgroundTexture)
 		gl.Color(1,1,1, buttonBgtexOpacity)
-		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, 0, buttonBgtexSize)
+		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, (buttonBgtexSize*(zoom*zoom)), buttonBgtexSize*(zoom*zoom))
 		gl.Texture(false)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 
 		-- gloss
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42) - padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][4] - topMargin) - padding, cellWidth * 0.017, 2, 2, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.09 })

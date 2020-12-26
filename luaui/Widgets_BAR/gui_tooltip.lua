@@ -33,7 +33,7 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.012
-local bgtexScale = 6	-- lower = smaller tiles
+local bgtexScale = 8	-- lower = smaller tiles
 local bgtexSize
 
 local vsx, vsy = Spring.GetViewGeometry()

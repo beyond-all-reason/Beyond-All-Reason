@@ -32,7 +32,7 @@ local fadeOutTime = 6.5
 
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
-local bgtexScale = 6	-- lower = smaller tiles
+local bgtexScale = 8	-- lower = smaller tiles
 local bgtexSize
 
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
