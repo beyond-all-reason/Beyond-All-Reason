@@ -388,20 +388,20 @@ function TaskQueueBST:LocationFilter(utype, value)
 		end
 	else
 		if self.ai.armyhst.unitTable[value].isWeapon  then
-			if 	utype:Name() == self.ai.taskbuildhst:BuildLLT(self) or
-				utype:Name() == self.ai.taskbuildhst:BuildLightAA(self) or
-				utype:Name() == self.ai.taskbuildhst:BuildLvl2PopUp(self) then
+			if 	utype:Name() == self.ai.taskbuildhst:BuildLLT(self, self.ai, self.unit:Internal()) or
+				utype:Name() == self.ai.taskbuildhst:BuildLightAA(self, self.ai, self.unit:Internal()) or
+				utype:Name() == self.ai.taskbuildhst:BuildLvl2PopUp(self, self.ai, self.unit:Internal()) then
 					p = self.ai.buildsitehst:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
 					self.ai.buildsitehst:searchPosInList(self.map:GetMetalSpots(),utype, builder, 'losRadius',20)
-			elseif 	utype:Name() == self.ai.taskbuildhst:BuildSpecialLT(self) or
-					utype:Name() == self.ai.taskbuildhst:BuildSpecialLTOnly(self) or
-					utype:Name() == self.ai.taskbuildhst:BuildMediumAA(self) or
-					utype:Name() == self.ai.taskbuildhst:BuildHeavyAA(self)then
+			elseif 	utype:Name() == self.ai.taskbuildhst:BuildSpecialLT(self, self.ai, self.unit:Internal()) or
+					utype:Name() == self.ai.taskbuildhst:BuildSpecialLTOnly(self, self.ai, self.unit:Internal()) or
+					utype:Name() == self.ai.taskbuildhst:BuildMediumAA(self, self.ai, self.unit:Internal()) or
+					utype:Name() == self.ai.taskbuildhst:BuildHeavyAA(self, self.ai, self.unit:Internal())then
 						p =  self.ai.buildsitehst:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
-			elseif 	utype:Name() == self.ai.taskbuildhst:BuildHLT(self) or
-					utype:Name() == self.ai.taskbuildhst:BuildHeavyishAA(self) or
-					utype:Name() == self.ai.taskbuildhst:BuildExtraHeavyAA(self) or
-					utype:Name() == self.ai.taskbuildhst:BuildTachyon(self) then
+			elseif 	utype:Name() == self.ai.taskbuildhst:BuildHLT(self, self.ai, self.unit:Internal()) or
+					utype:Name() == self.ai.taskbuildhst:BuildHeavyishAA(self, self.ai, self.unit:Internal()) or
+					utype:Name() == self.ai.taskbuildhst:BuildExtraHeavyAA(self, self.ai, self.unit:Internal()) or
+					utype:Name() == self.ai.taskbuildhst:BuildTachyon(self, self.ai, self.unit:Internal()) then
 				p =  self.ai.buildsitehst:searchPosNearThing(utype, builder,'isFactory',nil, 'losRadius',100)  or self.ai.buildsitehst:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, utype:Name()),utype, builder, 'losRadius',0)
 			elseif 	self.ai.armyhst.unitTable[value].isPlasmaCannon then
 				if self.ai.armyhst.unitTable[value].isPlasmaCannon < 4 then
@@ -577,7 +577,7 @@ function TaskQueueBST:ProgressQueue()
 		-- evaluate any functions here, they may return tables
 		while type(value) == "function" do
 			self:EchoDebug('function queue', value)
-			value = value( self, self.ai, self.unit )
+			value = value( self, self.ai, self.unit:Internal() )
 		end
 
 		if type(value) == "table" then

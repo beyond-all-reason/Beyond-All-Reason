@@ -16,7 +16,9 @@ end
 --Factory call
 function TaskEcoHST:BuildAppropriateFactory( taskQueueBehaviour, ai, builder )
 	return self.ai.armyhst.FactoryUnitName
+	--return self.ai.labbuildhst:GetBuilderFactory( taskQueueBehaviour, ai, builder )
 end
+
 --nano call
 function TaskEcoHST:NanoTurret( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
@@ -348,7 +350,7 @@ end
 
 function TaskEcoHST:CommanderEconomy( taskQueueBehaviour, ai, builder )
 	self:EchoDebug('commander economy ',self,type(self),taskQueueBehaviour)
-	local underwater = self.ai.maphst:IsUnderWater( builder:Internal():GetPosition() )
+	local underwater = self.ai.maphst:IsUnderWater( builder:GetPosition() )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if not underwater then
 		unitName = self:Economy0( taskQueueBehaviour, ai, builder )
@@ -360,7 +362,7 @@ end
 
 
 function TaskEcoHST:AmphibiousEconomy( taskQueueBehaviour, ai, builder )
-	local underwater = self.ai.maphst:IsUnderWater( builder:Internal():GetPosition())
+	local underwater = self.ai.maphst:IsUnderWater( builder:GetPosition())
 	local unitName = self.ai.armyhst.DummyUnitName
 	if underwater then
 		unitName = self:EconomyUnderWater( taskQueueBehaviour, ai, builder )

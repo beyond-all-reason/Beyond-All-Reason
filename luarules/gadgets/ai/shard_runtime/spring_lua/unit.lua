@@ -375,8 +375,11 @@ function ShardUnit:MaxWeaponsRange()
 end
 
 
-function ShardUnit:CanBuild( type )
-	return self:Type():CanBuild(type)
+function ShardUnit:CanBuild( uType )
+	if type(uType ) == 'string' then
+		uType = game:GetTypeByName(uType)
+	end
+	return self:Type():CanBuild(uType)
 end
 
 

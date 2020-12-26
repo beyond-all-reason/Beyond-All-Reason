@@ -13,21 +13,20 @@ function TaskBuildHST:Init()
 end
 --t1 ground
 
-function TaskBuildHST:BuildLLT(Builder)
-	if Builder.unit == nil then
-		return self.ai.armyhst.DummyUnitName
-	end
+function TaskBuildHST:BuildLLT( taskQueueBehaviour, ai, builder )
+-- 	if builder.unit == nil then
+-- 		return self.ai.armyhst.DummyUnitName
+-- 	end
 	local unitName = self.ai.armyhst.DummyUnitName
 		if builder:CanBuild( "corllt" ) then
 			unitName = "corllt"
 		elseif builder:CanBuild( "armllt" ) then
 			unitName = "armllt"
 		end
-		local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildSpecialLT(Builder)
+function TaskBuildHST:BuildSpecialLT( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.taskshst:IsAANeeded() then
 		-- pop-up turrets are protected against bombs
@@ -46,29 +45,27 @@ function TaskBuildHST:BuildSpecialLT(Builder)
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildSpecialLTOnly(Builder)
+function TaskBuildHST:BuildSpecialLTOnly( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corhllt" ) then
 		unitName = "corhllt"
 	elseif builder:CanBuild( "armbeamer" ) then
 		unitName = "armbeamer"
 	end
-	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildHLT(Builder)
+function TaskBuildHST:BuildHLT( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corhlt" ) then
 		unitName = "corhlt"
 	elseif builder:CanBuild( "armhlt" ) then
 		unitName = "armhlt"
 	end
-	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildDepthCharge(Builder)
+function TaskBuildHST:BuildDepthCharge( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cordl" ) then
 		unitName = "cordl"
@@ -78,38 +75,36 @@ function TaskBuildHST:BuildDepthCharge(Builder)
 	return self.ai.taskshst:BuildTorpedoIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildFloatHLT(Builder)
+function TaskBuildHST:BuildFloatHLT( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corfhlt" ) then
 		unitName = "corfhlt"
 	elseif builder:CanBuild( "armfhlt" ) then
 		unitName = "armfhlt"
 	end
-	local unit = Builder.unit:Internal()
+	local unit = builder
 	--return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 	return unitName
 end
 
 --t2 ground
-function TaskBuildHST:BuildLvl2PopUp(Builder)
+function TaskBuildHST:BuildLvl2PopUp( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "corvipe" ) then
 		unitName = "corvipe"
 	elseif builder:CanBuild( "armpb" ) then
 		unitName = "armpb"
 	end
-	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildTachyon(Builder)
+function TaskBuildHST:BuildTachyon( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if builder:CanBuild( "cordoom" ) then
 		unitName = "cordoom"
 	elseif builder:CanBuild( "armanni" ) then
 		unitName = "armanni"
 	end
-	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
@@ -434,13 +429,13 @@ end
 
 --Function of function
 
-function TaskBuildHST:CommanderAA(Builder)
+function TaskBuildHST:CommanderAA( taskQueueBehaviour, ai, builder )
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.taskshst:IsAANeeded() then
-		if self.ai.maphst:IsUnderWater(Builder.unit:Internal():GetPosition()) then
-			unitName = self:BuildFloatLightAA(Builder)
+		if self.ai.maphst:IsUnderWater(builder:GetPosition()) then
+			unitName = self:BuildFloatLightAA( taskQueueBehaviour, ai, builder )
 		else
-			unitName = self:BuildLightAA(Builder)
+			unitName = self:BuildLightAA( taskQueueBehaviour, ai, builder )
 		end
 	end
 	return unitName
