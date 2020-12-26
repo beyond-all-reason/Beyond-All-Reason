@@ -27,10 +27,6 @@ local hoverCellZoom = 0.03 * zoomMult
 local iconBorderOpacity = 0.1
 local showSelectionTotals = true
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0.3
-local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
 local bgtexScale = 8	-- lower = smaller tiles
@@ -426,7 +422,6 @@ function widget:ViewResize()
 	local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
 	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	backgroundRect = { 0, 0, (width - addonWidth) * vsx, height * vsy }
 
@@ -915,11 +910,6 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	if not usedZoom then
 		usedZoom = defaultCellZoom
 	end
-
-	-- button background only visible when transparant unit icons
-	--glTexture(buttonBackgroundTexture)
-	--glColor(1,1,1, buttonBgtexOpacity)
-	--TexturedRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1,1,1,1, 0, buttonBgtexSize)
 
 	glColor(1, 1, 1, 1)
 	glTexture(texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic)

@@ -59,7 +59,7 @@ local selectedCellZoom = 0.135 * zoomMult
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0.3
+local buttonBgtexOpacity = 0
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
@@ -1696,11 +1696,13 @@ function drawBuildmenu()
 		RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 		RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 
-		gl.Texture(buttonBackgroundTexture)
-		gl.Color(1,1,1, buttonBgtexOpacity)
-		TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
-		TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
-		gl.Texture(false)
+		if buttonBgtexOpacity > 0 then
+			gl.Texture(buttonBackgroundTexture)
+			gl.Color(1,1,1, buttonBgtexOpacity)
+			TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
+			TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
+			gl.Texture(false)
+		end
 
 		-- glossy half
 		glBlending(GL_SRC_ALPHA, GL_ONE)

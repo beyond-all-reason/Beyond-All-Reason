@@ -29,10 +29,7 @@ local bgMargin = 0.008
 local myTeamID = Spring.GetMyTeamID()
 local stickToBottom = false
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0.3
-local buttonBgtexSize
+
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
 local bgtexScale = 8	-- lower = smaller tiles
@@ -227,7 +224,6 @@ function widget:ViewResize()
 	end
 
 	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 

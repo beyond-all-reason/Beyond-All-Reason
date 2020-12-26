@@ -158,7 +158,7 @@ local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0.3
+local buttonBgtexOpacity = 0
 local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/stripes.png"
 local bgtexOpacity = 0.016
@@ -815,12 +815,14 @@ function drawCell(cell, zoom)
 		end
 		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)})
 
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		gl.Texture(buttonBackgroundTexture)
-		gl.Color(1,1,1, buttonBgtexOpacity)
-		TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, (buttonBgtexSize*(zoom*zoom)), buttonBgtexSize*(zoom*zoom))
-		gl.Texture(false)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		if buttonBgtexOpacity > 0 then
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			gl.Texture(buttonBackgroundTexture)
+			gl.Color(1,1,1, buttonBgtexOpacity)
+			TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, (buttonBgtexSize*(zoom*zoom)), buttonBgtexSize*(zoom*zoom))
+			gl.Texture(false)
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
 
 
 		-- gloss
