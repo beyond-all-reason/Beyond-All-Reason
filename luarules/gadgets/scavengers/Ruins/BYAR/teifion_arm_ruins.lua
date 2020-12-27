@@ -57,7 +57,7 @@ end
 table.insert(RuinsList,teifion_arm_metal_maker_ruin1)
 
 local function teifion_arm_silo_ruin1(posx, posy, posz, GaiaTeamID, radiusCheck)
-  local posradius = 160
+  local posradius = 200
   if radiusCheck then
     return posradius
   else
@@ -73,7 +73,7 @@ end
 table.insert(RuinsList,teifion_arm_silo_ruin1)
 
 local function teifion_arm_afus_ruin1(posx, posy, posz, GaiaTeamID, radiusCheck)
-  local posradius = 124
+  local posradius = 160
   if radiusCheck then
     return posradius
   else
