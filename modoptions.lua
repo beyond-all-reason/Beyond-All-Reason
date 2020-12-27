@@ -422,8 +422,20 @@ local options={
 		name   = 'Random Ruins',
 		desc   = 'description',
 		type   = 'list',
-		section = 'options_scavengers',
+		section = 'options',
 		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scavonlyruins',
+		name   = 'Random Ruins (ScavMode)',
+		desc   = 'description',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "enabled",
 		items={
 			{key="enabled", name="Enabled", desc="description"},
 			{key="disabled", name="Disabled", desc="description"},
@@ -434,8 +446,20 @@ local options={
 		name   = 'Lootboxes',
 		desc   = '1 to enable, 0 to disable',
 		type   = 'list',
-		section= 'options_scavengers',
+		section= 'options',
 		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scavonlylootboxes',
+		name   = 'Lootboxes (ScavMode)',
+		desc   = '1 to enable, 0 to disable',
+		type   = 'list',
+		section= 'options_scavengers',
+		def  = "enabled",
 		items={
 			{key="enabled", name="Enabled", desc="description"},
 			{key="disabled", name="Disabled", desc="description"},

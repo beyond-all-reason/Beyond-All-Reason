@@ -28,6 +28,7 @@ end
 
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
 VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+VFS.Include("luarules/gadgets/scavengers/Modules/mastermind_controller.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 
 local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/'..GameShortName..'/UnitLists/','*.lua')
@@ -224,6 +225,13 @@ function gadget:GameFrame(n)
 		ScavSafeAreaMaxZ = ScavengerStartboxZMax
 		ScavSafeAreaSize = math.ceil(((ScavengerStartboxXMax - ScavengerStartboxXMin) + (ScavengerStartboxZMax - ScavengerStartboxZMin))*0.175)
 	end
+	
+	if n%900 then
+		MasterMindLandTargetsListUpdate(n)
+		MasterMindSeaTargetsListUpdate(n)
+		MasterMindAirTargetsListUpdate(n)
+		MasterMindAmphibiousTargetsListUpdate(n)
+	end
 
 	if n == 300 then
 		--Spring.Echo("New Scavenger Spawner initialized")
@@ -419,6 +427,13 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	local UnitName = UnitDefs[unitDefID].name
+	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == true then
+			MasterMindTargetListUnitSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
+		else
+			MasterMindTargetListBuildingSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
+		end
+	end
 	if unitTeam == GaiaTeamID then
 
 		if FinalBossUnitSpawned == true then
@@ -486,6 +501,13 @@ end
 
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 	local UnitName = UnitDefs[unitDefID].name
+	if unitNewTeam == GaiaTeamID and unitOldTeam ~= GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == true then
+			MasterMindTargetListUnitDead(unitID, unitTeam, unitEnteredTeam, unitDefID)
+		else
+			MasterMindTargetListBuildingDead(unitID, unitTeam, unitEnteredTeam, unitDefID)
+		end
+	end
 	if unitOldTeam == GaiaTeamID then
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
@@ -835,6 +857,24 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
 					BossMinionsSpawn(n)
 				end
 			end
+		end
+	end
+end
+
+function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == true then
+			MasterMindTargetListUnitSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
+		else
+			MasterMindTargetListBuildingSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
+		end
+	end
+end
+
+function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == true then
+			MasterMindTargetListUnitGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 		end
 	end
 end
