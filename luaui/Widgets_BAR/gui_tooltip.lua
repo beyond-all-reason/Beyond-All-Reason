@@ -402,8 +402,8 @@ function drawTooltip(name, x, y)
 		2, 2, 2, 2, { 0, 0, 0, (WG['guishader'] and 0.5 or 0.55) }, { 0.15, 0.15, 0.15, (WG['guishader'] and 0.47 or 0.55) })
 
 
-	gl.Texture(backgroundTexture)
 	if ui_tileopacity > 0 then
+		gl.Texture(backgroundTexture)
 		gl.Color(1,1,1, ui_tileopacity)
 		TexturedRectRound(posX - paddingW + cornersize,
 			posY - maxHeight - paddingH + cornersize,
