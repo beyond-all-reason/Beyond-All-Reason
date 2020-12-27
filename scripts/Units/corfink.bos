@@ -3,20 +3,23 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, thrustb;
+piece  base, lwing, rwing,  thrusta, thrustb;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()
 {
-
+	turn lwing to z-axis <105> speed <105>;
+	turn rwing to z-axis <-105> speed <105>;
 	sleep 17;
 	return (0);
 }
 
 deactivatescr()
 {
+	turn lwing to z-axis <0> speed <105>;
+	turn rwing to z-axis <0> speed <105>;
 	sleep 28;
 	return (0);
 }
@@ -136,6 +139,8 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 
 Create()
 {
+	hide thrusta;
+	hide thrustb;
 	call-script InitState();
 	start-script SmokeUnit();
 	start-script BarrelRoll();
@@ -166,25 +171,25 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode lwing type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
