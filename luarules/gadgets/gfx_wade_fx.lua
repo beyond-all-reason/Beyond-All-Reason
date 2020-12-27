@@ -105,14 +105,16 @@ function gadget:GameFrame(n)
 		for i = current_fold, unitsCount, n_folds do
 			local unitID = listData[i]
 			local data = unit[unitID]
-			local x,y,z = spGetUnitPosition(unitID)
-			local h = data.h
+			if data and data.h then
+				local x,y,z = spGetUnitPosition(unitID)
+				local h = data.h
 
-			local _, _, _, speed = spGetUnitVelocity(unitID)
-			if speed and y > h and y <= 0 and speed > 0 and not spGetUnitIsCloaked(unitID) then
-				-- 1 is the pieceID, most likely it's usually the base piece
-				-- but even if it isn't, it doesn't really matter
-				spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
+				local _, _, _, speed = spGetUnitVelocity(unitID)
+				if speed and y > h and y <= 0 and speed > 0 and not spGetUnitIsCloaked(unitID) then
+					-- 1 is the pieceID, most likely it's usually the base piece
+					-- but even if it isn't, it doesn't really matter
+					spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
+				end
 			end
 		end
 		current_fold = (current_fold % n_folds) + 1
