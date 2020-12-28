@@ -21,7 +21,7 @@ local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0
 local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/stripes.png"
+local backgroundTexture = "LuaUI/Images/backgroundtile.png"
 local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize

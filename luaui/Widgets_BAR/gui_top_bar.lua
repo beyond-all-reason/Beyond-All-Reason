@@ -89,7 +89,7 @@ local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0
 local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/stripes.png"
+local backgroundTexture = "LuaUI/Images/backgroundtile.png"
 local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
 local bgtexSize
@@ -1339,7 +1339,7 @@ function drawResbarValues(res)
 
 	if res == 'energy' then
 		gl.Texture("LuaUI/Images/paralyzed.png")
-		gl.Color(1,1,1, 0.13)
+		gl.Color(1,1,1, 0.12)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/80, barWidth/1.1)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, os.clock()/70, barWidth/0.5)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1866,7 +1866,7 @@ function widget:DrawScreen()
 
 				if ui_tileopacity > 0 then
 					gl.Texture(backgroundTexture)
-					gl.Color(1,1,1, ui_tileopacity*2)
+					gl.Color(1,1,1, ui_tileopacity*1.5)
 					TexturedRectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, 0, bgtexSize)
 				end
 
