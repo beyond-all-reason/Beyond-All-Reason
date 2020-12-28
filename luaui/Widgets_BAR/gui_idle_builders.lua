@@ -21,7 +21,7 @@ local MAX_ICONS = 10
 local iconsize = 37
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
-local POSITION_Y = 0.095 -- near bottom
+local POSITION_Y = 0.178 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -44,6 +44,7 @@ local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 local hoversize = 0
 local rot = 0
 
+local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local chobbyInterface, font
 
 local X_MIN = 0
@@ -76,19 +77,12 @@ end
 
 local glColor = gl.Color
 local glShape = gl.Shape
-local glDepthTest = gl.DepthTest
-local glDepthMask = gl.DepthMask
-local glCulling = gl.Culling
-local glLighting = gl.Lighting
 local glBlending = gl.Blending
 local glMaterial = gl.Material
 local glTranslate = gl.Translate
 local glTexture = gl.Texture
-local glScissor = gl.Scissor
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
-local glUnitShape = gl.UnitShape
-local glUnitShapeTextures = gl.UnitShapeTextures
 local glClear = gl.Clear
 local glText = gl.Text
 local glUnit = gl.Unit
@@ -101,7 +95,6 @@ local glDeleteList = gl.DeleteList
 local glBeginEnd = gl.BeginEnd
 local glTexCoord = gl.TexCoord
 local glVertex = gl.Vertex
-local glLoadIdentity = gl.LoadIdentity
 local glGetScreenViewTrans = gl.GetScreenViewTrans
 
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -128,9 +121,6 @@ local GetUnitDefDimensions = Spring.GetUnitDefDimensions
 local GetViewGeometry = Spring.GetViewGeometry
 local ValidUnitID = Spring.ValidUnitID
 local GetGameFrame = Spring.GetGameFrame
-local GetCameraPosition = Spring.GetCameraPosition
-local GetCameraDirection = Spring.GetCameraDirection
-local SetCameraTarget = Spring.SetCameraTarget
 
 local math_sin = math.sin
 local math_pi = math.pi
@@ -154,7 +144,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
 	init()
 end
 
@@ -235,49 +225,34 @@ local function DrawBoxes(number)
 	--Spring.Echo(X2)
 end--]]
 
-local function CenterUnitDef(unitDefID)
-	local ud = UnitDefs[unitDefID]
-	if (not ud) then
-		return
-	end
-	if (not ud.dimensions) then
-		ud.dimensions = GetUnitDefDimensions(unitDefID)
-	end
-	if (not ud.dimensions) then
-		return
+
+local function MouseOverIcon(x, y)
+	if not drawTable then
+		return -1
 	end
 
-	local d = ud.dimensions
-	local xSize = (d.maxx - d.minx)
-	local ySize = (d.maxy - d.miny)
-	local zSize = (d.maxz - d.minz)
-
-	local hSize -- maximum horizontal dimension
-	if (xSize > zSize) then
-		hSize = xSize
-	else
-		hSize = zSize
+	local NumOfIcons = table.getn(drawTable)
+	if x < X_MIN then
+		return -1
+	end
+	if x > X_MAX then
+		return -1
+	end
+	if y < Y_MIN then
+		return -1
+	end
+	if y > Y_MAX then
+		return -1
 	end
 
-	-- aspect ratios
-	local mAspect = hSize / ySize
-	local vAspect = ICON_SIZE_X / ICON_SIZE_Y
-
-	-- scale the unit to the box (maxspect)
-	local scale
-	if (mAspect > vAspect) then
-		scale = (ICON_SIZE_X / hSize)
-	else
-		scale = (ICON_SIZE_Y / ySize)
+	local icon = math.floor((x - X_MIN) / ICON_SIZE_X)
+	if icon < 0 then
+		icon = 0
 	end
-	scale = scale * 0.8
-	glScale(scale, scale, scale)
-
-	-- translate to the unit's midpoint
-	local xMid = 0.5 * (d.maxx + d.minx)
-	local yMid = 0.5 * (d.maxy + d.miny)
-	local zMid = 0.5 * (d.maxz + d.minz)
-	glTranslate(-xMid, -yMid, -zMid)
+	if icon >= NumOfIcons then
+		icon = (NumOfIcons - 1)
+	end
+	return icon
 end
 
 local function DrawUnitIcons(number)
@@ -287,14 +262,7 @@ local function DrawUnitIcons(number)
 	local ct = 0
 	local X1, X2
 
-	local cpx, cpy, cpz = GetCameraPosition()
-	local ctx, cty, ctz = glGetScreenViewTrans()
-
-	-- magic to keep UnitShape fog under control
-	SetCameraTarget(ctx, cty, ctz, -1.0)
-
-	glTexture(false)
-	glScissor(true)
+	local iconNum = MouseOverIcon(GetMouseState())
 
 	while ct < number do
 		ct = ct + 1
@@ -302,82 +270,39 @@ local function DrawUnitIcons(number)
 
 		if (type(unitID) == 'number' and ValidUnitID(unitID)) or type(unitID) == 'table' then
 
-			X1 = X_MIN + (ICON_SIZE_X * (ct - 1))
-			X2 = X1 + ICON_SIZE_X
+			if type(unitID) == 'table' then
+				unitID = unitID[1]
+			end
 
-			glPushMatrix()
-			glLoadIdentity()
-			glTranslate(ctx, cty, ctz)
+			local iconPadding = math.floor(ICON_SIZE_X*0.05)
+			if ct-1 == iconNum then
+				iconPadding = math.floor(ICON_SIZE_X*0.02)
+			end
 
-			glScissor(X1, Y_MIN, X2 - X1, Y_MAX - Y_MIN)
+			X1 = math.floor(X_MIN + (ICON_SIZE_X * (ct - 1)))
+			X2 = math.floor(X1 + ICON_SIZE_X)
 
-			glTranslate(0.5 * (X2 + X1), 0.5 * (Y_MAX + Y_MIN), 0)
-			glRotate(18, 1, 0, 0)
-			glRotate(rot, 0, 1, 0)
-
-			CenterUnitDef(drawTable[ct][1])
-
-			--glUnitShapeTextures(drawTable[ct][1], true)
-			--glUnitShape(drawTable[ct][1], GetMyTeamID(), false, true, true)
-			--glUnitShapeTextures(drawTable[ct][1], false)
-
-			glTexture(GetUnitDefID(unitID))
-			TexRectRound(X1, X2, X1+ICON_SIZE_X, X2+ICON_SIZE_X, ICON_SIZE_X*0.05, 1,1,1,1, 0)
-			glTexture(false)
-
-			glScissor(false)
-			glPopMatrix()
+			glColor(1,1,1,1)
+			glTexture(':lr'..ICON_SIZE_X..','..ICON_SIZE_X..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname)
+			TexRectRound(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding, ICON_SIZE_X*0.05, 1,1,1,1, 0)
 
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
 				if NumberCondensed > 1 then
 					font:Begin()
-					font:Print(NumberCondensed, X1, Y_MIN, 8 * sizeMultiplier, "o")
+					font:Print(NumberCondensed, X1+iconPadding+iconPadding, Y_MIN+iconPadding+iconPadding, 12 * sizeMultiplier, "o")
 					font:End()
 				end
 			end
 
-			if type(unitID) == 'table' then
-				unitID = unitID[1]
-			end
 			if ValidUnitID(unitID) and QCount[unitID] then
 				font:Begin()
-				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE_X), Y_MIN, 10 * sizeMultiplier, "ocn")
+				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE_X)+iconPadding+iconPadding, Y_MIN+iconPadding+iconPadding, 14 * sizeMultiplier, "ocn")
 				font:End()
 			end
 		end
 	end
-
-	SetCameraTarget(cpx, cpy, cpz, -1.0)
-end
-
-local function MouseOverIcon(x, y)
-	if not drawTable then
-		return -1
-	end
-
-	local NumOfIcons = table.getn(drawTable)
-	if (x < X_MIN) then
-		return -1
-	end
-	if (x > X_MAX) then
-		return -1
-	end
-	if (y < Y_MIN) then
-		return -1
-	end
-	if (y > Y_MAX) then
-		return -1
-	end
-
-	local icon = math.floor((x - X_MIN) / ICON_SIZE_X)
-	if (icon < 0) then
-		icon = 0
-	end
-	if (icon >= NumOfIcons) then
-		icon = (NumOfIcons - 1)
-	end
-	return icon
+	glTexture(false)
 end
 
 local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
@@ -584,14 +509,14 @@ local mouseOnUnitID = nil
 function widget:GetConfigData(data)
 	return {
 		position_x = POSITION_X,
-		position_y = POSITION_Y,
+		pposition_y = POSITION_Y,
 		max_icons = MAX_ICONS
 	}
 end
 
 function widget:SetConfigData(data)
 	POSITION_X = data.position_x or POSITION_X
-	POSITION_Y = data.position_y or POSITION_Y
+	POSITION_Y = data.pposition_y or POSITION_Y
 	MAX_ICONS = data.max_icons or MAX_ICONS
 end
 
@@ -718,8 +643,8 @@ function widget:DrawScreen()
 		local line1 = "Idle cons tweak mode"
 		local line2 = "Click and drag here to move icons around, hover over icons and move mouse wheel to change max number of icons"
 		font:Begin()
-		font:Print(line1, POSITION_X * vsx, POSITION_Y * vsy, 15, "c")
-		font:Print(line2, POSITION_X * vsx, (POSITION_Y * vsy) - 10, 10, "c")
+		font:Print(line1, POSITION_X * vsx, POSITION_Y * vsy, 16, "c")
+		font:Print(line2, POSITION_X * vsx, (POSITION_Y * vsy) - 10, 12, "c")
 		font:End()
 		return
 	end
@@ -733,9 +658,9 @@ function widget:DrawScreen()
 
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			local icon = MouseOverIcon(x, y)
-			if (icon >= 0) then
+			if icon >= 0 then
 
-				if (lb or mb or rb) then
+				if lb or mb or rb then
 					DrawIconQuad(icon, { 0.5, 0.2, 0, 0.5 }, 1.1)
 				else
 					DrawIconQuad(icon, { 0, 0, 0.1, 0.4 }, 1.1)
@@ -808,7 +733,7 @@ function widget:DrawInMiniMap(sx, sz)
 	end
 
 	local ux, uy, uz = GetUnitPosition(mouseOnUnitID)
-	if (not ux or not uy or not uz) then
+	if not ux or not uy or not uz then
 		return
 	end
 	local xr = ux / (Game.mapSizeX)
@@ -848,13 +773,13 @@ function widget:MouseRelease(x, y, button)
 
 	local alt, ctrl, meta, shift = GetModKeyState()
 
-	if (button == 1) then
+	if button == 1 then
 		-- left mouse
 		SelectUnitArray({ unitID })
 		if playSounds then
 			Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 		end
-	elseif (button == 2) then
+	elseif button == 2 then
 		-- middle mouse
 		SelectUnitArray({ unitID })
 		SendCommands({ "viewselection" })
