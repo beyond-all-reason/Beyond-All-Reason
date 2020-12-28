@@ -505,6 +505,12 @@ else
 			gl.DeleteFont(font2)
 			font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 		end
+
+		local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+		local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
+		local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+		bgtexSize = bgpadding * bgtexScale
+
 		--fix geometry
 		widgetScale = (0.75 + (vsx * vsy / 7500000))
 		cx = vsx / 2
