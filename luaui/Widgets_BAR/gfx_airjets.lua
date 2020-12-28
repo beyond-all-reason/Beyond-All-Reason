@@ -84,7 +84,8 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
 	},
 	["corfink"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrustb", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrusta", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrustb", limit = true  },
 	},
 
 	-- fighters

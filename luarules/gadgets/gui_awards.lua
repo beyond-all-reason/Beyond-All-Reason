@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local localtestDebug = false        -- when true: ends game after 30 secs
+--local localtestDebug = false        -- when true: ends game after 30 secs
 local showGraphsButton = true    -- when chobby is loaded this will be false
 
 if gadgetHandler:IsSyncedCode() then
@@ -410,6 +410,11 @@ else
 	-------------------------------------------------------------------------------------
 	-------------------------------------------------------------------------------------
 
+	local backgroundTexture = "LuaUI/Images/stripes.png"
+	local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+	local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 20) or 20)	-- lower = smaller tiles
+	local bgtexSize
+
 	local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 		awards = 'Awards',
 		score = 'Score',
@@ -522,8 +527,8 @@ else
 		if GG.lang then
 			texts = GG.lang.getText('awards')
 		end
-		if chobbyLoaded and not showGraphsButton then
-			Spring.SendCommands('endgraph 0')
+		if chobbyLoaded and showGraphsButton then
+			Spring.SendCommands('endgraph 2')
 		end
 
 		gadget:ViewResize()
@@ -701,6 +706,79 @@ else
 		gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	end
 
+	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+		local scale = size and (size / (sx-px)) or 1
+		local offset = offset or 0
+		local csyMult = 1 / ((sy - py) / cs)
+		local ycMult = (sy-py) / (sx-px)
+
+		local function drawTexCoordVertex(x, y)
+			local yc = 1 - ((y - py) / (sy - py))
+			local xc = ((x - px) / (sx - px))
+			yc = 1 - ((y - py) / (sy - py))
+			gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
+			gl.Vertex(x, y, 0)
+		end
+
+		-- mid section
+		drawTexCoordVertex(px + cs, py)
+		drawTexCoordVertex(sx - cs, py)
+		drawTexCoordVertex(sx - cs, sy)
+		drawTexCoordVertex(px + cs, sy)
+
+		-- left side
+		drawTexCoordVertex(px, py + cs)
+		drawTexCoordVertex(px + cs, py + cs)
+		drawTexCoordVertex(px + cs, sy - cs)
+		drawTexCoordVertex(px, sy - cs)
+
+		-- right side
+		drawTexCoordVertex(sx, py + cs)
+		drawTexCoordVertex(sx - cs, py + cs)
+		drawTexCoordVertex(sx - cs, sy - cs)
+		drawTexCoordVertex(sx, sy - cs)
+
+		-- bottom left
+		if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+			drawTexCoordVertex(px, py)
+		else
+			drawTexCoordVertex(px + cs, py)
+		end
+		drawTexCoordVertex(px + cs, py)
+		drawTexCoordVertex(px + cs, py + cs)
+		drawTexCoordVertex(px, py + cs)
+		-- bottom right
+		if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+			drawTexCoordVertex(sx, py)
+		else
+			drawTexCoordVertex(sx - cs, py)
+		end
+		drawTexCoordVertex(sx - cs, py)
+		drawTexCoordVertex(sx - cs, py + cs)
+		drawTexCoordVertex(sx, py + cs)
+		-- top left
+		if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+			drawTexCoordVertex(px, sy)
+		else
+			drawTexCoordVertex(px + cs, sy)
+		end
+		drawTexCoordVertex(px + cs, sy)
+		drawTexCoordVertex(px + cs, sy - cs)
+		drawTexCoordVertex(px, sy - cs)
+		-- top right
+		if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+			drawTexCoordVertex(sx, sy)
+		else
+			drawTexCoordVertex(sx - cs, sy)
+		end
+		drawTexCoordVertex(sx - cs, sy)
+		drawTexCoordVertex(sx - cs, sy - cs)
+		drawTexCoordVertex(sx, sy - cs)
+	end
+	function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+		gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
+	end
+
 	function CreateBackground()
 		if Background then
 			glDeleteList(Background)
@@ -716,6 +794,13 @@ else
 			-- content area
 			gl.Color(0.33, 0.33, 0.33, 0.15)
 			RectRound(bx, by, bx + w, by + h, 6, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+
+			if ui_tileopacity > 0 then
+				gl.Texture(backgroundTexture)
+				gl.Color(1,1,1, ui_tileopacity)
+				TexturedRectRound(bx, by, bx + w, by + h, 6, 1,1,1,1, 0, bgtexSize)
+				gl.Texture(false)
+			end
 
 			glColor(1, 1, 1, 1)
 			glTexture(':l:LuaRules/Images/awards.png')
