@@ -601,6 +601,10 @@ local function updateRejoin()
 		gl.Color(1,1,1, 0.16)
 		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, -os.clock()*0.06, (barArea[3]-barArea[1]) * 0.66)
 
+		gl.Texture(noiseBackgroundTexture)
+		gl.Color(1,1,1, 0.25)
+		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 0, barWidth*0.6)
+
 
 		-- Bar value highlight
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -609,7 +613,7 @@ local function updateRejoin()
 
 		-- Bar value glow
 		local glowSize = barHeight * 6
-		glColor(0, 1, 0, 0.085)
+		glColor(0, 1, 0, 0.08)
 		glTexture(barGlowCenterTexture)
 		DrawRect(barArea[1], barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
 		glTexture(barGlowEdgeTexture)
@@ -1307,13 +1311,15 @@ function drawResbarValues(res)
 	if valueWidth < math.ceil(barHeight * 0.2) then
 		valueWidth = math.ceil(barHeight * 0.2)
 	end
-	local color1, color2
+	local color1, color2, glowAlpha
 	if res == 'metal' then
 		color1 = { 0.51, 0.51, 0.5, 1 }
 		color2 = { 0.95, 0.95, 0.95, 1 }
+		glowAlpha = 0.025 + (0.055 * math_min(1, cappedCurRes / r[res][2] * 40))
 	else
 		color1 = { 0.6, 0.55, 0, 1 }
 		color2 = { 0.95, 0.9, 0.3, 1 }
+		glowAlpha = 0.035 + (0.065 * math_min(1, cappedCurRes / r[res][2] * 40))
 	end
 	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
 
@@ -1323,7 +1329,7 @@ function drawResbarValues(res)
 	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[2] + ((resbarDrawinfo[res].barTexRect[4] - resbarDrawinfo[res].barTexRect[2]) / 1.75), barHeight * 0.2, 1, 1, 1, 1, { 1, 1, 1, 0.11 }, { 0, 0, 0, 0 })
 
 	-- Bar value glow
-	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.03 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40)))
+	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
 	glTexture(barGlowCenterTexture)
 	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
 	glTexture(barGlowEdgeTexture)
@@ -1333,15 +1339,16 @@ function drawResbarValues(res)
 
 	if res == 'energy' then
 		gl.Texture("LuaUI/Images/paralyzed.png")
-		gl.Color(1,1,1, 0.08)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/50, barWidth/1.25)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, os.clock()/40, barWidth/1.25)
+		gl.Color(1,1,1, 0.13)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/80, barWidth/1.1)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, os.clock()/70, barWidth/0.5)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1, 0.15)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/70, barWidth/0.9)
+		gl.Color(1,1,1, 0.1)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/55, barWidth/0.75)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, os.clock()/80, barWidth/0.9)
 	else
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.35)
+		gl.Color(1,1,1, 0.25)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, 0, barWidth*0.33)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
