@@ -186,7 +186,7 @@ local icons = {
 	{ "bot_t2_big.user", "bot", 1.47 },
 	{ "bot_t2_worker.user", "bot_worker", 1.33 },
 	{ "bot_t2_aa.user", "bot_aa", 1.28 },
-	{ "bot_t3.user", "bot", 1.9 },
+	{ "bot_t3.user", "bot_t3", 1.9 },
 
 	{ "vehicle_t1_flea.user", "vehicle", 0.55 },
 	{ "vehicle_t1_raid.user", "vehicle", 0.85 },
@@ -224,6 +224,8 @@ local icons = {
 	{ "factory_amph.user", "factory_amph", 1.45 },
 	{ "factory_gantry.user", "factory_gantry", 2.4 },
 
+	{ "minilolcannon.user", "armvulc_3.1", 1.8 },
+	{ "minilolcannoncor.user", "corbuzz_3.85", 2.0 },
 	{ "lrpc.user", "lrpc", 2.35 },
 	{ "lrpc_lolcannon.user", "lrpc", 3.5 },
 
@@ -280,6 +282,8 @@ local icons = {
 	{ "t4_demon.user", "cordemont4", 2.5 },
 	{ "t4_invader.user", "armvadert4", 2.5 },
 	{ "t4_ratte.user", "armrattet4", 2.95 },
+	{ "t4_armrectrt4.user", "bot_worker", 2.0 },
+	{ "t4_corgolt4.user", "armrattet4", 2.95 },
 	{ "t4_recluse.user", "armsptkt4", 2.2 },
 	{ "t4_karg.user", "corkarganetht4", 3.0 },
 	{ "t4_peewee.user", "armpwt4", 2.2 },
@@ -455,6 +459,10 @@ function loadUnitIcons()
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_invader.user")
 		elseif name == "armrattet4" then
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_ratte.user")
+		elseif name == "armrectrt4" then
+			spSetUnitDefIcon(udid, iconPrefix .. "t4_armrectrt4.user")	
+		elseif name == "corgolt4" then
+			spSetUnitDefIcon(udid, iconPrefix .. "t4_corgolt4.user")
 		elseif name == "armsptkt4" then
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_recluse.user")
 		elseif name == "armpwt4" then
@@ -469,6 +477,11 @@ function loadUnitIcons()
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_karg.user")
 		elseif name == "armthundt4" then
 			spSetUnitDefIcon(udid, iconPrefix .. "t4_thund.user")
+		elseif name == "armminivulc" then
+			spSetUnitDefIcon(udid, iconPrefix .. "minilolcannon.user")
+		elseif name == "corminibuzz" then
+			spSetUnitDefIcon(udid, iconPrefix .. "minilolcannoncor.user")		
+
 
 			-- Scavenger Printers
 		elseif string.find(name, 'lootboxnano') then
@@ -591,10 +604,10 @@ function loadUnitIcons()
 			spSetUnitDefIcon(udid, iconPrefix .. "metalstorage_t2.user")
 
 			-- lrpc
-		elseif (name == "armvulc") or (name == "corbuzz") then
+		elseif name == "armvulc" or name == "corbuzz" then
 			spSetUnitDefIcon(udid, iconPrefix .. "lrpc_lolcannon.user")
-		elseif (name == "armbrtha") or (name == "corint") then
-			spSetUnitDefIcon(udid, iconPrefix .. "lrpc.user")
+		elseif name == "armbrtha" or name == "corint" then
+			spSetUnitDefIcon(udid, iconPrefix .. "lrpc.user")	
 
 			--elseif (name=="armclaw") or (name=="cormaw") then
 			--  spSetUnitDefIcon(udid, "defence_0.user")
@@ -892,11 +905,11 @@ function loadUnitIcons()
 						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_laser.user")
 					elseif name == "armbeamer" or name == "corhllt" then
 						spSetUnitDefIcon(udid, iconPrefix .. "defence_0_laser2.user")
-					elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name == "armguard" or name == "corpun" then
+					elseif (ud.customParams.techlevel ~= nil or ud.customParams.techlevel == '2') or name == "armguard" or name == "corpun" then
 						if weaponDef and weaponDef.type == 'BeamLaser' then
 							spSetUnitDefIcon(udid, iconPrefix .. "defence_2_laser.user")
 						elseif weaponDef and weaponDef.type == 'MissileLauncher' then
-							spSetUnitDefIcon(udid, iconPrefix .. "defence_2_missile.user")
+							spSetUnitDefIcon(udid, iconPrefix .. "defence_2_missile.user")	
 						else
 							spSetUnitDefIcon(udid, iconPrefix .. "defence_2.user")
 						end

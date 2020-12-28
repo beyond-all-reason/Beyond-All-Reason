@@ -17,7 +17,7 @@ return {
 		collisionvolumescales = "36 58 36",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Rapid-Fire Plasma Cannon",
+		description = "Small Rapid-Fire Plasma Cannon",
 		explodeas = "smallBuildingexplosiongeneric",
 		firestate = 0,
 		footprintx = 3,
@@ -34,7 +34,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "advancedFusionExplosionSelfd",
 		sightdistance = 700,
-		usebuildinggrounddecal = true,
+		usebuildinggrounddecal = false,
 		usepiececollisionvolumes = 1,
 		yardmap = "ooo ooo ooo",
 		customparams = {
@@ -87,7 +87,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-huge",
+				[1] = "custom:barrelshot-large",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -137,13 +137,13 @@ return {
 				range = 1300,
 				reloadtime = 0.4,
 				rgbcolor = "1, 0.4, 0",
-				soundhit = "rflrpc3",
+				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
-				soundstart = "lrpcshot3",
+				soundstart = "cannon2",
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
-				weaponvelocity = 440,
+				weaponvelocity = 660,
 				customparams = {
 					expl_light_heat_radius_mult = 1.75,
 				},
@@ -157,7 +157,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "armminivulc_WEAPON",
+				def = "ARMMINIVULC_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},
 		},
