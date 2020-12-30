@@ -873,11 +873,25 @@ customDefs.cortoast = {
 }
 
 customDefs.armrectr = {
-	workertime = 150, 	-- can get multiplied in unitdef_post
+	cancloak = true,
+	cloakcost = 10,
+	cloakcostmoving = 100,
+	description = "Improved Rez-Bot. Amphibious, All-Terrain and Cloakable",
+	footprintx = 0,
+	footprintz = 0,
+	movementclass = "SCAVCOMMANDERBOT",
+	workertime = 200*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
-	workertime = 150,		-- can get multiplied in unitdef_post
+	cancloak = true,
+	cloakcost = 10,
+	cloakcostmoving = 100,
+	description = "Improved Rez-Bot. Amphibious, All-Terrain and Cloakable",
+	footprintx = 0,
+	footprintz = 0,
+	movementclass = "SCAVCOMMANDERBOT",
+	workertime = 200*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES
