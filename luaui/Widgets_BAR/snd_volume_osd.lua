@@ -58,6 +58,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local RectRound = Spring.Utilities.RectRound
+
 local chobbyInterface
 
 function widget:Initialize()
@@ -87,111 +89,6 @@ function widget:KeyPress(key, mods, isRepeat)
 		return true
 	end
 	return false
-end
-
-
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 function widget:RecvLuaMsg(msg, playerID)

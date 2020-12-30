@@ -83,78 +83,10 @@ local isSpec = Spring.GetSpectatingState()
 
 local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
+local RectRound = Spring.Utilities.RectRound
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-end
 
 local function checkGuishader(force)
 	if WG['guishader'] then

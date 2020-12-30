@@ -18,7 +18,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local enabledAsSpec = false
 
 local MAX_ICONS = 10
-local iconsize = 37
+local iconsize = 35
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
 local POSITION_Y = 0.178 -- near bottom
@@ -27,8 +27,8 @@ local NEAR_IDLE = 0 -- this means that factories with only X build items left wi
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
-local ICON_SIZE_X = iconsize * (1 + (ui_scale - 1) / 1.5)
-local ICON_SIZE_Y = ICON_SIZE_X
+local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
+local ICON_SIZE = ICON_SIZE
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -127,6 +127,9 @@ local math_pi = math.pi
 
 local getn = table.getn
 
+local RectRound = Spring.Utilities.RectRound
+local TexturedRectRound = Spring.Utilities.TexturedRectRound
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -135,8 +138,7 @@ local function init()
 	vsx, vsy = GetViewGeometry()
 	sizeMultiplier = (((vsx + vsy) / 2000) * 1) * (1 + (ui_scale - 1) / 1.5)
 
-	ICON_SIZE_X = iconsize * sizeMultiplier
-	ICON_SIZE_Y = ICON_SIZE_X
+	ICON_SIZE = iconsize * sizeMultiplier
 
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 	noOfIcons = 0   -- this fixes positioning when resolution change
@@ -208,7 +210,7 @@ local function DrawBoxes(number)
 	local ct = 0
 	while (ct < number) do
 		ct = ct + 1
-		local X2 = X1 + ICON_SIZE_X
+		local X2 = X1 + ICON_SIZE
 
 		if widgetHandler:InTweakMode() then
 			glShape(GL_LINE_LOOP, {
@@ -245,7 +247,7 @@ local function MouseOverIcon(x, y)
 		return -1
 	end
 
-	local icon = math.floor((x - X_MIN) / ICON_SIZE_X)
+	local icon = math.floor((x - X_MIN) / ICON_SIZE)
 	if icon < 0 then
 		icon = 0
 	end
@@ -274,17 +276,17 @@ local function DrawUnitIcons(number)
 				unitID = unitID[1]
 			end
 
-			local iconPadding = math.floor(ICON_SIZE_X*0.05)
+			local iconPadding = math.floor(ICON_SIZE*0.05)
 			if ct-1 == iconNum then
-				iconPadding = math.floor(ICON_SIZE_X*0.02)
+				iconPadding = math.floor(ICON_SIZE*0.02)
 			end
 
-			X1 = math.floor(X_MIN + (ICON_SIZE_X * (ct - 1)))
-			X2 = math.floor(X1 + ICON_SIZE_X)
+			X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
+			X2 = math.floor(X1 + ICON_SIZE)
 
 			glColor(1,1,1,1)
-			glTexture(':lr'..ICON_SIZE_X..','..ICON_SIZE_X..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname)
-			TexRectRound(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding, ICON_SIZE_X*0.05, 1,1,1,1, 0)
+			glTexture(':lr'..(ICON_SIZE*1.5)..','..(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname)
+			TexRectRound(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding, ICON_SIZE*0.05, 1,1,1,1, 0)
 
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
@@ -297,7 +299,7 @@ local function DrawUnitIcons(number)
 
 			if ValidUnitID(unitID) and QCount[unitID] then
 				font:Begin()
-				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE_X)+iconPadding+iconPadding, Y_MIN+iconPadding+iconPadding, 14 * sizeMultiplier, "ocn")
+				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE)+iconPadding+iconPadding, Y_MIN+iconPadding+iconPadding, 14 * sizeMultiplier, "ocn")
 				font:End()
 			end
 		end
@@ -305,187 +307,10 @@ local function DrawUnitIcons(number)
 	glTexture(false)
 end
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-end
-
 
 function DrawIconQuad(iconPos, color, size)
-	local X1 = X_MIN + (ICON_SIZE_X * iconPos)
-	local X2 = X1 + (ICON_SIZE_X)
+	local X1 = X_MIN + (ICON_SIZE * iconPos)
+	local X2 = X1 + (ICON_SIZE)
 	local corneradjust = (bgcornerSize / (3 + (math.abs(hoversize)))) * size
 
 	glColor(color)
@@ -619,10 +444,10 @@ function widget:Update(dt)
 end
 
 function calcSizes(numIcons)
-	X_MIN = POSITION_X * vsx - 0.5 * numIcons * ICON_SIZE_X
-	X_MAX = POSITION_X * vsx + 0.5 * numIcons * ICON_SIZE_X
-	Y_MIN = POSITION_Y * vsy - 0.5 * ICON_SIZE_Y
-	Y_MAX = POSITION_Y * vsy + 0.5 * ICON_SIZE_Y
+	X_MIN = POSITION_X * vsx - 0.5 * numIcons * ICON_SIZE
+	X_MAX = POSITION_X * vsx + 0.5 * numIcons * ICON_SIZE
+	Y_MIN = POSITION_Y * vsy - 0.5 * ICON_SIZE
+	Y_MAX = POSITION_Y * vsy + 0.5 * ICON_SIZE
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -673,25 +498,25 @@ function widget:DrawScreen()
 end
 
 function widget:TweakMouseMove(x, y, dx, dy, button)
-	local right = (x + (0.5 * MAX_ICONS * ICON_SIZE_X)) / vsx
-	local left = (x - (0.5 * MAX_ICONS * ICON_SIZE_X)) / vsx
-	local top = (y + (0.5 * ICON_SIZE_Y)) / vsy
-	local bottom = (y - (0.5 * ICON_SIZE_Y)) / vsy
+	local right = (x + (0.5 * MAX_ICONS * ICON_SIZE)) / vsx
+	local left = (x - (0.5 * MAX_ICONS * ICON_SIZE)) / vsx
+	local top = (y + (0.5 * ICON_SIZE)) / vsy
+	local bottom = (y - (0.5 * ICON_SIZE)) / vsy
 	if right > 1 then
 		right = 1
-		left = 1 - (MAX_ICONS * ICON_SIZE_X) / vsx
+		left = 1 - (MAX_ICONS * ICON_SIZE) / vsx
 	end
 	if left < 0 then
 		left = 0
-		right = (MAX_ICONS * ICON_SIZE_X) / vsx
+		right = (MAX_ICONS * ICON_SIZE) / vsx
 	end
 	if top > 1 then
 		top = 1
-		bottom = 1 - ICON_SIZE_Y / vsy
+		bottom = 1 - ICON_SIZE / vsy
 	end
 	if bottom < 0 then
 		bottom = 0
-		top = ICON_SIZE_Y / vsy
+		top = ICON_SIZE / vsy
 	end
 
 	POSITION_X = 0.5 * (right + left)

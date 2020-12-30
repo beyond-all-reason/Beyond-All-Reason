@@ -549,6 +549,9 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local RectRound = Spring.Utilities.RectRound
+local TexturedRectRound = Spring.Utilities.TexturedRectRound
+
 local numPlayers = 0
 local scavengersAIEnabled = false
 local teams = Spring.GetTeamList()
@@ -721,111 +724,6 @@ if Engine and Engine.version then
 	end
 end
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
-
 function lines(str)
 	local t = {}
 	local function helper(line)
@@ -937,6 +835,7 @@ function DrawWindow()
 
 	orderOptions()
 
+	glTexture(false)
 	local x = screenX --rightwards
 	local y = screenY --upwards
 	windowRect = { x - bgMargin, y - screenHeight - bgMargin, x + screenWidth + bgMargin, y + bgMargin }
@@ -1055,6 +954,7 @@ function DrawWindow()
 			glColor(1, 1, 1, 1)
 			glTexture(forwardTex)
 			glTexRect(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
+			glTexture(false)
 		else
 			optionButtonForward = nil
 		end
@@ -1070,6 +970,7 @@ function DrawWindow()
 			glColor(1, 1, 1, 1)
 			glTexture(backwardTex)
 			glTexRect(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
+			glTexture(false)
 		else
 			optionButtonBackward = nil
 		end
@@ -1134,6 +1035,7 @@ function DrawWindow()
 							glColor(0.55, 1, 0.55, 0.09)
 							glTexture(glowTex)
 							glTexRect(xPosMax - oHeight + boolPadding - rightPadding - (boolGlow * 3), yPos - oHeight + boolPadding - (boolGlow * 3), xPosMax - boolPadding - rightPadding + (boolGlow * 3), yPos - boolPadding + (boolGlow * 3))
+							glTexture(false)
 							glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 						elseif option.value == 0.5 then
 							RectRound(xPosMax - (boolWidth / 1.9) + boolPadding - rightPadding, yPos - oHeight + boolPadding, xPosMax - (boolWidth / 1.9) + oHeight - boolPadding - rightPadding, yPos - boolPadding, 1, 2, 2, 2, 2, { 0.88, 0.73, 0.6, 1 }, { 1, 0.9, 0.75, 1 })
@@ -1189,11 +1091,12 @@ function DrawWindow()
 						end
 						RectRound(xPosMax - oHeight - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos, 1, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
 						glColor(1, 1, 1, 0.16)
-						glTexture(bgcorner)
 						glPushMatrix()
 						glTranslate(xPosMax - (oHeight * 0.5) - rightPadding, yPos - (oHeight * 0.33), 0)
 						glRotate(-45, 0, 0, 1)
+						glTexture(bgcorner)
 						glTexRect(-(oHeight * 0.25), -(oHeight * 0.25), (oHeight * 0.25), (oHeight * 0.25))
+						glTexture(false)
 						glPopMatrix()
 					end
 				end
