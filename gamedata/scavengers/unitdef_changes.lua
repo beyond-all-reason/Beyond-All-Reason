@@ -579,6 +579,7 @@ numBuildoptions = #UnitDefs.coraca.buildoptions
 customDefs.coraca = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
+		[numBuildoptions+2] = "corminibuzz",
 	},
 }
 
@@ -586,6 +587,7 @@ numBuildoptions = #UnitDefs.corack.buildoptions
 customDefs.corack = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
+		[numBuildoptions+2] = "corminibuzz",
 	},
 }
 
@@ -593,6 +595,7 @@ numBuildoptions = #UnitDefs.coracv.buildoptions
 customDefs.coracv = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
+		[numBuildoptions+2] = "corminibuzz",
 	},
 }
 
