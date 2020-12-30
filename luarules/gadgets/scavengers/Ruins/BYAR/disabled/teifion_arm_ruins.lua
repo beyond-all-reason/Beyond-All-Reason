@@ -56,21 +56,6 @@ SpawnRuin("armckfus", posx+(70), posy, posz+(0), 2)
 end
 table.insert(RuinsList,teifion_arm_metal_maker_ruin1)
 
-local function teifion_arm_silo_ruin1(posx, posy, posz, GaiaTeamID, radiusCheck)
-  local posradius = 200
-  if radiusCheck then
-    return posradius
-  else
-SpawnRuin("armllt", posx+(-99), posy, posz+(-147), 1)
-SpawnRuin("armllt", posx+(-67), posy, posz+(157), 1)
-SpawnRuin("armllt", posx+(109), posy, posz+(157), 1)
-SpawnRuin("armsilo", posx+(-27), posy, posz+(5), 3)
-SpawnRuin("armllt", posx+(109), posy, posz+(-163), 1)
-SpawnRuin("armbrtha", posx+(189), posy, posz+(-3), 1)
-SpawnRuin("armllt", posx+(-211), posy, posz+(-3), 1)
-  end
-end
-table.insert(RuinsList,teifion_arm_silo_ruin1)
 
 local function teifion_arm_afus_ruin1(posx, posy, posz, GaiaTeamID, radiusCheck)
   local posradius = 160
