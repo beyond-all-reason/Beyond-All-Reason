@@ -301,26 +301,6 @@ table.insert(ScavengerConstructorBlueprintsT3,TeifionT3Defences11)
 table.insert(ScavengerConstructorBlueprintsT4,TeifionT3Defences11)
 
 
-local function TeifionT3Defences12(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 64
-    if radiusCheck then
-        return posradius
-    else
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(64), posy, posz+(64), 0}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(-64), posy, posz+(64), 3}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.corgate_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(64), posy, posz+(0), 0}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(0), posy, posz+(-64), 1}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(64), posy, posz+(-64), 1}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(0), posy, posz+(64), 3}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(-64), posy, posz+(0), 1}, {"shift"})
-        Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(-64), posy, posz+(-64), 2}, {"shift"})
-    end
-end
-table.insert(ScavengerConstructorBlueprintsT3,TeifionT3Defences12)
-table.insert(ScavengerConstructorBlueprintsT4,TeifionT3Defences12)
-
-
 local function TeifionT3Defences13(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
     local posradius = 89
     if radiusCheck then
@@ -394,7 +374,7 @@ table.insert(ScavengerConstructorBlueprintsT3,TeifionT3Defences15)
 table.insert(ScavengerConstructorBlueprintsT4,TeifionT3Defences15)
 
 
-local function TeifionT3Defences16(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local function TeifionT4Defences16(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
     local posradius = 144
     if radiusCheck then
         return posradius
@@ -409,7 +389,6 @@ local function TeifionT3Defences16(scav, posx, posy, posz, GaiaTeamID, radiusChe
         Spring.GiveOrderToUnit(scav, -(UDN.corgate_scav.id), {posx+(144), posy, posz+(0), 1}, {"shift"})
     end
 end
-table.insert(ScavengerConstructorBlueprintsT3,TeifionT3Defences16)
 table.insert(ScavengerConstructorBlueprintsT4,TeifionT3Defences16)
 
 
@@ -656,7 +635,7 @@ table.insert(ScavengerConstructorBlueprintsT3,TeifionT3Defences22)
 table.insert(ScavengerConstructorBlueprintsT4,TeifionT3Defences22)
 
 
-local function TeifionT3Defences23(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local function TeifionT4Defences23(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
     local posradius = 240
     if radiusCheck then
         return posradius
@@ -672,7 +651,6 @@ local function TeifionT3Defences23(scav, posx, posy, posz, GaiaTeamID, radiusChe
         Spring.GiveOrderToUnit(scav, -(UDN.corafus_scav.id), {posx+(-24), posy, posz+(120), 1}, {"shift"})
     end
 end
-table.insert(ScavengerConstructorBlueprintsT3,TeifionT3Defences23)
 table.insert(ScavengerConstructorBlueprintsT4,TeifionT3Defences23)
 
 
