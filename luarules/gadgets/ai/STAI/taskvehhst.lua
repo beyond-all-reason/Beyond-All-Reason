@@ -22,6 +22,9 @@ function TaskVehHST:ConVehicleAmphibious( taskQueueBehaviour, ai, builder )
 	elseif builder:CanBuild( "armbeaver" ) then
 		unitName = "armbeaver"
 	end
+	if unitName ~= self.ai.armyhst.DummyUnitName then
+		return unitName
+	end
 	local mtypedLvAmph = self.ai.taskshst:GetMtypedLv(unitName)
 	local mtypedLvGround = self.ai.taskshst:GetMtypedLv('armcv')
 	local mtypedLv = math.max(mtypedLvAmph, mtypedLvGround) --workaround for get the best counter
