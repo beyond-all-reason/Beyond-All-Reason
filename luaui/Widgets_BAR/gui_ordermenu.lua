@@ -471,11 +471,11 @@ function widget:Initialize()
 	WG['ordermenu'].getDisabledCmd = function(cmd)
 		return disabledCmd[cmd]
 	end
-	WG['ordermenu'].setDisabledCmd = function(cmd, value)
-		if value then
-			disabledCmd[cmd] = true
+	WG['ordermenu'].setDisabledCmd = function(params)
+		if params[2] then
+			disabledCmd[params[1]] = true
 		else
-			disabledCmd[cmd] = nil
+			disabledCmd[params[1]] = nil
 		end
 	end
 	WG['ordermenu'].getColorize = function()

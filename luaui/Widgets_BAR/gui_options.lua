@@ -244,6 +244,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		ordermenu_bottompos_descr = 'Relocate the ordermenu to the bottom of the screen',
 		ordermenu_alwaysshow = 'always show',
 		ordermenu_alwaysshow_descr = 'Not hiding when no buttons are available',
+		ordermenu_hideset = 'hide common commands',
+		ordermenu_hideset_descr = 'Hide the ordermenu commands that have shortcuts:\n\nMove, Stop, Attack, Patrol, Fight, Wait, Guard, Reclaim, Repair, ManuelFire',
 		advplayerlist = 'Playerlist',
 		advplayerlist_scale = 'scale',
 		advplayerlist_scale_descr = 'Resize the playerlist (and its addons)',
@@ -3433,11 +3435,21 @@ function init()
 			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
-		{ id = "ordermenu_alwaysshow", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
+		{ id = "ordermenu_alwaysshow", group = "ui", name = widgetOptionColor .. "   "..texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Order menu', 'ordermenu', 'setAlwaysShow', { 'alwaysShow' }, value)
+		  end,
+		},
+		{ id = "ordermenu_hideset", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.ordermenu_hideset, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisabledCmd ~= nil and WG['ordermenu'].getDisabledCmd('Move')), description = texts.option.ordermenu_hideset_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  local cmds = {'Move', 'Stop', 'Attack', 'Patrol', 'Fight', 'Wait', 'Guard', 'Reclaim', 'Repair', 'ManuelFire'}
+			  for k, cmd in pairs(cmds) do
+			  	saveOptionValue('Order menu', 'ordermenu', 'setDisabledCmd', { 'disabledCmd', cmd }, value, {cmd, value})
+			  end
 		  end,
 		},
 		--{ id = "ordermenu_button_move", group = "ui", name = widgetOptionColor .. "   "..texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisbledCmd~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
