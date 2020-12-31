@@ -69,7 +69,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	Attack_tooltip = 'Attack a unit or ground position',
 	['Area Attack'] = 'Area Attack',
 	['Area Attack_tooltip'] = 'Area attack everything within a circle (click-drag)',
-	ManualFire = 'ManualFire',
+	ManualFire = 'D-Gun',
 	ManualFire_tooltip = 'Fire the powerful commander Disintegrator-gun',
 	Patrol = 'Patrol',
 	Patrol_tooltip = 'Patrol along one or more waypoints',
@@ -92,8 +92,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	['Set Target_tooltip'] = 'Set a prioritized target (prioritizes targeting when target in range) ',
 	['Cancel Target'] = 'Cancel Target',
 	['Cancel Target_tooltip'] = 'Removes the priority target',
-	Mex = 'Mex',
-	Mex_tooltip = 'Click-drag an area to auto queue metal extractors for all availible metal spots',
+	Mex = 'Area Mex',
+	Mex_tooltip = 'Click-drag an area to auto queue metal extractors for all available metal spots',
 	['Upgrade Mex'] = 'Upgrade Mex',
 	['Load units'] = 'Load units',
 	['Load units_tooltip'] = 'Load unit or multiple units within an area in the transport',
@@ -682,8 +682,9 @@ function drawCell(cell, zoom)
 			local text = string_gsub(cmd.name, "\n", " ")
 			if cmd.params[1] and cmd.params[cmd.params[1] + 2] then
 				text = texts[cmd.params[cmd.params[1] + 2]] or '['..cmd.params[cmd.params[1] + 2]..']'
+			elseif texts[text] then
+				text = texts[text]
 			end
-			text = text
 			local fontSize = cellInnerWidth / font2:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
 			if fontSize > cellInnerWidth / 6.3 then
 				fontSize = cellInnerWidth / 6.3
