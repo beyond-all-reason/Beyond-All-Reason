@@ -618,7 +618,6 @@ function DrawBackground()
 	end
 
 	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
-	gl.Texture(false)	-- some other widget left it on
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
 	else
@@ -647,6 +646,7 @@ function DrawAllStats()
 end
 
 function ReGenerateBackgroundDisplayList()
+	gl.Texture(false)	-- some other widget left it on
 	local boxSizes = guiData.mainPanel.absSizes
 	for lineCount=1,prevNumLines do
 		local colour = evenLineColour
