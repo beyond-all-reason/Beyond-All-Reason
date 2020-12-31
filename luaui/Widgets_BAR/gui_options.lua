@@ -3230,7 +3230,7 @@ function init()
 			  Spring.SetConfigFloat("ui_opacity", value)
 		  end,
 		},
-		{ id = "guitilescale", group = "ui", name = widgetOptionColor .. "   "..texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 20), description = '',
+		{ id = "guitilescale", group = "ui", name = widgetOptionColor .. "   "..texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -3242,7 +3242,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitileopacity", group = "ui", basic = true, name = widgetOptionColor .. "      "..texts.option.guitileopacity, type = "slider", min = 0, max = 0.04, step = 0.002, value = Spring.GetConfigFloat("ui_tileopacity", 0.012), description = '',
+		{ id = "guitileopacity", group = "ui", basic = true, name = widgetOptionColor .. "      "..texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)

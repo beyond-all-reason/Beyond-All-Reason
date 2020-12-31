@@ -50,3 +50,16 @@ Spring.SetConfigInt("LoadingMT", 0)
 
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
 Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
+
+
+-- change some default value(s), upp the version and set what needs to be set
+local version = 1
+if Spring.GetConfigInt("version",0) < version then
+	Spring.SetConfigInt("version", version)
+	if Spring.SetConfigFloat("ui_tilescale",0) == 20 then
+		Spring.SetConfigFloat("ui_tilescale", 7)
+	end
+	if Spring.SetConfigFloat("ui_opacity",0) == 0.0012 then
+		Spring.SetConfigFloat("ui_opacity", 0.0011)
+	end
+end
