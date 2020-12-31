@@ -1993,6 +1993,7 @@ function CreateBackground()
         --WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
     end
     Background = gl_CreateList(function()
+		gl_Texture(false)		-- other widget might have a texture set still
         --gl_Color(0,0,0,ui_opacity)
         RectRound(absLeft, absBottom, absRight, absTop, bgpadding * 1.6, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.1, 0.1, 0.1, ui_opacity }, { 0, 0, 0, ui_opacity })
         --gl_Color(1,1,1,ui_opacity*0.055)
