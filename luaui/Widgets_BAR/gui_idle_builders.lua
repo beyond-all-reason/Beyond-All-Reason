@@ -28,7 +28,6 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
-local ICON_SIZE = ICON_SIZE
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -86,7 +85,6 @@ local glPopMatrix = gl.PopMatrix
 local glClear = gl.Clear
 local glText = gl.Text
 local glUnit = gl.Unit
-local glScale = gl.Scale
 local glRotate = gl.Rotate
 local glRect = gl.Rect
 local glCallList = gl.CallList
@@ -133,10 +131,80 @@ local TexturedRectRound = Spring.Utilities.TexturedRectRound
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
+	local csyMult = 1 / ((sy - py) / cs)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
+		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
+		gl.TexCoord(xc, yc)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
+	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
+end
+
 local sizeMultiplier = 1
 local function init()
 	vsx, vsy = GetViewGeometry()
-	sizeMultiplier = (((vsx + vsy) / 2000) * 1) * (1 + (ui_scale - 1) / 1.5)
+	sizeMultiplier = (((vsy) / 750) * 1) * (1 + (ui_scale - 1) / 1.5)
 
 	ICON_SIZE = iconsize * sizeMultiplier
 
@@ -285,21 +353,21 @@ local function DrawUnitIcons(number)
 			X2 = math.floor(X1 + ICON_SIZE)
 
 			glColor(1,1,1,1)
-			glTexture(':lr'..(ICON_SIZE*1.5)..','..(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname)
+			glTexture(':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname)
 			TexRectRound(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding, ICON_SIZE*0.05, 1,1,1,1, 0)
 
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
 				if NumberCondensed > 1 then
 					font:Begin()
-					font:Print(NumberCondensed, X1+iconPadding+iconPadding, Y_MIN+iconPadding+iconPadding, 12 * sizeMultiplier, "o")
+					font:Print(NumberCondensed, X1+math.floor(ICON_SIZE*0.1), Y_MIN+math.floor(ICON_SIZE*0.13), 12 * sizeMultiplier, "o")
 					font:End()
 				end
 			end
 
 			if ValidUnitID(unitID) and QCount[unitID] then
 				font:Begin()
-				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE)+iconPadding+iconPadding, Y_MIN+iconPadding+iconPadding, 14 * sizeMultiplier, "ocn")
+				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE), Y_MIN, 14 * sizeMultiplier, "ocn")
 				font:End()
 			end
 		end
