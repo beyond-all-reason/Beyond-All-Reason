@@ -109,7 +109,21 @@ customDefs.corcom = {
 	-- 		},
 	-- 	},
 }
-
+customDefs.armdecom = {
+	decoyfor = "armcom_scav",
+}
+customDefs.cordecom = {
+	decoyfor = "cordecom_scav",
+}
+customDefs.armclaw = {
+	decoyfor = "armdrag_scav"
+}
+customDefs.cormaw = {
+	decoyfor = "cordrag_scav"
+}
+customDefs.armdf = {
+	decoyfor = "armfus_scav"
+}
 customDefs.armcom = {
 	autoheal = 15,
 	buildoptions = scavUnit,
