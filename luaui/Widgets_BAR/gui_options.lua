@@ -245,7 +245,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		ordermenu_alwaysshow = 'always show',
 		ordermenu_alwaysshow_descr = 'Not hiding when no buttons are available',
 		ordermenu_hideset = 'hide common commands',
-		ordermenu_hideset_descr = 'Hide the ordermenu commands that have shortcuts:\n\nMove, Stop, Attack, Patrol, Fight, Wait, Guard, Reclaim, Repair, ManuelFire',
+		ordermenu_hideset_descr = 'Hide the ordermenu commands that have shortcuts:\n\nMove, Stop, Attack, Patrol, Fight, Wait, Guard, Reclaim, Repair, ManualFire',
 		advplayerlist = 'Playerlist',
 		advplayerlist_scale = 'scale',
 		advplayerlist_scale_descr = 'Resize the playerlist (and its addons)',
@@ -3446,7 +3446,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  local cmds = {'Move', 'Stop', 'Attack', 'Patrol', 'Fight', 'Wait', 'Guard', 'Reclaim', 'Repair', 'ManuelFire'}
+			  local cmds = {'Move', 'Stop', 'Attack', 'Patrol', 'Fight', 'Wait', 'Guard', 'Reclaim', 'Repair', 'ManualFire'}
 			  for k, cmd in pairs(cmds) do
 			  	saveOptionValue('Order menu', 'ordermenu', 'setDisabledCmd', { 'disabledCmd', cmd }, value, {cmd, value})
 			  end
