@@ -890,10 +890,10 @@ customDefs.cortoast = {
 }
 
 customDefs.armrectr = {
-	cancloak = true,
-	cloakcost = 10,
-	cloakcostmoving = 100,
-	description = "Improved Rez-Bot. Amphibious, All-Terrain and Cloakable",
+	--cancloak = true,
+	--cloakcost = 10,
+	--cloakcostmoving = 100,
+	description = "Improved Rez-Bot. Amphibious and All-Terrain",
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
@@ -901,10 +901,10 @@ customDefs.armrectr = {
 }
 
 customDefs.cornecro = {
-	cancloak = true,
-	cloakcost = 10,
-	cloakcostmoving = 100,
-	description = "Improved Rez-Bot. Amphibious, All-Terrain and Cloakable",
+	--cancloak = true,
+	--cloakcost = 10,
+	--cloakcostmoving = 100,
+	description = "Improved Rez-Bot. Amphibious and All-Terrain",
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
