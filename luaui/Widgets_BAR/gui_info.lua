@@ -168,6 +168,7 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.Utilities.RectRound
 local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 function lines(str)
 	local t = {}
@@ -1460,23 +1461,7 @@ local function drawEngineTooltip()
 end
 
 local function drawInfo()
-	-- background
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 0, (WG['buildpower'] and 0 or 1), 0, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, (WG['buildpower'] and 0 or 1), 0, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	if ui_tileopacity > 0 then
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, ui_tileopacity)
-		TexturedRectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 1,1,1,1, 0, bgtexSize)
-		gl.Texture(false)
-	end
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, (WG['buildpower'] and 0 or 1), 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.05 * glossMult })
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.4), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, (WG['buildpower'] and 0 or 1), 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, (WG['buildpower'] and 0 or 1), 0, 0)
 
 	contentPadding = (height * vsy * 0.075) * (0.95 - ((1 - ui_scale) * 0.5))
 	contentWidth = backgroundRect[3] - backgroundRect[1] - contentPadding - contentPadding

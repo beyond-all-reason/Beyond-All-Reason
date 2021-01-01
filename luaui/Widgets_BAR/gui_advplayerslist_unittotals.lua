@@ -24,19 +24,10 @@ function widget:GetInfo()
 end
 
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
@@ -52,7 +43,7 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 local font, bgpadding, chobbyInterface, hovering
 
@@ -114,33 +105,7 @@ local function createList()
 		glDeleteList(drawlist[1])
 	end
 	drawlist[1] = glCreateList( function()
-		--glColor(0, 0, 0, ui_opacity)
-		RectRound(left, bottom, right, top, bgpadding*1.6, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
-
-		local borderPadding = bgpadding
-		local borderPaddingRight = borderPadding
-		if right >= vsx-0.2 then
-			borderPaddingRight = 0
-		end
-		local borderPaddingLeft = borderPadding
-		if left <= 0.2 then
-			borderPaddingLeft = 0
-		end
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.055*glossMult})
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.35), bgpadding, 0,0,1,1, {1,1,1,0.025*glossMult},{1,1,1,0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
 	end)
 	updateValues()
 end
@@ -174,7 +139,6 @@ function widget:Update(dt)
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
 			guishaderEnabled = (WG['guishader'])
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			glossMult = 1 + (2-(ui_opacity*2))
 			createList()
 		end
 	end
@@ -217,7 +181,7 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
-	bgtexSize = bgpadding * bgtexScale
+
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()
 	end

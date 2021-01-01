@@ -27,14 +27,6 @@ local pauseWhenPaused = false
 local fadeInTime = 2
 local fadeOutTime = 6.5
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
 
@@ -48,7 +40,7 @@ local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
 local warTracks = VFS.DirList(musicDir..'war', '*.ogg')
 
 local vsx, vsy = Spring.GetViewGeometry()
-local bgpadding, borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface
+local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface
 
 local tracksConfig = {}
 for i,v in pairs(peaceTracks) do
@@ -114,9 +106,9 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
-local guishaderEnabled = (WG['guishader'])
+local guishaderEnabled = (WG['guishader'] ~= nil)
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -138,6 +130,7 @@ local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, ca
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
 
 local fadeMult = 1
+local uiOpacitySec = 0
 
 --Assume that if it isn't set, dynamic music is true
 if dynamicMusic == nil then
@@ -254,80 +247,6 @@ function widget:Initialize()
 	end
 end
 
-
-local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
-	local scale = size and (size / (sx-px)) or 1
-	local offset = offset or 0
-	local csyMult = 1 / ((sy - py) / cs)
-	local ycMult = (sy-py) / (sx-px)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = ((x - px) / (sx - px))
-		yc = 1 - ((y - py) / (sy - py))
-		gl.TexCoord((xc/scale)+offset, ((yc*ycMult)/scale)+offset)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
-	gl.BeginEnd(GL.QUADS, DrawTexturedRectRound, px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
-end
-
 local function createList()
 
 	local padding = 2.75*widgetScale -- button background margin
@@ -365,8 +284,7 @@ local function createList()
 		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
 	drawlist[1] = glCreateList( function()
-		--glColor(0, 0, 0, ui_opacity)
-		RectRound(left, bottom, right, top, bgpadding*1.6, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
+		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
 
 		borderPadding = bgpadding
 		borderPaddingRight = borderPadding
@@ -377,21 +295,6 @@ local function createList()
 		if left <= 0.2 then
 			borderPaddingLeft = 0
 		end
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.055*glossMult})
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.35), bgpadding, 0,0,1,1, {1,1,1,0.025*glossMult},{1,1,1,0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 	drawlist[2] = glCreateList( function()
 
@@ -717,7 +620,6 @@ function PlayNewTrack(track)
 	createList()
 end
 
-local uiOpacitySec = 0
 function widget:Update(dt)
 	if playing then
 		updateMusicVolume()
@@ -740,10 +642,10 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 			glossMult = 1 + (2-(ui_opacity*2))
-			guishaderEnabled = (WG['guishader'])
+			guishaderEnabled = (WG['guishader'] ~= nil)
 			doCreateList = true
 		end
 	end
@@ -798,7 +700,6 @@ function widget:ViewResize(newX,newY)
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
-	bgtexSize = bgpadding * bgtexScale
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

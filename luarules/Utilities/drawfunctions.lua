@@ -4,6 +4,7 @@ end
 
 Spring.Utilities = Spring.Utilities or {}
 
+-- px+py bottom left
 Spring.Utilities.RectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   c1, c2)
 	-- RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2): Draw a rectangular shape with cut off edges
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
@@ -11,7 +12,7 @@ Spring.Utilities.RectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   c1
 	local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 		local csyMult = 1 / ((sy - py) / cs)
 
-		if c2 then
+		if c1 then
 			gl.Color(c1[1], c1[2], c1[3], c1[4])
 		end
 		gl.Vertex(px + cs, py, 0)
@@ -110,10 +111,10 @@ Spring.Utilities.RectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   c1
 		gl.Vertex(sx - cs, sy - cs, 0)
 		gl.Vertex(sx, sy - cs, 0)
 	end
-
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
+-- px+py bottom left
 Spring.Utilities.TexturedRectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   offset, size,  texture)
 	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset, size)
 		local scale = size and (size / (sx-px)) or 1
@@ -194,3 +195,45 @@ Spring.Utilities.TexturedRectRound = function(px, py, sx, sy, cs,   tl, tr, br, 
 	end
 end
 
+-- px+py bottom left
+Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity)
+	local vsx, vsy = Spring.GetViewGeometry()
+	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
+	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+	local bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	local glossMult = 1 + (2 - (opacity * 1.5))
+	local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+	local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)
+	local bgtexSize = bgpadding * bgtexScale
+
+	local tl = tl or 1
+	local tr = tr or 1
+	local br = br or 1
+	local bl = bl or 1
+
+	local pxPad = bgpadding * (px > 0 and 1 or 0) * (pbl or 1)
+	local pyPad = bgpadding * (py > 0 and 1 or 0) * (pbr or 1)
+	local sxPad = bgpadding * (sx < vsx and 1 or 0) * (ptr or 1)
+	local syPad = bgpadding * (sy < vsy and 1 or 0) * (ptl or 1)
+
+	-- background
+	gl.Texture(false)
+	Spring.Utilities.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { 0.05, 0.05, 0.05, opacity }, { 0, 0, 0, opacity })
+	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { 0.3, 0.3, 0.3, opacity * 0.1 }, { 1, 1, 1, opacity * 0.1 })
+
+	-- tile
+	if ui_tileopacity > 0 then
+		gl.Color(1,1,1, ui_tileopacity)
+		Spring.Utilities.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, 0, bgtexSize, "LuaUI/Images/backgroundtile.png")
+	end
+
+	-- gloss
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	local glossHeight = math.floor(bgpadding * 8)
+	local glossBottomHeight = math.floor(glossHeight * 0.9)
+	Spring.Utilities.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { 1, 1, 1, 0 }, { 1, 1, 1, 0.055 * glossMult })
+	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossBottomHeight, bgpadding, tl, tr, br, bl, { 1, 1, 1, 0.025 * glossMult }, { 1 ,1 ,1 , 0 })
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + ((sy-py)*0.5), bgpadding, tl, tr, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+end

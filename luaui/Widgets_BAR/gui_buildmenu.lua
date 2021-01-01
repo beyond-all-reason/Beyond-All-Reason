@@ -70,7 +70,7 @@ local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap,
 local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, startDefID, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
-local radariconSize, radariconOffset, groupiconSize, priceFontSize
+--local radariconSize, radariconOffset, groupiconSize, priceFontSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 -------------------------------------------------------------------------------
@@ -193,6 +193,7 @@ local glDepthTest = gl.DepthTest
 
 local RectRound = Spring.Utilities.RectRound
 local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 function table_invert(t)
 	local s = {}
@@ -1193,23 +1194,7 @@ end
 
 function drawBuildmenuBg()
 	WG['buildmenu'].selectedID = nil
-
-	-- background
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY2 > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, (posY2 > 0 and 1 or 0), 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	if ui_tileopacity > 0 then
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, ui_tileopacity)
-		TexturedRectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 1, 0, 0, bgtexSize)
-		gl.Texture(false)
-	end
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1]+ (posX > 0 and bgpadding or 0), backgroundRect[4] - bgpadding - ((backgroundRect[4] - backgroundRect[2]) * (stickToBottom and 0.15 or 0.07)), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-	RectRound(backgroundRect[1]+ (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY2 > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[2] + bgpadding + ((backgroundRect[4] - backgroundRect[2]) * 0.045), bgpadding, 0, 0, 1, 0, { 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha)

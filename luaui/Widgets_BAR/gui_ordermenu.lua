@@ -233,6 +233,7 @@ local math_floor = math.floor
 
 local RectRound = Spring.Utilities.RectRound
 local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 local isSpec = Spring.GetSpectatingState()
 local cursorTextures = {}
@@ -776,36 +777,7 @@ function drawOrders()
 	-- just making sure blending mode is correct
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-	-- background
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), (posY-height > 0 and 1 or 0), { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	if ui_tileopacity > 0 then
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, ui_tileopacity)
-		TexturedRectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 1, 0, 0, bgtexSize)
-		gl.Texture(false)
-	end
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(
-		backgroundRect[1] + (posX > 0 and bgpadding or 0),
-		backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16),
-		backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding,
-		bgpadding,
-		(posX > 0 and 1 or 0), 1, 0, 0,
-		{ 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult }
-	)
-	RectRound(
-		backgroundRect[1] + (posX > 0 and bgpadding or 0),
-		backgroundRect[2] + (posY-height > 0 and bgpadding or 0),
-		backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15),
-		bgpadding,
-		0, 0, (posY > 0 and 1 or 0), 0,
-		{ 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 }
-	)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 
 	--RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,0,1,0.5}, {1,0,1,0.5})
 	if #cmds > 0 then

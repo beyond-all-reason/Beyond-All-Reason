@@ -114,7 +114,7 @@ local show = false
 local pagestepped = false
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 local chobbyInterface, widgetScale, dlistGuishader, lastStart, receivedTexts
 
@@ -405,13 +405,15 @@ function widget:DrawScreen()
 	tcol = WhiteStr
 
 	-- draw the box
-	RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-	RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+	--RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
+	--RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+--
+	--gl.Texture(backgroundTexture)
+	--gl.Color(1,1,1, ui_tileopacity*0.6)
+	--TexturedRectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, 0, bgtexSize)
+	--gl.Texture(false)
 
-	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, ui_tileopacity*0.6)
-	TexturedRectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, 0, bgtexSize)
-	gl.Texture(false)
+	UiElement(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	-- draw the text buttons (at the bottom) & their outlines
 	if showButtons then

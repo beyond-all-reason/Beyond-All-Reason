@@ -23,21 +23,11 @@ function widget:GetInfo()
 	}
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local font, bgpadding, chobbyInterface, hovering
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
@@ -57,7 +47,7 @@ local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
-local guishaderEnabled = (WG['guishader'])
+local guishaderEnabled = (WG['guishader'] ~= nil)
 
 local passedTime = 0
 local passedTime2 = 0
@@ -66,7 +56,7 @@ local uiOpacitySec = 0.5
 local vsx, vsy = Spring.GetViewGeometry()
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -140,33 +130,7 @@ local function createList()
 		glDeleteList(drawlist[1])
 	end
 	drawlist[1] = glCreateList( function()
-		--glColor(0, 0, 0, ui_opacity)
-		RectRound(left, bottom, right, top, bgpadding*1.6, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity}, {0.1,0.1,0.1,ui_opacity})
-
-		local borderPadding = bgpadding
-		local borderPaddingRight = borderPadding
-		if right >= vsx-0.2 then
-			borderPaddingRight = 0
-		end
-		local borderPaddingLeft = borderPadding
-		if left <= 0.2 then
-			borderPaddingLeft = 0
-		end
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.055*glossMult})
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.35), bgpadding, 0,0,1,1, {1,1,1,0.025*glossMult},{1,1,1,0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
 	end)
 	updateValues()
 end
@@ -195,10 +159,9 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
-			guishaderEnabled = (WG['guishader'])
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil) then
+			guishaderEnabled = (WG['guishader'] ~= nil)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			glossMult = 1 + (2-(ui_opacity*2))
 			createList()
 		end
 	end
@@ -216,7 +179,7 @@ end
 
 
 function updatePosition(force)
-	if (WG['advplayerlist_api'] ~= nil) then
+	if WG['advplayerlist_api'] ~= nil then
 		local prevPos = advplayerlistPos
 		if WG['unittotals'] ~= nil then
 			advplayerlistPos = WG['unittotals'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
@@ -246,8 +209,6 @@ function widget:ViewResize(newX,newY)
 
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
-
-	bgtexSize = bgpadding * bgtexScale
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		updateValues()

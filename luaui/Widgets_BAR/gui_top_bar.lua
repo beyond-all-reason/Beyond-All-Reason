@@ -148,6 +148,7 @@ local spGetWind = Spring.GetWind
 
 local RectRound = Spring.Utilities.RectRound
 local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = spGetSpectatingState()
@@ -363,7 +364,7 @@ local function updateRejoin()
 		glDeleteList(dlistRejoinGuishader)
 	end
 	dlistRejoinGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	if dlistRejoin ~= nil then
@@ -371,24 +372,7 @@ local function updateRejoin()
 	end
 	dlistRejoin = glCreateList(function()
 
-		-- background
-		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, ui_opacity })
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.3, 0.3, 0.3, ui_opacity * 0.1 })
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3] - bgpadding, area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[2] + bgpadding + ((area[4] - area[2]) * 0.25), bgpadding * 1.25, 0, 0, 1, 1, { 1, 1, 1, 0.015 * glossMult }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
@@ -508,7 +492,7 @@ local function updateButtons()
 		glDeleteList(dlistButtonsGuishader)
 	end
 	dlistButtonsGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	if dlistButtons1 ~= nil then
@@ -516,24 +500,7 @@ local function updateButtons()
 	end
 	dlistButtons1 = glCreateList(function()
 
-		-- background
-		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 0, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, (ui_opacity) })
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 0, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3], area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[2] + bgpadding + ((area[4] - area[2]) * 0.25), bgpadding * 1.25, 0, 0, 0, 1, { 1, 1, 1, 0.015 * glossMult }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 0, 1)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -652,7 +619,7 @@ local function updateComs(forceText)
 		glDeleteList(dlistComsGuishader)
 	end
 	dlistComsGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	if dlistComs1 ~= nil then
@@ -660,24 +627,7 @@ local function updateComs(forceText)
 	end
 	dlistComs1 = glCreateList(function()
 
-		-- background
-		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, ui_opacity })
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3] - bgpadding, area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[2] + bgpadding + ((area[4] - area[2]) * 0.25), bgpadding * 1.25, 0, 0, 1, 1, { 1, 1, 1, 0.015 * glossMult }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistComsGuishader, 'topbar_coms')
@@ -726,7 +676,7 @@ local function updateWind()
 		glDeleteList(dlistWindGuishader)
 	end
 	dlistWindGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	if dlistWind1 ~= nil then
@@ -734,24 +684,7 @@ local function updateWind()
 	end
 	dlistWind1 = glCreateList(function()
 
-		-- background
-		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, ui_opacity })
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3], area[4], bgpadding * 1.25, 0, 0, 1, 1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3] - bgpadding, area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[2] + bgpadding + ((area[4] - area[2]) * 0.25), bgpadding * 1.25, 0, 0, 1, 1, { 1, 1, 1, 0.015 * glossMult }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistWindGuishader, 'topbar_wind')
@@ -990,27 +923,11 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][0])
 	end
 	dlistResbar[res][0] = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	dlistResbar[res][1] = glCreateList(function()
-		-- background
-		--glColor(0,0,0,ui_opacity)
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1, { 0, 0, 0, ui_opacity }, { 0.1, 0.1, 0.1, ui_opacity })
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, { 1, 1, 1, ui_opacity * 0.1 }, { 0.15, 0.15, 0.15, ui_opacity * 0.1 })
-
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[4], bgpadding * 1.25, 1, 1, 1, 1, 0, bgtexSize)
-			gl.Texture(false)
-		end
-		-- gloss
-		RectRound(area[1] + bgpadding, area[4] - ((area[4] - area[2]) * 0.33), area[3] - bgpadding, area[4], bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-		RectRound(area[1] + bgpadding, area[2] + bgpadding, area[3] - bgpadding, area[2] + bgpadding + ((area[4] - area[2]) * 0.25), bgpadding * 1.25, 0, 0, 1, 1, { 1, 1, 1, 0.015 * glossMult }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_' .. res)

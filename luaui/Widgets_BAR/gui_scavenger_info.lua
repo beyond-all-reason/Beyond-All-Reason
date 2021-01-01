@@ -242,6 +242,7 @@ function widget:DrawScreen()
   end
 
   if show or showOnceMore then
+	  gl.Texture(false)	-- some other widget left it on
 
 		-- draw the text panel
 		glPushMatrix()

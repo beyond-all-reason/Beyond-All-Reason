@@ -144,7 +144,7 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -1993,27 +1993,7 @@ function CreateBackground()
         --WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
     end
     Background = gl_CreateList(function()
-		gl_Texture(false)		-- other widget might have a texture set still
-        --gl_Color(0,0,0,ui_opacity)
-        RectRound(absLeft, absBottom, absRight, absTop, bgpadding * 1.6, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.1, 0.1, 0.1, ui_opacity }, { 0, 0, 0, ui_opacity })
-        --gl_Color(1,1,1,ui_opacity*0.055)
-        --RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.3,0.3,0.3,ui_opacity*0.3}, {1,1,1,ui_opacity*0.3})
-        local height = 25 * widgetScale
-        RectRound(absLeft + paddingLeft, absTop - paddingTop - height, absRight - paddingRight, absTop - paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
-        RectRound(absLeft + paddingLeft, absBottom + paddingBottom, absRight - paddingRight, absTop - paddingTop - height, bgpadding, 0, 0, math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.15, 0.15, 0.15, ui_opacity * 0.15 }, { 0.6, 0.6, 0.6, ui_opacity * 0.15 })
-
-		if ui_tileopacity > 0 then
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity)
-			TexturedRectRound(absLeft + paddingLeft, absTop - paddingTop, absRight - paddingRight, absBottom + paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, 0, bgtexSize)
-			gl.Texture(false)
-		end
-
-		-- gloss
-        glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(absLeft + paddingLeft, absTop - paddingTop - (height * 0.4), absRight - paddingRight, absTop - paddingTop, bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.003 * glossMult }, { 1, 1, 1, 0.035 * glossMult })
-        RectRound(absLeft + paddingLeft, absBottom + paddingBottom, absRight - paddingRight, absTop - paddingTop - (height * 0.15), bgpadding, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
-        glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
 
         if collapsed then
             font:Begin()

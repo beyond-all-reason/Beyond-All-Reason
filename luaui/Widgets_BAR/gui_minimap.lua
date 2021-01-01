@@ -41,6 +41,7 @@ local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
 
 local RectRound = Spring.Utilities.RectRound
+local UiElement = Spring.Utilities.UiElement
 
 local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
 
@@ -169,7 +170,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 end
 
 function drawMinimap()
-	RectRound(backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4], bgpadding * 1.6, 0, 0, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
+	UiElement(backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4], 0, 0, 1, 0)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
