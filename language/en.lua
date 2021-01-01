@@ -26,7 +26,7 @@ return {
 			nowind1 = 'no',
 			nowind2 = 'wind',
 			tooltip = '\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength (small numbers are minimum and maximum)\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (armada) or 6 (cortex)',
-			worth1 = 'Wind not worth it',
+			worth1 = 'Wind is not worth it',
 			worth2 = 'Wind is viable',
 			worth3 = 'Average wind is okay',
 			worth4 = 'Average wind is good',
