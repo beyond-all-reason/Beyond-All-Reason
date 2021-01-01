@@ -23,11 +23,6 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	tooltip = 'Team metal/energy income\n(Lighter part of the bar is reclaim income)',
 }
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local PmaxDmg						= 0
 local comTable 						= {}
 local comDefs						= {}
@@ -71,7 +66,7 @@ local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 local font, bgpadding, chobbyInterface, sideImageList
 
@@ -449,6 +444,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
 	end
+
 	-- background
 	glColor(0.8, 0.8, 0, 0.13)
 	gl.Texture(images["barbg"])
@@ -633,23 +629,8 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	if (widgetPosX + widgetWidth) >= vsx-0.2 then
 		borderPaddingRight = 0
 	end
-	--glColor(0,0,0,ui_opacity)
-	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding*1.4,  (posY>tH and 1 or 0),0,0,1, {0,0,0,ui_opacity*1.1}, {0.05,0.05,0.05,ui_opacity*1.1})
-	--glColor(1,1,1,ui_opacity*0.055)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
 
-	if ui_tileopacity > 0 then
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, ui_tileopacity)
-		TexturedRectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, 0, bgtexSize)
-		gl.Texture(false)
-	end
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding+((y2-y1)*0.6), widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.05*glossMult})
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y1+borderPadding+((y2-y1)*0.35), borderPadding*0.8, 0,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, (posY>tH and 1 or 0),0,0,1, 0,1,1,1)
 
 	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4*widgetScale}
 
@@ -1376,7 +1357,6 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-	bgtexSize = bgpadding * bgtexScale
 
 	font = WG['fonts'].getFont()
 
@@ -1421,7 +1401,7 @@ function makeSideImageList()
 			if guishaderRectsDlists[id] then
 				gl.DeleteList(guishaderRectsDlists[id])
 			end
-			guishaderRectsDlists[id] = gl.CreateList( function() RectRound(rect[1],rect[2],rect[3],rect[4],rect[5]) end)
+			guishaderRectsDlists[id] = gl.CreateList( function() RectRound(rect[1],rect[2],rect[3],rect[4],rect[5], 1,0,0,1) end)
 			WG['guishader'].InsertDlist(guishaderRectsDlists[id], id)
 		end
 	end
