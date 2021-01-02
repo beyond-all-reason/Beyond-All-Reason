@@ -231,10 +231,10 @@ Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor(0.02 * vsy * ui_scale)
-	Spring.Utilities.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.06 * glossMult })
-	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, tl, tr, br, bl, { 1, 1, 1, 0.028 * glossMult }, { 1 ,1 ,1 , 0 })
+	Spring.Utilities.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.06 * glossMult })
+	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.028 * glossMult }, { 1 ,1 ,1 , 0 })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- darkening bottom half
-	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + ((sy-py)*0.5), bgpadding, tl, tr, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + ((sy-py)*0.5), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
 end

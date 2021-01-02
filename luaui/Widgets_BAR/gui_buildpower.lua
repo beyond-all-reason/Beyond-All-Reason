@@ -47,6 +47,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 
 local RectRound = Spring.Utilities.RectRound
+local UiElement = Spring.Utilities.UiElement
 
 local totalBuilders = 0
 local builders = {}
@@ -109,7 +110,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 0, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'buildpower')
 		end
@@ -215,17 +216,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 end
 
 function drawBuildpower()
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 0, 1, 0, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.4), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-	--RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-bgpadding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), bgpadding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0,1,0,0, 1,1,1,0)
 
 	-- bar background
 	contentMargin = math.ceil((backgroundRect[3] - backgroundRect[1]) * 0.2)
