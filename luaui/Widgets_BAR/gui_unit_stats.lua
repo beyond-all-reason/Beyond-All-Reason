@@ -76,11 +76,6 @@ local unitHumanName = {        -- fallback (if you want to change this, also upd
 	-- gets filled with unit names from unitdefs, then overwritten by language file names
 }
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
 
@@ -178,7 +173,6 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-bgtexSize = bgpadding * bgtexScale
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -264,7 +258,7 @@ end
 ------------------------------------------------------------------------------------
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
 	local csyMult = 1 / ((sy - py) / cs)
@@ -497,7 +491,6 @@ function widget:ViewResize(n_vsx,n_vsy)
 
 	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-	bgtexSize = bgpadding * bgtexScale
 
 	font = WG['fonts'].getFont(fontfile)
 
@@ -913,51 +906,32 @@ local function drawStats(uDefID, uID)
 	if uID then
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end
-	local iconHalfSize = math.floor(titleFontSize*0.9)
+	local iconHalfSize = floor(titleFontSize*0.9)
 	if not uID then
-		iconHalfSize = math.floor(-bgpadding/2.5)
+		iconHalfSize = floor(-bgpadding/2.5)
 	end
-	cornersize = 0
-	local color1,color2
-	if not uID then
-		color1 = {0.14,0.14,0.14 ,(WG['guishader'] and 0.77 or 0.96)}
-		color2 = {0,0,0,(WG['guishader'] and 0.77 or 0.96)}
-	else
-		color1 = {0.07,0.07,0.07 ,(WG['guishader'] and 0.77 or 0.96)}
-		color2 = {0,0,0, (WG['guishader'] and 0.77 or 0.96)}
-	end
-	RectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize, 2,2,2,2, color1,color2)
-
+	UiElement(floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)), floor(cYstart+(titleFontSize/2)+bgpadding),1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize)
+			RectRound(floor(cX-bgpadding), floor(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)), floor(cYstart+(titleFontSize/2)+bgpadding), bgcornerSize, 1,1,1,0)
 		end), 'unit_stats_title')
 	end
-
-	cornersize = ceil(bgpadding*0.15)
-	RectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
-
-	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, ui_tileopacity)
-	TexturedRectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize*0.66, 2,2,2,2, 0, bgtexSize)
-	gl.Texture(false)
-
 
 	-- icon
 	if uID then
 		glColor(1,1,1,1)
 		glTexture(':lr64,64c:unitpics/'..unitBuildPic[uDefID])
-		TexRectRound(math.floor(cX-(iconHalfSize*0.7)), math.floor(cYstart+(cornersize*1.33)-iconHalfSize), math.floor(cX+(iconHalfSize*1.3)), math.floor(cYstart+(cornersize*1.33)+iconHalfSize), cornersize*0.4, 1,1,1,1, 0.13)
+		TexRectRound(floor(cX-(iconHalfSize*0.7)), floor(cYstart+(cornersize*1.33)-iconHalfSize), floor(cX+(iconHalfSize*1.3)), floor(cYstart+(cornersize*1.33)+iconHalfSize), cornersize*0.4, 1,1,1,1, 0.13)
 		glTexture(false)
 
 		-- lighten border
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		RectRoundCircle(
-			math.floor(cX+(iconHalfSize*0.3)),
+			floor(cX+(iconHalfSize*0.3)),
 			0,
-			math.floor(cYstart+(cornersize*1.33)),
-			iconHalfSize, cornersize*0.22, iconHalfSize - math.max(1, math.floor(widgetScale)), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 }
+			floor(cYstart+(cornersize*1.33)),
+			iconHalfSize, cornersize*0.22, iconHalfSize - math.max(1, floor(widgetScale)), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 }
 		)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
@@ -969,29 +943,14 @@ local function drawStats(uDefID, uID)
 	font:End()
 
 	-- stats
-	cornersize = -1
-	if not uID then
-		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.8 or 0.88))
-	else
-		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
-	end
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize, 2,2,2,2, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+			RectRound(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), floor(cYstart-bgpadding), bgcornerSize, 0,1,1,1)
 		end), 'unit_stats_data')
 	end
-
-	cornersize = ceil(bgpadding*0.12)
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
-
-	gl.Texture(backgroundTexture)
-	gl.Color(1,1,1, ui_tileopacity*0.75)
-	TexturedRectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.66, 2,2,2,2, 0, bgtexSize)
-	gl.Texture(false)
-
 	DrawTextBuffer()
 end
 

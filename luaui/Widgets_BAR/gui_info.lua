@@ -425,7 +425,6 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
 	bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
-	bgtexSize = bgpadding * bgtexScale
 
 	backgroundRect = { 0, 0, (width - addonWidth) * vsx, height * vsy }
 

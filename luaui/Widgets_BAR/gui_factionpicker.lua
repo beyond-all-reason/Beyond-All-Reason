@@ -364,7 +364,7 @@ function drawFactionpicker()
 	if ui_tileopacity > 0 then
 		gl.Texture(backgroundTexture)
 		gl.Color(1,1,1, ui_tileopacity)
-		TexturedRectRound(backgroundRect[1] + (altPosition and padding or 0), backgroundRect[2] + padding, backgroundRect[3] - padding, backgroundRect[4] - padding, padding, (altPosition and 1 or 0), 1, 1, 0, 0, bgtexSize)
+		TexturedRectRound(backgroundRect[1] + (altPosition and padding or 0), backgroundRect[2] + padding, backgroundRect[3] - padding, backgroundRect[4] - padding, padding, (altPosition and 1 or 0), 1, 1, 0, bgtexSize, 0)
 		gl.Texture(false)
 	end
 

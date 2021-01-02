@@ -645,7 +645,7 @@ function drawCell(cell, zoom)
 			glBlending(GL_SRC_ALPHA, GL_ONE)
 			gl.Texture(buttonBackgroundTexture)
 			gl.Color(1,1,1, buttonBgtexOpacity)
-			TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, (buttonBgtexSize*(zoom*zoom)), buttonBgtexSize*(zoom*zoom))
+			TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, buttonBgtexSize*(zoom*zoom), (buttonBgtexSize*(zoom*zoom)))
 			gl.Texture(false)
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		end

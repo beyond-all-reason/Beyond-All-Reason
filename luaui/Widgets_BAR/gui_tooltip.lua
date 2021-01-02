@@ -64,16 +64,13 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetTooltip = Spring.GetCurrentTooltip
 
 local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local UiElement = Spring.Utilities.UiElement
 
 local math_floor = math.floor
 local math_ceil = math.ceil
 
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
-local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
 
 local tooltips = {}
 
@@ -152,10 +149,6 @@ function widget:ViewResize(x, y)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-	bgtexSize = bgpadding * bgtexScale
-
 	init()
 end
 
@@ -174,8 +167,6 @@ function lines(str)
 end
 
 function drawTooltip(name, x, y)
-	--Spring.Echo('Showing tooltip:  '..name)
-
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
 	local posX = math_floor(x + paddingW)
@@ -206,33 +197,11 @@ function drawTooltip(name, x, y)
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
 
-	-- draw background
-	local cornersize = 0
-	--glColor(0.45,0.45,0.45,(WG['guishader'] and 0.66 or 0.8))
-	RectRound(posX - paddingW + cornersize, posY - maxHeight - paddingH + cornersize, posX + maxWidth + paddingW - cornersize, posY + paddingH - cornersize, bgpadding*1.6, 2, 2, 2, 2, { 0.44, 0.44, 0.44, (WG['guishader'] and 0.67 or 0.94) }, { 0.66, 0.66, 0.66, (WG['guishader'] and 0.62 or 0.94) })
+	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.66, 0.66, 0.66, (WG['guishader'] and 0.73 or 0.94)}, {0.1, 0.1, 0.1, (WG['guishader'] and 0.55 or 0.66)})
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist(gl.CreateList(function()
-			RectRound(posX - paddingW + cornersize, posY - maxHeight - paddingH + cornersize, posX + maxWidth + paddingW - cornersize, posY + paddingH - cornersize, 3.3 * widgetScale)
+			RectRound(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 3.3 * widgetScale)
 		end), 'tooltip_' .. name)
-	end
-	cornersize = math_floor(2.4 * widgetScale)
-	--glColor(0,0,0,(WG['guishader'] and 0.22 or 0.26))
-	RectRound(posX - paddingW + cornersize,
-		posY - maxHeight - paddingH + cornersize,
-		posX + maxWidth + paddingW - cornersize,
-		posY + paddingH - cornersize - 0.06,
-		bgpadding,
-		2, 2, 2, 2, { 0, 0, 0, (WG['guishader'] and 0.5 or 0.55) }, { 0.15, 0.15, 0.15, (WG['guishader'] and 0.47 or 0.55) })
-
-
-	if ui_tileopacity > 0 then
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, ui_tileopacity)
-		TexturedRectRound(posX - paddingW + cornersize,
-			posY - maxHeight - paddingH + cornersize,
-			posX + maxWidth + paddingW - cornersize,
-			posY + paddingH - cornersize - 0.06, bgpadding, 1,1,1,1, 0, bgtexSize)
-		gl.Texture(false)
 	end
 
 	-- draw text

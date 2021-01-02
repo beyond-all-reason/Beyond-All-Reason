@@ -1503,8 +1503,8 @@ function drawBuildmenu()
 		if buttonBgtexOpacity > 0 then
 			gl.Texture(buttonBackgroundTexture)
 			gl.Color(1,1,1, buttonBgtexOpacity)
-			TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
-			TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, 0, buttonBgtexSize)
+			TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, buttonBgtexSize, 0)
+			TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, buttonBgtexSize, 0)
 			gl.Texture(false)
 		end
 

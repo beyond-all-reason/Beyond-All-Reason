@@ -203,7 +203,7 @@ function createList()
 			gl.Blending(GL.SRC_ALPHA, GL.ONE)
 			gl.Texture(buttonBackgroundTexture)
 			gl.Color(1,1,1, buttonBgtexOpacity)
-			TexturedRectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, 0, buttonBgtexSize)
+			TexturedRectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, buttonBgtexSize, 0)
 			gl.Texture(false)
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end

@@ -225,7 +225,7 @@ function StartVote(name, owner)
 
 			gl.Texture(backgroundTexture)
 			gl.Color(1,1,1, ui_tileopacity*0.5)
-			TexturedRectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, 0, bgtexSize)
+			TexturedRectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, bgtexSize, 0)
 			gl.Texture(false)
 
 			-- gloss
@@ -252,7 +252,7 @@ function StartVote(name, owner)
 			if buttonBgtexOpacity > 0 then
 				gl.Texture(buttonBackgroundTexture)
 				gl.Color(1,1,1, buttonBgtexOpacity)
-				TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, 0, buttonBgtexSize)
+				TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, buttonBgtexSize, 0)
 				gl.Texture(false)
 			end
 
@@ -287,7 +287,7 @@ function StartVote(name, owner)
 			if buttonBgtexOpacity > 0 then
 				gl.Texture(buttonBackgroundTexture)
 				gl.Color(1,1,1, buttonBgtexOpacity)
-				TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, buttonBgtexSize)
+				TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, buttonBgtexSize, 0)
 				gl.Texture(false)
 			end
 
@@ -324,7 +324,7 @@ function StartVote(name, owner)
 				if buttonBgtexOpacity > 0 then
 					gl.Texture(buttonBackgroundTexture)
 					gl.Color(1,1,1, buttonBgtexOpacity)
-					TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, 0, buttonBgtexSize)
+					TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, buttonBgtexSize, 0)
 					gl.Texture(false)
 				end
 

@@ -393,7 +393,7 @@ local function updateRejoin()
 
 		gl.Texture(noiseBackgroundTexture)
 		gl.Color(1,1,1, 0.18)
-		TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 0, barWidth*0.6)
+		TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
 		gl.Texture(false)
 
 		-- gloss
@@ -409,12 +409,12 @@ local function updateRejoin()
 
 		gl.Texture(stripesTexture)
 		gl.Color(1,1,1, 0.16)
-		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, -os.clock()*0.06, (barArea[3]-barArea[1]) * 0.66)
+		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, (barArea[3]-barArea[1]) * 0.66, -os.clock()*0.06)
 		gl.Texture(false)
 
 		gl.Texture(noiseBackgroundTexture)
 		gl.Color(1,1,1, 0.25)
-		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 0, barWidth*0.6)
+		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
 		gl.Texture(false)
 
 		-- Bar value highlight
@@ -952,7 +952,7 @@ local function updateResbar(res)
 		--RectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 1,1,1, 0.03 }, { 1,1,1, 0.03 })
 		gl.Texture(noiseBackgroundTexture)
 		gl.Color(1,1,1, 0.22)
-		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, 0, barWidth*0.33)
+		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		gl.Texture(false)
 
 		glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -988,7 +988,7 @@ local function updateResbar(res)
 			if buttonBgtexOpacity > 0 then
 				gl.Texture(buttonBackgroundTexture)
 				gl.Color(1,1,1, buttonBgtexOpacity*0.6)
-				TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize*0.82)
+				TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, buttonBgtexSize*0.82, 0)
 				gl.Texture(false)
 			end
 		end
@@ -1011,7 +1011,7 @@ local function updateResbar(res)
 		if buttonBgtexOpacity > 0 then
 			gl.Texture(buttonBackgroundTexture)
 			gl.Color(1,1,1, buttonBgtexOpacity*0.7)
-			TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, 0, buttonBgtexSize*0.82)
+			TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, buttonBgtexSize*0.82, 0)
 			gl.Texture(false)
 		end
 	end)
@@ -1085,19 +1085,19 @@ function drawResbarValues(res)
 	-- noise
 	gl.Texture(noiseBackgroundTexture)
 	gl.Color(1,1,1, 0.45)
-	TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, 0, barWidth*0.33)
+	TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
 	gl.Texture(false)
 
 	if res == 'energy' then
 		-- energy flow effect
 		gl.Color(1,1,1, 0.32)
 		glTexture("LuaUI/Images/paralyzed.png")
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/80, barWidth/0.5)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, os.clock()/70, barWidth/0.33)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		gl.Color(1,1,1, 0.26)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, -os.clock()/55, barWidth/0.45)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, os.clock()/80, barWidth/0.7)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.7, os.clock()/80)
 		glTexture(false)
 	else
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1562,7 +1562,7 @@ function widget:DrawScreen()
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, b and 0.13 or 0.03 }, { 0.44, 0.44, 0.44, b and 0.4 or 0.2 })
 					local mult = 1
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4] - ((buttonsArea['buttons'][button][4] - buttonsArea['buttons'][button][2]) * 0.33), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3 * widgetScale, 0, 0, 0, 0, { 1, 1, 1, 0.03 * mult }, { 1, 1, 1, 0.18 * mult })
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4] - ((buttonsArea['buttons'][button][4] - buttonsArea['buttons'][button][2]) * 0.4), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3 * widgetScale, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.18 * mult })
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2] + ((buttonsArea['buttons'][button][4] - buttonsArea['buttons'][button][2]) * 0.25), 3.3 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, 0.045 * mult }, { 1, 1, 1, 0 })
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					break
@@ -1612,16 +1612,7 @@ function widget:DrawScreen()
 				quitscreenQuitArea = { math_floor((vsx / 2) + (buttonMargin / 2)), math_floor((vsy / 1.8) - (h / 2) + buttonMargin), math_floor((vsx / 2) + (w / 2) - buttonMargin), math_floor((vsy / 1.8) - (h / 2) + buttonHeight - buttonMargin) }
 
 				-- window
-				glColor(1, 1, 1, 0.6 + (0.34 * fadeProgress))
-				RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], padding)
-				RectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, { 0.55, 0.55, 0.5, 0.025 + (0.025 * fadeProgress) }, { 0.2, 0.2, 0.2, 0.025 + (0.025 * fadeProgress) })
-
-				if ui_tileopacity > 0 then
-					gl.Texture(backgroundTexture)
-					gl.Color(1,1,1, ui_tileopacity*1.5)
-					TexturedRectRound(quitscreenArea[1] + padding, quitscreenArea[2] + padding, quitscreenArea[3] - padding, quitscreenArea[4] - padding, padding * 0.5, 1, 1, 1, 1, 0, bgtexSize)
-					gl.Texture(false)
-				end
+				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
 
 				local fontSize = h / 6
 				font:Begin()
@@ -1662,7 +1653,7 @@ function widget:DrawScreen()
 					if buttonBgtexOpacity > 0 then
 						gl.Texture(buttonBackgroundTexture)
 						gl.Color(1,1,1, buttonBgtexOpacity)
-						TexturedRectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, buttonBgtexSize)
+						TexturedRectRound(quitscreenQuitArea[1]+p, quitscreenQuitArea[2]+p, quitscreenQuitArea[3]-p, quitscreenQuitArea[4]-p, padding * 0.25, 1, 1, 1, 1, buttonBgtexSize, 0)
 						gl.Texture(false)
 					end
 
@@ -1699,7 +1690,7 @@ function widget:DrawScreen()
 					if buttonBgtexOpacity > 0 then
 						gl.Texture(buttonBackgroundTexture)
 						gl.Color(1,1,1, buttonBgtexOpacity)
-						TexturedRectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, 0, buttonBgtexSize)
+						TexturedRectRound(quitscreenResignArea[1]+p, quitscreenResignArea[2]+p, quitscreenResignArea[3]-p, quitscreenResignArea[4]-p, padding * 0.25, 1, 1, 1, 1, buttonBgtexSize, 0)
 						gl.Texture(false)
 					end
 

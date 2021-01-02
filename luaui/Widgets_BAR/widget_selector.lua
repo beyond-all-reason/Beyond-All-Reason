@@ -404,15 +404,6 @@ function widget:DrawScreen()
 	font:Print(tcol .. "-", minx, maxy + ((7 + bgPadding) * sizeMultiplier), buttonFontSize * sizeMultiplier, "ol")
 	tcol = WhiteStr
 
-	-- draw the box
-	--RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-	--RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
---
-	--gl.Texture(backgroundTexture)
-	--gl.Color(1,1,1, ui_tileopacity*0.6)
-	--TexturedRectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, 0, bgtexSize)
-	--gl.Texture(false)
-
 	UiElement(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	-- draw the text buttons (at the bottom) & their outlines
