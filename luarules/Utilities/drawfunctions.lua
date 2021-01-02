@@ -2,6 +2,12 @@ if SendToUnsynced then
 	return ''
 end
 
+--[[
+	Created these general draw functions to be available for use within gadgets and widgets.
+	Not an actual UI framework in itself, but can behave similar in uniformity.
+	made by: Floris, december 2020
+]]
+
 Spring.Utilities = Spring.Utilities or {}
 
 -- px+py bottom left

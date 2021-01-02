@@ -279,7 +279,7 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[5] = glCreateList( function()
-			RectRound(left, bottom, right, top, bgpadding*1.6)
+			RectRound(left, bottom, right, top, bgpadding*1.6, 1,0,0,1)
 		end)
 		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
@@ -311,6 +311,7 @@ local function createList()
 		glColor(0.88,0.88,0.88,0.9)
 		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
 
 	end)
 	drawlist[3] = glCreateList( function()
