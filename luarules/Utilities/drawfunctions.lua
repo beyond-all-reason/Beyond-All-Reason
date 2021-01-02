@@ -4,13 +4,20 @@ end
 
 --[[
 	Created these general draw functions to be available for use within gadgets and widgets.
-	Not an actual UI framework in itself, but can behave similar in uniformity.
 	made by: Floris, december 2020
 ]]
 
 Spring.Utilities = Spring.Utilities or {}
 
--- px+py bottom left
+--[[
+	RectRound
+		draw rectangle with chopped off corners
+	params
+		px, py, sx, sy = left, bottom, right, top
+	optional
+		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
+		c1, c2 = top color, bottom color
+]]
 Spring.Utilities.RectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   c1, c2)
 	-- RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2): Draw a rectangular shape with cut off edges
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
@@ -120,7 +127,17 @@ Spring.Utilities.RectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   c1
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
--- px+py bottom left
+--[[
+	TexturedRectRound
+		draw rectangle with chopped off corners and a textured background tile
+	params
+		px, py, sx, sy = left, bottom, right, top
+	optional
+		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
+		size = texture tile size
+		offset, offsetY = texture offset coordinates
+		texture = file location
+]]
 Spring.Utilities.TexturedRectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,  size, offset, offsetY,  texture)
 	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, size, offset, offsetY)
 		local scale = size and (size / (sx-px)) or 1
@@ -201,7 +218,17 @@ Spring.Utilities.TexturedRectRound = function(px, py, sx, sy, cs,   tl, tr, br, 
 	end
 end
 
--- px+py bottom left
+--[[
+	UiElement
+		draw a complete standardized ui element having: border, tiled background, gloss on top and bottom
+	params
+		px, py, sx, sy = left, bottom, right, top
+	optional
+		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
+		ptl, ptr, pbr, pbl = inner padding multiplier (default: 1) (set to 0 when you want to attach this ui element to another element so there is only padding done by one of the 2 elements)
+		opacity = (default: ui_opacity springsetting)
+		color1, color2 = (color1[4] alpha value overrides opacity define above)
+]]
 Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2)
 	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
 	local color1 = color1 or { 0, 0, 0, opacity}
