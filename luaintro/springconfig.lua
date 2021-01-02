@@ -26,8 +26,11 @@ if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
 end
 
 -- make sure default/minimum ui opacity is set
-if Spring.GetConfigFloat("ui_opacity",0) < 0.3 then
+if Spring.GetConfigFloat("ui_opacity", 0) < 0.3 then
 	Spring.SetConfigFloat("ui_opacity", 0.6)
+end
+if Spring.GetConfigFloat("ui_tileopacity", -1) < 0 then
+	Spring.SetConfigFloat("ui_tileopacity", 0.012)
 end
 
 -- disable ForceDisableShaders

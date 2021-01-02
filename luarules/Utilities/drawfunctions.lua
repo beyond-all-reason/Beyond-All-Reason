@@ -238,8 +238,8 @@ Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	local bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 	local glossMult = 1 + (2 - (opacity * 1.5))
-	local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-	local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)
+	local ui_tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
+	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
 	local bgtexSize = math.floor(bgpadding * bgtexScale)
 
 	local tl = tl or 1
