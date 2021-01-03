@@ -29,8 +29,12 @@ end
 if Spring.GetConfigFloat("ui_opacity", 0) < 0.3 then
 	Spring.SetConfigFloat("ui_opacity", 0.6)
 end
+-- set default bg tile settings
 if Spring.GetConfigFloat("ui_tileopacity", -1) < 0 then
 	Spring.SetConfigFloat("ui_tileopacity", 0.012)
+end
+if Spring.GetConfigFloat("ui_tilescale", -1) < 0 then
+	Spring.SetConfigFloat("ui_tilescale", 7)
 end
 
 -- disable ForceDisableShaders

@@ -110,7 +110,7 @@ local screenWidthOrg = 540
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local textareaMinLines = 10        -- wont scroll down more, will show at least this amount of lines
+local textareaMinLines = 15        -- wont scroll down more, will show at least this amount of lines
 
 local customScale = 1.1
 
@@ -121,29 +121,12 @@ local screenX = (vsx * 0.5) - (screenWidth / 2)
 local screenY = (vsy * 0.5) + (screenHeight / 2)
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local showHelp = false
-
-local glColor = gl.Color
-local glLineWidth = gl.LineWidth
-local glPolygonMode = gl.PolygonMode
-local glRect = gl.Rect
-local glText = gl.Text
-local glShape = gl.Shape
 
 local bgColorMultiplier = 0
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
-
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
-local glScale = gl.Scale
-
-local GL_FILL = GL.FILL
-local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
-local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
 
@@ -312,8 +295,6 @@ function DrawWindow()
 	font2:Print(texts.title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
 
-	--glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-	--glScale(widgetScale, widgetScale, 1)
 	-- textarea
 	DrawTextarea(screenX, screenY - (8 * widgetScale), screenWidth, screenHeight - (24 * widgetScale), 1)
 end
@@ -343,11 +324,7 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 
 		-- draw the panel
-		glPushMatrix()
-		--glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-		--glScale(widgetScale, widgetScale, 1)
 		glCallList(mainDList)
-		glPopMatrix()
 		if WG['guishader'] then
 			local titleFontSize = 18 * widgetScale
 			titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }

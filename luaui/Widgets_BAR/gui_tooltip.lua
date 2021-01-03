@@ -149,6 +149,9 @@ function widget:ViewResize(x, y)
 
 	font = WG['fonts'].getFont(fontfile)
 
+	local widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
+	bgpadding = math.ceil(widgetSpaceMargin * 0.44)
+
 	init()
 end
 
@@ -197,7 +200,7 @@ function drawTooltip(name, x, y)
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
 
-	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.66, 0.66, 0.66, (WG['guishader'] and 0.73 or 0.94)}, {0.1, 0.1, 0.1, (WG['guishader'] and 0.55 or 0.66)})
+	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.75, 0.75, 0.75, (WG['guishader'] and 0.7 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.5 or 0.55)}, bgpadding)
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist(gl.CreateList(function()
 			RectRound(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 3.3 * widgetScale)
