@@ -38,58 +38,92 @@ end
 
 function TaskLabBST:Choice()
 	local team = game:GetTeamID()
-	print(team)
 	local build = false
--- 	print(units)
--- 	for i,v in pairs(units) do
--- 		print(i)
--- 		print(v)
--- 	end
-	for name, spec in pairs(self.units) do
-
-		print(name)
-		self:EchoDebug('handling',name,spec.defId,type(spec.defId))
-		local mtypedLv = self.ai.taskshst:GetMtypedLv(name)
-		if spec.army.buildOptions then
-
-			if game:GetTeamUnitDefCount(team,spec.defId) < math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit) then
-				build = name
+	for uName, spec in pairs(self.units) do
+		local army = self.ai.armyhst.ranks[self.name][uName]
+		if army == 'scout' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
 			end
-
-		elseif spec.army.isWeapon then
-			print(spec.army.onlyTg)
-			self:EchoDebug('weapon')
-			if spec.army.onlyTg == 'vtol' and self.ai.needAirDefense then
-				self:EchoDebug('Anti air')
-				if game:GetTeamUnitDefCount(team,spec.defId) < (mtypedLv / 10) + 1 then
-					build = name
-				end
-
-			else
-				self:EchoDebug('terrain')
-				if self.ai.Metal.full < 0.5 then
-					self:EchoDebug('metal<05')
-					if spec.army.metalRatio < 1 then
-						self:EchoDebug('ratio-1')
-						build = name
-					end
-				else
-					self:EchoDebug('metalok')
-					if spec.army.metalRatio >  1 then
-						self:EchoDebug('ratio+1')
-						build = name
-					end
-				end
-
+		end
+		if army == 'tech' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
 			end
-		else
-			self:EchoDebug('not handled',name)
+		end
+		if army == 'raider' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'artillery' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'battle' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'radar' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'jammer' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'antiair' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'AntiNuke' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'break' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'paralyzer' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'artillery' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'longrange' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'subKiller' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
+		end
+		if army == 'wartech' then
+			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
+				return uName
+			end
 		end
 
 	end
-	if not build then build = 'armwar' end
-	return build
 end
+-- 			if game:GetTeamUnitDefCount(team,spec.defId) < math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit) then
+-- 				build = name
+-- 			end
+
+
 
 function TaskLabBST:Update()
 	local f = self.game:Frame()

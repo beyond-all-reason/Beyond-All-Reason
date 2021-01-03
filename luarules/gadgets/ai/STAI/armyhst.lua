@@ -11,6 +11,7 @@ end
 
 function ArmyHST:Init()
 	self.DebugEnabled = true
+	self:setRanks()
 
 end
 
@@ -756,8 +757,37 @@ local function getDPS(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
 	end
-	Spring.Echo('dps',dps)
+	--Spring.Echo('dps',dps)
 	return dps
+end
+
+
+
+local function getInterceptor(unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	local weapons = unitDef["weapons"]
+	local interceptor = false
+	for i=1, #weapons do
+		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDef = WeaponDefs[weaponDefID]
+		if weaponDef['interceptor'] then
+			interceptor  =  weaponDef['interceptor'] == 1
+		end
+	end
+	--Spring.Echo('interceptor',interceptor)
+	return interceptor
+end
+
+local function getParalyzer(unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	local weapons = unitDef["weapons"]
+	for i=1, #weapons do
+		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDef = WeaponDefs[weaponDefID]
+		paralyzer  =  weaponDef['paralyzer']
+	end
+	--Spring.Echo('paralyzer',paralyzer)
+	return paralyzer
 end
 
 local function getOnlyTargets(weapons)
@@ -782,11 +812,11 @@ local function getBadTargets(weapons)
 				local  weaponDefID = weapon["weaponDef"]
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
-				Spring.Echo('defbadtargets', targets[name])
+				--Spring.Echo('defbadtargets', targets[name])
 			end
 		end
 	end
-	Spring.Echo('badtargets',targets)
+	--Spring.Echo('badtargets',targets)
 	return targets
 end
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
@@ -866,98 +896,493 @@ local function GetWeaponParams(weaponDefID)
 	return dps, weaponDamage, reloadTime
 end
 
-function ArmyHST:getRaiders(units,lab)
-	cost = 0
-	target = nil
+
+
+function ArmyHST:getJammer(units,lab)
+	local cost = 0
+	local target = nil
 
 	for i, name in pairs(units) do
-		local spec = ArmyHST.unitTable[name]
-		if spec.isWeapon and spec.noChaseCat['vtol'] and not spec.buildOptions and not  spec.isScout then
-			if (spec.move * spec.dps ) / spec.metalCost > cost then
-				cost = (spec.move * spec.dps ) / spec.metalCost
-				target = name
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if  not spec.buildOptions then
+				if spec.jammerRadius and spec.jammerRadius > cost then
+					cost = spec.jammerRadius
+					target = name
+				end
 			end
 		end
 	end
-	Spring.Echo(target,'is raider of', lab)
+
+	if target then
+		self:EchoDebug(target,'is jammer of', lab)
+		self.ranks[lab][target] = 'jammer'
+	end
+
+end
+
+function ArmyHST:getEngineer(units,lab)
+	local cost = 0
+	local target = nil
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if  spec.isBuilder and spec.canAssist and not spec.isWeapon  then
+				if spec.buildSpeed > cost then
+					target = name
+					cost = spec.buildSpeed
+				end
+
+			end
+		end
+	end
+	if target then
+		self:EchoDebug(target,'is Engineer of', lab)
+		self.ranks[lab][target] = 'engineer'
+	end
+end
+function ArmyHST:getWartech(units,lab)
+	local cost = 0
+	local target = nil
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if  spec.buildOptions and spec.isWeapon  then
+				self.ranks[lab][name] = 'wartech'
+				self:EchoDebug(name,'is fightingBuilders of', lab)
+			end
+		end
+	end
+end
+
+
+
+function ArmyHST:getCloakabe(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.canCloak and spec.isWeapon and not spec.isBuilder then
+				self:EchoDebug(name,'is cloakable of', lab)
+				self.ranks[lab][name] = 'cloakable'
+			end
+		end
+	end
+end
+
+function ArmyHST:getSpy(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.canCloak and not spec.isWeapon and spec.isBuilder then
+				self:EchoDebug(name,'is spy of', lab)
+				self.ranks[lab][name] = 'spy'
+			end
+		end
+	end
+end
+
+function ArmyHST:getSpiders(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon and spec.mclass == 'tbot3' then
+				self:EchoDebug(name,'is spider of', lab)
+				self.ranks[lab][name] = 'spider'
+			end
+		end
+	end
+end
+
+function ArmyHST:getMiner(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isBuilder and spec.buildOptions and not spec.canAssist then
+				self:EchoDebug(name,'is miner of', lab)
+				self.ranks[lab][name] = 'miner'
+			end
+		end
+	end
+end
+
+function ArmyHST:getBomberAir(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isAirUnit and spec.isBomberAirUnit then
+				self:EchoDebug(name,'is BomberAir of', lab)
+				self.ranks[lab][name] = 'bomberair'
+			end
+		end
+	end
+end
+
+function ArmyHST:getFighterAir(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isAirUnit and spec.isFighterAirUnit then
+				self:EchoDebug(name,'is fighterair of', lab)
+				self.ranks[lab][name] = 'fighterair'
+			end
+		end
+	end
+end
+
+function ArmyHST:getRez(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.canResurrect  then
+				self:EchoDebug(name,'is rez of', lab)
+				self.ranks[lab][name] = 'rez'
+			end
+		end
+	end
+end
+
+function ArmyHST:getAntiNuke(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.antiNuke then
+				self:EchoDebug(name,'is antinuke of', lab)
+				self.ranks[lab][name] = 'antinuke'
+			end
+		end
+	end
+end
+
+function ArmyHST:getFreezer(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon and spec.paralyzer and not spec.buildOptions then
+				self:EchoDebug(name,'is paralyzer of', lab)
+				self.ranks[lab][name] = 'paralyzer'
+			end
+		end
+	end
+end
+
+function ArmyHST:getTransport(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isTransport then
+				self:EchoDebug(name,'is transport of', lab)
+				self.ranks[lab][name] = 'transport'
+			end
+		end
+	end
+end
+
+
+function ArmyHST:getTech(units,lab)
+	local cost = 0
+	local target = nil
+	local ampBuilder = nil
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if  spec.isCon and not spec.isWeapon  then
+				for i,v in pairs(spec.factoriesCanBuild) do
+					if v == lab then
+						if spec.mtype == 'amp' then
+							ampBuilder = name
+						else
+							target = name
+						end
+					end
+				end
+			end
+		end
+	end
+
+	if target then
+		self:EchoDebug(target,'is tech of', lab)
+		self.ranks[lab][target] = 'tech'
+	end
+	if ampBuilder then
+		self:EchoDebug(ampBuilder,'is amptech of', lab)
+		self.ranks[lab][ampBuilder] = 'amptech'
+	end
+
+end
+
+function ArmyHST:getRadar(units,lab)
+	local cost = 0
+	local target = nil
+
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if  not spec.buildOptions and not spec.isWeapon and spec.radarRadius and not spec.isBuilder then
+				if  spec.radarRadius > cost then
+					cost = spec.radarRadius
+					target = name
+				end
+			end
+		end
+	end
+
+	if target then
+		self:EchoDebug(target,'is radar of', lab)
+		self.ranks[lab][target] = 'radar'
+	end
+end
+
+function ArmyHST:getCrawlingBomb(units,lab)
+	local cost = 0
+	local target = nil
+
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.mclass == 'abotbomb2' then
+				target = name
+				self.ranks[lab][name] = 'crawrawling'
+				self:EchoDebug(target,'is crowling bomb of', lab)
+			end
+		end
+	end
+
+end
+
+
+
+function ArmyHST:getRaiders(units,lab)
+	local cost = 0
+	local target = nil
+
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon and spec.noChaseCat['vtol'] and not spec.buildOptions then
+				if (spec.move * spec.dps ) / spec.metalCost > cost then
+					cost = (spec.move * spec.dps ) / spec.metalCost
+					target = name
+				end
+			end
+		end
+	end
+	if target then
+		self:EchoDebug(target,'is raider of', lab)
+		self.ranks[lab][target] = 'raider'
+	end
+end
+
+function ArmyHST:getBattle(units,lab)
+	local cost = 0
+	local target = nil
+
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon  then
+				if  spec.dps   > cost then
+					cost =  spec.dps
+					target = name
+				end
+			end
+		end
+	end
+	if target then
+		self:EchoDebug(target,'is battle of', lab)
+		self.ranks[lab][target] = 'battle'
+	end
+end
+
+function ArmyHST:getBreak(units,lab)
+	local cost = 0
+	local target = nil
+
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon and spec.noChaseCat['vtol'] and not spec.buildOptions then
+				if  spec.dps   > cost then
+					cost =  spec.dps
+					target = name
+				end
+			end
+		end
+	end
+	if target then
+		self:EchoDebug(target,'is break of', lab)
+		self.ranks[lab][target] = 'break'
+	end
+end
+
+function ArmyHST:getLongRange(units,lab)
+	local cost = 0
+	local target = nil
+	local spec = self.unitTable
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon  and spec.noChaseCat['vtol']  and  spec.mtype ~='air' then
+				if spec.maxWeaponRange  > cost then
+					cost = spec.maxWeaponRange
+					target = name
+				end
+			end
+		end
+	end
+	if target then
+		self:EchoDebug(target,'is LongRange of', lab)
+		self.ranks[lab][target] = 'longrange'
+	end
 end
 
 function ArmyHST:getArtillery(units,lab)
-	cost = 0
-	target = nil
-	local spec = ArmyHST.unitTable
+	local cost = 0
+	local target = nil
+	local spec = self.unitTable
 	for i, name in pairs(units) do
-		if spec[name].isWeapon  and spec[name].noChaseCat['vtol']  and  spec[name].mtype ~='air' and spec[name].weaponType == 'Cannon' then
-			if spec[name].maxWeaponRange / spec[name].metalCost > cost then
-				cost = spec[name].maxWeaponRange / spec[name].metalCost
-				target = name
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon  and spec.noChaseCat['vtol']  and  spec.mtype ~='air' then
+				if spec.maxWeaponRange / spec.metalCost > cost then
+					cost = spec.maxWeaponRange / spec.metalCost
+					target = name
+				end
 			end
 		end
 	end
-	Spring.Echo(target,'is artillery of', lab)
-	ArmyHST.unitTable[target].isArtillery = true
+	if target then
+		self:EchoDebug(target,'is artillery of', lab)
+		self.ranks[lab][target] = 'artillery'
+	end
+end
 
+function ArmyHST:getAmphibious(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon  and spec.noChaseCat['vtol']  and  spec.mtype == 'amp' then
+				self:EchoDebug(name,'is amphibious of', lab)
+				self.ranks[lab][name] = 'amphibious'
+			end
+		end
+	end
+end
+
+function ArmyHST:getSubK(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon    and  spec.mtype == 'sub' and not spec.buildOptions then
+				self:EchoDebug(name,'is subKiller of', lab)
+				self.ranks[lab][name] = 'subKiller'
+			end
+		end
+	end
 end
 
 function ArmyHST:getAttackers(units,lab)
-	cost = 1/0
-	target = nil
-	local spec = ArmyHST.unitTable
+	local cost = 1/0
+	local target = nil
+	local spec = self.unitTable
 	for i, name in pairs(units) do
 		if spec[name].isWeapon and spec[name].noChaseCat['vtol'] then
 			target = name
 		end
 	end
-	Spring.Echo(target,'is attacker of', lab)
+	self:EchoDebug(target,'is attacker of', lab)
 end
 
 function ArmyHST:getScouts(units,lab)
-	cost = 1/0
-	target = nil
-	local spec = ArmyHST.unitTable
+	local cost = 1/0
+	local target = nil
+
 	for i, name in pairs(units) do
-		if spec[name].metalCost  < cost then
-			cost = spec[name].metalCost
-			target = name
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.isWeapon and not spec.onlyTargets['vtol'] and not spec.buildOptions and spec.metalCost  < cost then
+				cost = spec.metalCost
+				target = name
+			end
 		end
 	end
-	Spring.Echo(target,'is scout of', lab)
-	ArmyHST.unitTable[target].isScout = true
+
+	if target then
+		self:EchoDebug(target,'is scout of', lab)
+		self.ranks[lab][target] = 'scout'
+	end
+
+
 end
 
 function ArmyHST:getAntiAir(units,lab)
 	local range = 0
 	local aa = nil
-	local spec = ArmyHST.unitTable
+	local spec = self.unitTable
 	for i, name in pairs(units) do
-		if spec[name].noChaseCat['notair'] then
-			aa = name
+		if not self.ranks[lab][name] then
+			if spec[name].noChaseCat['notair'] then
+				aa = name
+			end
 		end
 	end
 	if not aa then
 		for i, name in pairs(units) do
-			if spec[name].onlyTargets and spec[name].onlyTargets['vtol'] then
-				if spec[name].onlyTargets['vtol'] > range then
-					range = spec[name].onlyTargets['vtol']
-					aa = name
+			if not self.ranks[lab][name] then
+				if spec[name].onlyTargets and spec[name].onlyTargets['vtol'] then
+					if spec[name].onlyTargets['vtol'] > range then
+						range = spec[name].onlyTargets['vtol']
+						aa = name
+					end
 				end
 			end
 		end
 	end
 	if not aa then
 		for i, name in pairs(units) do
-			if spec[name].badTargets and spec[name].badTargets['notair'] then
-				if spec[name].badTargets['notair'] > range then
-					range = spec[name].badTargets['notair']
-					aa = name
+			if not self.ranks[lab][name] then
+				if spec[name].badTargets and spec[name].badTargets['notair'] then
+					if spec[name].badTargets['notair'] > range then
+						range = spec[name].badTargets['notair']
+						aa = name
+					end
 				end
 			end
 		end
 	end
-	Spring.Echo(aa,'is AntiAir of', lab)
+
+	if aa then
+		self:EchoDebug(aa,'is AntiAir of', lab)
+		self.ranks[lab][aa] = 'antiair'
+	end
 
 end
 
+function ArmyHST:getAntiAir2(units,lab)
+	local range = 0
+	local aa = nil
+
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			local spec = self.unitTable[name]
+			if spec.noChaseCat['notair'] then
+				aa = name
+			end
+		end
+	end
+	if aa then
+		self:EchoDebug(aa,'is AntiAir2 of', lab)
+		self.ranks[lab][aa] = 'antiair2'
+	end
+end
+
+
+function ArmyHST:getUnranked(units,lab)
+	for i, name in pairs(units) do
+		if not self.ranks[lab][name] then
+			Spring:Echo(name,'is UNRANKED in', lab)
+		end
+	end
+end
 
 local function scanLabs(units,lab)
 	local counter = 0
@@ -1028,7 +1453,7 @@ local function scanLabs(units,lab)
 -- 	Spring.Echo('maxmname',maxMunit)
 -- 	Spring.Echo('minmname',minMunit)
 --	Spring.Echo('scout',scout)
-	Spring.Echo(lab,'attacker',attacker,attackerR)
+	--Spring.Echo(lab,'attacker',attacker,attackerR)
 	_metal = _metal / counter
 	_energy = _energy / counter
 	_maxWeaponRange = _maxWeaponRange / counter
@@ -1148,6 +1573,9 @@ local function GetUnitTable()
 			utable.airRange = GetLongestWeaponRange(unitDefID, 1)
 			utable.submergedRange = GetLongestWeaponRange(unitDefID, 2)
 			utable.dps = getDPS(unitDefID)
+			utable.antiNuke = getInterceptor(unitDefID)
+			utable.paralyzer = getParalyzer(unitDefID)
+			Spring:Echo(unitDef.name,utable.antiNuke)
 			if unitDef.speed == 0 and utable.isWeapon then
 				utable.isTurret = true
 				if unitDef.modCategories.mine then
@@ -1209,6 +1637,10 @@ local function GetUnitTable()
 			utable.accel = unitDef.maxAcc
 			utable.move = unitDef.speed * unitDef.maxAcc * unitDef.turnRate * unitDef.maxDec
 			utable.hp = unitDef.health
+			utable.buildSpeed = unitDef.buildSpeed
+			utable.canAssist = unitDef.canAssist
+			utable.canCloak = unitDef.canCloak
+			utable.canResurrect = unitDef.canResurrect
 			if unitDef["minWaterDepth"] > 0 then
 				utable.needsWater = true
 			else
@@ -1310,14 +1742,54 @@ for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
 ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
 ArmyHST.featureTable = GetFeatureTable(ArmyHST.wrecks)
-for lab,t in pairs (ArmyHST.unitTable) do
-	if t.isFactory then
-		--scanLabs(t.unitsCanBuild,lab)
-		ArmyHST:getScouts(t.unitsCanBuild,lab)
--- 		ArmyHST:getAntiAir(t.unitsCanBuild,lab)
---	ArmyHST:getArtillery(t.unitsCanBuild,lab)
-ArmyHST:getRaiders(t.unitsCanBuild,lab)
 
+function ArmyHST:setRanks()
+	self.ranks = {}
+	for lab,t in pairs (self.unitTable) do
+		if t.isFactory then
+			self.ranks[lab] = {}
+			--scanLabs(t.unitsCanBuild,lab)
+
+			self:getSpy(t.unitsCanBuild,lab)
+			self:getSpiders(t.unitsCanBuild,lab)
+			self:getFreezer(t.unitsCanBuild,lab)
+			self:getBomberAir(t.unitsCanBuild,lab)
+			self:getFighterAir(t.unitsCanBuild,lab)
+			self:getAntiNuke(t.unitsCanBuild,lab)
+			self:getCrawlingBomb(t.unitsCanBuild,lab)
+			self:getTransport(t.unitsCanBuild,lab)
+			self:getCloakabe(t.unitsCanBuild,lab)
+			self:getJammer(t.unitsCanBuild,lab)
+			self:getRadar(t.unitsCanBuild,lab)
+			self:getScouts(t.unitsCanBuild,lab)
+			self:getAntiAir(t.unitsCanBuild,lab)
+			self:getTech(t.unitsCanBuild,lab)
+			self:getRez(t.unitsCanBuild,lab)
+			self:getMiner(t.unitsCanBuild,lab)
+			self:getWartech(t.unitsCanBuild,lab)
+			self:getEngineer(t.unitsCanBuild,lab)
+
+
+	-- self:getRaiders(t.unitsCanBuild,lab)
+
+
+			self:getSubK(t.unitsCanBuild,lab)
+			self:getArtillery(t.unitsCanBuild,lab)
+
+			self:getAmphibious(t.unitsCanBuild,lab)
+			self:getAntiAir(t.unitsCanBuild,lab)
+			self:getRaiders(t.unitsCanBuild,lab)
+			self:getBattle(t.unitsCanBuild,lab)
+			self:getBreak(t.unitsCanBuild,lab)
+			self:getLongRange(t.unitsCanBuild,lab)
+
+
+
+
+			self:getUnranked(t.unitsCanBuild,lab)
+
+
+		end
 	end
 end
 wrecks = nil
