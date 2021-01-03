@@ -149,6 +149,7 @@ local spGetWind = Spring.GetWind
 local RectRound = Spring.Utilities.RectRound
 local TexturedRectRound = Spring.Utilities.TexturedRectRound
 local UiElement = Spring.Utilities.UiElement
+local UiButton = Spring.Utilities.UiButton
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = spGetSpectatingState()

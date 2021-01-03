@@ -239,7 +239,7 @@ Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
 	local bgpadding = bgpadding or math.ceil(widgetSpaceMargin * 0.66 * vsy)
 	local glossMult = 1 + (2 - (opacity * 1.5))
-	local ui_tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
+	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
 	local bgtexSize = math.floor(bgpadding * bgtexScale)
 
@@ -271,8 +271,69 @@ Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	Spring.Utilities.RectRound(px, py, sx, py + ((sy-py)*0.75), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
 
 	-- tile
-	if ui_tileopacity > 0 then
-		gl.Color(1,1,1, ui_tileopacity)
+	if tileopacity > 0 then
+		gl.Color(1,1,1, tileopacity)
 		Spring.Utilities.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/vsx/bgtexSize, (py+pyPad)/vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
+	end
+end
+
+
+--[[
+	Button
+		draw a complete standardized ui element having: border, tiled background, gloss on top and bottom
+	params
+		px, py, sx, sy = left, bottom, right, top
+	optional
+		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
+		ptl, ptr, pbr, pbl = inner padding multiplier (default: 1) (set to 0 when you want to attach this ui element to another element so there is only padding done by one of the 2 elements)
+		opacity = (default: ui_opacity springsetting)
+		color1, color2 = (color1[4] alpha value overrides opacity define above)
+		bgpadding = custom border size
+]]
+Spring.Utilities.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+	local opacity = opacity or 1
+	local color1 = color1 or { 0, 0, 0, opacity}
+	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
+	local vsx, vsy = Spring.GetViewGeometry()
+	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
+	local bgpadding = bgpadding or math.ceil(widgetSpaceMargin * 0.44 * vsy)
+	local glossMult = 1 + (2 - (opacity * 1.5))
+
+	local tileopacity = 0
+	local bgtexScale = 1.9
+	local bgtexSize = math.floor(bgpadding * bgtexScale)
+
+	local tl = tl or 1
+	local tr = tr or 1
+	local br = br or 1
+	local bl = bl or 1
+
+	local pxPad = bgpadding * (px > 0 and 1 or 0) * (pbl or 1)
+	local pyPad = bgpadding * (py > 0 and 1 or 0) * (pbr or 1)
+	local sxPad = bgpadding * (sx < vsx and 1 or 0) * (ptr or 1)
+	local syPad = bgpadding * (sy < vsy and 1 or 0) * (ptl or 1)
+
+	-- background
+	gl.Texture(false)
+	Spring.Utilities.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
+	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+
+	-- gloss
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	local glossHeight = math.floor(0.02 * vsy * ui_scale)
+	Spring.Utilities.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
+	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.035 * glossMult }, { 1 ,1 ,1 , 0 })
+
+	--Spring.Utilities.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+	-- darkening bottom
+	Spring.Utilities.RectRound(px, py, sx, py + ((sy-py)*0.75), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+
+	-- tile
+	if tileopacity > 0 then
+		gl.Color(1,1,1, tileopacity)
+		Spring.Utilities.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/vsx/bgtexSize, (py+pyPad)/vsy/bgtexSize, "LuaUI/Images/vr_grid.png")
 	end
 end

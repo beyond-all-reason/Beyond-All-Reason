@@ -169,14 +169,14 @@ function widget:Initialize()
 	end
 	WG['widgetselector'] = {}
 	WG['widgetselector'].toggle = function(state)
-		if state ~= nil then
-			show = state
-		else
-			show = not show
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
 		end
-		if show and WG['topbar'] then
+		if newShow and WG['topbar'] then
 			WG['topbar'].hideWindows()
 		end
+		show = newShow
 	end
 	WG['widgetselector'].isvisible = function()
 		return show
@@ -331,7 +331,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
 
 		local newShow = not show
-		if WG['topbar'] then
+		if newShow and WG['topbar'] then
 			WG['topbar'].hideWindows()
 		end
 		show = newShow

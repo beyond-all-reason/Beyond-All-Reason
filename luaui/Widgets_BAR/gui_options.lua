@@ -5430,11 +5430,14 @@ function widget:Initialize()
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
-		if state ~= nil then
-			show = state
-		else
-			show = not show
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
 		end
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
 	end
 	WG['options'].isvisible = function()
 		return show
@@ -5497,7 +5500,11 @@ end
 local lastOptionCommand = 0
 function widget:TextCommand(command)
 	if string.find(command, "options", nil, true) == 1 and string.len(command) == 7 then
-		show = not show
+		local newShow = not show
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
 	end
 	if os_clock() > lastOptionCommand + 1 and string.sub(command, 1, 7) == "option " then
 		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)

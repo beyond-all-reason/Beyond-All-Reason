@@ -439,7 +439,9 @@ end
 
 function toggle()
 	local newShow = not show
-	WG['topbar'].hideWindows()
+	if newShow and WG['topbar'] then
+		WG['topbar'].hideWindows()
+	end
 	show = newShow
 end
 
@@ -499,14 +501,14 @@ function widget:Initialize()
 
 	WG['gameinfo'] = {}
 	WG['gameinfo'].toggle = function(state)
-		if state ~= nil then
-			show = state
-		else
-			show = not show
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
 		end
-		if show and WG['topbar'] then
+		if newShow and WG['topbar'] then
 			WG['topbar'].hideWindows()
 		end
+		show = newShow
 	end
 	WG['gameinfo'].isvisible = function()
 		return show
