@@ -167,6 +167,20 @@ function widget:Initialize()
 	if Spring.GetGameFrame() <= 0 then
 		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
 	end
+	WG['widgetselector'] = {}
+	WG['widgetselector'].toggle = function(state)
+		if state ~= nil then
+			show = state
+		else
+			show = not show
+		end
+		if show and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+	end
+	WG['widgetselector'].isvisible = function()
+		return show
+	end
 end
 
 
@@ -315,7 +329,12 @@ function widget:KeyPress(key, mods, isRepeat)
 	if show and key == KEYSYMS.ESCAPE or
 		(key == KEYSYMS.F11 and not isRepeat and
 			not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
-		show = not show
+
+		local newShow = not show
+		if WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
 		return true
 	end
 	if show and key == KEYSYMS.PAGEUP then

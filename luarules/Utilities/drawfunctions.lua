@@ -135,7 +135,7 @@ end
 	optional
 		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
 		size = texture tile size
-		offset, offsetY = texture offset coordinates
+		offset, offsetY = texture offset coordinates (offsetY=offset when offsetY isnt defined)
 		texture = file location
 ]]
 Spring.Utilities.TexturedRectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,  size, offset, offsetY,  texture)

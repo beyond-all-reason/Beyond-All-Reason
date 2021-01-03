@@ -1777,6 +1777,10 @@ local function hideWindows()
 		WG['teamstats'].toggle(false)
 		closedWindow = true
 	end
+	if WG['widgetselector'] ~= nil and WG['widgetselector'].isvisible() then
+		WG['widgetselector'].toggle(false)
+		closedWindow = true
+	end
 	if showQuitscreen then
 		closedWindow = true
 	end
@@ -2086,6 +2090,9 @@ function widget:Initialize()
 	end
 	WG['topbar'].showingQuit = function()
 		return (showQuitscreen ~= nil)
+	end
+	WG['topbar'].hideWindows = function()
+		hideWindows()
 	end
 
 	if WG['lang'] then
