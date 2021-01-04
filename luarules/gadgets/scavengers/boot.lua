@@ -854,13 +854,13 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
+	if unitTeam ~= GaiaTeamID and allyTeam == GaiaTeamID then
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
+	if unitTeam ~= GaiaTeamID and allyTeam == GaiaTeamID then
 		if UnitDefs[unitDefID].canMove == true then
 			MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 		end

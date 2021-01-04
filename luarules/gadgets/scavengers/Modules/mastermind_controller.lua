@@ -29,7 +29,7 @@ function MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitD
 	local unitName = UnitDefs[unitDefID].name
 	MastermindKnownTarget = false
 	for i = 1,#PriorityTargetsUnitsList do
-		if #MastermindPriorityTargets == 0 or MastermindKnownTarget = true then
+		if #MastermindPriorityTargets == 0 or MastermindKnownTarget == true then
 			break
 		elseif unitName == PriorityTargetsUnitsList[i] then
 			for y = 1,#MastermindPriorityTargets do
