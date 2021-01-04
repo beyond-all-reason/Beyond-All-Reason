@@ -428,11 +428,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	local UnitName = UnitDefs[unitDefID].name
 	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
-		if UnitDefs[unitDefID].canMove == true then
-			MasterMindTargetListUnitSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
-		else
-			MasterMindTargetListBuildingSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
-		end
+		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitTeam == GaiaTeamID then
 
@@ -502,11 +498,7 @@ end
 function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 	local UnitName = UnitDefs[unitDefID].name
 	if unitNewTeam == GaiaTeamID and unitOldTeam ~= GaiaTeamID then
-		if UnitDefs[unitDefID].canMove == true then
-			MasterMindTargetListUnitDead(unitID, unitTeam, unitEnteredTeam, unitDefID)
-		else
-			MasterMindTargetListBuildingDead(unitID, unitTeam, unitEnteredTeam, unitDefID)
-		end
+		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitOldTeam == GaiaTeamID then
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
@@ -863,18 +855,14 @@ end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
-		if UnitDefs[unitDefID].canMove == true then
-			MasterMindTargetListUnitSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
-		else
-			MasterMindTargetListBuildingSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
-		end
+		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
 		if UnitDefs[unitDefID].canMove == true then
-			MasterMindTargetListUnitGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
+			MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 		end
 	end
 end
