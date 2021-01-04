@@ -104,12 +104,13 @@ for key, value in pairs(modoptions) do
 	end
 end
 
-local bgMargin = 6
 
-local screenHeight = 520 - bgMargin - bgMargin
-local screenWidth = 430 - bgMargin - bgMargin
+local screenHeightOrg = 540
+local screenWidthOrg = 540
+local screenHeight = screenHeightOrg
+local screenWidth = screenWidthOrg
 
-local textareaMinLines = 10        -- wont scroll down more, will show at least this amount of lines
+local textareaMinLines = 15        -- wont scroll down more, will show at least this amount of lines
 
 local customScale = 1.1
 
@@ -120,14 +121,6 @@ local screenX = (vsx * 0.5) - (screenWidth / 2)
 local screenY = (vsy * 0.5) + (screenHeight / 2)
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local showHelp = false
-
-local glColor = gl.Color
-local glLineWidth = gl.LineWidth
-local glPolygonMode = gl.PolygonMode
-local glRect = gl.Rect
-local glText = gl.Text
-local glShape = gl.Shape
 
 local bgColorMultiplier = 0
 
@@ -135,30 +128,27 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
-local glScale = gl.Scale
-
-local GL_FILL = GL.FILL
-local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
-local GL_LINE_STRIP = GL.LINE_STRIP
-
 local widgetScale = 1
-local vsx, vsy = Spring.GetViewGeometry()
 
 local fileLines = {}
 local totalFileLines = 0
+local bgpadding
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	screenX = (vsx * 0.5) - (screenWidth / 2)
-	screenY = (vsy * 0.5) + (screenHeight / 2)
 	widgetScale = ((vsx + vsy) / 2000) * 0.65    --(0.5 + (vsx*vsy / 5700000)) * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
 
+	screenHeight = math.floor(screenHeightOrg * widgetScale)
+	screenWidth = math.floor(screenWidthOrg * widgetScale)
+
+	screenX = math.floor((vsx * 0.5) - (screenWidth / 2))
+	screenY = math.floor((vsy * 0.5) + (screenHeight / 2))
+
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
+
+	bgpadding = Spring.FlowUI.elementPadding
 
 	if mainDList then
 		gl.DeleteList(mainDList)
@@ -171,22 +161,23 @@ local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local showOnceMore = false        -- used because of GUI shader delay
 
-local RectRound = Spring.Utilities.RectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 function DrawTextarea(x, y, width, height, scrollbar)
 	local scrollbarOffsetTop = 0    -- note: wont add the offset to the bottom, only to top
 	local scrollbarOffsetBottom = 0    -- note: wont add the offset to the top, only to bottom
-	local scrollbarMargin = 10
-	local scrollbarWidth = 8
-	local scrollbarPosWidth = 4
-	local scrollbarPosMinHeight = 8
+	local scrollbarMargin = 14 * widgetScale
+	local scrollbarWidth = 8 * widgetScale
+	local scrollbarPosWidth = 4 * widgetScale
+	local scrollbarPosMinHeight = 8 * widgetScale
 	local scrollbarBackgroundColor = { 0, 0, 0, 0.24 }
 	local scrollbarBarColor = { 1, 1, 1, 0.15 }
 
-	local fontSizeTitle = 18        -- is version number
-	local fontSizeDate = 14
-	local fontSizeLine = 16
-	local lineSeparator = 2
+	local fontSizeTitle = 18 * widgetScale
+	local fontSizeDate = 14 * widgetScale
+	local fontSizeLine = 16 * widgetScale
+	local lineSeparator = 2 * widgetScale
 
 	local fontColorTitle = { 1, 1, 1, 1 }
 	local fontColorDate = { 0.66, 0.88, 0.66, 1 }
@@ -200,8 +191,8 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	if scrollbar then
 		if totalFileLines > maxLines or startLine > 1 then
 			-- only show scroll above X lines
-			local scrollbarTop = y - scrollbarOffsetTop - scrollbarMargin - (scrollbarWidth - scrollbarPosWidth)
-			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin + (scrollbarWidth - scrollbarPosWidth)
+			local scrollbarTop = y - scrollbarOffsetTop - scrollbarMargin
+			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin
 			local scrollbarPosHeight = math.max(((height - scrollbarMargin - scrollbarMargin) / totalFileLines) * ((height - scrollbarMargin - scrollbarMargin) / 25), scrollbarPosMinHeight)
 			if scrollbarPosHeight > scrollbarTop - scrollbarBottom then
 				scrollbarPosHeight = scrollbarTop - scrollbarBottom
@@ -217,7 +208,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				x + width - scrollbarMargin,
 				scrollbarTop + (scrollbarWidth - scrollbarPosWidth),
 				scrollbarWidth / 2.5
-			, 1, 1, 1, 1,
+				, 1, 1, 1, 1,
 				{ scrollbarBackgroundColor[1], scrollbarBackgroundColor[2], scrollbarBackgroundColor[3], scrollbarBackgroundColor[4] * 0.66 },
 				{ scrollbarBackgroundColor[1], scrollbarBackgroundColor[2], scrollbarBackgroundColor[3], scrollbarBackgroundColor[4] * 1.25 }
 			)
@@ -258,10 +249,10 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				end
 
 				font:SetTextColor(fontColorCommand)
-				font:Print(cmd, x + 20, y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
+				font:Print(cmd, x + (18*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 
 				font:SetTextColor(fontColorLine)
-				font:Print(descr, x + 250, y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
+				font:Print(descr, x + (screenWidth*0.47), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			else
 				-- line
@@ -271,7 +262,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
 					break ;
 				end
-				font:Print(line, x + 10, y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
+				font:Print(line, x + (18*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
 
@@ -284,28 +275,26 @@ end
 
 function DrawWindow()
 	local vsx, vsy = Spring.GetViewGeometry()
-	local x = screenX --rightwards
-	local y = screenY --upwards
-
-	-- background
-	RectRound(x - bgMargin, y - screenHeight - bgMargin, x + screenWidth + bgMargin, y + bgMargin, 8, 0, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-	-- content area
-	RectRound(x, y - screenHeight, x + screenWidth, y, 5.5, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 	-- title
-	local title = texts.title
-	local titleFontSize = 18
-	gl.Color(0, 0, 0, 0.8)
-	titleRect = { x - bgMargin, y + bgMargin, x + (font2:GetTextWidth(title) * titleFontSize) + 27 - bgMargin, y + 37 }
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1, 1, 0, 0)
+	local titleFontSize = 18 * widgetScale
+	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+
+	--UiElement(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 1, 1, 0, 0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2, {0.05,0.15,0,Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2})
+
+	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(title, x - bgMargin + (titleFontSize * 0.75), y + bgMargin + 8, titleFontSize, "on")
+	font2:Print(texts.title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
 
 	-- textarea
-	DrawTextarea(x, y - 10, screenWidth, screenHeight - 24, 1)
+	DrawTextarea(screenX, screenY - (8 * widgetScale), screenWidth, screenHeight - (24 * widgetScale), 1)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -333,28 +322,16 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 
 		-- draw the panel
-		glPushMatrix()
-		glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-		glScale(widgetScale, widgetScale, 1)
 		glCallList(mainDList)
-		glPopMatrix()
 		if WG['guishader'] then
-			local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-			local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = glCreateList(function()
 				-- background
-				RectRound(rectX1, rectY2, rectX2, rectY1, 8 * widgetScale, 0, 1, 1, 1)
+				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, bgpadding * 1.6, 0, 1, 1, 1)
 				-- title
-				rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-				rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-				rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-				RectRound(rectX1, rectY1, rectX2, rectY2, 9 * widgetScale, 1, 1, 0, 0)
+				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'gameinfo')
 		end
@@ -406,12 +383,7 @@ end
 
 function widget:MouseMove(x, y)
 	if show then
-		-- on window
-		local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		if not IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+		if not IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 
 		end
 	end
@@ -432,11 +404,7 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			if button == 1 or button == 3 then
 				if button == 3 and release then
 					show = not show
@@ -463,32 +431,13 @@ function lines(str)
 	return t
 end
 
-local function hideWindows()
-	if WG['options'] ~= nil then
-		WG['options'].toggle(false)
-	end
-	if WG['changelog'] ~= nil then
-		WG['changelog'].toggle(false)
-	end
-	if WG['keybinds'] ~= nil then
-		WG['keybinds'].toggle(false)
-	end
-	if WG['commands'] ~= nil then
-		WG['commands'].toggle(false)
-	end
-	if WG['teamstats'] ~= nil then
-		WG['teamstats'].toggle(false)
-	end
-	if WG['scavengerinfo'] ~= nil then
-		WG['scavengerinfo'].toggle(false)
-	end
-end
 
 function toggle()
-	show = not show
-	if show then
-		hideWindows()
+	local newShow = not show
+	if newShow and WG['topbar'] then
+		WG['topbar'].hideWindows()
 	end
+	show = newShow
 end
 
 function widget:Initialize()
@@ -547,14 +496,14 @@ function widget:Initialize()
 
 	WG['gameinfo'] = {}
 	WG['gameinfo'].toggle = function(state)
-		if state ~= nil then
-			show = state
-		else
-			show = not show
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
 		end
-		if show then
-			hideWindows()
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
 		end
+		show = newShow
 	end
 	WG['gameinfo'].isvisible = function()
 		return show

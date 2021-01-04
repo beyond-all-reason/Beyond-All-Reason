@@ -551,8 +551,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 
 local numPlayers = 0
 local scavengersAIEnabled = false
@@ -5430,11 +5430,14 @@ function widget:Initialize()
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
-		if state ~= nil then
-			show = state
-		else
-			show = not show
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
 		end
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
 	end
 	WG['options'].isvisible = function()
 		return show
@@ -5497,7 +5500,11 @@ end
 local lastOptionCommand = 0
 function widget:TextCommand(command)
 	if string.find(command, "options", nil, true) == 1 and string.len(command) == 7 then
-		show = not show
+		local newShow = not show
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
 	end
 	if os_clock() > lastOptionCommand + 1 and string.sub(command, 1, 7) == "option " then
 		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)

@@ -171,8 +171,7 @@ local xOffset = (32 + (fontSize*0.9))*widgetScale
 local yOffset = -((32 - (fontSize*0.9))*widgetScale)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
-local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+local bgpadding = Spring.FlowUI.elementPadding
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -257,8 +256,8 @@ end
 -- Functions
 ------------------------------------------------------------------------------------
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
 	local csyMult = 1 / ((sy - py) / cs)
@@ -489,8 +488,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
 
-	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	font = WG['fonts'].getFont(fontfile)
 

@@ -231,9 +231,9 @@ local math_max = math.max
 local math_ceil = math.ceil
 local math_floor = math.floor
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local isSpec = Spring.GetSpectatingState()
 local cursorTextures = {}
@@ -393,28 +393,26 @@ function widget:ViewResize()
 	end
 
 	font2 = WG['fonts'].getFont(fontFile)
-	local widgetSpaceMargin
+
+	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
-		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
-		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
+		bgpadding = Spring.FlowUI.elementPadding
 
 		posY = height
-		posX = width + widgetSpaceMargin
+		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPos then
-			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			bgpadding = Spring.FlowUI.elementPadding
 			posX = 0
-			posY = height + height + widgetSpaceMargin
+			posY = height + height + (widgetSpaceMargin/vsy)
 		else
-			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			bgpadding = Spring.FlowUI.elementPadding
 			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + widgetSpaceMargin
+			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
 			end
 			posX = 0
 		end

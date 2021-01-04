@@ -119,8 +119,8 @@ local currentTidal = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
 
-local widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
-local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+local widgetSpaceMargin = Spring.FlowUI.elementMargin
+local bgpadding = Spring.FlowUI.elementPadding
 
 local glTranslate = gl.Translate
 local glColor = gl.Color
@@ -146,9 +146,10 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = spGetSpectatingState()
@@ -263,8 +264,9 @@ function widget:ViewResize()
 	widgetScale = widgetScale * ui_scale
 	xPos = math_floor(vsx * relXpos)
 
-	widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	widgetSpaceMargin = Spring.FlowUI.elementMargin
+	bgpadding = Spring.FlowUI.elementPadding
+
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale
 
@@ -1777,6 +1779,10 @@ local function hideWindows()
 		WG['teamstats'].toggle(false)
 		closedWindow = true
 	end
+	if WG['widgetselector'] ~= nil and WG['widgetselector'].isvisible() then
+		WG['widgetselector'].toggle(false)
+		closedWindow = true
+	end
 	if showQuitscreen then
 		closedWindow = true
 	end
@@ -2086,6 +2092,9 @@ function widget:Initialize()
 	end
 	WG['topbar'].showingQuit = function()
 		return (showQuitscreen ~= nil)
+	end
+	WG['topbar'].hideWindows = function()
+		hideWindows()
 	end
 
 	if WG['lang'] then

@@ -40,8 +40,8 @@ local spGetCameraState = Spring.GetCameraState
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
 
@@ -83,8 +83,7 @@ function widget:ViewResize()
 	usedWidth = math.floor(maxWidth * vsy)
 	usedHeight = math.floor(maxHeight * vsy)
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 

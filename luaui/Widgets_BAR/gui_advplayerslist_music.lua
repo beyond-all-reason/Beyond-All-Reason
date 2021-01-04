@@ -105,8 +105,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local guishaderEnabled = (WG['guishader'] ~= nil)
 
@@ -699,8 +699,7 @@ function widget:ViewResize(newX,newY)
 
 	font = WG['fonts'].getFont()
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

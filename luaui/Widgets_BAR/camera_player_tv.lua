@@ -171,8 +171,8 @@ function createCountdownLists()
 	--end
 end
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 
 function createList()
 	for i = 1, #drawlist do
@@ -473,8 +473,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)

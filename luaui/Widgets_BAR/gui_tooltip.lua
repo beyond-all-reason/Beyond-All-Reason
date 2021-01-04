@@ -48,6 +48,7 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 
 local widgetScale = 1
 local usedFontSize = cfgFontSize
+local bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -63,8 +64,8 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetTooltip = Spring.GetCurrentTooltip
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -149,6 +150,8 @@ function widget:ViewResize(x, y)
 
 	font = WG['fonts'].getFont(fontfile)
 
+	bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
+
 	init()
 end
 
@@ -197,7 +200,7 @@ function drawTooltip(name, x, y)
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
 
-	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.66, 0.66, 0.66, (WG['guishader'] and 0.73 or 0.94)}, {0.1, 0.1, 0.1, (WG['guishader'] and 0.55 or 0.66)})
+	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.75, 0.75, 0.75, (WG['guishader'] and 0.7 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.5 or 0.55)}, bgpadding)
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist(gl.CreateList(function()
 			RectRound(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 3.3 * widgetScale)

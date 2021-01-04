@@ -46,8 +46,8 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local totalBuilders = 0
 local builders = {}
@@ -126,8 +126,7 @@ function widget:ViewResize()
 		checkGuishader(true)
 		clear()
 	end
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 end
 
 function widget:Initialize()

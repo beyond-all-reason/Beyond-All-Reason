@@ -33,7 +33,7 @@ local dlistPosY = windowPosY
 
 local font, applyButtonPos, windowList, changeClock, escape, applyChanges, draggingStartX, draggingStartY, chobbyInterface, dragging
 
-local RectRound = Spring.Utilities.RectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
 
 function DrawWindow()
 	dlistPosX = windowPosX

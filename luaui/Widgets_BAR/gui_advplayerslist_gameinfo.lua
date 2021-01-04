@@ -55,8 +55,8 @@ local uiOpacitySec = 0.5
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -207,8 +207,7 @@ function widget:ViewResize(newX,newY)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		updateValues()

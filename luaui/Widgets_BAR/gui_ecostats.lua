@@ -65,8 +65,8 @@ local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local font, bgpadding, chobbyInterface, sideImageList
 
@@ -1355,8 +1355,7 @@ function widget:ViewResize()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (((vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
 
-	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	font = WG['fonts'].getFont()
 

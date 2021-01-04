@@ -35,7 +35,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.Utilities.RectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
 
 local chobbyInterface, font, backgroundGuishader, buttonsList, speedButtonsList, buttonlist, active_button, bgpadding
 
@@ -262,8 +262,7 @@ function widget:ViewResize()
 	widgetScale = (0.5 + (vsx * vsy / 5700000))
 	sceduleUpdate = true
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	font = WG['fonts'].getFont(fontfile2)
 end

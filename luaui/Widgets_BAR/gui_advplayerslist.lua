@@ -143,8 +143,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -270,8 +270,7 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
-local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-local bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+local bgpadding = Spring.FlowUI.elementPadding
 
 local playSounds = true
 local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
@@ -4149,8 +4148,7 @@ function widget:ViewResize()
     font = WG['fonts'].getFont()
     font2 = WG['fonts'].getFont(fontfile2)
 
-    local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-    bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+    bgpadding = Spring.FlowUI.elementPadding
 	bgtexSize = bgpadding * bgtexScale
 
     updateWidgetScale()

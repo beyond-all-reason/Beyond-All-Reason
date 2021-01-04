@@ -40,11 +40,6 @@ local showButtons = false
 include("keysym.h.lua")
 include("fonts.lua")
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local WhiteStr = "\255\255\255\255"
 local RedStr = "\255\255\001\001"
 local GreenStr = "\255\001\255\001"
@@ -113,8 +108,8 @@ local scrollbargrabpos = 0.0
 local show = false
 local pagestepped = false
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local chobbyInterface, widgetScale, dlistGuishader, lastStart, receivedTexts
 
@@ -166,6 +161,20 @@ function widget:Initialize()
 
 	if Spring.GetGameFrame() <= 0 then
 		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
+	end
+	WG['widgetselector'] = {}
+	WG['widgetselector'].toggle = function(state)
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
+		end
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
+	end
+	WG['widgetselector'].isvisible = function()
+		return show
 	end
 end
 
@@ -298,11 +307,6 @@ function widget:ViewResize(n_vsx, n_vsy)
 	font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 	font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-	local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-	local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-	bgtexSize = bgpadding * bgtexScale
-
 	sizeMultiplier = 0.66 + (vsx * vsy / 6500000) * customScale
 
 	UpdateGeometry()
@@ -315,7 +319,12 @@ function widget:KeyPress(key, mods, isRepeat)
 	if show and key == KEYSYMS.ESCAPE or
 		(key == KEYSYMS.F11 and not isRepeat and
 			not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
-		show = not show
+
+		local newShow = not show
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
 		return true
 	end
 	if show and key == KEYSYMS.PAGEUP then
