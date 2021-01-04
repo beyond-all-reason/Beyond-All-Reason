@@ -40,11 +40,6 @@ local showButtons = false
 include("keysym.h.lua")
 include("fonts.lua")
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local WhiteStr = "\255\255\255\255"
 local RedStr = "\255\255\001\001"
 local GreenStr = "\255\001\255\001"
@@ -311,11 +306,6 @@ function widget:ViewResize(n_vsx, n_vsy)
 	local fontfileScale = widgetScale
 	font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 	font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-
-	local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-	local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-	bgtexSize = bgpadding * bgtexScale
 
 	sizeMultiplier = 0.66 + (vsx * vsy / 6500000) * customScale
 

@@ -192,7 +192,7 @@ local glDepthTest = gl.DepthTest
 --local glRenderToTexture = gl.RenderToTexture
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local DrawUnit = Spring.FlowUI.Draw.Unit
 local UiElement = Spring.FlowUI.Draw.Element
 
 function table_invert(t)
@@ -662,45 +662,6 @@ local function RectRoundProgress(left, bottom, right, top, cs, progress, color)
 	glColor(1, 1, 1, 1)
 end
 
-local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	if not color2 then
-		color2 = color1
-	end
-	--centerOffset = 0
-	local coords = {
-		{ x - radius + cs, z + radius, y }, -- top left
-		{ x + radius - cs, z + radius, y }, -- top right
-		{ x + radius, z + radius - cs, y }, -- right top
-		{ x + radius, z - radius + cs, y }, -- right bottom
-		{ x + radius - cs, z - radius, y }, -- bottom right
-		{ x - radius + cs, z - radius, y }, -- bottom left
-		{ x - radius, z - radius + cs, y }, -- left bottom
-		{ x - radius, z + radius - cs, y }, -- left top
-	}
-	local cs2 = cs * (centerOffset / radius)
-	local coords2 = {
-		{ x - centerOffset + cs2, z + centerOffset, y }, -- top left
-		{ x + centerOffset - cs2, z + centerOffset, y }, -- top right
-		{ x + centerOffset, z + centerOffset - cs2, y }, -- right top
-		{ x + centerOffset, z - centerOffset + cs2, y }, -- right bottom
-		{ x + centerOffset - cs2, z - centerOffset, y }, -- bottom right
-		{ x - centerOffset + cs2, z - centerOffset, y }, -- bottom left
-		{ x - centerOffset, z - centerOffset + cs2, y }, -- left bottom
-		{ x - centerOffset, z + centerOffset - cs2, y }, -- left top
-	}
-	for i = 1, 8 do
-		local i2 = (i >= 8 and 1 or i + 1)
-		glColor(color2)
-		glVertex(coords[i][1], coords[i][2], coords[i][3])
-		glVertex(coords[i2][1], coords[i2][2], coords[i2][3])
-		glColor(color1)
-		glVertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
-		glVertex(coords2[i][1], coords2[i][2], coords2[i][3])
-	end
-end
-local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	glBeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
-end
 
 local function DrawCircle(x, y, z, radius, sides, color1, color2)
 	if not color2 then
@@ -733,76 +694,6 @@ local function RectQuad(px, py, sx, sy, offset)
 end
 function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
@@ -892,8 +783,8 @@ function widget:ViewResize()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
-	local widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
+	local widgetSpaceMargin = Spring.FlowUI.elementMargin
+	bgpadding = Spring.FlowUI.elementPadding
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale
 
@@ -902,8 +793,8 @@ function widget:ViewResize()
 	if stickToBottom then
 		posY = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = 0
-		posX = math_floor((ordermenuLeft+widgetSpaceMargin)*vsx)
-		posX2 = advplayerlistLeft - (widgetSpaceMargin*vsx)
+		posX = math_floor(ordermenuLeft+widgetSpaceMargin)
+		posX2 = advplayerlistLeft - widgetSpaceMargin
 		width = posX2 - posX
 		height = posY
 		minColls = math_max(8, math_floor((width/vsx)*25))
@@ -911,7 +802,7 @@ function widget:ViewResize()
 	else
 		posY = 0.606
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = posY2 + ((widgetSpaceMargin*vsx)/vsy)
+		posY2 = posY2 + (widgetSpaceMargin/vsy)
 		posX = 0
 		minColls = 4
 		maxColls = 5
@@ -919,7 +810,7 @@ function widget:ViewResize()
 		if minimapEnlarged then
 			posY = math_max(0.4615, (vsy - minimapHeight) / vsy) - 0.0064
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - ((widgetSpaceMargin*vsx)/vsy)
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
 				if posY > maxPosY then
 					posY = maxPosY
 				end
@@ -928,7 +819,7 @@ function widget:ViewResize()
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if oposY > 0.5 then
-					posY = oposY - oheight - ((widgetSpaceMargin*vsx)/vsy)
+					posY = oposY - oheight - (widgetSpaceMargin/vsy)
 				end
 			end
 		end
@@ -1206,15 +1097,20 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	-- unit icon
 	glColor(1, 1, 1, 1)
 	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
-	glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
+	--glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
 	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
-	TexRectRound(
+	DrawUnit(
 		cellRects[cellRectID][1] + cellPadding + iconPadding,
 		cellRects[cellRectID][2] + cellPadding + iconPadding,
 		cellRects[cellRectID][3] - cellPadding - iconPadding,
 		cellRects[cellRectID][4] - cellPadding - iconPadding,
 		cornerSize, 2, 2, 2, 2,
-		usedZoom
+		usedZoom,
+		nil, nil,
+		 ':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
+		':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]],
+		groups[unitGroup[uDefID]],
+		{unitMetalCost[uDefID], unitEnergyCost[uDefID]}
 	)
 
 	-- colorize/highlight unit icon
@@ -1222,7 +1118,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
-		TexRectRound(
+		DrawUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
 			cellRects[cellRectID][3] - cellPadding - iconPadding,
@@ -1232,7 +1128,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		)
 		if cellColor[4] > 0 then
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			TexRectRound(
+			DrawUnit(
 				cellRects[cellRectID][1] + cellPadding + iconPadding,
 				cellRects[cellRectID][2] + cellPadding + iconPadding,
 				cellRects[cellRectID][3] - cellPadding - iconPadding,
@@ -1245,71 +1141,24 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	end
 	glTexture(false)
 
-	-- make fancy
-	if makeFancy then
-		-- lighten top
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		-- glossy half
-		--RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.66), cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 2, 2, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-		-- extra darken gradually
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 0, 0, 2, 2, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
-	end
-
-	-- darken price background gradually
-	if showPrice or makeFancy then
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding + (cellInnerSize * 0.415), cornerSize, 0, 0, 2, 2, { 0, 0, 0, (makeFancy and 0.2 or 0.27) }, { 0, 0, 0, 0 })
-	end
-
 	-- lighten cell edges
-	if highlightColor then
-		local halfSize = (((cellRects[cellRectID][3] - cellPadding - iconPadding)) - (cellRects[cellRectID][1] + cellPadding + iconPadding)) * 0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-			0,
-			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.5, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, { highlightColor[1], highlightColor[2], highlightColor[3], highlightColor[4] * 0.75 }
-		)
-		RectRoundCircle(
-			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-			0,
-			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.82, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, highlightColor
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- lighten border
-	if iconBorderOpacity > 0 then
-		local halfSize = (((cellRects[cellRectID][3] - cellPadding - iconPadding)) - (cellRects[cellRectID][1] + cellPadding + iconPadding)) * 0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-			0,
-			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize - math_max(1, math_floor(halfSize * 0.045)), { 1, 1, 1, edgeAlpha and edgeAlpha or iconBorderOpacity }, { 1, 1, 1, edgeAlpha and edgeAlpha or iconBorderOpacity }
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- group icon
-	if showGroupIcon and unitGroup[uDefID] then
-		glColor(1, 1, 1, 0.9)
-		glTexture(groups[unitGroup[uDefID]])
-		glTexRect(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-groupiconSize-iconPadding, cellRects[cellRectID][1] + groupiconSize + iconPadding, cellRects[cellRectID][4]-iconPadding)
-		glTexture(false)
-	end
-
-	-- radar icon
-	if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
-		glColor(1, 1, 1, 0.9)
-		glTexture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]])
-		glTexRect(cellRects[cellRectID][3] - radariconOffset - radariconSize, cellRects[cellRectID][2] + radariconOffset, cellRects[cellRectID][3] - radariconOffset, cellRects[cellRectID][2] + radariconOffset + radariconSize)
-		glTexture(false)
-	end
+	--if highlightColor then
+	--	local halfSize = (((cellRects[cellRectID][3] - cellPadding - iconPadding)) - (cellRects[cellRectID][1] + cellPadding + iconPadding)) * 0.5
+	--	glBlending(GL_SRC_ALPHA, GL_ONE)
+	--	Spring.FlowUI.Draw.RectRoundCircle(
+	--		cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
+	--		0,
+	--		cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
+	--		halfSize, cornerSize, halfSize * 0.5, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, { highlightColor[1], highlightColor[2], highlightColor[3], highlightColor[4] * 0.75 }
+	--	)
+	--	Spring.FlowUI.Draw.RectRoundCircle(
+	--		cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
+	--		0,
+	--		cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
+	--		halfSize, cornerSize, halfSize * 0.82, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, highlightColor
+	--	)
+	--	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	--end
 
 	-- price
 	if showPrice then
@@ -1499,14 +1348,6 @@ function drawBuildmenu()
 		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
 		RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
 		RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
-
-		if buttonBgtexOpacity > 0 then
-			gl.Texture(buttonBackgroundTexture)
-			gl.Color(1,1,1, buttonBgtexOpacity)
-			TexturedRectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, buttonBgtexSize, 0)
-			TexturedRectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, buttonBgtexSize, 0)
-			gl.Texture(false)
-		end
 
 		-- glossy half
 		glBlending(GL_SRC_ALPHA, GL_ONE)

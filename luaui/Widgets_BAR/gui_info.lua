@@ -423,8 +423,7 @@ function widget:ViewResize()
 	height = math_floor(height * vsy) / vsy
 	width = math_floor(width * vsx) / vsx
 
-	local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	backgroundRect = { 0, 0, (width - addonWidth) * vsx, height * vsy }
 

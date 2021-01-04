@@ -126,8 +126,7 @@ function widget:ViewResize()
 		checkGuishader(true)
 		clear()
 	end
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 end
 
 function widget:Initialize()

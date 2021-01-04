@@ -48,6 +48,7 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 
 local widgetScale = 1
 local usedFontSize = cfgFontSize
+local bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -149,8 +150,7 @@ function widget:ViewResize(x, y)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	local widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.44)
+	bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
 
 	init()
 end

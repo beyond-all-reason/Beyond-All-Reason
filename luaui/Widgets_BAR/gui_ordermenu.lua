@@ -393,28 +393,26 @@ function widget:ViewResize()
 	end
 
 	font2 = WG['fonts'].getFont(fontFile)
-	local widgetSpaceMargin
+
+	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
-		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
-		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
+		bgpadding = Spring.FlowUI.elementPadding
 
 		posY = height
-		posX = width + widgetSpaceMargin
+		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPos then
-			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			bgpadding = Spring.FlowUI.elementPadding
 			posX = 0
-			posY = height + height + widgetSpaceMargin
+			posY = height + height + (widgetSpaceMargin/vsy)
 		else
-			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+			bgpadding = Spring.FlowUI.elementPadding
 			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + widgetSpaceMargin
+			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
 			end
 			posX = 0
 		end

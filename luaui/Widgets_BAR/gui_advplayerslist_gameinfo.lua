@@ -207,8 +207,7 @@ function widget:ViewResize(newX,newY)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		updateValues()
