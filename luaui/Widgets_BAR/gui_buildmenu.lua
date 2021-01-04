@@ -793,7 +793,7 @@ function widget:ViewResize()
 	if stickToBottom then
 		posY = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = 0
-		posX = math_floor(ordermenuLeft+widgetSpaceMargin)
+		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
 		posX2 = advplayerlistLeft - widgetSpaceMargin
 		width = posX2 - posX
 		height = posY
@@ -819,7 +819,7 @@ function widget:ViewResize()
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if oposY > 0.5 then
-					posY = oposY - oheight - (widgetSpaceMargin/vsy)
+					posY = oposY - oheight - ((widgetSpaceMargin*vsx)/vsy)
 				end
 			end
 		end
