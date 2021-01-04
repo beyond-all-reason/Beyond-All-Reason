@@ -191,9 +191,9 @@ local glDepthTest = gl.DepthTest
 --local glCopyToTexture = gl.CopyToTexture
 --local glRenderToTexture = gl.RenderToTexture
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 function table_invert(t)
 	local s = {}

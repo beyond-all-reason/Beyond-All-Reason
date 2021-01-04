@@ -122,7 +122,7 @@ local glLineWidth = gl.LineWidth
 local tan = math.tan
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 
-local RectRound = Spring.Utilities.RectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
 
 -------------------------------------------------------------------------------
 -- SOUNDS

@@ -529,8 +529,8 @@ local bgMargin = 2.5
 
 local readyButton, readyButtonHover
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()

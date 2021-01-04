@@ -231,9 +231,9 @@ local math_max = math.max
 local math_ceil = math.ceil
 local math_floor = math.floor
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local isSpec = Spring.GetSpectatingState()
 local cursorTextures = {}

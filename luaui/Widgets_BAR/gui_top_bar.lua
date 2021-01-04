@@ -146,10 +146,10 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
-local UiElement = Spring.Utilities.UiElement
-local UiButton = Spring.Utilities.UiButton
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = spGetSpectatingState()
@@ -266,6 +266,7 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = math_floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
 	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale
 

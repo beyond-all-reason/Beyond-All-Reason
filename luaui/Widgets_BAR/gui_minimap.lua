@@ -40,8 +40,8 @@ local spGetCameraState = Spring.GetCameraState
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
 

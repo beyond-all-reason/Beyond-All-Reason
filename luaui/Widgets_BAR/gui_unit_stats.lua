@@ -257,8 +257,8 @@ end
 -- Functions
 ------------------------------------------------------------------------------------
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
 	local csyMult = 1 / ((sy - py) / cs)

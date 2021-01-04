@@ -74,7 +74,7 @@ local GL_FILL = GL.FILL
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
-local RectRound = Spring.Utilities.RectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
 
 local widgetScale = 1
 

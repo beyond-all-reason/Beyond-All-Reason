@@ -65,8 +65,8 @@ local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local font, bgpadding, chobbyInterface, sideImageList
 

@@ -113,8 +113,8 @@ local scrollbargrabpos = 0.0
 local show = false
 local pagestepped = false
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local chobbyInterface, widgetScale, dlistGuishader, lastStart, receivedTexts
 

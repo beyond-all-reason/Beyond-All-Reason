@@ -61,7 +61,7 @@ local lineMaxWidth = 0
 
 local font, chobbyInterface, hovering, startFadeTime, dataRestored
 
-local RectRound = Spring.Utilities.RectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

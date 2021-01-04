@@ -51,8 +51,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 
 local voteDlist, chobbyInterface, font, font2, gameStarted, height, dlistGuishader
 local voteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea

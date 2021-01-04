@@ -46,8 +46,8 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local totalBuilders = 0
 local builders = {}

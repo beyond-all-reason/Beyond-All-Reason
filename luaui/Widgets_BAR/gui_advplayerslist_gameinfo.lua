@@ -55,8 +55,8 @@ local uiOpacitySec = 0.5
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

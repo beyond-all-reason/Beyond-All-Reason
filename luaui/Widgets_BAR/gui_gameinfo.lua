@@ -163,8 +163,8 @@ local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local showOnceMore = false        -- used because of GUI shader delay
 
-local RectRound = Spring.Utilities.RectRound
-local UiElement = Spring.Utilities.UiElement
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 function DrawTextarea(x, y, width, height, scrollbar)
 	local scrollbarOffsetTop = 0    -- note: wont add the offset to the bottom, only to top

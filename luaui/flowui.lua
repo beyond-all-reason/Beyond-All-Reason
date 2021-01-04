@@ -3,11 +3,42 @@ if SendToUnsynced then
 end
 
 --[[
-	Created these general draw functions to be available for use within gadgets and widgets.
-	made by: Floris, december 2020
+	FlowUI
+	created by: Floris, january 2021
+
+	Draw functions made available for use within gadgets and widgets.
+
+	Installation notes:
+	- add this file in your widget/gadget handler via VFS.Include("LuaUI/flowui.lua")
+	- add function calls to the various "Spring triggered callins (widget/gadget)" (like: Spring.FlowUI.ViewResize(vsx, vsy))
 ]]
 
-Spring.Utilities = Spring.Utilities or {}
+
+-- Setup
+Spring.FlowUI = Spring.FlowUI or {}
+Spring.FlowUI.version = 1
+
+Spring.FlowUI.Initialize = function()	-- (gets executed at the end of this file)
+	Spring.FlowUI.ViewResize(Spring.GetViewGeometry())
+end
+
+-- Spring triggered callins (widget/gadget)
+Spring.FlowUI.ViewResize = function(vsx, vsy)
+	if Spring.FlowUI.vsx and (Spring.FlowUI.vsx == vsx and Spring.FlowUI.vsy == vsy) then
+		return
+	end
+	Spring.FlowUI.vsx = vsx
+	Spring.FlowUI.vsy = vsy
+	Spring.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1)) / vsy
+	Spring.FlowUI.elementPadding = math.ceil(Spring.FlowUI.elementMargin * 0.66 * vsy)
+	Spring.FlowUI.buttonPadding = math.ceil(Spring.FlowUI.elementMargin * 0.44 * vsy)
+end
+Spring.FlowUI.Update = function(dt)
+
+end
+
+-- Draw functions
+Spring.FlowUI.Draw = {}
 
 --[[
 	RectRound
@@ -18,7 +49,7 @@ Spring.Utilities = Spring.Utilities or {}
 		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
 		c1, c2 = top color, bottom color
 ]]
-Spring.Utilities.RectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   c1, c2)
+Spring.FlowUI.Draw.RectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,   c1, c2)
 	-- RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2): Draw a rectangular shape with cut off edges
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
 	--  optional: c1,c2 for top-down color gradients
@@ -138,7 +169,7 @@ end
 		offset, offsetY = texture offset coordinates (offsetY=offset when offsetY isnt defined)
 		texture = file location
 ]]
-Spring.Utilities.TexturedRectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,  size, offset, offsetY,  texture)
+Spring.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy, cs,   tl, tr, br, bl,  size, offset, offsetY,  texture)
 	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, size, offset, offsetY)
 		local scale = size and (size / (sx-px)) or 1
 		local offset = offset or 0
@@ -230,14 +261,13 @@ end
 		color1, color2 = (color1[4] alpha value overrides opacity define above)
 		bgpadding = custom border size
 ]]
-Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
 	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local vsx, vsy = Spring.GetViewGeometry()
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	local bgpadding = bgpadding or math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	local bgpadding = bgpadding or Spring.FlowUI.elementPadding
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
@@ -255,28 +285,27 @@ Spring.Utilities.UiElement = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 
 	-- background
 	gl.Texture(false)
-	Spring.Utilities.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
-	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
+	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor(0.02 * vsy * ui_scale)
-	Spring.Utilities.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
-	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.035 * glossMult }, { 1 ,1 ,1 , 0 })
+	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
+	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.035 * glossMult }, { 1 ,1 ,1 , 0 })
 
-	--Spring.Utilities.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
+	--Spring.FlowUI.Draw.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- darkening bottom
-	Spring.Utilities.RectRound(px, py, sx, py + ((sy-py)*0.75), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+	Spring.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
 
 	-- tile
 	if tileopacity > 0 then
 		gl.Color(1,1,1, tileopacity)
-		Spring.Utilities.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/vsx/bgtexSize, (py+pyPad)/vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
+		Spring.FlowUI.Draw.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/vsx/bgtexSize, (py+pyPad)/vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
 	end
 end
-
 
 --[[
 	Button
@@ -290,14 +319,13 @@ end
 		color1, color2 = (color1[4] alpha value overrides opacity define above)
 		bgpadding = custom border size
 ]]
-Spring.Utilities.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+Spring.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
 	local opacity = opacity or 1
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local vsx, vsy = Spring.GetViewGeometry()
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	local bgpadding = bgpadding or math.ceil(widgetSpaceMargin * 0.44 * vsy)
+	local bgpadding = bgpadding or Spring.FlowUI.buttonPadding
 	local glossMult = 1 + (2 - (opacity * 1.5))
 
 	local tileopacity = 0
@@ -316,24 +344,28 @@ Spring.Utilities.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, p
 
 	-- background
 	gl.Texture(false)
-	Spring.Utilities.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
-	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
+	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor(0.02 * vsy * ui_scale)
-	Spring.Utilities.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
-	Spring.Utilities.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.035 * glossMult }, { 1 ,1 ,1 , 0 })
+	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
+	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.035 * glossMult }, { 1 ,1 ,1 , 0 })
 
-	--Spring.Utilities.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
+	--Spring.FlowUI.Draw.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- darkening bottom
-	Spring.Utilities.RectRound(px, py, sx, py + ((sy-py)*0.75), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+	Spring.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
 
 	-- tile
 	if tileopacity > 0 then
 		gl.Color(1,1,1, tileopacity)
-		Spring.Utilities.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/vsx/bgtexSize, (py+pyPad)/vsy/bgtexSize, "LuaUI/Images/vr_grid.png")
+		Spring.FlowUI.Draw.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/vsx/bgtexSize, (py+pyPad)/vsy/bgtexSize, "LuaUI/Images/vr_grid.png")
 	end
 end
+
+
+-- Execute initialize
+Spring.FlowUI.Initialize()

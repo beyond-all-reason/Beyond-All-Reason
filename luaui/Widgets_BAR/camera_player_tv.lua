@@ -171,8 +171,8 @@ function createCountdownLists()
 	--end
 end
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 
 function createList()
 	for i = 1, #drawlist do

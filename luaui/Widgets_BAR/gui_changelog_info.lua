@@ -91,8 +91,8 @@ local myTeamID = Spring.GetMyTeamID()
 
 local showOnceMore = false		-- used because of GUI shader delay
 
-local RectRound = Spring.Utilities.RectRound
-local TexturedRectRound = Spring.Utilities.TexturedRectRound
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 
 local versionOffsetX = 28
 local versionOffsetY = 14

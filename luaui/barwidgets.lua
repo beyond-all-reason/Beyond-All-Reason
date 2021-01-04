@@ -26,7 +26,7 @@ include("savetable.lua")
 
 Spring.Utilities = {}
 VFS.Include("LuaRules/Utilities/tablefunctions.lua")
-VFS.Include("LuaRules/Utilities/drawfunctions.lua")
+VFS.Include("LuaUI/flowui.lua")
 
 local gl = gl
 
@@ -1148,6 +1148,9 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
+	if Spring.FlowUI then
+		Spring.FlowUI.Update(deltaTime)
+	end
 	for _, w in ipairs(self.UpdateList) do
 		w:Update(deltaTime)
 	end
@@ -1243,21 +1246,23 @@ end
 function widgetHandler:SetViewSize(vsx, vsy)
 	self.xViewSize = vsx
 	self.yViewSize = vsy
-	if ((self.xViewSizeOld ~= vsx) or
-		(self.yViewSizeOld ~= vsy)) then
+	if self.xViewSizeOld ~= vsx or self.yViewSizeOld ~= vsy then
 		widgetHandler:ViewResize(vsx, vsy)
 		self.xViewSizeOld = vsx
 		self.yViewSizeOld = vsy
 	end
 end
 
+local xViewSizeOld
 function widgetHandler:ViewResize(vsx, vsy)
-	if (type(vsx) == 'table') then
+	if type(vsx) == 'table' then
 		vsy = vsx.viewSizeY
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
-
+	if Spring.FlowUI then
+		Spring.FlowUI.ViewResize(vsx, vsy)
+	end
 	for _, w in ipairs(self.ViewResizeList) do
 		w:ViewResize(vsx, vsy)
 	end
