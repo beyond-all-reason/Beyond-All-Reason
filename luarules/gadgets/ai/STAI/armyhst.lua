@@ -1618,7 +1618,7 @@ local function GetUnitTable()
 			utable.extractsMetal = unitDef["extractsMetal"]
 			utable.isTransport = unitDef.isTransport
 			utable.isImmobile = unitDef.isImmobile
-			utable.isBuilding = unitDef.isBuild
+
 			utable.isBuilder = unitDef.isBuilder
 			utable.isMobileBuilder = unitDef.isMobileBuilder
 			utable.isStaticBuilder = unitDef.isStaticBuilder
@@ -1768,14 +1768,8 @@ function ArmyHST:setRanks()
 			self:getMiner(t.unitsCanBuild,lab)
 			self:getWartech(t.unitsCanBuild,lab)
 			self:getEngineer(t.unitsCanBuild,lab)
-
-
-	-- self:getRaiders(t.unitsCanBuild,lab)
-
-
 			self:getSubK(t.unitsCanBuild,lab)
 			self:getArtillery(t.unitsCanBuild,lab)
-
 			self:getAmphibious(t.unitsCanBuild,lab)
 			self:getAntiAir(t.unitsCanBuild,lab)
 			self:getRaiders(t.unitsCanBuild,lab)

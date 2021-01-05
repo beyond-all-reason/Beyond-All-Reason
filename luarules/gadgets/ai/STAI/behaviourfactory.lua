@@ -79,7 +79,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b,TaskQueueBST)
 
 		else
-			if un == 'armlab' then
+			if self.ai.armyhst.unitTable[un].isStaticBuilder then
 				table.insert(b,TaskLabBST)
 				table.insert(b, LabRegisterBST)
 			else
