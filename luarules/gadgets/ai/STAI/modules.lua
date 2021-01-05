@@ -22,12 +22,12 @@ shard_include ("cleanhst")
 shard_include ("nanohst")
 shard_include ("overviewhst")
 shard_include ("taskshst")
-shard_include ("taskairhst")
-shard_include ("taskbothst")
-shard_include ("taskvehhst")
-shard_include ("taskshphst")
-shard_include ("TaskHovHST")
-shard_include ("taskexphst")
+-- shard_include ("taskairhst")
+-- shard_include ("taskbothst")
+-- shard_include ("taskvehhst")
+-- shard_include ("taskshphst")
+-- shard_include ("TaskHovHST")
+-- shard_include ("taskexphst")
 shard_include ("taskbuildhst")
 shard_include ("taskecohst")
 shard_include ('tool')
@@ -56,12 +56,12 @@ return {
 	OverviewHST,
 	UnitHST,
 	TasksHST,
-	TaskAirHST,
-	TaskBotHST,
-	TaskVehHST,
-	TaskShpHST,
-	TaskHovHST,
-	TaskExpHST,
+-- 	TaskAirHST,
+-- 	TaskBotHST,
+-- 	TaskVehHST,
+-- 	TaskShpHST,
+-- 	TaskHovHST,
+-- 	TaskExpHST,
 	TaskBuildHST,
 	TaskEcoHST,
 	Tool
