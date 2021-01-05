@@ -436,7 +436,7 @@ local function updateRejoin()
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Text
-		local fontsize = 13.5 * widgetScale
+		local fontsize = math.min(14 * widgetScale, ((area[3] - area[1])*0.88) / font:GetTextWidth(texts.catchingup))
 		font2:Begin()
 		font2:Print('\255\225\255\225'..texts.catchingup, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + fontsize, fontsize, 'cor')
 		font2:End()
@@ -1602,12 +1602,27 @@ function widget:DrawScreen()
 			if hideQuitWindow == nil then
 				-- when terminating spring, keep the faded screen
 
-				local w = math_floor(335 * widgetScale)
+				local w = math_floor(320 * widgetScale)
 				local h = math_floor(w / 3.5)
 				local padding = math_floor(w / 90)
 				local buttonPadding = math_floor(w / 90)
 				local buttonMargin = math_floor(w / 30)
 				local buttonHeight = math_floor(h * 0.55)
+				local fontSize = h / 6
+				local text = texts.quit.really_quit
+				if not spec then
+					text = texts.quit.really_quitresign
+					if chobbyLoaded then
+						if numPlayers < 3 then
+							text = texts.quit.really_resign
+						else
+							text = texts.quit.really_resign2
+						end
+					end
+				end
+				local textTopPadding = padding + padding + padding + padding + padding + fontSize
+				local txtWidth = font:GetTextWidth(text) * fontSize
+				w = math.max(w, txtWidth + textTopPadding + textTopPadding)
 
 				quitscreenArea = { math_floor((vsx / 2) - (w / 2)), math_floor((vsy / 1.8) - (h / 2)), math_floor((vsx / 2) + (w / 2)), math_floor((vsy / 1.8) + (h / 2)) }
 				quitscreenResignArea = { math_floor((vsx / 2) - (w / 2) + buttonMargin), math_floor((vsy / 1.8) - (h / 2) + buttonMargin), math_floor((vsx / 2) - (buttonMargin / 2)), math_floor((vsy / 1.8) - (h / 2) + buttonHeight - buttonMargin) }
@@ -1616,23 +1631,9 @@ function widget:DrawScreen()
 				-- window
 				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
 
-				local fontSize = h / 6
 				font:Begin()
 				font:SetTextColor(0, 0, 0, 1)
-				if not spec then
-					local txt = texts.quit.really_quitresign
-					if chobbyLoaded then
-						if numPlayers < 3 then
-							txt = texts.quit.really_resign
-						else
-							txt = texts.quit.really_resign2
-						end
-					end
-					font:Print(txt, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - padding - fontSize, fontSize, "cn")
-				else
-					font:Print(texts.quit.really_quit, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4] - padding - padding - padding - padding - padding - padding - fontSize, fontSize, "cn")
-				end
-
+				font:Print(text, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4]-textTopPadding, fontSize, "cn")
 
 				-- quit button
 				local color1, color2
