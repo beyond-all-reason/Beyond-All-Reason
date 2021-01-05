@@ -167,8 +167,8 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local DrawUnit = Spring.FlowUI.Draw.Unit
 
 function lines(str)
 	local t = {}
@@ -733,63 +733,17 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		usedZoom = defaultCellZoom
 	end
 
-	glColor(1, 1, 1, 1)
-	glTexture(texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic)
-	--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
-	--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-	TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 1, 1, usedZoom)
-
-
-	glTexture(false)
-	-- darkening bottom
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 0, 0, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.08 })
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cornerSize, 0, 0, 1, 1, { 1, 1, 1, 0.08 }, { 1, 1, 1, 0 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	-- lighten cell edges
-	if highlightColor then
-		local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRect[cellID][1] + cellPadding + halfSize,
-			0,
-			cellRect[cellID][2] + cellPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.5, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, { highlightColor[1], highlightColor[2], highlightColor[3], highlightColor[4] * 0.75 }
-		)
-		RectRoundCircle(
-			cellRect[cellID][1] + cellPadding + halfSize,
-			0,
-			cellRect[cellID][2] + cellPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.82, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, highlightColor
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- lighten border
-	local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
-	if iconBorderOpacity > 0 then
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRect[cellID][1] + cellPadding + halfSize,
-			0,
-			cellRect[cellID][2] + cellPadding + halfSize,
-			halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- group icon
-	if unitGroup[uDefID] then
-		local size = math.floor((halfSize + halfSize) * 0.29)
-		glColor(1, 1, 1, 0.9)
-		glTexture(groups[unitGroup[uDefID]])
-		glTexRect(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - size, cellRect[cellID][1] + size + cellPadding, cellRect[cellID][4])
-		glTexture(false)
-	end
+	glColor(1,1,1,1)
+	DrawUnit(
+		cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
+		cornerSize,
+		1,1,1,1,
+		usedZoom,
+		nil, nil,
+		texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic,
+		nil,
+		groups[unitGroup[uDefID]]
+	)
 
 	-- unitcount
 	if selUnitsCounts[uDefID] > 1 then
@@ -989,51 +943,25 @@ local function drawUnitInfo()
 	local iconSize = math.floor(fontSize * 4.4)
 	local iconPadding = math.floor(fontSize * 0.28)
 
-	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
 		local iconX = backgroundRect[1] + iconPadding
 		local iconY =  backgroundRect[4] - iconPadding - bgpadding
 		-- unit icon
-		glTexture(":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic)
-		TexRectRound(iconX, iconY - iconSize, iconX + iconSize, iconY, bgpadding * 0.6, 1, 1, 1, 1, 0.03)
-		glTexture(false)
-		-- darkening bottom
-		RectRound(iconX, iconY - iconSize, iconX + iconSize, iconY, bgpadding * 0.6, 0, 0, 1, 1, { 0, 0, 0, 0.15 }, { 0, 0, 0, 0 })
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(iconX, iconY - (iconSize*0.35), iconX + iconSize, iconY, bgpadding * 0.6, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-		RectRound(iconX, iconY - iconSize, iconX + iconSize, iconY-(iconSize*0.2), bgpadding * 0.6, 0, 0, 1, 1, { 1, 1, 1, 0.05 }, { 1, 1, 1, 0 })
-
-		local halfSize = iconSize * 0.5
-		RectRoundCircle(
-				iconX + halfSize,
-				0,
-				iconY - halfSize,
-				halfSize, bgpadding * 0.6, halfSize - math_max(1, bgpadding* 0.5), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
+		glColor(1,1,1,1)
+		DrawUnit(
+			iconX, iconY - iconSize, iconX + iconSize, iconY,
+			nil,
+			1, 1, 1, 1,
+			0.03,
+			nil, nil,
+			":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
+			':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType],
+			groups[unitGroup[displayUnitDefID]],
+			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-		-- group icon
-		if unitGroup[displayUnitDefID] then
-			local size = math.floor((halfSize + halfSize) * 0.29)
-			glColor(1, 1, 1, 0.9)
-			glTexture(groups[unitGroup[displayUnitDefID]])
-			glTexRect(iconX, iconY - size, iconX + size, iconY)
-			glTexture(false)
-		end
-
-		-- radar icon
-		if iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
-			local padding = (halfSize + halfSize) * 0.035
-			local size = math.floor((halfSize + halfSize) * 0.26)
-			glColor(1, 1, 1, 0.9)
-			glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
-			glTexRect(iconX+(halfSize + halfSize)-padding-size, iconY - (halfSize + halfSize)+padding, iconX+(halfSize + halfSize)-padding, iconY - (halfSize + halfSize) + size + padding)
-			glTexture(false)
-		end
-
 		-- price
 		if unitGroup[displayUnitDefID] then
+			local halfSize = iconSize * 0.5
 			local padding = (halfSize + halfSize) * 0.045
 			local size = (halfSize + halfSize) * 0.18
 			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")

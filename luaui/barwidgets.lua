@@ -1270,7 +1270,7 @@ function widgetHandler:ViewResize(vsx, vsy)
 end
 
 function widgetHandler:DrawScreen()
-	if (self.tweakMode) then
+	if self.tweakMode then
 		gl.Color(0, 0, 0, 0.5)
 		local sx, sy = self.xViewSize, self.yViewSize
 		gl.Shape(GL.QUADS, {
@@ -1278,9 +1278,12 @@ function widgetHandler:DrawScreen()
 		})
 		gl.Color(1, 1, 1)
 	end
+	if Spring.FlowUI then
+		Spring.FlowUI.DrawScreen()
+	end
 	for _, w in r_ipairs(self.DrawScreenList) do
 		w:DrawScreen()
-		if (self.tweakMode and w.TweakDrawScreen) then
+		if self.tweakMode and w.TweakDrawScreen then
 			w:TweakDrawScreen()
 		end
 	end

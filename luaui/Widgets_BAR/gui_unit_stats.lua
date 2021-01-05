@@ -154,7 +154,6 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 local useSelection = true
 
-
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 
 local customFontSize = 14
@@ -258,116 +257,7 @@ end
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-end
-
-local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	if not color2 then
-		color2 = color1
-	end
-	--centerOffset = 0
-	local coords = {
-		{ x - radius + cs, z + radius, y }, -- top left
-		{ x + radius - cs, z + radius, y }, -- top right
-		{ x + radius, z + radius - cs, y }, -- right top
-		{ x + radius, z - radius + cs, y }, -- right bottom
-		{ x + radius - cs, z - radius, y }, -- bottom right
-		{ x - radius + cs, z - radius, y }, -- bottom left
-		{ x - radius, z - radius + cs, y }, -- left bottom
-		{ x - radius, z + radius - cs, y }, -- left top
-	}
-	local cs2 = cs * (centerOffset / radius)
-	local coords2 = {
-		{ x - centerOffset + cs2, z + centerOffset, y }, -- top left
-		{ x + centerOffset - cs2, z + centerOffset, y }, -- top right
-		{ x + centerOffset, z + centerOffset - cs2, y }, -- right top
-		{ x + centerOffset, z - centerOffset + cs2, y }, -- right bottom
-		{ x + centerOffset - cs2, z - centerOffset, y }, -- bottom right
-		{ x - centerOffset + cs2, z - centerOffset, y }, -- bottom left
-		{ x - centerOffset, z - centerOffset + cs2, y }, -- left bottom
-		{ x - centerOffset, z + centerOffset - cs2, y }, -- left top
-	}
-	for i = 1, 8 do
-		local i2 = (i >= 8 and 1 or i + 1)
-		gl.Color(color2)
-		gl.Vertex(coords[i][1], coords[i][2], coords[i][3])
-		gl.Vertex(coords[i2][1], coords[i2][2], coords[i2][3])
-		gl.Color(color1)
-		gl.Vertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
-		gl.Vertex(coords2[i][1], coords2[i][2], coords2[i][3])
-	end
-end
-local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
-end
+local DrawUnit = Spring.FlowUI.Draw.Unit
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
@@ -919,19 +809,17 @@ local function drawStats(uDefID, uID)
 	-- icon
 	if uID then
 		glColor(1,1,1,1)
-		glTexture(':lr64,64c:unitpics/'..unitBuildPic[uDefID])
-		TexRectRound(floor(cX-(iconHalfSize*0.7)), floor(cYstart+(cornersize*1.33)-iconHalfSize), floor(cX+(iconHalfSize*1.3)), floor(cYstart+(cornersize*1.33)+iconHalfSize), cornersize*0.4, 1,1,1,1, 0.13)
-		glTexture(false)
-
-		-- lighten border
-		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		RectRoundCircle(
-			floor(cX+(iconHalfSize*0.3)),
-			0,
-			floor(cYstart+(cornersize*1.33)),
-			iconHalfSize, cornersize*0.22, iconHalfSize - math.max(1, floor(widgetScale)), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 }
+		DrawUnit(floor(
+			cX-(iconHalfSize*0.7)),
+			floor(cYstart+(cornersize*1.33)-iconHalfSize),
+			floor(cX+(iconHalfSize*1.3)),
+			floor(cYstart+(cornersize*1.33)+iconHalfSize),
+			cornersize*0.4,
+			1,1,1,1,
+			0.13,
+			nil, nil,
+			':lr64,64c:unitpics/'..unitBuildPic[uDefID]
 		)
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 
 	-- title text
@@ -941,7 +829,7 @@ local function drawStats(uDefID, uID)
 	font:End()
 
 	-- stats
-	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	if WG['guishader'] then
 		guishaderEnabled = true

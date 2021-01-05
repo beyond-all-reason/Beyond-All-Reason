@@ -17,15 +17,6 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	esc = 'ESC',
 }
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0
-local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 -- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = { 'forcestart', 'stop' }
 
@@ -52,7 +43,8 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
 
 local voteDlist, chobbyInterface, font, font2, gameStarted, height, dlistGuishader
 local voteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
@@ -67,8 +59,6 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = Spring.FlowUI.elementMargin
 	bgpadding = Spring.FlowUI.elementPadding
-	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -83,7 +73,7 @@ local uiOpacitySec = 0
 function widget:Update(dt)
 	--myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
 	--sec = sec + dt
-	--if sec > 2 and not voteDlist then
+	--if sec > 1 and not voteDlist then
 	--	StartVote('testvote yeah!', 'somebody')
 	--end
 
@@ -219,19 +209,7 @@ function StartVote(name, owner)
 			yesButtonArea = { xpos - (width / 2) + buttonMargin, ypos - (height / 2) + buttonMargin, xpos - (buttonMargin / 2), ypos - (height / 2) + buttonHeight - buttonMargin }
 			noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin }
 
-			-- background
-			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
-
-			gl.Texture(backgroundTexture)
-			gl.Color(1,1,1, ui_tileopacity*0.5)
-			TexturedRectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, bgtexSize, 0)
-			gl.Texture(false)
-
-			-- gloss
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding, 1, 1, 1, 1, { 1, 1, 1, 0 }, { 1, 1, 1, 0.045 * glossMult })
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 			-- close
 			--gl.Color(0.1,0.1,0.1,0.55+(0.36))
@@ -248,13 +226,6 @@ function StartVote(name, owner)
 				color2 = { 1, 1, 1, 0.08 }
 			end
 			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, color1, color2)
-
-			if buttonBgtexOpacity > 0 then
-				gl.Texture(buttonBackgroundTexture)
-				gl.Color(1,1,1, buttonBgtexOpacity)
-				TexturedRectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, buttonBgtexSize, 0)
-				gl.Texture(false)
-			end
 
 			fontSize = fontSize * 0.85
 			gl.Color(0, 0, 0, 1)
@@ -282,20 +253,7 @@ function StartVote(name, owner)
 				color2 = { 0.5, 0, 0, 0.75 }
 				mult = 1
 			end
-			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
-
-			if buttonBgtexOpacity > 0 then
-				gl.Texture(buttonBackgroundTexture)
-				gl.Color(1,1,1, buttonBgtexOpacity)
-				TexturedRectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, buttonBgtexSize, 0)
-				gl.Texture(false)
-			end
-
-			-- gloss
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(noButtonArea[1], noButtonArea[4] - ((noButtonArea[4] - noButtonArea[2]) * 0.5), noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
-			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			UiButton(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, bgpadding * 0.5)
 
 			fontSize = fontSize * 0.85
 			local noText = texts.no
@@ -319,20 +277,7 @@ function StartVote(name, owner)
 					color2 = { 0, 0.5, 0, 0.38 }
 					mult = 1
 				end
-				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
-
-				if buttonBgtexOpacity > 0 then
-					gl.Texture(buttonBackgroundTexture)
-					gl.Color(1,1,1, buttonBgtexOpacity)
-					TexturedRectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, buttonBgtexSize, 0)
-					gl.Texture(false)
-				end
-
-				-- gloss
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(yesButtonArea[1], yesButtonArea[4] - ((yesButtonArea[4] - yesButtonArea[2]) * 0.5), yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.035 * mult }, { 1, 1, 1, 0.2 * mult })
-				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.11 * mult }, { 1, 1, 1, 0 })
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, bgpadding * 0.5)
 
 				font2:Print(texts.yes, yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end

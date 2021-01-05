@@ -186,14 +186,10 @@ local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local glDepthTest = gl.DepthTest
 
---local glCreateTexture = gl.CreateTexture
---local glActiveTexture = gl.ActiveTexture
---local glCopyToTexture = gl.CopyToTexture
---local glRenderToTexture = gl.RenderToTexture
-
 local RectRound = Spring.FlowUI.Draw.RectRound
 local DrawUnit = Spring.FlowUI.Draw.Unit
 local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
 
 function table_invert(t)
 	local s = {}
@@ -1141,25 +1137,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	end
 	glTexture(false)
 
-	-- lighten cell edges
-	--if highlightColor then
-	--	local halfSize = (((cellRects[cellRectID][3] - cellPadding - iconPadding)) - (cellRects[cellRectID][1] + cellPadding + iconPadding)) * 0.5
-	--	glBlending(GL_SRC_ALPHA, GL_ONE)
-	--	Spring.FlowUI.Draw.RectRoundCircle(
-	--		cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-	--		0,
-	--		cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-	--		halfSize, cornerSize, halfSize * 0.5, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, { highlightColor[1], highlightColor[2], highlightColor[3], highlightColor[4] * 0.75 }
-	--	)
-	--	Spring.FlowUI.Draw.RectRoundCircle(
-	--		cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-	--		0,
-	--		cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-	--		halfSize, cornerSize, halfSize * 0.82, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, highlightColor
-	--	)
-	--	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	--end
-
 	-- price
 	if showPrice then
 		--doCircle(x, y, z, radius, sides)
@@ -1344,20 +1321,8 @@ function drawBuildmenu()
 		paginatorRects[1] = { activeArea[1], activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
-		RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
-		RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
-
-		-- glossy half
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][4] - cellPadding - ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.5), paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.15 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][4] - cellPadding - ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.5), paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.15 })
-
-		-- glossy bottom
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][2] + cellPadding + ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][2] + cellPadding + ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
 
 		font2:Print("\255\245\245\245" .. currentPage .. "  \\  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
 	end

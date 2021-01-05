@@ -1751,6 +1751,9 @@ function gadgetHandler:DrawScreenEffects(vsx, vsy)
 end
 
 function gadgetHandler:DrawScreen(vsx, vsy)
+	if Spring.FlowUI then
+		Spring.FlowUI.DrawScreen()
+	end
 	for _, g in ipairs(self.DrawScreenList) do
 		g:DrawScreen(vsx, vsy)
 	end

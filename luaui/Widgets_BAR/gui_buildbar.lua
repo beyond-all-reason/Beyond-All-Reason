@@ -123,6 +123,8 @@ local tan = math.tan
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 
 local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local DrawUnit = Spring.FlowUI.Draw.Unit
 
 -------------------------------------------------------------------------------
 -- SOUNDS
@@ -161,7 +163,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader and backgroundRect then
 			dlistGuishader = gl.CreateList( function()
-				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale)
+				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale, 1,0,0,1)
 			end)
 		end
 		if not dlistGuishader2 and backgroundOptionsRect then
@@ -369,115 +371,6 @@ local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
 	glColor(1,1,1,1)
 end
 
-local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	if not color2 then color2 = color1 end
-	--centerOffset = 0
-	local coords = {
-		{x-radius+cs, z+radius, y},   -- top left
-		{x+radius-cs, z+radius, y},   -- top right
-		{x+radius, z+radius-cs, y},   -- right top
-		{x+radius, z-radius+cs, y},   -- right bottom
-		{x+radius-cs, z-radius, y},   -- bottom right
-		{x-radius+cs, z-radius, y},   -- bottom left
-		{x-radius, z-radius+cs, y},   -- left bottom
-		{x-radius, z+radius-cs, y},   -- left top
-	}
-	local cs2 = cs * (centerOffset/radius)
-	local coords2 = {
-		{x-centerOffset+cs2, z+centerOffset, y},   -- top left
-		{x+centerOffset-cs2, z+centerOffset, y},   -- top right
-		{x+centerOffset, z+centerOffset-cs2, y},   -- right top
-		{x+centerOffset, z-centerOffset+cs2, y},   -- right bottom
-		{x+centerOffset-cs2, z-centerOffset, y},   -- bottom right
-		{x-centerOffset+cs2, z-centerOffset, y},   -- bottom left
-		{x-centerOffset, z-centerOffset+cs2, y},   -- left bottom
-		{x-centerOffset, z+centerOffset-cs2, y},   -- left top
-	}
-	for i = 1, 8 do
-		local i2 = (i>=8 and 1 or i + 1)
-		glColor(color2)
-		glVertex(coords[i][1], coords[i][2], coords[i][3])
-		glVertex(coords[i2][1], coords[i2][2], coords[i2][3])
-		glColor(color1)
-		glVertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
-		glVertex(coords2[i][1], coords2[i][2], coords2[i][3])
-	end
-end
-local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	glBeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
-end
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-	offset = offset or 0
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-end
-
 local function DrawTexRect(rect, texture, color)
 	if color ~= nil then
 		glColor(color)
@@ -553,70 +446,27 @@ local function DrawBuildProgress(left, top, right, bottom, progress, color)
 end
 
 local function drawIcon(rect, tex, color, zoom)
-
-	glTexture(tex)
-	glColor(color[1],color[2],color[3],color[4])
-	TexRectRound(rect[1], rect[2], rect[3], rect[4], cornerSize, nil,nil,nil,nil, zoom)
-	glTexture(false)
-
-	-- lighten top
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	-- glossy half
-	RectRound(rect[1], rect[2]+((rect[4]-rect[2])*0.5), rect[3], rect[4], cornerSize, 2,2,0,0,{1,1,1,0}, {1,1,1,0.13})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	-- extra darken gradually
-	RectRound(rect[1], rect[2], rect[3], rect[4], cornerSize, 0,0,2,2,{0,0,0,0.11}, {0,0,0,0})
-
-	local halfSize = (rect[3] - rect[1])*0.5
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRoundCircle(
-			rect[1]+halfSize,
-			0,
-			rect[2]+halfSize,
-			halfSize, cornerSize*0.6,
-			halfSize-math_max(1,math_floor(halfSize*0.066)),
-			{1,1,1,0.09}, {1,1,1,0.09}
+	glColor(1,1,1,1)
+	DrawUnit(
+		rect[1], rect[2], rect[3], rect[4],
+		cornerSize,
+		1,1,1,1,
+		zoom,
+		nil, nil,
+		tex
 	)
-	RectRoundCircle(
-			rect[1]+halfSize,
-			0,
-			rect[2]+halfSize,
-			halfSize, cornerSize*0.6,
-			halfSize*0.4,
-			{1,1,1,0}, {1,1,1,0.07}
-	)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
 local function DrawOptionsBackground()
 	local addDist = math_floor(bgpadding*0.5)
 	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
-
-	-- background
-	RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6, 1,0,0,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-	RectRound(backgroundOptionsRect[1]+bgpadding, backgroundOptionsRect[2]+bgpadding, backgroundOptionsRect[3]-bgpadding, backgroundOptionsRect[4]-bgpadding, bgpadding*1, 1,0,0,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundOptionsRect[1]+bgpadding,backgroundOptionsRect[4]-((backgroundOptionsRect[4]-backgroundOptionsRect[2])*0.33),backgroundOptionsRect[3]-bgpadding,backgroundOptionsRect[4]-bgpadding, bgpadding, 1,0,0,1, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
-	RectRound(backgroundOptionsRect[1]+bgpadding,backgroundOptionsRect[2], backgroundOptionsRect[3]-bgpadding,backgroundOptionsRect[2]+((backgroundOptionsRect[4]-backgroundOptionsRect[2])*0.3), bgpadding, 1,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
 end
 
 local function DrawBackground()
 	local addDist = math_floor(bgpadding*0.5)
 	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
-
-	-- background
-	RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-	RectRound(backgroundRect[1]+bgpadding, backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 1,0,0,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1]+bgpadding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.33),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 1,0,0,1, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
-	RectRound(backgroundRect[1]+bgpadding,backgroundRect[2], backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.3), bgpadding, 1,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 1,0,0,1)
 end
 
 local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
@@ -667,31 +517,31 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	end
 
 	-- pressed / hovered
-	local color1, color2
-	if options.pressed then
-		if options.pressed == 1 then
-			color1, color2 = {0,1,0,0}, {0,1,0,0.25}
-		elseif options.pressed == 2 then
-			color1, color2 = {1,0,0,0}, {1,0,0,0.25}
-		elseif options.pressed == 3 then
-			color1, color2 = {1,1,1,0}, {1,1,1,0.22}
-		end
-	elseif options.hovered then
-		color1, color2 = {1,1,1,0}, {1,1,1,0.16}
-	end
-	if color2 then
-		local halfSize = (imgRect[3] - imgRect[1])*0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-				imgRect[1]+halfSize,
-				0,
-				imgRect[2]-halfSize,
-				halfSize, cornerSize*0.6,
-				halfSize*0.2,
-				color1, color2
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
+	--local color1, color2
+	--if options.pressed then
+	--	if options.pressed == 1 then
+	--		color1, color2 = {0,1,0,0}, {0,1,0,0.25}
+	--	elseif options.pressed == 2 then
+	--		color1, color2 = {1,0,0,0}, {1,0,0,0.25}
+	--	elseif options.pressed == 3 then
+	--		color1, color2 = {1,1,1,0}, {1,1,1,0.22}
+	--	end
+	--elseif options.hovered then
+	--	color1, color2 = {1,1,1,0}, {1,1,1,0.16}
+	--end
+	--if color2 then
+	--	local halfSize = (imgRect[3] - imgRect[1])*0.5
+	--	glBlending(GL_SRC_ALPHA, GL_ONE)
+	--	RectRoundCircle(
+	--			imgRect[1]+halfSize,
+	--			0,
+	--			imgRect[2]-halfSize,
+	--			halfSize, cornerSize*0.6,
+	--			halfSize*0.2,
+	--			color1, color2
+	--	)
+	--	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	--end
 
 	-- amount
 	if (options.amount or 0) > 0 then
