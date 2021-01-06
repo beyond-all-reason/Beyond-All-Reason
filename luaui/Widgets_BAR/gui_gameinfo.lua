@@ -110,7 +110,7 @@ local screenWidthOrg = 540
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local textareaMinLines = 15        -- wont scroll down more, will show at least this amount of lines
+local textareaMinLines = 20        -- wont scroll down more, will show at least this amount of lines
 
 local customScale = 1.1
 
@@ -274,8 +274,6 @@ function DrawTextarea(x, y, width, height, scrollbar)
 end
 
 function DrawWindow()
-	local vsx, vsy = Spring.GetViewGeometry()
-
 	-- title
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
@@ -336,6 +334,11 @@ function widget:DrawScreen()
 			WG['guishader'].InsertDlist(backgroundGuishader, 'gameinfo')
 		end
 		showOnceMore = false
+
+		local x, y, pressed = Spring.GetMouseState()
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			Spring.SetMouseCursor('cursornormal')
+		end
 
 	else
 		if WG['guishader'] then
@@ -404,19 +407,10 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
-			if button == 1 or button == 3 then
-				if button == 3 and release then
-					show = not show
-				end
-				return true
-			end
-		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)) then
-			if release then
-				showOnceMore = true        -- show once more because the guishader lags behind, though this will not fully fix it
-				show = false
-			end
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			return true
+		else
+			show = false
 		end
 	end
 end

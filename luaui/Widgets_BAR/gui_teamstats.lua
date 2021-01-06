@@ -153,8 +153,9 @@ local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
 local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
 local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
-local font, chobbyInterface, backgroundGuishader, gameStarted
+local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding
 
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
@@ -287,6 +288,8 @@ function widget:ViewResize()
 		maxColumnTextSize = max(font:GetTextWidth(data[1]),maxColumnTextSize)
 		maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
 	end
+
+	bgpadding = Spring.FlowUI.elementPadding
 
 	calcAbsSizes()
 	updateFontSize()
@@ -569,6 +572,12 @@ function updateFontSize()
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 end
 
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+
+	-- check if the mouse is in a rectangle
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
 function widget:MouseMove(mx,my,dx,dy)
 	if not guiData.mainPanel.visible then
 		return
@@ -607,6 +616,12 @@ function widget:DrawScreen()
 	end
 	DrawBackground()
 	DrawAllStats()
+
+	local x, y, pressed = Spring.GetMouseState()
+	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
+	if IsOnRect(x, y, x1,y1,x2,y2) then
+		Spring.SetMouseCursor('cursornormal')
+	end
 end
 
 function DrawBackground()
@@ -617,20 +632,19 @@ function DrawBackground()
 		glCallList(backgroundDisplayList)
 	end
 
-	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
+	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
 	else
 		gl.Color(0,0,0,0.85)
 	end
-	local padding = 5*widgetScale
-	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList( function()
-			RectRound(x1-padding,y1-padding,x2+padding,y2+padding, 9*widgetScale)
+			RectRound(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, bgpadding*1.6)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
 	end
@@ -661,7 +675,7 @@ function ReGenerateBackgroundDisplayList()
 		end
 		glColor(colour)
 		if lineCount > 2 then
-			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3.5*widgetScale, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end
@@ -672,7 +686,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc)
 		end
-		RectRound(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
+		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -681,7 +695,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc)
 			end
-			RectRound(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
+			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 			break
 		end
 	end

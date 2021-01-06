@@ -122,10 +122,10 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local bgMargin = 6
-
-local screenHeight = 520 - bgMargin - bgMargin
-local screenWidth = 1050 - bgMargin - bgMargin
+local screenHeightOrg = 520
+local screenWidthOrg = 1050
+local screenHeight = screenHeightOrg
+local screenWidth = screenWidthOrg
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
@@ -153,6 +153,7 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local myTeamID = Spring.GetMyTeamID()
 local showOnceMore = false
@@ -166,20 +167,24 @@ local widgetScale = 1
 local customScale = 1
 local centerPosX = 0.5    -- note: dont go too far from 0.5
 local centerPosY = 0.49        -- note: dont go too far from 0.5
-local screenX = (vsx * centerPosX) - (screenWidth / 2)
-local screenY = (vsy * centerPosY) + (screenHeight / 2)
+local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
-local font, font2, loadedFontSize, titleRect, keybinds, chobbyInterface, backgroundGuishader, show
+local font, font2, loadedFontSize, titleRect, keybinds, chobbyInterface, backgroundGuishader, show, bgpadding
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	screenX = (vsx * centerPosX) - (screenWidth / 2)
-	screenY = (vsy * centerPosY) + (screenHeight / 2)
 	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
 
+	screenHeight = math.floor(screenHeightOrg * widgetScale)
+	screenWidth = math.floor(screenWidthOrg * widgetScale)
+	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	if keybinds then
 		gl.DeleteList(keybinds)
@@ -225,36 +230,22 @@ function DrawTextTable(t, x, y)
 end
 
 function DrawWindow()
-	local vsx, vsy = Spring.GetViewGeometry()
-	local x = screenX --rightwards
-	local y = screenY --upwards
-
 	-- background
-	if WG['guishader'] then
-		gl.Color(0, 0, 0, 0.8)
-	else
-		gl.Color(0, 0, 0, 0.85)
-	end
-	RectRound(x - bgMargin, y - screenHeight - bgMargin, x + screenWidth + bgMargin, y + bgMargin, 8, 0, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-	-- content area
-	gl.Color(0.33, 0.33, 0.33, 0.15)
-	RectRound(x, y - screenHeight, x + screenWidth, y, 5.5, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	-- title background
 	local title = texts.title
-	local titleFontSize = 18
-	if WG['guishader'] then
-		gl.Color(0, 0, 0, 0.8)
-	else
-		gl.Color(0, 0, 0, 0.85)
-	end
-	titleRect = { x - bgMargin, y + bgMargin, x - bgMargin + (font2:GetTextWidth(title) * titleFontSize) + 27, y + 37 }
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1, 1, 0, 0)
+	local titleFontSize = 18 * widgetScale
+	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+
+	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+
 	-- title
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(title, x - bgMargin + (titleFontSize * 0.75), y + bgMargin + 8, titleFontSize, "on")
+	font2:Print(title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
 
 	local entriesPerColumn = math.ceil(#texts.lines / 3)
@@ -270,15 +261,18 @@ function DrawWindow()
 			entries3[#entries3 + 1] = v
 		end
 	end
-	DrawTextTable(entries1, x, y - 24)
-	x = x + 350
-	DrawTextTable(entries2, x, y - 24)
-	x = x + 350
-	DrawTextTable(entries3, x, y - 24)
+	local textPadding = 8 * widgetScale
+	local textTopPadding = 28 * widgetScale
+	local x = screenX + textPadding
+	DrawTextTable(entries1, x, screenY - textTopPadding)
+	x = x + (350*widgetScale)
+	DrawTextTable(entries2, x, screenY - textTopPadding)
+	x = x + (350*widgetScale)
+	DrawTextTable(entries3, x, screenY - textTopPadding)
 
 	gl.Color(1, 1, 1, 1)
 	font:Begin()
-	font:Print(texts.disclaimer, screenX + 12, y - screenHeight + 14, 12.5)
+	font:Print(texts.disclaimer, screenX + (12*widgetScale), screenY - screenHeight + (14*widgetScale), 12.5*widgetScale)
 	font:End()
 end
 
@@ -303,32 +297,25 @@ function widget:DrawScreen()
 
 	if show or showOnceMore then
 		gl.Texture(false)	-- some other widget left it on
-		glPushMatrix()
-		glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-		glScale(widgetScale, widgetScale, 1)
 		glCallList(keybinds)
-		glPopMatrix()
 		if WG['guishader'] then
-			local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-			local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = glCreateList(function()
 				-- background
-				RectRound(rectX1, rectY2, rectX2, rectY1, 9 * widgetScale, 0, 1, 1, 1)
+				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, bgpadding * 1.6, 0, 1, 1, 1)
 				-- title
-				rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-				rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-				rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-				RectRound(rectX1, rectY1, rectX2, rectY2, 9 * widgetScale, 1, 1, 0, 0)
+				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
 		end
 		showOnceMore = false
+
+		local x, y, pressed = Spring.GetMouseState()
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			Spring.SetMouseCursor('cursornormal')
+		end
 	else
 		if WG['guishader'] then
 			WG['guishader'].DeleteDlist('keybindinfo')
@@ -366,13 +353,9 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
-		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)) then
+		elseif titleRect == nil or not IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			if release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
