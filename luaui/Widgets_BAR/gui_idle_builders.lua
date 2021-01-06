@@ -126,80 +126,10 @@ local math_pi = math.pi
 local getn = table.getn
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local DrawUnit = Spring.FlowUI.Draw.Unit
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-end
 
 local sizeMultiplier = 1
 local function init()
@@ -215,6 +145,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
+	bgpadding = Spring.FlowUI.elementPadding
 	init()
 end
 
@@ -353,8 +284,12 @@ local function DrawUnitIcons(number)
 			X2 = math.floor(X1 + ICON_SIZE)
 
 			glColor(1,1,1,1)
-			glTexture(':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname)
-			TexRectRound(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding, ICON_SIZE*0.05, 1,1,1,1, 0)
+			DrawUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
+				math.ceil(bgpadding*0.5), 1,1,1,1,
+				0.05,
+				nil, nil,
+				':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname
+			)
 
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
@@ -512,10 +447,10 @@ function widget:Update(dt)
 end
 
 function calcSizes(numIcons)
-	X_MIN = POSITION_X * vsx - 0.5 * numIcons * ICON_SIZE
-	X_MAX = POSITION_X * vsx + 0.5 * numIcons * ICON_SIZE
-	Y_MIN = POSITION_Y * vsy - 0.5 * ICON_SIZE
-	Y_MAX = POSITION_Y * vsy + 0.5 * ICON_SIZE
+	X_MIN = math.floor(POSITION_X * vsx - 0.5 * numIcons * ICON_SIZE)
+	X_MAX = math.floor(POSITION_X * vsx + 0.5 * numIcons * ICON_SIZE)
+	Y_MIN = math.floor(POSITION_Y * vsy - 0.5 * ICON_SIZE)
+	Y_MAX = math.floor(POSITION_Y * vsy + 0.5 * ICON_SIZE)
 end
 
 function widget:RecvLuaMsg(msg, playerID)

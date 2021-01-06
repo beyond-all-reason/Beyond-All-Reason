@@ -658,26 +658,6 @@ local function RectRoundProgress(left, bottom, right, top, cs, progress, color)
 	glColor(1, 1, 1, 1)
 end
 
-
-local function DrawCircle(x, y, z, radius, sides, color1, color2)
-	if not color2 then
-		color2 = color1
-	end
-	local sideAngle = math_twicePi / sides
-	glColor(color1)
-	glVertex(x, z, y)
-	glColor(color2)
-	for i = 1, sides + 1 do
-		local cx = x + (radius * math_cos(i * sideAngle))
-		local cz = z + (radius * math_sin(i * sideAngle))
-		glVertex(cx, cz, y)
-	end
-end
-
-local function doCircle(x, y, z, radius, sides, color1, color2)
-	glBeginEnd(GL_TRIANGLE_FAN, DrawCircle, x, 0, z, radius, sides, color1, color2)
-end
-
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
 	gl.Vertex(px, py, 0)
@@ -815,7 +795,7 @@ function widget:ViewResize()
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if oposY > 0.5 then
-					posY = oposY - oheight - ((widgetSpaceMargin*vsx)/vsy)
+					posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
 				end
 			end
 		end
@@ -1100,7 +1080,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		cellRects[cellRectID][2] + cellPadding + iconPadding,
 		cellRects[cellRectID][3] - cellPadding - iconPadding,
 		cellRects[cellRectID][4] - cellPadding - iconPadding,
-		cornerSize, 2, 2, 2, 2,
+		cornerSize, 1,1,1,1,
 		usedZoom,
 		nil, nil,
 		 ':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
@@ -1119,7 +1099,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
 			cellRects[cellRectID][3] - cellPadding - iconPadding,
 			cellRects[cellRectID][4] - cellPadding - iconPadding,
-			cornerSize, 2, 2, 2, 2,
+			cornerSize, 1,1,1,1,
 			usedZoom
 		)
 		if cellColor[4] > 0 then
@@ -1129,7 +1109,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 				cellRects[cellRectID][2] + cellPadding + iconPadding,
 				cellRects[cellRectID][3] - cellPadding - iconPadding,
 				cellRects[cellRectID][4] - cellPadding - iconPadding,
-				cornerSize, 2, 2, 2, 2,
+				cornerSize, 1,1,1,1,
 				usedZoom
 			)
 		end

@@ -304,6 +304,37 @@ Spring.FlowUI.Draw.RectRoundCircle = function(x, y, z, radius, cs, centerOffset,
 end
 
 --[[
+	Circle
+		draw a circle
+	params
+		x,y,z, radius
+		sides = number outside vertexes
+		color1 = (center) color
+	optional
+		color2 = edge color
+]]
+Spring.FlowUI.Draw.Circle = function(x, y, z, radius, sides, color1, color2)
+	local function DrawCircle(x, y, z, radius, sides, color1, color2)
+		if not color2 then
+			color2 = color1
+		end
+		local sideAngle = math.twicePi / sides
+		gl.Color(color1)
+		gl.Vertex(x, z, y)
+		if color2 then
+			gl.Color(color2)
+
+		end
+		for i = 1, sides + 1 do
+			local cx = x + (radius * math.cos(i * sideAngle))
+			local cz = z + (radius * math.sin(i * sideAngle))
+			gl.Vertex(cx, cz, y)
+		end
+	end
+	gl.BeginEnd(GL.TRIANGLE_FAN, DrawCircle, x, 0, z, radius, sides, color1, color2)
+end
+
+--[[
 	UiElement
 		draw a complete standardized ui element having: border, tiled background, gloss on top and bottom
 	params
@@ -319,7 +350,6 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
-	local vsx, vsy = Spring.GetViewGeometry()
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 	local bgpadding = bgpadding or Spring.FlowUI.elementPadding
 	local glossMult = 1 + (2 - (opacity * 1.5))
@@ -334,8 +364,8 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 
 	local pxPad = bgpadding * (px > 0 and 1 or 0) * (pbl or 1)
 	local pyPad = bgpadding * (py > 0 and 1 or 0) * (pbr or 1)
-	local sxPad = bgpadding * (sx < vsx and 1 or 0) * (ptr or 1)
-	local syPad = bgpadding * (sy < vsy and 1 or 0) * (ptl or 1)
+	local sxPad = bgpadding * (sx < Spring.FlowUI.vsx and 1 or 0) * (ptr or 1)
+	local syPad = bgpadding * (sy < Spring.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
 	-- background
 	gl.Texture(false)
@@ -344,7 +374,7 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	local glossHeight = math.floor(0.02 * vsy * ui_scale)
+	local glossHeight = math.floor(0.02 * Spring.FlowUI.vsy * ui_scale)
 	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
 	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.035 * glossMult }, { 1 ,1 ,1 , 0 })
 
@@ -357,7 +387,7 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	-- tile
 	if tileopacity > 0 then
 		gl.Color(1,1,1, tileopacity)
-		Spring.FlowUI.Draw.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/vsx/bgtexSize, (py+pyPad)/vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
+		Spring.FlowUI.Draw.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
 	end
 end
 
@@ -377,8 +407,6 @@ Spring.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr,
 	local opacity = opacity or 1
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
-	local vsx, vsy = Spring.GetViewGeometry()
-	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 	local bgpadding = math.floor(bgpadding or Spring.FlowUI.buttonPadding*0.5)
 	local glossMult = 1 + (2 - (opacity * 1.5))
 
@@ -389,8 +417,8 @@ Spring.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr,
 
 	local pxPad = bgpadding * (px > 0 and 1 or 0) * (pbl or 1)
 	local pyPad = bgpadding * (py > 0 and 1 or 0) * (pbr or 1)
-	local sxPad = bgpadding * (sx < vsx and 1 or 0) * (ptr or 1)
-	local syPad = bgpadding * (sy < vsy and 1 or 0) * (ptl or 1)
+	local sxPad = bgpadding * (sx < Spring.FlowUI.vsx and 1 or 0) * (ptr or 1)
+	local syPad = bgpadding * (sy < Spring.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
 	-- background
 	gl.Texture(false)
