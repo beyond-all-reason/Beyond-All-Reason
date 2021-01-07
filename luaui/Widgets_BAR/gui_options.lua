@@ -1257,12 +1257,8 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
 		--on window
-		local rectX1 = ((screenX - bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY1 = ((screenY + bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		local rectX2 = ((screenX + screenWidth + bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY2 = ((screenY - screenHeight - bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
 		local mx, my, ml = Spring.GetMouseState()
-		if IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
+		if IsOnRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 			return true
 		elseif titleRect and IsOnRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			return true
@@ -1363,13 +1359,8 @@ function widget:DrawScreen()
 			end
 
 			--on window
-			local rectX1 = ((screenX - bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY1 = ((screenY + bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-			local rectX2 = ((screenX + screenWidth + bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY2 = ((screenY - screenHeight - bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-
 			local mx, my, ml = Spring.GetMouseState()
-			if IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
+			if IsOnRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 			end
 			if groupRect ~= nil then
@@ -1387,9 +1378,6 @@ function widget:DrawScreen()
 			end
 
 			-- draw the options panel
-			--glPushMatrix()
-			--glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-			--glScale(widgetScale, widgetScale, 1)
 			glCallList(windowList)
 			if WG['guishader'] then
 				if backgroundGuishader ~= nil then
@@ -1821,14 +1809,10 @@ function mouseEvent(mx, my, button, release)
 				end
 			end
 
-			-- on window
-			local rectX1 = ((screenX - bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY1 = ((screenY + bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-			local rectX2 = ((screenX + screenWidth + bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY2 = ((screenY - screenHeight - bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
+
 			if tabClicked then
 
-			elseif IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
+			elseif IsOnRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then	-- on window
 
 
 				if release then
