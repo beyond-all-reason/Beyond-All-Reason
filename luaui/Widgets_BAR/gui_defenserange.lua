@@ -65,7 +65,6 @@ modConfig["BYAR"]["unitList"] = {
 	-- CORTEX
 	cormaw = { weapons = { 1 } },
 	corexp = { weapons = { 1 } },
-	cormaw = { weapons = { 1 } },
 	corllt = { weapons = { 1 } },
 	corhllt = { weapons = { 1 } },
 	corhlt = { weapons = { 1 } },
