@@ -457,6 +457,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	},
 }
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+
 local advSettings = false
 
 local initialized = false
@@ -500,15 +502,16 @@ local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
 local glowTex = ":l:LuaUI/Images/glow2.dds"
 
-local bgMargin = 6
-local screenHeight = 520 - bgMargin - bgMargin
-local screenWidth = 1050 - bgMargin - bgMargin
+local screenHeightOrg = 520
+local screenWidthOrg = 1050
+local screenHeight = screenHeightOrg
+local screenWidth = screenWidthOrg
 
 local customScale = 1
-local centerPosX = 0.5    -- note: dont go too far from 0.5
-local centerPosY = 0.49        -- note: dont go too far from 0.5
-local screenX = (vsx * centerPosX) - (screenWidth / 2)
-local screenY = (vsy * centerPosY) + (screenHeight / 2)
+local centerPosX = 0.5
+local centerPosY = 0.5
+local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 local wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
 local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
@@ -533,7 +536,7 @@ local os_clock = os.clock
 local chobbyInterface, font, font2, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, showPresetButtons
-local fontOption, draggingSlider, sliderValueChanged, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
+local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -553,6 +556,10 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
+
+local bgpadding = Spring.FlowUI.elementPadding
 
 local numPlayers = 0
 local scavengersAIEnabled = false
@@ -578,7 +585,6 @@ local heightmapChangeBuffer = {}
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
-WG.uiScale = widgetScale
 
 local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
@@ -689,16 +695,20 @@ end
 setEngineFont()
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	screenX = (vsx * centerPosX) - (screenWidth / 2)
-	screenY = (vsy * centerPosY) + (screenHeight / 2)
-	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale    --(0.5 + (vsx*vsy / 5700000)) * customScale
+	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
-	WG.uiScale = widgetScale
+
+	screenHeight = math.floor(screenHeightOrg * widgetScale)
+	screenWidth = math.floor(screenWidthOrg * widgetScale)
+	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+
+	bgpadding = Spring.FlowUI.elementPadding
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
+	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		setEngineFont()
 	end
@@ -813,8 +823,8 @@ function mouseoverGroupTab(id)
 		return
 	end
 
-	local tabFontSize = 16
-	local groupMargin = bgMargin / 1.7
+	local tabFontSize = 16 * widgetScale
+	local groupMargin = math.floor(bgpadding * 0.8)
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
 	-- gloss
@@ -825,7 +835,7 @@ function mouseoverGroupTab(id)
 	font2:Begin()
 	font2:SetTextColor(1, 0.9, 0.66, 1)
 	font2:SetOutlineColor(0.4, 0.3, 0.15, 0.4)
-	font2:Print(optionGroups[id].name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + bgMargin + 8, tabFontSize, "con")
+	font2:Print(optionGroups[id].name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
 	font2:End()
 end
 
@@ -840,54 +850,23 @@ function DrawWindow()
 	glTexture(false)
 	local x = screenX --rightwards
 	local y = screenY --upwards
-	windowRect = { x - bgMargin, y - screenHeight - bgMargin, x + screenWidth + bgMargin, y + bgMargin }
-	RectRound(windowRect[1], windowRect[2], windowRect[3], windowRect[4], 8, 0, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-	RectRound(x, y - screenHeight, x + screenWidth, y, 5.5, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
+	--RectRound(windowRect[1], windowRect[2], windowRect[3], windowRect[4], 8, 0, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
+	--RectRound(x, y - screenHeight, x + screenWidth, y, 5.5, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+
+	-- background
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
 
 	-- title
+	local groupMargin = math.floor(bgpadding * 0.8)
 	local color = '\255\255\255\255'
 	local color2 = '\255\125\125\125'
 	local title = "" .. color .. texts.basic .. color2 .. "  /  " .. texts.advanced
 	if advSettings then
 		title = "" .. color2 .. texts.basic.."  /  " .. color .. texts.advanced
 	end
-	local titleFontSize = 18
-	titleRect = { x - bgMargin, y + bgMargin, x + (font2:GetTextWidth(title) * titleFontSize) + 35 - bgMargin, y + 37 }
-
-	-- group tabs
-	local tabFontSize = 16
-	local xpos = titleRect[3]
-	local groupMargin = bgMargin / 1.7
-	groupRect = {}
-	for id, group in pairs(optionGroups) do
-		groupRect[id] = { xpos, y + (bgMargin / 2), xpos + (font2:GetTextWidth(group.name) * tabFontSize) + 33, y + 37 }
-		if advSettings or group.id ~= 'dev' then
-			xpos = groupRect[id][3]
-			if currentGroupTab == nil or currentGroupTab ~= group.id then
-				RectRound(groupRect[id][1], groupRect[id][2] + (bgMargin / 2), groupRect[id][3], groupRect[id][4], 8, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 0.44, 0.35, 0.18, 0.2 }, { 0.68, 0.55, 0.25, 0.2 })
-
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				-- gloss
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-				font2:Begin()
-				font2:SetTextColor(0.7, 0.58, 0.44, 1)
-				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), y + bgMargin + 8, tabFontSize, "con")
-				font2:End()
-			else
-				RectRound(groupRect[id][1], groupRect[id][2] + (bgMargin / 2), groupRect[id][3], groupRect[id][4], 8, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] + (bgMargin / 2) - bgMargin, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 0.5, 0.5, 0.5, 0.2 }, { 0.66, 0.66, 0.66, 0.2 })
-				font2:Begin()
-				font2:SetTextColor(1, 0.75, 0.4, 1)
-				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), y + bgMargin + 8, tabFontSize, "con")
-				font2:End()
-			end
-		end
-	end
+	local titleFontSize = 18 * widgetScale
+	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	-- title drawing
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
@@ -896,8 +875,42 @@ function DrawWindow()
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(title, x - bgMargin + (titleFontSize), y + bgMargin + 8, titleFontSize, "on")
+	font2:Print(title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
+
+	-- group tabs
+	local tabFontSize = 16 * widgetScale
+	local xpos = titleRect[3]
+	groupRect = {}
+	for id, group in pairs(optionGroups) do
+		groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33*widgetScale)), titleRect[4] }
+		if advSettings or group.id ~= 'dev' then
+			xpos = groupRect[id][3]
+			if currentGroupTab == nil or currentGroupTab ~= group.id then
+				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding*1.6, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.6, 1, 1, 0, 0, { 0.44, 0.35, 0.18, 0.2 }, { 0.68, 0.55, 0.25, 0.2 })
+
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				-- gloss
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.6, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+				font2:Begin()
+				font2:SetTextColor(0.7, 0.58, 0.44, 1)
+				font2:SetOutlineColor(0, 0, 0, 0.4)
+				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
+				font2:End()
+			else
+				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding * 1.6, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.6, 1, 1, 0, 0, { 0.5, 0.5, 0.5, 0.2 }, { 0.66, 0.66, 0.66, 0.2 })
+				font2:Begin()
+				font2:SetTextColor(1, 0.75, 0.4, 1)
+				font2:SetOutlineColor(0, 0, 0, 0.4)
+				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
+				font2:End()
+			end
+		end
+	end
 
 	font:Begin()
 	local width = screenWidth / 3
@@ -906,21 +919,21 @@ function DrawWindow()
 
 	-- description background
 	--gl.Color(0.55,0.48,0.22,0.14)
-	RectRound(x, y - screenHeight, x + width + width, y - screenHeight + 90, 6, 0, 1, 0, 1, { 1, 0.85, 0.55, 0.04 }, { 1, 0.85, 0.55, 0.075 })
+	RectRound(x+bgpadding, y +bgpadding - screenHeight, x + width + width, y + bgpadding - screenHeight + (87*widgetScale), bgpadding, 0, 1, 0, 1, { 1, 0.85, 0.55, 0.04 }, { 1, 0.85, 0.55, 0.075 })
 
 	-- draw options
-	local oHeight = 15
-	local oPadding = 6
-	y = y - oPadding - 11
-	local oWidth = (screenWidth / 3) - oPadding - oPadding
-	local yHeight = screenHeight - 102 - oPadding
-	local xPos = x + oPadding + 5
+	local oHeight = math.floor(15 * widgetScale)
+	local oPadding = math.floor(6 * widgetScale)
+	y = math.floor(math.floor(y - oPadding - (17 * widgetScale)))
+	local oWidth = math.floor((screenWidth / 3) - oPadding - oPadding)
+	local yHeight = math.floor(screenHeight - (102 * widgetScale) - oPadding)
+	local xPos = math.floor(x + oPadding + (5 * widgetScale))
 	local xPosMax = xPos + oWidth - oPadding - oPadding
 	local yPosMax = y - yHeight
-	local boolPadding = 3.5
-	local boolWidth = 40
-	local sliderWidth = 110
-	local selectWidth = 140
+	local boolPadding = math.floor(3.5 * widgetScale)
+	local boolWidth = math.floor(40 * widgetScale)
+	local sliderWidth = math.floor(110 * widgetScale)
+	local selectWidth = math.floor(140 * widgetScale)
 	local i = 0
 	local rows = 0
 	local column = 1
@@ -941,11 +954,10 @@ function DrawWindow()
 	optionButtons = {}
 	optionHover = {}
 
-
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
-		local buttonSize = 52
-		local buttonMargin = 18
+		local buttonSize = 52 * widgetScale
+		local buttonMargin = 18 * widgetScale
 		local startX = x + screenWidth
 		local startY = screenY - screenHeight + buttonMargin
 
@@ -982,7 +994,7 @@ function DrawWindow()
 	if changesRequireRestart then
 		font:SetTextColor(1, 0.35, 0.35, 1)
 		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print("...made changes that require restart", x + screenWidth - 3, screenY - screenHeight + 3, 15, "rn")
+		font:Print("...made changes that require restart", screenX + screenWidth - (3 * widgetScale), screenY - screenHeight + (3 * widgetScale), 15 * widgetScale, "rn")
 	end
 
 	-- draw options
@@ -990,7 +1002,7 @@ function DrawWindow()
 	for oid, option in pairs(options) do
 		if advSettings or option.basic and option.group ~= 'Dev' then
 			if currentGroupTab == nil or option.group == currentGroupTab then
-				yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
+				yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
 				if yPos - oHeight < yPosMax then
 					i = 0
 					column = column + 1
@@ -1001,8 +1013,8 @@ function DrawWindow()
 						break
 					end
 					if rows > 0 then
-						xPos = x + (((screenWidth / 3)) * (drawColumnPos - 1))
-						xPosMax = xPos + oWidth
+						xPos = math.floor(x + (((screenWidth / 3)) * (drawColumnPos - 1)))
+						xPosMax = math.floor(xPos + oWidth)
 					end
 					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
 				end
@@ -1019,16 +1031,16 @@ function DrawWindow()
 					font:Print(color .. option.name, xPos + (oPadding / 2), yPos - (oHeight / 3) - oPadding, oHeight, "no")
 
 					-- define hover area
-					optionHover[oid] = { xPos, yPos - oHeight - oPadding, xPosMax, yPos + oPadding }
+					optionHover[oid] = { math.floor(xPos), math.floor(yPos - oHeight - oPadding), math.floor(xPosMax), math.floor(yPos + oPadding) }
 
 					-- option controller
 					local rightPadding = 4
 					if option.type == 'bool' then
 						optionButtons[oid] = {}
 						optionButtons[oid] = { xPosMax - boolWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos }
-						RectRound(xPosMax - boolWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos, 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.11 }, { 1, 1, 1, 0.11 })
+						RectRound(math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.11 }, { 1, 1, 1, 0.11 })
 						if option.value == true then
-							RectRound(xPosMax - oHeight + boolPadding - rightPadding, yPos - oHeight + boolPadding, xPosMax - boolPadding - rightPadding, yPos - boolPadding, 1, 2, 2, 2, 2, { 0.6, 0.9, 0.6, 1 }, { 0.88, 1, 0.88, 1 })
+							RectRound(math.floor(xPosMax - oHeight + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.6, 0.9, 0.6, 1 }, { 0.88, 1, 0.88, 1 })
 							local boolGlow = boolPadding * 4.5
 							glColor(0.66, 1, 0.66, 0.3)
 							glTexture(glowTex)
@@ -1040,9 +1052,9 @@ function DrawWindow()
 							glTexture(false)
 							glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 						elseif option.value == 0.5 then
-							RectRound(xPosMax - (boolWidth / 1.9) + boolPadding - rightPadding, yPos - oHeight + boolPadding, xPosMax - (boolWidth / 1.9) + oHeight - boolPadding - rightPadding, yPos - boolPadding, 1, 2, 2, 2, 2, { 0.88, 0.73, 0.6, 1 }, { 1, 0.9, 0.75, 1 })
+							RectRound(math.floor(xPosMax - (boolWidth / 1.9) + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - (boolWidth / 1.9) + oHeight - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.88, 0.73, 0.6, 1 }, { 1, 0.9, 0.75, 1 })
 						else
-							RectRound(xPosMax - boolWidth + boolPadding - rightPadding, yPos - oHeight + boolPadding, xPosMax - boolWidth + oHeight - boolPadding - rightPadding, yPos - boolPadding, 1, 2, 2, 2, 2, { 0.8, 0.5, 0.5, 1 }, { 1, 0.75, 0.75, 1 })
+							RectRound(math.floor(xPosMax - boolWidth + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - boolWidth + oHeight - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.8, 0.5, 0.5, 1 }, { 1, 0.75, 0.75, 1 })
 							local boolGlow = boolPadding * 4
 							--glColor(1,0.66,0.66,0.25)
 							--glTexture(glowTex)
@@ -1069,15 +1081,15 @@ function DrawWindow()
 						else
 							sliderPos = (option.value - option.min) / (option.max - option.min)
 						end
-						RectRound(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, yPos - ((oHeight / 7) * 4.5), xPosMax - (sliderSize / 2) - rightPadding, yPos - ((oHeight / 7) * 2.8), 1, 2, 2, 2, 2, { 0.1, 0.1, 0.1, 0.22 }, { 0.9, 0.9, 0.9, 0.22 })
-						RectRound(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, yPos - ((oHeight / 7) * 4.5), xPosMax - (sliderSize / 2) - rightPadding, yPos - ((oHeight / 7) * 3.5), 1, 2, 2, 2, 2, { 1, 1, 1, 0.09 }, { 1, 1, 1, 0 })
-						RectRound(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2), 1, 2, 2, 2, 2, { 0.58, 0.58, 0.58, 1 }, { 0.88, 0.88, 0.88, 1 })
+						RectRound(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), 1, 2, 2, 2, 2, { 0.1, 0.1, 0.1, 0.22 }, { 0.9, 0.9, 0.9, 0.22 })
+						RectRound(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 3.5)), 1, 2, 2, 2, 2, { 1, 1, 1, 0.09 }, { 1, 1, 1, 0 })
+						RectRound(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding), math.floor(yPos - oHeight + ((oHeight - sliderSize) / 2)), math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight - sliderSize) / 2)), 1, 2, 2, 2, 2, { 0.58, 0.58, 0.58, 1 }, { 0.88, 0.88, 0.88, 1 })
 						optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
 						optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
 
 					elseif option.type == 'select' then
 						optionButtons[oid] = { xPosMax - selectWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos }
-						RectRound(xPosMax - selectWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos, 2, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
+						RectRound(math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 2, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
 						if option.options[tonumber(option.value)] ~= nil then
 							if option.id == 'font2' then
 								font:End()
@@ -1091,7 +1103,7 @@ function DrawWindow()
 								font:Print(option.options[tonumber(option.value)], xPosMax - selectWidth + 5 - rightPadding, yPos - (oHeight / 3) - oPadding, oHeight * 0.85, "no")
 							end
 						end
-						RectRound(xPosMax - oHeight - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos, 1, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
+						RectRound(math.floor(xPosMax - oHeight - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 1, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
 						glColor(1, 1, 1, 0.16)
 						glPushMatrix()
 						glTranslate(xPosMax - (oHeight * 0.5) - rightPadding, yPos - (oHeight * 0.33), 0)
@@ -1107,12 +1119,6 @@ function DrawWindow()
 		end
 	end
 	font:End()
-end
-
-function correctMouseForScaling(x, y)
-	x = x - (((x / vsx) - 0.5) * vsx) * ((widgetScale - 1) / widgetScale)
-	y = y - (((y / vsy) - 0.5) * vsy) * ((widgetScale - 1) / widgetScale)
-	return x, y
 end
 
 local sec = 0
@@ -1227,6 +1233,10 @@ function widget:Update(dt)
 				changes = true
 			end
 		end
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			changes = true
+		end
 		if changes then
 			if windowList then
 				gl.DeleteList(windowList)
@@ -1247,20 +1257,19 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
 		--on window
-		local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-		local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-		local x, y, ml = Spring.GetMouseState()
-		local cx, cy = correctMouseForScaling(x, y)
-		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+		local rectX1 = ((screenX - bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
+		local rectY1 = ((screenY + bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
+		local rectX2 = ((screenX + screenWidth + bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
+		local rectY2 = ((screenY - screenHeight - bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
+		local mx, my, ml = Spring.GetMouseState()
+		if IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
 			return true
-		elseif titleRect and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		elseif titleRect and IsOnRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			return true
 		elseif groupRect ~= nil then
 			for id, group in pairs(optionGroups) do
 				if advSettings or group.id ~= 'dev' then
-					if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+					if IsOnRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 						return true
 					end
 				end
@@ -1354,60 +1363,48 @@ function widget:DrawScreen()
 			end
 
 			--on window
-			local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-			local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-			local x, y, ml = Spring.GetMouseState()
-			local cx, cy = correctMouseForScaling(x, y)
-			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			local rectX1 = ((screenX - bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
+			local rectY1 = ((screenY + bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
+			local rectX2 = ((screenX + screenWidth + bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
+			local rectY2 = ((screenY - screenHeight - bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
+
+			local mx, my, ml = Spring.GetMouseState()
+			if IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
 				Spring.SetMouseCursor('cursornormal')
 			end
 			if groupRect ~= nil then
 				for id, group in pairs(optionGroups) do
 					if advSettings or group.id ~= 'dev' then
-						if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						if IsOnRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 							Spring.SetMouseCursor('cursornormal')
 							break
 						end
 					end
 				end
 			end
-			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			if titleRect ~= nil and IsOnRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 			end
 
 			-- draw the options panel
-			glPushMatrix()
-			glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-			glScale(widgetScale, widgetScale, 1)
+			--glPushMatrix()
+			--glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
+			--glScale(widgetScale, widgetScale, 1)
 			glCallList(windowList)
 			if WG['guishader'] then
-				local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-				local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-				local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-				local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
 				if backgroundGuishader ~= nil then
 					glDeleteList(backgroundGuishader)
 				end
 				backgroundGuishader = glCreateList(function()
 					-- background
-					RectRound(rectX1, rectY2, rectX2, rectY1, 9 * widgetScale, 0, 1, 1, 1)
+					RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, bgpadding * 1.6, 0, 1, 1, 1)
 					-- title
-					rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-					rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-					RectRound(rectX1, rectY1, rectX2, rectY2, 9 * widgetScale, 1, 1, 0, 0)
+					RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
 					-- tabs
 					for id, group in pairs(optionGroups) do
 						if advSettings or group.id ~= 'dev' then
 							if groupRect[id] then
-								rectX1 = (groupRect[id][1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-								rectY1 = (groupRect[id][2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-								rectX2 = (groupRect[id][3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-								rectY2 = (groupRect[id][4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-								RectRound(rectX1, rectY1, rectX2, rectY2, 9 * widgetScale, 1, 1, 0, 0)
+								RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding * 1.6, 1, 1, 0, 0)
 							end
 						end
 					end
@@ -1416,17 +1413,10 @@ function widget:DrawScreen()
 			end
 			showOnceMore = false
 
-			-- draw button hover
-			local usedScreenX = (vsx * centerPosX) - ((screenWidth / 2) * widgetScale)
-			local usedScreenY = (vsy * centerPosY) + ((screenHeight / 2) * widgetScale)
-
 			-- mouseover (highlight and tooltip)
-
 			local description = ''
-			--local x,y,ml = Spring.GetMouseState()
-			--local cx, cy = correctMouseForScaling(x,y)
-			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-				local groupMargin = bgMargin / 1.7
+			if titleRect ~= nil and IsOnRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+				local groupMargin = math.floor(bgpadding * 0.8)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				RectRound(titleRect[1] + groupMargin, titleRect[2], titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.12 })
@@ -1436,35 +1426,35 @@ function widget:DrawScreen()
 			if groupRect ~= nil then
 				for id, group in pairs(optionGroups) do
 					if advSettings or group.id ~= 'dev' then
-						if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						if IsOnRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 							mouseoverGroupTab(id)
 						end
 					end
 				end
 			end
-			if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
+			if optionButtonForward ~= nil and IsOnRect(mx, my, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
 				RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4] - optionButtonForward[2]) / 12, 2, 2, 2, 2, ml and { 1, 0.91, 0.66, 0.1 } or { 1, 0.91, 0.66, 0.3 }, { 1, 0.91, 0.66, 0.2 })
 			end
-			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
+			if optionButtonBackward ~= nil and IsOnRect(mx, my, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
 				RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4] - optionButtonBackward[2]) / 12, 2, 2, 2, 2, ml and { 1, 0.91, 0.66, 0.1 } or { 1, 0.91, 0.66, 0.3 }, { 1, 0.91, 0.66, 0.2 })
 			end
 
 			if not showSelectOptions then
 				for i, o in pairs(optionHover) do
-					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
+					if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
 						RectRound(o[1] - 4, o[2], o[3] + 4, o[4], 2, 2, 2, 2, 2, options[i].onclick and { 0.5, 1, 0.2, 0.1 } or { 1, 1, 1, 0.045 }, options[i].onclick and { 0.5, 1, 0.2, 0.2 } or { 1, 1, 1, 0.09 })
 						font:Begin()
 						if options[i].description ~= nil then
 							description = options[i].description
-							font:Print('\255\235\190\122' .. options[i].description, screenX + 15, screenY - screenHeight + 64.5, 16, "no")
+							font:Print('\255\235\190\122' .. options[i].description, screenX + (15*widgetScale), screenY - screenHeight + (65*widgetScale), 16*widgetScale, "no")
 						end
 						font:SetTextColor(0.46, 0.4, 0.3, 0.45)
-						font:Print('/option ' .. options[i].id, screenX + screenWidth * 0.659, screenY - screenHeight + 8, 14, "nr")
+						font:Print('/option ' .. options[i].id, screenX + screenWidth * 0.659, screenY - screenHeight + (8*widgetScale), 14*widgetScale, "nr")
 						font:End()
 					end
 				end
 				for i, o in pairs(optionButtons) do
-					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+					if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 						RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
 						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 							local value = options[i].value
@@ -1496,27 +1486,21 @@ function widget:DrawScreen()
 				end
 
 				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
-				local oPadding = 4
+				local oPadding = math.floor(4 * widgetScale)
 				y = optionButtons[showSelectOptions][4] - oPadding
 				local yPos = y
-				--Spring.Echo(oHeight)
 				optionSelect = {}
 				for i, option in pairs(options[showSelectOptions].options) do
 					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
 				end
 
 				selectOptionsList = glCreateList(function()
-					if WG['guishader'] then
-						glPushMatrix()
-						glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-						glScale(widgetScale, widgetScale, 1)
-					end
 					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.84 or 0.94 }, { 0.33, 0.33, 0.33, WG['guishader'] and 0.84 or 0.94 })
 					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.1 }, { 1, 1, 1, 0.1 })
 					for i, option in pairs(options[showSelectOptions].options) do
-						yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
-						if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], yPos + oPadding) then
-							RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], yPos + oPadding, 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.3 }, { 1, 1, 1, 0.3 })
+						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
+						if IsOnRect(mx, my, optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], yPos + oPadding) then
+							RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][3], math.floor(yPos + oPadding), 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.3 }, { 1, 1, 1, 0.3 })
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
 							end
@@ -1534,20 +1518,9 @@ function widget:DrawScreen()
 							font:End()
 						end
 					end
-					if WG['guishader'] then
-						glPopMatrix()
-					end
 				end)
 				if WG['guishader'] then
-					local interfaceScreenCenterPosX = (screenX + (screenWidth / 2)) / vsx
-					local interfaceScreenCenterPosY = (screenY - (screenHeight / 2)) / vsy
-
-					-- translate coordinates to actual screen coords (because we applied glscale/gltranlate above)
-					local x1 = (vsx * 0.5) - (((vsx / 2) - optionButtons[showSelectOptions][1]) * widgetScale)
-					local x2 = (vsx * 0.5) - (((vsx / 2) - optionButtons[showSelectOptions][3]) * widgetScale)
-					local y1 = (vsy * 0.5) - (((vsy / 2) - (yPos - oHeight - oPadding)) * widgetScale)
-					local y2 = (vsy * 0.5) - (((vsy / 2) - optionButtons[showSelectOptions][4]) * widgetScale)
-					WG['guishader'].InsertScreenRect(x1, y1, x2, y2, 'options_select')
+					WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 'options_select')
 					WG['guishader'].insertRenderDlist(selectOptionsList)
 				else
 					glCallList(selectOptionsList)
@@ -1555,7 +1528,6 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-			glPopMatrix()
 		else
 			if WG['guishader'] then
 				WG['guishader'].DeleteDlist('options')
@@ -1633,9 +1605,7 @@ end
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 
 	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX
-		and y >= BLcornerY
-		and y <= TRcornerY
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function round(value, numDecimalPlaces)
@@ -1653,9 +1623,9 @@ function NearestValue(table, number)
 	return table[smallestIndex]
 end
 
-function getSliderValue(draggingSlider, cx)
+function getSliderValue(draggingSlider, mx)
 	local sliderWidth = optionButtons[draggingSlider].sliderXpos[2] - optionButtons[draggingSlider].sliderXpos[1]
-	local value = (cx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
+	local value = (mx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
 	local min, max
 	if options[draggingSlider].steps then
 		min, max = options[draggingSlider].steps[1], options[draggingSlider].steps[1]
@@ -1688,16 +1658,14 @@ end
 
 function widget:MouseWheel(up, value)
 	local x, y = Spring.GetMouseState()
-	local cx, cy = correctMouseForScaling(x, y)
 	if show then
 		return true
 	end
 end
 
-function widget:MouseMove(x, y)
+function widget:MouseMove(mx, my)
 	if draggingSlider ~= nil then
-		local cx, cy = correctMouseForScaling(x, y)
-		local newValue = getSliderValue(draggingSlider, cx)
+		local newValue = getSliderValue(draggingSlider, mx)
 		if options[draggingSlider].value ~= newValue then
 			options[draggingSlider].value = newValue
 			sliderValueChanged = true
@@ -1726,28 +1694,26 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
-function mouseEvent(x, y, button, release)
+function mouseEvent(mx, my, button, release)
 	if spIsGUIHidden() then
 		return false
 	end
 
-	local cx, cy = correctMouseForScaling(x, y)
 	if show then
 		local returnTrue
-		local cx, cy = correctMouseForScaling(x, y)
 		if button == 3 then
-			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			if titleRect ~= nil and IsOnRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				return
 			end
 			if showSelectOptions ~= nil and options[showSelectOptions].id == 'preset' then
 				for i, o in pairs(optionSelect) do
-					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+					if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 						if presetNames[o[5]] and customPresets[presetNames[o[5]]] ~= nil then
 							deletePreset(presetNames[o[5]])
 							if playSounds then
 								Spring.PlaySoundFile(selectclick, 0.5, 'ui')
 							end
-							if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
+							if selectClickAllowHide ~= nil or not IsOnRect(mx, my, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
 								showSelectOptions = nil
 								selectClickAllowHide = nil
 							else
@@ -1761,7 +1727,7 @@ function mouseEvent(x, y, button, release)
 		elseif button == 1 then
 			if release then
 
-				if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+				if titleRect ~= nil and IsOnRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 					-- showhow rightmouse doesnt get triggered :S
 					advSettings = not advSettings
 					startColumn = 1
@@ -1771,7 +1737,7 @@ function mouseEvent(x, y, button, release)
 					return
 				end
 				-- navigation buttons
-				if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
+				if optionButtonForward ~= nil and IsOnRect(mx, my, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
 					startColumn = startColumn + maxShownColumns
 					if startColumn > totalColumns + (maxShownColumns - 1) then
 						startColumn = (totalColumns - maxShownColumns) + 1
@@ -1787,7 +1753,7 @@ function mouseEvent(x, y, button, release)
 					windowList = gl.CreateList(DrawWindow)
 					return
 				end
-				if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
+				if optionButtonBackward ~= nil and IsOnRect(mx, my, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
 					startColumn = startColumn - maxShownColumns
 					if startColumn < 1 then
 						startColumn = 1
@@ -1806,7 +1772,7 @@ function mouseEvent(x, y, button, release)
 
 				-- apply new slider value
 				if draggingSlider ~= nil then
-					options[draggingSlider].value = getSliderValue(draggingSlider, cx)
+					options[draggingSlider].value = getSliderValue(draggingSlider, mx)
 					applyOptionValue(draggingSlider)
 					draggingSlider = nil
 					draggingSliderPreDragValue = nil
@@ -1816,7 +1782,7 @@ function mouseEvent(x, y, button, release)
 				-- select option
 				if showSelectOptions ~= nil then
 					for i, o in pairs(optionSelect) do
-						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+						if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 							options[showSelectOptions].value = o[5]
 							applyOptionValue(showSelectOptions)
 							if playSounds then
@@ -1824,7 +1790,7 @@ function mouseEvent(x, y, button, release)
 							end
 						end
 					end
-					if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
+					if selectClickAllowHide ~= nil or not IsOnRect(mx, my, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
 						showSelectOptions = nil
 						selectClickAllowHide = nil
 					else
@@ -1838,7 +1804,7 @@ function mouseEvent(x, y, button, release)
 			if show and groupRect ~= nil then
 				for id, group in pairs(optionGroups) do
 					if advSettings or group.id ~= 'dev' then
-						if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						if IsOnRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 							if not release then
 								currentGroupTab = group.id
 								startColumn = 1
@@ -1856,13 +1822,13 @@ function mouseEvent(x, y, button, release)
 			end
 
 			-- on window
-			local rectX1 = ((screenX - bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY1 = ((screenY + bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
-			local rectX2 = ((screenX + screenWidth + bgMargin) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
-			local rectY2 = ((screenY - screenHeight - bgMargin) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
+			local rectX1 = ((screenX - bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
+			local rectY1 = ((screenY + bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
+			local rectX2 = ((screenX + screenWidth + bgpadding) * widgetScale) - ((vsx * (widgetScale - 1)) / 2)
+			local rectY2 = ((screenY - screenHeight - bgpadding) * widgetScale) - ((vsy * (widgetScale - 1)) / 2)
 			if tabClicked then
 
-			elseif IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			elseif IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
 
 
 				if release then
@@ -1871,7 +1837,7 @@ function mouseEvent(x, y, button, release)
 					if showSelectOptions == nil then
 						if showPresetButtons then
 							for preset, pp in pairs(presets) do
-								if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
+								if IsOnRect(mx, my, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
 									loadPreset(preset)
 								end
 							end
@@ -1879,7 +1845,7 @@ function mouseEvent(x, y, button, release)
 
 						for i, o in pairs(optionButtons) do
 
-							if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							if options[i].type == 'bool' and IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 								options[i].value = not options[i].value
 								applyOptionValue(i)
 								if playSounds then
@@ -1889,11 +1855,11 @@ function mouseEvent(x, y, button, release)
 										Spring.PlaySoundFile(toggleoffclick, 0.75, 'ui')
 									end
 								end
-							elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							elseif options[i].type == 'slider' and IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 
-							elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							elseif options[i].type == 'select' and IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 
-							elseif options[i].onclick ~= nil and IsOnRect(cx, cy, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
+							elseif options[i].onclick ~= nil and IsOnRect(mx, my, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
 								options[i].onclick(i)
 							end
 						end
@@ -1903,18 +1869,18 @@ function mouseEvent(x, y, button, release)
 
 					if not showSelectOptions then
 						for i, o in pairs(optionButtons) do
-							if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
+							if options[i].type == 'slider' and (IsOnRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(mx, my, o[1], o[2], o[3], o[4])) then
 								draggingSlider = i
 								draggingSliderPreDragValue = options[draggingSlider].value
-								local newValue = getSliderValue(draggingSlider, cx)
+								local newValue = getSliderValue(draggingSlider, mx)
 								if options[draggingSlider].value ~= newValue then
-									options[draggingSlider].value = getSliderValue(draggingSlider, cx)
+									options[draggingSlider].value = getSliderValue(draggingSlider, mx)
 									applyOptionValue(draggingSlider)    -- disabled so only on release it gets applied
 									if playSounds then
 										Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
 									end
 								end
-							elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							elseif options[i].type == 'select' and IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 
 								if playSounds then
 									Spring.PlaySoundFile(selectunfoldclick, 0.6, 'ui')
@@ -1933,7 +1899,7 @@ function mouseEvent(x, y, button, release)
 					return true
 				end
 				-- on title
-			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)) then
+			elseif titleRect ~= nil and IsOnRect(mx, my, (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)) then
 				--currentGroupTab = nil
 				--startColumn = 1
 				returnTrue = true
@@ -1956,7 +1922,7 @@ function mouseEvent(x, y, button, release)
 			end
 		end
 
-		if IsOnRect(cx, cy, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+		if IsOnRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 			return true
 		end
 	end
@@ -4917,16 +4883,6 @@ function init()
 		options[getOptionByID('notifications_volume')] = nil
 		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
 	end
-
-
-	--for i, option in pairs(options) do
-	--	Spring.Echo("			"..option.id.." = '"..option.name.."',")
-	--	if option.description and option.description ~= '' then
-	--		Spring.Echo("			"..option.id.."_descr = '"..option.description.."',")
-	--	end
-	--end
-
-
 
 	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
 		local tracksConfig = {}

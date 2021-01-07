@@ -175,7 +175,7 @@ end
 		offset, offsetY = texture offset coordinates (offsetY=offset when offsetY isnt defined)
 		texture = file location
 ]]
-Spring.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,  size, offset, offsetY,  texture)
+Spring.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  size, offset, offsetY,  texture)
 	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, size, offset, offsetY)
 		local scale = size and (size / (sx-px)) or 1
 		local offset = offset or 0
