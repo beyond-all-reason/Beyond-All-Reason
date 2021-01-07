@@ -9,7 +9,7 @@ for i = 1,#teams do
 end
 
 if not scavengersAIEnabled and not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
-	--return
+	return
 end
 
 function widget:GetInfo()
