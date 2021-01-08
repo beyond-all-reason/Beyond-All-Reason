@@ -18,7 +18,7 @@ function DefendBST:Init()
 	self.id = self.unit:Internal():ID()
 	self.name = self.unit:Internal():Name()
 	local ut = self.ai.armyhst.unitTable[self.name]
-	self.tough = self.ai.armyhst.battleList[self.name] or self.ai.armyhst.breakthroughList[self.name]
+	self.tough = self.ai.armyhst.battles[self.name] or self.ai.armyhst.breaks[self.name]
 	self.isDefender = self.ai.armyhst.defenderList[self.name]
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	-- defenders need to be sorted into only one type of weapon
@@ -29,7 +29,7 @@ function DefendBST:Init()
 	elseif ut.airRange > 0 then
 		self.hits = "air"
 	end
-	for i, name in pairs(self.ai.armyhst.raiderList) do
+	for i, name in pairs(self.ai.armyhst.raiders) do
 		if name == self.name then
 			self:EchoDebug(self.name .. " is scramble")
 			self.scramble = true

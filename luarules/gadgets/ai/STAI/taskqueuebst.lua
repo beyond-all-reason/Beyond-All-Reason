@@ -31,7 +31,7 @@ end
 
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	if self.ai.outmodedFactories == nil then
 		self.ai.outmodedFactories = 0
 	end
@@ -69,7 +69,7 @@ function TaskQueueBST:CategoryEconFilter(value)
 		return value
 	end
 
-	if self.ai.armyhst.reclaimerList[value] then
+	if self.ai.armyhst.rezs[value] then
 		-- dedicated reclaimer
 		self:EchoDebug(" dedicated reclaimer")
 		if overview.metalAboveHalf or overview.energyTooLow or overview.farTooFewCombats then
@@ -181,7 +181,7 @@ function TaskQueueBST:GetHelp(value, position)
 	if value == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
 	self:EchoDebug(value .. " before getting help")
 	local builder = self.unit:Internal()
-	if self.ai.armyhst.assistList[self.name] and not self.ai.armyhst.unitTable[value].isBuilding and not self.ai.armyhst.nanoTurretList[value] then
+	if self.ai.armyhst.engineers[self.name] and not self.ai.armyhst.unitTable[value].isBuilding and not self.ai.armyhst.nanoTurretList[value] then
 		return value
 	end
 	if self.ai.armyhst.Eco1[value] then
@@ -316,7 +316,7 @@ function TaskQueueBST:LocationFilter(utype, value)
 			end
 		end
 	elseif not self.ai.armyhst.unitTable[value].isBuilding then
-		if self.ai.armyhst.assistList[self.name] and not self.ai.armyhst.nanoTurretList[value] then
+		if self.ai.armyhst.engineers[self.name] and not self.ai.armyhst.nanoTurretList[value] then
 		p = self.ai.buildsitehst:BuildNearNano(builder, utype)
 		end
 	else
@@ -497,7 +497,7 @@ function TaskQueueBST:ProgressQueue()
 				if value ~= self.ai.armyhst.DummyUnitName then
 					self:EchoDebug("before duplicate filter " .. value)
 					local duplicate = self.ai.buildsitehst:CheckForDuplicates(value)
-					if duplicate then value = self.ai.armyhst.DummyUnitName end
+					if duplicate and not self.ai.armyhst.Eco1[value] then value = self.ai.armyhst.DummyUnitName end
 				end
 				self:EchoDebug(value .. " after filters")
 			else

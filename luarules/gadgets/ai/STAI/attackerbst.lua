@@ -1,5 +1,6 @@
 function IsAttacker(unit)
-	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
+-- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
+	return self.ai.armyhst.unitTable[unit:Internal():Name()].isAttacker
 end
 
 AttackerBST = class(Behaviour)
@@ -22,7 +23,7 @@ function AttackerBST:Init()
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
 	self.sightDistance = ut.losRadius * 0.9
-	self.sturdy = self.ai.armyhst.battleList[self.name] or self.ai.armyhst.breakthroughList[self.name]
+	self.sturdy = self.ai.armyhst.battles[self.name] or self.ai.armyhst.breaks[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
 	elseif ut.submergedRange > 0 then
@@ -158,10 +159,10 @@ function AttackerBST:SetMoveState()
 	if thisUnit then
 		local unitName = self.name
 		local floats = api.vectorFloat()
-		if self.ai.armyhst.battleList[unitName] then
+		if self.ai.armyhst.battles[unitName] then
 			-- floats:push_back(MOVESTATE_ROAM)
 			floats:push_back(MOVESTATE_MANEUVER)
-		elseif self.ai.armyhst.breakthroughList[unitName] then
+		elseif self.ai.armyhst.breaks[unitName] then
 			floats:push_back(MOVESTATE_MANEUVER)
 		else
 			floats:push_back(MOVESTATE_HOLDPOS)

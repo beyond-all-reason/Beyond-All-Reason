@@ -11,6 +11,41 @@ end
 
 function ArmyHST:Init()
 	self.DebugEnabled = true
+	self.unitTable = {}
+	self.wrecks = {}
+	self.featureTable = {}
+
+	self.attackers = {}  --al the mobile units that can do damage and can be used to attack
+
+	self.scouts = {}
+	self.raiders = {} -- these units will be used to raid weakly defended spots
+	self.techs = {}  --official builders
+	self.amptechs = {} --amphibious builders
+	self.jammers = {}
+	self.radars = {}
+	self.spys = {} -- spy bot
+	self.engineers = {} --help builders and build thinghs
+	self.wartechs = {} --decoy etc
+	self.rezs = {} -- rezzers
+	self.transports = {}
+	self.artillerys = {}
+	self.longranges = {}
+	self.battles = {} -- sturdy, cheap units to be built in larger numbers than siege units
+	self.breaks = {} -- sturdier units to use when battle units get killed
+	self.miners = {}
+	self.spiders = {} -- all terrain spider
+	self.paralyzers = {} --have paralyzer weapon
+	self.subkillers = {} -- submarine weaponed
+	self.bomberairs = {}
+	self.fighterairs = {}
+	self.antiairs = {}
+	self.antiairs2 = {} --in the case a lab have 2 antiair
+	self.antinukes = {}
+	self.amphibious = {} -- weapon amphibious
+	self.crawlings = {}
+	self.cloakables = {}
+	self:GetUnitTable()
+	self:GetFeatureTable()
 	self:setRanks()
 
 end
@@ -223,55 +258,11 @@ ArmyHST.leadsToExpFactories = {
 	armasy = 1,
 }
 
--- sturdy, cheap units to be built in larger numbers than siege units
-ArmyHST.battleList = {
-	corraid = 1,
-	armstump = 1,
-	corthud = 1,
-	armham = 1,
-	corstorm = 1,
-	armrock = 1,
-	coresupp = 1,
-	armdecade = 1,
-	corroy = 1,
-	armroy = 1,
-	corsnap = 1,
-	armanac = 1,
-	corseal = 1,
-	armcroc = 1,
-	correap = 2,
-	armbull = 2,
-	corcan = 2,
-	armzeus = 2,
-	corcrus = 2,
-	armcrus = 2,
-	armmav = 2,
--- 	cordecom = 2,
--- 	armdecom = 2,
-	corkarg = 3,
-	armraz = 3,
 
-}
 
--- sturdier units to use when battle units get killed
-ArmyHST.breakthroughList = {
-	corlevlr = 1,
-	armwar = 1,
-	corgol = 2,
-	corsumo = 2,
-	armfboy = 2,
-	corparrow = 2,
-	corhal = 2,
-	corbats = 2,
-	armbats = 2,
-	corkorg = 3,
-	corjugg = 3,
-	armbanth = 3,
-	corblackhy = 3,
-	armepoch = 3,
-	corcrw = 3,
-	armliche = 3,
-}
+
+
+
 
 -- for milling about next to con units and factories only
 ArmyHST.defenderList = {
@@ -298,146 +289,10 @@ ArmyHST.defenderList = {
 	corsfig = 1 ,
 }
 
-ArmyHST.attackerlist = {
-	--t1bot
-	corstorm = 1 ,
-	armrock = 1 ,
-	corthud = 1 ,
-	armham = 1 ,
-	armwar = 1 ,
-	--t1veh
-	armsam = 1 ,
-	corwolv = 1 ,
-	armstump = 1 ,
-	corraid = 1 ,
-	corlevlr = 1 ,
-
-	--t2bot
-	--t2veh
-	armart = 1 ,
-	armjanus = 1 ,
-
-
-
-
-	correap = 1 ,
-	armbull = 1 ,
-
-	cormart = 1 ,
-	armmart = 1 ,
-	cormort = 1 ,
-
-	armsnipe = 1 ,
-	armzeus = 1 ,
-
-	corsumo = 1 ,
-	corcan = 1 ,
-	corhrk = 1 ,
-	corgol = 1 ,
-	corvroc = 1 ,
-	cormh = 1 ,
-	armmanni = 1 ,
-	armmerl = 1 ,
-	armfido = 1 ,
-	armsptk = 1 ,
-	armmh = 1 ,
-	cormist = 1 ,
-	armfboy = 1 ,
-	corcrw = 1 ,
-	-- experimentals
-	armraz = 1 ,
-	armvang = 1 ,
-	armbanth = 1 ,
-	corshiva = 1 ,
-	corcat = 1 ,
-	corkarg = 1 ,
-	corjugg = 1 ,
-	corkorg = 1 ,
-	-- ships
-	coresupp = 1 ,
-	armdecade = 1 ,
-	corroy = 1 ,
-	armroy = 1 ,
-	corcrus = 1 ,
-	armcrus = 1 ,
-	corblackhy = 1 ,
-	armepoch = 1 ,
-	armserp = 1 ,
-	corssub = 1 ,
-	-- hover
-	corsnap = 1 ,
-	armanac = 1 ,
-	corhal = 1 ,
-	-- amphib
-	corseal = 1 ,
-	armcroc = 1 ,
-	corparrow = 1 ,
-}
-
--- these units will be used to raid weakly defended spots
-ArmyHST.raiderList = {
-	armfast = 1,
-	corgator = 1,
-	armflash = 1,
-	corpyro = 1,
-	armlatnk = 1,
-	armpw = 1,
-	corak = 1,
-	armmar = 1,
-	-- amphibious
-	corgarp = 1,
-	armpincer = 1,
-	-- hover
-	corsh = 1,
-	armsh = 1,
-	-- air gunships
-	armbrawl = 1,
-	armkam = 1,
-	armsaber = 1,
-	armblade = 1,
-	corbw = 1,
-	corape = 1,
-	corcut = 1,
-	corcrw = 1,
-	-- subs
-	corsub = 1,
-	armsub = 1,
-	armsubk = 1,
-	corshark = 1,
-}
-
-ArmyHST.scoutList = {
-	corfink = 1,
-	armpeep = 1,
-	corfav = 1,
-	armfav = 1,
-	armflea = 1,
-	corawac = 1,
-	armawac = 1,
-	corpt = 1,
-	armpt = 1,
-	corhunt = 1,
-	armsehak = 1,
-}
-
 ArmyHST.raiderDisarms = {
 	corbw = 1,
 }
 
--- units in this list are bombers or torpedo bombers
-ArmyHST.bomberList = {
-	corshad = 1,
-	armthund = 1,
-	corhurc = 2,
-	armpnix = 2,
-	armliche = 3,
-	corsb = 2,
-	armsb = 2,
-	cortitan = 2,
-	armlance = 2,
-	corseap = 2,
-	armseap = 2,
-}
 
 ArmyHST.antinukeList = {
 	corfmd = 1,
@@ -463,20 +318,6 @@ ArmyHST.nanoTurretList = {
 	armnanotc = 1,
 	armnanotcplat = 1,
 	cornanotcplat = 1,
-}
-
--- cheap construction units that can be built in large numbers
-ArmyHST.assistList = {
-	armfark = 1,
-	corfast = 1,
-	armconsul = 1,
-}
-
-ArmyHST.reclaimerList = {
-	cornecro = 1,
-	armrectr = 1,
-	correcl = 1,
-	armrecl = 1,
 }
 
 -- advanced construction units
@@ -647,10 +488,7 @@ ArmyHST.cleaners = {
 	armdecom = 1,
 	cordecom = 1,
 }
-ArmyHST.decoy ={
-	armdecom = 2,
-	cordecom = 2,
-}
+
 ArmyHST.cleanable = {
 	armsolar= 'ground',
 	corsolar= 'ground',
@@ -721,22 +559,6 @@ ArmyHST.ARMSideName = "armada"
 -- how much metal to assume features with these strings in their names have
 ArmyHST.baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
 
--- BEGIN CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
-
-local hoverplatform = {
-	armhp = 1,
-	armfhp = 1,
-	corhp = 1,
-	corfhp = 1,
-}
-
-local fighter = {
-	armfig = 1,
-	corveng = 1,
-	armhawk = 1,
-	corvamp = 1,
-}
-
 
 local unitsLevels = {}
 local armTechLv ={}
@@ -757,7 +579,7 @@ local function getDPS(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		dps = dps + weaponDef['damages'][0] / weaponDef['reload']
 	end
-	--Spring.Echo('dps',dps)
+	----Spring.Echo('dps',dps)
 	return dps
 end
 
@@ -774,7 +596,7 @@ local function getInterceptor(unitDefID)
 			interceptor  =  weaponDef['interceptor'] == 1
 		end
 	end
-	--Spring.Echo('interceptor',interceptor)
+	----Spring.Echo('interceptor',interceptor)
 	return interceptor
 end
 
@@ -786,7 +608,7 @@ local function getParalyzer(unitDefID)
 		local weaponDef = WeaponDefs[weaponDefID]
 		paralyzer  =  weaponDef['paralyzer']
 	end
-	--Spring.Echo('paralyzer',paralyzer)
+	----Spring.Echo('paralyzer',paralyzer)
 	return paralyzer
 end
 
@@ -812,11 +634,11 @@ local function getBadTargets(weapons)
 				local  weaponDefID = weapon["weaponDef"]
 				local weaponDef = WeaponDefs[weaponDefID]
 				targets[name] = weaponDef.range
-				--Spring.Echo('defbadtargets', targets[name])
+				----Spring.Echo('defbadtargets', targets[name])
 			end
 		end
 	end
-	--Spring.Echo('badtargets',targets)
+	----Spring.Echo('badtargets',targets)
 	return targets
 end
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
@@ -827,11 +649,11 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		-- Spring.Echo(weaponDefID)
-		-- Spring.Echo(weaponDef["canAttackGround"])
-		-- Spring.Echo(weaponDef["waterWeapon"])
-		--Spring.Echo(weaponDef["range"])
-		--Spring.Echo(weaponDef["type"])
+		-- --Spring.Echo(weaponDefID)
+		-- --Spring.Echo(weaponDef["canAttackGround"])
+		-- --Spring.Echo(weaponDef["waterWeapon"])
+		----Spring.Echo(weaponDef["range"])
+		----Spring.Echo(weaponDef["type"])
 		local wType = 0
 		if weaponDef["canAttackGround"] == false then
 			wType = 1
@@ -840,7 +662,7 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 		else
 			wType = 0
 		end
-		-- Spring.Echo(wType)
+		-- --Spring.Echo(wType)
 		if wType == GroundAirSubmerged then
 			if weaponDef["range"] > weaponRange then
 				weaponRange = weaponDef["range"]
@@ -917,6 +739,7 @@ function ArmyHST:getJammer(units,lab)
 	if target then
 		self:EchoDebug(target,'is jammer of', lab)
 		self.ranks[lab][target] = 'jammer'
+		self.jammers[target] = true
 	end
 
 end
@@ -939,6 +762,7 @@ function ArmyHST:getEngineer(units,lab)
 	if target then
 		self:EchoDebug(target,'is Engineer of', lab)
 		self.ranks[lab][target] = 'engineer'
+		self.engineers[target] = true
 	end
 end
 function ArmyHST:getWartech(units,lab)
@@ -950,6 +774,7 @@ function ArmyHST:getWartech(units,lab)
 			if  spec.buildOptions and spec.isWeapon  then
 				self.ranks[lab][name] = 'wartech'
 				self:EchoDebug(name,'is fightingBuilders of', lab)
+				self.wartechs[name] = true
 			end
 		end
 	end
@@ -964,6 +789,7 @@ function ArmyHST:getCloakabe(units,lab)
 			if spec.canCloak and spec.isWeapon and not spec.isBuilder then
 				self:EchoDebug(name,'is cloakable of', lab)
 				self.ranks[lab][name] = 'cloakable'
+				self.cloakables[name] = true
 			end
 		end
 	end
@@ -976,6 +802,7 @@ function ArmyHST:getSpy(units,lab)
 			if spec.canCloak and not spec.isWeapon and spec.isBuilder then
 				self:EchoDebug(name,'is spy of', lab)
 				self.ranks[lab][name] = 'spy'
+				self.spys[name] = true
 			end
 		end
 	end
@@ -988,6 +815,7 @@ function ArmyHST:getSpiders(units,lab)
 			if spec.isWeapon and spec.mclass == 'tbot3' then
 				self:EchoDebug(name,'is spider of', lab)
 				self.ranks[lab][name] = 'spider'
+				self.spiders[name] = true
 			end
 		end
 	end
@@ -1000,6 +828,7 @@ function ArmyHST:getMiner(units,lab)
 			if spec.isBuilder and spec.buildOptions and not spec.canAssist then
 				self:EchoDebug(name,'is miner of', lab)
 				self.ranks[lab][name] = 'miner'
+				self.miners[name] = true
 			end
 		end
 	end
@@ -1012,6 +841,7 @@ function ArmyHST:getBomberAir(units,lab)
 			if spec.isAirUnit and spec.isBomberAirUnit then
 				self:EchoDebug(name,'is BomberAir of', lab)
 				self.ranks[lab][name] = 'bomberair'
+				self.bomberairs[name] = true
 			end
 		end
 	end
@@ -1024,6 +854,7 @@ function ArmyHST:getFighterAir(units,lab)
 			if spec.isAirUnit and spec.isFighterAirUnit then
 				self:EchoDebug(name,'is fighterair of', lab)
 				self.ranks[lab][name] = 'fighterair'
+				self.fighterairs[name] = true
 			end
 		end
 	end
@@ -1036,6 +867,7 @@ function ArmyHST:getRez(units,lab)
 			if spec.canResurrect  then
 				self:EchoDebug(name,'is rez of', lab)
 				self.ranks[lab][name] = 'rez'
+				self.rezs[name] = true
 			end
 		end
 	end
@@ -1048,6 +880,7 @@ function ArmyHST:getAntiNuke(units,lab)
 			if spec.antiNuke then
 				self:EchoDebug(name,'is antinuke of', lab)
 				self.ranks[lab][name] = 'antinuke'
+				self.antinukes[name] = true
 			end
 		end
 	end
@@ -1060,6 +893,7 @@ function ArmyHST:getFreezer(units,lab)
 			if spec.isWeapon and spec.paralyzer and not spec.buildOptions then
 				self:EchoDebug(name,'is paralyzer of', lab)
 				self.ranks[lab][name] = 'paralyzer'
+				self.paralyzers[name] = true
 			end
 		end
 	end
@@ -1072,6 +906,7 @@ function ArmyHST:getTransport(units,lab)
 			if spec.isTransport then
 				self:EchoDebug(name,'is transport of', lab)
 				self.ranks[lab][name] = 'transport'
+				self.transports[name] = true
 			end
 		end
 	end
@@ -1102,10 +937,12 @@ function ArmyHST:getTech(units,lab)
 	if target then
 		self:EchoDebug(target,'is tech of', lab)
 		self.ranks[lab][target] = 'tech'
+		self.techs[target] = true
 	end
 	if ampBuilder then
 		self:EchoDebug(ampBuilder,'is amptech of', lab)
 		self.ranks[lab][ampBuilder] = 'amptech'
+		self.amptechs[ampBuilder] = true
 	end
 
 end
@@ -1129,6 +966,7 @@ function ArmyHST:getRadar(units,lab)
 	if target then
 		self:EchoDebug(target,'is radar of', lab)
 		self.ranks[lab][target] = 'radar'
+		self.radars[target] = true
 	end
 end
 
@@ -1141,8 +979,9 @@ function ArmyHST:getCrawlingBomb(units,lab)
 			local spec = self.unitTable[name]
 			if spec.mclass == 'abotbomb2' then
 				target = name
-				self.ranks[lab][name] = 'crawrawling'
+				self.ranks[lab][name] = 'crawling'
 				self:EchoDebug(target,'is crowling bomb of', lab)
+				self.crawlings[target] = true
 			end
 		end
 	end
@@ -1169,6 +1008,7 @@ function ArmyHST:getRaiders(units,lab)
 	if target then
 		self:EchoDebug(target,'is raider of', lab)
 		self.ranks[lab][target] = 'raider'
+		self.raiders[target] = true
 	end
 end
 
@@ -1190,6 +1030,7 @@ function ArmyHST:getBattle(units,lab)
 	if target then
 		self:EchoDebug(target,'is battle of', lab)
 		self.ranks[lab][target] = 'battle'
+		self.battles[target] = true
 	end
 end
 
@@ -1211,6 +1052,7 @@ function ArmyHST:getBreak(units,lab)
 	if target then
 		self:EchoDebug(target,'is break of', lab)
 		self.ranks[lab][target] = 'break'
+		self.breaks[target] = true
 	end
 end
 
@@ -1232,6 +1074,7 @@ function ArmyHST:getLongRange(units,lab)
 	if target then
 		self:EchoDebug(target,'is LongRange of', lab)
 		self.ranks[lab][target] = 'longrange'
+		self.longranges[target] = true
 	end
 end
 
@@ -1253,6 +1096,7 @@ function ArmyHST:getArtillery(units,lab)
 	if target then
 		self:EchoDebug(target,'is artillery of', lab)
 		self.ranks[lab][target] = 'artillery'
+		self.artillerys[target] = true
 	end
 end
 
@@ -1263,6 +1107,7 @@ function ArmyHST:getAmphibious(units,lab)
 			if spec.isWeapon  and spec.noChaseCat['vtol']  and  spec.mtype == 'amp' then
 				self:EchoDebug(name,'is amphibious of', lab)
 				self.ranks[lab][name] = 'amphibious'
+				self.amphibious[name] = true
 			end
 		end
 	end
@@ -1274,22 +1119,22 @@ function ArmyHST:getSubK(units,lab)
 			local spec = self.unitTable[name]
 			if spec.isWeapon    and  spec.mtype == 'sub' and not spec.buildOptions then
 				self:EchoDebug(name,'is subKiller of', lab)
-				self.ranks[lab][name] = 'subKiller'
+				self.ranks[lab][name] = 'subkiller'
+				self.subkillers[name] = true
 			end
 		end
 	end
 end
 
 function ArmyHST:getAttackers(units,lab)
-	local cost = 1/0
-	local target = nil
 	local spec = self.unitTable
 	for i, name in pairs(units) do
-		if spec[name].isWeapon and spec[name].noChaseCat['vtol'] then
-			target = name
+		if utable.isWeapon and not utable.buildOptions   and not utable.antiNuke  and utable.noChaseCat ~= 'notair' and not utable.isBuilding and  utable.radarRadius < 1 and utable.jammerRadius < 1 and not utable.isTransport and not utable.isFighterAirUnit and not utable.isBomberAirUnit and not utable.canResurrect then
+			spec.isAttacker = true
+			self:EchoDebug(target,'is attacker ')
 		end
 	end
-	self:EchoDebug(target,'is attacker of', lab)
+
 end
 
 function ArmyHST:getScouts(units,lab)
@@ -1309,6 +1154,7 @@ function ArmyHST:getScouts(units,lab)
 	if target then
 		self:EchoDebug(target,'is scout of', lab)
 		self.ranks[lab][target] = 'scout'
+		self.scouts[target] = true
 	end
 
 
@@ -1353,6 +1199,7 @@ function ArmyHST:getAntiAir(units,lab)
 	if aa then
 		self:EchoDebug(aa,'is AntiAir of', lab)
 		self.ranks[lab][aa] = 'antiair'
+		self.antiairs[aa] = true
 	end
 
 end
@@ -1372,6 +1219,7 @@ function ArmyHST:getAntiAir2(units,lab)
 	if aa then
 		self:EchoDebug(aa,'is AntiAir2 of', lab)
 		self.ranks[lab][aa] = 'antiair2'
+		self.antiairs2[aa] = true
 	end
 end
 
@@ -1383,104 +1231,6 @@ function ArmyHST:getUnranked(units,lab)
 		end
 	end
 end
-
-local function scanLabs(units,lab)
-	local counter = 0
-	local _metal = 0
-	local _energy = 0
-	local _speed = 0
-	local _maxWeaponRange = 0
-	local _hp = 0
-	local _dps = 0
-	local maxM
-	local minM
-	local scout
-	local scoutR
-	local attacker
-	local attackerR
-	local maxMunit
-	local minMunit
-	--Spring.Echo('LAB:',lab,#units)
-	for i, name in pairs(units) do
-		local def = UnitDefNames[name]
-		if def.maxWeaponRange > 0 and not def.isBuilder and  def.selfDCountdown ~= 0 then
-			counter = counter + 1
-		end
-	end
-	for i, name in pairs(units) do
-		local def = UnitDefNames[name]
-		_metal = _metal + def.metalCost
-		_energy = _energy + def.energyCost
-		_maxWeaponRange = _maxWeaponRange + def.maxWeaponRange
-		_hp = _hp + def.health
-		_dps = _dps + ArmyHST.unitTable[name].dps
-		--Spring.Echo(name,def.maxWeaponRange)
-		if def.maxWeaponRange > 0 and not def.isBuilder and  def.selfDCountdown ~= 0 then
-
-			if not maxM then
-				maxM = def.metalCost
-				maxMunit = name
-			elseif def.metalCost > maxM then
-				maxM = def.metalCost
-				maxMunit = name
-			end
-			if not minM then
-				minM = def.metalCost
-				minMunit = name
-			elseif def.metalCost < minM then
-				minM = def.metalCost
-				minMunit = name
-			end
-			if not scout then
-				scoutR = (def.speed ) / (def.metalCost * def.energyCost)
-				scout = name
-			elseif  (def.speed ) / (def.metalCost * def.energyCost) > scoutR  then
-				scoutR = (def.speed ) / (def.metalCost * def.energyCost)
-				scout = name
-			end
-			if not attacker then
-				attackerR =  (ArmyHST.unitTable[name].dps * def.health * (def.speed * def.maxAcc) )
-				attacker = name
-			elseif   (ArmyHST.unitTable[name].dps * def.health * (def.speed * def.maxAcc) ) > attackerR then
-				attackerR =  (ArmyHST.unitTable[name].dps * def.health * (def.speed * def.maxAcc)  )
-				attacker = name
-			end
-
-		end
-
-
-	end
--- 	Spring.Echo('maxmname',maxMunit)
--- 	Spring.Echo('minmname',minMunit)
---	Spring.Echo('scout',scout)
-	--Spring.Echo(lab,'attacker',attacker,attackerR)
-	_metal = _metal / counter
-	_energy = _energy / counter
-	_maxWeaponRange = _maxWeaponRange / counter
-	_hp = _hp / counter
-	_dps = _dps /  counter
-	for i, name in pairs(units) do
-		ArmyHST.unitTable[name].metalRatio = UnitDefNames[name].metalCost / _metal
-		ArmyHST.unitTable[name].energyRatio = UnitDefNames[name].energyCost / _energy
-		ArmyHST.unitTable[name].maxWeaponRangeRatio =  UnitDefNames[name].maxWeaponRange / _maxWeaponRange
-		ArmyHST.unitTable[name].healthR =  UnitDefNames[name].health / _hp
-		ArmyHST.unitTable[name].dpsR =  ArmyHST.unitTable[name].dps / _dps
--- 		if ArmyHST.unitTable[name].maxWeaponRangeRatio > 0.75 and ArmyHST.unitTable[name].maxWeaponRangeRatio < 1.25 then
--- 			Spring.Echo(lab,name,'TRUE')
--- 		else
--- 			Spring.Echo(lab,name,ArmyHST.unitTable[name].maxWeaponRangeRatio)
--- 		end
--- 		if ArmyHST.unitTable[name].healthR > 0.75 and ArmyHST.unitTable[name].healthR < 1.25 then
--- 			Spring.Echo(lab,name,'TRUE')
--- 		else
--- 			Spring.Echo(lab,name,ArmyHST.unitTable[name].healthR)
--- 		end
-	--Spring.Echo(lab,name ,ArmyHST.unitTable[name].dpsR)
-	end
-
-end
-
-
 
 local function GetUnitSide(name)--TODO change to the internal name armada cortex
 	if string.find(name, 'arm') then
@@ -1520,19 +1270,61 @@ local function getTechTree(sideTechLv)
 	end
 	parent = 0
 end
-local function GetUnitTable()
+function ArmyHST:GetUnitTable()
 	local builtBy = GetBuiltBy()
 	local unitTable = {}
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		if unitsLevels[unitDef.name] then
-			-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
+
+
+
+			-- --Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
 			-- if unitDef.moveDef.maxSlope then
-			-- Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
+			-- --Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
 			-- end
-			local utable = {}
+			self.unitTable[unitDef.name] = {}
+
+			local utable = self.unitTable[unitDef.name]
+			utable.name = unitDef.name
 			utable.side = side
+			utable.defId = unitDefID
+			utable.radarRadius = unitDef["radarRadius"]
+			utable.airLosRadius = unitDef["airLosRadius"]
+			utable.losRadius = unitDef["losRadius"]
+			utable.sonarRadius = unitDef["sonarRadius"]
+			utable.jammerRadius = unitDef["jammerRadius"]
+			utable.stealth = unitDef["stealth"]
+			utable.metalCost = unitDef["metalCost"]
+			utable.energyCost = unitDef["energyCost"]
+			utable.buildTime = unitDef["buildTime"]
+			utable.totalEnergyOut = unitDef["totalEnergyOut"]
+			utable.extractsMetal = unitDef["extractsMetal"]
+			utable.isTransport = unitDef.isTransport
+			utable.isImmobile = unitDef.isImmobile
+			utable.isBuilder = unitDef.isBuilder
+			utable.isMobileBuilder = unitDef.isMobileBuilder
+			utable.isStaticBuilder = unitDef.isStaticBuilder
+			utable.isFactory = unitDef.isLab
+			utable.isExtractor = unitDef.Extractor
+			utable.isGroundUnit = unitDef.isGroundUnit
+			utable.isAirUnit = unitDef.isAirUnit
+			utable.isStrafingAirUnit = unitDef.isStrafingAirUnit
+			utable.isHoveringAirUnit = unitDef.isHoveringAirUnit
+			utable.isFighterAirUnit = unitDef.isFighterAirUnit
+			utable.isBomberAirUnit = unitDef.isBomberAirUnit
+			utable.noChaseCat = unitDef.noChaseCategories
+			utable.maxWeaponRange = unitDef.maxWeaponRange
+			utable.mclass = unitDef.moveDef.name
+			utable.speed = unitDef.speed
+			utable.accel = unitDef.maxAcc
+			utable.move = unitDef.speed * unitDef.maxAcc * unitDef.turnRate * unitDef.maxDec
+			utable.hp = unitDef.health
+			utable.buildSpeed = unitDef.buildSpeed
+			utable.canAssist = unitDef.canAssist
+			utable.canCloak = unitDef.canCloak
+			utable.canResurrect = unitDef.canResurrect
 -- 			Spring:Echo(unitDef.name)
 			utable.techLevel = unitsLevels[unitDef["name"]]
 			if unitDef["modCategories"]["weapon"] then
@@ -1575,7 +1367,7 @@ local function GetUnitTable()
 			utable.dps = getDPS(unitDefID)
 			utable.antiNuke = getInterceptor(unitDefID)
 			utable.paralyzer = getParalyzer(unitDefID)
-			Spring:Echo(unitDef.name,utable.antiNuke)
+			--Spring:Echo(unitDef.name,utable.antiNuke)
 			if unitDef.speed == 0 and utable.isWeapon then
 				utable.isTurret = true
 				if unitDef.modCategories.mine then
@@ -1602,45 +1394,11 @@ local function GetUnitTable()
 					utable.isSubTurret = utable.submergedRange
 				end
 			end
-			if fighter[unitDef["name"]] then
+			if utable.isFighterAirUnit then
 				utable.airRange = utable.groundRange
 			end
-			utable.radarRadius = unitDef["radarRadius"]
-			utable.airLosRadius = unitDef["airLosRadius"]
-			utable.losRadius = unitDef["losRadius"]
-			utable.sonarRadius = unitDef["sonarRadius"]
-			utable.jammerRadius = unitDef["jammerRadius"]
-			utable.stealth = unitDef["stealth"]
-			utable.metalCost = unitDef["metalCost"]
-			utable.energyCost = unitDef["energyCost"]
-			utable.buildTime = unitDef["buildTime"]
-			utable.totalEnergyOut = unitDef["totalEnergyOut"]
-			utable.extractsMetal = unitDef["extractsMetal"]
-			utable.isTransport = unitDef.isTransport
-			utable.isImmobile = unitDef.isImmobile
 
-			utable.isBuilder = unitDef.isBuilder
-			utable.isMobileBuilder = unitDef.isMobileBuilder
-			utable.isStaticBuilder = unitDef.isStaticBuilder
-			utable.isFactory = unitDef.isLab
-			utable.isExtractor = unitDef.Extractor
-			utable.isGroundUnit = unitDef.isGroundUnit
-			utable.isAirUnit = unitDef.isAirUnit
-			utable.isStrafingAirUnit = unitDef.isStrafingAirUnit
-			utable.isHoveringAirUnit = unitDef.isHoveringAirUnit
-			utable.isFighterAirUnit = unitDef.isFighterAirUnit
-			utable.isBomberAirUnit = unitDef.isBomberAirUnit
-			utable.noChaseCat = unitDef.noChaseCategories
-			utable.maxWeaponRange = unitDef.maxWeaponRange
-			utable.mclass = unitDef.moveDef.name
-			utable.speed = unitDef.speed
-			utable.accel = unitDef.maxAcc
-			utable.move = unitDef.speed * unitDef.maxAcc * unitDef.turnRate * unitDef.maxDec
-			utable.hp = unitDef.health
-			utable.buildSpeed = unitDef.buildSpeed
-			utable.canAssist = unitDef.canAssist
-			utable.canCloak = unitDef.canCloak
-			utable.canResurrect = unitDef.canResurrect
+
 			if unitDef["minWaterDepth"] > 0 then
 				utable.needsWater = true
 			else
@@ -1708,18 +1466,22 @@ local function GetUnitTable()
 
 				end
 			end
+			if utable.isWeapon and not utable.buildOptions   and not utable.antiNuke  and utable.noChaseCat ~= 'notair' and not utable.isBuilding and  utable.radarRadius < 1 and utable.jammerRadius < 1 and not utable.isTransport and not utable.isFighterAirUnit and not utable.isBomberAirUnit and not utable.canResurrect then
+				utable.isAttacker = true
+				Spring:Echo(utable.name, 'isAttacker')
+			end
 			utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
 			utable.xsize = unitDef["xsize"]
 			utable.zsize = unitDef["zsize"]
 			utable.wreckName = unitDef["wreckName"]
-			wrecks[unitDef["wreckName"]] = unitDef["name"]
-			unitTable[unitDef.name] = utable
+			self.wrecks[unitDef["wreckName"]] = unitDef["name"]
+			--unitTable[unitDef.name] = utable
 		end
 	end
-	return unitTable, wrecks
+-- 	return unitTable, wrecks
 end
 
-local function GetFeatureTable(wrecks)
+function ArmyHST:GetFeatureTable()
 	local featureTable = {}
 	-- feature defs
 	for featureDefID, featureDef in pairs(FeatureDefs) do
@@ -1728,20 +1490,20 @@ local function GetFeatureTable(wrecks)
 			local v = featureDef[k]
 			ftable[k] = v
 		end
-		if wrecks[featureDef["name"]] then
-			ftable.unitName = wrecks[featureDef["name"]]
+		if self.wrecks[featureDef["name"]] then
+			ftable.unitName = self.wrecks[featureDef["name"]]
 		end
-		featureTable[featureDef.name] = ftable
+		self.featureTable[featureDef.name] = ftable
 	end
-	return featureTable
+
 end
 
 getTechTree(armTechLv)
 getTechTree(corTechLv)
 for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
-ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
-ArmyHST.featureTable = GetFeatureTable(ArmyHST.wrecks)
+--ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
+
 
 function ArmyHST:setRanks()
 	self.ranks = {}
@@ -1751,31 +1513,31 @@ function ArmyHST:setRanks()
 			--scanLabs(t.unitsCanBuild,lab)
 
 			self:getSpy(t.unitsCanBuild,lab)
-			self:getSpiders(t.unitsCanBuild,lab)
-			self:getFreezer(t.unitsCanBuild,lab)
+			self:getSpiders(t.unitsCanBuild,lab)--
+			self:getFreezer(t.unitsCanBuild,lab)--
 			self:getBomberAir(t.unitsCanBuild,lab)
 			self:getFighterAir(t.unitsCanBuild,lab)
-			self:getAntiNuke(t.unitsCanBuild,lab)
+			self:getAntiNuke(t.unitsCanBuild,lab)--
 			self:getCrawlingBomb(t.unitsCanBuild,lab)
 			self:getTransport(t.unitsCanBuild,lab)
 			self:getCloakabe(t.unitsCanBuild,lab)
-			self:getJammer(t.unitsCanBuild,lab)
-			self:getRadar(t.unitsCanBuild,lab)
-			self:getScouts(t.unitsCanBuild,lab)
+			self:getJammer(t.unitsCanBuild,lab)--
+			self:getRadar(t.unitsCanBuild,lab)--
+			self:getScouts(t.unitsCanBuild,lab)--
 			self:getAntiAir(t.unitsCanBuild,lab)
-			self:getTech(t.unitsCanBuild,lab)
-			self:getRez(t.unitsCanBuild,lab)
-			self:getMiner(t.unitsCanBuild,lab)
-			self:getWartech(t.unitsCanBuild,lab)
-			self:getEngineer(t.unitsCanBuild,lab)
-			self:getSubK(t.unitsCanBuild,lab)
-			self:getArtillery(t.unitsCanBuild,lab)
+			self:getTech(t.unitsCanBuild,lab)--
+			self:getRez(t.unitsCanBuild,lab)--
+			self:getMiner(t.unitsCanBuild,lab)--
+			self:getWartech(t.unitsCanBuild,lab)--
+			self:getEngineer(t.unitsCanBuild,lab)--
+			self:getSubK(t.unitsCanBuild,lab)--
+			self:getArtillery(t.unitsCanBuild,lab)--
 			self:getAmphibious(t.unitsCanBuild,lab)
-			self:getAntiAir(t.unitsCanBuild,lab)
-			self:getRaiders(t.unitsCanBuild,lab)
-			self:getBattle(t.unitsCanBuild,lab)
-			self:getBreak(t.unitsCanBuild,lab)
-			self:getLongRange(t.unitsCanBuild,lab)
+			self:getAntiAir(t.unitsCanBuild,lab)--
+			self:getRaiders(t.unitsCanBuild,lab)--
+			self:getBattle(t.unitsCanBuild,lab)--
+			self:getBreak(t.unitsCanBuild,lab)--
+			self:getLongRange(t.unitsCanBuild,lab)--
 
 
 
@@ -2023,6 +1785,3 @@ wrecks = nil
    [f=-000001] cost, 3133.33325
 
 ]]
-
-
-

@@ -125,7 +125,7 @@ function TargetHST:CellValueThreat(unitName, cell)
 			notThreat = notThreat + cell.threat[GAS]
 		end
 	end
-	if gas.air and self.ai.armyhst.raiderList[unitName] and not self.ai.armyhst.raiderDisarms[unitName] then
+	if gas.air and self.ai.armyhst.raiders[unitName] and not self.ai.armyhst.raiderDisarms[unitName] then
 		threat = threat + cell.threat.ground * 0.1
 	end
 	if self.ai.armyhst.raiderDisarms[unitName] then
@@ -1338,7 +1338,7 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 				if self.cells[x] ~= nil then
 					if self.cells[x][z] ~= nil then
 						local value, threat = self:CellValueThreat(uname, self.cells[x][z])
-						if self.ai.armyhst.raiderList[uname] then
+						if self.ai.armyhst.raiders[uname] then
 							-- self.cells with other raiders in or nearby are better places to go for raiders
 							if self.cells[x][z].raiderHere then threat = threat - self.cells[x][z].raiderHere end
 							if self.cells[x][z].raiderAdjacent then threat = threat - self.cells[x][z].raiderAdjacent end

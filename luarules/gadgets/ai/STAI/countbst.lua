@@ -25,14 +25,14 @@ function CountBST:Init()
 	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
 	if uTn.extractsMetal > 0 then self.isMex = true end
-	if self.ai.armyhst.battleList[self.name] then self.isBattle = true end
-	if self.ai.armyhst.breakthroughList[self.name] then self.isBreakthrough = true end
-	if self.isCombat and not self.ai.armyhst.battleList[self.name] and not self.ai.armyhst.breakthroughList[self.name] then
+	if self.ai.armyhst.battles[self.name] then self.isBattle = true end
+	if self.ai.armyhst.breaks[self.name] then self.isBreakthrough = true end
+	if self.isCombat and not self.ai.armyhst.battles[self.name] and not self.ai.armyhst.breaks[self.name] then
 		self.isSiege = true
 	end
-	if self.ai.armyhst.reclaimerList[self.name] then self.isReclaimer = true end
+	if self.ai.armyhst.rezs[self.name] then self.isReclaimer = true end
 	if self.ai.armyhst.cleanable[self.name] then self.isCleanable = true end
-	if self.ai.armyhst.assistList[self.name] then self.isAssist = true end
+	if self.ai.armyhst.engineers[self.name] then self.isAssist = true end
 	if self.ai.armyhst.nanoTurretList[self.name] then self.isNano = true end
 	if self.ai.nameCount[self.name] == nil then
 		self.ai.nameCount[self.name] = 1

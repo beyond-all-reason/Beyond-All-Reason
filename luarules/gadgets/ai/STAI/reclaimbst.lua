@@ -22,7 +22,7 @@ function ReclaimBST:Init()
 		table.insert(self.canReclaimGAS, "air")
 	end
 	self.name = self.unit:Internal():Name()
-	self.dedicated = self.ai.armyhst.reclaimerList[self.name]
+	self.dedicated = self.ai.armyhst.rezs[self.name]
 	self.id = self.unit:Internal():ID()
 	self.lastCheckFrame = 0
 end

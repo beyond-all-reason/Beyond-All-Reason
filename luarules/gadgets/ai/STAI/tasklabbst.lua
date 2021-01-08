@@ -12,6 +12,7 @@ function TaskLabBST:Init()
 	self.name = u:Name()
 	self.position = u:GetPosition()
 	self.army = self.ai.armyhst.unitTable[self.name]
+	self.fails = 0
 	self:EchoDebug(self.name)
 	self.uDef = UnitDefNames[self.name]
 	self:EchoDebug(self.uDef)
@@ -74,129 +75,134 @@ function TaskLabBST:GetAmpOrGroundWeapon()
 	return false
 end
 
-function TaskLabBST:Choice()
-	local team = game:GetTeamID()
-	local build = false
-	for uName, spec in pairs(self.units) do
-		local army = self.ai.armyhst.ranks[self.name][uName]
-		if army == 'scout' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 15 then
-				return uName
-			end
+function TaskLabBST:scanRanks(rank)
+	self:EchoDebug('rank',rank)
+	local soldiers = {}
+	local army = self.ai.armyhst
+	for uName, spec in pairs (self.units) do
+		if army[rank][uName] then
+			table.insert(soldiers,uName)
 		end
-		if army == 'tech' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 5 then
-				return uName
-			end
+	end
+	if #soldiers > 0 then
+		self:EchoDebug('scanRank',#soldiers)
+		return soldiers
+	end
+end
+
+function TaskLabBST:getSoldier()
+	self:EchoDebug('soldier')
+	local soldier
+	for index,param in ipairs(self.queue) do
+		local soldiers = self:scanRanks(param[1])
+		soldier = self:ecoCheck(soldiers)
+		soldier = self:countCheck(soldier,param[2],param[3],param[4])
+		if soldier then
+			self.fails = 0
+			return soldier
 		end
-		if army == 'raider' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 20 then
-				return uName
-			end
+	end
+	self.fails = self.fails +1
+end
+function TaskLabBST:ecoCheck(soldiers)
+	self:EchoDebug('ecoCheck')
+	if not soldiers then return end
+	local metal = self.ai.Metal.full
+	local threshold = 1 / #soldiers
+	local army = self.ai.armyhst.unitTable
+	local mMax = 0
+	local mRatio = 0
+	local soldier = false
+	for index, uname in pairs (soldiers) do
+		mMax = math.max(mMax,army[uname].metalCost)
+		soldier = uname
+	end
+	self:EchoDebug('eco Mmax',Mmax)
+	for index, uname in pairs (soldiers) do
+
+		if army[uname].metalCost / mMax < threshold and army[uname].metalCost / mMax > mRatio then
+			mRatio = army[uname].metalCost
+			soldier = uname
 		end
-		if army == 'artillery' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 20 then
-				return uName
-			end
-		end
-		if army == 'battle' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 20 then
-				return uName
-			end
-		end
-		if army == 'radar' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'jammer' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'antiair' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 20 then
-				return uName
-			end
-		end
-		if army == 'AntiNuke' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'break' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'paralyzer' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'artillery' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'longrange' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'subKiller' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
-		if army == 'wartech' then
-			if game:GetTeamUnitDefCount(team,spec.defId) < 1 then
-				return uName
-			end
-		end
+	end
+	if soldier then
+		self:EchoDebug('eco',soldier)
+		return soldier
 
 	end
 end
 
+function TaskLabBST:countCheck(soldier,Min,mType,Max)
+	self:EchoDebug('countcheck',soldier)
+	if not soldier then return end
+	Min = Min or 0
+	Max = Max or 1 / 0
+	local team = game:GetTeamID()
+	local func = 0
+	local spec = self.ai.armyhst.unitTable[soldier]
+	local counter = game:GetTeamUnitDefCount(team,spec.defId)
+	local mtypeLv = self.ai.taskshst:GetMtypedLv(soldier)
 
+	if mType then
+		local mmType = (mtypeLv / mType) + 1
+		func = math.min(math.max(Min , mmType), Max)
+	else
+		func = math.max(Min,Max)
+	end
+	self:EchoDebug('mmType',mmType , '/',counter,'func',func)
+	if counter < func then
+		self:EchoDebug('counter',soldier)
+		return soldier
+	end
+end
+
+TaskLabBST.queue = {
+		{'techs',1,6,10},
+		{'scouts',1,nil,1},
+		{'raiders',nil,5,10},
+		{'battles',nil,7,12},
+		{'antiairs',nil,7,10},
+		{'rezs',1,5,7}, -- rezzers
+		{'breaks',1,5,10},
+		{'engineers',1,7,5}, --help builders and build thinghs
+		{'amptechs',1,7,5}, --amphibious builders
+		{'jammers',1,nil,1	},
+		{'radars',1,nil,1},
+		{'bomberairs',0,4,20},
+		{'fighterairs',1,5,10},
+		{'paralyzers',1,10,5}, --have paralyzer weapon
+		{'artillerys',0,10,5},
+		{'wartechs',1,nil,1}, --decoy etc
+		{'subkillers',1,7,5}, -- submarine weaponed
+		{'amphibious',0,7,20}, -- weapon amphibious
+		{'longranges',0,10,5},
+		{'breaks',nil,nil,nil},
+-- 		{'transports',1,nil,nil},
+-- 		{'spys',1,nil,1}, -- spy bot
+-- 		{'miners',1,nil,nil},
+-- 		{spiders'spiders',0,0,10}, -- all terrain spider
+-- 		{'antiairs2',1,nil,1}, --in the case a lab have 2 antiair
+-- 		{'antinukes',1,nil,nil},
+-- 		{'crawlings',1,nil,1},
+-- 		{'cloakables',0,0,10},
+}
 
 function TaskLabBST:Update()
 	local f = self.game:Frame()
 	if f % 111 == 0 then
 		self:GetAmpOrGroundWeapon()
 		self.isBuilding = game:GetUnitIsBuilding(self.id)
-		if Spring.GetFactoryCommands(self.id,0) >=2 then return end
-		local choice = self:Choice()
-		self:EchoDebug(choice)
-		if choice then
-			self.unit:Internal():Build(self.units[choice].type,nil,nil,{-1})
+		if Spring.GetFactoryCommands(self.id,0) > 0 then return end
+		local soldier = self:getSoldier()
+		self:EchoDebug('update',soldier)
+		if soldier then
+			self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
 		end
 	end
 end
 
 
 --TODO
---tech
---engineer
---scout
---raider
---battle
---breakthrough
---artillery
---other wave
-
-
--- if self.isFactory and self.ai.factoryUnderConstruction and ( self.ai.Metal.full < 0.5 or self.ai.Energy.full < 0.5) then
-	-- 	self:EchoDebug('limitate construction permiss')
-	-- 	q = {}
-	-- end
-
-
-
-	-- 			if game:GetTeamUnitDefCount(team,spec.defId) < math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit) then
-		-- 				build = name
-		-- 			end
-
 
 
 		-- 	if self.ai.taskshst:outmodedTaskqueues()[self.name] ~= nil and not q then
@@ -222,16 +228,3 @@ end
 			-- 			q = self.ai.taskshst:outmodedTaskqueues()[self.name]
 			-- 		end
 			-- 	end
-
-
-
-
-
-
-			-- 	if self.isFactory and f % 311 == 0 and (self.ai.armyhst.factoryMobilities[self.name][1] == 'bot' or self.ai.armyhst.factoryMobilities[self.name][1] == 'veh') then
-			-- 		self.AmpOrGroundWeapon = self:GetAmpOrGroundWeapon()
-			-- 	end
-
-
-
--- 			                               success = self.unit:Internal():Build(utype)
