@@ -62,8 +62,6 @@ local game = {}
 	end
 
 	function game:GetTeamUnitDefCount(team,unitDef)
-		print(team)
-		print(unitDef)
 		return Spring.GetTeamUnitDefCount(team,unitDef)
 	end
 
