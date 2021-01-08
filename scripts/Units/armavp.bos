@@ -154,6 +154,8 @@ Create()
 
 QueryNanoPiece(piecenum)
 {
+	//get PRINT(get GAME_FRAME,piecenum, spray);
+
 	if( spray == 0 )
 	{
 		piecenum = nano1;
@@ -165,7 +167,15 @@ QueryNanoPiece(piecenum)
 	if( spray >= 2 )
 	{
 		piecenum = nano3;
-		spray=0;
+	}	
+	
+	if (spray >=2)
+	{
+	
+		spray = 0;
+	}
+	else {
+		spray = spray + 1;
 	}
 	return (0);
 }
