@@ -34,13 +34,13 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	return (0);
 	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
-#define MOVESCALE 1.7
+
 Bob(){
 	while (1){
-	move sphere to y-axis [10]*MOVESCALE speed [5];
+	move sphere to y-axis [-5] speed [3];
 	wait-for-move sphere along y-axis;
 	
-	move sphere to y-axis [10]*(MOVESCALE -0.5) speed [5];
+	move sphere to y-axis [0] speed [3];
 	wait-for-move sphere along y-axis;
 	}
 
