@@ -92,6 +92,13 @@ function LabBuildHST:PrePositionFilter()
 			self:EchoDebug(factoryName ..' not air before advanced ')
 			buildMe = false
 		end
+		if mtype == 'air' then
+			local counter = game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId)
+			if counter > 0 then
+				self:EchoDebug(factoryName ..' never build more than 1 air factory per name, units can go anywhare ')
+				buildMe = false
+			end
+		end
 		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false
