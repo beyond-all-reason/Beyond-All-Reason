@@ -498,7 +498,7 @@ function TaskEcoHST:EconomySeaplane()
 	self:EchoDebug('Economy Seaplane '..unitName)
 	return unitName
 end
-
+--[[
 function TaskEcoHST:EconomyBattleEngineer(tqb)
         local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.realEnergy > 1.25 and self.ai.realMetal > 1.1 then
@@ -512,29 +512,29 @@ function TaskEcoHST:EconomyBattleEngineer(tqb)
 	end
 	self:EchoDebug('Economy battle engineer  '..unitName)
 	return unitName
-end
+end]]
 
-function TaskEcoHST:EconomyNavalEngineer(tqb)
-        local unitName = self.ai.armyhst.DummyUnitName
-	if self.ai.Energy.full < 0.2 and realMetal > 1 then
-		unitName = self:TidalIfTidal()
-	elseif self.ai.Metal.full < 0.2 and self.ai.Energy.income > self.ai.Metal.usage then
-		unitName = self:BuildUWMex()
-	else
-		unitName = self:NavalEngineerAsFactory(tqb)
-	end
-	self:EchoDebug('Economy Naval Engineer '..unitName)
-	return unitName
-end
+-- function TaskEcoHST:EconomyNavalEngineer(tqb)
+--         local unitName = self.ai.armyhst.DummyUnitName
+-- 	if self.ai.Energy.full < 0.2 and realMetal > 1 then
+-- 		unitName = self:TidalIfTidal()
+-- 	elseif self.ai.Metal.full < 0.2 and self.ai.Energy.income > self.ai.Metal.usage then
+-- 		unitName = self:BuildUWMex()
+-- 	else
+-- 		unitName = self:NavalEngineerAsFactory(tqb)
+-- 	end
+-- 	self:EchoDebug('Economy Naval Engineer '..unitName)
+-- 	return unitName
+-- end
 
-function TaskEcoHST:EconomyFark()
-	local unitName = self.ai.armyhst.DummyUnitName
-	if (self.ai.Energy.full < 0.3 or self.ai.realEnergy < 1.1)   then
-		unitName = self:WindSolar()
-	elseif self.ai.Energy.full > 0.9 and self.ai.Metal.capacity < 4000 then
-		unitName = self:buildEstore1()
-	else
-		unitName = self:BuildMex()
-	end
-	return unitName
-end
+-- function TaskEcoHST:EconomyFark()
+-- 	local unitName = self.ai.armyhst.DummyUnitName
+-- 	if (self.ai.Energy.full < 0.3 or self.ai.realEnergy < 1.1)   then
+-- 		unitName = self:WindSolar()
+-- 	elseif self.ai.Energy.full > 0.9 and self.ai.Metal.capacity < 4000 then
+-- 		unitName = self:buildEstore1()
+-- 	else
+-- 		unitName = self:BuildMex()
+-- 	end
+-- 	return unitName
+-- end

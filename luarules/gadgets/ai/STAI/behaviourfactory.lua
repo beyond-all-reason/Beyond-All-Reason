@@ -94,9 +94,14 @@ function BehaviourFactory:defaultBehaviours(unit)
 			end
 		end
 		table.insert(b, WardBST)
-	elseif self.ai.armyhst.rezs[un] then
-		table.insert(b, ReclaimBST)
-		table.insert(b, WardBST)
+	elseif self.ai.armyhst.rezs[un] or  self.ai.armyhst.rezs[un] engineer[un] then
+		if math.random() > 0.5 then
+
+			table.insert(b, ReclaimBST)
+		--table.insert(b, WardBST) --TODO redo safe position before
+		else
+			table.insert(b, AttackerBST)
+		end
 	else
 		if self.ai.armyhst.unitTable[un].isAttacker then
 			table.insert(b, AttackerBST)
@@ -119,7 +124,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b, ScoutBST)
 			table.insert(b, WardBST)
 		end
-		if self.ai.armyhst.defenderList[un]  then
+		if self.ai.armyhst.antiairs[un]  then
 			table.insert(b, DefendBST)
 		end
 	end

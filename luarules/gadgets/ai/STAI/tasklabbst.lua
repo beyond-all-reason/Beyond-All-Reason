@@ -6,7 +6,7 @@ end
 
 function TaskLabBST:Init()
 	self.DebugEnabled = true
-	self:EchoDebug('armlab loaded')
+	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
 	self.name = u:Name()
@@ -97,6 +97,7 @@ function TaskLabBST:getSoldier()
 		local soldiers = self:scanRanks(param[1])
 		soldier = self:ecoCheck(soldiers)
 		soldier = self:countCheck(soldier,param[2],param[3],param[4])
+		soldier = self:toAmphibious(soldier)
 		if soldier then
 			self.fails = 0
 			return soldier
@@ -156,15 +157,48 @@ function TaskLabBST:countCheck(soldier,Min,mType,Max)
 	end
 end
 
+function TaskLabBST:toAmphibious(soldier)
+
+	local army = self.ai.armyhst
+	local amphRank = (((ai.mobCount['shp']) / self.ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
+	amphRank = self.amphRank or 0.5
+	self:EchoDebug('amphRank',amphRank)
+	if army.raiders[soldier] or army.battles[soldier] or army.breaks[soldier] or army.longranges[soldier] or army.artillerys[soldier] then
+		if math.random() < amphRank then
+			for name,v in pairs(self.units) do
+				if army.amphibious[name] then
+
+					soldier = name
+				end
+			end
+		end
+
+	elseif army.techs[soldier] then
+		if math.random() < amphRank then
+			for name,v in pairs(self.units) do
+				if army.amptechs[name] then
+					soldier = name
+				end
+			end
+		end
+	end
+	self:EchoDebug('toAmphibious', soldier)
+	return soldier
+end
+
+
+
+
+
 TaskLabBST.queue = {
 		{'techs',1,6,10},
 		{'scouts',1,nil,1},
 		{'raiders',nil,5,10},
 		{'battles',nil,7,12},
 		{'antiairs',nil,7,10},
-		{'rezs',1,5,7}, -- rezzers
-		{'breaks',1,5,10},
-		{'engineers',1,7,5}, --help builders and build thinghs
+		{'breaks',1,5,20},
+		{'rezs',1,8,10}, -- rezzers
+		{'engineers',1,8,10}, --help builders and build thinghs
 		{'amptechs',1,7,5}, --amphibious builders
 		{'jammers',1,nil,1	},
 		{'radars',1,nil,1},
@@ -174,9 +208,9 @@ TaskLabBST.queue = {
 		{'artillerys',0,10,5},
 		{'wartechs',1,nil,1}, --decoy etc
 		{'subkillers',1,7,5}, -- submarine weaponed
-		{'amphibious',0,7,20}, -- weapon amphibious
 		{'longranges',0,10,5},
-		{'breaks',nil,nil,nil},
+		{'breaks',nil,nil,40},
+		{'amphibious',0,7,20}, -- weapon amphibious
 -- 		{'transports',1,nil,nil},
 -- 		{'spys',1,nil,1}, -- spy bot
 -- 		{'miners',1,nil,nil},

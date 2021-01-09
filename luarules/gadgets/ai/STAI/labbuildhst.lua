@@ -89,7 +89,7 @@ function LabBuildHST:PrePositionFilter()
 		local isExperimental = self.ai.armyhst.expFactories[factoryName] or self.ai.armyhst.leadsToExpFactories[factoryName]
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
 		if mtype == 'air' and not isAdvanced and self.ai.factories == 1 then
-			self:EchoDebug(factoryName ..' not air before advanced ')
+			self:EchoDebug(factoryName ..' dont build air before advanced ')
 			buildMe = false
 		end
 		if mtype == 'air' then

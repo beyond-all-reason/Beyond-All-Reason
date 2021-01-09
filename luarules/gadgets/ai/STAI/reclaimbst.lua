@@ -168,16 +168,19 @@ function ReclaimBST:Act()
 	if not self.active then
 		return
 	end
--- 	local rnd =  math.random(1,3)
--- 	local timearea = math.random(1000,2000)
--- 	if rnd == 1 then
--- 		self.unit:Internal():AreaRepair(self.unit:Internal():GetPosition(),timearea)
--- 	elseif rnd ==2 then
--- 		self.unit:Internal():AreaReclaim(self.unit:Internal():GetPosition(),timearea)
--- 	else
--- 		self.unit:Internal():AreaRESURRECT(self.unit:Internal():GetPosition(),timearea)
--- 	end
--- 	return true
+	local rnd =  math.random(1,3)
+	local timearea = 10000
+	if rnd == 1 then
+		self.unit:Internal():AreaRepair(self.unit:Internal():GetPosition(),timearea)
+		return true
+	elseif rnd ==2 then
+		self.unit:Internal():AreaReclaim(self.unit:Internal():GetPosition(),timearea)
+		return true
+	else
+		self.unit:Internal():AreaRESURRECT(self.unit:Internal():GetPosition(),timearea)
+		return true
+	end
+
 
 	if self.targetRepair then
 		self:EchoDebug("repair unit", self.targetRepair, self.targetRepair:ID())
