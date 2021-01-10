@@ -3019,13 +3019,13 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "crossalpha", group = "control", name = texts.option.crossalpha, type = "slider", min = 0, max = 1, step = 0.05, value = tonumber(Spring.GetConfigString("CrossAlpha", 1) or 1), description = texts.option.crossalpha_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("cross " .. tonumber(Spring.GetConfigInt("CrossSize", 1) or 10) .. " " .. value)
-		  end,
-		},
+		--{ id = "crossalpha", group = "control", name = texts.option.crossalpha, type = "slider", min = 0, max = 1, step = 0.05, value = tonumber(Spring.GetConfigFloat("CrossAlpha", 0.5) or 1), description = texts.option.crossalpha_descr,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SendCommands("cross " .. tonumber(Spring.GetConfigInt("CrossSize", 1) or 10) .. " " .. value)
+		--  end,
+		--},
 		{ id = "middleclicktoggle", group = "control", basic = true, name = texts.option.middleclicktoggle, type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = texts.option.middleclicktoggle_descr,
 		  onload = function(i)
 		  end,

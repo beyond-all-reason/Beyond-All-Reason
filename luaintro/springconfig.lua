@@ -67,6 +67,10 @@ Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
 -- change some default value(s), upp the version and set what needs to be set
 local version = 2
 if Spring.GetConfigInt("version",0) < version then
+
+	Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
+	Spring.SetConfigFloat("CrossSize", 0)	-- will be in effect next launch
+
 	if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
 		Spring.SetConfigFloat("ui_tileopacity", 0.011)
 	end
