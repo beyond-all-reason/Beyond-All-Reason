@@ -415,7 +415,7 @@ function gadget:GameFrame(n)
 
 				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
 				if n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					SelfDestructionControls(n, scav, scavDef)
+					SelfDestructionControls(n, scav, scavDef, false)
 				end
 				if Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					ArmyMoveOrders(n, scav, scavDef)
@@ -490,6 +490,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 					FriendlyReclaimers[unitID] = nil
 					FriendlyResurrectors[unitID] = nil
 					UnitSuffixLenght[unitID] = nil
+					selfdx[unitID] = nil
+					selfdy[unitID] = nil
+					selfdz[unitID] = nil
+					oldselfdx[unitID] = nil
+					oldselfdy[unitID] = nil
+					oldselfdz[unitID] = nil
 					table.remove(ActiveReinforcementUnits, i)
 				end
 			end

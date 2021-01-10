@@ -2,7 +2,7 @@ Spring.Echo("[Scavengers] Unit Controller initialized")
 
 VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")
 
-function SelfDestructionControls(n, scav, scavDef)
+function SelfDestructionControls(n, scav, scavDef, friendly)
 	UnitRange = {}
 	Constructing = {}
 	--Constructing[scav] = false
@@ -41,7 +41,7 @@ function SelfDestructionControls(n, scav, scavDef)
 						local telstartposy = Spring.GetGroundHeight(selfdx[scav], selfdz[scav])
 						local telendposy = Spring.GetGroundHeight(posx, posz)
 						local poscheck = posLosCheckOnlyLOS(posx, telendposy, posz, 100)
-						if (-(UnitDefs[scavDef].minWaterDepth) > telendposy) and (-(UnitDefs[scavDef].maxWaterDepth) < telendposy) and scavparalyze == 0 and poscheck == true then
+						if (-(UnitDefs[scavDef].minWaterDepth) > telendposy) and (-(UnitDefs[scavDef].maxWaterDepth) < telendposy) and scavparalyze == 0 and (poscheck == true or friendly == true) then
 							Spring.SpawnCEG("scav-spawnexplo",selfdx[scav],telstartposy,selfdz[scav],0,0,0)
 							Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
 							Spring.SetUnitPosition(scav, posx, posz)
