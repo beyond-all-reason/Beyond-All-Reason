@@ -5,7 +5,7 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
@@ -202,7 +202,7 @@ TaskLabBST.queue = {
 		{'amptechs',1,7,5}, --amphibious builders
 		{'jammers',1,nil,1	},
 		{'radars',1,nil,1},
-		{'bomberairs',0,4,20},
+		{'bomberairs',10,4,20},
 		{'fighterairs',1,5,10},
 		{'paralyzers',1,10,5}, --have paralyzer weapon
 		{'artillerys',0,10,5},

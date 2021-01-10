@@ -64,6 +64,7 @@ function CountBST:OwnerBuilt()
 	if self.isAssist then self.ai.assistCount = self.ai.assistCount + 1 end
 	if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount + 1 end
 	if self.isCleanable then self.ai.armyhst.cleanable[self.unit.engineID] = self.position end
+	if self.ai.armyhst.unitTable.isAttacker then self.ai.attackerCount = self.ai.attackerCount + 1 end
 	if self.isNano then
 		self.ai.nanoList[self.id] = self.unit:Internal():GetPosition()
 		self.ai.lastNanoBuild = self.unit:Internal():GetPosition()
@@ -103,6 +104,7 @@ function CountBST:OwnerDead()
 		if self.isAssist then self.ai.assistCount = self.ai.assistCount - 1 end
 		if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount - 1 end
 		if self.isCleanable then self.ai.armyhst.cleanable[self.unit.engineID] = nil end
+		if self.ai.armyhst.unitTable.isAttacker then self.ai.attackerCount = self.ai.attackerCount - 1 end
 		if self.isNano then
 			self.ai.nanoList[self.id] = nil
 			if self.ai.lastNanoBuild == self.unit:Internal():GetPosition() then self.ai.lastNanoBuild = nil end

@@ -410,9 +410,13 @@ end
 
 function TaskEcoHST:Economy1()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if self.ai.Energy.full > 0.5 and self.ai.Metal.full > 0.3 and self.ai.Metal.full < 0.7 and self.ai.Metal.income > 30 then
+	if (self.ai.Energy.full  < 0.1  ) and self.ai.Energy.income < 8000 then
+		unitName = self:Energy1()
+	elseif self.ai.Metal.income > self.ai.Metal.usage * 1.5 and self.ai.Energy.income > self.ai.Energy.usage * 2  and math.random() < 0.33 then
+		unitName = self:NanoTurret()
+	elseif self.ai.Energy.full > 0.5 and self.ai.Metal.full > 0.3 and self.ai.Metal.full < 0.7 and self.ai.Metal.income > 30 then
 		unitName = self:SpecialMex()
-	elseif (self.ai.Energy.full > 0.5  and self.ai.Metal.full > 0.3 and self.ai.Metal.income > 10 and self.ai.Energy.income > 100) then
+	elseif (self.ai.Energy.full > 0.5  and self.ai.Metal.full > 0.3 and self.ai.Metal.income > 10 and self.ai.Energy.income > 100)  then
 		unitName = self:NanoTurret()
 	elseif 	self.ai.Energy.full > 0.8 and self.ai.Energy.income > 600 and self.ai.Metal.reserves > 200 and self.ai.Energy.capacity < 7000 then
 		unitName = self:buildEstore1()
@@ -420,7 +424,7 @@ function TaskEcoHST:Economy1()
 		unitName = self:buildMstore1()
 	elseif self.ai.Energy.income > self.ai.Energy.usage and self.ai.Energy.full > 0.8 and self.ai.Energy.income > 100 and self.ai.Energy.income < 2000 and self.ai.Metal.full < 0.5 then
 		unitName = self:buildMconv1()
-	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.full > 0.1 then
+	elseif (self.ai.Energy.full < 0.3 or self.ai.Energy.income < self.ai.Energy.usage * 1.25) and self.ai.Metal.full > 0.1  and self.ai.Energy.income < 4000 then
 		unitName = self:Energy1()
 	else
 		unitName = self:BuildMex()
@@ -452,6 +456,8 @@ end
 
 function TaskEcoHST:AdvEconomy(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
+-- 	if self.ai.cleanhst.bigEnergyCount == 0 then
+-- 		unitName = self:BuildAdvEnergy(tqb)
 	if self.ai.Energy.full > 0.9 and self.ai.Energy.income > 3000 and self.ai.Metal.reserves > 1000 and self.ai.Energy.capacity < 40000 then
 		unitName = self:buildEstore2()
 	elseif self.ai.Metal.full > 0.8 and self.ai.Metal.income > 100 and self.ai.Metal.capacity < 20000 and self.ai.Energy.full > 0.3 then

@@ -67,7 +67,8 @@ function OverviewHST:EvaluateSituation()
 		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
 	end
 	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= self.ai.armyhst.siegeAttackCounter or controlMetalSpots
-	local needAdvanced = (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or self.ai.lotsOfMetal)
+	Spring:Echo('self.ai.attackerCount',self.ai.attackerCount,self.ai.combatCount)
+	local needAdvanced = self.ai.combatCount > 30 and (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or self.ai.lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
 		self.ai.labbuildhst:UpdateFactories()

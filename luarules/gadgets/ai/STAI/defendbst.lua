@@ -51,6 +51,7 @@ function DefendBST:OwnerDead()
 			self.ai.defendhst:RemoveDefender(self)
 		end
 	else
+		self:EchoDebug('dfdfd',self.name)
 		self.ai.defendhst:RemoveDefender(self)
 	end
 end

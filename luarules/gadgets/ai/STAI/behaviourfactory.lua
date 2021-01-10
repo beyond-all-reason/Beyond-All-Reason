@@ -39,9 +39,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	table.insert(b, CountBST)
 	table.insert(b, BootBST)
 
-	if self.ai.armyhst.commanderList[un] then
-		table.insert(b, CommanderBST)
-	end
+
 
 	if self.ai.armyhst.nanoTurretList[un] then
 		table.insert(b, AssistBST)
@@ -57,75 +55,71 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b, AntinukeBST)
 		elseif self.ai.armyhst.bigPlasmaList[un] then
 			table.insert(b, BombardBST)
-		end
-	end
-
-
-	if u:CanBuild() then
-		-- game:SendToConsole(u:Name() .. " can build")
-		-- moho engineer doesn't need the queue!
-		if self.ai.armyhst.advConList[un] then --TODO sobstitute this
-			-- game:SendToConsole(u:Name() .. " is advanced construction unit")
-			-- half advanced engineers upgrade mexes instead of building things
-			if self.ai.advCons == nil then self.ai.advCons = 0 end
-			if self.ai.advCons == 0 then
-				-- game:SendToConsole(u:Name() .. " taskqueuing")
-				table.insert(b, MexUpBST)
-				self.ai.advCons = 1
-			else
-				-- game:SendToConsole(u:Name() .. " mexupgrading")
-				self.ai.advCons = 0
-			end
-			table.insert(b,TaskQueueBST)
-
-		else
-			if self.ai.armyhst.unitTable[un].isStaticBuilder then
-				table.insert(b,TaskLabBST)
-				table.insert(b, LabRegisterBST)
-			else
-				table.insert(b,TaskQueueBST)
-				if self.ai.armyhst.unitTable[un].isBuilding then
-					table.insert(b, LabRegisterBST)
-				else
-					--table.insert(b, AssistBST)
-					table.insert(b, ReclaimBST)
-					table.insert(b, CleanerBST)
-				end
-			end
-		end
-		table.insert(b, WardBST)
-	elseif self.ai.armyhst.rezs[un] or  self.ai.armyhst.rezs[un] engineer[un] then
-		if math.random() > 0.5 then
-
-			table.insert(b, ReclaimBST)
-		--table.insert(b, WardBST) --TODO redo safe position before
-		else
-			table.insert(b, AttackerBST)
+		elseif self.ai.armyhst.unitTable[un].isStaticBuilder then
+			table.insert(b,TaskLabBST)
+			table.insert(b, LabRegisterBST)
 		end
 	else
-		if self.ai.armyhst.unitTable[un].isAttacker then
-			table.insert(b, AttackerBST)
-			-- if self.ai.armyhst.battles[un] or self.ai.armyhst.breaks[un] then
-				-- arty and merl don't make good defense
-				table.insert(b, DefendBST)
-			-- end
-		end
-		if self.ai.armyhst.raiders[un] then
-			table.insert(b, RaiderBST)
-			table.insert(b, ScoutBST)
-			if self.ai.armyhst.unitTable[un].mtype ~= "air" then
-				table.insert(b, DefendBST)
-			end -- will only defend when scrambled by danger
-		end
-		if self.ai.armyhst.bomberairs[un] then
-			table.insert(b, BomberBST)
-		end
-		if self.ai.armyhst.scouts[un]then
-			table.insert(b, ScoutBST)
+		if self.ai.armyhst.rezs[un] or  self.ai.armyhst.engineers[un] then
+			if math.random() > 0.5 then
+
+				table.insert(b, ReclaimBST)
+				--table.insert(b, WardBST) --TODO redo safe position before
+			else
+				table.insert(b, AttackerBST)
+			end
+		elseif self.ai.armyhst.commanderList[un] then
+			table.insert(b, CommanderBST)
+			table.insert(b,TaskQueueBST)
+		elseif u:CanBuild() then
 			table.insert(b, WardBST)
-		end
-		if self.ai.armyhst.antiairs[un]  then
-			table.insert(b, DefendBST)
+			table.insert(b,TaskQueueBST)
+			-- game:SendToConsole(u:Name() .. " can build")
+			-- moho engineer doesn't need the queue!
+			if self.ai.armyhst.advConList[un] then --TODO sobstitute this
+				-- game:SendToConsole(u:Name() .. " is advanced construction unit")
+				-- half advanced engineers upgrade mexes instead of building things
+				if self.ai.advCons == nil then
+					self.ai.advCons = 0
+				end
+				if self.ai.advCons == 0 then
+					-- game:SendToConsole(u:Name() .. " taskqueuing")
+					table.insert(b, MexUpBST)
+					self.ai.advCons = 1
+				else
+					-- game:SendToConsole(u:Name() .. " mexupgrading")
+					self.ai.advCons = 0
+				end
+			end
+
+
+		else
+			if self.ai.armyhst.unitTable[un].isAttacker then
+				table.insert(b, AttackerBST)
+				-- if self.ai.armyhst.battles[un] or self.ai.armyhst.breaks[un] then
+					-- arty and merl don't make good defense
+					table.insert(b, DefendBST)
+				-- end
+			end
+			if self.ai.armyhst.raiders[un]  then
+				table.insert(b, RaiderBST)
+				table.insert(b, ScoutBST)
+
+
+				if self.ai.armyhst.unitTable[un].mtype ~= "air" then
+					table.insert(b, DefendBST)
+				end -- will only defend when scrambled by danger
+			end
+			if self.ai.armyhst.bomberairs[un] then
+				table.insert(b, BomberBST)
+			end
+			if self.ai.armyhst.scouts[un]then
+				table.insert(b, ScoutBST)
+				table.insert(b, WardBST)
+			end
+			if self.ai.armyhst.antiairs[un]  then
+				table.insert(b, DefendBST)
+			end
 		end
 	end
 

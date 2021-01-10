@@ -101,7 +101,8 @@ function RaiderBST:Update()
 			self:CheckPath()
 		end
 		if self.moveNextUpdate then
-			self.unit:Internal():Move(self.moveNextUpdate)
+-- 			self.unit:Internal():Move(self.moveNextUpdate)
+			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
 			self.moveNextUpdate = nil
 		elseif f > self.lastMovementFrame + 30 then
 			self.ai.targethst:RaiderHere(self)
@@ -377,7 +378,8 @@ function RaiderBST:AttackTarget(distance)
 	if self.unitTarget ~= nil then
 		local utpos = self.unitTarget:GetPosition()
 		if utpos and utpos.x then
-			self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
+			--self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
+			self.unit:Internal():AttackMove(self.unitTarget:GetPosition())--need to check
 			return
 		end
 	end

@@ -10,7 +10,7 @@ end
 
 
 function ArmyHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.unitTable = {}
 	self.wrecks = {}
 	self.featureTable = {}
@@ -1468,7 +1468,7 @@ function ArmyHST:GetUnitTable()
 			end
 			if utable.isWeapon and not utable.buildOptions   and not utable.antiNuke  and utable.noChaseCat ~= 'notair' and not utable.isBuilding and  utable.radarRadius < 1 and utable.jammerRadius < 1 and not utable.isTransport and not utable.isFighterAirUnit and not utable.isBomberAirUnit and not utable.canResurrect then
 				utable.isAttacker = true
-				Spring:Echo(utable.name, 'isAttacker')
+				--Spring:Echo(utable.name, 'isAttacker')
 			end
 			utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
 			utable.xsize = unitDef["xsize"]
@@ -1784,4 +1784,273 @@ wrecks = nil
    [f=-000001] canAttackWater, true
    [f=-000001] cost, 3133.33325
 
+
+
+
+
+
+
+
+   [f=-000001] 0, ArmyHST, corbw, is paralyzer of, corap
+   [f=-000001] 0, ArmyHST, corshad, is BomberAir of, corap
+   [f=-000001] 0, ArmyHST, corveng, is fighterair of, corap
+   [f=-000001] 0, ArmyHST, corvalk, is transport of, corap
+   [f=-000001] 0, ArmyHST, corfink, is radar of, corap
+   [f=-000001] 0, ArmyHST, corca, is tech of, corap
+
+   [f=-000001] 0, ArmyHST, armthovr, is transport of, armfhp
+   [f=-000001] 0, ArmyHST, armsh, is scout of, armfhp
+   [f=-000001] 0, ArmyHST, armah, is AntiAir of, armfhp
+   [f=-000001] 0, ArmyHST, armch, is tech of, armfhp
+   [f=-000001] 0, ArmyHST, armmh, is artillery of, armfhp
+   [f=-000001] 0, ArmyHST, armanac, is raider of, armfhp
+
+   [f=-000001] 0, ArmyHST, armcarry, is antinuke of, armasy
+   [f=-000001] 0, ArmyHST, armsjam, is jammer of, armasy
+   [f=-000001] 0, ArmyHST, armsubk, is scout of, armasy
+   [f=-000001] 0, ArmyHST, armaas, is AntiAir of, armasy
+   [f=-000001] 0, ArmyHST, armacsub, is tech of, armasy
+   [f=-000001] 0, ArmyHST, armmls, is Engineer of, armasy
+   [f=-000001] 0, ArmyHST, armserp, is subKiller of, armasy
+   [f=-000001] 0, ArmyHST, armmship, is artillery of, armasy
+   [f=-000001] 0, ArmyHST, armcrus, is raider of, armasy
+   [f=-000001] 0, ArmyHST, armepoch, is battle of, armasy
+   [f=-000001] 0, ArmyHST, armbats, is break of, armasy
+
+   [f=-000001] 0, ArmyHST, armthund, is BomberAir of, armap
+   [f=-000001] 0, ArmyHST, armfig, is fighterair of, armap
+   [f=-000001] 0, ArmyHST, armatlas, is transport of, armap
+   [f=-000001] 0, ArmyHST, armpeep, is radar of, armap
+   [f=-000001] 0, ArmyHST, armkam, is scout of, armap
+   [f=-000001] 0, ArmyHST, armca, is tech of, armap
+
+   [f=-000001] 0, ArmyHST, corsb, is BomberAir of, corplat
+   [f=-000001] 0, ArmyHST, corsfig, is fighterair of, corplat
+   [f=-000001] 0, ArmyHST, corhunt, is radar of, corplat
+   [f=-000001] 0, ArmyHST, corcut, is scout of, corplat
+   [f=-000001] 0, ArmyHST, corcsa, is tech of, corplat
+   [f=-000001] 0, ArmyHST, corseap, is raider of, corplat
+
+   [f=-000001] 0, ArmyHST, armfav, is scout of, armvp
+   [f=-000001] 0, ArmyHST, armsam, is AntiAir of, armvp
+   [f=-000001] 0, ArmyHST, armcv, is tech of, armvp
+   [f=-000001] 0, ArmyHST, armbeaver, is amptech of, armvp
+   [f=-000001] 0, ArmyHST, armmlv, is miner of, armvp
+   [f=-000001] 0, ArmyHST, armart, is artillery of, armvp
+   [f=-000001] 0, ArmyHST, armpincer, is amphibious of, armvp
+   [f=-000001] 0, ArmyHST, armflash, is raider of, armvp
+   [f=-000001] 0, ArmyHST, armjanus, is battle of, armvp
+   [f=-000001] 0, ArmyHST, armstump, is break of, armvp
+
+   [f=-000001] 0, ArmyHST, cormabm, is antinuke of, coravp
+   [f=-000001] 0, ArmyHST, corintr, is transport of, coravp
+   [f=-000001] 0, ArmyHST, coreter, is jammer of, coravp
+   [f=-000001] 0, ArmyHST, corvrad, is radar of, coravp
+   [f=-000001] 0, ArmyHST, cormart, is scout of, coravp
+   [f=-000001] 0, ArmyHST, corsent, is AntiAir of, coravp
+   [f=-000001] 0, ArmyHST, coracv, is tech of, coravp
+   [f=-000001] 0, ArmyHST, corvroc, is artillery of, coravp
+   [f=-000001] 0, ArmyHST, corseal, is amphibious of, coravp
+   [f=-000001] 0, ArmyHST, corparrow, is amphibious of, coravp
+   [f=-000001] 0, ArmyHST, correap, is raider of, coravp
+   [f=-000001] 0, ArmyHST, cortrem, is battle of, coravp
+   [f=-000001] 0, ArmyHST, corgol, is break of, coravp
+
+   [f=-000001] 0, ArmyHST, corban, is LongRange of, coravp
+   [f=-000001] 0, ArmyHST, corhurc, is BomberAir of, coraap
+   [f=-000001] 0, ArmyHST, cortitan, is BomberAir of, coraap
+   [f=-000001] 0, ArmyHST, corvamp, is fighterair of, coraap
+   [f=-000001] 0, ArmyHST, corseah, is transport of, coraap
+   [f=-000001] 0, ArmyHST, corawac, is radar of, coraap
+   [f=-000001] 0, ArmyHST, corape, is scout of, coraap
+   [f=-000001] 0, ArmyHST, coraca, is tech of, coraap
+
+   [f=-000001] 0, ArmyHST, corcrw, is raider of, coraap
+   [f=-000001] 0, ArmyHST, corsok, is scout of, corgant
+   [f=-000001] 0, ArmyHST, corkarg, is AntiAir of, corgant
+   [f=-000001] 0, ArmyHST, corshiva, is artillery of, corgant
+   [f=-000001] 0, ArmyHST, corkorg, is amphibious of, corgant
+   [f=-000001] 0, ArmyHST, corcat, is raider of, corgant
+   [f=-000001] 0, ArmyHST, corjugg, is battle of, corgant
+
+   [f=-000001] 0, ArmyHST, armpincer, is scout of, armamsub
+   [f=-000001] 0, ArmyHST, armaak, is AntiAir of, armamsub
+   [f=-000001] 0, ArmyHST, armbeaver, is amptech of, armamsub
+   [f=-000001] 0, ArmyHST, armdecom, is fightingBuilders of, armamsub
+   [f=-000001] 0, ArmyHST, armcroc, is artillery of, armamsub
+   [f=-000001] 0, ArmyHST, armjeth, is AntiAir of, armamsub
+
+   [f=-000001] 0, ArmyHST, corintr, is transport of, coramsub
+   [f=-000001] 0, ArmyHST, corgarp, is scout of, coramsub
+   [f=-000001] 0, ArmyHST, coraak, is AntiAir of, coramsub
+   [f=-000001] 0, ArmyHST, cormuskrat, is amptech of, coramsub
+   [f=-000001] 0, ArmyHST, cordecom, is fightingBuilders of, coramsub
+   [f=-000001] 0, ArmyHST, corseal, is artillery of, coramsub
+   [f=-000001] 0, ArmyHST, corparrow, is amphibious of, coramsub
+   [f=-000001] 0, ArmyHST, corcrash, is AntiAir of, coramsub
+
+   [f=-000001] 0, ArmyHST, armspy, is spy of, armalab
+   [f=-000001] 0, ArmyHST, armsptk, is spider of, armalab
+   [f=-000001] 0, ArmyHST, armscab, is spider of, armalab
+   [f=-000001] 0, ArmyHST, armspid, is paralyzer of, armalab
+   [f=-000001] 0, ArmyHST, armvader, is crowling bomb of, armalab
+   [f=-000001] 0, ArmyHST, armsnipe, is cloakable of, armalab
+   [f=-000001] 0, ArmyHST, armaser, is jammer of, armalab
+   [f=-000001] 0, ArmyHST, armmark, is radar of, armalab
+   [f=-000001] 0, ArmyHST, armfast, is scout of, armalab
+   [f=-000001] 0, ArmyHST, armaak, is AntiAir of, armalab
+   [f=-000001] 0, ArmyHST, armack, is tech of, armalab
+   [f=-000001] 0, ArmyHST, armdecom, is fightingBuilders of, armalab
+   [f=-000001] 0, ArmyHST, armfark, is Engineer of, armalab
+   [f=-000001] 0, ArmyHST, armfido, is artillery of, armalab
+   [f=-000001] 0, ArmyHST, armamph, is AntiAir of, armalab
+   [f=-000001] 0, ArmyHST, armmav, is raider of, armalab
+   [f=-000001] 0, ArmyHST, armfboy, is battle of, armalab
+   [f=-000001] 0, ArmyHST, armzeus, is break of, armalab
+
+   [f=-000001] 0, ArmyHST, armgremlin, is cloakable of, armavp
+   [f=-000001] 0, ArmyHST, armjam, is jammer of, armavp
+   [f=-000001] 0, ArmyHST, armseer, is radar of, armavp
+   [f=-000001] 0, ArmyHST, armmart, is scout of, armavp
+   [f=-000001] 0, ArmyHST, armyork, is AntiAir of, armavp
+   [f=-000001] 0, ArmyHST, armacv, is tech of, armavp
+   [f=-000001] 0, ArmyHST, armconsul, is Engineer of, armavp
+   [f=-000001] 0, ArmyHST, armlatnk, is artillery of, armavp
+   [f=-000001] 0, ArmyHST, armcroc, is amphibious of, armavp
+   [f=-000001] 0, ArmyHST, armbull, is raider of, armavp
+   [f=-000001] 0, ArmyHST, armmanni, is battle of, armavp
+   [f=-000001] 0, ArmyHST, armmerl, is break of, armavp
+
+   [f=-000001] 0, ArmyHST, corfav, is scout of, corvp
+   [f=-000001] 0, ArmyHST, cormist, is AntiAir of, corvp
+   [f=-000001] 0, ArmyHST, corcv, is tech of, corvp
+   [f=-000001] 0, ArmyHST, cormuskrat, is amptech of, corvp
+   [f=-000001] 0, ArmyHST, cormlv, is miner of, corvp
+   [f=-000001] 0, ArmyHST, corwolv, is artillery of, corvp
+   [f=-000001] 0, ArmyHST, corgarp, is amphibious of, corvp
+   [f=-000001] 0, ArmyHST, corgator, is raider of, corvp
+   [f=-000001] 0, ArmyHST, corlevlr, is battle of, corvp
+   [f=-000001] 0, ArmyHST, corraid, is break of, corvp
+
+   [f=-000001] 0, ArmyHST, armthovr, is transport of, armhp
+   [f=-000001] 0, ArmyHST, armsh, is scout of, armhp
+   [f=-000001] 0, ArmyHST, armah, is AntiAir of, armhp
+   [f=-000001] 0, ArmyHST, armch, is tech of, armhp
+   [f=-000001] 0, ArmyHST, armmh, is artillery of, armhp
+   [f=-000001] 0, ArmyHST, armanac, is raider of, armhp
+
+   [f=-000001] 0, ArmyHST, armcroc, is scout of, armshltxuw
+   [f=-000001] 0, ArmyHST, armmar, is AntiAir of, armshltxuw
+   [f=-000001] 0, ArmyHST, armbanth, is artillery of, armshltxuw
+
+   [f=-000001] 0, ArmyHST, armstil, is paralyzer of, armaap
+   [f=-000001] 0, ArmyHST, armpnix, is BomberAir of, armaap
+   [f=-000001] 0, ArmyHST, armlance, is BomberAir of, armaap
+   [f=-000001] 0, ArmyHST, armhawk, is fighterair of, armaap
+   [f=-000001] 0, ArmyHST, armliche, is fighterair of, armaap
+   [f=-000001] 0, ArmyHST, armdfly, is transport of, armaap
+   [f=-000001] 0, ArmyHST, armawac, is radar of, armaap
+   [f=-000001] 0, ArmyHST, armbrawl, is scout of, armaap
+   [f=-000001] 0, ArmyHST, armaca, is tech of, armaap
+   [f=-000001] 0, ArmyHST, armblade, is raider of, armaap
+
+   [f=-000001] 0, ArmyHST, cortship, is transport of, corsy
+   [f=-000001] 0, ArmyHST, coresupp, is scout of, corsy
+   [f=-000001] 0, ArmyHST, corpt, is AntiAir of, corsy
+   [f=-000001] 0, ArmyHST, corcs, is tech of, corsy
+   [f=-000001] 0, ArmyHST, correcl, is rez of, corsy
+   [f=-000001] 0, ArmyHST, corsub, is subKiller of, corsy
+   [f=-000001] 0, ArmyHST, corpship, is artillery of, corsy
+   [f=-000001] 0, ArmyHST, corroy, is raider of, corsy
+
+   [f=-000001] 0, ArmyHST, corcarry, is antinuke of, corasy
+   [f=-000001] 0, ArmyHST, corsjam, is jammer of, corasy
+   [f=-000001] 0, ArmyHST, corshark, is scout of, corasy
+   [f=-000001] 0, ArmyHST, corarch, is AntiAir of, corasy
+   [f=-000001] 0, ArmyHST, coracsub, is tech of, corasy
+   [f=-000001] 0, ArmyHST, cormls, is Engineer of, corasy
+   [f=-000001] 0, ArmyHST, corssub, is subKiller of, corasy
+   [f=-000001] 0, ArmyHST, cormship, is artillery of, corasy
+   [f=-000001] 0, ArmyHST, corcrus, is raider of, corasy
+   [f=-000001] 0, ArmyHST, corblackhy, is battle of, corasy
+   [f=-000001] 0, ArmyHST, corbats, is break of, corasy
+
+   [f=-000001] 0, ArmyHST, corak, is scout of, corlab
+   [f=-000001] 0, ArmyHST, corcrash, is AntiAir of, corlab
+   [f=-000001] 0, ArmyHST, corck, is tech of, corlab
+   [f=-000001] 0, ArmyHST, cornecro, is rez of, corlab
+   [f=-000001] 0, ArmyHST, corstorm, is artillery of, corlab
+   [f=-000001] 0, ArmyHST, corthud, is raider of, corlab
+
+   [f=-000001] 0, ArmyHST, armsb, is BomberAir of, armplat
+   [f=-000001] 0, ArmyHST, armsfig, is fighterair of, armplat
+   [f=-000001] 0, ArmyHST, armsehak, is radar of, armplat
+   [f=-000001] 0, ArmyHST, armsaber, is scout of, armplat
+   [f=-000001] 0, ArmyHST, armcsa, is tech of, armplat
+   [f=-000001] 0, ArmyHST, armseap, is raider of, armplat
+
+   [f=-000001] 0, ArmyHST, corthovr, is transport of, corhp
+   [f=-000001] 0, ArmyHST, corsh, is scout of, corhp
+   [f=-000001] 0, ArmyHST, corah, is AntiAir of, corhp
+   [f=-000001] 0, ArmyHST, corch, is tech of, corhp
+   [f=-000001] 0, ArmyHST, cormh, is artillery of, corhp
+   [f=-000001] 0, ArmyHST, corsnap, is raider of, corhp
+   [f=-000001] 0, ArmyHST, corhal, is battle of, corhp
+
+   [f=-000001] 0, ArmyHST, corseal, is scout of, corgantuw
+   [f=-000001] 0, ArmyHST, corparrow, is artillery of, corgantuw
+   [f=-000001] 0, ArmyHST, corkorg, is amphibious of, corgantuw
+   [f=-000001] 0, ArmyHST, corshiva, is amphibious of, corgantuw
+
+   [f=-000001] 0, ArmyHST, corthovr, is transport of, corfhp
+   [f=-000001] 0, ArmyHST, corsh, is scout of, corfhp
+   [f=-000001] 0, ArmyHST, corah, is AntiAir of, corfhp
+   [f=-000001] 0, ArmyHST, corch, is tech of, corfhp
+   [f=-000001] 0, ArmyHST, cormh, is artillery of, corfhp
+   [f=-000001] 0, ArmyHST, corsnap, is raider of, corfhp
+   [f=-000001] 0, ArmyHST, corhal, is battle of, corfhp
+
+   [f=-000001] 0, ArmyHST, corspy, is spy of, coralab
+   [f=-000001] 0, ArmyHST, cortermite, is spider of, coralab
+   [f=-000001] 0, ArmyHST, corroach, is crowling bomb of, coralab
+   [f=-000001] 0, ArmyHST, corsktl, is crowling bomb of, coralab
+   [f=-000001] 0, ArmyHST, corspec, is jammer of, coralab
+   [f=-000001] 0, ArmyHST, corvoyr, is radar of, coralab
+   [f=-000001] 0, ArmyHST, corpyro, is scout of, coralab
+   [f=-000001] 0, ArmyHST, coraak, is AntiAir of, coralab
+   [f=-000001] 0, ArmyHST, corack, is tech of, coralab
+   [f=-000001] 0, ArmyHST, cordecom, is fightingBuilders of, coralab
+   [f=-000001] 0, ArmyHST, cormando, is fightingBuilders of, coralab
+   [f=-000001] 0, ArmyHST, corfast, is Engineer of, coralab
+   [f=-000001] 0, ArmyHST, cormort, is artillery of, coralab
+   [f=-000001] 0, ArmyHST, coramph, is amphibious of, coralab
+   [f=-000001] 0, ArmyHST, corcan, is raider of, coralab
+   [f=-000001] 0, ArmyHST, corsumo, is battle of, coralab
+   [f=-000001] 0, ArmyHST, corhrk, is break of, coralab
+
+   [f=-000001] 0, ArmyHST, armflea, is scout of, armlab
+   [f=-000001] 0, ArmyHST, armjeth, is AntiAir of, armlab
+   [f=-000001] 0, ArmyHST, armck, is tech of, armlab
+   [f=-000001] 0, ArmyHST, armrectr, is rez of, armlab
+   [f=-000001] 0, ArmyHST, armrock, is artillery of, armlab
+   [f=-000001] 0, ArmyHST, armpw, is raider of, armlab
+   [f=-000001] 0, ArmyHST, armwar, is battle of, armlab
+   [f=-000001] 0, ArmyHST, armham, is break of, armlab
+
+   [f=-000001] 0, ArmyHST, armtship, is transport of, armsy
+   [f=-000001] 0, ArmyHST, armdecade, is scout of, armsy
+   [f=-000001] 0, ArmyHST, armpt, is AntiAir of, armsy
+   [f=-000001] 0, ArmyHST, armcs, is tech of, armsy
+   [f=-000001] 0, ArmyHST, armrecl, is rez of, armsy
+   [f=-000001] 0, ArmyHST, armsub, is subKiller of, armsy
+   [f=-000001] 0, ArmyHST, armpship, is artillery of, armsy
+   [f=-000001] 0, ArmyHST, armroy, is raider of, armsy
+
+   [f=-000001] 0, ArmyHST, armvang, is scout of, armshltx
+   [f=-000001] 0, ArmyHST, armmar, is AntiAir of, armshltx
+   [f=-000001] 0, ArmyHST, armlun, is artillery of, armshltx
+   [f=-000001] 0, ArmyHST, armbanth, is amphibious of, armshltx
+   [f=-000001] 0, ArmyHST, armraz, is battle of, armshltx
 ]]
+
+
