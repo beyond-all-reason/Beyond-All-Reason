@@ -1,5 +1,5 @@
 if SendToUnsynced then
-	return ''
+	return
 end
 
 --[[

@@ -26,14 +26,14 @@ if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
 end
 
 -- make sure default/minimum ui opacity is set
-if Spring.GetConfigFloat("ui_opacity", 0) < 0.3 then
+if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
 	Spring.SetConfigFloat("ui_opacity", 0.6)
 end
 -- set default bg tile settings
-if Spring.GetConfigFloat("ui_tileopacity", -1) < 0 then
-	Spring.SetConfigFloat("ui_tileopacity", 0.012)
+if Spring.GetConfigFloat("ui_tileopacity", 0.011) < 0 then
+	Spring.SetConfigFloat("ui_tileopacity", 0.011)
 end
-if Spring.GetConfigFloat("ui_tilescale", -1) < 0 then
+if Spring.GetConfigFloat("ui_tilescale", 7) < 0 then
 	Spring.SetConfigFloat("ui_tilescale", 7)
 end
 
@@ -65,13 +65,12 @@ Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
 
 
 -- change some default value(s), upp the version and set what needs to be set
-local version = 1
+local version = 2
 if Spring.GetConfigInt("version",0) < version then
-	Spring.SetConfigInt("version", version)
-	if Spring.SetConfigFloat("ui_tilescale",0) == 20 then
-		Spring.SetConfigFloat("ui_tilescale", 7)
+	if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
+		Spring.SetConfigFloat("ui_tileopacity", 0.011)
 	end
-	if Spring.SetConfigFloat("ui_opacity",0) == 0.0012 then
-		Spring.SetConfigFloat("ui_opacity", 0.0011)
+	if Spring.GetConfigFloat("ui_tilescale", 7) <= 0 then
+		Spring.SetConfigFloat("ui_tilescale", 7)
 	end
 end
