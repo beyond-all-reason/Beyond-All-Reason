@@ -98,6 +98,7 @@ AliveEnemyCommanders = {}
 AliveEnemyCommandersCount = 0
 FinalBossKilled = false
 bosshealthmultiplier = 5--teamcount*spawnmultiplier
+ActiveReinforcementUnits = {}
 
 if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
