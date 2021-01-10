@@ -40,7 +40,7 @@ return {
 		metalmake = 70,
 		movementclass = "HOVER3",
 		movestate = 0,
-		name = "T4 Lootbox",
+		name = "T4 Resource Generator",
 		noautofire = false,
 		objectname = "lootboxes/lootbox.s3o",
 		script = "lootboxes/lootboxgold.cob",

@@ -288,6 +288,7 @@ function gadget:GameFrame(n)
 		spawnPlayerReinforcements(n)
 		CaptureBeacons(n)
 		SetBeaconsResourceProduction(n)
+		ReinforcementsMoveOrder(n)
 	end
 
 	if n%30 == 0 and GaiaTeamID ~= Spring.GetGaiaTeamID() then
@@ -481,6 +482,18 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			killedscavengers = killedscavengers + ((scavconfig.scoreConfig.scorePerKilledSpawner+scavconfig.scoreConfig.baseScorePerKill)*4*ScavSafeAreaGenerator)
 		end
 	else
+		
+		if #ActiveReinforcementUnits > 0 then
+			for i = 1,#ActiveReinforcementUnits do
+				if unitID == ActiveReinforcementUnits[i] then
+					FriendlyCollectors[unitID] = nil
+					FriendlyReclaimers[unitID] = nil
+					FriendlyResurrectors[unitID] = nil
+					UnitSuffixLenght[unitID] = nil
+					table.remove(ActiveReinforcementUnits, i)
+				end
+			end
+		end
 		for i = 1,#AliveEnemyCommanders do
 			local comID = AliveEnemyCommanders[i]
 			if unitID == comID then
@@ -507,8 +520,8 @@ function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
 			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerCapturedSpawner
 			if scavconfig.modules.reinforcementsModule == true then
 				Spring.SetUnitNeutral(unitID, false)
-				Spring.SetUnitHealth(unitID, 10000)
-				Spring.SetUnitMaxHealth(unitID, 10000)
+				--Spring.SetUnitHealth(unitID, 10000)
+				--Spring.SetUnitMaxHealth(unitID, 10000)
 			end
 			--SpawnDefencesAfterCapture(unitID, unitNewTeam)
 		end
@@ -706,8 +719,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			numOfSpawnBeacons = numOfSpawnBeacons + 1
 			if scavconfig.modules.reinforcementsModule == true then
 				Spring.SetUnitNeutral(unitID, true)
-				Spring.SetUnitMaxHealth(unitID, 100000)
-				Spring.SetUnitHealth(unitID, 100000)
+				--Spring.SetUnitMaxHealth(unitID, 100000)
+				--Spring.SetUnitHealth(unitID, 100000)
 			end
 		end
 		-- if UnitName == "lootboxgold" then //perhaps add this later when lootboxes are fully implemented
@@ -801,8 +814,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1
 			if scavconfig.modules.reinforcementsModule == true then
 				Spring.SetUnitNeutral(unitID, false)
-				Spring.SetUnitMaxHealth(unitID, 10000)
-				Spring.SetUnitHealth(unitID, 10000)
+				--Spring.SetUnitMaxHealth(unitID, 10000)
+				--Spring.SetUnitHealth(unitID, 10000)
 			end
 		end
 	end
