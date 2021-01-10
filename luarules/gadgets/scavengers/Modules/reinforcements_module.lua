@@ -399,7 +399,9 @@ function ReinforcementsMoveOrder(n)
 				end
 			end
 			FriendlyArmyOrders = nil
-			SelfDestructionControls(n, unitID, unitDefID, true)
+			if n%600 == 0 then
+                             SelfDestructionControls(n, unitID, unitDefID, true)
+                        end
 		end
 	end
 end
