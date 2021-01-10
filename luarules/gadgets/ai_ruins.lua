@@ -5,7 +5,7 @@ GaiaTeamID = Spring.GetGaiaTeamID()
 GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 local GameShortName = Game.gameShortName
-local RuinSpawns = (math.ceil(math.ceil(mapsizeX+mapsizeZ)/750)+30)*5
+local RuinSpawns = (math.ceil(math.ceil(mapsizeX+mapsizeZ)/750)+30)*2
 
 local scavengersAIEnabled = false
 local scavengerAllyTeamID
