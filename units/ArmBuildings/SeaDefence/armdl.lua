@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armdl_aoplane.dds",
 		buildpic = "ARMDL.PNG",
-		buildtime = 6000,
+		buildtime = 6600,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
