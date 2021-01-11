@@ -25,12 +25,12 @@ local curTrackName	= "no name"
 local prevTrackName = "no name"
 local appliedSilence = true
 local minSilenceTime = 10
-local maxSilenceTime = 180
+local maxSilenceTime = 60
 
 
 --- config
 local enableSilenceGaps = true
-local musicVolume = Spring.GetConfigInt("snd_volmusic", 20)*0.02
+local musicVolume = Spring.GetConfigInt("snd_volmusic", 80)*0.01
 ---
 
 
@@ -58,6 +58,10 @@ function widget:GetInfo()
 	}
 end
 
+function widget:Initialize()
+	Spring.StopSoundStream() -- only for testing purposes
+end
+
 function PlayNewTrack()
 	appliedSilence = false
 	prevTrack = curTrack
@@ -66,10 +70,10 @@ function PlayNewTrack()
 
 
 	currentTrackList = nil
-	if warMeter >= 50000 then
+	if warMeter >= 20000 then
 		currentTrackList = warhighTracks
 		Spring.Echo("[NewMusicPlayer] Playing warhigh track")
-	elseif warMeter >= 10000 then
+	elseif warMeter >= 1000 then
 		currentTrackList = warlowTracks
 		Spring.Echo("[NewMusicPlayer] Playing warlow track")
 	else
@@ -94,7 +98,7 @@ function PlayNewTrack()
 	end
 		
 	if curTrack then
-		local musicVolume = (Spring.GetConfigInt("snd_volmusic", 20))*0.02
+		local musicVolume = (Spring.GetConfigInt("snd_volmusic", 80))*0.01
 		Spring.PlaySoundStream(curTrack, musicVolume)
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
@@ -103,8 +107,8 @@ end
 
 
 function widget:UnitDamaged(_,_,_,damage)
-	if damage > 10 then
-		warMeter = warMeter + damage
+	if damage > 1 then
+		warMeter = math.ceil(warMeter + damage)
 	end
 end
 
@@ -115,10 +119,10 @@ function widget:GameFrame(n)
 	if n%30 == 15 then
 		playedTime, totalTime = Spring.GetSoundStreamTime()
 		if playedTime > 0 and totalTime > 0 then -- music is playing
-			local musicVolume = (Spring.GetConfigInt("snd_volmusic", 20))*0.02
+			local musicVolume = (Spring.GetConfigInt("snd_volmusic", 80))*0.01
 			Spring.SetSoundStreamVolume(musicVolume)
-			if warMeter >= 50 then
-				warMeter = warMeter - 50
+			if warMeter > 0 then
+				warMeter = math.floor(warMeter - (warMeter*0.02))
 				Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
 			end
 		elseif totalTime == 0 then -- there's no music
@@ -135,8 +139,8 @@ function widget:GameFrame(n)
 			elseif appliedSilence == true and silenceTimer > 0 then
 				silenceTimer = silenceTimer - 1
 				Spring.Echo("[NewMusicPlayer] Silence Time Left: ".. silenceTimer)
-				if warMeter >= 50 then
-					warMeter = warMeter - 50
+				if warMeter > 0 then
+					warMeter = math.floor(warMeter - (warMeter*0.02))
 					Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
 				end
 			end
