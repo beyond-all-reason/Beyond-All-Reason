@@ -202,12 +202,12 @@ function spawnPlayerReinforcements(n)
 						if not globalScore then
 							teamsCheck()
 						end
-						local groupsize = (bestTeamScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
+						local groupsize = (bestTeamScore / unitSpawnerModuleConfig.globalscoreperoneunit)*0.25
 						local groupsize = math.ceil(groupsize*2)
 						if scorePerTeam[teamID] < bestTeamScore*2 then
 							groupsize = math.ceil(groupsize*2)
 						end
-						local posradius = 16
+						local posradius = 8
 						local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 						local posy = Spring.GetGroundHeight(posx, posz)
 						local spawnTier = math_random(1,100)
@@ -259,7 +259,7 @@ function spawnPlayerReinforcements(n)
 						
 						ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. UDN[groupunit].humanName .. "s.")
 						for a = 1,math.ceil(groupsize) do
-							local posradius = posradius+(groupsize*16)
+							local posradius = posradius+(groupsize*8)
 							local posx = posx+(math_random(-posradius,posradius))
 							local posz = posz+(math_random(-posradius,posradius))
 							local newposy = Spring.GetGroundHeight(posx, posz)

@@ -38,4 +38,4 @@ local groupsize = math.ceil(groupsize*(teamcount/2))
 		end
 	end
 end
-table.insert(RandomEventsList,RandomEventInvasion)
+--table.insert(RandomEventsList,RandomEventInvasion)
