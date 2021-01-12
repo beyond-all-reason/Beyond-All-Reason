@@ -181,22 +181,22 @@ function BossSpecAbiFighterWave(n)
 				if r == 1 then
 					local posx = 0
 					local posz = math.random(0,mapsizeZ)
-					local posy = Spring.GetGroundHeight(posx, posy)+1000
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				elseif r == 2 then
 					local posx = mapsizeX
 					local posz = math.random(0,mapsizeZ)
-					local posy = Spring.GetGroundHeight(posx, posy)+1000
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				elseif r == 3 then
 					local posx = math.random(0,mapsizeX)
 					local posz = 0
-					local posy = Spring.GetGroundHeight(posx, posy)+1000
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				elseif r == 4 then
 					local posx = math.random(0,mapsizeX)
 					local posz = mapsizeZ
-					local posy = Spring.GetGroundHeight(posx, posy)+1000
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				end
 			end
