@@ -116,10 +116,10 @@ scavconfig = {
 		BossFight							= 32000*ScavTechCurveModoption,
 		Endless								= 35000*ScavTechCurveModoption,
 		-- don't delete
-		NoRadar								= 7500*ScavTechCurveModoption,
+		NoRadar								= 2250*ScavTechCurveModoption,
 	},
 	other = {
-		heighttolerance						= 30, -- higher = allow higher height diffrences
+		heighttolerance						= 40, -- higher = allow higher height diffrences
 		noheightchecksforwater				= true,
 		
 	}
@@ -142,7 +142,7 @@ unitSpawnerModuleConfig = {
 	globalscoreperoneunit 				= 900,
 	spawnchance							= 240,
 	beaconspawnchance					= 120,
-	beacondefences						= false,
+	beacondefences						= true,
 	minimumspawnbeacons					= 2,
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 2.0,

@@ -145,6 +145,8 @@ BeaconDefenceStructuresT3 = {
 	"armpb",
 	"armanni",
 	"cordoom",
+	"corminibuzz",
+	"armminivulc",
 }
 
 
@@ -152,6 +154,12 @@ BeaconDefenceStructuresT3 = {
 StartboxDefenceStructuresT0 = {
 	"corllt",
 	"armllt",
+	"corllt",
+	"armllt",
+	"corllt",
+	"armllt",
+	"corrl",
+	"armrl",
 }
 
 StartboxDefenceStructuresT1 = {
@@ -225,6 +233,8 @@ StartboxDefenceStructuresT3 = {
 	"corfmd",
 	"armemp",
 	"cortron",
+	"corminibuzz",
+	"armminivulc",
 }
 
 StartboxDefenceStructuresT4 = {
@@ -242,6 +252,8 @@ StartboxDefenceStructuresT4 = {
 	"corfmd",
 	"armemp",
 	"cortron",
+	"corminibuzz",
+	"armminivulc",
 }
 
 

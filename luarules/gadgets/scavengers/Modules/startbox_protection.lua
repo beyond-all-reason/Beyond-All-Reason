@@ -1,7 +1,7 @@
 
 function spawnStartBoxProtection(n)
     if ScavSafeAreaExist then
-			local chance = math_random(0,10)
+			local chance = 0--math_random(0,1)
 			if chance == 0 then
 			--mapsizeX
 			--mapsizeZ

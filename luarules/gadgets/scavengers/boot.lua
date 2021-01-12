@@ -122,9 +122,10 @@ local function DisableCommander()
 	end
 end
 
-function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
+function QueueSpawn(unitName, posx, posy, posz, facing, team, frame, blocking)
+	if blocking == nil then blocking = true end
 	if UnitDefNames[unitName] then
-		local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team}
+		local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team, blocking,}
 		local QueueFrame = frame
 		if #QueuedSpawnsFrames > 0 then
 			for i = 1, #QueuedSpawnsFrames do
@@ -142,6 +143,7 @@ function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
 	else
 		Spring.Echo("[Scavengers] Failed to queue "..unitName..", invalid unit")
 	end
+	blocking = nil
 end
 
 function SpawnFromQueue(n)
@@ -150,7 +152,10 @@ function SpawnFromQueue(n)
 		for i = 1,QueuedSpawnsForNow do
 			if n == QueuedSpawnsFrames[1] then
 				local createSpawnCommand = QueuedSpawns[1]
-				Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
+				local unit = Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
+				if QueuedSpawns[1][7] == false then
+					Spring.SetUnitBlocking(unit, false, false, true)
+				end
 				Spring.SpawnCEG("scav-spawnexplo",QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],0,0,0)
 				table.remove(QueuedSpawns, 1)
 				table.remove(QueuedSpawnsFrames, 1)

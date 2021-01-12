@@ -23,7 +23,7 @@ return {
 		description = "Calls in Scavenger Drops. Transportable.",
 		energystorage = 1000,
 		explodeas = "mediumBuildingexplosiongeneric",
-		floater = true,
+		floater = false,
 		footprintx = 0,
 		footprintz = 0,
 		idleautoheal = 10,
@@ -54,7 +54,7 @@ return {
 		yardmap = "",
 		customparams = {
 			subfolder = "scavengers",
-			isairbase = true,
+			isairbase = false,
 			normaltex = "unittextures/cor_normal.dds",
 		},
 		featuredefs = {},

@@ -91,7 +91,7 @@ function CaptureBeacons(n)
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
 					--Spring.Echo("uncapturing our beacon")
 				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + 0.001
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + ((UnitDefs[unitDefID].metalCost)/800)*0.001
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 					--Spring.Echo("capturing scav beacon")
 				end
@@ -133,8 +133,8 @@ function SetBeaconsResourceProduction(n)
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local name = UnitDefs[unitDefID].name
 			if name ==	"scavengerdroppodbeacon_scav" then
-				--Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
-				Spring.AddUnitResource(unitID, "e", beaconenergyproduction)
+				-- Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
+				-- Spring.AddUnitResource(unitID, "e", beaconenergyproduction)
 			end
 		end
 	end
@@ -400,8 +400,8 @@ function ReinforcementsMoveOrder(n)
 			end
 			FriendlyArmyOrders = nil
 			if n%600 == 0 then
-                             SelfDestructionControls(n, unitID, unitDefID, true)
-                        end
+                SelfDestructionControls(n, unitID, unitDefID, true)
+            end
 		end
 	end
 end
