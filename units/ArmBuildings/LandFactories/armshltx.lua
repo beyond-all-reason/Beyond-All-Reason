@@ -13,7 +13,7 @@ return {
 		buildtime = 61380,
 		canmove = true,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -5 8",
+		collisionvolumeoffsets = "0 -5 -8",
 		collisionvolumescales = "137 58 145",
 		collisionvolumetype = "CylY",
 		corpse = "ARMSHLT_DEAD",
