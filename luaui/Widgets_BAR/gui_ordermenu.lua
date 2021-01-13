@@ -234,6 +234,7 @@ local math_floor = math.floor
 local RectRound = Spring.FlowUI.Draw.RectRound
 local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
 local isSpec = Spring.GetSpectatingState()
 local cursorTextures = {}
@@ -252,7 +253,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6 * ui_scale)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * ui_scale)
 			end)
 		end
 	elseif dlistGuishader then
@@ -394,19 +395,19 @@ function widget:ViewResize()
 
 	font2 = WG['fonts'].getFont(fontFile)
 
+	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = Spring.FlowUI.elementPadding
+
 	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
-		bgpadding = Spring.FlowUI.elementPadding
 
 		posY = height
 		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPos then
-			bgpadding = Spring.FlowUI.elementPadding
 			posX = 0
 			posY = height + height + (widgetSpaceMargin/vsy)
 		else
-			bgpadding = Spring.FlowUI.elementPadding
 			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/vsy)
@@ -777,7 +778,6 @@ function drawOrders()
 
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 
-	--RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,0,1,0.5}, {1,0,1,0.5})
 	if #cmds > 0 then
 		font2:Begin()
 		for cell = 1, #cmds do

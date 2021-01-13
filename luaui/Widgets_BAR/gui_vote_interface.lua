@@ -29,6 +29,7 @@ local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so w
 
 local widgetSpaceMargin = Spring.FlowUI.elementMargin
 local bgpadding = Spring.FlowUI.elementPadding
+local elementCorner = Spring.FlowUI.elementCorner
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -59,6 +60,7 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = Spring.FlowUI.elementMargin
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -225,7 +227,7 @@ function StartVote(name, owner)
 				color1 = { 0.6, 0.6, 0.6, 0.08 }
 				color2 = { 1, 1, 1, 0.08 }
 			end
-			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding, 0, 1, 0, 1, color1, color2)
+			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, elementCorner*0.66, 0, 1, 0, 1, color1, color2)
 
 			fontSize = fontSize * 0.85
 			gl.Color(0, 0, 0, 1)
@@ -253,7 +255,7 @@ function StartVote(name, owner)
 				color2 = { 0.5, 0, 0, 0.75 }
 				mult = 1
 			end
-			UiButton(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, bgpadding * 0.5)
+			UiButton(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
 
 			fontSize = fontSize * 0.85
 			local noText = texts.no
@@ -277,7 +279,7 @@ function StartVote(name, owner)
 					color2 = { 0, 0.5, 0, 0.38 }
 					mult = 1
 				end
-				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, bgpadding * 0.5)
+				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
 
 				font2:Print(texts.yes, yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
@@ -286,7 +288,7 @@ function StartVote(name, owner)
 		-- background blur
 		if WG['guishader'] then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6)
+				RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'voteinterface')
 		end

@@ -136,6 +136,15 @@ local fileLines = {}
 local totalFileLines = 0
 local bgpadding
 
+local myTeamID = Spring.GetMyTeamID()
+local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
+
+local showOnceMore = false        -- used because of GUI shader delay
+
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = ((vsx + vsy) / 2000) * 0.65    --(0.5 + (vsx*vsy / 5700000)) * customScale
@@ -151,20 +160,13 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(fontfile2)
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if mainDList then
 		gl.DeleteList(mainDList)
 	end
 	mainDList = gl.CreateList(DrawWindow)
 end
-
-local myTeamID = Spring.GetMyTeamID()
-local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-
-local showOnceMore = false        -- used because of GUI shader delay
-
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
 
 function DrawTextarea(x, y, width, height, scrollbar)
 	local scrollbarOffsetTop = 0    -- note: wont add the offset to the bottom, only to top
@@ -285,7 +287,7 @@ function DrawWindow()
 	--UiElement(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 1, 1, 0, 0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2, {0.05,0.15,0,Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2})
 
 	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
@@ -341,9 +343,9 @@ function widget:DrawScreen()
 			end
 			backgroundGuishader = glCreateList(function()
 				-- background
-				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, bgpadding * 1.6, 0, 1, 1, 1)
+				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				-- title
-				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'gameinfo')
 		end

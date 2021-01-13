@@ -48,6 +48,7 @@ local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
 local totalBuilders = 0
 local builders = {}
@@ -110,7 +111,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 0, 1, 0, 0)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 0, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'buildpower')
 		end
@@ -127,6 +128,7 @@ function widget:ViewResize()
 		clear()
 	end
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 end
 
 function widget:Initialize()
@@ -219,7 +221,7 @@ function drawBuildpower()
 
 	-- bar background
 	contentMargin = math.ceil((backgroundRect[3] - backgroundRect[1]) * 0.2)
-	RectRound(backgroundRect[1] + contentMargin, backgroundRect[2] + contentMargin, backgroundRect[3] - bgpadding - contentMargin, backgroundRect[4] - bgpadding - contentMargin, bgpadding * 0.5, 1, 1, 1, 1, { 0.04, 0.04, 0.04, 0.1 }, { 0.09, 0.09, 0.09, 0.1 })
+	RectRound(backgroundRect[1] + contentMargin, backgroundRect[2] + contentMargin, backgroundRect[3] - bgpadding - contentMargin, backgroundRect[4] - bgpadding - contentMargin, elementCorner*0.33, 1, 1, 1, 1, { 0.04, 0.04, 0.04, 0.1 }, { 0.09, 0.09, 0.09, 0.1 })
 end
 
 function drawBuildpower2()
@@ -236,7 +238,7 @@ function drawBuildpower2()
 		local barHeight = math.ceil(((backgroundRect[4] - bgpadding - contentMargin2) - (backgroundRect[2] + contentMargin2)) * avgBuildPower)
 		if barHeight > bgpadding * 2 then
 			-- prevent artifacts
-			RectRound(backgroundRect[1] + contentMargin2, backgroundRect[2] + contentMargin2, backgroundRect[3] - bgpadding - contentMargin2, backgroundRect[2] + contentMargin + barHeight, bgpadding * 0.4, 1, 1, 1, 1, { 0.6, 0.6, 0.6, 0.35 }, { 0.8, 0.8, 0.8, 0.35 }) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
+			RectRound(backgroundRect[1] + contentMargin2, backgroundRect[2] + contentMargin2, backgroundRect[3] - bgpadding - contentMargin2, backgroundRect[2] + contentMargin + barHeight, elementCorner*0.33, 1, 1, 1, 1, { 0.6, 0.6, 0.6, 0.35 }, { 0.8, 0.8, 0.8, 0.35 }) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
 		end
 	end
 end

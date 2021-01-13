@@ -556,6 +556,7 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local elementCorner = Spring.FlowUI.elementCorner
 local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
 local UiSlider = Spring.FlowUI.Draw.Slider
@@ -706,6 +707,7 @@ function widget:ViewResize()
 	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -871,8 +873,8 @@ function DrawWindow()
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	-- title drawing
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding*1.6, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-	RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, bgpadding*1.2, 1, 1, 0, 0, { 1, 0.95, 0.85, 0.03 }, { 1, 0.95, 0.85, 0.15 })
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+	RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, elementCorner*0.66, 1, 1, 0, 0, { 1, 0.95, 0.85, 0.03 }, { 1, 0.95, 0.85, 0.15 })
 
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
@@ -889,8 +891,8 @@ function DrawWindow()
 		if advSettings or group.id ~= 'dev' then
 			xpos = groupRect[id][3]
 			if currentGroupTab == nil or currentGroupTab ~= group.id then
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding*1.6, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.2, 1, 1, 0, 0, { 0.44, 0.35, 0.18, 0.2 }, { 0.68, 0.55, 0.25, 0.2 })
+				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner*0.8, 1, 1, 0, 0, { 0.44, 0.35, 0.18, 0.2 }, { 0.68, 0.55, 0.25, 0.2 })
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				-- gloss
@@ -903,8 +905,11 @@ function DrawWindow()
 				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
 				font2:End()
 			else
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding * 1.6, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.2, 1, 1, 0, 0, { 0.5, 0.5, 0.5, 0.2 }, { 0.66, 0.66, 0.66, 0.2 })
+				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner*0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
+				--glColor(1,1,1,Spring.GetConfigFloat("ui_tileopacity", 0.012))
+				--local bgtexSize = math.floor(bgpadding * Spring.GetConfigFloat("ui_tilescale", 7))
+				--TexturedRectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.2, 1, 1, 0, 0,  bgtexSize, (groupRect[id][1] + groupMargin)/vsx/bgtexSize, (groupRect[id][2]+bgpadding)/vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
 				font2:Begin()
 				font2:SetTextColor(1, 0.75, 0.4, 1)
 				font2:SetOutlineColor(0, 0, 0, 0.4)
@@ -921,7 +926,7 @@ function DrawWindow()
 
 	-- description background
 	--gl.Color(0.55,0.48,0.22,0.14)
-	RectRound(x+bgpadding, y +bgpadding - screenHeight, x + width + width, y + bgpadding - screenHeight + (87*widgetScale), bgpadding, 0, 1, 0, 1, { 1, 0.85, 0.55, 0.04 }, { 1, 0.85, 0.55, 0.075 })
+	RectRound(x+bgpadding, y +bgpadding - screenHeight, x + width + width, y + bgpadding - screenHeight + (87*widgetScale), elementCorner*0.66, 0, 1, 0, 1, { 1, 0.85, 0.55, 0.04 }, { 1, 0.85, 0.55, 0.075 })
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -1386,14 +1391,14 @@ function widget:DrawScreen()
 				end
 				backgroundGuishader = glCreateList(function()
 					-- background
-					RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, bgpadding * 1.6, 0, 1, 1, 1)
+					RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 					-- title
-					RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+					RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 					-- tabs
 					for id, group in pairs(optionGroups) do
 						if advSettings or group.id ~= 'dev' then
 							if groupRect[id] then
-								RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding * 1.6, 1, 1, 0, 0)
+								RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
 							end
 						end
 					end
@@ -4908,7 +4913,7 @@ function init()
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
-					local optionName, numLines = font:WrapText(trackName, ((screenWidth / 3)-70)*2*widgetScale)
+					local optionName, numLines = font:WrapText(trackName, (screenWidth * 0.37)*widgetScale)
 					if numLines > 1 then
 						local l = lines(optionName)
 						if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space

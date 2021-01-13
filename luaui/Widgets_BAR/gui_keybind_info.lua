@@ -156,6 +156,7 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
 local myTeamID = Spring.GetMyTeamID()
 local showOnceMore = false
@@ -187,6 +188,7 @@ function widget:ViewResize()
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if keybinds then
 		gl.DeleteList(keybinds)
@@ -241,7 +243,7 @@ function DrawWindow()
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	-- title
 	font2:Begin()
@@ -318,9 +320,9 @@ function widget:DrawScreen()
 			end
 			backgroundGuishader = glCreateList(function()
 				-- background
-				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, bgpadding * 1.6, 0, 1, 1, 1)
+				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				-- title
-				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
 		end

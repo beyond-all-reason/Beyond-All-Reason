@@ -36,6 +36,7 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
+local elementCorner = Spring.FlowUI.elementCorner
 
 local chobbyInterface, font, backgroundGuishader, buttonsList, speedButtonsList, buttonlist, active_button, bgpadding
 
@@ -94,7 +95,7 @@ function widget:DrawScreen()
 				gl.DeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = gl.CreateList(function()
-				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x + 0.037), sY(wPos.y + dy), bgpadding * 1.6, 0, 1, 1, 0)
+				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x + 0.037), sY(wPos.y + dy), elementCorner, 0, 1, 1, 0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'replaybuttons')
 		else
@@ -124,11 +125,11 @@ function widget:DrawScreen()
 	if point_in_rect(buttons[1].x, buttons[1].y, b[topbutton].x + b[topbutton].w, b[topbutton].y + b[topbutton].h, uiX(mousex), uiY(mousey)) then
 		for i = 1, #b, 1 do
 			if point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button then
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), bgpadding, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
+				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner*0.66, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')
 				break
@@ -137,11 +138,11 @@ function widget:DrawScreen()
 		b = buttons
 		for i = 1, #b, 1 do
 			if point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button then
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), bgpadding, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
+				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner*0.66, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')
 				break
@@ -263,6 +264,7 @@ function widget:ViewResize()
 	sceduleUpdate = true
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(fontfile2)
 end
@@ -291,12 +293,12 @@ function draw_buttons (b)
 		end
 
 		local padding = bgpadding
-		uiRect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, bgpadding * 1.6, 0, 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
+		uiRect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, elementCorner, 0, 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
+		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 0, 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.01 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), bgpadding, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
+		uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 1, 1, 0, 0, { 1, 1, 1, 0.01 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
+		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner*0.66, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')

@@ -109,6 +109,7 @@ local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local UiSlider = Spring.FlowUI.Draw.Slider
 local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local elementCorner = Spring.FlowUI.elementCorner
 
 local guishaderEnabled = (WG['guishader'] ~= nil)
 
@@ -281,7 +282,7 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[5] = glCreateList( function()
-			RectRound(left, bottom, right, top, bgpadding*1.6, 1,0,0,1)
+			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
 		end)
 		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
@@ -699,6 +700,7 @@ function widget:ViewResize(newX,newY)
 	font = WG['fonts'].getFont()
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

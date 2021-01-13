@@ -155,6 +155,7 @@ local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},b
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
 local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding
 
@@ -291,6 +292,7 @@ function widget:ViewResize()
 	end
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	calcAbsSizes()
 	updateFontSize()
@@ -655,7 +657,7 @@ function DrawBackground()
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList( function()
-			RectRound(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, bgpadding*1.6)
+			RectRound(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, elementCorner)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
 	end

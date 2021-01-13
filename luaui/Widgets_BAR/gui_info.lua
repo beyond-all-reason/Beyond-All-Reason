@@ -169,6 +169,7 @@ local GL_ONE = GL.ONE
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local DrawUnit = Spring.FlowUI.Draw.Unit
+local elementCorner = Spring.FlowUI.elementCorner
 
 function lines(str)
 	local t = {}
@@ -396,7 +397,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'info')
 		end
@@ -424,6 +425,7 @@ function widget:ViewResize()
 	width = math_floor(width * vsx) / vsx
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	backgroundRect = { 0, 0, (width - addonWidth) * vsx, height * vsy }
 

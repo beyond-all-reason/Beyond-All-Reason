@@ -24,7 +24,7 @@ function widget:GetInfo()
 end
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local font, bgpadding, chobbyInterface, hovering
+local font, chobbyInterface, hovering
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -57,6 +57,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -122,7 +123,7 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[3] = glCreateList( function()
-			RectRound(left, bottom, right, top, bgpadding*1.6)
+			RectRound(left, bottom, right, top, elementCorner)
 		end)
 		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo')
 	end
@@ -207,7 +208,7 @@ function widget:ViewResize(newX,newY)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		updateValues()

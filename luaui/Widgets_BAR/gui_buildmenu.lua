@@ -190,6 +190,7 @@ local RectRound = Spring.FlowUI.Draw.RectRound
 local DrawUnit = Spring.FlowUI.Draw.Unit
 local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
+local elementCorner = Spring.FlowUI.elementCorner
 
 function table_invert(t)
 	local s = {}
@@ -683,7 +684,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
 			if selectedBuilderCount > 0 then
 				WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
@@ -761,6 +762,7 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale
 

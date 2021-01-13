@@ -44,8 +44,9 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
-local font, bgpadding, chobbyInterface, hovering
+local font, chobbyInterface, hovering
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -97,7 +98,7 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[3] = glCreateList( function()
-			RectRound(left, bottom, right, top, bgpadding*1.6)
+			RectRound(left, bottom, right, top, elementCorner)
 		end)
 		WG['guishader'].InsertDlist(drawlist[3], 'unittotals')
 	end
@@ -179,7 +180,7 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
 
-	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

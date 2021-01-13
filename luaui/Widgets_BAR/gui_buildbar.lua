@@ -125,6 +125,7 @@ local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local DrawUnit = Spring.FlowUI.Draw.Unit
+local elementCorner = Spring.FlowUI.elementCorner
 
 -------------------------------------------------------------------------------
 -- SOUNDS
@@ -163,12 +164,12 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader and backgroundRect then
 			dlistGuishader = gl.CreateList( function()
-				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale, 1,0,0,1)
+				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], elementCorner * ui_scale, 1,0,0,1)
 			end)
 		end
 		if not dlistGuishader2 and backgroundOptionsRect then
 			dlistGuishader2 = gl.CreateList( function()
-				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
+				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
 			end)
 		end
 	else
@@ -189,6 +190,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	glossMult = 1 + (2-(ui_opacity*2))
 
@@ -691,7 +693,7 @@ function widget:Update(dt)
 						dlistGuishader2 = gl.DeleteList(dlistGuishader2)
 					end
 					dlistGuishader2 = gl.CreateList( function()
-						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
+						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
 					end)
 
 					if dlistGuishader2 then

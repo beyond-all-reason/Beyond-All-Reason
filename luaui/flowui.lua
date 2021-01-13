@@ -31,7 +31,8 @@ Spring.FlowUI.ViewResize = function(vsx, vsy)
 	Spring.FlowUI.vsx = vsx
 	Spring.FlowUI.vsy = vsy
 	Spring.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
-	Spring.FlowUI.elementPadding = math.ceil(Spring.FlowUI.elementMargin * 0.66)
+	Spring.FlowUI.elementCorner = Spring.FlowUI.elementMargin
+	Spring.FlowUI.elementPadding = math.ceil(Spring.FlowUI.elementMargin * 0.66)		-- elementPadding * 1.6
 	Spring.FlowUI.buttonPadding = math.ceil(Spring.FlowUI.elementMargin * 0.44)
 end
 
@@ -352,6 +353,7 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 	local bgpadding = bgpadding or Spring.FlowUI.elementPadding
+	local cs = Spring.FlowUI.elementCorner
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
@@ -369,25 +371,39 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 
 	-- background
 	gl.Texture(false)
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
+
+	cs = cs * 0.6
+	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor(0.02 * Spring.FlowUI.vsy * ui_scale)
-	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.035 * glossMult }, { 1 ,1 ,1 , 0 })
+	-- top
+	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 * glossMult })
+	-- bottom
+	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, cs, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
+
+	-- highlight edges thinly
+	-- top
+	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
+	-- bottom
+	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
+	-- left
+	--Spring.FlowUI.Draw.RectRound(px + pxPad, py + syPad, px + pxPad + (cs*2), sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
+	-- right
+	--Spring.FlowUI.Draw.RectRound(sx - sxPad - (cs*2), py + syPad, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
 
 	--Spring.FlowUI.Draw.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- darkening bottom
-	Spring.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), bgpadding, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+	Spring.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
 
 	-- tile
 	if tileopacity > 0 then
 		gl.Color(1,1,1, tileopacity)
-		Spring.FlowUI.Draw.TexturedRectRound(px, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
+		Spring.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
 	end
 end
 
