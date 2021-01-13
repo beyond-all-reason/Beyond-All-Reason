@@ -1052,7 +1052,7 @@ local function drawUnitInfo()
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
 	if not displayMode == 'unitdef' or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
-		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.06 }, { 0.8, 0.8, 0.8, 0.14 })
+		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08 }, { 0.8, 0.8, 0.8, 0.15 })
 	end
 
 	local contentPaddingLeft = contentPadding * 0.6

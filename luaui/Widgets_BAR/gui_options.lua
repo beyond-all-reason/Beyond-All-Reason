@@ -497,10 +497,8 @@ local fontfileScale2 = fontfileScale * 1.2
 
 local pauseGameWhenSingleplayerExecuted = false
 
-local bgcorner = "LuaUI/Images/bgcorner.png"
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
-local glowTex = ":l:LuaUI/Images/glow2.dds"
 
 local screenHeightOrg = 520
 local screenWidthOrg = 1050
@@ -561,6 +559,8 @@ local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
 local UiSlider = Spring.FlowUI.Draw.Slider
 local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local UiToggle = Spring.FlowUI.Draw.Toggle
+local UiSelector = Spring.FlowUI.Draw.Selector
 
 local bgpadding = Spring.FlowUI.elementPadding
 
@@ -1044,32 +1044,8 @@ function DrawWindow()
 					local rightPadding = 4
 					if option.type == 'bool' then
 						optionButtons[oid] = {}
-						optionButtons[oid] = { xPosMax - boolWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos }
-						RectRound(math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.11 }, { 1, 1, 1, 0.11 })
-						if option.value == true then
-							RectRound(math.floor(xPosMax - oHeight + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.6, 0.9, 0.6, 1 }, { 0.88, 1, 0.88, 1 })
-							local boolGlow = boolPadding * 4.5
-							glColor(0.66, 1, 0.66, 0.3)
-							glTexture(glowTex)
-							glTexRect(xPosMax - oHeight + boolPadding - rightPadding - boolGlow, yPos - oHeight + boolPadding - boolGlow, xPosMax - boolPadding - rightPadding + boolGlow, yPos - boolPadding + boolGlow)
-							glBlending(GL_SRC_ALPHA, GL_ONE)
-							glColor(0.55, 1, 0.55, 0.09)
-							glTexture(glowTex)
-							glTexRect(xPosMax - oHeight + boolPadding - rightPadding - (boolGlow * 3), yPos - oHeight + boolPadding - (boolGlow * 3), xPosMax - boolPadding - rightPadding + (boolGlow * 3), yPos - boolPadding + (boolGlow * 3))
-							glTexture(false)
-							glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-						elseif option.value == 0.5 then
-							RectRound(math.floor(xPosMax - (boolWidth / 1.9) + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - (boolWidth / 1.9) + oHeight - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.88, 0.73, 0.6, 1 }, { 1, 0.9, 0.75, 1 })
-						else
-							RectRound(math.floor(xPosMax - boolWidth + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - boolWidth + oHeight - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.8, 0.5, 0.5, 1 }, { 1, 0.75, 0.75, 1 })
-							local boolGlow = boolPadding * 4
-							--glColor(1,0.66,0.66,0.25)
-							--glTexture(glowTex)
-							--glTexRect(xPosMax-boolWidth+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolWidth+oHeight-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
-							--glColor(1,0.55,0.55,0.045)
-							--glTexture(glowTex)
-							--glTexRect(xPosMax-boolWidth+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolWidth+oHeight-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
-						end
+						optionButtons[oid] = { math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+						UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 					elseif option.type == 'slider' then
 						local sliderSize = oHeight * 0.75
@@ -1094,8 +1070,9 @@ function DrawWindow()
 						optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
 
 					elseif option.type == 'select' then
-						optionButtons[oid] = { xPosMax - selectWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos }
-						RectRound(math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 2, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
+						optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+						UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
+
 						if option.options[tonumber(option.value)] ~= nil then
 							if option.id == 'font2' then
 								font:End()
@@ -1109,15 +1086,6 @@ function DrawWindow()
 								font:Print(option.options[tonumber(option.value)], xPosMax - selectWidth + 5 - rightPadding, yPos - (oHeight / 3) - oPadding, oHeight * 0.85, "no")
 							end
 						end
-						RectRound(math.floor(xPosMax - oHeight - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 1, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
-						glColor(1, 1, 1, 0.16)
-						glPushMatrix()
-						glTranslate(xPosMax - (oHeight * 0.5) - rightPadding, yPos - (oHeight * 0.33), 0)
-						glRotate(-45, 0, 0, 1)
-						glTexture(bgcorner)
-						glTexRect(-(oHeight * 0.25), -(oHeight * 0.25), (oHeight * 0.25), (oHeight * 0.25))
-						glTexture(false)
-						glPopMatrix()
 					end
 				end
 				i = i + 1
