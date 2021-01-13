@@ -263,44 +263,44 @@ end
 	optional
 
 ]]
-Spring.FlowUI.Draw.RectRoundCircle = function(x, y, z, radius, cs, centerOffset, color1, color2)
-	local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
+Spring.FlowUI.Draw.RectRoundCircle = function(x, y, radius, cs, centerOffset, color1, color2)
+	local function DrawRectRoundCircle(x, y, radius, cs, centerOffset, color1, color2)
 		if not color2 then
 			color2 = color1
 		end
 		--centerOffset = 0
 		local coords = {
-			{ x - radius + cs, z + radius, y }, -- top left
-			{ x + radius - cs, z + radius, y }, -- top right
-			{ x + radius, z + radius - cs, y }, -- right top
-			{ x + radius, z - radius + cs, y }, -- right bottom
-			{ x + radius - cs, z - radius, y }, -- bottom right
-			{ x - radius + cs, z - radius, y }, -- bottom left
-			{ x - radius, z - radius + cs, y }, -- left bottom
-			{ x - radius, z + radius - cs, y }, -- left top
+			{ x - radius + cs, y + radius }, -- top left
+			{ x + radius - cs, y + radius }, -- top right
+			{ x + radius, y + radius - cs }, -- right top
+			{ x + radius, y - radius + cs }, -- right bottom
+			{ x + radius - cs, y - radius }, -- bottom right
+			{ x - radius + cs, y - radius }, -- bottom left
+			{ x - radius, y - radius + cs }, -- left bottom
+			{ x - radius, y + radius - cs }, -- left top
 		}
 		local cs2 = cs * (centerOffset / radius)
 		local coords2 = {
-			{ x - centerOffset + cs2, z + centerOffset, y }, -- top left
-			{ x + centerOffset - cs2, z + centerOffset, y }, -- top right
-			{ x + centerOffset, z + centerOffset - cs2, y }, -- right top
-			{ x + centerOffset, z - centerOffset + cs2, y }, -- right bottom
-			{ x + centerOffset - cs2, z - centerOffset, y }, -- bottom right
-			{ x - centerOffset + cs2, z - centerOffset, y }, -- bottom left
-			{ x - centerOffset, z - centerOffset + cs2, y }, -- left bottom
-			{ x - centerOffset, z + centerOffset - cs2, y }, -- left top
+			{ x - centerOffset + cs2, y + centerOffset }, -- top left
+			{ x + centerOffset - cs2, y + centerOffset }, -- top right
+			{ x + centerOffset, y + centerOffset - cs2 }, -- right top
+			{ x + centerOffset, y - centerOffset + cs2 }, -- right bottom
+			{ x + centerOffset - cs2, y - centerOffset }, -- bottom right
+			{ x - centerOffset + cs2, y - centerOffset }, -- bottom left
+			{ x - centerOffset, y - centerOffset + cs2 }, -- left bottom
+			{ x - centerOffset, y + centerOffset - cs2 }, -- left top
 		}
 		for i = 1, 8 do
 			local i2 = (i >= 8 and 1 or i + 1)
 			gl.Color(color2)
-			gl.Vertex(coords[i][1], coords[i][2], coords[i][3])
-			gl.Vertex(coords[i2][1], coords[i2][2], coords[i2][3])
+			gl.Vertex(coords[i][1], coords[i][2], 0)
+			gl.Vertex(coords[i2][1], coords[i2][2], 0)
 			gl.Color(color1)
-			gl.Vertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
-			gl.Vertex(coords2[i][1], coords2[i][2], coords2[i][3])
+			gl.Vertex(coords2[i2][1], coords2[i2][2], 0)
+			gl.Vertex(coords2[i][1], coords2[i][2], 0)
 		end
 	end
-	gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
+	gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, radius, cs, centerOffset, color1, color2)
 end
 
 --[[
@@ -538,14 +538,12 @@ Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom, 
 	local halfSize = ((sx-px) * 0.5)
 	--Spring.FlowUI.Draw.RectRoundCircle(
 	--	px + halfSize,
-	--	0,
 	--	py + halfSize,
 	--	halfSize, cs, halfSize*0.55,
 	--	{ 1, 1, 1, 0 }, { 1, 1, 1, 0.03 }
 	--)
 	Spring.FlowUI.Draw.RectRoundCircle(
 		px + halfSize,
-		0,
 		py + halfSize,
 		halfSize, cs, halfSize*0.82,
 		{ 1, 1, 1, 0 }, { 1, 1, 1, 0.04 }
@@ -555,7 +553,6 @@ Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom, 
 	if borderSize > 0 then
 		Spring.FlowUI.Draw.RectRoundCircle(
 			px + halfSize,
-			0,
 			py + halfSize,
 			halfSize, cs, halfSize - borderSize,
 			{ 1, 1, 1, borderOpacity }, { 1, 1, 1, borderOpacity }
@@ -612,14 +609,47 @@ end
 
 --[[
 	Slider
+		draw a slider knob
+	params
+		x, y, radius
+	optional
+		color
+]]
+Spring.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
+	local color = color or {0.95,0.95,0.95,1}
+	local color1 = {color[1]*0.55, color[2]*0.55, color[3]*0.55, color[4]}
+	local edgeWidth = math.max(1, math.floor(radius * 0.05))
+	-- faint dark outline edge
+	Spring.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, radius*0.15, 1,1,1,1, {0,0,0,0.1})
+	-- knob
+	Spring.FlowUI.Draw.RectRound(x-radius, y-radius, x+radius, y+radius, radius*0.15, 1,1,1,1, color1, color)
+	-- lighten knob inside edges
+	Spring.FlowUI.Draw.RectRoundCircle(x, y, radius, radius*0.06, radius*0.85, {1,1,1,0.1})
+end
+
+--[[
+	Slider
 		draw a slider
 	params
 		px, py, sx, sy = left, bottom, right, top
-	optional
-		state = (default: 0)
 ]]
-Spring.FlowUI.Draw.Slider = function(px, py, sx, sy, state)
+Spring.FlowUI.Draw.Slider = function(px, py, sx, sy)
+	local cs = (sy-py)*0.25
+	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
+	-- faint dark outline edge
+	Spring.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+	-- top
+	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
+	-- bottom
+	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
 
+	-- add highlight
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	-- top
+	Spring.FlowUI.Draw.RectRound(px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.06 })
+	-- bottom
+	Spring.FlowUI.Draw.RectRound(px, py, sx, py+edgeWidth+edgeWidth, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.04 })
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 --[[

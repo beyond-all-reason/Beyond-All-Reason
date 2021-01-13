@@ -118,9 +118,6 @@ local currentTidal = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
 
-local widgetSpaceMargin = Spring.FlowUI.elementMargin
-local bgpadding = Spring.FlowUI.elementPadding
-
 local glTranslate = gl.Translate
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
@@ -145,10 +142,15 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
+
+local widgetSpaceMargin = Spring.FlowUI.elementMargin
+local bgpadding = Spring.FlowUI.elementPadding
 local RectRound = Spring.FlowUI.Draw.RectRound
 local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
+local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = spGetSpectatingState()
@@ -982,9 +984,7 @@ local function updateResbar(res)
 			else
 				cornerSize = 1.33 * widgetScale
 			end
-			RectRound(conversionIndicatorArea[1] - edgeWidth, conversionIndicatorArea[2] - edgeWidth, conversionIndicatorArea[3] + edgeWidth, conversionIndicatorArea[4] + edgeWidth, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.09 }, { 0, 0, 0, 0.09 })
-			RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, { 0.6, 0.6, 0.45, 1 }, { 0.95, 0.95, 0.7, 1 })
-			RectRoundCircle(conversionIndicatorArea[1] + ((conversionIndicatorArea[3] - conversionIndicatorArea[1]) / 2), 0, conversionIndicatorArea[2] + ((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2), (conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2, cornerSize, math.ceil(((conversionIndicatorArea[4] - conversionIndicatorArea[2]) / 2) - cornerSize), { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.1 })
+			UiSliderKnob(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2), (conversionIndicatorArea[3]-conversionIndicatorArea[1])/2, { 0.95, 0.95, 0.7, 1 })
 
 			if buttonBgtexOpacity > 0 then
 				gl.Texture(buttonBackgroundTexture)
@@ -1005,9 +1005,7 @@ local function updateResbar(res)
 		else
 			cornerSize = 1.33 * widgetScale
 		end
-		RectRound(shareIndicatorArea[res][1] - edgeWidth, shareIndicatorArea[res][2] - edgeWidth, shareIndicatorArea[res][3] + edgeWidth, shareIndicatorArea[res][4] + edgeWidth, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.09 }, { 0, 0, 0, 0.09 })
-		RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, { 0.4, 0, 0, 1 }, { 0.8, 0, 0, 1 })
-		RectRoundCircle(shareIndicatorArea[res][1] + ((shareIndicatorArea[res][3] - shareIndicatorArea[res][1]) / 2), 0, shareIndicatorArea[res][2] + ((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2), (shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2, cornerSize, math.ceil(((shareIndicatorArea[res][4] - shareIndicatorArea[res][2]) / 2) - cornerSize), { 1, 1, 1, 0.13 }, { 1, 1, 1, 0.13 })
+		UiSliderKnob(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2), (shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2, { 0.85, 0, 0, 1 })
 
 		if buttonBgtexOpacity > 0 then
 			gl.Texture(buttonBackgroundTexture)
