@@ -221,10 +221,10 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier
+								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
+								groupsize = 1
 							end
 						elseif posy > -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -235,10 +235,10 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier
+								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
+								groupsize = 1
 							end
 						elseif posy <= -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -249,10 +249,10 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier
+								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
+								groupsize = 1
 							end
 						end
 						
