@@ -2,7 +2,7 @@
 
 
 
-
+local defaultMusicVolume = 50
 
 local warMeter = 0
 
@@ -30,7 +30,7 @@ local maxSilenceTime = 60
 
 --- config
 local enableSilenceGaps = true
-local musicVolume = Spring.GetConfigInt("snd_volmusic", 80)*0.01
+local musicVolume = Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)*0.01
 ---
 
 
@@ -98,7 +98,7 @@ function PlayNewTrack()
 	end
 		
 	if curTrack then
-		local musicVolume = (Spring.GetConfigInt("snd_volmusic", 80))*0.01
+		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
 		Spring.PlaySoundStream(curTrack, musicVolume)
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
@@ -119,7 +119,7 @@ function widget:GameFrame(n)
 	if n%30 == 15 then
 		playedTime, totalTime = Spring.GetSoundStreamTime()
 		if playedTime > 0 and totalTime > 0 then -- music is playing
-			local musicVolume = (Spring.GetConfigInt("snd_volmusic", 80))*0.01
+			local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
 			Spring.SetSoundStreamVolume(musicVolume)
 			if warMeter > 0 then
 				warMeter = math.floor(warMeter - (warMeter*0.02))
