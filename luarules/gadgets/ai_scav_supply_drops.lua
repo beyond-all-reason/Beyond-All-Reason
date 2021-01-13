@@ -220,7 +220,7 @@ function gadget:GameFrame(n)
     if n%30 == 0 and n > 2 then
 		if math.random(0,250) == 0 then
 			TryToSpawn = true
-		elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2))
+		elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2)) then
 			TryToSpawn = true
 		end
 

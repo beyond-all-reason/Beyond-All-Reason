@@ -262,7 +262,7 @@ function gadget:GameFrame(n)
 		if SpecialAbilityCountdown <= 0 then
 			local SpecAbi = BossSpecialAbilitiesUsedList[math_random(1,#BossSpecialAbilitiesUsedList)]
 			if SpecAbi then
-				SpecialAbilityCountdown = (10 - BossFightCurrentPhase)*2
+				SpecialAbilityCountdown = (10 - BossFightCurrentPhase)*4
 				SpecAbi(n)
 			end
 		end
