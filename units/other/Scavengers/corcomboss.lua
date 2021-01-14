@@ -190,7 +190,7 @@ return {
 				damage = {
 					--bombers = 500,
 					--commanders = 100,
-					default = 200,
+					default = 500,
 					--fighters = 300,
 					--subs = 1000,
 					--vtol = 4000,
@@ -234,7 +234,7 @@ return {
 				damage = {
 					--bombers = 500,
 					--commanders = 100,
-					default = 200,
+					default = 500,
 					--fighters = 300,
 					--subs = 1000,
 					--vtol = 4000,

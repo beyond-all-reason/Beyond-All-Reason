@@ -497,10 +497,8 @@ local fontfileScale2 = fontfileScale * 1.2
 
 local pauseGameWhenSingleplayerExecuted = false
 
-local bgcorner = "LuaUI/Images/bgcorner.png"
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
-local glowTex = ":l:LuaUI/Images/glow2.dds"
 
 local screenHeightOrg = 520
 local screenWidthOrg = 1050
@@ -556,8 +554,13 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local elementCorner = Spring.FlowUI.elementCorner
 local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
+local UiSlider = Spring.FlowUI.Draw.Slider
+local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local UiToggle = Spring.FlowUI.Draw.Toggle
+local UiSelector = Spring.FlowUI.Draw.Selector
 
 local bgpadding = Spring.FlowUI.elementPadding
 
@@ -704,6 +707,7 @@ function widget:ViewResize()
 	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -869,8 +873,8 @@ function DrawWindow()
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	-- title drawing
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-	RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.95, 0.85, 0.03 }, { 1, 0.95, 0.85, 0.15 })
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+	RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, elementCorner*0.66, 1, 1, 0, 0, { 1, 0.95, 0.85, 0.03 }, { 1, 0.95, 0.85, 0.15 })
 
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
@@ -887,12 +891,12 @@ function DrawWindow()
 		if advSettings or group.id ~= 'dev' then
 			xpos = groupRect[id][3]
 			if currentGroupTab == nil or currentGroupTab ~= group.id then
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding*1.6, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.6, 1, 1, 0, 0, { 0.44, 0.35, 0.18, 0.2 }, { 0.68, 0.55, 0.25, 0.2 })
+				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner*0.8, 1, 1, 0, 0, { 0.44, 0.35, 0.18, 0.2 }, { 0.68, 0.55, 0.25, 0.2 })
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				-- gloss
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.6, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.2, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font2:Begin()
@@ -901,8 +905,11 @@ function DrawWindow()
 				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
 				font2:End()
 			else
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding * 1.6, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.6, 1, 1, 0, 0, { 0.5, 0.5, 0.5, 0.2 }, { 0.66, 0.66, 0.66, 0.2 })
+				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner*0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
+				--glColor(1,1,1,Spring.GetConfigFloat("ui_tileopacity", 0.012))
+				--local bgtexSize = math.floor(bgpadding * Spring.GetConfigFloat("ui_tilescale", 7))
+				--TexturedRectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.2, 1, 1, 0, 0,  bgtexSize, (groupRect[id][1] + groupMargin)/vsx/bgtexSize, (groupRect[id][2]+bgpadding)/vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
 				font2:Begin()
 				font2:SetTextColor(1, 0.75, 0.4, 1)
 				font2:SetOutlineColor(0, 0, 0, 0.4)
@@ -919,7 +926,7 @@ function DrawWindow()
 
 	-- description background
 	--gl.Color(0.55,0.48,0.22,0.14)
-	RectRound(x+bgpadding, y +bgpadding - screenHeight, x + width + width, y + bgpadding - screenHeight + (87*widgetScale), bgpadding, 0, 1, 0, 1, { 1, 0.85, 0.55, 0.04 }, { 1, 0.85, 0.55, 0.075 })
+	RectRound(x+bgpadding, y +bgpadding - screenHeight, x + width + width, y + bgpadding - screenHeight + (87*widgetScale), elementCorner*0.66, 0, 1, 0, 1, { 1, 0.85, 0.55, 0.04 }, { 1, 0.85, 0.55, 0.075 })
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -1037,32 +1044,8 @@ function DrawWindow()
 					local rightPadding = 4
 					if option.type == 'bool' then
 						optionButtons[oid] = {}
-						optionButtons[oid] = { xPosMax - boolWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos }
-						RectRound(math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.11 }, { 1, 1, 1, 0.11 })
-						if option.value == true then
-							RectRound(math.floor(xPosMax - oHeight + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.6, 0.9, 0.6, 1 }, { 0.88, 1, 0.88, 1 })
-							local boolGlow = boolPadding * 4.5
-							glColor(0.66, 1, 0.66, 0.3)
-							glTexture(glowTex)
-							glTexRect(xPosMax - oHeight + boolPadding - rightPadding - boolGlow, yPos - oHeight + boolPadding - boolGlow, xPosMax - boolPadding - rightPadding + boolGlow, yPos - boolPadding + boolGlow)
-							glBlending(GL_SRC_ALPHA, GL_ONE)
-							glColor(0.55, 1, 0.55, 0.09)
-							glTexture(glowTex)
-							glTexRect(xPosMax - oHeight + boolPadding - rightPadding - (boolGlow * 3), yPos - oHeight + boolPadding - (boolGlow * 3), xPosMax - boolPadding - rightPadding + (boolGlow * 3), yPos - boolPadding + (boolGlow * 3))
-							glTexture(false)
-							glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-						elseif option.value == 0.5 then
-							RectRound(math.floor(xPosMax - (boolWidth / 1.9) + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - (boolWidth / 1.9) + oHeight - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.88, 0.73, 0.6, 1 }, { 1, 0.9, 0.75, 1 })
-						else
-							RectRound(math.floor(xPosMax - boolWidth + boolPadding - rightPadding), math.floor(yPos - oHeight + boolPadding), math.floor(xPosMax - boolWidth + oHeight - boolPadding - rightPadding), math.floor(yPos - boolPadding), 1, 2, 2, 2, 2, { 0.8, 0.5, 0.5, 1 }, { 1, 0.75, 0.75, 1 })
-							local boolGlow = boolPadding * 4
-							--glColor(1,0.66,0.66,0.25)
-							--glTexture(glowTex)
-							--glTexRect(xPosMax-boolWidth+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolWidth+oHeight-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
-							--glColor(1,0.55,0.55,0.045)
-							--glTexture(glowTex)
-							--glTexRect(xPosMax-boolWidth+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolWidth+oHeight-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
-						end
+						optionButtons[oid] = { math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+						UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 					elseif option.type == 'slider' then
 						local sliderSize = oHeight * 0.75
@@ -1081,15 +1064,15 @@ function DrawWindow()
 						else
 							sliderPos = (option.value - option.min) / (option.max - option.min)
 						end
-						RectRound(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), 1, 2, 2, 2, 2, { 0.1, 0.1, 0.1, 0.22 }, { 0.9, 0.9, 0.9, 0.22 })
-						RectRound(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 3.5)), 1, 2, 2, 2, 2, { 1, 1, 1, 0.09 }, { 1, 1, 1, 0 })
-						RectRound(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding), math.floor(yPos - oHeight + ((oHeight - sliderSize) / 2)), math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight - sliderSize) / 2)), 1, 2, 2, 2, 2, { 0.58, 0.58, 0.58, 1 }, { 0.88, 0.88, 0.88, 1 })
+						UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)))
+						UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize/2))
 						optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
 						optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
 
 					elseif option.type == 'select' then
-						optionButtons[oid] = { xPosMax - selectWidth - rightPadding, yPos - oHeight, xPosMax - rightPadding, yPos }
-						RectRound(math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 2, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
+						optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+						UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
+
 						if option.options[tonumber(option.value)] ~= nil then
 							if option.id == 'font2' then
 								font:End()
@@ -1103,15 +1086,6 @@ function DrawWindow()
 								font:Print(option.options[tonumber(option.value)], xPosMax - selectWidth + 5 - rightPadding, yPos - (oHeight / 3) - oPadding, oHeight * 0.85, "no")
 							end
 						end
-						RectRound(math.floor(xPosMax - oHeight - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos), 1, 2, 2, 2, 2, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
-						glColor(1, 1, 1, 0.16)
-						glPushMatrix()
-						glTranslate(xPosMax - (oHeight * 0.5) - rightPadding, yPos - (oHeight * 0.33), 0)
-						glRotate(-45, 0, 0, 1)
-						glTexture(bgcorner)
-						glTexRect(-(oHeight * 0.25), -(oHeight * 0.25), (oHeight * 0.25), (oHeight * 0.25))
-						glTexture(false)
-						glPopMatrix()
 					end
 				end
 				i = i + 1
@@ -1385,14 +1359,14 @@ function widget:DrawScreen()
 				end
 				backgroundGuishader = glCreateList(function()
 					-- background
-					RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, bgpadding * 1.6, 0, 1, 1, 1)
+					RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 					-- title
-					RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+					RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 					-- tabs
 					for id, group in pairs(optionGroups) do
 						if advSettings or group.id ~= 'dev' then
 							if groupRect[id] then
-								RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], bgpadding * 1.6, 1, 1, 0, 0)
+								RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
 							end
 						end
 					end
@@ -4907,7 +4881,7 @@ function init()
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
-					local optionName, numLines = font:WrapText(trackName, ((screenWidth / 3)-70)*2*widgetScale)
+					local optionName, numLines = font:WrapText(trackName, (screenWidth * 0.37)*widgetScale)
 					if numLines > 1 then
 						local l = lines(optionName)
 						if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space

@@ -162,9 +162,9 @@ function spawnPlayerReinforcements(n)
 				numOfSpawnBeaconsTeams[teamID] = 0
 			end
 			if not numOfSpawnBeaconsTeamsForSpawn[teamID] or numOfSpawnBeaconsTeamsForSpawn[teamID] == 0 then
-				numOfSpawnBeaconsTeamsForSpawn[teamID] = 2
+				numOfSpawnBeaconsTeamsForSpawn[teamID] = 1
 			else
-				numOfSpawnBeaconsTeamsForSpawn[teamID] = numOfSpawnBeaconsTeams[teamID] + 2
+				numOfSpawnBeaconsTeamsForSpawn[teamID] = numOfSpawnBeaconsTeams[teamID] + 1
 			end
 
 
@@ -172,7 +172,7 @@ function spawnPlayerReinforcements(n)
 				ReinforcementsCountPerTeam[teamID] = 0
 			end
 			if not ReinforcementsChancePerTeam[teamID] then
-				ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+				ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*5
 			end
 
 			if not isDead then
@@ -188,26 +188,26 @@ function spawnPlayerReinforcements(n)
 						end
 					end
 					--numOfSpawnBeaconsTeams[teamID] = 10
-					if numOfSpawnBeaconsTeams[teamID] == 1 then
+					if #PlayerSpawnBeacons == 1 then --numOfSpawnBeaconsTeams[teamID] == 1 then
 						pickedBeacon = PlayerSpawnBeacons[1]
-					elseif numOfSpawnBeaconsTeams[teamID] > 1 then
+					elseif #PlayerSpawnBeacons > 1 then--numOfSpawnBeaconsTeams[teamID] > 1 then
 						pickedBeacon = PlayerSpawnBeacons[math_random(1,#PlayerSpawnBeacons)]
 					else
 						pickedBeacon = nil
 						TryingToSpawnReinforcements[teamID] = false
-						ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+						ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*5
 					end
 					PlayerSpawnBeacons = nil
 					if pickedBeacon then
 						if not globalScore then
 							teamsCheck()
 						end
-						local groupsize = (bestTeamScore / unitSpawnerModuleConfig.globalscoreperoneunit)*0.25
-						local groupsize = math.ceil(groupsize*2)
-						if scorePerTeam[teamID] < bestTeamScore*2 then
-							groupsize = math.ceil(groupsize*2)
-						end
-						local posradius = 8
+						local groupsize = math.ceil((bestTeamScore / unitSpawnerModuleConfig.globalscoreperoneunit)*0.75)
+						--local groupsize = math.ceil(groupsize*2)
+						--if scorePerTeam[teamID] < bestTeamScore*2 then
+							--groupsize = math.ceil(groupsize*2)
+						--end
+						local posradius = 80
 						local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 						local posy = Spring.GetGroundHeight(posx, posz)
 						local spawnTier = math_random(1,100)
@@ -221,10 +221,10 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier
+								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier
+								groupsize = 1
 							end
 						elseif posy > -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -235,10 +235,10 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier
+								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier
+								groupsize = 1
 							end
 						elseif posy <= -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -249,17 +249,17 @@ function spawnPlayerReinforcements(n)
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 								groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier
+								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 								groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
-								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier
+								groupsize = 1
 							end
 						end
 						
 						
-						ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. UDN[groupunit].humanName .. "s.")
+						ScavSendMessage(playerName .."'s reinforcements detected. Unit type: ".. UDN[groupunit].humanName .. ".")
 						for a = 1,math.ceil(groupsize) do
-							local posradius = posradius+(groupsize*8)
+							--local posradius = posradius+(groupsize*8)
 							local posx = posx+(math_random(-posradius,posradius))
 							local posz = posz+(math_random(-posradius,posradius))
 							local newposy = Spring.GetGroundHeight(posx, posz)
@@ -324,7 +324,7 @@ function spawnPlayerReinforcements(n)
 					local r = math_random(0,ReinforcementsChancePerTeam[teamID])
 					if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
 						TryingToSpawnReinforcements[teamID] = true
-						ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+						ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*5
 					else
 						TryingToSpawnReinforcements[teamID] = false
 						ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1

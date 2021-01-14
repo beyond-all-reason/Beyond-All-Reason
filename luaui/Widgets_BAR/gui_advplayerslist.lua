@@ -145,6 +145,7 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -1986,7 +1987,7 @@ function CreateBackground()
 
     if WG['guishader'] then
         BackgroundGuishader = gl_CreateList(function()
-            RectRound(absLeft, absBottom, absRight, absTop, bgpadding * 1.6, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+            RectRound(absLeft, absBottom, absRight, absTop, elementCorner, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
         end)
         WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
         --WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
@@ -4149,6 +4150,7 @@ function widget:ViewResize()
     font2 = WG['fonts'].getFont(fontfile2)
 
     bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 	bgtexSize = bgpadding * bgtexScale
 
     updateWidgetScale()

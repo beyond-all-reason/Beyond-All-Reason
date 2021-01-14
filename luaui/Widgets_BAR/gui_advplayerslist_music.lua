@@ -40,7 +40,7 @@ local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
 local warTracks = VFS.DirList(musicDir..'war', '*.ogg')
 
 local vsx, vsy = Spring.GetViewGeometry()
-local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface
+local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface, bgpadding
 
 local tracksConfig = {}
 for i,v in pairs(peaceTracks) do
@@ -107,6 +107,9 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local UiSlider = Spring.FlowUI.Draw.Slider
+local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local elementCorner = Spring.FlowUI.elementCorner
 
 local guishaderEnabled = (WG['guishader'] ~= nil)
 
@@ -249,10 +252,10 @@ end
 
 local function createList()
 
-	local padding = 2.75*widgetScale -- button background margin
-	local padding2 = 2.5*widgetScale -- inner icon padding
-	local volumeWidth = 50*widgetScale
-	local heightoffset = -(0.9*widgetScale)
+	local padding = math.floor(2.75*widgetScale) -- button background margin
+	local padding2 = math.floor(2.5*widgetScale) -- inner icon padding
+	local volumeWidth = math.floor(50*widgetScale)
+	local heightoffset = -math.floor(0.9*widgetScale)
 	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 
 	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding+heightoffset}
@@ -279,7 +282,7 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[5] = glCreateList( function()
-			RectRound(left, bottom, right, top, bgpadding*1.6, 1,0,0,1)
+			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
 		end)
 		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
@@ -346,17 +349,15 @@ local function createList()
 		local lineHeight = math.floor((1.5*widgetScale)+0.5)
 
 		local button = 'musicvolumeicon'
-		local sliderY = buttons[button][2] + (buttons[button][4] - buttons[button][2])/2
+		local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
 		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		glTexture(false)
 
 		button = 'musicvolume'
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+(lineHeight*0.15), (lineHeight/3)*widgetScale,2,2,2,2, {1,1,1,0.17}, {1,1,1,0})
-		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/7)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
-
+		UiSlider(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight)
+		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 
 		button = 'volumeicon'
 		glColor(0.8,0.8,0.8,0.9)
@@ -365,9 +366,8 @@ local function createList()
 		glTexture(false)
 
 		button = 'volume'
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+(lineHeight*0.15), (lineHeight/3)*widgetScale,2,2,2,2, {1,1,1,0.17}, {1,1,1,0})
-		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/7)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
+		UiSlider(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight)
+		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 
 	end)
 	if WG['tooltip'] ~= nil and trackname then
@@ -700,6 +700,7 @@ function widget:ViewResize(newX,newY)
 	font = WG['fonts'].getFont()
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()
@@ -741,7 +742,7 @@ function widget:DrawScreen()
 			if mouseover then
 
 			  -- display play progress
-			  local progressPx = ((right-left)*(playedTime/totalTime))
+			  local progressPx = math.floor((right-left)*(playedTime/totalTime))
 			  if progressPx > 1 then
 			    if progressPx < borderPadding*5 then
 			    	progressPx = borderPadding*5

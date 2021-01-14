@@ -84,7 +84,8 @@ local isSpec = Spring.GetSpectatingState()
 local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -201,18 +202,16 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(fontfile2)
 
 	local widgetSpaceMargin = Spring.FlowUI.elementMargin
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
-		bgpadding = Spring.FlowUI.elementPadding
-
 		posY = height
 		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPos then
-			bgpadding = Spring.FlowUI.elementPadding
 			posX = 0
 			posY = height + height + (widgetSpaceMargin/vsx)
 		else
-			bgpadding = Spring.FlowUI.elementPadding
 			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/vsy)
@@ -354,37 +353,18 @@ function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 end
 
 function drawFactionpicker()
-	-- background
-	local padding = bgpadding
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], padding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1] + (altPosition and padding or 0), backgroundRect[2] + padding, backgroundRect[3] - padding, backgroundRect[4] - padding, padding, (altPosition and 1 or 0), 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	if ui_tileopacity > 0 then
-		gl.Texture(backgroundTexture)
-		gl.Color(1,1,1, ui_tileopacity)
-		TexturedRectRound(backgroundRect[1] + (altPosition and padding or 0), backgroundRect[2] + padding, backgroundRect[3] - padding, backgroundRect[4] - padding, padding, (altPosition and 1 or 0), 1, 1, 0, bgtexSize, 0)
-		gl.Texture(false)
-	end
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1] + (altPosition and padding or 0), backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - padding, backgroundRect[4] - padding, padding, (altPosition and 1 or 0), 1, 0, 0, { 1, 1, 1, 0.01 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-	RectRound(backgroundRect[1] + (altPosition and padding or 0), backgroundRect[2] + (altPosition and 0 or padding), backgroundRect[3] - padding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), padding, 0, 0, (altPosition and 0 or 1), 0, { 1, 1, 1, 0.035 * glossMult }, { 1, 1, 1, 0 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	padding = bgpadding * 0.4
-
-	font2:Begin()
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 
 	local contentPadding = (height * vsy * 0.075) * (1 - ((1 - ui_scale) * 0.5))
-	local contentWidth = backgroundRect[3] - backgroundRect[1] - contentPadding - contentPadding
-	local contentHeight = backgroundRect[4] - backgroundRect[2] - contentPadding - contentPadding
+	font2:Begin()
 	font2:Print("Pick your faction", backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
 
+	local contentWidth = backgroundRect[3] - backgroundRect[1] - contentPadding - contentPadding
+	local contentHeight = backgroundRect[4] - backgroundRect[2] - contentPadding - contentPadding
 	local maxCellHeight = math.floor((contentHeight - (fontSize * 1.1)) + 0.5)
 	local maxCellWidth = math.floor((contentWidth / #factions) + 0.5)
 	local cellSize = math.min(maxCellHeight, maxCellWidth)
-
+	local padding = elementCorner * 0.66
 	rectMargin = math.floor((padding * 1) + 0.5)
 	for i, faction in pairs(factions) do
 		factionRect[i] = {

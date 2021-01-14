@@ -5,10 +5,10 @@
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
 local maxTextureAtlasSize = 4096
 Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
-Spring.SetConfigInt("MaxTextureAtlasSizeZ", maxTextureAtlasSize)
+Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then
 	Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
-	Spring.SetConfigInt("MaxTextureAtlasSizeZ", maxTextureAtlasSize)
+	Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 end
 
 -- Sets necessary spring configuration parameters, so shaded units look the way they should
@@ -69,7 +69,6 @@ local version = 2
 if Spring.GetConfigInt("version",0) < version then
 
 	Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
-	Spring.SetConfigFloat("CrossSize", 0)	-- will be in effect next launch
 
 	if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
 		Spring.SetConfigFloat("ui_tileopacity", 0.011)

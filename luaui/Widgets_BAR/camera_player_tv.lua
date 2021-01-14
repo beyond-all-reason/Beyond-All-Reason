@@ -17,11 +17,6 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	tooltip = 'Auto camera-track of mostly top ranked players\n(switches player every 40 seconds by default)',
 }
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0
-local buttonBgtexSize
-
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -173,6 +168,7 @@ end
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local elementCorner = Spring.FlowUI.elementCorner
 
 function createList()
 	for i = 1, #drawlist do
@@ -194,19 +190,10 @@ function createList()
 			color2 = { 0.6, 0.05, 0.05, 0.66 }
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		RectRound(right - textWidth, bottom, right, top, bgpadding * 1.6, 1, 0, 1, 0, color1, color2)
+		RectRound(right - textWidth, bottom, right, top, elementCorner, 1, 0, 1, 0, color1, color2)
 		toggleButton = { right - textWidth, bottom, right, top }
 
-		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
-
-		if buttonBgtexOpacity > 0 then
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			gl.Texture(buttonBackgroundTexture)
-			gl.Color(1,1,1, buttonBgtexOpacity)
-			TexturedRectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, buttonBgtexSize, 0)
-			gl.Texture(false)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		end
+		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, elementCorner*0.66, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 
 		font:Begin()
 		font:Print(color .. text, right - (textWidth / 2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
@@ -229,10 +216,10 @@ function createList()
 		else
 			gl.Color(0.2, 1, 0.2, 0.4)
 		end
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding * 1.6, 1, 1, 1, 0)
+		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
 
 		gl.Color(0, 0, 0, 0.14)
-		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, bgpadding, 1, 1, 1, 0)
+		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 1, 0)
 
 		local text = '   '..texts.cancelcamera..'   '
 		local color = '\255\255\225\225'
@@ -252,7 +239,7 @@ function createList()
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = gl.CreateList(function()
-			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding * 1.6, 1, 1, 1, 0)
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
 	end
@@ -474,7 +461,7 @@ function widget:ViewResize()
 	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 	bgpadding = Spring.FlowUI.elementPadding
-	buttonBgtexSize = bgpadding * buttonBgtexScale
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
