@@ -127,6 +127,7 @@ local getn = table.getn
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local DrawUnit = Spring.FlowUI.Draw.Unit
+local bgpadding = Spring.FlowUI.elementPadding
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

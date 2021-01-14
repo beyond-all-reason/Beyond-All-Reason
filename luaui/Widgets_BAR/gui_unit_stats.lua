@@ -159,9 +159,6 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 local customFontSize = 14
 local fontSize = customFontSize
 
-local bgcornerSize = fontSize*0.25
-local bgpadding = fontSize*1.15
-
 local cX, cY, cYstart
 
 local vsx, vsy = gl.GetViewSizes()
@@ -169,8 +166,6 @@ local widgetScale = 1
 local xOffset = (32 + (fontSize*0.9))*widgetScale
 local yOffset = -((32 - (fontSize*0.9))*widgetScale)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-
-local bgpadding = Spring.FlowUI.elementPadding
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -258,6 +253,8 @@ end
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local DrawUnit = Spring.FlowUI.Draw.Unit
+local bgpadding = Spring.FlowUI.elementPadding
+local elementCorner = Spring.FlowUI.elementCorner
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
@@ -355,9 +352,6 @@ function init()
 	widgetScale = (1+((vsy-850)/900)) * (0.95+(ui_scale-1)/2.5)
 	fontSize = customFontSize * widgetScale
 
-	bgcornerSize = fontSize*0.25
-	bgpadding = fontSize*1.04
-
 	xOffset = (32 + bgpadding)*widgetScale
 	yOffset = -((32 + bgpadding)*widgetScale)
 end
@@ -379,6 +373,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
 
 	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(fontfile)
 
@@ -402,6 +397,7 @@ end
 
 local function drawStats(uDefID, uID)
 	local mx, my = spGetMouseState()
+	local alt, ctrl, meta, shift = spGetModKeyState()
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
@@ -603,6 +599,7 @@ local function drawStats(uDefID, uID)
 	local totaldpsAoE = 0
 	local totalbDamages = 0
 	local totalbDamagesAoE = 0
+	local useExp = true
 	for i = 1, #wepsCompact do
 
 		local wDefId = wepsCompact[i]
@@ -798,23 +795,22 @@ local function drawStats(uDefID, uID)
 	if not uID then
 		iconHalfSize = floor(-bgpadding/2.5)
 	end
-	UiElement(floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)), floor(cYstart+(titleFontSize/2)+bgpadding),1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding), floor(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)), floor(cYstart+(titleFontSize/2)+bgpadding), bgcornerSize, 1,1,1,0)
+			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 1,1,1,0)
 		end), 'unit_stats_title')
 	end
 
 	-- icon
 	if uID then
+		local iconPadding = math.max(1, math.floor(bgpadding*0.8))
 		glColor(1,1,1,1)
-		DrawUnit(floor(
-			cX-(iconHalfSize*0.7)),
-			floor(cYstart+(cornersize*1.33)-iconHalfSize),
-			floor(cX+(iconHalfSize*1.3)),
-			floor(cYstart+(cornersize*1.33)+iconHalfSize),
-			cornersize*0.4,
+		DrawUnit(
+			backgroundRect[1]+bgpadding+iconPadding, backgroundRect[2]+iconPadding, backgroundRect[1]+(backgroundRect[4]-backgroundRect[2])-iconPadding, backgroundRect[4]-bgpadding-iconPadding,
+			nil,
 			1,1,1,1,
 			0.13,
 			nil, nil,
@@ -825,7 +821,7 @@ local function drawStats(uDefID, uID)
 	-- title text
 	glColor(1,1,1,1)
 	font:Begin()
-	font:Print(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+	font:Print(text, backgroundRect[1]+((backgroundRect[4]-backgroundRect[2])*1.3), backgroundRect[2]+titleFontSize*0.7, titleFontSize, "o")
 	font:End()
 
 	-- stats
@@ -834,7 +830,7 @@ local function drawStats(uDefID, uID)
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), floor(cYstart-bgpadding), bgcornerSize, 0,1,1,1)
+			RectRound(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), floor(cYstart-bgpadding), elementCorner, 0,1,1,1)
 		end), 'unit_stats_data')
 	end
 	DrawTextBuffer()

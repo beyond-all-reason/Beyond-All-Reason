@@ -319,7 +319,7 @@ Spring.FlowUI.Draw.Circle = function(x, y, z, radius, sides, color1, color2)
 		if not color2 then
 			color2 = color1
 		end
-		local sideAngle = math.twicePi / sides
+		local sideAngle = (math.pi * 2) / sides
 		gl.Color(color1)
 		gl.Vertex(x, z, y)
 		if color2 then
@@ -649,7 +649,7 @@ Spring.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		color = {0.66,0.66,0.66,1}
 		glowMult = 0
 	else		-- in between
-		x = math.floor(sx - ((sx-px)*0.66))
+		x = math.floor(px + ((sx-px)*0.37))
 		color = {1,0.9,0.7,1}
 		glowMult = 0.4
 	end

@@ -1449,7 +1449,7 @@ function widget:DrawScreen()
 
 				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
 				local oPadding = math.floor(4 * widgetScale)
-				y = optionButtons[showSelectOptions][4] - oPadding
+				local y = optionButtons[showSelectOptions][4] - oPadding
 				local yPos = y
 				optionSelect = {}
 				for i, option in pairs(options[showSelectOptions].options) do
