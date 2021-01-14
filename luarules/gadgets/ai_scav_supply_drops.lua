@@ -218,10 +218,10 @@ function gadget:GameFrame(n)
 	end
 
     if n%30 == 0 and n > 2 then
-		if math.random(0,250) == 0 then
+		if math.random(0,SpawnChance) == 0 then
 			TryToSpawn = true
-		elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2)) then
-			TryToSpawn = true
+		-- elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2)) then
+			-- TryToSpawn = true
 		end
 
 
@@ -247,7 +247,7 @@ function gadget:GameFrame(n)
                 local posy = spGroundHeight(posx, posz)
 				local unitsCyl = spGetCylinder(posx, posz, 64)
 				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
-                if #unitsCyl == 0 and (scavLoS == true or (not scavengersAIEnabled)) then
+                if #unitsCyl == 0 and scavLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
                     if aliveLootboxesCount < 2 then
