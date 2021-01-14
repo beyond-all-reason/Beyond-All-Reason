@@ -28,7 +28,7 @@ IdleHover()
 			newIdleZ =  Rand(-1*IDLEHOVERSCALE,IDLEHOVERSCALE);
 			var IdleSpeed;
 			IdleSpeed = Rand(IDLEHOVERSPEED,IDLEHOVERSPEED*3); 
-			
+			if (IdleSpeed < 10) IdleSpeed = 10; //wierd div by zero error?
 			//get PRINT(newIdleX,newIdleY,newIdleZ,IdleSpeed);
 			
 			move IDLEBASEPIECE to x-axis [0.25]*newIdleX speed [0.25]*(newIdleX - IdleX)*30/IdleSpeed;
