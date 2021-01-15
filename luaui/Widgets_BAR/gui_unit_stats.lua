@@ -258,9 +258,9 @@ local elementCorner = Spring.FlowUI.elementCorner
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
-	textBuffer[textBufferCount] = {t1,t2,cX,cY}
+	textBuffer[textBufferCount] = {t1,t2,cX+(bgpadding*6),cY}
 	cY = cY - fontSize
-	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + bgpadding*2, (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + bgpadding*2)
+	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + (bgpadding*10), (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + (bgpadding*10))
 end
 
 local function DrawTextBuffer()

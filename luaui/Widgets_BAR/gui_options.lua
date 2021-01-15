@@ -1329,6 +1329,7 @@ function widget:DrawScreen()
 		if selectOptionsList then
 			if WG['guishader'] then
 				WG['guishader'].RemoveScreenRect('options_select')
+				WG['guishader'].RemoveScreenRect('options_select_options')
 				WG['guishader'].removeRenderDlist(selectOptionsList)
 			end
 			glDeleteList(selectOptionsList)
@@ -1469,17 +1470,20 @@ function widget:DrawScreen()
 				local fontSize = oHeight * 0.85
 				local maxWidth = optionButtons[showSelectOptions][3]-optionButtons[showSelectOptions][1]
 				for i, option in pairs(options[showSelectOptions].options) do
-					maxWidth = math.max(maxWidth, font:GetTextWidth(option..'    ')*fontSize)
+					maxWidth = math.max(maxWidth, font:GetTextWidth(option..'   ')*fontSize)
 				end
 
 				selectOptionsList = glCreateList(function()
-					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, optionButtons[showSelectOptions][4], 2, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.84 or 0.94 }, { 0.33, 0.33, 0.33, WG['guishader'] and 0.84 or 0.94 })
+					local borderSize = math.max(1, math.floor(vsy/900))
+					RectRound(optionButtons[showSelectOptions][1]-borderSize, yPos - oHeight - oPadding-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, optionButtons[showSelectOptions][2]+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.25 }, { 0,0,0, 0.25 })
+					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, optionButtons[showSelectOptions][2], (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0.3, 0.3, 0.3, WG['guishader'] and 0.84 or 0.94 }, { 0.35, 0.35, 0.35, WG['guishader'] and 0.84 or 0.94 })
 					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
 
 					for i, option in pairs(options[showSelectOptions].options) do
 						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
 						if IsOnRect(mx, my, optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, yPos + oPadding) then
-							RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.3 }, { 1, 1, 1, 0.3 })
+							RectRound(optionButtons[showSelectOptions][1]-borderSize, math.floor(yPos - oHeight - oPadding)-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, math.floor(yPos + oPadding)+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.05 }, { 0,0,0, 0.05 })
+							RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0.5,0.5,0.5,0.33 }, { 1,1,1, 0.33 })
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
 							end
@@ -1499,7 +1503,8 @@ function widget:DrawScreen()
 					end
 				end)
 				if WG['guishader'] then
-					WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, optionButtons[showSelectOptions][4], 'options_select')
+					WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 'options_select')
+					WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, optionButtons[showSelectOptions][2], 'options_select_options')
 					WG['guishader'].insertRenderDlist(selectOptionsList)
 				else
 					glCallList(selectOptionsList)
@@ -5412,6 +5417,7 @@ function widget:Shutdown()
 	if selectOptionsList then
 		if WG['guishader'] then
 			WG['guishader'].RemoveScreenRect('options_select')
+			WG['guishader'].RemoveScreenRect('options_select_options')
 			WG['guishader'].removeRenderDlist(selectOptionsList)
 		end
 		glDeleteList(selectOptionsList)
