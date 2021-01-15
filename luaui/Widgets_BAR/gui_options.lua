@@ -1064,7 +1064,7 @@ function DrawWindow()
 						else
 							sliderPos = (option.value - option.min) / (option.max - option.min)
 						end
-						UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)))
+						UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
 						UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize/2))
 						optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
 						optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
@@ -1074,16 +1074,25 @@ function DrawWindow()
 						UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 						if option.options[tonumber(option.value)] ~= nil then
+							local fontSize = oHeight * 0.85
+							local text, numLines = font:WrapText(option.options[tonumber(option.value)], (optionButtons[oid][3]-optionButtons[oid][1])*1.8)
+							if numLines > 1 then
+								local l = lines(text)
+								if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
+									l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+								end
+								text = l[1]..'...'
+							end
 							if option.id == 'font2' then
 								font:End()
 								font2:Begin()
 								font2:SetTextColor(1, 1, 1, 1)
-								font2:Print(option.options[tonumber(option.value)], xPosMax - selectWidth + 5 - rightPadding, yPos - (oHeight / 3) - oPadding, oHeight * 0.85, "no")
+								font2:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
 								font2:End()
 								font:Begin()
 							else
 								font:SetTextColor(1, 1, 1, 1)
-								font:Print(option.options[tonumber(option.value)], xPosMax - selectWidth + 5 - rightPadding, yPos - (oHeight / 3) - oPadding, oHeight * 0.85, "no")
+								font:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
 							end
 						end
 					end
@@ -1456,33 +1465,41 @@ function widget:DrawScreen()
 					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
 				end
 
+				-- get max text option width
+				local fontSize = oHeight * 0.85
+				local maxWidth = optionButtons[showSelectOptions][3]-optionButtons[showSelectOptions][1]
+				for i, option in pairs(options[showSelectOptions].options) do
+					maxWidth = math.max(maxWidth, font:GetTextWidth(option..'    ')*fontSize)
+				end
+
 				selectOptionsList = glCreateList(function()
-					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.84 or 0.94 }, { 0.33, 0.33, 0.33, WG['guishader'] and 0.84 or 0.94 })
-					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.1 }, { 1, 1, 1, 0.1 })
+					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, optionButtons[showSelectOptions][4], 2, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.84 or 0.94 }, { 0.33, 0.33, 0.33, WG['guishader'] and 0.84 or 0.94 })
+					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
+
 					for i, option in pairs(options[showSelectOptions].options) do
 						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
-						if IsOnRect(mx, my, optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], yPos + oPadding) then
-							RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][3], math.floor(yPos + oPadding), 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.3 }, { 1, 1, 1, 0.3 })
+						if IsOnRect(mx, my, optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, yPos + oPadding) then
+							RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), 2, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.3 }, { 1, 1, 1, 0.3 })
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
 							end
 							prevSelectHover = i
 						end
-						optionSelect[#optionSelect + 1] = { optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], yPos + oPadding, i }
+						optionSelect[#optionSelect + 1] = { optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, yPos + oPadding, i }
 
 						if options[showSelectOptions].optionsFont and fontOption then
 							fontOption[i]:Begin()
-							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, oHeight * 0.85, "no")
+							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, fontSize, "no")
 							fontOption[i]:End()
 						else
 							font:Begin()
-							font:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, oHeight * 0.85, "no")
+							font:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, fontSize, "no")
 							font:End()
 						end
 					end
 				end)
 				if WG['guishader'] then
-					WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 'options_select')
+					WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, optionButtons[showSelectOptions][4], 'options_select')
 					WG['guishader'].insertRenderDlist(selectOptionsList)
 				else
 					glCallList(selectOptionsList)

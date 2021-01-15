@@ -658,11 +658,11 @@ Spring.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	if glowMult > 0 then
 		local boolGlow = radius * 1.7
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		gl.Color(color[1], color[2], color[3], 0.25 * glowMult)
+		gl.Color(color[1], color[2], color[3], 0.3 * glowMult)
 		gl.Texture(":l:LuaUI/Images/glow.dds")
 		gl.TexRect(x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow)
 		boolGlow = boolGlow * 2.2
-		gl.Color(0.55, 1, 0.55, 0.07 * glowMult)
+		gl.Color(0.55, 1, 0.55, 0.08 * glowMult)
 		--gl.Texture(":l:LuaUI/Images/glow2.dds")
 		gl.TexRect(x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow)
 		gl.Texture(false)
@@ -695,8 +695,10 @@ end
 		draw a slider
 	params
 		px, py, sx, sy = left, bottom, right, top
+		steps = either a table of values or a number of smallest step size
+		min, max = when steps is number: min/max scope of steps
 ]]
-Spring.FlowUI.Draw.Slider = function(px, py, sx, sy)
+Spring.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 	local cs = (sy-py)*0.25
 	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
 	-- faint dark outline edge
@@ -705,6 +707,40 @@ Spring.FlowUI.Draw.Slider = function(px, py, sx, sy)
 	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
 	-- bottom
 	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
+
+	-- steps
+	if steps then
+		local numSteps = 0
+		local sliderWidth = sx-px
+		local processedSteps = {}
+		if type(steps) == 'table' then
+			min = steps[1]
+			max = steps[#steps]
+			numSteps = #steps
+			for _,value in pairs(steps) do
+				processedSteps[#processedSteps+1] = math.floor((px + (sliderWidth*((value-min)/(max-min)))) + 0.5)
+			end
+			-- remove first step at the bar start
+			processedSteps[1] = nil
+		elseif min and max then
+			numSteps = (max-min)/steps
+			for i=1, numSteps do
+				processedSteps[#processedSteps+1] = math.floor((px + (sliderWidth/numSteps) * (#processedSteps+1)) + 0.5)
+				i = i + 1
+			end
+		end
+		-- remove last step at the bar end
+		processedSteps[#processedSteps] = nil
+
+		-- dont bother when steps too small
+		if numSteps and numSteps < (sliderWidth/7) then
+			local stepSizeLeft = math.max(1, math.floor(sliderWidth*0.01))
+			local stepSizeRight = math.floor(sliderWidth*0.005)
+			for _,posX in pairs(processedSteps) do
+				Spring.FlowUI.Draw.RectRound(posX-stepSizeLeft, py+1, posX+stepSizeRight, sy-1, stepSizeLeft, 1,1,1,1, { 0,0,0,25 }, { 0,0,0,0.2 })
+			end
+		end
+	end
 
 	-- add highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
