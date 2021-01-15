@@ -839,7 +839,7 @@ function mouseoverGroupTab(id)
 	font2:Begin()
 	font2:SetTextColor(1, 0.9, 0.66, 1)
 	font2:SetOutlineColor(0.4, 0.3, 0.15, 0.4)
-	font2:Print(optionGroups[id].name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
+	font2:Print(optionGroups[id].name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9*widgetScale), tabFontSize, "con")
 	font2:End()
 end
 
@@ -902,7 +902,7 @@ function DrawWindow()
 				font2:Begin()
 				font2:SetTextColor(0.7, 0.58, 0.44, 1)
 				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
+				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9*widgetScale), tabFontSize, "con")
 				font2:End()
 			else
 				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
@@ -913,7 +913,7 @@ function DrawWindow()
 				font2:Begin()
 				font2:SetTextColor(1, 0.75, 0.4, 1)
 				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (8*widgetScale), tabFontSize, "con")
+				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9*widgetScale), tabFontSize, "con")
 				font2:End()
 			end
 		end

@@ -353,11 +353,11 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 	local bgpadding = bgpadding or Spring.FlowUI.elementPadding
-	local cs = Spring.FlowUI.elementCorner
+	local cs = Spring.FlowUI.elementCorner * (bgpadding/Spring.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
-	local bgtexSize = math.floor(bgpadding * bgtexScale)
+	local bgtexSize = math.floor(Spring.FlowUI.elementPadding * bgtexScale)
 
 	local tl = tl or 1
 	local tr = tr or 1
@@ -682,12 +682,14 @@ Spring.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
 	local color = color or {0.95,0.95,0.95,1}
 	local color1 = {color[1]*0.55, color[2]*0.55, color[3]*0.55, color[4]}
 	local edgeWidth = math.max(1, math.floor(radius * 0.05))
+	local cs = math.max(1.1, radius*0.15)
+
 	-- faint dark outline edge
-	Spring.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, radius*0.15, 1,1,1,1, {0,0,0,0.1})
+	Spring.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.1})
 	-- knob
-	Spring.FlowUI.Draw.RectRound(x-radius, y-radius, x+radius, y+radius, radius*0.15, 1,1,1,1, color1, color)
+	Spring.FlowUI.Draw.RectRound(x-radius, y-radius, x+radius, y+radius, cs, 1,1,1,1, color1, color)
 	-- lighten knob inside edges
-	Spring.FlowUI.Draw.RectRoundCircle(x, y, radius, radius*0.06, radius*0.85, {1,1,1,0.1})
+	Spring.FlowUI.Draw.RectRoundCircle(x, y, radius, cs*0.5, radius*0.85, {1,1,1,0.1})
 end
 
 --[[
@@ -737,7 +739,7 @@ Spring.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 			local stepSizeLeft = math.max(1, math.floor(sliderWidth*0.01))
 			local stepSizeRight = math.floor(sliderWidth*0.005)
 			for _,posX in pairs(processedSteps) do
-				Spring.FlowUI.Draw.RectRound(posX-stepSizeLeft, py+1, posX+stepSizeRight, sy-1, stepSizeLeft, 1,1,1,1, { 0,0,0,25 }, { 0,0,0,0.2 })
+				Spring.FlowUI.Draw.RectRound(posX-stepSizeLeft, py+1, posX+stepSizeRight, sy-1, stepSizeLeft, 1,1,1,1, { 0.12,0.12,0.12,0.22 }, { 0,0,0,0.22 })
 			end
 		end
 	end

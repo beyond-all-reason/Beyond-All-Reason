@@ -1067,12 +1067,8 @@ function drawResbarValues(res)
 	end
 	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
 
-	-- bar value highlight
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] - ((resbarDrawinfo[res].barTexRect[4] - resbarDrawinfo[res].barTexRect[2]) / 1.5), resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0 }, { 1, 1, 1, 0.11 })
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[2] + ((resbarDrawinfo[res].barTexRect[4] - resbarDrawinfo[res].barTexRect[2]) / 1.75), barHeight * 0.2, 1, 1, 1, 1, { 1, 1, 1, 0.11 }, { 0, 0, 0, 0 })
-
 	-- Bar value glow
+	glBlending(GL_SRC_ALPHA, GL_ONE)
 	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
 	glTexture(barGlowCenterTexture)
 	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
