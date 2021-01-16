@@ -252,7 +252,7 @@ end
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
-local DrawUnit = Spring.FlowUI.Draw.Unit
+local UiUnit = Spring.FlowUI.Draw.Unit
 local bgpadding = Spring.FlowUI.elementPadding
 local elementCorner = Spring.FlowUI.elementCorner
 
@@ -808,7 +808,7 @@ local function drawStats(uDefID, uID)
 	if uID then
 		local iconPadding = math.max(1, math.floor(bgpadding*0.8))
 		glColor(1,1,1,1)
-		DrawUnit(
+		UiUnit(
 			backgroundRect[1]+bgpadding+iconPadding, backgroundRect[2]+iconPadding, backgroundRect[1]+(backgroundRect[4]-backgroundRect[2])-iconPadding, backgroundRect[4]-bgpadding-iconPadding,
 			nil,
 			1,1,1,1,
