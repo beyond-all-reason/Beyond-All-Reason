@@ -621,14 +621,14 @@ function drawCell(cell, zoom)
 		else
 			if WG['guishader'] then
 				color1 = (cmd.type == 5) and { 0.5, 0.5, 0.5, math_max(0.35, math_min(0.55, ui_opacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
-				color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.4)))
-				color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.4))) }
+				color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.3)))
+				color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.3))) }
 			else
 				color1 = (cmd.type == 5) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color1[4] = math_max(0, math_min(0.4, ui_opacity/2))
-				color2 = { 1,1,1, math_max(0, math_min(0.4, ui_opacity/2)) }
+				color1[4] = math_max(0, math_min(0.4, (ui_opacity-0.3)))
+				color2 = { 1,1,1, math_max(0, math_min(0.4, (ui_opacity-0.3))) }
 			end
-			if color1[4] > 0.12 then
+			if color1[4] > 0.06 then
 				-- white bg (outline)
 				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
 				-- darken inside

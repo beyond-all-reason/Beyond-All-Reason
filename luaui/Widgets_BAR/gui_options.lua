@@ -2637,7 +2637,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SendCommands("disticon " .. value)
-			  Spring.GetConfigInt("UnitIconDist", value)
+			  Spring.SetConfigInt("UnitIconDist", value)
 		  end,
 		},
 		{ id = "iconscale", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
@@ -2653,6 +2653,46 @@ function init()
 				  countDownOptionID = getOptionByID('iconscale')
 				  countDownOptionClock = os_clock() + 0.9
 			  end
+		  end,
+		},
+		--{ id = "uniticon_asui", group = "gfx", name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SendCommands("iconsasui " .. (value and 1 or 0))
+		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
+		--  end,
+		--},
+		{ id = "uniticon_scaleui", group = "gfx", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("iconscaleui " .. value)
+			  Spring.SetConfigFloat("UnitIconScaleUI", value)
+		  end,
+		},
+		{ id = "uniticon_fadestart", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 1) or 1), description = texts.option.uniticonfadestart_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value >= options[getOptionByID('uniticon_fadevanish')].value then
+				  options[getOptionByID('uniticon_fadevanish')].value = value + 1
+				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
+			  end
+			  Spring.SendCommands("iconfadestart " .. value)
+			  Spring.SetConfigInt("UnitIconFadeStart", value)
+		  end,
+		},
+		{ id = "uniticon_fadevanish", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1) or 1), description = texts.option.uniticonfadevanish_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value <= options[getOptionByID('uniticon_fadestart')].value then
+				  options[getOptionByID('uniticon_fadestart')].value = value - 1
+				  applyOptionValue(getOptionByID('uniticon_fadestart'))
+			  end
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
 		  end,
 		},
 
@@ -4635,6 +4675,20 @@ function init()
 		  end,
 		},
 	}
+
+	-- force new unit icons
+	if engineVersion >= 104011747 then
+		Spring.SendCommands("iconsasui 1")
+		Spring.SetConfigInt("UnitIconsAsUI", 1)
+		-- disable old icon options
+		options[getOptionByID('disticon')] = nil
+		options[getOptionByID('unitscale')] = nil
+	else
+		-- disable new icon options
+		options[getOptionByID('uniticonscale')] = nil
+		options[getOptionByID('uniticonfadestart')] = nil
+		options[getOptionByID('uniticonfadeend')] = nil
+	end
 
 	-- air absorption does nothing on 32 bit engine version
 	if not engine64 then
