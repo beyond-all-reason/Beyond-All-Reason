@@ -4682,12 +4682,12 @@ function init()
 		Spring.SetConfigInt("UnitIconsAsUI", 1)
 		-- disable old icon options
 		options[getOptionByID('disticon')] = nil
-		options[getOptionByID('unitscale')] = nil
+		options[getOptionByID('iconscale')] = nil
 	else
 		-- disable new icon options
-		options[getOptionByID('uniticonscale')] = nil
-		options[getOptionByID('uniticonfadestart')] = nil
-		options[getOptionByID('uniticonfadeend')] = nil
+		options[getOptionByID('uniticon_scaleui')] = nil
+		options[getOptionByID('uniticon_fadestart')] = nil
+		options[getOptionByID('uniticon_fadevanish')] = nil
 	end
 
 	-- air absorption does nothing on 32 bit engine version
