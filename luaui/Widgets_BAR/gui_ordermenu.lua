@@ -156,10 +156,6 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0
-local buttonBgtexSize
 local backgroundTexture = "LuaUI/Images/backgroundtile.png"
 local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
@@ -234,6 +230,7 @@ local math_floor = math.floor
 local RectRound = Spring.FlowUI.Draw.RectRound
 local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
 local elementCorner = Spring.FlowUI.elementCorner
 
 local isSpec = Spring.GetSpectatingState()
@@ -420,7 +417,6 @@ function widget:ViewResize()
 	end
 
 	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
@@ -613,46 +609,42 @@ function drawCell(cell, zoom)
 		local cellInnerWidth = math_floor(((cellRects[cell][3] - rightMargin) - (cellRects[cell][1] + leftMargin)) + 0.5)
 		local cellInnerHeight = math_floor(((cellRects[cell][4] - topMargin) - (cellRects[cell][2] + bottomMargin)) + 0.5)
 
+		local padding = math_max(1, math_floor(bgpadding * 0.52))
+
 		local isActiveCmd = (activeCmd == cmd.name)
 		-- order button background
 		local color1, color2
 		if isActiveCmd then
 			zoom = cellClickedZoom
-			color1 = { 0.66, 0.66, 0.66, 0.95 }
-			color2 = { 1, 1, 1, 0.95 }
+			color1 = { 0.66, 0.66, 0.66, math_max(0.75, math_min(0.95, ui_opacity)) }	-- bottom
+			color2 = { 1, 1, 1, math_max(0.75, math_min(0.95, ui_opacity)) }			-- top
 		else
 			if WG['guishader'] then
-				color1 = (cmd.type == 5) and { 0.4, 0.4, 0.4, math_max(0.35, math_min(0.55, ui_opacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
-				color2 = { 0.8, 0.8, 0.8, math_max(0.35, math_min(0.6, ui_opacity/1.4)) }
+				color1 = (cmd.type == 5) and { 0.5, 0.5, 0.5, math_max(0.35, math_min(0.55, ui_opacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
+				color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.4)))
+				color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.4))) }
 			else
-				color1 = (cmd.type == 5) and { 0.25, 0.25, 0.25, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color2 = { 0.8, 0.8, 0.8, math_max(0.35, math_min(0.6, ui_opacity/1.4)) }
+				color1 = (cmd.type == 5) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
+				color1[4] = math_max(0, math_min(0.4, ui_opacity/2))
+				color2 = { 1,1,1, math_max(0, math_min(0.4, ui_opacity/2)) }
 			end
-			RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
-
-			color1 = { 0, 0, 0, 0.8 }
-			color2 = { 0, 0, 0, 0.65 }
+			if color1[4] > 0.12 then
+				-- white bg (outline)
+				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
+				-- darken inside
+				color1 = {0,0,0, color1[4]*0.85}
+				color2 = {0,0,0, color2[4]*0.85}
+				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, padding, 2, 2, 2, 2, color1, color2)
+			end
+			color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
+			color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
 		end
 
-		local padding = math_max(1, math_floor(bgpadding * 0.52))
-		if padding == 1 then	-- make border less harch
-			RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*math_min(0.55, ui_opacity)}, {color2[1],color2[2],color2[3],color2[4]*math_min(0.55, ui_opacity)})
-		end
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)})
+		--if padding == 1 then	-- make border less harch
+		--	RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*math_min(0.55, ui_opacity)}, {color2[1],color2[2],color2[3],color2[4]*math_min(0.55, ui_opacity)})
+		--end
 
-		if buttonBgtexOpacity > 0 then
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			gl.Texture(buttonBackgroundTexture)
-			gl.Color(1,1,1, buttonBgtexOpacity)
-			TexturedRectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, buttonBgtexSize*(zoom*zoom), (buttonBgtexSize*(zoom*zoom)))
-			gl.Texture(false)
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		end
-
-
-		-- gloss
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42) - padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][4] - topMargin) - padding, cellWidth * 0.017, 2, 2, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.09 })
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][2] - leftMargin) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5) - padding, cellWidth * 0.017, 0, 0, 2, 2, { 1, 1, 1, 0.07 }, { 1, 1, 1, 0 })
+		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
 		-- icon
 		if showIcons then
@@ -686,8 +678,8 @@ function drawCell(cell, zoom)
 				text = texts[text]
 			end
 			local fontSize = cellInnerWidth / font2:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
-			if fontSize > cellInnerWidth / 6.3 then
-				fontSize = cellInnerWidth / 6.3
+			if fontSize > cellInnerWidth / 7 then
+				fontSize = cellInnerWidth / 7
 			end
 			fontSize = fontSize * zoom
 			local fontHeight = font2:GetTextHeight(text) * fontSize
@@ -722,9 +714,10 @@ function drawCell(cell, zoom)
 				clickedCellDesiredState = nil
 				desiredState = nil
 			end
-			local stateWidth = cellInnerWidth / statecount
+			local padding2 = padding
+			local stateWidth = (cellInnerWidth / statecount) - padding2 - padding2
 			local stateHeight = math_floor(cellInnerHeight * 0.14)
-			local stateMargin = math_floor((stateWidth * 0.075) + 0.5)
+			local stateMargin = math_floor((stateWidth * 0.075) + 0.5) + padding2 + padding2
 			local glowSize = math_floor(stateHeight * 8)
 			local r, g, b, a = 0, 0, 0, 0
 			for i = 1, statecount do
@@ -744,10 +737,10 @@ function drawCell(cell, zoom)
 					r, g, b, a = 0, 0, 0, 0.36  -- default off state
 				end
 				glColor(r, g, b, a)
-				local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
-				local y1 = math_floor(cellRects[cell][2] + bottomMargin + padding)
-				local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - (stateWidth * (statecount - i)) - (i == statecount and 0 or stateMargin))
-				local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight)
+				local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + padding2 + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
+				local y1 = math_floor(cellRects[cell][2] + bottomMargin + padding + padding2)
+				local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - padding2 - (stateWidth * (statecount - i)) - (i == statecount and 0 or stateMargin))
+				local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight + padding2)
 				-- fancy fitting rectrounds
 				if rows < 6 then
 					RectRound(x1, y1, x2, y2, stateHeight * 0.33,
@@ -908,9 +901,11 @@ function widget:DrawScreen()
 						--end
 
 						-- gloss highlight
+						pad = math_max(1, math_floor(bgpadding * 0.52))
+						local pad2 = pad
 						glBlending(GL_SRC_ALPHA, GL_ONE)
-						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][4] - topMargin - bgpadding - pad - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin, (cellRects[cell][4] - topMargin - pad), cellWidth * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
-						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, (cellRects[cell][2] - bottomMargin - pad) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellWidth * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
+						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - bgpadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
+						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
 				end
@@ -936,7 +931,28 @@ function widget:DrawScreen()
 							glBlending(GL_SRC_ALPHA, GL_ONE)
 							glColor(1, 1, 1, alpha)
 						end
-						RectRound(cellRects[cell][1] + cellMarginPx, cellRects[cell][2] + cellMarginPx, cellRects[cell][3] - cellMarginPx2, (cellRects[cell][4] - cellMarginPx2), cellWidth * 0.025, 2, 2, 2, 2)
+
+						local leftMargin = cellMarginPx
+						local rightMargin = cellMarginPx2
+						local topMargin = cellMarginPx
+						local bottomMargin = cellMarginPx2
+						local yFirstMargin = cell % rows == 1 and rightMargin or leftMargin
+						if cell % cols == 1 then
+							leftMargin = cellMarginPx2
+						end
+						if cell % cols == 0 then
+							rightMargin = cellMarginPx2
+						end
+						if cols/cell >= 1  then
+							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+						end
+						--if cols/cell < 1/(cols-1) then
+						--  bottomMargin = cellMarginPx2
+						--end
+
+						-- gloss highlight
+						local pad = math_max(1, math_floor(bgpadding * 0.52))
+						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, cellRects[cell][4] - topMargin - pad, pad, 2, 2, 2, 2)
 					else
 						clickedCellTime = nil
 					end

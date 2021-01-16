@@ -200,7 +200,7 @@ function drawTooltip(name, x, y)
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
 
-	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.75, 0.75, 0.75, (WG['guishader'] and 0.7 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.5 or 0.55)}, bgpadding)
+	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.85, 0.85, 0.85, (WG['guishader'] and 0.72 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.52 or 0.56)}, bgpadding)
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist(gl.CreateList(function()
 			RectRound(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 3.3 * widgetScale)
