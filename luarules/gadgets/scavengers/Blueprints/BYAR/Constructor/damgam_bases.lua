@@ -259,6 +259,7 @@ table.insert(ScavengerConstructorBlueprintsT1,DamBase2Red)
 table.insert(ScavengerConstructorBlueprintsT2,DamBase2Red)
 table.insert(ScavengerConstructorBlueprintsT3,DamBase2Red)
 
+--[[
 local function DamTrap1Blue(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 96
 	if radiusCheck then
@@ -334,3 +335,4 @@ end
 table.insert(ScavengerConstructorBlueprintsT1,DamTrap1Red)
 table.insert(ScavengerConstructorBlueprintsT2,DamTrap1Red)
 table.insert(ScavengerConstructorBlueprintsT3,DamTrap1Red)
+--]]
