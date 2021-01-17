@@ -22,7 +22,7 @@ return {
 		hidedamage = true,
     icontype = "blank",
 		idleautoheal = 100000, --so it doesnt die
-		mass = 1,
+		mass = 0,
 		maxdamage = 5000000,
 		maxslope = 64,
 		maxwaterdepth = 1000,
