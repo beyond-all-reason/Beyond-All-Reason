@@ -168,7 +168,7 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
-local DrawUnit = Spring.FlowUI.Draw.Unit
+local UiUnit = Spring.FlowUI.Draw.Unit
 local elementCorner = Spring.FlowUI.elementCorner
 
 function lines(str)
@@ -736,7 +736,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 
 	glColor(1,1,1,1)
-	DrawUnit(
+	UiUnit(
 		cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
 		cornerSize,
 		1,1,1,1,
@@ -950,7 +950,7 @@ local function drawUnitInfo()
 		local iconY =  backgroundRect[4] - iconPadding - bgpadding
 		-- unit icon
 		glColor(1,1,1,1)
-		DrawUnit(
+		UiUnit(
 			iconX, iconY - iconSize, iconX + iconSize, iconY,
 			nil,
 			1, 1, 1, 1,

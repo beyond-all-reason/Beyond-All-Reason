@@ -187,7 +187,7 @@ local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local glDepthTest = gl.DepthTest
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local DrawUnit = Spring.FlowUI.Draw.Unit
+local UiUnit = Spring.FlowUI.Draw.Unit
 local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
 local elementCorner = Spring.FlowUI.elementCorner
@@ -1077,7 +1077,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
 	--glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
 	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
-	DrawUnit(
+	UiUnit(
 		cellRects[cellRectID][1] + cellPadding + iconPadding,
 		cellRects[cellRectID][2] + cellPadding + iconPadding,
 		cellRects[cellRectID][3] - cellPadding - iconPadding,
@@ -1096,7 +1096,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
-		DrawUnit(
+		UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
 			cellRects[cellRectID][3] - cellPadding - iconPadding,
@@ -1106,7 +1106,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		)
 		if cellColor[4] > 0 then
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			DrawUnit(
+			UiUnit(
 				cellRects[cellRectID][1] + cellPadding + iconPadding,
 				cellRects[cellRectID][2] + cellPadding + iconPadding,
 				cellRects[cellRectID][3] - cellPadding - iconPadding,
