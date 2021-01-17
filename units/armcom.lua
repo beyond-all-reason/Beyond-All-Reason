@@ -28,6 +28,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
+    holdsteady = true,
 		icontype = "armcommander",
 		idleautoheal = 5,
 		idletime = 1800,
