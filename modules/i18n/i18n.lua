@@ -7,5 +7,5 @@ local source = debug and debug.getinfo(1).source
 local currentDirectory = GetDirectory(source)
 
 
-local i18nPath = currentDirectory .. "i18nlib/i18n/"
-Spring.I18N = VFS.Include(i18nPath .. "init.lua", nil, VFS.ZIP)
+I18N_PATH = currentDirectory .. "i18nlib/i18n/"
+Spring.I18N = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
