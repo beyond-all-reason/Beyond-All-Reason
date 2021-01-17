@@ -1,0 +1,3 @@
+return {
+    test = "Bonjour monde!",
+}

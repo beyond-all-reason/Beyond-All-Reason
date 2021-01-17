@@ -1,4 +1,6 @@
 return {
+	test = "Hello world!",
+	testFallback = "Not found, defaulting to English",
 	topbar = {
 		button = {
 			quit = 'Quit',
