@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "jK",
 		date = "Jul 11, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1,
 		enabled = true  --  loaded by default?
 	}
 end
@@ -59,10 +59,12 @@ local myTeamID = 0
 
 local unitBuildPic = {}
 local unitName = {}
+local unitIconType = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitBuildPic[udid] = unitDef.buildpicname
 	unitName[udid] = unitDef.name
+	unitIconType[udid] = unitDef.iconType
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		unitBuildOptions[udid] = unitDef.buildOptions
 	end
@@ -81,6 +83,10 @@ local maxVisibleBuilds = 3
 local startTimer = Spring.GetTimer()
 local msx = Game.mapX * 512
 local msz = Game.mapY * 512
+
+local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
+local unitOrder = {}	-- retrieves from buildmenu in initialize
+local iconTypesMap = {}
 
 local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
 local chobbyInterface, factoriesArea, cornerSize, setInfoDisplayUnitID, factoriesAreaHovered
@@ -124,7 +130,7 @@ local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
-local DrawUnit = Spring.FlowUI.Draw.Unit
+local UiUnit = Spring.FlowUI.Draw.Unit
 local elementCorner = Spring.FlowUI.elementCorner
 
 -------------------------------------------------------------------------------
@@ -229,6 +235,37 @@ end
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['buildmenu'] then
+		if WG['buildmenu'].getGroups then
+			groups, unitGroup = WG['buildmenu'].getGroups()
+		end
+		if WG['buildmenu'].getOrder then
+			unitOrder = WG['buildmenu'].getOrder()
+
+			-- order buildoptions
+			for uDefID, def in pairs(unitBuildOptions) do
+				local temp = {}
+				for i, udid in pairs(def) do
+					temp[udid] = i
+				end
+				local newBuildOptions = {}
+				local newBuildOptionsCount = 0
+				for k, orderUDefID in pairs(unitOrder) do
+					if temp[orderUDefID] then
+						newBuildOptionsCount = newBuildOptionsCount + 1
+						newBuildOptions[newBuildOptionsCount] = orderUDefID
+					end
+				end
+				unitBuildOptions[uDefID] = newBuildOptions
+			end
+		end
+	end
+
+	iconTypesMap = {}
+	if Script.LuaRules('GetIconTypes') then
+		iconTypesMap = Script.LuaRules.GetIconTypes()
+	end
+
 	widget:ViewResize()
 
 	myTeamID = Spring.GetMyTeamID()
@@ -447,15 +484,22 @@ local function DrawBuildProgress(left, top, right, bottom, progress, color)
 	glColor(1, 1, 1, 1)
 end
 
-local function drawIcon(rect, tex, color, zoom)
+local function drawIcon(udid, rect, tex, color, zoom, isfactory)
+	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
+	local radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[udid]]
+	if isfactory then
+		radarIcon = nil
+	end
 	glColor(1,1,1,1)
-	DrawUnit(
+	UiUnit(
 		rect[1], rect[2], rect[3], rect[4],
 		cornerSize,
 		1,1,1,1,
 		zoom,
 		nil, nil,
-		tex
+		tex,
+		radarIcon,
+		groups[unitGroup[udid]]
 	)
 end
 
@@ -490,7 +534,7 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
 
 	local tex = ':lr128,128:unitpics/' .. unitBuildPic[unitDefID]
-	drawIcon({imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom)
+	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil))
 
 	-- Progress
 	if (options.progress or -1) > -1 then
@@ -828,7 +872,7 @@ function widget:DrawScreen()
 							local yPad = math_floor(iconSizeY * 0.88)
 							local xPad = yPad
 							local zoom = 0.04
-							drawIcon({bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
+							drawIcon(unitBuildDefID, {bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
 							--TexRectRound(bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad, (bopt_rec[3] - bopt_rec[1]) * 0.05)
 							if count > 1 then
 								font:Begin()

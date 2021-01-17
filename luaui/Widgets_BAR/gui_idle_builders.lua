@@ -126,7 +126,7 @@ local math_pi = math.pi
 local getn = table.getn
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local DrawUnit = Spring.FlowUI.Draw.Unit
+local UiUnit = Spring.FlowUI.Draw.Unit
 local bgpadding = Spring.FlowUI.elementPadding
 
 -------------------------------------------------------------------------------
@@ -285,7 +285,7 @@ local function DrawUnitIcons(number)
 			X2 = math.floor(X1 + ICON_SIZE)
 
 			glColor(1,1,1,1)
-			DrawUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
+			UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
 				math.ceil(bgpadding*0.5), 1,1,1,1,
 				0.05,
 				nil, nil,

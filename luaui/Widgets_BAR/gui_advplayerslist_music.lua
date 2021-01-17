@@ -107,6 +107,7 @@ local GL_ONE = GL.ONE
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
 local UiSlider = Spring.FlowUI.Draw.Slider
 local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
 local elementCorner = Spring.FlowUI.elementCorner
@@ -750,16 +751,16 @@ function widget:DrawScreen()
 			    RectRound(left+borderPaddingLeft, bottom+borderPadding-(1.8*widgetScale), left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.4, 2,2,2,2, {0.6,0.6,0.6,ui_opacity*0.14}, {1,1,1,ui_opacity*0.14})
 			  end
 
-			  local color = {1,1,1,0.18}
-			  local colorHighlight = {1,1,1,0.3}
+			local color = {1,1,1,0.1}
+			local colorHighlight = {1,1,1,0.3}
 			  glBlending(GL_SRC_ALPHA, GL_ONE)
 			  local button = 'playpause'
 				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					RectRound(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], borderPadding*0.6, 2,2,2,2, mlb and colorHighlight or color, mlb and colorHighlight or color)
+					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1,1,1,1, 1,1,1,1, 1, mlb and colorHighlight or color)
 				end
 				button = 'next'
 				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					RectRound(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], borderPadding*0.6, 2,2,2,2, mlb and colorHighlight or color, mlb and colorHighlight or color)
+					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1,1,1,1, 1,1,1,1, 1, mlb and colorHighlight or color)
 				end
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end

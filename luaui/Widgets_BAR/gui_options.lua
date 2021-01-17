@@ -2132,6 +2132,9 @@ function init()
 		local desktop = ''
 		local addResolutions
 		for i, line in ipairs(fileLines) do
+			if string.find(line, 'Main tread CPU') or string.find(line, '%[f=-00000') then
+				break
+			end
 			if addResolutions then
 				local resolution = string.match(line, '[0-9]*x[0-9]*')
 				if resolution and string.len(resolution) >= 7 then
@@ -2158,7 +2161,7 @@ function init()
 			end
 			if string.find(line, '     %[') then
 				addResolutions = nil
-				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%-%(%)]*)'), 1)
+				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%/%%-%(%)]*)'), 1)
 				soundDevices[#soundDevices + 1] = device
 				soundDevicesByName[device] = #soundDevices
 			end
@@ -2637,7 +2640,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SendCommands("disticon " .. value)
-			  Spring.GetConfigInt("UnitIconDist", value)
+			  Spring.SetConfigInt("UnitIconDist", value)
 		  end,
 		},
 		{ id = "iconscale", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
@@ -2653,6 +2656,54 @@ function init()
 				  countDownOptionID = getOptionByID('iconscale')
 				  countDownOptionClock = os_clock() + 0.9
 			  end
+		  end,
+		},
+		--{ id = "uniticon_asui", group = "gfx", name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SendCommands("iconsasui " .. (value and 1 or 0))
+		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
+		--  end,
+		--},
+		{ id = "uniticon_scaleui", group = "gfx", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("iconscaleui " .. value)
+			  Spring.SetConfigFloat("UnitIconScaleUI", value)
+		  end,
+		},
+		{ id = "uniticon_fadevanish", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value >= options[getOptionByID('uniticon_fadestart')].value then
+				  options[getOptionByID('uniticon_fadestart')].value = value + 1
+				  applyOptionValue(getOptionByID('uniticon_fadestart'))
+			  end
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
+		  end,
+		},
+		{ id = "uniticon_fadestart", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value <= options[getOptionByID('uniticon_fadevanish')].value then
+				  options[getOptionByID('uniticon_fadevanish')].value = value - 1
+				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
+			  end
+			  Spring.SendCommands("iconfadestart " .. value)
+			  Spring.SetConfigInt("UnitIconFadeStart", value)
+		  end,
+		},
+		{ id = "uniticon_hidewithui", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
+			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
 		  end,
 		},
 
@@ -3471,7 +3522,6 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 		{ id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   "..texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   "..texts.option.musicplayer, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = texts.option.musicplayer,
 		  onload = function(i)
@@ -3482,6 +3532,7 @@ function init()
 			  end
 		  end
 		},
+		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
 		{ id = "consolemaxlines", group = "ui", name = texts.option.console .. widgetOptionColor .. "  "..texts.option.consolemaxlines, type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
 		  onload = function(i)
@@ -4635,6 +4686,22 @@ function init()
 		  end,
 		},
 	}
+
+	-- force new unit icons
+	if engineVersion >= 104011747 then
+		Spring.SendCommands("iconsasui 1")
+		Spring.SetConfigInt("UnitIconsAsUI", 1)
+		-- disable old icon options
+		options[getOptionByID('disticon')] = nil
+		options[getOptionByID('iconscale')] = nil
+	else
+		-- disable new icon options
+		options[getOptionByID('uniticon_scaleui')] = nil
+		options[getOptionByID('uniticon_fadestart')] = nil
+		options[getOptionByID('uniticon_fadevanish')] = nil
+		options[getOptionByID('uniticon_hidewithui')] = nil
+
+	end
 
 	-- air absorption does nothing on 32 bit engine version
 	if not engine64 then
