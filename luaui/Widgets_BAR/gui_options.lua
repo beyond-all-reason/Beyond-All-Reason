@@ -2132,6 +2132,9 @@ function init()
 		local desktop = ''
 		local addResolutions
 		for i, line in ipairs(fileLines) do
+			if string.find(line, 'Main tread CPU') or string.find(line, '%[f=-00000') then
+				break
+			end
 			if addResolutions then
 				local resolution = string.match(line, '[0-9]*x[0-9]*')
 				if resolution and string.len(resolution) >= 7 then
