@@ -106,6 +106,8 @@ return {
 		energyshot = 'energy/shot',
 		metalshot = 'metal/shot',
 		stealthy = 'stealthy',
+		cloakcost = 'cloak cost',
+		cloakcostmoving = 'cloak cost moving',
 		transportmaxmass = 'transport max mass',
 		transportmaxsize = 'transport max size',
 		transportcapacity = 'transport capacity',

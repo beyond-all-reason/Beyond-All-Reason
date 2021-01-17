@@ -53,6 +53,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	energyshot = 'energy/shot',
 	metalshot = 'metal/shot',
 	stealthy = 'stealthy',
+	cloakcost = 'cloak cost',
+	cloakcostmoving = 'cloak cost moving',
 	transportmaxmass = 'transport max mass',
 	transportmaxsize = 'transport max size',
 	transportcapacity = 'transport capacity',
@@ -242,6 +244,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.stealth then
 		unitDefInfo[unitDefID].stealth = true
+	end
+	if unitDef.cloakCost then
+		unitDefInfo[unitDefID].cloakCost = unitDef.cloakCost
+		if unitDef.cloakCostMoving > unitDef.cloakCost then
+			unitDefInfo[unitDefID].cloakCostMoving = unitDef.cloakCostMoving
+		end
 	end
 	if unitDef.isTransport then
 		unitDefInfo[unitDefID].transport = { unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity }
@@ -1271,6 +1279,13 @@ local function drawUnitInfo()
 
 		if unitDefInfo[displayUnitDefID].stealth then
 			addTextInfo(texts.stealthy, nil)
+		end
+
+		if unitDefInfo[displayUnitDefID].cloakCost then
+			addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost)
+			if unitDefInfo[displayUnitDefID].cloakCostMoving then
+				addTextInfo(texts.cloakcostmoving, unitDefInfo[displayUnitDefID].cloakCostMoving)
+			end
 		end
 
 		if unitDefInfo[displayUnitDefID].transport then
