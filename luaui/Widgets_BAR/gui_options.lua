@@ -2158,7 +2158,7 @@ function init()
 			end
 			if string.find(line, '     %[') then
 				addResolutions = nil
-				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%-%(%)]*)'), 1)
+				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%/%%-%(%)]*)'), 1)
 				soundDevices[#soundDevices + 1] = device
 				soundDevicesByName[device] = #soundDevices
 			end
@@ -2671,28 +2671,36 @@ function init()
 			  Spring.SetConfigFloat("UnitIconScaleUI", value)
 		  end,
 		},
-		{ id = "uniticon_fadestart", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 1) or 1), description = texts.option.uniticonfadestart_descr,
+		{ id = "uniticon_fadevanish", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if value >= options[getOptionByID('uniticon_fadevanish')].value then
-				  options[getOptionByID('uniticon_fadevanish')].value = value + 1
+			  if value >= options[getOptionByID('uniticon_fadestart')].value then
+				  options[getOptionByID('uniticon_fadestart')].value = value + 1
+				  applyOptionValue(getOptionByID('uniticon_fadestart'))
+			  end
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
+		  end,
+		},
+		{ id = "uniticon_fadestart", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value <= options[getOptionByID('uniticon_fadevanish')].value then
+				  options[getOptionByID('uniticon_fadevanish')].value = value - 1
 				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
 			  end
 			  Spring.SendCommands("iconfadestart " .. value)
 			  Spring.SetConfigInt("UnitIconFadeStart", value)
 		  end,
 		},
-		{ id = "uniticon_fadevanish", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1) or 1), description = texts.option.uniticonfadevanish_descr,
+		{ id = "uniticon_hidewithui", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if value <= options[getOptionByID('uniticon_fadestart')].value then
-				  options[getOptionByID('uniticon_fadestart')].value = value - 1
-				  applyOptionValue(getOptionByID('uniticon_fadestart'))
-			  end
-			  Spring.SendCommands("iconfadevanish " .. value)
-			  Spring.SetConfigInt("UnitIconFadeVanish", value)
+			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
+			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
 		  end,
 		},
 
@@ -3511,7 +3519,6 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 		{ id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   "..texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   "..texts.option.musicplayer, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = texts.option.musicplayer,
 		  onload = function(i)
@@ -3522,6 +3529,7 @@ function init()
 			  end
 		  end
 		},
+		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
 		{ id = "consolemaxlines", group = "ui", name = texts.option.console .. widgetOptionColor .. "  "..texts.option.consolemaxlines, type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
 		  onload = function(i)
@@ -4688,6 +4696,8 @@ function init()
 		options[getOptionByID('uniticon_scaleui')] = nil
 		options[getOptionByID('uniticon_fadestart')] = nil
 		options[getOptionByID('uniticon_fadevanish')] = nil
+		options[getOptionByID('uniticon_hidewithui')] = nil
+
 	end
 
 	-- air absorption does nothing on 32 bit engine version

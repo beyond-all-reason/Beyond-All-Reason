@@ -647,7 +647,7 @@ Spring.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		color = {0.66,0.66,0.66,1}
 		glowMult = 0
 	else		-- in between
-		x = math.floor(px + ((sx-px)*0.37))
+		x = math.floor(px + ((sx-px)*0.42))
 		color = {1,0.9,0.7,1}
 		glowMult = 0.4
 	end
