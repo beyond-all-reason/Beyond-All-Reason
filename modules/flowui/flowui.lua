@@ -402,7 +402,7 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	-- tile
 	if tileopacity > 0 then
 		gl.Color(1,1,1, tileopacity)
-		Spring.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
+		Spring.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "modules/flowui/images/backgroundtile.png")
 	end
 end
 

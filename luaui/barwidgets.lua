@@ -26,7 +26,7 @@ include("savetable.lua")
 
 Spring.Utilities = {}
 VFS.Include("LuaRules/Utilities/tablefunctions.lua")
-VFS.Include("LuaUI/flowui.lua")
+VFS.Include("modules/flowui/flowui.lua")
 VFS.Include("modules/i18n/i18n.lua")
 
 local gl = gl
