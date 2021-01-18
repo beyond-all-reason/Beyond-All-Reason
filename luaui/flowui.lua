@@ -773,7 +773,17 @@ Spring.FlowUI.Draw.Selector = function(px, py, sx, sy)
 	Spring.FlowUI.Draw.RectRound(sx-(sy-py), py, sx, sy, cs, 1, 1, 1, 1, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
 end
 
-Spring.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy, cs, opacity, color)
+--[[
+	SelectHighlight
+		draw a highlighted area in a selector (drop-down menu)
+		(also usable to highlight some other generic area)
+	params
+		px, py, sx, sy = left, bottom, right, top
+		cs = corner size
+		opacity
+		color = {1,1,1}
+]]
+Spring.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy,  cs, opacity, color)
 	local cs = cs or (sy-py)*0.08
 	local edgeWidth = math.max(1, math.floor((Spring.FlowUI.vsy*0.001)))
 	local opacity = opacity or 0.35
