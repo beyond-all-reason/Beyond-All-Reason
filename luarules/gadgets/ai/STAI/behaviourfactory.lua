@@ -4,6 +4,7 @@ BehaviourFactory = class(AIBase)
 function BehaviourFactory:Init()
 	self.behaviours = shard_include( "behaviours" )
 	self.scoutslist = {}
+	self.DebugEnabled = true
 end
 
 function BehaviourFactory:AddBehaviours(unit)
@@ -49,9 +50,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 
 	if self.ai.armyhst.unitTable[un].isBuilding then
 		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
-		if self.ai.armyhst.nukeList[un] then
+		if self.ai.armyhst._silo_[un] then
 			table.insert(b, NukeBST)
-		elseif self.ai.armyhst.antinukeList[un] then
+		elseif self.ai.armyhst._antinuke_[un] then
 			table.insert(b, AntinukeBST)
 		elseif self.ai.armyhst.bigPlasmaList[un] then
 			table.insert(b, BombardBST)
@@ -64,13 +65,14 @@ function BehaviourFactory:defaultBehaviours(unit)
 			if math.random() > 0.5 then
 
 				table.insert(b, ReclaimBST)
-				--table.insert(b, WardBST) --TODO redo safe position before
+				table.insert(b, WardBST)
 			else
 				table.insert(b, AttackerBST)
 			end
 		elseif self.ai.armyhst.commanderList[un] then
 			table.insert(b, CommanderBST)
 			table.insert(b,TaskQueueBST)
+			table.insert(b, WardBST)
 		elseif u:CanBuild() then
 			table.insert(b, WardBST)
 			table.insert(b,TaskQueueBST)
@@ -79,10 +81,12 @@ function BehaviourFactory:defaultBehaviours(unit)
 			if self.ai.armyhst.advConList[un] then --TODO sobstitute this
 				-- game:SendToConsole(u:Name() .. " is advanced construction unit")
 				-- half advanced engineers upgrade mexes instead of building things
+				self:EchoDebug('self.role',self.role)
 				if self.ai.advCons == nil then
 					self.ai.advCons = 0
 				end
-				if self.ai.advCons == 0 then
+
+				if self.ai.advCons == 0 and self.role == 'expand' then
 					-- game:SendToConsole(u:Name() .. " taskqueuing")
 					table.insert(b, MexUpBST)
 					self.ai.advCons = 1
@@ -91,15 +95,15 @@ function BehaviourFactory:defaultBehaviours(unit)
 					self.ai.advCons = 0
 				end
 			end
-
+		elseif self.ai.armyhst.radars[un] or self.ai.armyhst.jammers[un] then
+			table.insert(b, AttackerBST)
+			table.insert(b, WardBST)
 
 		else
+-- 			table.insert(b, WardBST) --TODO caution this can be wrong
 			if self.ai.armyhst.unitTable[un].isAttacker then
 				table.insert(b, AttackerBST)
-				-- if self.ai.armyhst.battles[un] or self.ai.armyhst.breaks[un] then
-					-- arty and merl don't make good defense
 					table.insert(b, DefendBST)
-				-- end
 			end
 			if self.ai.armyhst.raiders[un]  then
 				table.insert(b, RaiderBST)
@@ -127,7 +131,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	for i = #b, 1, -1 do
 		local behaviour = b[i]
 		if alreadyHave[behaviour] then
-			-- game:SendToConsole(self.ai.id, "duplicate behaviour", u:ID(), u:Name())
+			game:SendToConsole(self.ai.id, "duplicate behaviour", u:ID(), u:Name())
 			table.remove(b, i)
 		else
 			alreadyHave[behaviour] = true

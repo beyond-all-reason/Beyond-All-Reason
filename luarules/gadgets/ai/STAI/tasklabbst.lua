@@ -225,7 +225,7 @@ function TaskLabBST:Update()
 	local f = self.game:Frame()
 	if f % 111 == 0 then
 		self:GetAmpOrGroundWeapon()
-		self.isBuilding = game:GetUnitIsBuilding(self.id)
+		self.isBuilding = game:GetUnitIsBuilding(self.id)--TODO better this?
 		if Spring.GetFactoryCommands(self.id,0) > 0 then return end
 		local soldier = self:getSoldier()
 		self:EchoDebug('update',soldier)
@@ -234,31 +234,3 @@ function TaskLabBST:Update()
 		end
 	end
 end
-
-
---TODO
-
-
-		-- 	if self.ai.taskshst:outmodedTaskqueues()[self.name] ~= nil and not q then
-			-- 		local threshold =  1 - (uT[self.name].techLevel / self.ai.maxFactoryLevel)
-			-- 		if self.isFactory  and (self.ai.Metal.full < threshold or self.ai.Energy.full < threshold) then
-			-- 			local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
-			-- 			for level, factories in pairs (self.ai.factoriesAtLevel)  do
-			-- 				for index, factory in pairs(factories) do
-			-- 					local factoryName = factory.unit:Internal():Name()
-			-- 					if mtype == self.ai.armyhst.factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
-			-- 						self:EchoDebug( self.name .. ' have major factory ' .. factoryName)
-			-- 						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
-			-- 						q = self.ai.taskshst:outmodedTaskqueues()[self.name]
-			-- 						self.outmodedTechLevel = true
-			-- 						self:EchoDebug(self.name, 'is outmoded')
-			-- 						break
-			-- 					end
-			-- 				end
-			-- 				if q then break end
-			-- 			end
-			--
-			-- 		elseif self.outmodedFactory then
-			-- 			q = self.ai.taskshst:outmodedTaskqueues()[self.name]
-			-- 		end
-			-- 	end

@@ -9,7 +9,7 @@ function LabBuildHST:internalName()
 end
 
 function LabBuildHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.lastCheckFrameForConName = {}
 	self.lastFactoriesForConName = {}
 	self.conTypesByName = {}

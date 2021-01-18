@@ -10,6 +10,77 @@ end
 
 function TasksHST:Init()
 	self.DebugEnabled = false
+	self.roles = {}
+	self.roles.default = {
+		--group, eco,duplicate,limitedNumber,location
+		{'factoryMobilities',true,true,false},
+		{'_wind_',true,false,false},
+		{'_tide_',true,false,false},
+		{'_solar_',true,false,false},
+		{'_advsol_',true,false,false},
+		{'_mex_',true,false,false},
+		{'_nano_',true,false,false},
+		{'_llt_',true,false,false},
+		{'_aa1_',true,false,false},
+		{'_flak_',true,false,false},
+		{'_specialt_',true,false,false},
+		{'_fus_',true,true,false},
+		{'_popup1_',true,false,false},
+		{'_popup2_',true,false,false},
+		{'_heavyt_',true,false,false},
+		{'_estor_',true,true,1},
+		{'_mstor_',true,true,1},
+		{'_convs_',true,false,false},
+		{'_jam_',true,true,1},
+		{'_radar_',true,true,false},
+		{'_geo_',true,true,false},
+		{'_silo_',true,true,1},
+		{'_antinuke_',true,true,1},
+		{'_sonar_',true,false,false},
+		{'_shield_',true,true,3},
+-- 		{'_juno_',true,true,1},
+		{'_laser2_',true,true,false},
+		{'_lol_',true,true,1},
+-- 		{'_coast1_',true,true,2},
+-- 		{'_coast2_',true,true,1},
+		{'_plasma_',true,true,2},
+		{'_torpedo1_',true,false,false},
+		{'_torpedo2_',true,false,false},
+		{'_torpedoground_',true,false,false},
+		{'_aabomb_',true,false,false},
+		{'_aaheavy_',true,true,false},
+		{'_aa2_',true,true,1},
+	}
+
+	self.roles.expand = {
+		{'_mex_',true,false,false},
+		{'_llt_',true,false,false},
+		{'_popup1_',true,false,false},
+		{'_popup2_',true,false,false}
+	}
+	self.roles.eco = {
+		{'factoryMobilities',true,true,false},
+		{'_wind_',true,false,false},
+		{'_tide_',true,false,false},
+		{'_solar_',true,false,false},
+		{'_advsol_',true,false,false},
+		{'_fus_',true,true,false},
+		{'_nano_',true,false,false},
+		{'_specialt_',true,false,false},
+		{'_estor_',true,true,1},
+		{'_mstor_',true,true,1},
+		{'_convs_',true,false,false},
+		{'_jam_',true,true,1},
+		{'_antinuke_',true,true,1},
+	}
+	self.roles.support = {
+		{'_aa1_',true,false,false},
+		{'_flak_',true,false,false},
+		{'_heavyt_',true,false,false},
+		{'_radar_',true,true,false},
+		{'_laser2_',true,true,false},
+		{'_aabomb_',true,false,false},
+	}
 end
 
 function TasksHST:wrap( theTable, theFunction )
@@ -19,10 +90,6 @@ function TasksHST:wrap( theTable, theFunction )
 	return theTable[theFunction](theTable, tb, ai)
 	end
 end
-
-random = math.random
-math.randomseed( os.time() + game:GetTeamID() )
-random(); random(); random()
 
 function TasksHST:MapHasWater()
 	return (self.ai.waterMap or self.ai.hasUWSpots) or false
@@ -243,205 +310,3 @@ function TasksHST:LandOrWater(tqb, landName, waterName)
 		return landName
 	end
 end
-
-
--- function TasksHST:ConsulAsFactory(tqb)
--- 	local unitName = self.ai.armyhst.DummyUnitName
--- 	local rnd = math.random(1,8)
--- 	if 	rnd == 1 then unitName = self.ai.taskvehhst:ConVehicle(tqb)
--- 	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ConShip(tqb)
--- 	elseif 	rnd == 3 then unitName = self.ai.taskbothst:Lvl1BotRaider(tqb)
--- 	elseif 	rnd == 4 then unitName = self.ai.taskbothst:Lvl1AABot(tqb)
--- 	elseif 	rnd == 5 then unitName = self.ai.taskbothst:Lvl2BotArty(tqb)
--- 	elseif 	rnd == 6 then unitName = self.ai.taskbothst:Lvl2BotAllTerrain(tqb)
--- 	elseif 	rnd == 7 then unitName = self.ai.taskbothst:Lvl2BotMedium(tqb)
--- 	else unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly(tqb)
--- 	end
--- 	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
--- 	self:EchoDebug('Consul as factory '..unitName)
--- 	return unitName
--- end
---
--- function TasksHST:FreakerAsFactory(tqb)
--- 	local unitName = self.ai.armyhst.DummyUnitName
--- 	local rnd = math.random(1,7)
--- 	if 	rnd == 1 then unitName = self.ai.taskbothst:ConBot(tqb)
--- 	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ConShip(tqb)
--- 	elseif 	rnd == 3 then unitName = self.ai.taskbothst:Lvl1BotRaider(tqb)
--- 	elseif 	rnd == 4 then unitName = self.ai.taskbothst:Lvl1AABot(tqb)
--- 	elseif 	rnd == 5 then unitName = self.ai.taskbothst:Lvl2BotRaider(tqb)
--- 	elseif 	rnd == 6 then unitName = self.ai.taskbothst:Lvl2AmphBot(tqb)
--- 	else unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly(tqb)
--- 	end
--- 	if unitName == nil then unitName = self.ai.armyhst.DummyUnitName end
--- 	self:EchoDebug('Freaker as factory '..unitName)
--- 	return unitName
--- end
---
--- function TasksHST:NavalEngineerAsFactory(tqb)
--- 	local unitName = self.ai.armyhst.DummyUnitName
--- 	local rnd= math.random(1,6)
--- 	if 	rnd == 1 then unitName = self.ai.taskshphst:ConShip(tqb)
--- 	elseif 	rnd == 2 then unitName = self.ai.taskshphst:ScoutShip(tqb)
--- 	elseif 	rnd == 3 then unitName = self.ai.taskshphst:Lvl1ShipDestroyerOnly(tqb)
--- 	elseif 	rnd == 4 then unitName = self.ai.taskshphst:Lvl1ShipRaider(tqb)
--- 	elseif 	rnd == 5 then unitName = self.ai.taskshphst:Lvl1ShipBattle(tqb)
--- 	else unitName = self.ai.taskbothst:Lvl2AmphBot(tqb)
--- 	end
--- 	self:EchoDebug('Naval engineers as factory '..unitName)
--- 	return unitName
--- end
---
--- function TasksHST:EngineerAsFactory(tqb)
--- 	local unitName = self.ai.armyhst.DummyUnitName
--- 	if  self.ai.side == self.ai.armyhst.CORESideName then
--- 		unitName = self:FreakerAsFactory(tqb)
--- 	else
--- 		unitName = self:ConsulAsFactory(tqb)
--- 	end
--- 	return unitName
--- end
-
-
-
--- mobile construction units:
-
-function TasksHST:anyCommander()
-	return {
-		self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-		self:wrap( self.ai.taskecohst,'CommanderEconomy' ) ,
-		self:wrap( self.ai.taskbuildhst,'BuildLLT' ) ,
-		self:wrap( self.ai.taskbuildhst,'BuildRadar' ) ,
-		self:wrap( self.ai.taskbuildhst,'CommanderAA' ) ,
-		self:wrap( self.ai.taskbuildhst,'BuildPopTorpedo' ) ,
-	}
-end
-function TasksHST:anyConUnit()  return  {
-	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.taskecohst,'Economy1' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLLT' ) ,
-	self:wrap( self.ai.taskecohst,'Economy1' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildMediumAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildRadar' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLvl1Jammer' ) ,
-	self:wrap( self.ai.taskecohst,'BuildGeo' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHLT' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLvl1Plasma' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHeavyishAA' ) ,
-} end
-
-function TasksHST:anyConAmphibious()  return  {
-	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.taskecohst,'AmphibiousEconomy' ) ,
-	self:wrap( self.ai.taskecohst,'BuildGeo' ) ,
-	self:wrap( self.ai.taskecohst,'Economy1' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildMediumAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildRadar' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLvl1Jammer' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHLT' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLvl1Plasma' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHeavyishAA' ) ,
-	self:wrap( self.ai.taskecohst,'AmphibiousEconomy' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildPopTorpedo' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatLightAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatRadar' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatHLT' ) ,
-} end
-
-function TasksHST:anyConShip()  return  {
-	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.taskecohst,'EconomyUnderWater' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatLightAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLightTorpedo' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatRadar' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatHLT' ) ,
-} end
-
-function TasksHST:anyAdvConUnit()  return  {
-	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.taskecohst,'AdvEconomy' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildNukeIfNeeded' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildAdvancedRadar' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHeavyPlasma' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildAntinuke' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLvl2PopUp' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHeavyAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLvl2Plasma' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildTachyon' ) ,
-	-- BuildTacticalNuke' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildExtraHeavyAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildLvl2Jammer' ) ,
-	self:wrap( self.ai.taskecohst,'BuildMohoGeo' ) ,
-} end
-
-function TasksHST:anyConSeaplane()  return  {
-	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.taskecohst,'EconomySeaplane' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatHeavyAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildAdvancedSonar' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHeavyTorpedo' ) ,
-} end
-
-function TasksHST:anyAdvConSub()  return  {
-	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
-	self:wrap( self.ai.taskecohst,'AdvEconomyUnderWater' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildFloatHeavyAA' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildAdvancedSonar' ) ,
-	self:wrap( self.ai.taskbuildhst,'BuildHeavyTorpedo' ) ,
-} end
-
--- function TasksHST:anyNavalEngineer()  return  {
--- 	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
--- 	self:wrap( self.ai.taskecohst,'EconomyNavalEngineer' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildFloatHLT' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildFloatLightAA' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildFloatRadar' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildLightTorpedo' ) ,
--- } end
-
--- function TasksHST:anyCombatEngineer()  return  {
--- 	self:wrap( self.ai.taskecohst,'BuildAppropriateFactory' ) ,
--- 	self:wrap( self.ai.taskecohst,'EconomyBattleEngineer' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildMediumAA' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildAdvancedRadar' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildLvl2Jammer' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildHeavyAA' ) ,
--- 	self:wrap( self.ai.taskecohst,'EconomyBattleEngineer' ) ,
--- 	self:wrap( self.ai.taskbuildhst,'BuildLvl2Plasma' ) ,
--- } end
-
--- function TasksHST:anyFark() return{
--- 	self:wrap( self.ai.taskecohst,'EconomyFark' ) ,
--- }end
-
--- finally' ) , the taskqueue definitions
-function TasksHST:taskqueues()  return  {
-
-	armaca = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	armack = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	armacsub = self:wrap( self  ,  'anyAdvConSub' ) ,
-	armacv = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	armbeaver = self:wrap( self  ,  'anyConAmphibious' ) ,
-	armca = self:wrap( self  ,  'anyConUnit' ) ,
-	armch = self:wrap( self  ,  'anyConAmphibious' ) ,
-	armck = self:wrap( self  ,  'anyConUnit' ) ,
-	armcom = self:wrap( self  ,  'anyCommander' ) ,
-	armconsul = self:wrap( self  ,  'anyCombatEngineer' ) ,
-	armcs = self:wrap( self  ,  'anyConShip' ) ,
-	armcsa = self:wrap( self  ,  'anyConSeaplane' ) ,
-	armcv = self:wrap( self  ,  'anyConUnit' ) ,
-	armdecom = self:wrap( self  ,  'anyCommander' ) ,
-	coraca = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	corack = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	coracsub = self:wrap( self  ,  'anyAdvConSub' ) ,
-	coracv = self:wrap( self  ,  'anyAdvConUnit' ) ,
-	corca = self:wrap( self  ,  'anyConUnit' ) ,
-	corch = self:wrap( self  ,  'anyConAmphibious' ) ,
-	corck = self:wrap( self  ,  'anyConUnit' ) ,
-	corcom = self:wrap( self  ,  'anyCommander' ) ,
-	corcs = self:wrap( self  ,  'anyConShip' ) ,
-	corcsa = self:wrap( self  ,  'anyConSeaplane' ) ,
-	corcv = self:wrap( self  ,  'anyConUnit' ) ,
-	cordecom = self:wrap( self  ,  'anyCommander' ) ,
-	cormuskrat = self:wrap( self  ,  'anyConAmphibious' ) ,
-} end

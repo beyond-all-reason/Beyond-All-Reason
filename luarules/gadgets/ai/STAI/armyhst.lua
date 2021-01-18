@@ -44,9 +44,302 @@ function ArmyHST:Init()
 	self.amphibious = {} -- weapon amphibious
 	self.crawlings = {}
 	self.cloakables = {}
+
+	self._targeting_ = {
+		armtarg = true ,
+		armfatf = true ,
+		cortarg = true ,
+		corfatf = true ,
+	}
+
+	self._geo_ = {
+		corageo = true ,
+		armageo = true ,
+		armgeo = true ,
+		corgeo = true ,
+		corbhmth = true ,
+		armgmm = true ,
+	}
+
+
+	self._nano_ = {
+		armnanotc = true ,
+		armnanotcplat = true ,
+		cornanotc = true ,
+		cornanotcplat = true ,
+		cormoho = true ,
+	}
+
+	self._solar_ = {
+		corsolar = true ,
+		armsolar = true ,
+	}
+
+	self._advsol_ = {
+		coradvsol = true ,
+		armadvsol = true ,
+	}
+
+	self._mex_ = {
+		cormex = true ,
+		armuwmex = true ,
+		coruwmex = true ,
+		cormexp = true ,
+		armmex = true ,
+		armamex = true ,
+		armmoho = true ,
+		corexp = true ,
+		armuwmme = true ,
+		coruwmme = true ,
+	}
+
+	self._flak_ = {
+		armfflak = true ,
+		armflak = true ,
+		corflak = true ,
+		corenaa = true ,
+	}
+
+	self._mine_ = {
+		armmine1 = true ,
+		armmine2 = true ,
+		armmine3 = true ,
+		armfmine3 = true ,
+		cormine1 = true ,
+		cormine2 = true ,
+		cormine3 = true ,
+		cormine4 = true ,
+		corfmine3 = true ,
+	}
+
+	self._eyes_ = {
+		armeyes = true ,
+		coreyes = true ,
+	}
+
+	self._fus_ = {
+		armfus = true ,
+		armafus = true ,
+		armuwfus = true ,
+		armckfus = true ,
+		corfus = true ,
+		corafus = true ,
+		coruwfus = true ,
+	}
+
+	self._silo_ = {
+		armsilo = true ,
+		corsilo = true ,
+	}
+
+	self._wind_ ={
+		armwin = true ,
+		corwin = true ,
+	}
+
+	self._tide_ = {
+		cortide = true ,
+		armtide = true ,
+	}
+
+	self._plat_ = {
+		corplat = true ,
+		armplat = true ,
+	}
+
+	self._radar_ = {
+		armrad = true ,
+		armarad = true ,
+		corrad = true ,
+		corarad = true ,
+		corfrad = true ,
+		armfrad = true ,
+	}
+
+	self._jam_ = {
+		armjamt = true ,
+		corjamt = true ,
+		armveil = true ,
+		corshroud = true ,
+	}
+
+	self._sonar_ = {
+		armsonar = true ,
+		corsonar = true ,
+		armason = true,
+		corason = true,
+	}
+
+	self._shield_ = {
+		armgate = true ,
+		corgate = true ,
+	}
+
+	self._juno_ = {
+		corjuno = true ,
+		armjuno = true ,
+	}
+
+	self._popup1_ = {
+		armclaw = true,
+		cormaw = true,
+	}
+
+	self._llt_ = {
+		armllt = true,
+		corllt = true,
+	}
+
+	self._specialt_ = {
+		armbeamer = true,
+		corhllt = true,
+	}
+
+	self._heavyt_ = {
+		armhlt = true,
+		corhlt = true,
+		armfhlt = true,
+		corfhlt = true,
+	}
+
+	self._lol_ = {
+		corbuzz = true ,
+		armvulc = true ,
+	}
+
+	self._laser2_ = {
+		cordoom = true ,
+		armanni = true ,
+	}
+
+	self._coast1_ = {
+		corpun = true ,
+		armguard = true ,
+	}
+
+	self._coast2_ = {
+		cortoast = true ,
+		armamb = true ,
+	}
+
+	self._popup2_ = {
+		armpb = true ,
+		corvipe = true ,
+	}
+
+	self._plasma_ = {
+		armbrtha = true ,
+		corint = true ,
+	}
+
+	self._torpedo1_ = {
+		cortl = true ,
+		armtl = true ,
+		armptl = true ,
+		corptl = true ,
+	}
+
+	self._torpedo2_ = {
+		coratl = true ,
+		armatl = true ,
+	}
+
+	self._torpedoground_ = {
+		armdl = true ,
+		cordl = true ,
+	}
+
+	self._aa1_ = {
+		armrl = true ,
+		corrl = true ,
+		armfrt = true ,
+		corfrt = true ,
+	}
+
+	self._aabomb_ = {
+		corerad = true ,
+		armferret = true ,
+	}
+
+	self._aaheavy_ = {
+		cormadsam = true ,
+		armcir = true ,
+	}
+	self._aa2_ = {
+		corscreamer = true ,
+		armmercury = true ,
+	}
+
+	self._intrusion_ = {
+		corsd = true ,
+		armsd = true ,
+	}
+
+	self._antinuke_ = {
+		armamd = true ,
+		corfmd = true ,
+	}
+
+	self._airPlat_ = {
+		armasp = true ,
+		corasp = true ,
+	}
+
+	self._convs_ = {
+		armmmkr = true ,
+		armfmkr = true ,
+		armmakr = true ,
+		armuwmmm = true ,
+		cormmkr = true ,
+		corfmkr = true ,
+		cormakr = true ,
+	}
+
+	self._estor_ = {
+		armestor = true ,
+		armuwes = true ,
+		armuwadves = true ,
+		corestor = true ,
+		coruwes = true ,
+		coruwadves = true ,
+	}
+
+	self._mstor_ = {
+		cormstor = true ,
+		armmstor = true ,
+		armuwms = true ,
+		coruwms = true ,
+		coruwadvms = true ,
+		armuwadvms = true ,
+		coruwmmm = true ,
+	}
+
+	self._tactical_ = {
+		armemp = true ,
+		cortron = true ,
+	}
+
+	self._wall_ = {
+		corfdrag = true ,
+		armdrag = true ,
+		armfort = true ,
+		cordrag = true ,
+		armfdrag = true ,
+	}
+
 	self:GetUnitTable()
 	self:GetFeatureTable()
 	self:setRanks()
+
+	self.buildersRole = {
+		default = {},
+		eco = {},
+		expand = {},
+		support = {},
+
+	}
+
+
 
 end
 
@@ -598,6 +891,21 @@ local function getInterceptor(unitDefID)
 	end
 	----Spring.Echo('interceptor',interceptor)
 	return interceptor
+end
+
+local function getTargetableWeapon(unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	local weapons = unitDef["weapons"]
+	local targetable = false
+	for i=1, #weapons do
+		local weaponDefID = weapons[i]["weaponDef"]
+		local weaponDef = WeaponDefs[weaponDefID]
+		if weaponDef['targetable'] then
+			targetable  =  weaponDef['targetable'] == 1
+		end
+	end
+	----Spring.Echo('targetable',targetable)
+	return targetable
 end
 
 local function getParalyzer(unitDefID)
@@ -1232,6 +1540,9 @@ function ArmyHST:getUnranked(units,lab)
 	end
 end
 
+
+
+
 local function GetUnitSide(name)--TODO change to the internal name armada cortex
 	if string.find(name, 'arm') then
 		return 'arm'
@@ -1295,14 +1606,17 @@ function ArmyHST:GetUnitTable()
 			utable.losRadius = unitDef["losRadius"]
 			utable.sonarRadius = unitDef["sonarRadius"]
 			utable.jammerRadius = unitDef["jammerRadius"]
-			utable.stealth = unitDef["stealth"]
+			utable.stealth = unitDef.stealth
 			utable.metalCost = unitDef["metalCost"]
 			utable.energyCost = unitDef["energyCost"]
 			utable.buildTime = unitDef["buildTime"]
 			utable.totalEnergyOut = unitDef["totalEnergyOut"]
 			utable.extractsMetal = unitDef["extractsMetal"]
+			utable.energyMake = unitDef.energyMake
+			utable.energyUse = unitDef.energyUpkeep
 			utable.isTransport = unitDef.isTransport
 			utable.isImmobile = unitDef.isImmobile
+			utable.isBuilding = unitDef.isBuilding
 			utable.isBuilder = unitDef.isBuilder
 			utable.isMobileBuilder = unitDef.isMobileBuilder
 			utable.isStaticBuilder = unitDef.isStaticBuilder
@@ -1324,49 +1638,52 @@ function ArmyHST:GetUnitTable()
 			utable.buildSpeed = unitDef.buildSpeed
 			utable.canAssist = unitDef.canAssist
 			utable.canCloak = unitDef.canCloak
+			utable.upright = unitDef.upright
 			utable.canResurrect = unitDef.canResurrect
--- 			Spring:Echo(unitDef.name)
-			utable.techLevel = unitsLevels[unitDef["name"]]
-			if unitDef["modCategories"]["weapon"] then
-				utable.isWeapon = true
-
-				if unitDef["weapons"][1] then
-					local defWepon1 = unitDef["weapons"][1]
-					utable.onlyTargets = getOnlyTargets(unitDef["weapons"])
-					utable.badTargets = getBadTargets(unitDef["weapons"])
-					utable.firstWeapon = WeaponDefs[unitDef["weapons"][1]["weaponDef"]]
-					utable.weaponType = utable.firstWeapon['type']
-					utable.badTg = ''
-					if defWepon1.badTargets then
-						for ii,vv in pairs(defWepon1.badTargets) do
-							--Spring:Echo(ii)
-							utable.badTg = utable.badTg .. ii
-
-						end
-					end
-					utable.onlyTg = ''
-					if defWepon1.onlyTargets then
-						for ii,vv in pairs(defWepon1.onlyTargets) do
-							utable.onlyTg = utable.onlyTg .. ii
-						end
-					end
-					utable.onlyBadTg = utable.onlyTg .. utable.badTg
-				end
-			else
-				utable.isWeapon = false
-			end
-
-			if unitDef["isBuilding"] then
-				utable.isBuilding = true
-			else
-				utable.isBuilding = false
-			end
+			utable.windGenerator = unitDef.windGenerator
+			utable.tidalGenerator = unitDef.tidalGenerator
+			utable.energyStorage = unitDef.energyStorage
+			utable.metalStorage = unitDef.metalStorage
+			utable.energyConv = unitDef.customParams.energyconv
 			utable.groundRange = GetLongestWeaponRange(unitDefID, 0)
 			utable.airRange = GetLongestWeaponRange(unitDefID, 1)
 			utable.submergedRange = GetLongestWeaponRange(unitDefID, 2)
 			utable.dps = getDPS(unitDefID)
 			utable.antiNuke = getInterceptor(unitDefID)
+			utable.targetableWeapon = getTargetableWeapon(unitDefID)
 			utable.paralyzer = getParalyzer(unitDefID)
+-- 			Spring:Echo(unitDef.name)
+			utable.techLevel = unitsLevels[unitDef["name"]]
+			if unitDef["modCategories"]["weapon"] then
+				utable.isWeapon = true
+			else
+				utable.isWeapon = false
+			end
+			if unitDef["weapons"][1] then
+				local defWepon1 = unitDef["weapons"][1]
+				utable.onlyTargets = getOnlyTargets(unitDef["weapons"])
+				utable.badTargets = getBadTargets(unitDef["weapons"])
+				utable.firstWeapon = WeaponDefs[unitDef["weapons"][1]["weaponDef"]]
+				utable.weaponType = utable.firstWeapon['type']
+				utable.badTg = ''
+				if defWepon1.badTargets then
+					for ii,vv in pairs(defWepon1.badTargets) do
+						--Spring:Echo(ii)
+						utable.badTg = utable.badTg .. ii
+
+					end
+				end
+				utable.onlyTg = ''
+				if defWepon1.onlyTargets then
+					for ii,vv in pairs(defWepon1.onlyTargets) do
+						utable.onlyTg = utable.onlyTg .. ii
+					end
+				end
+				utable.onlyBadTg = utable.onlyTg .. utable.badTg
+			end
+
+
+
 			--Spring:Echo(unitDef.name,utable.antiNuke)
 			if unitDef.speed == 0 and utable.isWeapon then
 				utable.isTurret = true
@@ -1397,13 +1714,7 @@ function ArmyHST:GetUnitTable()
 			if utable.isFighterAirUnit then
 				utable.airRange = utable.groundRange
 			end
-
-
-			if unitDef["minWaterDepth"] > 0 then
-				utable.needsWater = true
-			else
-				utable.needsWater = false
-			end
+			utable.needsWater = unitDef.minWaterDepth > 0
 			if unitDef["canFly"] then
 				utable.mtype = "air"
 			elseif	utable.isBuilding and utable.needsWater then
@@ -1441,7 +1752,6 @@ function ArmyHST:GetUnitTable()
 					utable.unitsCanBuild = {}
 					for i, oid in pairs (unitDef["buildOptions"]) do
 						local buildDef = UnitDefs[oid]
-						-- if is a factory insert all the units that can build
 						table.insert(utable.unitsCanBuild, buildDef["name"])
 						--and save all the mtype that can andle
 						--utable.isFactory[unitName[buildDef.name].mtype] = TODO
@@ -1449,11 +1759,15 @@ function ArmyHST:GetUnitTable()
 
 				else
 					utable.factoriesCanBuild = {}
+					utable.buildingsCanBuild = {}
 					for i, oid in pairs (unitDef["buildOptions"]) do
+
 						local buildDef = UnitDefs[oid]
+						table.insert(utable.buildingsCanBuild, buildDef["name"])
 						if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
 							-- build option is a factory, add it to factories this unit can build
 							table.insert(utable.factoriesCanBuild, buildDef["name"])
+
 						end
 					end
 					if #utable.factoriesCanBuild > 0 then
@@ -1475,10 +1789,8 @@ function ArmyHST:GetUnitTable()
 			utable.zsize = unitDef["zsize"]
 			utable.wreckName = unitDef["wreckName"]
 			self.wrecks[unitDef["wreckName"]] = unitDef["name"]
-			--unitTable[unitDef.name] = utable
 		end
 	end
--- 	return unitTable, wrecks
 end
 
 function ArmyHST:GetFeatureTable()
@@ -1538,251 +1850,12 @@ function ArmyHST:setRanks()
 			self:getBattle(t.unitsCanBuild,lab)--
 			self:getBreak(t.unitsCanBuild,lab)--
 			self:getLongRange(t.unitsCanBuild,lab)--
-
-
-
-
 			self:getUnranked(t.unitsCanBuild,lab)
-
-
 		end
 	end
 end
 wrecks = nil
-
-
-
 --[[
-    [f=-000001] repairSpeed, 300
-   [f=-000001] highTrajectoryType, 0
-   [f=-000001] captureSpeed, 1800
-   [f=-000001] isMobileBuilder, true
-   [f=-000001] maxThisUnit, 32000
-   [f=-000001] trackWidth, 32
-   [f=-000001] buildingDecalType, -1
-   [f=-000001] startCloaked, false
-   [f=-000001] canRestore, true
-   [f=-000001] transportMass, 100000
-   [f=-000001] losHeight, 60
-   [f=-000001] leaveTracks, false
-   [f=-000001] canLoopbackAttack, false
-   [f=-000001] wingAngle, 0.08
-   [f=-000001] isBomberAirUnit, false
-   [f=-000001] id, 583
-   [f=-000001] idleTime, 1800
-   [f=-000001] isHoveringAirUnit, false
-   [f=-000001] isBuilding, false
-   [f=-000001] decloakDistance, 50
-   [f=-000001] canFight, true
-   [f=-000001] flankingBonusDirZ, 1
-   [f=-000001] frontToSpeed, 0.1
-   [f=-000001] turnRadius, 500
-   [f=-000001] hideDamage, true
-   [f=-000001] sonarStealth, false
-   [f=-000001] shieldWeaponDef, nil
-   [f=-000001] cantBeTransported, false
-   [f=-000001] decoyDef, nil
-   [f=-000001] kamikazeDist, 0
-   [f=-000001] useBuildingGroundDecal, false
-   [f=-000001] buildingDecalDecaySpeed, 0.1
-   [f=-000001] nanoColorG, 0.69999999
-   [f=-000001] scriptName, scripts/Units/CORCOM.cob
-   [f=-000001] stealth, false
-   [f=-000001] canResurrect, false
-   [f=-000001] transportUnloadMethod, 0
-   [f=-000001] minWaterDepth, -10000000
-   [f=-000001] modeltype, s3o
-   [f=-000001] name, corcom
-   [f=-000001] canSelfRepair, false
-   [f=-000001] canReclaim, true
-   [f=-000001] springCategories, <table>
-   [f=-000001] maxRudder, 0.004
-   [f=-000001] waterline, 0
-   [f=-000001] releaseHeld, false
-   [f=-000001] canAttack, true
-   [f=-000001] energyMake, 25
-   [f=-000001] speedToFront, 0.07
-   [f=-000001] transportByEnemy, false
-   [f=-000001] noChaseCategories, <table>
-   [f=-000001] wingDrag, 0.07
-   [f=-000001] flareDropVectorY, 0
-   [f=-000001] tidalGenerator, 0
-   [f=-000001] isFeature, false
-   [f=-000001] isTransport, false
-   [f=-000001] buildingDecalSizeX, 4
-   [f=-000001] modelpath, objects3d/Units/CORCOM.s3o
-   [f=-000001] losRadius, 450
-   [f=-000001] windGenerator, 0
-   [f=-000001] sonarJamRadius, 0
-   [f=-000001] fallSpeed, 0.2
-   [f=-000001] verticalSpeed, 3
-   [f=-000001] metalStorage, 0
-   [f=-000001] crashDrag, 0.005
-   [f=-000001] kamikazeUseLOS, false
-   [f=-000001] buildingDecalSizeY, 4
-   [f=-000001] flankingBonusDirX, 0
-   [f=-000001] energyStorage, 0
-   [f=-000001] trackStrength, 0
-   [f=-000001] fireState, -1
-   [f=-000001] isAirUnit, false
-   [f=-000001] humanName, Commander
-   [f=-000001] autoHeal, 2.5
-   [f=-000001] fullHealthFactory, false
-   [f=-000001] buildOptions, <table>
-   [f=-000001] canCapture, true
-   [f=-000001] dlHoverFactor, -1
-   [f=-000001] isFactory, false
-   [f=-000001] sounds, <table>
-   [f=-000001] flankingBonusMode, 1
-   [f=-000001] flankingBonusDirY, 0
-   [f=-000001] airLosRadius, 675
-   [f=-000001] targfac, false
-   [f=-000001] canRepeat, true
-   [f=-000001] canRepair, true
-   [f=-000001] maxDec, 1.125
-   [f=-000001] resurrectSpeed, 300
-   [f=-000001] flareDropVectorX, 0
-   [f=-000001] turnRate, 1133
-   [f=-000001] extractsMetal, 0
-   [f=-000001] terraformSpeed, 1500
-   [f=-000001] buildpicname, CORCOM.PNG
-   [f=-000001] isStrafingAirUnit, false
-   [f=-000001] flankingBonusMax, 1.89999998
-   [f=-000001] floatOnWater, false
-   [f=-000001] flareSalvoDelay, 0
-   [f=-000001] rSpeed, 0
-   [f=-000001] turnInPlace, true
-   [f=-000001] buildTime, 75000
-   [f=-000001] canFly, false
-   [f=-000001] canAssist, true
-   [f=-000001] maxAcc, 0.18000001
-   [f=-000001] transportSize, 0
-   [f=-000001] decloakOnFire, true
-   [f=-000001] wreckName, corcom_dead
-   [f=-000001] flareEfficiency, 0.5
-   [f=-000001] maxRepairSpeed, 300
-   [f=-000001] moveDef, <table>
-   [f=-000001] flareDelay, 0.30000001
-   [f=-000001] canSubmerge, false
-   [f=-000001] canMove, true
-   [f=-000001] reclaimable, false
-   [f=-000001] holdSteady, false
-   [f=-000001] energyUpkeep, 0
-   [f=-000001] radarRadius, 700
-   [f=-000001] needGeo, false
-   [f=-000001] flareReloadTime, 5
-   [f=-000001] speed, 37.5
-   [f=-000001] strafeToAttack, false
-   [f=-000001] showNanoSpray, true
-   [f=-000001] maxWeaponRange, 300
-   [f=-000001] nanoColorB, 0.2
-   [f=-000001] buildSpeed, 300
-   [f=-000001] flareSalvoSize, 4
-   [f=-000001] canKamikaze, false
-   [f=-000001] deathExplosion, commanderexplosion
-   [f=-000001] isBuilder, true
-   [f=-000001] extractRange, 0
-   [f=-000001] upright, true
-   [f=-000001] canFireControl, true
-   [f=-000001] levelGround, true
-   [f=-000001] scriptPath, scripts/Units/CORCOM.cob
-   [f=-000001] flareDropVectorZ, 0
-   [f=-000001] hoverAttack, false
-   [f=-000001] xsize, 4
-   [f=-000001] maxCoverage, 0
-   [f=-000001] isExtractor, false
-   [f=-000001] transportCapacity, 0
-   [f=-000001] repairable, true
-   [f=-000001] bankingAllowed, true
-   [f=-000001] maxBank, 0.80000001
-   [f=-000001] canBeAssisted, true
-   [f=-000001] isFighterAirUnit, false
-   [f=-000001] tooltip, Commander
-   [f=-000001] mass, 5000
-   [f=-000001] trackStretch, 1
-   [f=-000001] flankingBonusMobilityAdd, 0.01
-   [f=-000001] trackType, -1
-   [f=-000001] trackOffset, 0
-   [f=-000001] activateWhenBuilt, true
-   [f=-000001] canGuard, true
-   [f=-000001] buildRange3D, false
-   [f=-000001] selfDCountdown, 5
-   [f=-000001] maxElevator, 0.01
-   [f=-000001] moveState, -1
-   [f=-000001] isFirePlatform, false
-   [f=-000001] unitFallSpeed, 0
-   [f=-000001] sonarRadius, 450
-   [f=-000001] cloakCost, 100
-   [f=-000001] makesMetal, 0
-   [f=-000001] maxPitch, 0.44999999
-   [f=-000001] customParams, <table>
-   [f=-000001] iconType, nil
-   [f=-000001] height, 52
-   [f=-000001] airStrafe, true
-   [f=-000001] collide, true
-   [f=-000001] weapons, <table>
-   [f=-000001] modelname, Units/CORCOM.s3o
-   [f=-000001] selectionVolume, <table>
-   [f=-000001] energyCost, 26000
-   [f=-000001] seismicRadius, 0
-   [f=-000001] zsize, 4
-   [f=-000001] metalUpkeep, 0
-   [f=-000001] nanoColorR, 0.2
-   [f=-000001] slideTolerance, 0
-   [f=-000001] maxHeightDif, 23.0940132
-   [f=-000001] stopToAttack, false
-   [f=-000001] modCategories, <table>
-   [f=-000001] cobID, -1
-   [f=-000001] useSmoothMesh, true
-   [f=-000001] cloakCostMoving, 1000
-   [f=-000001] isGroundUnit, true
-   [f=-000001] metalCost, 2700
-   [f=-000001] onOffable, false
-   [f=-000001] flareTime, 90
-   [f=-000001] buildDistance, 145
-   [f=-000001] collisionVolume, <table>
-   [f=-000001] turnInPlaceSpeedLimit, 0.82499999
-   [f=-000001] totalEnergyOut, 25
-   [f=-000001] isStaticBuilder, false
-   [f=-000001] idleAutoHeal, 2.5
-   [f=-000001] armoredMultiple, 1
-   [f=-000001] reclaimSpeed, 300
-   [f=-000001] myGravity, 0.40000001
-   [f=-000001] maxAileron, 0.015
-   [f=-000001] seismicSignature, 0
-   [f=-000001] maxWaterDepth, 35
-   [f=-000001] metalMake, 1.5
-   [f=-000001] canDropFlare, false
-   [f=-000001] stockpileWeaponDef, nil
-   [f=-000001] isImmobile, false
-   [f=-000001] model, <table>
-   [f=-000001] jammerRadius, 0
-   [f=-000001] canCloak, true
-   [f=-000001] power, 3133.33325
-   [f=-000001] canManualFire, true
-   [f=-000001] health, 3000
-   [f=-000001] minCollisionSpeed, 1
-   [f=-000001] radius, 33
-   [f=-000001] capturable, true
-   [f=-000001] factoryHeadingTakeoff, true
-   [f=-000001] armorType, 3
-   [f=-000001] decloakSpherical, true
-   [f=-000001] canPatrol, true
-   [f=-000001] canSelfD, true
-   [f=-000001] showPlayerName, true
-   [f=-000001] showNanoFrame, true
-   [f=-000001] loadingRadius, 220
-   [f=-000001] wantedHeight, 0
-   [f=-000001] flankingBonusMin, 0.89999998
-   [f=-000001] selfDExplosion, commanderexplosion
-   [f=-000001] canParalyze, false
-   [f=-000001] power_xp_coeffient, 0.13263173
-   [f=-000001] pairs, <function>
-   [f=-000001] next, <function>
-   [f=-000001] canStockpile, false
-   [f=-000001] hasShield, false
-   [f=-000001] canAttackWater, true
-   [f=-000001] cost, 3133.33325
 
 
 
@@ -2053,4 +2126,9 @@ wrecks = nil
    [f=-000001] 0, ArmyHST, armraz, is battle of, armshltx
 ]]
 
+
+
+--[[
+armdf fake
+   ]]--
 

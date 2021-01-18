@@ -4,7 +4,7 @@ function WardBST:Name()
 	return "WardBST"
 end
 
-WardBST.DebugEnabled = false
+WardBST.DebugEnabled = true
 
 function WardBST:Init()
 	self.minFleeDistance = 500
@@ -88,13 +88,15 @@ function WardBST:Activate()
 	-- can we move at all?
 	if self.mobile then
 		-- run to the most defended base location
-		local salvation = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
+		local salvation = self:NearestNano() or self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
+
 		self:EchoDebug(tostring(salvation), "salvation")
 		if salvation and self.ai.tool:Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
-			self.unit:Internal():Move(self.ai, self.ai.tool:RandomAway(salvation,150))
+
+			self.unit:Internal():Move( self.ai.tool:RandomAway(salvation,150))
 			self.noSalvation = false
 			self.active = true
-			self:EchoDebug("unit ".. self.name .." runs away from danger")
+			self:EchoDebug("unit ".. self.name .." runs away from danger to ", salvation.x,salvation.z)
 		else
 			-- we're already as safe as we can get
 			self:EchoDebug("no salvation for", self.name)
@@ -103,6 +105,17 @@ function WardBST:Activate()
 		end
 	end
 end
+
+function WardBST:NearestNano()
+	local nanoHots = self.ai.nanohst:GetHotSpots()
+	if not nanoHots then return true end
+	for i = 1, #nanoHots do
+		local hotPos = nanoHots[i]
+		return hotPos
+
+	end
+end
+
 
 function WardBST:NearestCombat()
 	local best

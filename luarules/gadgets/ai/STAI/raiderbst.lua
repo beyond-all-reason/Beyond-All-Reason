@@ -114,7 +114,8 @@ function RaiderBST:Update()
 			end
 			if attackThisUnit then
 				self.offPath = true
-				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
+-- 				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
+				self.unit:Internal():AttackMove(attackThisUnit:GetPosition())--need to check
 			elseif self.offPath then
 				self.offPath = false
 				self:ResumeCourse()
