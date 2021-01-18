@@ -28,8 +28,12 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		notifications = 'Notifications',
 		dev = 'Dev',
 	},
-	presetnames = {'lowest', 'low', 'medium', 'high', 'ultra'},
 	option = {
+		preset_lowest = 'lowest',
+		preset_low = 'low',
+		preset_medium = 'medium',
+		preset_high = 'high',
+		preset_ultra = 'ultra',
 		preset = 'Load graphics preset',
 		preset_descr = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
 		resolution = 'Resolution',
@@ -272,7 +276,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		console = 'Console',
 		consolemaxlines = 'max lines',
 		consolefontsize = 'font size',
-		idlebuilders = 'List idle builders',
+		idlebuilders = 'Idle builders bar',
 		idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 		buildbar = 'Factory build bar',
 		buildbar_descr = 'Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue',
@@ -531,7 +535,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
 
-local chobbyInterface, font, font2, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
+local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, showPresetButtons
 local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
@@ -712,6 +716,7 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
+	font3 = WG['fonts'].getFont(fontfile2, 1.4, 0.2, 1.3 )
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
@@ -1027,71 +1032,82 @@ function DrawWindow()
 
 				if column >= startColumn then --and (column ~= startColumn+2 or yPos > y-(yHeight-(70*widgetScale))) then
 					rows = rows + 1
-					--option name
-					color = '\255\225\225\225  '
-					if option.type == 'label' then
-						color = '\255\235\200\125'
-					end
+					if option.name then
+						color = '\255\225\225\225'
+						--if option.type == 'label' then
+						--	color = '\255\235\200\125'
+						--end
 
-					font:SetTextColor(1, 1, 1, 1)
-					font:Print(color .. option.name, xPos + (oPadding / 2), yPos - (oHeight / 3) - oPadding, oHeight, "no")
+						font:SetTextColor(1, 1, 1, 1)
+						font:SetOutlineColor(0, 0, 0, 0.4)
 
-					-- define hover area
-					optionHover[oid] = { math.floor(xPos), math.floor(yPos - oHeight - oPadding), math.floor(xPosMax), math.floor(yPos + oPadding) }
-
-					-- option controller
-					local rightPadding = 4
-					if option.type == 'bool' then
-						optionButtons[oid] = {}
-						optionButtons[oid] = { math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
-						UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
-
-					elseif option.type == 'slider' then
-						local sliderSize = oHeight * 0.75
-						local sliderPos = 0
-						if option.steps then
-							local min, max = option.steps[1], option.steps[1]
-							for k, v in ipairs(option.steps) do
-								if v > max then
-									max = v
-								end
-								if v < min then
-									min = v
-								end
-							end
-							sliderPos = (option.value - min) / (max - min)
+						if option.type == nil then
+							font:End()
+							font3:Begin()
+							font3:Print('\255\255\200\140'..option.name, xPos + (oPadding*0.5), yPos - (oHeight*1.8) - oPadding, oHeight*1.5, "no")
+							font3:End()
+							font:Begin()
 						else
-							sliderPos = (option.value - option.min) / (option.max - option.min)
+							font:Print(color .. option.name, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
-						UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
-						UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize/2))
-						optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
-						optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
 
-					elseif option.type == 'select' then
-						optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
-						UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
+						-- define hover area
+						optionHover[oid] = { math.floor(xPos), math.floor(yPos - oHeight - oPadding), math.floor(xPosMax), math.floor(yPos + oPadding) }
 
-						if option.options[tonumber(option.value)] ~= nil then
-							local fontSize = oHeight * 0.85
-							local text, numLines = font:WrapText(option.options[tonumber(option.value)], (optionButtons[oid][3]-optionButtons[oid][1])*1.8)
-							if numLines > 1 then
-								local l = lines(text)
-								if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
-									l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+						-- option controller
+						local rightPadding = 4
+						if option.type == 'bool' then
+							optionButtons[oid] = {}
+							optionButtons[oid] = { math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+							UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
+
+						elseif option.type == 'slider' then
+							local sliderSize = oHeight * 0.75
+							local sliderPos = 0
+							if option.steps then
+								local min, max = option.steps[1], option.steps[1]
+								for k, v in ipairs(option.steps) do
+									if v > max then
+										max = v
+									end
+									if v < min then
+										min = v
+									end
 								end
-								text = l[1]..'...'
-							end
-							if option.id == 'font2' then
-								font:End()
-								font2:Begin()
-								font2:SetTextColor(1, 1, 1, 1)
-								font2:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
-								font2:End()
-								font:Begin()
+								sliderPos = (option.value - min) / (max - min)
 							else
-								font:SetTextColor(1, 1, 1, 1)
-								font:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
+								sliderPos = (option.value - option.min) / (option.max - option.min)
+							end
+							UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
+							UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize/2))
+							optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
+							optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
+
+						elseif option.type == 'select' then
+							optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+							UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
+
+							if option.options[tonumber(option.value)] ~= nil then
+								local fontSize = oHeight * 0.85
+								local text, numLines = font:WrapText(option.options[tonumber(option.value)], (optionButtons[oid][3]-optionButtons[oid][1])*1.8)
+								if numLines > 1 then
+									local l = lines(text)
+									if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
+										l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+									end
+									text = l[1]..'...'
+								end
+								if option.id == 'font2' then
+									font:End()
+									font2:Begin()
+									font2:SetTextColor(1, 1, 1, 1)
+									font2:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
+									font2:End()
+									font:Begin()
+								else
+									font:SetTextColor(1, 1, 1, 1)
+									font:Print(text, xPosMax - selectWidth + 5 - rightPadding, yPos - (fontSize / 2) - oPadding, fontSize, "no")
+								end
 							end
 						end
 					end
@@ -1432,7 +1448,7 @@ function widget:DrawScreen()
 				end
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
-						if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
+						if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25})
 							if WG.tooltip and options[i].description and options[i].description ~= '' then
 								WG.tooltip.ShowTooltip('options_description', options[i].description)
@@ -2018,7 +2034,7 @@ end
 local engine64 = true
 function init()
 
-	presetNames = texts.presetnames    -- defined so these get listed in the right order
+	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
 	presets = {
 		[presetNames[1]] = {
 			bloom = false,
@@ -2218,7 +2234,7 @@ function init()
 		if isPotatoCpu then
 			Spring.Echo('potato Graphics Card detected')
 		end
-		presetNames = { 'lowest', 'low', 'medium' }
+		presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium }
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
@@ -2249,8 +2265,9 @@ function init()
 	end
 
 	options = {
+		--GFX
 		-- PRESET
-		{ id = "preset", group = "gfx", basic = true, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
+		  { id = "preset", group = "gfx", basic = true, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2259,7 +2276,8 @@ function init()
 			  loadPreset(presetNames[value])
 		  end,
 		},
-		--GFX
+		  { id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, basic = true },
+		  { id = "label_gfx_screen_spacer", group = "gfx", basic = true},
 		{ id = "resolution", group = "gfx", basic = true, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
 		  onchange = function(i, value)
 			  local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
@@ -2374,6 +2392,9 @@ function init()
 		  end,
 		},
 
+
+		{ id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, basic = true },
+		{ id = "label_gfx_lighting_spacer", group = "gfx", basic = true },
 		{ id = "shadowslider", group = "gfx", basic = true, name = texts.option.shadowslider, type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
 		  onchange = function(i, value)
 			  local enabled = (value < 1000) and 0 or 1
@@ -2541,32 +2562,6 @@ function init()
 		-- onload=function(i) loadWidgetData("SSAO", "ssao_radius", {'radius'}) end,
 		--},
 
-		{ id = "outline", group = "gfx", basic = true, widget = "Outline", name = texts.option.outline, type = "bool", value = GetWidgetToggleValue("Outline"), description = texts.option.outline_descr },
-		{ id = "outline_width", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.outline_width, min = 1, max = 3, step = 1, type = "slider", value = 1, description = texts.option.outline_width_descr,
-		  onload = function(i)
-			  loadWidgetData("Outline", "outline_width", { 'DILATE_HALF_KERNEL_SIZE' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Outline', 'outline', 'setWidth', { 'DILATE_HALF_KERNEL_SIZE' }, value)
-		  end
-		},
-		{ id = "outline_mult", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.outline_mult, min = 0.1, max = 1, step = 0.1, type = "slider", value = 0.5, description = texts.option.outline_mult_descr,
-		  onload = function(i)
-			  loadWidgetData("Outline", "outline_mult", { 'STRENGTH_MULT' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Outline', 'outline', 'setMult', { 'STRENGTH_MULT' }, value)
-		  end,
-		},
-		{ id = "outline_color", group = "gfx", name = widgetOptionColor .. "   "..texts.option.outline_color, type = "bool", value = false, description = texts.option.outline_color_descr,
-		  onload = function(i)
-			  loadWidgetData("Outline", "outline_color", { 'whiteColored' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Outline', 'outline', 'setColor', { 'whiteColored' }, value)
-		  end,
-		},
-
 		{ id = "bloomdeferred", group = "gfx", basic = true, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
 		{ id = "bloomdeferredbrightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.bloomdeferredbrightness, type = "slider", min = 0.5, max = 2, step = 0.05, value = 1, description = '',
 		  onchange = function(i, value)
@@ -2587,156 +2582,24 @@ function init()
 		  end,
 		},
 
-		{ id = "mapedgeextension", group = "gfx", basic = true, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
-
-		{ id = "mapedgeextension_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.mapedgeextension_brightness, min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
+		{ id = "dof", group = "gfx", widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
+		{ id = "dof_autofocus", group = "gfx", name = widgetOptionColor .. "   "..texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
 		  onload = function(i)
-			  loadWidgetData("Map Edge Extension", "mapedgeextension_brightness", { 'brightness' })
+			  loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setBrightness', { 'brightness' }, value)
+			  saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
 		  end,
 		},
-		{ id = "mapedgeextension_curvature", group = "gfx", name = widgetOptionColor .. "   "..texts.option.mapedgeextension_curvature, type = "bool", value = true, description = texts.option.mapedgeextension_curvature_descr,
+		{ id = "dof_fstop", group = "gfx", name = widgetOptionColor .. "   "..texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
 		  onload = function(i)
-			  loadWidgetData("Map Edge Extension", "mapedgeextension_curvature", { 'curvature' })
+			  loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setCurvature', { 'curvature' }, value)
-		  end,
-		},
-
-		{ id = "water", group = "gfx", basic = true, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  desiredWaterValue = value - 1
-			  if waterDetected then
-				  Spring.SendCommands("water " .. desiredWaterValue)
-			  end
+			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
 		  end,
 		},
 
-		{ id = "decals", group = "gfx", basic = true, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", value)
-			  Spring.SendCommands("GroundDecals " .. value)
-			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
-		  end,
-		},
-		{ id = "grounddetail", group = "gfx", basic = true, name = texts.option.grounddetail, type = "slider", min = 100, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 100) or 100), description = texts.option.grounddetail_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDetail", value)
-			  Spring.SendCommands("GroundDetail " .. value)
-		  end,
-		},
-
-		{ id = "disticon", group = "gfx", basic = true, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("disticon " .. value)
-			  Spring.SetConfigInt("UnitIconDist", value)
-		  end,
-		},
-		{ id = "iconscale", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if countDownOptionClock and countDownOptionClock < os_clock() then
-				  -- else sldier gets too sluggish when constantly updating
-				  Spring.SendCommands("luarules uniticonscale " .. value)
-				  countDownOptionID = nil
-				  countDownOptionClock = nil
-			  else
-				  countDownOptionID = getOptionByID('iconscale')
-				  countDownOptionClock = os_clock() + 0.9
-			  end
-		  end,
-		},
-		--{ id = "uniticon_asui", group = "gfx", name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  Spring.SendCommands("iconsasui " .. (value and 1 or 0))
-		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
-		--  end,
-		--},
-		{ id = "uniticon_scaleui", group = "gfx", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("iconscaleui " .. value)
-			  Spring.SetConfigFloat("UnitIconScaleUI", value)
-		  end,
-		},
-		{ id = "uniticon_fadevanish", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value >= options[getOptionByID('uniticon_fadestart')].value then
-				  options[getOptionByID('uniticon_fadestart')].value = value + 1
-				  applyOptionValue(getOptionByID('uniticon_fadestart'))
-			  end
-			  Spring.SendCommands("iconfadevanish " .. value)
-			  Spring.SetConfigInt("UnitIconFadeVanish", value)
-		  end,
-		},
-		{ id = "uniticon_fadestart", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value <= options[getOptionByID('uniticon_fadevanish')].value then
-				  options[getOptionByID('uniticon_fadevanish')].value = value - 1
-				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
-			  end
-			  Spring.SendCommands("iconfadestart " .. value)
-			  Spring.SetConfigInt("UnitIconFadeStart", value)
-		  end,
-		},
-		{ id = "uniticon_hidewithui", group = "gfx", name = widgetOptionColor .. "   "..texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
-			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
-		  end,
-		},
-
-		{ id = "featuredrawdist", group = "gfx", name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  --if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
-			--	  options[getOptionByID('featurefadedist')].value = value
-			--	  Spring.SetConfigInt("FeatureFadeDistance", value)
-			  --end
-			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value*0.8))
-			  Spring.SetConfigInt("FeatureDrawDistance", value)
-		  end,
-		},
-		--{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance',
-		--	onload = function(i) end,
-		--	onchange = function(i, value)
-		--		if getOptionByID('featuredrawdist') and value > options[getOptionByID('featuredrawdist')].value then
-		--			options[getOptionByID('featuredrawdist')].value = value
-		--			Spring.SetConfigInt("FeatureDrawDistance",value)
-		--		end
-		--		Spring.SetConfigInt("FeatureFadeDistance",value)
-		--	end,
-		--},
-
-		{ id = "particles", group = "gfx", basic = true, name = texts.option.particles, type = "slider", min = 10000, max = 40000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = texts.option.particles_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("MaxParticles", value)
-		  end,
-		},
 
 		{ id = "lighteffects", group = "gfx", basic = true, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
 		  onload = function(i)
@@ -2788,24 +2651,6 @@ function init()
 		--		 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setLaserRadius', {'globalRadiusMultLaser'}, value) end,
 		--		},
 
-		{ id = "dof", group = "gfx", widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
-		{ id = "dof_autofocus", group = "gfx", name = widgetOptionColor .. "   "..texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
-		  onload = function(i)
-			  loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
-		  end,
-		},
-		{ id = "dof_fstop", group = "gfx", name = widgetOptionColor .. "   "..texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
-		  onload = function(i)
-			  loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
-		  end,
-		},
-
 		--{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",1) or 1), description='Sets nano effect\n\nBeams more expensive than particles',
 		-- onload = function(i) end,
 		-- onchange = function(i, value)
@@ -2829,6 +2674,104 @@ function init()
 		-- onload = function(i) end,
 		-- onchange = function(i, value) Spring.SetConfigInt("NanoBeamAmount",value) end,
 		--},
+
+
+		{ id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, basic = true },
+		{ id = "label_gfx_effects_spacer", group = "gfx", basic = true },
+
+		{ id = "mapedgeextension", group = "gfx", basic = true, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
+
+		{ id = "mapedgeextension_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.mapedgeextension_brightness, min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
+		  onload = function(i)
+			  loadWidgetData("Map Edge Extension", "mapedgeextension_brightness", { 'brightness' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setBrightness', { 'brightness' }, value)
+		  end,
+		},
+		{ id = "mapedgeextension_curvature", group = "gfx", name = widgetOptionColor .. "   "..texts.option.mapedgeextension_curvature, type = "bool", value = true, description = texts.option.mapedgeextension_curvature_descr,
+		  onload = function(i)
+			  loadWidgetData("Map Edge Extension", "mapedgeextension_curvature", { 'curvature' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setCurvature', { 'curvature' }, value)
+		  end,
+		},
+
+		{ id = "water", group = "gfx", basic = true, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  desiredWaterValue = value - 1
+			  if waterDetected then
+				  Spring.SendCommands("water " .. desiredWaterValue)
+			  end
+		  end,
+		},
+
+		{ id = "decals", group = "gfx", basic = true, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("GroundDecals", value)
+			  Spring.SendCommands("GroundDecals " .. value)
+			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
+		  end,
+		},
+		{ id = "grounddetail", group = "gfx", basic = true, name = texts.option.grounddetail, type = "slider", min = 100, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 100) or 100), description = texts.option.grounddetail_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("GroundDetail", value)
+			  Spring.SendCommands("GroundDetail " .. value)
+		  end,
+		},
+
+		--{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance',
+		--	onload = function(i) end,
+		--	onchange = function(i, value)
+		--		if getOptionByID('featuredrawdist') and value > options[getOptionByID('featuredrawdist')].value then
+		--			options[getOptionByID('featuredrawdist')].value = value
+		--			Spring.SetConfigInt("FeatureDrawDistance",value)
+		--		end
+		--		Spring.SetConfigInt("FeatureFadeDistance",value)
+		--	end,
+		--},
+
+		{ id = "particles", group = "gfx", basic = true, name = texts.option.particles, type = "slider", min = 10000, max = 40000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = texts.option.particles_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MaxParticles", value)
+		  end,
+		},
+
+		{ id = "outline", group = "gfx", basic = true, widget = "Outline", name = texts.option.outline, type = "bool", value = GetWidgetToggleValue("Outline"), description = texts.option.outline_descr },
+		{ id = "outline_width", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.outline_width, min = 1, max = 3, step = 1, type = "slider", value = 1, description = texts.option.outline_width_descr,
+		  onload = function(i)
+			  loadWidgetData("Outline", "outline_width", { 'DILATE_HALF_KERNEL_SIZE' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Outline', 'outline', 'setWidth', { 'DILATE_HALF_KERNEL_SIZE' }, value)
+		  end
+		},
+		{ id = "outline_mult", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.outline_mult, min = 0.1, max = 1, step = 0.1, type = "slider", value = 0.5, description = texts.option.outline_mult_descr,
+		  onload = function(i)
+			  loadWidgetData("Outline", "outline_mult", { 'STRENGTH_MULT' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Outline', 'outline', 'setMult', { 'STRENGTH_MULT' }, value)
+		  end,
+		},
+		{ id = "outline_color", group = "gfx", name = widgetOptionColor .. "   "..texts.option.outline_color, type = "bool", value = false, description = texts.option.outline_color_descr,
+		  onload = function(i)
+			  loadWidgetData("Outline", "outline_color", { 'whiteColored' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Outline', 'outline', 'setColor', { 'whiteColored' }, value)
+		  end,
+		},
+
 		{ id = "nanoparticles", group = "gfx", name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
 		  onload = function(i)
 		  end,
@@ -3210,6 +3153,8 @@ function init()
 		--	  end
 		--  end,
 		--},
+		{ id = "label_ui_screen", group = "ui", name = texts.option.label_screen, basic = true },
+		{ id = "label_ui_screen_spacer", group = "ui", basic = true },
 		{ id = "uiscale", group = "ui", basic = true, name = texts.option.interface.. widgetOptionColor .. "  "..texts.option.uiscale, type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
@@ -3282,16 +3227,6 @@ function init()
 				  Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
 				  Spring.SendCommands("luarules reloadluaui")
 			  end
-		  end,
-		},
-
-
-		{ id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
-		{ id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
 		  end,
 		},
 
@@ -3558,6 +3493,107 @@ function init()
 		{ id = "idlebuilders", group = "ui", basic = true, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 
 		{ id = "buildbar", group = "ui", basic = true, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
+
+
+
+		{ id = "label_ui_game", group = "ui", name = texts.option.label_game, basic = true },
+		{ id = "label_ui_game_spacer", group = "ui", basic = true },
+
+
+
+		{ id = "disticon", group = "ui", basic = true, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("disticon " .. value)
+			  Spring.SetConfigInt("UnitIconDist", value)
+		  end,
+		},
+		{ id = "iconscale", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if countDownOptionClock and countDownOptionClock < os_clock() then
+				  -- else sldier gets too sluggish when constantly updating
+				  Spring.SendCommands("luarules uniticonscale " .. value)
+				  countDownOptionID = nil
+				  countDownOptionClock = nil
+			  else
+				  countDownOptionID = getOptionByID('iconscale')
+				  countDownOptionClock = os_clock() + 0.9
+			  end
+		  end,
+		},
+		--{ id = "uniticon_asui", group = "gfx", name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SendCommands("iconsasui " .. (value and 1 or 0))
+		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
+		--  end,
+		--},
+		{ id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("iconscaleui " .. value)
+			  Spring.SetConfigFloat("UnitIconScaleUI", value)
+		  end,
+		},
+		{ id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value >= options[getOptionByID('uniticon_fadestart')].value then
+				  options[getOptionByID('uniticon_fadestart')].value = value + 1
+				  applyOptionValue(getOptionByID('uniticon_fadestart'))
+			  end
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
+		  end,
+		},
+		{ id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value <= options[getOptionByID('uniticon_fadevanish')].value then
+				  options[getOptionByID('uniticon_fadevanish')].value = value - 1
+				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
+			  end
+			  Spring.SendCommands("iconfadestart " .. value)
+			  Spring.SetConfigInt("UnitIconFadeStart", value)
+		  end,
+		},
+		{ id = "uniticon_hidewithui", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
+			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
+		  end,
+		},
+
+		{ id = "featuredrawdist", group = "ui", name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  --if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
+			  --	  options[getOptionByID('featurefadedist')].value = value
+			  --	  Spring.SetConfigInt("FeatureFadeDistance", value)
+			  --end
+			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value*0.8))
+			  Spring.SetConfigInt("FeatureDrawDistance", value)
+		  end,
+		},
+
+		{ id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
+		{ id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
+		  end,
+		},
 
 		{ id = "teamplatter", group = "ui", basic = true, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
 		{ id = "teamplatter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   "..texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = texts.option.teamplatter_opacity_descr,
@@ -3943,20 +3979,20 @@ function init()
 		  end,
 		},
 
-		{ id = "playertv_countdown", group = "ui", name = texts.option.playertv_countdown, type = "slider", min = 8, max = 60, step = 1, value = (WG['playertv'] ~= nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description = texts.option.playertv_countdown_descr,
-		  onload = function(i)
-			  loadWidgetData("Player-TV", "playertv_countdown", { 'playerChangeDelay' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', { 'playerChangeDelay' }, value)
-		  end,
-		},
+		--{ id = "playertv_countdown", group = "ui", name = texts.option.playertv_countdown, type = "slider", min = 8, max = 60, step = 1, value = (WG['playertv'] ~= nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description = texts.option.playertv_countdown_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Player-TV", "playertv_countdown", { 'playerChangeDelay' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', { 'playerChangeDelay' }, value)
+		--  end,
+		--},
 
-		{ id = "loadscreen_tips", group = "ui", name = texts.option.loadscreen_tips, type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = texts.option.loadscreen_tips_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("loadscreen_tips", (value and 1 or 0))
-		  end,
-		},
+		--{ id = "loadscreen_tips", group = "ui", name = texts.option.loadscreen_tips, type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = texts.option.loadscreen_tips_descr,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("loadscreen_tips", (value and 1 or 0))
+		--  end,
+		--},
 
 
 		-- GAME
@@ -4092,9 +4128,9 @@ function init()
 		  end,
 		},
 
-		{ id = "factoryguard", group = "game", basic = true, widget = "FactoryGuard", name = texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
-		{ id = "factoryholdpos", group = "game", basic = true, widget = "Factory hold position", name = texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
-		{ id = "factoryrepeat", group = "game", basic = true, widget = "Factory Auto-Repeat", name = texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
+		{ id = "factoryguard", group = "game", basic = true, widget = "FactoryGuard", name = texts.option.factory..widgetOptionColor .. "  "..texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
+		{ id = "factoryholdpos", group = "game", basic = true, widget = "Factory hold position", name = widgetOptionColor .. "   "..texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
+		{ id = "factoryrepeat", group = "game", basic = true, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   "..texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
 
 		{ id = "transportai", group = "game", basic = true, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
 		{ id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },

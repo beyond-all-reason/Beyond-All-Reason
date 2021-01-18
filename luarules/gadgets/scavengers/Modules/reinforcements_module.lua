@@ -172,7 +172,7 @@ function spawnPlayerReinforcements(n)
 				ReinforcementsCountPerTeam[teamID] = 0
 			end
 			if not ReinforcementsChancePerTeam[teamID] then
-				ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*5
+				ReinforcementsChancePerTeam[teamID] = math.ceil(((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*2.5)
 			end
 
 			if not isDead then
@@ -195,7 +195,7 @@ function spawnPlayerReinforcements(n)
 					else
 						pickedBeacon = nil
 						TryingToSpawnReinforcements[teamID] = false
-						ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*5
+						ReinforcementsChancePerTeam[teamID] = math.ceil(((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*2.5)
 					end
 					PlayerSpawnBeacons = nil
 					if pickedBeacon then
@@ -324,7 +324,7 @@ function spawnPlayerReinforcements(n)
 					local r = math_random(0,ReinforcementsChancePerTeam[teamID])
 					if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
 						TryingToSpawnReinforcements[teamID] = true
-						ReinforcementsChancePerTeam[teamID] = math.ceil((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*5
+						ReinforcementsChancePerTeam[teamID] = math.ceil(((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*2.5)
 					else
 						TryingToSpawnReinforcements[teamID] = false
 						ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
