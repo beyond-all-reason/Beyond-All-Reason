@@ -276,7 +276,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		console = 'Console',
 		consolemaxlines = 'max lines',
 		consolefontsize = 'font size',
-		idlebuilders = 'List idle builders',
+		idlebuilders = 'Idle builders bar',
 		idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 		buildbar = 'Factory build bar',
 		buildbar_descr = 'Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue',
@@ -3229,101 +3229,6 @@ function init()
 		  end,
 		},
 
-
-		{ id = "disticon", group = "ui", basic = true, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("disticon " .. value)
-			  Spring.SetConfigInt("UnitIconDist", value)
-		  end,
-		},
-		{ id = "iconscale", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if countDownOptionClock and countDownOptionClock < os_clock() then
-				  -- else sldier gets too sluggish when constantly updating
-				  Spring.SendCommands("luarules uniticonscale " .. value)
-				  countDownOptionID = nil
-				  countDownOptionClock = nil
-			  else
-				  countDownOptionID = getOptionByID('iconscale')
-				  countDownOptionClock = os_clock() + 0.9
-			  end
-		  end,
-		},
-		--{ id = "uniticon_asui", group = "gfx", name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  Spring.SendCommands("iconsasui " .. (value and 1 or 0))
-		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
-		--  end,
-		--},
-		{ id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("iconscaleui " .. value)
-			  Spring.SetConfigFloat("UnitIconScaleUI", value)
-		  end,
-		},
-		{ id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value >= options[getOptionByID('uniticon_fadestart')].value then
-				  options[getOptionByID('uniticon_fadestart')].value = value + 1
-				  applyOptionValue(getOptionByID('uniticon_fadestart'))
-			  end
-			  Spring.SendCommands("iconfadevanish " .. value)
-			  Spring.SetConfigInt("UnitIconFadeVanish", value)
-		  end,
-		},
-		{ id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value <= options[getOptionByID('uniticon_fadevanish')].value then
-				  options[getOptionByID('uniticon_fadevanish')].value = value - 1
-				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
-			  end
-			  Spring.SendCommands("iconfadestart " .. value)
-			  Spring.SetConfigInt("UnitIconFadeStart", value)
-		  end,
-		},
-		{ id = "uniticon_hidewithui", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
-			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
-		  end,
-		},
-
-		{ id = "featuredrawdist", group = "ui", name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  --if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
-			  --	  options[getOptionByID('featurefadedist')].value = value
-			  --	  Spring.SetConfigInt("FeatureFadeDistance", value)
-			  --end
-			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value*0.8))
-			  Spring.SetConfigInt("FeatureDrawDistance", value)
-		  end,
-		},
-
-		{ id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
-		{ id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
-		  end,
-		},
-
 		{ id = "minimap_enlarged", group = "ui", basic = true, name = texts.option.minimap..widgetOptionColor.."  "..texts.option.minimap_enlarged, type = "bool", value = false, description = texts.option.minimap_enlarged_descr,
 		  onload = function(i)
 			  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
@@ -3592,6 +3497,102 @@ function init()
 
 		{ id = "label_ui_game", group = "ui", name = texts.option.label_game, basic = true },
 		{ id = "label_ui_game_spacer", group = "ui", basic = true },
+
+
+
+		{ id = "disticon", group = "ui", basic = true, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("disticon " .. value)
+			  Spring.SetConfigInt("UnitIconDist", value)
+		  end,
+		},
+		{ id = "iconscale", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if countDownOptionClock and countDownOptionClock < os_clock() then
+				  -- else sldier gets too sluggish when constantly updating
+				  Spring.SendCommands("luarules uniticonscale " .. value)
+				  countDownOptionID = nil
+				  countDownOptionClock = nil
+			  else
+				  countDownOptionID = getOptionByID('iconscale')
+				  countDownOptionClock = os_clock() + 0.9
+			  end
+		  end,
+		},
+		--{ id = "uniticon_asui", group = "gfx", name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SendCommands("iconsasui " .. (value and 1 or 0))
+		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
+		--  end,
+		--},
+		{ id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("iconscaleui " .. value)
+			  Spring.SetConfigFloat("UnitIconScaleUI", value)
+		  end,
+		},
+		{ id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value >= options[getOptionByID('uniticon_fadestart')].value then
+				  options[getOptionByID('uniticon_fadestart')].value = value + 1
+				  applyOptionValue(getOptionByID('uniticon_fadestart'))
+			  end
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
+		  end,
+		},
+		{ id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value <= options[getOptionByID('uniticon_fadevanish')].value then
+				  options[getOptionByID('uniticon_fadevanish')].value = value - 1
+				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
+			  end
+			  Spring.SendCommands("iconfadestart " .. value)
+			  Spring.SetConfigInt("UnitIconFadeStart", value)
+		  end,
+		},
+		{ id = "uniticon_hidewithui", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
+			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
+		  end,
+		},
+
+		{ id = "featuredrawdist", group = "ui", name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  --if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
+			  --	  options[getOptionByID('featurefadedist')].value = value
+			  --	  Spring.SetConfigInt("FeatureFadeDistance", value)
+			  --end
+			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value*0.8))
+			  Spring.SetConfigInt("FeatureDrawDistance", value)
+		  end,
+		},
+
+		{ id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
+		{ id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
+		  end,
+		},
 
 		{ id = "teamplatter", group = "ui", basic = true, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
 		{ id = "teamplatter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   "..texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = texts.option.teamplatter_opacity_descr,

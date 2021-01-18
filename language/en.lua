@@ -789,7 +789,7 @@ return {
 			console = 'Console',
 			consolemaxlines = 'max lines',
 			consolefontsize = 'font size',
-			idlebuilders = 'List idle builders',
+			idlebuilders = 'Idle builders bar',
 			idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 			buildbar = 'Factory build bar',
 			buildbar_descr = 'Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue',
