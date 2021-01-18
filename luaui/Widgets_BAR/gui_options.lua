@@ -1033,22 +1033,23 @@ function DrawWindow()
 				if column >= startColumn then --and (column ~= startColumn+2 or yPos > y-(yHeight-(70*widgetScale))) then
 					rows = rows + 1
 					if option.name then
-						color = '\255\225\225\225  '
-						if option.type == 'label' then
-							color = '\255\235\200\125'
-						end
+						color = '\255\225\225\225'
+						--if option.type == 'label' then
+						--	color = '\255\235\200\125'
+						--end
+
+						font:SetTextColor(1, 1, 1, 1)
+						font:SetOutlineColor(0, 0, 0, 0.4)
 
 						if option.type == nil then
 							font:End()
 							font3:Begin()
-							font3:Print(color .. option.name, xPos-(oPadding*1.25), yPos - (oHeight*1.25) - oPadding, oHeight*1.5, "no")
+							font3:Print(option.name, xPos + (oPadding*0.5), yPos - (oHeight*1.7) - oPadding, oHeight*1.5, "no")
 							font3:End()
 							font:Begin()
 						else
-							font:Print(color .. option.name, xPos + (oPadding / 2), yPos - (oHeight / 3) - oPadding, oHeight, "no")
+							font:Print(color .. option.name, xPos + (oPadding * 2), yPos - (oHeight / 3) - oPadding, oHeight, "no")
 						end
-
-						font:SetTextColor(1, 1, 1, 1)
 
 						-- define hover area
 						optionHover[oid] = { math.floor(xPos), math.floor(yPos - oHeight - oPadding), math.floor(xPosMax), math.floor(yPos + oPadding) }
@@ -2264,9 +2265,8 @@ function init()
 	end
 
 	options = {
+		--GFX
 		-- PRESET
-		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, basic = true },
-		{ id = "label_gfx_screen_spacer", group = "gfx", basic = true},
 		  { id = "preset", group = "gfx", basic = true, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
 		  onload = function(i)
 		  end,
@@ -2276,7 +2276,8 @@ function init()
 			  loadPreset(presetNames[value])
 		  end,
 		},
-		--GFX
+		  { id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, basic = true },
+		  { id = "label_gfx_screen_spacer", group = "gfx", basic = true},
 		{ id = "resolution", group = "gfx", basic = true, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
 		  onchange = function(i, value)
 			  local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
