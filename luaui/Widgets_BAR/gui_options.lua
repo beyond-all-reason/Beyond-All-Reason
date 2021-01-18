@@ -1044,11 +1044,11 @@ function DrawWindow()
 						if option.type == nil then
 							font:End()
 							font3:Begin()
-							font3:Print(option.name, xPos + (oPadding*0.5), yPos - (oHeight*1.7) - oPadding, oHeight*1.5, "no")
+							font3:Print('\255\255\200\140'..option.name, xPos + (oPadding*0.5), yPos - (oHeight*1.8) - oPadding, oHeight*1.5, "no")
 							font3:End()
 							font:Begin()
 						else
-							font:Print(color .. option.name, xPos + (oPadding * 2), yPos - (oHeight / 3) - oPadding, oHeight, "no")
+							font:Print(color .. option.name, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
 
 						-- define hover area
@@ -4128,9 +4128,9 @@ function init()
 		  end,
 		},
 
-		{ id = "factoryguard", group = "game", basic = true, widget = "FactoryGuard", name = texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
-		{ id = "factoryholdpos", group = "game", basic = true, widget = "Factory hold position", name = texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
-		{ id = "factoryrepeat", group = "game", basic = true, widget = "Factory Auto-Repeat", name = texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
+		{ id = "factoryguard", group = "game", basic = true, widget = "FactoryGuard", name = texts.option.factory..widgetOptionColor .. "  "..texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
+		{ id = "factoryholdpos", group = "game", basic = true, widget = "Factory hold position", name = widgetOptionColor .. "   "..texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
+		{ id = "factoryrepeat", group = "game", basic = true, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   "..texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
 
 		{ id = "transportai", group = "game", basic = true, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
 		{ id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
