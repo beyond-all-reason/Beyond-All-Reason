@@ -643,24 +643,23 @@ Spring.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		glowMult = 1
 	elseif not state or state == 0 then		-- off
 		x = px + padding + radius
-		--color = {0.95,0.66,0.66,1}
-		color = {0.66,0.66,0.66,1}
-		glowMult = 0
+		color = {0.95,0.66,0.66,1}
+		glowMult = 0.3
 	else		-- in between
 		x = math.floor(px + ((sx-px)*0.42))
 		color = {1,0.9,0.7,1}
-		glowMult = 0.4
+		glowMult = 0.6
 	end
 	Spring.FlowUI.Draw.SliderKnob(x, y, radius, color)
 
 	if glowMult > 0 then
 		local boolGlow = radius * 1.75
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		gl.Color(color[1], color[2], color[3], 0.3 * glowMult)
+		gl.Color(color[1], color[2], color[3], 0.33 * glowMult)
 		gl.Texture(":l:LuaUI/Images/glow.dds")
 		gl.TexRect(x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow)
 		boolGlow = boolGlow * 2.2
-		gl.Color(0.55, 1, 0.55, 0.09 * glowMult)
+		gl.Color(0.55, 1, 0.55, 0.1 * glowMult)
 		gl.TexRect(x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow)
 		gl.Texture(false)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -762,26 +761,33 @@ Spring.FlowUI.Draw.Selector = function(px, py, sx, sy)
 
 	-- faint dark outline edge
 	Spring.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
-	-- top
+	-- body
 	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
 
-	-- add highlight
+	-- top highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	-- top
 	Spring.FlowUI.Draw.RectRound(px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.035 })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- button
 	Spring.FlowUI.Draw.RectRound(sx-(sy-py), py, sx, sy, cs, 1, 1, 1, 1, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
+end
 
-	--gl.Color(1, 1, 1, 0.16)
-	--gl.PushMatrix()
-	--gl.Translate(xPosMax - (oHeight * 0.5) - rightPadding, yPos - (oHeight * 0.33), 0)
-	--gl.Rotate(-45, 0, 0, 1)
-	--gl.Texture("LuaUI/Images/bgcorner.png")
-	--gl.TexRect(-(oHeight * 0.25), -(oHeight * 0.25), (oHeight * 0.25), (oHeight * 0.25))
-	--gl.Texture(false)
-	--gl.PopMatrix()
+Spring.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy, cs, opacity, color)
+	local cs = cs or (sy-py)*0.08
+	local edgeWidth = math.max(1, math.floor((Spring.FlowUI.vsy*0.001)))
+	local opacity = opacity or 0.35
+	local color = color or {1,1,1}
+
+	-- faint dark outline edge
+	Spring.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+	-- body
+	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { color[1]*0.5, color[2]*0.5, color[3]*0.5, opacity }, { color[1], color[2], color[3], opacity })
+
+	-- top highlight
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	Spring.FlowUI.Draw.RectRound(px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.04 + (0.2*opacity) })
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 

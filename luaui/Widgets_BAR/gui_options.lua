@@ -561,6 +561,7 @@ local UiSlider = Spring.FlowUI.Draw.Slider
 local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
 local UiToggle = Spring.FlowUI.Draw.Toggle
 local UiSelector = Spring.FlowUI.Draw.Selector
+local UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
 
 local bgpadding = Spring.FlowUI.elementPadding
 
@@ -924,16 +925,12 @@ function DrawWindow()
 	--gl.Color(0.66,0.66,0.66,0.08)
 	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
 
-	-- description background
-	--gl.Color(0.55,0.48,0.22,0.14)
-	RectRound(x+bgpadding, y +bgpadding - screenHeight, x + width + width, y + bgpadding - screenHeight + (87*widgetScale), elementCorner*0.66, 0, 1, 0, 1, { 1, 0.85, 0.55, 0.04 }, { 1, 0.85, 0.55, 0.075 })
-
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
 	local oPadding = math.floor(6 * widgetScale)
 	y = math.floor(math.floor(y - oPadding - (17 * widgetScale)))
 	local oWidth = math.floor((screenWidth / 3) - oPadding - oPadding)
-	local yHeight = math.floor(screenHeight - (102 * widgetScale) - oPadding)
+	local yHeight = math.floor(screenHeight - (65 * widgetScale) - oPadding)
 	local xPos = math.floor(x + oPadding + (5 * widgetScale))
 	local xPosMax = xPos + oWidth - oPadding - oPadding
 	local yPosMax = y - yHeight
@@ -963,8 +960,8 @@ function DrawWindow()
 
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
-		local buttonSize = 52 * widgetScale
-		local buttonMargin = 18 * widgetScale
+		local buttonSize = 35 * widgetScale
+		local buttonMargin = 8 * widgetScale
 		local startX = x + screenWidth
 		local startY = screenY - screenHeight + buttonMargin
 
@@ -976,12 +973,13 @@ function DrawWindow()
 			glTexture(forwardTex)
 			glTexRect(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
 			glTexture(false)
+			UiButton(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
 		else
 			optionButtonForward = nil
 		end
 
 		font:SetTextColor(1, 1, 1, 0.4)
-		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMargin, startY + buttonSize / 2.6, buttonSize / 2.9, "rn")
+		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMargin, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
 		if startColumn > 1 then
 			if optionButtonForward == nil then
 				optionButtonBackward = { startX - buttonSize - buttonMargin, startY, startX - buttonMargin, startY + buttonSize }
@@ -992,6 +990,7 @@ function DrawWindow()
 			glTexture(backwardTex)
 			glTexRect(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
 			glTexture(false)
+			UiButton(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
 		else
 			optionButtonBackward = nil
 		end
@@ -1026,7 +1025,7 @@ function DrawWindow()
 					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
 				end
 
-				if column >= startColumn then
+				if column >= startColumn then --and (column ~= startColumn+2 or yPos > y-(yHeight-(70*widgetScale))) then
 					rows = rows + 1
 					--option name
 					color = '\255\225\225\225  '
@@ -1412,19 +1411,7 @@ function widget:DrawScreen()
 			end
 
 			if not showSelectOptions then
-				for i, o in pairs(optionHover) do
-					if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
-						RectRound(o[1] - 4, o[2], o[3] + 4, o[4], 2, 2, 2, 2, 2, options[i].onclick and { 0.5, 1, 0.2, 0.1 } or { 1, 1, 1, 0.045 }, options[i].onclick and { 0.5, 1, 0.2, 0.2 } or { 1, 1, 1, 0.09 })
-						font:Begin()
-						if options[i].description ~= nil then
-							description = options[i].description
-							font:Print('\255\235\190\122' .. options[i].description, screenX + (15*widgetScale), screenY - screenHeight + (65*widgetScale), 16*widgetScale, "no")
-						end
-						font:SetTextColor(0.46, 0.4, 0.3, 0.45)
-						font:Print('/option ' .. options[i].id, screenX + screenWidth * 0.659, screenY - screenHeight + (8*widgetScale), 14*widgetScale, "nr")
-						font:End()
-					end
-				end
+				local tooltipShowing = false
 				for i, o in pairs(optionButtons) do
 					if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) then
 						RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
@@ -1439,6 +1426,18 @@ function widget:DrawScreen()
 								end
 							end
 							WG['tooltip'].ShowTooltip('options_showvalue', value)
+							tooltipShowing = true
+						end
+					end
+				end
+				if not tooltipShowing then
+					for i, o in pairs(optionHover) do
+						if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
+							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25})
+							if WG.tooltip and options[i].description and options[i].description ~= '' then
+								WG.tooltip.ShowTooltip('options_description', options[i].description)
+							end
+							break
 						end
 					end
 				end
@@ -1482,8 +1481,9 @@ function widget:DrawScreen()
 					for i, option in pairs(options[showSelectOptions].options) do
 						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
 						if IsOnRect(mx, my, optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, yPos + oPadding) then
-							RectRound(optionButtons[showSelectOptions][1]-borderSize, math.floor(yPos - oHeight - oPadding)-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, math.floor(yPos + oPadding)+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.05 }, { 0,0,0, 0.05 })
-							RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0.5,0.5,0.5,0.33 }, { 1,1,1, 0.33 })
+							--RectRound(optionButtons[showSelectOptions][1]-borderSize, math.floor(yPos - oHeight - oPadding)-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, math.floor(yPos + oPadding)+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.05 }, { 0,0,0, 0.05 })
+							--RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0.5,0.5,0.5,0.33 }, { 1,1,1, 0.33 })
+							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding))
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
 							end

@@ -11,8 +11,8 @@ function widget:GetInfo()
 end
 
 local cellZoom = 1
-local cellClickedZoom = 1.1
-local cellHoverZoom = 1.045
+local cellClickedZoom = 1.05
+local cellHoverZoom = 1.035
 
 local altPosition = true
 
@@ -29,8 +29,6 @@ local width = 0
 local height = 0
 local cellMarginOrg = 0.055
 local cellMargin = cellMarginOrg
-local bgBorderOrg = 0.0018
-local bgBorder = bgBorderOrg
 local cmdInfo = {		-- r, g, b, SHORTCUT
 	Move = { 0.64, 1, 0.64, 'M'},
 	Stop = { 1, 0.3, 0.3, 'S'},
@@ -328,7 +326,6 @@ function setupCellGrid(force)
 
 	local sizeDivider = ((cols + rows) / 16)
 	cellMargin = (cellMarginOrg / sizeDivider) * ui_scale
-	bgBorder = (bgBorderOrg / sizeDivider) * ui_scale
 
 	if force or oldcols ~= cols or oldRows ~= rows then
 		clickedCell = nil
@@ -630,7 +627,7 @@ function drawCell(cell, zoom)
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
-				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
+				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.021, 2, 2, 2, 2, color1, color2)
 				-- darken inside
 				color1 = {0,0,0, color1[4]*0.85}
 				color2 = {0,0,0, color2[4]*0.85}
@@ -875,10 +872,8 @@ function widget:DrawScreen()
 					if cellRects[cell] and cellRects[cell][4] then
 						drawCell(cell, cellHoverZoom)
 
-						local pad = 0
 						local colorMult = 1
 						if cmds[cell] and activeCmd == cmds[cell].name then
-							pad = (bgBorder * vsy) * 0.35
 							colorMult = 0.4
 						end
 
@@ -901,7 +896,7 @@ function widget:DrawScreen()
 						--end
 
 						-- gloss highlight
-						pad = math_max(1, math_floor(bgpadding * 0.52))
+						local pad = math_max(1, math_floor(bgpadding * 0.52))
 						local pad2 = pad
 						glBlending(GL_SRC_ALPHA, GL_ONE)
 						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - bgpadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
@@ -916,7 +911,6 @@ function widget:DrawScreen()
 				local cell = clickedCell
 				if cellRects[cell] and cellRects[cell][4] then
 					local isActiveCmd = (cmds[cell].name == activeCmd)
-					local padding = (bgBorder * vsy) * 0.5
 					local duration = 0.33
 					if isActiveCmd then
 						duration = 0.45
