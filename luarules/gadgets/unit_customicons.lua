@@ -562,6 +562,7 @@ local units = {
 	armmine1 = { "mine.png", 0.37799999 },
 	corfort = { "wall_0.4.png", 0.41999999 },
 	armck = { "bot_worker.png", 0.99749994 },
+	hat_viking_teamcolored = { "blank.png", 1.83749986 },
 }
 
 setmetatable(units, { __index =

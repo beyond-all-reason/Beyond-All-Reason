@@ -90,12 +90,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
     Hats[unitID] = nil 
   end
   if unitsWearingHats[unitID] ~= nil then
+    local hatID = unitsWearingHats[unitID]
     if DEBUG then Spring.Echo("A hat wearing unit was destroyed, freeing hat",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID) end
     Spring.UnitDetach(unitsWearingHats[unitID])
     unitsWearingHats[unitID] = nil
-    Hats[unitID] = -1
-    Spring.SetUnitNoSelect(unitID,false) 
-    --detach it:
+    Hats[hatID] = -1
+    Spring.SetUnitNoSelect(hatID,false) 
+    Spring.TransferUnit(hatID, Spring.GetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured 
   end
 end
 
