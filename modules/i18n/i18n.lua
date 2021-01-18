@@ -9,3 +9,6 @@ local currentDirectory = GetDirectory(source)
 
 I18N_PATH = currentDirectory .. "i18nlib/i18n/"
 Spring.I18N = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
+
+Spring.I18N.loadFile('language/interface_en.lua')
+Spring.I18N.loadFile('language/units_en.lua')
