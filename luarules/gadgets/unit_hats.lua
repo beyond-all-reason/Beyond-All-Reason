@@ -92,11 +92,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
   if unitsWearingHats[unitID] ~= nil then
     local hatID = unitsWearingHats[unitID]
     if DEBUG then Spring.Echo("A hat wearing unit was destroyed, freeing hat",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID) end
-    Spring.UnitDetach(unitsWearingHats[unitID])
+    Spring.UnitDetachFromAir(hatID)
+    Spring.UnitDetach(hatID)
     unitsWearingHats[unitID] = nil
     Hats[hatID] = -1
     Spring.SetUnitNoSelect(hatID,false) 
     Spring.TransferUnit(hatID, Spring.GetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured 
+    local px, py, pz = Spring.GetUnitPosition(unitID)
+    Spring.SetUnitPosition(hatID,px+32, pz+32)  
   end
 end
 
@@ -107,7 +110,12 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
     unitsWearingHats[unitID] = nil
   end
   if Hats[unitID] then
+    
     local hatID = unitID
+    if unitTeam == Spring.GetGaiaTeamID() then
+      if DEBUG then Spring.Echo("A hat was given back to gaia",hatID, unitDefID, unitTeam ,Spring.GetGaiaTeamID()) end
+      return
+    end  
     
     if DEBUG then Spring.Echo("A hat was given, finding a wearer",hatID, unitDefID, unitTeam ) end
     -- find nearest commander and attach hat onto him?
