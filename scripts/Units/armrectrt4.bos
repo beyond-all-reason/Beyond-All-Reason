@@ -13,7 +13,7 @@ piece	pelvis, head, rhip, rleg, rfoot, lhip, lleg, lfoot, nano, aimy1;
 static-var  bMoving, notBuilding, nanoNozzle, currentSpeed,	statechg_DesiredState,
 			statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, moveSpeed;
 
-#define MOVESCALE 100 //Higher values are bigger, 100 is default
+#define MOVESCALE 250 //Higher values are bigger, 100 is default
 static-var animAmplitude; //Higher values are bigger, 100 is default
 
 #define SIG_WALK 4
@@ -206,7 +206,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 }
 // Call this from MotionControl()!
 StopWalking() {
-	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	animSpeed = 30; // tune restore speed here, higher values are slower restore speeds
 	move pelvis to y-axis ([0.000000]*MOVESCALE)/100 speed (([200.000000]*MOVESCALE)/100) / animSpeed;
 	move pelvis to z-axis ([0.000000]*MOVESCALE)/100 speed (([169.911849]*MOVESCALE)/100) / animSpeed;
 	turn head to x-axis <0.000000> speed <729.584489> / animSpeed;
@@ -367,7 +367,7 @@ Create()
 	statechg_StateChanging = FALSE;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 60;
-	animAmplitude = 100;
+	animAmplitude = 70;
 	start-script SmokeUnit();
 	//turn luparm to x-axis <45.010989> speed <45>;
 //	turn ruparm to x-axis <45.010989> speed <45>;
