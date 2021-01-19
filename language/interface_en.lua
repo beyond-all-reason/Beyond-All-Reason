@@ -19,7 +19,7 @@ return {
 					reallyQuit = 'Are you sure you want to quit?',
 					reallyQuitResign = 'Are you sure you want to resign or quit to desktop?',
 					reallyResign = 'Are you sure you want to resign?',
-					reallyResignSpecate = 'Are you sure you want to resign and spectate?',
+					reallyResignSpectate = 'Are you sure you want to resign and spectate?',
 				},
 				catchingUp = 'Catching up',
 				catchingUpTooltip = 'Displays the catch-up progress',
