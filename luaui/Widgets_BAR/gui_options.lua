@@ -1044,7 +1044,7 @@ function DrawWindow()
 						if option.type == nil then
 							font:End()
 							font3:Begin()
-							font3:Print('\255\255\200\140'..option.name, xPos + (oPadding*0.5), yPos - (oHeight*1.8) - oPadding, oHeight*1.5, "no")
+							font3:Print('\255\255\200\130'..option.name, xPos + (oPadding*0.5), yPos - (oHeight*1.8) - oPadding, oHeight*1.5, "no")
 							font3:End()
 							font:Begin()
 						else
@@ -1467,7 +1467,7 @@ function widget:DrawScreen()
 					for optionID, _ in pairs(presets['lowest']) do
 						local optionKey = getOptionByID(optionID)
 						if optionHover[optionKey] ~= nil then
-							RectRound(optionHover[optionKey][1], optionHover[optionKey][2] + 1.33, optionHover[optionKey][3], optionHover[optionKey][4] - 1.33, 1, 2, 2, 2, 2, { 0, 0, 0, 0.15 }, { 1, 1, 1, 0.15 })
+							RectRound(optionHover[optionKey][1], optionHover[optionKey][2] + 1, optionHover[optionKey][3], optionHover[optionKey][4] - 1, 1, 2, 2, 2, 2, { 0, 0, 0, 0.15 }, { 1, 1, 1, 0.15 })
 						end
 					end
 				end
@@ -1496,7 +1496,9 @@ function widget:DrawScreen()
 
 					for i, option in pairs(options[showSelectOptions].options) do
 						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
-						if IsOnRect(mx, my, optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, yPos + oPadding) then
+						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1]+maxWidth), (optionSelect[#optionSelect] and optionSelect[#optionSelect][2]-1 or math.floor(yPos + oPadding)), i }
+
+						if IsOnRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
 							--RectRound(optionButtons[showSelectOptions][1]-borderSize, math.floor(yPos - oHeight - oPadding)-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, math.floor(yPos + oPadding)+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.05 }, { 0,0,0, 0.05 })
 							--RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0.5,0.5,0.5,0.33 }, { 1,1,1, 0.33 })
 							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding))
@@ -1505,8 +1507,6 @@ function widget:DrawScreen()
 							end
 							prevSelectHover = i
 						end
-						optionSelect[#optionSelect + 1] = { optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1]+maxWidth, yPos + oPadding, i }
-
 						if options[showSelectOptions].optionsFont and fontOption then
 							fontOption[i]:Begin()
 							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, fontSize, "no")
