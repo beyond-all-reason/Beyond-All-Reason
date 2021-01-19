@@ -48,6 +48,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
+    releaseheld  = true,
 		script = "Units/ARMCOM_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
