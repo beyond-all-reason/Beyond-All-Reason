@@ -962,6 +962,13 @@ local function updateResbar(res)
 		end
 	end)
 
+	local resourceTranslations = {
+		metal =  Spring.I18N('ui.topbar.resources.metal'),
+		energy =  Spring.I18N('ui.topbar.resources.energy')
+	}
+
+	local resourceName = resourceTranslations[res]
+
 	-- add tooltips
 	if WG['tooltip'] ~= nil and conversionIndicatorArea then
 		if res == 'energy' then
@@ -972,10 +979,10 @@ local function updateResbar(res)
 		else
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, "\255\215\255\215" .. (res == 'energy' and Spring.I18N('ui.topbar.resources.shareEnergyTooltip') or Spring.I18N('ui.topbar.resources.shareMetalTooltip')))
 		end
-		WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, "" .. res .. " " .. Spring.I18N('ui.topbar.resources.pullTooltip'))
-		WG['tooltip'].AddTooltip(res .. '_income', { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, "" .. res .. " " .. Spring.I18N('ui.topbar.resources.incomeTooltip'))
-		WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, "" .. res .. " " .. Spring.I18N('ui.topbar.resources.expenseTooltip'))
-		WG['tooltip'].AddTooltip(res .. '_storage', { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, "" .. res .. " " .. Spring.I18N('ui.topbar.resources.storageTooltip'))
+		WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, Spring.I18N('ui.topbar.resources.pullTooltip', { resource = resourceName }))
+		WG['tooltip'].AddTooltip(res .. '_income', { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, Spring.I18N('ui.topbar.resources.incomeTooltip', { resource = resourceName }))
+		WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, Spring.I18N('ui.topbar.resources.expenseTooltip', { resource = resourceName }))
+		WG['tooltip'].AddTooltip(res .. '_storage', { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, Spring.I18N('ui.topbar.resources.storageTooltip', { resource = resourceName }))
 		WG['tooltip'].AddTooltip(res .. '_current', { resbarDrawinfo[res].textCurrent[2] - (resbarDrawinfo[res].textCurrent[4] * 1.75), resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[2] + (resbarDrawinfo[res].textCurrent[4] * 1.75), resbarDrawinfo[res].textCurrent[3] + resbarDrawinfo[res].textCurrent[4] }, "\255\215\255\215" .. string.upper(res) .. "\n\255\240\240\240" .. (res == 'energy' and Spring.I18N('ui.topbar.resources.currentEnergyTooltip') or Spring.I18N('ui.topbar.resources.currentMetalTooltip')))
 	end
 end
