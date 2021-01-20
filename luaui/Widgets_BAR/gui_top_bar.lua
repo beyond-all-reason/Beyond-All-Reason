@@ -1985,9 +1985,6 @@ end
 
 
 function widget:Initialize()
-	Spring.I18N.loadFile('language/interface_en.lua')
-	Spring.I18N.loadFile('language/units_en.lua')
-
 	gameFrame = Spring.GetGameFrame()
 	Spring.SendCommands("resbar 0")
 
