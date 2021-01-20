@@ -21,7 +21,7 @@ return {
 		hidedamage = true,
 		idleautoheal = 5,
 		idletime = 600,
-		mass = 75,
+		mass = 1000,
 		maxdamage = 2550,
 		maxvelocity = 2.0,
 		maxwaterdepth = 0,

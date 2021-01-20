@@ -78,10 +78,13 @@ local function round_to_frames(name, wd, key)
 		-- even reloadtime can be nil (shields, death explosions)
 		return
 	end
+  
+  local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
+  if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
+  
+	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
 
-	local frames = math.max(1, math.floor((original_value + 1E-3) * Game.gameSpeed))
-
-	local sanitized_value = frames / Game.gameSpeed
+	local sanitized_value = frames / Game_gameSpeed
 	if math.abs (original_value - sanitized_value) > 1E-3 then
 		--Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
 	end

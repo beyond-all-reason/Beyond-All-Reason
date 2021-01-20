@@ -59,11 +59,15 @@ local myTeamID = 0
 
 local unitBuildPic = {}
 local unitName = {}
+local unitHumanName = {}
+local unitTooltip = {}
 local unitIconType = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitBuildPic[udid] = unitDef.buildpicname
 	unitName[udid] = unitDef.name
+	unitHumanName[udid] = unitDef.humanName
+	unitTooltip[udid] = unitDef.tooltip
 	unitIconType[udid] = unitDef.iconType
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		unitBuildOptions[udid] = unitDef.buildOptions
@@ -528,6 +532,9 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	elseif options.hovered then
 		iconAlpha = 1
 		zoom = 0.12
+		if WG.tooltip then
+			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215'..unitHumanName[unitDefID]..'\n'..unitTooltip[unitDefID])
+		end
 	end
 
 	-- draw icon
@@ -561,33 +568,6 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		glColor(1, 1, 1, 0.5)
 		DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
 	end
-
-	-- pressed / hovered
-	--local color1, color2
-	--if options.pressed then
-	--	if options.pressed == 1 then
-	--		color1, color2 = {0,1,0,0}, {0,1,0,0.25}
-	--	elseif options.pressed == 2 then
-	--		color1, color2 = {1,0,0,0}, {1,0,0,0.25}
-	--	elseif options.pressed == 3 then
-	--		color1, color2 = {1,1,1,0}, {1,1,1,0.22}
-	--	end
-	--elseif options.hovered then
-	--	color1, color2 = {1,1,1,0}, {1,1,1,0.16}
-	--end
-	--if color2 then
-	--	local halfSize = (imgRect[3] - imgRect[1])*0.5
-	--	glBlending(GL_SRC_ALPHA, GL_ONE)
-	--	RectRoundCircle(
-	--			imgRect[1]+halfSize,
-	--			0,
-	--			imgRect[2]-halfSize,
-	--			halfSize, cornerSize*0.6,
-	--			halfSize*0.2,
-	--			color1, color2
-	--	)
-	--	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	--end
 
 	-- amount
 	if (options.amount or 0) > 0 then
@@ -632,7 +612,7 @@ function widget:Update(dt)
 	end
 
 	local icon
-	local mx, my, lb, mb, rb = GetMouseState()
+	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
 	sec = sec + dt
 	local doupdate = false
@@ -640,12 +620,14 @@ function widget:Update(dt)
 		doupdate = true
 	end
 	if factoriesArea ~= nil then
-		if IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
-			doupdate = true
-			factoriesAreaHovered = true
-		elseif factoriesAreaHovered then
-			factoriesAreaHovered = nil
-			doupdate = true
+		if not moffscreen then
+			if IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
+				doupdate = true
+				factoriesAreaHovered = true
+			elseif factoriesAreaHovered then
+				factoriesAreaHovered = nil
+				doupdate = true
+			end
 		end
 
 		local graceSpace = math.floor((factoriesArea[3]-factoriesArea[1])*0.3)
@@ -706,7 +688,7 @@ function widget:Update(dt)
 				options['repeat'] = false
 			end
 			-- hover or pressed?
-			if (i == hoveredFac + 1) then
+			if not moffscreen and i == hoveredFac + 1 then
 				options.hovered_repeat = IsInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
 				options.pressed = (lb or mb or rb) or (options.hovered_repeat)
 				options.hovered = true
@@ -773,7 +755,7 @@ function widget:DrawScreen()
 	end
 
 	local icon
-	local mx, my, lb, mb, rb = GetMouseState()
+	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
 	if WG['guishader'] then
 		if #dlists == 0 then
@@ -828,7 +810,7 @@ function widget:DrawScreen()
 					-- amount
 					options.amount = buildQueue[unitDefID]
 					-- hover or pressed?
-					if j == hoveredBOpt + 1 then
+					if not moffscreen and j == hoveredBOpt + 1 then
 						options.pressed = (lb or mb or rb)
 						if lb then
 							options.pressed = 1
@@ -1360,7 +1342,7 @@ function widget:IsAbove(x, y)
 		return false
 	end
 
-	local _, _, lb, mb, rb = GetMouseState()
+	local _, _, lb, mb, rb, moffscreen = GetMouseState()
 	if ((lb or mb or rb) and openedMenu == -1) or waypointMode == 2 then
 		return false
 	end
@@ -1384,7 +1366,7 @@ function widget:IsAbove(x, y)
 
 	if hoveredFac >= 0 then
 		--factory icon
-		if not bar_openByClick and (openedMenu < 0 or menuHovered) then
+		if not moffscreen and (not bar_openByClick and (openedMenu < 0 or menuHovered)) then
 			menuHovered = true
 			openedMenu = hoveredFac
 		end

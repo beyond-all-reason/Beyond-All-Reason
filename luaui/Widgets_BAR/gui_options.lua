@@ -1089,13 +1089,13 @@ function DrawWindow()
 
 							if option.options[tonumber(option.value)] ~= nil then
 								local fontSize = oHeight * 0.85
-								local text, numLines = font:WrapText(option.options[tonumber(option.value)], (optionButtons[oid][3]-optionButtons[oid][1])*1.8)
-								if numLines > 1 then
-									local l = lines(text)
-									if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
-										l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+
+								local text = option.options[tonumber(option.value)]
+								if font:GetTextWidth(text) * math.floor(15 * widgetScale) >  (optionButtons[oid][3]-optionButtons[oid][1])*0.93 then
+									while font:GetTextWidth(text) * math.floor(15 * widgetScale) >  (optionButtons[oid][3]-optionButtons[oid][1])*0.9 do
+										text = string.sub(text, 1, string.len(text)-1)
 									end
-									text = l[1]..'...'
+									text = text..'...'
 								end
 								if option.id == 'font2' then
 									font:End()
@@ -1449,9 +1449,17 @@ function widget:DrawScreen()
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
 						if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
+							-- display console command at the bottom
+							if advSettings then
+								font:Begin()
+								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
+								font:Print('/option ' .. options[i].id, screenX + (8*widgetScale), screenY - screenHeight + (11*widgetScale), 14*widgetScale, "n")
+								font:End()
+							end
+							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25})
 							if WG.tooltip and options[i].description and options[i].description ~= '' then
-								WG.tooltip.ShowTooltip('options_description', options[i].description)
+								WG.tooltip.ShowTooltip('options_description',  options[i].description)
 							end
 							break
 						end
@@ -1499,8 +1507,6 @@ function widget:DrawScreen()
 						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1]+maxWidth), math.floor(yPos + oPadding)-1, i }
 
 						if IsOnRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
-							--RectRound(optionButtons[showSelectOptions][1]-borderSize, math.floor(yPos - oHeight - oPadding)-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, math.floor(yPos + oPadding)+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.05 }, { 0,0,0, 0.05 })
-							--RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0.5,0.5,0.5,0.33 }, { 1,1,1, 0.33 })
 							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding))
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
@@ -1509,11 +1515,11 @@ function widget:DrawScreen()
 						end
 						if options[showSelectOptions].optionsFont and fontOption then
 							fontOption[i]:Begin()
-							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, fontSize, "no")
+							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							fontOption[i]:End()
 						else
 							font:Begin()
-							font:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, fontSize, "no")
+							font:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							font:End()
 						end
 					end
@@ -2670,14 +2676,28 @@ function init()
 		--		 onload = function(i) end,
 		--		 onchange = function(i, value) Spring.SendCommands("luarules uniticonlasers "..value) end,
 		--		},
+		--		},
 		--{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=6, max=40, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",10) or 10), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance',
 		-- onload = function(i) end,
 		-- onchange = function(i, value) Spring.SetConfigInt("NanoBeamAmount",value) end,
 		--},
 
+		{ id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
-		{ id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, basic = true },
-		{ id = "label_gfx_effects_spacer", group = "gfx", basic = true },
+
+		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, basic = true },
+		{ id = "label_gfx_environment_spacer", group = "gfx", basic = true },
+
+		{ id = "water", group = "gfx", basic = true, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				desiredWaterValue = value - 1
+				if waterDetected then
+					Spring.SendCommands("water " .. desiredWaterValue)
+				end
+			end,
+		},
 
 		{ id = "mapedgeextension", group = "gfx", basic = true, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
 
@@ -2698,17 +2718,6 @@ function init()
 		  end,
 		},
 
-		{ id = "water", group = "gfx", basic = true, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  desiredWaterValue = value - 1
-			  if waterDetected then
-				  Spring.SendCommands("water " .. desiredWaterValue)
-			  end
-		  end,
-		},
-
 		{ id = "decals", group = "gfx", basic = true, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
 		  onload = function(i)
 		  end,
@@ -2726,6 +2735,53 @@ function init()
 			  Spring.SendCommands("GroundDetail " .. value)
 		  end,
 		},
+		  {id="treewind", group="gfx", basic=true, name=texts.option.treewind, type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description = texts.option.treewind_descr,
+		   onload = function(i) end,
+		   onchange = function(i, value)
+			   Spring.SendCommands("luarules treewind "..(value and 1 or 0))
+			   Spring.SetConfigInt("TreeWind",(value and 1 or 0))
+		   end,
+		  },
+
+		  { id = "clouds", group = "gfx", basic = true, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
+		  { id = "clouds_opacity", group = "gfx", name = widgetOptionColor .. "   "..texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
+			onload = function(i)
+				loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
+			end,
+		  },
+
+		  { id = "snow", group = "gfx", basic = true, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
+		  { id = "snowmap", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
+			onload = function(i)
+				loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Snow', 'snow', 'setSnowMap', { 'snowMaps', Game.mapName:lower() }, value)
+			end,
+		  },
+		  { id = "snowautoreduce", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
+			onload = function(i)
+				loadWidgetData("Snow", "snowautoreduce", { 'autoReduce' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Snow', 'snow', 'setAutoReduce', { 'autoReduce' }, value)
+			end,
+		  },
+		  { id = "snowamount", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
+			onload = function(i)
+				loadWidgetData("Snow", "snowamount", { 'customParticleMultiplier' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Snow', 'snow', 'setMultiplier', { 'customParticleMultiplier' }, value)
+			end,
+		  },
+
+
+		{ id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, basic = true },
+		{ id = "label_gfx_effects_spacer", group = "gfx", basic = true },
 
 		--{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance',
 		--	onload = function(i) end,
@@ -2744,6 +2800,16 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MaxParticles", value)
 		  end,
+		},
+		{ id = "nanoparticles", group = "gfx", name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				maxNanoParticles = value
+				if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
+					Spring.SetConfigInt("MaxNanoParticles", value)
+				end
+			end,
 		},
 
 		{ id = "outline", group = "gfx", basic = true, widget = "Outline", name = texts.option.outline, type = "bool", value = GetWidgetToggleValue("Outline"), description = texts.option.outline_descr },
@@ -2772,16 +2838,6 @@ function init()
 		  end,
 		},
 
-		{ id = "nanoparticles", group = "gfx", name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  maxNanoParticles = value
-			  if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
-				  Spring.SetConfigInt("MaxNanoParticles", value)
-			  end
-		  end,
-		},
 		{ id = "airjets", group = "gfx", widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
 		{ id = "jetenginefx_lights", group = "gfx", name = widgetOptionColor .. "   "..texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
 		  onload = function(i)
@@ -2820,50 +2876,6 @@ function init()
 		--		 onload = function(i) end,
 		--		 onchange = function(i, value) Spring.SetConfigInt("TreeRadius",value) end,
 		--		},
-		{id="treewind", group="gfx", basic=true, name=texts.option.treewind, type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description = texts.option.treewind_descr,
-		 onload = function(i) end,
-		 onchange = function(i, value)
-			 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
-			 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
-		 end,
-		},
-		{ id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
-
-		{ id = "clouds", group = "gfx", basic = true, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
-		{ id = "clouds_opacity", group = "gfx", name = widgetOptionColor .. "   "..texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
-		  end,
-		},
-
-		{ id = "snow", group = "gfx", basic = true, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
-		{ id = "snowmap", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
-		  onload = function(i)
-			  loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Snow', 'snow', 'setSnowMap', { 'snowMaps', Game.mapName:lower() }, value)
-		  end,
-		},
-		{ id = "snowautoreduce", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
-		  onload = function(i)
-			  loadWidgetData("Snow", "snowautoreduce", { 'autoReduce' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Snow', 'snow', 'setAutoReduce', { 'autoReduce' }, value)
-		  end,
-		},
-		{ id = "snowamount", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
-		  onload = function(i)
-			  loadWidgetData("Snow", "snowamount", { 'customParticleMultiplier' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Snow', 'snow', 'setMultiplier', { 'customParticleMultiplier' }, value)
-		  end,
-		},
 
 		{ id = "resurrectionhalos", group = "gfx", widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
 		{ id = "tombstones", group = "gfx", widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
@@ -2938,6 +2950,9 @@ function init()
 		  end,
 		},
 
+		{ id = "label_snd_tracks", group = "snd", name = texts.option.label_tracks, basic = true },
+		{ id = "label_snd_tracks_spacer", group = "snd", basic = true },
+
 		{ id = "scav_messages", group = "notif", basic = true, name = texts.option.scav_messages, type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("scavmessages", (value and 1 or 0))
@@ -2985,6 +3000,10 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
 		  end,
 		},
+
+
+		{ id = "label_notif_messages", group = "notif", name = texts.option.label_messages, basic = true },
+		{ id = "label_notif_messages_spacer", group = "notif", basic = true },
 
 		-- CONTROL
 		{ id = "hwcursor", group = "control", basic = true, name = texts.option.hwcursor, type = "bool", value = tonumber(Spring.GetConfigInt("hardwareCursor", 1) or 1) == 1, description = texts.option.hwcursor_descr,
@@ -4943,7 +4962,7 @@ function init()
 			for i, option in pairs(options) do
 				count = count + 1
 				newOptions[count] = option
-				if option.id == 'notifications_playtrackedplayernotifs' then
+				if option.id == 'label_notif_messages_spacer' then
 					for k, v in pairs(soundList) do
 						count = count + 1
 						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", basic = true, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
@@ -4965,6 +4984,8 @@ function init()
 		options[getOptionByID('notifications')] = nil
 		options[getOptionByID('notifications_volume')] = nil
 		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
+		options[getOptionByID('label_notif_messages')] = nil
+		options[getOptionByID('label_notif_messages_spacer')] = nil
 	end
 
 	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
@@ -5000,19 +5021,19 @@ function init()
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
-			if option.id == 'loadscreen_music' then
+			if option.id == 'label_snd_tracks_spacer' then
 				for k, v in pairs(musicList) do
 					count = count + 1
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
-					local optionName, numLines = font:WrapText(trackName, (screenWidth * 0.37)*widgetScale)
-					if numLines > 1 then
-						local l = lines(optionName)
-						if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
-							l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+
+					local optionName = trackName
+					if font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.25 then
+						while font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.245 do
+							optionName = string.sub(optionName, 1, string.len(optionName)-1)
 						end
-						optionName = l[1]..'...'
+						optionName = optionName..'...'
 					end
 					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
 						onchange = function(i, value)

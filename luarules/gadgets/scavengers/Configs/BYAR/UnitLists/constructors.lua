@@ -27,8 +27,8 @@ Resurrectors = {
 }
 
 ResurrectorsSea = {
-	"armrecl",
-	"correcl",
+	"armrectr",
+	"cornecro",
 }
 
 Collectors = {

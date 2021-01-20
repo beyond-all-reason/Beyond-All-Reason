@@ -136,8 +136,13 @@ function scav_Udef_Post(name, uDef)
 	if uDef.name then
 		uDef.name = "Scavenger "..uDef.name
 	end
-
-	local randomMultiplier = (math.random()*0.25)+0.875 -- results in random between 0.875 and 1.125
+  
+  if math and math.random then
+    
+  local randomMultiplier = 1.0 
+  if math.random() ~= nil then  --for mission editor math.random() somehow returns nil
+     randomMultiplier = (math.random()*0.25)+0.875 -- results in random between 0.875 and 1.125
+  end
 	
 	if uDef.buildcostenergy then
 		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.85*randomMultiplier)
@@ -233,6 +238,8 @@ function scav_Udef_Post(name, uDef)
 			end
 		end
 	end
+  
+  end -- end mission editor compat
 
 	if uDef.customparams.fighter then
 		uDef.maxvelocity = uDef.maxvelocity*2
