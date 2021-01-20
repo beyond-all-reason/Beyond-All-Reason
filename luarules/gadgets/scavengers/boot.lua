@@ -1,7 +1,7 @@
 if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
-
+VFS.Include("luarules/gadgets/scavengers/API/init.lua")
 GameShortName = Game.gameShortName
 VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/config.lua")
 --for i = 1,#scavconfig do

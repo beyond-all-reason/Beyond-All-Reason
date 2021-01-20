@@ -61,8 +61,6 @@ else
 	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 	ScavengerStartboxExists = false
 end
-teamcount = #Spring.GetTeamList() - 1
-allyteamcount = #Spring.GetAllyTeamList() - 1
 
 BossWaveStarted = false
 selfdx = {}

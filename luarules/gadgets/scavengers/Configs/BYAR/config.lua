@@ -139,11 +139,11 @@ unitSpawnerModuleConfig = {
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance
-	globalscoreperoneunit 				= 900,
+	globalscoreperoneunit 				= 1200,
 	spawnchance							= 240,
 	beaconspawnchance					= 120,
 	beacondefences						= true,
-	minimumspawnbeacons					= 2,
+	minimumspawnbeacons					= teamcount,
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 2.0,
 	seamultiplier 						= 0.75,
@@ -151,8 +151,8 @@ unitSpawnerModuleConfig = {
 
 	t0multiplier						= 3.5,
 	t1multiplier						= 3,
-	t2multiplier						= 1,
-	t3multiplier						= 0.20,
+	t2multiplier						= 0.9,
+	t3multiplier						= 0.15,
 	t4multiplier						= 0.05,
 }
 
@@ -160,9 +160,9 @@ constructorControllerModuleConfig = {
 	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
 	constructortimer 					= 240, -- time in seconds between commander/constructor spawns
 	constructortimerreductionframes		= 36000,
-	minimumconstructors					= 5,
+	minimumconstructors					= teamcount,
 	useresurrectors						= true,
-		searesurrectors					= false,
+		searesurrectors					= true,
 	useconstructors						= true,
 	usecollectors						= true,
 }
