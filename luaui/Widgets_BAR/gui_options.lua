@@ -1449,9 +1449,17 @@ function widget:DrawScreen()
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
 						if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
+							-- display console command at the bottom
+							if advSettings then
+								font:Begin()
+								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
+								font:Print('/option ' .. options[i].id, screenX + (8*widgetScale), screenY - screenHeight + (11*widgetScale), 14*widgetScale, "n")
+								font:End()
+							end
+							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25})
 							if WG.tooltip and options[i].description and options[i].description ~= '' then
-								WG.tooltip.ShowTooltip('options_description',  '\255\215\255\215'..options[i].name..'\n'..options[i].description)
+								WG.tooltip.ShowTooltip('options_description',  options[i].description)
 							end
 							break
 						end
@@ -1499,8 +1507,6 @@ function widget:DrawScreen()
 						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1]+maxWidth), math.floor(yPos + oPadding)-1, i }
 
 						if IsOnRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
-							--RectRound(optionButtons[showSelectOptions][1]-borderSize, math.floor(yPos - oHeight - oPadding)-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, math.floor(yPos + oPadding)+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.05 }, { 0,0,0, 0.05 })
-							--RectRound(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding), (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0.5,0.5,0.5,0.33 }, { 1,1,1, 0.33 })
 							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1]+maxWidth, math.floor(yPos + oPadding))
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
@@ -1509,11 +1515,11 @@ function widget:DrawScreen()
 						end
 						if options[showSelectOptions].optionsFont and fontOption then
 							fontOption[i]:Begin()
-							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, fontSize, "no")
+							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							fontOption[i]:End()
 						else
 							font:Begin()
-							font:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2.25) - oPadding, fontSize, "no")
+							font:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							font:End()
 						end
 					end
@@ -2944,6 +2950,9 @@ function init()
 		  end,
 		},
 
+		{ id = "label_snd_tracks", group = "snd", name = texts.option.label_tracks, basic = true },
+		{ id = "label_snd_tracks_spacer", group = "snd", basic = true },
+
 		{ id = "scav_messages", group = "notif", basic = true, name = texts.option.scav_messages, type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("scavmessages", (value and 1 or 0))
@@ -2991,6 +3000,10 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
 		  end,
 		},
+
+
+		{ id = "label_notif_messages", group = "notif", name = texts.option.label_messages, basic = true },
+		{ id = "label_notif_messages_spacer", group = "notif", basic = true },
 
 		-- CONTROL
 		{ id = "hwcursor", group = "control", basic = true, name = texts.option.hwcursor, type = "bool", value = tonumber(Spring.GetConfigInt("hardwareCursor", 1) or 1) == 1, description = texts.option.hwcursor_descr,
@@ -4949,7 +4962,7 @@ function init()
 			for i, option in pairs(options) do
 				count = count + 1
 				newOptions[count] = option
-				if option.id == 'notifications_playtrackedplayernotifs' then
+				if option.id == 'label_notif_messages_spacer' then
 					for k, v in pairs(soundList) do
 						count = count + 1
 						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", basic = true, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
@@ -4971,6 +4984,8 @@ function init()
 		options[getOptionByID('notifications')] = nil
 		options[getOptionByID('notifications_volume')] = nil
 		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
+		options[getOptionByID('label_notif_messages')] = nil
+		options[getOptionByID('label_notif_messages_spacer')] = nil
 	end
 
 	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
@@ -5006,7 +5021,7 @@ function init()
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
-			if option.id == 'loadscreen_music' then
+			if option.id == 'label_snd_tracks_spacer' then
 				for k, v in pairs(musicList) do
 					count = count + 1
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")

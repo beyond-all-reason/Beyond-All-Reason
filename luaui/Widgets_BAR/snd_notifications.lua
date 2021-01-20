@@ -306,7 +306,7 @@ function widget:Initialize()
 	WG['notifications'].getSoundList = function()
 		local soundInfo = {}
 		for i, v in pairs(SoundOrder) do
-			soundInfo[i] = {v, soundList[v], Sound[v][5]}
+			soundInfo[i] = {v, soundList[v], Sound[v][4]}
 		end
 		return soundInfo
 	end

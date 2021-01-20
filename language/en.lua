@@ -538,6 +538,8 @@ return {
 			label_effects = 'Effects',
 			label_environment = 'Environment',
 			label_game = 'Game',
+			label_tracks = 'Tracks',
+			label_messages = 'Messages',
 			preset = 'Load graphics preset',
 			preset_descr = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
 			resolution = 'Resolution',
