@@ -467,7 +467,7 @@ end
 		position = (default: 0)
 ]]
 Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price)
-	local borderSize = borderSize~=nil and borderSize or math.max(1, math.floor((sx-px) * 0.024))
+	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((Spring.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
 	local cs = cs~=nil and cs or math.max(1, math.floor((sx-px) * 0.024))
 
 	local function DrawTexRectRound(px, py, sx, sy,  cs,  tl, tr, br, bl,  offset)

@@ -1451,7 +1451,7 @@ function widget:DrawScreen()
 						if IsOnRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25})
 							if WG.tooltip and options[i].description and options[i].description ~= '' then
-								WG.tooltip.ShowTooltip('options_description', options[i].description)
+								WG.tooltip.ShowTooltip('options_description',  '\255\215\255\215'..options[i].name..'\n'..options[i].description)
 							end
 							break
 						end
@@ -2670,14 +2670,28 @@ function init()
 		--		 onload = function(i) end,
 		--		 onchange = function(i, value) Spring.SendCommands("luarules uniticonlasers "..value) end,
 		--		},
+		--		},
 		--{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=6, max=40, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",10) or 10), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance',
 		-- onload = function(i) end,
 		-- onchange = function(i, value) Spring.SetConfigInt("NanoBeamAmount",value) end,
 		--},
 
+		{ id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
-		{ id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, basic = true },
-		{ id = "label_gfx_effects_spacer", group = "gfx", basic = true },
+
+		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, basic = true },
+		{ id = "label_gfx_environment_spacer", group = "gfx", basic = true },
+
+		{ id = "water", group = "gfx", basic = true, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				desiredWaterValue = value - 1
+				if waterDetected then
+					Spring.SendCommands("water " .. desiredWaterValue)
+				end
+			end,
+		},
 
 		{ id = "mapedgeextension", group = "gfx", basic = true, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
 
@@ -2698,17 +2712,6 @@ function init()
 		  end,
 		},
 
-		{ id = "water", group = "gfx", basic = true, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  desiredWaterValue = value - 1
-			  if waterDetected then
-				  Spring.SendCommands("water " .. desiredWaterValue)
-			  end
-		  end,
-		},
-
 		{ id = "decals", group = "gfx", basic = true, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
 		  onload = function(i)
 		  end,
@@ -2726,6 +2729,53 @@ function init()
 			  Spring.SendCommands("GroundDetail " .. value)
 		  end,
 		},
+		  {id="treewind", group="gfx", basic=true, name=texts.option.treewind, type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description = texts.option.treewind_descr,
+		   onload = function(i) end,
+		   onchange = function(i, value)
+			   Spring.SendCommands("luarules treewind "..(value and 1 or 0))
+			   Spring.SetConfigInt("TreeWind",(value and 1 or 0))
+		   end,
+		  },
+
+		  { id = "clouds", group = "gfx", basic = true, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
+		  { id = "clouds_opacity", group = "gfx", name = widgetOptionColor .. "   "..texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
+			onload = function(i)
+				loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
+			end,
+		  },
+
+		  { id = "snow", group = "gfx", basic = true, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
+		  { id = "snowmap", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
+			onload = function(i)
+				loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Snow', 'snow', 'setSnowMap', { 'snowMaps', Game.mapName:lower() }, value)
+			end,
+		  },
+		  { id = "snowautoreduce", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
+			onload = function(i)
+				loadWidgetData("Snow", "snowautoreduce", { 'autoReduce' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Snow', 'snow', 'setAutoReduce', { 'autoReduce' }, value)
+			end,
+		  },
+		  { id = "snowamount", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
+			onload = function(i)
+				loadWidgetData("Snow", "snowamount", { 'customParticleMultiplier' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Snow', 'snow', 'setMultiplier', { 'customParticleMultiplier' }, value)
+			end,
+		  },
+
+
+		{ id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, basic = true },
+		{ id = "label_gfx_effects_spacer", group = "gfx", basic = true },
 
 		--{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance',
 		--	onload = function(i) end,
@@ -2744,6 +2794,16 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MaxParticles", value)
 		  end,
+		},
+		{ id = "nanoparticles", group = "gfx", name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				maxNanoParticles = value
+				if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
+					Spring.SetConfigInt("MaxNanoParticles", value)
+				end
+			end,
 		},
 
 		{ id = "outline", group = "gfx", basic = true, widget = "Outline", name = texts.option.outline, type = "bool", value = GetWidgetToggleValue("Outline"), description = texts.option.outline_descr },
@@ -2772,16 +2832,6 @@ function init()
 		  end,
 		},
 
-		{ id = "nanoparticles", group = "gfx", name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  maxNanoParticles = value
-			  if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
-				  Spring.SetConfigInt("MaxNanoParticles", value)
-			  end
-		  end,
-		},
 		{ id = "airjets", group = "gfx", widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
 		{ id = "jetenginefx_lights", group = "gfx", name = widgetOptionColor .. "   "..texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
 		  onload = function(i)
@@ -2820,50 +2870,6 @@ function init()
 		--		 onload = function(i) end,
 		--		 onchange = function(i, value) Spring.SetConfigInt("TreeRadius",value) end,
 		--		},
-		{id="treewind", group="gfx", basic=true, name=texts.option.treewind, type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description = texts.option.treewind_descr,
-		 onload = function(i) end,
-		 onchange = function(i, value)
-			 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
-			 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
-		 end,
-		},
-		{ id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
-
-		{ id = "clouds", group = "gfx", basic = true, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
-		{ id = "clouds_opacity", group = "gfx", name = widgetOptionColor .. "   "..texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
-		  end,
-		},
-
-		{ id = "snow", group = "gfx", basic = true, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
-		{ id = "snowmap", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
-		  onload = function(i)
-			  loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Snow', 'snow', 'setSnowMap', { 'snowMaps', Game.mapName:lower() }, value)
-		  end,
-		},
-		{ id = "snowautoreduce", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
-		  onload = function(i)
-			  loadWidgetData("Snow", "snowautoreduce", { 'autoReduce' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Snow', 'snow', 'setAutoReduce', { 'autoReduce' }, value)
-		  end,
-		},
-		{ id = "snowamount", group = "gfx", name = widgetOptionColor .. "   "..texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
-		  onload = function(i)
-			  loadWidgetData("Snow", "snowamount", { 'customParticleMultiplier' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Snow', 'snow', 'setMultiplier', { 'customParticleMultiplier' }, value)
-		  end,
-		},
 
 		{ id = "resurrectionhalos", group = "gfx", widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
 		{ id = "tombstones", group = "gfx", widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },

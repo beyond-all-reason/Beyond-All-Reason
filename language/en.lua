@@ -536,6 +536,7 @@ return {
 			label_screen = 'Screen',
 			label_lighting = 'Lighting',
 			label_effects = 'Effects',
+			label_environment = 'Environment',
 			label_game = 'Game',
 			preset = 'Load graphics preset',
 			preset_descr = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
