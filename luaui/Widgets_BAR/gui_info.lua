@@ -1052,8 +1052,16 @@ local function drawUnitInfo()
 	font:End()
 
 	-- unit name
+	local nameFontSize = fontSize * 1.12
+	local humanName = unitDefInfo[displayUnitDefID].humanName
+	if font:GetTextWidth(humanName) * nameFontSize > width*1.05 then
+		while font:GetTextWidth(humanName) * nameFontSize > width do
+			humanName = string.sub(humanName, 1, string.len(humanName)-1)
+		end
+		humanName = humanName..'...'
+	end
 	font2:Begin()
-	font2:Print(unitNameColor .. unitDefInfo[displayUnitDefID].humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 0.89), fontSize * 1.12, "o")
+	font2:Print(unitNameColor .. humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (nameFontSize * 0.76), nameFontSize, "o")
 	--font2:End()
 
 	-- custom unit info area

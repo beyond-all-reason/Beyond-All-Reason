@@ -1089,13 +1089,13 @@ function DrawWindow()
 
 							if option.options[tonumber(option.value)] ~= nil then
 								local fontSize = oHeight * 0.85
-								local text, numLines = font:WrapText(option.options[tonumber(option.value)], (optionButtons[oid][3]-optionButtons[oid][1])*1.8)
-								if numLines > 1 then
-									local l = lines(text)
-									if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
-										l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+
+								local text = option.options[tonumber(option.value)]
+								if font:GetTextWidth(text) * math.floor(15 * widgetScale) >  (optionButtons[oid][3]-optionButtons[oid][1])*0.93 then
+									while font:GetTextWidth(text) * math.floor(15 * widgetScale) >  (optionButtons[oid][3]-optionButtons[oid][1])*0.9 do
+										text = string.sub(text, 1, string.len(text)-1)
 									end
-									text = l[1]..'...'
+									text = text..'...'
 								end
 								if option.id == 'font2' then
 									font:End()
@@ -5012,13 +5012,13 @@ function init()
 					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
 					trackName = string.gsub(trackName, "sounds/music/war/", "")
 					trackName = string.gsub(trackName, ".ogg", "")
-					local optionName, numLines = font:WrapText(trackName, (screenWidth * 0.37)*widgetScale)
-					if numLines > 1 then
-						local l = lines(optionName)
-						if string.sub(l[1], string.len(l[1])) == ' ' then	-- check if line ends with a space
-							l[1] = string.sub(l[1], 1, string.len(l[1])-1)	-- strip last character
+
+					local optionName = trackName
+					if font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.25 then
+						while font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.245 do
+							optionName = string.sub(optionName, 1, string.len(optionName)-1)
 						end
-						optionName = l[1]..'...'
+						optionName = optionName..'...'
 					end
 					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
 						onchange = function(i, value)
