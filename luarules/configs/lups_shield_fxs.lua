@@ -2,26 +2,8 @@ local ShieldSphereBase = {
 	layer = -34,
 	life = 10000,
 	radius = 350,
-	-- default
-	--colormap1 = {{0.2, 1, 0.2, 0.22}, {1, 0.2, 0.2, 0.22}},
-	--colormap2 = {{0.2, 0.9, 1, 0.0}, {1, 0.9, 0.2, 0.0}},
-	
-	-- blue->red
-	--colormap1 = {{0.25, 0.50, 1, 0.005}, {1, 0.25, 0.25, 0.001}},
-	--colormap2 = {{0.25, 0.50, 1, 0.005}, {1, 0.25, 0.25, 0.001}},
-	
-	-- green->red
-	--colormap1 = {{0.25, 1, 0.25, 0.001}, {1, 0.25, 0.25, 0.001}},
-	--colormap2 = {{0.25, 1, 0.25, 0.001}, {1, 0.25, 0.25, 0.001}},
-
-	-- iceXuick's white
-	--colormap1 = {{0.99, 0.99, 0.99, 0.03}, {1, 0.6, 0.5, 0.70}},
-    --colormap2 = {{0.95, 0.95, 0.95, 0.01}, {1, 0.7, 0.5, 0.0}},
-	
-	-- white->red
-	colormap1 = {{1, 1, 1, 0.025}, {1, 0.15, 0.15, 0}},
-	colormap2 = {{1, 1, 1, 0.025}, {1, 0.15, 0.15, 0}},
-	
+	colormap1 = {{0.2, 1, 0.2, 0.22}, {1, 0.2, 0.2, 0.22}},
+	colormap2 = {{0.2, 0.9, 1, 0.0}, {1, 0.9, 0.2, 0.0}},
 	repeatEffect = true,
 	drawBack = 0.7,
 	--
@@ -35,7 +17,7 @@ local ShieldSphereBase = {
 	--
 	vertexWobble = true,
 	--
-	bandedNoise = false,
+	bandedNoise = true,
 }
 
 local SEARCH_SMALL = {
