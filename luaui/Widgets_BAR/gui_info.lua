@@ -1054,6 +1054,7 @@ local function drawUnitInfo()
 	-- unit name
 	local nameFontSize = fontSize * 1.12
 	local humanName = unitDefInfo[displayUnitDefID].humanName
+	humanName = string.gsub(humanName, 'Scavenger', 'Scav')
 	if font:GetTextWidth(humanName) * nameFontSize > width*1.05 then
 		while font:GetTextWidth(humanName) * nameFontSize > width do
 			humanName = string.sub(humanName, 1, string.len(humanName)-1)
