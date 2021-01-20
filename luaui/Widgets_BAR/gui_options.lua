@@ -1496,7 +1496,7 @@ function widget:DrawScreen()
 
 					for i, option in pairs(options[showSelectOptions].options) do
 						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
-						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1]+maxWidth), (optionSelect[#optionSelect] and optionSelect[#optionSelect][2]-1 or math.floor(yPos + oPadding)), i }
+						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1]+maxWidth), math.floor(yPos + oPadding)-1, i }
 
 						if IsOnRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
 							--RectRound(optionButtons[showSelectOptions][1]-borderSize, math.floor(yPos - oHeight - oPadding)-borderSize, optionButtons[showSelectOptions][1]+maxWidth+borderSize, math.floor(yPos + oPadding)+borderSize, (optionButtons[showSelectOptions][4]-optionButtons[showSelectOptions][2])*0.1, 1,1,1,1, { 0,0,0,0.05 }, { 0,0,0, 0.05 })

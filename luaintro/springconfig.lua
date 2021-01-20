@@ -15,6 +15,9 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 2048)
 
+-- disable grass
+Spring.SetConfigInt("GrassDetail", 0)
+
 -- adv unit shading
 if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
 	Spring.SetConfigInt("AdvUnitShading", 1)
