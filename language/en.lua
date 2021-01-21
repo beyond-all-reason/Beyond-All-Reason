@@ -1,32 +1,6 @@
 return {
 	-- Topbar translations moved to interface-en.lua
-	advplayerslist = {
-		playerlist = 'Player list',
-		spectators = 'Spectators',
-		enemies = 'Enemies',
-		allies = 'Allies',
-		clicktohidespecs = 'Click to hide specs',
-		clicktoshowspecs = 'Click to show specs',
-		dblclickplayernametotrack = 'Double-click player name to track',
-		clicktotake = 'Click to take abandoned units',
-		dblclickunitsupport = 'Double-click to ask for support',
-		dblclickshareunits = 'Double-click to share units',
-		clickdragaskenergy = 'Click-and-drag to ask for energy',
-		clickdragaskmetal = 'Click-and-drag to ask for metal',
-		clickdragshareenergy = 'Click-and-drag to share energy',
-		clickdragsharemetal = 'Click-and-drag to share metal',
-		clicktobecomeenemy = 'Click to become enemy',
-		clicktobecomeally = 'Click to become ally',
-		k = 'k',
-		ms = 'ms',
-		sec = 'sec',
-		min = 'min',
-		totalcmddelay = 'Total command delay',
-		cpu = 'CPU',
-		fps = 'FPS',
-		gpumem = 'GPU memory',
-		pointclicktooltip = 'Click to go to the last point set by the player',
-	},
+	-- advPlayerList translations moved to interface-en.lua
 	playertv = {
 		playertv = 'Player TV',
 		cancelcamera = 'cancel camera',
