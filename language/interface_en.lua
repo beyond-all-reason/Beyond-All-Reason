@@ -85,7 +85,7 @@ return {
 			teamEconomy = {
 				tooltip = 'Team metal/energy income\n(Lighter portion is income from reclaiming)',
 			},
-			clearmapmarks = {
+			clearMapmarks = {
 				tooltip = 'Clear mapmarks/drawings',
 			},
 		}
