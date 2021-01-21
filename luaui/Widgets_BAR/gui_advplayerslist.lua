@@ -2057,7 +2057,7 @@ function CreateMainList(tip)
                 DrawLabel(" ".. Spring.I18N('ui.playersList.spectators') .. "  " .. specAmount, drawListOffset[i], specListShow)
                 if Spring.GetGameFrame() <= 0 then
                     if specListShow then
-                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.hidespecs') .. ")", drawListOffset[i], 95)
+                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.hideSpecs') .. ")", drawListOffset[i], 95)
                     else
                         DrawLabelTip("(" .. Spring.I18N('ui.playersList.showSpecs') .. ")", drawListOffset[i], 95)
                     end
