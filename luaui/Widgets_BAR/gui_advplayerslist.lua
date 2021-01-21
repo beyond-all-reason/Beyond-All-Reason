@@ -63,34 +63,6 @@ local backgroundTexture = "LuaUI/Images/backgroundtile.png"
 local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	playerlist = 'Playerlist',
-	spectators = 'Spectators',
-	enemies = 'Enemies',
-	allies = 'Allies',
-	clicktohidespecs = 'click to hide specs',
-	clicktoshowspecs = 'click to show specs',
-	dblclickplayernametotrack = 'dbl-click playername to track',
-	clicktotake = 'Click to take abandoned units',
-	dblclickunitsupport = 'Double click to ask for Unit support',
-	dblclickshareunits = 'Double click to share Units',
-	clickdragaskenergy = 'Click and drag to ask for Energy',
-	clickdragaskmetal = 'Click and drag to ask for Metal',
-	clickdragshareenergy = 'Click and drag to share for Energy',
-	clickdragsharemetal = 'Click and drag to share for Metal',
-	clicktobecomeenemy = 'Click to become enemy',
-	clicktobecomeally = 'Click to become ally',
-	k = 'k',
-	ms = 'ms',
-	sec = 'sec',
-	min = 'min',
-	totalcmddelay = 'Total command delay',
-	cpu = 'CPU',
-	fps = 'FPS',
-	gpumem = 'GPU mem',
-	pointclicktooltip = 'Click to reach the last point set by the player',
-}
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -1056,10 +1028,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('advplayerslist')
-	end
-
     widget:ViewResize()
 
     widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
@@ -1997,7 +1965,7 @@ function CreateBackground()
 
         if collapsed then
             font:Begin()
-            local text = texts.playerlist
+            local text = Spring.I18N('ui.playerslist.playerList')
             local yOffset = collapsedHeight * 0.5
             local xOffset = collapsedHeight / 6
             font:SetTextColor(0, 0, 0, 0.2)
@@ -2086,22 +2054,22 @@ function CreateMainList(tip)
                 if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
                     specAmount = ""
                 end
-                DrawLabel(" "..texts.spectators.."  " .. specAmount, drawListOffset[i], specListShow)
+                DrawLabel(" ".. Spring.I18N('ui.playersList.spectators') .. "  " .. specAmount, drawListOffset[i], specListShow)
                 if Spring.GetGameFrame() <= 0 then
                     if specListShow then
-                        DrawLabelTip("("..texts.clicktohidespecs..")", drawListOffset[i], 95)
+                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.hidespecs') .. ")", drawListOffset[i], 95)
                     else
-                        DrawLabelTip("("..texts.clicktoshowspecs..")", drawListOffset[i], 95)
+                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.showSpecs') .. ")", drawListOffset[i], 95)
                     end
                 end
             elseif drawObject == -4 then
                 DrawSeparator(drawListOffset[i])
             elseif drawObject == -3 then
-                DrawLabel(" "..texts.enemies, drawListOffset[i], true)
+                DrawLabel(" "..Spring.I18N('ui.playersList.enemies'), drawListOffset[i], true)
             elseif drawObject == -2 then
-                DrawLabel(" "..texts.allies, drawListOffset[i], true)
+                DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
                 if Spring.GetGameFrame() <= 0 then
-                    DrawLabelTip("("..texts.dblclickplayernametotrack..")", drawListOffset[i], 46)
+                    DrawLabelTip("(" .. Spring.I18N('ui.playersList.trackPlayer') .. ")", drawListOffset[i], 46)
                 end
             elseif drawObject == -1 then
                 leader = true
@@ -2826,12 +2794,12 @@ end
 function TakeTip(mouseX)
     if right == true then
         if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = texts.clicktotake
+            tipText = Spring.I18N('ui.playersList.takeUnits')
         end
     else
         local leftPosX = widgetPosX + widgetWidth
         if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 57 * widgetScale then
-            tipText = texts.clicktotake
+            tipText = Spring.I18N('ui.playersList.takeUnits')
         end
     end
 end
@@ -2839,19 +2807,19 @@ end
 function ShareTip(mouseX, playerID)
     if playerID == myPlayerID then
         if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
-            tipText = texts.dblclickunitsupport
+            tipText = Spring.I18N('ui.playersList.requestSupport')
         elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
-            tipText = texts.clickdragaskenergy
+            tipText = Spring.I18N('ui.playersList.requestEnergy')
         elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
-            tipText = texts.clickdragaskmetal
+            tipText = Spring.I18N('ui.playersList.requestMetal')
         end
     else
         if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
-            tipText = texts.dblclickshareunits
+            tipText = Spring.I18N('ui.playersList.shareUnits')
         elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
-            tipText = texts.clickdragshareenergy
+            tipText = Spring.I18N('ui.playersList.shareEnergy')
         elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
-            tipText = texts.clickdragsharemetal
+            tipText = Spring.I18N('ui.playersList.shareMetal')
         end
     end
 end
@@ -2859,9 +2827,9 @@ end
 function AllyTip(mouseX, playerID)
     if mouseX >= widgetPosX + (m_alliance.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_alliance.posX + 11) * widgetScale then
         if Spring_AreTeamsAllied(player[playerID].team, myTeamID) then
-            tipText = texts.clicktobecomeenemy
+            tipText = Spring.I18N('ui.playersList.becomeEnemy')
         else
-            tipText = texts.clicktobecomeally
+            tipText = Spring.I18N('ui.playersList.becomeAlly')
         end
     end
 end
@@ -2893,16 +2861,16 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
             mi = math.floor(mi / 10) * 10
         end
         if e >= 10000 then
-            e = math.floor(e / 1000) .. texts.k
+            e = math.floor(e / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         if m >= 10000 then
-            e = math.floor(m / 1000) .. texts.k
+            e = math.floor(m / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         if ei >= 10000 then
-            ei = math.floor(ei / 1000) .. texts.k
+            ei = math.floor(ei / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         if mi >= 10000 then
-            ei = math.floor(mi / 1000) .. texts.k
+            ei = math.floor(mi / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         tipText = "\255\255\255\000+" .. ei .. "\n\255\255\255\000" .. e .. "\n\255\255\255\255" .. m .. "\n\255\255\255\255+" .. mi
     end
@@ -2911,20 +2879,20 @@ end
 function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
     if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 23) * widgetScale then
         if pingLvl < 2000 then
-            pingLvl = pingLvl .. " "..texts.ms
+            pingLvl = pingLvl .. " " .. Spring.I18N('ui.playersList.milliseconds')
         elseif pingLvl >= 2000 and pingLvl < 60000 then
-            pingLvl = round(pingLvl / 1000, 0) .. " "..texts.sec
+            pingLvl = round(pingLvl / 1000, 0) .. " " .. Spring.I18N('ui.playersList.seconds')
         elseif pingLvl >= 60000 then
-            pingLvl = round(pingLvl / 60000, 0) .. " "..texts.min
+            pingLvl = round(pingLvl / 60000, 0) .. " " .. Spring.I18N('ui.playersList.minutes')
         end
-        tipText = "\255\190\190\190"..texts.totalcmddelay..":  \255\255\255\255" .. pingLvl
+        tipText = "\255\190\190\190" .. Spring.I18N('ui.playersList.commandDelay') .. ":  \255\255\255\255" .. pingLvl
     elseif mouseX >= widgetPosX + (m_cpuping.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 11) * widgetScale then
-        tipText = texts.cpu..": " .. cpuLvl .. "%"
+        tipText = Spring.I18N('ui.playersList.cpu') .. ": " .. cpuLvl .. "%"
         if fps ~= nil then
-            tipText = texts.fps..": " .. fps .. "    " .. tipText
+            tipText = Spring.I18N('ui.playersList.framerate') .. ": " .. fps .. "    " .. tipText
         end
         if gpumem ~= nil then
-            tipText = tipText .. "    "..texts.gpumem..": " .. gpumem .. "%"
+            tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory') .. ": " .. gpumem .. "%"
         end
         if system ~= nil then
             tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n\255\215\255\215" .. tipText .. "\n\255\240\240\240" .. system
@@ -2935,12 +2903,12 @@ end
 function PointTip(mouseX)
     if right == true then
         if mouseX >= widgetPosX - 28 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = texts.pointclicktooltip
+            tipText = Spring.I18N('ui.playersList.pointClickTooltip')
         end
     else
         local leftPosX = widgetPosX + widgetWidth
         if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 28 * widgetScale then
-            tipText = texts.pointclicktooltip
+            tipText = Spring.I18N('ui.playersList.pointClickTooltip')
         end
     end
 end
