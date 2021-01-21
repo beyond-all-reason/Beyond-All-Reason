@@ -1,17 +1,7 @@
+-- Translations are currently being migrated to the i18n modules
+-- If the translations you are looking for are not in this file,
+-- check the other files inside the /language/ directory
 return {
-	-- Topbar translations moved to interface-en.lua
-	-- advPlayerList translations moved to interface-en.lua
-	playertv = {
-		playertv = 'Player TV',
-		cancelcamera = 'cancel camera',
-		tooltip = 'Auto camera-track the top ranked players\n(switches player every 40 seconds by default)',
-	},
-	ecostats = {
-		tooltip = 'Team metal/energy income\n(Lighter portion is income from reclaiming)',
-	},
-	clearmapmarks = {
-		tooltip = 'Clear mapmarks/drawings',
-	},
 	info = {
 		selectedunits = 'Selected units',
 		unitsselected = 'units selected',
