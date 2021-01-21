@@ -77,6 +77,17 @@ return {
 				gpuMemory = 'GPU memory',
 				pointClickTooltip = 'Click to go to the last point set by the player',
 			},
+			playertv = {
+				playertv = 'Player TV',
+				cancelcamera = 'cancel camera',
+				tooltip = 'Auto camera-track the top ranked players\n(switches player every 40 seconds by default)',
+			},
+			ecostats = {
+				tooltip = 'Team metal/energy income\n(Lighter portion is income from reclaiming)',
+			},
+			clearmapmarks = {
+				tooltip = 'Clear mapmarks/drawings',
+			},
 		}
 	}
 }
