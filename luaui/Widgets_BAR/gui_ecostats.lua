@@ -10,18 +10,9 @@ function widget:GetInfo()
 	}
 end
 
-
 local loadSettings		= true
 
 local vsx,vsy = Spring.GetViewGeometry()
-
----------------------------------------------------------------------------------------------------
---  Declarations
----------------------------------------------------------------------------------------------------
-
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	tooltip = 'Team metal/energy income\n(Lighter part of the bar is reclaim income)',
-}
 
 local PmaxDmg						= 0
 local comTable 						= {}
@@ -166,10 +157,6 @@ local images			= {
 ---------------------------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('ecostats')
-	end
-
 	if not (Spring.GetSpectatingState() or isReplay) then
 		inSpecMode = false
 		Spring.Echo("Ecostats: widget loaded in active player mode")
@@ -636,7 +623,7 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 
 	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
-		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, texts.tooltip)
+		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, Spring.I18N('ui.teamEconomy.tooltip'))
 		tooltipAreas['ecostats_'..allyID] = area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]
 	end
 	glColor(1,1,1,1)
