@@ -82,7 +82,7 @@ return {
 				cancelCamera = 'Turn off',
 				tooltip = 'Auto camera-track the top ranked players\n(switches player every 40 seconds by default)',
 			},
-			ecostats = {
+			teamEconomy = {
 				tooltip = 'Team metal/energy income\n(Lighter portion is income from reclaiming)',
 			},
 			clearmapmarks = {
