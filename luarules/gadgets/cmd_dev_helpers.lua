@@ -17,11 +17,16 @@ function gadget:GetInfo()
 	}
 end
 
-local authorizedPlayers = {
-	'Floris',
-	'[teh]Flow',
-	'IceXuick',
-}
+local authorizedPlayers = {}
+local powerusers = include("LuaRules/configs/powerusers.lua")
+if powerusers then
+	for name, permissions in pairs(powerusers) do
+		if permissions.devhelpers then
+			authorizedPlayers[name] = true
+		end
+	end
+	powerusers = nil
+end
 
 local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)

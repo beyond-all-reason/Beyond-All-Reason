@@ -34,10 +34,16 @@ if gadgetHandler:IsSyncedCode() then
 	_G.validationUndo = validation
 
 
-	local authorizedPlayers  = {
-		'Floris',
-		'[teh]Flow',
-	}
+	local authorizedPlayers = {}
+	local powerusers = include("LuaRules/configs/powerusers.lua")
+	if powerusers then
+		for name, permissions in pairs(powerusers) do
+			if permissions.undo then
+				authorizedPlayers[name] = true
+			end
+		end
+		powerusers = nil
+	end
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}

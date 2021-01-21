@@ -14,11 +14,16 @@ end
 
 if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION'))) then
 
-	local authorizedPlayers  = {
-		'Floris',
-		'[teh]Flow',
-		'IceXuick',
-	}
+	local authorizedPlayers = {}
+	local powerusers = include("LuaRules/configs/powerusers.lua")
+	if powerusers then
+		for name, permissions in pairs(powerusers) do
+			if permissions.give then
+				authorizedPlayers[name] = true
+			end
+		end
+		powerusers = nil
+	end
 
 	-- usage: /luarules give 1 armcom 0
 

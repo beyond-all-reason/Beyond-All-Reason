@@ -187,6 +187,7 @@ local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local glDepthTest = gl.DepthTest
 
 local RectRound = Spring.FlowUI.Draw.RectRound
+local RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
 local UiUnit = Spring.FlowUI.Draw.Unit
 local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
@@ -595,83 +596,6 @@ local function refreshUnitIconCache()
 	end)
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
--- cs (corner size) is not implemented yet
-local function RectRoundProgress(left, bottom, right, top, cs, progress, color)
-
-	local xcen = (left + right) / 2
-	local ycen = (top + bottom) / 2
-
-	local alpha = 360 * (progress)
-	local alpha_rad = math_rad(alpha)
-	local beta_rad = math_pi / 2 - alpha_rad
-	local list = {}
-	local listCount = 1
-	list[listCount] = { v = { xcen, ycen } }
-	listCount = listCount + 1
-	list[#list + 1] = { v = { xcen, top } }
-
-	local x, y
-	x = (top - ycen) * math_tan(alpha_rad) + xcen
-	if alpha < 90 and x < right then
-		-- < 25%
-		listCount = listCount + 1
-		list[listCount] = { v = { x, top } }
-	else
-		listCount = listCount + 1
-		list[listCount] = { v = { right, top } }
-		y = (right - xcen) * math_tan(beta_rad) + ycen
-		if alpha < 180 and y > bottom then
-			-- < 50%
-			listCount = listCount + 1
-			list[listCount] = { v = { right, y } }
-		else
-			listCount = listCount + 1
-			list[listCount] = { v = { right, bottom } }
-			x = (top - ycen) * math_tan(-alpha_rad) + xcen
-			if alpha < 270 and x > left then
-				-- < 75%
-				listCount = listCount + 1
-				list[listCount] = { v = { x, bottom } }
-			else
-				listCount = listCount + 1
-				list[listCount] = { v = { left, bottom } }
-				y = (right - xcen) * math_tan(-beta_rad) + ycen
-				if alpha < 350 and y < top then
-					-- < 97%
-					listCount = listCount + 1
-					list[listCount] = { v = { left, y } }
-				else
-					listCount = listCount + 1
-					list[listCount] = { v = { left, top } }
-					x = (top - ycen) * math_tan(alpha_rad) + xcen
-					listCount = listCount + 1
-					list[listCount] = { v = { x, top } }
-				end
-			end
-		end
-	end
-
-	glColor(color[1], color[2], color[3], color[4])
-	glShape(GL_TRIANGLE_FAN, list)
-	glColor(1, 1, 1, 1)
-end
-
-local function RectQuad(px, py, sx, sy, offset)
-	gl.TexCoord(offset, 1 - offset)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(1 - offset, 1 - offset)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(1 - offset, offset)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(offset, offset)
-	gl.Vertex(px, sy, 0)
-end
-function DrawRect(px, py, sx, sy, zoom)
-	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
@@ -1088,7 +1012,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		 ':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
 		':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]],
 		groups[unitGroup[uDefID]],
-		{unitMetalCost[uDefID], unitEnergyCost[uDefID]}
+		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
+		cmds[cellRectID].params[1]
 	)
 
 	-- colorize/highlight unit icon
