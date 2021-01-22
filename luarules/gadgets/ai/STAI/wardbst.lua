@@ -15,7 +15,7 @@ function WardBST:Init()
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	self.water = self.mtype == "sub" or self.mtype == "shp" or self.mtype == "amp" -- can be hurt by submerged weapons
 	self.isCommander = self.ai.armyhst.commanderList[self.name]
-	self.mobile = not self.ai.armyhst.unitTable[self.name].isBuilding and not self.ai.armyhst.nanoTurretList[self.name] -- for some reason nano turrets are not buildings
+	self.mobile = not self.ai.armyhst.unitTable[self.name].isBuilding and not self.ai.armyhst._nano_[self.name] -- for some reason nano turrets are not buildings
 	self.isScout = self.ai.armyhst.scouts[self.name]
 	if self.isCommander then
 		self.threshold = 0.2
@@ -108,7 +108,7 @@ end
 
 function WardBST:NearestNano()
 	local nanoHots = self.ai.nanohst:GetHotSpots()
-	if not nanoHots then return true end
+	if not nanoHots then return false end
 	for i = 1, #nanoHots do
 		local hotPos = nanoHots[i]
 		return hotPos

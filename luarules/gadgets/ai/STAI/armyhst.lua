@@ -14,37 +14,297 @@ function ArmyHST:Init()
 	self.unitTable = {}
 	self.wrecks = {}
 	self.featureTable = {}
+-------MOBILE----------------
 
-	self.attackers = {}  --al the mobile units that can do damage and can be used to attack
+	self.techs = {
+		corca = true,
+		armch = true,
+		corch = true,
+		armacsub = true,
+		armca = true,
+		corcsa = true, --plat
+		armcsa = true, --plat
+		armcv = true,
+		coracv = true,
+		coraca = true,
+		armacv = true,
+		armack = true,
+		corack = true,
+		corcv = true,
+		armaca = true,
+		corcs = true,
+		armcs = true,
+		corck = true,
+		armck = true,
 
-	self.scouts = {}
-	self.raiders = {} -- these units will be used to raid weakly defended spots
-	self.techs = {}  --official builders
-	self.amptechs = {} --amphibious builders
-	self.jammers = {}
-	self.radars = {}
-	self.spys = {} -- spy bot
-	self.engineers = {} --help builders and build thinghs
-	self.wartechs = {} --decoy etc
-	self.rezs = {} -- rezzers
-	self.transports = {}
-	self.artillerys = {}
-	self.longranges = {}
-	self.battles = {} -- sturdy, cheap units to be built in larger numbers than siege units
-	self.breaks = {} -- sturdier units to use when battle units get killed
-	self.miners = {}
-	self.spiders = {} -- all terrain spider
-	self.paralyzers = {} --have paralyzer weapon
-	self.subkillers = {} -- submarine weaponed
-	self.bomberairs = {}
-	self.fighterairs = {}
-	self.antiairs = {}
-	self.antiairs2 = {} --in the case a lab have 2 antiair
-	self.antinukes = {}
-	self.amphibious = {} -- weapon amphibious
-	self.crawlings = {}
-	self.cloakables = {}
 
+
+	}
+	self.engineers = {
+		armmls = true,
+		armfark = true,
+		armconsul = true,
+		corfast = true,
+		cormls = true,
+
+	}
+	self.wartechs = {
+		armdecom = true,
+		cordecom = true,
+		cormando = true,
+
+
+	} --decoy etc
+	self.rezs = {
+		armrectr = true,
+		cornecro = true,
+		armrecl = true,
+		correcl = true,
+
+	}
+	self.amptechs = {
+		armbeaver = true,
+		cormuskrat = true,
+
+
+	} --amphibious builders
+	self.miners = {
+		armmlv = true,
+		cormlv = true,
+	}
+
+	self.jammers = {
+		armsjam = true,
+		coreter = true,
+		armaser = true,
+		armjam = true,
+		corsjam = true,
+		corspec = true,
+
+
+	}
+	self.radars = {
+		corfink = true,--is a scout but is better used as radar cause no weapon
+		armpeep = true,--is a scout but is better used as radar cause no weapon
+		corvrad = true,
+		armmark = true,
+		armseer = true,
+		corvoyr = true,
+		corawac = true,
+		armawac = true,
+		armsehak = true,
+		corhunt = true,
+
+
+	}
+	self.spys = {
+		armspy = true,
+		corspy = true,
+	}
+	self.transports = {
+		corvalk = true,
+		armatlas = true,
+		armthovr = true,
+		corthovr = true,
+		corintr = true,
+		armdfly = true,
+		cortship = true,
+		armtship = true,
+		corseah = true,
+
+	}
+
+	self.scouts = {
+		armfast = true,
+		armflea = true,
+		armfav = true,
+		corfav = true,
+
+	}
+	self.raiders = {
+		armflash = true,
+		corak = true,
+		armpw = true,
+		armmav = true,
+		armlatnk = true,
+		corgator = true,
+		corseal = true,
+		corpyro = true,
+		armsh = true,
+		corsh = true,
+		corcrus = true,
+		armcrus = true,
+		armdecade = true,
+		coresupp = true,
+		corkarg = true,
+
+	}
+	self.artillerys = {
+		armart = true,
+		armfido = true,
+		cormort = true,
+		corhrk = true,
+		armmerl = true,
+		armmart = true,
+		corwolv = true,
+		armvang = true,
+		armmh = true,
+		cormh = true,
+		cormship = true,
+		armmship = true,
+		corcat = true,
+		corvroc = true,
+		cortrem = true,
+		cormart = true,
+
+	}
+	self.battles = {
+		armstump = true,
+		correap = true,
+		armzeus = true,
+		armbull = true,
+		corraid = true,
+		corstorm = true,
+		armrock = true,
+		corcan = true,
+		armraz = true,
+		corsnap = true,
+		corbats = true,
+		armbats = true,
+		armpship = true,
+		corjugg = true,
+		corban = true,
+
+	} -- sturdy, cheap units to be built in larger numbers than siege units
+	self.breaks = {
+		armjanus = true,
+		corlevlr = true,
+		corgol = true,
+		armfboy = true,
+		armmanni = true,
+		corblackhy = true,
+		armepoch = true,
+		corthud = true,
+		corsumo = true,
+		armwar = true,
+		armham = true,
+		armbanth = true,
+		armanac = true,
+		corhal = true,
+		armroy = true,
+		corroy = true,
+		corkorg = true,
+	}
+
+	self.spiders = {
+		cortermite = true,
+		armsptk = true,
+
+	}
+	self.paralyzers = {
+		corbw = true,
+		armspid = true,
+		armstil = true,
+
+	}
+	self.subkillers = {
+		armsubk = true,
+		armserp = true,
+		corsub = true,
+		armsub = true,
+		corssub = true,
+		corshark = true,
+
+
+	} -- submarine weaponed
+	self.bomberairs = {
+		corshad = true,
+		armthund = true,
+		armsb = true, --plat
+		corhurc = true,
+		armpnix = true,
+		armliche = true,
+		corsb = true,
+	}
+
+	self.fighterairs = {
+		corveng = true,
+		armfig = true,
+		corsfig = true, --plat
+		armsfig = true, --plat
+		cortitan = true,
+		armhawk = true,
+	}
+
+	self.tpbombers = {
+		corvamp = true,
+		armlance = true,
+
+
+	}
+
+	self.airgun = {
+		armkam = true,
+		corcrw = true,
+		corape = true,
+		armbrawl = true,
+		armblade = true,
+		armseap = true, -- but is a torpedo gunship
+		armsaber = true,
+		corseap = true,
+		corcut = true,
+
+	}
+
+	self.antiairs = {
+		armah = true,
+		corah = true,
+		armaas = true,
+		armsam = true,
+		corsent = true,
+		armaak = true,
+		armyork = true,
+		cormist = true,
+		corcrash = true,
+		armjeth = true,
+		coraak = true,
+		corarch = true,
+		armpt = true, --aa+scout
+		corpt = true, --aa+scout
+	}
+
+	self.antinukes = {
+		armcarry = true,
+		corcarry = true,
+		cormabm = true,
+		armscab = true,
+	}
+
+	self.amphibious = {
+		armpincer = true,
+		corparrow = true,
+		armcroc = true,
+		armamph = true,
+		corgarp = true,
+		coramph = true,
+		armmar = true,
+		armlun = true,
+		corshiva = true,
+		corsok = true,
+	}
+
+	self.crawlings = {
+		armvader = true,
+		corroach = true,
+		corsktl = true,
+	}
+
+	self.cloakables = {
+		armsnipe = true,
+		armgremlin = true,
+	}
+
+-------IMMOBILE--------
 	self._targeting_ = {
 		armtarg = true ,
 		armfatf = true ,
@@ -125,6 +385,7 @@ function ArmyHST:Init()
 		corfus = true ,
 		corafus = true ,
 		coruwfus = true ,
+		--armdf = true, --fake fus
 	}
 
 	self._silo_ = {
@@ -329,7 +590,6 @@ function ArmyHST:Init()
 
 	self:GetUnitTable()
 	self:GetFeatureTable()
-	self:setRanks()
 
 	self.buildersRole = {
 		default = {},
@@ -474,24 +734,6 @@ ArmyHST.hyperWatchdog = {
 	corgeo = 1,
 }
 
--- things we really need to construct other than factories
--- value is max number of assistants to get if available (0 is all available)
-ArmyHST.helpList = {
-	corfus = 0,
-	armfus = 0,
-	coruwfus = 0,
-	armuwfus = 0,
-	armafus = 0,
-	corafus = 0,
-	corgeo = 2,
-	armgeo = 2,
-	corageo = 0,
-	armageo = 0,
-	cormoho = 2,
-	armmoho = 2,
-	coruwmme = 2,
-	armuwmme = 2,
-}
 
 -- priorities of things to defend that can't be accounted for by the formula in turtlehst
 ArmyHST.turtleList = {
@@ -550,13 +792,6 @@ ArmyHST.leadsToExpFactories = {
 	corasy = 1,
 	armasy = 1,
 }
-
-
-
-
-
-
-
 -- for milling about next to con units and factories only
 ArmyHST.defenderList = {
 	armaak = 1 ,
@@ -586,31 +821,9 @@ ArmyHST.raiderDisarms = {
 	corbw = 1,
 }
 
-
-ArmyHST.antinukeList = {
-	corfmd = 1,
-	armamd = 1,
-	corcarry = 1,
-	armcarry = 1,
-	cormabm = 1,
-	armscab = 1,
-}
-
-ArmyHST.shieldList = {
-	corgate = 1,
-	armgate = 1,
-}
-
 ArmyHST.commanderList = {
 	armcom = 1,
 	corcom = 1,
-}
-
-ArmyHST.nanoTurretList = {
-	cornanotc = 1,
-	armnanotc = 1,
-	armnanotcplat = 1,
-	cornanotcplat = 1,
 }
 
 -- advanced construction units
@@ -1028,520 +1241,6 @@ end
 
 
 
-function ArmyHST:getJammer(units,lab)
-	local cost = 0
-	local target = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if  not spec.buildOptions then
-				if spec.jammerRadius and spec.jammerRadius > cost then
-					cost = spec.jammerRadius
-					target = name
-				end
-			end
-		end
-	end
-
-	if target then
-		self:EchoDebug(target,'is jammer of', lab)
-		self.ranks[lab][target] = 'jammer'
-		self.jammers[target] = true
-	end
-
-end
-
-function ArmyHST:getEngineer(units,lab)
-	local cost = 0
-	local target = nil
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if  spec.isBuilder and spec.canAssist and not spec.isWeapon  then
-				if spec.buildSpeed > cost then
-					target = name
-					cost = spec.buildSpeed
-				end
-
-			end
-		end
-	end
-	if target then
-		self:EchoDebug(target,'is Engineer of', lab)
-		self.ranks[lab][target] = 'engineer'
-		self.engineers[target] = true
-	end
-end
-function ArmyHST:getWartech(units,lab)
-	local cost = 0
-	local target = nil
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if  spec.buildOptions and spec.isWeapon  then
-				self.ranks[lab][name] = 'wartech'
-				self:EchoDebug(name,'is fightingBuilders of', lab)
-				self.wartechs[name] = true
-			end
-		end
-	end
-end
-
-
-
-function ArmyHST:getCloakabe(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.canCloak and spec.isWeapon and not spec.isBuilder then
-				self:EchoDebug(name,'is cloakable of', lab)
-				self.ranks[lab][name] = 'cloakable'
-				self.cloakables[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getSpy(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.canCloak and not spec.isWeapon and spec.isBuilder then
-				self:EchoDebug(name,'is spy of', lab)
-				self.ranks[lab][name] = 'spy'
-				self.spys[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getSpiders(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon and spec.mclass == 'tbot3' then
-				self:EchoDebug(name,'is spider of', lab)
-				self.ranks[lab][name] = 'spider'
-				self.spiders[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getMiner(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isBuilder and spec.buildOptions and not spec.canAssist then
-				self:EchoDebug(name,'is miner of', lab)
-				self.ranks[lab][name] = 'miner'
-				self.miners[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getBomberAir(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isAirUnit and spec.isBomberAirUnit then
-				self:EchoDebug(name,'is BomberAir of', lab)
-				self.ranks[lab][name] = 'bomberair'
-				self.bomberairs[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getFighterAir(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isAirUnit and spec.isFighterAirUnit then
-				self:EchoDebug(name,'is fighterair of', lab)
-				self.ranks[lab][name] = 'fighterair'
-				self.fighterairs[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getRez(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.canResurrect  then
-				self:EchoDebug(name,'is rez of', lab)
-				self.ranks[lab][name] = 'rez'
-				self.rezs[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getAntiNuke(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.antiNuke then
-				self:EchoDebug(name,'is antinuke of', lab)
-				self.ranks[lab][name] = 'antinuke'
-				self.antinukes[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getFreezer(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon and spec.paralyzer and not spec.buildOptions then
-				self:EchoDebug(name,'is paralyzer of', lab)
-				self.ranks[lab][name] = 'paralyzer'
-				self.paralyzers[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getTransport(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isTransport then
-				self:EchoDebug(name,'is transport of', lab)
-				self.ranks[lab][name] = 'transport'
-				self.transports[name] = true
-			end
-		end
-	end
-end
-
-
-function ArmyHST:getTech(units,lab)
-	local cost = 0
-	local target = nil
-	local ampBuilder = nil
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if  spec.isCon and not spec.isWeapon  then
-				for i,v in pairs(spec.factoriesCanBuild) do
-					if v == lab then
-						if spec.mtype == 'amp' then
-							ampBuilder = name
-						else
-							target = name
-						end
-					end
-				end
-			end
-		end
-	end
-
-	if target then
-		self:EchoDebug(target,'is tech of', lab)
-		self.ranks[lab][target] = 'tech'
-		self.techs[target] = true
-	end
-	if ampBuilder then
-		self:EchoDebug(ampBuilder,'is amptech of', lab)
-		self.ranks[lab][ampBuilder] = 'amptech'
-		self.amptechs[ampBuilder] = true
-	end
-
-end
-
-function ArmyHST:getRadar(units,lab)
-	local cost = 0
-	local target = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if  not spec.buildOptions and not spec.isWeapon and spec.radarRadius and not spec.isBuilder then
-				if  spec.radarRadius > cost then
-					cost = spec.radarRadius
-					target = name
-				end
-			end
-		end
-	end
-
-	if target then
-		self:EchoDebug(target,'is radar of', lab)
-		self.ranks[lab][target] = 'radar'
-		self.radars[target] = true
-	end
-end
-
-function ArmyHST:getCrawlingBomb(units,lab)
-	local cost = 0
-	local target = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.mclass == 'abotbomb2' then
-				target = name
-				self.ranks[lab][name] = 'crawling'
-				self:EchoDebug(target,'is crowling bomb of', lab)
-				self.crawlings[target] = true
-			end
-		end
-	end
-
-end
-
-
-
-function ArmyHST:getRaiders(units,lab)
-	local cost = 0
-	local target = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon and spec.noChaseCat['vtol'] and not spec.buildOptions then
-				if (spec.move * spec.dps ) / spec.metalCost > cost then
-					cost = (spec.move * spec.dps ) / spec.metalCost
-					target = name
-				end
-			end
-		end
-	end
-	if target then
-		self:EchoDebug(target,'is raider of', lab)
-		self.ranks[lab][target] = 'raider'
-		self.raiders[target] = true
-	end
-end
-
-function ArmyHST:getBattle(units,lab)
-	local cost = 0
-	local target = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon  then
-				if  spec.dps   > cost then
-					cost =  spec.dps
-					target = name
-				end
-			end
-		end
-	end
-	if target then
-		self:EchoDebug(target,'is battle of', lab)
-		self.ranks[lab][target] = 'battle'
-		self.battles[target] = true
-	end
-end
-
-function ArmyHST:getBreak(units,lab)
-	local cost = 0
-	local target = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon and spec.noChaseCat['vtol'] and not spec.buildOptions then
-				if  spec.dps   > cost then
-					cost =  spec.dps
-					target = name
-				end
-			end
-		end
-	end
-	if target then
-		self:EchoDebug(target,'is break of', lab)
-		self.ranks[lab][target] = 'break'
-		self.breaks[target] = true
-	end
-end
-
-function ArmyHST:getLongRange(units,lab)
-	local cost = 0
-	local target = nil
-	local spec = self.unitTable
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon  and spec.noChaseCat['vtol']  and  spec.mtype ~='air' then
-				if spec.maxWeaponRange  > cost then
-					cost = spec.maxWeaponRange
-					target = name
-				end
-			end
-		end
-	end
-	if target then
-		self:EchoDebug(target,'is LongRange of', lab)
-		self.ranks[lab][target] = 'longrange'
-		self.longranges[target] = true
-	end
-end
-
-function ArmyHST:getArtillery(units,lab)
-	local cost = 0
-	local target = nil
-	local spec = self.unitTable
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon  and spec.noChaseCat['vtol']  and  spec.mtype ~='air' then
-				if spec.maxWeaponRange / spec.metalCost > cost then
-					cost = spec.maxWeaponRange / spec.metalCost
-					target = name
-				end
-			end
-		end
-	end
-	if target then
-		self:EchoDebug(target,'is artillery of', lab)
-		self.ranks[lab][target] = 'artillery'
-		self.artillerys[target] = true
-	end
-end
-
-function ArmyHST:getAmphibious(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon  and spec.noChaseCat['vtol']  and  spec.mtype == 'amp' then
-				self:EchoDebug(name,'is amphibious of', lab)
-				self.ranks[lab][name] = 'amphibious'
-				self.amphibious[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getSubK(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon    and  spec.mtype == 'sub' and not spec.buildOptions then
-				self:EchoDebug(name,'is subKiller of', lab)
-				self.ranks[lab][name] = 'subkiller'
-				self.subkillers[name] = true
-			end
-		end
-	end
-end
-
-function ArmyHST:getAttackers(units,lab)
-	local spec = self.unitTable
-	for i, name in pairs(units) do
-		if utable.isWeapon and not utable.buildOptions   and not utable.antiNuke  and utable.noChaseCat ~= 'notair' and not utable.isBuilding and  utable.radarRadius < 1 and utable.jammerRadius < 1 and not utable.isTransport and not utable.isFighterAirUnit and not utable.isBomberAirUnit and not utable.canResurrect then
-			spec.isAttacker = true
-			self:EchoDebug(target,'is attacker ')
-		end
-	end
-
-end
-
-function ArmyHST:getScouts(units,lab)
-	local cost = 1/0
-	local target = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.isWeapon and not spec.onlyTargets['vtol'] and not spec.buildOptions and spec.metalCost  < cost then
-				cost = spec.metalCost
-				target = name
-			end
-		end
-	end
-
-	if target then
-		self:EchoDebug(target,'is scout of', lab)
-		self.ranks[lab][target] = 'scout'
-		self.scouts[target] = true
-	end
-
-
-end
-
-function ArmyHST:getAntiAir(units,lab)
-	local range = 0
-	local aa = nil
-	local spec = self.unitTable
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			if spec[name].noChaseCat['notair'] then
-				aa = name
-			end
-		end
-	end
-	if not aa then
-		for i, name in pairs(units) do
-			if not self.ranks[lab][name] then
-				if spec[name].onlyTargets and spec[name].onlyTargets['vtol'] then
-					if spec[name].onlyTargets['vtol'] > range then
-						range = spec[name].onlyTargets['vtol']
-						aa = name
-					end
-				end
-			end
-		end
-	end
-	if not aa then
-		for i, name in pairs(units) do
-			if not self.ranks[lab][name] then
-				if spec[name].badTargets and spec[name].badTargets['notair'] then
-					if spec[name].badTargets['notair'] > range then
-						range = spec[name].badTargets['notair']
-						aa = name
-					end
-				end
-			end
-		end
-	end
-
-	if aa then
-		self:EchoDebug(aa,'is AntiAir of', lab)
-		self.ranks[lab][aa] = 'antiair'
-		self.antiairs[aa] = true
-	end
-
-end
-
-function ArmyHST:getAntiAir2(units,lab)
-	local range = 0
-	local aa = nil
-
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			local spec = self.unitTable[name]
-			if spec.noChaseCat['notair'] then
-				aa = name
-			end
-		end
-	end
-	if aa then
-		self:EchoDebug(aa,'is AntiAir2 of', lab)
-		self.ranks[lab][aa] = 'antiair2'
-		self.antiairs2[aa] = true
-	end
-end
-
-
-function ArmyHST:getUnranked(units,lab)
-	for i, name in pairs(units) do
-		if not self.ranks[lab][name] then
-			Spring:Echo(name,'is UNRANKED in', lab)
-		end
-	end
-end
-
-
-
 
 local function GetUnitSide(name)--TODO change to the internal name armada cortex
 	if string.find(name, 'arm') then
@@ -1775,12 +1474,9 @@ function ArmyHST:GetUnitTable()
 					else
 						utable.isEngineer = true
 					end
-
-
-
 				end
 			end
-			if utable.isWeapon and not utable.buildOptions   and not utable.antiNuke  and utable.noChaseCat ~= 'notair' and not utable.isBuilding and  utable.radarRadius < 1 and utable.jammerRadius < 1 and not utable.isTransport and not utable.isFighterAirUnit and not utable.isBomberAirUnit and not utable.canResurrect then
+			if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name]then
 				utable.isAttacker = true
 				--Spring:Echo(utable.name, 'isAttacker')
 			end
@@ -1816,319 +1512,5 @@ for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
 --ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
 
-
-function ArmyHST:setRanks()
-	self.ranks = {}
-	for lab,t in pairs (self.unitTable) do
-		if t.isFactory then
-			self.ranks[lab] = {}
-			--scanLabs(t.unitsCanBuild,lab)
-
-			self:getSpy(t.unitsCanBuild,lab)
-			self:getSpiders(t.unitsCanBuild,lab)--
-			self:getFreezer(t.unitsCanBuild,lab)--
-			self:getBomberAir(t.unitsCanBuild,lab)
-			self:getFighterAir(t.unitsCanBuild,lab)
-			self:getAntiNuke(t.unitsCanBuild,lab)--
-			self:getCrawlingBomb(t.unitsCanBuild,lab)
-			self:getTransport(t.unitsCanBuild,lab)
-			self:getCloakabe(t.unitsCanBuild,lab)
-			self:getJammer(t.unitsCanBuild,lab)--
-			self:getRadar(t.unitsCanBuild,lab)--
-			self:getScouts(t.unitsCanBuild,lab)--
-			self:getAntiAir(t.unitsCanBuild,lab)
-			self:getTech(t.unitsCanBuild,lab)--
-			self:getRez(t.unitsCanBuild,lab)--
-			self:getMiner(t.unitsCanBuild,lab)--
-			self:getWartech(t.unitsCanBuild,lab)--
-			self:getEngineer(t.unitsCanBuild,lab)--
-			self:getSubK(t.unitsCanBuild,lab)--
-			self:getArtillery(t.unitsCanBuild,lab)--
-			self:getAmphibious(t.unitsCanBuild,lab)
-			self:getAntiAir(t.unitsCanBuild,lab)--
-			self:getRaiders(t.unitsCanBuild,lab)--
-			self:getBattle(t.unitsCanBuild,lab)--
-			self:getBreak(t.unitsCanBuild,lab)--
-			self:getLongRange(t.unitsCanBuild,lab)--
-			self:getUnranked(t.unitsCanBuild,lab)
-		end
-	end
-end
 wrecks = nil
---[[
-
-
-
-
-
-
-
-
-   [f=-000001] 0, ArmyHST, corbw, is paralyzer of, corap
-   [f=-000001] 0, ArmyHST, corshad, is BomberAir of, corap
-   [f=-000001] 0, ArmyHST, corveng, is fighterair of, corap
-   [f=-000001] 0, ArmyHST, corvalk, is transport of, corap
-   [f=-000001] 0, ArmyHST, corfink, is radar of, corap
-   [f=-000001] 0, ArmyHST, corca, is tech of, corap
-
-   [f=-000001] 0, ArmyHST, armthovr, is transport of, armfhp
-   [f=-000001] 0, ArmyHST, armsh, is scout of, armfhp
-   [f=-000001] 0, ArmyHST, armah, is AntiAir of, armfhp
-   [f=-000001] 0, ArmyHST, armch, is tech of, armfhp
-   [f=-000001] 0, ArmyHST, armmh, is artillery of, armfhp
-   [f=-000001] 0, ArmyHST, armanac, is raider of, armfhp
-
-   [f=-000001] 0, ArmyHST, armcarry, is antinuke of, armasy
-   [f=-000001] 0, ArmyHST, armsjam, is jammer of, armasy
-   [f=-000001] 0, ArmyHST, armsubk, is scout of, armasy
-   [f=-000001] 0, ArmyHST, armaas, is AntiAir of, armasy
-   [f=-000001] 0, ArmyHST, armacsub, is tech of, armasy
-   [f=-000001] 0, ArmyHST, armmls, is Engineer of, armasy
-   [f=-000001] 0, ArmyHST, armserp, is subKiller of, armasy
-   [f=-000001] 0, ArmyHST, armmship, is artillery of, armasy
-   [f=-000001] 0, ArmyHST, armcrus, is raider of, armasy
-   [f=-000001] 0, ArmyHST, armepoch, is battle of, armasy
-   [f=-000001] 0, ArmyHST, armbats, is break of, armasy
-
-   [f=-000001] 0, ArmyHST, armthund, is BomberAir of, armap
-   [f=-000001] 0, ArmyHST, armfig, is fighterair of, armap
-   [f=-000001] 0, ArmyHST, armatlas, is transport of, armap
-   [f=-000001] 0, ArmyHST, armpeep, is radar of, armap
-   [f=-000001] 0, ArmyHST, armkam, is scout of, armap
-   [f=-000001] 0, ArmyHST, armca, is tech of, armap
-
-   [f=-000001] 0, ArmyHST, corsb, is BomberAir of, corplat
-   [f=-000001] 0, ArmyHST, corsfig, is fighterair of, corplat
-   [f=-000001] 0, ArmyHST, corhunt, is radar of, corplat
-   [f=-000001] 0, ArmyHST, corcut, is scout of, corplat
-   [f=-000001] 0, ArmyHST, corcsa, is tech of, corplat
-   [f=-000001] 0, ArmyHST, corseap, is raider of, corplat
-
-   [f=-000001] 0, ArmyHST, armfav, is scout of, armvp
-   [f=-000001] 0, ArmyHST, armsam, is AntiAir of, armvp
-   [f=-000001] 0, ArmyHST, armcv, is tech of, armvp
-   [f=-000001] 0, ArmyHST, armbeaver, is amptech of, armvp
-   [f=-000001] 0, ArmyHST, armmlv, is miner of, armvp
-   [f=-000001] 0, ArmyHST, armart, is artillery of, armvp
-   [f=-000001] 0, ArmyHST, armpincer, is amphibious of, armvp
-   [f=-000001] 0, ArmyHST, armflash, is raider of, armvp
-   [f=-000001] 0, ArmyHST, armjanus, is battle of, armvp
-   [f=-000001] 0, ArmyHST, armstump, is break of, armvp
-
-   [f=-000001] 0, ArmyHST, cormabm, is antinuke of, coravp
-   [f=-000001] 0, ArmyHST, corintr, is transport of, coravp
-   [f=-000001] 0, ArmyHST, coreter, is jammer of, coravp
-   [f=-000001] 0, ArmyHST, corvrad, is radar of, coravp
-   [f=-000001] 0, ArmyHST, cormart, is scout of, coravp
-   [f=-000001] 0, ArmyHST, corsent, is AntiAir of, coravp
-   [f=-000001] 0, ArmyHST, coracv, is tech of, coravp
-   [f=-000001] 0, ArmyHST, corvroc, is artillery of, coravp
-   [f=-000001] 0, ArmyHST, corseal, is amphibious of, coravp
-   [f=-000001] 0, ArmyHST, corparrow, is amphibious of, coravp
-   [f=-000001] 0, ArmyHST, correap, is raider of, coravp
-   [f=-000001] 0, ArmyHST, cortrem, is battle of, coravp
-   [f=-000001] 0, ArmyHST, corgol, is break of, coravp
-
-   [f=-000001] 0, ArmyHST, corban, is LongRange of, coravp
-   [f=-000001] 0, ArmyHST, corhurc, is BomberAir of, coraap
-   [f=-000001] 0, ArmyHST, cortitan, is BomberAir of, coraap
-   [f=-000001] 0, ArmyHST, corvamp, is fighterair of, coraap
-   [f=-000001] 0, ArmyHST, corseah, is transport of, coraap
-   [f=-000001] 0, ArmyHST, corawac, is radar of, coraap
-   [f=-000001] 0, ArmyHST, corape, is scout of, coraap
-   [f=-000001] 0, ArmyHST, coraca, is tech of, coraap
-
-   [f=-000001] 0, ArmyHST, corcrw, is raider of, coraap
-   [f=-000001] 0, ArmyHST, corsok, is scout of, corgant
-   [f=-000001] 0, ArmyHST, corkarg, is AntiAir of, corgant
-   [f=-000001] 0, ArmyHST, corshiva, is artillery of, corgant
-   [f=-000001] 0, ArmyHST, corkorg, is amphibious of, corgant
-   [f=-000001] 0, ArmyHST, corcat, is raider of, corgant
-   [f=-000001] 0, ArmyHST, corjugg, is battle of, corgant
-
-   [f=-000001] 0, ArmyHST, armpincer, is scout of, armamsub
-   [f=-000001] 0, ArmyHST, armaak, is AntiAir of, armamsub
-   [f=-000001] 0, ArmyHST, armbeaver, is amptech of, armamsub
-   [f=-000001] 0, ArmyHST, armdecom, is fightingBuilders of, armamsub
-   [f=-000001] 0, ArmyHST, armcroc, is artillery of, armamsub
-   [f=-000001] 0, ArmyHST, armjeth, is AntiAir of, armamsub
-
-   [f=-000001] 0, ArmyHST, corintr, is transport of, coramsub
-   [f=-000001] 0, ArmyHST, corgarp, is scout of, coramsub
-   [f=-000001] 0, ArmyHST, coraak, is AntiAir of, coramsub
-   [f=-000001] 0, ArmyHST, cormuskrat, is amptech of, coramsub
-   [f=-000001] 0, ArmyHST, cordecom, is fightingBuilders of, coramsub
-   [f=-000001] 0, ArmyHST, corseal, is artillery of, coramsub
-   [f=-000001] 0, ArmyHST, corparrow, is amphibious of, coramsub
-   [f=-000001] 0, ArmyHST, corcrash, is AntiAir of, coramsub
-
-   [f=-000001] 0, ArmyHST, armspy, is spy of, armalab
-   [f=-000001] 0, ArmyHST, armsptk, is spider of, armalab
-   [f=-000001] 0, ArmyHST, armscab, is spider of, armalab
-   [f=-000001] 0, ArmyHST, armspid, is paralyzer of, armalab
-   [f=-000001] 0, ArmyHST, armvader, is crowling bomb of, armalab
-   [f=-000001] 0, ArmyHST, armsnipe, is cloakable of, armalab
-   [f=-000001] 0, ArmyHST, armaser, is jammer of, armalab
-   [f=-000001] 0, ArmyHST, armmark, is radar of, armalab
-   [f=-000001] 0, ArmyHST, armfast, is scout of, armalab
-   [f=-000001] 0, ArmyHST, armaak, is AntiAir of, armalab
-   [f=-000001] 0, ArmyHST, armack, is tech of, armalab
-   [f=-000001] 0, ArmyHST, armdecom, is fightingBuilders of, armalab
-   [f=-000001] 0, ArmyHST, armfark, is Engineer of, armalab
-   [f=-000001] 0, ArmyHST, armfido, is artillery of, armalab
-   [f=-000001] 0, ArmyHST, armamph, is AntiAir of, armalab
-   [f=-000001] 0, ArmyHST, armmav, is raider of, armalab
-   [f=-000001] 0, ArmyHST, armfboy, is battle of, armalab
-   [f=-000001] 0, ArmyHST, armzeus, is break of, armalab
-
-   [f=-000001] 0, ArmyHST, armgremlin, is cloakable of, armavp
-   [f=-000001] 0, ArmyHST, armjam, is jammer of, armavp
-   [f=-000001] 0, ArmyHST, armseer, is radar of, armavp
-   [f=-000001] 0, ArmyHST, armmart, is scout of, armavp
-   [f=-000001] 0, ArmyHST, armyork, is AntiAir of, armavp
-   [f=-000001] 0, ArmyHST, armacv, is tech of, armavp
-   [f=-000001] 0, ArmyHST, armconsul, is Engineer of, armavp
-   [f=-000001] 0, ArmyHST, armlatnk, is artillery of, armavp
-   [f=-000001] 0, ArmyHST, armcroc, is amphibious of, armavp
-   [f=-000001] 0, ArmyHST, armbull, is raider of, armavp
-   [f=-000001] 0, ArmyHST, armmanni, is battle of, armavp
-   [f=-000001] 0, ArmyHST, armmerl, is break of, armavp
-
-   [f=-000001] 0, ArmyHST, corfav, is scout of, corvp
-   [f=-000001] 0, ArmyHST, cormist, is AntiAir of, corvp
-   [f=-000001] 0, ArmyHST, corcv, is tech of, corvp
-   [f=-000001] 0, ArmyHST, cormuskrat, is amptech of, corvp
-   [f=-000001] 0, ArmyHST, cormlv, is miner of, corvp
-   [f=-000001] 0, ArmyHST, corwolv, is artillery of, corvp
-   [f=-000001] 0, ArmyHST, corgarp, is amphibious of, corvp
-   [f=-000001] 0, ArmyHST, corgator, is raider of, corvp
-   [f=-000001] 0, ArmyHST, corlevlr, is battle of, corvp
-   [f=-000001] 0, ArmyHST, corraid, is break of, corvp
-
-   [f=-000001] 0, ArmyHST, armthovr, is transport of, armhp
-   [f=-000001] 0, ArmyHST, armsh, is scout of, armhp
-   [f=-000001] 0, ArmyHST, armah, is AntiAir of, armhp
-   [f=-000001] 0, ArmyHST, armch, is tech of, armhp
-   [f=-000001] 0, ArmyHST, armmh, is artillery of, armhp
-   [f=-000001] 0, ArmyHST, armanac, is raider of, armhp
-
-   [f=-000001] 0, ArmyHST, armcroc, is scout of, armshltxuw
-   [f=-000001] 0, ArmyHST, armmar, is AntiAir of, armshltxuw
-   [f=-000001] 0, ArmyHST, armbanth, is artillery of, armshltxuw
-
-   [f=-000001] 0, ArmyHST, armstil, is paralyzer of, armaap
-   [f=-000001] 0, ArmyHST, armpnix, is BomberAir of, armaap
-   [f=-000001] 0, ArmyHST, armlance, is BomberAir of, armaap
-   [f=-000001] 0, ArmyHST, armhawk, is fighterair of, armaap
-   [f=-000001] 0, ArmyHST, armliche, is fighterair of, armaap
-   [f=-000001] 0, ArmyHST, armdfly, is transport of, armaap
-   [f=-000001] 0, ArmyHST, armawac, is radar of, armaap
-   [f=-000001] 0, ArmyHST, armbrawl, is scout of, armaap
-   [f=-000001] 0, ArmyHST, armaca, is tech of, armaap
-   [f=-000001] 0, ArmyHST, armblade, is raider of, armaap
-
-   [f=-000001] 0, ArmyHST, cortship, is transport of, corsy
-   [f=-000001] 0, ArmyHST, coresupp, is scout of, corsy
-   [f=-000001] 0, ArmyHST, corpt, is AntiAir of, corsy
-   [f=-000001] 0, ArmyHST, corcs, is tech of, corsy
-   [f=-000001] 0, ArmyHST, correcl, is rez of, corsy
-   [f=-000001] 0, ArmyHST, corsub, is subKiller of, corsy
-   [f=-000001] 0, ArmyHST, corpship, is artillery of, corsy
-   [f=-000001] 0, ArmyHST, corroy, is raider of, corsy
-
-   [f=-000001] 0, ArmyHST, corcarry, is antinuke of, corasy
-   [f=-000001] 0, ArmyHST, corsjam, is jammer of, corasy
-   [f=-000001] 0, ArmyHST, corshark, is scout of, corasy
-   [f=-000001] 0, ArmyHST, corarch, is AntiAir of, corasy
-   [f=-000001] 0, ArmyHST, coracsub, is tech of, corasy
-   [f=-000001] 0, ArmyHST, cormls, is Engineer of, corasy
-   [f=-000001] 0, ArmyHST, corssub, is subKiller of, corasy
-   [f=-000001] 0, ArmyHST, cormship, is artillery of, corasy
-   [f=-000001] 0, ArmyHST, corcrus, is raider of, corasy
-   [f=-000001] 0, ArmyHST, corblackhy, is battle of, corasy
-   [f=-000001] 0, ArmyHST, corbats, is break of, corasy
-
-   [f=-000001] 0, ArmyHST, corak, is scout of, corlab
-   [f=-000001] 0, ArmyHST, corcrash, is AntiAir of, corlab
-   [f=-000001] 0, ArmyHST, corck, is tech of, corlab
-   [f=-000001] 0, ArmyHST, cornecro, is rez of, corlab
-   [f=-000001] 0, ArmyHST, corstorm, is artillery of, corlab
-   [f=-000001] 0, ArmyHST, corthud, is raider of, corlab
-
-   [f=-000001] 0, ArmyHST, armsb, is BomberAir of, armplat
-   [f=-000001] 0, ArmyHST, armsfig, is fighterair of, armplat
-   [f=-000001] 0, ArmyHST, armsehak, is radar of, armplat
-   [f=-000001] 0, ArmyHST, armsaber, is scout of, armplat
-   [f=-000001] 0, ArmyHST, armcsa, is tech of, armplat
-   [f=-000001] 0, ArmyHST, armseap, is raider of, armplat
-
-   [f=-000001] 0, ArmyHST, corthovr, is transport of, corhp
-   [f=-000001] 0, ArmyHST, corsh, is scout of, corhp
-   [f=-000001] 0, ArmyHST, corah, is AntiAir of, corhp
-   [f=-000001] 0, ArmyHST, corch, is tech of, corhp
-   [f=-000001] 0, ArmyHST, cormh, is artillery of, corhp
-   [f=-000001] 0, ArmyHST, corsnap, is raider of, corhp
-   [f=-000001] 0, ArmyHST, corhal, is battle of, corhp
-
-   [f=-000001] 0, ArmyHST, corseal, is scout of, corgantuw
-   [f=-000001] 0, ArmyHST, corparrow, is artillery of, corgantuw
-   [f=-000001] 0, ArmyHST, corkorg, is amphibious of, corgantuw
-   [f=-000001] 0, ArmyHST, corshiva, is amphibious of, corgantuw
-
-   [f=-000001] 0, ArmyHST, corthovr, is transport of, corfhp
-   [f=-000001] 0, ArmyHST, corsh, is scout of, corfhp
-   [f=-000001] 0, ArmyHST, corah, is AntiAir of, corfhp
-   [f=-000001] 0, ArmyHST, corch, is tech of, corfhp
-   [f=-000001] 0, ArmyHST, cormh, is artillery of, corfhp
-   [f=-000001] 0, ArmyHST, corsnap, is raider of, corfhp
-   [f=-000001] 0, ArmyHST, corhal, is battle of, corfhp
-
-   [f=-000001] 0, ArmyHST, corspy, is spy of, coralab
-   [f=-000001] 0, ArmyHST, cortermite, is spider of, coralab
-   [f=-000001] 0, ArmyHST, corroach, is crowling bomb of, coralab
-   [f=-000001] 0, ArmyHST, corsktl, is crowling bomb of, coralab
-   [f=-000001] 0, ArmyHST, corspec, is jammer of, coralab
-   [f=-000001] 0, ArmyHST, corvoyr, is radar of, coralab
-   [f=-000001] 0, ArmyHST, corpyro, is scout of, coralab
-   [f=-000001] 0, ArmyHST, coraak, is AntiAir of, coralab
-   [f=-000001] 0, ArmyHST, corack, is tech of, coralab
-   [f=-000001] 0, ArmyHST, cordecom, is fightingBuilders of, coralab
-   [f=-000001] 0, ArmyHST, cormando, is fightingBuilders of, coralab
-   [f=-000001] 0, ArmyHST, corfast, is Engineer of, coralab
-   [f=-000001] 0, ArmyHST, cormort, is artillery of, coralab
-   [f=-000001] 0, ArmyHST, coramph, is amphibious of, coralab
-   [f=-000001] 0, ArmyHST, corcan, is raider of, coralab
-   [f=-000001] 0, ArmyHST, corsumo, is battle of, coralab
-   [f=-000001] 0, ArmyHST, corhrk, is break of, coralab
-
-   [f=-000001] 0, ArmyHST, armflea, is scout of, armlab
-   [f=-000001] 0, ArmyHST, armjeth, is AntiAir of, armlab
-   [f=-000001] 0, ArmyHST, armck, is tech of, armlab
-   [f=-000001] 0, ArmyHST, armrectr, is rez of, armlab
-   [f=-000001] 0, ArmyHST, armrock, is artillery of, armlab
-   [f=-000001] 0, ArmyHST, armpw, is raider of, armlab
-   [f=-000001] 0, ArmyHST, armwar, is battle of, armlab
-   [f=-000001] 0, ArmyHST, armham, is break of, armlab
-
-   [f=-000001] 0, ArmyHST, armtship, is transport of, armsy
-   [f=-000001] 0, ArmyHST, armdecade, is scout of, armsy
-   [f=-000001] 0, ArmyHST, armpt, is AntiAir of, armsy
-   [f=-000001] 0, ArmyHST, armcs, is tech of, armsy
-   [f=-000001] 0, ArmyHST, armrecl, is rez of, armsy
-   [f=-000001] 0, ArmyHST, armsub, is subKiller of, armsy
-   [f=-000001] 0, ArmyHST, armpship, is artillery of, armsy
-   [f=-000001] 0, ArmyHST, armroy, is raider of, armsy
-
-   [f=-000001] 0, ArmyHST, armvang, is scout of, armshltx
-   [f=-000001] 0, ArmyHST, armmar, is AntiAir of, armshltx
-   [f=-000001] 0, ArmyHST, armlun, is artillery of, armshltx
-   [f=-000001] 0, ArmyHST, armbanth, is amphibious of, armshltx
-   [f=-000001] 0, ArmyHST, armraz, is battle of, armshltx
-]]
-
-
-
---[[
-armdf fake
-   ]]--
 

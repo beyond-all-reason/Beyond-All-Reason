@@ -26,7 +26,7 @@ function CleanerBST:Init()
 	self.DebugEnabled = false
 	self.name = self.unit:Internal():Name()
 	self:EchoDebug("init")
-	if self.ai.armyhst.nanoTurretList[self.name] then
+	if self.ai.armyhst._nano_[self.name] then
 		self.isStationary = true
 		self.cleaningRadius = 390
 	else

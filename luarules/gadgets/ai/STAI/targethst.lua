@@ -344,7 +344,7 @@ function TargetHST:DangerCheck(unitName, unitID)
 	if self.ai.armyhst.nukeList[un] then
 		self:CountDanger("nuke", id)
 	end
-	if self.ai.armyhst.antinukeList[un] then
+	if self.ai.armyhst.antinukes[un] then
 		self:CountDanger("antinuke", id)
 	end
 	if ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 1000 then

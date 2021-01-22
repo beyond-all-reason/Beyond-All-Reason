@@ -5,7 +5,7 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
@@ -100,7 +100,7 @@ function TaskLabBST:getSoldier()
 		soldier = self:toAmphibious(soldier)
 		if soldier then
 			self.fails = 0
-			return soldier
+			return soldier,param
 		end
 	end
 	self.fails = self.fails +1
@@ -163,7 +163,7 @@ function TaskLabBST:toAmphibious(soldier)
 	local amphRank = (((ai.mobCount['shp']) / self.ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
 	amphRank = self.amphRank or 0.5
 	self:EchoDebug('amphRank',amphRank)
-	if army.raiders[soldier] or army.battles[soldier] or army.breaks[soldier] or army.longranges[soldier] or army.artillerys[soldier] then
+	if army.raiders[soldier] or army.battles[soldier] or army.breaks[soldier] or army.artillerys[soldier] then
 		if math.random() < amphRank then
 			for name,v in pairs(self.units) do
 				if army.amphibious[name] then
@@ -191,46 +191,64 @@ end
 
 
 TaskLabBST.queue = {
-		{'techs',1,6,10},
-		{'scouts',1,nil,1},
-		{'raiders',nil,5,10},
-		{'battles',nil,7,12},
-		{'antiairs',nil,7,10},
-		{'breaks',1,5,20},
+		{'techs',1,10,15},
+		{'raiders',nil,5,10,5},
+		{'breaks',1,5,20,5},
+		{'battles',nil,7,12,5},
+		--{'scouts',1,nil,1},
+
 		{'rezs',1,8,10}, -- rezzers
 		{'engineers',1,8,10}, --help builders and build thinghs
+		{'antiairs',nil,7,10},
 		{'amptechs',1,7,5}, --amphibious builders
 		{'jammers',1,nil,1	},
 		{'radars',1,nil,1},
-		{'bomberairs',10,4,20},
+		{'bomberairs',10,4,20,5},
+		{'bomberairs',1,5,20,5},
 		{'fighterairs',1,5,10},
 		{'paralyzers',1,10,5}, --have paralyzer weapon
 		{'artillerys',0,10,5},
 		{'wartechs',1,nil,1}, --decoy etc
 		{'subkillers',1,7,5}, -- submarine weaponed
-		{'longranges',0,10,5},
 		{'breaks',nil,nil,40},
 		{'amphibious',0,7,20}, -- weapon amphibious
 -- 		{'transports',1,nil,nil},
 -- 		{'spys',1,nil,1}, -- spy bot
 -- 		{'miners',1,nil,nil},
--- 		{spiders'spiders',0,0,10}, -- all terrain spider
--- 		{'antiairs2',1,nil,1}, --in the case a lab have 2 antiair
+-- 		{'spiders',0,0,10}, -- all terrain spider
 -- 		{'antinukes',1,nil,nil},
 -- 		{'crawlings',1,nil,1},
 -- 		{'cloakables',0,0,10},
 }
 
+function TaskLabBST:preFilter()
+	local spec = self.ai.armyhst.unitTable[self.name]
+	local techLv = spec.techLevel
+	local topLevel = self.ai.maxFactoryLevel
+	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)
+	self:EchoDebug('prefilter threshold', threshold)
+	if self.ai.Metal.full > threshold then
+		return true
+	end
+end
+
 function TaskLabBST:Update()
 	local f = self.game:Frame()
 	if f % 111 == 0 then
+-- 		if not self:preFilter() then return end
 		self:GetAmpOrGroundWeapon()
 		self.isBuilding = game:GetUnitIsBuilding(self.id)--TODO better this?
 		if Spring.GetFactoryCommands(self.id,0) > 0 then return end
-		local soldier = self:getSoldier()
+		local soldier, param = self:getSoldier()
 		self:EchoDebug('update',soldier)
 		if soldier then
-			self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
+-- 			if param[5] then
+				for i=1,param[5] or 1 do
+					self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
+				end
+-- 			else
+-- 				self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
+-- 			end
 		end
 	end
 end

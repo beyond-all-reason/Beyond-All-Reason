@@ -33,7 +33,7 @@ function CountBST:Init()
 	if self.ai.armyhst.rezs[self.name] then self.isReclaimer = true end
 	if self.ai.armyhst.cleanable[self.name] then self.isCleanable = true end
 	if self.ai.armyhst.engineers[self.name] then self.isAssist = true end
-	if self.ai.armyhst.nanoTurretList[self.name] then self.isNano = true end
+	if self.ai.armyhst._nano_[self.name] then self.isNano = true end
 	if self.ai.nameCount[self.name] == nil then
 		self.ai.nameCount[self.name] = 1
 	else

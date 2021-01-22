@@ -167,7 +167,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	end
 	if pos ~= nil then
 		local uname = unitTypeToBuild:Name()
-		if self.ai.armyhst.nanoTurretList[uname] then
+		if self.ai.armyhst._nano_[uname] then
 			-- don't build nanos too far away from factory
 			local dist = self.ai.tool:Distance(originalPosition, pos)
 			self:EchoDebug("nano self.ai.tool:distance: " .. dist)
@@ -210,53 +210,6 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 	end
 	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
 end
-
--- deprecated --]]
--- function BuildSiteHST:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, dist, segmentSize, direction, i)
--- 	local pos = nil
--- 	if dist == nil then
--- 		local ut = self.ai.armyhst.unitTable[unitTypeToBuild:Name()]
--- 		dist = math.max(ut.xsize, ut.zsize) * 8
--- 		-- dist = 64
--- 	end
--- 	if segmentSize == nil then segmentSize = 1 end
--- 	if direction == nil then direction = 1 end
--- 	if i == nil then i = 0 end
--- 	-- have to set it this way, otherwise both just point to the same set of data, and originalPosition doesn't stay the same
--- 	local searchPos = api.Position()
--- 	searchPos.x = position.x + 0
--- 	searchPos.y = position.y + 0
--- 	searchPos.z = position.z + 0
---
--- 	self:EchoDebug("new spiral search")
--- 	while segmentSize < 8 do
--- 		-- self:EchoDebug(i .. " " .. direction .. " " .. segmentSize .. " : " .. math.ceil(position.x) .. " " .. math.ceil(position.z))
--- 		if direction == 1 then
--- 			searchPos.x = searchPos.x + dist
--- 		elseif direction == 2 then
--- 			searchPos.z = searchPos.z + dist
--- 		elseif direction == 3 then
--- 			searchPos.x = searchPos.x - dist
--- 		elseif direction == 4 then
--- 			searchPos.z = searchPos.z - dist
--- 		end
--- 		pos = self:CheckBuildPos(searchPos, unitTypeToBuild, builder, position)
--- 		if pos ~= nil then break end
--- 		i = i + 1
--- 		if i == segmentSize then
--- 			i = 0
--- 			direction = direction + 1
--- 			if direction == 3 then
--- 				segmentSize = segmentSize + 1
--- 			elseif direction == 5 then
--- 				segmentSize = segmentSize + 1
--- 				direction = 1
--- 			end
--- 		end
--- 	end
---
--- 	return pos
--- end
 
 
 function BuildSiteHST:ClosestHighestLevelFactory(builderPos, maxDist)
@@ -334,8 +287,8 @@ function BuildSiteHST:unitNearCheck(utype,pos,range)
 	return false
 end
 
-function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,minDist)
-	self:EchoDebug(thing)
+function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,minDist,cat)
+	self:EchoDebug(thing,cat,'searcing')
 	local pos = builder:GetPosition()
 	local builderName = builder:Name()
 	if not range then
@@ -352,7 +305,7 @@ function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,m
 		local unitNear = self.game:GetUnitByID(typeDef)
 		local unitNearName = unitNear:Name()
 		self:EchoDebug('around there ', unitNearName)
-		local tg = self.ai.armyhst.unitTable[unitNearName][thing]
+		local tg = self.ai.armyhst.unitTable[unitNearName][thing] or self.ai.armyhst[cat]
 		if tg then
 			self:EchoDebug()
 			local tgPos = unitNear:GetPosition()
@@ -436,7 +389,7 @@ function BuildSiteHST:UnitCreated(unit)
 				self.resurrectionRepair[unitID] = plan.behaviour
 			else
 				self:EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
-				if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst.nanoTurretList[unitName] then
+				if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
 					-- so that oversized factory lane rectangles will overlap with existing buildings
 					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
 					self.ai.turtlehst:PlanCreated(plan, unitID)
@@ -452,7 +405,7 @@ function BuildSiteHST:UnitCreated(unit)
 			break
 		end
 	end
-	if not planned and (self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst.nanoTurretList[unitName]) then
+	if not planned and (self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName]) then
 		-- for when we're restarting the AI, or other contingency
 		-- game:SendToConsole("unplanned building creation " .. unitName .. " " .. unitID .. " " .. position.x .. ", " .. position.z)
 		local rect = { position = position, unitName = unitName }
@@ -563,7 +516,7 @@ function BuildSiteHST:NewPlan(unitName, position, behaviour, resurrect)
 	end
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
-	if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst.nanoTurretList[unitName] then
+	if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
 		self.ai.turtlehst:NewUnit(unitName, position, plan)
 	end
 	table.insert(self.plans, plan)
@@ -574,7 +527,7 @@ function BuildSiteHST:ClearMyPlans(behaviour)
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
-			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst.nanoTurretList[unitName]) then
+			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[unitName]) then
 				self.ai.turtlehst:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)

@@ -23,7 +23,7 @@ function TasksHST:Init()
 		{'_llt_',true,false,false},
 		{'_aa1_',true,false,false},
 		{'_flak_',true,false,false},
-		{'_specialt_',true,false,false},
+		{'_specialt_',true,false,false},--limited number % Energy
 		{'_fus_',true,true,false},
 		{'_popup1_',true,false,false},
 		{'_popup2_',true,false,false},
@@ -46,7 +46,7 @@ function TasksHST:Init()
 		{'_plasma_',true,true,2},
 		{'_torpedo1_',true,false,false},
 		{'_torpedo2_',true,false,false},
-		{'_torpedoground_',true,false,false},
+		--{'_torpedoground_',true,false,false},
 		{'_aabomb_',true,false,false},
 		{'_aaheavy_',true,true,false},
 		{'_aa2_',true,true,1},
@@ -58,6 +58,7 @@ function TasksHST:Init()
 		{'_popup1_',true,false,false},
 		{'_popup2_',true,false,false}
 	}
+
 	self.roles.eco = {
 		{'factoryMobilities',true,true,false},
 		{'_wind_',true,false,false},

@@ -238,7 +238,7 @@ function Tool:ThreatRange(unitName, groundAirSubmerged)
 			return layer.threat, layer.range
 		end
 	end
-	if self.ai.armyhst.antinukeList[unitName] or self.ai.armyhst.nukeList[unitName] or self.ai.armyhst.bigPlasmaList[unitName] or self.ai.armyhst.shieldList[unitName] then
+	if self.ai.armyhst.antinukes[unitName] or self.ai.armyhst.nukeList[unitName] or self.ai.armyhst.bigPlasmaList[unitName] or self.ai.armyhst._shield_[unitName] then
 		return 0, 0
 	end
 	local utable = self.ai.armyhst.unitTable[unitName]

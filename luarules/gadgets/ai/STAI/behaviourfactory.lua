@@ -42,9 +42,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 
 
 
-	if self.ai.armyhst.nanoTurretList[un] then
+	if self.ai.armyhst._nano_[un] then
 		table.insert(b, AssistBST)
-		table.insert(b, WardBST)
+		table.insert(b, WardBST) -- TODO testing sometime nano stuck
 		table.insert(b, CleanerBST)
 	end
 
@@ -86,7 +86,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 					self.ai.advCons = 0
 				end
 
-				if self.ai.advCons == 0 and self.role == 'expand' then
+				if self.ai.advCons == 0 and self.role == 'expand' then --- not already defined role
 					-- game:SendToConsole(u:Name() .. " taskqueuing")
 					table.insert(b, MexUpBST)
 					self.ai.advCons = 1

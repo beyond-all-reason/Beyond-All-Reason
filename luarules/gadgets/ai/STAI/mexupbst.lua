@@ -50,9 +50,6 @@ function MexUpBST:OwnerIdle()
 				s = builder:Build(mohoName, self.mexPos)
 			end
 			if s then
-				-- get assistance and magnetize
-				self.ai.assisthst:PersistantSummon(builder, self.mexPos, self.ai.armyhst.helpList[mohoName])
-				self.released = false
 				self.active = true
 				self.mohoStarted = true
 				self.mexPos = nil
