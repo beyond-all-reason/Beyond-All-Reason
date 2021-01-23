@@ -88,6 +88,10 @@ return {
 			clearMapmarks = {
 				tooltip = 'Clear mapmarks/drawings',
 			},
+			buildmenu = {
+				nextpage = 'Next page',
+				previouspage = 'Previous page',
+			},
 		}
 	}
 }
