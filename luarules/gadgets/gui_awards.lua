@@ -410,11 +410,6 @@ else
 	-------------------------------------------------------------------------------------
 	-------------------------------------------------------------------------------------
 
-	local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-	local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-	local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-	local bgtexSize
-
 	local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 		awards = 'Awards',
 		score = 'Score',
@@ -463,10 +458,14 @@ else
 
 	local drawAwards = false
 	local cx, cy --coords for center of screen
-	local bx, by, bxScaled, byScaled --coords for top left hand corner of box
-	local w = 800
-	local h = 500
+	local bx, by --coords for top left hand corner of box
+	local width = 880
+	local height = 550
 	local bgMargin = 6
+	local w = math.floor(width * widgetScale)
+	local h = math.floor(height * widgetScale)
+	local quitX = math.floor(100 * widgetScale)
+	local graphsX = math.floor(250 * widgetScale)
 
 	--h = 520-bgMargin-bgMargin
 	--w = 1050-bgMargin-bgMargin
@@ -513,16 +512,19 @@ else
 		local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 		local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
 		local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-		bgtexSize = bgpadding * bgtexScale
 
 		--fix geometry
 		widgetScale = (0.75 + (vsx * vsy / 7500000))
-		cx = vsx / 2
-		cy = vsy / 2
-		bx = cx - w / 2
-		by = cy - h / 2 - 50
-		bxScaled = cx - (w * widgetScale) / 2
-		byScaled = cy - (h * widgetScale) / 2 - (50 * widgetScale)
+		w = math.floor(width * widgetScale)
+		h = math.floor(height * widgetScale)
+		cx = math.floor(vsx / 2)
+		cy = math.floor(vsy / 2)
+		bx = math.floor(cx - (w / 2))
+		by = math.floor(cy - (h / 2))
+
+		quitX = math.floor(100 * widgetScale)
+		graphsX = math.floor(250 * widgetScale)
+
 		--CreateBackground()
 		--drawAwards = true
 	end
@@ -614,30 +616,19 @@ else
 			glDeleteList(Background)
 		end
 		if Script.LuaUI("GuishaderInsertRect") then
-			Script.LuaUI.GuishaderInsertRect(math.floor(bxScaled), math.floor(byScaled), math.floor(bxScaled + (w * widgetScale)), math.floor(byScaled + (h * widgetScale)), 'awards')
+			Script.LuaUI.GuishaderInsertRect(bx, by, bx + w, by + h, 'awards')
 		end
 
 		Background = glCreateList(function()
-			-- background
-			gl.Color(0, 0, 0, 0.8)
-			RectRound(bx - bgMargin, by - bgMargin, bx + w + bgMargin, by + h + bgMargin, 8, 1, 1, 1, 1, { 0.05, 0.05, 0.05, 0.85 }, { 0, 0, 0, 0.85 })
-			-- content area
-			gl.Color(0.33, 0.33, 0.33, 0.15)
-			RectRound(bx, by, bx + w, by + h, 6, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
-			if ui_tileopacity > 0 then
-				gl.Texture(backgroundTexture)
-				gl.Color(1,1,1, ui_tileopacity)
-				TexturedRectRound(bx, by, bx + w, by + h, 6, 1,1,1,1, 0, bgtexSize)
-				gl.Texture(false)
-			end
+			UiElement(bx, by, bx + w, by + h, 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 			glColor(1, 1, 1, 1)
 			glTexture(':l:LuaRules/Images/awards.png')
-			glTexRect(bx + w / 2 - 220, by + h - 75, bx + w / 2 + 120, by + h - 5)
+			glTexRect(bx + w / 2 - math.floor(220*widgetScale), by + h - math.floor(75*widgetScale), bx + w / 2 + math.floor(120*widgetScale), by + h - math.floor(5*widgetScale))
 
 			font:Begin()
-			font:Print(texts.score, bx + w / 2 + 275, by + h - 65, 15, "o")
+			font:Print(texts.score, bx + w / 2 + math.floor(275*widgetScale), by + h - math.floor(65*widgetScale), 16*widgetScale, "o")
 			font:End()
 		end)
 	end
@@ -713,23 +704,23 @@ else
 				glColor(1, 1, 1, 1)
 				local pic = ':l:LuaRules/Images/' .. pic .. '.png'
 				glTexture(pic)
-				glTexRect(bx + 12, by + h - offset - 70, bx + 108, by + h - offset + 25)
+				glTexRect(bx + math.floor(12*widgetScale), by + h - offset - math.floor(70*widgetScale), bx + math.floor(108*widgetScale), by + h - offset + math.floor(25*widgetScale))
 
-				font:Print(colourNames(winnerID) .. winnerName, bx + 120, by + h - offset - 10, 20, "o")
-				font:Print(noteColour .. note, bx + 120, by + h - offset - 50, 16, "o")
+				font:Print(colourNames(winnerID) .. winnerName, bx + math.floor(120*widgetScale), by + h - offset - math.floor(10*widgetScale), 20*widgetScale, "o")
+				font:Print(noteColour .. note, bx + math.floor(120*widgetScale), by + h - offset - math.floor(50*widgetScale), 16*widgetScale, "o")
 			else
 				--if the cow is not awarded, we replace it with minor awards (just text)
 				local heightoffset = 0
 				if winnerID >= 0 then
-					font:Print(colourNames(winnerID) .. winnerName .. white .. ' '..texts.producedthemostresources..' (' .. math.floor(winnerScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
-					heightoffset = heightoffset + 17
+					font:Print(colourNames(winnerID) .. winnerName .. white .. ' '..texts.producedthemostresources..' (' .. math.floor(winnerScore) .. ').', bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+					heightoffset = heightoffset + (17 * widgetScale)
 				end
 				if secondID >= 0 then
-					font:Print(colourNames(secondID) .. secondName .. white .. ' '..texts.tookthemostdamage..' (' .. math.floor(secondScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
-					heightoffset = heightoffset + 17
+					font:Print(colourNames(secondID) .. secondName .. white .. ' '..texts.tookthemostdamage..' (' .. math.floor(secondScore) .. ').', bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+					heightoffset = heightoffset + (17 * widgetScale)
 				end
 				if thirdID >= 0 then
-					font:Print(colourNames(thirdID) .. thirdName .. white .. ' '..texts.sleptlongestfor..' ' .. math.floor(thirdScore / 60) .. ' '..texts.minutes..'.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+					font:Print(colourNames(thirdID) .. thirdName .. white .. ' '..texts.sleptlongestfor..' ' .. math.floor(thirdScore / 60) .. ' '..texts.minutes..'.', bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 				end
 			end
 
@@ -742,11 +733,11 @@ else
 					else
 						winnerScore = math.floor(winnerScore)
 					end
-					font:Print(colourNames(winnerID) .. winnerScore, bx + w / 2 + 275, by + h - offset - 5, 14, "o")
+					font:Print(colourNames(winnerID) .. winnerScore, bx + w / 2 + math.floor(275*widgetScale), by + h - offset - 5, 14*widgetScale, "o")
 				else
-					font:Print('-', bx + w / 2 + 275, by + h - offset - 5, 17, "o")
+					font:Print('-', bx + w / 2 + math.floor(275*widgetScale), by + h - offset - math.floor(5*widgetScale), 17*widgetScale, "o")
 				end
-				font:Print(texts.runnersup..':', bx + 500, by + h - offset - 5, 14, "o")
+				font:Print(texts.runnersup..':', bx + math.floor(500*widgetScale), by + h - offset - 5, 14*widgetScale, "o")
 
 				if secondScore > 0 then
 					if pic == 'comwreath' then
@@ -754,8 +745,8 @@ else
 					else
 						secondScore = math.floor(secondScore)
 					end
-					font:Print(colourNames(secondID) .. secondName, bx + 520, by + h - offset - 25, 14, "o")
-					font:Print(colourNames(secondID) .. secondScore, bx + w / 2 + 275, by + h - offset - 25, 14, "o")
+					font:Print(colourNames(secondID) .. secondName, bx + math.floor(520*widgetScale), by + h - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
+					font:Print(colourNames(secondID) .. secondScore, bx + w / 2 + math.floor(275*widgetScale), by + h - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
 				end
 
 				if thirdScore > 0 then
@@ -764,8 +755,8 @@ else
 					else
 						thirdScore = math.floor(thirdScore)
 					end
-					font:Print(colourNames(thirdID) .. thirdName, bx + 520, by + h - offset - 45, 14, "o")
-					font:Print(colourNames(thirdID) .. thirdScore, bx + w / 2 + 275, by + h - offset - 45, 14, "o")
+					font:Print(colourNames(thirdID) .. thirdName, bx + math.floor(520*widgetScale), by + h - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
+					font:Print(colourNames(thirdID) .. thirdScore, bx + w / 2 + math.floor(275*widgetScale), by + h - offset - 45, 14*widgetScale, "o")
 				end
 			end
 			font:End()
@@ -775,27 +766,23 @@ else
 		return thisAward
 	end
 
-	local quitX = 100
-	local graphsX = 250
-
 	function gadget:MousePress(x, y, button)
 		if drawAwards then
 			if button ~= 1 then
 				return
 			end
-			x, y = correctMouseForScaling(x, y)
 			if chobbyLoaded then
-				if (x > bx + w - quitX - 5) and (x < bx + w - quitX + 20 * font:GetTextWidth('Leave') + 5) and (y > by + 50 - 5) and (y < by + 50 + 16 + 5) then
+				if (x > bx + w - quitX - math.floor(5*widgetScale) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth('Leave') + math.floor(5*widgetScale)) and (y > by + math.floor(45*widgetScale)) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
 					--leave button
 					Spring.Reload("")
 				end
 			else
-				if (x > bx + w - quitX - 5) and (x < bx + w - quitX + 20 * font:GetTextWidth('Quit') + 5) and (y > by + 50 - 5) and (y < by + 50 + 16 + 5) then
+				if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth('Quit') + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
 					--quit button
 					Spring.SendCommands("quitforce")
 				end
 			end
-			if (x > bx + w - graphsX - 5) and (x < bx + w - graphsX + 20 * font:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close')) + 5) and (y > by + 50 - 5) and (y < by + 50 + 16 + 5) then
+			if (x > bx + w - graphsX - math.floor(5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
 				if showGraphsButton then
 					if chobbyLoaded then
 						Spring.SendCommands('endgraph 2')
@@ -811,12 +798,6 @@ else
 		end
 	end
 
-	function correctMouseForScaling(x, y)
-		x = x - (((x / vsx) - 0.5) * vsx) * ((widgetScale - 1) / widgetScale)
-		y = y - (((y / vsy) - 0.5) * vsy) * ((widgetScale - 1) / widgetScale)
-		return x, y
-	end
-
 	local chipStackOffsets = {}
 	function gadget:DrawScreen()
 
@@ -825,8 +806,8 @@ else
 		end
 
 		glPushMatrix()
-		glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-		glScale(widgetScale, widgetScale, 1)
+		--glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
+		--glScale(widgetScale, widgetScale, 1)
 
 
 		--if Background == nil then
@@ -853,25 +834,24 @@ else
 		end
 
 		--draw buttons, wastefully, but it doesn't matter now game is over
-		local x1, y1 = Spring.GetMouseState()
-		local x, y = correctMouseForScaling(x1, y1)
+		local x, y = Spring.GetMouseState()
 
 		local quitColour
 		local graphColour
 
-		if (x > bx + w - quitX - 5) and (x < bx + w - quitX + 17 * font2:GetTextWidth(texts.quit) + 5) and (y > by + 50 - 5) and (y < by + 50 + 17 + 5) then
+		if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font2:GetTextWidth(texts.quit) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5)*widgetScale)) then
 			quitColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			quitColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
 		font2:Begin()
-		font2:Print(quitColour .. (chobbyLoaded and texts.leave or texts.quit), bx + w - quitX, by + 50, 20, "o")
-		if (x > bx + w - graphsX - 5) and (x < bx + w - graphsX + 17 * font2:GetTextWidth((showGraphsButton and texts.showgraphs or texts.close)) + 5) and (y > by + 50 - 5) and (y < by + 50 + 17 + 5) then
+		font2:Print(quitColour .. (chobbyLoaded and texts.leave or texts.quit), bx + w - quitX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
+		if (x > bx + w - graphsX - (5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font2:GetTextWidth((showGraphsButton and texts.showgraphs or texts.close)) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5))*widgetScale) then
 			graphColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			graphColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
-		font2:Print(graphColour .. (showGraphsButton and texts.showgraphs or texts.close), bx + w - graphsX, by + 50, 20, "o")
+		font2:Print(graphColour .. (showGraphsButton and texts.showgraphs or texts.close), bx + w - graphsX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
 		font2:End()
 
 		glPopMatrix()

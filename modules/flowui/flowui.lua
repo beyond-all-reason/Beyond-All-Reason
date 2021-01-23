@@ -166,10 +166,9 @@ Spring.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,  
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
-
 --[[
 	RectRoundProgress
-		draw rectangle with chopped off corners
+		draw rectangle pie (TODO: not with actual chopped off corners yet)
 	params
 		px, py, sx, sy = left, bottom, right, top
 	optional
