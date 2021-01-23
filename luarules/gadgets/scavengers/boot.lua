@@ -186,6 +186,7 @@ function PutScavAlliesInScavTeam(n)
 			Spring.AssignPlayerToTeam(player, GaiaTeamID)
 			local units = Spring.GetTeamUnits(teamID)
 			for u = 1,#units do
+				scavteamhasplayers = true
 				Spring.DestroyUnit(units[u], false, true)
 				Spring.KillTeam(teamID)
 			end
@@ -199,6 +200,7 @@ function PutScavAlliesInScavTeam(n)
 		if (AI or LuaAI) and scavAllies[i] ~= GaiaTeamID then
 			local units = Spring.GetTeamUnits(scavAllies[i])
 			for u = 1,#units do
+				scavteamhasplayers = true
 				Spring.DestroyUnit(units[u], false, true)
 				Spring.KillTeam(scavAllies[i])
 			end
@@ -305,15 +307,19 @@ function gadget:GameFrame(n)
 	end
 
 	if n == 100 and globalScore then
-		Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
-		Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
+		if scavteamhasplayers == false then
+			Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
+			Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
+		end
 		Spring.SetGlobalLos(GaiaAllyTeamID, false)
 	end
 	if n%30 == 0 and globalScore then
-		Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
-		Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
-		Spring.SetTeamResource(GaiaTeamID, "m", 1000000)
-		Spring.SetTeamResource(GaiaTeamID, "e", 1000000)
+		if scavteamhasplayers == false then
+			Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
+			Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
+			Spring.SetTeamResource(GaiaTeamID, "m", 1000000)
+			Spring.SetTeamResource(GaiaTeamID, "e", 1000000)
+		end
 		if BossWaveStarted == true then
 			BossWaveTimer(n)
 		end
@@ -365,6 +371,11 @@ function gadget:GameFrame(n)
 				local scav = scavengerunits[i]
 				local scavDef = Spring.GetUnitDefID(scav)
 				local collectorRNG = math_random(0,2)
+				local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
+				if scavFirestate == 0 then
+					Spring.GiveOrderToUnit(scav,CMD.FIRE_STATE,{2},0)
+					--Spring.Echo("Forced firestate of unitID: "..scav)
+				end
 
 				if n%300 == 0 and scavconfig.modules.stockpilers == true then
 					if scavStockpiler[scav] == true then
@@ -372,13 +383,13 @@ function gadget:GameFrame(n)
 					end
 				end
 
-				if scavconfig.modules.nukes == true then
+				if scavteamhasplayers == false and scavconfig.modules.nukes == true then
 					if scavNuke[scav] == true then
 						SendRandomNukeOrder(n, scav)
 					end
 				end
 
-				if scavconfig.modules.constructorControllerModule then
+				if scavteamhasplayers == false and scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then
 						if scavConstructor[scav] then
 							if Spring.GetCommandQueue(scav, 0) <= 0 then
@@ -392,13 +403,13 @@ function gadget:GameFrame(n)
 						end
 					end
 
-					if constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
+					if scavteamhasplayers == false and constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
 						if scavResurrector[scav] then
 							ResurrectorOrders(n, scav)
 						end
 					end
 
-					if constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
+					if scavteamhasplayers == false and constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
 						if scavCollector[scav] then
 							CollectorOrders(n, scav)
 						end
@@ -412,20 +423,19 @@ function gadget:GameFrame(n)
 					end
 				end
 
-				if scavconfig.modules.factoryControllerModule then
+				if scavteamhasplayers == false and scavconfig.modules.factoryControllerModule then
 					if scavFactory[scav] and #Spring.GetFullBuildQueue(scav, 0) <= 0 then
 						FactoryProduction(n, scav, scavDef)
 					end
 				end
 
 				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
-				if n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
+				if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					SelfDestructionControls(n, scav, scavDef, false)
 				end
-				if Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
+				if scavteamhasplayers == false and Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					ArmyMoveOrders(n, scav, scavDef)
 				end
-
 			end
 		end
 	end
@@ -850,10 +860,14 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		-- Fire At Will
 		if scavConstructor[unitID] then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
-			Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{0},0)
+			if scavteamhasplayers == false then
+				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{0},0)
+			end
 		else
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-			Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+			if scavteamhasplayers == false then
+				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+			end
 		end
 	end
 end

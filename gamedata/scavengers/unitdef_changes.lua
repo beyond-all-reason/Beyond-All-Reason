@@ -30,7 +30,9 @@ end
 
 local scavUnit = {}
 for name,uDef in pairs(UnitDefs) do
-    scavUnit[#scavUnit+1] = name..'_scav'
+	if string.sub(name, 1, 3) == "arm" or string.sub(name, 1, 3) == "cor" then
+		scavUnit[#scavUnit+1] = name..'_scav'
+	end
 end
 
 -- Scav Commanders
