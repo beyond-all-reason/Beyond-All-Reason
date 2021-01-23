@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "15 april 2015",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false  --  loaded by default?
+		enabled = true  --  loaded by default?
 	}
 end
 
@@ -608,8 +608,8 @@ function widget:MouseRelease(x, y, button)
 		if playSounds then
 			Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 		end
-	elseif button == 2 then
-		-- middle mouse
+	elseif button == 3 then
+		-- right mouse
 		SelectUnitArray({ unitID })
 		SendCommands({ "viewselection" })
 		if playSounds then
