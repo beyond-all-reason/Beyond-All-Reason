@@ -44,10 +44,6 @@ return {
 		estorage = 'E storage',
 		mstorage = 'M storage',
 	},
-	buildmenu = {
-		nextpage = 'Next page',
-		previouspage = 'Previous page',
-	},
 	ordermenu = {
 		Move = 'Move',
 		Move_tooltip = 'Move a unit towards a position or follow other units',
