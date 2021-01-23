@@ -13,10 +13,13 @@ local warhighTracks = VFS.DirList(musicDir..'warhigh', '*.ogg')
 local warlowTracks = VFS.DirList(musicDir..'warlow', '*.ogg')
 local victoryTracks = VFS.DirList(musicDir..'victory', '*.ogg')
 local defeatTracks = VFS.DirList(musicDir..'defeat', '*.ogg')
+if #victoryTracks == 0 then victoryTracks = introTracks end
+if #defeatTracks == 0 then defeatTracks = introTracks end
 
 local currentTrackList = introTracks
 
 local gameOver = false
+local playedGameOverTrack = false
 local silenceTimer = 0
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
@@ -63,14 +66,22 @@ function widget:Initialize()
 end
 
 function PlayNewTrack()
+	Spring.StopSoundStream()
 	appliedSilence = false
 	prevTrack = curTrack
 	curTrack = nil
 	Spring.Echo("[NewMusicPlayer] Warmeter: "..warMeter)
 
-
 	currentTrackList = nil
-	if warMeter >= 20000 then
+	if gameOver == true then
+		if VictoryMusic == true then
+			currentTrackList = victoryTracks
+			playedGameOverTrack = true
+		else
+			currentTrackList = defeatTracks
+			playedGameOverTrack = true
+		end
+	elseif warMeter >= 20000 then
 		currentTrackList = warhighTracks
 		Spring.Echo("[NewMusicPlayer] Playing warhigh track")
 	elseif warMeter >= 1000 then
@@ -99,16 +110,22 @@ function PlayNewTrack()
 		
 	if curTrack then
 		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
-		Spring.PlaySoundStream(curTrack, musicVolume)
+		Spring.PlaySoundStream(curTrack, 1)
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
 	warMeter = 0
 end
 
 
-function widget:UnitDamaged(_,_,_,damage)
+function widget:UnitDamaged(unitID,unitDefID,_,damage)
 	if damage > 1 then
-		warMeter = math.ceil(warMeter + damage)
+		local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
+		if damage > maxHealth then
+			local damage = maxHealth
+			warMeter = math.ceil(warMeter + damage)
+		else
+			warMeter = math.ceil(warMeter + damage)
+		end
 	end
 end
 
@@ -117,6 +134,9 @@ function widget:GameFrame(n)
 		Spring.StopSoundStream()
 	end
 	if n%30 == 15 then
+		if gameOver == true and playedGameOverTrack == false then
+			PlayNewTrack()
+		end
 		playedTime, totalTime = Spring.GetSoundStreamTime()
 		if playedTime > 0 and totalTime > 0 then -- music is playing
 			local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
@@ -148,6 +168,16 @@ function widget:GameFrame(n)
 	end
 end
 
+function widget:GameOver(winningAllyTeams)
+	gameOver = true
+	local myTeamID = Spring.GetMyTeamID()
+	local myTeamUnits = Spring.GetTeamUnits(myTeamID)
+	if #myTeamUnits > 0 then
+		VictoryMusic = true
+	elseif #myTeamUnits == 0 then
+		VictoryMusic = false
+	end
+end
 
 
 
