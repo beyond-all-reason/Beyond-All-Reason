@@ -71,7 +71,7 @@ function PlayNewTrack()
 	appliedSilence = false
 	prevTrack = curTrack
 	curTrack = nil
-	Spring.Echo("[NewMusicPlayer] Warmeter: "..warMeter)
+	--Spring.Echo("[NewMusicPlayer] Warmeter: "..warMeter)
 
 	currentTrackList = nil
 	if gameOver == true then
@@ -84,17 +84,17 @@ function PlayNewTrack()
 		end
 	elseif warMeter >= 20000 then
 		currentTrackList = warhighTracks
-		Spring.Echo("[NewMusicPlayer] Playing warhigh track")
+		--Spring.Echo("[NewMusicPlayer] Playing warhigh track")
 	elseif warMeter >= 1000 then
 		currentTrackList = warlowTracks
-		Spring.Echo("[NewMusicPlayer] Playing warlow track")
+		--Spring.Echo("[NewMusicPlayer] Playing warlow track")
 	else
 		currentTrackList = peaceTracks
-		Spring.Echo("[NewMusicPlayer] Playing peace track")
+		--Spring.Echo("[NewMusicPlayer] Playing peace track")
 	end
 
 	if not currentTrackList  then
-		Spring.Echo("[NewMusicPlayer] there is some issue with getting track list")
+		--Spring.Echo("[NewMusicPlayer] there is some issue with getting track list")
 		return
 	end
 
@@ -105,7 +105,7 @@ function PlayNewTrack()
 	elseif #currentTrackList == 1 then
 		curTrack = currentTrackList[1]
 	elseif #currentTrackList == 0 then
-		Spring.Echo("[NewMusicPlayer] empty track list")
+		--Spring.Echo("[NewMusicPlayer] empty track list")
 		return
 	end
 		
@@ -147,7 +147,7 @@ function widget:GameFrame(n)
 				Spring.SetSoundStreamVolume(musicVolume)
 				if warMeter > 0 then
 					warMeter = math.floor(warMeter - (warMeter*0.02))
-					Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
+					--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
 				end
 			elseif totalTime == 0 then -- there's no music
 				if appliedSilence == true and silenceTimer <= 0 then
@@ -155,17 +155,17 @@ function widget:GameFrame(n)
 				elseif appliedSilence == false and silenceTimer <= 0 then
 					if enableSilenceGaps == true then
 						silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-						Spring.Echo("[NewMusicPlayer] Silence Time: ".. silenceTimer)
+						--Spring.Echo("[NewMusicPlayer] Silence Time: ".. silenceTimer)
 					else
 						silenceTimer = 1
 					end
 					appliedSilence = true
 				elseif appliedSilence == true and silenceTimer > 0 then
 					silenceTimer = silenceTimer - 1
-					Spring.Echo("[NewMusicPlayer] Silence Time Left: ".. silenceTimer)
+					--Spring.Echo("[NewMusicPlayer] Silence Time Left: ".. silenceTimer)
 					if warMeter > 0 then
 						warMeter = math.floor(warMeter - (warMeter*0.02))
-						Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
+						--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
 					end
 				end
 			end
