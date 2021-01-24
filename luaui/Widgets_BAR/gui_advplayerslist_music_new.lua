@@ -62,9 +62,9 @@ function widget:GetInfo()
 	}
 end
 
-function widget:Initialize()
-	Spring.StopSoundStream() -- only for testing purposes
-end
+--function widget:Initialize()
+	--Spring.StopSoundStream() -- only for testing purposes
+--end
 
 function PlayNewTrack()
 	Spring.StopSoundStream()
@@ -131,9 +131,9 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 end
 
 function widget:GameFrame(n)
-	if n == 1 then
-		Spring.StopSoundStream()
-	end
+	--if n == 1 then
+		--Spring.StopSoundStream()
+	--end
 	if gameOver == true and playedGameOverTrack == false and endfadelevel ~= 999 then
 		endfadelevel = endfadelevel - ((Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))/60)
 		local musicVolume = endfadelevel*0.01
