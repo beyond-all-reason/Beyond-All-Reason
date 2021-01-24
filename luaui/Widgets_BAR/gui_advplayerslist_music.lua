@@ -263,7 +263,7 @@ local function createList()
 
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/50)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/100)
 
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding+heightoffset, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
@@ -392,7 +392,7 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 50)
+			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 100)
 			Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
 			createList()
 		end
@@ -421,7 +421,7 @@ function mouseEvent(x, y, button, release)
 			local button = 'musicvolume'
 			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 				draggingSlider = button
-				maxMusicVolume = math.floor(getSliderValue(button, x) * 50)
+				maxMusicVolume = math.floor(getSliderValue(button, x) * 100)
 				Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
 				createList()
 			end
@@ -742,25 +742,25 @@ function widget:DrawScreen()
 			end
 			if mouseover then
 
-			  -- display play progress
-			  local progressPx = math.floor((right-left)*(playedTime/totalTime))
-			  if progressPx > 1 then
-			    if progressPx < borderPadding*5 then
-			    	progressPx = borderPadding*5
-			    end
-			    RectRound(left+borderPaddingLeft, bottom+borderPadding-(1.8*widgetScale), left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.4, 2,2,2,2, {0.6,0.6,0.6,ui_opacity*0.14}, {1,1,1,ui_opacity*0.14})
-			  end
+				-- display play progress
+				local progressPx = math.floor((right - left) * (playedTime / totalTime))
+				if progressPx > 1 then
+					if progressPx < borderPadding * 5 then
+						progressPx = borderPadding * 5
+					end
+					RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.14 }, { 1, 1, 1, ui_opacity * 0.14 })
+				end
 
-			local color = {1,1,1,0.1}
-			local colorHighlight = {1,1,1,0.3}
-			  glBlending(GL_SRC_ALPHA, GL_ONE)
-			  local button = 'playpause'
-				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1,1,1,1, 1,1,1,1, 1, mlb and colorHighlight or color)
+				local color = { 1, 1, 1, 0.1 }
+				local colorHighlight = { 1, 1, 1, 0.3 }
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				local button = 'playpause'
+				if buttons[button] ~= nil and isInBox(mx, my, { buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4] }) then
+					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 				end
 				button = 'next'
-				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1,1,1,1, 1,1,1,1, 1, mlb and colorHighlight or color)
+				if buttons[button] ~= nil and isInBox(mx, my, { buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4] }) then
+					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 				end
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end

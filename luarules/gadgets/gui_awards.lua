@@ -460,7 +460,7 @@ else
 	local cx, cy --coords for center of screen
 	local bx, by --coords for top left hand corner of box
 	local width = 880
-	local height = 550
+	local height = 620
 	local bgMargin = 6
 	local w = math.floor(width * widgetScale)
 	local h = math.floor(height * widgetScale)
@@ -737,7 +737,7 @@ else
 				else
 					font:Print('-', bx + w / 2 + math.floor(275*widgetScale), by + h - offset - math.floor(5*widgetScale), 17*widgetScale, "o")
 				end
-				font:Print(texts.runnersup..':', bx + math.floor(500*widgetScale), by + h - offset - 5, 14*widgetScale, "o")
+				font:Print(texts.runnersup..':', bx + math.floor(500*widgetScale), by + h - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
 
 				if secondScore > 0 then
 					if pic == 'comwreath' then
@@ -756,7 +756,7 @@ else
 						thirdScore = math.floor(thirdScore)
 					end
 					font:Print(colourNames(thirdID) .. thirdName, bx + math.floor(520*widgetScale), by + h - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
-					font:Print(colourNames(thirdID) .. thirdScore, bx + w / 2 + math.floor(275*widgetScale), by + h - offset - 45, 14*widgetScale, "o")
+					font:Print(colourNames(thirdID) .. thirdScore, bx + w / 2 + math.floor(275*widgetScale), by + h - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
 				end
 			end
 			font:End()
