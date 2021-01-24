@@ -20,6 +20,7 @@ local currentTrackList = introTracks
 
 local gameOver = false
 local playedGameOverTrack = false
+local endfadelevel = 999
 local silenceTimer = 0
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
@@ -133,36 +134,52 @@ function widget:GameFrame(n)
 	if n == 1 then
 		Spring.StopSoundStream()
 	end
+	if gameOver == true and playedGameOverTrack == false and endfadelevel ~= 999 then
+		endfadelevel = endfadelevel - ((Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))/60)
+		local musicVolume = endfadelevel*0.01
+		Spring.SetSoundStreamVolume(musicVolume)
+	end
 	if n%30 == 15 then
-		if gameOver == true and playedGameOverTrack == false then
-			PlayNewTrack()
-		end
 		playedTime, totalTime = Spring.GetSoundStreamTime()
-		if playedTime > 0 and totalTime > 0 then -- music is playing
-			local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
-			Spring.SetSoundStreamVolume(musicVolume)
-			if warMeter > 0 then
-				warMeter = math.floor(warMeter - (warMeter*0.02))
-				Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
-			end
-		elseif totalTime == 0 then -- there's no music
-			if appliedSilence == true and silenceTimer <= 0 then
-				PlayNewTrack()
-			elseif appliedSilence == false and silenceTimer <= 0 then
-				if enableSilenceGaps == true then
-					silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-					Spring.Echo("[NewMusicPlayer] Silence Time: ".. silenceTimer)
-				else
-					silenceTimer = 1
-				end
-				appliedSilence = true
-			elseif appliedSilence == true and silenceTimer > 0 then
-				silenceTimer = silenceTimer - 1
-				Spring.Echo("[NewMusicPlayer] Silence Time Left: ".. silenceTimer)
+		if gameOver == false then
+			if playedTime > 0 and totalTime > 0 then -- music is playing
+				local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
+				Spring.SetSoundStreamVolume(musicVolume)
 				if warMeter > 0 then
 					warMeter = math.floor(warMeter - (warMeter*0.02))
 					Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
 				end
+			elseif totalTime == 0 then -- there's no music
+				if appliedSilence == true and silenceTimer <= 0 then
+					PlayNewTrack()
+				elseif appliedSilence == false and silenceTimer <= 0 then
+					if enableSilenceGaps == true then
+						silenceTimer = math.random(minSilenceTime,maxSilenceTime)
+						Spring.Echo("[NewMusicPlayer] Silence Time: ".. silenceTimer)
+					else
+						silenceTimer = 1
+					end
+					appliedSilence = true
+				elseif appliedSilence == true and silenceTimer > 0 then
+					silenceTimer = silenceTimer - 1
+					Spring.Echo("[NewMusicPlayer] Silence Time Left: ".. silenceTimer)
+					if warMeter > 0 then
+						warMeter = math.floor(warMeter - (warMeter*0.02))
+						Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
+					end
+				end
+			end
+		end
+		if gameOver == true and playedGameOverTrack == false then
+			if totalTime > 0 then
+				if endfadelevel == 999 then
+					endfadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))
+				elseif endfadelevel <= 0 then
+					silenceTimer = 0
+					PlayNewTrack()
+				end
+			else
+				PlayNewTrack()
 			end
 		end
 	end
