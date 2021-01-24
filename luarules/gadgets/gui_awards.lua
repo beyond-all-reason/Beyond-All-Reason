@@ -467,9 +467,6 @@ else
 	local quitX = math.floor(100 * widgetScale)
 	local graphsX = math.floor(250 * widgetScale)
 
-	--h = 520-bgMargin-bgMargin
-	--w = 1050-bgMargin-bgMargin
-
 	local Background
 	local FirstAward
 	local SecondAward

@@ -25,6 +25,9 @@ end
 
 -- Spring triggered callins (widget/gadget)
 Spring.FlowUI.ViewResize = function(vsx, vsy)
+	if not vsy then
+		vsx, vsy = Spring.GetViewGeometry()
+	end
 	if Spring.FlowUI.vsx and (Spring.FlowUI.vsx == vsx and Spring.FlowUI.vsy == vsy) then
 		return
 	end
