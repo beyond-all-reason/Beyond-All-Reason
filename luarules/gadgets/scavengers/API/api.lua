@@ -163,6 +163,9 @@ function teamsCheck()
 	if not killedscavengers then
 		killedscavengers = 0
 	end
+	if scoreTeamCount == 1 then
+		scoreTeamCount = 2
+	end
 	local timeScore = Spring.GetGameSeconds()*scavconfig.scoreConfig.scorePerSecond
 	if scavTechDifficulty == "adaptive" then
 		globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + timeScore)
