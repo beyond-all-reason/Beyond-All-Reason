@@ -135,11 +135,11 @@ function widget:GameFrame(n)
 		--Spring.StopSoundStream()
 	--end
 	if gameOver == true and playedGameOverTrack == false and endfadelevel ~= 999 then
-		endfadelevel = endfadelevel - ((Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))/60)
+		endfadelevel = endfadelevel - ((Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))/45)
 		local musicVolume = endfadelevel*0.01
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
-	if n%30 == 15 then
+	if n%30 == 15 or gameOver == true then
 		playedTime, totalTime = Spring.GetSoundStreamTime()
 		if gameOver == false then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
