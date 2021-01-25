@@ -166,14 +166,14 @@ local pics = {
     sizednPic = imageDirectory .. "sizedn.dds",
     sizeupPic = imageDirectory .. "sizeup.dds",
 
-    rank0 = imageDirectory .. "ranks/0.png",
-    rank1 = imageDirectory .. "ranks/1.png",
-    rank2 = imageDirectory .. "ranks/2.png",
-    rank3 = imageDirectory .. "ranks/3.png",
-    rank4 = imageDirectory .. "ranks/4.png",
-    rank5 = imageDirectory .. "ranks/5.png",
-    rank6 = imageDirectory .. "ranks/6.png",
-    rank7 = imageDirectory .. "ranks/7.png",
+    rank0 = imageDirectory .. "ranks/1.png",
+    rank1 = imageDirectory .. "ranks/2.png",
+    rank2 = imageDirectory .. "ranks/3.png",
+    rank3 = imageDirectory .. "ranks/4.png",
+    rank4 = imageDirectory .. "ranks/5.png",
+    rank5 = imageDirectory .. "ranks/6.png",
+    rank6 = imageDirectory .. "ranks/7.png",
+    rank7 = imageDirectory .. "ranks/8.png",
 }
 
 local sidePics = {}  -- loaded in SetSidePics function
