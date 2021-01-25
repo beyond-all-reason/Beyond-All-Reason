@@ -460,7 +460,7 @@ else
 	local cx, cy --coords for center of screen
 	local bx, by --coords for top left hand corner of box
 	local width = 880
-	local height = 620
+	local height = 550
 	local bgMargin = 6
 	local w = math.floor(width * widgetScale)
 	local h = math.floor(height * widgetScale)
