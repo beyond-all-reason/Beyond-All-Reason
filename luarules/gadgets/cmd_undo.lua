@@ -177,11 +177,9 @@ if gadgetHandler:IsSyncedCode() then
 
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
-			for _,name in ipairs(authorizedPlayers) do
-				if playername == name then
-					authorized = true
-					break
-				end
+			local authorized = false
+			if authorizedPlayers[playername] then
+				authorized = true
 			end
 			if playername ~= "UnnamedPlayer" then
 				if not authorized then

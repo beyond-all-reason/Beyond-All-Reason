@@ -102,12 +102,9 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
-			for _,name in ipairs(authorizedPlayers) do
-				if playername == name then
-					authorized = true
-					givenSomethingAtFrame = Spring.GetGameFrame()
-					break
-				end
+			if authorizedPlayers[playername] then
+				authorized = true
+				givenSomethingAtFrame = Spring.GetGameFrame()
 			end
 			if authorized == nil then
 				Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
@@ -167,11 +164,8 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 		function RequestGive(cmd, line, words, playerID)
 			local playername = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 			local authorized = false
-			for _,name in ipairs(authorizedPlayers) do
-				if playername == name then
-					authorized = true
-					break
-				end
+			if authorizedPlayers[playername] then
+				authorized = true
 			end
 			if authorized then
 				local mx,my = Spring.GetMouseState()
