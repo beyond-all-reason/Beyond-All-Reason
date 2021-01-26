@@ -5417,8 +5417,8 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", 10000)
 		end
 
-		if Spring.GetConfigInt("MaxSounds", 128) < 64 then
-			Spring.SetConfigInt("MaxSounds", 64)
+		if Spring.GetConfigInt("MaxSounds", 128) < 256 then
+			Spring.SetConfigInt("MaxSounds", 256)
 		end
 
 		-- limit music volume
